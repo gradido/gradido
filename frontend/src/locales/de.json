@@ -4,7 +4,6 @@
   "125": "125%",
   "85": "85%",
   "advanced-calculation": "Vorausberechnung",
-  "member": "Mitglied",
   "auth": {
     "left": {
       "dignity": "Würde",
@@ -22,16 +21,13 @@
     "community": "Gemeinschaft",
     "communityMember": "Du bist aktives Mitglied",
     "continue-to-registration": "Weiter zur Registrierung",
-    "current-community": "Aktuelle Gemeinschaft",
     "moderator": "Moderator",
     "moderators": "Moderatoren",
     "myContributions": "Meine Beiträge",
     "noOpenContributionLinkText": "Zur Zeit gibt es keine automatischen Schöpfungen.",
     "openContributionLinks": "Öffentliche Beitrags-Linkliste",
     "openContributionLinkText": "Folgende {count} automatische Schöpfungen werden zur Zeit durch die Gemeinschaft „{name}“ bereitgestellt.",
-    "other-communities": "Weitere Gemeinschaften",
-    "submitContribution": "Beitrag einreichen",
-    "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
+    "submitContribution": "Beitrag einreichen"
   },
   "contact": "Kontakt",
   "contribution": {
@@ -168,7 +164,6 @@
     "copy-link-with-text": "Link und Text kopieren",
     "created": "Der Link wurde erstellt!",
     "credit-your-gradido": "Damit die Gradido gutgeschrieben werden können, klicke auf den Link!",
-    "decay-14-day": "Vergänglichkeit für 14 Tage",
     "delete-the-link": "Den Link löschen?",
     "deleted": "Der Link wurde gelöscht!",
     "expiredOn": "Abgelaufen am",
@@ -197,7 +192,6 @@
   },
   "GDT": "GDT",
   "gdt": {
-    "gdt": "Gradido Transform",
     "calculation": "Berechnung der Gradido Transform",
     "contribution": "Beitrag",
     "conversion": "Umrechnung",
@@ -206,6 +200,7 @@
     "factor": "Faktor",
     "formula": "Berechnungsformel",
     "funding": "Zu den Förderbeiträgen",
+    "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) erhalten",
     "gdtKonto": "GDT Konto",
     "no-transactions": "Du hast noch keine Gradido Transform (GDT).",
@@ -214,17 +209,17 @@
     "raise": "Erhöhung",
     "recruited-member": "Eingeladenes Mitglied"
   },
-
+  "gradidoLink": "Gradido Link",
   "language": "Sprache",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
   "login": "Anmelden",
   "math": {
-    "aprox": "~",
     "asterisk": "*",
     "equal": "=",
     "minus": "−",
     "pipe": "|"
   },
+  "member": "Mitglied",
   "message": {
     "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite an.",
     "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.",
@@ -247,11 +242,9 @@
     "send": "Senden",
     "settings": "Einstellung",
     "support": "Support",
-    "topStories": "Top Stories",
     "transactions": "Transaktionen"
   },
   "qrCode": "QR Code",
-  "sendMethod": "Versandart",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
   "session": {
