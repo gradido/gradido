@@ -38,7 +38,7 @@ describe('AuthNavbar', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.auth-header').exists()).toBeTruthy()
+      expect(wrapper.find('div.navbar-component').exists()).toBeTruthy()
     })
 
     it('has a .navbar-brand element', () => {
