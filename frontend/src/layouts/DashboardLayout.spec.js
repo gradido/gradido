@@ -3,7 +3,7 @@ import flushPromises from 'flush-promises'
 import DashboardLayout from './DashboardLayout'
 
 import { toastErrorSpy } from '@test/testSetup'
-import { async } from 'regenerator-runtime'
+// import { async } from 'regenerator-runtime'
 // import { nextTick } from 'vue/types/umd'
 
 jest.useFakeTimers()
@@ -81,23 +81,19 @@ describe('DashboardLayout', () => {
         expect(wrapper.findComponent({ name: 'SkeletonOverview' }).exists()).toBe(true)
       })
     })
- 
+
     describe.skip('whiteout Skeleton', () => {
       beforeEach(async () => {
-        await new Promise(res => setTimeout(res, 1500));
-      //  await jest.advanceTimersByTime(1500)
+        // await new Promise((res) => setTimeout(res, 1500))
+        //  await jest.advanceTimersByTime(1500)
         // jest.useFakeTimers()
         // jest.runTimersToTime(2500)
         // await jest.runAllTimers()
         // await wrapper.vm.$nextTick()
         // await wrapper.setData({
-           
         //     skeleton: false,
-          
         // })
       })
-
-    
 
       it('has a component Navbar', () => {
         expect(wrapper.findComponent({ name: 'Navbar' }).exists()).toBe(true)
