@@ -9,6 +9,14 @@ import CONFIG from './config'
 async function main() {
   const { app } = await createServer()
 
+  if (CONFIG.FEDERATION_COMMUNITY_ACTIVATE_ENDPOINTS) {
+    // eslint-disable-next-line no-console
+    console.log(`activate community graphql-endpoints for federation-handshake...`)
+    const { endpoints} = await activateEndpoints() 
+    // eslint-disable-next-line no-console
+    console.log(`activated endpoints: ${JSON.stringify(endpoints)}`)
+  }
+
   app.listen(CONFIG.PORT, () => {
     // eslint-disable-next-line no-console
     console.log(`Server is running at http://localhost:${CONFIG.PORT}`)
