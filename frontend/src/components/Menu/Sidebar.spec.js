@@ -65,15 +65,21 @@ describe('Sidebar', () => {
         })
 
         it('has nav-item "navigation.info" in navbar', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(0).text()).toEqual('navigation.info')
+          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(0).text()).toEqual(
+            'navigation.info',
+          )
         })
 
         it('has nav-item "navigation.settings" in navbar', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(1).text()).toEqual('navigation.settings')
+          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(1).text()).toEqual(
+            'navigation.settings',
+          )
         })
 
         it('has nav-item "navigation.logout" in navbar', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(2).text()).toEqual('navigation.logout')
+          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(2).text()).toEqual(
+            'navigation.logout',
+          )
         })
       })
 
@@ -88,19 +94,27 @@ describe('Sidebar', () => {
         })
 
         it('has nav-item "navigation.info" in navbar', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(0).text()).toEqual('navigation.info')
+          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(0).text()).toEqual(
+            'navigation.info',
+          )
         })
 
         it('has nav-item "navigation.settings" in navbar', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(1).text()).toEqual('navigation.settings')
+          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(1).text()).toEqual(
+            'navigation.settings',
+          )
         })
 
         it('has nav-item "navigation.admin_area" in navbar', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(2).text()).toEqual('navigation.admin_area')
+          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(2).text()).toEqual(
+            'navigation.admin_area',
+          )
         })
 
         it('has nav-item "navigation.logout" in navbar', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(3).text()).toEqual('navigation.logout')
+          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(3).text()).toEqual(
+            'navigation.logout',
+          )
         })
       })
     })
