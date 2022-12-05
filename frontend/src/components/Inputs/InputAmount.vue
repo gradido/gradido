@@ -1,29 +1,31 @@
 <template>
-  <validation-provider
-    tag="div"
-    :rules="rules"
-    :name="name"
-    v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
-  >
-    <b-form-group :label="label" :label-for="labelFor">
-      <b-form-input
-        v-model="currentValue"
-        v-bind="ariaInput"
-        :id="labelFor"
-        :name="name"
-        :placeholder="placeholder"
-        type="text"
-        :state="validated ? valid : false"
-        trim
-        v-focus="amountFocused"
-        @focus="amountFocused = true"
-        @blur="normalizeAmount(valid)"
-      ></b-form-input>
-      <b-form-invalid-feedback v-bind="ariaMsg">
-        {{ errors[0] }}
-      </b-form-invalid-feedback>
-    </b-form-group>
-  </validation-provider>
+  <div class="input-amount">
+    <validation-provider
+      tag="div"
+      :rules="rules"
+      :name="name"
+      v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
+    >
+      <b-form-group :label="label" :label-for="labelFor">
+        <b-form-input
+          v-model="currentValue"
+          v-bind="ariaInput"
+          :id="labelFor"
+          :name="name"
+          :placeholder="placeholder"
+          type="text"
+          :state="validated ? valid : false"
+          trim
+          v-focus="amountFocused"
+          @focus="amountFocused = true"
+          @blur="normalizeAmount(valid)"
+        ></b-form-input>
+        <b-form-invalid-feedback v-bind="ariaMsg">
+          {{ errors[0] }}
+        </b-form-invalid-feedback>
+      </b-form-group>
+    </validation-provider>
+  </div>
 </template>
 <script>
 export default {
