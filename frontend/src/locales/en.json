@@ -4,7 +4,6 @@
   "125": "125%",
   "85": "85%",
   "advanced-calculation": "Advanced calculation",
-  "member": "Member",
   "auth": {
     "left": {
       "dignity": "Dignity",
@@ -22,16 +21,13 @@
     "community": "Community",
     "communityMember": "You are an active member",
     "continue-to-registration": "Continue to registration",
-    "current-community": "Current community",
     "moderator": "Moderator",
     "moderators": "Moderators",
     "myContributions": "My contributions",
     "noOpenContributionLinkText": "Currently there are no automatic creations.",
     "openContributionLinks": "Open contribution-link list",
     "openContributionLinkText": "The following {count} automatic creations are currently provided by the \"{name}\" community.",
-    "other-communities": "Other communities",
-    "submitContribution": "Submit contribution",
-    "switch-to-this-community": "Switch to this community"
+    "submitContribution": "Submit contribution"
   },
   "contact": "Contact",
   "contribution": {
@@ -168,7 +164,6 @@
     "copy-link-with-text": "Copy link and text",
     "created": "Link was created!",
     "credit-your-gradido": "For the Gradido to be credited, click on the link!",
-    "decay-14-day": "Decay for 14 days",
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
     "expiredOn": "Expired on",
@@ -197,7 +192,6 @@
   },
   "GDT": "GDT",
   "gdt": {
-    "gdt": "Gradido Transform",
     "calculation": "Calculation of Gradido Transform",
     "contribution": "Contribution",
     "conversion": "Conversion",
@@ -206,6 +200,7 @@
     "factor": "Factor",
     "formula": "Calculation formula",
     "funding": "To the funding contributions",
+    "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) received",
     "gdtKonto": "GDT Konto",
     "no-transactions": "You do not have Gradido Transform (GDT) yet.",
@@ -214,16 +209,17 @@
     "raise": "Increase",
     "recruited-member": "Invited member"
   },
+  "gradidoLink": "Gradido Link",
   "language": "Language",
   "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
   "login": "Sign in",
   "math": {
-    "aprox": "~",
     "asterisk": "*",
     "equal": "=",
     "minus": "−",
     "pipe": "|"
   },
+  "member": "Member",
   "message": {
     "activateEmail": "Your account has not been activated yet. Please check your emails and click the activation link or order a new activation link over the password reset page.",
     "checkEmail": "Your email has been successfully verified. You can sign in now.",
@@ -246,11 +242,9 @@
     "send": "Send",
     "settings": "Settings",
     "support": "Support",
-    "topStories": "Top Stories",
     "transactions": "Transactions"
   },
   "qrCode": "QR Code",
-  "sendMethod": "Send Methods",
   "send_gdd": "GDD send",
   "send_per_link": "GDD send via link",
   "session": {

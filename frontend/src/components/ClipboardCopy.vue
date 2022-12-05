@@ -3,14 +3,14 @@
     <div v-if="canCopyLink" size="lg" class="mb-5">
       <div class="d-flex">
         <div>
-          <label>Gradido Link</label>
+          <label>{{ $t('gradidoLink') }}</label>
           <div class="pointer text-center bg-secondary gradido-border-radius p-4" @click="copyLink">
             {{ link }}
             <!-- <b-icon icon="clipboard-plus" class="ml-5"></b-icon> -->
           </div>
         </div>
         <div class="ml-5">
-          <label>Kopieren</label>
+          <label>{{ $t('gdd_per_link.copy-link') }}</label>
           <div>
             <b-button @click="copyLinkWithText" class="p-4">
               <b-icon icon="link45deg"></b-icon>
