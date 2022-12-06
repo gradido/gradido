@@ -5,9 +5,8 @@ import { AuthChecker } from 'type-graphql'
 import { decode, encode } from '@/auth/JWT'
 import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN } from '@/auth/ROLES'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { getCustomRepository } from '@dbTools/typeorm'
-import { UserRepository } from '@repository/User'
 import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
+import { User } from '@entity/User'
 
 const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
@@ -26,14 +25,13 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   if (!decoded) {
     throw new Error('403.13 - Client certificate revoked')
   }
-  // Set context pubKey
-  context.pubKey = Buffer.from(decoded.pubKey).toString('hex')
+  // Set context gradidoID
+  context.gradidoID = decoded.gradidoID
 
   // TODO - load from database dynamically & admin - maybe encode this in the token to prevent many database requests
   // TODO this implementation is bullshit - two database queries cause our user identifiers are not aligned and vary between email, id and pubKey
-  const userRepository = getCustomRepository(UserRepository)
   try {
-    const user = await userRepository.findByPubkeyHex(context.pubKey)
+    const user = await User.findOneOrFail({ where: { gradidoID: decoded.gradidoID } })
     context.user = user
     context.role = user.isAdmin ? ROLE_ADMIN : ROLE_USER
   } catch {
@@ -48,7 +46,7 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   }
 
   // set new header token
-  context.setHeaders.push({ key: 'token', value: encode(decoded.pubKey) })
+  context.setHeaders.push({ key: 'token', value: encode(decoded.gradidoID) })
   return true
 }
 

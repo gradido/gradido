@@ -11,7 +11,7 @@ export const decode = (token: string): CustomJwtPayload | null => {
   }
 }
 
-export const encode = (gradidoID: Buffer): string => {
+export const encode = (gradidoID: string): string => {
   const token = jwt.sign({ gradidoID }, CONFIG.JWT_SECRET, {
     expiresIn: CONFIG.JWT_EXPIRES_IN,
   })
