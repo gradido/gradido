@@ -29,6 +29,7 @@
     "openContributionLinkText": "The following {count} automatic creations are currently provided by the \"{name}\" community.",
     "submitContribution": "Submit contribution"
   },
+  "lastMonth":"Last month",
   "contact": "Contact",
   "contribution": {
     "activity": "Activity",

@@ -10,7 +10,7 @@
       </b-col>
       <b-col cols="3">
         <div class="small">{{ $t('send_per_link') }}</div>
-        <div class="small">{{ amount | GDD }}</div>
+        <div class="font-weight-bold">{{ amount | GDD }}</div>
       </b-col>
       <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>
     </b-row>

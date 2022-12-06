@@ -309,6 +309,7 @@
     }
   },
   "success": "Erfolg",
+  "lastMonth":"letzter Monat",
   "time": {
     "days": "Tage",
     "hours": "Stunden",
