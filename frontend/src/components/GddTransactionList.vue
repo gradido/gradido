@@ -1,6 +1,6 @@
 <template>
   <div class="gdd-transaction-list">
-    <div class="list-group">
+    <div class="list-group mt-5">
       <div v-if="!transactions" class="test-no-transactionlist text-right">
         <b-icon icon="exclamation-triangle" class="mr-2" variant="danger"></b-icon>
         <small>
@@ -12,8 +12,9 @@
         <small>{{ $t('error.empty-transactionlist') }}</small>
       </div>
 
-      <div v-for="({ id, typeId }, index) in transactions" :key="id">
+      <div v-for="({ id, typeId }, index) in transactions" :key="`l1-` + id">
         <transaction-list-item
+          v-if="typeId === 'DECAY'"
           :typeId="typeId"
           class="pointer mb-3 bg-white appBoxShadow gradido-border-radius p-4 test-list-group-item"
         >
@@ -23,7 +24,15 @@
               :previousBookedBalance="previousBookedBalance(index)"
             />
           </template>
-
+        </transaction-list-item>
+      </div>
+      <div class="h4 m-3">{{ $t('lastMonth') }}</div>
+      <div v-for="({ id, typeId }, index) in transactions" :key="`l2-` + id">
+        <transaction-list-item
+          v-if="typeId !== 'DECAY'"
+          :typeId="typeId"
+          class="pointer mb-3 bg-white appBoxShadow gradido-border-radius p-4 test-list-group-item"
+        >
           <template #SEND>
             <transaction-send
               v-bind="transactions[index]"

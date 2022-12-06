@@ -32,7 +32,7 @@
           </b-col>
           <b-col cols="3">
             <div class="small">{{ $t('creation') }}</div>
-            <div class="font-weight-bold h2">{{ amount | GDD }}</div>
+            <div class="font-weight-bold">{{ amount | GDD }}</div>
           </b-col>
           <b-col cols="1" @click="visible = !visible">
             <collapse-icon class="text-right" :visible="visible" v-if="messagesCount > 0" />

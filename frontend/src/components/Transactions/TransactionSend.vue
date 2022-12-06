@@ -14,12 +14,12 @@
             :transactionLinkId="transactionLinkId"
           />
         </div>
-        <div class="small">{{ balanceDate }}</div>
-        <div class="small">{{ balanceDate }}</div>
+        <div class="small">{{ this.$d(new Date(balanceDate), 'short') }}</div>
+        <div class="small">{{ this.$d(new Date(balanceDate), 'time') }}</div>
       </b-col>
       <b-col cols="3">
         <div class="small">{{ $t('decay.types.send') }}</div>
-        <div class="small">{{ amount | GDD }}</div>
+        <div class="font-weight-bold">{{ amount | GDD }}</div>
       </b-col>
       <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>
     </b-row>
