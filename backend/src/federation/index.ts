@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import DHT from '@hyperswarm/dht'
-// import { Connection } from '@dbTools/typeorm'
 import { backendLogger as logger } from '@/server/logger'
 import CONFIG from '@/config'
 import { Community as DbCommunity } from '@entity/Community'
@@ -25,30 +23,65 @@ type CommunityApi = {
   api: string
   url: string
 }
-type CommunityApiList = {
-  apiVersions: CommunityApi[]
-}
 
-export const startDHT = async (
-  // connection: Connection,
-  topic: string,
-): Promise<void> => {
+export const startDHT = async (topic: string): Promise<void> => {
   try {
+    let testModeCtrl = 0
+    const testModeData = [
+      `hello here is a new community and i don't know how to communicate with you`,
+      [`string1`, `api`, `url3`],
+      [
+        [`api`, `url`, `wrong`],
+        [`wrong`, `api`, `url`],
+      ],
+      [
+        { wrong: 'wrong property name test', api: 'api1', url: 'url1' },
+        { api: 'api2', url: 'url2', wrong: 'wrong property name test' },
+      ],
+      [
+        { test1: 'api proterty name test', url: 'any url definition as string' },
+        { api: 'some api', test2: 'url property name test' },
+      ],
+      [
+        { api: 1, url: 'api number type test' },
+        { api: 'urltyptest', url: 2 },
+      ],
+      [
+        {
+          api: ApiVersionType.V1_0,
+          url: CONFIG.FEDERATION_COMMUNITY_URL
+            ? (CONFIG.FEDERATION_COMMUNITY_URL.endsWith('/')
+                ? CONFIG.FEDERATION_COMMUNITY_URL
+                : CONFIG.FEDERATION_COMMUNITY_URL + '/') + ApiVersionType.V1_0
+            : 'not configured',
+        },
+        {
+          api: ApiVersionType.V2_0,
+          url: CONFIG.FEDERATION_COMMUNITY_URL
+            ? (CONFIG.FEDERATION_COMMUNITY_URL.endsWith('/')
+                ? CONFIG.FEDERATION_COMMUNITY_URL
+                : CONFIG.FEDERATION_COMMUNITY_URL + '/') + ApiVersionType.V2_0
+            : 'not configured',
+        },
+      ],
+    ]
     const TOPIC = DHT.hash(Buffer.from(topic))
     const keyPair = DHT.keyPair(getSeed())
     logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
 
-    const apiList: CommunityApiList = {
-      apiVersions: Object.values(ApiVersionType).map(function (apiEnum) {
-        const comApi: CommunityApi = {
-          api: apiEnum,
-          url: CONFIG.FEDERATION_COMMUNITY_URL || 'not configured',
-        }
-        return comApi
-      }),
-    }
-    logger.debug(`ApiList: ${JSON.stringify(apiList)}`)
+    const ownApiVersions = Object.values(ApiVersionType).map(function (apiEnum) {
+      const comApi: CommunityApi = {
+        api: apiEnum,
+        url: CONFIG.FEDERATION_COMMUNITY_URL
+          ? (CONFIG.FEDERATION_COMMUNITY_URL.endsWith('/')
+              ? CONFIG.FEDERATION_COMMUNITY_URL
+              : CONFIG.FEDERATION_COMMUNITY_URL + '/') + apiEnum
+          : 'not configured',
+      }
+      return comApi
+    })
+    logger.debug(`ApiList: ${JSON.stringify(ownApiVersions)}`)
 
     const node = new DHT({ keyPair })
 
@@ -63,30 +96,53 @@ export const startDHT = async (
       socket.on('data', async (data: Buffer) => {
         try {
           logger.info(`data: ${data.toString('ascii')}`)
-          const apiVersionList: CommunityApiList = JSON.parse(data.toString('ascii'))
-          if (apiVersionList && apiVersionList.apiVersions) {
-            for (let i = 0; i < apiVersionList.apiVersions.length; i++) {
-              const apiVersion = apiVersionList.apiVersions[i]
-
-              const variables = {
-                apiVersion: apiVersion.api,
-                endPoint: apiVersion.url,
-                publicKey: socket.remotePublicKey.toString('hex'),
-                lastAnnouncedAt: new Date(),
-              }
-              logger.debug(`upsert with variables=${JSON.stringify(variables)}`)
-              // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
-              await DbCommunity.createQueryBuilder()
-                .insert()
-                .into(DbCommunity)
-                .values(variables)
-                .orUpdate({
-                  conflict_target: ['id', 'publicKey', 'apiVersion'],
-                  overwrite: ['end_point', 'last_announced_at'],
+          const recApiVersions: CommunityApi[] = JSON.parse(data.toString('ascii'))
+          if (recApiVersions && Array.isArray(recApiVersions)) {
+            recApiVersions.forEach(async (recApiVersion) => {
+              if (
+                Object.keys(recApiVersion).some((key) => {
+                  return key !== 'api' && key !== 'url'
                 })
-                .execute()
-            }
-            logger.info(`federation community apiVersions stored...`)
+              ) {
+                logger.warn(
+                  `received apiVersion-Definition with unexpected properties:${JSON.stringify(
+                    Object.keys(recApiVersion),
+                  )}`,
+                )
+              } else if (
+                recApiVersion.api &&
+                typeof recApiVersion.api === 'string' &&
+                recApiVersion.url &&
+                typeof recApiVersion.url === 'string'
+              ) {
+                const variables = {
+                  apiVersion: recApiVersion.api,
+                  endPoint: recApiVersion.url,
+                  publicKey: socket.remotePublicKey.toString('hex'),
+                  lastAnnouncedAt: new Date(),
+                }
+                logger.debug(`upsert with variables=${JSON.stringify(variables)}`)
+                // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
+                await DbCommunity.createQueryBuilder()
+                  .insert()
+                  .into(DbCommunity)
+                  .values(variables)
+                  .orUpdate({
+                    conflict_target: ['id', 'publicKey', 'apiVersion'],
+                    overwrite: ['end_point', 'last_announced_at'],
+                  })
+                  .execute()
+                logger.info(`federation community upserted successfully...`)
+              } else {
+                logger.warn(
+                  `received invalid apiVersion-Definition:${JSON.stringify(recApiVersion)}`,
+                )
+              }
+            })
+          } else {
+            logger.warn(
+              `received wrong apiVersions-Definition JSON-String:${JSON.stringify(recApiVersions)}`,
+            )
           }
         } catch (e) {
           logger.error(`Error on receiving data from socket: ${JSON.stringify(e)}`)
@@ -154,7 +210,19 @@ export const startDHT = async (
 
         socket.on('open', function () {
           // noiseSocket fully open with the other peer
-          socket.write(Buffer.from(JSON.stringify(apiList)))
+          if (CONFIG.FEDERATION_DHT_TEST_SOCKET === true) {
+            logger.info(
+              `test-mode for socket handshake is activated...Test:(${testModeCtrl + 1}/${
+                testModeData.length
+              })`,
+            )
+            socket.write(Buffer.from(JSON.stringify(testModeData[testModeCtrl++])))
+            if (testModeCtrl >= testModeData.length) {
+              testModeCtrl = 0
+            }
+          } else {
+            socket.write(Buffer.from(JSON.stringify(ownApiVersions)))
+          }
           successfulRequests.push(remotePubKey)
         })
       })
