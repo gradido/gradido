@@ -1,6 +1,6 @@
 <template>
   <div class="gdt-transaction-list">
-    <div class="list-group bg-white appBoxShadow gradido-border-radius p-3">
+    <div class="list-group bg-white appBoxShadow gradido-border-radius p-3 mb-3">
       <b-row @click="visible = !visible" class="">
         <b-col cols="2">
           <b-avatar
