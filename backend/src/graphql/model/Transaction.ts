@@ -42,7 +42,7 @@ export class Transaction {
     this.creationDate = transaction.creationDate
     this.linkedUser = linkedUser
     this.linkedTransactionId = transaction.linkedTransactionId
-    this.transactionLinkId = transaction.contribution
+    this.linkId = transaction.contribution
       ? transaction.contribution.contributionLinkId
       : transaction.transactionLinkId
   }
@@ -83,7 +83,7 @@ export class Transaction {
   @Field(() => Number, { nullable: true })
   linkedTransactionId?: number | null
 
-  // Links to the TransactionLink when transaction was created by a link
+  // Links to the TransactionLink/ContributionLink when transaction was created by a link
   @Field(() => Number, { nullable: true })
-  transactionLinkId?: number | null
+  linkId?: number | null
 }
