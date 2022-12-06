@@ -31,6 +31,7 @@ export default {
 </script>
 <style scoped>
 .card {
+  height: 400px;
   background-attachment: absolute;
   background-position: center;
   background-repeat: no-repeat;

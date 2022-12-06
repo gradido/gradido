@@ -1,5 +1,8 @@
 <template>
-  <div class="contribution-list-item bg-white appBoxShadow gradido-border-radius p-3">
+  <div
+    class="contribution-list-item bg-white appBoxShadow gradido-border-radius p-3"
+    :class="state === 'IN_PROGRESS' ? 'border gradido-global-border-color-danger' : ''"
+  >
     <slot>
       <div class="">
         <b-row>
@@ -8,12 +11,12 @@
               v-if="firstName"
               :text="avatarText"
               :badge-variant="variant"
-              size="4em"
+              size="3em"
               class="font-weight-bold"
             >
               <template #badge><b-icon :icon="icon"></b-icon></template>
             </b-avatar>
-            <b-avatar v-else :icon="icon" :variant="variant" size="4em"></b-avatar>
+            <b-avatar v-else :icon="icon" :variant="variant" size="3em"></b-avatar>
           </b-col>
           <b-col>
             <div v-if="firstName" class="mr-3 font-weight-bold">{{ firstName }} {{ lastName }}</div>
@@ -38,7 +41,12 @@
             <collapse-icon class="text-right" :visible="visible" v-if="messagesCount > 0" />
           </b-col>
         </b-row>
-        <b-row class="mt-2">
+        <b-row
+          v-if="
+            (!['CONFIRMED', 'DELETED'].includes(state) && !allContribution) || messagesCount > 0
+          "
+          class="mt-4 bg-gray300 p-4"
+        >
           <b-col>
             <div
               v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
@@ -49,7 +57,7 @@
               {{ $t('delete') }}
             </div>
           </b-col>
-          <b-col>
+          <b-col class="text-center">
             <div
               v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
               class="test-edit-contribution pointer mr-3"
@@ -67,7 +75,7 @@
             </div>
           </b-col>
 
-          <b-col>
+          <b-col class="text-right">
             <div v-if="messagesCount > 0" class="pointer">
               <b-icon icon="chat-dots" @click="visible = !visible"></b-icon>
               {{ $t('moderatorChat') }}

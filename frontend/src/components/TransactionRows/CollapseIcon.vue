@@ -3,6 +3,7 @@
     <b-icon
       :icon="visible ? 'arrow-up-circle' : 'arrow-down-circle'"
       :class="visible ? 'text-black' : 'text-muted'"
+      class="h1"
     />
   </div>
 </template>
