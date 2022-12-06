@@ -41,4 +41,4 @@ async function calculateBalance(
   return { balance, lastTransactionId: lastTransaction.id, decay }
 }
 
-export { isHexPublicKey, calculateBalance, isStringBoolean }
+export { calculateBalance, isStringBoolean }
