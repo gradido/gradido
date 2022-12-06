@@ -16,7 +16,7 @@
             </b-link>
           </span>
           <span v-else>{{ itemText }}</span>
-          <span v-if="transactionLinkId">
+          <span v-if="linkId">
             {{ $t('via_link') }}
             <b-icon
               icon="link45deg"
@@ -46,7 +46,7 @@ export default {
       type: String,
       required: false,
     },
-    transactionLinkId: {
+    linkId: {
       type: Number,
       required: false,
       default: null,
