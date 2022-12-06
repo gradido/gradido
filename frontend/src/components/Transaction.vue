@@ -6,7 +6,7 @@
           <b-avatar
             :icon="getLinesByType.icon"
             variant="light"
-            size="4em"
+            size="3em"
             :class="getLinesByType.iconclasses"
           ></b-avatar>
         </b-col>
@@ -26,7 +26,7 @@
         </b-col>
         <b-col cols="3">
           <div class="small mt-2">{{ $t('gdt.credit') }}</div>
-          <div class="">{{ getLinesByType.credittext }}</div>
+          <div class="font-weight-bold">{{ getLinesByType.credittext }}</div>
         </b-col>
         <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>
       </b-row>

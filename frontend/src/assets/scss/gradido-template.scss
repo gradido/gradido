@@ -9,9 +9,9 @@ body {
   cursor: pointer;
 }
 
-// .bg-default {
-//   background-color: rgba(245 245 245 / 75%) !important;
-// }
+.bg-gray300 {
+  background-color: $gray-300
+}
 
 .shadow-default {
   box-shadow: rgb(0 0 0 / 14%) 0 4px 10px;
@@ -220,6 +220,10 @@ a:hover,
 
 .gradido-global-border-color-accent {
   border-color: #047006 !important;
+}
+
+.gradido-global-border-color-danger {
+  border-color: rgb(140 5 5) !important;
 }
 
 .gradido-global-color-gray {

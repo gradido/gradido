@@ -2,7 +2,7 @@
   <div class="transaction-slot-creation">
     <b-row @click="visible = !visible" class="">
       <b-col cols="2">
-        <b-avatar icon="gift" variant="success" size="4em"></b-avatar>
+        <b-avatar icon="gift" variant="success" size="3em"></b-avatar>
       </b-col>
       <b-col>
         <div>{{ linkedUser.firstName }} {{ linkedUser.lastName }}</div>
