@@ -1,1 +1,1 @@
-export { Transaction } from './0052-add_updated_at_to_contributions/Transaction'
+export { Transaction } from './0036-unique_previous_in_transactions/Transaction'

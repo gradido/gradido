@@ -12,29 +12,21 @@ export class TransactionRepository extends Repository<Transaction> {
     order: Order,
     onlyCreation?: boolean,
   ): Promise<[Transaction[], number]> {
-    if (onlyCreation) {
-      return this.createQueryBuilder('userTransaction')
-        .leftJoinAndSelect(
-          'userTransaction.contribution',
-          'c',
-          'userTransaction.id = c.transactionId',
-        )
-        .where('userTransaction.userId = :userId', { userId })
-        .andWhere('userTransaction.typeId = :typeId', {
-          typeId: TransactionTypeId.CREATION,
-        })
-        .orderBy('userTransaction.balanceDate', order)
-        .limit(limit)
-        .offset(offset)
-        .getManyAndCount()
-    }
-    return this.createQueryBuilder('userTransaction')
+    const query = this.createQueryBuilder('userTransaction')
       .leftJoinAndSelect(
         'userTransaction.contribution',
-        'c',
-        'userTransaction.id = c.transactionId',
+        'contribution',
+        'userTransaction.id = contribution.transactionId',
       )
       .where('userTransaction.userId = :userId', { userId })
+
+    if (onlyCreation) {
+      query.andWhere('userTransaction.typeId = :typeId', {
+        typeId: TransactionTypeId.CREATION,
+      })
+    }
+
+    return query
       .orderBy('userTransaction.balanceDate', order)
       .limit(limit)
       .offset(offset)

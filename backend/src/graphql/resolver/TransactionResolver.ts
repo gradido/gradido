@@ -229,6 +229,7 @@ export class TransactionResolver {
       order,
     )
     context.transactionCount = userTransactionsCount
+
     // find involved users; I am involved
     const involvedUserIds: number[] = [user.id]
     userTransactions.forEach((transaction: dbTransaction) => {
