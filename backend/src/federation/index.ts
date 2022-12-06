@@ -29,39 +29,40 @@ export const startDHT = async (topic: string): Promise<void> => {
     let testModeCtrl = 0
     const testModeData = [
       `hello here is a new community and i don't know how to communicate with you`,
-      [`string1`, `api`, `url3`],
+      [`invalid type test`, `api`, `url`],
       [
-        [`api`, `url`, `wrong`],
+        [`api`, `url`, `invalid type in array test`],
         [`wrong`, `api`, `url`],
       ],
       [
-        { wrong: 'wrong property name test', api: 'api1', url: 'url1' },
-        { api: 'api2', url: 'url2', wrong: 'wrong property name test' },
+        { api: ApiVersionType.V1_0, url: 'too much versions at the same time test' },
+        { api: ApiVersionType.V1_0, url: 'url2' },
+        { api: ApiVersionType.V1_0, url: 'url3' },
+        { api: ApiVersionType.V1_0, url: 'url4' },
+        { api: ApiVersionType.V1_0, url: 'url5' },
+        { api: ApiVersionType.V2_0, url: 'url6' },
       ],
       [
-        { test1: 'api proterty name test', url: 'any url definition as string' },
-        { api: 'some api', test2: 'url property name test' },
+        { wrong: 'wrong but tolerated property test', api: ApiVersionType.V1_0, url: 'url1' },
+        { api: ApiVersionType.V2_0, url: 'url2', wrong: 'wrong but tolerated property test' },
       ],
       [
-        { api: 1, url: 'api number type test' },
+        { test1: 'missing api proterty test', url: 'any url definition as string' },
+        { api: 'some api', test2: 'missing url property test' },
+      ],
+      [
+        { api: 1, url: 'wrong property type tests' },
         { api: 'urltyptest', url: 2 },
+        { api: 1, url: 2 },
       ],
       [
         {
           api: ApiVersionType.V1_0,
-          url: CONFIG.FEDERATION_COMMUNITY_URL
-            ? (CONFIG.FEDERATION_COMMUNITY_URL.endsWith('/')
-                ? CONFIG.FEDERATION_COMMUNITY_URL
-                : CONFIG.FEDERATION_COMMUNITY_URL + '/') + ApiVersionType.V1_0
-            : 'not configured',
+          url: CONFIG.FEDERATION_COMMUNITY_URL + ApiVersionType.V1_0,
         },
         {
           api: ApiVersionType.V2_0,
-          url: CONFIG.FEDERATION_COMMUNITY_URL
-            ? (CONFIG.FEDERATION_COMMUNITY_URL.endsWith('/')
-                ? CONFIG.FEDERATION_COMMUNITY_URL
-                : CONFIG.FEDERATION_COMMUNITY_URL + '/') + ApiVersionType.V2_0
-            : 'not configured',
+          url: CONFIG.FEDERATION_COMMUNITY_URL + ApiVersionType.V2_0,
         },
       ],
     ]
@@ -73,11 +74,7 @@ export const startDHT = async (topic: string): Promise<void> => {
     const ownApiVersions = Object.values(ApiVersionType).map(function (apiEnum) {
       const comApi: CommunityApi = {
         api: apiEnum,
-        url: CONFIG.FEDERATION_COMMUNITY_URL
-          ? (CONFIG.FEDERATION_COMMUNITY_URL.endsWith('/')
-              ? CONFIG.FEDERATION_COMMUNITY_URL
-              : CONFIG.FEDERATION_COMMUNITY_URL + '/') + apiEnum
-          : 'not configured',
+        url: CONFIG.FEDERATION_COMMUNITY_URL + apiEnum,
       }
       return comApi
     })
@@ -88,60 +85,63 @@ export const startDHT = async (topic: string): Promise<void> => {
     const server = node.createServer()
 
     server.on('connection', function (socket: any) {
-      // noiseSocket is E2E between you and the other peer
-      // pipe it somewhere like any duplex stream
       logger.info(`server on... with Remote public key: ${socket.remotePublicKey.toString('hex')}`)
-      // console.log("Local public key", noiseSocket.publicKey.toString("hex")); // same as keyPair.publicKey
 
       socket.on('data', async (data: Buffer) => {
         try {
           logger.info(`data: ${data.toString('ascii')}`)
           const recApiVersions: CommunityApi[] = JSON.parse(data.toString('ascii'))
-          if (recApiVersions && Array.isArray(recApiVersions)) {
+
+          // TODO better to introduce the validation by https://github.com/typestack/class-validator
+          if (recApiVersions && Array.isArray(recApiVersions) && recApiVersions.length < 5) {
             recApiVersions.forEach(async (recApiVersion) => {
               if (
-                Object.keys(recApiVersion).some((key) => {
-                  return key !== 'api' && key !== 'url'
-                })
+                !recApiVersion.api ||
+                typeof recApiVersion.api !== 'string' ||
+                !recApiVersion.url ||
+                typeof recApiVersion.url !== 'string'
               ) {
-                logger.warn(
-                  `received apiVersion-Definition with unexpected properties:${JSON.stringify(
-                    Object.keys(recApiVersion),
-                  )}`,
-                )
-              } else if (
-                recApiVersion.api &&
-                typeof recApiVersion.api === 'string' &&
-                recApiVersion.url &&
-                typeof recApiVersion.url === 'string'
-              ) {
-                const variables = {
-                  apiVersion: recApiVersion.api,
-                  endPoint: recApiVersion.url,
-                  publicKey: socket.remotePublicKey.toString('hex'),
-                  lastAnnouncedAt: new Date(),
-                }
-                logger.debug(`upsert with variables=${JSON.stringify(variables)}`)
-                // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
-                await DbCommunity.createQueryBuilder()
-                  .insert()
-                  .into(DbCommunity)
-                  .values(variables)
-                  .orUpdate({
-                    conflict_target: ['id', 'publicKey', 'apiVersion'],
-                    overwrite: ['end_point', 'last_announced_at'],
-                  })
-                  .execute()
-                logger.info(`federation community upserted successfully...`)
-              } else {
                 logger.warn(
                   `received invalid apiVersion-Definition:${JSON.stringify(recApiVersion)}`,
                 )
+                // in a forEach-loop use return instead of continue
+                return
               }
+              // TODO better to introduce the validation on entity-Level by https://github.com/typestack/class-validator
+              if (recApiVersion.api.length > 10 || recApiVersion.url.length > 255) {
+                logger.warn(
+                  `received apiVersion with content longer than max length:${JSON.stringify(
+                    recApiVersion,
+                  )}`,
+                )
+                // in a forEach-loop use return instead of continue
+                return
+              }
+
+              const variables = {
+                apiVersion: recApiVersion.api,
+                endPoint: recApiVersion.url,
+                publicKey: socket.remotePublicKey.toString('hex'),
+                lastAnnouncedAt: new Date(),
+              }
+              logger.debug(`upsert with variables=${JSON.stringify(variables)}`)
+              // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
+              await DbCommunity.createQueryBuilder()
+                .insert()
+                .into(DbCommunity)
+                .values(variables)
+                .orUpdate({
+                  conflict_target: ['id', 'publicKey', 'apiVersion'],
+                  overwrite: ['end_point', 'last_announced_at'],
+                })
+                .execute()
+              logger.info(`federation community upserted successfully...`)
             })
           } else {
             logger.warn(
-              `received wrong apiVersions-Definition JSON-String:${JSON.stringify(recApiVersions)}`,
+              `received totaly wrong or too much apiVersions-Definition JSON-String:${JSON.stringify(
+                recApiVersions,
+              )}`,
             )
           }
         } catch (e) {
@@ -192,7 +192,6 @@ export const startDHT = async (topic: string): Promise<void> => {
       logger.info(`Found new peers: ${collectedPubKeys}`)
 
       collectedPubKeys.forEach((remotePubKey) => {
-        // publicKey here is keyPair.publicKey from above
         const socket = node.connect(Buffer.from(remotePubKey, 'hex'))
 
         // socket.once("connect", function () {
@@ -209,7 +208,6 @@ export const startDHT = async (topic: string): Promise<void> => {
         })
 
         socket.on('open', function () {
-          // noiseSocket fully open with the other peer
           if (CONFIG.FEDERATION_DHT_TEST_SOCKET === true) {
             logger.info(
               `test-mode for socket handshake is activated...Test:(${testModeCtrl + 1}/${
