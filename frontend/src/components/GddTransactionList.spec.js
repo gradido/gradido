@@ -191,6 +191,7 @@ describe('GddTransactionList', () => {
         it('has a bi-arrow-down-circle icon', () => {
           expect(transaction.findAll('svg').at(1).classes()).toEqual([
             'bi-arrow-down-circle',
+            'h1',
             'b-icon',
             'bi',
             'text-muted',
@@ -228,6 +229,7 @@ describe('GddTransactionList', () => {
         it('has a bi-arrow-down-circle icon', () => {
           expect(transaction.findAll('svg').at(0).classes()).toEqual([
             'bi-arrow-down-circle',
+            'h1',
             'b-icon',
             'bi',
             'text-muted',
@@ -300,6 +302,7 @@ describe('GddTransactionList', () => {
         it('has a bi-arrow-down-circle icon', () => {
           expect(transaction.findAll('svg').at(0).classes()).toEqual([
             'bi-arrow-down-circle',
+            'h1',
             'b-icon',
             'bi',
             'text-muted',
@@ -360,6 +363,7 @@ describe('GddTransactionList', () => {
         it('has a bi-arrow-down-circle icon', () => {
           expect(transaction.findAll('svg').at(1).classes()).toEqual([
             'bi-arrow-down-circle',
+            'h1',
             'b-icon',
             'bi',
             'text-muted',

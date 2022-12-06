@@ -34,6 +34,7 @@ describe('Transaction', () => {
     it('has a collapse icon bi-arrow-down-circle', () => {
       expect(wrapper.find('div.gdt-transaction-list').findAll('svg').at(1).classes()).toEqual([
         'bi-arrow-down-circle',
+        'h1',
         'b-icon',
         'bi',
         'text-muted',
