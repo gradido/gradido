@@ -9,6 +9,7 @@
     <b-list-group class="mt-5">
       <div v-for="(transaction, index) in transactions" :key="transaction.id">
         <b-list-group-item
+          class="border-0"
           v-if="
             index <= 7 &&
             transaction.typeId !== 'DECAY' &&
