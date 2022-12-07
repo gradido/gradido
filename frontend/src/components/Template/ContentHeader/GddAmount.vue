@@ -28,10 +28,11 @@
           </div>
         </b-col> -->
       </b-row>
-      <div @click="hideAmount = !hideAmount" class="pointer">
+      <div class="pointer">
         <b-icon
           :icon="hideAmount ? 'eye' : 'eye-slash'"
           class="mr-3 gradido-global-border-color-accent"
+          @click="$store.commit('hideAmountGDD', !hideAmount)"
         ></b-icon>
         <span v-if="hideAmount" class="font-weight-bold gradido-global-color-accent">
           {{ $t('asterisks') }}
@@ -52,10 +53,10 @@ export default {
     badge: { type: Boolean, default: false },
     showStatus: { type: Boolean, default: false },
   },
-  data() {
-    return {
-      hideAmount: true,
-    }
+  computed: {
+    hideAmount() {
+      return this.$store.state.hideAmountGDD
+    },
   },
 }
 </script>
