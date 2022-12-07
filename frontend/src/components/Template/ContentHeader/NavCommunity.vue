@@ -1,14 +1,14 @@
 <template>
   <div class="nav-community">
     <b-row class="nav-row">
-      <b-col>
-        <router-link to="#edit">{{ $t('community.submitContribution') }}</router-link>
+      <b-col cols="12" md="4" lg="4" class="mb-2 mb-md-0 mb-lg-0">
+        <b-button block to="#edit">{{ $t('community.submitContribution') }}</b-button>
       </b-col>
-      <b-col class="text-center">
-        <router-link to="#my">{{ $t('community.myContributions') }}</router-link>
+      <b-col cols="12" md="4" lg="4" class="text-center mb-2 mb-md-0 mb-lg-0">
+        <b-button block to="#my">{{ $t('community.myContributions') }}</b-button>
       </b-col>
-      <b-col class="text-right">
-        <router-link to="#all">{{ $t('community.community') }}</router-link>
+      <b-col cols="12" md="4" lg="4" class="text-right">
+        <b-button block to="#all">{{ $t('community.community') }}</b-button>
       </b-col>
     </b-row>
   </div>
@@ -25,12 +25,12 @@ export default {
   border-radius: 26px;
 }
 
-.router-link-exact-active {
+/* .router-link-exact-active {
   background-color: rgb(14, 121, 188);
   color: white;
   border-radius: 26px;
   padding: 10px;
   padding-left: 25px;
   padding-right: 25px;
-}
+} */
 </style>

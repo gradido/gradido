@@ -1,7 +1,7 @@
 <template>
   <div class="userdata-card">
     <b-card class="bg-transparent border-0">
-      <div class="w-100 text-center">
+      <div class="text-center">
         <b-avatar variant="primary" :text="avatar" size="6rem"></b-avatar>
       </div>
 

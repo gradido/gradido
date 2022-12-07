@@ -1,5 +1,5 @@
 <template>
-  <div class="gdd-transaction-list">
+  <div class="gdd-transaction-list container">
     <div class="list-group mt-5">
       <div v-if="!transactions" class="test-no-transactionlist text-right">
         <b-icon icon="exclamation-triangle" class="mr-2" variant="danger"></b-icon>

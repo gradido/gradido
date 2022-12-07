@@ -1,5 +1,5 @@
 <template>
-  <div class="contribution-list-info">
+  <div class="contribution-list-info container">
     <b-alert v-if="list === 'my'" show dismissible fade variant="secondary" class="text-dark">
       <h4 class="alert-heading">{{ $t('community.myContributions') }}</h4>
       <p>
