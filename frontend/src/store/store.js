@@ -51,10 +51,10 @@ export const mutations = {
     state.creation = creation
   },
   hideAmountGDD: (state, hideAmountGDD) => {
-    state.hideAmountGDD = hideAmountGDD
+    state.hideAmountGDD = !!hideAmountGDD
   },
   hideAmountGDT: (state, hideAmountGDT) => {
-    state.hideAmountGDT = hideAmountGDT
+    state.hideAmountGDT = !!hideAmountGDT
   },
 }
 
@@ -85,7 +85,7 @@ export const actions = {
     commit('isAdmin', false)
     commit('creation', null)
     commit('hideAmountGDD', false)
-    commit('hideAmountGDT', false)
+    commit('hideAmountGDT', true)
     localStorage.clear()
   },
 }
@@ -113,7 +113,7 @@ try {
       publisherId: null,
       creation: null,
       hideAmountGDD: false,
-      hideAmountGDT: false,
+      hideAmountGDT: true,
     },
     getters: {},
     // Syncronous mutation of the state
