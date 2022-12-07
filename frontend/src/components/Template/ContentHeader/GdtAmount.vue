@@ -25,12 +25,16 @@
           </div>
         </b-col> -->
       </b-row>
-      <div>
-        <b-icon icon="layers" class="mr-3" :variant="badge ? 'success' : 'light'"></b-icon>
-        <span
-          class="font-weight-bold"
-          :class="badge ? 'gradido-global-border-color-accent' : 'text-light'"
-        >
+      <div class="pointer">
+        <b-icon
+          :icon="hideAmount ? 'eye' : 'eye-slash'"
+          class="mr-3 gradido-global-border-color-accent"
+          @click="hideAmount = !hideAmount"
+        ></b-icon>
+        <span v-if="hideAmount" class="font-weight-bold gradido-global-color-accent">
+          {{ $t('asterisks') }}
+        </span>
+        <span v-else class="font-weight-bold gradido-global-color-accent">
           {{ $n(GdtBalance, 'decimal') }} {{ $t('GDT') }}
         </span>
       </div>
@@ -44,6 +48,11 @@ export default {
     GdtBalance: { type: Number, required: true },
     badge: { type: Boolean, default: false },
     showStatus: { type: Boolean, default: false },
+  },
+  data() {
+    return {
+      hideAmount: true,
+    }
   },
 }
 </script>
