@@ -25,19 +25,24 @@
           </div>
         </b-col> -->
       </b-row>
-      <div class="pointer">
-        <b-icon
-          :icon="hideAmount ? 'eye' : 'eye-slash'"
-          class="mr-3 gradido-global-border-color-accent"
-          @click="$store.commit('hideAmountGDT', !hideAmount)"
-        ></b-icon>
-        <span v-if="hideAmount" class="font-weight-bold gradido-global-color-accent">
-          {{ $t('asterisks') }}
-        </span>
-        <span v-else class="font-weight-bold gradido-global-color-accent">
-          {{ $n(GdtBalance, 'decimal') }} {{ $t('GDT') }}
-        </span>
-      </div>
+      <b-row>
+        <b-col cols="10">
+          <b-icon icon="layers" class="mr-3 gradido-global-border-color-accent"></b-icon>
+          <span v-if="hideAmount" class="font-weight-bold gradido-global-color-accent">
+            {{ $t('asterisks') }}
+          </span>
+          <span v-else class="font-weight-bold gradido-global-color-accent">
+            {{ $n(GdtBalance, 'decimal') }} {{ $t('GDT') }}
+          </span>
+        </b-col>
+        <b-col cols="2" class="border-left border-light">
+          <b-icon
+            :icon="hideAmount ? 'eye' : 'eye-slash'"
+            class="mr-3 gradido-global-border-color-accent"
+            @click="$store.commit('hideAmountGDT', !hideAmount)"
+          ></b-icon>
+        </b-col>
+      </b-row>
     </div>
   </div>
 </template>
