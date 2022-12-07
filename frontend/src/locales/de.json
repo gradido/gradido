@@ -4,6 +4,7 @@
   "125": "125%",
   "85": "85%",
   "advanced-calculation": "Vorausberechnung",
+  "asterisks": "****",
   "auth": {
     "left": {
       "dignity": "Würde",
@@ -211,6 +212,7 @@
   },
   "gradidoLink": "Gradido Link",
   "language": "Sprache",
+  "lastMonth": "letzter Monat",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
   "login": "Anmelden",
   "math": {
@@ -219,7 +221,6 @@
     "minus": "−",
     "pipe": "|"
   },
-  "asterisks": "****",
   "member": "Mitglied",
   "message": {
     "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite an.",
@@ -310,7 +311,6 @@
     }
   },
   "success": "Erfolg",
-  "lastMonth": "letzter Monat",
   "time": {
     "days": "Tage",
     "hours": "Stunden",
