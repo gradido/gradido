@@ -12,6 +12,12 @@
           </div>
         </div>
       </template>
+      <template #footer>
+        <div class="d-flex bg-light">
+          <strong class="mr-auto p-2">{{ $t('send_gdd') }}</strong>
+          <b-button to="/send"> <b-icon icon="arrow-right"></b-icon></b-button>
+        </div>
+      </template>
     </b-sidebar>
   </div>
 </template>

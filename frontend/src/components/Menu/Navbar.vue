@@ -1,9 +1,9 @@
 <template>
   <div class="navbar-component position-sticky">
     <b-navbar toggleable="lg" class="pr-4">
-      <b-navbar-brand>
+      <b-navbar-brand class="zindex1000">
         <b-img
-          class="imgLogo ml--3 mt-lg--2 mt-3 p-2 mb-3 zindex1000 d-none d-lg-block"
+          class="imgLogo ml--3 mt-lg--2 mt-3 p-2 mb-3 d-none d-lg-block"
           :src="logo"
           width="200"
           alt="..."
