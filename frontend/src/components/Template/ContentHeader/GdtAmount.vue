@@ -26,7 +26,10 @@
       </b-row>
       <b-row>
         <b-col cols="12" md="10" lg="10">
-          <b-icon icon="layers" class="mr-3 gradido-global-border-color-accent d-none d-lg-inline"></b-icon>
+          <b-icon
+            icon="layers"
+            class="mr-3 gradido-global-border-color-accent d-none d-lg-inline"
+          ></b-icon>
           <span v-if="hideAmount" class="font-weight-bold gradido-global-color-accent">
             {{ $t('asterisks') }}
           </span>
