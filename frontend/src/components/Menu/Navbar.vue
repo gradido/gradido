@@ -29,7 +29,7 @@
                     ></b-avatar>
                   </div>
                   <div>
-                    <div class="small">{{ avatarLongName }}</div>
+                    <div class="small" data-test="navbar-item-username">{{ avatarLongName }}</div>
 
                     <div class="text-right small">
                       <small>{{ $store.state.email }}</small>
