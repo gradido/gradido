@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import createServer from './server/createServer'
-import { startDHT } from '@/federation/index'
+import { startDHT } from '@/dht_node/index'
 
 // config
 import CONFIG from './config'
@@ -20,9 +20,6 @@ async function main() {
 
   // start DHT hyperswarm when DHT_TOPIC is set in .env
   if (CONFIG.FEDERATION_DHT_TOPIC) {
-    if (CONFIG.FEDERATION_COMMUNITY_URL === null) {
-      throw Error(`Config-Error: missing configuration of property FEDERATION_COMMUNITY_URL`)
-    }
     // eslint-disable-next-line no-console
     console.log(
       `starting Federation on ${CONFIG.FEDERATION_DHT_TOPIC} ${
