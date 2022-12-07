@@ -219,6 +219,7 @@
     "minus": "−",
     "pipe": "|"
   },
+  "asterisks": "***",
   "member": "Mitglied",
   "message": {
     "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite an.",
