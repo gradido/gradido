@@ -2,7 +2,7 @@
   <div>
     <b-sidebar id="sidebar-1" no-header bg-variant="white" :backdrop="true">
       <div class="px-3 py-2">
-        <sidebar />
+        <sidebar @admin="$emit('admin')" @logout="$emit('logout')" />
       </div>
     </b-sidebar>
   </div>

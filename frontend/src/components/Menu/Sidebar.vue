@@ -75,12 +75,6 @@
             <b-icon icon="power" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('navigation.logout') }}</span>
           </b-nav-item>
-          <b-nav-item
-            class="mt-4 mb-3 d-block d-md-none d-lg-none"
-            @click="$emit('toogleMobilMenu')"
-          >
-            <b-icon icon="x" aria-hidden="true"></b-icon>
-          </b-nav-item>
         </b-nav>
       </div>
     </div>
