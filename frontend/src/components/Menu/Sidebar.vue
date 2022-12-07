@@ -103,10 +103,15 @@ export default {
   color: red;
 } */
 #component-sidebar {
-  min-width: 53px;
-  max-width: 210px;
+  min-width: 200px;
 }
-#side-menu {
-  max-width: 210px;
+
+@media screen and (max-width: 1024px) {
+  #side-menu {
+    max-width: 100%;
+  }
+  #component-sidebar {
+    max-width: 100%;
+  }
 }
 </style>
