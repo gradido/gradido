@@ -8,7 +8,7 @@
           width="200"
           alt="..."
         />
-        <b-button v-b-toggle.sidebar-1 class="d-block d-lg-none">
+        <b-button v-b-toggle.sidebar-mobile class="d-block d-lg-none">
           <span class="navbar-toggler-icon"></span>
         </b-button>
       </b-navbar-brand>

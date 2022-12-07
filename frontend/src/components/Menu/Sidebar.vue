@@ -85,7 +85,7 @@ export default {
   name: 'Sidebar',
   data() {
     return {
-      lightmode: false,
+      // lightmode: false,
     }
   },
 }
