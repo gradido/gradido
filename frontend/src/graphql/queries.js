@@ -45,7 +45,7 @@ export const transactionsQuery = gql`
           end
           duration
         }
-        transactionLinkId
+        linkId
       }
     }
   }

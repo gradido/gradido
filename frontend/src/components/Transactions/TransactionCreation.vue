@@ -65,6 +65,10 @@ export default {
       type: String,
       required: true,
     },
+    linkId: {
+      type: Number,
+      required: false,
+    },
     previousBookedBalance: {
       type: String,
       required: true,

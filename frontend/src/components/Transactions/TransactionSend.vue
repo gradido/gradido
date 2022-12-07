@@ -73,7 +73,7 @@ export default {
       type: String,
       required: true,
     },
-    transactionLinkId: {
+    linkId: {
       type: Number,
       required: false,
     },
