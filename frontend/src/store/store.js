@@ -84,8 +84,8 @@ export const actions = {
     commit('publisherId', null)
     commit('isAdmin', false)
     commit('creation', null)
-    commit('hideAmountGDD', true)
-    commit('hideAmountGDT', true)
+    commit('hideAmountGDD', false)
+    commit('hideAmountGDT', false)
     localStorage.clear()
   },
 }
@@ -112,8 +112,8 @@ try {
       hasElopage: false,
       publisherId: null,
       creation: null,
-      hideAmountGDD: true,
-      hideAmountGDT: true,
+      hideAmountGDD: false,
+      hideAmountGDT: false,
     },
     getters: {},
     // Syncronous mutation of the state
