@@ -10,7 +10,7 @@
           <navbar class="main-navbar" :balance="balance"></navbar>
         </b-col>
       </b-row>
-      <mobile-sidebar />
+      <mobile-sidebar @admin="admin" @logout="logout" />
       <!-- <div ref="sideMenuRow" class="d-none d-lg-none d-md-none zindex1000">
         <sidebar
           class="main-sidebar"
@@ -23,13 +23,7 @@
       <b-row fluid class="d-flex">
         <!-- Sidebar left -->
         <b-col cols="2" class="d-none d-lg-block">
-          <sidebar
-            class="main-sidebar"
-            @admin="admin"
-            @logout="logout"
-            @modeToggle="modeToggle"
-            @toogleMobilMenu="toogleMobilMenu"
-          />
+          <sidebar class="main-sidebar" @admin="admin" @logout="logout" />
         </b-col>
         <!-- ContentHeader && Content -->
         <b-col>
@@ -222,14 +216,14 @@ export default {
     setTunneledEmail(email) {
       this.tunneledEmail = email
     },
-    toogleMobilMenu() {
-      // console.log(this.$refs.sideMenuRow.classList.value)
-      this.$refs.sideMenuRow.classList.toggle('d-inline')
-      this.$refs.sideMenuRow.classList.toggle('position-absolute')
+    // toogleMobilMenu() {
+    //   // console.log(this.$refs.sideMenuRow.classList.value)
+    //   this.$refs.sideMenuRow.classList.toggle('d-inline')
+    //   this.$refs.sideMenuRow.classList.toggle('position-absolute')
 
-      document.getElementById('side-menu').classList.toggle('bg-lightgrey')
-      this.hamburger ? (this.hamburger = false) : (this.hamburger = true)
-    },
+    //   document.getElementById('side-menu').classList.toggle('bg-lightgrey')
+    //   this.hamburger ? (this.hamburger = false) : (this.hamburger = true)
+    // },
     // dark() {
     //   document.getElementById('app').classList.add('dark-mode')
     //   document.querySelector('#app a').classList.add('dark-mode')
@@ -242,13 +236,13 @@ export default {
     //   this.darkMode = false
     // },
 
-    modeToggle() {
-      if (this.darkMode || document.getElementById('app').classList.contains('dark-mode')) {
-        this.light()
-      } else {
-        this.dark()
-      }
-    },
+    // modeToggle() {
+    //   if (this.darkMode || document.getElementById('app').classList.contains('dark-mode')) {
+    //     this.light()
+    //   } else {
+    //     this.dark()
+    //   }
+    // },
   },
   computed: {
     darkDark() {
