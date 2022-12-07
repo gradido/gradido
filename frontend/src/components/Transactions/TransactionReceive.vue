@@ -72,13 +72,14 @@ export default {
     typeId: {
       type: String,
     },
-    linkId: {
-      type: Number,
-      required: false,
-    },
     previousBookedBalance: {
       type: String,
       required: true,
+    },
+    transactionLinkId: {
+      type: Number,
+      required: false,
+      default: null,
     },
   },
   data() {
