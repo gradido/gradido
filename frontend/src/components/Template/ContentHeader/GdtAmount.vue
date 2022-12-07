@@ -25,8 +25,8 @@
         </b-col> -->
       </b-row>
       <b-row>
-        <b-col cols="10">
-          <b-icon icon="layers" class="mr-3 gradido-global-border-color-accent"></b-icon>
+        <b-col cols="12" md="10" lg="10">
+          <b-icon icon="layers" class="mr-3 gradido-global-border-color-accent d-none d-lg-inline"></b-icon>
           <span v-if="hideAmount" class="font-weight-bold gradido-global-color-accent">
             {{ $t('asterisks') }}
           </span>
@@ -34,7 +34,7 @@
             {{ $n(GdtBalance, 'decimal') }} {{ $t('GDT') }}
           </span>
         </b-col>
-        <b-col cols="2" class="border-left border-light">
+        <b-col cols="12" md="2" lg="2" class="border-left border-light">
           <b-icon
             :icon="hideAmount ? 'eye-slash' : 'eye'"
             class="mr-3 gradido-global-border-color-accent"

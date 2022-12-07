@@ -9,11 +9,11 @@
       class="community-member bg-white appBoxShadow gradido-border-radius p-4 border border-success"
     >
       <b-row>
-        <b-col cols="8">
+        <b-col cols="12" md="8" lg="8">
           <div class="h4">{{ $t('community.communityMember') }}</div>
           <div>{{ CONFIG.COMMUNITY_NAME }}</div>
         </b-col>
-        <b-col cols="4" class="border-left border-light p-3">
+        <b-col cols="12" md="4" lg="4" class="border-left border-light p-md-3 p-lg-3">
           <b-icon icon="people"></b-icon>
           {{ totalUsers }}
         </b-col>

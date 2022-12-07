@@ -115,7 +115,7 @@
     </b-container> -->
     <b-container v-if="path === '/community'">
       <contribution-info />
-      <last-contributions class="mt-5" />
+      <!-- <last-contributions class="mt-5" /> -->
     </b-container>
     <b-container v-if="path === '/settings'"></b-container>
   </div>
