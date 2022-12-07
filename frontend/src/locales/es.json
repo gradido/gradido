@@ -4,6 +4,7 @@
   "125": "125%",
   "85": "85%",
   "advanced-calculation": "Proyección",
+  "asterisks": "****",
   "auth": {
     "left": {
       "dignity": "Dignidad",
@@ -15,7 +16,6 @@
       "oneGratitude": "Por los demás, por toda la humanidad, por la naturaleza."
     }
   },
-  "asterisks": "****",
   "back": "Volver",
   "community": {
     "choose-another-community": "Escoger otra comunidad",

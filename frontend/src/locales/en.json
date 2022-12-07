@@ -4,6 +4,7 @@
   "125": "125%",
   "85": "85%",
   "advanced-calculation": "Advanced calculation",
+  "asterisks": "****",
   "auth": {
     "left": {
       "dignity": "Dignity",
@@ -29,7 +30,6 @@
     "openContributionLinkText": "The following {count} automatic creations are currently provided by the \"{name}\" community.",
     "submitContribution": "Submit contribution"
   },
-  "lastMonth": "Last month",
   "contact": "Contact",
   "contribution": {
     "activity": "Activity",
@@ -212,6 +212,7 @@
   },
   "gradidoLink": "Gradido Link",
   "language": "Language",
+  "lastMonth": "Last month",
   "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
   "login": "Sign in",
   "math": {
@@ -220,7 +221,6 @@
     "minus": "−",
     "pipe": "|"
   },
-  "asterisks": "****",
   "member": "Member",
   "message": {
     "activateEmail": "Your account has not been activated yet. Please check your emails and click the activation link or order a new activation link over the password reset page.",
