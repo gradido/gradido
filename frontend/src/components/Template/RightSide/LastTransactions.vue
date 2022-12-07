@@ -1,5 +1,5 @@
 <template>
-  <div class="rightside-last-transactions">
+  <div class="rightside-last-transactions d-none d-lg-block">
     <b-row>
       <b-col>{{ $t('transaction.lastTransactions') }}</b-col>
       <b-col cols="1" class="text-right">
