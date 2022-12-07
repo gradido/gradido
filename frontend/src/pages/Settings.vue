@@ -1,5 +1,5 @@
 <template>
-  <div fluid="sm" class="mr-2">
+  <div class="container">
     <user-card :balance="balance" :transactionCount="transactionCount"></user-card>
     <user-data />
     <hr />

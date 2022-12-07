@@ -1,5 +1,5 @@
 <template>
-  <div class="contribution-info">
+  <div class="contribution-info d-none d-lg-block">
     <div>
       <h3>{{ $t('contribution.formText.yourContribution') }}</h3>
       {{ $t('contribution.formText.bringYourTalentsTo') }}
