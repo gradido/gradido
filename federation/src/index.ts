@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import createServer from './server/createServer'
-import { startDHT } from '@/federation/index'
+import { startDHT } from '@/dht_node/index'
 
 // config
 import CONFIG from './config'
