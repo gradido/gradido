@@ -154,7 +154,7 @@ describe('Vuex store', () => {
     describe('hideAmountGDD', () => {
       it('sets the state of hideAmountGDD', () => {
         const state = { hideAmountGDD: false }
-        creation(state, true)
+        hideAmountGDD(state, false)
         expect(state.hideAmountGDD).toEqual(false)
       })
     })
@@ -162,7 +162,7 @@ describe('Vuex store', () => {
     describe('hideAmountGDT', () => {
       it('sets the state of hideAmountGDT', () => {
         const state = { hideAmountGDT: true }
-        creation(state, true)
+        hideAmountGDT(state, true)
         expect(state.hideAmountGDT).toEqual(true)
       })
     })
