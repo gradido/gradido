@@ -125,7 +125,7 @@ import LastTransactions from '@/components/Template/RightSide/LastTransactions.v
 // import Favourites from '@/components/Template/RightSide/Favourites.vue'
 // import TopStorysByMonth from '@/components/Template/RightSide/TopStorysByMonth.vue'
 import ContributionInfo from '@/components/Template/RightSide/ContributionInfo.vue'
-import LastContributions from '@/components/Template/RightSide/LastContributions.vue'
+// import LastContributions from '@/components/Template/RightSide/LastContributions.vue'
 // import YourOverview from '@/components/Template/RightSide/YourOverview.vue'
 
 export default {
@@ -134,7 +134,7 @@ export default {
     LastTransactions,
     // Favourites,
     // TopStorysByMonth,
-    LastContributions,
+    // LastContributions,
     ContributionInfo,
     // YourOverview,
   },
