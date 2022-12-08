@@ -53,6 +53,7 @@
       "@model/*": ["src/graphql/model/*"],
       "@repository/*": ["src/typeorm/repository/*"],
       "@test/*": ["test/*"],
+
       /* external */
       "@dbTools/*": ["../database/src/*", "../../database/build/src/*"],
       "@entity/*": ["../database/entity/*", "../../database/build/entity/*"]
