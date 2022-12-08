@@ -153,9 +153,9 @@ describe('Vuex store', () => {
 
     describe('hideAmountGDD', () => {
       it('sets the state of hideAmountGDD', () => {
-        const state = { hideAmountGDD: true }
+        const state = { hideAmountGDD: false }
         creation(state, true)
-        expect(state.hideAmountGDD).toEqual(true)
+        expect(state.hideAmountGDD).toEqual(false)
       })
     })
 
@@ -184,11 +184,11 @@ describe('Vuex store', () => {
         publisherId: 1234,
         isAdmin: true,
         creation: ['1000', '1000', '1000'],
-        hideAmountGDD: true,
+        hideAmountGDD: false,
         hideAmountGDT: true,
       }
 
-      it('calls nine commits', () => {
+      it('calls eleven commits', () => {
         login({ commit, state }, commitedData)
         expect(commit).toHaveBeenCalledTimes(11)
       })
@@ -239,12 +239,12 @@ describe('Vuex store', () => {
       })
 
       it('commits hideAmountGDD', () => {
-        login({ commit, state }, hideAmountGDD)
-        expect(commit).toHaveBeenNthCalledWith(10, 'hideAmountGDD', true)
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(10, 'hideAmountGDD', false)
       })
 
       it('commits hideAmountGDT', () => {
-        login({ commit, state }, hideAmountGDT)
+        login({ commit, state }, commitedData)
         expect(commit).toHaveBeenNthCalledWith(11, 'hideAmountGDT', true)
       })
     })
@@ -253,7 +253,7 @@ describe('Vuex store', () => {
       const commit = jest.fn()
       const state = {}
 
-      it('calls nine commits', () => {
+      it('calls eleven commits', () => {
         logout({ commit, state })
         expect(commit).toHaveBeenCalledTimes(11)
       })
@@ -305,7 +305,7 @@ describe('Vuex store', () => {
 
       it('commits hideAmountGDD', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(10, 'hideAmountGDD', true)
+        expect(commit).toHaveBeenNthCalledWith(10, 'hideAmountGDD', false)
       })
 
       it('commits hideAmountGDT', () => {
