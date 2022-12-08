@@ -366,6 +366,19 @@ describe('AdminResolver', () => {
             expect(new Date(result.data.deleteUser)).toEqual(expect.any(Date))
           })
 
+          it('has deleted_at set in users and user contacts', async () => {
+            await expect(
+              User.findOneOrFail({
+                where: { id: user.id },
+                withDeleted: true,
+                relations: ['emailContact'],
+              }),
+            ).resolves.toMatchObject({
+              deletedAt: expect.any(Date),
+              emailContact: expect.objectContaining({ deletedAt: expect.any(Date) }),
+            })
+          })
+
           describe('delete deleted user', () => {
             it('throws an error', async () => {
               jest.clearAllMocks()
@@ -488,6 +501,15 @@ describe('AdminResolver', () => {
                   data: { unDeleteUser: null },
                 }),
               )
+            })
+
+            it('has deleted_at set to null in users and user contacts', async () => {
+              await expect(
+                User.findOneOrFail({ where: { id: user.id }, relations: ['emailContact'] }),
+              ).resolves.toMatchObject({
+                deletedAt: null,
+                emailContact: expect.objectContaining({ deletedAt: null }),
+              })
             })
           })
         })
