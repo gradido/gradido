@@ -2,15 +2,12 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import DashboardLayout from './DashboardLayout'
 import { toastErrorSpy } from '@test/testSetup'
-// import { async } from 'regenerator-runtime'
-// import { nextTick } from 'vue/types/umd'
 
 jest.useFakeTimers()
 
 const localVue = global.localVue
 
 const storeDispatchMock = jest.fn()
-//const mockStoreDispach = jest.fn()
 const apolloQueryMock = jest.fn()
 const apolloMutationMock = jest.fn()
 const routerPushMock = jest.fn()
@@ -48,7 +45,6 @@ const mocks = {
       lastName: 'Example',
       token: 'valid-token',
     },
-    // commit: storeCommitMock,
   },
   $i18n: {
     locale: 'en',
@@ -77,11 +73,6 @@ describe('DashboardLayout', () => {
           },
         },
       })
-      // apolloMutationMock.mockResolvedValue({
-      //   data: {
-      //     logout: 'success',
-      //   },
-      // })
       wrapper = Wrapper()
     })
 
