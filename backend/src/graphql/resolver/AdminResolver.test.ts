@@ -505,7 +505,7 @@ describe('AdminResolver', () => {
               )
             })
 
-            it('has deleted at set to null in users and user contacts', async () => {
+            it('has deleted_at set to null in users and user contacts', async () => {
               await expect(
                 User.findOneOrFail({ where: { id: user.id }, relations: ['emailContact'] }),
               ).resolves.toMatchObject({
