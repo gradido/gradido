@@ -7,14 +7,19 @@ import { startDHT } from '@/dht_node/index'
 import CONFIG from './config'
 
 async function main() {
-  const { app } = await createServer()
+  // TODO better to use yargs than this fix cli-patter -port 5000 -api 1_0
+  const myArgs = process.argv.slice(2)
+  const port = myArgs[0] === '-port' ? myArgs[1] : CONFIG.PORT
+  const apiVersion = myArgs[2] === '-api' ? myArgs[3] : '1_0'
+  
+  const { app } = await createServer(apiVersion)
 
-  app.listen(CONFIG.PORT, () => {
+  app.listen(port, () => {
     // eslint-disable-next-line no-console
-    console.log(`Server is running at http://localhost:${CONFIG.PORT}`)
+    console.log(`Server is running at http://localhost:${port}`)
     if (CONFIG.GRAPHIQL) {
       // eslint-disable-next-line no-console
-      console.log(`GraphIQL available at http://localhost:${CONFIG.PORT}`)
+      console.log(`GraphIQL available at http://localhost:${port}`)
     }
   })
 

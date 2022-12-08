@@ -1,5 +1,5 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
-
+/*
 import dotenv from 'dotenv'
 import Decimal from 'decimal.js-light'
 dotenv.config()
@@ -8,6 +8,7 @@ Decimal.set({
   precision: 25,
   rounding: Decimal.ROUND_HALF_UP,
 })
+*/
 
 const constants = {
   DB_VERSION: '0055-add_communities_table',
@@ -23,7 +24,7 @@ const constants = {
 }
 
 const server = {
-  PORT: process.env.PORT || 4000,
+  PORT: process.env.PORT || 5000,
   JWT_SECRET: process.env.JWT_SECRET || 'secret123',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '10m',
   GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
@@ -39,7 +40,7 @@ const database = {
   DB_DATABASE: process.env.DB_DATABASE || 'gradido_community',
   TYPEORM_LOGGING_RELATIVE_PATH: process.env.TYPEORM_LOGGING_RELATIVE_PATH || 'typeorm.backend.log',
 }
-
+/*
 const klicktipp = {
   KLICKTIPP: process.env.KLICKTIPP === 'true' || false,
   KLICKTTIPP_API_URL: process.env.KLICKTIPP_API_URL || 'https://api.klicktipp.com',
@@ -48,7 +49,7 @@ const klicktipp = {
   KLICKTIPP_APIKEY_DE: process.env.KLICKTIPP_APIKEY_DE || 'SomeFakeKeyDE',
   KLICKTIPP_APIKEY_EN: process.env.KLICKTIPP_APIKEY_EN || 'SomeFakeKeyEN',
 }
-
+*/
 const community = {
   COMMUNITY_NAME: process.env.COMMUNITY_NAME || 'Gradido Entwicklung',
   COMMUNITY_URL: process.env.COMMUNITY_URL || 'http://localhost/',
@@ -59,7 +60,7 @@ const community = {
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
 }
-
+/*
 const loginServer = {
   LOGIN_APP_SECRET: process.env.LOGIN_APP_SECRET || '21ffbbc616fe',
   LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY || 'a51ef8ac7ef1abf162fb7a65261acd7a',
@@ -103,7 +104,7 @@ const eventProtocol = {
 
 // This is needed by graphql-directive-auth
 process.env.APP_SECRET = server.JWT_SECRET
-
+*/
 // Check config version
 constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION || constants.CONFIG_VERSION.DEFAULT
 if (
@@ -128,12 +129,12 @@ const CONFIG = {
   ...constants,
   ...server,
   ...database,
-  ...klicktipp,
+  //...klicktipp,
   ...community,
-  ...email,
-  ...loginServer,
-  ...webhook,
-  ...eventProtocol,
+  //...email,
+  //...loginServer,
+  //...webhook,
+  //...eventProtocol,
   ...federation,
 }
 

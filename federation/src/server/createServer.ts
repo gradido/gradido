@@ -9,8 +9,8 @@ import { checkDBVersion } from '@/typeorm/DBVersion'
 
 // server
 import cors from './cors'
-import serverContext from './context'
-import plugins from './plugins'
+// import serverContext from './context'
+// import plugins from './plugins'
 
 // config
 import CONFIG from '@/config'
@@ -34,8 +34,9 @@ import { i18n } from './localization'
 type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
 
 const createServer = async (
+  apiVersion: String,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  context: any = serverContext,
+  // context: any = serverContext,
   logger: Logger = apolloLogger,
   localization: i18n.I18n = i18n,
 ): Promise<ServerDef> => {
@@ -71,21 +72,18 @@ const createServer = async (
   app.use(localization.init)
 
   // Elopage Webhook
-  app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
+  // app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
 
   // Apollo Server
   const apollo = new ApolloServer({
-    schema: await schema(),
-    playground: CONFIG.GRAPHIQL,
+    schema: await schema(apiVersion),
+    // playground: CONFIG.GRAPHIQL,
     introspection: CONFIG.GRAPHIQL,
-    context,
-    plugins,
+    // context,
+    // plugins,
     logger,
   })
   apollo.applyMiddleware({ app, path: '/' })
-  logger.info(
-    `running with PRODUCTION=${CONFIG.PRODUCTION}, sending EMAIL enabled=${CONFIG.EMAIL} and EMAIL_TEST_MODUS=${CONFIG.EMAIL_TEST_MODUS} ...`,
-  )
   logger.debug('createServer...successful')
 
   return { apollo, app, con }
