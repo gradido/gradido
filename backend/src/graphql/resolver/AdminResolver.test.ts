@@ -368,7 +368,7 @@ describe('AdminResolver', () => {
             expect(new Date(result.data.deleteUser)).toEqual(expect.any(Date))
           })
 
-          it('has deleted at set in users and user contacts', async () => {
+          it('has deleted_at set in users and user contacts', async () => {
             await expect(
               User.findOneOrFail({
                 where: { id: user.id },
