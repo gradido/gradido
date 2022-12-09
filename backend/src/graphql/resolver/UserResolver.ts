@@ -1043,17 +1043,18 @@ export class UserResolver {
     }
     const emailContact = user.emailContact
     if (emailContact.deletedAt) {
-      logger.error(`The emailContact: ${email} of htis User is deleted.`)
-      throw new Error(`The emailContact: ${email} of htis User is deleted.`)
+      logger.error(`The emailContact: ${email} of this User is deleted.`)
+      throw new Error(`The emailContact: ${email} of this User is deleted.`)
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendAccountActivationEmail({
-      link: activationLink(emailContact.emailVerificationCode),
       firstName: user.firstName,
       lastName: user.lastName,
       email,
-      duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
+      language: user.language,
+      activationLink: activationLink(emailContact.emailVerificationCode),
+      timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
     // In case EMails are disabled log the activation link for the user

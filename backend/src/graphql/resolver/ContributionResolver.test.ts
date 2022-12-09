@@ -21,7 +21,11 @@ import {
   listContributions,
   listUnconfirmedContributions,
 } from '@/seeds/graphql/queries'
-import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
+import {
+  // sendAccountActivationEmail,
+  sendContributionConfirmedEmail,
+  // sendContributionRejectedEmail,
+} from '@/emails/sendEmailVariants'
 import { cleanDB, resetToken, testEnvironment, contributionDateFormatter } from '@test/helpers'
 import { GraphQLError } from 'graphql'
 import { userFactory } from '@/seeds/factory/user'
@@ -33,13 +37,22 @@ import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { EventProtocolType } from '@/event/EventProtocolType'
-import { logger } from '@test/testSetup'
+import { logger, i18n as localization } from '@test/testSetup'
 
 // mock account activation email to avoid console spam
-jest.mock('@/mailer/sendContributionConfirmedEmail', () => {
+// mock account activation email to avoid console spam
+jest.mock('@/emails/sendEmailVariants', () => {
+  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
   return {
     __esModule: true,
-    sendContributionConfirmedEmail: jest.fn(),
+    ...originalModule,
+    // TODO: test the call of …
+    // sendAccountActivationEmail: jest.fn((a) => originalModule.sendAccountActivationEmail(a)),
+    sendContributionConfirmedEmail: jest.fn((a) =>
+      originalModule.sendContributionConfirmedEmail(a),
+    ),
+    // TODO: test the call of …
+    // sendContributionRejectedEmail: jest.fn((a) => originalModule.sendContributionRejectedEmail(a)),
   }
 })
 
@@ -50,7 +63,7 @@ let admin: User
 let result: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(logger, localization)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
@@ -1903,17 +1916,16 @@ describe('ContributionResolver', () => {
             })
 
             it('calls sendContributionConfirmedEmail', async () => {
-              expect(sendContributionConfirmedEmail).toBeCalledWith(
-                expect.objectContaining({
-                  contributionMemo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
-                  overviewURL: 'http://localhost/overview',
-                  recipientEmail: 'bibi@bloxberg.de',
-                  recipientFirstName: 'Bibi',
-                  recipientLastName: 'Bloxberg',
-                  senderFirstName: 'Peter',
-                  senderLastName: 'Lustig',
-                }),
-              )
+              expect(sendContributionConfirmedEmail).toBeCalledWith({
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                email: 'bibi@bloxberg.de',
+                language: 'de',
+                senderFirstName: 'Peter',
+                senderLastName: 'Lustig',
+                contributionMemo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
+                contributionAmount: expect.decimalEqual(450),
+              })
             })
 
             it('stores the send confirmation email event in the database', async () => {
