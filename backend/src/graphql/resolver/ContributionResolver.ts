@@ -45,10 +45,11 @@ import {
   EventAdminContributionUpdate,
 } from '@/event/Event'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
-import CONFIG from '@/config'
-import { sendContributionRejectedEmail } from '@/mailer/sendContributionRejectedEmail'
 import { calculateDecay } from '@/util/decay'
-import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
+import {
+  sendContributionConfirmedEmail,
+  sendContributionRejectedEmail,
+} from '@/emails/sendEmailVariants'
 
 @Resolver()
 export class ContributionResolver {
@@ -533,14 +534,13 @@ export class ContributionResolver {
       event.setEventAdminContributionDelete(eventAdminContributionDelete),
     )
     sendContributionRejectedEmail({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.emailContact.email,
+      language: user.language,
       senderFirstName: moderator.firstName,
       senderLastName: moderator.lastName,
-      recipientEmail: user.emailContact.email,
-      recipientFirstName: user.firstName,
-      recipientLastName: user.lastName,
       contributionMemo: contribution.memo,
-      contributionAmount: contribution.amount,
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
     })
 
     return !!res
@@ -628,14 +628,14 @@ export class ContributionResolver {
       await queryRunner.commitTransaction()
       logger.info('creation commited successfuly.')
       sendContributionConfirmedEmail({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.emailContact.email,
+        language: user.language,
         senderFirstName: moderatorUser.firstName,
         senderLastName: moderatorUser.lastName,
-        recipientFirstName: user.firstName,
-        recipientLastName: user.lastName,
-        recipientEmail: user.emailContact.email,
         contributionMemo: contribution.memo,
         contributionAmount: contribution.amount,
-        overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
       })
     } catch (e) {
       await queryRunner.rollbackTransaction()

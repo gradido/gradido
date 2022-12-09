@@ -15,8 +15,7 @@ import Paginated from '@arg/Paginated'
 import { backendLogger as logger } from '@/server/logger'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser } from '@/server/context'
-import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
-import CONFIG from '@/config'
+import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 
 @Resolver()
 export class ContributionMessageResolver {
@@ -139,15 +138,13 @@ export class ContributionMessageResolver {
       }
 
       await sendAddedContributionMessageEmail({
+        firstName: contribution.user.firstName,
+        lastName: contribution.user.lastName,
+        email: contribution.user.emailContact.email,
+        language: contribution.user.language,
         senderFirstName: user.firstName,
         senderLastName: user.lastName,
-        recipientFirstName: contribution.user.firstName,
-        recipientLastName: contribution.user.lastName,
-        recipientEmail: contribution.user.emailContact.email,
-        senderEmail: user.emailContact.email,
         contributionMemo: contribution.memo,
-        message,
-        overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
       })
       await queryRunner.commitTransaction()
     } catch (e) {
