@@ -39,8 +39,14 @@ import { Decay } from '@model/Decay'
 import Paginated from '@arg/Paginated'
 import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
-import { findUserByEmail, activationLink, printTimeDuration } from './UserResolver'
-import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { getTimeDurationObject } from '@/util/time'
+import { findUserByEmail, activationLink } from './UserResolver'
+import {
+  sendAddedContributionMessageEmail,
+  sendAccountActivationEmail,
+  sendContributionConfirmedEmail,
+  sendContributionRejectedEmail,
+} from '@/emails/sendEmailVariants'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
 import {
@@ -63,9 +69,6 @@ import { ContributionMessage as DbContributionMessage } from '@entity/Contributi
 import ContributionMessageArgs from '@arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionMessage } from '@model/ContributionMessage'
-import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
-import { sendContributionRejectedEmail } from '@/mailer/sendContributionRejectedEmail'
-import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
 import {
   Event,
@@ -492,14 +495,13 @@ export class AdminResolver {
       event.setEventAdminContributionDelete(eventAdminContributionDelete),
     )
     sendContributionRejectedEmail({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.emailContact.email,
+      language: user.language,
       senderFirstName: moderator.firstName,
       senderLastName: moderator.lastName,
-      recipientEmail: user.emailContact.email,
-      recipientFirstName: user.firstName,
-      recipientLastName: user.lastName,
       contributionMemo: contribution.memo,
-      contributionAmount: contribution.amount,
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
     })
 
     return !!res
@@ -587,14 +589,14 @@ export class AdminResolver {
       await queryRunner.commitTransaction()
       logger.info('creation commited successfuly.')
       sendContributionConfirmedEmail({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.emailContact.email,
+        language: user.language,
         senderFirstName: moderatorUser.firstName,
         senderLastName: moderatorUser.lastName,
-        recipientFirstName: user.firstName,
-        recipientLastName: user.lastName,
-        recipientEmail: user.emailContact.email,
         contributionMemo: contribution.memo,
         contributionAmount: contribution.amount,
-        overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
       })
     } catch (e) {
       await queryRunner.rollbackTransaction()
@@ -655,17 +657,18 @@ export class AdminResolver {
     }
     const emailContact = user.emailContact
     if (emailContact.deletedAt) {
-      logger.error(`The emailContact: ${email} of htis User is deleted.`)
-      throw new Error(`The emailContact: ${email} of htis User is deleted.`)
+      logger.error(`The emailContact: ${email} of this User is deleted.`)
+      throw new Error(`The emailContact: ${email} of this User is deleted.`)
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendAccountActivationEmail({
-      link: activationLink(emailContact.emailVerificationCode),
       firstName: user.firstName,
       lastName: user.lastName,
       email,
-      duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
+      language: user.language,
+      activationLink: activationLink(emailContact.emailVerificationCode),
+      timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
     // In case EMails are disabled log the activation link for the user
@@ -900,15 +903,13 @@ export class AdminResolver {
       }
 
       await sendAddedContributionMessageEmail({
+        firstName: contribution.user.firstName,
+        lastName: contribution.user.lastName,
+        email: contribution.user.emailContact.email,
+        language: contribution.user.language,
         senderFirstName: user.firstName,
         senderLastName: user.lastName,
-        recipientFirstName: contribution.user.firstName,
-        recipientLastName: contribution.user.lastName,
-        recipientEmail: contribution.user.emailContact.email,
-        senderEmail: user.emailContact.email,
         contributionMemo: contribution.memo,
-        message,
-        overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
       })
       await queryRunner.commitTransaction()
     } catch (e) {

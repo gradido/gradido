@@ -3,6 +3,7 @@
 
 import { objectValuesToArray } from '@/util/utilities'
 import { testEnvironment, resetToken, cleanDB, contributionDateFormatter } from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
@@ -35,30 +36,31 @@ import {
 } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
-/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import {
+  // sendAccountActivationEmail,
+  sendContributionConfirmedEmail,
+  // sendContributionRejectedEmail,
+} from '@/emails/sendEmailVariants'
 import Decimal from 'decimal.js-light'
 import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
 import { EventProtocol } from '@entity/EventProtocol'
 import { EventProtocolType } from '@/event/EventProtocolType'
-import { logger } from '@test/testSetup'
 
 // mock account activation email to avoid console spam
-jest.mock('@/mailer/sendAccountActivationEmail', () => {
+jest.mock('@/emails/sendEmailVariants', () => {
+  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
   return {
     __esModule: true,
-    sendAccountActivationEmail: jest.fn(),
-  }
-})
-
-// mock account activation email to avoid console spam
-jest.mock('@/mailer/sendContributionConfirmedEmail', () => {
-  return {
-    __esModule: true,
-    sendContributionConfirmedEmail: jest.fn(),
+    ...originalModule,
+    // TODO: test the call of …
+    // sendAccountActivationEmail: jest.fn((a) => originalModule.sendAccountActivationEmail(a)),
+    sendContributionConfirmedEmail: jest.fn((a) =>
+      originalModule.sendContributionConfirmedEmail(a),
+    ),
+    // TODO: test the call of …
+    // sendContributionRejectedEmail: jest.fn((a) => originalModule.sendContributionRejectedEmail(a)),
   }
 })
 
@@ -66,7 +68,7 @@ let mutate: any, query: any, con: any
 let testEnv: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(logger, localization)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
@@ -1737,17 +1739,16 @@ describe('AdminResolver', () => {
             })
 
             it('calls sendContributionConfirmedEmail', async () => {
-              expect(sendContributionConfirmedEmail).toBeCalledWith(
-                expect.objectContaining({
-                  contributionMemo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
-                  overviewURL: 'http://localhost/overview',
-                  recipientEmail: 'bibi@bloxberg.de',
-                  recipientFirstName: 'Bibi',
-                  recipientLastName: 'Bloxberg',
-                  senderFirstName: 'Peter',
-                  senderLastName: 'Lustig',
-                }),
-              )
+              expect(sendContributionConfirmedEmail).toBeCalledWith({
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                email: 'bibi@bloxberg.de',
+                language: 'de',
+                senderFirstName: 'Peter',
+                senderLastName: 'Lustig',
+                contributionMemo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
+                contributionAmount: expect.decimalEqual(450),
+              })
             })
 
             it('stores the send confirmation email event in the database', async () => {
