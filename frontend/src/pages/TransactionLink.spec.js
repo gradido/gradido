@@ -233,7 +233,8 @@ describe('TransactionLink', () => {
                   __typename: 'TransactionLink',
                   id: 92,
                   amount: '22',
-                  memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
+                  memo:
+                    'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
                   createdAt: '2022-03-17T16:10:28.000Z',
                   validUntil: transactionLinkValidExpireDate(),
                   redeemedAt: null,
@@ -268,7 +269,8 @@ describe('TransactionLink', () => {
                   __typename: 'TransactionLink',
                   id: 92,
                   amount: '22',
-                  memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
+                  memo:
+                    'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
                   createdAt: '2022-03-17T16:10:28.000Z',
                   validUntil: transactionLinkValidExpireDate(),
                   redeemedAt: null,
@@ -343,7 +345,8 @@ describe('TransactionLink', () => {
                 __typename: 'TransactionLink',
                 id: 92,
                 amount: '22',
-                memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
+                memo:
+                  'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
                 createdAt: '2022-03-17T16:10:28.000Z',
                 validUntil: transactionLinkValidExpireDate(),
                 redeemedAt: null,

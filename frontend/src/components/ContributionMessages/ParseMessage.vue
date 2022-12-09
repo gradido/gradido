@@ -16,8 +16,7 @@
 </template>
 
 <script>
-const LINK_REGEX_PATTERN =
-  /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*))/i
+const LINK_REGEX_PATTERN = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*))/i
 
 export default {
   name: 'ParseMessage',
