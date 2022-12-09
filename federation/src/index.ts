@@ -10,7 +10,10 @@ async function main() {
   // in case of active DHT running on port 5000 else running on (default=5001) CONFIG.FEDERATION_PORT 
   const port = CONFIG.FEDERATION_DHT_TOPIC ? 5000 : CONFIG.FEDERATION_PORT
     // eslint-disable-next-line no-console
-    console.log(`configured: FEDERATION_DHT_TOPIC=${CONFIG.FEDERATION_DHT_TOPIC}, FEDERATION_PORT=${CONFIG.FEDERATION_PORT} => port=${port}`)
+    console.log(`FEDERATION_PORT=${CONFIG.FEDERATION_PORT}`)
+    console.log(`FEDERATION_API=${CONFIG.FEDERATION_API}`)
+    console.log(`configured: FEDERATION_DHT_TOPIC=${CONFIG.FEDERATION_DHT_TOPIC}`)
+    console.log(`depending on DHT_TOPIC using => port=${port}`)
   const { app } = await createServer()
   
   app.listen(port, () => {

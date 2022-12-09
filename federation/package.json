@@ -11,11 +11,12 @@
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "start": "cross-env TZ=UTC TS_NODE_BASEURL=./build node -r tsconfig-paths/register build/src/index.js",
-    "dev": "cross-env TZ=UTC nodemon -w src --ext ts --exec ts-node -r tsconfig-paths/register src/index.ts",
+    "dev": "cross-env TZ=UTC nodemon -w src --ext ts --exec ts-node -r dotenv/config -r tsconfig-paths/register src/index.ts",
     "lint": "eslint --max-warnings=0 --ext .js,.ts ."
   },
   "dependencies": {
     "@hyperswarm/dht": "^6.3.3",
+    "@types/dotenv": "^8.2.0",
     "@types/i18n": "^0.13.6",
     "@types/jsonwebtoken": "^8.5.9",
     "@types/lodash.clonedeep": "^4.5.7",
