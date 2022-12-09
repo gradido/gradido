@@ -1,7 +1,6 @@
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-<<<<<<< HEAD
 import Decimal from 'decimal.js-light'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection, In } from '@dbTools/typeorm'
@@ -21,7 +20,6 @@ import TransactionSendArgs from '@arg/TransactionSendArgs'
 import Paginated from '@arg/Paginated'
 
 import { backendLogger as logger } from '@/server/logger'
-import CONFIG from '@/config'
 import { Context, getUser } from '@/server/context'
 import { calculateBalance, isHexPublicKey } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
