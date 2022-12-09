@@ -8,10 +8,12 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
 } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { User } from '../User'
 import { ContributionMessage } from '../ContributionMessage'
+import { Transaction } from '../Transaction'
 
 @Entity('contributions')
 export class Contribution extends BaseEntity {
@@ -92,4 +94,8 @@ export class Contribution extends BaseEntity {
   @OneToMany(() => ContributionMessage, (message) => message.contribution)
   @JoinColumn({ name: 'contribution_id' })
   messages?: ContributionMessage[]
+
+  @OneToOne(() => Transaction, (transaction) => transaction.contribution)
+  @JoinColumn({ name: 'transaction_id' })
+  transaction?: Transaction | null
 }
