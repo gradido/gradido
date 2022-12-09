@@ -1,6 +1,7 @@
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
+<<<<<<< HEAD
 import Decimal from 'decimal.js-light'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection, In } from '@dbTools/typeorm'
@@ -22,12 +23,14 @@ import Paginated from '@arg/Paginated'
 import { backendLogger as logger } from '@/server/logger'
 import CONFIG from '@/config'
 import { Context, getUser } from '@/server/context'
-import { sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
 import { calculateBalance, isHexPublicKey } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { communityUser } from '@/util/communityUser'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
-import { sendTransactionLinkRedeemedEmail } from '@/mailer/sendTransactionLinkRedeemed'
+import {
+  sendTransactionLinkRedeemedEmail,
+  sendTransactionReceivedEmail,
+} from '@/emails/sendEmailVariants'
 import { Event, EventTransactionReceive, EventTransactionSend } from '@/event/Event'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
 
@@ -154,29 +157,27 @@ export const executeTransaction = async (
     await queryRunner.release()
   }
   logger.debug(`prepare Email for transaction received...`)
-  // send notification email
-  // TODO: translate
   await sendTransactionReceivedEmail({
+    firstName: recipient.firstName,
+    lastName: recipient.lastName,
+    email: recipient.emailContact.email,
+    language: recipient.language,
     senderFirstName: sender.firstName,
     senderLastName: sender.lastName,
-    recipientFirstName: recipient.firstName,
-    recipientLastName: recipient.lastName,
-    email: recipient.emailContact.email,
     senderEmail: sender.emailContact.email,
-    amount,
-    overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+    transactionAmount: amount,
   })
   if (transactionLink) {
     await sendTransactionLinkRedeemedEmail({
+      firstName: sender.firstName,
+      lastName: sender.lastName,
+      email: sender.emailContact.email,
+      language: sender.language,
       senderFirstName: recipient.firstName,
       senderLastName: recipient.lastName,
-      recipientFirstName: sender.firstName,
-      recipientLastName: sender.lastName,
-      email: sender.emailContact.email,
       senderEmail: recipient.emailContact.email,
-      amount,
-      memo,
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      transactionAmount: amount,
+      transactionMemo: memo,
     })
   }
   logger.info(`finished executeTransaction successfully`)
@@ -201,7 +202,7 @@ export class TransactionResolver {
     // find current balance
     const lastTransaction = await dbTransaction.findOne(
       { userId: user.id },
-      { order: { balanceDate: 'DESC' } },
+      { order: { balanceDate: 'DESC' }, relations: ['contribution'] },
     )
     logger.debug(`lastTransaction=${lastTransaction}`)
 
@@ -323,7 +324,6 @@ export class TransactionResolver {
 
     // validate recipient user
     const recipientUser = await findUserByEmail(email)
-
     if (recipientUser.deletedAt) {
       logger.error(`The recipient account was deleted: recipientUser=${recipientUser}`)
       throw new Error('The recipient account was deleted')
