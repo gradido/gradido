@@ -7,13 +7,12 @@ import { startDHT } from '@/dht_node/index'
 import CONFIG from './config'
 
 async function main() {
-  // TODO better to use yargs than this fix cli-patter -port 5000 -api 1_0
-  const myArgs = process.argv.slice(2)
-  const port = myArgs[0] === '-port' ? myArgs[1] : CONFIG.PORT
-  const apiVersion = myArgs[2] === '-api' ? myArgs[3] : '1_0'
+  // in case of active DHT running on port 5000 else running on (default=5001) CONFIG.FEDERATION_PORT 
+  const port = CONFIG.FEDERATION_DHT_TOPIC ? 5000 : CONFIG.FEDERATION_PORT
+    // eslint-disable-next-line no-console
+    console.log(`configured: FEDERATION_DHT_TOPIC=${CONFIG.FEDERATION_DHT_TOPIC}, FEDERATION_PORT=${CONFIG.FEDERATION_PORT} => port=${port}`)
+  const { app } = await createServer()
   
-  const { app } = await createServer(apiVersion)
-
   app.listen(port, () => {
     // eslint-disable-next-line no-console
     console.log(`Server is running at http://localhost:${port}`)

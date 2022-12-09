@@ -34,7 +34,6 @@ import { i18n } from './localization'
 type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
 
 const createServer = async (
-  apiVersion: String,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // context: any = serverContext,
   logger: Logger = apolloLogger,
@@ -76,9 +75,9 @@ const createServer = async (
 
   // Apollo Server
   const apollo = new ApolloServer({
-    schema: await schema(apiVersion),
+    schema: await schema(),
     // playground: CONFIG.GRAPHIQL,
-    introspection: CONFIG.GRAPHIQL,
+    // introspection: CONFIG.GRAPHIQL,
     // context,
     // plugins,
     logger,

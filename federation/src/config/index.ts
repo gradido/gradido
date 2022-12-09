@@ -1,8 +1,8 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
-/*
 import dotenv from 'dotenv'
-import Decimal from 'decimal.js-light'
 dotenv.config()
+/*
+import Decimal from 'decimal.js-light'
 
 Decimal.set({
   precision: 25,
@@ -120,6 +120,8 @@ if (
 const federation = {
   FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC || null,
   FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
+  FEDERATION_PORT: process.env.FEDERATION_PORT || 5001,
+  FEDERATION_API: process.env.FEDERATION_API || '1_0',
   FEDERATION_COMMUNITY_ACTIVATE_ENDPOINTS:
     process.env.FEDERATION_COMMUNITY_ACTIVATE_ENDPOINTS === 'true' || false,
   FEDERATION_COMMUNITY_URL: process.env.FEDERATION_COMMUNITY_URL || null,
