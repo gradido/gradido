@@ -108,7 +108,7 @@ services:
     #env_file:
     #  - ./frontend/.env
     volumes:
-      # <host_machine_directy>:<container_directory> – mirror bidirectional path in local context with path in Docker container
+      # <host_machine_directory>:<container_directory> – mirror bidirectional path in local context with path in Docker container
       - ./logs/backend:/logs/backend
 
   ########################################################
