@@ -20,7 +20,6 @@ import TransactionSendArgs from '@arg/TransactionSendArgs'
 import Paginated from '@arg/Paginated'
 
 import { backendLogger as logger } from '@/server/logger'
-import CONFIG from '@/config'
 import { Context, getUser } from '@/server/context'
 import { sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
 import { calculateBalance, isHexPublicKey } from '@/util/validate'
