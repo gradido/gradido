@@ -4,21 +4,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  const contactsToFix = await queryFn(`
-    SELECT user_contacts.id, users.deleted_at
-    FROM user_contacts JOIN users ON users.email_id = user_contacts.id
+  await queryFn(`
+    UPDATE user_contacts LEFT JOIN users ON users.email_id = user_contacts.id
+    SET user_contacts.deleted_at = users.deleted_at
     WHERE user_contacts.deleted_at IS NULL
-    AND user_id IN (SELECT id FROM users WHERE deleted_at IS NOT NULL);`)
-
-  for (let i = 0; i < contactsToFix.length; i++) {
-    const deletedAt = new Date(contactsToFix[i].deleted_at)
-      .toISOString()
-      .slice(0, 19)
-      .replace('T', ' ')
-
-    await queryFn(`
-      UPDATE user_contacts SET deleted_at = '${deletedAt}' WHERE id = ${contactsToFix[i].id};`)
-  }
+    AND users.deleted_at IS NOT NULL;`)
 }
 
 /* eslint-disable @typescript-eslint/no-empty-function */
