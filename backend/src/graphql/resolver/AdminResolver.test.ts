@@ -969,13 +969,21 @@ describe('AdminResolver', () => {
           const now = new Date()
 
           beforeAll(async () => {
-            creation = await creationFactory(testEnv, {
-              email: 'peter@lustig.de',
-              amount: 400,
-              memo: 'Herzlich Willkommen bei Gradido!',
-              creationDate: contributionDateFormatter(
-                new Date(now.getFullYear(), now.getMonth() - 1, 1),
-              ),
+            await mutate({
+              mutation: adminCreateContribution,
+              variables: {
+                email: 'peter@lustig.de',
+                amount: 400,
+                memo: 'Herzlich Willkommen bei Gradido!',
+                creationDate: contributionDateFormatter(
+                  new Date(now.getFullYear(), now.getMonth() - 1, 1),
+                ),
+              },
+            })
+            creation = await Contribution.findOneOrFail({
+              where: {
+                memo: 'Herzlich Willkommen bei Gradido!',
+              },
             })
           })
 
@@ -1702,6 +1710,10 @@ describe('AdminResolver', () => {
                   new Date(now.getFullYear(), now.getMonth() - 2, 1),
                 ),
               })
+              await query({
+                query: login,
+                variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+              })
             })
 
             it('returns true', async () => {
@@ -1781,6 +1793,10 @@ describe('AdminResolver', () => {
                 creationDate: contributionDateFormatter(
                   new Date(now.getFullYear(), now.getMonth() - 2, 1),
                 ),
+              })
+              await query({
+                query: login,
+                variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
               })
             })
 
