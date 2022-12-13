@@ -15,6 +15,7 @@
                         size="lg"
                         :value="sendTypes.send"
                         stacked
+                        class="custom-radio-button"
                       ></b-form-radio>
                     </b-col>
                   </b-row>
@@ -27,6 +28,7 @@
                         name="shipping"
                         :value="sendTypes.link"
                         size="lg"
+                        class="custom-radio-button"
                       ></b-form-radio>
                     </b-col>
                   </b-row>
@@ -189,5 +191,24 @@ span.errors {
 }
 .border-radius {
   border-radius: 10px;
+}
+
+label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.custom-control-input:checked ~ .custom-control-label::before {
+  color: #678000;
+  border-color: #678000;
+  background-color: #f1f2ec;
+}
+
+.custom-radio .custom-control-input:checked ~ .custom-control-label::after {
+  content: '\2714';
+  margin-left: 5px;
+  /* left: -42.5px;
+  top: 1.5px; */
+  color: #678000;
 }
 </style>
