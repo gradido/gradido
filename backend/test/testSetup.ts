@@ -1,5 +1,9 @@
+import CONFIG from '@/config'
 import { backendLogger as logger } from '@/server/logger'
 import { i18n } from '@/server/localization'
+
+CONFIG.EMAIL = true
+CONFIG.EMAIL_TEST_MODUS = false
 
 jest.setTimeout(1000000)
 

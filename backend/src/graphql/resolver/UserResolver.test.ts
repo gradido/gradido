@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
+import { printTimeDuration } from '@/util/time'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import {
@@ -18,18 +20,17 @@ import { verifyLogin, queryOptIn, searchAdminUsers } from '@/seeds/graphql/queri
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
-import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-import { sendAccountMultiRegistrationEmail } from '@/emails/sendEmailVariants'
-import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
-import { printTimeDuration, activationLink } from './UserResolver'
+import {
+  sendAccountActivationEmail,
+  sendAccountMultiRegistrationEmail,
+  sendResetPasswordEmail,
+} from '@/emails/sendEmailVariants'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { ContributionLink } from '@model/ContributionLink'
 import { TransactionLink } from '@entity/TransactionLink'
-
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { EventProtocol } from '@entity/EventProtocol'
-import { logger, i18n as localization } from '@test/testSetup'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { UserContact } from '@entity/UserContact'
@@ -42,24 +43,16 @@ import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
-jest.mock('@/mailer/sendAccountActivationEmail', () => {
-  return {
-    __esModule: true,
-    sendAccountActivationEmail: jest.fn(),
-  }
-})
-
 jest.mock('@/emails/sendEmailVariants', () => {
+  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
   return {
     __esModule: true,
-    sendAccountMultiRegistrationEmail: jest.fn(),
-  }
-})
-
-jest.mock('@/mailer/sendResetPasswordEmail', () => {
-  return {
-    __esModule: true,
-    sendResetPasswordEmail: jest.fn(),
+    ...originalModule,
+    sendAccountActivationEmail: jest.fn((a) => originalModule.sendAccountActivationEmail(a)),
+    sendAccountMultiRegistrationEmail: jest.fn((a) =>
+      originalModule.sendAccountMultiRegistrationEmail(a),
+    ),
+    sendResetPasswordEmail: jest.fn((a) => originalModule.sendResetPasswordEmail(a)),
   }
 })
 
@@ -180,11 +173,15 @@ describe('UserResolver', () => {
           emailVerificationCode,
         ).replace(/{code}/g, '')
         expect(sendAccountActivationEmail).toBeCalledWith({
-          link: activationLink,
           firstName: 'Peter',
           lastName: 'Lustig',
           email: 'peter@lustig.de',
-          duration: expect.any(String),
+          language: 'de',
+          activationLink,
+          timeDurationObject: expect.objectContaining({
+            hours: expect.any(Number),
+            minutes: expect.any(Number),
+          }),
         })
       })
 
@@ -805,12 +802,8 @@ describe('UserResolver', () => {
     })
 
     describe('user exists in DB', () => {
-      let emailContact: UserContact
-
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        // await resetEntity(LoginEmailOptIn)
-        emailContact = await UserContact.findOneOrFail(variables)
       })
 
       afterAll(async () => {
@@ -819,7 +812,7 @@ describe('UserResolver', () => {
       })
 
       describe('duration not expired', () => {
-        it('returns true', async () => {
+        it('throws an error', async () => {
           await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
             expect.objectContaining({
               errors: [
@@ -845,15 +838,19 @@ describe('UserResolver', () => {
             }),
           )
         })
-      })
 
-      it('sends reset password email', () => {
-        expect(sendResetPasswordEmail).toBeCalledWith({
-          link: activationLink(emailContact.emailVerificationCode),
-          firstName: 'Bibi',
-          lastName: 'Bloxberg',
-          email: 'bibi@bloxberg.de',
-          duration: expect.any(String),
+        it('sends reset password email', () => {
+          expect(sendResetPasswordEmail).toBeCalledWith({
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+            email: 'bibi@bloxberg.de',
+            language: 'de',
+            resetLink: expect.any(String),
+            timeDurationObject: expect.objectContaining({
+              hours: expect.any(Number),
+              minutes: expect.any(Number),
+            }),
+          })
         })
       })
 

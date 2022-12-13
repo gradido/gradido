@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
 import { GraphQLError } from 'graphql'
 import {
   adminCreateContributionMessage,
@@ -13,12 +14,16 @@ import { listContributionMessages } from '@/seeds/graphql/queries'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
+import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 
-jest.mock('@/mailer/sendAddedContributionMessageEmail', () => {
+jest.mock('@/emails/sendEmailVariants', () => {
+  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
   return {
     __esModule: true,
-    sendAddedContributionMessageEmail: jest.fn(),
+    ...originalModule,
+    sendAddedContributionMessageEmail: jest.fn((a) =>
+      originalModule.sendAddedContributionMessageEmail(a),
+    ),
   }
 })
 
@@ -27,7 +32,7 @@ let testEnv: any
 let result: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(logger, localization)
   mutate = testEnv.mutate
   con = testEnv.con
   await cleanDB()
@@ -162,15 +167,13 @@ describe('ContributionMessageResolver', () => {
 
         it('calls sendAddedContributionMessageEmail', async () => {
           expect(sendAddedContributionMessageEmail).toBeCalledWith({
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+            email: 'bibi@bloxberg.de',
+            language: 'de',
             senderFirstName: 'Peter',
             senderLastName: 'Lustig',
-            recipientFirstName: 'Bibi',
-            recipientLastName: 'Bloxberg',
-            recipientEmail: 'bibi@bloxberg.de',
-            senderEmail: 'peter@lustig.de',
             contributionMemo: 'Test env contribution',
-            message: 'Admin Test',
-            overviewURL: 'http://localhost/overview',
           })
         })
       })

@@ -2,13 +2,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { backendLogger as logger } from '@/server/logger'
-import CONFIG from '@/config'
 
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection, In } from '@dbTools/typeorm'
-
-import { sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
 
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
@@ -36,7 +33,10 @@ import Decimal from 'decimal.js-light'
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByEmail } from './UserResolver'
-import { sendTransactionLinkRedeemedEmail } from '@/mailer/sendTransactionLinkRedeemed'
+import {
+  sendTransactionLinkRedeemedEmail,
+  sendTransactionReceivedEmail,
+} from '@/emails/sendEmailVariants'
 import { Event, EventTransactionReceive, EventTransactionSend } from '@/event/Event'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
 
@@ -159,29 +159,27 @@ export const executeTransaction = async (
     await queryRunner.release()
   }
   logger.debug(`prepare Email for transaction received...`)
-  // send notification email
-  // TODO: translate
   await sendTransactionReceivedEmail({
+    firstName: recipient.firstName,
+    lastName: recipient.lastName,
+    email: recipient.emailContact.email,
+    language: recipient.language,
     senderFirstName: sender.firstName,
     senderLastName: sender.lastName,
-    recipientFirstName: recipient.firstName,
-    recipientLastName: recipient.lastName,
-    email: recipient.emailContact.email,
     senderEmail: sender.emailContact.email,
-    amount,
-    overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+    transactionAmount: amount,
   })
   if (transactionLink) {
     await sendTransactionLinkRedeemedEmail({
+      firstName: sender.firstName,
+      lastName: sender.lastName,
+      email: sender.emailContact.email,
+      language: sender.language,
       senderFirstName: recipient.firstName,
       senderLastName: recipient.lastName,
-      recipientFirstName: sender.firstName,
-      recipientLastName: sender.lastName,
-      email: sender.emailContact.email,
       senderEmail: recipient.emailContact.email,
-      amount,
-      memo,
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      transactionAmount: amount,
+      transactionMemo: memo,
     })
   }
   logger.info(`finished executeTransaction successfully`)
@@ -206,7 +204,7 @@ export class TransactionResolver {
     // find current balance
     const lastTransaction = await dbTransaction.findOne(
       { userId: user.id },
-      { order: { balanceDate: 'DESC' } },
+      { order: { balanceDate: 'DESC' }, relations: ['contribution'] },
     )
     logger.debug(`lastTransaction=${lastTransaction}`)
 
@@ -314,28 +312,16 @@ export class TransactionResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     logger.info(`sendCoins(email=${email}, amount=${amount}, memo=${memo})`)
+    if (amount.lte(0)) {
+      logger.error(`Amount to send must be positive`)
+      throw new Error('Amount to send must be positive')
+    }
 
     // TODO this is subject to replay attacks
     const senderUser = getUser(context)
 
     // validate recipient user
     const recipientUser = await findUserByEmail(email)
-    /*
-    const emailContact = await UserContact.findOne({ email }, { withDeleted: true })
-    if (!emailContact) {
-      logger.error(`Could not find UserContact with email: ${email}`)
-      throw new Error(`Could not find UserContact with email: ${email}`)
-    }
-    */
-    // const recipientUser = await dbUser.findOne({ id: emailContact.userId })
-
-    /* Code inside this if statement is unreachable (useless by so), 
-    in findUserByEmail() an error is already thrown if the user is not found
-    */
-    if (!recipientUser) {
-      logger.error(`unknown recipient to UserContact: email=${email}`)
-      throw new Error('unknown recipient')
-    }
     if (recipientUser.deletedAt) {
       logger.error(`The recipient account was deleted: recipientUser=${recipientUser}`)
       throw new Error('The recipient account was deleted')
