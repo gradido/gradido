@@ -8,8 +8,8 @@
               <b-row class="mb-4">
                 <b-col>
                   <b-row class="bg-f5 gradido-border-radius p-2">
-                    <b-col cols="9">{{ $t('send_gdd') }}</b-col>
-                    <b-col cols="3">
+                    <b-col cols="10">{{ $t('send_gdd') }}</b-col>
+                    <b-col cols="2">
                       <b-form-radio
                         name="shipping"
                         size="lg"
@@ -22,8 +22,8 @@
                 </b-col>
                 <b-col>
                   <b-row class="bg-f5 gradido-border-radius p-2">
-                    <b-col cols="9">{{ $t('send_per_link') }}</b-col>
-                    <b-col cols="3">
+                    <b-col cols="10">{{ $t('send_per_link') }}</b-col>
+                    <b-col cols="2">
                       <b-form-radio
                         name="shipping"
                         :value="sendTypes.link"
