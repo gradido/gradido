@@ -5,7 +5,7 @@
         <b-avatar variant="primary" :text="avatar" size="6rem"></b-avatar>
       </div>
 
-      <b-container class="d-flex justify-content-center mt-md-5">
+      <b-container class="justify-content-center mt-md-5">
         <b-row>
           <b-col>
             <div class="text-center font-weight-bold">
@@ -22,7 +22,7 @@
             </div>
           </b-col>
           <b-col>
-            <div class="text-center font-weight-bold">{{ $t('em-dash') }}</div>
+            <div class="text-center font-weight-bold">{{ CONFIG.COMMUNITY_NAME }}</div>
             <div class="text-center">
               {{ $t('community.community') }}
             </div>
@@ -33,11 +33,18 @@
   </div>
 </template>
 <script>
+import CONFIG from '@/config'
+
 export default {
   name: 'UserCard',
   props: {
     balance: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
+  },
+  data() {
+    return {
+      CONFIG,
+    }
   },
   computed: {
     avatar() {

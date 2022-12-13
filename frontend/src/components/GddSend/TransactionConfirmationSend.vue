@@ -4,7 +4,7 @@
       <div class="h3 mb-4">{{ $t('form.send_check') }}</div>
       <b-row class="mt-5">
         <b-col cols="2">
-          <b-avatar :text="avatarText" variant="success" size="3em"></b-avatar>
+          <!-- <b-avatar :text="avatarText" variant="success" size="3em"></b-avatar> -->
         </b-col>
         <b-col>
           <div class="h4">
@@ -125,6 +125,12 @@ export default {
       disabled: false,
     }
   },
+  // computed: {
+  //   avatarText() {
+  //     // return this.linkedUser.firstName[0] + this.linkedUser.lastName[0]
+  //     return 'xx'
+  //   },
+  // },
 }
 </script>
 <style>

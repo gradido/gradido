@@ -9,10 +9,7 @@
       <div>
         {{ CONFIG.COMMUNITY_URL }}
       </div>
-    </b-container>
-
-    <hr />
-    <b-container class="bg-white appBoxShadow gradido-border-radius p-4">
+      <hr />
       <div class="h3">{{ $t('community.openContributionLinks') }}</div>
       <small v-if="count > 0">
         {{
@@ -35,18 +32,18 @@
           </div>
         </li>
       </ul>
-    </b-container>
-    <hr />
-    <b-container class="bg-white appBoxShadow gradido-border-radius p-4">
+
+      <hr />
+
       <div class="h3">{{ $t('community.moderators') }}</div>
       <ul>
         <li v-for="item in itemsAdminUser" v-bind:key="item.id">
           {{ item.firstName }} {{ item.lastName }}
         </li>
       </ul>
-    </b-container>
-    <hr />
-    <b-container class="bg-white appBoxShadow gradido-border-radius p-4">
+
+      <hr />
+
       <div class="h3">{{ $t('contact') }}</div>
       <b-link :href="`mailto:${supportMail}`">{{ supportMail }}</b-link>
     </b-container>

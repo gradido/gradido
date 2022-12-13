@@ -26,7 +26,7 @@
           </template>
         </transaction-list-item>
       </div>
-      <div class="h4 m-3">{{ $t('lastMonth') }}</div>
+      <div v-if="transactionCount > 0" class="h4 m-3">{{ $t('lastMonth') }}</div>
       <div v-for="({ id, typeId }, index) in transactions" :key="`l2-` + id">
         <transaction-list-item
           v-if="typeId !== 'DECAY'"
