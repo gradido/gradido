@@ -29,7 +29,6 @@ import {
   sendAccountMultiRegistrationEmail,
   sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
-import { activationLink } from './UserResolver'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { ContributionLink } from '@model/ContributionLink'
@@ -815,12 +814,8 @@ describe('UserResolver', () => {
     })
 
     describe('user exists in DB', () => {
-      let emailContact: UserContact
-
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        // await resetEntity(LoginEmailOptIn)
-        emailContact = await UserContact.findOneOrFail(variables)
       })
 
       afterAll(async () => {
@@ -829,7 +824,7 @@ describe('UserResolver', () => {
       })
 
       describe('duration not expired', () => {
-        it('returns true', async () => {
+        it('throws an error', async () => {
           await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
             expect.objectContaining({
               errors: [
@@ -855,19 +850,19 @@ describe('UserResolver', () => {
             }),
           )
         })
-      })
 
-      it('sends reset password email', () => {
-        expect(sendResetPasswordEmail).toBeCalledWith({
-          firstName: 'Bibi',
-          lastName: 'Bloxberg',
-          email: 'bibi@bloxberg.de',
-          language: 'de',
-          resetLink: activationLink(emailContact.emailVerificationCode),
-          timeDurationObject: expect.objectContaining({
-            hours: expect.any(Number),
-            minutes: expect.any(Number),
-          }),
+        it('sends reset password email', () => {
+          expect(sendResetPasswordEmail).toBeCalledWith({
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+            email: 'bibi@bloxberg.de',
+            language: 'de',
+            resetLink: expect.any(String),
+            timeDurationObject: expect.objectContaining({
+              hours: expect.any(Number),
+              minutes: expect.any(Number),
+            }),
+          })
         })
       })
 

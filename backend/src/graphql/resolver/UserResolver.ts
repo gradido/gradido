@@ -126,16 +126,6 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   return [pubKey, privKey]
 }
 
-/*
-const getEmailHash = (email: string): Buffer => {
-  logger.trace('getEmailHash...')
-  const emailHash = Buffer.alloc(sodium.crypto_generichash_BYTES)
-  sodium.crypto_generichash(emailHash, Buffer.from(email))
-  logger.debug(`getEmailHash...successful: ${emailHash}`)
-  return emailHash
-}
-*/
-
 const SecretKeyCryptographyEncrypt = (message: Buffer, encryptionKey: Buffer): Buffer => {
   logger.trace('SecretKeyCryptographyEncrypt...')
   const encrypted = Buffer.alloc(message.length + sodium.crypto_secretbox_MACBYTES)
@@ -169,91 +159,6 @@ const newEmailContact = (email: string, userId: number): DbUserContact => {
   emailContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
   emailContact.emailVerificationCode = random(64)
   logger.debug(`newEmailContact...successful: ${emailContact}`)
-  return emailContact
-}
-/*
-const newEmailOptIn = (userId: number): LoginEmailOptIn => {
-  logger.trace('newEmailOptIn...')
-  const emailOptIn = new LoginEmailOptIn()
-  emailOptIn.verificationCode = random(64)
-  emailOptIn.userId = userId
-  emailOptIn.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
-  logger.debug(`newEmailOptIn...successful: ${emailOptIn}`)
-  return emailOptIn
-}
-*/
-/*
-// needed by AdminResolver
-// checks if given code exists and can be resent
-// if optIn does not exits, it is created
-export const checkOptInCode = async (
-  optInCode: LoginEmailOptIn | undefined,
-  user: DbUser,
-  optInType: OptInType = OptInType.EMAIL_OPT_IN_REGISTER,
-): Promise<LoginEmailOptIn> => {
-  logger.info(`checkOptInCode... ${optInCode}`)
-  if (optInCode) {
-    if (!canResendOptIn(optInCode)) {
-      logger.error(
-        `email already sent less than ${printTimeDuration(
-          CONFIG.EMAIL_CODE_REQUEST_TIME,
-        )} minutes ago`,
-      )
-      throw new Error(
-        `email already sent less than ${printTimeDuration(
-          CONFIG.EMAIL_CODE_REQUEST_TIME,
-        )} minutes ago`,
-      )
-    }
-    optInCode.updatedAt = new Date()
-    optInCode.resendCount++
-  } else {
-    logger.trace('create new OptIn for userId=' + user.id)
-    optInCode = newEmailOptIn(user.id)
-  }
-
-  if (user.emailChecked) {
-    optInCode.emailOptInTypeId = optInType
-  }
-  await LoginEmailOptIn.save(optInCode).catch(() => {
-    logger.error('Unable to save optin code= ' + optInCode)
-    throw new Error('Unable to save optin code.')
-  })
-  logger.debug(`checkOptInCode...successful: ${optInCode} for userid=${user.id}`)
-  return optInCode
-}
-*/
-export const checkEmailVerificationCode = async (
-  emailContact: DbUserContact,
-  optInType: OptInType = OptInType.EMAIL_OPT_IN_REGISTER,
-): Promise<DbUserContact> => {
-  logger.info(`checkEmailVerificationCode... ${emailContact}`)
-  if (emailContact.updatedAt) {
-    if (!canEmailResend(emailContact.updatedAt)) {
-      logger.error(
-        `email already sent less than ${printTimeDuration(
-          CONFIG.EMAIL_CODE_REQUEST_TIME,
-        )} minutes ago`,
-      )
-      throw new Error(
-        `email already sent less than ${printTimeDuration(
-          CONFIG.EMAIL_CODE_REQUEST_TIME,
-        )} minutes ago`,
-      )
-    }
-    emailContact.updatedAt = new Date()
-    emailContact.emailResendCount++
-  } else {
-    logger.trace('create new EmailVerificationCode for userId=' + emailContact.userId)
-    emailContact.emailChecked = false
-    emailContact.emailVerificationCode = random(64)
-  }
-  emailContact.emailOptInTypeId = optInType
-  await DbUserContact.save(emailContact).catch(() => {
-    logger.error('Unable to save email verification code= ' + emailContact)
-    throw new Error('Unable to save email verification code.')
-  })
-  logger.debug(`checkEmailVerificationCode...successful: ${emailContact}`)
   return emailContact
 }
 
@@ -366,6 +271,7 @@ export class UserResolver {
   @Authorized([RIGHTS.LOGOUT])
   @Mutation(() => String)
   async logout(): Promise<boolean> {
+    // TODO: Event still missing here!!
     // TODO: We dont need this anymore, but might need this in the future in oder to invalidate a valid JWT-Token.
     // Furthermore this hook can be useful for tracking user behaviour (did he logout or not? Warn him if he didn't on next login)
     // The functionality is fully client side - the client just needs to delete his token with the current implementation.
@@ -579,32 +485,45 @@ export class UserResolver {
       return true
     }
 
-    // can be both types: REGISTER and RESET_PASSWORD
-    // let optInCode = await LoginEmailOptIn.findOne({
-    //  userId: user.id,
-    // })
-    // let optInCode = user.emailContact.emailVerificationCode
-    const dbUserContact = await checkEmailVerificationCode(
-      user.emailContact,
-      OptInType.EMAIL_OPT_IN_RESET_PASSWORD,
-    )
+    if (!canEmailResend(user.emailContact.updatedAt || user.emailContact.createdAt)) {
+      logger.error(
+        `email already sent less than ${printTimeDuration(
+          CONFIG.EMAIL_CODE_REQUEST_TIME,
+        )} minutes ago`,
+      )
+      throw new Error(
+        `email already sent less than ${printTimeDuration(
+          CONFIG.EMAIL_CODE_REQUEST_TIME,
+        )} minutes ago`,
+      )
+    }
 
-    // optInCode = await checkOptInCode(optInCode, user, OptInType.EMAIL_OPT_IN_RESET_PASSWORD)
-    logger.info(`optInCode for ${email}=${dbUserContact}`)
+    user.emailContact.updatedAt = new Date()
+    user.emailContact.emailResendCount++
+    user.emailContact.emailVerificationCode = random(64)
+    user.emailContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_RESET_PASSWORD
+    await user.emailContact.save().catch(() => {
+      logger.error('Unable to save email verification code= ' + user.emailContact)
+      throw new Error('Unable to save email verification code.')
+    })
+
+    logger.info(`optInCode for ${email}=${user.emailContact}`)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendResetPasswordEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,
       language: user.language,
-      resetLink: activationLink(dbUserContact.emailVerificationCode),
+      resetLink: activationLink(user.emailContact.emailVerificationCode),
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
     /*  uncomment this, when you need the activation link on the console */
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
-      logger.debug(`Reset password link: ${activationLink(dbUserContact.emailVerificationCode)}`)
+      logger.debug(
+        `Reset password link: ${activationLink(user.emailContact.emailVerificationCode)}`,
+      )
     }
     logger.info(`forgotPassword(${email}) successful...`)
 
@@ -642,7 +561,7 @@ export class UserResolver {
     })
     logger.debug('userContact loaded...')
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
-    if (!isEmailVerificationCodeValid(userContact.updatedAt)) {
+    if (!isEmailVerificationCodeValid(userContact.updatedAt || userContact.createdAt)) {
       logger.error(
         `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
       )
@@ -746,7 +665,7 @@ export class UserResolver {
     const userContact = await DbUserContact.findOneOrFail({ emailVerificationCode: optIn })
     logger.debug(`found optInCode=${userContact}`)
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
-    if (!isEmailVerificationCodeValid(userContact.updatedAt)) {
+    if (!isEmailVerificationCodeValid(userContact.updatedAt || userContact.createdAt)) {
       logger.error(
         `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
       )
@@ -1055,6 +974,9 @@ export class UserResolver {
       throw new Error(`The emailContact: ${email} of this User is deleted.`)
     }
 
+    emailContact.emailResendCount++
+    await emailContact.save()
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendAccountActivationEmail({
       firstName: user.firstName,
@@ -1119,10 +1041,7 @@ const isOptInValid = (optIn: LoginEmailOptIn): boolean => {
   return isTimeExpired(optIn, CONFIG.EMAIL_CODE_VALID_TIME)
 }
 */
-const isEmailVerificationCodeValid = (updatedAt: Date | null): boolean => {
-  if (updatedAt == null) {
-    return true
-  }
+const isEmailVerificationCodeValid = (updatedAt: Date): boolean => {
   return isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_VALID_TIME)
 }
 /*
