@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container bg-white appBoxShadow gradido-border-radius p-4">
     <user-card :balance="balance" :transactionCount="transactionCount"></user-card>
     <user-data />
     <hr />

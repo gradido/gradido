@@ -1,8 +1,8 @@
 <template>
   <div class="community-page">
     <div>
-      <b-tabs no-nav-style v-model="tabIndex" content-class="mt-3" align="center">
-        <b-tab>
+      <b-tabs no-nav-style borderless v-model="tabIndex" content-class="mt-3" align="center">
+        <b-tab no-body>
           <open-creations-amount
             :minimalDate="minimalDate"
             :maxGddThisMonth="maxGddThisMonth"
@@ -19,7 +19,7 @@
             :maxGddThisMonth="maxGddThisMonth"
           />
         </b-tab>
-        <b-tab>
+        <b-tab no-body>
           <gradido-notification list="my" />
           <contribution-list
             @closeAllOpenCollapse="closeAllOpenCollapse"
@@ -33,7 +33,7 @@
             :pageSize="pageSize"
           />
         </b-tab>
-        <b-tab>
+        <b-tab no-body>
           <gradido-notification list="all" />
           <contribution-list
             :items="itemsAll"
@@ -304,3 +304,9 @@ export default {
   },
 }
 </script>
+<style scoped>
+.tab-content {
+  border-left: none;
+  border-right: none;
+}
+</style>

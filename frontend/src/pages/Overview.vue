@@ -1,7 +1,7 @@
 <template>
   <div>
     <div>
-      <community-news class="mb-5 shadow" />
+      <community-news class="mb-5" />
       <!-- <gdd-transaction-list
         :transactions="transactions"
         :pageSize="5"

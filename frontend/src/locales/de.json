@@ -42,6 +42,7 @@
       "pending": "Eingereicht und wartet auf Bestätigung",
       "rejected": "abgelehnt"
     },
+    "creation":"Schöpfen",
     "delete": "Beitrag löschen! Bist du sicher?",
     "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
     "exhausted": "Für diesen Monat kannst du nichts mehr schöpfen.",
@@ -65,7 +66,7 @@
     "unique": "(einmalig)"
   },
   "contributionText": "Beitragstext",
-  "creation": "Schöpfung",
+  "creation": "Schöpfen",
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
     "calculation_decay": "Berechnung der Vergänglichkeit",

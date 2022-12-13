@@ -7,7 +7,7 @@
             <b-form-radio-group v-model="radioSelected">
               <b-row class="mb-4">
                 <b-col>
-                  <b-row class="bg-secondary gradido-border-radius p-2">
+                  <b-row class="bg-f5 gradido-border-radius p-2">
                     <b-col cols="9">{{ $t('send_gdd') }}</b-col>
                     <b-col cols="3">
                       <b-form-radio
@@ -20,7 +20,7 @@
                   </b-row>
                 </b-col>
                 <b-col>
-                  <b-row class="bg-secondary gradido-border-radius p-2">
+                  <b-row class="bg-f5 gradido-border-radius p-2">
                     <b-col cols="9">{{ $t('send_per_link') }}</b-col>
                     <b-col cols="3">
                       <b-form-radio
@@ -151,12 +151,12 @@ export default {
       this.form.amount = ''
       this.form.memo = ''
     },
-    // normalizeAmount(isValid) {
-    //   this.amountFocused = false
-    //   if (!isValid) return
-    //   this.form.amountValue = Number(this.form.amount.replace(',', '.'))
-    //   this.form.amount = this.$n(this.form.amountValue, 'ungroupedDecimal')
-    // },
+    normalizeAmount(isValid) {
+      this.amountFocused = false
+      if (!isValid) return
+      this.form.amountValue = Number(this.form.amount.replace(',', '.'))
+      this.form.amount = this.$n(this.form.amountValue, 'ungroupedDecimal')
+    },
     normalizeEmail() {
       this.emailFocused = false
       this.form.email = this.form.email.trim()
