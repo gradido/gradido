@@ -661,6 +661,9 @@ export class AdminResolver {
       throw new Error(`The emailContact: ${email} of this User is deleted.`)
     }
 
+    emailContact.emailResendCount++
+    await emailContact.save()
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendAccountActivationEmail({
       firstName: user.firstName,
