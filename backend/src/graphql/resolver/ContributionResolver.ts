@@ -259,6 +259,9 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    const user = getUser(context)
+
+    const contributionToUpdate = await dbContribution.findOne({ id })
     return true
   }
 }
