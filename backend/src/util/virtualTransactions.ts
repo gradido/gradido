@@ -49,6 +49,7 @@ const virtualLinkTransaction = (
     decay: decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
     memo: '',
     creationDate: null,
+    contribution: null,
     ...defaultModelFunctions,
   }
   return new Transaction(linkDbTransaction, user)
@@ -78,6 +79,7 @@ const virtualDecayTransaction = (
     decayStart: decay.start,
     memo: '',
     creationDate: null,
+    contribution: null,
     ...defaultModelFunctions,
   }
   return new Transaction(decayDbTransaction, user)

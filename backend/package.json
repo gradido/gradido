@@ -8,7 +8,7 @@
   "license": "Apache-2.0",
   "private": false,
   "scripts": {
-    "build": "tsc --build",
+    "build": "tsc --build && mkdir -p build/src/emails/templates/ && cp -r src/emails/templates/* build/src/emails/templates/ && mkdir -p build/src/locales/ && cp -r src/locales/*.json build/src/locales/",
     "clean": "tsc --build --clean",
     "start": "cross-env TZ=UTC TS_NODE_BASEURL=./build node -r tsconfig-paths/register build/src/index.js",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts --exec ts-node -r tsconfig-paths/register src/index.ts",
