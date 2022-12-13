@@ -24,10 +24,11 @@ import { verifyLogin, queryOptIn, searchAdminUsers, searchUsers } from '@/seeds/
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
-import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-import { sendAccountMultiRegistrationEmail } from '@/emails/sendEmailVariants'
-import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
-import { printTimeDuration } from './UserResolver'
+import {
+  sendAccountActivationEmail,
+  sendAccountMultiRegistrationEmail,
+  sendResetPasswordEmail,
+} from '@/emails/sendEmailVariants'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { ContributionLink } from '@model/ContributionLink'
@@ -849,11 +850,15 @@ describe('UserResolver', () => {
 
         it('sends reset password email', () => {
           expect(sendResetPasswordEmail).toBeCalledWith({
-            link: expect.any(String),
             firstName: 'Bibi',
             lastName: 'Bloxberg',
             email: 'bibi@bloxberg.de',
-            duration: expect.any(String),
+            language: 'de',
+            resetLink: expect.any(String),
+            timeDurationObject: expect.objectContaining({
+              hours: expect.any(Number),
+              minutes: expect.any(Number),
+            }),
           })
         })
       })
