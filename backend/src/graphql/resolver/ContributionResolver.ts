@@ -252,4 +252,13 @@ export class ContributionResolver {
 
     return new UnconfirmedContribution(contributionToUpdate, user, creations)
   }
+
+  @Authorized([RIGHTS.REJECT_CONTRIBUTION])
+  @Mutation(() => Boolean)
+  async rejectContribution(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    return true
+  }
 }
