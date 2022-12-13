@@ -368,5 +368,74 @@ describe('send coins', () => {
         )
       })
     })
+
+    describe('more transactions to test semaphore', () => {
+      it('sends the coins four times in a row', async () => {
+        await expect(
+          mutate({
+            mutation: sendCoins,
+            variables: {
+              email: 'peter@lustig.de',
+              amount: 50,
+              memo: 'first transaction',
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              sendCoins: 'true',
+            },
+          }),
+        )
+        await expect(
+          mutate({
+            mutation: sendCoins,
+            variables: {
+              email: 'peter@lustig.de',
+              amount: 50,
+              memo: 'second transaction',
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              sendCoins: 'true',
+            },
+          }),
+        )
+        await expect(
+          mutate({
+            mutation: sendCoins,
+            variables: {
+              email: 'peter@lustig.de',
+              amount: 50,
+              memo: 'third transaction',
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              sendCoins: 'true',
+            },
+          }),
+        )
+        await expect(
+          mutate({
+            mutation: sendCoins,
+            variables: {
+              email: 'peter@lustig.de',
+              amount: 50,
+              memo: 'fourth transaction',
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              sendCoins: 'true',
+            },
+          }),
+        )
+      })
+    })
   })
 })
