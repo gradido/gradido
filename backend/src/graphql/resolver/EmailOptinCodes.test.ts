@@ -13,6 +13,7 @@ let testEnv: any
 
 CONFIG.EMAIL_CODE_VALID_TIME = 1440
 CONFIG.EMAIL_CODE_REQUEST_TIME = 10
+CONFIG.EMAIL = false
 
 beforeAll(async () => {
   testEnv = await testEnvironment()

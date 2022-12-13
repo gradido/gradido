@@ -496,7 +496,7 @@ export class UserResolver {
       lastName: user.lastName,
       email,
       language: user.language,
-      resetLink: activationLink(dbUserContact.emailVerificationCode),
+      resetLink: activationLink(user.emailContact.emailVerificationCode),
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
