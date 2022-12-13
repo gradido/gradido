@@ -31,7 +31,10 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   // TODO - load from database dynamically & admin - maybe encode this in the token to prevent many database requests
   // TODO this implementation is bullshit - two database queries cause our user identifiers are not aligned and vary between email, id and pubKey
   try {
-    const user = await User.findOneOrFail({ where: { gradidoID: decoded.gradidoID } })
+    const user = await User.findOneOrFail({
+      where: { gradidoID: decoded.gradidoID },
+      relations: ['emailContact'],
+    })
     context.user = user
     context.role = user.isAdmin ? ROLE_ADMIN : ROLE_USER
   } catch {
