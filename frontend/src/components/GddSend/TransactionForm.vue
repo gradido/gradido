@@ -207,8 +207,6 @@ label {
 .custom-radio .custom-control-input:checked ~ .custom-control-label::after {
   content: '\2714';
   margin-left: 5px;
-  /* left: -42.5px;
-  top: 1.5px; */
   color: #678000;
 }
 </style>
