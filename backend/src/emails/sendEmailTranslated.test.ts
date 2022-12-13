@@ -89,7 +89,7 @@ describe('sendEmailTranslated', () => {
           originalMessage: expect.objectContaining({
             to: 'receiver@mail.org',
             cc: 'support@gradido.net',
-            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            from: 'Gradido (do not answer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Try To Register Again With Your Email',
             html: expect.stringContaining('Gradido: Try To Register Again With Your Email'),
@@ -105,6 +105,43 @@ describe('sendEmailTranslated', () => {
 
     it.skip('calls "i18n.__" for translation', () => {
       expect(i18n.__).toBeCalled()
+    })
+  })
+
+  describe('with email EMAIL_TEST_MODUS true', () => {
+    beforeEach(async () => {
+      jest.clearAllMocks()
+      CONFIG.EMAIL = true
+      CONFIG.EMAIL_TEST_MODUS = true
+      result = await sendEmailTranslated({
+        receiver: {
+          to: 'receiver@mail.org',
+          cc: 'support@gradido.net',
+        },
+        template: 'accountMultiRegistration',
+        locals: {
+          locale: 'en',
+        },
+      })
+    })
+
+    it('call of "sendEmailTranslated" with faked "to"', () => {
+      expect(result).toMatchObject({
+        envelope: {
+          from: CONFIG.EMAIL_SENDER,
+          to: [CONFIG.EMAIL_TEST_RECEIVER, 'support@gradido.net'],
+        },
+        message: expect.any(String),
+        originalMessage: expect.objectContaining({
+          to: CONFIG.EMAIL_TEST_RECEIVER,
+          cc: 'support@gradido.net',
+          from: `Gradido (do not answer) <${CONFIG.EMAIL_SENDER}>`,
+          attachments: [],
+          subject: 'Gradido: Try To Register Again With Your Email',
+          html: expect.stringContaining('Gradido: Try To Register Again With Your Email'),
+          text: expect.stringContaining('GRADIDO: TRY TO REGISTER AGAIN WITH YOUR EMAIL'),
+        }),
+      })
     })
   })
 })

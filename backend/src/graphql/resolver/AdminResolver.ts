@@ -39,8 +39,14 @@ import { Decay } from '@model/Decay'
 import Paginated from '@arg/Paginated'
 import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
-import { findUserByEmail, activationLink, printTimeDuration } from './UserResolver'
-import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { getTimeDurationObject } from '@/util/time'
+import { findUserByEmail, activationLink } from './UserResolver'
+import {
+  sendAddedContributionMessageEmail,
+  sendAccountActivationEmail,
+  sendContributionConfirmedEmail,
+  sendContributionRejectedEmail,
+} from '@/emails/sendEmailVariants'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
 import {
@@ -63,9 +69,6 @@ import { ContributionMessage as DbContributionMessage } from '@entity/Contributi
 import ContributionMessageArgs from '@arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionMessage } from '@model/ContributionMessage'
-import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
-import { sendContributionRejectedEmail } from '@/mailer/sendContributionRejectedEmail'
-import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
 import {
   Event,
@@ -200,7 +203,7 @@ export class AdminResolver {
     @Arg('userId', () => Int) userId: number,
     @Ctx() context: Context,
   ): Promise<Date | null> {
-    const user = await dbUser.findOne({ id: userId })
+    const user = await dbUser.findOne({ where: { id: userId }, relations: ['emailContact'] })
     // user exists ?
     if (!user) {
       logger.error(`Could not find user with userId: ${userId}`)
@@ -214,6 +217,7 @@ export class AdminResolver {
     }
     // soft-delete user
     await user.softRemove()
+    await user.emailContact.softRemove()
     const newUser = await dbUser.findOne({ id: userId }, { withDeleted: true })
     return newUser ? newUser.deletedAt : null
   }
@@ -221,7 +225,10 @@ export class AdminResolver {
   @Authorized([RIGHTS.UNDELETE_USER])
   @Mutation(() => Date, { nullable: true })
   async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
-    const user = await dbUser.findOne({ id: userId }, { withDeleted: true })
+    const user = await dbUser.findOne(
+      { id: userId },
+      { withDeleted: true, relations: ['emailContact'] },
+    )
     if (!user) {
       logger.error(`Could not find user with userId: ${userId}`)
       throw new Error(`Could not find user with userId: ${userId}`)
@@ -231,6 +238,7 @@ export class AdminResolver {
       throw new Error('User is not deleted')
     }
     await user.recover()
+    await user.emailContact.recover()
     return null
   }
 
@@ -487,14 +495,13 @@ export class AdminResolver {
       event.setEventAdminContributionDelete(eventAdminContributionDelete),
     )
     sendContributionRejectedEmail({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.emailContact.email,
+      language: user.language,
       senderFirstName: moderator.firstName,
       senderLastName: moderator.lastName,
-      recipientEmail: user.emailContact.email,
-      recipientFirstName: user.firstName,
-      recipientLastName: user.lastName,
       contributionMemo: contribution.memo,
-      contributionAmount: contribution.amount,
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
     })
 
     return !!res
@@ -582,14 +589,14 @@ export class AdminResolver {
       await queryRunner.commitTransaction()
       logger.info('creation commited successfuly.')
       sendContributionConfirmedEmail({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.emailContact.email,
+        language: user.language,
         senderFirstName: moderatorUser.firstName,
         senderLastName: moderatorUser.lastName,
-        recipientFirstName: user.firstName,
-        recipientLastName: user.lastName,
-        recipientEmail: user.emailContact.email,
         contributionMemo: contribution.memo,
         contributionAmount: contribution.amount,
-        overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
       })
     } catch (e) {
       await queryRunner.rollbackTransaction()
@@ -650,8 +657,8 @@ export class AdminResolver {
     }
     const emailContact = user.emailContact
     if (emailContact.deletedAt) {
-      logger.error(`The emailContact: ${email} of htis User is deleted.`)
-      throw new Error(`The emailContact: ${email} of htis User is deleted.`)
+      logger.error(`The emailContact: ${email} of this User is deleted.`)
+      throw new Error(`The emailContact: ${email} of this User is deleted.`)
     }
 
     emailContact.emailResendCount++
@@ -659,11 +666,12 @@ export class AdminResolver {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendAccountActivationEmail({
-      link: activationLink(emailContact.emailVerificationCode),
       firstName: user.firstName,
       lastName: user.lastName,
       email,
-      duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
+      language: user.language,
+      activationLink: activationLink(emailContact.emailVerificationCode),
+      timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
     // In case EMails are disabled log the activation link for the user
@@ -898,15 +906,13 @@ export class AdminResolver {
       }
 
       await sendAddedContributionMessageEmail({
+        firstName: contribution.user.firstName,
+        lastName: contribution.user.lastName,
+        email: contribution.user.emailContact.email,
+        language: contribution.user.language,
         senderFirstName: user.firstName,
         senderLastName: user.lastName,
-        recipientFirstName: contribution.user.firstName,
-        recipientLastName: contribution.user.lastName,
-        recipientEmail: contribution.user.emailContact.email,
-        senderEmail: user.emailContact.email,
         contributionMemo: contribution.memo,
-        message,
-        overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
       })
       await queryRunner.commitTransaction()
     } catch (e) {

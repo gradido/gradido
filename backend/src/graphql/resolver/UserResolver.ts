@@ -9,6 +9,7 @@ import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { communityDbUser } from '@/util/communityUser'
+import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { ContributionLink as dbContributionLink } from '@entity/ContributionLink'
 import { encode } from '@/auth/JWT'
@@ -17,9 +18,11 @@ import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
 import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
 import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { OptInType } from '@enum/OptInType'
-import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
-import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-import { sendAccountMultiRegistrationEmail } from '@/emails/sendEmailVariants'
+import {
+  sendAccountActivationEmail,
+  sendAccountMultiRegistrationEmail,
+  sendResetPasswordEmail,
+} from '@/emails/sendEmailVariants'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
@@ -413,11 +416,12 @@ export class UserResolver {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const emailSent = await sendAccountActivationEmail({
-        link: activationLink,
         firstName,
         lastName,
         email,
-        duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
+        language,
+        activationLink,
+        timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
       })
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
       eventSendConfirmEmail.userId = dbUser.id
@@ -487,12 +491,13 @@ export class UserResolver {
 
     logger.info(`optInCode for ${email}=${user.emailContact}`)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const emailSent = await sendResetPasswordEmailMailer({
-      link: activationLink(user.emailContact.emailVerificationCode),
+    const emailSent = await sendResetPasswordEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,
-      duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
+      language: user.language,
+      resetLink: activationLink(dbUserContact.emailVerificationCode),
+      timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
     /*  uncomment this, when you need the activation link on the console */
@@ -828,21 +833,4 @@ const canResendOptIn = (optIn: LoginEmailOptIn): boolean => {
 */
 const canEmailResend = (updatedAt: Date): boolean => {
   return !isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_REQUEST_TIME)
-}
-
-const getTimeDurationObject = (time: number): { hours?: number; minutes: number } => {
-  if (time > 60) {
-    return {
-      hours: Math.floor(time / 60),
-      minutes: time % 60,
-    }
-  }
-  return { minutes: time }
-}
-
-export const printTimeDuration = (duration: number): string => {
-  const time = getTimeDurationObject(duration)
-  const result = time.minutes > 0 ? `${time.minutes} minutes` : ''
-  if (time.hours) return `${time.hours} hours` + (result !== '' ? ` and ${result}` : '')
-  return result
 }
