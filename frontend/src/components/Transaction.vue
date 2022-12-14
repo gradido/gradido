@@ -15,7 +15,8 @@
             {{ getLinesByType }}
           </div> -->
           <div>
-            {{ date }}
+            <span class="small">{{ this.$d(new Date(date), 'short') }}</span>
+            <span class="small ml-3">{{ this.$d(new Date(date), 'time') }}</span>
           </div>
           <div>
             {{ getLinesByType.description }}
@@ -31,7 +32,7 @@
         <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>
       </b-row>
 
-      <b-collapse :id="collapseId" class="mt-2 pb-4" v-model="visible">
+      <b-collapse :id="collapseId" class="mt-2" v-model="visible">
         <transaction-collapse
           :amount="amount"
           :gdtEntryType="gdtEntryType"
