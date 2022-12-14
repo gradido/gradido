@@ -17,6 +17,7 @@ const ERRORTIME = 240000
 const ANNOUNCETIME = 30000
 
 enum ApiVersionType {
+  V0_1 = 'v0_1',
   V1_0 = 'v1_0',
   V1_1 = 'v1_1',
   V2_0 = 'v2_0',
