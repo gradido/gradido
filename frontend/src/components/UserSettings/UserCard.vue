@@ -2,7 +2,7 @@
   <div class="userdata-card">
     <b-card class="bg-transparent border-0">
       <div class="text-center">
-        <b-avatar variant="primary" :text="avatar" size="6rem"></b-avatar>
+        <b-avatar button variant="gradido" :text="avatar" size="6rem"></b-avatar>
       </div>
 
       <b-container class="justify-content-center mt-md-5">
