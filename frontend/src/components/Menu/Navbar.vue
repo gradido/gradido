@@ -1,9 +1,9 @@
 <template>
   <div class="navbar-component position-sticky">
     <b-navbar toggleable="lg" class="pr-4">
-      <b-navbar-brand class="zindex1000">
+      <b-navbar-brand>
         <b-img
-          class="imgLogo ml--3 mt-lg--2 mt-3 p-2 mb-3 d-none d-lg-block"
+          class="imgLogo ml--3 mt-lg--2 mt-3 p-2 mb-3 d-none d-lg-block zindex10"
           :src="logo"
           width="200"
           alt="..."
@@ -12,7 +12,7 @@
           <span class="navbar-toggler-icon"></span>
         </b-button>
       </b-navbar-brand>
-      <b-img class="sheet-img position-absolute zindex1000" :src="sheet"></b-img>
+      <b-img class="sheet-img position-absolute zindex-1" :src="sheet"></b-img>
 
       <b-collapse id="nav-collapse" is-nav class="ml-5">
         <b-navbar-nav class="ml-auto" right>
@@ -23,7 +23,7 @@
                   <div class="mr-3">
                     <b-avatar
                       button
-                      variant="primary"
+                      variant="gradido"
                       :text="avatarShortName"
                       class="align-baseline"
                     ></b-avatar>
@@ -120,9 +120,9 @@ button.navbar-toggler > span.navbar-toggler-icon {
 }
 @media screen and (max-width: 450px) {
   .sheet-img {
-    top: -15px;
-    left: 10%;
+    left: 37%;
     max-width: 61%;
+    z-index: 1000;
   }
 }
 </style>
