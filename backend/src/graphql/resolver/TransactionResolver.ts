@@ -1,44 +1,40 @@
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { backendLogger as logger } from '@/server/logger'
-import CONFIG from '@/config'
-
-import { Context, getUser } from '@/server/context'
+import Decimal from 'decimal.js-light'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection, In } from '@dbTools/typeorm'
-
-import { sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
-
-import { Transaction } from '@model/Transaction'
-import { TransactionList } from '@model/TransactionList'
-
-import TransactionSendArgs from '@arg/TransactionSendArgs'
-import Paginated from '@arg/Paginated'
-
-import { Order } from '@enum/Order'
-
-import { TransactionRepository } from '@repository/Transaction'
-import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { TransactionRepository } from '@repository/Transaction'
+import { TransactionLinkRepository } from '@repository/TransactionLink'
 
+import { User } from '@model/User'
+import { Transaction } from '@model/Transaction'
+import { TransactionList } from '@model/TransactionList'
+import { Order } from '@enum/Order'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
+import TransactionSendArgs from '@arg/TransactionSendArgs'
+import Paginated from '@arg/Paginated'
+
+import { backendLogger as logger } from '@/server/logger'
+import { Context, getUser } from '@/server/context'
 import { calculateBalance, isHexPublicKey } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { User } from '@model/User'
 import { communityUser } from '@/util/communityUser'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
-import Decimal from 'decimal.js-light'
+import {
+  sendTransactionLinkRedeemedEmail,
+  sendTransactionReceivedEmail,
+} from '@/emails/sendEmailVariants'
+import { Event, EventTransactionReceive, EventTransactionSend } from '@/event/Event'
+import { eventProtocol } from '@/event/EventProtocolEmitter'
 
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByEmail } from './UserResolver'
-import { sendTransactionLinkRedeemedEmail } from '@/mailer/sendTransactionLinkRedeemed'
-import { Event, EventTransactionReceive, EventTransactionSend } from '@/event/Event'
-import { eventProtocol } from '@/event/EventProtocolEmitter'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -159,29 +155,27 @@ export const executeTransaction = async (
     await queryRunner.release()
   }
   logger.debug(`prepare Email for transaction received...`)
-  // send notification email
-  // TODO: translate
   await sendTransactionReceivedEmail({
+    firstName: recipient.firstName,
+    lastName: recipient.lastName,
+    email: recipient.emailContact.email,
+    language: recipient.language,
     senderFirstName: sender.firstName,
     senderLastName: sender.lastName,
-    recipientFirstName: recipient.firstName,
-    recipientLastName: recipient.lastName,
-    email: recipient.emailContact.email,
     senderEmail: sender.emailContact.email,
-    amount,
-    overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+    transactionAmount: amount,
   })
   if (transactionLink) {
     await sendTransactionLinkRedeemedEmail({
+      firstName: sender.firstName,
+      lastName: sender.lastName,
+      email: sender.emailContact.email,
+      language: sender.language,
       senderFirstName: recipient.firstName,
       senderLastName: recipient.lastName,
-      recipientFirstName: sender.firstName,
-      recipientLastName: sender.lastName,
-      email: sender.emailContact.email,
       senderEmail: recipient.emailContact.email,
-      amount,
-      memo,
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      transactionAmount: amount,
+      transactionMemo: memo,
     })
   }
   logger.info(`finished executeTransaction successfully`)

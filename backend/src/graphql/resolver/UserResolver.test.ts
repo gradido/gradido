@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { objectValuesToArray } from '@/util/utilities'
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
+import { printTimeDuration } from '@/util/time'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import {
@@ -13,53 +16,49 @@ import {
   updateUserInfos,
   createContribution,
   confirmContribution,
+  setUserRole,
+  deleteUser,
+  unDeleteUser,
 } from '@/seeds/graphql/mutations'
-import { verifyLogin, queryOptIn, searchAdminUsers } from '@/seeds/graphql/queries'
+import { verifyLogin, queryOptIn, searchAdminUsers, searchUsers } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
-import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-import { sendAccountMultiRegistrationEmail } from '@/emails/sendEmailVariants'
-import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
-import { printTimeDuration, activationLink } from './UserResolver'
+import {
+  sendAccountActivationEmail,
+  sendAccountMultiRegistrationEmail,
+  sendResetPasswordEmail,
+} from '@/emails/sendEmailVariants'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { ContributionLink } from '@model/ContributionLink'
 import { TransactionLink } from '@entity/TransactionLink'
-
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { EventProtocol } from '@entity/EventProtocol'
-import { logger, i18n as localization } from '@test/testSetup'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { UserContact } from '@entity/UserContact'
 import { OptInType } from '../enum/OptInType'
 import { UserContactType } from '../enum/UserContactType'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
+import { stephenHawking } from '@/seeds/users/stephen-hawking'
+import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
-jest.mock('@/mailer/sendAccountActivationEmail', () => {
-  return {
-    __esModule: true,
-    sendAccountActivationEmail: jest.fn(),
-  }
-})
-
 jest.mock('@/emails/sendEmailVariants', () => {
+  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
   return {
     __esModule: true,
-    sendAccountMultiRegistrationEmail: jest.fn(),
-  }
-})
-
-jest.mock('@/mailer/sendResetPasswordEmail', () => {
-  return {
-    __esModule: true,
-    sendResetPasswordEmail: jest.fn(),
+    ...originalModule,
+    sendAccountActivationEmail: jest.fn((a) => originalModule.sendAccountActivationEmail(a)),
+    sendAccountMultiRegistrationEmail: jest.fn((a) =>
+      originalModule.sendAccountMultiRegistrationEmail(a),
+    ),
+    sendResetPasswordEmail: jest.fn((a) => originalModule.sendResetPasswordEmail(a)),
   }
 })
 
@@ -72,6 +71,8 @@ jest.mock('@/apis/KlicktippController', () => {
 })
 */
 
+let admin: User
+let user: User
 let mutate: any, query: any, con: any
 let testEnv: any
 
@@ -184,11 +185,15 @@ describe('UserResolver', () => {
           emailVerificationCode,
         ).replace(/{code}/g, '')
         expect(sendAccountActivationEmail).toBeCalledWith({
-          link: activationLink,
           firstName: 'Peter',
           lastName: 'Lustig',
           email: 'peter@lustig.de',
-          duration: expect.any(String),
+          language: 'de',
+          activationLink,
+          timeDurationObject: expect.objectContaining({
+            hours: expect.any(Number),
+            minutes: expect.any(Number),
+          }),
         })
       })
 
@@ -809,12 +814,8 @@ describe('UserResolver', () => {
     })
 
     describe('user exists in DB', () => {
-      let emailContact: UserContact
-
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        // await resetEntity(LoginEmailOptIn)
-        emailContact = await UserContact.findOneOrFail(variables)
       })
 
       afterAll(async () => {
@@ -823,7 +824,7 @@ describe('UserResolver', () => {
       })
 
       describe('duration not expired', () => {
-        it('returns true', async () => {
+        it('throws an error', async () => {
           await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
             expect.objectContaining({
               errors: [
@@ -849,15 +850,19 @@ describe('UserResolver', () => {
             }),
           )
         })
-      })
 
-      it('sends reset password email', () => {
-        expect(sendResetPasswordEmail).toBeCalledWith({
-          link: activationLink(emailContact.emailVerificationCode),
-          firstName: 'Bibi',
-          lastName: 'Bloxberg',
-          email: 'bibi@bloxberg.de',
-          duration: expect.any(String),
+        it('sends reset password email', () => {
+          expect(sendResetPasswordEmail).toBeCalledWith({
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+            email: 'bibi@bloxberg.de',
+            language: 'de',
+            resetLink: expect.any(String),
+            timeDurationObject: expect.objectContaining({
+              hours: expect.any(Number),
+              minutes: expect.any(Number),
+            }),
+          })
         })
       })
 
@@ -1248,6 +1253,635 @@ describe('UserResolver', () => {
             },
           }),
         )
+      })
+    })
+  })
+
+  describe('set user role', () => {
+    // TODO: there is a test not cleaning up after itself! Fix it!
+    beforeAll(async () => {
+      await cleanDB()
+      resetToken()
+    })
+
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          mutate({ mutation: setUserRole, variables: { userId: 1, isAdmin: true } }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      describe('without admin rights', () => {
+        beforeAll(async () => {
+          user = await userFactory(testEnv, bibiBloxberg)
+          await mutate({
+            mutation: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        it('returns an error', async () => {
+          await expect(
+            mutate({ mutation: setUserRole, variables: { userId: user.id + 1, isAdmin: true } }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
+      describe('with admin rights', () => {
+        beforeAll(async () => {
+          admin = await userFactory(testEnv, peterLustig)
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        describe('user to get a new role does not exist', () => {
+          it('throws an error', async () => {
+            jest.clearAllMocks()
+            await expect(
+              mutate({ mutation: setUserRole, variables: { userId: admin.id + 1, isAdmin: true } }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError(`Could not find user with userId: ${admin.id + 1}`)],
+              }),
+            )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(`Could not find user with userId: ${admin.id + 1}`)
+          })
+        })
+
+        describe('change role with success', () => {
+          beforeAll(async () => {
+            user = await userFactory(testEnv, bibiBloxberg)
+          })
+
+          describe('user gets new role', () => {
+            describe('to admin', () => {
+              it('returns date string', async () => {
+                const result = await mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, isAdmin: true },
+                })
+                expect(result).toEqual(
+                  expect.objectContaining({
+                    data: {
+                      setUserRole: expect.any(String),
+                    },
+                  }),
+                )
+                expect(new Date(result.data.setUserRole)).toEqual(expect.any(Date))
+              })
+            })
+
+            describe('to usual user', () => {
+              it('returns null', async () => {
+                await expect(
+                  mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: false } }),
+                ).resolves.toEqual(
+                  expect.objectContaining({
+                    data: {
+                      setUserRole: null,
+                    },
+                  }),
+                )
+              })
+            })
+          })
+        })
+
+        describe('change role with error', () => {
+          describe('is own role', () => {
+            it('throws an error', async () => {
+              jest.clearAllMocks()
+              await expect(
+                mutate({ mutation: setUserRole, variables: { userId: admin.id, isAdmin: false } }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('Administrator can not change his own role!')],
+                }),
+              )
+            })
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith('Administrator can not change his own role!')
+            })
+          })
+
+          describe('user has already role to be set', () => {
+            describe('to admin', () => {
+              it('throws an error', async () => {
+                jest.clearAllMocks()
+                await mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, isAdmin: true },
+                })
+                await expect(
+                  mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: true } }),
+                ).resolves.toEqual(
+                  expect.objectContaining({
+                    errors: [new GraphQLError('User is already admin!')],
+                  }),
+                )
+              })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith('User is already admin!')
+              })
+            })
+
+            describe('to usual user', () => {
+              it('throws an error', async () => {
+                jest.clearAllMocks()
+                await mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, isAdmin: false },
+                })
+                await expect(
+                  mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: false } }),
+                ).resolves.toEqual(
+                  expect.objectContaining({
+                    errors: [new GraphQLError('User is already a usual user!')],
+                  }),
+                )
+              })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith('User is already a usual user!')
+              })
+            })
+          })
+        })
+      })
+    })
+  })
+
+  describe('delete user', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(mutate({ mutation: deleteUser, variables: { userId: 1 } })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      describe('without admin rights', () => {
+        beforeAll(async () => {
+          user = await userFactory(testEnv, bibiBloxberg)
+          await mutate({
+            mutation: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        it('returns an error', async () => {
+          await expect(
+            mutate({ mutation: deleteUser, variables: { userId: user.id + 1 } }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
+      describe('with admin rights', () => {
+        beforeAll(async () => {
+          admin = await userFactory(testEnv, peterLustig)
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        describe('user to be deleted does not exist', () => {
+          it('throws an error', async () => {
+            jest.clearAllMocks()
+            await expect(
+              mutate({ mutation: deleteUser, variables: { userId: admin.id + 1 } }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError(`Could not find user with userId: ${admin.id + 1}`)],
+              }),
+            )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(`Could not find user with userId: ${admin.id + 1}`)
+          })
+        })
+
+        describe('delete self', () => {
+          it('throws an error', async () => {
+            jest.clearAllMocks()
+            await expect(
+              mutate({ mutation: deleteUser, variables: { userId: admin.id } }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('Moderator can not delete his own account!')],
+              }),
+            )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('Moderator can not delete his own account!')
+          })
+        })
+
+        describe('delete with success', () => {
+          beforeAll(async () => {
+            user = await userFactory(testEnv, bibiBloxberg)
+          })
+
+          it('returns date string', async () => {
+            const result = await mutate({ mutation: deleteUser, variables: { userId: user.id } })
+            expect(result).toEqual(
+              expect.objectContaining({
+                data: {
+                  deleteUser: expect.any(String),
+                },
+              }),
+            )
+            expect(new Date(result.data.deleteUser)).toEqual(expect.any(Date))
+          })
+
+          describe('delete deleted user', () => {
+            it('throws an error', async () => {
+              jest.clearAllMocks()
+              await expect(
+                mutate({ mutation: deleteUser, variables: { userId: user.id } }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError(`Could not find user with userId: ${user.id}`)],
+                }),
+              )
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(`Could not find user with userId: ${user.id}`)
+            })
+          })
+        })
+      })
+    })
+  })
+
+  describe('unDelete user', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(mutate({ mutation: unDeleteUser, variables: { userId: 1 } })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      describe('without admin rights', () => {
+        beforeAll(async () => {
+          user = await userFactory(testEnv, bibiBloxberg)
+          await mutate({
+            mutation: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        it('returns an error', async () => {
+          await expect(
+            mutate({ mutation: unDeleteUser, variables: { userId: user.id + 1 } }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
+      describe('with admin rights', () => {
+        beforeAll(async () => {
+          admin = await userFactory(testEnv, peterLustig)
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        describe('user to be undelete does not exist', () => {
+          it('throws an error', async () => {
+            jest.clearAllMocks()
+            await expect(
+              mutate({ mutation: unDeleteUser, variables: { userId: admin.id + 1 } }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError(`Could not find user with userId: ${admin.id + 1}`)],
+              }),
+            )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(`Could not find user with userId: ${admin.id + 1}`)
+          })
+        })
+
+        describe('user to undelete is not deleted', () => {
+          beforeAll(async () => {
+            user = await userFactory(testEnv, bibiBloxberg)
+          })
+
+          it('throws an error', async () => {
+            jest.clearAllMocks()
+            await expect(
+              mutate({ mutation: unDeleteUser, variables: { userId: user.id } }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('User is not deleted')],
+              }),
+            )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('User is not deleted')
+          })
+
+          describe('undelete deleted user', () => {
+            beforeAll(async () => {
+              await mutate({ mutation: deleteUser, variables: { userId: user.id } })
+            })
+
+            it('returns null', async () => {
+              await expect(
+                mutate({ mutation: unDeleteUser, variables: { userId: user.id } }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  data: { unDeleteUser: null },
+                }),
+              )
+            })
+          })
+        })
+      })
+    })
+  })
+
+  describe('search users', () => {
+    const variablesWithoutTextAndFilters = {
+      searchText: '',
+      currentPage: 1,
+      pageSize: 25,
+      filters: null,
+    }
+
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          query({
+            query: searchUsers,
+            variables: {
+              ...variablesWithoutTextAndFilters,
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      describe('without admin rights', () => {
+        beforeAll(async () => {
+          user = await userFactory(testEnv, bibiBloxberg)
+          await mutate({
+            mutation: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        it('returns an error', async () => {
+          await expect(
+            query({
+              query: searchUsers,
+              variables: {
+                ...variablesWithoutTextAndFilters,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
+      describe('with admin rights', () => {
+        const allUsers = {
+          bibi: expect.objectContaining({
+            email: 'bibi@bloxberg.de',
+          }),
+          garrick: expect.objectContaining({
+            email: 'garrick@ollivander.com',
+          }),
+          peter: expect.objectContaining({
+            email: 'peter@lustig.de',
+          }),
+          stephen: expect.objectContaining({
+            email: 'stephen@hawking.uk',
+          }),
+        }
+
+        beforeAll(async () => {
+          admin = await userFactory(testEnv, peterLustig)
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+
+          await userFactory(testEnv, bibiBloxberg)
+          await userFactory(testEnv, stephenHawking)
+          await userFactory(testEnv, garrickOllivander)
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        describe('without any filters', () => {
+          it('finds all users', async () => {
+            await expect(
+              query({
+                query: searchUsers,
+                variables: {
+                  ...variablesWithoutTextAndFilters,
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  searchUsers: {
+                    userCount: 4,
+                    userList: expect.arrayContaining(objectValuesToArray(allUsers)),
+                  },
+                },
+              }),
+            )
+          })
+        })
+
+        describe('all filters are null', () => {
+          it('finds all users', async () => {
+            await expect(
+              query({
+                query: searchUsers,
+                variables: {
+                  ...variablesWithoutTextAndFilters,
+                  filters: {
+                    byActivated: null,
+                    byDeleted: null,
+                  },
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  searchUsers: {
+                    userCount: 4,
+                    userList: expect.arrayContaining(objectValuesToArray(allUsers)),
+                  },
+                },
+              }),
+            )
+          })
+        })
+
+        describe('filter by unchecked email', () => {
+          it('finds only users with unchecked email', async () => {
+            await expect(
+              query({
+                query: searchUsers,
+                variables: {
+                  ...variablesWithoutTextAndFilters,
+                  filters: {
+                    byActivated: false,
+                    byDeleted: null,
+                  },
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  searchUsers: {
+                    userCount: 1,
+                    userList: expect.arrayContaining([allUsers.garrick]),
+                  },
+                },
+              }),
+            )
+          })
+        })
+
+        describe('filter by deleted users', () => {
+          it('finds only users with deleted account', async () => {
+            await expect(
+              query({
+                query: searchUsers,
+                variables: {
+                  ...variablesWithoutTextAndFilters,
+                  filters: {
+                    byActivated: null,
+                    byDeleted: true,
+                  },
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  searchUsers: {
+                    userCount: 1,
+                    userList: expect.arrayContaining([allUsers.stephen]),
+                  },
+                },
+              }),
+            )
+          })
+        })
+
+        describe('filter by deleted account and unchecked email', () => {
+          it('finds no users', async () => {
+            await expect(
+              query({
+                query: searchUsers,
+                variables: {
+                  ...variablesWithoutTextAndFilters,
+                  filters: {
+                    byActivated: false,
+                    byDeleted: true,
+                  },
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  searchUsers: {
+                    userCount: 0,
+                    userList: [],
+                  },
+                },
+              }),
+            )
+          })
+        })
       })
     })
   })
