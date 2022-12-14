@@ -13,7 +13,7 @@
           <div class="h4">{{ $t('community.communityMember') }}</div>
           <div>{{ CONFIG.COMMUNITY_NAME }}</div>
         </b-col>
-        <b-col cols="12" md="4" lg="4" class="border-left border-light p-md-3 p-lg-3">
+        <b-col cols="12" md="4" lg="4" align-self="end" class="border-left border-light">
           <b-icon icon="people"></b-icon>
           {{ totalUsers }}
         </b-col>
