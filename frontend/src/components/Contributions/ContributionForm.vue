@@ -42,7 +42,13 @@
           :placeholder="$t('contribution.yourActivity')"
           :rules="{ required: true, min: 5, max: 255 }"
         />
-
+        <input-time
+          v-model="form.time"
+          :name="$t('form.time')"
+          :label="$t('form.time')"
+          placeholder="1"
+          :rules="{ required: true, gddCreationTime: [1, validMaxTime] }"
+        ></input-time>
         <!-- <validation-provider
         :rules="{
           min: minlength,
@@ -67,7 +73,7 @@
           v-model="form.amount"
           :name="$t('form.amount')"
           :label="$t('form.amount')"
-          :placeholder="'20'"
+          placeholder="20"
           :rules="{ required: true, gddSendAmount: [20, validMaxGDD] }"
           typ="ContributionForm"
         ></input-amount>
@@ -113,6 +119,7 @@
   </div>
 </template>
 <script>
+import InputTime from '@/components/Inputs/InputTime.vue'
 import InputAmount from '@/components/Inputs/InputAmount.vue'
 import InputTextarea from '@/components/Inputs/InputTextarea.vue'
 
@@ -121,6 +128,7 @@ const PATTERN_NON_DIGIT = /\D/g
 export default {
   name: 'ContributionForm',
   components: {
+    InputTime,
     InputAmount,
     InputTextarea,
   },
@@ -136,7 +144,7 @@ export default {
       minlength: 5,
       maxlength: 255,
       maximalDate: new Date(),
-      form: this.value, // includes 'id'
+      form: this.value, // includes 'id' and time
     }
   },
   methods: {
@@ -154,6 +162,7 @@ export default {
       this.form.id = null
       this.form.date = ''
       this.form.memo = ''
+      this.form.time = 0
       this.form.amount = ''
     },
     // textForMonth(date, availableAmount) {
@@ -179,6 +188,11 @@ export default {
     },
     validMaxGDD() {
       return Number(this.isThisMonth ? this.maxGddThisMonth : this.maxGddLastMonth)
+    },
+    validMaxTime() {
+      console.log(this.validMaxGDD)
+      console.log(this.validMaxGDD / 20)
+      return Number(this.validMaxGDD / 20)
     },
   },
 }

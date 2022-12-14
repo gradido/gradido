@@ -151,6 +151,7 @@
     "to": "bis",
     "to1": "an",
     "validation": {
+      "gddCreationTime": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
       "is-not": "Du kannst dir selbst keine Gradidos überweisen",
       "usernmae-regex": "Der Username muss mit einem Buchstaben beginnen, auf den mindestens zwei alpha-numerische Zeichen folgen müssen.",
