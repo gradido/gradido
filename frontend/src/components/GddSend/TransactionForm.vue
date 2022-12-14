@@ -7,8 +7,10 @@
             <b-form-radio-group v-model="radioSelected">
               <b-row class="mb-4">
                 <b-col>
-                  <b-row class="bg-f5 gradido-border-radius p-2">
-                    <b-col cols="10">{{ $t('send_gdd') }}</b-col>
+                  <b-row class="bg-f5 gradido-border-radius pt-2">
+                    <b-col cols="10" @click="radioSelected = sendTypes.send" class="pointer">
+                      {{ $t('send_gdd') }}
+                    </b-col>
                     <b-col cols="2">
                       <b-form-radio
                         name="shipping"
@@ -21,8 +23,10 @@
                   </b-row>
                 </b-col>
                 <b-col>
-                  <b-row class="bg-f5 gradido-border-radius p-2">
-                    <b-col cols="10">{{ $t('send_per_link') }}</b-col>
+                  <b-row class="bg-f5 gradido-border-radius pt-2">
+                    <b-col cols="10" @click="radioSelected = sendTypes.link" class="pointer">
+                      {{ $t('send_per_link') }}
+                    </b-col>
                     <b-col cols="2">
                       <b-form-radio
                         name="shipping"

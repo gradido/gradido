@@ -50,7 +50,6 @@
           ></transaction-result-link>
         </template>
       </gdd-send>
-      <hr />
     </b-container>
   </div>
 </template>
