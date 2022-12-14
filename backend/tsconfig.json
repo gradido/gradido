@@ -51,6 +51,7 @@
       "@arg/*": ["src/graphql/arg/*"],
       "@enum/*": ["src/graphql/enum/*"],
       "@model/*": ["src/graphql/model/*"],
+      "@union/*": ["src/graphql/union/*"],
       "@repository/*": ["src/typeorm/repository/*"],
       "@test/*": ["test/*"],
 
