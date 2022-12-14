@@ -24,7 +24,7 @@
               class="mr-3"
             ></b-avatar>
             <span class="mr-auto">
-              {{ transaction.linkedUser.firstName }} {{ transaction.linkedUser.lastName }}
+              <name :linkedUser="transaction.linkedUser" />
             </span>
             <b-badge>{{ transaction.amount | GDD }}</b-badge>
           </div>
@@ -34,8 +34,13 @@
   </div>
 </template>
 <script>
+import Name from '@/components/TransactionRows/Name.vue'
+
 export default {
   name: 'LastTransactions',
+  components: {
+    Name,
+  },
   props: {
     transactions: {
       default: () => [],

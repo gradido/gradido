@@ -51,14 +51,14 @@ export default {
       this.$emit('input', this.currentValue)
     },
     value() {
-      console.log('value', this.value)
-      console.log('value !== currentValue', this.value !== this.currentValue)
+      //   console.log('value', this.value)
+      //   console.log('value !== currentValue', this.value !== this.currentValue)
       // this.value = Number(this.value)
       if (Number(this.value) !== this.currentValue) this.currentValue = this.value
       this.currentValue = Number(this.currentValue)
       // this.value = Number(this.value)
-      console.log('value', typeof(this.value))
-      console.log('currentValue', typeof(this.currentValue))
+      //   console.log('value', typeof(this.value))
+      //   console.log('currentValue', typeof(this.currentValue))
     },
   },
   methods: {
