@@ -1,7 +1,7 @@
 <template>
   <div class="input-amount">
     <validation-provider
-      v-if="typ === 'TransactionsForm'"
+      v-if="typ === 'TransactionForm'"
       tag="div"
       :rules="rules"
       :name="name"
