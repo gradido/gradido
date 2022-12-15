@@ -21,7 +21,7 @@ import Paginated from '@arg/Paginated'
 
 import { backendLogger as logger } from '@/server/logger'
 import { Context, getUser } from '@/server/context'
-import { calculateBalance, isHexPublicKey } from '@/util/validate'
+import { calculateBalance } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { communityUser } from '@/util/communityUser'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
