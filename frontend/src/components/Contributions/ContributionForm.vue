@@ -46,8 +46,15 @@
           v-model="form.time"
           :name="$t('form.time')"
           :label="$t('form.time')"
-          placeholder="1"
-          :rules="{ required: true, gddCreationTime: [1, validMaxTime] }"
+          placeholder="0.5"
+          :rules="{
+            required: true,
+            min: 0.5,
+            max: validMaxTime,
+            gddCreationTime: [0.5, validMaxTime],
+          }"
+          :validMaxTime="validMaxTime"
+          @updateAmount="updateAmount"
         ></input-time>
         <!-- <validation-provider
         :rules="{
@@ -148,6 +155,9 @@ export default {
     }
   },
   methods: {
+    updateAmount(amount) {
+      this.form.amount = (amount * 20).toFixed(2).toString()
+    },
     // numberFormat(value) {
     //   return value.replace(PATTERN_NON_DIGIT, '')
     // },

@@ -56,6 +56,7 @@ export const loadAllRules = (i18nCallback) => {
 
   extend('gddCreationTime', {
     validate(value, { min, max }) {
+      value = value.replace(',', '.')
       // console.log(value)
       // console.log(min)
       // console.log(max)

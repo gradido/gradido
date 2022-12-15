@@ -15,6 +15,10 @@
           :placeholder="placeholder"
           type="number"
           :state="validated ? valid : false"
+          step="0.5"
+          min="0"
+          :max="validMaxTime"
+
         ></b-form-input>
         <b-form-invalid-feedback v-bind="ariaMsg">
           {{ errors[0] }}
@@ -35,6 +39,7 @@ export default {
     label: { type: String, required: true, default: 'Time' },
     placeholder: { type: String, required: true, default: 'Time' },
     value: { type: Number, required: true, default: 0 },
+    validMaxTime: { type: Number, required: true, default: 0 },
   },
   data() {
     return {
@@ -52,22 +57,22 @@ export default {
     },
     value() {
       //   console.log('value', this.value)
-      //   console.log('value !== currentValue', this.value !== this.currentValue)
-      // this.value = Number(this.value)
-      if (Number(this.value) !== this.currentValue) this.currentValue = this.value
-      this.currentValue = Number(this.currentValue)
-      // this.value = Number(this.value)
-      //   console.log('value', typeof(this.value))
-      //   console.log('currentValue', typeof(this.currentValue))
+      //   console.log('currentValue', this.currentValue)
+      //   console.log('value', typeof this.value)
+      //   console.log('currentValue', typeof this.currentValue)
+      //   console.log('!==', this.value !== this.currentValue)
+
+      if (this.value !== this.currentValue) this.currentValue = this.value
+      this.$emit('updateAmount', this.currentValue)
     },
   },
   methods: {
-    // normalizeTime(isValid) {
-    //   this.timeFocused = false
-    //   if (!isValid) return
-    //   // this.timeValue = Number(this.currentValue.replace(',', '.'))
-    //   this.currentValue = this.timeValue
-    // },
+    normalizeTime(isValid) {
+      this.timeFocused = false
+      if (!isValid) return
+      this.timeValue = Number(this.currentValue.replace(',', '.'))
+      this.currentValue = this.timeValue
+    },
   },
 }
 </script>
