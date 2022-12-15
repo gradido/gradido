@@ -171,6 +171,7 @@ export class TransactionLinkResolver {
     if (code.match(/^CL-/)) {
       // acquire lock
       const releaseLock = await TRANSACTIONS_LOCK.acquire()
+      console.log(`locked for redeemTransactionLink ${code}`)
       logger.info('redeem contribution link...')
       const queryRunner = getConnection().createQueryRunner()
       await queryRunner.connect()
@@ -312,6 +313,7 @@ export class TransactionLinkResolver {
         throw new Error(`Creation from contribution link was not successful. ${e}`)
       } finally {
         await queryRunner.release()
+        console.log(`release for redeemTransactionLink ${code}`)
         releaseLock()
       }
       return true
