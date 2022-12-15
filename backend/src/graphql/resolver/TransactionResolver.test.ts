@@ -376,7 +376,7 @@ describe('send coins', () => {
             mutation: sendCoins,
             variables: {
               email: 'peter@lustig.de',
-              amount: 50,
+              amount: 10,
               memo: 'first transaction',
             },
           }),
@@ -392,7 +392,7 @@ describe('send coins', () => {
             mutation: sendCoins,
             variables: {
               email: 'peter@lustig.de',
-              amount: 50,
+              amount: 20,
               memo: 'second transaction',
             },
           }),
@@ -408,7 +408,7 @@ describe('send coins', () => {
             mutation: sendCoins,
             variables: {
               email: 'peter@lustig.de',
-              amount: 50,
+              amount: 30,
               memo: 'third transaction',
             },
           }),
@@ -424,7 +424,7 @@ describe('send coins', () => {
             mutation: sendCoins,
             variables: {
               email: 'peter@lustig.de',
-              amount: 50,
+              amount: 40,
               memo: 'fourth transaction',
             },
           }),
