@@ -279,7 +279,7 @@ export default {
       this.form.memo = item.memo
       this.form.amount = item.amount
       this.updateAmount = item.amount
-      this.tabIndex = 0
+      this.$router.push({ path: '#edit' })
     },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
