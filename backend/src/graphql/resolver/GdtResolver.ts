@@ -1,10 +1,12 @@
-import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Ctx, Authorized, Arg } from 'type-graphql'
-import CONFIG from '@/config'
+
 import { GdtEntryList } from '@model/GdtEntryList'
-import Paginated from '@arg/Paginated'
-import { apiGet, apiPost } from '@/apis/HttpRequest'
 import { Order } from '@enum/Order'
+import Paginated from '@arg/Paginated'
+
+import { Context, getUser } from '@/server/context'
+import CONFIG from '@/config'
+import { apiGet, apiPost } from '@/apis/HttpRequest'
 import { RIGHTS } from '@/auth/RIGHTS'
 
 @Resolver()
