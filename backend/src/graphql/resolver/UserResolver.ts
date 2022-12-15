@@ -1,27 +1,50 @@
-import { backendLogger as logger } from '@/server/logger'
 import i18n from 'i18n'
-import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
-import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
+import { v4 as uuidv4 } from 'uuid'
+import {
+  Resolver,
+  Query,
+  Args,
+  Arg,
+  Authorized,
+  Ctx,
+  UseMiddleware,
+  Mutation,
+  Int,
+} from 'type-graphql'
 import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
-import CONFIG from '@/config'
-import { User } from '@model/User'
+
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
-import { communityDbUser } from '@/util/communityUser'
-import { getTimeDurationObject, printTimeDuration } from '@/util/time'
-import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import { ContributionLink as dbContributionLink } from '@entity/ContributionLink'
-import { encode } from '@/auth/JWT'
-import CreateUserArgs from '@arg/CreateUserArgs'
-import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
-import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
-import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
+import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { UserRepository } from '@repository/User'
+
+import { User } from '@model/User'
+import { SearchAdminUsersResult } from '@model/AdminUser'
+import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 import { OptInType } from '@enum/OptInType'
+import { Order } from '@enum/Order'
+import { UserContactType } from '@enum/UserContactType'
+
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
   sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
+
+import { getTimeDurationObject, printTimeDuration } from '@/util/time'
+import CreateUserArgs from '@arg/CreateUserArgs'
+import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
+import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
+import Paginated from '@arg/Paginated'
+import SearchUsersArgs from '@arg/SearchUsersArgs'
+
+import { backendLogger as logger } from '@/server/logger'
+import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
+import CONFIG from '@/config'
+import { communityDbUser } from '@/util/communityUser'
+import { encode } from '@/auth/JWT'
+import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
@@ -35,14 +58,9 @@ import {
   EventSendConfirmationEmail,
   EventActivateAccount,
 } from '@/event/Event'
-import { getUserCreation } from './util/creations'
-import { UserContactType } from '../enum/UserContactType'
-import { UserRepository } from '@/typeorm/repository/User'
-import { SearchAdminUsersResult } from '@model/AdminUser'
-import Paginated from '@arg/Paginated'
-import { Order } from '@enum/Order'
-import { v4 as uuidv4 } from 'uuid'
-import { isValidPassword } from '@/password/EncryptorUtils'
+import { getUserCreation, getUserCreations } from './util/creations'
+import { FULL_CREATION_AVAILABLE } from './const/const'
+import { isValidPassword, SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 
@@ -270,7 +288,7 @@ export class UserResolver {
     logger.debug('new dbUser=' + dbUser)
     if (redeemCode) {
       if (redeemCode.match(/^CL-/)) {
-        const contributionLink = await dbContributionLink.findOne({
+        const contributionLink = await DbContributionLink.findOne({
           code: redeemCode.replace('CL-', ''),
         })
         logger.info('redeemCode found contributionLink=' + contributionLink)
@@ -279,7 +297,7 @@ export class UserResolver {
           eventRedeemRegister.contributionId = contributionLink.id
         }
       } else {
-        const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
+        const transactionLink = await DbTransactionLink.findOne({ code: redeemCode })
         logger.info('redeemCode found transactionLink=' + transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
@@ -652,6 +670,206 @@ export class UserResolver {
         }
       }),
     }
+  }
+
+  @Authorized([RIGHTS.SEARCH_USERS])
+  @Query(() => SearchUsersResult)
+  async searchUsers(
+    @Args()
+    { searchText, currentPage = 1, pageSize = 25, filters }: SearchUsersArgs,
+    @Ctx() context: Context,
+  ): Promise<SearchUsersResult> {
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
+    const userRepository = getCustomRepository(UserRepository)
+    const userFields = [
+      'id',
+      'firstName',
+      'lastName',
+      'emailId',
+      'emailContact',
+      'deletedAt',
+      'isAdmin',
+    ]
+    const [users, count] = await userRepository.findBySearchCriteriaPagedFiltered(
+      userFields.map((fieldName) => {
+        return 'user.' + fieldName
+      }),
+      searchText,
+      filters,
+      currentPage,
+      pageSize,
+    )
+
+    if (users.length === 0) {
+      return {
+        userCount: 0,
+        userList: [],
+      }
+    }
+
+    const creations = await getUserCreations(
+      users.map((u) => u.id),
+      clientTimezoneOffset,
+    )
+
+    const adminUsers = await Promise.all(
+      users.map(async (user) => {
+        let emailConfirmationSend = ''
+        if (!user.emailContact.emailChecked) {
+          if (user.emailContact.updatedAt) {
+            emailConfirmationSend = user.emailContact.updatedAt.toISOString()
+          } else {
+            emailConfirmationSend = user.emailContact.createdAt.toISOString()
+          }
+        }
+        const userCreations = creations.find((c) => c.id === user.id)
+        const adminUser = new UserAdmin(
+          user,
+          userCreations ? userCreations.creations : FULL_CREATION_AVAILABLE,
+          await hasElopageBuys(user.emailContact.email),
+          emailConfirmationSend,
+        )
+        return adminUser
+      }),
+    )
+    return {
+      userCount: count,
+      userList: adminUsers,
+    }
+  }
+
+  @Authorized([RIGHTS.SET_USER_ROLE])
+  @Mutation(() => Date, { nullable: true })
+  async setUserRole(
+    @Arg('userId', () => Int)
+    userId: number,
+    @Arg('isAdmin', () => Boolean)
+    isAdmin: boolean,
+    @Ctx()
+    context: Context,
+  ): Promise<Date | null> {
+    const user = await DbUser.findOne({ id: userId })
+    // user exists ?
+    if (!user) {
+      logger.error(`Could not find user with userId: ${userId}`)
+      throw new Error(`Could not find user with userId: ${userId}`)
+    }
+    // administrator user changes own role?
+    const moderatorUser = getUser(context)
+    if (moderatorUser.id === userId) {
+      logger.error('Administrator can not change his own role!')
+      throw new Error('Administrator can not change his own role!')
+    }
+    // change isAdmin
+    switch (user.isAdmin) {
+      case null:
+        if (isAdmin === true) {
+          user.isAdmin = new Date()
+        } else {
+          logger.error('User is already a usual user!')
+          throw new Error('User is already a usual user!')
+        }
+        break
+      default:
+        if (isAdmin === false) {
+          user.isAdmin = null
+        } else {
+          logger.error('User is already admin!')
+          throw new Error('User is already admin!')
+        }
+        break
+    }
+    await user.save()
+    const newUser = await DbUser.findOne({ id: userId })
+    return newUser ? newUser.isAdmin : null
+  }
+
+  @Authorized([RIGHTS.DELETE_USER])
+  @Mutation(() => Date, { nullable: true })
+  async deleteUser(
+    @Arg('userId', () => Int) userId: number,
+    @Ctx() context: Context,
+  ): Promise<Date | null> {
+    const user = await DbUser.findOne({ id: userId })
+    // user exists ?
+    if (!user) {
+      logger.error(`Could not find user with userId: ${userId}`)
+      throw new Error(`Could not find user with userId: ${userId}`)
+    }
+    // moderator user disabled own account?
+    const moderatorUser = getUser(context)
+    if (moderatorUser.id === userId) {
+      logger.error('Moderator can not delete his own account!')
+      throw new Error('Moderator can not delete his own account!')
+    }
+    // soft-delete user
+    await user.softRemove()
+    const newUser = await DbUser.findOne({ id: userId }, { withDeleted: true })
+    return newUser ? newUser.deletedAt : null
+  }
+
+  @Authorized([RIGHTS.UNDELETE_USER])
+  @Mutation(() => Date, { nullable: true })
+  async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
+    const user = await DbUser.findOne({ id: userId }, { withDeleted: true })
+    if (!user) {
+      logger.error(`Could not find user with userId: ${userId}`)
+      throw new Error(`Could not find user with userId: ${userId}`)
+    }
+    if (!user.deletedAt) {
+      logger.error('User is not deleted')
+      throw new Error('User is not deleted')
+    }
+    await user.recover()
+    return null
+  }
+
+  @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
+  @Mutation(() => Boolean)
+  async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
+    email = email.trim().toLowerCase()
+    // const user = await dbUser.findOne({ id: emailContact.userId })
+    const user = await findUserByEmail(email)
+    if (!user) {
+      logger.error(`Could not find User to emailContact: ${email}`)
+      throw new Error(`Could not find User to emailContact: ${email}`)
+    }
+    if (user.deletedAt) {
+      logger.error(`User with emailContact: ${email} is deleted.`)
+      throw new Error(`User with emailContact: ${email} is deleted.`)
+    }
+    const emailContact = user.emailContact
+    if (emailContact.deletedAt) {
+      logger.error(`The emailContact: ${email} of this User is deleted.`)
+      throw new Error(`The emailContact: ${email} of this User is deleted.`)
+    }
+
+    emailContact.emailResendCount++
+    await emailContact.save()
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const emailSent = await sendAccountActivationEmail({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email,
+      language: user.language,
+      activationLink: activationLink(emailContact.emailVerificationCode),
+      timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
+    })
+
+    // In case EMails are disabled log the activation link for the user
+    if (!emailSent) {
+      logger.info(`Account confirmation link: ${activationLink}`)
+    } else {
+      const event = new Event()
+      const eventSendConfirmationEmail = new EventSendConfirmationEmail()
+      eventSendConfirmationEmail.userId = user.id
+      await eventProtocol.writeEvent(
+        event.setEventSendConfirmationEmail(eventSendConfirmationEmail),
+      )
+    }
+
+    return true
   }
 }
 
