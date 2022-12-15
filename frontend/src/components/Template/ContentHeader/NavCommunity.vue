@@ -30,7 +30,7 @@ export default {
 <style scoped>
 .nav-row {
   background-color: rgb(209, 209, 209);
-  padding: 10px;
+  padding: 2px;
   border-radius: 26px;
 }
 
