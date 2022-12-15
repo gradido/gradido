@@ -50,6 +50,7 @@ import {
   sendContributionConfirmedEmail,
   sendContributionRejectedEmail,
 } from '@/emails/sendEmailVariants'
+import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
 @Resolver()
 export class ContributionResolver {
@@ -583,6 +584,8 @@ export class ContributionResolver {
 
     const receivedCallDate = new Date()
 
+    // acquire lock
+    const releaseLock = await TRANSACTIONS_LOCK.acquire()
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
@@ -645,6 +648,7 @@ export class ContributionResolver {
       throw new Error(`Creation was not successful.`)
     } finally {
       await queryRunner.release()
+      releaseLock()
     }
 
     const event = new Event()
