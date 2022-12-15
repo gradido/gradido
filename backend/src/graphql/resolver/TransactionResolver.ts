@@ -16,12 +16,12 @@ import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { Order } from '@enum/Order'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { calculateBalance } from '@/util/validate'
 import TransactionSendArgs from '@arg/TransactionSendArgs'
 import Paginated from '@arg/Paginated'
 
 import { backendLogger as logger } from '@/server/logger'
 import { Context, getUser } from '@/server/context'
-import { calculateBalance, isHexPublicKey } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { communityUser } from '@/util/communityUser'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
@@ -315,10 +315,6 @@ export class TransactionResolver {
 
     // TODO this is subject to replay attacks
     const senderUser = getUser(context)
-    if (senderUser.pubKey.length !== 32) {
-      logger.error(`invalid sender public key:${senderUser.pubKey}`)
-      throw new Error('invalid sender public key')
-    }
 
     // validate recipient user
     const recipientUser = await findUserByEmail(email)
@@ -330,10 +326,6 @@ export class TransactionResolver {
     if (!emailContact.emailChecked) {
       logger.error(`The recipient account is not activated: recipientUser=${recipientUser}`)
       throw new Error('The recipient account is not activated')
-    }
-    if (!isHexPublicKey(recipientUser.pubKey.toString('hex'))) {
-      logger.error(`invalid recipient public key: recipientUser=${recipientUser}`)
-      throw new Error('invalid recipient public key')
     }
 
     await executeTransaction(amount, memo, senderUser, recipientUser)
