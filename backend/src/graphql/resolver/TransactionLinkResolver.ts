@@ -31,6 +31,7 @@ import { calculateDecay } from '@/util/decay'
 import { getUserCreation, validateContribution } from './util/creations'
 import { executeTransaction } from './TransactionResolver'
 import QueryLinkResult from '@union/QueryLinkResult'
+import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -168,6 +169,8 @@ export class TransactionLinkResolver {
     const now = new Date()
 
     if (code.match(/^CL-/)) {
+      // acquire lock
+      const releaseLock = await TRANSACTIONS_LOCK.acquire()
       logger.info('redeem contribution link...')
       const queryRunner = getConnection().createQueryRunner()
       await queryRunner.connect()
@@ -309,6 +312,7 @@ export class TransactionLinkResolver {
         throw new Error(`Creation from contribution link was not successful. ${e}`)
       } finally {
         await queryRunner.release()
+        releaseLock()
       }
       return true
     } else {
