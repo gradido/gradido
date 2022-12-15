@@ -20,7 +20,6 @@
           />
         </b-tab>
         <b-tab no-body>
-          <gradido-notification list="my" />
           <contribution-list
             @closeAllOpenCollapse="closeAllOpenCollapse"
             :items="items"
@@ -34,7 +33,6 @@
           />
         </b-tab>
         <b-tab no-body>
-          <gradido-notification list="all" />
           <contribution-list
             :items="itemsAll"
             @update-list-contributions="updateListAllContributions"
@@ -53,14 +51,12 @@
 import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount.vue'
 import ContributionForm from '@/components/Contributions/ContributionForm.vue'
 import ContributionList from '@/components/Contributions/ContributionList.vue'
-import GradidoNotification from '@/components/Contributions/GradidoNotification.vue'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions, verifyLogin } from '@/graphql/queries'
 
 export default {
   name: 'Community',
   components: {
-    GradidoNotification,
     ContributionForm,
     ContributionList,
     OpenCreationsAmount,
@@ -251,7 +247,10 @@ export default {
           this.contributionCount = listContributions.contributionCount
           this.items = listContributions.contributionList
           if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
-            this.tabIndex = 1
+            // this.tabIndex = 1
+            // this.$route.hash = 'my'
+            this.$router.push({ path: '#my' })
+            this.toastInfo('Du hast eine Rückfrage auf eine Contribution. Bitte beantworte diese!')
           }
         })
         .catch((err) => {
