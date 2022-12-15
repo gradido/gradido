@@ -107,7 +107,6 @@ COPY --from=build ${DOCKER_WORKDIR}/package.json ./package.json
 COPY --from=build ${DOCKER_WORKDIR}/tsconfig.json ./tsconfig.json
 # Copy log4js-config.json to provide log configuration
 COPY --from=build ${DOCKER_WORKDIR}/log4js-config.json ./log4js-config.json
-# Copy memonic type since its referenced in the sources
 
 # Copy run scripts run/
 # COPY --from=build ${DOCKER_WORKDIR}/run ./run
