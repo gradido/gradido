@@ -18,7 +18,6 @@
           step="0.5"
           min="0"
           :max="validMaxTime"
-
         ></b-form-input>
         <b-form-invalid-feedback v-bind="ariaMsg">
           {{ errors[0] }}
