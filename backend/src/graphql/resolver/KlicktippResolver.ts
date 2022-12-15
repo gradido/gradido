@@ -1,4 +1,7 @@
 import { Resolver, Query, Authorized, Arg, Mutation, Args } from 'type-graphql'
+
+import SubscribeNewsletterArgs from '@arg/SubscribeNewsletterArgs'
+
 import {
   getKlickTippUser,
   getKlicktippTagMap,
@@ -6,7 +9,6 @@ import {
   klicktippSignIn,
 } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
-import SubscribeNewsletterArgs from '@arg/SubscribeNewsletterArgs'
 
 @Resolver()
 export class KlicktippResolver {
