@@ -58,7 +58,7 @@ describe('Send', () => {
       expect(wrapper.find('div.gdd-send').exists()).toBe(true)
     })
 
-    describe.skip('fill transaction form for send coins', () => {
+    describe('fill transaction form for send coins', () => {
       beforeEach(async () => {
         const transactionForm = wrapper.findComponent({ name: 'TransactionForm' })
         await transactionForm.findAll('input[type="radio"]').at(0).setChecked()
@@ -98,7 +98,7 @@ describe('Send', () => {
             jest.clearAllMocks()
             await wrapper
               .findComponent({ name: 'TransactionConfirmationSend' })
-              .find('button.btn-primary')
+              .find('button.btn-gradido')
               .trigger('click')
           })
 
@@ -121,8 +121,13 @@ describe('Send', () => {
             expect(wrapper.emitted('update-transactions')).toEqual(expect.arrayContaining([[{}]]))
           })
 
-          it('shows the success page', () => {
-            expect(wrapper.find('div.card-body').text()).toContain('form.send_transaction_success')
+          it('shows the success message', () => {
+            expect(
+              wrapper
+                .findComponent({ name: 'TransactionResultSendSuccess' })
+                .find('div[data-test="send-transaction-success-text"]')
+                .text(),
+            ).toContain('form.send_transaction_success')
           })
         })
 
@@ -132,7 +137,7 @@ describe('Send', () => {
             apolloMutationMock.mockRejectedValue({ message: 'recipient not known' })
             await wrapper
               .findComponent({ name: 'TransactionConfirmationSend' })
-              .find('button.btn-primary')
+              .find('button.btn-gradido')
               .trigger('click')
           })
 
@@ -178,16 +183,16 @@ describe('Send', () => {
         await flushPromises()
       })
 
-      it.skip('steps forward in the dialog', () => {
+      it('steps forward in the dialog', () => {
         expect(wrapper.findComponent({ name: 'TransactionConfirmationLink' }).exists()).toBe(true)
       })
 
-      describe.skip('transaction is confirmed and server response is success', () => {
+      describe('transaction is confirmed and server response is success', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
           await wrapper
             .findComponent({ name: 'TransactionConfirmationLink' })
-            .find('button.btn-primary')
+            .find('button.btn-gradido')
             .trigger('click')
         })
 
@@ -208,16 +213,32 @@ describe('Send', () => {
           expect(wrapper.emitted('update-transactions')).toEqual(expect.arrayContaining([[{}]]))
         })
 
-        it('finds the clip board component', () => {
+        it('shows the success message', () => {
+          expect(
+            wrapper.findComponent({ name: 'TransactionResultLink' }).find('.h3').text(),
+          ).toContain('gdd_per_link.created')
+        })
+
+        it('shows the clip board component', () => {
           expect(wrapper.findComponent({ name: 'ClipboardCopy' }).exists()).toBe(true)
         })
 
-        it('shows the success message', () => {
-          expect(wrapper.find('div.card-body').text()).toContain('gdd_per_link.created')
+        it('shows the qr code', () => {
+          expect(
+            wrapper
+              .findComponent({ name: 'TransactionResultLink' })
+              .find('.figure-qr-code')
+              .exists(),
+          ).toBe(true)
         })
 
         it('shows the close button', () => {
-          expect(wrapper.find('div.card-body').text()).toContain('form.close')
+          expect(
+            wrapper
+              .findComponent({ name: 'TransactionResultLink' })
+              .find('button[data-test="close-btn"]')
+              .text(),
+          ).toEqual('form.close')
         })
 
         describe('copy link to clipboard', () => {
@@ -233,7 +254,7 @@ describe('Send', () => {
           describe('copy link with success', () => {
             beforeEach(async () => {
               navigatorClipboardMock.mockResolvedValue()
-              await wrapper.findAll('button').at(1).trigger('click')
+              await wrapper.find('.pointer').trigger('click')
             })
 
             it('should call clipboard.writeText', () => {
@@ -249,7 +270,7 @@ describe('Send', () => {
           describe('copy link with error', () => {
             beforeEach(async () => {
               navigatorClipboardMock.mockRejectedValue()
-              await wrapper.findAll('button').at(1).trigger('click')
+              await wrapper.find('.clipboard-copy').find('.btn-secondary').trigger('click')
             })
 
             it('toasts error message', () => {
@@ -258,7 +279,7 @@ describe('Send', () => {
           })
         })
 
-        describe('copy link and text with success', () => {
+        describe('copy link and text to clipboard', () => {
           const navigatorClipboard = navigator.clipboard
           beforeAll(() => {
             delete navigator.clipboard
@@ -302,21 +323,24 @@ describe('Send', () => {
 
         describe('close button click', () => {
           beforeEach(async () => {
-            await wrapper.findAll('button').at(3).trigger('click')
+            await wrapper
+              .findComponent({ name: 'TransactionResultLink' })
+              .find('button[data-test="close-btn"]')
+              .trigger('click')
           })
 
-          it('Shows the TransactionForm', () => {
+          it('shows the transaction form', () => {
             expect(wrapper.findComponent({ name: 'TransactionForm' }).exists()).toBe(true)
           })
         })
       })
 
-      describe.skip('apollo call returns error', () => {
+      describe('apollo call returns error', () => {
         beforeEach(async () => {
           apolloMutationMock.mockRejectedValue({ message: 'OUCH!' })
           await wrapper
             .findComponent({ name: 'TransactionConfirmationLink' })
-            .find('button.btn-primary')
+            .find('button.btn-gradido')
             .trigger('click')
         })
 
