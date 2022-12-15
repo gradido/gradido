@@ -2,8 +2,9 @@
   <div>
     <div class="text-center">
       <b-badge
+        v-if="badgeShow"
         class="position-absolute mt--2 ml--4 px-3 zindex1"
-        :variant="badge ? 'success' : 'light'"
+        :variant="showStatus ? 'success' : 'light'"
       >
         {{ $t('GDT') }}
       </b-badge>
@@ -53,7 +54,7 @@ export default {
   name: 'GdtAmount',
   props: {
     GdtBalance: { type: Number, required: true },
-    badge: { type: Boolean, default: false },
+    badgeShow: { type: Boolean, default: true },
     showStatus: { type: Boolean, default: false },
   },
   computed: {

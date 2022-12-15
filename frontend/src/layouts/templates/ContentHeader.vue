@@ -4,7 +4,7 @@
       <b-row>
         <b-col cols="5">
           <div>
-            <gdd-amount :balance="balance" :showStatus="false" :path="path" />
+            <gdd-amount :balance="balance" :showStatus="false" :path="path" :badgeShow="false" />
           </div>
         </b-col>
         <b-col cols="7">
@@ -20,13 +20,13 @@
       <b-row>
         <b-col cols="6">
           <div>
-            <gdd-amount :balance="balance" :badge="true" :showStatus="true" />
+            <gdd-amount :balance="balance" :badge="true" :showStatus="true" :badgeShow="false" />
           </div>
         </b-col>
         <b-col cols="6">
           <div>
             <router-link to="gdt">
-              <gdt-amount :GdtBalance="GdtBalance" />
+              <gdt-amount :GdtBalance="GdtBalance" :badgeShow="false" />
             </router-link>
           </div>
         </b-col>
@@ -37,7 +37,7 @@
         <b-col cols="6">
           <div>
             <router-link to="transactions">
-              <gdd-amount :balance="balance" :badge="true" :showStatus="true" />
+              <gdd-amount :balance="balance" :showStatus="true" />
             </router-link>
           </div>
         </b-col>
@@ -55,7 +55,7 @@
         <b-col cols="6">
           <div>
             <router-link to="transactions">
-              <gdd-amount :balance="balance" :badge="true" :showStatus="false" />
+              <gdd-amount :balance="balance" :showStatus="false" />
             </router-link>
           </div>
         </b-col>
