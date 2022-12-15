@@ -59,8 +59,8 @@ import {
   EventActivateAccount,
 } from '@/event/Event'
 import { getUserCreation, getUserCreations } from './util/creations'
-import { FULL_CREATION_AVAILABLE } from './const/const'
 import { isValidPassword } from '@/password/EncryptorUtils'
+import { FULL_CREATION_AVAILABLE } from './const/const'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 
