@@ -20,7 +20,7 @@ async function calculateBalance(
   time: Date,
   transactionLink?: dbTransactionLink | null,
 ): Promise<{ balance: Decimal; decay: Decay; lastTransactionId: number } | null> {
-  const lastTransaction = await Transaction.findOne({ userId }, { order: { balanceDate: 'DESC' } })
+  const lastTransaction = await Transaction.findOne({ userId }, { order: { id: 'DESC' } })
   if (!lastTransaction) return null
 
   const decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time)
