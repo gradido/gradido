@@ -586,6 +586,7 @@ export class ContributionResolver {
 
     // acquire lock
     const releaseLock = await TRANSACTIONS_LOCK.acquire()
+    console.log(`locked for confirmContribution ${id}`)
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
@@ -595,7 +596,7 @@ export class ContributionResolver {
         .select('transaction')
         .from(DbTransaction, 'transaction')
         .where('transaction.userId = :id', { id: contribution.userId })
-        .orderBy('transaction.balanceDate', 'DESC')
+        .orderBy('transaction.id', 'DESC')
         .getOne()
       logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
 
@@ -644,10 +645,11 @@ export class ContributionResolver {
       })
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      logger.error(`Creation was not successful: ${e}`)
+      console.log(`Creation was not successful:`, e)
       throw new Error(`Creation was not successful.`)
     } finally {
       await queryRunner.release()
+      console.log(`release for confirmContribution ${id}`)
       releaseLock()
     }
 
