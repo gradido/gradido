@@ -1,6 +1,7 @@
 <template>
   <div class="input-amount">
     <validation-provider
+      v-if="typ === 'TransactionsForm'"
       tag="div"
       :rules="rules"
       :name="name"
@@ -20,11 +21,24 @@
           @focus="amountFocused = true"
           @blur="normalizeAmount(valid)"
         ></b-form-input>
+
         <b-form-invalid-feedback v-bind="ariaMsg">
           {{ errors[0] }}
         </b-form-invalid-feedback>
       </b-form-group>
     </validation-provider>
+    <b-input-group v-else append="GDD" :label="label" :label-for="labelFor">
+     
+      <b-form-input
+        v-model="currentValue"
+        :id="labelFor"
+        :name="name"
+        :placeholder="placeholder"
+        type="text"
+        readonly
+        trim
+      ></b-form-input>
+    </b-input-group>
   </div>
 </template>
 <script>
@@ -64,9 +78,10 @@ export default {
   },
   methods: {
     normalizeAmount(isValid) {
+      // console.log('inputAmount normalize')
       this.amountFocused = false
       if (!isValid) return
-      this.amountValue = Number(this.currentValue.replace(',', '.'))
+      this.amountValue = this.currentValue.replace(',', '.')
       if (this.typ === 'TransactionForm') {
         this.currentValue = this.$n(this.amountValue, 'ungroupedDecimal')
       }
