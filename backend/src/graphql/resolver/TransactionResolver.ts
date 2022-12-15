@@ -36,10 +36,7 @@ import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByEmail } from './UserResolver'
 
-import { Semaphore } from 'await-semaphore'
-
-const CONCURRENT_TRANSACTIONS = 1
-const LOCK_TRANSACTIONS = new Semaphore(CONCURRENT_TRANSACTIONS)
+import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -52,24 +49,25 @@ export const executeTransaction = async (
     `executeTransaction(amount=${amount}, memo=${memo}, sender=${sender}, recipient=${recipient})...`,
   )
 
+  if (sender.id === recipient.id) {
+    logger.error(`Sender and Recipient are the same.`)
+    throw new Error('Sender and Recipient are the same.')
+  }
+
+  if (memo.length > MEMO_MAX_CHARS) {
+    logger.error(`memo text is too long: memo.length=${memo.length} > ${MEMO_MAX_CHARS}`)
+    throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
+  }
+
+  if (memo.length < MEMO_MIN_CHARS) {
+    logger.error(`memo text is too short: memo.length=${memo.length} < ${MEMO_MIN_CHARS}`)
+    throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
+  }
+
   // acquire lock
-  const releaseLock = await LOCK_TRANSACTIONS.acquire()
+  const releaseLock = await TRANSACTIONS_LOCK.acquire()
+
   try {
-    if (sender.id === recipient.id) {
-      logger.error(`Sender and Recipient are the same.`)
-      throw new Error('Sender and Recipient are the same.')
-    }
-
-    if (memo.length > MEMO_MAX_CHARS) {
-      logger.error(`memo text is too long: memo.length=${memo.length} > ${MEMO_MAX_CHARS}`)
-      throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
-    }
-
-    if (memo.length < MEMO_MIN_CHARS) {
-      logger.error(`memo text is too short: memo.length=${memo.length} < ${MEMO_MIN_CHARS}`)
-      throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
-    }
-
     // validate amount
     const receivedCallDate = new Date()
     const sendBalance = await calculateBalance(
