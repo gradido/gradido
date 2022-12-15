@@ -2,9 +2,9 @@
   <div class="rightside-last-transactions d-none d-lg-block">
     <b-row>
       <b-col>{{ $t('transaction.lastTransactions') }}</b-col>
-      <b-col cols="1" class="text-right">
+      <!-- <b-col cols="1" class="text-right">
         <b-icon icon="three-dots-vertical"></b-icon>
-      </b-col>
+      </b-col> -->
     </b-row>
     <b-list-group class="mt-5">
       <div v-for="(transaction, index) in transactions" :key="transaction.id">
