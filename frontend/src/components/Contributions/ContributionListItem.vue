@@ -263,14 +263,14 @@ export default {
       if (this.deletedAt) return 'x-circle'
       if (this.deniedAt) return 'x-circle'
       if (this.confirmedAt) return 'check'
-      if (this.state === 'IN_PROGRESS') return 'question-square'
+      if (this.state === 'IN_PROGRESS') return 'question-circle'
       return 'bell-fill'
     },
     variant() {
       if (this.deletedAt) return 'danger'
       if (this.deniedAt) return 'danger'
       if (this.confirmedAt) return 'success'
-      if (this.state === 'IN_PROGRESS') return 'warning'
+      if (this.state === 'IN_PROGRESS') return 'f5'
       return 'primary'
     },
     date() {
