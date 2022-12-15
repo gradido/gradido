@@ -2,6 +2,7 @@
   <div class="translucent-color-opacity">
     <div class="text-center">
       <b-badge
+        v-if="badgeShow"
         class="position-absolute mt--2 ml--4 px-3 zindex1"
         :variant="showStatus ? 'success' : 'light'"
       >
@@ -59,7 +60,7 @@ export default {
   props: {
     path: { type: String, required: false, default: '' },
     balance: { type: Number, required: true },
-    badge: { type: Boolean, default: false },
+    badgeShow: { type: Boolean, default: true },
     showStatus: { type: Boolean, default: false },
   },
   computed: {

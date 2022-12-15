@@ -4,7 +4,7 @@
       tag="div"
       :rules="rules"
       :name="name"
-      v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
+      v-slot="{ valid, validated, ariaInput }"
     >
       <b-form-group :label="label" :label-for="labelFor">
         <b-form-input
@@ -19,9 +19,6 @@
           min="0"
           :max="validMaxTime"
         ></b-form-input>
-        <b-form-invalid-feedback v-bind="ariaMsg">
-          {{ errors[0] }}
-        </b-form-invalid-feedback>
       </b-form-group>
     </validation-provider>
   </div>
