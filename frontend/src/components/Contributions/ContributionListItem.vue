@@ -1,88 +1,87 @@
 <template>
-  <div
-    class="contribution-list-item bg-white appBoxShadow gradido-border-radius p-3"
-    :class="state === 'IN_PROGRESS' ? 'border gradido-global-border-color-danger' : ''"
-  >
-    <slot>
-      <div class="">
-        <b-row>
-          <b-col cols="2">
-            <b-avatar
-              v-if="firstName"
-              :text="avatarText"
-              :badge-variant="variant"
-              size="3em"
-              class="font-weight-bold"
-            >
-              <template #badge><b-icon :icon="icon"></b-icon></template>
-            </b-avatar>
-            <b-avatar v-else :icon="icon" :variant="variant" size="3em"></b-avatar>
-          </b-col>
-          <b-col>
-            <div v-if="firstName" class="mr-3 font-weight-bold">{{ firstName }} {{ lastName }}</div>
-            <div class="small">
-              {{ $d(new Date(contributionDate), 'monthAndYear') }}
-            </div>
-            <div class="mt-3 h5">{{ $t('contributionText') }}</div>
-            <div>{{ memo }}</div>
-            <div v-if="state === 'IN_PROGRESS'" class="text-danger">
-              {{ $t('contribution.alert.answerQuestion') }}
-            </div>
-            <!-- <div class="small">
+  <div>
+    <div
+      class="contribution-list-item bg-white appBoxShadow gradido-border-radius pt-3 px-3"
+      :class="state === 'IN_PROGRESS' ? 'pulse' : ''"
+    >
+      <b-row>
+        <b-col cols="2">
+          <b-avatar
+            v-if="firstName"
+            :text="avatarText"
+            :badge-variant="variant"
+            size="3em"
+            class="font-weight-bold"
+          >
+            <template #badge><b-icon :icon="icon"></b-icon></template>
+          </b-avatar>
+          <b-avatar v-else :icon="icon" :variant="variant" size="3em"></b-avatar>
+        </b-col>
+        <b-col>
+          <div v-if="firstName" class="mr-3 font-weight-bold">{{ firstName }} {{ lastName }}</div>
+          <div class="small">
+            {{ $d(new Date(contributionDate), 'monthAndYear') }}
+          </div>
+          <div class="mt-3 h5">{{ $t('contributionText') }}</div>
+          <div>{{ memo }}</div>
+          <div v-if="state === 'IN_PROGRESS'" class="text-danger">
+            {{ $t('contribution.alert.answerQuestion') }}
+          </div>
+          <!-- <div class="small">
             contributionDate {{ $d(new Date(contributionDate), 'monthAndYear') }}
           </div>
           <div class="small">createdAt {{ createdAt }}</div> -->
-          </b-col>
-          <b-col cols="3">
-            <div class="small">{{ $t('creation') }}</div>
-            <div class="font-weight-bold">{{ amount | GDD }}</div>
-          </b-col>
-          <b-col cols="1" @click="visible = !visible">
-            <collapse-icon class="text-right" :visible="visible" v-if="messagesCount > 0" />
-          </b-col>
-        </b-row>
-        <b-row
-          v-if="
-            (!['CONFIRMED', 'DELETED'].includes(state) && !allContribution) || messagesCount > 0
-          "
-          class="mt-4 bg-gray300 p-4"
-        >
-          <b-col>
-            <div
-              v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
-              class="test-delete-contribution pointer mr-3"
-              @click="deleteContribution({ id })"
-            >
-              <b-icon icon="trash"></b-icon>
-              {{ $t('delete') }}
-            </div>
-          </b-col>
-          <b-col class="text-center">
-            <div
-              v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
-              class="test-edit-contribution pointer mr-3"
-              @click="
-                $emit('update-contribution-form', {
-                  id: id,
-                  contributionDate: contributionDate,
-                  memo: memo,
-                  amount: amount,
-                })
-              "
-            >
-              <b-icon icon="pencil"></b-icon>
-              {{ $t('edit') }}
-            </div>
-          </b-col>
+        </b-col>
+        <b-col cols="3">
+          <div class="small">{{ $t('creation') }}</div>
+          <div class="font-weight-bold">{{ amount | GDD }}</div>
+        </b-col>
+        <b-col cols="1">
+          <div v-if="messagesCount > 0" @click="visible = !visible">
+            <collapse-icon class="text-right" :visible="visible" />
+          </div>
+        </b-col>
+      </b-row>
+      <b-row
+        v-if="(!['CONFIRMED', 'DELETED'].includes(state) && !allContribution) || messagesCount > 0"
+        class="mt-4 gradido-bg-orange text-white p-2"
+      >
+        <b-col>
+          <div
+            v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
+            class="test-delete-contribution pointer mr-3"
+            @click="deleteContribution({ id })"
+          >
+            <b-icon icon="trash"></b-icon>
+            {{ $t('delete') }}
+          </div>
+        </b-col>
+        <b-col class="text-center">
+          <div
+            v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
+            class="test-edit-contribution pointer mr-3"
+            @click="
+              $emit('update-contribution-form', {
+                id: id,
+                contributionDate: contributionDate,
+                memo: memo,
+                amount: amount,
+              })
+            "
+          >
+            <b-icon icon="pencil"></b-icon>
+            {{ $t('edit') }}
+          </div>
+        </b-col>
 
-          <b-col class="text-right">
-            <div v-if="messagesCount > 0" class="pointer">
-              <b-icon icon="chat-dots" @click="visible = !visible"></b-icon>
-              {{ $t('moderatorChat') }}
-            </div>
-          </b-col>
-        </b-row>
-      </div>
+        <b-col class="text-right">
+          <div v-if="messagesCount > 0" class="pointer" @click="visible = !visible">
+            <b-icon icon="chat-dots"></b-icon>
+            {{ $t('moderatorChat') }}
+          </div>
+        </b-col>
+      </b-row>
+
       <!-- <div class="border p-3 w-100 mb-1" :class="`border-${variant}`">
         <div>
           <div class="d-inline-flex">
@@ -175,7 +174,7 @@
           />
         </b-card>
       </b-collapse>
-    </slot>
+    </div>
   </div>
 </template>
 <script>
