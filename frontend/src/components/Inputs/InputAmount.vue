@@ -36,6 +36,9 @@
         type="text"
         readonly
         trim
+        v-focus="amountFocused"
+        @focus="amountFocused = true"
+        @blur="normalizeAmount(valid)"
       ></b-form-input>
     </b-input-group>
   </div>
