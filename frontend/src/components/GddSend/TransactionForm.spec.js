@@ -120,7 +120,9 @@ describe('TransactionForm', () => {
           it('flushes an error message when email is the email of logged in user', async () => {
             await wrapper.findAll('div.form-group').at(0).find('input').setValue('user@example.org')
             await flushPromises()
-            expect(wrapper.findAll('div.form-group').at(0).find('.invalid-feedback').text()).toBe('form.validation.is-not')
+            expect(wrapper.findAll('div.form-group').at(0).find('.invalid-feedback').text()).toBe(
+              'form.validation.is-not',
+            )
           })
 
           it('trims the email after blur', async () => {
@@ -137,7 +139,9 @@ describe('TransactionForm', () => {
 
         describe('amount field', () => {
           it('has an input field of type text', () => {
-            expect(wrapper.findAll('div.form-group').at(1).find('input').attributes('type')).toBe('text')
+            expect(wrapper.findAll('div.form-group').at(1).find('input').attributes('type')).toBe(
+              'text',
+            )
           })
 
           it('has a label form.amount', () => {
@@ -160,13 +164,17 @@ describe('TransactionForm', () => {
           it('flushes an error message when no valid amount is given', async () => {
             await wrapper.findAll('div.form-group').at(1).find('input').setValue('a')
             await flushPromises()
-            expect(wrapper.findAll('div.form-group').at(1).find('.invalid-feedback').text()).toBe('form.validation.gddSendAmount')
+            expect(wrapper.findAll('div.form-group').at(1).find('.invalid-feedback').text()).toBe(
+              'form.validation.gddSendAmount',
+            )
           })
 
           it('flushes an error message when amount is too high', async () => {
             await wrapper.findAll('div.form-group').at(1).find('input').setValue('123.34')
             await flushPromises()
-            expect(wrapper.findAll('div.form-group').at(1).find('.invalid-feedback').text()).toBe('form.validation.gddSendAmount')
+            expect(wrapper.findAll('div.form-group').at(1).find('.invalid-feedback').text()).toBe(
+              'form.validation.gddSendAmount',
+            )
           })
 
           it('flushes no errors when amount is valid', async () => {

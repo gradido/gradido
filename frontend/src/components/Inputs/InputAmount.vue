@@ -28,7 +28,6 @@
       </b-form-group>
     </validation-provider>
     <b-input-group v-else append="GDD" :label="label" :label-for="labelFor">
-     
       <b-form-input
         v-model="currentValue"
         :id="labelFor"
