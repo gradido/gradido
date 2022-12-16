@@ -74,7 +74,7 @@ describe('ContributionListItem', () => {
 
       it('is warning at when state is IN_PROGRESS', async () => {
         await wrapper.setProps({ state: 'IN_PROGRESS' })
-        expect(wrapper.vm.variant).toBe('warning')
+        expect(wrapper.vm.variant).toBe('f5')
       })
     })
 

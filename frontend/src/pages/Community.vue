@@ -247,7 +247,7 @@ export default {
           this.contributionCount = listContributions.contributionCount
           this.items = listContributions.contributionList
           if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
-            // this.tabIndex = 1
+            this.tabIndex = 1
             // this.$route.hash = 'my'
             this.$router.push({ path: '#my' })
             this.toastInfo('Du hast eine Rückfrage auf eine Contribution. Bitte beantworte diese!')
@@ -280,6 +280,7 @@ export default {
       this.form.amount = item.amount
       this.updateAmount = item.amount
       this.$router.push({ path: '#edit' })
+      this.tabIndex = 0
     },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)

@@ -27,14 +27,14 @@ describe('UserCard', () => {
     })
 
     it('renders the Div Element ".userdata-card"', () => {
-      expect(wrapper.find('div.userdata-card').exists()).toBeTruthy()
+      expect(wrapper.find('.userdata-card').exists()).toBe(true)
     })
     it('renders the SPAN Element ".b-avatar"', () => {
-      expect(wrapper.find('span.b-avatar').exists()).toBeTruthy()
+      expect(wrapper.find('.b-avatar').exists()).toBe(true)
     })
 
     it('find the first letters of the firstName and lastName', () => {
-      expect(wrapper.find('span.b-avatar').text()).toBe('B  B')
+      expect(wrapper.find('.b-avatar-text').text()).toBe('B  B')
     })
   })
 })

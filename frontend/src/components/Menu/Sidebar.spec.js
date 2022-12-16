@@ -53,8 +53,8 @@ describe('Sidebar', () => {
         expect(wrapper.findAll('.nav-item').at(3).text()).toEqual('gdt.gdt')
       })
 
-      it('has nav-item "navigation.members" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(4).text()).toContain('navigation.members')
+      it('has nav-item "creation" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(4).text()).toContain('creation')
       })
     })
 
