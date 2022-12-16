@@ -42,7 +42,6 @@
       "pending": "Eingereicht und wartet auf Bestätigung",
       "rejected": "abgelehnt"
     },
-    "creation": "Schöpfen",
     "delete": "Beitrag löschen! Bist du sicher?",
     "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
     "exhausted": "Für diesen Monat kannst du nichts mehr schöpfen.",
@@ -151,7 +150,7 @@
     "to": "bis",
     "to1": "an",
     "validation": {
-      "gddCreationTime": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
+      "gddCreationTime": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens einer Nachkommastelle sein",
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
       "is-not": "Du kannst dir selbst keine Gradidos überweisen",
       "usernmae-regex": "Der Username muss mit einem Buchstaben beginnen, auf den mindestens zwei alpha-numerische Zeichen folgen müssen.",
@@ -212,7 +211,6 @@
     "raise": "Erhöhung",
     "recruited-member": "Eingeladenes Mitglied"
   },
-  "gradidoLink": "Gradido Link",
   "language": "Sprache",
   "lastMonth": "letzter Monat",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
@@ -241,7 +239,6 @@
     "community": "Gemeinschaft",
     "info": "Information",
     "logout": "Abmelden",
-    "members": "Mitglieder",
     "overview": "Übersicht",
     "send": "Senden",
     "settings": "Einstellung",

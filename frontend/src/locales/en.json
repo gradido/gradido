@@ -150,6 +150,7 @@
     "to": "to",
     "to1": "to",
     "validation": {
+      "gddCreationTime": "The field {_field_} must be a number between {min} and {max} with at most one decimal place.",
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point",
       "is-not": "You cannot send Gradidos to yourself",
       "usernmae-regex": "The username must start with a letter, followed by at least two alphanumeric characters.",
@@ -210,7 +211,6 @@
     "raise": "Increase",
     "recruited-member": "Invited member"
   },
-  "gradidoLink": "Gradido Link",
   "language": "Language",
   "lastMonth": "Last month",
   "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
@@ -239,7 +239,6 @@
     "community": "Community",
     "info": "Information",
     "logout": "Logout",
-    "members": "Members",
     "overview": "Overview",
     "send": "Send",
     "settings": "Settings",
