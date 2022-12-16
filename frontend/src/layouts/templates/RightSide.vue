@@ -15,6 +15,7 @@
               :transactions="transactions"
               :transactionCount="transactionCount"
               :transactionLinkCount="transactionLinkCount"
+              v-on="$listeners"
             />
           </div>
         </b-col>
@@ -52,6 +53,7 @@
               :transactions="transactions"
               :transactionCount="transactionCount"
               :transactionLinkCount="transactionLinkCount"
+              v-on="$listeners"
             />
           </div>
         </b-col>
@@ -72,6 +74,7 @@
               :transactions="transactions"
               :transactionCount="transactionCount"
               :transactionLinkCount="transactionLinkCount"
+              v-on="$listeners"
             />
           </div>
         </b-col>
@@ -92,6 +95,7 @@
               :transactions="transactions"
               :transactionCount="transactionCount"
               :transactionLinkCount="transactionLinkCount"
+              v-on="$listeners"
             />
           </div>
         </b-col>

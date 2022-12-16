@@ -24,7 +24,7 @@
               class="mr-3"
             ></b-avatar>
             <span class="mr-auto">
-              <name :linkedUser="transaction.linkedUser" />
+              <name :linkedUser="transaction.linkedUser" v-on="$listeners" />
             </span>
             <b-badge>{{ transaction.amount | GDD }}</b-badge>
           </div>
