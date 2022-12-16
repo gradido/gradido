@@ -1,44 +1,40 @@
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { backendLogger as logger } from '@/server/logger'
-
-import { Context, getUser } from '@/server/context'
+import Decimal from 'decimal.js-light'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection, In } from '@dbTools/typeorm'
-
-import { Transaction } from '@model/Transaction'
-import { TransactionList } from '@model/TransactionList'
-
-import TransactionSendArgs from '@arg/TransactionSendArgs'
-import Paginated from '@arg/Paginated'
-
-import { Order } from '@enum/Order'
-
-import { TransactionRepository } from '@repository/Transaction'
-import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { TransactionRepository } from '@repository/Transaction'
+import { TransactionLinkRepository } from '@repository/TransactionLink'
 
-import { TransactionTypeId } from '@enum/TransactionTypeId'
-import { calculateBalance, isHexPublicKey } from '@/util/validate'
-import { RIGHTS } from '@/auth/RIGHTS'
 import { User } from '@model/User'
+import { Transaction } from '@model/Transaction'
+import { TransactionList } from '@model/TransactionList'
+import { Order } from '@enum/Order'
+import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { calculateBalance } from '@/util/validate'
+import TransactionSendArgs from '@arg/TransactionSendArgs'
+import Paginated from '@arg/Paginated'
+
+import { backendLogger as logger } from '@/server/logger'
+import { Context, getUser } from '@/server/context'
+import { RIGHTS } from '@/auth/RIGHTS'
 import { communityUser } from '@/util/communityUser'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
-import Decimal from 'decimal.js-light'
-
-import { BalanceResolver } from './BalanceResolver'
-import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
-import { findUserByEmail } from './UserResolver'
 import {
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
 } from '@/emails/sendEmailVariants'
 import { Event, EventTransactionReceive, EventTransactionSend } from '@/event/Event'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
+
+import { BalanceResolver } from './BalanceResolver'
+import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
+import { findUserByEmail } from './UserResolver'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -319,10 +315,6 @@ export class TransactionResolver {
 
     // TODO this is subject to replay attacks
     const senderUser = getUser(context)
-    if (senderUser.pubKey.length !== 32) {
-      logger.error(`invalid sender public key:${senderUser.pubKey}`)
-      throw new Error('invalid sender public key')
-    }
 
     // validate recipient user
     const recipientUser = await findUserByEmail(email)
@@ -334,10 +326,6 @@ export class TransactionResolver {
     if (!emailContact.emailChecked) {
       logger.error(`The recipient account is not activated: recipientUser=${recipientUser}`)
       throw new Error('The recipient account is not activated')
-    }
-    if (!isHexPublicKey(recipientUser.pubKey.toString('hex'))) {
-      logger.error(`invalid recipient public key: recipientUser=${recipientUser}`)
-      throw new Error('invalid recipient public key')
     }
 
     await executeTransaction(amount, memo, senderUser, recipientUser)
