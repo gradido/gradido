@@ -88,7 +88,8 @@ export default {
         this.currentValue = this.$n(this.amountValue, 'ungroupedDecimal')
       }
       if (this.typ === 'ContributionForm') {
-        this.currentValue = this.amountValue.toFixed()
+        // this.currentValue = this.amountValue
+        this.currentValue = this.$n(this.amountValue, 'ungroupedDecimal')
       }
     },
   },

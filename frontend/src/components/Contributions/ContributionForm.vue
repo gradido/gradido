@@ -130,8 +130,6 @@ import InputTime from '@/components/Inputs/InputTime.vue'
 import InputAmount from '@/components/Inputs/InputAmount.vue'
 import InputTextarea from '@/components/Inputs/InputTextarea.vue'
 
-const PATTERN_NON_DIGIT = /\D/g
-
 export default {
   name: 'ContributionForm',
   components: {
@@ -162,7 +160,7 @@ export default {
     //   return value.replace(PATTERN_NON_DIGIT, '')
     // },
     submit() {
-      this.form.amount = this.form.amount.replace(PATTERN_NON_DIGIT, '')
+      // this.form.amount = this.form.amount.replace(PATTERN_NON_DIGIT, '')
       // spreading is needed for testing
       this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
       this.reset()
