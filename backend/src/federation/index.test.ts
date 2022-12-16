@@ -155,6 +155,25 @@ describe('federation', () => {
               expect(true).toBe(true)
             })
           })
+          describe('on data with receiving simply a string', () => {
+            beforeEach(() => {
+              socketEventMocks.data(
+                Buffer.from(
+                  `hello here is a new community and i don't know how to communicate with you`,
+                ),
+              )
+            })
+            it('logged the received data', () => {
+              expect(logger.info).toBeCalledWith(
+                `data: hello here is a new community and i don't know how to communicate with you`,
+              )
+            })
+            it('logged a warning of unexpected data format and structure', () => {
+              expect(logger.warn).toBeCalledWith(
+                `received totaly wrong or too much apiVersions-Definition JSON-String:hello here is a new community and i don't know how to communicate with you`,
+              )
+            })
+          })
         })
       })
     })
