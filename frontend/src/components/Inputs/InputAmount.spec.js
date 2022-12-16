@@ -109,9 +109,9 @@ describe('InputAmount', () => {
           valid = true
         })
 
-        it('is normalized to a rounded number', () => {
+        it('is normalized to a ungroupedDecimal number', () => {
           wrapper.vm.normalizeAmount(valid)
-          expect(wrapper.vm.currentValue).toBe('12')
+          expect(wrapper.vm.currentValue).toBe('12.34')
         })
       })
     })
