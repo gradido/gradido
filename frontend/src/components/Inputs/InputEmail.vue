@@ -37,11 +37,11 @@ export default {
     name: { type: String, default: 'Email' },
     label: { type: String, default: 'Email' },
     placeholder: { type: String, default: 'Email' },
-    value: { required: true, type: String },
+    value: { required: true, type: String, default: '' },
   },
   data() {
     return {
-      currentValue: '',
+      currentValue: this.value,
     }
   },
   computed: {
