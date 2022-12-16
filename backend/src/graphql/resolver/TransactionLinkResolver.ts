@@ -1,45 +1,36 @@
-import { backendLogger as logger } from '@/server/logger'
-import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
-import { getConnection } from '@dbTools/typeorm'
-import {
-  Resolver,
-  Args,
-  Arg,
-  Authorized,
-  Ctx,
-  Mutation,
-  Query,
-  Int,
-  createUnionType,
-} from 'type-graphql'
-import { TransactionLink } from '@model/TransactionLink'
-import { ContributionLink } from '@model/ContributionLink'
-import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import { Transaction as DbTransaction } from '@entity/Transaction'
-import { User as dbUser } from '@entity/User'
-import TransactionLinkArgs from '@arg/TransactionLinkArgs'
-import Paginated from '@arg/Paginated'
-import { calculateBalance } from '@/util/validate'
-import { RIGHTS } from '@/auth/RIGHTS'
 import { randomBytes } from 'crypto'
+import Decimal from 'decimal.js-light'
+
+import { getConnection, MoreThan, FindOperator } from '@dbTools/typeorm'
+
+import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
+import { User as DbUser } from '@entity/User'
+import { Transaction as DbTransaction } from '@entity/Transaction'
+import { Contribution as DbContribution } from '@entity/Contribution'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+
 import { User } from '@model/User'
-import { calculateDecay } from '@/util/decay'
-import { executeTransaction } from './TransactionResolver'
+import { ContributionLink } from '@model/ContributionLink'
+import { Decay } from '@model/Decay'
+import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { Order } from '@enum/Order'
 import { ContributionType } from '@enum/ContributionType'
 import { ContributionStatus } from '@enum/ContributionStatus'
-import { Contribution as DbContribution } from '@entity/Contribution'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { getUserCreation, validateContribution } from './util/creations'
-import { Decay } from '@model/Decay'
-import Decimal from 'decimal.js-light'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { ContributionCycleType } from '@enum/ContributionCycleType'
+import TransactionLinkArgs from '@arg/TransactionLinkArgs'
+import Paginated from '@arg/Paginated'
+import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 
-const QueryLinkResult = createUnionType({
-  name: 'QueryLinkResult', // the name of the GraphQL union
-  types: () => [TransactionLink, ContributionLink] as const, // function that returns tuple of object types classes
-})
+import { backendLogger as logger } from '@/server/logger'
+import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
+import { Resolver, Args, Arg, Authorized, Ctx, Mutation, Query, Int } from 'type-graphql'
+import { calculateBalance } from '@/util/validate'
+import { RIGHTS } from '@/auth/RIGHTS'
+import { calculateDecay } from '@/util/decay'
+import { getUserCreation, validateContribution } from './util/creations'
+import { executeTransaction } from './TransactionResolver'
+import QueryLinkResult from '@union/QueryLinkResult'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -79,7 +70,7 @@ export class TransactionLinkResolver {
       throw new Error("user hasn't enough GDD or amount is < 0")
     }
 
-    const transactionLink = dbTransactionLink.create()
+    const transactionLink = DbTransactionLink.create()
     transactionLink.userId = user.id
     transactionLink.amount = amount
     transactionLink.memo = memo
@@ -87,7 +78,7 @@ export class TransactionLinkResolver {
     transactionLink.code = transactionLinkCode(createdDate)
     transactionLink.createdAt = createdDate
     transactionLink.validUntil = validUntil
-    await dbTransactionLink.save(transactionLink).catch(() => {
+    await DbTransactionLink.save(transactionLink).catch(() => {
       throw new Error('Unable to save transaction link')
     })
 
@@ -102,7 +93,7 @@ export class TransactionLinkResolver {
   ): Promise<boolean> {
     const user = getUser(context)
 
-    const transactionLink = await dbTransactionLink.findOne({ id })
+    const transactionLink = await DbTransactionLink.findOne({ id })
     if (!transactionLink) {
       throw new Error('Transaction Link not found!')
     }
@@ -132,11 +123,11 @@ export class TransactionLinkResolver {
       )
       return new ContributionLink(contributionLink)
     } else {
-      const transactionLink = await dbTransactionLink.findOneOrFail({ code }, { withDeleted: true })
-      const user = await dbUser.findOneOrFail({ id: transactionLink.userId })
+      const transactionLink = await DbTransactionLink.findOneOrFail({ code }, { withDeleted: true })
+      const user = await DbUser.findOneOrFail({ id: transactionLink.userId })
       let redeemedBy: User | null = null
       if (transactionLink && transactionLink.redeemedBy) {
-        redeemedBy = new User(await dbUser.findOneOrFail({ id: transactionLink.redeemedBy }))
+        redeemedBy = new User(await DbUser.findOneOrFail({ id: transactionLink.redeemedBy }))
       }
       return new TransactionLink(transactionLink, new User(user), redeemedBy)
     }
@@ -151,7 +142,7 @@ export class TransactionLinkResolver {
   ): Promise<TransactionLink[]> {
     const user = getUser(context)
     // const now = new Date()
-    const transactionLinks = await dbTransactionLink.find({
+    const transactionLinks = await DbTransactionLink.find({
       where: {
         userId: user.id,
         redeemedBy: null,
@@ -321,8 +312,8 @@ export class TransactionLinkResolver {
       }
       return true
     } else {
-      const transactionLink = await dbTransactionLink.findOneOrFail({ code })
-      const linkedUser = await dbUser.findOneOrFail(
+      const transactionLink = await DbTransactionLink.findOneOrFail({ code })
+      const linkedUser = await DbUser.findOneOrFail(
         { id: transactionLink.userId },
         { relations: ['emailContact'] },
       )
@@ -348,6 +339,46 @@ export class TransactionLinkResolver {
       )
 
       return true
+    }
+  }
+
+  @Authorized([RIGHTS.LIST_TRANSACTION_LINKS_ADMIN])
+  @Query(() => TransactionLinkResult)
+  async listTransactionLinksAdmin(
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    @Arg('filters', () => TransactionLinkFilters, { nullable: true })
+    filters: TransactionLinkFilters,
+    @Arg('userId', () => Int)
+    userId: number,
+  ): Promise<TransactionLinkResult> {
+    const user = await DbUser.findOneOrFail({ id: userId })
+    const where: {
+      userId: number
+      redeemedBy?: number | null
+      validUntil?: FindOperator<Date> | null
+    } = {
+      userId,
+      redeemedBy: null,
+      validUntil: MoreThan(new Date()),
+    }
+    if (filters) {
+      if (filters.withRedeemed) delete where.redeemedBy
+      if (filters.withExpired) delete where.validUntil
+    }
+    const [transactionLinks, count] = await DbTransactionLink.findAndCount({
+      where,
+      withDeleted: filters ? filters.withDeleted : false,
+      order: {
+        createdAt: order,
+      },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+
+    return {
+      linkCount: count,
+      linkList: transactionLinks.map((tl) => new TransactionLink(tl, new User(user))),
     }
   }
 }

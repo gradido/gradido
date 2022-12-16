@@ -1,44 +1,40 @@
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { backendLogger as logger } from '@/server/logger'
-import CONFIG from '@/config'
-
-import { Context, getUser } from '@/server/context'
+import Decimal from 'decimal.js-light'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection, In } from '@dbTools/typeorm'
-
-import { sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
-
-import { Transaction } from '@model/Transaction'
-import { TransactionList } from '@model/TransactionList'
-
-import TransactionSendArgs from '@arg/TransactionSendArgs'
-import Paginated from '@arg/Paginated'
-
-import { Order } from '@enum/Order'
-
-import { TransactionRepository } from '@repository/Transaction'
-import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { TransactionRepository } from '@repository/Transaction'
+import { TransactionLinkRepository } from '@repository/TransactionLink'
 
-import { TransactionTypeId } from '@enum/TransactionTypeId'
-import { calculateBalance, isHexPublicKey } from '@/util/validate'
-import { RIGHTS } from '@/auth/RIGHTS'
 import { User } from '@model/User'
+import { Transaction } from '@model/Transaction'
+import { TransactionList } from '@model/TransactionList'
+import { Order } from '@enum/Order'
+import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { calculateBalance } from '@/util/validate'
+import TransactionSendArgs from '@arg/TransactionSendArgs'
+import Paginated from '@arg/Paginated'
+
+import { backendLogger as logger } from '@/server/logger'
+import { Context, getUser } from '@/server/context'
+import { RIGHTS } from '@/auth/RIGHTS'
 import { communityUser } from '@/util/communityUser'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
-import Decimal from 'decimal.js-light'
+import {
+  sendTransactionLinkRedeemedEmail,
+  sendTransactionReceivedEmail,
+} from '@/emails/sendEmailVariants'
+import { Event, EventTransactionReceive, EventTransactionSend } from '@/event/Event'
+import { eventProtocol } from '@/event/EventProtocolEmitter'
 
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByEmail } from './UserResolver'
-import { sendTransactionLinkRedeemedEmail } from '@/mailer/sendTransactionLinkRedeemed'
-import { Event, EventTransactionReceive, EventTransactionSend } from '@/event/Event'
-import { eventProtocol } from '@/event/EventProtocolEmitter'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -159,29 +155,27 @@ export const executeTransaction = async (
     await queryRunner.release()
   }
   logger.debug(`prepare Email for transaction received...`)
-  // send notification email
-  // TODO: translate
   await sendTransactionReceivedEmail({
+    firstName: recipient.firstName,
+    lastName: recipient.lastName,
+    email: recipient.emailContact.email,
+    language: recipient.language,
     senderFirstName: sender.firstName,
     senderLastName: sender.lastName,
-    recipientFirstName: recipient.firstName,
-    recipientLastName: recipient.lastName,
-    email: recipient.emailContact.email,
     senderEmail: sender.emailContact.email,
-    amount,
-    overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+    transactionAmount: amount,
   })
   if (transactionLink) {
     await sendTransactionLinkRedeemedEmail({
+      firstName: sender.firstName,
+      lastName: sender.lastName,
+      email: sender.emailContact.email,
+      language: sender.language,
       senderFirstName: recipient.firstName,
       senderLastName: recipient.lastName,
-      recipientFirstName: sender.firstName,
-      recipientLastName: sender.lastName,
-      email: sender.emailContact.email,
       senderEmail: recipient.emailContact.email,
-      amount,
-      memo,
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      transactionAmount: amount,
+      transactionMemo: memo,
     })
   }
   logger.info(`finished executeTransaction successfully`)
@@ -206,7 +200,7 @@ export class TransactionResolver {
     // find current balance
     const lastTransaction = await dbTransaction.findOne(
       { userId: user.id },
-      { order: { balanceDate: 'DESC' } },
+      { order: { balanceDate: 'DESC' }, relations: ['contribution'] },
     )
     logger.debug(`lastTransaction=${lastTransaction}`)
 
@@ -314,32 +308,16 @@ export class TransactionResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     logger.info(`sendCoins(email=${email}, amount=${amount}, memo=${memo})`)
+    if (amount.lte(0)) {
+      logger.error(`Amount to send must be positive`)
+      throw new Error('Amount to send must be positive')
+    }
 
     // TODO this is subject to replay attacks
     const senderUser = getUser(context)
-    if (senderUser.pubKey.length !== 32) {
-      logger.error(`invalid sender public key:${senderUser.pubKey}`)
-      throw new Error('invalid sender public key')
-    }
 
     // validate recipient user
     const recipientUser = await findUserByEmail(email)
-    /*
-    const emailContact = await UserContact.findOne({ email }, { withDeleted: true })
-    if (!emailContact) {
-      logger.error(`Could not find UserContact with email: ${email}`)
-      throw new Error(`Could not find UserContact with email: ${email}`)
-    }
-    */
-    // const recipientUser = await dbUser.findOne({ id: emailContact.userId })
-
-    /* Code inside this if statement is unreachable (useless by so), 
-    in findUserByEmail() an error is already thrown if the user is not found
-    */
-    if (!recipientUser) {
-      logger.error(`unknown recipient to UserContact: email=${email}`)
-      throw new Error('unknown recipient')
-    }
     if (recipientUser.deletedAt) {
       logger.error(`The recipient account was deleted: recipientUser=${recipientUser}`)
       throw new Error('The recipient account was deleted')
@@ -348,10 +326,6 @@ export class TransactionResolver {
     if (!emailContact.emailChecked) {
       logger.error(`The recipient account is not activated: recipientUser=${recipientUser}`)
       throw new Error('The recipient account is not activated')
-    }
-    if (!isHexPublicKey(recipientUser.pubKey.toString('hex'))) {
-      logger.error(`invalid recipient public key: recipientUser=${recipientUser}`)
-      throw new Error('invalid recipient public key')
     }
 
     await executeTransaction(amount, memo, senderUser, recipientUser)

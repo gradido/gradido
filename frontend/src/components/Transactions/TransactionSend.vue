@@ -17,7 +17,7 @@
               v-on="$listeners"
               :amount="amount"
               :linkedUser="linkedUser"
-              :transactionLinkId="transactionLinkId"
+              :linkId="linkId"
             />
 
             <!-- Memo -->
@@ -83,7 +83,7 @@ export default {
       type: String,
       required: true,
     },
-    transactionLinkId: {
+    linkId: {
       type: Number,
       required: false,
     },

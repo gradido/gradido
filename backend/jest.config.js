@@ -9,9 +9,10 @@ module.exports = {
   modulePathIgnorePatterns: ['<rootDir>/build/'],
   moduleNameMapper: {
     '@/(.*)': '<rootDir>/src/$1',
-    '@model/(.*)': '<rootDir>/src/graphql/model/$1',
     '@arg/(.*)': '<rootDir>/src/graphql/arg/$1',
     '@enum/(.*)': '<rootDir>/src/graphql/enum/$1',
+    '@model/(.*)': '<rootDir>/src/graphql/model/$1',
+    '@union/(.*)': '<rootDir>/src/graphql/union/$1',
     '@repository/(.*)': '<rootDir>/src/typeorm/repository/$1',
     '@test/(.*)': '<rootDir>/test/$1',
     '@entity/(.*)':
