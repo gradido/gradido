@@ -47,14 +47,13 @@ describe('AuthNavbar', () => {
 
     describe('.avatar element', () => {
       it('is rendered', () => {
-        expect(wrapper.find('button.avatar').exists()).toBeTruthy()
+        expect(wrapper.find('div.vue-avatar--wrapper').exists()).toBeTruthy()
       })
 
       it("has the user's initials", () => {
-        expect(
-          // wrapper.find('button.b-avatar').find('.b-avatar-text > span:nth-child(1)').text(),
-          wrapper.find('.vue-avatar--wrapper').text(),
-        ).toBe(`${wrapper.vm.$store.state.firstName[0]}${wrapper.vm.$store.state.lastName[0]}`)
+        expect(wrapper.find('.vue-avatar--wrapper').text()).toBe(
+          `${wrapper.vm.$store.state.firstName[0]}${wrapper.vm.$store.state.lastName[0]}`,
+        )
       })
     })
 
