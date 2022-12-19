@@ -23,7 +23,7 @@
             {{ $d(new Date(contributionDate), 'monthAndYear') }}
           </div>
           <div class="mt-3 h5">{{ $t('contributionText') }}</div>
-          <div>{{ memo }}</div>
+          <div class="pb-3">{{ memo }}</div>
           <div v-if="state === 'IN_PROGRESS'" class="text-danger">
             {{ $t('contribution.alert.answerQuestion') }}
           </div>

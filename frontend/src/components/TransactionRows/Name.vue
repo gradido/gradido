@@ -5,15 +5,6 @@
         <b-link @click.stop="tunnelEmail">
           {{ itemText }}
         </b-link>
-        <!-- <span v-if="transactionLinkId">
-          {{ $t('via_link') }}
-          <b-icon
-            icon="link45deg"
-            variant="muted"
-            class="m-mb-1"
-            :title="$t('gdd_per_link.redeemed-title')"
-          />
-        </span> -->
       </div>
       <span v-else>{{ itemText }}</span>
     </div>
@@ -31,16 +22,17 @@ export default {
       type: String,
       required: false,
     },
-    // transactionLinkId: {
-    //   type: Number,
-    //   required: false,
-    //   default: null,
-    // },
+    linkId: {
+      type: Number,
+      required: false,
+      default: null,
+    },
   },
   methods: {
     tunnelEmail() {
+      console.log('tunnelEmail name', this.linkedUser.email)
       this.$emit('set-tunneled-email', this.linkedUser.email)
-      this.$router.push({ path: '/send' })
+      if (this.$router.history.current.fullPath !== '/send') this.$router.push({ path: '/send' })
     },
   },
   computed: {
