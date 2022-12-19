@@ -20,6 +20,14 @@
           @toogleMobilMenu="toogleMobilMenu"
         />
       </div> -->
+
+      <!-- Breadcrumb -->
+      <b-row>
+        <b-col cols="12" offset-lg="2">
+          <breadcrumb />
+        </b-col>
+      </b-row>
+
       <b-row fluid class="d-flex">
         <!-- Sidebar left -->
         <b-col cols="2" class="d-none d-lg-block">
@@ -90,6 +98,7 @@
 </template>
 <script>
 import ContentHeader from '@/layouts/templates/ContentHeader.vue'
+import Breadcrumb from '@/components/Breadcrumb/breadcrumb.vue'
 import RightSide from '@/layouts/templates/RightSide.vue'
 import SkeletonOverview from '@/components/skeleton/Overview.vue'
 import Navbar from '@/components/Menu/Navbar.vue'
@@ -114,6 +123,7 @@ export default {
     SessionLogoutTimeout,
     ContentFooter,
     FadeTransition,
+    Breadcrumb,
   },
   data() {
     return {

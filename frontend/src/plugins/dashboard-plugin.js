@@ -20,6 +20,8 @@ import VueApollo from 'vue-apollo'
 
 import VueTimers from 'vue-timers'
 
+import VSwitch from 'v-switch-case'
+
 export default {
   install(Vue) {
     Vue.use(GlobalComponents)
@@ -32,5 +34,6 @@ export default {
     Vue.use(Loading)
     Vue.use(VueApollo)
     Vue.use(VueTimers)
+    Vue.use(VSwitch)
   },
 }
