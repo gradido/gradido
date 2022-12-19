@@ -2,7 +2,7 @@
   <div class="transaction-slot-send">
     <b-row @click="visible = !visible" class="">
       <b-col cols="2">
-        <avatar :username="username"></avatar>
+        <avatar :username="username" :color="'#fff'"></avatar>
       </b-col>
       <b-col>
         <div>
