@@ -21,7 +21,7 @@
               <div>
                 <div class="d-flex">
                   <div class="mr-3">
-                    <avatar :username="username"></avatar>
+                    <avatar :username="username" :color="'#fff'"></avatar>
                   </div>
                   <div>
                     <div class="small" data-test="navbar-item-username">{{ username }}</div>
