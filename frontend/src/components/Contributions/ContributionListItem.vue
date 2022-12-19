@@ -6,15 +6,12 @@
     >
       <b-row>
         <b-col cols="2">
-          <b-avatar
+          <avatar
             v-if="firstName"
-            :text="avatarText"
-            :badge-variant="variant"
-            size="3em"
+            :username="username"
+            color="#fff"
             class="font-weight-bold"
-          >
-            <template #badge><b-icon :icon="icon"></b-icon></template>
-          </b-avatar>
+          ></avatar>
           <b-avatar v-else :icon="icon" :variant="variant" size="3em"></b-avatar>
         </b-col>
         <b-col>
@@ -178,6 +175,7 @@
   </div>
 </template>
 <script>
+import Avatar from 'vue-avatar'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import ContributionMessagesList from '@/components/ContributionMessages/ContributionMessagesList.vue'
 import { listContributionMessages } from '../../graphql/queries.js'
@@ -185,6 +183,7 @@ import { listContributionMessages } from '../../graphql/queries.js'
 export default {
   name: 'ContributionListItem',
   components: {
+    Avatar,
     CollapseIcon,
     ContributionMessagesList,
   },
@@ -279,8 +278,8 @@ export default {
     collapsId() {
       return 'collapse' + String(this.id)
     },
-    avatarText() {
-      return this.firstName[0] + this.lastName[0]
+    username() {
+      return `${this.firstName} ${this.lastName}`
     },
   },
   methods: {

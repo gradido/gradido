@@ -18,12 +18,10 @@
           "
         >
           <div class="d-flex align-items-center">
-            <b-avatar
-              :text="transaction.linkedUser.firstName[0] + transaction.linkedUser.lastName[0]"
-              :variant="transaction.typeId === 'SEND' ? 'danger' : 'success'"
-              class="mr-3"
-            ></b-avatar>
-            <span class="mr-auto">
+            <avatar
+              :username="`${transaction.linkedUser.firstName} ${transaction.linkedUser.lastName}`"
+            ></avatar>
+            <span>
               <name :linkedUser="transaction.linkedUser" @set-tunneled-email="setTunneledEmail" />
             </span>
             <b-badge>{{ transaction.amount | GDD }}</b-badge>
@@ -34,11 +32,13 @@
   </div>
 </template>
 <script>
+import Avatar from 'vue-avatar'
 import Name from '@/components/TransactionRows/Name.vue'
 
 export default {
   name: 'LastTransactions',
   components: {
+    Avatar,
     Name,
   },
   props: {
