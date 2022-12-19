@@ -16,6 +16,7 @@ const routes = [
     meta: {
       requiresAuth: true,
     },
+    bread: 'overview xxx'
   },
   {
     path: '/send',
