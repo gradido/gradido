@@ -1,8 +1,8 @@
 <template>
   <div class="userdata-card">
-    <b-card class="bg-transparent border-0">
-      <div class="text-center">
-        <b-avatar button variant="gradido" :text="avatar" size="6rem"></b-avatar>
+    <b-card class="border-0">
+      <div class="justify-content-center">
+        <avatar :username="username" :color="'#fff'" :size="90"></avatar>
       </div>
 
       <b-container class="justify-content-center mt-md-5">
@@ -33,10 +33,14 @@
   </div>
 </template>
 <script>
+import Avatar from 'vue-avatar'
 import CONFIG from '@/config'
 
 export default {
   name: 'UserCard',
+  components: {
+    Avatar,
+  },
   props: {
     balance: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
@@ -47,8 +51,8 @@ export default {
     }
   },
   computed: {
-    avatar() {
-      return `${this.$store.state.firstName[0]}  ${this.$store.state.lastName[0]}`
+    username() {
+      return `${this.$store.state.firstName} ${this.$store.state.lastName}`
     },
   },
 }
