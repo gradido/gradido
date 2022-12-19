@@ -11,15 +11,27 @@
             v-on="$listeners"
             :amount="amount"
             :linkedUser="linkedUser"
-            :transactionLinkId="transactionLinkId"
+            :linkId="linkId"
           />
         </div>
         <div class="small">{{ this.$d(new Date(balanceDate), 'short') }}</div>
         <div class="small">{{ this.$d(new Date(balanceDate), 'time') }}</div>
       </b-col>
       <b-col cols="3">
-        <div class="small">{{ $t('decay.types.send') }}</div>
+        <div class="small">
+          {{ $t('decay.types.send') }}
+          
+        </div>
         <div class="font-weight-bold">{{ amount | GDD }}</div>
+        <div v-if="linkId" class="small">
+            {{ $t('via_link') }}
+            <b-icon
+              icon="link45deg"
+              variant="muted"
+              class="m-mb-1"
+              :title="$t('gdd_per_link.redeemed-title')"
+            />
+          </div>
       </b-col>
       <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>
     </b-row>
@@ -77,7 +89,7 @@ export default {
       type: String,
       required: true,
     },
-    transactionLinkId: {
+    linkId: {
       type: Number,
       required: false,
       default: null,

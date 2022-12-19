@@ -50,6 +50,7 @@
               <b-col>
                 <b-row>
                   <b-col cols="12">
+                    ::{{recipientEmail}}
                     <div v-if="radioSelected === sendTypes.send">
                       <input-email
                         :name="$t('form.recipient')"

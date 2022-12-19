@@ -24,7 +24,7 @@
               class="mr-3"
             ></b-avatar>
             <span class="mr-auto">
-              <name :linkedUser="transaction.linkedUser" v-on="$listeners" />
+              <name :linkedUser="transaction.linkedUser" @set-tunneled-email="setTunneledEmail" />
             </span>
             <b-badge>{{ transaction.amount | GDD }}</b-badge>
           </div>
@@ -47,6 +47,12 @@ export default {
     },
     transactionCount: { type: Number, default: 0 },
     transactionLinkCount: { type: Number, default: 0 },
+  },
+  methods: {
+    setTunneledEmail(email) {
+      console.log('setTunneledEmail LastTransaction', email)
+      this.$emit('set-tunneled-email', email)
+    },
   },
 }
 </script>

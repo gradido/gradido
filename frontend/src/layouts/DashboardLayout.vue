@@ -215,6 +215,7 @@ export default {
       this.visible = bool
     },
     setTunneledEmail(email) {
+      console.log('setTunneledEmail dashboard', email)
       this.tunneledEmail = email
     },
     // toogleMobilMenu() {
