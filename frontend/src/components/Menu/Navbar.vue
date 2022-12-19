@@ -21,15 +21,10 @@
               <div>
                 <div class="d-flex">
                   <div class="mr-3">
-                    <b-avatar
-                      button
-                      variant="gradido"
-                      :text="avatarShortName"
-                      class="align-baseline"
-                    ></b-avatar>
+                    <avatar :username="username"></avatar>
                   </div>
                   <div>
-                    <div class="small" data-test="navbar-item-username">{{ avatarLongName }}</div>
+                    <div class="small" data-test="navbar-item-username">{{ username }}</div>
 
                     <div class="text-right small">
                       <small>{{ $store.state.email }}</small>
@@ -51,8 +46,13 @@
 </template>
 
 <script>
+import Avatar from 'vue-avatar'
+
 export default {
   name: 'Navbar',
+  components: {
+    Avatar,
+  },
   props: {
     balance: { type: Number, required: true },
   },
@@ -63,10 +63,7 @@ export default {
     }
   },
   computed: {
-    avatarShortName() {
-      return this.$store.state.firstName[0] + this.$store.state.lastName[0]
-    },
-    avatarLongName() {
+    username() {
       return `${this.$store.state.firstName} ${this.$store.state.lastName}`
     },
   },

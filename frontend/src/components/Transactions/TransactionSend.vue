@@ -2,7 +2,7 @@
   <div class="transaction-slot-send">
     <b-row @click="visible = !visible" class="">
       <b-col cols="2">
-        <b-avatar :text="avatarText" variant="danger" size="3em"></b-avatar>
+        <avatar :username="username"></avatar>
       </b-col>
       <b-col>
         <div>
@@ -40,6 +40,7 @@
   </div>
 </template>
 <script>
+import Avatar from 'vue-avatar'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 // import TypeIcon from '../TransactionRows/TypeIcon'
 import Name from '../TransactionRows/Name'
@@ -51,6 +52,7 @@ import DecayInformation from '../DecayInformations/DecayInformation'
 export default {
   name: 'TransactionSend',
   components: {
+    Avatar,
     CollapseIcon,
     // TypeIcon,
     Name,
@@ -100,8 +102,8 @@ export default {
     }
   },
   computed: {
-    avatarText() {
-      return this.linkedUser.firstName[0] + this.linkedUser.lastName[0]
+    username() {
+      return `${this.linkedUser.firstName} ${this.linkedUser.lastName}`
     },
   },
 }
