@@ -1,14 +1,44 @@
 <template>
   <div class="rightside-last-transactions d-none d-lg-block">
-    <b-row>
+    <b-row class="mb-3">
       <b-col>{{ $t('transaction.lastTransactions') }}</b-col>
       <!-- <b-col cols="1" class="text-right">
         <b-icon icon="three-dots-vertical"></b-icon>
       </b-col> -->
     </b-row>
-    <b-list-group class="mt-5">
-      <div v-for="(transaction, index) in transactions" :key="transaction.id">
-        <b-list-group-item
+    <!-- <b-list-group class="mt-5"> -->
+    <div v-for="(transaction, index) in transactions" :key="transaction.id">
+      <b-row
+        align-v="center"
+        v-if="
+          index <= 8 &&
+          transaction.typeId !== 'DECAY' &&
+          transaction.typeId !== 'LINK_SUMMARY' &&
+          transaction.typeId !== 'CREATION'
+        "
+        class="mb-2"
+      >
+        <b-col cols="2">
+          <div class="align-items-center">
+            <avatar
+              :size="40"
+              :color="'#fff'"
+              :username="`${transaction.linkedUser.firstName} ${transaction.linkedUser.lastName}`"
+            ></avatar>
+          </div>
+        </b-col>
+        <b-col>
+          <div class="align-items-center small">
+            <name :linkedUser="transaction.linkedUser" @set-tunneled-email="setTunneledEmail" />
+          </div>
+        </b-col>
+        <b-col cols="auto">
+          <div class="align-items-center small">
+            {{ transaction.amount | GDD }}
+          </div>
+        </b-col>
+      </b-row>
+      <!-- <b-list-group-item
           class="border-0"
           v-if="
             index <= 7 &&
@@ -26,9 +56,9 @@
             </span>
             <b-badge>{{ transaction.amount | GDD }}</b-badge>
           </div>
-        </b-list-group-item>
-      </div>
-    </b-list-group>
+        </b-list-group-item> -->
+    </div>
+    <!-- </b-list-group> -->
   </div>
 </template>
 <script>

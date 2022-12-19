@@ -3,7 +3,7 @@
     <b-row @click="visible = !visible" class="">
       <b-col cols="2">
         <!-- <b-avatar :text="avatarText" variant="success" size="3em"></b-avatar> -->
-        <avatar :username="username"></avatar>
+        <avatar :username="username" :color="'#fff'"></avatar>
       </b-col>
       <b-col>
         <div>
