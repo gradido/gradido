@@ -2437,6 +2437,11 @@
     consola "^2.15.0"
     node-fetch "^2.6.1"
 
+"@ogerlys/vue-avatar@^2.3.4":
+  version "2.3.4"
+  resolved "https://registry.yarnpkg.com/@ogerlys/vue-avatar/-/vue-avatar-2.3.4.tgz#b627baced39f908a397630c1141d9c931f4f36f4"
+  integrity sha512-Mjx0lTJzXHC57FUAiBPCPhoB2x6NfXVIh4+AxcmKmY0nE3C2pidPHb3mkpfS3DL2NPJO8qry6TC5j4d1TpeGNw==
+
 "@polka/url@^1.0.0-next.20":
   version "1.0.0-next.21"
   resolved "https://registry.yarnpkg.com/@polka/url/-/url-1.0.0-next.21.tgz#5de5a2385a35309427f6011992b544514d559aa1"
@@ -14190,11 +14195,6 @@ vue-apollo@^3.0.7:
     chalk "^2.4.2"
     serialize-javascript "^4.0.0"
     throttle-debounce "^2.1.0"
-
-vue-avatar@^2.3.3:
-  version "2.3.3"
-  resolved "https://registry.yarnpkg.com/vue-avatar/-/vue-avatar-2.3.3.tgz#e125bf4f4a6f4f9480da0c522020266a8609d2a8"
-  integrity sha512-Z57ILRTkFIAuCH9JiFBxX74C5zua5ub/jRDM/KZ+QKXNfscvmUOgWBs3kA2+wrpZMowIvfLHIT0gvQu1z+zpLg==
 
 vue-cli-plugin-i18n@^1.0.1:
   version "1.0.1"
