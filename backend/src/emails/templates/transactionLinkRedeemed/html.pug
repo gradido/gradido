@@ -5,7 +5,7 @@ html(lang=locale)
   body
     h1(style='margin-bottom: 24px;')= t('emails.transactionLinkRedeemed.subject')
     #container.col
-      p(style='margin-bottom: 24px;')= t('emails.general.helloName', { firstName, lastName })
+      include ../hello.pug
       p= t('emails.transactionLinkRedeemed.hasRedeemedYourLink', { senderFirstName, senderLastName, senderEmail })
       p
         = t('emails.general.amountGDD', { amountGDD: transactionAmount })

@@ -5,7 +5,7 @@ html(lang=locale)
   body
     h1(style='margin-bottom: 24px;')= t('emails.addedContributionMessage.subject')
     #container.col
-      p(style='margin-bottom: 24px;')= t('emails.general.helloName', { firstName, lastName })
+      include ../hello.pug
       p= t('emails.addedContributionMessage.commonGoodContributionMessage', { senderFirstName, senderLastName, contributionMemo })
       p= t('emails.addedContributionMessage.toSeeAndAnswerMessage')
       p
