@@ -172,17 +172,159 @@ describe('federation', () => {
             describe('with receiving simply a string', () => {
               beforeEach(() => {
                 jest.clearAllMocks()
-                socketEventMocks.data(Buffer.from('no-json'))
+                socketEventMocks.data(Buffer.from('no-json string'))
               })
 
               it('logs the received data', () => {
-                expect(logger.info).toBeCalledWith('data: no-json')
+                expect(logger.info).toBeCalledWith('data: no-json string')
               })
 
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
                   new SyntaxError('Unexpected token o in JSON at position 1'),
+                )
+              })
+            })
+
+            describe('with receiving array of strings', () => {
+              beforeEach(() => {
+                jest.clearAllMocks()
+                const strArray: string[] = ['invalid type test', 'api', 'url']
+                socketEventMocks.data(Buffer.from(strArray.toString()))
+              })
+
+              it('logs the received data', () => {
+                expect(logger.info).toBeCalledWith('data: invalid type test,api,url')
+              })
+
+              it('logs an error of unexpected data format and structure', () => {
+                expect(logger.error).toBeCalledWith(
+                  'Error on receiving data from socket:',
+                  new SyntaxError('Unexpected token i in JSON at position 0'),
+                )
+              })
+            })
+
+            describe('with receiving array of string-arrays', () => {
+              beforeEach(() => {
+                jest.clearAllMocks()
+                const strArray: string[][] = [
+                  [`api`, `url`, `invalid type in array test`],
+                  [`wrong`, `api`, `url`],
+                ]
+                socketEventMocks.data(Buffer.from(strArray.toString()))
+              })
+
+              it('logs the received data', () => {
+                expect(logger.info).toBeCalledWith(
+                  'data: api,url,invalid type in array test,wrong,api,url',
+                )
+              })
+
+              it('logs an error of unexpected data format and structure', () => {
+                expect(logger.error).toBeCalledWith(
+                  'Error on receiving data from socket:',
+                  new SyntaxError('Unexpected token a in JSON at position 0'),
+                )
+              })
+            })
+
+            describe('with receiving JSON-Array with too much entries', () => {
+              let jsonArray: { api: string; url: string }[]
+              beforeEach(() => {
+                jest.clearAllMocks()
+                jsonArray = [
+                  { api: 'v1_0', url: 'too much versions at the same time test' },
+                  { api: 'v1_0', url: 'url2' },
+                  { api: 'v1_0', url: 'url3' },
+                  { api: 'v1_0', url: 'url4' },
+                  { api: 'v1_0', url: 'url5' },
+                  { api: 'v1_0', url: 'url6' },
+                ]
+                socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
+              })
+
+              it('logs the received data', () => {
+                expect(logger.info).toBeCalledWith(
+                  'data: [{"api":"v1_0","url":"too much versions at the same time test"},{"api":"v1_0","url":"url2"},{"api":"v1_0","url":"url3"},{"api":"v1_0","url":"url4"},{"api":"v1_0","url":"url5"},{"api":"v1_0","url":"url6"}]',
+                )
+              })
+
+              it('logs a warning of too much apiVersion-Definitions', () => {
+                expect(logger.warn).toBeCalledWith(
+                  `received totaly wrong or too much apiVersions-Definition JSON-String:${JSON.stringify(
+                    jsonArray,
+                  )}`,
+                )
+              })
+            })
+
+            describe('with receiving wrong but tolerated property test', () => {
+              let jsonArray: any[]
+              let result: DbCommunity[] = []
+              beforeEach(async () => {
+                jest.clearAllMocks()
+                jsonArray = [
+                  {
+                    wrong: 'wrong but tolerated property test',
+                    api: 'v1_0',
+                    url: 'url1',
+                  },
+                  {
+                    api: 'v2_0',
+                    url: 'url2',
+                    wrong: 'wrong but tolerated property test',
+                  },
+                ]
+                console.log(`jsonArray ${JSON.stringify(jsonArray)}`)
+                socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
+                result = await DbCommunity.find()
+              })
+
+              afterAll(async () => {
+                await cleanDB()
+              })
+
+              it('logs the received data', () => {
+                expect(logger.info).toBeCalledWith(
+                  'data: [{"wrong":"wrong but tolerated property test","api":"v1_0","url":"url1"},{"api":"v2_0","url":"url2","wrong":"wrong but tolerated property test"}]',
+                )
+              })
+
+              it('has two Communty entries in database', () => {
+                expect(result).toHaveLength(2)
+              })
+
+              it('has an entry for api version v1_0', () => {
+                expect(result).toEqual(
+                  expect.arrayContaining([
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      publicKey: expect.any(Buffer),
+                      apiVersion: 'v1_0',
+                      endPoint: 'url1',
+                      lastAnnouncedAt: expect.any(Date),
+                      createdAt: expect.any(Date),
+                      updatedAt: null,
+                    }),
+                  ]),
+                )
+              })
+
+              it('has an entry for api version v2_0', () => {
+                expect(result).toEqual(
+                  expect.arrayContaining([
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      publicKey: expect.any(Buffer),
+                      apiVersion: 'v2_0',
+                      endPoint: 'url2',
+                      lastAnnouncedAt: expect.any(Date),
+                      createdAt: expect.any(Date),
+                      updatedAt: null,
+                    }),
+                  ]),
                 )
               })
             })
