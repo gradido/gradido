@@ -7,10 +7,12 @@ html(lang=locale)
     #container.col
       p(style='margin-bottom: 24px;')= t('emails.general.helloName', { firstName, lastName })
       p= t('emails.transactionReceived.haveReceivedAmountGDDFrom', { transactionAmount, senderFirstName, senderLastName, senderEmail })
-      p= t('emails.general.detailsYouFindOnLinkToYourAccount')
-        span= " "
+      p
+        = t('emails.general.detailsYouFindOnLinkToYourAccount')
+        = " "
         a(href=overviewURL) #{overviewURL}
       p= t('emails.general.pleaseDoNotReply')
-      p(style='margin-top: 24px;')= t('emails.general.sincerelyYours')
+      p(style='margin-top: 24px;')
+        = t('emails.general.sincerelyYours')
         br
-        span= t('emails.general.yourGradidoTeam')
+        = t('emails.general.yourGradidoTeam')
