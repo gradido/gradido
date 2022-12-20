@@ -679,4 +679,17 @@ export class ContributionResolver {
     )
     // return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
   }
+
+  @Authorized([RIGHTS.REJECT_CONTRIBUTION])
+  @Mutation(() => Boolean)
+  async rejectContribution(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const moderatorUser = getUser(context)
+
+    const contributionToUpdate = await DbContribution.findOne({ id })
+
+    return true
+  }
 }
