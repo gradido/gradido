@@ -16,19 +16,19 @@
           transaction.typeId !== 'LINK_SUMMARY' &&
           transaction.typeId !== 'CREATION'
         "
-        class="mb-3"
+        class="mb-4"
       >
-        <b-col cols="2">
+        <b-col cols="auto">
           <div class="align-items-center">
             <avatar
-              :size="40"
+              :size="72"
               :color="'#fff'"
               :username="`${transaction.linkedUser.firstName} ${transaction.linkedUser.lastName}`"
             ></avatar>
           </div>
         </b-col>
-        <b-col>
-          <b-row>
+        <b-col align-self="stretch">
+          <b-row align-v="stretch">
             <b-col>
               <div class="align-items-center font-weight-bold">
                 <name
@@ -37,7 +37,7 @@
                   fontColor="text-dark"
                 />
               </div>
-              <div class="d-flex">
+              <div class="d-flex mt-3">
                 <div class="align-items-center small">
                   {{ transaction.amount | GDD }}
                 </div>
