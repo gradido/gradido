@@ -1,11 +1,11 @@
 <template>
   <div class="transaction-slot-creation">
-    <b-row @click="visible = !visible" class="">
+    <b-row @click="visible = !visible" class="align-items-center">
       <b-col cols="2">
         <b-avatar icon="gift" variant="success" size="3em"></b-avatar>
       </b-col>
       <b-col>
-        <div>{{ linkedUser.firstName }} {{ linkedUser.lastName }}</div>
+        <div class="font-weight-bold">{{ linkedUser.firstName }} {{ linkedUser.lastName }}</div>
         <div class="small">{{ this.$d(new Date(balanceDate), 'short') }}</div>
         <div class="small">{{ this.$d(new Date(balanceDate), 'time') }}</div>
       </b-col>

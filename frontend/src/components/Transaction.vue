@@ -1,7 +1,7 @@
 <template>
   <div class="gdt-transaction-list">
     <div class="list-group bg-white appBoxShadow gradido-border-radius p-3 mb-3">
-      <b-row @click="visible = !visible" class="">
+      <b-row @click="visible = !visible" class="align-items-center">
         <b-col cols="2">
           <b-avatar
             :icon="getLinesByType.icon"
