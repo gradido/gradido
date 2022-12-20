@@ -83,6 +83,7 @@
             :transactions="transactions"
             :transactionCount="transactionCount"
             :transactionLinkCount="transactionLinkCount"
+            @set-tunneled-email="setTunneledEmail"
           />
         </b-col>
       </b-row>

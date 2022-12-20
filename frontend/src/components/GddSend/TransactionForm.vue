@@ -50,7 +50,6 @@
               <b-col>
                 <b-row>
                   <b-col cols="12">
-                    ::{{ recipientEmail }}
                     <div v-if="radioSelected === sendTypes.send">
                       <input-email
                         :name="$t('form.recipient')"
@@ -168,6 +167,14 @@ export default {
       this.emailFocused = false
       this.form.email = this.form.email.trim()
     },
+    setNewRecipientEmail() {
+      this.form.email = this.recipientEmail ? this.recipientEmail : this.form.email
+    },
+  },
+  watch: {
+    recipientEmail() {
+      this.setNewRecipientEmail()
+    },
   },
   computed: {
     isBalanceDisabled() {
@@ -181,7 +188,7 @@ export default {
     },
   },
   created() {
-    this.form.email = this.recipientEmail ? this.recipientEmail : this.form.email
+    this.setNewRecipientEmail()
   },
 }
 </script>

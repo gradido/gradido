@@ -15,14 +15,15 @@ const routes = [
     component: () => import('@/pages/Overview.vue'),
     meta: {
       requiresAuth: true,
+      pageTitle: 'overview',
     },
-    bread: 'overview xxx'
   },
   {
     path: '/send',
     component: () => import('@/pages/Send.vue'),
     meta: {
       requiresAuth: true,
+      pageTitle: 'send',
     },
   },
   // {
@@ -38,6 +39,7 @@ const routes = [
     props: { gdt: false },
     meta: {
       requiresAuth: true,
+      pageTitle: 'transactions',
     },
   },
   {
@@ -46,6 +48,7 @@ const routes = [
     props: { gdt: true },
     meta: {
       requiresAuth: true,
+      pageTitle: 'gdt',
     },
   },
   {
@@ -53,6 +56,7 @@ const routes = [
     component: () => import('@/pages/Community.vue'),
     meta: {
       requiresAuth: true,
+      pageTitle: 'community',
     },
   },
   {
@@ -60,6 +64,7 @@ const routes = [
     component: () => import('@/pages/InfoStatistic.vue'),
     meta: {
       requiresAuth: true,
+      pageTitle: 'information',
     },
   },
   // {
@@ -81,6 +86,7 @@ const routes = [
     component: () => import('@/pages/Settings.vue'),
     meta: {
       requiresAuth: true,
+      pageTitle: 'settings',
     },
   },
   {
