@@ -154,16 +154,10 @@ describe('semaphore', () => {
       mutation: login,
       variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
     })
-    /* 
-    -   "errors": undefined,
-    +   "errors": Array [
-    +     [GraphQLError: Creation from contribution link was not successful. Error: to < from, reverse decay calculation is invalid],
-    +   ],
-    */
-    /* const bobRedeemContributionLink = mutate({
+    const bobRedeemContributionLink = mutate({
       mutation: redeemTransactionLink,
       variables: { code: contributionLinkCode },
-    }) */
+    })
     const redeemBibisLink = mutate({
       mutation: redeemTransactionLink,
       variables: { code: bibisTransactionLinkCode },
@@ -176,23 +170,21 @@ describe('semaphore', () => {
       mutation: login,
       variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
     })
-    // Creation was not successful: Error: to < from, reverse decay calculation is invalid
-    /* const confirmBibisContribution = mutate({
+    const confirmBibisContribution = mutate({
       mutation: confirmContribution,
       variables: { id: bibisOpenContributionId },
-    }) */
-    // Creation was not successful: Error: to < from, reverse decay calculation is invalid
-    /* const confirmBobsContribution = mutate({
+    })
+    const confirmBobsContribution = mutate({
       mutation: confirmContribution,
       variables: { id: bobsOpenContributionId },
-    }) */
+    })
     await expect(bibiRedeemContributionLink).resolves.toMatchObject({ errors: undefined })
     await expect(redeemBobsLink).resolves.toMatchObject({ errors: undefined })
     await expect(bibisTransaction).resolves.toMatchObject({ errors: undefined })
-    // await expect(bobRedeemContributionLink).resolves.toMatchObject({ errors: undefined })
+    await expect(bobRedeemContributionLink).resolves.toMatchObject({ errors: undefined })
     await expect(redeemBibisLink).resolves.toMatchObject({ errors: undefined })
     await expect(bobsTransaction).resolves.toMatchObject({ errors: undefined })
-    // await expect(confirmBibisContribution).resolves.toMatchObject({ errors: undefined })
-    // await expect(confirmBobsContribution).resolves.toMatchObject({ errors: undefined })
+    await expect(confirmBibisContribution).resolves.toMatchObject({ errors: undefined })
+    await expect(confirmBobsContribution).resolves.toMatchObject({ errors: undefined })
   })
 })
