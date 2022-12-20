@@ -1,8 +1,7 @@
 <template>
   <div>
-    <div>
-      <community-news class="mb-5" />
-      <!-- <gdd-transaction-list
+    <community-news />
+    <!-- <gdd-transaction-list
         :transactions="transactions"
         :pageSize="5"
         :timestamp="timestamp"
@@ -11,8 +10,7 @@
         :pending="pending"
         v-on="$listeners"
       /> -->
-      <!-- <gdd-transaction-list-footer :count="transactionCount" /> -->
-    </div>
+    <!-- <gdd-transaction-list-footer :count="transactionCount" /> -->
   </div>
 </template>
 <script>

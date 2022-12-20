@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-container v-if="path === '/overview'">
+    <div v-if="path === '/overview'">
       <b-row>
         <b-col cols="5">
           <div>
@@ -13,10 +13,10 @@
           </div>
         </b-col>
       </b-row>
-    </b-container>
-    <!-- <b-container v-if="path === '/storys'"></b-container>
-    <b-container v-if="path === '/addresses'"></b-container> -->
-    <b-container v-if="path === '/send'">
+    </div>
+    <!-- <div v-if="path === '/storys'"></div>
+    <div v-if="path === '/addresses'"></div> -->
+    <div v-if="path === '/send'">
       <b-row>
         <b-col cols="6">
           <div>
@@ -31,8 +31,8 @@
           </div>
         </b-col>
       </b-row>
-    </b-container>
-    <b-container v-if="path === '/transactions'">
+    </div>
+    <div v-if="path === '/transactions'">
       <b-row>
         <b-col cols="6">
           <div>
@@ -49,8 +49,8 @@
           </div>
         </b-col>
       </b-row>
-    </b-container>
-    <b-container v-if="path === '/gdt'">
+    </div>
+    <div v-if="path === '/gdt'">
       <b-row>
         <b-col cols="6">
           <div>
@@ -67,8 +67,8 @@
           </div>
         </b-col>
       </b-row>
-    </b-container>
-    <!-- <b-container v-if="path === '/profile'">
+    </div>
+    <!-- <div v-if="path === '/profile'">
       <b-row>
         <b-col>
           <div class="p-4 bg-white appBoxShadow gradido-border-radius">
@@ -83,9 +83,9 @@
           </div>
         </b-col>
       </b-row>
-    </b-container> -->
-    <b-container v-if="path === '/community'"><nav-community /></b-container>
-    <b-container v-if="path === '/settings'"></b-container>
+    </div> -->
+    <div v-if="path === '/community'"><nav-community /></div>
+    <div v-if="path === '/settings'"></div>
   </div>
 </template>
 

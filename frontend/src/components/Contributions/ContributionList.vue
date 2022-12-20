@@ -1,5 +1,5 @@
 <template>
-  <div class="contribution-list container">
+  <div class="contribution-list">
     <div class="mb-3" v-for="item in items" :key="item.id">
       <contribution-list-item
         v-bind="item"

@@ -1,5 +1,5 @@
 <template>
-  <div class="contribution-form container">
+  <div class="contribution-form">
     <!-- <div class="my-3">
       <h3>{{ $t('contribution.formText.yourContribution') }}</h3>
       {{ $t('contribution.formText.bringYourTalentsTo') }}
