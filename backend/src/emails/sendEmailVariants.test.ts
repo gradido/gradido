@@ -269,7 +269,7 @@ describe('sendEmailVariants', () => {
           'or copy the link above into your browser window.',
         )
         expect(result.originalMessage.html).toContain(
-          'If you are not the one who tried to register again, please contact our support:',
+          'If you are not the one who tried to register again, please contact our support:<br><a href="mailto:support@supportmail.com">support@supportmail.com</a>',
         )
         expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
         expect(result.originalMessage.html).toContain('—————')
@@ -642,18 +642,18 @@ describe('sendEmailVariants', () => {
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (do not answer) <info@gradido.net>',
             attachments: [],
-            subject: 'Gradido: Bibi Bloxberg has sent you 37.40 Gradidos',
+            subject: 'Gradido: Bibi Bloxberg has sent you 37.40 Gradido',
             html: expect.any(String),
-            text: expect.stringContaining('GRADIDO: BIBI BLOXBERG HAS SENT YOU 37.40 GRADIDOS'),
+            text: expect.stringContaining('GRADIDO: BIBI BLOXBERG HAS SENT YOU 37.40 GRADIDO'),
           }),
         })
         expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
         expect(result.originalMessage.html).toContain('<html lang="en">')
         expect(result.originalMessage.html).toContain(
-          '<title>Gradido: Bibi Bloxberg has sent you 37.40 Gradidos</title>',
+          '<title>Gradido: Bibi Bloxberg has sent you 37.40 Gradido</title>',
         )
         expect(result.originalMessage.html).toContain(
-          '>Gradido: Bibi Bloxberg has sent you 37.40 Gradidos</h1>',
+          '>Gradido: Bibi Bloxberg has sent you 37.40 Gradido</h1>',
         )
         expect(result.originalMessage.html).toContain('Hello Peter Lustig')
         expect(result.originalMessage.html).toContain(

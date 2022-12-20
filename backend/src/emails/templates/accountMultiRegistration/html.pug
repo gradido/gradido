@@ -19,5 +19,5 @@ html(lang=locale)
       p
         = t('emails.accountMultiRegistration.ifYouAreNotTheOne')
         br
-        a(href='https://gradido.net/de/contact/') https://gradido.net/de/contact/
+        a(href='mailto:' + supportEmail)= supportEmail
       include ../greatingFormularImprint.pug
