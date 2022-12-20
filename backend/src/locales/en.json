@@ -47,7 +47,7 @@
     },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) has just redeemed your link.",
-      "memo": "Memo: {transactionMemo}",
+      "memo": "Message: {transactionMemo}",
       "subject": "Gradido: Your Gradido link has been redeemed"
     },
     "transactionReceived": {

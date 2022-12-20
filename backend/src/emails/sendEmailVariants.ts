@@ -65,6 +65,8 @@ export const sendAccountMultiRegistrationEmail = (data: {
       lastName: data.lastName,
       locale: data.language,
       resendLink: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
+      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+      communityURL: CONFIG.COMMUNITY_URL,
     },
   })
 }
