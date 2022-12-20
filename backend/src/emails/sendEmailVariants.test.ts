@@ -186,7 +186,7 @@ describe('sendEmailVariants', () => {
           'or copy the link above into your browser window.',
         )
         expect(result.originalMessage.html).toContain(
-          'The link has a validity of 23 hours and 30 minutes. If the validity of the link has already expired, you can have a new link sent to you here by entering your email address:',
+          'The link has a validity of 23 hours and 30 minutes. If the validity of the link has already expired, you can have a new link sent to you here:',
         )
         expect(result.originalMessage.html).toContain(
           `<a href="${CONFIG.EMAIL_LINK_FORGOTPASSWORD}">${CONFIG.EMAIL_LINK_FORGOTPASSWORD}</a>`,
@@ -500,7 +500,7 @@ describe('sendEmailVariants', () => {
           'or copy the link above into your browser window.',
         )
         expect(result.originalMessage.html).toContain(
-          'The link has a validity of 23 hours and 30 minutes. If the validity of the link has already expired, you can have a new link sent to you here by entering your email address:',
+          'The link has a validity of 23 hours and 30 minutes. If the validity of the link has already expired, you can have a new link sent to you here:',
         )
         expect(result.originalMessage.html).toContain(
           `<a href="${CONFIG.EMAIL_LINK_FORGOTPASSWORD}">${CONFIG.EMAIL_LINK_FORGOTPASSWORD}</a>`,
