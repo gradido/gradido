@@ -1,6 +1,6 @@
 <template>
   <div class="transaction-slot-send">
-    <b-row @click="visible = !visible" class="">
+    <b-row @click="visible = !visible" class="align-items-center">
       <b-col cols="2">
         <avatar :username="username" :color="'#fff'"></avatar>
       </b-col>

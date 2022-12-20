@@ -16,7 +16,7 @@
         <transaction-list-item
           v-if="typeId === 'DECAY'"
           :typeId="typeId"
-          class="pointer bg-white appBoxShadow gradido-border-radius px-4 pt-3 test-list-group-item"
+          class="pointer bg-white appBoxShadow gradido-border-radius px-4 pt-2 test-list-group-item"
         >
           <template #DECAY>
             <transaction-decay
@@ -31,7 +31,7 @@
         <transaction-list-item
           v-if="typeId !== 'DECAY'"
           :typeId="typeId"
-          class="pointer mb-3 bg-white appBoxShadow gradido-border-radius p-4 test-list-group-item"
+          class="pointer mb-4 bg-white appBoxShadow gradido-border-radius p-3 test-list-group-item"
         >
           <template #SEND>
             <transaction-send

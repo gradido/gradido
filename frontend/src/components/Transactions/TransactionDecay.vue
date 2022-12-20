@@ -1,6 +1,6 @@
 <template>
   <div class="transaction-slot-decay">
-    <b-row @click="visible = !visible" class="text-color-gdd-yellow">
+    <b-row @click="visible = !visible" class="text-color-gdd-yellow align-items-center">
       <b-col cols="1"><type-icon color="text-color-gdd-yellow" icon="droplet-half" /></b-col>
       <b-col>
         {{ $t('decay.decay_since_last_transaction') }}

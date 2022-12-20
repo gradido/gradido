@@ -1,6 +1,6 @@
 <template>
   <div class="transaction-slot-link">
-    <b-row @click="showTransactionLinks()">
+    <b-row @click="showTransactionLinks()" class="align-items-center">
       <b-col cols="2">
         <b-avatar icon="link" variant="light" size="3em"></b-avatar>
       </b-col>
