@@ -30,7 +30,6 @@ export default {
   },
   methods: {
     tunnelEmail() {
-      console.log('tunnelEmail name', this.linkedUser.email)
       this.$emit('set-tunneled-email', this.linkedUser.email)
       if (this.$router.history.current.fullPath !== '/send') this.$router.push({ path: '/send' })
     },
