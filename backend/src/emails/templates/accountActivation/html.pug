@@ -17,7 +17,4 @@ html(lang=locale)
         = t('emails.accountActivation.duration', { hours: timeDurationObject.hours, minutes: timeDurationObject.minutes })
         br
         a(href=resendLink) #{resendLink}
-      p(style='margin-top: 24px;')
-        = t('emails.general.sincerelyYours')
-        br
-        = t('emails.general.yourGradidoTeam')
+      include ../greatingFormularImprint.pug
