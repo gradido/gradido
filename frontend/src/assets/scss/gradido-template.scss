@@ -9,6 +9,16 @@ body {
   cursor: pointer;
 }
 
+.hoverText:hover {
+  font-weight: bold;
+}
+
+.hoverIcon:hover {
+  background-color: rgb(220, 216, 217);
+  border-radius: 29px;
+  padding: 1px;
+}
+
 .shadow-default {
   box-shadow: rgb(0 0 0 / 14%) 0 4px 10px;
 }

@@ -1,7 +1,7 @@
 <template>
   <div class="rightside-last-transactions d-none d-lg-block">
     <b-row class="mb-3">
-      <b-col>{{ $t('transaction.lastTransactions') }}</b-col>
+      <b-col class="h3">{{ $t('transaction.lastTransactions') }}</b-col>
       <!-- <b-col cols="1" class="text-right">
         <b-icon icon="three-dots-vertical"></b-icon>
       </b-col> -->
@@ -16,7 +16,7 @@
           transaction.typeId !== 'LINK_SUMMARY' &&
           transaction.typeId !== 'CREATION'
         "
-        class="mb-2"
+        class="mb-3"
       >
         <b-col cols="2">
           <div class="align-items-center">
@@ -28,14 +28,25 @@
           </div>
         </b-col>
         <b-col>
-          <div class="align-items-center small">
-            <name :linkedUser="transaction.linkedUser" v-on="$listeners" />
-          </div>
-        </b-col>
-        <b-col cols="auto">
-          <div class="align-items-center small">
-            {{ transaction.amount | GDD }}
-          </div>
+          <b-row>
+            <b-col>
+              <div class="align-items-center font-weight-bold">
+                <name
+                  :linkedUser="transaction.linkedUser"
+                  v-on="$listeners"
+                  fontColor="text-dark"
+                />
+              </div>
+              <div class="d-flex">
+                <div class="align-items-center small">
+                  {{ transaction.amount | GDD }}
+                </div>
+                <div class="small ml-3 text-right">
+                  {{ $d(new Date(transaction.balanceDate), 'short') }}
+                </div>
+              </div>
+            </b-col>
+          </b-row>
         </b-col>
       </b-row>
       <!-- <b-list-group-item

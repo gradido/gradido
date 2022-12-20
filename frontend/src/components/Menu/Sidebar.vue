@@ -2,7 +2,7 @@
   <div id="component-sidebar">
     <div id="side-menu" ref="sideMenu" class="gradido-border-radius appBoxShadow pt-2">
       <!-- @mouseout="$emit('toogleMobilMenu')" -->
-      <div class="mb-6 mt-3">
+      <div class="mb-3 mt-3">
         <b-nav vertical class="w-200">
           <b-nav-item to="/overview" class="mb-3" active-class="activeRoute">
             <b-icon icon="house" aria-hidden="true"></b-icon>
@@ -33,7 +33,7 @@
             <b-icon icon="person" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('navigation.profile') }}</span>
           </b-nav-item> -->
-          <b-nav-item to="/community#my" class="mb-3" active-class="activeRoute">
+          <b-nav-item to="/community#my" class="" active-class="activeRoute">
             <b-icon icon="people" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('creation') }}</span>
           </b-nav-item>
@@ -71,11 +71,7 @@
             <b-icon icon="shield-check" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('navigation.admin_area') }}</span>
           </b-nav-item>
-          <b-nav-item
-            class="mb-3 font-weight-bold"
-            @click="$emit('logout')"
-            active-class="activeRoute"
-          >
+          <b-nav-item class="font-weight-bold" @click="$emit('logout')" active-class="activeRoute">
             <b-icon icon="power" aria-hidden="true" variant="danger"></b-icon>
             <span class="ml-2 text-danger">{{ $t('navigation.logout') }}</span>
           </b-nav-item>
