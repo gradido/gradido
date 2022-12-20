@@ -246,8 +246,8 @@
     "transactions": "Transactions"
   },
   "qrCode": "QR Code",
-  "send_gdd": "GDD send",
-  "send_per_link": "GDD send via link",
+  "send_gdd": "Send GDD",
+  "send_per_link": "Send GDD via Link",
   "session": {
     "extend": "Stay logged in",
     "lightText": "If you have not performed any action for more than 10 minutes, you will be logged out for security reasons.",
