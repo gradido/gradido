@@ -17,7 +17,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v12.2022-11-10',
+    EXPECTED: 'v13.2022-12-20',
     CURRENT: '',
   },
 }
@@ -58,6 +58,7 @@ const community = {
     process.env.COMMUNITY_REDEEM_CONTRIBUTION_URL || 'http://localhost/redeem/CL-{code}',
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
+  COMMUNITY_SUPPORT_MAIL: process.env.COMMUNITY_SUPPORT_MAIL || 'support@supportmail.com',
 }
 
 const loginServer = {
