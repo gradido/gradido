@@ -146,6 +146,7 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<ContributionListResult> {
     const user = getUser(context)
+    // TODO: Check if deniedAt IsNull()
     const where: {
       userId: number
       confirmedBy?: FindOperator<number> | null
@@ -214,7 +215,7 @@ export class ContributionResolver {
     const user = getUser(context)
 
     const contributionToUpdate = await DbContribution.findOne({
-      where: { id: contributionId, confirmedAt: IsNull() },
+      where: { id: contributionId, confirmedAt: IsNull(), deniedAt: IsNull() },
     })
     if (!contributionToUpdate) {
       logger.error('No contribution found to given id')
@@ -406,7 +407,7 @@ export class ContributionResolver {
     const moderator = getUser(context)
 
     const contributionToUpdate = await DbContribution.findOne({
-      where: { id, confirmedAt: IsNull() },
+      where: { id, confirmedAt: IsNull(), deniedAt: IsNull() },
     })
     if (!contributionToUpdate) {
       logger.error('No contribution found to given id.')
@@ -472,6 +473,7 @@ export class ContributionResolver {
       .from(DbContribution, 'c')
       .leftJoinAndSelect('c.messages', 'm')
       .where({ confirmedAt: IsNull() })
+      .andWhere({ deniedAt: IsNull() })
       .getMany()
 
     if (contributions.length === 0) {
@@ -686,9 +688,29 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const moderatorUser = getUser(context)
-
     const contributionToUpdate = await DbContribution.findOne({ id })
+    // TODO: Check
+    // - contribution exists
+    // - state has accept one
+    if (!contributionToUpdate) {
+      logger.error(`Contribution not found for given id: ${id}`)
+      throw new Error(`Contribution not found for given id.`)
+    }
+    if (
+      contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
+      contributionToUpdate.contributionStatus !== ContributionStatus.PENDING
+    ) {
+      logger.error(
+        `Contribution state (${contributionToUpdate.contributionStatus}) is not allowed.`,
+      )
+      throw new Error(`State of the contribution is not allowed.`)
+    }
+    const user = getUser(context)
+
+    contributionToUpdate.contributionStatus = ContributionStatus.DENIED
+    contributionToUpdate.deniedBy = user.id
+    contributionToUpdate.deniedAt = new Date()
+    await contributionToUpdate.save()
 
     return true
   }
