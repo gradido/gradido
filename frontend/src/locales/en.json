@@ -331,11 +331,13 @@
   },
   "via_link": "via Link",
   "welcome": "Welcome to the community",
-  "overview": "Good morning {name}",
-  "send": "Send Gradidos",
-  "transactions": "Your transactions",
-  "gdt": "Your GDT transactions",
-  "community": "My community",
-  "information": "Community Info",
-  "settings": "Settings"
+  "pageTitle": {
+    "overview": "Good morning {name}",
+    "send": "Send Gradidos",
+    "transactions": "Your transactions",
+    "gdt": "Your GDT transactions",
+    "community": "My community",
+    "information": "Community Info",
+    "settings": "Settings"
+  }
 }
