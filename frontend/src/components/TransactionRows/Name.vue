@@ -2,7 +2,7 @@
   <div class="name">
     <div class="gdd-transaction-list-item-name">
       <div v-if="linkedUser && linkedUser.email">
-        <b-link @click.stop="tunnelEmail">
+        <b-link @click.stop="tunnelEmail" :class="fontColor">
           {{ itemText }}
         </b-link>
       </div>
@@ -21,6 +21,11 @@ export default {
     text: {
       type: String,
       required: false,
+    },
+    fontColor: {
+      type: String,
+      required: false,
+      default: '',
     },
     linkId: {
       type: Number,

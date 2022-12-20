@@ -41,7 +41,7 @@
         <b-col cols="12" md="2" lg="2" class="border-left border-light">
           <b-icon
             :icon="hideAmount ? 'eye-slash' : 'eye'"
-            class="mr-3 gradido-global-border-color-accent"
+            class="mr-3 gradido-global-border-color-accent pointer hoverIcon"
             @click="$store.commit('hideAmountGDT', !hideAmount)"
           ></b-icon>
         </b-col>

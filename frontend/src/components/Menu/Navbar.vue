@@ -3,9 +3,9 @@
     <b-navbar toggleable="lg" class="pr-4">
       <b-navbar-brand>
         <b-img
-          class="imgLogo ml--3 mt-lg--2 mt-3 p-2 mb-3 d-none d-lg-block zindex10"
+          class="imgLogo mt-lg--2 mt-3 mb-3 d-none d-lg-block zindex10"
           :src="logo"
-          width="200"
+          width=""
           alt="..."
         />
         <b-button v-b-toggle.sidebar-mobile class="d-block d-lg-none">
@@ -19,15 +19,15 @@
           <div class="mb-2">
             <router-link to="/profile">
               <div>
-                <div class="d-flex">
+                <div class="d-flex align-items-center">
                   <div class="mr-3">
-                    <avatar :username="username" :color="'#fff'"></avatar>
+                    <avatar :username="username" :color="'#fff'" :size="81"></avatar>
                   </div>
                   <div>
-                    <div class="small" data-test="navbar-item-username">{{ username }}</div>
+                    <div data-test="navbar-item-username">{{ username }}</div>
 
-                    <div class="text-right small">
-                      <small>{{ $store.state.email }}</small>
+                    <div class="text-right">
+                      {{ $store.state.email }}
                     </div>
                   </div>
                 </div>
