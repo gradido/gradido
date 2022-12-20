@@ -201,6 +201,8 @@ export const listAllContributions = gql`
         contributionDate
         confirmedAt
         confirmedBy
+        deniedAt
+        deniedBy
       }
     }
   }
