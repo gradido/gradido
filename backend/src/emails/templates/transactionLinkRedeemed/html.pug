@@ -16,7 +16,4 @@ html(lang=locale)
         = " "
         a(href=overviewURL) #{overviewURL}
       p= t('emails.general.pleaseDoNotReply')
-      p(style='margin-top: 24px;')
-        = t('emails.general.sincerelyYours')
-        br
-        = t('emails.general.yourGradidoTeam')
+      include ../greatingFormularImprint.pug
