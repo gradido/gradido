@@ -7,13 +7,16 @@ html(lang=locale)
     #container.col
       p(style='margin-bottom: 24px;')= t('emails.general.helloName', { firstName, lastName })
       p= t('emails.transactionLinkRedeemed.hasRedeemedYourLink', { senderFirstName, senderLastName, senderEmail })
-      p= t('emails.general.amountGDD', { amountGDD: transactionAmount })
+      p
+        = t('emails.general.amountGDD', { amountGDD: transactionAmount })
         br
-        span= t('emails.transactionLinkRedeemed.memo', { transactionMemo })
-      p= t('emails.general.detailsYouFindOnLinkToYourAccount')
-        span= " "
+        = t('emails.transactionLinkRedeemed.memo', { transactionMemo })
+      p
+        = t('emails.general.detailsYouFindOnLinkToYourAccount')
+        = " "
         a(href=overviewURL) #{overviewURL}
       p= t('emails.general.pleaseDoNotReply')
-      p(style='margin-top: 24px;')= t('emails.general.sincerelyYours')
+      p(style='margin-top: 24px;')
+        = t('emails.general.sincerelyYours')
         br
-        span= t('emails.general.yourGradidoTeam')
+        = t('emails.general.yourGradidoTeam')

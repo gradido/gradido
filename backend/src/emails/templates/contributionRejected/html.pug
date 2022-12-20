@@ -8,10 +8,12 @@ html(lang=locale)
       p(style='margin-bottom: 24px;')= t('emails.general.helloName', { firstName, lastName })
       p= t('emails.contributionRejected.commonGoodContributionRejected', { senderFirstName, senderLastName, contributionMemo })
       p= t('emails.contributionRejected.toSeeContributionsAndMessages')
-      p= t('emails.general.linkToYourAccount')
-        span= " "
+      p
+        = t('emails.general.linkToYourAccount')
+        = " "
         a(href=overviewURL) #{overviewURL}
       p= t('emails.general.pleaseDoNotReply')
-      p(style='margin-top: 24px;')= t('emails.general.sincerelyYours')
+      p(style='margin-top: 24px;')
+        = t('emails.general.sincerelyYours')
         br
-        span= t('emails.general.yourGradidoTeam')
+        = t('emails.general.yourGradidoTeam')
