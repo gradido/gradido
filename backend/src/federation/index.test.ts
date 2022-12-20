@@ -1,13 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { startDHT } from './index'
 import DHT from '@hyperswarm/dht'
 import CONFIG from '@/config'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { logger } from '@test/testSetup'
+import { Community as DbCommunity } from '@entity/Community'
+import { testEnvironment, cleanDB } from '@test/helpers'
 
 CONFIG.FEDERATION_DHT_SEED = '64ebcb0e3ad547848fef4197c6e2332f'
+CONFIG.FEDERATION_DHT_TEST_SOCKET = false
 
 jest.mock('@hyperswarm/dht')
-jest.useFakeTimers()
 
 const TEST_TOPIC = 'gradido_test_topic'
 
@@ -18,7 +22,6 @@ const keyPairMock = {
 
 const serverListenSpy = jest.fn()
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const serverEventMocks: { [key: string]: any } = {}
 
 const serverOnMock = jest.fn().mockImplementation((key: string, callback) => {
@@ -56,17 +59,19 @@ const lookupResultMock = {
 
 const nodeLookupMock = jest.fn().mockResolvedValue([lookupResultMock])
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const socketEventMocks: { [key: string]: any } = {}
 
 const socketOnMock = jest.fn().mockImplementation((key: string, callback) => {
   socketEventMocks[key] = callback
 })
 
+const socketWriteMock = jest.fn()
+
 const nodeConnectMock = jest.fn().mockImplementation(() => {
   return {
     on: socketOnMock,
     once: socketOnMock,
+    write: socketWriteMock,
   }
 })
 
@@ -87,11 +92,28 @@ DHT.mockImplementation(() => {
   }
 })
 
+let con: any
+let testEnv: any
+
+beforeAll(async () => {
+  testEnv = await testEnvironment(logger)
+  con = testEnv.con
+  await cleanDB()
+})
+
+afterAll(async () => {
+  await cleanDB()
+  await con.close()
+})
+
 describe('federation', () => {
+  beforeAll(() => {
+    jest.useFakeTimers()
+  })
+
   describe('call startDHT', () => {
     const hashSpy = jest.spyOn(DHT, 'hash')
     const keyPairSpy = jest.spyOn(DHT, 'keyPair')
-
     beforeEach(async () => {
       DHT.mockClear()
       jest.clearAllMocks()
@@ -147,30 +169,115 @@ describe('federation', () => {
 
         describe('socket events', () => {
           describe('on data', () => {
-            beforeEach(() => {
-              socketEventMocks.data(Buffer.from('some-data'))
-            })
-
             it('can be triggered', () => {
+              socketEventMocks.data(Buffer.from('some-data'))
               expect(true).toBe(true)
             })
+
+            describe('on data with receiving simply a string', () => {
+              beforeEach(() => {
+                jest.clearAllMocks()
+                socketEventMocks.data(Buffer.from('no-json'))
+              })
+
+              it('logs the received data', () => {
+                expect(logger.info).toBeCalledWith('data: no-json')
+              })
+
+              it('logs an error of unexpected data format and structure', () => {
+                expect(logger.error).toBeCalledWith(
+                  'Error on receiving data from socket:',
+                  new SyntaxError('Unexpected token o in JSON at position 1'),
+                )
+              })
+            })
+
+            describe('on data with proper data', () => {
+              let result: DbCommunity[] = []
+              beforeAll(async () => {
+                jest.clearAllMocks()
+                await socketEventMocks.data(
+                  Buffer.from(
+                    JSON.stringify([
+                      {
+                        api: 'v1_0',
+                        url: 'http://localhost:4000/api/v1_0',
+                      },
+                      {
+                        api: 'v2_0',
+                        url: 'http://localhost:4000/api/v2_0',
+                      },
+                    ]),
+                  ),
+                )
+                result = await DbCommunity.find()
+              })
+
+              afterAll(async () => {
+                await cleanDB()
+              })
+
+              it('has two Communty entries in database', () => {
+                expect(result).toHaveLength(2)
+              })
+
+              it('has an entry for api version v1_0', () => {
+                expect(result).toEqual(
+                  expect.arrayContaining([
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      publicKey: expect.any(Buffer),
+                      apiVersion: 'v1_0',
+                      endPoint: 'http://localhost:4000/api/v1_0',
+                      lastAnnouncedAt: expect.any(Date),
+                      createdAt: expect.any(Date),
+                      updatedAt: null,
+                    }),
+                  ]),
+                )
+              })
+
+              it('has an entry for api version v2_0', () => {
+                expect(result).toEqual(
+                  expect.arrayContaining([
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      publicKey: expect.any(Buffer),
+                      apiVersion: 'v2_0',
+                      endPoint: 'http://localhost:4000/api/v2_0',
+                      lastAnnouncedAt: expect.any(Date),
+                      createdAt: expect.any(Date),
+                      updatedAt: null,
+                    }),
+                  ]),
+                )
+              })
+            })
           })
-          describe('on data with receiving simply a string', () => {
+
+          describe('on open', () => {
             beforeEach(() => {
-              socketEventMocks.data(
+              socketEventMocks.open()
+            })
+
+            it('calls socket write with own api versions', () => {
+              expect(socketWriteMock).toBeCalledWith(
                 Buffer.from(
-                  `hello here is a new community and i don't know how to communicate with you`,
+                  JSON.stringify([
+                    {
+                      api: 'v1_0',
+                      url: 'http://localhost:4000/api/v1_0',
+                    },
+                    {
+                      api: 'v1_1',
+                      url: 'http://localhost:4000/api/v1_1',
+                    },
+                    {
+                      api: 'v2_0',
+                      url: 'http://localhost:4000/api/v2_0',
+                    },
+                  ]),
                 ),
-              )
-            })
-            it('logged the received data', () => {
-              expect(logger.info).toBeCalledWith(
-                `data: hello here is a new community and i don't know how to communicate with you`,
-              )
-            })
-            it('logged a warning of unexpected data format and structure', () => {
-              expect(logger.warn).toBeCalledWith(
-                `received totaly wrong or too much apiVersions-Definition JSON-String:hello here is a new community and i don't know how to communicate with you`,
               )
             })
           })

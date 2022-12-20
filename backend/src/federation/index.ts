@@ -92,7 +92,7 @@ export const startDHT = async (topic: string): Promise<void> => {
           logger.info(`data: ${data.toString('ascii')}`)
           const recApiVersions: CommunityApi[] = JSON.parse(data.toString('ascii'))
 
-          // TODO better to introduce the validation by https://github.com/typestack/class-validator
+          // TODO better to introduce the validation by https://github.com/typestack/class-validato
           if (recApiVersions && Array.isArray(recApiVersions) && recApiVersions.length < 5) {
             recApiVersions.forEach(async (recApiVersion) => {
               if (
@@ -145,7 +145,7 @@ export const startDHT = async (topic: string): Promise<void> => {
             )
           }
         } catch (e) {
-          logger.error(`Error on receiving data from socket: ${JSON.stringify(e)}`)
+          logger.error('Error on receiving data from socket:', e)
         }
       })
     })
@@ -226,6 +226,6 @@ export const startDHT = async (topic: string): Promise<void> => {
       })
     }, POLLTIME)
   } catch (err) {
-    logger.error(err)
+    logger.error('DHT unexpected error:', err)
   }
 }
