@@ -27,10 +27,10 @@
             ></avatar>
           </div>
         </b-col>
-        <b-col align-self="stretch">
-          <b-row align-v="stretch">
+        <b-col align-self="stretch p-1">
+          <b-row>
             <b-col>
-              <div class="align-items-center font-weight-bold">
+              <div class="font-weight-bold">
                 <name
                   :linkedUser="transaction.linkedUser"
                   v-on="$listeners"
@@ -38,7 +38,7 @@
                 />
               </div>
               <div class="d-flex mt-3">
-                <div class="align-items-center small">
+                <div class="small">
                   {{ transaction.amount | GDD }}
                 </div>
                 <div class="small ml-3 text-right">
