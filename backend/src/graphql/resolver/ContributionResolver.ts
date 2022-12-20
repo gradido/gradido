@@ -580,11 +580,11 @@ export class ContributionResolver {
       clientTimezoneOffset,
     )
 
-    const receivedCallDate = new Date()
-
     // acquire lock
     const releaseLock = await TRANSACTIONS_LOCK.acquire()
     console.log(`locked for confirmContribution ${id}`)
+
+    const receivedCallDate = new Date()
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
