@@ -52,7 +52,7 @@
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "du hast soeben {transactionAmount} GDD von {senderFirstName} {senderLastName} ({senderEmail}) erhalten.",
-      "subject": "Gradido: Du hast Gradidos erhalten"
+      "subject": "Gradido: {senderFirstName} {senderLastName} hat dir {transactionAmount} Gradidos gesendet"
     }
   },
   "general": {
