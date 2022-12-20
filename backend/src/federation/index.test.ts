@@ -169,12 +169,7 @@ describe('federation', () => {
 
         describe('socket events', () => {
           describe('on data', () => {
-            it('can be triggered', () => {
-              socketEventMocks.data(Buffer.from('some-data'))
-              expect(true).toBe(true)
-            })
-
-            describe('on data with receiving simply a string', () => {
+            describe('with receiving simply a string', () => {
               beforeEach(() => {
                 jest.clearAllMocks()
                 socketEventMocks.data(Buffer.from('no-json'))
@@ -192,7 +187,7 @@ describe('federation', () => {
               })
             })
 
-            describe('on data with proper data', () => {
+            describe('with proper data', () => {
               let result: DbCommunity[] = []
               beforeAll(async () => {
                 jest.clearAllMocks()
