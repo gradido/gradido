@@ -1,5 +1,5 @@
 <template>
-  <div class="gdt-transaction-list container">
+  <div class="gdt-transaction-list">
     <div class="list-group">
       <div v-if="transactionGdtCount === 0" class="text-center">
         {{ $t('gdt.no-transactions') }}

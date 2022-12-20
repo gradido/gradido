@@ -1,5 +1,5 @@
 <template>
-  <div class="community-news container">
+  <div class="community-news">
     <div v-for="item in News" :key="item.id" class="mb-5">
       <b-card class="bg-white appBoxShadow gradido-border-radius">
         <div class="h2 mb-5">{{ item.text }}</div>

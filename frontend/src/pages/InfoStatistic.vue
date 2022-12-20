@@ -1,6 +1,6 @@
 <template>
   <div class="info-statistic">
-    <b-container class="bg-white appBoxShadow gradido-border-radius p-4">
+    <b-container class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
       <div class="h3">{{ $t('community.community') }}</div>
       <div class="h1">{{ CONFIG.COMMUNITY_NAME }}</div>
       <div>
@@ -11,17 +11,17 @@
       </div>
       <hr />
       <div class="h3">{{ $t('community.openContributionLinks') }}</div>
-      <small v-if="count > 0">
+      <div v-if="count > 0">
         {{
           $t('community.openContributionLinkText', {
             name: CONFIG.COMMUNITY_NAME,
             count,
           })
         }}
-      </small>
-      <small v-else>
+      </div>
+      <div v-else>
         {{ $t('community.noOpenContributionLinkText') }}
-      </small>
+      </div>
       <ul>
         <li v-for="item in itemsContributionLinks" v-bind:key="item.id">
           <div>{{ item.name }}</div>

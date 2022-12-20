@@ -1,7 +1,7 @@
 <template>
   <div class="community-page">
     <div>
-      <b-tabs no-nav-style borderless v-model="tabIndex" content-class="mt-3" align="center">
+      <b-tabs no-nav-style borderless v-model="tabIndex" align="center">
         <b-tab no-body>
           <open-creations-amount
             :minimalDate="minimalDate"

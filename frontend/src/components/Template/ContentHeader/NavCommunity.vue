@@ -1,5 +1,5 @@
 <template>
-  <div class="nav-community">
+  <div class="nav-community container">
     <b-row class="nav-row">
       <b-col cols="12" md="4" lg="4" class="mb-2 mb-md-0 mb-lg-0">
         <b-btn active-class="btn-active" variant="link" block to="#edit">
