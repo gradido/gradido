@@ -29,7 +29,7 @@
         </b-col>
         <b-col>
           <div class="align-items-center small">
-            <name :linkedUser="transaction.linkedUser" @set-tunneled-email="setTunneledEmail" />
+            <name :linkedUser="transaction.linkedUser" v-on="$listeners" />
           </div>
         </b-col>
         <b-col cols="auto">
@@ -77,12 +77,6 @@ export default {
     },
     transactionCount: { type: Number, default: 0 },
     transactionLinkCount: { type: Number, default: 0 },
-  },
-  methods: {
-    setTunneledEmail(email) {
-      console.log('setTunneledEmail LastTransaction', email)
-      this.$emit('set-tunneled-email', email)
-    },
   },
 }
 </script>

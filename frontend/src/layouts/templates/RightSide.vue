@@ -15,7 +15,7 @@
               :transactions="transactions"
               :transactionCount="transactionCount"
               :transactionLinkCount="transactionLinkCount"
-              @set-tunneled-email="setTunneledEmail"
+              v-on="$listeners"
             />
           </div>
         </b-col>
@@ -152,12 +152,6 @@ export default {
   computed: {
     path() {
       return this.$route.path
-    },
-  },
-  methods: {
-    setTunneledEmail(email) {
-      console.log('setTunneledEmail rightside', email)
-      this.$emit('set-tunneled-email', email)
     },
   },
 }

@@ -330,5 +330,14 @@
     "send_you": "sendet dir"
   },
   "via_link": "über einen Link",
-  "welcome": "Willkommen in der Gemeinschaft"
+  "welcome": "Willkommen in der Gemeinschaft",
+  "pageTitle": {
+    "overview":"Guten Morgen {name}",
+    "send":"Sende Gradidos",
+    "transactions":"Deine Transaktionen",
+    "gdt":"Deine GDT Transaktionen",
+    "community":"Meine Gemeinschaft",
+    "information":"Gemeinschaft Info",
+    "settings":"Einstellungen"
+  }
 }
