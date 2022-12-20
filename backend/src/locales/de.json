@@ -47,7 +47,7 @@
     },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) hat soeben deinen Link eingelöst.",
-      "memo": "Memo: {transactionMemo}",
+      "memo": "Nachricht: {transactionMemo}",
       "subject": "Gradido: Dein Gradido-Link wurde eingelöst"
     },
     "transactionReceived": {
@@ -56,6 +56,8 @@
     }
   },
   "general": {
-    "decimalSeparator": ","
+    "decimalSeparator": ",",
+    "imprint": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+    "supportEmail": "support@gradido.net"
   }
 }
