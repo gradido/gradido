@@ -17,7 +17,7 @@
       <b-collapse id="nav-collapse" is-nav class="ml-5">
         <b-navbar-nav class="ml-auto" right>
           <div class="mb-2">
-            <router-link to="/profile">
+            <router-link to="/settings">
               <div>
                 <div class="d-flex align-items-center">
                   <div class="mr-3">

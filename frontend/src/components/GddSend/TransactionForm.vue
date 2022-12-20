@@ -4,10 +4,10 @@
       <b-card class="p-0 m-0 appBoxShadow gradido-border-radius">
         <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
           <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
-            <b-form-radio-group v-model="radioSelected">
+            <b-form-radio-group v-model="radioSelected" class="container">
               <b-row class="mb-4">
                 <b-col>
-                  <b-row class="bg-f5 gradido-border-radius pt-2">
+                  <b-row class="bg-f5 gradido-border-radius pt-2 mr-2">
                     <b-col cols="10" @click="radioSelected = sendTypes.send" class="pointer">
                       {{ $t('send_gdd') }}
                     </b-col>
@@ -17,17 +17,17 @@
                         size="lg"
                         :value="sendTypes.send"
                         stacked
-                        class="custom-radio-button"
+                        class="custom-radio-button pointer"
                       ></b-form-radio>
                     </b-col>
                   </b-row>
                 </b-col>
                 <b-col>
-                  <b-row class="bg-f5 gradido-border-radius pt-2">
+                  <b-row class="bg-f5 gradido-border-radius pt-2 ml-2">
                     <b-col cols="10" @click="radioSelected = sendTypes.link" class="pointer">
                       {{ $t('send_per_link') }}
                     </b-col>
-                    <b-col cols="2">
+                    <b-col cols="2" class="pointer">
                       <b-form-radio
                         name="shipping"
                         :value="sendTypes.link"
@@ -90,7 +90,7 @@
             <b-row v-else class="test-buttons mt-5">
               <b-col>
                 <b-button type="reset" variant="secondary" @click="onReset">
-                  {{ $t('form.cancel') }}
+                  {{ $t('form.reset') }}
                 </b-button>
               </b-col>
               <b-col class="text-right">
