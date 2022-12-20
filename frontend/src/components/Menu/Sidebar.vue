@@ -73,7 +73,7 @@
           </b-nav-item>
           <b-nav-item class="font-weight-bold" @click="$emit('logout')" active-class="activeRoute">
             <b-icon icon="power" aria-hidden="true" variant="danger"></b-icon>
-            <span class="ml-2 text-danger">{{ $t('navigation.logout') }}</span>
+            <span class="ml-2 text-205">{{ $t('navigation.logout') }}</span>
           </b-nav-item>
         </b-nav>
       </div>

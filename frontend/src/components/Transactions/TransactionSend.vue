@@ -21,7 +21,7 @@
         <div class="small">
           {{ $t('decay.types.send') }}
         </div>
-        <div class="font-weight-bold">{{ amount | GDD }}</div>
+        <div class="font-weight-bold text-140">{{ amount | GDD }}</div>
         <div v-if="linkId" class="small">
           {{ $t('via_link') }}
           <b-icon

@@ -15,6 +15,7 @@
         type="email"
         :state="validated ? valid : false"
         trim
+        :class="$route.path === '/send' ? 'bg-248' : ''"
       ></b-form-input>
       <b-form-invalid-feedback v-bind="ariaMsg">
         {{ errors[0] }}
