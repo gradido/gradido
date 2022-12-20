@@ -70,6 +70,8 @@ describe('sendEmailVariants', () => {
             senderLastName: 'Bloxberg',
             contributionMemo: 'My contribution.',
             overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+            supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+            communityURL: CONFIG.COMMUNITY_URL,
           },
         })
       })
@@ -106,10 +108,14 @@ describe('sendEmailVariants', () => {
           'To view and reply to the message, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!',
         )
         expect(result.originalMessage.html).toContain(
-          `Link to your account:<span> </span><a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
+          `Link to your account: <a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
         )
         expect(result.originalMessage.html).toContain('Please do not reply to this email!')
-        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
+        expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
+        expect(result.originalMessage.html).toContain('—————')
+        expect(result.originalMessage.html).toContain(
+          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+        )
       })
     })
   })
@@ -140,6 +146,8 @@ describe('sendEmailVariants', () => {
             activationLink: 'http://localhost/checkEmail/6627633878930542284',
             timeDurationObject: { hours: 23, minutes: 30 },
             resendLink: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
+            supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+            communityURL: CONFIG.COMMUNITY_URL,
           },
         })
       })
@@ -183,7 +191,11 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain(
           `<a href="${CONFIG.EMAIL_LINK_FORGOTPASSWORD}">${CONFIG.EMAIL_LINK_FORGOTPASSWORD}</a>`,
         )
-        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
+        expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
+        expect(result.originalMessage.html).toContain('—————')
+        expect(result.originalMessage.html).toContain(
+          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+        )
       })
     })
   })
@@ -210,6 +222,8 @@ describe('sendEmailVariants', () => {
             lastName: 'Lustig',
             locale: 'en',
             resendLink: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
+            supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+            communityURL: CONFIG.COMMUNITY_URL,
           },
         })
       })
@@ -257,7 +271,11 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain(
           'If you are not the one who tried to register again, please contact our support:',
         )
-        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
+        expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
+        expect(result.originalMessage.html).toContain('—————')
+        expect(result.originalMessage.html).toContain(
+          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+        )
       })
     })
   })
@@ -292,6 +310,8 @@ describe('sendEmailVariants', () => {
             contributionMemo: 'My contribution.',
             contributionAmount: '23.54',
             overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+            supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+            communityURL: CONFIG.COMMUNITY_URL,
           },
         })
       })
@@ -326,10 +346,14 @@ describe('sendEmailVariants', () => {
         )
         expect(result.originalMessage.html).toContain('Amount: 23.54 GDD')
         expect(result.originalMessage.html).toContain(
-          `Link to your account:<span> </span><a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
+          `Link to your account: <a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
         )
         expect(result.originalMessage.html).toContain('Please do not reply to this email!')
-        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
+        expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
+        expect(result.originalMessage.html).toContain('—————')
+        expect(result.originalMessage.html).toContain(
+          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+        )
       })
     })
   })
@@ -362,6 +386,8 @@ describe('sendEmailVariants', () => {
             senderLastName: 'Bloxberg',
             contributionMemo: 'My contribution.',
             overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+            supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+            communityURL: CONFIG.COMMUNITY_URL,
           },
         })
       })
@@ -398,10 +424,14 @@ describe('sendEmailVariants', () => {
           'To see your common good contributions and related messages, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!',
         )
         expect(result.originalMessage.html).toContain(
-          `Link to your account:<span> </span><a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
+          `Link to your account: <a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
         )
         expect(result.originalMessage.html).toContain('Please do not reply to this email!')
-        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
+        expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
+        expect(result.originalMessage.html).toContain('—————')
+        expect(result.originalMessage.html).toContain(
+          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+        )
       })
     })
   })
@@ -432,6 +462,8 @@ describe('sendEmailVariants', () => {
             resetLink: 'http://localhost/reset-password/3762660021544901417',
             timeDurationObject: { hours: 23, minutes: 30 },
             resendLink: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
+            supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+            communityURL: CONFIG.COMMUNITY_URL,
           },
         })
       })
@@ -473,7 +505,11 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain(
           `<a href="${CONFIG.EMAIL_LINK_FORGOTPASSWORD}">${CONFIG.EMAIL_LINK_FORGOTPASSWORD}</a>`,
         )
-        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
+        expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
+        expect(result.originalMessage.html).toContain('—————')
+        expect(result.originalMessage.html).toContain(
+          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+        )
       })
     })
   })
@@ -510,6 +546,8 @@ describe('sendEmailVariants', () => {
             transactionMemo: 'You deserve it! 🙏🏼',
             transactionAmount: '17.65',
             overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+            supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+            communityURL: CONFIG.COMMUNITY_URL,
           },
         })
       })
@@ -543,12 +581,16 @@ describe('sendEmailVariants', () => {
           'Bibi Bloxberg (bibi@bloxberg.de) has just redeemed your link.',
         )
         expect(result.originalMessage.html).toContain('Amount: 17.65 GDD')
-        expect(result.originalMessage.html).toContain('Memo: You deserve it! 🙏🏼')
+        expect(result.originalMessage.html).toContain('Message: You deserve it! 🙏🏼')
         expect(result.originalMessage.html).toContain(
-          `You can find transaction details in your Gradido account:<span> </span><a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
+          `You can find transaction details in your Gradido account: <a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
         )
         expect(result.originalMessage.html).toContain('Please do not reply to this email!')
-        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
+        expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
+        expect(result.originalMessage.html).toContain('—————')
+        expect(result.originalMessage.html).toContain(
+          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+        )
       })
     })
   })
@@ -583,6 +625,8 @@ describe('sendEmailVariants', () => {
             senderEmail: 'bibi@bloxberg.de',
             transactionAmount: '37.40',
             overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+            supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+            communityURL: CONFIG.COMMUNITY_URL,
           },
         })
       })
@@ -614,10 +658,14 @@ describe('sendEmailVariants', () => {
           'You have just received 37.40 GDD from Bibi Bloxberg (bibi@bloxberg.de).',
         )
         expect(result.originalMessage.html).toContain(
-          `You can find transaction details in your Gradido account:<span> </span><a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
+          `You can find transaction details in your Gradido account: <a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
         )
         expect(result.originalMessage.html).toContain('Please do not reply to this email!')
-        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
+        expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
+        expect(result.originalMessage.html).toContain('—————')
+        expect(result.originalMessage.html).toContain(
+          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+        )
       })
     })
   })

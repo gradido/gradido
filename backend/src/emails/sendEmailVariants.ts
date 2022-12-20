@@ -25,6 +25,8 @@ export const sendAddedContributionMessageEmail = (data: {
       senderLastName: data.senderLastName,
       contributionMemo: data.contributionMemo,
       overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+      communityURL: CONFIG.COMMUNITY_URL,
     },
   })
 }
@@ -47,6 +49,8 @@ export const sendAccountActivationEmail = (data: {
       activationLink: data.activationLink,
       timeDurationObject: data.timeDurationObject,
       resendLink: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
+      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+      communityURL: CONFIG.COMMUNITY_URL,
     },
   })
 }
@@ -93,6 +97,8 @@ export const sendContributionConfirmedEmail = (data: {
       contributionMemo: data.contributionMemo,
       contributionAmount: decimalSeparatorByLanguage(data.contributionAmount, data.language),
       overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+      communityURL: CONFIG.COMMUNITY_URL,
     },
   })
 }
@@ -117,6 +123,8 @@ export const sendContributionRejectedEmail = (data: {
       senderLastName: data.senderLastName,
       contributionMemo: data.contributionMemo,
       overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+      communityURL: CONFIG.COMMUNITY_URL,
     },
   })
 }
@@ -139,6 +147,8 @@ export const sendResetPasswordEmail = (data: {
       resetLink: data.resetLink,
       timeDurationObject: data.timeDurationObject,
       resendLink: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
+      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+      communityURL: CONFIG.COMMUNITY_URL,
     },
   })
 }
@@ -167,6 +177,8 @@ export const sendTransactionLinkRedeemedEmail = (data: {
       transactionMemo: data.transactionMemo,
       transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
       overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+      communityURL: CONFIG.COMMUNITY_URL,
     },
   })
 }
@@ -193,6 +205,8 @@ export const sendTransactionReceivedEmail = (data: {
       senderEmail: data.senderEmail,
       transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
       overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+      communityURL: CONFIG.COMMUNITY_URL,
     },
   })
 }
