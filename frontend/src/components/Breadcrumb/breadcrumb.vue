@@ -16,11 +16,13 @@
   </div>
 </template>
 <script>
+import CONFIG from '@/config'
+
 export default {
   name: 'Breadcrumb',
   computed: {
     pageTitle() {
-      const options = { name: this.$store.state.firstName }
+      const options = { name: this.$store.state.firstName, community: CONFIG.COMMUNITY_NAME }
       // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
       return this.$t(`pageTitle.${this.$route.meta.pageTitle}`, options)
     },

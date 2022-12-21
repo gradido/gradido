@@ -1,8 +1,8 @@
 <template>
-  <div id="app" class="h-100">
+  <div id="app">
     <div :class="$route.meta.requiresAuth ? 'appContent' : ''">
       <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayout'" />
-      <div class="goldrand position-fixed w-100 fixed-bottom zindex1000"></div>
+      <div class="goldrand position-fixed fixed-bottom zindex1000"></div>
     </div>
   </div>
 </template>

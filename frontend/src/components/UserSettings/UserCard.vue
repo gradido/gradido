@@ -1,10 +1,11 @@
 <template>
   <div class="userdata-card">
-    <b-card class="border-0">
-      <div class="justify-content-center">
+    <b-row>
+      <b-col class="centerPerMargin">
         <avatar :username="username" :color="'#fff'" :size="90"></avatar>
-      </div>
-
+      </b-col>
+    </b-row>
+    <b-card class="border-0">
       <b-container class="justify-content-center mt-md-5">
         <b-row>
           <b-col>
@@ -57,3 +58,8 @@ export default {
   },
 }
 </script>
+<style scoped>
+.centerPerMargin {
+  padding-left: 38%;
+}
+</style>

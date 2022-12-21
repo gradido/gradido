@@ -115,7 +115,6 @@
     "from": "Gönderen",
     "generate_now": "Şimdi oluştur",
     "lastname": "Soyadı",
-    "mandatoryField": "Sorunlu alan",
     "memo": "Mesaj",
     "message": "Mesaj",
     "new_balance": "Onay sonrası hesap bakiyesi",
@@ -136,7 +135,7 @@
     "send_transaction_success": "İşleminiz başarıyla tamamlandı",
     "sorry": "Üzgünüz",
     "thx": "Teşekkür ederiz",
-    "time": "Zaman",
+    "hours": "Saat",
     "to": "Geçerlik",
     "to1": "Alıcı",
     "validation": {

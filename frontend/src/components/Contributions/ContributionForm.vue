@@ -17,7 +17,7 @@
       @submit.prevent="submit"
       class="border p-3 bg-white appBoxShadow gradido-border-radius"
     >
-      <label>{{ $t('contribution.selectDate') }} {{ $t('math.asterisk') }}</label>
+      <label>{{ $t('contribution.selectDate') }}</label>
       <b-form-datepicker
         id="contribution-date"
         v-model="form.date"
@@ -43,9 +43,9 @@
           :rules="{ required: true, min: 5, max: 255 }"
         />
         <input-time
-          v-model="form.time"
-          :name="$t('form.time')"
-          :label="$t('form.time')"
+          v-model="form.hours"
+          :name="$t('form.hours')"
+          :label="$t('form.hours')"
           placeholder="0.5"
           :rules="{
             required: true,
@@ -122,7 +122,6 @@
         </b-col>
       </b-row>
     </b-form>
-    <p class="p-2">{{ $t('math.asterisk') }} {{ $t('form.mandatoryField') }}</p>
   </div>
 </template>
 <script>

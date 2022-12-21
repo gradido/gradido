@@ -1,13 +1,14 @@
 <template>
   <div class="info-statistic">
     <b-container class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
-      <div class="h3">{{ $t('community.community') }}</div>
-      <div class="h1">{{ CONFIG.COMMUNITY_NAME }}</div>
-      <div>
+      <div>{{ $t('communityInfo') }}</div>
+      <div class="h3">
         {{ CONFIG.COMMUNITY_DESCRIPTION }}
       </div>
       <div>
-        {{ CONFIG.COMMUNITY_URL }}
+        <router-link :to="CONFIG.COMMUNITY_URL">
+          {{ CONFIG.COMMUNITY_URL }}
+        </router-link>
       </div>
       <hr />
       <div class="h3">{{ $t('community.openContributionLinks') }}</div>
