@@ -30,11 +30,11 @@ describe('UserCard', () => {
       expect(wrapper.find('.userdata-card').exists()).toBe(true)
     })
     it('renders the SPAN Element ".b-avatar"', () => {
-      expect(wrapper.find('.b-avatar').exists()).toBe(true)
+      expect(wrapper.find('.vue-avatar--wrapper').exists()).toBe(true)
     })
 
     it('find the first letters of the firstName and lastName', () => {
-      expect(wrapper.find('.b-avatar-text').text()).toBe('B  B')
+      expect(wrapper.find('.vue-avatar--wrapper span').text()).toBe('BB')
     })
   })
 })
