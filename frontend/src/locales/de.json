@@ -332,7 +332,7 @@
   "via_link": "über einen Link",
   "welcome": "Willkommen in der Gemeinschaft",
   "pageTitle": {
-    "overview":"Guten Morgen {name}",
+    "overview":"Willkommen {name}",
     "send":"Sende Gradidos",
     "transactions":"Deine Transaktionen",
     "gdt":"Deine GDT Transaktionen",
