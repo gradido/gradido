@@ -9,12 +9,8 @@ body {
   cursor: pointer;
 }
 
-.hoverText:hover {
-  font-weight: bold;
-}
-
-.hoverIcon:hover {
-  background-color: rgb(220, 216, 217);
+.hover-icon:hover {
+  background-color: rgb(220 216 217);
   border-radius: 29px;
   padding: 1px;
 }
@@ -30,7 +26,6 @@ body {
 .c-blau {
   color: #0e79bc !important;
 }
-
 
 /* Navbar  */
 a,
@@ -316,16 +311,13 @@ a:hover,
 @keyframes pulse {
   0% {
     box-shadow: 0 0 0 0 #c58d387e;
-    box-shadow: 0 0 0 0 #c58d387e;
   }
 
   70% {
     box-shadow: 0 0 0 20px rgb(204 169 44 / 0%);
-    box-shadow: 0 0 0 20px rgb(204 169 44 / 0%);
   }
 
   100% {
-    box-shadow: 0 0 0 0 rgb(204 169 44 / 0%);
     box-shadow: 0 0 0 0 rgb(204 169 44 / 0%);
   }
 }

@@ -30,6 +30,7 @@
     "openContributionLinkText": "Folgende {count} automatische Schöpfungen werden zur Zeit durch die Gemeinschaft „{name}“ bereitgestellt.",
     "submitContribution": "schreiben"
   },
+  "communityInfo": "Gemeinschaft Information",
   "contact": "Kontakt",
   "contribution": {
     "activity": "Tätigkeit",
@@ -123,6 +124,7 @@
     "firstname": "Vorname",
     "from": "Von",
     "generate_now": "Jetzt generieren",
+    "hours": "Stunden",
     "lastname": "Nachname",
     "memo": "Nachricht",
     "message": "Nachricht",
@@ -145,7 +147,6 @@
     "send_transaction_success": "Deine Transaktion wurde erfolgreich ausgeführt",
     "sorry": "Entschuldigung",
     "thx": "Danke",
-    "hours": "Stunden",
     "to": "bis",
     "to1": "an",
     "validation": {
@@ -244,6 +245,15 @@
     "support": "Support",
     "transactions": "Transaktionen"
   },
+  "pageTitle": {
+    "community": "Meine Gemeinschaft",
+    "gdt": "Deine GDT Transaktionen",
+    "information": "{community}",
+    "overview": "Willkommen {name}",
+    "send": "Sende Gradidos",
+    "settings": "Einstellungen",
+    "transactions": "Deine Transaktionen"
+  },
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
@@ -329,15 +339,5 @@
     "send_you": "sendet dir"
   },
   "via_link": "über einen Link",
-  "welcome": "Willkommen in der Gemeinschaft",
-  "communityInfo":"Gemeinschaft Information",
-  "pageTitle": {
-    "overview":"Willkommen {name}",
-    "send":"Sende Gradidos",
-    "transactions":"Deine Transaktionen",
-    "gdt":"Deine GDT Transaktionen",
-    "community":"Meine Gemeinschaft",
-    "information":"{community}",
-    "settings":"Einstellungen"
-  }
+  "welcome": "Willkommen in der Gemeinschaft"
 }
