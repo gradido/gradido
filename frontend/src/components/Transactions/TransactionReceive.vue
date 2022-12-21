@@ -15,8 +15,9 @@
             :linkId="linkId"
           />
         </div>
-        <div class="small">{{ this.$d(new Date(balanceDate), 'short') }}</div>
-        <div class="small">{{ this.$d(new Date(balanceDate), 'time') }}</div>
+        <span class="small">{{ this.$d(new Date(balanceDate), 'short') }}</span>
+        <span class="ml-4 small">{{ this.$d(new Date(balanceDate), 'time') }}</span>
+        <div>{{ memo }}</div>
       </b-col>
       <b-col cols="3">
         <div class="small">

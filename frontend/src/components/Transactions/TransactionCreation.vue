@@ -6,8 +6,9 @@
       </b-col>
       <b-col>
         <div class="font-weight-bold">{{ linkedUser.firstName }} {{ linkedUser.lastName }}</div>
-        <div class="small">{{ this.$d(new Date(balanceDate), 'short') }}</div>
-        <div class="small">{{ this.$d(new Date(balanceDate), 'time') }}</div>
+        <span class="small">{{ this.$d(new Date(balanceDate), 'short') }}</span>
+        <span class="ml-4 small">{{ this.$d(new Date(balanceDate), 'time') }}</span>
+        <div>{{ memo }}</div>
       </b-col>
       <b-col cols="3">
         <div class="small">{{ $t('decay.types.receive') }}</div>
