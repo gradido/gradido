@@ -114,6 +114,7 @@
     "firstname": "Ad",
     "from": "Gönderen",
     "generate_now": "Şimdi oluştur",
+    "hours": "Saat",
     "lastname": "Soyadı",
     "memo": "Mesaj",
     "message": "Mesaj",
@@ -135,7 +136,6 @@
     "send_transaction_success": "İşleminiz başarıyla tamamlandı",
     "sorry": "Üzgünüz",
     "thx": "Teşekkür ederiz",
-    "hours": "Saat",
     "to": "Geçerlik",
     "to1": "Alıcı",
     "validation": {

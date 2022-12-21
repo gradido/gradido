@@ -121,6 +121,7 @@
     "firstname": " Prénom",
     "from": "de",
     "generate_now": "Produire maintenant",
+    "hours": "Uren",
     "lastname": "Nom",
     "memo": "Note",
     "message": "Message",
@@ -143,7 +144,6 @@
     "send_transaction_success": "Votre transaction a été effectuée avec succès",
     "sorry": "Désolé",
     "thx": "Merci",
-    "hours": "Uren",
     "to": "à",
     "to1": "à",
     "validation": {
