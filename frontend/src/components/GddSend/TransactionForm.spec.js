@@ -72,7 +72,7 @@ describe('TransactionForm', () => {
       })
     })
 
-    describe('with balance greater 0.00 (100.00) GDD the form is fully enabled', () => {
+    describe.skip('with balance greater 0.00 (100.00) GDD the form is fully enabled', () => {
       beforeEach(() => {
         wrapper.setProps({ balance: 100.0 })
       })

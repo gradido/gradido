@@ -2,7 +2,7 @@
   <div>
     <div
       class="contribution-list-item bg-white appBoxShadow gradido-border-radius pt-3 px-3"
-      :class="state === 'IN_PROGRESS' ? 'pulse' : ''"
+      :class="state === 'IN_PROGRESS' ? 'pulse border border-205' : ''"
     >
       <b-row>
         <b-col cols="2">
@@ -19,9 +19,9 @@
           <div class="small">
             {{ $d(new Date(contributionDate), 'monthAndYear') }}
           </div>
-          <div class="mt-3 h5">{{ $t('contributionText') }}</div>
-          <div class="pb-3">{{ memo }}</div>
-          <div v-if="state === 'IN_PROGRESS'" class="text-danger">
+          <div class="mt-3 font-weight-bold">{{ $t('contributionText') }}</div>
+          <div class="mb-3">{{ memo }}</div>
+          <div v-if="state === 'IN_PROGRESS'" class="text-205">
             {{ $t('contribution.alert.answerQuestion') }}
           </div>
           <!-- <div class="small">
@@ -33,7 +33,7 @@
           <div class="small">{{ $t('creation') }}</div>
           <div class="font-weight-bold">{{ amount | GDD }}</div>
         </b-col>
-        <b-col cols="1">
+        <b-col cols="1" class="align-items-center">
           <div v-if="messagesCount > 0" @click="visible = !visible">
             <collapse-icon class="text-right" :visible="visible" />
           </div>
@@ -41,9 +41,9 @@
       </b-row>
       <b-row
         v-if="(!['CONFIRMED', 'DELETED'].includes(state) && !allContribution) || messagesCount > 0"
-        class="mt-4 gradido-bg-orange text-white p-2"
+        class="p-2"
       >
-        <b-col>
+        <b-col cols="auto" class="mr-auto">
           <div
             v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
             class="test-delete-contribution pointer mr-3"
@@ -53,7 +53,7 @@
             {{ $t('delete') }}
           </div>
         </b-col>
-        <b-col class="text-center">
+        <b-col cols="auto">
           <div
             v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
             class="test-edit-contribution pointer mr-3"
@@ -71,7 +71,7 @@
           </div>
         </b-col>
 
-        <b-col class="text-right">
+        <b-col cols="auto">
           <div v-if="messagesCount > 0" class="pointer" @click="visible = !visible">
             <b-icon icon="chat-dots"></b-icon>
             {{ $t('moderatorChat') }}
