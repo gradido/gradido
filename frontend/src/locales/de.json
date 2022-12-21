@@ -124,7 +124,6 @@
     "from": "Von",
     "generate_now": "Jetzt generieren",
     "lastname": "Nachname",
-    "mandatoryField": "Pflichtfeld",
     "memo": "Nachricht",
     "message": "Nachricht",
     "new_balance": "Neuer Kontostand nach Bestätigung",
@@ -146,7 +145,7 @@
     "send_transaction_success": "Deine Transaktion wurde erfolgreich ausgeführt",
     "sorry": "Entschuldigung",
     "thx": "Danke",
-    "time": "Zeit",
+    "hours": "Stunden",
     "to": "bis",
     "to1": "an",
     "validation": {
@@ -331,13 +330,14 @@
   },
   "via_link": "über einen Link",
   "welcome": "Willkommen in der Gemeinschaft",
+  "communityInfo":"Gemeinschaft Information",
   "pageTitle": {
     "overview":"Willkommen {name}",
     "send":"Sende Gradidos",
     "transactions":"Deine Transaktionen",
     "gdt":"Deine GDT Transaktionen",
     "community":"Meine Gemeinschaft",
-    "information":"Gemeinschaft Info",
+    "information":"{community}",
     "settings":"Einstellungen"
   }
 }

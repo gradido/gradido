@@ -15,6 +15,8 @@
         :placeholder="placeholder"
         :state="validated ? valid : false"
         trim
+        rows="4"
+        max-rows="4"
       ></b-form-textarea>
       <b-form-invalid-feedback v-bind="ariaMsg">
         {{ errors[0] }}

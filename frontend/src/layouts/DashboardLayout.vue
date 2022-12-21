@@ -1,5 +1,5 @@
 <template>
-  <div class="main-page h-100">
+  <div class="main-page">
     <div v-if="skeleton">
       <skeleton-overview />
     </div>
@@ -23,7 +23,7 @@
 
       <!-- Breadcrumb -->
       <b-row>
-        <b-col cols="12" offset-lg="2">
+        <b-col cols="10" offset-lg="2">
           <breadcrumb />
         </b-col>
       </b-row>
