@@ -14,7 +14,7 @@
     "accountMultiRegistration": {
       "emailExists": "Es existiert jedoch zu deiner E-Mail-Adresse schon ein Konto.",
       "emailReused": "deine E-Mail-Adresse wurde soeben erneut benutzt, um bei Gradido ein Konto zu registrieren.",
-      "ifYouAreNotTheOne": "Wenn du nicht derjenige bist, der versucht hat sich erneut zu registrieren, wende dich bitte an unseren support:",
+      "ifYouAreNotTheOne": "Wenn du nicht derjenige bist, der versucht hat sich erneut zu registrieren, wende dich bitte an unseren Support:",
       "onForgottenPasswordClickLink": "Klicke bitte auf den folgenden Link, falls du dein Passwort vergessen haben solltest:",
       "onForgottenPasswordCopyLink": "oder kopiere den obigen Link in dein Browserfenster.",
       "subject": "Gradido: Erneuter Registrierungsversuch mit deiner E-Mail"
