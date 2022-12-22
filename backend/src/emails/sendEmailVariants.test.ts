@@ -114,7 +114,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
         expect(result.originalMessage.html).toContain('—————')
         expect(result.originalMessage.html).toContain(
-          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+          '<div style="position: relative; left: -22px;"><img src="https://gdd.gradido.net/img/brand/green.png" width="200" alt="Gradido-Akademie Logo"></div><br>Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
         )
       })
     })
@@ -194,7 +194,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
         expect(result.originalMessage.html).toContain('—————')
         expect(result.originalMessage.html).toContain(
-          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+          '<div style="position: relative; left: -22px;"><img src="https://gdd.gradido.net/img/brand/green.png" width="200" alt="Gradido-Akademie Logo"></div><br>Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
         )
       })
     })
@@ -274,7 +274,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
         expect(result.originalMessage.html).toContain('—————')
         expect(result.originalMessage.html).toContain(
-          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+          '<div style="position: relative; left: -22px;"><img src="https://gdd.gradido.net/img/brand/green.png" width="200" alt="Gradido-Akademie Logo"></div><br>Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
         )
       })
     })
@@ -352,7 +352,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
         expect(result.originalMessage.html).toContain('—————')
         expect(result.originalMessage.html).toContain(
-          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+          '<div style="position: relative; left: -22px;"><img src="https://gdd.gradido.net/img/brand/green.png" width="200" alt="Gradido-Akademie Logo"></div><br>Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
         )
       })
     })
@@ -430,7 +430,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
         expect(result.originalMessage.html).toContain('—————')
         expect(result.originalMessage.html).toContain(
-          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+          '<div style="position: relative; left: -22px;"><img src="https://gdd.gradido.net/img/brand/green.png" width="200" alt="Gradido-Akademie Logo"></div><br>Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
         )
       })
     })
@@ -508,7 +508,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
         expect(result.originalMessage.html).toContain('—————')
         expect(result.originalMessage.html).toContain(
-          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+          '<div style="position: relative; left: -22px;"><img src="https://gdd.gradido.net/img/brand/green.png" width="200" alt="Gradido-Akademie Logo"></div><br>Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
         )
       })
     })
@@ -589,7 +589,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
         expect(result.originalMessage.html).toContain('—————')
         expect(result.originalMessage.html).toContain(
-          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+          '<div style="position: relative; left: -22px;"><img src="https://gdd.gradido.net/img/brand/green.png" width="200" alt="Gradido-Akademie Logo"></div><br>Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
         )
       })
     })
@@ -666,7 +666,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
         expect(result.originalMessage.html).toContain('—————')
         expect(result.originalMessage.html).toContain(
-          'Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+          '<div style="position: relative; left: -22px;"><img src="https://gdd.gradido.net/img/brand/green.png" width="200" alt="Gradido-Akademie Logo"></div><br>Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
         )
       })
     })
