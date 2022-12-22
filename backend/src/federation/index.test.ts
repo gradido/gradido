@@ -240,20 +240,19 @@ describe('federation', () => {
                   { api: 'v1_0', url: 'url3' },
                   { api: 'v1_0', url: 'url4' },
                   { api: 'v1_0', url: 'url5' },
-                  { api: 'v1_0', url: 'url6' },
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
               })
 
               it('logs the received data', () => {
                 expect(logger.info).toBeCalledWith(
-                  'data: [{"api":"v1_0","url":"too much versions at the same time test"},{"api":"v1_0","url":"url2"},{"api":"v1_0","url":"url3"},{"api":"v1_0","url":"url4"},{"api":"v1_0","url":"url5"},{"api":"v1_0","url":"url6"}]',
+                  'data: [{"api":"v1_0","url":"too much versions at the same time test"},{"api":"v1_0","url":"url2"},{"api":"v1_0","url":"url3"},{"api":"v1_0","url":"url4"},{"api":"v1_0","url":"url5"}]',
                 )
               })
 
               it('logs a warning of too much apiVersion-Definitions', () => {
                 expect(logger.warn).toBeCalledWith(
-                  `received totaly wrong or too much apiVersions-Definition JSON-String:${JSON.stringify(
+                  `received totaly wrong or too much apiVersions-Definition JSON-String: ${JSON.stringify(
                     jsonArray,
                   )}`,
                 )
@@ -566,7 +565,6 @@ describe('federation', () => {
               })
             })
 
-            /*
             describe('with receiving data of exact max allowed buffer length', () => {
               let jsonArray: any[]
               let result: DbCommunity[] = []
@@ -589,24 +587,20 @@ describe('federation', () => {
                     api: 'valid api4',
                     url: 'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
                   },
-                  {
-                    api: 'valid api5',
-                    url: 'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
-                  },
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
                 result = await DbCommunity.find()
               })
 
               afterAll(async () => {
-                // await cleanDB()
+                await cleanDB()
               })
 
               it('has five Communty entries in database', () => {
-                expect(result).toHaveLength(5)
+                expect(result).toHaveLength(4)
               })
 
-              it(`has an entry with max content length for api and url`, () => {
+              it(`has an entry 'valid api1' with max content length for api and url`, () => {
                 expect(result).toEqual(
                   expect.arrayContaining([
                     expect.objectContaining({
@@ -614,7 +608,58 @@ describe('federation', () => {
                       publicKey: expect.any(Buffer),
                       apiVersion: 'valid api1',
                       endPoint:
-                        'this is a valid url definition with the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmigasmilchdirek menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofrierts',
+                        'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
+                      lastAnnouncedAt: expect.any(Date),
+                      createdAt: expect.any(Date),
+                      updatedAt: null,
+                    }),
+                  ]),
+                )
+              })
+
+              it(`has an entry 'valid api2' with max content length for api and url`, () => {
+                expect(result).toEqual(
+                  expect.arrayContaining([
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      publicKey: expect.any(Buffer),
+                      apiVersion: 'valid api2',
+                      endPoint:
+                        'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
+                      lastAnnouncedAt: expect.any(Date),
+                      createdAt: expect.any(Date),
+                      updatedAt: null,
+                    }),
+                  ]),
+                )
+              })
+
+              it(`has an entry 'valid api3' with max content length for api and url`, () => {
+                expect(result).toEqual(
+                  expect.arrayContaining([
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      publicKey: expect.any(Buffer),
+                      apiVersion: 'valid api3',
+                      endPoint:
+                        'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
+                      lastAnnouncedAt: expect.any(Date),
+                      createdAt: expect.any(Date),
+                      updatedAt: null,
+                    }),
+                  ]),
+                )
+              })
+
+              it(`has an entry 'valid api4' with max content length for api and url`, () => {
+                expect(result).toEqual(
+                  expect.arrayContaining([
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      publicKey: expect.any(Buffer),
+                      apiVersion: 'valid api4',
+                      endPoint:
+                        'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
                       lastAnnouncedAt: expect.any(Date),
                       createdAt: expect.any(Date),
                       updatedAt: null,
@@ -623,7 +668,40 @@ describe('federation', () => {
                 )
               })
             })
-            */
+
+            describe('with receiving data longer than max allowed buffer length', () => {
+              let jsonArray: any[]
+              beforeEach(async () => {
+                jest.clearAllMocks()
+                jsonArray = [
+                  {
+                    api: 'Xvalid api1',
+                    url: 'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
+                  },
+                  {
+                    api: 'valid api2',
+                    url: 'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
+                  },
+                  {
+                    api: 'valid api3',
+                    url: 'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
+                  },
+                  {
+                    api: 'valid api4',
+                    url: 'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
+                  },
+                ]
+                await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
+              })
+
+              it('logs the received data', () => {
+                expect(logger.warn).toBeCalledWith(
+                  `received more than max allowed length of data buffer: ${
+                    JSON.stringify(jsonArray).length
+                  } against 1141 max allowed`,
+                )
+              })
+            })
 
             describe('with proper data', () => {
               let result: DbCommunity[] = []

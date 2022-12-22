@@ -49,10 +49,9 @@ export const startDHT = async (topic: string): Promise<void> => {
 
       socket.on('data', async (data: Buffer) => {
         try {
-          // console.log(`data.len=${data.length}, ${data.toString('ascii')}`)
-          if (data.length > 1426) {
+          if (data.length > 1141) {
             logger.warn(
-              `received more than max allowed length of data buffer: ${data.length} / 1426`,
+              `received more than max allowed length of data buffer: ${data.length} against 1141 max allowed`,
             )
             return
           }
@@ -102,12 +101,11 @@ export const startDHT = async (topic: string): Promise<void> => {
                   overwrite: ['end_point', 'last_announced_at'],
                 })
                 .execute()
-              // console.log(`upserted...`, variables)
               logger.info(`federation community upserted successfully...`)
             }
           } else {
             logger.warn(
-              `received totaly wrong or too much apiVersions-Definition JSON-String:${JSON.stringify(
+              `received totaly wrong or too much apiVersions-Definition JSON-String: ${JSON.stringify(
                 recApiVersions,
               )}`,
             )
