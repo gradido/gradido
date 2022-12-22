@@ -88,7 +88,7 @@ export default {
       countAdminUser: null,
       itemsContributionLinks: [],
       itemsAdminUser: [],
-      supportMail: CONFIG.SUPPORT_MAIL,
+      supportMail: CONFIG.COMMUNITY_SUPPORT_MAIL,
       membersCount: '1203',
       totalUsers: null,
       totalGradidoCreated: null,

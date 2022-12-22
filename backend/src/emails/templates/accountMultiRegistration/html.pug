@@ -5,18 +5,19 @@ html(lang=locale)
   body
     h1(style='margin-bottom: 24px;')= t('emails.accountMultiRegistration.subject')
     #container.col
-      p(style='margin-bottom: 24px;')= t('emails.general.helloName', { firstName, lastName })
-      p= t('emails.accountMultiRegistration.emailReused')
+      include ../hello.pug
+      p
+        = t('emails.accountMultiRegistration.emailReused')
         br
-        span= t('emails.accountMultiRegistration.emailExists')
-      p= t('emails.accountMultiRegistration.onForgottenPasswordClickLink')
+        = t('emails.accountMultiRegistration.emailExists')
+      p
+        = t('emails.accountMultiRegistration.onForgottenPasswordClickLink')
         br
         a(href=resendLink) #{resendLink}
         br
-        span= t('emails.accountMultiRegistration.onForgottenPasswordCopyLink')
-      p= t('emails.accountMultiRegistration.ifYouAreNotTheOne')
+        = t('emails.accountMultiRegistration.onForgottenPasswordCopyLink')
+      p
+        = t('emails.accountMultiRegistration.ifYouAreNotTheOne')
         br
-        a(href='https://gradido.net/de/contact/') https://gradido.net/de/contact/
-      p(style='margin-top: 24px;')= t('emails.general.sincerelyYours')
-        br
-        span= t('emails.general.yourGradidoTeam')
+        a(href='mailto:' + supportEmail)= supportEmail
+      include ../greatingFormularImprint.pug

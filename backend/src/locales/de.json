@@ -6,7 +6,7 @@
       "toSeeAndAnswerMessage": "Um die Nachricht zu sehen und darauf zu antworten, gehe in deinem Gradido-Konto ins Menü „Gemeinschaft“ auf den Tab „Meine Beiträge zum Gemeinwohl“!"
     },
     "accountActivation": {
-      "duration": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten. Sollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen, in dem du deine E-Mail-Adresse eingibst:",
+      "duration": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten. Sollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen:",
       "emailRegistered": "deine E-Mail-Adresse wurde soeben bei Gradido registriert.",
       "pleaseClickLink": "Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:",
       "subject": "Gradido: E-Mail Überprüfung"
@@ -14,7 +14,7 @@
     "accountMultiRegistration": {
       "emailExists": "Es existiert jedoch zu deiner E-Mail-Adresse schon ein Konto.",
       "emailReused": "deine E-Mail-Adresse wurde soeben erneut benutzt, um bei Gradido ein Konto zu registrieren.",
-      "ifYouAreNotTheOne": "Wenn du nicht derjenige bist, der sich versucht hat erneut zu registrieren, wende dich bitte an unseren support:",
+      "ifYouAreNotTheOne": "Wenn du nicht derjenige bist, der versucht hat sich erneut zu registrieren, wende dich bitte an unseren Support:",
       "onForgottenPasswordClickLink": "Klicke bitte auf den folgenden Link, falls du dein Passwort vergessen haben solltest:",
       "onForgottenPasswordCopyLink": "oder kopiere den obigen Link in dein Browserfenster.",
       "subject": "Gradido: Erneuter Registrierungsversuch mit deiner E-Mail"
@@ -40,22 +40,25 @@
       "yourGradidoTeam": "dein Gradido-Team"
     },
     "resetPassword": {
-      "duration": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten. Sollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen, in dem du deine E-Mail-Adresse eingibst:",
+      "duration": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten. Sollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen:",
       "pleaseClickLink": "Wenn du es warst, klicke bitte auf den Link:",
       "subject": "Gradido: Passwort zurücksetzen",
       "youOrSomeoneResetPassword": "du, oder jemand anderes, hast für dieses Konto ein Zurücksetzen des Passworts angefordert."
     },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) hat soeben deinen Link eingelöst.",
-      "memo": "Memo: {transactionMemo}",
+      "memo": "Nachricht: {transactionMemo}",
       "subject": "Gradido: Dein Gradido-Link wurde eingelöst"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "du hast soeben {transactionAmount} GDD von {senderFirstName} {senderLastName} ({senderEmail}) erhalten.",
-      "subject": "Gradido: Du hast Gradidos erhalten"
+      "subject": "Gradido: {senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet"
     }
   },
   "general": {
-    "decimalSeparator": ","
+    "decimalSeparator": ",",
+    "imprint": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+    "imprintImageAlt": "Gradido-Akademie Logo",
+    "imprintImageURL": "https://gdd.gradido.net/img/brand/green.png"
   }
 }
