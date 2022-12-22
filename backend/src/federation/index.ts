@@ -26,46 +26,6 @@ type CommunityApi = {
 
 export const startDHT = async (topic: string): Promise<void> => {
   try {
-    let testModeCtrl = 0
-    const testModeData = [
-      `hello here is a new community and i don't know how to communicate with you`,
-      [`invalid type test`, `api`, `url`],
-      [
-        [`api`, `url`, `invalid type in array test`],
-        [`wrong`, `api`, `url`],
-      ],
-      [
-        { api: ApiVersionType.V1_0, url: 'too much versions at the same time test' },
-        { api: ApiVersionType.V1_0, url: 'url2' },
-        { api: ApiVersionType.V1_0, url: 'url3' },
-        { api: ApiVersionType.V1_0, url: 'url4' },
-        { api: ApiVersionType.V1_0, url: 'url5' },
-        { api: ApiVersionType.V2_0, url: 'url6' },
-      ],
-      [
-        { wrong: 'wrong but tolerated property test', api: ApiVersionType.V1_0, url: 'url1' },
-        { api: ApiVersionType.V2_0, url: 'url2', wrong: 'wrong but tolerated property test' },
-      ],
-      [
-        { test1: 'missing api proterty test', url: 'any url definition as string' },
-        { api: 'some api', test2: 'missing url property test' },
-      ],
-      [
-        { api: 1, url: 'wrong property type tests' },
-        { api: 'urltyptest', url: 2 },
-        { api: 1, url: 2 },
-      ],
-      [
-        {
-          api: ApiVersionType.V1_0,
-          url: CONFIG.FEDERATION_COMMUNITY_URL + ApiVersionType.V1_0,
-        },
-        {
-          api: ApiVersionType.V2_0,
-          url: CONFIG.FEDERATION_COMMUNITY_URL + ApiVersionType.V2_0,
-        },
-      ],
-    ]
     const TOPIC = DHT.hash(Buffer.from(topic))
     const keyPair = DHT.keyPair(getSeed())
     logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
@@ -89,12 +49,19 @@ export const startDHT = async (topic: string): Promise<void> => {
 
       socket.on('data', async (data: Buffer) => {
         try {
+          // console.log(`data.len=${data.length}, ${data.toString('ascii')}`)
+          if (data.length > 1426) {
+            logger.warn(
+              `received more than max allowed length of data buffer: ${data.length} / 1426`,
+            )
+            return
+          }
           logger.info(`data: ${data.toString('ascii')}`)
           const recApiVersions: CommunityApi[] = JSON.parse(data.toString('ascii'))
 
           // TODO better to introduce the validation by https://github.com/typestack/class-validato
           if (recApiVersions && Array.isArray(recApiVersions) && recApiVersions.length < 5) {
-            recApiVersions.forEach(async (recApiVersion) => {
+            for (const recApiVersion of recApiVersions) {
               if (
                 !recApiVersion.api ||
                 typeof recApiVersion.api !== 'string' ||
@@ -102,7 +69,7 @@ export const startDHT = async (topic: string): Promise<void> => {
                 typeof recApiVersion.url !== 'string'
               ) {
                 logger.warn(
-                  `received invalid apiVersion-Definition:${JSON.stringify(recApiVersion)}`,
+                  `received invalid apiVersion-Definition: ${JSON.stringify(recApiVersion)}`,
                 )
                 // in a forEach-loop use return instead of continue
                 return
@@ -110,7 +77,7 @@ export const startDHT = async (topic: string): Promise<void> => {
               // TODO better to introduce the validation on entity-Level by https://github.com/typestack/class-validator
               if (recApiVersion.api.length > 10 || recApiVersion.url.length > 255) {
                 logger.warn(
-                  `received apiVersion with content longer than max length:${JSON.stringify(
+                  `received apiVersion with content longer than max length: ${JSON.stringify(
                     recApiVersion,
                   )}`,
                 )
@@ -135,8 +102,9 @@ export const startDHT = async (topic: string): Promise<void> => {
                   overwrite: ['end_point', 'last_announced_at'],
                 })
                 .execute()
+              // console.log(`upserted...`, variables)
               logger.info(`federation community upserted successfully...`)
-            })
+            }
           } else {
             logger.warn(
               `received totaly wrong or too much apiVersions-Definition JSON-String:${JSON.stringify(
@@ -208,19 +176,7 @@ export const startDHT = async (topic: string): Promise<void> => {
         })
 
         socket.on('open', function () {
-          if (CONFIG.FEDERATION_DHT_TEST_SOCKET === true) {
-            logger.info(
-              `test-mode for socket handshake is activated...Test:(${testModeCtrl + 1}/${
-                testModeData.length
-              })`,
-            )
-            socket.write(Buffer.from(JSON.stringify(testModeData[testModeCtrl++])))
-            if (testModeCtrl >= testModeData.length) {
-              testModeCtrl = 0
-            }
-          } else {
-            socket.write(Buffer.from(JSON.stringify(ownApiVersions)))
-          }
+          socket.write(Buffer.from(JSON.stringify(ownApiVersions)))
           successfulRequests.push(remotePubKey)
         })
       })

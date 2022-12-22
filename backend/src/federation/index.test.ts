@@ -207,13 +207,13 @@ describe('federation', () => {
             })
 
             describe('with receiving array of string-arrays', () => {
-              beforeEach(() => {
+              beforeEach(async () => {
                 jest.clearAllMocks()
                 const strArray: string[][] = [
                   [`api`, `url`, `invalid type in array test`],
                   [`wrong`, `api`, `url`],
                 ]
-                socketEventMocks.data(Buffer.from(strArray.toString()))
+                await socketEventMocks.data(Buffer.from(strArray.toString()))
               })
 
               it('logs the received data', () => {
@@ -232,7 +232,7 @@ describe('federation', () => {
 
             describe('with receiving JSON-Array with too much entries', () => {
               let jsonArray: { api: string; url: string }[]
-              beforeEach(() => {
+              beforeEach(async () => {
                 jest.clearAllMocks()
                 jsonArray = [
                   { api: 'v1_0', url: 'too much versions at the same time test' },
@@ -242,7 +242,7 @@ describe('federation', () => {
                   { api: 'v1_0', url: 'url5' },
                   { api: 'v1_0', url: 'url6' },
                 ]
-                socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
+                await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
               })
 
               it('logs the received data', () => {
@@ -260,10 +260,10 @@ describe('federation', () => {
               })
             })
 
-            describe('with receiving wrong but tolerated property test', () => {
+            describe('with receiving wrong but tolerated property data', () => {
               let jsonArray: any[]
               let result: DbCommunity[] = []
-              beforeEach(async () => {
+              beforeAll(async () => {
                 jest.clearAllMocks()
                 jsonArray = [
                   {
@@ -277,19 +277,12 @@ describe('federation', () => {
                     wrong: 'wrong but tolerated property test',
                   },
                 ]
-                console.log(`jsonArray ${JSON.stringify(jsonArray)}`)
-                socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
+                await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
                 result = await DbCommunity.find()
               })
 
               afterAll(async () => {
                 await cleanDB()
-              })
-
-              it('logs the received data', () => {
-                expect(logger.info).toBeCalledWith(
-                  'data: [{"wrong":"wrong but tolerated property test","api":"v1_0","url":"url1"},{"api":"v2_0","url":"url2","wrong":"wrong but tolerated property test"}]',
-                )
               })
 
               it('has two Communty entries in database', () => {
@@ -328,6 +321,309 @@ describe('federation', () => {
                 )
               })
             })
+
+            describe('with receiving data but missing api property', () => {
+              let jsonArray: any[]
+              beforeEach(async () => {
+                jest.clearAllMocks()
+                jsonArray = [
+                  { test1: 'missing api proterty test', url: 'any url definition as string' },
+                  { api: 'some api', test2: 'missing url property test' },
+                ]
+                await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
+              })
+
+              it('logs the received data', () => {
+                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+              })
+
+              it('logs a warning of invalid apiVersion-Definition', () => {
+                expect(logger.warn).toBeCalledWith(
+                  `received invalid apiVersion-Definition: ${JSON.stringify(jsonArray[0])}`,
+                )
+              })
+            })
+
+            describe('with receiving data but missing url property', () => {
+              let jsonArray: any[]
+              beforeEach(async () => {
+                jest.clearAllMocks()
+                jsonArray = [
+                  { api: 'some api', test2: 'missing url property test' },
+                  { test1: 'missing api proterty test', url: 'any url definition as string' },
+                ]
+                await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
+              })
+
+              it('logs the received data', () => {
+                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+              })
+
+              it('logs a warning of invalid apiVersion-Definition', () => {
+                expect(logger.warn).toBeCalledWith(
+                  `received invalid apiVersion-Definition: ${JSON.stringify(jsonArray[0])}`,
+                )
+              })
+            })
+
+            describe('with receiving data but wrong type of api property', () => {
+              let jsonArray: any[]
+              beforeEach(async () => {
+                jest.clearAllMocks()
+                jsonArray = [
+                  { api: 1, url: 'wrong property type tests' },
+                  { api: 'urltyptest', url: 2 },
+                  { api: 1, url: 2 },
+                ]
+                await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
+              })
+
+              it('logs the received data', () => {
+                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+              })
+
+              it('logs a warning of invalid apiVersion-Definition', () => {
+                expect(logger.warn).toBeCalledWith(
+                  `received invalid apiVersion-Definition: ${JSON.stringify(jsonArray[0])}`,
+                )
+              })
+            })
+
+            describe('with receiving data but wrong type of url property', () => {
+              let jsonArray: any[]
+              beforeEach(async () => {
+                jest.clearAllMocks()
+                jsonArray = [
+                  { api: 'urltyptest', url: 2 },
+                  { api: 1, url: 'wrong property type tests' },
+                  { api: 1, url: 2 },
+                ]
+                await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
+              })
+
+              it('logs the received data', () => {
+                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+              })
+
+              it('logs a warning of invalid apiVersion-Definition', () => {
+                expect(logger.warn).toBeCalledWith(
+                  `received invalid apiVersion-Definition: ${JSON.stringify(jsonArray[0])}`,
+                )
+              })
+            })
+
+            describe('with receiving data but wrong type of both properties', () => {
+              let jsonArray: any[]
+              beforeEach(async () => {
+                jest.clearAllMocks()
+                jsonArray = [
+                  { api: 1, url: 2 },
+                  { api: 'urltyptest', url: 2 },
+                  { api: 1, url: 'wrong property type tests' },
+                ]
+                await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
+              })
+
+              it('logs the received data', () => {
+                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+              })
+
+              it('logs a warning of invalid apiVersion-Definition', () => {
+                expect(logger.warn).toBeCalledWith(
+                  `received invalid apiVersion-Definition: ${JSON.stringify(jsonArray[0])}`,
+                )
+              })
+            })
+
+            describe('with receiving data but too long api string', () => {
+              let jsonArray: any[]
+              beforeEach(async () => {
+                jest.clearAllMocks()
+                jsonArray = [
+                  { api: 'toolong api', url: 'some valid url' },
+                  {
+                    api: 'valid  api',
+                    url: 'this is a too long url definition with exact one character more than the allowed two hundert and fiftyfive characters. and here begins the fill characters with no sense of content menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmic',
+                  },
+                  {
+                    api: 'toolong api',
+                    url: 'this is a too long url definition with exact one character more than the allowed two hundert and fiftyfive characters. and here begins the fill characters with no sense of content menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmic',
+                  },
+                ]
+                await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
+              })
+
+              it('logs the received data', () => {
+                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+              })
+
+              it('logs a warning of invalid apiVersion-Definition', () => {
+                expect(logger.warn).toBeCalledWith(
+                  `received apiVersion with content longer than max length: ${JSON.stringify(
+                    jsonArray[0],
+                  )}`,
+                )
+              })
+            })
+
+            describe('with receiving data but too long url string', () => {
+              let jsonArray: any[]
+              beforeEach(async () => {
+                jest.clearAllMocks()
+                jsonArray = [
+                  {
+                    api: 'api',
+                    url: 'this is a too long url definition with exact one character more than the allowed two hundert and fiftyfive characters. and here begins the fill characters with no sense of content menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmic',
+                  },
+                  { api: 'toolong api', url: 'some valid url' },
+                  {
+                    api: 'toolong api',
+                    url: 'this is a too long url definition with exact one character more than the allowed two hundert and fiftyfive characters. and here begins the fill characters with no sense of content menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmic',
+                  },
+                ]
+                await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
+              })
+
+              it('logs the received data', () => {
+                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+              })
+
+              it('logs a warning of invalid apiVersion-Definition', () => {
+                expect(logger.warn).toBeCalledWith(
+                  `received apiVersion with content longer than max length: ${JSON.stringify(
+                    jsonArray[0],
+                  )}`,
+                )
+              })
+            })
+
+            describe('with receiving data but both properties with too long strings', () => {
+              let jsonArray: any[]
+              beforeEach(async () => {
+                jest.clearAllMocks()
+                jsonArray = [
+                  {
+                    api: 'toolong api',
+                    url: 'this is a too long url definition with exact one character more than the allowed two hundert and fiftyfive characters. and here begins the fill characters with no sense of content menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmic',
+                  },
+                  {
+                    api: 'api',
+                    url: 'this is a too long url definition with exact one character more than the allowed two hundert and fiftyfive characters. and here begins the fill characters with no sense of content menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmic',
+                  },
+                  { api: 'toolong api', url: 'some valid url' },
+                ]
+                await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
+              })
+
+              it('logs the received data', () => {
+                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+              })
+            })
+
+            describe('with receiving data of exact max allowed properties length', () => {
+              let jsonArray: any[]
+              let result: DbCommunity[] = []
+              beforeAll(async () => {
+                jest.clearAllMocks()
+                jsonArray = [
+                  {
+                    api: 'valid  api',
+                    url: 'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
+                  },
+                  {
+                    api: 'api',
+                    url: 'this is a too long url definition with exact one character more than the allowed two hundert and fiftyfive characters. and here begins the fill characters with no sense of content menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmic',
+                  },
+                  { api: 'toolong api', url: 'some valid url' },
+                ]
+                await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
+                result = await DbCommunity.find()
+              })
+
+              afterAll(async () => {
+                await cleanDB()
+              })
+
+              it('has one Communty entry in database', () => {
+                expect(result).toHaveLength(1)
+              })
+
+              it(`has an entry with max content length for api and url`, () => {
+                expect(result).toEqual(
+                  expect.arrayContaining([
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      publicKey: expect.any(Buffer),
+                      apiVersion: 'valid  api',
+                      endPoint:
+                        'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
+                      lastAnnouncedAt: expect.any(Date),
+                      createdAt: expect.any(Date),
+                      updatedAt: null,
+                    }),
+                  ]),
+                )
+              })
+            })
+
+            /*
+            describe('with receiving data of exact max allowed buffer length', () => {
+              let jsonArray: any[]
+              let result: DbCommunity[] = []
+              beforeAll(async () => {
+                jest.clearAllMocks()
+                jsonArray = [
+                  {
+                    api: 'valid api1',
+                    url: 'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
+                  },
+                  {
+                    api: 'valid api2',
+                    url: 'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
+                  },
+                  {
+                    api: 'valid api3',
+                    url: 'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
+                  },
+                  {
+                    api: 'valid api4',
+                    url: 'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
+                  },
+                  {
+                    api: 'valid api5',
+                    url: 'this is a valid url definition with exact the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmiga menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofriertesmich',
+                  },
+                ]
+                await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
+                result = await DbCommunity.find()
+              })
+
+              afterAll(async () => {
+                // await cleanDB()
+              })
+
+              it('has five Communty entries in database', () => {
+                expect(result).toHaveLength(5)
+              })
+
+              it(`has an entry with max content length for api and url`, () => {
+                expect(result).toEqual(
+                  expect.arrayContaining([
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      publicKey: expect.any(Buffer),
+                      apiVersion: 'valid api1',
+                      endPoint:
+                        'this is a valid url definition with the max allowed length of two hundert and fiftyfive characters. and here begins the fill characters with no sense of content kuhwarmigasmilchdirek menschhabicheinhungerdassichnichtweiswoichheutnachtschlafensollsofrierts',
+                      lastAnnouncedAt: expect.any(Date),
+                      createdAt: expect.any(Date),
+                      updatedAt: null,
+                    }),
+                  ]),
+                )
+              })
+            })
+            */
 
             describe('with proper data', () => {
               let result: DbCommunity[] = []
