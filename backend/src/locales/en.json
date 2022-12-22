@@ -6,7 +6,7 @@
       "toSeeAndAnswerMessage": "To view and reply to the message, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!"
     },
     "accountActivation": {
-      "duration": "The link has a validity of {hours} hours and {minutes} minutes. If the validity of the link has already expired, you can have a new link sent to you here by entering your email address:",
+      "duration": "The link has a validity of {hours} hours and {minutes} minutes. If the validity of the link has already expired, you can have a new link sent to you here:",
       "emailRegistered": "Your email address has just been registered with Gradido.",
       "pleaseClickLink": "Please click on this link to complete the registration and activate your Gradido account:",
       "subject": "Gradido: Email Verification"
@@ -40,22 +40,25 @@
       "yourGradidoTeam": "your Gradido team"
     },
     "resetPassword": {
-      "duration": "The link has a validity of {hours} hours and {minutes} minutes. If the validity of the link has already expired, you can have a new link sent to you here by entering your email address:",
+      "duration": "The link has a validity of {hours} hours and {minutes} minutes. If the validity of the link has already expired, you can have a new link sent to you here:",
       "pleaseClickLink": "If it was you, please click on the link:",
       "subject": "Gradido: Reset password",
       "youOrSomeoneResetPassword": "You, or someone else, requested a password reset for this account."
     },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) has just redeemed your link.",
-      "memo": "Memo: {transactionMemo}",
+      "memo": "Message: {transactionMemo}",
       "subject": "Gradido: Your Gradido link has been redeemed"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "You have just received {transactionAmount} GDD from {senderFirstName} {senderLastName} ({senderEmail}).",
-      "subject": "Gradido: You have received Gradidos"
+      "subject": "Gradido: {senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido"
     }
   },
   "general": {
-    "decimalSeparator": "."
+    "decimalSeparator": ".",
+    "imprint": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+    "imprintImageAlt": "Gradido-Akademie Logo",
+    "imprintImageURL": "https://gdd.gradido.net/img/brand/green.png"
   }
 }
