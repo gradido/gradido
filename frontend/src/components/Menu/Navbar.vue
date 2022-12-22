@@ -21,10 +21,15 @@
               <div>
                 <div class="d-flex align-items-center">
                   <div class="mr-3">
-                    <avatar :username="username" :color="'#fff'" :size="81"></avatar>
+                    <avatar
+                      :username="username.username"
+                      :initials="username.initials"
+                      :color="'#fff'"
+                      :size="81"
+                    ></avatar>
                   </div>
                   <div>
-                    <div data-test="navbar-item-username">{{ username }}</div>
+                    <div data-test="navbar-item-username">{{ username.username }}</div>
 
                     <div class="text-right">
                       {{ $store.state.email }}
@@ -64,7 +69,10 @@ export default {
   },
   computed: {
     username() {
-      return `${this.$store.state.firstName} ${this.$store.state.lastName}`
+      return {
+        username: `${this.$store.state.firstName} ${this.$store.state.lastName}`,
+        initials: `${this.$store.state.firstName[0]}${this.$store.state.lastName[0]}`,
+      }
     },
   },
 }

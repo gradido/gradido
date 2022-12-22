@@ -8,7 +8,8 @@
         <b-col cols="2">
           <avatar
             v-if="firstName"
-            :username="username"
+            :username="username.username"
+            :initials="username.initials"
             color="#fff"
             class="font-weight-bold"
           ></avatar>
@@ -269,7 +270,10 @@ export default {
       return 'collapse' + String(this.id)
     },
     username() {
-      return `${this.firstName} ${this.lastName}`
+      return {
+        username: `${this.firstName} ${this.lastName}`,
+        initials: `${this.firstName[0]}${this.lastName[0]}`,
+      }
     },
   },
   methods: {
