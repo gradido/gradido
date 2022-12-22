@@ -1,7 +1,7 @@
 <template>
   <b-row class="transaction-form">
-    <b-col xl="12" md="12" class="p-0">
-      <b-card class="p-0 m-0 appBoxShadow gradido-border-radius">
+    <b-col xl="12" md="12">
+      <b-card class="appBoxShadow gradido-border-radius">
         <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
           <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
             <b-form-radio-group v-model="radioSelected" class="container">
