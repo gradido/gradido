@@ -182,6 +182,8 @@ export const listContributions = gql`
         deletedAt
         state
         messagesCount
+        deniedAt
+        deniedBy
       }
     }
   }
