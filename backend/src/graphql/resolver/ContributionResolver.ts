@@ -642,7 +642,8 @@ export class ContributionResolver {
       })
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      throw new Error(`Creation was not successful.`)
+      logger.error('Creation was not successful', e)
+      throw new Error('Creation was not successful.')
     } finally {
       await queryRunner.release()
       releaseLock()
