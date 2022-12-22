@@ -16,8 +16,6 @@ const communityDbUser: dbUser = {
   emailId: -1,
   firstName: 'Gradido',
   lastName: 'Akademie',
-  pubKey: Buffer.from(''),
-  privKey: Buffer.from(''),
   deletedAt: null,
   password: BigInt(0),
   //  emailHash: Buffer.from(''),
@@ -26,7 +24,6 @@ const communityDbUser: dbUser = {
   language: '',
   isAdmin: null,
   publisherId: 0,
-  passphrase: '',
   // default password encryption type
   passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
   hasId: function (): boolean {
