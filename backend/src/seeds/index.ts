@@ -75,10 +75,7 @@ const run = async () => {
 
   // create GDD
   for (let i = 0; i < creations.length; i++) {
-    const now = new Date().getTime() // we have to wait a little! quick fix for account sum problem of bob@baumeister.de, (see https://github.com/gradido/gradido/issues/1886)
     await creationFactory(seedClient, creations[i])
-    // eslint-disable-next-line no-empty
-    while (new Date().getTime() < now + 1000) {} // we have to wait a little! quick fix for account sum problem of bob@baumeister.de, (see https://github.com/gradido/gradido/issues/1886)
   }
   logger.info('##seed## seeding all creations successful...')
 

@@ -23,6 +23,11 @@ import { User } from '@entity/User'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import Decimal from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+
+// mock semaphore to allow use fake timers
+jest.mock('@/util/TRANSACTIONS_LOCK')
+TRANSACTIONS_LOCK.acquire = jest.fn().mockResolvedValue(jest.fn())
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -185,8 +190,7 @@ describe('TransactionLinkResolver', () => {
       describe('after one day', () => {
         beforeAll(async () => {
           jest.useFakeTimers()
-          /* eslint-disable-next-line @typescript-eslint/no-empty-function */
-          setTimeout(() => {}, 1000 * 60 * 60 * 24)
+          setTimeout(jest.fn(), 1000 * 60 * 60 * 24)
           jest.runAllTimers()
           await mutate({
             mutation: login,
