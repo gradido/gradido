@@ -130,6 +130,14 @@ export default {
       type: String,
       required: false,
     },
+    deniedBy: {
+      type: Number,
+      required: false,
+    },
+    deniedAt: {
+      type: String,
+      required: false,
+    },
     state: {
       type: String,
       required: false,
@@ -157,11 +165,13 @@ export default {
   computed: {
     icon() {
       if (this.deletedAt) return 'x-circle'
+      if (this.deniedAt) return 'x-circle'
       if (this.confirmedAt) return 'check'
       return 'bell-fill'
     },
     variant() {
       if (this.deletedAt) return 'danger'
+      if (this.deniedAt) return 'danger'
       if (this.confirmedAt) return 'success'
       if (this.state === 'IN_PROGRESS') return 'warning'
       return 'primary'
