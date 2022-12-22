@@ -14,17 +14,13 @@ function isStringBoolean(value: string): boolean {
   return false
 }
 
-function isHexPublicKey(publicKey: string): boolean {
-  return /^[0-9A-Fa-f]{64}$/i.test(publicKey)
-}
-
 async function calculateBalance(
   userId: number,
   amount: Decimal,
   time: Date,
   transactionLink?: dbTransactionLink | null,
 ): Promise<{ balance: Decimal; decay: Decay; lastTransactionId: number } | null> {
-  const lastTransaction = await Transaction.findOne({ userId }, { order: { balanceDate: 'DESC' } })
+  const lastTransaction = await Transaction.findOne({ userId }, { order: { id: 'DESC' } })
   if (!lastTransaction) return null
 
   const decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time)
@@ -45,4 +41,4 @@ async function calculateBalance(
   return { balance, lastTransactionId: lastTransaction.id, decay }
 }
 
-export { isHexPublicKey, calculateBalance, isStringBoolean }
+export { calculateBalance, isStringBoolean }

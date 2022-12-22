@@ -5,16 +5,16 @@ html(lang=locale)
   body
     h1(style='margin-bottom: 24px;')= t('emails.accountActivation.subject')
     #container.col
-      p(style='margin-bottom: 24px;')= t('emails.general.helloName', { firstName, lastName })
+      include ../hello.pug
       p= t('emails.accountActivation.emailRegistered')
-      p= t('emails.accountActivation.pleaseClickLink')
+      p
+        = t('emails.accountActivation.pleaseClickLink')
         br
         a(href=activationLink) #{activationLink}
         br
-        span= t('emails.general.orCopyLink')
-      p= t('emails.accountActivation.duration', { hours: timeDurationObject.hours, minutes: timeDurationObject.minutes })
+        = t('emails.general.orCopyLink')
+      p
+        = t('emails.accountActivation.duration', { hours: timeDurationObject.hours, minutes: timeDurationObject.minutes })
         br
         a(href=resendLink) #{resendLink}
-      p(style='margin-top: 24px;')= t('emails.general.sincerelyYours')
-        br
-        span= t('emails.general.yourGradidoTeam')
+      include ../greatingFormularImprint.pug

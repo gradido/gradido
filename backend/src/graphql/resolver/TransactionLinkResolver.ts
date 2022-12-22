@@ -31,6 +31,7 @@ import { calculateDecay } from '@/util/decay'
 import { getUserCreation, validateContribution } from './util/creations'
 import { executeTransaction } from './TransactionResolver'
 import QueryLinkResult from '@union/QueryLinkResult'
+import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -165,10 +166,12 @@ export class TransactionLinkResolver {
   ): Promise<boolean> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
     const user = getUser(context)
-    const now = new Date()
 
     if (code.match(/^CL-/)) {
+      // acquire lock
+      const releaseLock = await TRANSACTIONS_LOCK.acquire()
       logger.info('redeem contribution link...')
+      const now = new Date()
       const queryRunner = getConnection().createQueryRunner()
       await queryRunner.connect()
       await queryRunner.startTransaction('REPEATABLE READ')
@@ -273,7 +276,7 @@ export class TransactionLinkResolver {
           .select('transaction')
           .from(DbTransaction, 'transaction')
           .where('transaction.userId = :id', { id: user.id })
-          .orderBy('transaction.balanceDate', 'DESC')
+          .orderBy('transaction.id', 'DESC')
           .getOne()
         let newBalance = new Decimal(0)
 
@@ -309,9 +312,11 @@ export class TransactionLinkResolver {
         throw new Error(`Creation from contribution link was not successful. ${e}`)
       } finally {
         await queryRunner.release()
+        releaseLock()
       }
       return true
     } else {
+      const now = new Date()
       const transactionLink = await DbTransactionLink.findOneOrFail({ code })
       const linkedUser = await DbUser.findOneOrFail(
         { id: transactionLink.userId },
@@ -322,6 +327,9 @@ export class TransactionLinkResolver {
         throw new Error('Cannot redeem own transaction link.')
       }
 
+      // TODO: The now check should be done within the semaphore lock,
+      // since the program might wait a while till it is ready to proceed
+      // writing the transaction.
       if (transactionLink.validUntil.getTime() < now.getTime()) {
         throw new Error('Transaction Link is not valid anymore.')
       }

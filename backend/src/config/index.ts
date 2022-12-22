@@ -10,14 +10,14 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0056-add_communities_table',
+  DB_VERSION: '0058-add_communities_table',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v13.2022-11-25',
+    EXPECTED: 'v14.2022-11-22',
     CURRENT: '',
   },
 }
@@ -58,6 +58,7 @@ const community = {
     process.env.COMMUNITY_REDEEM_CONTRIBUTION_URL || 'http://localhost/redeem/CL-{code}',
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
+  COMMUNITY_SUPPORT_MAIL: process.env.COMMUNITY_SUPPORT_MAIL || 'support@supportmail.com',
 }
 
 const loginServer = {
@@ -119,7 +120,6 @@ if (
 const federation = {
   FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC || null,
   FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
-  FEDERATION_DHT_TEST_SOCKET: process.env.FEDERATION_DHT_TEST_SOCKET === 'true' || false,
   FEDERATION_COMMUNITY_URL:
     process.env.FEDERATION_COMMUNITY_URL === undefined
       ? null

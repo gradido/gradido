@@ -139,7 +139,6 @@ jobs:
   build_test_nginx:
     name: Docker Build Test - Nginx
     runs-on: ubuntu-latest
-    needs: [build_test_backend, build_test_admin, build_test_frontend]
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
@@ -528,7 +527,7 @@ jobs:
           report_name: Coverage Backend
           type: lcov
           result_path: ./backend/coverage/lcov.info
-          min_coverage: 74
+          min_coverage: 76
           token: ${{ github.token }}
 
   ##########################################################################

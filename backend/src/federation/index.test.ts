@@ -9,7 +9,6 @@ import { Community as DbCommunity } from '@entity/Community'
 import { testEnvironment, cleanDB } from '@test/helpers'
 
 CONFIG.FEDERATION_DHT_SEED = '64ebcb0e3ad547848fef4197c6e2332f'
-CONFIG.FEDERATION_DHT_TEST_SOCKET = false
 
 jest.mock('@hyperswarm/dht')
 
