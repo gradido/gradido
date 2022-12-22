@@ -112,8 +112,8 @@ try {
       hasElopage: false,
       publisherId: null,
       creation: null,
-      hideAmountGDD: false,
-      hideAmountGDT: true,
+      hideAmountGDD: null,
+      hideAmountGDT: null,
     },
     getters: {},
     // Syncronous mutation of the state
