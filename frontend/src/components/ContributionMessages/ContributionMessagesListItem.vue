@@ -1,27 +1,47 @@
 <template>
   <div class="contribution-messages-list-item">
     <div v-if="isNotModerator" class="is-not-moderator text-right">
-      <b-avatar variant="info"></b-avatar>
-      <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
-      <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
+      <b-row>
+        <b-col cols="auto">
+          <avatar :username="storeName.username" :initials="storeName.initials"></avatar>
+        </b-col>
+        <b-col cols="auto">
+          <span class="ml-2 mr-2">{{ storeName.username }}</span>
+        </b-col>
+        <b-col cols="auto">
+          <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
+        </b-col>
+      </b-row>
+      <!-- <span class="ml-2 mr-2">{{ storeName.username }}</span>
+      <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span> -->
       <parse-message v-bind="message"></parse-message>
     </div>
     <div v-else class="is-moderator text-left">
-      <b-avatar square variant="warning"></b-avatar>
-      <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
-      <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
-      <small class="ml-4 text-success">{{ $t('community.moderator') }}</small>
+      <b-row>
+        <b-col cols="auto">
+          <avatar :username="moderationName.username" :initials="moderationName.initials"></avatar>
+          <small class="ml-4 text-success">{{ $t('community.moderator') }}</small>
+        </b-col>
+        <b-col cols="auto">
+          <span class="ml-2 mr-2">{{ moderationName.username }}</span>
+        </b-col>
+        <b-col cols="auto">
+          <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
+        </b-col>
+      </b-row>
       <parse-message v-bind="message"></parse-message>
     </div>
   </div>
 </template>
 
 <script>
+import Avatar from 'vue-avatar'
 import ParseMessage from '@/components/ContributionMessages/ParseMessage.vue'
 
 export default {
   name: 'ContributionMessagesListItem',
   components: {
+    Avatar,
     ParseMessage,
   },
   props: {
@@ -30,15 +50,21 @@ export default {
       required: true,
     },
   },
-  data() {
-    return {
-      storeName: `${this.$store.state.firstName} ${this.$store.state.lastName}`,
-      moderationName: `${this.message.userFirstName} ${this.message.userLastName}`,
-    }
-  },
   computed: {
     isNotModerator() {
-      return this.storeName === this.moderationName
+      return this.storeName.username === this.moderationName.username
+    },
+    storeName() {
+      return {
+        username: `${this.$store.state.firstName} ${this.$store.state.lastName}`,
+        initials: `${this.$store.state.firstName[0]}${this.$store.state.lastName[0]}`,
+      }
+    },
+    moderationName() {
+      return {
+        username: `${this.message.userFirstName} ${this.message.userLastName}`,
+        initials: `${this.message.userFirstName[0]}${this.message.userLastName[0]}`,
+      }
     },
   },
 }
