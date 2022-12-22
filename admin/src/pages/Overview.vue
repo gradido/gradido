@@ -40,7 +40,7 @@ export default {
       this.$apollo
         .query({
           query: listUnconfirmedContributions,
-          fetchPolicy: 'network-only',
+          // Wolle: cache statistics here? default is "fetchPolicy: 'network-only'"
         })
         .then((result) => {
           this.$store.commit('setOpenCreations', result.data.listUnconfirmedContributions.length)

@@ -32,4 +32,10 @@ const apolloClient = new ApolloClient({
 
 export const apolloProvider = new VueApollo({
   defaultClient: apolloClient,
+  defaultOptions: {
+    // apollo options applied to all queries in components
+    $query: {
+      fetchPolicy: 'network-only',
+    },
+  },
 })

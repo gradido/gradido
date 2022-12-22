@@ -88,7 +88,7 @@ import TransactionCreation from '@/components/Transactions/TransactionCreation'
 import TransactionLinkSummary from '@/components/Transactions/TransactionLinkSummary'
 
 export default {
-  name: 'gdd-transaction-list',
+  name: 'GddTransactionList',
   components: {
     TransactionListItem,
     TransactionDecay,

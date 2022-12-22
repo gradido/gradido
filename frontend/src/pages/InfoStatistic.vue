@@ -124,25 +124,24 @@ export default {
           this.toastError('searchAdminUsers has no result, use default data')
         })
     },
-    /*
-        getCommunityStatistics() {
-        this.$apollo
-        .query({
-        query: communityStatistics,
-        })
-        .then((result) => {
-        this.totalUsers = result.data.communityStatistics.totalUsers
-        this.totalGradidoCreated = result.data.communityStatistics.totalGradidoCreated
-        this.totalGradidoDecayed =
-        Number(result.data.communityStatistics.totalGradidoDecayed) +
-        Number(result.data.communityStatistics.totalGradidoUnbookedDecayed)
-        this.totalGradidoAvailable = result.data.communityStatistics.totalGradidoAvailable
-        })
-        .catch(() => {
-        this.toastError('communityStatistics has no result, use default data')
-        })
-        },
-      */
+    // getCommunityStatistics() {
+    //   this.$apollo
+    //     .query({
+    //       query: communityStatistics,
+    //       // !!! cache statistics here? default is "fetchPolicy: 'network-only'"
+    //     })
+    //     .then((result) => {
+    //       this.totalUsers = result.data.communityStatistics.totalUsers
+    //       this.totalGradidoCreated = result.data.communityStatistics.totalGradidoCreated
+    //       this.totalGradidoDecayed =
+    //       Number(result.data.communityStatistics.totalGradidoDecayed) +
+    //       Number(result.data.communityStatistics.totalGradidoUnbookedDecayed)
+    //       this.totalGradidoAvailable = result.data.communityStatistics.totalGradidoAvailable
+    //     })
+    //     .catch(() => {
+    //       this.toastError('communityStatistics has no result, use default data')
+    //     })
+    // },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
     },
