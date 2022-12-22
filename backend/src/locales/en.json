@@ -57,6 +57,8 @@
   },
   "general": {
     "decimalSeparator": ".",
-    "imprint": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland"
+    "imprint": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+    "imprintImageAlt": "Gradido-Akademie Logo",
+    "imprintImageURL": "https://gdd.gradido.net/img/brand/green.png"
   }
 }
