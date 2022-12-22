@@ -6,7 +6,7 @@
         <b-icon icon="three-dots-vertical"></b-icon>
       </b-col> -->
     </b-row>
-    <!-- <b-list-group class="mt-5"> -->
+
     <div v-for="(transaction, index) in transactions" :key="transaction.id">
       <b-row
         align-v="center"
@@ -24,6 +24,7 @@
               :size="72"
               :color="'#fff'"
               :username="`${transaction.linkedUser.firstName} ${transaction.linkedUser.lastName}`"
+              :initials="`${transaction.linkedUser.firstName[0]}${transaction.linkedUser.lastName[0]}`"
             ></avatar>
           </div>
         </b-col>
@@ -49,27 +50,7 @@
           </b-row>
         </b-col>
       </b-row>
-      <!-- <b-list-group-item
-          class="border-0"
-          v-if="
-            index <= 7 &&
-            transaction.typeId !== 'DECAY' &&
-            transaction.typeId !== 'LINK_SUMMARY' &&
-            transaction.typeId !== 'CREATION'
-          "
-        >
-          <div class="d-flex align-items-center">
-            <avatar
-              :username="`${transaction.linkedUser.firstName} ${transaction.linkedUser.lastName}`"
-            ></avatar>
-            <span>
-              <name :linkedUser="transaction.linkedUser" @set-tunneled-email="setTunneledEmail" />
-            </span>
-            <b-badge>{{ transaction.amount | GDD }}</b-badge>
-          </div>
-        </b-list-group-item> -->
     </div>
-    <!-- </b-list-group> -->
   </div>
 </template>
 <script>

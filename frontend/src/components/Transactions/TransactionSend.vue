@@ -2,7 +2,12 @@
   <div class="transaction-slot-send">
     <b-row @click="visible = !visible" class="align-items-center">
       <b-col cols="2">
-        <avatar :username="username" :color="'#fff'" size="42"></avatar>
+        <avatar
+          :username="username.username"
+          :initials="username.initials"
+          :color="'#fff'"
+          size="42"
+        ></avatar>
       </b-col>
       <b-col>
         <div>
@@ -104,7 +109,10 @@ export default {
   },
   computed: {
     username() {
-      return `${this.linkedUser.firstName} ${this.linkedUser.lastName}`
+      return {
+        username: `${this.linkedUser.firstName} ${this.linkedUser.lastName}`,
+        initials: `${this.linkedUser.firstName[0]}${this.linkedUser.lastName[0]}`,
+      }
     },
   },
 }

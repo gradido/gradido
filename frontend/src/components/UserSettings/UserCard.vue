@@ -2,7 +2,12 @@
   <div class="userdata-card">
     <b-row>
       <b-col class="centerPerMargin">
-        <avatar :username="username" :color="'#fff'" :size="90"></avatar>
+        <avatar
+          :username="username.username"
+          :initials="username.initials"
+          :color="'#fff'"
+          :size="90"
+        ></avatar>
       </b-col>
     </b-row>
     <b-card class="border-0">
@@ -53,13 +58,16 @@ export default {
   },
   computed: {
     username() {
-      return `${this.$store.state.firstName} ${this.$store.state.lastName}`
+      return {
+        username: `${this.$store.state.firstName} ${this.$store.state.lastName}`,
+        initials: `${this.$store.state.firstName[0]}${this.$store.state.lastName[0]}`,
+      }
     },
   },
 }
 </script>
 <style scoped>
 .centerPerMargin {
-  padding-left: 38%;
+  padding-left: 44%;
 }
 </style>
