@@ -22,7 +22,6 @@
         </div>
         <span class="small">{{ this.$d(new Date(balanceDate), 'short') }}</span>
         <span class="ml-4 small">{{ this.$d(new Date(balanceDate), 'time') }}</span>
-        <div class="word-break">{{ memo }}</div>
       </b-col>
       <b-col cols="3">
         <div class="small">
@@ -42,6 +41,10 @@
       <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>
     </b-row>
     <b-collapse class="pb-4 pt-5" v-model="visible">
+      <div class="word-break mb-4 text-center">
+        <div class="font-weight-bold pb-2">{{ $t('form.memo') }}</div>
+        {{ memo }}
+      </div>
       <decay-information :typeId="typeId" :decay="decay" :amount="amount" />
     </b-collapse>
   </div>
