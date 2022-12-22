@@ -584,7 +584,6 @@ export class ContributionResolver {
 
     // acquire lock
     const releaseLock = await TRANSACTIONS_LOCK.acquire()
-    console.log(`locked for confirmContribution ${id}`)
 
     const receivedCallDate = new Date()
     const queryRunner = getConnection().createQueryRunner()
@@ -645,11 +644,9 @@ export class ContributionResolver {
       })
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      console.log(`Creation was not successful:`, e)
       throw new Error(`Creation was not successful.`)
     } finally {
       await queryRunner.release()
-      console.log(`release for confirmContribution ${id}`)
       releaseLock()
     }
 

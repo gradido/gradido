@@ -63,7 +63,6 @@ export const executeTransaction = async (
 
   // acquire lock
   const releaseLock = await TRANSACTIONS_LOCK.acquire()
-  console.log(`locked for executeTransaction ${amount.toString()} ${recipient.firstName}`)
 
   try {
     // validate amount
@@ -189,7 +188,6 @@ export const executeTransaction = async (
     logger.info(`finished executeTransaction successfully`)
     return true
   } finally {
-    console.log(`release for executeTransaction ${amount.toString()} ${recipient.firstName}`)
     releaseLock()
   }
 }
