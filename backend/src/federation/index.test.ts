@@ -771,7 +771,7 @@ describe('federation', () => {
               socketEventMocks.open()
             })
 
-            it('calls socket write with own api versions', () => {
+            it.skip('calls socket write with own api versions', () => {
               expect(socketWriteMock).toBeCalledWith(
                 Buffer.from(
                   JSON.stringify([
