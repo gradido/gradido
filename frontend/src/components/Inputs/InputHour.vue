@@ -25,7 +25,7 @@
 </template>
 <script>
 export default {
-  name: 'InputTime',
+  name: 'InputHour',
   props: {
     rules: {
       type: Object,

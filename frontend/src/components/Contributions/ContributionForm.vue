@@ -42,7 +42,7 @@
           :placeholder="$t('contribution.yourActivity')"
           :rules="{ required: true, min: 5, max: 255 }"
         />
-        <input-time
+        <input-hour
           v-model="form.hours"
           :name="$t('form.hours')"
           :label="$t('form.hours')"
@@ -55,7 +55,7 @@
           }"
           :validMaxTime="validMaxTime"
           @updateAmount="updateAmount"
-        ></input-time>
+        ></input-hour>
         <!-- <validation-provider
         :rules="{
           min: minlength,
@@ -125,14 +125,14 @@
   </div>
 </template>
 <script>
-import InputTime from '@/components/Inputs/InputTime.vue'
+import InputHour from '@/components/Inputs/InputHour.vue'
 import InputAmount from '@/components/Inputs/InputAmount.vue'
 import InputTextarea from '@/components/Inputs/InputTextarea.vue'
 
 export default {
   name: 'ContributionForm',
   components: {
-    InputTime,
+    InputHour,
     InputAmount,
     InputTextarea,
   },
