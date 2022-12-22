@@ -16,7 +16,7 @@
         </div>
         <span class="small">{{ this.$d(new Date(balanceDate), 'short') }}</span>
         <span class="ml-4 small">{{ this.$d(new Date(balanceDate), 'time') }}</span>
-        <div>{{ memo }}</div>
+        <div class="word-break">{{ memo }}</div>
       </b-col>
       <b-col cols="3">
         <div class="small">
