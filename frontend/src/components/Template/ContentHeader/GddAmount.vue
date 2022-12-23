@@ -1,5 +1,5 @@
 <template>
-  <div class="translucent-color-opacity">
+  <div class="gdd-amount translucent-color-opacity">
     <div class="text-center">
       <b-badge
         v-if="badgeShow"
