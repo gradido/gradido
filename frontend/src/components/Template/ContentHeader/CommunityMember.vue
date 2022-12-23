@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="community-member">
     <div class="text-center">
       <b-badge class="position-absolute mt--2 ml--5 px-3" variant="success">
         {{ $t('member') }}
