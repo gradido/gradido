@@ -2,34 +2,33 @@
   <div class="contribution-messages-list-item">
     <div v-if="isNotModerator" class="is-not-moderator text-right">
       <b-row>
-        <b-col cols="auto">
+        <b-col>
+          <div class="font-weight-bold">{{ storeName.username }}</div>
+          <div class="small">{{ $d(new Date(message.createdAt), 'short') }}</div>
+          <parse-message v-bind="message"></parse-message>
+        </b-col>
+        <b-col cols="2">
           <avatar :username="storeName.username" :initials="storeName.initials"></avatar>
-        </b-col>
-        <b-col cols="auto">
-          <span class="ml-2 mr-2">{{ storeName.username }}</span>
-        </b-col>
-        <b-col cols="auto">
-          <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
         </b-col>
       </b-row>
       <!-- <span class="ml-2 mr-2">{{ storeName.username }}</span>
       <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span> -->
-      <parse-message v-bind="message"></parse-message>
     </div>
     <div v-else class="is-moderator text-left">
       <b-row>
-        <b-col cols="auto">
+        <b-col cols="2">
           <avatar :username="moderationName.username" :initials="moderationName.initials"></avatar>
-          <small class="ml-4 text-success">{{ $t('community.moderator') }}</small>
         </b-col>
         <b-col cols="auto">
-          <span class="ml-2 mr-2">{{ moderationName.username }}</span>
-        </b-col>
-        <b-col cols="auto">
-          <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
+          <div class="font-weight-bold">
+            {{ moderationName.username }}
+            <small class="ml-2 text-success">{{ $t('community.moderator') }}</small>
+          </div>
+
+          <div class="small">{{ $d(new Date(message.createdAt), 'short') }}</div>
+          <parse-message v-bind="message"></parse-message>
         </b-col>
       </b-row>
-      <parse-message v-bind="message"></parse-message>
     </div>
   </div>
 </template>

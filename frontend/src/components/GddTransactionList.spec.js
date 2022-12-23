@@ -447,7 +447,7 @@ describe('GddTransactionList', () => {
       describe('next page button clicked', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
-          // await wrapper.vm.$nextTick()
+          await wrapper.vm.$nextTick()
           await wrapper.findComponent({ name: 'BPagination' }).vm.$emit('input', 2)
         })
 
