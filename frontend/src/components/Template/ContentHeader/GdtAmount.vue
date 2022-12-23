@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-center">
+    <div class="gdt-amount text-center">
       <b-badge
         v-if="badgeShow"
         class="position-absolute mt--2 ml--4 px-3 zindex1"
