@@ -25,7 +25,7 @@ describe('CommunityMember', () => {
       wrapper = Wrapper()
     })
 
-    it('renders the component transaction-slot-send', () => {
+    it('renders the component community-member', () => {
       expect(wrapper.find('div.community-member').exists()).toBe(true)
     })
   })
