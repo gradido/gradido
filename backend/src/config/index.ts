@@ -120,8 +120,6 @@ if (
 const federation = {
   FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC || null,
   FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
-  FEDERATION_COMMUNITY_ACTIVATE_ENDPOINTS:
-    process.env.FEDERATION_COMMUNITY_ACTIVATE_ENDPOINTS === 'true' || false,
   FEDERATION_COMMUNITY_URL:
     process.env.FEDERATION_COMMUNITY_URL === undefined
       ? null

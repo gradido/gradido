@@ -11,14 +11,14 @@ Decimal.set({
 */
 
 const constants = {
-  DB_VERSION: '0056-add_communities_table',
+  DB_VERSION: '0058-add_communities_table',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v13.2022-11-25',
+    EXPECTED: 'v14.2022-11-22',
     CURRENT: '',
   },
 }
@@ -40,16 +40,7 @@ const database = {
   DB_DATABASE: process.env.DB_DATABASE || 'gradido_community',
   TYPEORM_LOGGING_RELATIVE_PATH: process.env.TYPEORM_LOGGING_RELATIVE_PATH || 'typeorm.backend.log',
 }
-/*
-const klicktipp = {
-  KLICKTIPP: process.env.KLICKTIPP === 'true' || false,
-  KLICKTTIPP_API_URL: process.env.KLICKTIPP_API_URL || 'https://api.klicktipp.com',
-  KLICKTIPP_USER: process.env.KLICKTIPP_USER || 'gradido_test',
-  KLICKTIPP_PASSWORD: process.env.KLICKTIPP_PASSWORD || 'secret321',
-  KLICKTIPP_APIKEY_DE: process.env.KLICKTIPP_APIKEY_DE || 'SomeFakeKeyDE',
-  KLICKTIPP_APIKEY_EN: process.env.KLICKTIPP_APIKEY_EN || 'SomeFakeKeyEN',
-}
-*/
+
 const community = {
   COMMUNITY_NAME: process.env.COMMUNITY_NAME || 'Gradido Entwicklung',
   COMMUNITY_URL: process.env.COMMUNITY_URL || 'http://localhost/',
@@ -60,42 +51,6 @@ const community = {
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
 }
-/*
-const loginServer = {
-  LOGIN_APP_SECRET: process.env.LOGIN_APP_SECRET || '21ffbbc616fe',
-  LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY || 'a51ef8ac7ef1abf162fb7a65261acd7a',
-}
-
-const email = {
-  EMAIL: process.env.EMAIL === 'true' || false,
-  EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true' || false,
-  EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER || 'stage1@gradido.net',
-  EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'gradido_email',
-  EMAIL_SENDER: process.env.EMAIL_SENDER || 'info@gradido.net',
-  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'xxx',
-  EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
-  EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
-  EMAIL_LINK_VERIFICATION:
-    process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{optin}{code}',
-  EMAIL_LINK_SETPASSWORD:
-    process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset-password/{optin}',
-  EMAIL_LINK_FORGOTPASSWORD:
-    process.env.EMAIL_LINK_FORGOTPASSWORD || 'http://localhost/forgot-password',
-  EMAIL_LINK_OVERVIEW: process.env.EMAIL_LINK_OVERVIEW || 'http://localhost/overview',
-  // time in minutes a optin code is valid
-  EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
-    ? parseInt(process.env.EMAIL_CODE_VALID_TIME) || 1440
-    : 1440,
-  // time in minutes that must pass to request a new optin code
-  EMAIL_CODE_REQUEST_TIME: process.env.EMAIL_CODE_REQUEST_TIME
-    ? parseInt(process.env.EMAIL_CODE_REQUEST_TIME) || 10
-    : 10,
-}
-
-const webhook = {
-  // Elopage
-  WEBHOOK_ELOPAGE_SECRET: process.env.WEBHOOK_ELOPAGE_SECRET || 'secret',
-}
 
 const eventProtocol = {
   // global switch to enable writing of EventProtocol-Entries
@@ -104,7 +59,7 @@ const eventProtocol = {
 
 // This is needed by graphql-directive-auth
 process.env.APP_SECRET = server.JWT_SECRET
-*/
+
 // Check config version
 constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION || constants.CONFIG_VERSION.DEFAULT
 if (
@@ -122,8 +77,6 @@ const federation = {
   FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
   FEDERATION_PORT: process.env.FEDERATION_PORT || 5001,
   FEDERATION_API: process.env.FEDERATION_API || '1_0',
-  FEDERATION_COMMUNITY_ACTIVATE_ENDPOINTS:
-    process.env.FEDERATION_COMMUNITY_ACTIVATE_ENDPOINTS === 'true' || false,
   FEDERATION_COMMUNITY_URL: process.env.FEDERATION_COMMUNITY_URL || null,
 }
 
