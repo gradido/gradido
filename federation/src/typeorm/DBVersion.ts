@@ -1,5 +1,5 @@
 import { Migration } from '@entity/Migration'
-import { backendLogger as logger } from '@/server/logger'
+import { federationLogger as logger } from '@/server/logger'
 
 const getDBVersion = async (): Promise<string | null> => {
   try {
