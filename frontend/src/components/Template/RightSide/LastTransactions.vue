@@ -24,7 +24,6 @@
               :size="72"
               :color="'#fff'"
               :username="`${transaction.linkedUser.firstName} ${transaction.linkedUser.lastName}`"
-              :initials="`${transaction.linkedUser.firstName[0]}${transaction.linkedUser.lastName[0]}`"
             ></avatar>
           </div>
         </b-col>
