@@ -2,7 +2,7 @@
   <div class="gdt-transaction-list">
     <div class="list-group bg-white appBoxShadow gradido-border-radius p-3 mb-3">
       <b-row @click="visible = !visible" class="align-items-center">
-        <b-col cols="2">
+        <b-col cols="3" lg="2" md="2">
           <b-avatar
             :icon="getLinesByType.icon"
             variant="light"
@@ -25,11 +25,13 @@
             {{ getLinesByType.descriptiontext }}
           </div>
         </b-col>
-        <b-col cols="3">
+        <b-col cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
           <div class="small mt-2">{{ $t('gdt.credit') }}</div>
           <div class="font-weight-bold">{{ getLinesByType.credittext }}</div>
         </b-col>
-        <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>
+        <b-col cols="12" md="1" lg="1" class="text-right">
+          <collapse-icon class="text-right" :visible="visible" />
+        </b-col>
       </b-row>
 
       <b-collapse :id="collapseId" class="mt-2" v-model="visible">

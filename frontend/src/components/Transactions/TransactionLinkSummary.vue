@@ -1,18 +1,20 @@
 <template>
   <div class="transaction-slot-link">
     <b-row @click="showTransactionLinks()" class="align-items-center">
-      <b-col cols="2">
+      <b-col cols="3" lg="2" md="2">
         <b-avatar icon="link" variant="light" size="42"></b-avatar>
       </b-col>
       <b-col>
         <div>{{ $t('gdd_per_link.links_sum') }}</div>
         <div class="small">{{ transactionLinkCount }} {{ $t('gdd_per_link.links_sum') }}</div>
       </b-col>
-      <b-col cols="3">
+      <b-col cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
         <div class="small">{{ $t('send_per_link') }}</div>
         <div class="font-weight-bold">{{ amount | GDD }}</div>
       </b-col>
-      <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>
+      <b-col cols="12" md="1" lg="1" class="text-right">
+        <collapse-icon class="text-right" :visible="visible" />
+      </b-col>
     </b-row>
     <b-collapse v-model="visible">
       <collapse-links-list

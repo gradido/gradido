@@ -5,7 +5,9 @@
       <b-col>
         {{ $t('decay.decay_since_last_transaction') }}
       </b-col>
-      <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>
+      <b-col cols="12" md="1" lg="1" class="text-right">
+        <collapse-icon class="text-right" :visible="visible" />
+      </b-col>
     </b-row>
 
     <b-collapse class="pb-4 pt-5" v-model="visible">

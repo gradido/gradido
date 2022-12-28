@@ -13,7 +13,18 @@
         </b-button>
       </b-navbar-brand>
       <b-img class="sheet-img position-absolute zindex-1" :src="sheet"></b-img>
-
+      <router-link to="/settings" class="d-block d-lg-none zindex10">
+        <div class="d-flex align-items-center">
+          <div class="mr-3">
+            <avatar
+              :username="username.username"
+              :initials="username.initials"
+              :color="'#fff'"
+              :size="61"
+            ></avatar>
+          </div>
+        </div>
+      </router-link>
       <b-collapse id="nav-collapse" is-nav class="ml-5">
         <b-navbar-nav class="ml-auto" right>
           <div class="mb-2">
