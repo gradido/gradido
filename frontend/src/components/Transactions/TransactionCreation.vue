@@ -1,7 +1,7 @@
 <template>
   <div class="transaction-slot-creation">
     <b-row @click="visible = !visible" class="align-items-center">
-      <b-col cols="2">
+      <b-col cols="3" lg="2" md="2">
         <b-avatar icon="gift" variant="success" size="42"></b-avatar>
       </b-col>
       <b-col>
@@ -9,11 +9,13 @@
         <span class="small">{{ this.$d(new Date(balanceDate), 'short') }}</span>
         <span class="ml-4 small">{{ this.$d(new Date(balanceDate), 'time') }}</span>
       </b-col>
-      <b-col cols="3">
+      <b-col cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
         <div class="small">{{ $t('decay.types.receive') }}</div>
         <div class="font-weight-bold">{{ amount | GDD }}</div>
       </b-col>
-      <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>
+      <b-col cols="12" md="1" lg="1" class="text-right">
+        <collapse-icon class="text-right" :visible="visible" />
+      </b-col>
     </b-row>
     <b-collapse class="pb-4 pt-5" v-model="visible">
       <div class="word-break mb-4 text-center">

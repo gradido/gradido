@@ -44,6 +44,12 @@ export default {
     font-size: 0.85rem;
   }
 }
+@media screen and (max-width: 1024px) {
+  #app {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
 
 .goldrand {
   background: linear-gradient(
