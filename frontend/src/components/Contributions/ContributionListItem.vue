@@ -9,7 +9,6 @@
           <avatar
             v-if="firstName"
             :username="username.username"
-            :initials="username.initials"
             color="#fff"
             class="font-weight-bold"
           ></avatar>
