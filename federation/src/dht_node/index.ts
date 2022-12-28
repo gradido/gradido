@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import DHT from '@hyperswarm/dht'
-import { backendLogger as logger } from '@/server/logger'
+import { federationLogger as logger } from '@/server/logger'
 import CONFIG from '@/config'
 import { Community as DbCommunity } from '@entity/Community'
 

@@ -4,7 +4,7 @@
     "access": 
     {
       "type": "dateFile",
-      "filename": "../logs/backend/access.log",
+      "filename": "../logs/federation/access-%p.log",
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
@@ -17,7 +17,7 @@
     "apollo": 
     {
       "type": "dateFile",
-      "filename": "../logs/backend/apollo.log",
+      "filename": "../logs/federation/apollo-%p.log",
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
@@ -30,7 +30,7 @@
     "backend": 
     {
       "type": "dateFile",
-      "filename": "../logs/backend/backend.log",
+      "filename": "../logs/federation/backend-%p.log",
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
@@ -40,10 +40,10 @@
       "fileNameSep" : "_",
       "numBackups" : 30
     },
-    "klicktipp": 
+    "federation": 
     {
       "type": "dateFile",
-      "filename": "../logs/backend/klicktipp.log",
+      "filename": "../logs/federation/apiversion-%v-%p.log",
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
@@ -56,7 +56,7 @@
     "errorFile": 
     {
       "type": "dateFile",
-      "filename": "../logs/backend/errors.log",
+      "filename": "../logs/federation/errors-%p.log",
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
@@ -123,11 +123,11 @@
       "level": "debug",
       "enableCallStack": true
     },
-    "klicktipp":
+    "federation":
     {
       "appenders":
       [
-        "klicktipp",
+        "federation",
         "out",
         "errors"
       ],
