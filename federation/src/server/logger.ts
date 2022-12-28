@@ -7,13 +7,27 @@ const options = JSON.parse(readFileSync(CONFIG.LOG4JS_CONFIG, 'utf-8'))
 
 options.categories.backend.level = CONFIG.LOG_LEVEL
 options.categories.apollo.level = CONFIG.LOG_LEVEL
+let filename: string = options.appenders.federation.filename
+if(CONFIG.FEDERATION_DHT_TOPIC) {
+  options.appenders.federation.filename = filename.replace('apiversion-%v', 'dht_'+CONFIG.FEDERATION_DHT_TOPIC).replace('%p', '5000')
+} else {
+  options.appenders.federation.filename = filename.replace('%v', CONFIG.FEDERATION_API).replace('%p', CONFIG.FEDERATION_PORT.toString())
+}
+filename = options.appenders.access.filename
+options.appenders.access.filename = filename.replace('%p', CONFIG.FEDERATION_PORT.toString())
+filename = options.appenders.apollo.filename
+options.appenders.apollo.filename = filename.replace('%p', CONFIG.FEDERATION_PORT.toString())
+filename = options.appenders.backend.filename
+options.appenders.backend.filename = filename.replace('%p', CONFIG.FEDERATION_PORT.toString())
+filename = options.appenders.errorFile.filename
+options.appenders.errorFile.filename = filename.replace('%p', CONFIG.FEDERATION_PORT.toString())
 
 log4js.configure(options)
 
 const apolloLogger = log4js.getLogger('apollo')
 const backendLogger = log4js.getLogger('backend')
-const klickTippLogger = log4js.getLogger('klicktipp')
+const federationLogger = log4js.getLogger('federation')
 
 backendLogger.addContext('user', 'unknown')
 
-export { apolloLogger, backendLogger, klickTippLogger }
+export { apolloLogger, backendLogger, federationLogger }

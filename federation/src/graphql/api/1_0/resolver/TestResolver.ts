@@ -1,5 +1,5 @@
 import { Field, ObjectType, Query, Resolver } from 'type-graphql'
-import { backendLogger as logger } from '@/server/logger'
+import { federationLogger as logger } from '@/server/logger'
 
 @ObjectType()
 class GetTestApiResult {

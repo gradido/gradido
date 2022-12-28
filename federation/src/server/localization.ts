@@ -1,5 +1,5 @@
 import path from 'path'
-import { backendLogger } from './logger'
+import { federationLogger as logger } from './logger'
 import i18n from 'i18n'
 
 i18n.configure({
@@ -10,9 +10,9 @@ i18n.configure({
   // autoReload: true, // if this is activated the seeding hangs at the very end
   updateFiles: false,
   objectNotation: true,
-  logDebugFn: (msg) => backendLogger.debug(msg),
-  logWarnFn: (msg) => backendLogger.info(msg),
-  logErrorFn: (msg) => backendLogger.error(msg),
+  logDebugFn: (msg) => logger.debug(msg),
+  logWarnFn: (msg) => logger.info(msg),
+  logErrorFn: (msg) => logger.error(msg),
   // this api is needed for email-template pug files
   api: {
     __: 't', // now req.__ becomes req.t
