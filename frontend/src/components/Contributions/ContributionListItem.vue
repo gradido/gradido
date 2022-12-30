@@ -164,7 +164,7 @@
         </div>
       </div> -->
       <b-collapse :id="collapsId" class="mt-2" v-model="visible">
-        <b-card>
+         
           <contribution-messages-list
             :messages="messages_get"
             :state="state"
@@ -172,7 +172,7 @@
             @get-list-contribution-messages="getListContributionMessages"
             @update-state="updateState"
           />
-        </b-card>
+      
       </b-collapse>
     </div>
   </div>

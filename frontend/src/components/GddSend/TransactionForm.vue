@@ -1,7 +1,7 @@
 <template>
   <b-row class="transaction-form">
-    <b-col xl="12" md="12">
-      <b-card class="appBoxShadow gradido-border-radius">
+    <b-col cols="12">
+      <b-card class="appBoxShadow gradido-border-radius" body-class="p-2">
         <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
           <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
             <b-form-radio-group v-model="radioSelected" class="container">
@@ -94,7 +94,7 @@
                 </b-button>
               </b-col>
               <b-col class="text-right">
-                <b-button type="submit" variant="primary">
+                <b-button type="submit" variant="gradido">
                   {{ $t('form.check_now') }}
                 </b-button>
               </b-col>
