@@ -3,7 +3,12 @@
     <b-row @click="visible = !visible" class="align-items-center">
       <b-col cols="3" lg="2" md="2">
         <!-- <b-avatar :text="avatarText" variant="success" size="3em"></b-avatar> -->
-        <avatar :username="username.username" :color="'#fff'" size="42"></avatar>
+        <avatar
+          :username="username.username"
+          :initials="username.initials"
+          :color="'#fff'"
+          size="42"
+        ></avatar>
       </b-col>
       <b-col>
         <div>

@@ -2,7 +2,12 @@
   <div class="userdata-card">
     <b-row>
       <b-col class="centerPerMargin">
-        <avatar :username="username.username" :color="'#fff'" :size="90"></avatar>
+        <avatar
+          :username="username.username"
+          :initials="username.initials"
+          :color="'#fff'"
+          :size="90"
+        ></avatar>
       </b-col>
     </b-row>
     <b-card class="border-0">
