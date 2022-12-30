@@ -35,7 +35,7 @@
         </b-col>
         <!-- ContentHeader && Content -->
         <b-col>
-          <b-row>
+          <b-row class="px-lg-3">
             <b-col cols="12">
               <b-row class="d-lg-flex" cols="12">
                 <!-- ContentHeader -->
