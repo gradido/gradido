@@ -164,15 +164,13 @@
         </div>
       </div> -->
       <b-collapse :id="collapsId" class="mt-2" v-model="visible">
-         
-          <contribution-messages-list
-            :messages="messages_get"
-            :state="state"
-            :contributionId="contributionId"
-            @get-list-contribution-messages="getListContributionMessages"
-            @update-state="updateState"
-          />
-      
+        <contribution-messages-list
+          :messages="messages_get"
+          :state="state"
+          :contributionId="contributionId"
+          @get-list-contribution-messages="getListContributionMessages"
+          @update-state="updateState"
+        />
       </b-collapse>
     </div>
   </div>
