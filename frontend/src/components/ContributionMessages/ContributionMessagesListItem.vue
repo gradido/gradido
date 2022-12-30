@@ -8,7 +8,7 @@
           <parse-message v-bind="message"></parse-message>
         </b-col>
         <b-col cols="2">
-          <avatar :username="storeName.username"></avatar>
+          <avatar :username="storeName.username" :initials="storeName.initials"></avatar>
         </b-col>
       </b-row>
       <!-- <span class="ml-2 mr-2">{{ storeName.username }}</span>
@@ -17,7 +17,7 @@
     <div v-else class="is-moderator text-left">
       <b-row>
         <b-col cols="2">
-          <avatar :username="moderationName.username"></avatar>
+          <avatar :username="moderationName.username" :initials="moderationName.initials"></avatar>
         </b-col>
         <b-col cols="auto">
           <div class="font-weight-bold">
