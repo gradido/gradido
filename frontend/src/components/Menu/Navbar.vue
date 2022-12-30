@@ -12,8 +12,8 @@
           <span class="navbar-toggler-icon"></span>
         </b-button>
       </b-navbar-brand>
-      <b-img class="sheet-img position-absolute zindex-1" :src="sheet"></b-img>
-      <router-link to="/settings" class="d-block d-lg-none zindex10">
+      <b-img class="sheet-img position-absolute zindex1" :src="sheet"></b-img>
+      <router-link to="/settings" class="d-block d-lg-none zindex1000">
         <div class="d-flex align-items-center">
           <div class="mr-3">
             <avatar :username="username.username" :color="'#fff'" :size="61"></avatar>
