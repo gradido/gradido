@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-sidebar id="sidebar-mobile" bg-variant="white" :backdrop="true">
+    <b-sidebar id="sidebar-mobile" bg-variant="f5" :backdrop="true">
       <div class="px-3 py-2">
         <sidebar @admin="$emit('admin')" @logout="$emit('logout')" />
       </div>

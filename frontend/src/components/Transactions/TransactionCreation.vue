@@ -18,7 +18,7 @@
       </b-col>
     </b-row>
     <b-collapse class="pb-4 pt-5" v-model="visible">
-      <div class="word-break mb-4 text-center">
+      <div class="word-break mb-4 mt-lg-3 offset-3 offset-lg-2">
         <div class="font-weight-bold pb-2">{{ $t('form.memo') }}</div>
         {{ memo }}
       </div>

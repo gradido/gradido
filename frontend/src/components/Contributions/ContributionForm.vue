@@ -109,14 +109,14 @@
           <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
         </b-col>
       </validation-provider> -->
-      <b-row class="mt-3">
+      <b-row class="mt-5">
         <b-col>
           <b-button type="reset" variant="secondary" @click="reset" data-test="button-cancel">
             {{ $t('form.cancel') }}
           </b-button>
         </b-col>
         <b-col class="text-right">
-          <b-button type="submit" variant="primary" :disabled="disabled" data-test="button-submit">
+          <b-button type="submit" variant="gradido" :disabled="disabled" data-test="button-submit">
             {{ form.id ? $t('form.change') : $t('contribution.submit') }}
           </b-button>
         </b-col>

@@ -1,8 +1,8 @@
 <template>
   <div class="contribution-messages-list-item">
-    <div v-if="isNotModerator" class="is-not-moderator text-right">
-      <b-row>
-        <b-col>
+    <div v-if="isNotModerator" class="text-right pr-4 pr-lg-0">
+      <b-row class="mb-3">
+        <b-col cols="10">
           <div class="font-weight-bold">{{ storeName.username }}</div>
           <div class="small">{{ $d(new Date(message.createdAt), 'short') }}</div>
           <parse-message v-bind="message"></parse-message>
@@ -14,15 +14,15 @@
       <!-- <span class="ml-2 mr-2">{{ storeName.username }}</span>
       <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span> -->
     </div>
-    <div v-else class="is-moderator text-left">
-      <b-row>
+    <div v-else>
+      <b-row class="mb-3 bg-f5 p-2">
         <b-col cols="2">
           <avatar :username="moderationName.username" :initials="moderationName.initials"></avatar>
         </b-col>
-        <b-col cols="auto">
+        <b-col cols="10">
           <div class="font-weight-bold">
             {{ moderationName.username }}
-            <small class="ml-2 text-success">{{ $t('community.moderator') }}</small>
+            <span class="ml-2 text-success small">{{ $t('community.moderator') }}</span>
           </div>
 
           <div class="small">{{ $d(new Date(message.createdAt), 'short') }}</div>
@@ -70,17 +70,17 @@ export default {
 </script>
 <style>
 .is-not-moderator {
-  float: right;
+  /* float: right; */
   /* background-color: rgb(261, 204, 221); */
-  width: 75%;
+  /* width: 75%;
   margin-top: 20px;
   margin-bottom: 20px;
-  clear: both;
+  clear: both; */
 }
 .is-moderator {
-  clear: both;
+  /* clear: both; */
   /* background-color: rgb(255, 255, 128); */
-  width: 75%;
-  margin-top: 20px;
+  /* width: 75%;
+  margin-top: 20px; */
 }
 </style>
