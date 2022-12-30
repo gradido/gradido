@@ -6,8 +6,8 @@
           <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
             <b-form-radio-group v-model="radioSelected" class="container">
               <b-row class="mb-4">
-                <b-col>
-                  <b-row class="bg-248 gradido-border-radius pt-2 mr-2">
+                <b-col cols="12" lg="6">
+                  <b-row class="bg-248 gradido-border-radius pt-lg-2 mr-lg-2">
                     <b-col cols="10" @click="radioSelected = sendTypes.send" class="pointer">
                       {{ $t('send_gdd') }}
                     </b-col>
@@ -23,7 +23,7 @@
                   </b-row>
                 </b-col>
                 <b-col>
-                  <b-row class="bg-248 gradido-border-radius pt-2 ml-2">
+                  <b-row class="bg-248 gradido-border-radius pt-lg-2 ml-lg-2 mt-2 mt-lg-0">
                     <b-col cols="10" @click="radioSelected = sendTypes.link" class="pointer">
                       {{ $t('send_per_link') }}
                     </b-col>
@@ -59,7 +59,7 @@
                       />
                     </div>
                   </b-col>
-                  <b-col cols="6">
+                  <b-col cols="12" lg="6">
                     <input-amount
                       v-model="form.amount"
                       :name="$t('form.amount')"

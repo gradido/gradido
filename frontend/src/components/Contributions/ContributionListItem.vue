@@ -5,7 +5,7 @@
       :class="state === 'IN_PROGRESS' ? 'pulse border border-205' : ''"
     >
       <b-row>
-        <b-col cols="2">
+        <b-col cols="3" lg="2" md="2">
           <avatar
             v-if="firstName"
             :username="username.username"
@@ -30,11 +30,11 @@
           </div>
           <div class="small">createdAt {{ createdAt }}</div> -->
         </b-col>
-        <b-col cols="3">
+        <b-col cols="12" lg="3" offset="3" offset-md="0" offset-lg="0">
           <div class="small">{{ $t('creation') }}</div>
           <div class="font-weight-bold">{{ amount | GDD }}</div>
         </b-col>
-        <b-col cols="1" class="align-items-center">
+        <b-col cols="12" md="1" lg="1" class="text-right align-items-center">
           <div v-if="messagesCount > 0" @click="visible = !visible">
             <collapse-icon class="text-right" :visible="visible" />
           </div>
@@ -44,17 +44,18 @@
         v-if="(!['CONFIRMED', 'DELETED'].includes(state) && !allContribution) || messagesCount > 0"
         class="p-2"
       >
-        <b-col cols="auto" class="mr-auto">
+        <b-col cols="3" class="mr-auto text-center">
           <div
             v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
             class="test-delete-contribution pointer mr-3"
             @click="deleteContribution({ id })"
           >
             <b-icon icon="trash"></b-icon>
-            {{ $t('delete') }}
+
+            <div>{{ $t('delete') }}</div>
           </div>
         </b-col>
-        <b-col cols="auto">
+        <b-col cols="3" class="text-center">
           <div
             v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
             class="test-edit-contribution pointer mr-3"
@@ -72,13 +73,14 @@
           </div>
         </b-col>
 
-        <b-col cols="auto">
+        <b-col cols="6" class="text-center">
           <div v-if="messagesCount > 0" class="pointer" @click="visible = !visible">
             <b-icon icon="chat-dots"></b-icon>
-            {{ $t('moderatorChat') }}
+            <div>{{ $t('moderatorChat') }}</div>
           </div>
         </b-col>
       </b-row>
+      <div v-else class="pb-3"></div>
 
       <!-- <div class="border p-3 w-100 mb-1" :class="`border-${variant}`">
         <div>

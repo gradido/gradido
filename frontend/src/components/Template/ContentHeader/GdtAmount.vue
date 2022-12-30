@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div class="gdt-amount text-center">
+  <div class="gdt-amount mt-3 mt-lg-0">
+    <div class="text-center">
       <b-badge
         v-if="badgeShow"
         class="position-absolute mt--2 ml--4 px-3 zindex1"
@@ -26,7 +26,7 @@
         </b-col> -->
       </b-row>
       <b-row>
-        <b-col cols="12" md="10" lg="10">
+        <b-col cols="9">
           <b-icon
             icon="layers"
             class="mr-3 gradido-global-border-color-accent d-none d-lg-inline"
@@ -38,7 +38,7 @@
             {{ $n(GdtBalance, 'decimal') }} {{ $t('GDT') }}
           </span>
         </b-col>
-        <b-col cols="12" md="2" lg="2" class="border-left border-light">
+        <b-col cols="3" class="border-left border-light">
           <b-icon
             :icon="hideAmount ? 'eye-slash' : 'eye'"
             class="mr-3 gradido-global-border-color-accent pointer hover-icon"
