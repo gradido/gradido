@@ -16,6 +16,8 @@ $gradido-f5: #f5f5f5 !default;
 $gradido-248: rgb(248 248 248) !default;
 $gradido-140: rgb(140 66 5) !default;
 $gradido-205: rgb(205 86 86) !default;
+$gradido-197: rgb(197 141 56) !default;
+$gradido-4: rgb(4 112 6) !default;
 $black: #000 !default;
 $grays: () !default;
 $grays: map.merge(
@@ -32,7 +34,9 @@ $grays: map.merge(
     "f5": $gradido-f5,
     "248": $gradido-248,
     "140": $gradido-140,
-    "205": $gradido-205
+    "205": $gradido-205,
+    "197": $gradido-197,
+    "4": $gradido-4
   ),
   $grays
 );
@@ -69,7 +73,9 @@ $colors: map.merge(
     "f5": $gradido-f5,
     "248": $gradido-248,
     "140": $gradido-140,
-    "205": $gradido-205
+    "205": $gradido-205,
+    "197": $gradido-197,
+    "4": $gradido-4
   ),
   $colors
 );
@@ -110,7 +116,9 @@ $theme-colors: map.merge(
     "f5":           $gradido-f5,
     "248":           $gradido-248,
     "140":           $gradido-140,
-    "205":           $gradido-205
+    "205":           $gradido-205,
+    "197":           $gradido-197,
+    "4":           $gradido-4
   ),
   $theme-colors
 );

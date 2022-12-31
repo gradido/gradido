@@ -31,7 +31,7 @@
           <div class="small">createdAt {{ createdAt }}</div> -->
         </b-col>
         <b-col cols="12" lg="3" offset="3" offset-md="0" offset-lg="0">
-          <div class="small">{{ $t('creation') }}</div>
+          <div class="small">{{ $t('creation') }} ({{ amount / 20 }} h)</div>
           <div class="font-weight-bold">{{ amount | GDD }}</div>
         </b-col>
         <b-col cols="12" md="1" lg="1" class="text-right align-items-center">
@@ -69,7 +69,7 @@
             "
           >
             <b-icon icon="pencil"></b-icon>
-            {{ $t('edit') }}
+            <div>{{ $t('edit') }}</div>
           </div>
         </b-col>
 
