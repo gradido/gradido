@@ -10,11 +10,11 @@
         </b-card-body>
         <b-card-footer class="bg-transparent">
           <b-card-text>
-            <b-row class="">
-              <b-col>
+            <b-row>
+              <b-col cols="12" md="6" lg="6">
                 <div class="h3">{{ item.date }}</div>
               </b-col>
-              <b-col>
+              <b-col cols="12" md="6" lg="6">
                 <div class="text-right">
                   <b-button variant="gradido" :href="item.url" target="_blank">
                     {{ $t('auth.left.learnMore') }}
@@ -37,11 +37,6 @@ export default {
     return {
       News,
     }
-  },
-  computed: {
-    item() {
-      return this.News
-    },
   },
 }
 </script>
