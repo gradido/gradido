@@ -1,19 +1,30 @@
 <template>
   <div class="community-news">
-    <div v-for="item in News" :key="item.id" class="mb-5">
-      <b-card class="bg-white appBoxShadow gradido-border-radius">
-        <div class="h2 mb-5">{{ item.text }}</div>
-        <b-row class="my-5">
-          <b-col>
-            <div class="h4">{{ item.date }}</div>
-          </b-col>
-          <b-col>
-            <div class="text-right">
-              <b-button variant="gradido">{{ $t('auth.left.learnMore') }}</b-button>
-            </div>
-          </b-col>
-        </b-row>
-        <div class="my-5">{{ item.extra }}</div>
+    <div v-for="item in News" :key="item.locale">
+      <b-card
+        v-if="item.locale === $i18n.locale"
+        class="bg-white appBoxShadow gradido-border-radius"
+      >
+        <b-card-body>
+          <b-card-title class="h2">{{ item.text }}</b-card-title>
+        </b-card-body>
+        <b-card-footer class="bg-transparent">
+          <b-card-text>
+            <b-row class="">
+              <b-col>
+                <div class="h3">{{ item.date }}</div>
+              </b-col>
+              <b-col>
+                <div class="text-right">
+                  <b-button variant="gradido" :href="item.url" target="_blank">
+                    {{ $t('auth.left.learnMore') }}
+                  </b-button>
+                </div>
+              </b-col>
+            </b-row>
+          </b-card-text>
+          <b-card-tex>{{ item.extra }}</b-card-tex>
+        </b-card-footer>
       </b-card>
     </div>
   </div>
@@ -27,11 +38,15 @@ export default {
       News,
     }
   },
+  computed: {
+    item() {
+      return this.News
+    },
+  },
 }
 </script>
 <style scoped>
 .card {
-  height: 400px;
   background-attachment: absolute;
   background-position: center;
   background-repeat: no-repeat;
