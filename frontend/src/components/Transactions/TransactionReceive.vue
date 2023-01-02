@@ -7,7 +7,7 @@
           :username="username.username"
           :initials="username.initials"
           :color="'#fff'"
-          size="42"
+          :size="42"
         ></avatar>
       </b-col>
       <b-col>

@@ -247,8 +247,9 @@ export default {
           this.items = listContributions.contributionList
           if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
             this.tabIndex = 1
-            // this.$route.hash = 'my'
-            this.$router.push({ path: '#my' })
+            if (this.$route.hash !== '#my') {
+              this.$router.push({ path: '#my' })
+            }
             this.toastInfo('Du hast eine Rückfrage auf eine Contribution. Bitte beantworte diese!')
           }
         })

@@ -9,21 +9,20 @@
           <b-card-title class="h2">{{ item.text }}</b-card-title>
         </b-card-body>
         <b-card-footer class="bg-transparent">
-          <b-card-text>
-            <b-row>
-              <b-col cols="12" md="6" lg="6">
-                <div class="h3">{{ item.date }}</div>
-              </b-col>
-              <b-col cols="12" md="6" lg="6">
-                <div class="text-right">
-                  <b-button variant="gradido" :href="item.url" target="_blank">
-                    {{ $t('auth.left.learnMore') }}
-                  </b-button>
-                </div>
-              </b-col>
-            </b-row>
-          </b-card-text>
-          <b-card-tex>{{ item.extra }}</b-card-tex>
+          <b-row class="my-5">
+            <b-col cols="12" md="6" lg="6">
+              <div class="h3">{{ item.date }}</div>
+            </b-col>
+            <b-col cols="12" md="6" lg="6">
+              <div class="text-right">
+                <b-button variant="gradido" :href="item.url" target="_blank">
+                  {{ $t('auth.left.learnMore') }}
+                </b-button>
+              </div>
+            </b-col>
+          </b-row>
+
+          {{ item.extra }}
         </b-card-footer>
       </b-card>
     </div>
