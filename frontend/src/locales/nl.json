@@ -172,7 +172,7 @@
     "link-copied": "Link werd naar het klembord gekopieerd. Je kunt deze nu in een email of bericht invoegen.",
     "link-deleted": "De link werd op {date} verwijderd.",
     "link-expired": "De link is niet meer geldig. De geldigheid is op {date} afgelopen.",
-    "link-hint": "Attentie: Iedereen kan deze link inwisselen. Geef het alsjeblieft niet door!",
+    "link-hint": "Attentie: Ledereen kan deze link inwisselen. Wees er voorzichtig mee!",
     "link-overview": "Overzicht links",
     "links_count": "Actieve links",
     "links_sum": "Open links en QR-Codes",
