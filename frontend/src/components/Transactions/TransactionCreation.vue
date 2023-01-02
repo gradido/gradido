@@ -18,11 +18,7 @@
       </b-col>
     </b-row>
     <b-collapse class="pb-4 pt-lg-3" v-model="visible">
-      <div class="word-break mb-4 mt-lg-3 offset-2">
-        <div class="font-weight-bold pb-2">{{ $t('form.memo') }}</div>
-        {{ memo }}
-      </div>
-      <decay-information :typeId="typeId" :decay="decay" :amount="amount" />
+      <decay-information :typeId="typeId" :decay="decay" :amount="amount" :memo="memo" />
     </b-collapse>
   </div>
 </template>
