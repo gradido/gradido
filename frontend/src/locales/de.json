@@ -1,4 +1,6 @@
 {
+  "(": "(",
+  ")": ")",
   "100": "100%",
   "1000thanks": "1000 Dank, weil du bei uns bist!",
   "125": "125%",
@@ -211,6 +213,7 @@
     "raise": "Erhöhung",
     "recruited-member": "Eingeladenes Mitglied"
   },
+  "h": "h",
   "language": "Sprache",
   "lastMonth": "letzter Monat",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
@@ -221,6 +224,7 @@
     "minus": "−",
     "pipe": "|"
   },
+  "maxReached": "Max. erreicht",
   "member": "Mitglied",
   "message": {
     "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite an.",
@@ -245,6 +249,7 @@
     "support": "Support",
     "transactions": "Transaktionen"
   },
+  "openHours": "Offene Stunden",
   "pageTitle": {
     "community": "Meine Gemeinschaft",
     "gdt": "Deine GDT Transaktionen",
@@ -318,6 +323,8 @@
       "uppercase": "Großbuchstabe erforderlich."
     }
   },
+  "status": "Status",
+  "submitted": "Eingereicht",
   "success": "Erfolg",
   "time": {
     "days": "Tage",
@@ -339,12 +346,5 @@
     "send_you": "sendet dir"
   },
   "via_link": "über einen Link",
-  "welcome": "Willkommen in der Gemeinschaft",
-  "status": "Status",
-  "submitted": "Eingereicht",
-  "openHours": "Offene Stunden",
-  "maxReached": "Max. erreicht",
-  "h": "h",
-  "(": "(",
-  ")": ")"
+  "welcome": "Willkommen in der Gemeinschaft"
 }
