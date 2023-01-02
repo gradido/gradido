@@ -23,7 +23,7 @@
         <span class="ml-4 small">{{ this.$d(new Date(balanceDate), 'time') }}</span>
       </b-col>
       <b-col cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
-        <div class="small">
+        <div class="small mb-2">
           {{ $t('decay.types.send') }}
         </div>
         <div class="font-weight-bold text-140">{{ amount | GDD }}</div>
