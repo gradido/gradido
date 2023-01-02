@@ -1,4 +1,6 @@
 {
+  "(": "(",
+  ")": ")",
   "100": "100%",
   "1000thanks": "1000 thanks for being with us!",
   "125": "125%",
@@ -211,6 +213,7 @@
     "raise": "Increase",
     "recruited-member": "Invited member"
   },
+  "h": "h",
   "language": "Language",
   "lastMonth": "Last month",
   "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
@@ -221,6 +224,7 @@
     "minus": "−",
     "pipe": "|"
   },
+  "maxReached": "Max. reached",
   "member": "Member",
   "message": {
     "activateEmail": "Your account has not been activated yet. Please check your emails and click the activation link or order a new activation link over the password reset page.",
@@ -245,6 +249,7 @@
     "support": "Support",
     "transactions": "Transactions"
   },
+  "openHours": "Open Hours",
   "pageTitle": {
     "community": "My community",
     "gdt": "Your GDT transactions",
@@ -318,6 +323,8 @@
       "uppercase": "One uppercase letter required."
     }
   },
+  "status": "Status",
+  "submitted": "Submitted",
   "success": "Success",
   "time": {
     "days": "Days",
@@ -339,12 +346,5 @@
     "send_you": "wants to send you"
   },
   "via_link": "via Link",
-  "welcome": "Welcome to the community",
-  "status": "Status",
-  "submitted": "Submitted",
-  "openHours": "Open Hours",
-  "maxReached": "Max. reached",
-  "h": "h",
-  "(": "(",
-  ")": ")"
+  "welcome": "Welcome to the community"
 }
