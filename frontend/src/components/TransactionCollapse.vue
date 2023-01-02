@@ -1,5 +1,5 @@
 <template>
-  <div class="gdt-transaction-collapse  py-4 mb-4 gradido-no-border">
+  <div class="gdt-transaction-collapse py-4 mb-4 gradido-no-border">
     <b-row class="gdt-list-collapse-header-text mb-3">
       <b-col class="collapse-headline">
         <b>{{ getLinesByType.headline }}</b>
