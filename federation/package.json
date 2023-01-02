@@ -15,7 +15,6 @@
     "lint": "eslint --max-warnings=0 --ext .js,.ts ."
   },
   "dependencies": {
-    "@hyperswarm/dht": "^6.3.3",
     "@types/dotenv": "^8.2.0",
     "@types/i18n": "^0.13.6",
     "@types/jsonwebtoken": "^8.5.9",
@@ -28,7 +27,7 @@
     "dotenv": "10.0.0",
     "express": "4.17.1",
     "graphql": "15.5.1",
-    "i18n": "^0.15.1",
+    "i18n": "0.15.1",
     "jsonwebtoken": "^8.5.1",
     "lodash.clonedeep": "^4.5.0",
     "log4js": "^6.7.1",
