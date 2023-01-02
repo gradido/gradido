@@ -9,6 +9,11 @@ body {
   cursor: pointer;
 }
 
+.bg-gradient {
+  background: rgb(4,112,6);
+background: linear-gradient(90deg, rgba(4,112,6,1) 73%, rgba(197,141,56,1) 100%);
+  color: white;
+} 
 .hover-icon:hover {
   background-color: rgb(220 216 217);
   border-radius: 29px;
