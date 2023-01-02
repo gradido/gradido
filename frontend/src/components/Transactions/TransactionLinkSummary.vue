@@ -9,7 +9,7 @@
         <div class="small">{{ transactionLinkCount }} {{ $t('gdd_per_link.links_sum') }}</div>
       </b-col>
       <b-col cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
-        <div class="small">{{ $t('send_per_link') }}</div>
+        <div class="small mb-2">{{ $t('send_per_link') }}</div>
         <div class="font-weight-bold">{{ amount | GDD }}</div>
       </b-col>
       <b-col cols="12" md="1" lg="1" class="text-right">
