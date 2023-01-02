@@ -1,9 +1,9 @@
 doctype html
 html(lang=locale)
   head
-    title= t('emails.transactionLinkRedeemed.subject')
+    title= t('emails.transactionLinkRedeemed.subject', { senderFirstName, senderLastName })
   body
-    h1(style='margin-bottom: 24px;')= t('emails.transactionLinkRedeemed.subject')
+    h1(style='margin-bottom: 24px;')= t('emails.transactionLinkRedeemed.subject', { senderFirstName, senderLastName })
     #container.col
       include ../hello.pug
       p= t('emails.transactionLinkRedeemed.hasRedeemedYourLink', { senderFirstName, senderLastName, senderEmail })
