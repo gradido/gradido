@@ -18,6 +18,7 @@
           step="0.5"
           min="0"
           :max="validMaxTime"
+          class="bg-248"
         ></b-form-input>
       </b-form-group>
     </validation-provider>

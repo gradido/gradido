@@ -25,7 +25,7 @@
         :locale="$i18n.locale"
         :max="maximalDate"
         :min="minimalDate"
-        class="mb-4"
+        class="mb-4 bg-248"
         reset-value=""
         :label-no-date-selected="$t('contribution.noDateSelected')"
         required

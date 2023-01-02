@@ -10,7 +10,7 @@
         v-model="currentValue"
         v-bind="ariaInput"
         :id="labelFor"
-        :class="$route.path === '/send' ? 'bg-248' : ''"
+        class="bg-248"
         :name="name"
         :placeholder="placeholder"
         :state="validated ? valid : false"

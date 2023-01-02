@@ -1,7 +1,7 @@
 <template>
   <div class="community-member mt-3 mt-lg-0">
-    <div class="text-center">
-      <b-badge class="position-absolute mt--2 ml--5 px-3" variant="success">
+    <div class="text-center bg-gradient">
+      <b-badge class="position-absolute mt--2 ml--5 px-3 bg-gradient">
         {{ $t('member') }}
       </b-badge>
     </div>
