@@ -8,11 +8,7 @@ const options = JSON.parse(readFileSync(CONFIG.LOG4JS_CONFIG, 'utf-8'))
 options.categories.backend.level = CONFIG.LOG_LEVEL
 options.categories.apollo.level = CONFIG.LOG_LEVEL
 let filename: string = options.appenders.federation.filename
-if(CONFIG.FEDERATION_DHT_TOPIC) {
-  options.appenders.federation.filename = filename.replace('apiversion-%v', 'dht-'+CONFIG.FEDERATION_DHT_TOPIC).replace('%p', CONFIG.FEDERATION_PORT.toString())
-} else {
-  options.appenders.federation.filename = filename.replace('%v', CONFIG.FEDERATION_API).replace('%p', CONFIG.FEDERATION_PORT.toString())
-}
+options.appenders.federation.filename = filename.replace('%v', CONFIG.FEDERATION_API).replace('%p', CONFIG.FEDERATION_PORT.toString())
 filename = options.appenders.access.filename
 options.appenders.access.filename = filename.replace('%p', CONFIG.FEDERATION_PORT.toString())
 filename = options.appenders.apollo.filename

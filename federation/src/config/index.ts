@@ -12,7 +12,7 @@ Decimal.set({
 
 const constants = {
   DB_VERSION: '0058-add_communities_table',
-  DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
+  // DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
@@ -73,7 +73,7 @@ if (
 }
 
 const federation = {
-  FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC || null,
+  // FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC || null,
   FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
   FEDERATION_PORT: process.env.FEDERATION_PORT || 5000,
   FEDERATION_API: process.env.FEDERATION_API || '1_0',
@@ -84,11 +84,7 @@ const CONFIG = {
   ...constants,
   ...server,
   ...database,
-  //...klicktipp,
   ...community,
-  //...email,
-  //...loginServer,
-  //...webhook,
   //...eventProtocol,
   ...federation,
 }
