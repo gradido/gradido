@@ -2,7 +2,7 @@
   <div class="transaction-slot-link">
     <b-row @click="showTransactionLinks()" class="align-items-center">
       <b-col cols="3" lg="2" md="2">
-        <b-avatar icon="link" variant="light" size="42"></b-avatar>
+        <b-avatar icon="link" variant="light" :size="42"></b-avatar>
       </b-col>
       <b-col>
         <div>{{ $t('gdd_per_link.links_sum') }}</div>

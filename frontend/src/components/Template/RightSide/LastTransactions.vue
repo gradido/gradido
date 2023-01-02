@@ -27,7 +27,7 @@
             ></avatar>
           </div>
         </b-col>
-        <b-col align-self="stretch p-1">
+        <b-col class="p-1">
           <b-row>
             <b-col>
               <div class="font-weight-bold">

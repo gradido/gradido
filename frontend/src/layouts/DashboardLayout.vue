@@ -78,7 +78,7 @@
           </b-row>
         </b-col>
         <!-- RightSide Desktop -->
-        <b-col cols="3" class="d-none d-lg-block" align-self="stretch">
+        <b-col cols="3" class="d-none d-lg-block">
           <right-side
             :transactions="transactions"
             :transactionCount="transactionCount"
