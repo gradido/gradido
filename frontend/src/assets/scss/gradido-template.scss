@@ -10,15 +10,17 @@ body {
 }
 
 .bg-gradient {
-  background: rgb(4,112,6);
-background: linear-gradient(90deg, rgba(4,112,6,1) 73%, rgba(197,141,56,1) 100%);
+  background: rgb(4 112 6);
+  background: linear-gradient(90deg, rgb(4 112 6 / 100%) 73%, rgb(197 141 56 / 100%) 100%);
   color: white;
-} 
+}
+
 .hover-icon:hover {
   background-color: rgb(220 216 217);
   border-radius: 29px;
   padding: 1px;
 }
+
 .word-break {
   word-break: break-word;
 }
