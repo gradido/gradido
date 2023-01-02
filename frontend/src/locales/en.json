@@ -339,5 +339,12 @@
     "send_you": "wants to send you"
   },
   "via_link": "via Link",
-  "welcome": "Welcome to the community"
+  "welcome": "Welcome to the community",
+  "status": "Status",
+  "submitted": "Submitted",
+  "openHours": "Open Hours",
+  "maxReached": "Max. reached",
+  "h": "h",
+  "(": "(",
+  ")": ")"
 }

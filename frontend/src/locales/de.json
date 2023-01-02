@@ -339,5 +339,12 @@
     "send_you": "sendet dir"
   },
   "via_link": "über einen Link",
-  "welcome": "Willkommen in der Gemeinschaft"
+  "welcome": "Willkommen in der Gemeinschaft",
+  "status": "Status",
+  "submitted": "Eingereicht",
+  "openHours": "Offene Stunden",
+  "maxReached": "Max. erreicht",
+  "h": "h",
+  "(": "(",
+  ")": ")"
 }
