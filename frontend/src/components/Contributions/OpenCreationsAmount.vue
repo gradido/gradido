@@ -2,32 +2,32 @@
   <div class="bg-white appBoxShadow gradido-border-radius p-3">
     <div class="pl-3">
       <b-row class="small">
-        <b-col>Monatsbeiträge</b-col>
-        <b-col class="d-none d-md-inline">Status</b-col>
-        <b-col class="d-none d-md-inline text-center">Eingereicht</b-col>
-        <b-col class="text-center">offene Stunden</b-col>
+        <b-col>{{ $t('time.months') }}</b-col>
+        <b-col class="d-none d-md-inline">{{ $t('status') }}</b-col>
+        <b-col class="d-none d-md-inline text-center">{{ $t('submitted') }}</b-col>
+        <b-col class="text-center">{{ $t('openHours') }}</b-col>
       </b-row>
 
       <b-row class="font-weight-bold pt-3">
         <b-col>{{ $d(new Date(minimalDate), 'monthAndYear') }}</b-col>
         <b-col class="d-none d-md-inline">
-          {{ maxGddLastMonth > 0 ? 'Einreichen' : 'Max. erreicht' }}
+          {{ maxGddLastMonth > 0 ? $t('contribution.submit') : $t('maxReached') }}
         </b-col>
         <b-col class="d-none d-md-inline text-197 text-center">
-          {{ (1000 - maxGddLastMonth) / 20 }} h
+          {{ (1000 - maxGddLastMonth) / 20 }} {{ $t('h') }}
         </b-col>
-        <b-col class="text-4 text-center">{{ maxGddLastMonth / 20 }} h</b-col>
+        <b-col class="text-4 text-center">{{ maxGddLastMonth / 20 }} {{ $t('h') }}</b-col>
       </b-row>
 
       <b-row class="font-weight-bold">
         <b-col>{{ $d(new Date(), 'monthAndYear') }}</b-col>
         <b-col class="d-none d-md-inline">
-          {{ maxGddThisMonth > 0 ? 'Einreichen' : 'Max. erreicht' }}
+          {{ maxGddThisMonth > 0 ? $t('contribution.submit') : $t('maxReached') }}
         </b-col>
         <b-col class="d-none d-md-inline text-197 text-center">
-          {{ (1000 - maxGddThisMonth) / 20 }} h
+          {{ (1000 - maxGddThisMonth) / 20 }} {{ $t('h') }}
         </b-col>
-        <b-col class="text-4 text-center">{{ maxGddThisMonth / 20 }} h</b-col>
+        <b-col class="text-4 text-center">{{ maxGddThisMonth / 20 }} {{ $t('h') }}</b-col>
       </b-row>
     </div>
   </div>
