@@ -1,9 +1,13 @@
-import { mount } from '@vue/test-utils'
+import { mount, RouterLinkStub } from '@vue/test-utils'
 import InfoStatistic from './InfoStatistic'
 import { toastErrorSpy } from '../../test/testSetup'
 import { listContributionLinks, communityStatistics, searchAdminUsers } from '@/graphql/queries'
 
 const localVue = global.localVue
+
+const stubs = {
+  RouterLink: RouterLinkStub,
+}
 
 const apolloQueryMock = jest
   .fn()
@@ -70,7 +74,7 @@ describe('InfoStatistic', () => {
   }
 
   const Wrapper = () => {
-    return mount(InfoStatistic, { localVue, mocks })
+    return mount(InfoStatistic, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {
