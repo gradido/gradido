@@ -183,8 +183,8 @@ describe('util/creation', () => {
         })
 
         it('has the clock set correctly', () => {
-          const targetMonth = targetDate.getMonth() + 1
-          const targetMonthString = (targetMonth < 10 ? '0' : '') + String(targetMonth)
+          const targetMonthString =
+            (targetDate.getMonth() + 1 < 10 ? '0' : '') + String(targetDate.getMonth() + 1)
           expect(new Date().toISOString()).toContain(
             `${targetDate.getFullYear()}-${targetMonthString}-${targetDate.getDate()}T23:`,
           )
