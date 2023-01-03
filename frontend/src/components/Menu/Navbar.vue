@@ -37,7 +37,7 @@
                   <div>
                     <div data-test="navbar-item-username">{{ username.username }}</div>
 
-                    <div class="text-right">
+                    <div class="text-right" data-test="navbar-item-email">
                       {{ $store.state.email }}
                     </div>
                   </div>
