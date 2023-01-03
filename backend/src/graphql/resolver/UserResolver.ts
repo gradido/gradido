@@ -567,7 +567,15 @@ export class UserResolver {
   @Mutation(() => Boolean)
   async updateUserInfos(
     @Args()
-    { firstName, lastName, language, password, passwordNew }: UpdateUserInfosArgs,
+    {
+      firstName,
+      lastName,
+      language,
+      password,
+      passwordNew,
+      hideAmountGDD,
+      hideAmountGDT,
+    }: UpdateUserInfosArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
     logger.info(`updateUserInfos(${firstName}, ${lastName}, ${language}, ***, ***)...`)
@@ -608,6 +616,10 @@ export class UserResolver {
       userEntity.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
       userEntity.password = encryptPassword(userEntity, passwordNew)
     }
+
+    // Save hideAmountGDD value
+    userEntity.hideAmountGDD = hideAmountGDD
+    userEntity.hideAmountGDT = hideAmountGDT
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
