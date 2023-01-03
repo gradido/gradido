@@ -44,7 +44,7 @@ describe('TransactionForm', () => {
       expect(wrapper.find('div.transaction-form').exists()).toBe(true)
     })
 
-    describe.skip('with balance <= 0.00 GDD the form is disabled', () => {
+    describe('with balance <= 0.00 GDD the form is disabled', () => {
       it.skip('has a disabled input field of type email', () => {
         expect(wrapper.findAll('div.form-group').at(0).find('input').attributes('disabled')).toBe(
           'disabled',
@@ -72,7 +72,7 @@ describe('TransactionForm', () => {
       })
     })
 
-    describe.skip('with balance greater 0.00 (100.00) GDD the form is fully enabled', () => {
+    describe('with balance greater 0.00 (100.00) GDD the form is fully enabled', () => {
       beforeEach(() => {
         wrapper.setProps({ balance: '100.0' })
       })
