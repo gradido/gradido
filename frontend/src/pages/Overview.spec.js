@@ -11,6 +11,9 @@ describe('Overview', () => {
   const mocks = {
     $t: jest.fn((t) => t),
     $n: jest.fn(),
+    $i18n: {
+      locale: 'en',
+    },
   }
 
   const Wrapper = () => {
@@ -28,15 +31,5 @@ describe('Overview', () => {
     it('has a community news element', () => {
       expect(wrapper.find('div.community-news').exists()).toBeTruthy()
     })
-
-    /*
-    describe('timestamp updates', () => {
-      it('emits update transactions', async () => {
-        expect(wrapper.emitted('update-transactions')).toHaveLength(1)
-        await wrapper.setData({ timestamp: Date.now() })
-        expect(wrapper.emitted('update-transactions')).toHaveLength(2)
-      })
-    })
-    */
   })
 })
