@@ -6,10 +6,7 @@ import { FdCommunity } from './graphql/1_0/model/FdCommunity'
 export async function startValidateCommunities(timerInterval: number): Promise<void> {
   while (true) {
     const dbCommunities: DbCommunity[] = await DbCommunity.find({
-      where: [
-        { verifiedAt: IsNull() },
-        { verifiedAt: LessThan(Raw((lastAnnouncedAt) => `${lastAnnouncedAt}`)) },
-      ],
+      where: [{ verifiedAt: IsNull() }, { verifiedAt: LessThan(`last_announced_at:`) }],
     })
     if (dbCommunities) {
       dbCommunities.forEach(async function (dbCom) {
