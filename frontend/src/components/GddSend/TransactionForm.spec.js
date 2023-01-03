@@ -77,7 +77,7 @@ describe('TransactionForm', () => {
 
     describe('with balance greater 0.00 (100.00) GDD the form is fully enabled', () => {
       beforeEach(() => {
-        wrapper.setProps({ balance: '100.0' })
+        wrapper.setProps({ balance: 100.0 })
       })
 
       it('has no warning message ', () => {
@@ -120,7 +120,7 @@ describe('TransactionForm', () => {
             )
           })
 
-          // TODO:SKIPED there is no check that the email being sent to is the same as the user's email.
+          // TODO:SKIPPED there is no check that the email being sent to is the same as the user's email.
           it.skip('flushes an error message when email is the email of logged in user', async () => {
             await wrapper.findAll('div.form-group').at(0).find('input').setValue('user@example.org')
             await flushPromises()
@@ -268,8 +268,8 @@ Die ganze Welt bezwingen.“`)
             expect(wrapper.find('button[type="reset"]').exists()).toBe(true)
           })
 
-          it('has the text "form.cancel"', () => {
-            expect(wrapper.find('button[type="reset"]').text()).toBe('form.cancel')
+          it('has the text "form.reset"', () => {
+            expect(wrapper.find('button[type="reset"]').text()).toBe('form.reset')
           })
 
           it('clears all fields on click', async () => {
