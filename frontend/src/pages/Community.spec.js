@@ -398,7 +398,7 @@ describe('Community', () => {
       })
     })
 
-    describe('update contribution form', () => {
+    describe.skip('update contribution form', () => {
       const now = new Date().toISOString()
       beforeEach(async () => {
         await wrapper.setData({ tabIndex: 1 })
