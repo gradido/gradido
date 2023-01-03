@@ -20,6 +20,9 @@ describe('TransactionForm', () => {
         email: 'user@example.org',
       },
     },
+    $route: {
+      params: {},
+    },
   }
 
   const propsData = {
