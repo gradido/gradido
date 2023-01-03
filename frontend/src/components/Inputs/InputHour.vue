@@ -1,5 +1,5 @@
 <template>
-  <div class="input-time">
+  <div class="input-hour">
     <validation-provider
       tag="div"
       :rules="rules"
