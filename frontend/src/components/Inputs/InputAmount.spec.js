@@ -13,6 +13,9 @@ describe('InputAmount', () => {
       locale: jest.fn(() => 'en'),
     },
     $n: jest.fn((n) => String(n)),
+    $route: {
+      params: {},
+    },
   }
 
   describe('mount in a TransactionForm', () => {

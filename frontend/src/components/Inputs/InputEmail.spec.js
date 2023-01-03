@@ -14,8 +14,14 @@ describe('InputEmail', () => {
     value: '',
   }
 
+  const mocks = {
+    $route: {
+      params: {},
+    },
+  }
+
   const Wrapper = () => {
-    return mount(InputEmail, { localVue, propsData })
+    return mount(InputEmail, { localVue, propsData, mocks })
   }
 
   describe('mount', () => {
