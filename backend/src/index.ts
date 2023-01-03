@@ -5,6 +5,7 @@ import { startDHT } from '@/federation/index'
 
 // config
 import CONFIG from './config'
+import { startValidateCommunities } from './federation/validateCommunities'
 
 async function main() {
   const { app } = await createServer()
@@ -17,6 +18,7 @@ async function main() {
       console.log(`GraphIQL available at http://localhost:${CONFIG.PORT}`)
     }
   })
+  startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
 
   // start DHT hyperswarm when DHT_TOPIC is set in .env
   if (CONFIG.FEDERATION_DHT_TOPIC) {
