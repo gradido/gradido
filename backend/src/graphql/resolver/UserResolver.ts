@@ -616,6 +616,7 @@ export class UserResolver {
 
     // Save hideAmountGDD value
     userEntity.hideAmountGDD = hideAmountGDD
+    // Save hideAmountGDT value
     userEntity.hideAmountGDT = hideAmountGDT
 
     const queryRunner = getConnection().createQueryRunner()
