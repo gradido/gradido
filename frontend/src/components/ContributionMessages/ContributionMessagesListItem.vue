@@ -1,32 +1,32 @@
 <template>
   <div class="contribution-messages-list-item">
-    <div v-if="isNotModerator" class="text-right pr-4 pr-lg-0">
+    <div v-if="isNotModerator" class="text-right pr-4 pr-lg-0 is-not-moderator">
       <b-row class="mb-3">
         <b-col cols="10">
-          <div class="font-weight-bold">{{ storeName.username }}</div>
-          <div class="small">{{ $d(new Date(message.createdAt), 'short') }}</div>
-          <parse-message v-bind="message"></parse-message>
+          <div class="font-weight-bold" data-test="username">{{ storeName.username }}</div>
+          <div class="small" data-test="date">{{ $d(new Date(message.createdAt), 'short') }}</div>
+          <parse-message v-bind="message" data-test="message"></parse-message>
         </b-col>
         <b-col cols="2">
           <avatar :username="storeName.username" :initials="storeName.initials"></avatar>
         </b-col>
       </b-row>
-      <!-- <span class="ml-2 mr-2">{{ storeName.username }}</span>
-      <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span> -->
     </div>
     <div v-else>
-      <b-row class="mb-3 bg-f5 p-2">
+      <b-row class="mb-3 bg-f5 p-2 is-moderator">
         <b-col cols="2">
           <avatar :username="moderationName.username" :initials="moderationName.initials"></avatar>
         </b-col>
         <b-col cols="10">
           <div class="font-weight-bold">
-            {{ moderationName.username }}
-            <span class="ml-2 text-success small">{{ $t('community.moderator') }}</span>
+            <span data-test="username">{{ moderationName.username }}</span>
+            <span class="ml-2 text-success small" data-test="moderator">
+              {{ $t('community.moderator') }}
+            </span>
           </div>
 
-          <div class="small">{{ $d(new Date(message.createdAt), 'short') }}</div>
-          <parse-message v-bind="message"></parse-message>
+          <div class="small" data-test="date">{{ $d(new Date(message.createdAt), 'short') }}</div>
+          <parse-message v-bind="message" data-test="message"></parse-message>
         </b-col>
       </b-row>
     </div>
@@ -68,19 +68,3 @@ export default {
   },
 }
 </script>
-<style>
-.is-not-moderator {
-  /* float: right; */
-  /* background-color: rgb(261, 204, 221); */
-  /* width: 75%;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  clear: both; */
-}
-.is-moderator {
-  /* clear: both; */
-  /* background-color: rgb(255, 255, 128); */
-  /* width: 75%;
-  margin-top: 20px; */
-}
-</style>
