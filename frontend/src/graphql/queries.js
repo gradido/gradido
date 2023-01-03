@@ -14,6 +14,8 @@ export const verifyLogin = gql`
       publisherId
       isAdmin
       creation
+      hideAmountGDD
+      hideAmountGDT
     }
   }
 `

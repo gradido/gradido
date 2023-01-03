@@ -51,10 +51,10 @@ export const mutations = {
     state.creation = creation
   },
   hideAmountGDD: (state, hideAmountGDD) => {
-    state.hideAmountGDD = !!hideAmountGDD
+    state.hideAmountGDD = hideAmountGDD
   },
   hideAmountGDT: (state, hideAmountGDT) => {
-    state.hideAmountGDT = !!hideAmountGDT
+    state.hideAmountGDT = hideAmountGDT
   },
 }
 
@@ -72,6 +72,8 @@ export const actions = {
     commit('creation', data.creation)
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
+    commit('hideAmountGDD', data.hideAmountGDD)
+    commit('hideAmountGDT', data.hideAmountGDT)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
@@ -84,8 +86,8 @@ export const actions = {
     commit('publisherId', null)
     commit('isAdmin', false)
     commit('creation', null)
-    commit('hideAmountGDD', false)
-    commit('hideAmountGDT', true)
+    commit('hideAmountGDD', null)
+    commit('hideAmountGDT', null)
     localStorage.clear()
   },
 }
@@ -112,6 +114,8 @@ try {
       hasElopage: false,
       publisherId: null,
       creation: null,
+      hideAmountGDD: null,
+      hideAmountGDT: null,
       hideAmountGDD: null,
       hideAmountGDT: null,
     },
