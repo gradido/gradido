@@ -172,7 +172,7 @@
     "link-copied": "Link wurde in die Zwischenablage kopiert. Du kannst ihn jetzt in eine E-Mail oder Nachricht einfügen.",
     "link-deleted": "Der Link wurde am {date} gelöscht.",
     "link-expired": "Der Link ist nicht mehr gültig. Die Gültigkeit ist am {date} abgelaufen.",
-    "link-hint": "Achtung: Jeder kann diesen Link einlösen. Gib ihn bitte nicht weiter!",
+    "link-hint": "Achtung: Jeder kann diesen Link einlösen. Bitte geh achtsam mit ihm um!",
     "link-overview": "Linkübersicht",
     "links_count": "Aktive Links",
     "links_sum": "Offene Links und QR-Codes",
