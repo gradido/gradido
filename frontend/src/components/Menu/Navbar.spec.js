@@ -59,13 +59,16 @@ describe('AuthNavbar', () => {
 
     describe('user info', () => {
       it('has the full name', () => {
-        expect(wrapper.find('div.small').text()).toBe(
+        expect(wrapper.find('div[data-test="navbar-item-username"]').text()).toBe(
           `${wrapper.vm.$store.state.firstName} ${wrapper.vm.$store.state.lastName}`,
         )
       })
 
       it('has the email address', () => {
-        expect(wrapper.find('div.small:nth-child(2)').text()).toBe(wrapper.vm.$store.state.email)
+        // expect(wrapper.find('div.small:nth-child(2)').text()).toBe(wrapper.vm.$store.state.email)
+        expect(wrapper.find('div[data-test="navbar-item-email"]').text()).toBe(
+          wrapper.vm.$store.state.email,
+        )
       })
     })
   })

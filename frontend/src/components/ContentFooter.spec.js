@@ -33,7 +33,7 @@ describe('ContentFooter', () => {
       })
 
       it('renders the copyright year', () => {
-        expect(mocks.$t).toBeCalledWith('footer.copyright.year', { year: 2022 })
+        expect(mocks.$t).toBeCalledWith('footer.copyright.year', { year: 2023 })
       })
 
       it('renders a link to Gradido-Akademie', () => {
