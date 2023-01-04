@@ -56,7 +56,7 @@
                         :label="$t('form.recipient')"
                         :placeholder="$t('form.email')"
                         v-model="form.email"
-                        disabled="isBalanceDisabled"
+                        :disabled="isBalanceDisabled"
                       />
                     </div>
                   </b-col>
@@ -68,7 +68,7 @@
                       :placeholder="'0.01'"
                       :rules="{ required: true, gddSendAmount: [0.01, balance] }"
                       typ="TransactionForm"
-                      disabled="isBalanceDisabled"
+                      :disabled="isBalanceDisabled"
                     ></input-amount>
                   </b-col>
                 </b-row>
@@ -83,7 +83,7 @@
                   :label="$t('form.message')"
                   :placeholder="$t('form.message')"
                   :rules="{ required: true, min: 5, max: 255 }"
-                  disabled="isBalanceDisabled"
+                  :disabled="isBalanceDisabled"
                 />
               </b-col>
             </b-row>
