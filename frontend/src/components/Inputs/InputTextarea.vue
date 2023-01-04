@@ -17,6 +17,7 @@
         trim
         rows="4"
         max-rows="4"
+        :disabled="disabled"
       ></b-form-textarea>
       <b-form-invalid-feedback v-bind="ariaMsg">
         {{ errors[0] }}
@@ -36,6 +37,7 @@ export default {
     label: { type: String, required: true },
     placeholder: { type: String, required: true },
     value: { type: String, required: true },
+    disabled: { required: false, type: Boolean, default: false },
   },
   data() {
     return {
