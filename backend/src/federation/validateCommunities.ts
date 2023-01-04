@@ -1,5 +1,5 @@
 import { Community as DbCommunity } from '@entity/Community'
-import { IsNull, LessThan, Raw } from '@dbTools/typeorm'
+// import { IsNull, LessThan, Raw } from '@dbTools/typeorm'
 import { requestGetPublicKey } from './client/1_0/FederationClient'
 import { FdCommunity } from './graphql/1_0/model/FdCommunity'
 import { backendLogger as logger } from '@/server/logger'
@@ -26,7 +26,7 @@ export async function startValidateCommunities(timerInterval: number): Promise<v
         const pubKey = await requestGetPublicKey(fdCom)
         logger.debug(`Federation: received publicKey:  ${pubKey}`)
         if (pubKey && pubKey === dbCom.publicKey.toString('hex')) {
-        // if (!pubKey) {
+          // if (!pubKey) {
           logger.debug(`Federation: matching publicKey:  ${pubKey}`)
           DbCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
           logger.debug(`Federation: updated dbCom:  ${JSON.stringify(dbCom)}`)
