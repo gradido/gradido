@@ -16,6 +16,9 @@
         :state="validated ? valid : false"
         trim
         :class="$route.path === '/send' ? 'bg-248' : ''"
+        v-focus="emailFocused"
+        @focus="emailFocused = true"
+        @blur="normalizeEmail()"
       ></b-form-input>
       <b-form-invalid-feedback v-bind="ariaMsg">
         {{ errors[0] }}
@@ -43,6 +46,7 @@ export default {
   data() {
     return {
       currentValue: this.value,
+      emailFocused: false,
     }
   },
   computed: {
@@ -56,6 +60,12 @@ export default {
     },
     value() {
       if (this.value !== this.currentValue) this.currentValue = this.value
+    },
+  },
+  methods: {
+    normalizeEmail() {
+      this.emailFocused = false
+      this.form.email = this.form.email.trim()
     },
   },
 }
