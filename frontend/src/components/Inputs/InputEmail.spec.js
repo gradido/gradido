@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 
 import InputEmail from './InputEmail'
+import flushPromises from 'flush-promises'
 
 const localVue = global.localVue
 
@@ -60,10 +61,17 @@ describe('InputEmail', () => {
     })
 
     describe('input value changes', () => {
+      it.skip('trims the email after blur', async () => {
+        await wrapper.find('input').setValue('  valid@email.com  ')
+        await wrapper.find('input').trigger('blur')
+        await flushPromises()
+        expect(wrapper.vm.currentValue).toBe('valid@email.com')
+      })
+
       it('emits input with new value', async () => {
-        await wrapper.find('input').setValue('12')
+        await wrapper.find('input').setValue('user@example.org')
         expect(wrapper.emitted('input')).toBeTruthy()
-        expect(wrapper.emitted('input')).toEqual([['12']])
+        expect(wrapper.emitted('input')).toEqual([['user@example.org']])
       })
     })
 
@@ -71,6 +79,14 @@ describe('InputEmail', () => {
       it('updates data model', async () => {
         await wrapper.setProps({ value: 'user@example.org' })
         expect(wrapper.vm.currentValue).toEqual('user@example.org')
+      })
+    })
+
+    describe('email normalization', () => {
+      it('is trimmed', async () => {
+        await wrapper.setData({ currentValue: '  valid@email.com  ' })
+        wrapper.vm.normalizeEmail()
+        expect(wrapper.vm.currentValue).toBe('valid@email.com')
       })
     })
   })

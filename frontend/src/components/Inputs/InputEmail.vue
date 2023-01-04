@@ -67,7 +67,7 @@ export default {
   methods: {
     normalizeEmail() {
       this.emailFocused = false
-      this.form.email = this.form.email.trim()
+      this.currentValue = this.currentValue.trim()
     },
   },
 }
