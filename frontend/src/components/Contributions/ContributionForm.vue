@@ -1,17 +1,5 @@
 <template>
   <div class="contribution-form">
-    <!-- <div class="my-3">
-      <h3>{{ $t('contribution.formText.yourContribution') }}</h3>
-      {{ $t('contribution.formText.bringYourTalentsTo') }}
-      <ul class="my-3">
-        <li v-html="textForMonth(new Date(minimalDate), maxGddLastMonth)"></li>
-        <li v-html="textForMonth(new Date(), maxGddThisMonth)"></li>
-      </ul>
-
-      <div class="my-3">
-        <b>{{ $t('contribution.formText.describeYourCommunity') }}</b>
-      </div>
-    </div> -->
     <b-form
       ref="form"
       @submit.prevent="submit"
@@ -169,7 +157,7 @@ export default {
       this.form.id = null
       this.form.date = ''
       this.form.memo = ''
-      this.form.time = 0
+      this.form.hours = 0.0
       this.form.amount = ''
     },
     // textForMonth(date, availableAmount) {
@@ -199,6 +187,11 @@ export default {
     validMaxTime() {
       // console.log('this.validMaxGDD', this.validMaxGDD)
       return Number(this.validMaxGDD / 20)
+    },
+  },
+  watch: {
+    value() {
+      return (this.form = this.value)
     },
   },
 }

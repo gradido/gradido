@@ -77,7 +77,7 @@ export default {
         id: null,
         date: '',
         memo: '',
-        time: 0,
+        hours: 0,
         amount: '',
       },
       updateAmount: '',
@@ -95,6 +95,17 @@ export default {
       this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === to.hash)
       this.hashLink = to.hash
       this.closeAllOpenCollapse()
+    },
+    tabIndex(num) {
+      if (num !== 0) {
+        this.form = {
+          id: null,
+          date: '',
+          memo: '',
+          hours: 0,
+          amount: '0.0',
+        }
+      }
     },
   },
   computed: {
@@ -278,6 +289,7 @@ export default {
       this.form.date = item.contributionDate
       this.form.memo = item.memo
       this.form.amount = item.amount
+      this.form.hours = item.amount / 20
       this.updateAmount = item.amount
       this.$router.push({ path: '#edit' })
       this.tabIndex = 0
