@@ -103,7 +103,7 @@ export default {
           date: '',
           memo: '',
           hours: 0,
-          amount: '0.0',
+          amount: '',
         }
       }
     },
