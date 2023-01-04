@@ -197,7 +197,7 @@ export default {
       return Number(this.isThisMonth ? this.maxGddThisMonth : this.maxGddLastMonth)
     },
     validMaxTime() {
-      console.log('this.validMaxGDD', this.validMaxGDD)
+      // console.log('this.validMaxGDD', this.validMaxGDD)
       return Number(this.validMaxGDD / 20)
     },
   },
