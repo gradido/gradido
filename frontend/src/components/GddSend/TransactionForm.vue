@@ -106,7 +106,6 @@
   </b-row>
 </template>
 <script>
-// import { BIcon } from 'bootstrap-vue'
 import { SEND_TYPES } from '@/pages/Send.vue'
 import InputEmail from '@/components/Inputs/InputEmail.vue'
 import InputAmount from '@/components/Inputs/InputAmount.vue'
@@ -115,7 +114,6 @@ import InputTextarea from '@/components/Inputs/InputTextarea.vue'
 export default {
   name: 'TransactionForm',
   components: {
-    // BIcon,
     InputEmail,
     InputAmount,
     InputTextarea,
@@ -130,8 +128,6 @@ export default {
   inject: ['getTunneledEmail'],
   data() {
     return {
-      amountFocused: false,
-      emailFocused: false,
       form: {
         email: this.email,
         amount: this.amount ? String(this.amount) : '',
@@ -143,7 +139,6 @@ export default {
   },
   methods: {
     onSubmit() {
-      this.normalizeAmount(true)
       this.$emit('set-transaction', {
         selected: this.radioSelected,
         email: this.form.email,
@@ -156,16 +151,6 @@ export default {
       this.form.email = ''
       this.form.amount = ''
       this.form.memo = ''
-    },
-    normalizeAmount(isValid) {
-      this.amountFocused = false
-      if (!isValid) return
-      this.form.amountValue = Number(this.form.amount.replace(',', '.'))
-      this.form.amount = this.$n(this.form.amountValue, 'ungroupedDecimal')
-    },
-    normalizeEmail() {
-      this.emailFocused = false
-      this.form.email = this.form.email.trim()
     },
     setNewRecipientEmail() {
       this.form.email = this.recipientEmail ? this.recipientEmail : this.form.email

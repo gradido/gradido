@@ -81,17 +81,10 @@ export default {
   },
   methods: {
     normalizeAmount(isValid) {
-      // console.log('inputAmount normalize')
       this.amountFocused = false
       if (!isValid) return
       this.amountValue = this.currentValue.replace(',', '.')
-      if (this.typ === 'TransactionForm') {
-        this.currentValue = this.$n(this.amountValue, 'ungroupedDecimal')
-      }
-      if (this.typ === 'ContributionForm') {
-        // this.currentValue = this.amountValue
-        this.currentValue = this.$n(this.amountValue, 'ungroupedDecimal')
-      }
+      this.currentValue = this.$n(this.amountValue, 'ungroupedDecimal')
     },
   },
 }
