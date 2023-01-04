@@ -68,6 +68,7 @@
                       :placeholder="'0.01'"
                       :rules="{ required: true, gddSendAmount: [0.01, balance] }"
                       typ="TransactionForm"
+                      disabled="isBalanceDisabled"
                     ></input-amount>
                   </b-col>
                 </b-row>
@@ -82,6 +83,7 @@
                   :label="$t('form.message')"
                   :placeholder="$t('form.message')"
                   :rules="{ required: true, min: 5, max: 255 }"
+                  disabled="isBalanceDisabled"
                 />
               </b-col>
             </b-row>

@@ -21,6 +21,7 @@
           v-focus="amountFocused"
           @focus="amountFocused = true"
           @blur="normalizeAmount(valid)"
+          :disabled="disabled"
         ></b-form-input>
 
         <b-form-invalid-feedback v-bind="ariaMsg">
@@ -58,6 +59,7 @@ export default {
     placeholder: { type: String, required: true, default: 'Amount' },
     value: { type: String, required: true },
     balance: { type: Number, default: 0.0 },
+    disabled: { required: false, type: Boolean, default: false },
   },
   data() {
     return {
