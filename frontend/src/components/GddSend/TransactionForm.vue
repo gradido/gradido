@@ -135,7 +135,6 @@ export default {
         email: this.email,
         amount: this.amount ? String(this.amount) : '',
         memo: this.memo,
-        amountValue: 0.0,
       },
       radioSelected: this.selected,
     }
@@ -145,7 +144,7 @@ export default {
       this.$emit('set-transaction', {
         selected: this.radioSelected,
         email: this.form.email,
-        amount: this.form.amountValue,
+        amount: this.form.amount,
         memo: this.form.memo,
       })
     },
