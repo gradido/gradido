@@ -53,22 +53,8 @@ export default {
       this.$emit('input', this.currentValue)
     },
     value() {
-      //   console.log('value', this.value)
-      //   console.log('currentValue', this.currentValue)
-      //   console.log('value', typeof this.value)
-      //   console.log('currentValue', typeof this.currentValue)
-      //   console.log('!==', this.value !== this.currentValue)
-
       if (this.value !== this.currentValue) this.currentValue = this.value
       this.$emit('updateAmount', this.currentValue)
-    },
-  },
-  methods: {
-    normalizeTime(isValid) {
-      this.timeFocused = false
-      if (!isValid) return
-      this.timeValue = Number(this.currentValue.replace(',', '.'))
-      this.currentValue = this.timeValue
     },
   },
 }
