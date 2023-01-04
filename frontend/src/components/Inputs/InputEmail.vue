@@ -6,6 +6,7 @@
     v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
   >
     <b-form-group :label="label" :label-for="labelFor">
+      {{ disabled }}
       <b-form-input
         v-model="currentValue"
         v-bind="ariaInput"
