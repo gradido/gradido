@@ -44,7 +44,7 @@ export async function requestGetPublicKey(fdCom: FdCommunity): Promise<string | 
     }
     logger.warn(`requestGetPublicKey processed without response data`)
   } catch (err) {
-    logger.error(`Request-Error: ${JSON.stringify(err)}`)
+    logger.error(`Request-Error:`, err) // ${JSON.stringify(err)}`)
   }
   return undefined
 }
