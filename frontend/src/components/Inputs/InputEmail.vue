@@ -19,6 +19,7 @@
         v-focus="emailFocused"
         @focus="emailFocused = true"
         @blur="normalizeEmail()"
+        :disabled="disabled"
       ></b-form-input>
       <b-form-invalid-feedback v-bind="ariaMsg">
         {{ errors[0] }}
@@ -42,6 +43,7 @@ export default {
     label: { type: String, default: 'Email' },
     placeholder: { type: String, default: 'Email' },
     value: { required: true, type: String, default: '' },
+    disabled: { required: false, type: Boolean, default: false },
   },
   data() {
     return {

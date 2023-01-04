@@ -56,6 +56,7 @@
                         :label="$t('form.recipient')"
                         :placeholder="$t('form.email')"
                         v-model="form.email"
+                        disabled: isBalanceDisabled
                       />
                     </div>
                   </b-col>
