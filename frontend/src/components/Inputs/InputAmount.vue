@@ -20,7 +20,7 @@
           trim
           v-focus="amountFocused"
           @focus="amountFocused = true"
-          @blur="normalizeAmount(valid)"
+          @blur="normalizeAmount(true)"
           :disabled="disabled"
         ></b-form-input>
 
