@@ -24,7 +24,7 @@ describe('InputAmount', () => {
       label: '',
       placeholder: '',
       typ: 'TransactionForm',
-      value: '12.34',
+      value: '12,34',
     }
 
     const Wrapper = () => {
