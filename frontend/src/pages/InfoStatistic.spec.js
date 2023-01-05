@@ -1,7 +1,7 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import InfoStatistic from './InfoStatistic'
 import { toastErrorSpy } from '../../test/testSetup'
-import { listContributionLinks, searchAdminUsers } from '@/graphql/queries'
+import { listContributionLinks, communityStatistics, searchAdminUsers } from '@/graphql/queries'
 
 const localVue = global.localVue
 
