@@ -1,6 +1,5 @@
 import { mount } from '@vue/test-utils'
 import InputHour from './InputHour'
-import flushPromises from 'flush-promises'
 
 const localVue = global.localVue
 
