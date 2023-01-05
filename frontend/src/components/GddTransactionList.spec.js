@@ -198,26 +198,26 @@ describe('GddTransactionList', () => {
           ])
         })
 
-        // it('has gradido-global-color-gray color', () => {
-        //   expect(transaction.findAll('svg').at(1).classes()).toEqual([
-        //     'bi-arrow-down-circle',
-        //     'b-icon',
-        //     'bi',
-        //     'text-muted',
-        //   ])
-        // })
+        it.skip('has gradido-global-color-gray color', () => {
+          expect(transaction.findAll('svg').at(1).classes()).toEqual([
+            'bi-arrow-down-circle',
+            'b-icon',
+            'bi',
+            'text-muted',
+          ])
+        })
 
-        // it.skip('shows the amount of transaction', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
-        //     '0.16778637075575395',
-        //   )
-        // })
+        it.skip('shows the amount of transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
+            '0.16778637075575395',
+          )
+        })
 
-        // it.skip('shows the name of the receiver', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toBe(
-        //     'decay.decay_since_last_transaction',
-        //   )
-        // })
+        it.skip('shows the name of the receiver', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toBe(
+            'decay.decay_since_last_transaction',
+          )
+        })
       })
 
       describe('send transactions', () => {
@@ -245,51 +245,51 @@ describe('GddTransactionList', () => {
           ])
         })
 
-        // it('has text-danger color', () => {
-        //   expect(transaction.findAll('svg').at(1).classes()).toEqual([
-        //     'bi-droplet-half',
-        //     'mr-2',
-        //     'b-icon',
-        //     'bi',
-        //   ])
-        // })
+        it.skip('has text-danger color', () => {
+          expect(transaction.findAll('svg').at(1).classes()).toEqual([
+            'bi-droplet-half',
+            'mr-2',
+            'b-icon',
+            'bi',
+          ])
+        })
 
         // operators are renderd by GDD filter
-        // it.skip('has a minus operator', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
-        //     '-',
-        //   )
-        // })
+        it.skip('has a minus operator', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
+            '-',
+          )
+        })
 
-        // it.skip('shows the amount of transaction', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
-        //     '1',
-        //   )
-        // })
+        it.skip('shows the amount of transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
+            '1',
+          )
+        })
 
-        // it.skip('shows the name of the receiver', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
-        //     'Bibi Bloxberg',
-        //   )
-        // })
+        it.skip('shows the name of the receiver', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
+            'Bibi Bloxberg',
+          )
+        })
 
-        // it.skip('shows the message of the transaction', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-message').at(0).text()).toContain(
-        //     'Um den Kessel schlingt den Reihn, Werft die Eingeweid‘ hinein. Kröte du, die Nacht und Tag Unterm kalten Steine lag,',
-        //   )
-        // })
+        it.skip('shows the message of the transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-message').at(0).text()).toContain(
+            'Um den Kessel schlingt den Reihn, Werft die Eingeweid‘ hinein. Kröte du, die Nacht und Tag Unterm kalten Steine lag,',
+          )
+        })
 
-        // it.skip('shows the date of the transaction', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-        //     'Mon Feb 28 2022 13:55:47 GMT+0000',
-        //   )
-        // })
+        it.skip('shows the date of the transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
+            'Mon Feb 28 2022 13:55:47 GMT+0000',
+          )
+        })
 
-        // it.skip('shows the decay calculation', () => {
-        //   expect(transaction.findAll('div.gdd-transaction-list-item-decay').at(0).text()).toContain(
-        //     '− 0.2038314055482643084',
-        //   )
-        // })
+        it.skip('shows the decay calculation', () => {
+          expect(transaction.findAll('div.gdd-transaction-list-item-decay').at(0).text()).toContain(
+            '− 0.2038314055482643084',
+          )
+        })
       })
 
       describe('receive transactions', () => {
@@ -309,45 +309,45 @@ describe('GddTransactionList', () => {
           ])
         })
 
-        // it('has a bi-gift icon', () => {
-        //   expect(transaction.findAll('svg').at(1).classes()).toEqual(['bi-gift', 'b-icon', 'bi'])
-        // })
+        it.skip('has a bi-gift icon', () => {
+          expect(transaction.findAll('svg').at(1).classes()).toEqual(['bi-gift', 'b-icon', 'bi'])
+        })
 
-        // it.skip('has gradido-global-color-accent color', () => {
-        //   expect(transaction.findAll('svg').at(1).classes()).toEqual([
-        //     'bi-arrow-right-circle',
-        //     'm-mb-1',
-        //     'font2em',
-        //     'b-icon',
-        //     'bi',
-        //     'gradido-global-color-accent',
-        //   ])
-        // })
+        it.skip('has gradido-global-color-accent color', () => {
+          expect(transaction.findAll('svg').at(1).classes()).toEqual([
+            'bi-arrow-right-circle',
+            'm-mb-1',
+            'font2em',
+            'b-icon',
+            'bi',
+            'gradido-global-color-accent',
+          ])
+        })
 
-        // // operators are renderd by GDD filter
-        // it.skip('has a plus operator', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
-        //     '+',
-        //   )
-        // })
+        // operators are renderd by GDD filter
+        it.skip('has a plus operator', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
+            '+',
+          )
+        })
 
-        // it.skip('shows the amount of transaction', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
-        //     '+ 10 GDD',
-        //   )
-        // })
+        it.skip('shows the amount of transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
+            '+ 10 GDD',
+          )
+        })
 
-        // it.skip('shows the name of the receiver', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
-        //     'Bibi Bloxberg',
-        //   )
-        // })
+        it.skip('shows the name of the receiver', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
+            'Bibi Bloxberg',
+          )
+        })
 
-        // it.skip('shows the date of the transaction', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-        //     'Wed Feb 23 2022 10:55:30 GMT+0000',
-        //   )
-        // })
+        it.skip('shows the date of the transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
+            'Wed Feb 23 2022 10:55:30 GMT+0000',
+          )
+        })
       })
 
       describe('creation transactions', () => {
@@ -371,41 +371,41 @@ describe('GddTransactionList', () => {
         })
 
         // operators are renderd by GDD filter
-        // it('has a plus operator', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
-        //     '+',
-        //   )
-        // })
+        it.skip('has a plus operator', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
+            '+',
+          )
+        })
 
-        // it('shows the amount of transaction', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
-        //     '10',
-        //   )
-        // })
+        it.skip('shows the amount of transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
+            '10',
+          )
+        })
 
-        // it('shows the name of the recipient', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
-        //     'Gradido Akademie',
-        //   )
-        // })
+        it.skip('shows the name of the recipient', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
+            'Gradido Akademie',
+          )
+        })
 
-        // it('shows the message of the transaction', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-message').at(0).text()).toContain(
-        //     'Jammern hilft nichts, sondern ich kann selber meinen Teil dazu beitragen.',
-        //   )
-        // })
+        it.skip('shows the message of the transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-message').at(0).text()).toContain(
+            'Jammern hilft nichts, sondern ich kann selber meinen Teil dazu beitragen.',
+          )
+        })
 
-        // it('shows the date of the transaction', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-        //     'Fri Feb 25 2022 07:29:26 GMT+0000',
-        //   )
-        // })
+        it.skip('shows the date of the transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
+            'Fri Feb 25 2022 07:29:26 GMT+0000',
+          )
+        })
 
-        // it('shows the decay calculation', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-decay').at(0).text()).toContain(
-        //     '0',
-        //   )
-        // })
+        it.skip('shows the decay calculation', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-decay').at(0).text()).toContain(
+            '0',
+          )
+        })
       })
     })
 

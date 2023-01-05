@@ -86,16 +86,16 @@ describe('router', () => {
         })
       })
 
-      // describe('profile', () => {
-      //   it('requires authorization', () => {
-      //     expect(routes.find((r) => r.path === '/profile').meta.requiresAuth).toBeTruthy()
-      //   })
+      describe.skip('profile', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/profile').meta.requiresAuth).toBeTruthy()
+        })
 
-      //   it('loads the "Profile" page', async () => {
-      //     const component = await routes.find((r) => r.path === '/profile').component()
-      //     expect(component.default.name).toBe('Profile')
-      //   })
-      // })
+        it('loads the "Profile" page', async () => {
+          const component = await routes.find((r) => r.path === '/profile').component()
+          expect(component.default.name).toBe('Profile')
+        })
+      })
 
       describe('transactions', () => {
         it('requires authorization', () => {
@@ -178,12 +178,12 @@ describe('router', () => {
         })
       })
 
-      // describe('select-community', () => {
-      //   it('loads the "SelectCommunity" page', async () => {
-      //     const component = await routes.find((r) => r.path === '/select-community').component()
-      //     expect(component.default.name).toBe('SelectCommunity')
-      //   })
-      // })
+      describe.skip('select-community', () => {
+        it('loads the "SelectCommunity" page', async () => {
+          const component = await routes.find((r) => r.path === '/select-community').component()
+          expect(component.default.name).toBe('SelectCommunity')
+        })
+      })
 
       describe('reset password', () => {
         it('loads the "ResetPassword" page', async () => {

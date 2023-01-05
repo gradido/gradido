@@ -117,10 +117,6 @@ a:hover,
   height: 50px;
 }
 
-// .rounded-right-17 {
-//   border-top-right-radius: 17px !important;
-//   border-bottom-right-radius: 17px !important;
-// }
 .input-group .rounded-right {
   border-top-right-radius: 17px !important;
   border-bottom-right-radius: 17px !important;
@@ -293,13 +289,6 @@ a:hover,
 }
 
 .pulse {
-  // margin:100px;
-  // display: block;
-  // width: 22px;
-  // height: 22px;
-  // border-radius: 50%;
-  // background: #cca92c;
-  // cursor: pointer;
   box-shadow: 0 0 0 #c58d38;
   animation: pulse 2s infinite;
 }

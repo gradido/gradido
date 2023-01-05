@@ -24,22 +24,12 @@
 </template>
 <script>
 import CollapseIcon from '../TransactionRows/CollapseIcon'
-// import TypeIcon from '../TransactionRows/TypeIcon'
-// import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
-// import MemoRow from '../TransactionRows/MemoRow'
-// import DateRow from '../TransactionRows/DateRow'
-// import DecayRow from '../TransactionRows/DecayRow'
 import DecayInformation from '../DecayInformations/DecayInformation'
 
 export default {
   name: 'TransactionCreation',
   components: {
     CollapseIcon,
-    // TypeIcon,
-    // AmountAndNameRow,
-    // MemoRow,
-    // DateRow,
-    // DecayRow,
     DecayInformation,
   },
   props: {

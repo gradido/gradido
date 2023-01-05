@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import Transaction from './Transaction'
 import Vue from 'vue'
+import flushPromises from 'flush-promises'
 
 const localVue = global.localVue
 
@@ -85,13 +86,13 @@ describe('Transaction', () => {
         expect(wrapper.findAll('div.row').at(0).text()).toContain('1700 GDT')
       })
 
-      // it('renders the comment message', () => {
-      //   expect(wrapper.findAll('div.row').at(0).text()).toContain('This is a comment')
-      // })
+      it.skip('renders the comment message', () => {
+        expect(wrapper.findAll('div.row').at(0).text()).toContain('This is a comment')
+      })
 
-      // it('renders the date', () => {
-      //   expect(wrapper.findAll('div.row').at(0).text()).toContain('Sun May 02 2021')
-      // })
+      it.skip('renders the date', () => {
+        expect(wrapper.findAll('div.row').at(0).text()).toContain('Sun May 02 2021')
+      })
 
       it('does not show the collapse by default', () => {
         expect(wrapper.find('div#gdt-collapse-42').isVisible()).toBeFalsy()
@@ -103,24 +104,20 @@ describe('Transaction', () => {
           expect(wrapper.findAll('div.row').at(1).text()).toContain('gdt.calculation')
         })
       })
-      /* how to open the collapse ????? 
-      describe('collapse is open', () => {
+      // how to open the collapse ?????
+      describe.skip('collapse is open', () => {
         beforeEach(async () => {
-          //console.log(wrapper.html())
           await wrapper.find('div#gdt-collapse-42').trigger('click')
           await wrapper.vm.$nextTick()
           await flushPromises()
           await wrapper.vm.$nextTick()
           await flushPromises()
-          //console.log(wrapper.find('[enteractiveclass="collapsing"]').html())
         })
 
         it('shows the collapse', () => {
-          //console.log(wrapper.html())
           expect(wrapper.find('div#gdt-collapse-42').isVisible()).toBeTruthy()
         })
       })
-      */
     })
 
     describe('GdtEntryType.CVS', () => {
@@ -184,20 +181,20 @@ describe('Transaction', () => {
         expect(wrapper.findAll('div.row').at(1).text()).toContain('gdt.publisher')
       })
 
-      // it('renders the date', () => {
-      //   expect(wrapper.findAll('div.row').at(2).text()).toContain('Fri Apr 10 2020')
-      // })
+      it.skip('renders the date', () => {
+        expect(wrapper.findAll('div.row').at(2).text()).toContain('Fri Apr 10 2020')
+      })
 
       it('does not show the collapse by default', () => {
         expect(wrapper.find('div#gdt-collapse-42').isVisible()).toBeFalsy()
       })
 
-      // describe('without comment', () => {
-      //   it('does not render the message row', async () => {
-      //     await wrapper.setProps({ comment: undefined })
-      //     expect(wrapper.findAll('div.row').at(0).text()).toContain('form.date')
-      //   })
-      // })
+      describe.skip('without comment', () => {
+        it('does not render the message row', async () => {
+          await wrapper.setProps({ comment: undefined })
+          expect(wrapper.findAll('div.row').at(0).text()).toContain('form.date')
+        })
+      })
     })
 
     describe('GdtEntryType.GLOBAL_MODIFICATOR', () => {

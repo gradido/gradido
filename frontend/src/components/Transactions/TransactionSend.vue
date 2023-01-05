@@ -49,11 +49,7 @@
 <script>
 import Avatar from 'vue-avatar'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
-// import TypeIcon from '../TransactionRows/TypeIcon'
 import Name from '../TransactionRows/Name'
-// import MemoRow from '../TransactionRows/MemoRow'
-// import DateRow from '../TransactionRows/DateRow'
-// import DecayRow from '../TransactionRows/DecayRow'
 import DecayInformation from '../DecayInformations/DecayInformation'
 
 export default {
@@ -61,11 +57,7 @@ export default {
   components: {
     Avatar,
     CollapseIcon,
-    // TypeIcon,
     Name,
-    // MemoRow,
-    // DateRow,
-    // DecayRow,
     DecayInformation,
   },
   props: {
