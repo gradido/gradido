@@ -54,7 +54,7 @@
 </template>
 <script>
 export default {
-  name: 'LastContributions',
+  name: 'ContributionInfo',
   computed: {
     hash() {
       return this.$route.hash
