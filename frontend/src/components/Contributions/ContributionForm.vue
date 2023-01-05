@@ -24,6 +24,7 @@
       </b-form-datepicker>
       <div v-if="validMaxGDD > 0">
         <input-textarea
+          id="contribution-memo"
           v-model="form.memo"
           :name="$t('form.message')"
           :label="$t('contribution.activity')"
@@ -45,6 +46,7 @@
           @updateAmount="updateAmount"
         ></input-hour>
         <input-amount
+          id="contribution-amount"
           v-model="form.amount"
           :name="$t('form.amount')"
           :label="$t('form.amount')"

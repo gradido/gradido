@@ -273,7 +273,7 @@ describe('ContributionForm', () => {
       })
     })
 
-    describe.skip('set contrubtion', () => {
+    describe('set contrubtion', () => {
       describe('fill in form data with "id === null"', () => {
         const now = new Date().toISOString()
 
@@ -385,7 +385,7 @@ describe('ContributionForm', () => {
       })
     })
 
-    describe.skip('update contrubtion', () => {
+    describe('update contrubtion', () => {
       describe('fill in form data with set "id"', () => {
         const now = new Date().toISOString()
 
@@ -474,7 +474,7 @@ describe('ContributionForm', () => {
             })
           })
 
-          describe('on trigger submit', () => {
+          describe.skip('on trigger submit', () => {
             beforeEach(async () => {
               await wrapper.find('form').trigger('submit')
             })
