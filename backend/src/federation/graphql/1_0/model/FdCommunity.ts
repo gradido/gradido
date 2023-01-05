@@ -1,18 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field } from 'type-graphql'
+import { Community as DbCommunity } from '@entity/Community'
 
 @ObjectType()
 export class FdCommunity {
-  // using NOT the entity DbCommunity, because of necessary RAW-Sql to find the correct announced communities
-  constructor(dbCommunity: any) {
-    this.apiVersion = dbCommunity.api_version
-    this.createdAt = dbCommunity.created_at
+  constructor(dbCommunity: DbCommunity) {
+    this.apiVersion = dbCommunity.apiVersion
+    this.createdAt = dbCommunity.createdAt
     this.id = dbCommunity.id
-    this.lastAnnouncedAt = dbCommunity.last_announced_at
-    this.publicKey = dbCommunity.public_key.toString('hex')
-    this.updatedAt = dbCommunity.updated_at
-    this.url = dbCommunity.end_point
+    this.lastAnnouncedAt = dbCommunity.lastAnnouncedAt
+    this.publicKey = dbCommunity.publicKey.toString('hex')
+    this.updatedAt = dbCommunity.updatedAt
+    this.url = dbCommunity.endPoint
   }
 
   @Field(() => Number, { nullable: true })

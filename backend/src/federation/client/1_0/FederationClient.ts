@@ -4,7 +4,7 @@ import { FdCommunity } from '@/federation/graphql/1_0/model/FdCommunity'
 
 export async function requestGetPublicKey(fdCom: FdCommunity): Promise<string | undefined> {
   let endpoint = fdCom.url.endsWith('/') ? fdCom.url : fdCom.url + '/'
-  endpoint = `${endpoint}graphql/${fdCom.apiVersion}/getPublicKey`
+  endpoint = `${endpoint}${fdCom.apiVersion}/getPublicKey`
   logger.info(`requestGetPublicKey with endpoint='${endpoint}'...`)
 
   const graphQLClient = new GraphQLClient(endpoint, {
