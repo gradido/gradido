@@ -1,6 +1,5 @@
 import { mount } from '@vue/test-utils'
 import InputTextarea from './InputTextarea'
-// import flushPromises from 'flush-promises'
 
 const localVue = global.localVue
 
@@ -53,7 +52,9 @@ describe('InputTextarea', () => {
       })
 
       it('has the placeholder "input-field-placeholder"', () => {
-        expect(wrapper.find('textarea').attributes('placeholder')).toEqual('input-field-placeholder')
+        expect(wrapper.find('textarea').attributes('placeholder')).toEqual(
+          'input-field-placeholder',
+        )
       })
 
       it('has the value ""', () => {

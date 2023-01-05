@@ -210,12 +210,6 @@ export const communityStatistics = gql`
   query {
     communityStatistics {
       totalUsers
-      # activeUsers
-      # deletedUsers
-      # totalGradidoCreated
-      # totalGradidoDecayed
-      # totalGradidoAvailable
-      # totalGradidoUnbookedDecayed
     }
   }
 `

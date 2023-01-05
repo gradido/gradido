@@ -110,8 +110,7 @@ describe('ContributionListItem', () => {
         beforeEach(() => {
           spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve(true))
-          // wrapper.findAll('div.pointer').at(1).trigger('click')
-          wrapper.findAll('div.test-delete-contribution').trigger('click')
+          wrapper.find('div.test-delete-contribution').trigger('click')
         })
 
         it('opens the modal', () => {

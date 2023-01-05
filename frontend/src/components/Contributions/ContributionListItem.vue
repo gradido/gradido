@@ -25,10 +25,6 @@
           <div v-if="state === 'IN_PROGRESS'" class="text-205">
             {{ $t('contribution.alert.answerQuestion') }}
           </div>
-          <!-- <div class="small">
-            contributionDate {{ $d(new Date(contributionDate), 'monthAndYear') }}
-          </div>
-          <div class="small">createdAt {{ createdAt }}</div> -->
         </b-col>
         <b-col cols="12" lg="3" offset="3" offset-md="0" offset-lg="0">
           <div class="small">
@@ -83,88 +79,6 @@
         </b-col>
       </b-row>
       <div v-else class="pb-3"></div>
-
-      <!-- <div class="border p-3 w-100 mb-1" :class="`border-${variant}`">
-        <div>
-          <div class="d-inline-flex">
-            <div class="mr-2">
-              <b-icon
-                v-if="state === 'IN_PROGRESS'"
-                icon="question-square"
-                font-scale="2"
-                variant="warning"
-              ></b-icon>
-              <b-icon v-else :icon="icon" :variant="variant" class="h2"></b-icon>
-            </div>
-            <div v-if="firstName" class="mr-3">{{ firstName }} {{ lastName }}</div>
-            <div class="mr-2" :class="state !== 'DELETED' ? 'font-weight-bold' : ''">
-              {{ amount | GDD }}
-            </div>
-            {{ $t('math.minus') }}
-            <div class="mx-2">{{ $d(new Date(date), 'short') }}</div>
-          </div>
-          <div class="mr-2">
-            <span>{{ $t('contribution.date') }}</span>
-            <span>
-              {{ $d(new Date(contributionDate), 'monthAndYear') }}
-            </span>
-          </div>
-          <div class="mr-2">{{ memo }}</div>
-          <div class="d-flex flex-row-reverse">
-            <div
-              v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
-              class="pointer ml-5"
-              @click="
-                $emit('closeAllOpenCollapse'),
-                  $emit('update-contribution-form', {
-                    id: id,
-                    contributionDate: contributionDate,
-                    memo: memo,
-                    amount: amount,
-                  })
-              "
-            >
-              <b-icon icon="pencil" class="h2"></b-icon>
-            </div>
-            <div
-              v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
-              class="pointer"
-              @click="deleteContribution({ id })"
-            >
-              <b-icon icon="trash" class="h2"></b-icon>
-            </div>
-            <div v-if="messagesCount > 0" class="pointer">
-              <b-icon
-                v-b-toggle="collapsId"
-                icon="chat-dots"
-                class="h2 mr-5"
-                @click="getListContributionMessages"
-              ></b-icon>
-            </div>
-          </div>
-        </div>
-        <div v-if="messagesCount > 0">
-          <b-button
-            v-if="state === 'IN_PROGRESS'"
-            v-b-toggle="collapsId"
-            variant="warning"
-            @click="getListContributionMessages"
-          >
-            {{ $t('contribution.alert.answerQuestion') }}
-          </b-button>
-          <b-collapse :id="collapsId" class="mt-2" v-model="visible">
-            <b-card>
-              <contribution-messages-list
-                :messages="messages_get"
-                :state="state"
-                :contributionId="contributionId"
-                @get-list-contribution-messages="getListContributionMessages"
-                @update-state="updateState"
-              />
-            </b-card>
-          </b-collapse>
-        </div>
-      </div> -->
       <b-collapse :id="collapsId" class="mt-2" v-model="visible">
         <contribution-messages-list
           :messages="messages_get"
@@ -297,7 +211,6 @@ export default {
           fetchPolicy: 'no-cache',
         })
         .then((result) => {
-          // console.log('result', result.data.listContributionMessages.messages)
           this.messages_get = result.data.listContributionMessages.messages
         })
         .catch((error) => {

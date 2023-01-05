@@ -44,26 +44,6 @@
           :validMaxTime="validMaxTime"
           @updateAmount="updateAmount"
         ></input-hour>
-        <!-- <validation-provider
-        :rules="{
-          min: minlength,
-          max: maxlength,
-        }"
-        :name="$t('form.message')"
-        v-slot="{ errors }"
-      >
-        <label class="mt-3">{{ $t('contribution.activity') }} {{ $t('math.asterisk') }}</label>
-        <b-form-textarea
-          id="contribution-memo"
-          v-model="form.memo"
-          rows="3"
-          :placeholder="$t('contribution.yourActivity')"
-          required
-        ></b-form-textarea>
-        <b-col v-if="errors">
-          <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
-        </b-col>
-      </validation-provider> -->
         <input-amount
           v-model="form.amount"
           :name="$t('form.amount')"
@@ -74,29 +54,6 @@
         ></input-amount>
       </div>
       <div v-else class="mb-5">{{ $t('contribution.exhausted') }}</div>
-      <!-- <validation-provider
-        :name="$t('form.amount')"
-        :rules="{
-          required: true,
-          gddSendAmount: [0.01, validMaxGDD],
-        }"
-        v-slot="{ errors }"
-      >
-        <label class="mt-3">{{ $t('form.amount') }} {{ $t('math.asterisk') }}</label>
-        <b-input-group size="lg" prepend="GDD">
-          <b-form-input
-            id="contribution-amount"
-            v-model="form.amount"
-            type="number"
-            :formatter="numberFormat"
-            :max="validMaxGDD"
-            required
-          ></b-form-input>
-        </b-input-group>
-        <b-col v-if="errors">
-          <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
-        </b-col>
-      </validation-provider> -->
       <b-row class="mt-5">
         <b-col>
           <b-button type="reset" variant="secondary" @click="reset" data-test="button-cancel">
@@ -143,12 +100,7 @@ export default {
     updateAmount(amount) {
       this.form.amount = (amount * 20).toFixed(2).toString()
     },
-    // numberFormat(value) {
-    //   return value.replace(PATTERN_NON_DIGIT, '')
-    // },
     submit() {
-      // this.form.amount = this.form.amount.replace(PATTERN_NON_DIGIT, '')
-      // spreading is needed for testing
       this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
       this.reset()
     },
@@ -160,13 +112,6 @@ export default {
       this.form.hours = 0.0
       this.form.amount = ''
     },
-    // textForMonth(date, availableAmount) {
-    //   const obj = {
-    //     monthAndYear: this.$d(date, 'monthAndYear'),
-    //     creation: availableAmount,
-    //   }
-    //   return this.$t('contribution.formText.openAmountForMonth', obj)
-    // },
   },
   computed: {
     disabled() {
@@ -185,7 +130,6 @@ export default {
       return Number(this.isThisMonth ? this.maxGddThisMonth : this.maxGddLastMonth)
     },
     validMaxTime() {
-      // console.log('this.validMaxGDD', this.validMaxGDD)
       return Number(this.validMaxGDD / 20)
     },
   },

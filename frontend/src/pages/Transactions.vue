@@ -85,9 +85,6 @@ export default {
     }
   },
   watch: {
-    // currentPage() {
-    //   this.updateGdt()
-    // },
     gdt() {
       if (this.gdt) {
         this.updateGdt()
@@ -101,17 +98,10 @@ export default {
   padding-top: 14px;
   margin-bottom: 14px;
 }
-
 .nav-tabs .nav-link {
   background-color: rgba(204, 204, 204, 0.185);
 }
 .nav-tabs .nav-link.active {
   background-color: rgb(248 249 254);
 }
-
-/* .tab-content {
-  padding-top: 25px;
-  border-left: 1px inset rgba(28, 110, 164, 0.1);
-  border-right: 1px inset rgba(28, 110, 164, 0.1);
-} */
 </style>

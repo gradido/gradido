@@ -20,15 +20,6 @@
     >
       <b-row>
         <b-col class="h4">{{ $t('gddKonto') }}</b-col>
-        <!-- <b-col cols="3" class="text-center">
-          <div>
-            <b-icon
-              :icon="showStatus ? 'check-circle' : 'circle'"
-              :class="showStatus ? 'gradido-global-border-color-accent' : ''"
-            ></b-icon>
-            <div class="small">{{ badge ? $t('active') : $t('inactive') }}</div>
-          </div>
-        </b-col> -->
       </b-row>
 
       <b-row>

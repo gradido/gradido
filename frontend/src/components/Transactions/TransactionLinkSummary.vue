@@ -29,10 +29,6 @@
 </template>
 <script>
 import CollapseIcon from '../TransactionRows/CollapseIcon'
-// import TypeIcon from '../TransactionRows/TypeIcon'
-// import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
-// import LinkCountRow from '../TransactionRows/LinkCountRow'
-// import DecayRow from '../TransactionRows/DecayRow'
 import CollapseLinksList from '../DecayInformations/CollapseLinksList'
 import { listTransactionLinks } from '@/graphql/queries'
 
@@ -40,10 +36,6 @@ export default {
   name: 'TransactionSlotLink',
   components: {
     CollapseIcon,
-    // TypeIcon,
-    // AmountAndNameRow,
-    // LinkCountRow,
-    // DecayRow,
     CollapseLinksList,
   },
   props: {

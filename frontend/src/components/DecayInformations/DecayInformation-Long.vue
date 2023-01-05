@@ -8,14 +8,6 @@
       <b-icon icon="droplet-half" class="mr-2" />
       <b>{{ $t('decay.calculation_decay') }}</b>
     </div>
-    <!-- <b-row>
-      <b-col offset="">
-        <div class="pb-3">
-          <b-icon icon="droplet-half" class="mr-2" />
-          <b>{{ $t('decay.calculation_decay') }}</b>
-        </div>
-      </b-col>
-    </b-row> -->
     <b-row>
       <b-col>
         <b-row>
@@ -49,11 +41,6 @@
           <b-col cols="12" lg="4" md="4">{{ $t(`decay.types.${typeId.toLowerCase()}`) }}</b-col>
           <b-col offset="1" offset-md="0" offset-lg="0">{{ amount | GDD }}</b-col>
         </b-row>
-        <!-- Decay-->
-        <!-- <b-row>
-          <b-col cols="4">{{ $t('decay.decay') }}</b-col>
-          <b-col>{{ decay.decay | GDD }}</b-col>
-        </b-row> -->
         <!-- Total-->
         <b-row>
           <b-col cols="12" lg="4" md="4">
