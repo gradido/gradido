@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import TransactionLinksSummary from './TransactionLinkSummary'
 import { listTransactionLinks } from '@/graphql/queries'
-import { toastErrorSpy } from '@test/testSetup'
+import { toastErrorSpy } from '../../../test/testSetup'
 
 const localVue = global.localVue
 
