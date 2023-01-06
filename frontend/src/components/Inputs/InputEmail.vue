@@ -5,16 +5,22 @@
     :name="name"
     v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
   >
-    <b-form-group :label="label" :label-for="labelFor">
+    <b-form-group :label="label" :label-for="labelFor" data-test="input-email">
       <b-form-input
         v-model="currentValue"
         v-bind="ariaInput"
+        data-test="input-email"
         :id="labelFor"
         :name="name"
         :placeholder="placeholder"
         type="email"
         :state="validated ? valid : false"
         trim
+        :class="$route.path === '/send' ? 'bg-248' : ''"
+        v-focus="emailFocused"
+        @focus="emailFocused = true"
+        @blur="normalizeEmail()"
+        :disabled="disabled"
       ></b-form-input>
       <b-form-invalid-feedback v-bind="ariaMsg">
         {{ errors[0] }}
@@ -37,11 +43,13 @@ export default {
     name: { type: String, default: 'Email' },
     label: { type: String, default: 'Email' },
     placeholder: { type: String, default: 'Email' },
-    value: { required: true, type: String },
+    value: { required: true, type: String, default: '' },
+    disabled: { required: false, type: Boolean, default: false },
   },
   data() {
     return {
-      currentValue: '',
+      currentValue: this.value,
+      emailFocused: false,
     }
   },
   computed: {
@@ -55,6 +63,12 @@ export default {
     },
     value() {
       if (this.value !== this.currentValue) this.currentValue = this.value
+    },
+  },
+  methods: {
+    normalizeEmail() {
+      this.emailFocused = false
+      this.currentValue = this.currentValue.trim()
     },
   },
 }

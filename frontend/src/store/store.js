@@ -51,10 +51,10 @@ export const mutations = {
     state.creation = creation
   },
   hideAmountGDD: (state, hideAmountGDD) => {
-    state.hideAmountGDD = hideAmountGDD
+    state.hideAmountGDD = !!hideAmountGDD
   },
   hideAmountGDT: (state, hideAmountGDT) => {
-    state.hideAmountGDT = hideAmountGDT
+    state.hideAmountGDT = !!hideAmountGDT
   },
 }
 
@@ -84,8 +84,8 @@ export const actions = {
     commit('publisherId', null)
     commit('isAdmin', false)
     commit('creation', null)
-    commit('hideAmountGDD', null)
-    commit('hideAmountGDT', null)
+    commit('hideAmountGDD', false)
+    commit('hideAmountGDT', true)
     localStorage.clear()
   },
 }

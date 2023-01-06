@@ -1,19 +1,11 @@
 <template>
-  <div class="container contribution-form">
-    <div class="my-3">
-      <h3>{{ $t('contribution.formText.yourContribution') }}</h3>
-      {{ $t('contribution.formText.bringYourTalentsTo') }}
-      <ul class="my-3">
-        <li v-html="textForMonth(new Date(minimalDate), maxGddLastMonth)"></li>
-        <li v-html="textForMonth(new Date(), maxGddThisMonth)"></li>
-      </ul>
-
-      <div class="my-3">
-        <b>{{ $t('contribution.formText.describeYourCommunity') }}</b>
-      </div>
-    </div>
-    <b-form ref="form" @submit.prevent="submit" class="border p-3">
-      <label>{{ $t('contribution.selectDate') }} {{ $t('math.asterisk') }}</label>
+  <div class="contribution-form">
+    <b-form
+      ref="form"
+      @submit.prevent="submit"
+      class="border p-3 bg-white appBoxShadow gradido-border-radius"
+    >
+      <label>{{ $t('contribution.selectDate') }}</label>
       <b-form-datepicker
         id="contribution-date"
         v-model="form.date"
@@ -21,7 +13,7 @@
         :locale="$i18n.locale"
         :max="maximalDate"
         :min="minimalDate"
-        class="mb-4"
+        class="mb-4 bg-248"
         reset-value=""
         :label-no-date-selected="$t('contribution.noDateSelected')"
         required
@@ -30,87 +22,87 @@
         <template #nav-prev-year><span></span></template>
         <template #nav-next-year><span></span></template>
       </b-form-datepicker>
-      <validation-provider
-        :rules="{
-          min: minlength,
-          max: maxlength,
-        }"
-        :name="$t('form.message')"
-        v-slot="{ errors }"
-      >
-        <label class="mt-3">{{ $t('contribution.activity') }} {{ $t('math.asterisk') }}</label>
-        <b-form-textarea
+      <div v-if="validMaxGDD > 0">
+        <input-textarea
           id="contribution-memo"
           v-model="form.memo"
-          rows="3"
+          :name="$t('form.message')"
+          :label="$t('contribution.activity')"
           :placeholder="$t('contribution.yourActivity')"
-          required
-        ></b-form-textarea>
-        <b-col v-if="errors">
-          <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
-        </b-col>
-      </validation-provider>
-      <label class="mt-3">{{ $t('form.amount') }} {{ $t('math.asterisk') }}</label>
-      <b-input-group size="lg" prepend="GDD">
-        <b-form-input
+          :rules="{ required: true, min: 5, max: 255 }"
+        />
+        <input-hour
+          v-model="form.hours"
+          :name="$t('form.hours')"
+          :label="$t('form.hours')"
+          placeholder="0.5"
+          :rules="{
+            required: true,
+            min: 0.5,
+            max: validMaxTime,
+            gddCreationTime: [0.5, validMaxTime],
+          }"
+          :validMaxTime="validMaxTime"
+          @updateAmount="updateAmount"
+        ></input-hour>
+        <input-amount
           id="contribution-amount"
           v-model="form.amount"
-          type="text"
-          :formatter="numberFormat"
-        ></b-form-input>
-      </b-input-group>
-      <div
-        v-if="isThisMonth && parseInt(form.amount) > parseInt(maxGddThisMonth)"
-        class="text-danger text-right"
-      >
-        {{ $t('contribution.formText.maxGDDforMonth', { amount: maxGddThisMonth }) }}
+          :name="$t('form.amount')"
+          :label="$t('form.amount')"
+          placeholder="20"
+          :rules="{ required: true, gddSendAmount: [20, validMaxGDD] }"
+          typ="ContributionForm"
+        ></input-amount>
       </div>
-      <div
-        v-if="!isThisMonth && parseInt(form.amount) > parseInt(maxGddLastMonth)"
-        class="text-danger text-right"
-      >
-        {{ $t('contribution.formText.maxGDDforMonth', { amount: maxGddLastMonth }) }}
-      </div>
-      <b-row class="mt-3">
+      <div v-else class="mb-5">{{ $t('contribution.exhausted') }}</div>
+      <b-row class="mt-5">
         <b-col>
           <b-button type="reset" variant="secondary" @click="reset" data-test="button-cancel">
             {{ $t('form.cancel') }}
           </b-button>
         </b-col>
         <b-col class="text-right">
-          <b-button type="submit" variant="primary" :disabled="disabled" data-test="button-submit">
+          <b-button type="submit" variant="gradido" :disabled="disabled" data-test="button-submit">
             {{ form.id ? $t('form.change') : $t('contribution.submit') }}
           </b-button>
         </b-col>
       </b-row>
     </b-form>
-    <p class="p-2">{{ $t('math.asterisk') }} {{ $t('form.mandatoryField') }}</p>
   </div>
 </template>
 <script>
-const PATTERN_NON_DIGIT = /\D/g
+import InputHour from '@/components/Inputs/InputHour.vue'
+import InputAmount from '@/components/Inputs/InputAmount.vue'
+import InputTextarea from '@/components/Inputs/InputTextarea.vue'
 
 export default {
   name: 'ContributionForm',
+  components: {
+    InputHour,
+    InputAmount,
+    InputTextarea,
+  },
   props: {
     value: { type: Object, required: true },
-    updateAmount: { type: String, required: false },
+    isThisMonth: { type: Boolean, required: true },
+    minimalDate: { type: Date, required: true },
+    maxGddLastMonth: { type: Number, required: true },
+    maxGddThisMonth: { type: Number, required: true },
   },
   data() {
     return {
       minlength: 5,
       maxlength: 255,
       maximalDate: new Date(),
-      form: this.value, // includes 'id'
+      form: this.value, // includes 'id' and time
     }
   },
   methods: {
-    numberFormat(value) {
-      return value.replace(PATTERN_NON_DIGIT, '')
+    updateAmount(amount) {
+      this.form.amount = (amount * 20).toFixed(2).toString()
     },
     submit() {
-      this.form.amount = this.form.amount.replace(PATTERN_NON_DIGIT, '')
-      // spreading is needed for testing
       this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
       this.reset()
     },
@@ -119,50 +111,33 @@ export default {
       this.form.id = null
       this.form.date = ''
       this.form.memo = ''
+      this.form.hours = 0.0
       this.form.amount = ''
-    },
-    textForMonth(date, availableAmount) {
-      const obj = {
-        monthAndYear: this.$d(date, 'monthAndYear'),
-        creation: availableAmount,
-      }
-      return this.$t('contribution.formText.openAmountForMonth', obj)
     },
   },
   computed: {
-    minimalDate() {
-      const date = new Date(this.maximalDate)
-      return new Date(date.setMonth(date.getMonth() - 1, 1))
-    },
     disabled() {
       return (
         this.form.date === '' ||
         this.form.memo.length < this.minlength ||
         this.form.memo.length > this.maxlength ||
+        this.form.amount === '' ||
         parseInt(this.form.amount) <= 0 ||
         parseInt(this.form.amount) > 1000 ||
         (this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddThisMonth)) ||
         (!this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddLastMonth))
       )
     },
-    isThisMonth() {
-      const formDate = new Date(this.form.date)
-      return (
-        formDate.getFullYear() === this.maximalDate.getFullYear() &&
-        formDate.getMonth() === this.maximalDate.getMonth()
-      )
+    validMaxGDD() {
+      return Number(this.isThisMonth ? this.maxGddThisMonth : this.maxGddLastMonth)
     },
-    maxGddLastMonth() {
-      // when existing contribution is edited, the amount is added back on top of the amount
-      return this.form.id && !this.isThisMonth
-        ? parseInt(this.$store.state.creation[1]) + parseInt(this.updateAmount)
-        : this.$store.state.creation[1]
+    validMaxTime() {
+      return Number(this.validMaxGDD / 20)
     },
-    maxGddThisMonth() {
-      // when existing contribution is edited, the amount is added back on top of the amount
-      return this.form.id && this.isThisMonth
-        ? parseInt(this.$store.state.creation[2]) + parseInt(this.updateAmount)
-        : this.$store.state.creation[2]
+  },
+  watch: {
+    value() {
+      return (this.form = this.value)
     },
   },
 }

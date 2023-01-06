@@ -54,6 +54,19 @@ export const loadAllRules = (i18nCallback) => {
     },
   })
 
+  extend('gddCreationTime', {
+    validate(value, { min, max }) {
+      if (value) value = value.replace(',', '.')
+      return value >= min && value <= max
+    },
+    params: ['min', 'max'],
+    message: (_, values) => {
+      // values.min = values.min
+      // values.max = values.max
+      return i18nCallback.t('form.validation.gddCreationTime', values)
+    },
+  })
+
   // eslint-disable-next-line camelcase
   extend('is_not', {
     // eslint-disable-next-line camelcase
