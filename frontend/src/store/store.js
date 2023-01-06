@@ -50,6 +50,12 @@ export const mutations = {
   creation: (state, creation) => {
     state.creation = creation
   },
+  hideAmountGDD: (state, hideAmountGDD) => {
+    state.hideAmountGDD = !!hideAmountGDD
+  },
+  hideAmountGDT: (state, hideAmountGDT) => {
+    state.hideAmountGDT = !!hideAmountGDT
+  },
 }
 
 export const actions = {
@@ -64,6 +70,8 @@ export const actions = {
     commit('publisherId', data.publisherId)
     commit('isAdmin', data.isAdmin)
     commit('creation', data.creation)
+    commit('hideAmountGDD', data.hideAmountGDD)
+    commit('hideAmountGDT', data.hideAmountGDT)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
@@ -76,6 +84,8 @@ export const actions = {
     commit('publisherId', null)
     commit('isAdmin', false)
     commit('creation', null)
+    commit('hideAmountGDD', false)
+    commit('hideAmountGDT', true)
     localStorage.clear()
   },
 }
@@ -102,6 +112,8 @@ try {
       hasElopage: false,
       publisherId: null,
       creation: null,
+      hideAmountGDD: null,
+      hideAmountGDT: null,
     },
     getters: {},
     // Syncronous mutation of the state

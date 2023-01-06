@@ -1,61 +1,64 @@
 <template>
   <div class="transaction-slot-receive">
-    <div @click="visible = !visible">
-      <!-- Collaps Icon  -->
-      <collapse-icon class="text-right" :visible="visible" />
-
-      <div>
-        <b-row>
-          <!-- ICON  -->
-          <b-col cols="1">
-            <type-icon color="gradido-global-color-accent" icon="arrow-right-circle" />
-          </b-col>
-
-          <b-col cols="11">
-            <!-- Amount / Name || Text -->
-            <amount-and-name-row
-              v-on="$listeners"
-              :amount="amount"
-              :linkedUser="linkedUser"
-              :linkId="linkId"
-            />
-
-            <!-- Nachricht Memo -->
-            <memo-row :memo="memo" />
-
-            <!-- Datum -->
-            <date-row :date="balanceDate" />
-
-            <!-- Decay -->
-            <decay-row :decay="decay.decay" />
-          </b-col>
-        </b-row>
-      </div>
-
-      <b-collapse :class="visible ? 'bg-secondary' : ''" class="pb-4 pt-5" v-model="visible">
-        <decay-information :typeId="typeId" :decay="decay" :amount="amount" />
-      </b-collapse>
-    </div>
+    <b-row @click="visible = !visible" class="align-items-center">
+      <b-col cols="3" lg="2" md="2">
+        <!-- <b-avatar :text="avatarText" variant="success" size="3em"></b-avatar> -->
+        <avatar
+          :username="username.username"
+          :initials="username.initials"
+          :color="'#fff'"
+          :size="42"
+        ></avatar>
+      </b-col>
+      <b-col>
+        <div>
+          <name
+            class="font-weight-bold"
+            v-on="$listeners"
+            :amount="amount"
+            :linkedUser="linkedUser"
+            :linkId="linkId"
+          />
+        </div>
+        <span class="small">{{ this.$d(new Date(balanceDate), 'short') }}</span>
+        <span class="ml-4 small">{{ this.$d(new Date(balanceDate), 'time') }}</span>
+      </b-col>
+      <b-col cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
+        <div class="small mb-2">
+          {{ $t('decay.types.receive') }}
+        </div>
+        <div class="font-weight-bold gradido-global-color-accent">{{ amount | GDD }}</div>
+        <div v-if="linkId" class="small">
+          {{ $t('via_link') }}
+          <b-icon
+            icon="link45deg"
+            variant="muted"
+            class="m-mb-1"
+            :title="$t('gdd_per_link.redeemed-title')"
+          />
+        </div>
+      </b-col>
+      <b-col cols="12" md="1" lg="1" class="text-right">
+        <collapse-icon class="text-right" :visible="visible" />
+      </b-col>
+    </b-row>
+    <b-collapse class="pb-4 pt-lg-3" v-model="visible">
+      <decay-information :typeId="typeId" :decay="decay" :amount="amount" :memo="memo" />
+    </b-collapse>
   </div>
 </template>
 <script>
+import Avatar from 'vue-avatar'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
-import TypeIcon from '../TransactionRows/TypeIcon'
-import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
-import MemoRow from '../TransactionRows/MemoRow'
-import DateRow from '../TransactionRows/DateRow'
-import DecayRow from '../TransactionRows/DecayRow'
+import Name from '../TransactionRows/Name'
 import DecayInformation from '../DecayInformations/DecayInformation'
 
 export default {
   name: 'TransactionReceive',
   components: {
+    Avatar,
     CollapseIcon,
-    TypeIcon,
-    AmountAndNameRow,
-    MemoRow,
-    DateRow,
-    DecayRow,
+    Name,
     DecayInformation,
   },
   props: {
@@ -82,19 +85,28 @@ export default {
     typeId: {
       type: String,
     },
-    linkId: {
-      type: Number,
-      required: false,
-    },
     previousBookedBalance: {
       type: String,
       required: true,
+    },
+    linkId: {
+      type: Number,
+      required: false,
+      default: null,
     },
   },
   data() {
     return {
       visible: false,
     }
+  },
+  computed: {
+    username() {
+      return {
+        username: `${this.linkedUser.firstName} ${this.linkedUser.lastName}`,
+        initials: `${this.linkedUser.firstName[0]}${this.linkedUser.lastName[0]}`,
+      }
+    },
   },
 }
 </script>
