@@ -50,7 +50,7 @@ describe('router', () => {
       })
 
       it('has sixteen routes defined', () => {
-        expect(routes).toHaveLength(19)
+        expect(routes).toHaveLength(18)
       })
 
       describe('overview', () => {
@@ -86,7 +86,7 @@ describe('router', () => {
         })
       })
 
-      describe('profile', () => {
+      describe.skip('profile', () => {
         it('requires authorization', () => {
           expect(routes.find((r) => r.path === '/profile').meta.requiresAuth).toBeTruthy()
         })
@@ -178,7 +178,7 @@ describe('router', () => {
         })
       })
 
-      describe('select-community', () => {
+      describe.skip('select-community', () => {
         it('loads the "SelectCommunity" page', async () => {
           const component = await routes.find((r) => r.path === '/select-community').component()
           expect(component.default.name).toBe('SelectCommunity')

@@ -96,30 +96,26 @@ describe('ContributionMessagesListItem', () => {
         wrapper = ItemWrapper()
       })
 
-      it('has a DIV .is-moderator.text-left', () => {
-        expect(wrapper.find('div.is-moderator.text-left').exists()).toBe(true)
+      it('has a DIV .is-moderator', () => {
+        expect(wrapper.find('div.is-moderator').exists()).toBe(true)
       })
 
       it('has the complete user name', () => {
-        expect(wrapper.find('div.is-moderator.text-left > span:nth-child(2)').text()).toBe(
-          'Bibi Bloxberg',
-        )
+        expect(wrapper.find('span[data-test="username"]').text()).toBe('Bibi Bloxberg')
       })
 
       it('has the message creation date', () => {
-        expect(wrapper.find('div.is-moderator.text-left > span:nth-child(3)').text()).toMatch(
+        expect(wrapper.find('div[data-test="date"]').text()).toMatch(
           'Mon Aug 29 2022 12:25:34 GMT+0000',
         )
       })
 
       it('has the moderator label', () => {
-        expect(wrapper.find('div.is-moderator.text-left > small:nth-child(4)').text()).toBe(
-          'community.moderator',
-        )
+        expect(wrapper.find('span[data-test="moderator"]').text()).toBe('community.moderator')
       })
 
       it('has the message', () => {
-        expect(wrapper.find('div.is-moderator.text-left > div:nth-child(5)').text()).toBe(
+        expect(wrapper.find('div[data-test="message"]').text()).toBe(
           'Asda sdad ad asdasd, das Ass das Das.',
         )
       })
@@ -154,26 +150,22 @@ describe('ContributionMessagesListItem', () => {
         wrapper = ModeratorItemWrapper()
       })
 
-      it('has a DIV .is-not-moderator.text-right', () => {
-        expect(wrapper.find('div.is-not-moderator.text-right').exists()).toBe(true)
+      it('has a DIV .is-not-moderator', () => {
+        expect(wrapper.find('div.is-not-moderator').exists()).toBe(true)
       })
 
       it('has the complete user name', () => {
-        expect(wrapper.find('div.is-not-moderator.text-right > span:nth-child(2)').text()).toBe(
-          'Peter Lustig',
-        )
+        expect(wrapper.find('div[data-test="username"]').text()).toBe('Peter Lustig')
       })
 
       it('has the message creation date', () => {
-        expect(wrapper.find('div.is-not-moderator.text-right > span:nth-child(3)').text()).toMatch(
+        expect(wrapper.find('div[data-test="date"]').text()).toMatch(
           'Mon Aug 29 2022 12:23:27 GMT+0000',
         )
       })
 
       it('has the message', () => {
-        expect(wrapper.find('div.is-not-moderator.text-right > div:nth-child(4)').text()).toBe(
-          'Lorem ipsum?',
-        )
+        expect(wrapper.find('div[data-test="message"]').text()).toBe('Lorem ipsum?')
       })
     })
   })
@@ -207,7 +199,7 @@ describe('ContributionMessagesListItem', () => {
       beforeEach(() => {
         propsData.message.message = 'https://gradido.net/de/'
         wrapper = ModeratorItemWrapper()
-        messageField = wrapper.find('div.is-not-moderator.text-right > div:nth-child(4)')
+        messageField = wrapper.find('div[data-test="message"]')
       })
 
       it('contains the link as text', () => {
@@ -224,7 +216,7 @@ describe('ContributionMessagesListItem', () => {
         propsData.message.message = `Here you find all you need to know about Gradido: https://gradido.net/de/
 and here is the link to the repository: https://github.com/gradido/gradido`
         wrapper = ModeratorItemWrapper()
-        messageField = wrapper.find('div.is-not-moderator.text-right > div:nth-child(4)')
+        messageField = wrapper.find('div[data-test="message"]')
       })
 
       it('contains the whole text', () => {
@@ -275,7 +267,7 @@ This message also contains a link: https://gradido.net/de/
       beforeEach(() => {
         jest.clearAllMocks()
         wrapper = itemWrapper()
-        messageField = wrapper.find('div.is-not-moderator.text-right > div:nth-child(4)')
+        messageField = wrapper.find('div[data-test="message"]')
       })
 
       it('renders the date', () => {
