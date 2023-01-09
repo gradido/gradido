@@ -12,7 +12,7 @@ async function main() {
   console.log(`FEDERATION_API=${CONFIG.FEDERATION_API}`)
   console.log(`configured: FEDERATION_DHT_TOPIC=${CONFIG.FEDERATION_DHT_TOPIC}`)
   const { app } = await createServer()
-  
+
   app.listen(CONFIG.FEDERATION_PORT, () => {
     // eslint-disable-next-line no-console
     console.log(`Server is running at http://localhost:${CONFIG.FEDERATION_PORT}`)

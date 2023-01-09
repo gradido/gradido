@@ -84,12 +84,12 @@ const CONFIG = {
   ...constants,
   ...server,
   ...database,
-  //...klicktipp,
+  // ...klicktipp,
   ...community,
-  //...email,
-  //...loginServer,
-  //...webhook,
-  //...eventProtocol,
+  // ...email,
+  // ...loginServer,
+  // ...webhook,
+  // ...eventProtocol,
   ...federation,
 }
 
