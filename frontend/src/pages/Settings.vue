@@ -1,5 +1,5 @@
 <template>
-  <div fluid="sm" class="mr-2">
+  <div class="container bg-white appBoxShadow gradido-border-radius p-3 mt--3">
     <user-card :balance="balance" :transactionCount="transactionCount"></user-card>
     <user-data />
     <hr />
@@ -11,7 +11,7 @@
   </div>
 </template>
 <script>
-import UserCard from '@/components/UserCard.vue'
+import UserCard from '@/components/UserSettings/UserCard.vue'
 import UserData from '@/components/UserSettings/UserData.vue'
 import UserPassword from '@/components/UserSettings/UserPassword.vue'
 import UserLanguage from '@/components/UserSettings/UserLanguage.vue'

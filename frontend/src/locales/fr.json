@@ -4,6 +4,7 @@
   "125": "125%",
   "85": "85%",
   "advanced-calculation": "Calcul avancé",
+  "asterisks": "****",
   "auth": {
     "left": {
       "dignity": "Dignité",
@@ -29,7 +30,7 @@
     "openContributionLinkText": "Les {count} créations automatiques suivantes sont actuellement fournies par la communauté \"{name}\".",
     "other-communities": "Autres communautés",
     "statistic": "Statistiques",
-    "submitContribution": "Donner une contribution",
+    "submitContribution": "écrire",
     "switch-to-this-community": "Passer à cette communauté"
   },
   "contribution": {
@@ -120,8 +121,8 @@
     "firstname": " Prénom",
     "from": "de",
     "generate_now": "Produire maintenant",
+    "hours": "Uren",
     "lastname": "Nom",
-    "mandatoryField": "champ obligatoire",
     "memo": "Note",
     "message": "Message",
     "new_balance": "Montant du solde après confirmation",
@@ -143,7 +144,6 @@
     "send_transaction_success": "Votre transaction a été effectuée avec succès",
     "sorry": "Désolé",
     "thx": "Merci",
-    "time": "Heure",
     "to": "à",
     "to1": "à",
     "validation": {

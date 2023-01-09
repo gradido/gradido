@@ -4,6 +4,7 @@
   "125": "125%",
   "85": "85%",
   "advanced-calculation": "Voorcalculatie",
+  "asterisks": "****",
   "auth": {
     "left": {
       "dignity": "Waardigheid",
@@ -29,7 +30,7 @@
     "openContributionLinkText": "De volgende {count} automatische creaties worden momenteel aangeboden door de gemeenschap \"{name}\".",
     "other-communities": "Verdere gemeenschappen",
     "statistic": "Statistieken",
-    "submitContribution": "Bijdrage indienen",
+    "submitContribution": "schrijf",
     "switch-to-this-community": "naar deze gemeenschap wisselen"
   },
   "contribution": {
@@ -121,7 +122,6 @@
     "from": "Van",
     "generate_now": "Nu genereren",
     "lastname": "Achternaam",
-    "mandatoryField": "verplicht veld",
     "memo": "Memo",
     "message": "Bericht",
     "new_balance": "Nieuw banksaldo na bevestiging",

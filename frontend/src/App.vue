@@ -1,7 +1,9 @@
 <template>
-  <div id="app" class="h-100">
-    <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayout'" />
-    <div class="goldrand position-fixed w-100 fixed-bottom zindex1000"></div>
+  <div id="app">
+    <div :class="$route.meta.requiresAuth ? 'appContent' : ''">
+      <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayout'" />
+      <div class="goldrand position-fixed fixed-bottom zindex1000"></div>
+    </div>
   </div>
 </template>
 
@@ -24,14 +26,28 @@ export default {
   src: url(./assets/scss/fonts/WorkSans-VariableFont_wght.ttf) format('truetype');
 }
 #app {
-  min-width: 360px;
   font-size: 1rem;
   font-family: 'WorkSans', sans-serif !important;
 }
-
+.appContent {
+  min-width: 360px;
+  max-width: 1320px;
+  margin-right: auto;
+  margin-left: auto;
+}
+.appBoxShadow {
+  -webkit-box-shadow: 20pt 20pt 50pt 0 #3838384f;
+  box-shadow: 20pt 20pt 50pt 0 #3838384f;
+}
 @media screen and (max-width: 500px) {
   #app {
     font-size: 0.85rem;
+  }
+}
+@media screen and (max-width: 1024px) {
+  #app {
+    padding-left: 15px;
+    padding-right: 15px;
   }
 }
 
@@ -45,5 +61,9 @@ export default {
     rgba(204, 157, 61, 1) 88%
   );
   height: 13px;
+}
+
+.text-color-gdd-yellow {
+  color: rgb(197 141 56);
 }
 </style>
