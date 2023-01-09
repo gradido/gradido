@@ -4,7 +4,8 @@ import { ObjectType, Field } from 'type-graphql'
 import { Community as DbCommunity } from '@entity/Community'
 
 @ObjectType()
-export class FdCommunity {
+// eslint-disable-next-line camelcase
+export class V1_1_FdCommunity {
   constructor(dbCommunity: DbCommunity) {
     this.apiVersion = dbCommunity.apiVersion
     this.createdAt = dbCommunity.createdAt
