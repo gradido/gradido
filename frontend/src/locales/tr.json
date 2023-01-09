@@ -1,0 +1,324 @@
+{
+  "100": "%100",
+  "1000thanks": "Bizimle olduğun için 1000lerce teşekkür!",
+  "125": "%125",
+  "85": "%85",
+  "advanced-calculation": "Önceden hesaplama",
+  "auth": {
+    "left": {
+      "dignity": "Onur",
+      "donation": "Bağış",
+      "gratitude": "Şükran",
+      "learnMore": "Daha fazla bilgi …",
+      "oneDignity": "Gradidoyla birbirimize armağan verip teşekkür ediyoruz",
+      "oneDonation": "Sen toplum için bir armağansın. Bizimle olduğun için 1000lerce teşekkürler.",
+      "oneGratitude": "Birbirimiz, tüm insanlar ve doğa için."
+    },
+    "navbar": {
+      "aboutGradido": "Gradido hakkında"
+    }
+  },
+  "back": "Geri",
+  "community": {
+    "choose-another-community": "Başka bir topluluk seçin",
+    "community": "Topluluk",
+    "continue-to-registration": "Kayıt işlemine devam et",
+    "current-community": "Varolan topluluk",
+    "myContributions": "Toplum yararına yaptığım hizmetler",
+    "other-communities": "Diğer topluluklar",
+    "submitContribution": "yaz",
+    "switch-to-this-community": "Bu topluluğa giriş yap"
+  },
+  "contribution": {
+    "activity": "Hizmet",
+    "alert": {
+      "communityNoteList": "Burada, bu topluluğun tüm üyelerinden gönderilen ve onaylanan bütün faydalı hizmetleri bulacaksın.",
+      "confirm": "onaylandı",
+      "myContributionNoteList": "Bildirmiş olduğun henüz onaylanmamış olan  faaliyetleri istediğin zaman düzenleyebilir veya silebilirsin.",
+      "myContributionNoteSupport": "Yakın zamanda moderatörlerle aranda bir diyalog olasılığı olacak. Şu anda herhangi bir sorun yaşıyorsan, lütfen destek hattına başvur.",
+      "pending": "Gönderildi ve onay bekleniyor",
+      "rejected": "reddedildi"
+    },
+    "date": "Hizmet:",
+    "delete": "Hizmeti sil! Emin misin?",
+    "deleted": "Hizmet silindi! Fakat hala görünüyor olacak.",
+    "formText": {
+      "bringYourTalentsTo": "Yeteneklerini topluluğa sun! Gönüllü olarak sunduğun hizmetler ayda max 1,000 GDD olacak şekilde saati 20 GDD olarak ödüllendirilecektir! Bir moderatör tarafından onaylandıktan sonra bu tutar hesabına yatırılacaktır.",
+      "maxGDDforMonth": "Seçilen ay için yalnızca maksimum {amount} GDD gönderebilirsin.",
+      "openAmountForMonth": "<b>{monthAndYear}</b> tarihi için <b>{creation}</b> hala GDD gönderebilirsin.",
+      "yourContribution": "Yaptığın hizmetin topluma katkısı"
+    },
+    "noDateSelected": "Ay içindeki herhangi bir tarihi seç",
+    "selectDate": "Hizmet ne zaman verildi?",
+    "submit": "Başvuru yapıldı",
+    "submitted": "Hizmet gönderildi.",
+    "updated": "Hizmet değiştirildi.",
+    "yourActivity": "Lütfen bir aktivite girin!"
+  },
+  "contribution-link": {
+    "thanksYouWith": "Sana gönderiyor"
+  },
+  "decay": {
+    "before_startblock_transaction": "Bu işlem erimeyi içermez.",
+    "calculation_decay": "Erimenin hesaplanması",
+    "calculation_total": "Toplam miktarın hesaplanması",
+    "decay": "Erime",
+    "decay_introduced": "Erime hesaplamasının başlangıcı:",
+    "decay_since_last_transaction": "Son işlemden bu yana olan erime",
+    "last_transaction": "Son işlem:",
+    "past_time": "Geçen süre",
+    "Starting_block_decay": "Blok erimenin başlatılması ",
+    "total": "Toplam",
+    "types": {
+      "creation": "Oluşturuldu",
+      "noDecay": "Erime Yok",
+      "receive": "Alındı",
+      "send": "Gönderildi"
+    }
+  },
+  "delete": "Silmek",
+  "em-dash": "—",
+  "error": {
+    "email-already-sent": "Sana 10 dakikadan daha az sürede e-posta gönderdik .",
+    "empty-transactionlist": "İşlem sayısının iletiminde bir hata oluştu.",
+    "error": "Hata!",
+    "no-account": "Ne yazık ki bu verilere ait (etkinleştirilmiş) bir hesap bulamadık.",
+    "no-transactionlist": "Maalesef bir hata oluştu. Sunucudan hiçbir işlem gönderilmedi.",
+    "no-user": "Bu kimlik bilgilerine sahip kullanıcı yok.",
+    "session-expired": "Oturum güvenlik nedeniyle kapatıldı.",
+    "unknown-error": "Bilinmeyen hata: "
+  },
+  "followUs": "Bizi takip et:",
+  "footer": {
+    "app_version": "Uygulama versiyonu {version}",
+    "copyright": {
+      "link": "Gradido-Akademisi",
+      "year": "© {year}"
+    },
+    "imprint": "Yasal uyarı",
+    "privacy_policy": "Gizlilik politikası",
+    "short_hash": "({shortHash})",
+    "whitepaper": "Whitepaper"
+  },
+  "form": {
+    "amount": "Miktar",
+    "at": "",
+    "cancel": "İptal",
+    "change": "Değiştir",
+    "check_now": "Şimdi kontrol et",
+    "close": "Kapat",
+    "current_balance": "Mevcut Bakiye",
+    "date": "Tarih",
+    "description": "Açıklama",
+    "email": "Eposta",
+    "firstname": "Ad",
+    "from": "Gönderen",
+    "generate_now": "Şimdi oluştur",
+    "hours": "Saat",
+    "lastname": "Soyadı",
+    "memo": "Mesaj",
+    "message": "Mesaj",
+    "new_balance": "Onay sonrası hesap bakiyesi",
+    "no_gdd_available": "Göndermek için GDD'niz yok.",
+    "password": "Şifre",
+    "passwordRepeat": "Şifreyi tekrarla",
+    "password_new": "Yeni şifre",
+    "password_new_repeat": "Yeni şifreyi tekrarla",
+    "password_old": "Eski şifre",
+    "recipient": "Alıcı",
+    "reset": "Sıfırla",
+    "save": "Kaydet",
+    "scann_code": "<strong>QR Code Scanner</strong> - Ortağınızın QR Kodunu tarayın",
+    "sender": "Gönderen",
+    "send_check": "İşlemi onayla. Lütfen tüm verileri tekrar kontrol et!",
+    "send_now": "Şimdi gönder",
+    "send_transaction_error": "Ne yazık ki işlem gerçekleştirilemedi!",
+    "send_transaction_success": "İşleminiz başarıyla tamamlandı",
+    "sorry": "Üzgünüz",
+    "thx": "Teşekkür ederiz",
+    "to": "Geçerlik",
+    "to1": "Alıcı",
+    "validation": {
+      "gddSendAmount": "Bu alan {_field_} {min}  {max} arasında ondalık noktadan sonra en fazla iki basamaklı bir sayı olmalıdır",
+      "is-not": "Gradidoları kendine gönderemezsin",
+      "usernmae-regex": "Kullanıcı adı bir harfle başlamalı, ardından en az iki alfasayısal karakter gelmelidir.",
+      "usernmae-unique": "Bu kullanıcı adı zaten alınmış."
+    },
+    "your_amount": "Sendeki tutar"
+  },
+  "GDD": "GDD",
+  "gdd_per_link": {
+    "choose-amount": "Linke tıklayıp göndermek istediğiniz tutarı seç. Ayrıca bir mesaj da girebilirsin. Paylaşabileceğin bir bağlantı oluşturmak için 'Şimdi oluştur'a tıkla.",
+    "copy-link": "Linki kopyala ",
+    "copy-link-with-text": "Linki ve metni kopyala",
+    "created": "Link oluşturuldu!",
+    "credit-your-gradido": "Senin hesabına Gradido transferi için linke tıklayın!",
+    "decay-14-day": "14 günlük erime",
+    "delete-the-link": "Link silinsin mi?",
+    "deleted": "Link silindi!",
+    "expiredOn": "Geçerlilik süresi",
+    "has-account": "Halihazırda bir Gradido hesabın var mı?",
+    "header": "Gradidoları link yoluyla gönderin",
+    "isFree": "Gradido dünya çapında ücretsizdir.",
+    "link-and-text-copied": "Link ve mesajın panoya kopyalandı. Artık bunu bir e-postaya veya mesaja ekleyebilirsin.",
+    "link-copied": "Link panoya kopyalandı. Artık bir e-postaya veya mesaja yapıştırabilirsin.",
+    "link-deleted": "Link {date} tarihinde silindi.",
+    "link-expired": "Bağlantı artık geçerli değil. Geçerlilik süresi {date} tarihinde doldu.",
+    "link-overview": "Linke toplu bakış",
+    "links_count": "Aktif linkler",
+    "links_sum": "Linkleri ve QR kodlarını açma",
+    "no-account": "Henüz bir Gradido hesabınız yok mu?",
+    "no-redeem": "Kendi linkini kullanarak GDD'lerini paraya dönüştüremezsin!",
+    "not-copied": "Maalesef cihazın kopyalamaya izin vermiyor! Lütfen bağlantıyı elle kopyala!",
+    "redeem": "Paraya dönüştürme",
+    "redeem-text": "Şu anda paraya dönüştürmek ister misin?",
+    "redeemed": "Başarıyla dönüştürüldü! Hesabına {n} GDD yatırıldı.",
+    "redeemed-at": "Link  {date} tarihinde paraya dönüştürüldü.",
+    "redeemed-title": "paraya dönüştürüldü",
+    "to-login": "Giriş yap",
+    "to-register": "Yeni hesap aç.",
+    "validUntil": "Geçerlilik süresi",
+    "validUntilDate": "Link {date} tarihine kadar geçerli."
+  },
+  "gdt": {
+    "calculation": "Gradido Transform (GDT) Hesaplanması",
+    "contribution": "Katkı",
+    "conversion": "Dönüştürme",
+    "conversion-gdt-euro": "Euro'dan Gradido Transform (GDT)'a dönüştürme",
+    "credit": "Alıcının dekontu",
+    "factor": "Faktör",
+    "formula": "Hesaplama formülü",
+    "funding": "Fon katkı paylarına",
+    "gdt": "Gradido Transform (GDT)",
+    "gdt-received": "Gradido Transform (GDT) alındı",
+    "no-transactions": "Henüz Gradido Transform (GDT)'un yok.",
+    "not-reachable": "GDT sürücüsüne ulaşılamıyor.",
+    "publisher": "Yönlendirdiğin bir üye katkı payını ödedi",
+    "raise": "Artış",
+    "recruited-member": "Davetli üye"
+  },
+  "language": "Dil",
+  "link-load": "Son linki yükle| Son {n} linki yükle |  {n} link daha yükle",
+  "login": "Giriş",
+  "math": {
+    "aprox": "~",
+    "asterisk": "*",
+    "equal": "=",
+    "minus": "−",
+    "pipe": "|"
+  },
+  "message": {
+    "activateEmail": "Hesabın henüz etkinleştirilmedi. Lütfen e-postalarını kontrol et ve aktivasyon linkine tıkla veya şifre sıfırlama sayfası üzerinden yeni bir aktivasyon linki talep et.",
+    "checkEmail": "E-posta adresin başarıyla doğrulandı. Şimdi giriş yapabilirsin.",
+    "email": "Sana bir e-posta gönderdik.",
+    "errorTitle": "Dikkat!",
+    "register": "Şİmdi kayıt oldun, lütfen e-postalarını kontrol et ve aktivasyon linkine tıkla.",
+    "reset": "Şifren değiştirildi.",
+    "title": "Teşekkürler!",
+    "unsetPassword": "Şifre henüz olışturulmadı. Lütfen tekrar ayarla."
+  },
+  "navigation": {
+    "admin_area": "Yönetici Alanı",
+    "community": "Topluluk",
+    "logout": "Çıkış",
+    "members_area": "Üye alanı",
+    "overview": "Toplu Bakış",
+    "profile": "Profilim",
+    "send": "Gönder",
+    "support": "Destek",
+    "transactions": "İşlemler"
+  },
+  "qrCode": "QR Kodu",
+  "send_gdd": "GDD gönder",
+  "send_per_link": "Link yoluyla GDD send gönder",
+  "session": {
+    "extend": "Oturumunu açık tut",
+    "lightText": "10 dakikadan daha uzun bir süre herhangi bir işlem yapmadıysanız, güvenlik nedeniyle oturum kapatılacaktır.",
+    "logoutIn": "Oturumu kapat ",
+    "warningText": "Hala orada mısın?"
+  },
+  "settings": {
+    "language": {
+      "changeLanguage": "Dili değiştir",
+      "de": "Deutsch",
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "nl": "Nederlands",
+      "ru": "Русский",
+      "success": "Dil başarıyla güncellendi.",
+      "tr": "Türkçe"
+    },
+    "name": {
+      "change-name": "Ad değiştir",
+      "change-success": "Adın başarıyla değiştirildi."
+    },
+    "newsletter": {
+      "newsletter": "E-posta yoluyla bilgilendirme",
+      "newsletterFalse": "E-posta ile herhangi bir bilgi almayacaksın.",
+      "newsletterTrue": "E-posta ile bir bilgi alacaksın."
+    },
+    "password": {
+      "change-password": "Şifre değiştir",
+      "forgot_pwd": "Şifreni mi unuttun?",
+      "resend_subtitle": "Aktivasyon linkinin süresi doldu, buradan yeni bir tane talep edebilirsin.",
+      "reset": "Şifreni sıfırla",
+      "reset-password": {
+        "text": "Gelecekte Gradido hesabına giriş yapmak için kullanacağın yeni bir şifre gir."
+      },
+      "send_now": "Şimdi gönder",
+      "set": "Şifre oluştur",
+      "set-password": {
+        "text": "Gelecekte Gradido hesabına giriş yapmak için kullanabileceğin yeni şifreni kaydet."
+      },
+      "subtitle": "Şifreni unuttuysan, buradan sıfırlayabilirsin."
+    }
+  },
+  "signin": "Giriş yap",
+  "signup": "Kayıt ol",
+  "site": {
+    "forgotPassword": {
+      "heading": "Lütfen kayıtlı olduğun e-posta adresini buraya gir."
+    },
+    "login": {
+      "heading": "Erişim bilgilerinle oturum aç. Onları güvenle sakla!"
+    },
+    "resetPassword": {
+      "heading": "Lütfen şifreni gir ve tekrarla."
+    },
+    "signup": {
+      "agree": "<a href='https://gradido.net/en/datenschutz/' target='_blank' > gizlilik politikasını</a> kabul ediyorum.",
+      "dont_match": "Şifreler eşleşmiyor.",
+      "heading": "Tüm verileri eksiksiz ve doğru alanlara girerek kayıt ol.",
+      "lowercase": "Küçük bir harf gerekli.",
+      "minimum": "Minimum 8 karakter.",
+      "no-whitespace": "Boşluk ve sekme yok",
+      "one_number": "Numara gerekli.",
+      "special-char": "Özel karakter gerekli (_ yada ä vb)",
+      "uppercase": "Büyük bir harf gerekli."
+    }
+  },
+  "success": "Başarılı",
+  "time": {
+    "days": "Günler",
+    "hours": "Saatler",
+    "minutes": "Dakikalar",
+    "month": "Ay",
+    "months": "Aylar",
+    "seconds": "Saniyeler",
+    "years": "Yıl"
+  },
+  "transaction": {
+    "gdd-text": "Gradido İşlemleri",
+    "gdt-text": "GradidoTransform (GDT) İşlemleri",
+    "nullTransactions": "Henüz hesabınında herhangi bir işlem yok.",
+    "receiverDeleted": "Alıcı hesabı silindi",
+    "receiverNotFound": "Alıcı bulunamadı",
+    "show_all": "Bütün <strong>{count}</strong> işlemleri görüntüle."
+  },
+  "transaction-link": {
+    "send_you": "sana gönderiyor"
+  },
+  "via_link": "link yoluyla",
+  "welcome": "Topluluğa hoşgeldin"
+}

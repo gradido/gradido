@@ -12,6 +12,12 @@ export const toasters = {
         variant: 'danger',
       })
     },
+    toastInfo(message) {
+      this.toast(message, {
+        title: this.$t('navigation.info'),
+        variant: 'warning',
+      })
+    },
     toast(message, options) {
       if (message.replace) message = message.replace(/^GraphQL error: /, '')
       this.$root.$bvToast.toast(message, {

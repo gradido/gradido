@@ -15,7 +15,7 @@ import VueMoment from 'vue-moment'
 // import clickOutside from '@/directives/click-ouside.js'
 import { focus } from 'vue-focus'
 
-import { loadAllRules } from '../src/validation-rules'
+import { loadAllRules } from '@/validation-rules'
 
 import { loadFilters } from '@/filters/amount'
 
