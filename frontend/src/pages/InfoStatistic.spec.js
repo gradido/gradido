@@ -1,9 +1,13 @@
-import { mount } from '@vue/test-utils'
+import { mount, RouterLinkStub } from '@vue/test-utils'
 import InfoStatistic from './InfoStatistic'
 import { toastErrorSpy } from '../../test/testSetup'
 import { listContributionLinks, communityStatistics, searchAdminUsers } from '@/graphql/queries'
 
 const localVue = global.localVue
+
+const stubs = {
+  RouterLink: RouterLinkStub,
+}
 
 const apolloQueryMock = jest
   .fn()
@@ -43,15 +47,15 @@ const apolloQueryMock = jest
   })
   .mockResolvedValueOnce({
     data: {
-      communityStatistics: {
-        totalUsers: 3113,
-        // activeUsers: 1057,
-        // deletedUsers: 35,
-        totalGradidoCreated: '4083774.05000000000000000000',
-        totalGradidoDecayed: '-1062639.13634129622923372197',
-        totalGradidoAvailable: '2513565.869444365732411569',
-        // totalGradidoUnbookedDecayed: '-500474.6738366222166261272',
-      },
+      // communityStatistics: {
+      //   // totalUsers: 3113,
+      //   // activeUsers: 1057,
+      //   // deletedUsers: 35,
+      //   // totalGradidoCreated: '4083774.05000000000000000000',
+      //   // totalGradidoDecayed: '-1062639.13634129622923372197',
+      //   // totalGradidoAvailable: '2513565.869444365732411569',
+      //   // totalGradidoUnbookedDecayed: '-500474.6738366222166261272',
+      // },
     },
   })
   .mockResolvedValue('default')
@@ -70,7 +74,7 @@ describe('InfoStatistic', () => {
   }
 
   const Wrapper = () => {
-    return mount(InfoStatistic, { localVue, mocks })
+    return mount(InfoStatistic, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {

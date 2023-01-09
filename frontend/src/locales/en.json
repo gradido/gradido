@@ -1,9 +1,12 @@
 {
+  "(": "(",
+  ")": ")",
   "100": "100%",
   "1000thanks": "1000 thanks for being with us!",
   "125": "125%",
   "85": "85%",
   "advanced-calculation": "Advanced calculation",
+  "asterisks": "****",
   "auth": {
     "left": {
       "dignity": "Dignity",
@@ -19,18 +22,17 @@
   "community": {
     "choose-another-community": "Choose another community",
     "community": "Community",
+    "communityMember": "You are an active member",
     "continue-to-registration": "Continue to registration",
-    "current-community": "Current community",
     "moderator": "Moderator",
     "moderators": "Moderators",
-    "myContributions": "My contributions to the common good",
+    "myContributions": "My contributions",
     "noOpenContributionLinkText": "Currently there are no automatic creations.",
     "openContributionLinks": "Open contribution-link list",
     "openContributionLinkText": "The following {count} automatic creations are currently provided by the \"{name}\" community.",
-    "other-communities": "Other communities",
-    "submitContribution": "Submit contribution",
-    "switch-to-this-community": "Switch to this community"
+    "submitContribution": "writing"
   },
+  "communityInfo": "Community Information",
   "contact": "Contact",
   "contribution": {
     "activity": "Activity",
@@ -43,9 +45,9 @@
       "pending": "Submitted and waiting for confirmation",
       "rejected": "deleted"
     },
-    "date": "Contribution for:",
     "delete": "Delete Contribution! Are you sure?",
     "deleted": "The contribution has been deleted! But it will remain visible.",
+    "exhausted": "You cannot create anything more for this month.",
     "formText": {
       "bringYourTalentsTo": "Bring your talents to the community! Your voluntary commitment will be rewarded with 20 GDD per hour up to a maximum of 1,000 GDD per month.",
       "describeYourCommunity": "Describe your community service activity with hours and enter an amount of 20 GDD per hour! After confirmation by a moderator, the amount will be credited to your account.",
@@ -53,6 +55,7 @@
       "openAmountForMonth": "For  <b>{monthAndYear}</b>, you can still submit <b>{creation}</b> GDD.",
       "yourContribution": "Your contribution to the common good"
     },
+    "lastContribution": "Last Contributions",
     "noDateSelected": "Choose any date in the month",
     "selectDate": "When was your contribution?",
     "submit": "Submit",
@@ -64,6 +67,8 @@
     "thanksYouWith": "thanks you with",
     "unique": "(unique)"
   },
+  "contributionText": "Contribution Text",
+  "creation": "Creation",
   "decay": {
     "before_startblock_transaction": "This transaction does not include decay.",
     "calculation_decay": "Calculation of Decay",
@@ -83,6 +88,7 @@
     }
   },
   "delete": "Delete",
+  "edit": "edit",
   "em-dash": "—",
   "error": {
     "email-already-sent": "We already sent you an email less than 10 minutes ago.",
@@ -120,8 +126,8 @@
     "firstname": "Firstname",
     "from": "from",
     "generate_now": "Generate now",
+    "hours": "Horas",
     "lastname": "Lastname",
-    "mandatoryField": "mandatory field",
     "memo": "Message",
     "message": "Message",
     "new_balance": "Account balance after confirmation",
@@ -143,10 +149,10 @@
     "send_transaction_success": "Your transaction was successfully completed",
     "sorry": "Sorry",
     "thx": "Thank you",
-    "time": "Time",
     "to": "to",
     "to1": "to",
     "validation": {
+      "gddCreationTime": "The field {_field_} must be a number between {min} and {max} with at most one decimal place.",
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point",
       "is-not": "You cannot send Gradidos to yourself",
       "usernmae-regex": "The username must start with a letter, followed by at least two alphanumeric characters.",
@@ -155,13 +161,13 @@
     "your_amount": "Your amount"
   },
   "GDD": "GDD",
+  "gddKonto": "GDD Konto",
   "gdd_per_link": {
     "choose-amount": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
     "copy-link": "Copy link",
     "copy-link-with-text": "Copy link and text",
     "created": "Link was created!",
     "credit-your-gradido": "For the Gradido to be credited, click on the link!",
-    "decay-14-day": "Decay for 14 days",
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
     "expiredOn": "Expired on",
@@ -172,7 +178,7 @@
     "link-copied": "Link has been copied to the clipboard. You can now paste it into an email or message.",
     "link-deleted": "The link was deleted on {date}.",
     "link-expired": "The link is no longer valid. The validity expired on {date}.",
-    "link-hint": "Attention: Anyone can redeem this link. Please do not share it!",
+    "link-hint": "Attention: Anyone can redeem this link. Please be careful with it!",
     "link-overview": "Link overview",
     "links_count": "Active links",
     "links_sum": "Open links and QR codes",
@@ -188,6 +194,7 @@
     "validUntil": "Valid until",
     "validUntilDate": "The link is valid until {date}."
   },
+  "GDT": "GDT",
   "gdt": {
     "calculation": "Calculation of Gradido Transform",
     "contribution": "Contribution",
@@ -199,22 +206,26 @@
     "funding": "To the funding contributions",
     "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) received",
+    "gdtKonto": "GDT Konto",
     "no-transactions": "You do not have Gradido Transform (GDT) yet.",
     "not-reachable": "The GDT Server is not reachable.",
     "publisher": "A member you referred has paid a contribution",
     "raise": "Increase",
     "recruited-member": "Invited member"
   },
+  "h": "h",
   "language": "Language",
+  "lastMonth": "Last month",
   "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
   "login": "Sign in",
   "math": {
-    "aprox": "~",
     "asterisk": "*",
     "equal": "=",
     "minus": "−",
     "pipe": "|"
   },
+  "maxReached": "Max. reached",
+  "member": "Member",
   "message": {
     "activateEmail": "Your account has not been activated yet. Please check your emails and click the activation link or order a new activation link over the password reset page.",
     "checkEmail": "Your email has been successfully verified. You can sign in now.",
@@ -226,21 +237,31 @@
     "title": "Thank you!",
     "unsetPassword": "Your password has not been set yet. Please set it again."
   },
+  "moderatorChat": "Moderator Chat",
   "navigation": {
     "admin_area": "Admin Area",
     "community": "Community",
     "info": "Information",
     "logout": "Logout",
-    "members_area": "Members area",
     "overview": "Overview",
-    "profile": "My profile",
     "send": "Send",
+    "settings": "Settings",
     "support": "Support",
     "transactions": "Transactions"
   },
+  "openHours": "Open Hours",
+  "pageTitle": {
+    "community": "My community",
+    "gdt": "Your GDT transactions",
+    "information": "{community}",
+    "overview": "Welcome {name}",
+    "send": "Send Gradidos",
+    "settings": "Settings",
+    "transactions": "Your transactions"
+  },
   "qrCode": "QR Code",
-  "send_gdd": "GDD send",
-  "send_per_link": "GDD send via link",
+  "send_gdd": "Send GDD",
+  "send_per_link": "Send GDD via Link",
   "session": {
     "extend": "Stay logged in",
     "lightText": "If you have not performed any action for more than 10 minutes, you will be logged out for security reasons.",
@@ -302,6 +323,8 @@
       "uppercase": "One uppercase letter required."
     }
   },
+  "status": "Status",
+  "submitted": "Submitted",
   "success": "Success",
   "time": {
     "days": "Days",
@@ -313,8 +336,7 @@
     "years": "Year"
   },
   "transaction": {
-    "gdd-text": "Gradido Transactions",
-    "gdt-text": "GradidoTransform Transactions",
+    "lastTransactions": "Last Transactions",
     "nullTransactions": "You don't have any transactions on your account yet.",
     "receiverDeleted": "The recipient account was deleted",
     "receiverNotFound": "Recipient not found",

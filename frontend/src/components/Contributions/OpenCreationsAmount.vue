@@ -1,0 +1,44 @@
+<template>
+  <div class="bg-white appBoxShadow gradido-border-radius p-3">
+    <div class="pl-3">
+      <b-row class="small">
+        <b-col>{{ $t('time.months') }}</b-col>
+        <b-col class="d-none d-md-inline">{{ $t('status') }}</b-col>
+        <b-col class="d-none d-md-inline text-center">{{ $t('submitted') }}</b-col>
+        <b-col class="text-center">{{ $t('openHours') }}</b-col>
+      </b-row>
+
+      <b-row class="font-weight-bold pt-3">
+        <b-col>{{ $d(new Date(minimalDate), 'monthAndYear') }}</b-col>
+        <b-col class="d-none d-md-inline">
+          {{ maxGddLastMonth > 0 ? $t('contribution.submit') : $t('maxReached') }}
+        </b-col>
+        <b-col class="d-none d-md-inline text-197 text-center">
+          {{ (1000 - maxGddLastMonth) / 20 }} {{ $t('h') }}
+        </b-col>
+        <b-col class="text-4 text-center">{{ maxGddLastMonth / 20 }} {{ $t('h') }}</b-col>
+      </b-row>
+
+      <b-row class="font-weight-bold">
+        <b-col>{{ $d(new Date(), 'monthAndYear') }}</b-col>
+        <b-col class="d-none d-md-inline">
+          {{ maxGddThisMonth > 0 ? $t('contribution.submit') : $t('maxReached') }}
+        </b-col>
+        <b-col class="d-none d-md-inline text-197 text-center">
+          {{ (1000 - maxGddThisMonth) / 20 }} {{ $t('h') }}
+        </b-col>
+        <b-col class="text-4 text-center">{{ maxGddThisMonth / 20 }} {{ $t('h') }}</b-col>
+      </b-row>
+    </div>
+  </div>
+</template>
+<script>
+export default {
+  name: 'OpenCreationsAmount',
+  props: {
+    minimalDate: { type: Date, required: true },
+    maxGddLastMonth: { type: Number, required: true },
+    maxGddThisMonth: { type: Number, required: true },
+  },
+}
+</script>

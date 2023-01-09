@@ -7,7 +7,7 @@
       :decay="decay"
       :typeId="typeId"
     />
-    <decay-information-long v-else :amount="amount" :decay="decay" :typeId="typeId" />
+    <decay-information-long v-else :amount="amount" :decay="decay" :typeId="typeId" :memo="memo" />
   </div>
 </template>
 <script>
@@ -29,6 +29,10 @@ export default {
     },
     decay: {
       type: Object,
+      required: true,
+    },
+    memo: {
+      type: String,
       required: true,
     },
     typeId: {

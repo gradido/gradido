@@ -1,37 +1,24 @@
 <template>
-  <div class="pb-4">
-    <b-tabs v-model="tabIndex" content-class="" justified>
-      <b-tab
-        :title="`Gradido  (${$n(balance, 'decimal')} GDD)`"
-        class="px-4"
-        @click="$router.replace('/transactions')"
-      >
-        <p class="tab-tex">{{ $t('transaction.gdd-text') }}</p>
-
-        <gdd-transaction-list
-          :timestamp="timestamp"
-          :transactionCount="transactionCount"
-          :transactionLinkCount="transactionLinkCount"
-          :transactions="transactions"
-          :showPagination="true"
-          @update-transactions="updateTransactions"
-          v-on="$listeners"
-        />
-      </b-tab>
-
-      <b-tab :title="titleGdt" class="px-4" @click="updateGdt()">
-        <b-row class="mb-3">
-          <b-col>{{ $t('transaction.gdt-text') }}</b-col>
-          <b-col class="text-right">{{ `${$n(GdtBalance, 'decimal')} GDT` }}</b-col>
-        </b-row>
-        <gdt-transaction-list
-          v-model="currentPage"
-          :transactionsGdt="transactionsGdt"
-          :transactionGdtCount="transactionGdtCount"
-          :pageSize="pageSize"
-        />
-      </b-tab>
-    </b-tabs>
+  <div class="transactions">
+    <div v-if="gdt">
+      <gdt-transaction-list
+        v-model="currentPage"
+        :transactionsGdt="transactionsGdt"
+        :transactionGdtCount="transactionGdtCount"
+        :pageSize="pageSize"
+      />
+    </div>
+    <div v-else>
+      <gdd-transaction-list
+        :timestamp="timestamp"
+        :transactionCount="transactionCount"
+        :transactionLinkCount="transactionLinkCount"
+        :transactions="transactions"
+        :showPagination="true"
+        @update-transactions="updateTransactions"
+        v-on="$listeners"
+      />
+    </div>
   </div>
 </template>
 <script>
@@ -47,8 +34,6 @@ export default {
   },
   props: {
     gdt: { type: Boolean, default: false },
-    balance: { type: Number, default: 0 },
-    GdtBalance: { type: Number, default: 0 },
     transactions: {
       default: () => [],
     },
@@ -94,31 +79,15 @@ export default {
       this.$emit('update-transactions', pagination)
     },
   },
-  computed: {
-    titleGdt(boolean) {
-      if (this.tabIndex === 1)
-        return `${this.$t('gdt.gdt')} (${this.$n(this.GdtBalance, 'decimal')} GDT)`
-      return this.$t('gdt.gdt')
-    },
-  },
   created() {
     if (this.gdt) {
-      this.tabIndex = 1
       this.updateGdt()
-    } else {
-      this.tabIndex = 0
     }
   },
   watch: {
-    currentPage() {
-      this.updateGdt()
-    },
     gdt() {
       if (this.gdt) {
-        this.tabIndex = 1
         this.updateGdt()
-      } else {
-        this.tabIndex = 0
       }
     },
   },
@@ -129,17 +98,10 @@ export default {
   padding-top: 14px;
   margin-bottom: 14px;
 }
-
 .nav-tabs .nav-link {
   background-color: rgba(204, 204, 204, 0.185);
 }
 .nav-tabs .nav-link.active {
   background-color: rgb(248 249 254);
-}
-
-.tab-content {
-  padding-top: 25px;
-  border-left: 1px inset rgba(28, 110, 164, 0.1);
-  border-right: 1px inset rgba(28, 110, 164, 0.1);
 }
 </style>

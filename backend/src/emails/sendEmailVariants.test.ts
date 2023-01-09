@@ -327,18 +327,20 @@ describe('sendEmailVariants', () => {
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (do not answer) <info@gradido.net>',
             attachments: [],
-            subject: 'Gradido: Your common good contribution was confirmed',
+            subject: 'Gradido: Your contribution to the common good was confirmed',
             html: expect.any(String),
-            text: expect.stringContaining('GRADIDO: YOUR COMMON GOOD CONTRIBUTION WAS CONFIRMED'),
+            text: expect.stringContaining(
+              'GRADIDO: YOUR CONTRIBUTION TO THE COMMON GOOD WAS CONFIRMED',
+            ),
           }),
         })
         expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
         expect(result.originalMessage.html).toContain('<html lang="en">')
         expect(result.originalMessage.html).toContain(
-          '<title>Gradido: Your common good contribution was confirmed</title>',
+          '<title>Gradido: Your contribution to the common good was confirmed</title>',
         )
         expect(result.originalMessage.html).toContain(
-          '>Gradido: Your common good contribution was confirmed</h1>',
+          '>Gradido: Your contribution to the common good was confirmed</h1>',
         )
         expect(result.originalMessage.html).toContain('Hello Peter Lustig')
         expect(result.originalMessage.html).toContain(
@@ -563,18 +565,18 @@ describe('sendEmailVariants', () => {
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (do not answer) <info@gradido.net>',
             attachments: [],
-            subject: 'Gradido: Your Gradido link has been redeemed',
+            subject: 'Gradido: Bibi Bloxberg has redeemed your Gradido link',
             html: expect.any(String),
-            text: expect.stringContaining('GRADIDO: YOUR GRADIDO LINK HAS BEEN REDEEMED'),
+            text: expect.stringContaining('BIBI BLOXBERG HAS REDEEMED YOUR GRADIDO LINK'),
           }),
         })
         expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
         expect(result.originalMessage.html).toContain('<html lang="en">')
         expect(result.originalMessage.html).toContain(
-          '<title>Gradido: Your Gradido link has been redeemed</title>',
+          '<title>Gradido: Bibi Bloxberg has redeemed your Gradido link</title>',
         )
         expect(result.originalMessage.html).toContain(
-          '>Gradido: Your Gradido link has been redeemed</h1>',
+          '>Gradido: Bibi Bloxberg has redeemed your Gradido link</h1>',
         )
         expect(result.originalMessage.html).toContain('Hello Peter Lustig')
         expect(result.originalMessage.html).toContain(

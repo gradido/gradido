@@ -21,7 +21,7 @@
     },
     "contributionConfirmed": {
       "commonGoodContributionConfirmed": "Your public good contribution “{contributionMemo}” has just been confirmed by {senderFirstName} {senderLastName} and credited to your Gradido account.",
-      "subject": "Gradido: Your common good contribution was confirmed"
+      "subject": "Gradido: Your contribution to the common good was confirmed"
     },
     "contributionRejected": {
       "commonGoodContributionRejected": "Your public good contribution “{contributionMemo}” was rejected by {senderFirstName} {senderLastName}.",
@@ -48,7 +48,7 @@
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) has just redeemed your link.",
       "memo": "Message: {transactionMemo}",
-      "subject": "Gradido: Your Gradido link has been redeemed"
+      "subject": "Gradido: {senderFirstName} {senderLastName} has redeemed your Gradido link"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "You have just received {transactionAmount} GDD from {senderFirstName} {senderLastName} ({senderEmail}).",
