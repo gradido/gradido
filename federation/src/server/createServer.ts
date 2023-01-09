@@ -10,7 +10,7 @@ import { checkDBVersion } from '@/typeorm/DBVersion'
 // server
 import cors from './cors'
 // import serverContext from './context'
-// import plugins from './plugins'
+import plugins from './plugins'
 
 // config
 import CONFIG from '@/config'
@@ -26,7 +26,7 @@ import { apolloLogger } from './logger'
 import { Logger } from 'log4js'
 
 // i18n
-import { i18n } from './localization'
+// import { i18n } from './localization'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
@@ -37,7 +37,7 @@ const createServer = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // context: any = serverContext,
   logger: Logger = apolloLogger,
-  localization: i18n.I18n = i18n,
+  // localization: i18n.I18n = i18n,
 ): Promise<ServerDef> => {
   logger.addContext('user', 'unknown')
   logger.debug('createServer...')
@@ -68,7 +68,7 @@ const createServer = async (
   app.use(express.urlencoded({ extended: true }))
 
   // i18n
-  app.use(localization.init)
+  // app.use(localization.init)
 
   // Elopage Webhook
   // app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
@@ -79,7 +79,7 @@ const createServer = async (
     // playground: CONFIG.GRAPHIQL,
     // introspection: CONFIG.GRAPHIQL,
     // context,
-    // plugins,
+    plugins,
     logger,
   })
   apollo.applyMiddleware({ app, path: '/' })
