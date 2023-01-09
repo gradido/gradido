@@ -12,12 +12,14 @@
     "clean": "tsc --build --clean",
     "start": "cross-env TZ=UTC TS_NODE_BASEURL=./build node -r tsconfig-paths/register build/src/index.js",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts --exec ts-node -r dotenv/config -r tsconfig-paths/register src/index.ts",
-    "lint": "eslint --max-warnings=0 --ext .js,.ts ."
+    "lint": "eslint --max-warnings=0 --ext .js,.ts .",
+    "test": "cross-env TZ=UTC NODE_ENV=development jest --runInBand --coverage --forceExit --detectOpenHandles"
   },
   "dependencies": {
     "@hyperswarm/dht": "^6.3.3",
     "@types/dotenv": "^8.2.0",
     "@types/i18n": "^0.13.6",
+    "@types/jest": "^27.0.2",
     "@types/jsonwebtoken": "^8.5.9",
     "@types/lodash.clonedeep": "^4.5.7",
     "@types/node": "^18.11.18",
@@ -49,6 +51,8 @@
     "eslint-plugin-n": "^15.6.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-promise": "^6.1.1",
-    "prettier": "^2.3.1"
+    "jest": "^27.2.4",
+    "prettier": "^2.3.1",
+    "ts-jest": "^27.0.5"
   }
 }
