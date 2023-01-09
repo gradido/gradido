@@ -315,6 +315,7 @@ export default {
     })
     this.updateTransactions(0)
     this.tabIndex = 1
+    this.$router.push({ path: '#my' })
   },
 }
 </script>
