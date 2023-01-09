@@ -12,14 +12,15 @@
           <span class="navbar-toggler-icon"></span>
         </b-button>
       </b-navbar-brand>
-      <b-img class="sheet-img position-absolute zindex1" :src="sheet"></b-img>
-      <router-link to="/settings" class="d-block d-lg-none zindex1000">
+
+      <router-link to="/settings" class="d-block d-lg-none">
         <div class="d-flex align-items-center">
           <div class="mr-3">
             <avatar :username="username.username" :color="'#fff'" :size="61"></avatar>
           </div>
         </div>
       </router-link>
+      <b-img class="sheet-img position-absolute zindex-1" :src="sheet"></b-img>
       <b-collapse id="nav-collapse" is-nav class="ml-5">
         <b-navbar-nav class="ml-auto" right>
           <div class="mb-2">
