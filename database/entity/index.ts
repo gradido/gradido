@@ -9,6 +9,7 @@ import { UserContact } from './UserContact'
 import { Contribution } from './Contribution'
 import { EventProtocol } from './EventProtocol'
 import { ContributionMessage } from './ContributionMessage'
+import { Community } from './Community'
 
 export const entities = [
   Contribution,
@@ -22,4 +23,5 @@ export const entities = [
   EventProtocol,
   ContributionMessage,
   UserContact,
+  Community,
 ]

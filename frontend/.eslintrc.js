@@ -54,6 +54,8 @@ module.exports = {
           'settings.password.set',
           'settings.password.set-password.text',
           'settings.password.subtitle',
+          'math.asterisk',
+          '/pageTitle./',
         ],
         enableFix: false,
       },

@@ -1977,8 +1977,7 @@ describe('ContributionResolver', () => {
               })
             })
 
-            // In the futrue this should not throw anymore
-            it('throws an error for the second confirmation', async () => {
+            it('throws no error for the second confirmation', async () => {
               const r1 = mutate({
                 mutation: confirmContribution,
                 variables: {
@@ -1998,8 +1997,7 @@ describe('ContributionResolver', () => {
               )
               await expect(r2).resolves.toEqual(
                 expect.objectContaining({
-                  // data: { confirmContribution: true },
-                  errors: [new GraphQLError('Creation was not successful.')],
+                  data: { confirmContribution: true },
                 }),
               )
             })

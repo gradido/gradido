@@ -1,14 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import DHT from '@hyperswarm/dht'
-// import { Connection } from '@dbTools/typeorm'
 import { backendLogger as logger } from '@/server/logger'
 import CONFIG from '@/config'
-
-function between(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1) + min)
-}
+import { Community as DbCommunity } from '@entity/Community'
 
 const KEY_SECRET_SEEDBYTES = 32
 const getSeed = (): Buffer | null =>
@@ -18,37 +13,107 @@ const POLLTIME = 20000
 const SUCCESSTIME = 120000
 const ERRORTIME = 240000
 const ANNOUNCETIME = 30000
-const nodeRand = between(1, 99)
-const nodeURL = `https://test${nodeRand}.org`
-const nodeAPI = {
-  API_1_00: `${nodeURL}/api/1_00/`,
-  API_1_01: `${nodeURL}/api/1_01/`,
-  API_2_00: `${nodeURL}/graphql/2_00/`,
+
+enum ApiVersionType {
+  V1_0 = 'v1_0',
+  V1_1 = 'v1_1',
+  V2_0 = 'v2_0',
+}
+type CommunityApi = {
+  api: string
+  url: string
 }
 
-export const startDHT = async (
-  // connection: Connection,
-  topic: string,
-): Promise<void> => {
+export const startDHT = async (topic: string): Promise<void> => {
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
     const keyPair = DHT.keyPair(getSeed())
     logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
 
+    const ownApiVersions = Object.values(ApiVersionType).map(function (apiEnum) {
+      const comApi: CommunityApi = {
+        api: apiEnum,
+        url: CONFIG.FEDERATION_COMMUNITY_URL + apiEnum,
+      }
+      return comApi
+    })
+    logger.debug(`ApiList: ${JSON.stringify(ownApiVersions)}`)
+
     const node = new DHT({ keyPair })
 
     const server = node.createServer()
 
     server.on('connection', function (socket: any) {
-      // noiseSocket is E2E between you and the other peer
-      // pipe it somewhere like any duplex stream
-      logger.info(`Remote public key: ${socket.remotePublicKey.toString('hex')}`)
-      // console.log("Local public key", noiseSocket.publicKey.toString("hex")); // same as keyPair.publicKey
+      logger.info(`server on... with Remote public key: ${socket.remotePublicKey.toString('hex')}`)
 
-      socket.on('data', (data: Buffer) => logger.info(`data: ${data.toString('ascii')}`))
+      socket.on('data', async (data: Buffer) => {
+        try {
+          if (data.length > 1141) {
+            logger.warn(
+              `received more than max allowed length of data buffer: ${data.length} against 1141 max allowed`,
+            )
+            return
+          }
+          logger.info(`data: ${data.toString('ascii')}`)
+          const recApiVersions: CommunityApi[] = JSON.parse(data.toString('ascii'))
 
-      // process.stdin.pipe(noiseSocket).pipe(process.stdout);
+          // TODO better to introduce the validation by https://github.com/typestack/class-validato
+          if (recApiVersions && Array.isArray(recApiVersions) && recApiVersions.length < 5) {
+            for (const recApiVersion of recApiVersions) {
+              if (
+                !recApiVersion.api ||
+                typeof recApiVersion.api !== 'string' ||
+                !recApiVersion.url ||
+                typeof recApiVersion.url !== 'string'
+              ) {
+                logger.warn(
+                  `received invalid apiVersion-Definition: ${JSON.stringify(recApiVersion)}`,
+                )
+                // in a forEach-loop use return instead of continue
+                return
+              }
+              // TODO better to introduce the validation on entity-Level by https://github.com/typestack/class-validator
+              if (recApiVersion.api.length > 10 || recApiVersion.url.length > 255) {
+                logger.warn(
+                  `received apiVersion with content longer than max length: ${JSON.stringify(
+                    recApiVersion,
+                  )}`,
+                )
+                // in a forEach-loop use return instead of continue
+                return
+              }
+
+              const variables = {
+                apiVersion: recApiVersion.api,
+                endPoint: recApiVersion.url,
+                publicKey: socket.remotePublicKey.toString('hex'),
+                lastAnnouncedAt: new Date(),
+              }
+              logger.debug(`upsert with variables=${JSON.stringify(variables)}`)
+              // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
+              await DbCommunity.createQueryBuilder()
+                .insert()
+                .into(DbCommunity)
+                .values(variables)
+                .orUpdate({
+                  conflict_target: ['id', 'publicKey', 'apiVersion'],
+                  overwrite: ['end_point', 'last_announced_at'],
+                })
+                .execute()
+              logger.info(`federation community upserted successfully...`)
+            }
+          } else {
+            logger.warn(
+              `received totaly wrong or too much apiVersions-Definition JSON-String: ${JSON.stringify(
+                recApiVersions,
+              )}`,
+            )
+          }
+        } catch (e) {
+          logger.error('Error on receiving data from socket:', e)
+        }
+      })
     })
 
     await server.listen()
@@ -93,7 +158,6 @@ export const startDHT = async (
       logger.info(`Found new peers: ${collectedPubKeys}`)
 
       collectedPubKeys.forEach((remotePubKey) => {
-        // publicKey here is keyPair.publicKey from above
         const socket = node.connect(Buffer.from(remotePubKey, 'hex'))
 
         // socket.once("connect", function () {
@@ -110,17 +174,12 @@ export const startDHT = async (
         })
 
         socket.on('open', function () {
-          // noiseSocket fully open with the other peer
-          // console.log("writing to socket");
-          socket.write(Buffer.from(`${nodeRand}`))
-          socket.write(Buffer.from(JSON.stringify(nodeAPI)))
+          socket.write(Buffer.from(JSON.stringify(ownApiVersions)))
           successfulRequests.push(remotePubKey)
         })
-        // pipe it somewhere like any duplex stream
-        // process.stdin.pipe(noiseSocket).pipe(process.stdout)
       })
     }, POLLTIME)
   } catch (err) {
-    logger.error(err)
+    logger.error('DHT unexpected error:', err)
   }
 }

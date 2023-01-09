@@ -115,6 +115,10 @@ const dateTimeFormats = {
       month: 'long',
       year: 'numeric',
     },
+    time: {
+      hour: 'numeric',
+      minute: 'numeric',
+    },
   },
   de: {
     short: {
@@ -142,6 +146,10 @@ const dateTimeFormats = {
     monthAndYear: {
       month: 'long',
       year: 'numeric',
+    },
+    time: {
+      hour: 'numeric',
+      minute: 'numeric',
     },
   },
   es: {
@@ -171,6 +179,10 @@ const dateTimeFormats = {
       month: 'long',
       year: 'numeric',
     },
+    time: {
+      hour: 'numeric',
+      minute: 'numeric',
+    },
   },
   fr: {
     short: {
@@ -199,6 +211,10 @@ const dateTimeFormats = {
       month: 'long',
       year: 'numeric',
     },
+    time: {
+      hour: 'numeric',
+      minute: 'numeric',
+    },
   },
   nl: {
     short: {
@@ -226,6 +242,10 @@ const dateTimeFormats = {
     monthAndYear: {
       month: 'long',
       year: 'numeric',
+    },
+    time: {
+      hour: 'numeric',
+      minute: 'numeric',
     },
   },
 }
