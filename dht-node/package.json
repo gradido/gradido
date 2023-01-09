@@ -20,7 +20,7 @@
     "@types/i18n": "^0.13.6",
     "@types/jsonwebtoken": "^8.5.9",
     "@types/lodash.clonedeep": "^4.5.7",
-    "@types/node": "^18.11.11",
+    "@types/node": "^18.11.18",
     "apollo-server-express": "2.25.2",
     "class-validator": "^0.13.2",
     "cross-env": "^7.0.3",
@@ -35,8 +35,20 @@
     "nodemon": "^2.0.20",
     "reflect-metadata": "^0.1.13",
     "ts-node": "^10.9.1",
-    "tsconfig-paths": "^4.1.1",
+    "tsconfig-paths": "^4.1.2",
     "type-graphql": "^1.1.1",
-    "typescript": "^4.9.3"
+    "typescript": "^4.9.4"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.48.0",
+    "@typescript-eslint/parser": "^5.48.0",
+    "eslint": "^8.31.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-n": "^15.6.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "prettier": "^2.3.1"
   }
 }
