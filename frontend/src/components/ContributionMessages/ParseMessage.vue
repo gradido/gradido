@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-2">
+  <div class="mt-1">
     <span v-for="({ type, text }, index) in parsedMessage" :key="index">
       <b-link v-if="type === 'link'" :href="text" target="_blank">{{ text }}</b-link>
       <span v-else-if="type === 'date'">

@@ -15,6 +15,7 @@ const routes = [
     component: () => import('@/pages/Overview.vue'),
     meta: {
       requiresAuth: true,
+      pageTitle: 'overview',
     },
   },
   {
@@ -22,21 +23,23 @@ const routes = [
     component: () => import('@/pages/Send.vue'),
     meta: {
       requiresAuth: true,
+      pageTitle: 'send',
     },
   },
-  {
-    path: '/profile',
-    component: () => import('@/pages/Profile.vue'),
-    meta: {
-      requiresAuth: true,
-    },
-  },
+  // {
+  //   path: '/profile',
+  //   component: () => import('@/pages/Profile.vue'),
+  //   meta: {
+  //     requiresAuth: true,
+  //   },
+  // },
   {
     path: '/transactions',
     component: () => import('@/pages/Transactions.vue'),
     props: { gdt: false },
     meta: {
       requiresAuth: true,
+      pageTitle: 'transactions',
     },
   },
   {
@@ -45,6 +48,7 @@ const routes = [
     props: { gdt: true },
     meta: {
       requiresAuth: true,
+      pageTitle: 'gdt',
     },
   },
   {
@@ -52,6 +56,7 @@ const routes = [
     component: () => import('@/pages/Community.vue'),
     meta: {
       requiresAuth: true,
+      pageTitle: 'community',
     },
   },
   {
@@ -59,6 +64,29 @@ const routes = [
     component: () => import('@/pages/InfoStatistic.vue'),
     meta: {
       requiresAuth: true,
+      pageTitle: 'information',
+    },
+  },
+  // {
+  //   path: '/storys',
+  //   component: () => import('@/pages/TopStorys.vue'),
+  //   meta: {
+  //     requiresAuth: true,
+  //   },
+  // },
+  // {
+  //   path: '/addresses',
+  //   component: () => import('@/pages/Addresses.vue'),
+  //   meta: {
+  //     requiresAuth: true,
+  //   },
+  // },
+  {
+    path: '/settings',
+    component: () => import('@/pages/Settings.vue'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'settings',
     },
   },
   {
@@ -81,10 +109,10 @@ const routes = [
     path: '/register-community',
     component: () => import('@/pages/RegisterCommunity.vue'),
   },
-  {
-    path: '/select-community',
-    component: () => import('@/pages/SelectCommunity.vue'),
-  },
+  // {
+  //   path: '/select-community',
+  //   component: () => import('@/pages/SelectCommunity.vue'),
+  // },
   {
     path: '/reset-password/:optin',
     component: () => import('@/pages/ResetPassword.vue'),
