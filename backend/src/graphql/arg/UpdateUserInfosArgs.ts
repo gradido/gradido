@@ -19,4 +19,10 @@ export default class UpdateUserInfosArgs {
 
   @Field({ nullable: true })
   passwordNew?: string
+
+  @Field({ nullable: true })
+  hideAmountGDD?: boolean
+
+  @Field({ nullable: true })
+  hideAmountGDT?: boolean
 }

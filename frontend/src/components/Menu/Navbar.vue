@@ -16,7 +16,12 @@
       <router-link to="/settings" class="d-block d-lg-none">
         <div class="d-flex align-items-center">
           <div class="mr-3">
-            <avatar :username="username.username" :color="'#fff'" :size="61"></avatar>
+            <avatar
+              :username="username.username"
+              :initials="username.initials"
+              :color="'#fff'"
+              :size="61"
+            ></avatar>
           </div>
         </div>
       </router-link>
