@@ -31,8 +31,8 @@ export const updateUserInfos = gql`
     $password: String
     $passwordNew: String
     $locale: String
-    $hideAmountGDD: boolean!
-    $hideAmountGDT: boolean!
+    $hideAmountGDD: Boolean
+    $hideAmountGDT: Boolean
   ) {
     updateUserInfos(
       firstName: $firstName

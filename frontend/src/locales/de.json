@@ -269,6 +269,10 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
+    "showAmountGDD": "Dein GDD Betrag ist sichtbar.",
+    "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
+    "showAmountGDT": "Dein GDT Betrag ist sichtbar.",
+    "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
     "language": {
       "changeLanguage": "Sprache ändern",
       "de": "Deutsch",
