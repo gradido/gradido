@@ -1,15 +1,13 @@
 import { GraphQLSchema } from 'graphql'
 import { buildSchema } from 'type-graphql'
+import path from 'path'
 
-import isAuthorized from './directive/isAuthorized'
 import DecimalScalar from './scalar/Decimal'
 import Decimal from 'decimal.js-light'
-import { getApiResolvers } from './api/schema'
 
 const schema = async (): Promise<GraphQLSchema> => {
   return await buildSchema({
-    resolvers: [getApiResolvers()],
-    authChecker: isAuthorized,
+    resolvers: [path.join(__dirname, `./resolver/*Resolver.{ts,js}`)],
     scalarsMap: [{ type: Decimal, scalar: DecimalScalar }],
   })
 }

@@ -155,7 +155,9 @@ export const startDHT = async (topic: string): Promise<void> => {
         })
       }
 
-      logger.info(`Found new peers: ${collectedPubKeys}`)
+      if(collectedPubKeys.length){
+        logger.info(`Found new peers: ${collectedPubKeys}`)
+      }
 
       collectedPubKeys.forEach((remotePubKey) => {
         const socket = node.connect(Buffer.from(remotePubKey, 'hex'))

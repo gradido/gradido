@@ -11,20 +11,18 @@ let filename: string = options.appenders.federation.filename
 if (CONFIG.FEDERATION_DHT_TOPIC) {
   options.appenders.federation.filename = filename
     .replace('apiversion-%v', 'dht-' + CONFIG.FEDERATION_DHT_TOPIC)
-    .replace('%p', CONFIG.FEDERATION_PORT.toString())
+    .replace('%p', CONFIG.PORT.toString())
 } else {
-  options.appenders.federation.filename = filename
-    .replace('%v', CONFIG.FEDERATION_API)
-    .replace('%p', CONFIG.FEDERATION_PORT.toString())
+  options.appenders.federation.filename = filename.replace('%p', CONFIG.PORT.toString())
 }
 filename = options.appenders.access.filename
-options.appenders.access.filename = filename.replace('%p', CONFIG.FEDERATION_PORT.toString())
+options.appenders.access.filename = filename.replace('%p', CONFIG.PORT.toString())
 filename = options.appenders.apollo.filename
-options.appenders.apollo.filename = filename.replace('%p', CONFIG.FEDERATION_PORT.toString())
+options.appenders.apollo.filename = filename.replace('%p', CONFIG.PORT.toString())
 filename = options.appenders.backend.filename
-options.appenders.backend.filename = filename.replace('%p', CONFIG.FEDERATION_PORT.toString())
+options.appenders.backend.filename = filename.replace('%p', CONFIG.PORT.toString())
 filename = options.appenders.errorFile.filename
-options.appenders.errorFile.filename = filename.replace('%p', CONFIG.FEDERATION_PORT.toString())
+options.appenders.errorFile.filename = filename.replace('%p', CONFIG.PORT.toString())
 
 log4js.configure(options)
 
