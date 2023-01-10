@@ -1,27 +1,46 @@
 <template>
   <div class="contribution-messages-list-item">
-    <div v-if="isNotModerator" class="is-not-moderator text-right">
-      <b-avatar variant="info"></b-avatar>
-      <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
-      <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
-      <parse-message v-bind="message"></parse-message>
+    <div v-if="isNotModerator" class="text-right pr-4 pr-lg-0 is-not-moderator">
+      <b-row class="mb-3">
+        <b-col cols="10">
+          <div class="font-weight-bold" data-test="username">{{ storeName.username }}</div>
+          <div class="small" data-test="date">{{ $d(new Date(message.createdAt), 'short') }}</div>
+          <parse-message v-bind="message" data-test="message"></parse-message>
+        </b-col>
+        <b-col cols="2">
+          <avatar :username="storeName.username" :initials="storeName.initials"></avatar>
+        </b-col>
+      </b-row>
     </div>
-    <div v-else class="is-moderator text-left">
-      <b-avatar square variant="warning"></b-avatar>
-      <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
-      <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
-      <small class="ml-4 text-success">{{ $t('community.moderator') }}</small>
-      <parse-message v-bind="message"></parse-message>
+    <div v-else>
+      <b-row class="mb-3 bg-f5 p-2 is-moderator">
+        <b-col cols="2">
+          <avatar :username="moderationName.username" :initials="moderationName.initials"></avatar>
+        </b-col>
+        <b-col cols="10">
+          <div class="font-weight-bold">
+            <span data-test="username">{{ moderationName.username }}</span>
+            <span class="ml-2 text-success small" data-test="moderator">
+              {{ $t('community.moderator') }}
+            </span>
+          </div>
+
+          <div class="small" data-test="date">{{ $d(new Date(message.createdAt), 'short') }}</div>
+          <parse-message v-bind="message" data-test="message"></parse-message>
+        </b-col>
+      </b-row>
     </div>
   </div>
 </template>
 
 <script>
+import Avatar from 'vue-avatar'
 import ParseMessage from '@/components/ContributionMessages/ParseMessage.vue'
 
 export default {
   name: 'ContributionMessagesListItem',
   components: {
+    Avatar,
     ParseMessage,
   },
   props: {
@@ -30,32 +49,22 @@ export default {
       required: true,
     },
   },
-  data() {
-    return {
-      storeName: `${this.$store.state.firstName} ${this.$store.state.lastName}`,
-      moderationName: `${this.message.userFirstName} ${this.message.userLastName}`,
-    }
-  },
   computed: {
     isNotModerator() {
-      return this.storeName === this.moderationName
+      return this.storeName.username === this.moderationName.username
+    },
+    storeName() {
+      return {
+        username: `${this.$store.state.firstName} ${this.$store.state.lastName}`,
+        initials: `${this.$store.state.firstName[0]}${this.$store.state.lastName[0]}`,
+      }
+    },
+    moderationName() {
+      return {
+        username: `${this.message.userFirstName} ${this.message.userLastName}`,
+        initials: `${this.message.userFirstName[0]}${this.message.userLastName[0]}`,
+      }
     },
   },
 }
 </script>
-<style>
-.is-not-moderator {
-  float: right;
-  /* background-color: rgb(261, 204, 221); */
-  width: 75%;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  clear: both;
-}
-.is-moderator {
-  clear: both;
-  /* background-color: rgb(255, 255, 128); */
-  width: 75%;
-  margin-top: 20px;
-}
-</style>

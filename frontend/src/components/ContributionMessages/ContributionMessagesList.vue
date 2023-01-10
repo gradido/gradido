@@ -1,24 +1,21 @@
 <template>
   <div class="contribution-messages-list">
-    <b-container>
-      <div v-for="message in messages" v-bind:key="message.id">
+    <div>
+      <div v-for="message in messages" v-bind:key="message.id" class="mt-3">
         <contribution-messages-list-item :message="message" />
       </div>
-    </b-container>
-    <b-container>
+    </div>
+    <div>
       <contribution-messages-formular
         v-if="['PENDING', 'IN_PROGRESS'].includes(state)"
         :contributionId="contributionId"
         v-on="$listeners"
         @update-state="updateState"
       />
-    </b-container>
+    </div>
 
-    <div
-      v-b-toggle="'collapse' + String(contributionId)"
-      class="text-center pointer h2 clearboth pt-1"
-    >
-      <b-button variant="outline-primary" block class="mt-4">
+    <div v-b-toggle="'collapse' + String(contributionId)" class="text-center pointer clearboth">
+      <b-button variant="outline-primary" block class="mb-3">
         <b-icon icon="arrow-up-short"></b-icon>
         {{ $t('form.close') }}
       </b-button>
@@ -57,9 +54,6 @@ export default {
 }
 </script>
 <style scoped>
-.temp-message {
-  margin-top: 50px;
-}
 .clearboth {
   clear: both;
 }

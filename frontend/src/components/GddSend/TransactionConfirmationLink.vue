@@ -1,57 +1,56 @@
 <template>
   <div class="transaction-confirm-link">
-    <b-row class="confirm-box-link">
-      <b-col class="text-right mt-4 mb-3">
-        <div class="alert-heading text-left h3">{{ $t('gdd_per_link.header') }}</div>
+    <div class="bg-white appBoxShadow gradido-border-radius p-3">
+      <div class="h3 mb-4">{{ $t('gdd_per_link.header') }}</div>
+      <b-row class="mt-5">
+        <b-col offset="2">
+          <div class="mt-3 h5">{{ $t('form.memo') }}</div>
+          <div>{{ memo }}</div>
+        </b-col>
+        <b-col cols="3">
+          <div class="small">{{ $t('send_gdd') }}</div>
+          <div>{{ amount | GDD }}</div>
+        </b-col>
+      </b-row>
 
-        <h1>{{ (amount * -1) | GDD }}</h1>
-        <b class="mt-2">{{ memo }}</b>
-      </b-col>
-    </b-row>
-
-    <b-container class="bv-example-row mt-3 mb-3 gray-background p-2">
-      <div class="alert-heading text-left h3">{{ $t('advanced-calculation') }}</div>
-      <b-row class="pr-3">
-        <b-col class="text-right">{{ $t('form.current_balance') }}</b-col>
-        <b-col class="text-right">{{ balance | GDD }}</b-col>
+      <b-row class="mt-5 pr-3 text-color-gdd-yellow h3">
+        <b-col cols="2" class="text-right">
+          <b-icon class="text-color-gdd-yellow" icon="droplet-half"></b-icon>
+        </b-col>
+        <b-col>{{ $t('advanced-calculation') }}</b-col>
+      </b-row>
+      <b-row class="pr-3" offset="2">
+        <b-col offset="2">{{ $t('form.current_balance') }}</b-col>
+        <b-col>{{ balance | GDD }}</b-col>
       </b-row>
       <b-row class="pr-3">
-        <b-col class="text-right">
+        <b-col offset="2">
           <strong>{{ $t('form.your_amount') }}</strong>
         </b-col>
-        <b-col class="text-right">
+        <b-col class="borderbottom">
           <strong>{{ (amount * -1) | GDD }}</strong>
         </b-col>
       </b-row>
       <b-row class="pr-3">
+        <b-col offset="2">{{ $t('form.new_balance') }}</b-col>
+        <b-col>{{ (balance - amount) | GDD }}</b-col>
+      </b-row>
+      <b-row class="mt-5 p-5">
+        <b-col>
+          <b-button @click="$emit('on-reset')">{{ $t('back') }}</b-button>
+        </b-col>
         <b-col class="text-right">
-          <strong>{{ $t('gdd_per_link.decay-14-day') }}</strong>
-        </b-col>
-        <b-col class="text-right borderbottom">
-          <strong>{{ $t('math.aprox') }} {{ (amount * -0.028) | GDD }}</strong>
+          <b-button
+            class="send-button"
+            variant="gradido"
+            :disabled="disabled"
+            @click="$emit('send-transaction')"
+          >
+            {{ $t('form.generate_now') }}
+          </b-button>
         </b-col>
       </b-row>
-      <b-row class="pr-3">
-        <b-col class="text-right">{{ $t('form.new_balance') }}</b-col>
-        <b-col class="text-right">{{ $t('math.aprox') }} {{ totalBalance | GDD }}</b-col>
-      </b-row>
-    </b-container>
-
-    <b-row class="mt-4">
-      <b-col>
-        <b-button @click="$emit('on-reset')">{{ $t('back') }}</b-button>
-      </b-col>
-      <b-col class="text-right">
-        <b-button
-          class="send-button"
-          variant="primary"
-          :disabled="disabled"
-          @click="$emit('send-transaction')"
-        >
-          {{ $t('form.generate_now') }}
-        </b-button>
-      </b-col>
-    </b-row>
+    </div>
   </div>
 </template>
 <script>
