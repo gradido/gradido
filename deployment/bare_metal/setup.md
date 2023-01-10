@@ -231,3 +231,32 @@ This opens the `crontab` in edit-mode and insert the following entry:
 ```bash
 0 4 * * * find /tmp -name "yarn--*" -ctime +1 -exec rm -r {} \; > /dev/null
 ```
+
+## Define Cronjob To start backup script automatically
+
+At least at production stage we need a daily backup of our database. This can be done by adding a cronjob
+to start the existing backup.sh script.
+
+### On production
+
+To check for existing cronjobs for the `gradido` user, please
+
+Run:
+
+```bash
+crontab -l
+```
+
+This show all existing entries of the crontab for user `gradido`
+
+To install/add the cronjob for a daily backup at 3:00am please 
+
+Run:
+
+```bash
+crontab -e
+```
+and insert the following line
+```bash
+* 3 * * * ~/gradido/deployment/bare_metal/backup.sh
+```
