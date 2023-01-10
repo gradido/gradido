@@ -259,7 +259,7 @@ export default {
           if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
             this.tabIndex = 1
             if (this.$route.hash !== '#my') {
-              this.$router.push({ path: '#my' })
+              this.$router.push({ path: '/community#my' })
             }
             this.toastInfo('Du hast eine Rückfrage auf eine Contribution. Bitte beantworte diese!')
           }
@@ -315,7 +315,7 @@ export default {
     })
     this.updateTransactions(0)
     this.tabIndex = 1
-    this.$router.push({ path: '#my' })
+    this.$router.push({ path: '/community#my' })
   },
 }
 </script>
