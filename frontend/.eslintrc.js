@@ -54,6 +54,8 @@ module.exports = {
           'settings.password.set',
           'settings.password.set-password.text',
           'settings.password.subtitle',
+          'math.asterisk',
+          '/pageTitle./',
         ],
         enableFix: false,
       },
@@ -68,7 +70,7 @@ module.exports = {
   },
   settings: {
     'vue-i18n': {
-      localeDir: './src/locales/*.json',
+      localeDir: './src/locales/{en,de}.json',
       // Specify the version of `vue-i18n` you are using.
       // If not specified, the message will be parsed twice.
       messageSyntaxVersion: '^8.22.4',

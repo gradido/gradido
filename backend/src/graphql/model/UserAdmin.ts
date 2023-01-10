@@ -6,14 +6,15 @@ import { User } from '@entity/User'
 export class UserAdmin {
   constructor(user: User, creation: Decimal[], hasElopage: boolean, emailConfirmationSend: string) {
     this.userId = user.id
-    this.email = user.email
+    this.email = user.emailContact.email
     this.firstName = user.firstName
     this.lastName = user.lastName
     this.creation = creation
-    this.emailChecked = user.emailChecked
+    this.emailChecked = user.emailContact.emailChecked
     this.hasElopage = hasElopage
     this.deletedAt = user.deletedAt
     this.emailConfirmationSend = emailConfirmationSend
+    this.isAdmin = user.isAdmin
   }
 
   @Field(() => Number)
@@ -42,6 +43,9 @@ export class UserAdmin {
 
   @Field(() => String, { nullable: true })
   emailConfirmationSend?: string
+
+  @Field(() => Date, { nullable: true })
+  isAdmin: Date | null
 }
 
 @ObjectType()

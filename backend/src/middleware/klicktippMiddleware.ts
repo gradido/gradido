@@ -2,6 +2,7 @@ import { MiddlewareFn } from 'type-graphql'
 import { /* klicktippSignIn, */ getKlickTippUser } from '@/apis/KlicktippController'
 import { KlickTipp } from '@model/KlickTipp'
 import CONFIG from '@/config'
+import { klickTippLogger as logger } from '@/server/logger'
 
 // export const klicktippRegistrationMiddleware: MiddlewareFn = async (
 //   // Only for demo
@@ -29,7 +30,9 @@ export const klicktippNewsletterStateMiddleware: MiddlewareFn = async (
       if (klickTippUser) {
         klickTipp = new KlickTipp(klickTippUser)
       }
-    } catch (err) {}
+    } catch (err) {
+      logger.error(`There is no user for (email='${result.email}') ${err}`)
+    }
   }
   result.klickTipp = klickTipp
   return result

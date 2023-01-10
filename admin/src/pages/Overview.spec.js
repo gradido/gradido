@@ -1,28 +1,48 @@
 import { mount } from '@vue/test-utils'
 import Overview from './Overview.vue'
+import { listUnconfirmedContributions } from '@/graphql/listUnconfirmedContributions.js'
 
 const localVue = global.localVue
 
-const apolloQueryMock = jest.fn().mockResolvedValue({
-  data: {
-    getPendingCreations: [
-      {
-        pending: true,
-      },
-      {
-        pending: true,
-      },
-      {
-        pending: true,
-      },
-    ],
-  },
-})
+const apolloQueryMock = jest
+  .fn()
+  .mockResolvedValueOnce({
+    data: {
+      listUnconfirmedContributions: [
+        {
+          pending: true,
+        },
+        {
+          pending: true,
+        },
+        {
+          pending: true,
+        },
+      ],
+    },
+  })
+  .mockResolvedValue({
+    data: {
+      listUnconfirmedContributions: [
+        {
+          pending: true,
+        },
+        {
+          pending: true,
+        },
+        {
+          pending: true,
+        },
+      ],
+    },
+  })
 
 const storeCommitMock = jest.fn()
 
 const mocks = {
   $t: jest.fn((t) => t),
+  $n: jest.fn((n) => n),
+  $d: jest.fn((d) => d),
   $apollo: {
     query: apolloQueryMock,
   },
@@ -46,11 +66,15 @@ describe('Overview', () => {
       wrapper = Wrapper()
     })
 
-    it('calls getPendingCreations', () => {
-      expect(apolloQueryMock).toBeCalled()
+    it('calls listUnconfirmedContributions', () => {
+      expect(apolloQueryMock).toBeCalledWith(
+        expect.objectContaining({
+          query: listUnconfirmedContributions,
+        }),
+      )
     })
 
-    it('commts three pending creations to store', () => {
+    it('commits three pending creations to store', () => {
       expect(storeCommitMock).toBeCalledWith('setOpenCreations', 3)
     })
 

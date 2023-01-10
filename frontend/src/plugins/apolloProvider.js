@@ -12,6 +12,7 @@ const authLink = new ApolloLink((operation, forward) => {
   operation.setContext({
     headers: {
       Authorization: token && token.length > 0 ? `Bearer ${token}` : '',
+      clientTimezoneOffset: new Date().getTimezoneOffset(),
     },
   })
   return forward(operation).map((response) => {
@@ -29,7 +30,11 @@ const authLink = new ApolloLink((operation, forward) => {
 
 const apolloClient = new ApolloClient({
   link: authLink.concat(httpLink),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    possibleTypes: {
+      QueryLinkResult: ['TransactionLink', 'ContributionLink'],
+    },
+  }),
 })
 
 export const apolloProvider = new VueApollo({

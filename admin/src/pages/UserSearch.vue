@@ -4,9 +4,9 @@
       <b-button class="unconfirmedRegisterMails" variant="light" @click="unconfirmedRegisterMails">
         <b-icon icon="envelope" variant="danger"></b-icon>
         {{
-          filterByActivated === null
+          filters.byActivated === null
             ? $t('all_emails')
-            : filterByActivated === false
+            : filters.byActivated === false
             ? $t('unregistered_emails')
             : ''
         }}
@@ -14,9 +14,9 @@
       <b-button class="deletedUserSearch" variant="light" @click="deletedUserSearch">
         <b-icon icon="x-circle" variant="danger"></b-icon>
         {{
-          filterByDeleted === null
+          filters.byDeleted === null
             ? $t('all_emails')
-            : filterByDeleted === true
+            : filters.byDeleted === true
             ? $t('deleted_user')
             : ''
         }}
@@ -42,6 +42,7 @@
       type="PageUserSearch"
       :items="searchResult"
       :fields="fields"
+      @updateIsAdmin="updateIsAdmin"
       @updateDeletedAt="updateDeletedAt"
     />
     <b-pagination
@@ -51,6 +52,7 @@
       per-page="perPage"
       :total-rows="rows"
       align="center"
+      :hide-ellipsis="true"
     ></b-pagination>
     <div></div>
   </div>
@@ -72,8 +74,10 @@ export default {
       searchResult: [],
       massCreation: [],
       criteria: '',
-      filterByActivated: null,
-      filterByDeleted: null,
+      filters: {
+        byActivated: null,
+        byDeleted: null,
+      },
       rows: 0,
       currentPage: 1,
       perPage: 25,
@@ -82,11 +86,11 @@ export default {
   },
   methods: {
     unconfirmedRegisterMails() {
-      this.filterByActivated = this.filterByActivated === null ? false : null
+      this.filters.byActivated = this.filters.byActivated === null ? false : null
       this.getUsers()
     },
     deletedUserSearch() {
-      this.filterByDeleted = this.filterByDeleted === null ? true : null
+      this.filters.byDeleted = this.filters.byDeleted === null ? true : null
       this.getUsers()
     },
     getUsers() {
@@ -97,10 +101,7 @@ export default {
             searchText: this.criteria,
             currentPage: this.currentPage,
             pageSize: this.perPage,
-            filters: {
-              filterByActivated: this.filterByActivated,
-              filterByDeleted: this.filterByDeleted,
-            },
+            filters: this.filters,
           },
           fetchPolicy: 'no-cache',
         })
@@ -111,6 +112,9 @@ export default {
         .catch((error) => {
           this.toastError(error.message)
         })
+    },
+    updateIsAdmin(userId, isAdmin) {
+      this.searchResult.find((obj) => obj.userId === userId).isAdmin = isAdmin
     },
     updateDeletedAt(userId, deletedAt) {
       this.searchResult.find((obj) => obj.userId === userId).deletedAt = deletedAt

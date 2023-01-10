@@ -1,9 +1,9 @@
 <template>
   <div class="auth-header position-sticky">
-    <b-navbar toggleable="lg" class="pr-4">
-      <b-navbar-brand>
+    <b-navbar :toggleable="false" class="pr-4">
+      <b-navbar-brand class="d-none d-lg-block">
         <b-img
-          class="imgLogo position-absolute ml--3 mt--3 p-2 zindex1000"
+          class="imgLogo position-absolute ml--3 mt-lg--2 mt-3 p-2 zindex1000"
           :src="logo"
           width="200"
           alt="..."
@@ -16,16 +16,11 @@
         ></b-img>
       </b-navbar-brand>
       <b-img class="sheet-img position-absolute d-block d-lg-none zindex1000" :src="sheet"></b-img>
-      <b-navbar-toggle target="nav-collapse" class="zindex1000"></b-navbar-toggle>
-
-      <b-collapse id="nav-collapse" is-nav class="mt-5 mt-lg-0">
-        <b-navbar-nav class="ml-auto" right>
-          <b-nav-item href="https://gradido.net/de/" target="_blank">
-            {{ $t('auth.navbar.aboutGradido') }}
-          </b-nav-item>
-          <b-nav-item to="/register" class="authNavbar ml-lg-5">{{ $t('signup') }}</b-nav-item>
+      <b-collapse id="nav-collapse" is-nav class="ml-5">
+        <b-navbar-nav class="ml-auto d-none d-lg-flex" right>
+          <b-nav-item :to="register" class="authNavbar ml-lg-5">{{ $t('signup') }}</b-nav-item>
           <span class="d-none d-lg-block mt-1">{{ $t('math.pipe') }}</span>
-          <b-nav-item to="/login" class="authNavbar">{{ $t('signin') }}</b-nav-item>
+          <b-nav-item :to="login" class="authNavbar">{{ $t('signin') }}</b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
@@ -33,8 +28,11 @@
 </template>
 
 <script>
+import { authLinks } from '@/mixins/authLinks'
+
 export default {
   name: 'AuthNavbar',
+  mixins: [authLinks],
   data() {
     return {
       logo: '/img/brand/green.png',
@@ -46,11 +44,11 @@ export default {
 
 <style lang="scss">
 .authNavbar > .nav-link {
-  color: #383838 !important;
+  color: #0e79bc !important;
 }
 
 .authNavbar > .router-link-exact-active {
-  color: #0e79bc !important;
+  color: #383838 !important;
 }
 
 .auth-header {

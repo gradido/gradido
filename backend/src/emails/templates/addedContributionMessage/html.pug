@@ -1,0 +1,16 @@
+doctype html
+html(lang=locale)
+  head
+    title= t('emails.addedContributionMessage.subject')
+  body
+    h1(style='margin-bottom: 24px;')= t('emails.addedContributionMessage.subject')
+    #container.col
+      include ../hello.pug
+      p= t('emails.addedContributionMessage.commonGoodContributionMessage', { senderFirstName, senderLastName, contributionMemo })
+      p= t('emails.addedContributionMessage.toSeeAndAnswerMessage')
+      p
+        = t('emails.general.linkToYourAccount')
+        = " "
+        a(href=overviewURL) #{overviewURL}
+      p= t('emails.general.pleaseDoNotReply')
+      include ../greatingFormularImprint.pug

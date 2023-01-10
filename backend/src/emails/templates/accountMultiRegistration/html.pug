@@ -1,0 +1,23 @@
+doctype html
+html(lang=locale)
+  head
+    title= t('emails.accountMultiRegistration.subject')
+  body
+    h1(style='margin-bottom: 24px;')= t('emails.accountMultiRegistration.subject')
+    #container.col
+      include ../hello.pug
+      p
+        = t('emails.accountMultiRegistration.emailReused')
+        br
+        = t('emails.accountMultiRegistration.emailExists')
+      p
+        = t('emails.accountMultiRegistration.onForgottenPasswordClickLink')
+        br
+        a(href=resendLink) #{resendLink}
+        br
+        = t('emails.accountMultiRegistration.onForgottenPasswordCopyLink')
+      p
+        = t('emails.accountMultiRegistration.ifYouAreNotTheOne')
+        br
+        a(href='mailto:' + supportEmail)= supportEmail
+      include ../greatingFormularImprint.pug

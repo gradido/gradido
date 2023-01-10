@@ -1,4 +1,4 @@
-import { mount, RouterLinkStub } from '@vue/test-utils'
+import { shallowMount, RouterLinkStub } from '@vue/test-utils'
 import App from './App'
 
 const localVue = global.localVue
@@ -25,13 +25,14 @@ describe('App', () => {
       meta: {
         requiresAuth: false,
       },
+      params: {},
     },
   }
 
   let wrapper
 
   const Wrapper = () => {
-    return mount(App, { localVue, mocks, stubs })
+    return shallowMount(App, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {
@@ -48,7 +49,7 @@ describe('App', () => {
     })
 
     describe('route requires authorization', () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         mocks.$route.meta.requiresAuth = true
         wrapper = Wrapper()
       })

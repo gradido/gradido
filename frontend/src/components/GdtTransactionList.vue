@@ -36,6 +36,7 @@
       :per-page="pageSize"
       :total-rows="transactionGdtCount"
       align="center"
+      :hide-ellipsis="true"
     ></b-pagination>
   </div>
 </template>
@@ -44,7 +45,7 @@
 import Transaction from '@/components/Transaction.vue'
 
 export default {
-  name: 'gdt-transaction-list',
+  name: 'GdtTransactionList',
   components: {
     Transaction,
   },

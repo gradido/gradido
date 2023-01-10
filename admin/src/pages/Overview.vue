@@ -31,19 +31,19 @@
   </div>
 </template>
 <script>
-import { getPendingCreations } from '../graphql/getPendingCreations'
+import { listUnconfirmedContributions } from '@/graphql/listUnconfirmedContributions.js'
 
 export default {
   name: 'overview',
   methods: {
-    async getPendingCreations() {
+    getPendingCreations() {
       this.$apollo
         .query({
-          query: getPendingCreations,
+          query: listUnconfirmedContributions,
           fetchPolicy: 'network-only',
         })
         .then((result) => {
-          this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
+          this.$store.commit('setOpenCreations', result.data.listUnconfirmedContributions.length)
         })
     },
   },

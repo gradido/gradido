@@ -1,23 +1,5 @@
 import gql from 'graphql-tag'
 
-export const login = gql`
-  query ($email: String!, $password: String!, $publisherId: Int) {
-    login(email: $email, password: $password, publisherId: $publisherId) {
-      id
-      email
-      firstName
-      lastName
-      language
-      klickTipp {
-        newsletterState
-      }
-      hasElopage
-      publisherId
-      isAdmin
-    }
-  }
-`
-
 export const verifyLogin = gql`
   query {
     verifyLogin {
@@ -32,12 +14,6 @@ export const verifyLogin = gql`
       publisherId
       isAdmin
     }
-  }
-`
-
-export const logout = gql`
-  query {
-    logout
   }
 `
 
@@ -88,6 +64,31 @@ export const transactionsQuery = gql`
 export const sendResetPasswordEmail = gql`
   query ($email: String!) {
     sendResetPasswordEmail(email: $email)
+  }
+`
+
+export const searchUsers = gql`
+  query ($searchText: String!, $currentPage: Int, $pageSize: Int, $filters: SearchUsersFilters) {
+    searchUsers(
+      searchText: $searchText
+      currentPage: $currentPage
+      pageSize: $pageSize
+      filters: $filters
+    ) {
+      userCount
+      userList {
+        userId
+        firstName
+        lastName
+        email
+        creation
+        emailChecked
+        hasElopage
+        emailConfirmationSend
+        deletedAt
+        isAdmin
+      }
+    }
   }
 `
 
@@ -147,11 +148,51 @@ export const queryTransactionLink = gql`
   }
 `
 
+export const listContributions = gql`
+  query (
+    $currentPage: Int = 1
+    $pageSize: Int = 5
+    $order: Order
+    $filterConfirmed: Boolean = false
+  ) {
+    listContributions(
+      currentPage: $currentPage
+      pageSize: $pageSize
+      order: $order
+      filterConfirmed: $filterConfirmed
+    ) {
+      contributionCount
+      contributionList {
+        id
+        amount
+        memo
+      }
+    }
+  }
+`
+
+export const listAllContributions = `
+query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC) {
+  listAllContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+  	contributionCount
+    contributionList {
+      id
+      firstName
+      lastName
+      amount
+      memo
+      createdAt
+      confirmedAt
+      confirmedBy
+    }
+	}
+}
+`
 // from admin interface
 
-export const getPendingCreations = gql`
+export const listUnconfirmedContributions = gql`
   query {
-    getPendingCreations {
+    listUnconfirmedContributions {
       id
       firstName
       lastName
@@ -161,6 +202,92 @@ export const getPendingCreations = gql`
       date
       moderator
       creation
+    }
+  }
+`
+
+export const listTransactionLinksAdmin = gql`
+  query (
+    $userId: Int!
+    $filters: TransactionLinkFilters
+    $currentPage: Int = 1
+    $pageSize: Int = 5
+  ) {
+    listTransactionLinksAdmin(
+      userId: $userId
+      filters: $filters
+      currentPage: $currentPage
+      pageSize: $pageSize
+    ) {
+      linkCount
+      linkList {
+        id
+        amount
+        holdAvailableAmount
+        memo
+        code
+        createdAt
+        validUntil
+        redeemedAt
+        deletedAt
+      }
+    }
+  }
+`
+
+export const listContributionLinks = gql`
+  query ($pageSize: Int = 25, $currentPage: Int = 1, $order: Order) {
+    listContributionLinks(pageSize: $pageSize, currentPage: $currentPage, order: $order) {
+      links {
+        id
+        amount
+        name
+        memo
+        code
+        link
+        createdAt
+        validFrom
+        validTo
+        maxAmountPerMonth
+        cycle
+        maxPerCycle
+      }
+      count
+    }
+  }
+`
+
+export const searchAdminUsers = gql`
+  query {
+    searchAdminUsers {
+      userCount
+      userList {
+        firstName
+        lastName
+      }
+    }
+  }
+`
+
+export const listContributionMessages = gql`
+  query ($contributionId: Float!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
+    listContributionMessages(
+      contributionId: $contributionId
+      pageSize: $pageSize
+      currentPage: $currentPage
+      order: $order
+    ) {
+      count
+      messages {
+        id
+        message
+        createdAt
+        updatedAt
+        type
+        userFirstName
+        userLastName
+        userId
+      }
     }
   }
 `

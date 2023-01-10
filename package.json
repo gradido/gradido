@@ -1,6 +1,6 @@
 {
   "name": "gradido",
-  "version": "1.8.3",
+  "version": "1.16.0",
   "description": "Gradido",
   "main": "index.js",
   "repository": "git@github.com:gradido/gradido.git",
@@ -10,6 +10,7 @@
     "release": "scripts/release.sh"
   },
   "dependencies": {
-    "auto-changelog": "^2.4.0"
+    "auto-changelog": "^2.4.0",
+    "uuid": "^8.3.2"
   }
 }

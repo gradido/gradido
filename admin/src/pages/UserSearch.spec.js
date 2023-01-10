@@ -83,8 +83,8 @@ describe('UserSearch', () => {
             currentPage: 1,
             pageSize: 25,
             filters: {
-              filterByActivated: null,
-              filterByDeleted: null,
+              byActivated: null,
+              byDeleted: null,
             },
           },
         }),
@@ -104,8 +104,8 @@ describe('UserSearch', () => {
               currentPage: 1,
               pageSize: 25,
               filters: {
-                filterByActivated: false,
-                filterByDeleted: null,
+                byActivated: false,
+                byDeleted: null,
               },
             },
           }),
@@ -126,8 +126,8 @@ describe('UserSearch', () => {
               currentPage: 1,
               pageSize: 25,
               filters: {
-                filterByActivated: null,
-                filterByDeleted: true,
+                byActivated: null,
+                byDeleted: true,
               },
             },
           }),
@@ -148,8 +148,8 @@ describe('UserSearch', () => {
               currentPage: 2,
               pageSize: 25,
               filters: {
-                filterByActivated: null,
-                filterByDeleted: null,
+                byActivated: null,
+                byDeleted: null,
               },
             },
           }),
@@ -170,8 +170,8 @@ describe('UserSearch', () => {
               currentPage: 1,
               pageSize: 25,
               filters: {
-                filterByActivated: null,
-                filterByDeleted: null,
+                byActivated: null,
+                byDeleted: null,
               },
             },
           }),
@@ -189,8 +189,8 @@ describe('UserSearch', () => {
                 currentPage: 1,
                 pageSize: 25,
                 filters: {
-                  filterByActivated: null,
-                  filterByDeleted: null,
+                  byActivated: null,
+                  byDeleted: null,
                 },
               },
             }),
@@ -199,14 +199,43 @@ describe('UserSearch', () => {
       })
     })
 
+    describe('change user role', () => {
+      const userId = 4
+
+      describe('to admin', () => {
+        it('updates user role to admin', async () => {
+          await wrapper
+            .findComponent({ name: 'SearchUserTable' })
+            .vm.$emit('updateIsAdmin', userId, new Date())
+          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(
+            expect.any(Date),
+          )
+        })
+      })
+
+      describe('to usual user', () => {
+        it('updates user role to usual user', async () => {
+          await wrapper
+            .findComponent({ name: 'SearchUserTable' })
+            .vm.$emit('updateIsAdmin', userId, null)
+          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(null)
+        })
+      })
+    })
+
     describe('delete user', () => {
-      const now = new Date()
-      beforeEach(async () => {
-        wrapper.findComponent({ name: 'SearchUserTable' }).vm.$emit('updateDeletedAt', 4, now)
+      const userId = 4
+      beforeEach(() => {
+        wrapper
+          .findComponent({ name: 'SearchUserTable' })
+          .vm.$emit('updateDeletedAt', userId, new Date())
       })
 
       it('marks the user as deleted', () => {
-        expect(wrapper.vm.searchResult.find((obj) => obj.userId === 4).deletedAt).toEqual(now)
+        expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).deletedAt).toEqual(
+          expect.any(Date),
+        )
+        expect(wrapper.find('.test-deleted-icon').exists()).toBe(true)
       })
 
       it('toasts a success message', () => {

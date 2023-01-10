@@ -28,6 +28,7 @@ export default {
   props: {
     item: {
       type: Object,
+      required: true,
     },
   },
   data() {
@@ -64,7 +65,6 @@ export default {
           },
         })
         .then((result) => {
-          this.toastSuccess(this.$t('user_recovered'))
           this.$emit('updateDeletedAt', {
             userId: this.item.userId,
             deletedAt: result.data.unDeleteUser,

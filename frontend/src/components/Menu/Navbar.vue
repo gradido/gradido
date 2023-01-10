@@ -1,125 +1,139 @@
 <template>
-  <div class="component-navbar">
-    <b-navbar toggleable="lg" type="light" variant="faded">
-      <div class="navbar-brand">
-        <b-navbar-nav @click="$emit('set-visible', false)">
-          <b-nav-item to="/overview">
-            <img :src="logo" class="navbar-brand-img" alt="..." />
-          </b-nav-item>
-        </b-navbar-nav>
-      </div>
-
-      <b-navbar-nav class="ml-auto" is-nav>
-        <b-nav-item>
-          <b-icon v-if="pending" icon="three-dots" animation="cylon"></b-icon>
-          <div v-else>{{ pending ? $t('em-dash') : balance | amount }} {{ $t('GDD') }}</div>
-        </b-nav-item>
-        <b-nav-item to="/profile" right class="d-none d-sm-none d-md-none d-lg-flex shadow-lg">
-          <small>
-            {{ $store.state.firstName }} {{ $store.state.lastName }}
-            <b>{{ $store.state.email }}</b>
-            <b-icon class="ml-3" icon="gear-fill" aria-hidden="true"></b-icon>
-          </small>
-        </b-nav-item>
-      </b-navbar-nav>
-
-      <b-navbar-toggle
-        target="false"
-        @click="$emit('set-visible', (visibleCollapse = !visible))"
-      ></b-navbar-toggle>
-    </b-navbar>
-
-    <b-collapse id="collapse-nav" v-model="visibleCollapse" class="p-3 b-collaps-gradido">
-      <b-nav vertical @click="$emit('set-visible', false)">
-        <div class="text-right">
-          <b-link to="/profile">
-            <small>
-              {{ $store.state.firstName }}
-              {{ $store.state.lastName }}
-              <b>{{ $store.state.email }}</b>
-            </small>
-          </b-link>
+  <div class="navbar-component position-sticky">
+    <b-navbar toggleable="lg" class="pr-4">
+      <b-navbar-brand>
+        <b-img
+          class="imgLogo mt-lg--2 mt-3 mb-3 d-none d-lg-block zindex10"
+          :src="logo"
+          width=""
+          alt="..."
+        />
+        <b-button v-b-toggle.sidebar-mobile class="d-block d-lg-none">
+          <span class="navbar-toggler-icon"></span>
+        </b-button>
+      </b-navbar-brand>
+      <b-img class="sheet-img position-absolute zindex1" :src="sheet"></b-img>
+      <router-link to="/settings" class="d-block d-lg-none zindex1000">
+        <div class="d-flex align-items-center">
+          <div class="mr-3">
+            <avatar :username="username.username" :color="'#fff'" :size="61"></avatar>
+          </div>
         </div>
-        <b-nav-item to="/overview" class="mb-3">
-          <b-icon icon="house" aria-hidden="true"></b-icon>
-          {{ $t('navigation.overview') }}
-        </b-nav-item>
-        <b-nav-item to="/send" class="mb-3">
-          <b-icon icon="arrow-left-right" aria-hidden="true"></b-icon>
-          {{ $t('navigation.send') }}
-        </b-nav-item>
-        <b-nav-item to="/transactions" class="mb-3">
-          <b-icon icon="layout-text-sidebar-reverse" aria-hidden="true"></b-icon>
-          {{ $t('navigation.transactions') }}
-        </b-nav-item>
-        <b-nav-item to="/profile" class="mb-3">
-          <b-icon icon="gear" aria-hidden="true"></b-icon>
-          {{ $t('navigation.profile') }}
-        </b-nav-item>
-        <br />
-        <b-nav-item :href="elopageUri" class="mb-3" target="_blank">
-          <b-icon icon="link45deg" aria-hidden="true"></b-icon>
-          {{ $t('navigation.members_area') }}
-          <b-badge v-if="!$store.state.hasElopage" pill variant="danger">
-            {{ $t('math.exclaim') }}
-          </b-badge>
-        </b-nav-item>
-        <b-nav-item class="mb-3" v-if="$store.state.isAdmin" @click="$emit('admin')">
-          <b-icon icon="shield-check" aria-hidden="true"></b-icon>
-          {{ $t('navigation.admin_area') }}
-        </b-nav-item>
-        <b-nav-item class="mb-3" @click="$emit('logout')">
-          <b-icon icon="power" aria-hidden="true"></b-icon>
-          {{ $t('navigation.logout') }}
-        </b-nav-item>
-      </b-nav>
-    </b-collapse>
+      </router-link>
+      <b-collapse id="nav-collapse" is-nav class="ml-5">
+        <b-navbar-nav class="ml-auto" right>
+          <div class="mb-2">
+            <router-link to="/settings">
+              <div>
+                <div class="d-flex align-items-center">
+                  <div class="mr-3">
+                    <avatar
+                      :username="username.username"
+                      :initials="username.initials"
+                      :color="'#fff'"
+                      :size="81"
+                    ></avatar>
+                  </div>
+                  <div>
+                    <div data-test="navbar-item-username">{{ username.username }}</div>
+
+                    <div class="text-right" data-test="navbar-item-email">
+                      {{ $store.state.email }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </router-link>
+          </div>
+        </b-navbar-nav>
+      </b-collapse>
+    </b-navbar>
+    <!-- <div class="alertBox">
+      <b-alert show dismissible variant="light" class="nav-alert text-dark">
+        <small>{{ $t('1000thanks') }}</small>
+      </b-alert>
+    </div> -->
   </div>
 </template>
+
 <script>
+import Avatar from 'vue-avatar'
+
 export default {
-  name: 'navbar',
+  name: 'Navbar',
+  components: {
+    Avatar,
+  },
   props: {
-    visible: {
-      type: Boolean,
-      required: true,
-    },
-    balance: {
-      type: Number,
-      required: true,
-    },
-    elopageUri: {
-      type: String,
-      required: false,
-    },
-    pending: {
-      type: Boolean,
-      required: true,
-    },
+    balance: { type: Number, required: true },
   },
   data() {
     return {
-      logo: 'img/brand/green.png',
-      visibleCollapse: this.visible,
+      logo: '/img/brand/green.png',
+      sheet: '/img/template/Blaetter.png',
     }
   },
-  watch: {
-    visible() {
-      this.visibleCollapse = this.visible
+  computed: {
+    username() {
+      return {
+        username: `${this.$store.state.firstName} ${this.$store.state.lastName}`,
+        initials: `${this.$store.state.firstName[0]}${this.$store.state.lastName[0]}`,
+      }
     },
   },
 }
 </script>
-<style>
-.b-collaps-gradido {
-  position: absolute;
-  z-index: 100000;
-  background-color: #dfe0e3f5;
-  width: 100%;
-  box-shadow: #b4b4b4 0px 13px 22px;
-  font-size: large;
+
+<style lang="scss">
+.auth-header {
+  font-family: 'Open Sans', sans-serif !important;
+  height: 150px;
 }
-.b-collaps-gradido li :hover {
-  background-color: #e9e7e7f5;
+
+.authNavbar > .nav-link {
+  color: #383838 !important;
+}
+
+.navbar-toggler {
+  font-size: 2.25rem;
+}
+
+.authNavbar > .router-link-exact-active {
+  color: #0e79bc !important;
+}
+
+button.navbar-toggler > span.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(4, 112, 6, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+.sheet-img {
+  top: -11px;
+  left: 50%;
+  max-width: 64%;
+}
+.alertBox {
+  left: 20%;
+  right: 20%;
+  position: absolute;
+  z-index: 1000;
+  top: 25px;
+}
+@media screen and (max-width: 1170px) {
+  .sheet-img {
+    left: 40%;
+  }
+  .alertBox {
+    position: static;
+    margin-left: 5%;
+    margin-right: 5%;
+    z-index: 0;
+  }
+}
+@media screen and (max-width: 450px) {
+  .sheet-img {
+    left: 37%;
+    max-width: 61%;
+    z-index: 1000;
+  }
 }
 </style>

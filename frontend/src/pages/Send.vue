@@ -1,51 +1,54 @@
 <template>
   <div>
-    <b-container>
-      <gdd-send :currentTransactionStep="currentTransactionStep" class="pt-3 ml-2 mr-2">
-        <template #transactionForm>
-          <transaction-form
-            v-bind="transactionData"
-            :balance="balance"
-            @set-transaction="setTransaction"
-          ></transaction-form>
-        </template>
-        <template #transactionConfirmationSend>
-          <transaction-confirmation-send
-            :balance="balance"
-            :email="transactionData.email"
-            :amount="transactionData.amount"
-            :memo="transactionData.memo"
-            @send-transaction="sendTransaction"
-            @on-reset="onReset"
-          ></transaction-confirmation-send>
-        </template>
-        <template #transactionConfirmationLink>
-          <transaction-confirmation-link
-            :balance="balance"
-            :email="transactionData.email"
-            :amount="transactionData.amount"
-            :memo="transactionData.memo"
-            :loading="loading"
-            @send-transaction="sendTransaction"
-            @on-reset="onReset"
-          ></transaction-confirmation-link>
-        </template>
-        <template #transactionResultSendSuccess>
-          <transaction-result-send-success @on-reset="onReset"></transaction-result-send-success>
-        </template>
-        <template #transactionResultSendError>
-          <transaction-result-send-error
-            :error="error"
-            :errorResult="errorResult"
-            @on-reset="onReset"
-          ></transaction-result-send-error>
-        </template>
-        <template #transactionResultLink>
-          <transaction-result-link :link="link" @on-reset="onReset"></transaction-result-link>
-        </template>
-      </gdd-send>
-      <hr />
-    </b-container>
+    <gdd-send :currentTransactionStep="currentTransactionStep" class="pt-3 mt--3">
+      <template #transactionForm>
+        <transaction-form
+          v-bind="transactionData"
+          :balance="balance"
+          @set-transaction="setTransaction"
+        ></transaction-form>
+      </template>
+      <template #transactionConfirmationSend>
+        <transaction-confirmation-send
+          :balance="balance"
+          :email="transactionData.email"
+          :amount="transactionData.amount"
+          :memo="transactionData.memo"
+          @send-transaction="sendTransaction"
+          @on-reset="onReset"
+        ></transaction-confirmation-send>
+      </template>
+      <template #transactionConfirmationLink>
+        <transaction-confirmation-link
+          :balance="balance"
+          :email="transactionData.email"
+          :amount="transactionData.amount"
+          :memo="transactionData.memo"
+          :loading="loading"
+          @send-transaction="sendTransaction"
+          @on-reset="onReset"
+        ></transaction-confirmation-link>
+      </template>
+      <template #transactionResultSendSuccess>
+        <transaction-result-send-success @on-reset="onReset"></transaction-result-send-success>
+      </template>
+      <template #transactionResultSendError>
+        <transaction-result-send-error
+          :error="error"
+          :errorResult="errorResult"
+          @on-reset="onReset"
+        ></transaction-result-send-error>
+      </template>
+      <template #transactionResultLink>
+        <transaction-result-link
+          :link="link"
+          :amount="amount"
+          :memo="memo"
+          :validUntil="validUntil"
+          @on-reset="onReset"
+        ></transaction-result-link>
+      </template>
+    </gdd-send>
   </div>
 </template>
 <script>
@@ -144,7 +147,15 @@ export default {
             })
             .then((result) => {
               this.$emit('set-tunneled-email', null)
-              this.link = result.data.createTransactionLink.link
+              const {
+                data: {
+                  createTransactionLink: { link, amount, memo, validUntil },
+                },
+              } = result
+              this.link = link
+              this.amount = amount
+              this.memo = memo
+              this.validUntil = validUntil
               this.transactionData = { ...EMPTY_TRANSACTION_DATA }
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultLink
               this.updateTransactions({})

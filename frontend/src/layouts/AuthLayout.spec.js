@@ -19,6 +19,7 @@ describe('AuthLayout', () => {
       meta: {
         requiresAuth: false,
       },
+      params: {},
     },
   }
 
@@ -34,19 +35,6 @@ describe('AuthLayout', () => {
   describe('mount', () => {
     beforeEach(() => {
       wrapper = Wrapper()
-    })
-    describe('Mobile Version Start', () => {
-      beforeEach(() => {
-        wrapper.vm.mobileStart = true
-      })
-
-      it('has Component AuthMobileStart', () => {
-        expect(wrapper.findComponent({ name: 'AuthMobileStart' }).exists()).toBe(true)
-      })
-
-      it('has Component AuthNavbarSmall', () => {
-        expect(wrapper.findComponent({ name: 'AuthNavbarSmall' }).exists()).toBe(true)
-      })
     })
 
     describe('Desktop Version Start', () => {

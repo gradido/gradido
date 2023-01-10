@@ -12,19 +12,29 @@
         <small>{{ $t('error.empty-transactionlist') }}</small>
       </div>
 
-      <div v-for="({ id, typeId }, index) in transactions" :key="id">
-        <transaction-list-item :typeId="typeId" class="pointer">
+      <div v-for="({ id, typeId }, index) in transactions" :key="`l1-` + id">
+        <transaction-list-item
+          v-if="typeId === 'DECAY'"
+          :typeId="typeId"
+          class="pointer bg-white appBoxShadow gradido-border-radius px-4 pt-2 test-list-group-item"
+        >
           <template #DECAY>
             <transaction-decay
-              class="list-group-item"
               v-bind="transactions[index]"
               :previousBookedBalance="previousBookedBalance(index)"
             />
           </template>
-
+        </transaction-list-item>
+      </div>
+      <div v-if="transactionCount > 0" class="h4 m-3">{{ $t('lastMonth') }}</div>
+      <div v-for="({ id, typeId }, index) in transactions" :key="`l2-` + id">
+        <transaction-list-item
+          v-if="typeId !== 'DECAY'"
+          :typeId="typeId"
+          class="pointer mb-4 bg-white appBoxShadow gradido-border-radius p-3 test-list-group-item"
+        >
           <template #SEND>
             <transaction-send
-              class="list-group-item"
               v-bind="transactions[index]"
               :previousBookedBalance="previousBookedBalance(index)"
               v-on="$listeners"
@@ -33,7 +43,6 @@
 
           <template #RECEIVE>
             <transaction-receive
-              class="list-group-item"
               v-bind="transactions[index]"
               :previousBookedBalance="previousBookedBalance(index)"
               v-on="$listeners"
@@ -42,7 +51,6 @@
 
           <template #CREATION>
             <transaction-creation
-              class="list-group-item"
               v-bind="transactions[index]"
               :previousBookedBalance="previousBookedBalance(index)"
               v-on="$listeners"
@@ -51,7 +59,6 @@
 
           <template #LINK_SUMMARY>
             <transaction-link-summary
-              class="list-group-item"
               v-bind="transactions[index]"
               :transactionLinkCount="transactionLinkCount"
               @update-transactions="updateTransactions"
@@ -69,6 +76,7 @@
       :per-page="pageSize"
       :total-rows="transactionCount"
       align="center"
+      :hide-ellipsis="true"
     ></b-pagination>
 
     <div v-if="transactionCount <= 0" class="mt-4 text-center">

@@ -23,26 +23,32 @@ const setHeadersPlugin = {
 
 const filterVariables = (variables: any) => {
   const vars = clonedeep(variables)
-  if (vars.password) vars.password = '***'
-  if (vars.passwordNew) vars.passwordNew = '***'
+  if (vars && vars.password) vars.password = '***'
+  if (vars && vars.passwordNew) vars.passwordNew = '***'
   return vars
 }
 
 const logPlugin = {
   requestDidStart(requestContext: any) {
     const { logger } = requestContext
-    const { query, mutation, variables } = requestContext.request
-    logger.info(`Request:
+    const { query, mutation, variables, operationName } = requestContext.request
+    if (operationName !== 'IntrospectionQuery') {
+      logger.info(`Request:
 ${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
+    }
     return {
       willSendResponse(requestContext: any) {
-        if (requestContext.context.user) logger.info(`User ID: ${requestContext.context.user.id}`)
-        if (requestContext.response.data)
-          logger.info(`Response-Data:
+        if (operationName !== 'IntrospectionQuery') {
+          if (requestContext.context.user) logger.info(`User ID: ${requestContext.context.user.id}`)
+          if (requestContext.response.data) {
+            logger.info('Response Success!')
+            logger.trace(`Response-Data:
 ${JSON.stringify(requestContext.response.data, null, 2)}`)
-        if (requestContext.response.errors)
-          logger.error(`Response-Errors:
+          }
+          if (requestContext.response.errors)
+            logger.error(`Response-Errors:
 ${JSON.stringify(requestContext.response.errors, null, 2)}`)
+        }
         return requestContext
       },
     }

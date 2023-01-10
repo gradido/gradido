@@ -139,24 +139,6 @@ describe('Register', () => {
           await flushPromises()
         }
 
-        describe('server sends back error "User already exists."', () => {
-          beforeEach(async () => {
-            await createError('GraphQL error: User already exists.')
-          })
-
-          it('shows no error message on the page', () => {
-            // don't show any error on the page! against boots
-            expect(wrapper.vm.showPageMessage).toBe(false)
-            expect(wrapper.find('.test-message-headline').exists()).toBe(false)
-            expect(wrapper.find('.test-message-subtitle').exists()).toBe(false)
-            expect(wrapper.find('.test-message-button').exists()).toBe(false)
-          })
-
-          it('toasts the error message', () => {
-            expect(toastErrorSpy).toBeCalledWith('error.user-already-exists')
-          })
-        })
-
         describe('server sends back error "Unknown error"', () => {
           beforeEach(async () => {
             await createError(' – Unknown error.')

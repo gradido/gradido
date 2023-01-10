@@ -12,6 +12,6 @@ export default class SearchUsersArgs {
   @Field(() => Int, { nullable: true })
   pageSize?: number
 
-  @Field(() => SearchUsersFilters, { nullable: true })
+  @Field(() => SearchUsersFilters, { nullable: true, defaultValue: null })
   filters: SearchUsersFilters
 }

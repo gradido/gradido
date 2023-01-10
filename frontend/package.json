@@ -1,6 +1,6 @@
 {
   "name": "bootstrap-vue-gradido-wallet",
-  "version": "1.8.3",
+  "version": "1.16.0",
   "private": true,
   "scripts": {
     "start": "node run/server.js",
@@ -44,7 +44,7 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^26.6.3",
     "jest-canvas-mock": "^2.3.1",
-    "jest-environment-jsdom-sixteen": "^2.0.0",
+    "jwt-decode": "^3.1.2",
     "portal-vue": "^2.1.7",
     "prettier": "^2.2.1",
     "qrcanvas-vue": "2.1.1",
@@ -52,6 +52,7 @@
     "vee-validate": "^3.4.5",
     "vue": "2.6.12",
     "vue-apollo": "^3.0.7",
+    "vue-avatar": "^2.3.3",
     "vue-flatpickr-component": "^8.1.2",
     "vue-focus": "^2.1.0",
     "vue-i18n": "^8.22.4",
@@ -59,6 +60,7 @@
     "vue-loading-overlay": "^3.4.2",
     "vue-moment": "^4.1.0",
     "vue-router": "^3.0.6",
+    "vue-timers": "^2.0.4",
     "vue2-transitions": "^0.2.3",
     "vuex": "^3.6.0",
     "vuex-persistedstate": "^4.0.0-beta.3"

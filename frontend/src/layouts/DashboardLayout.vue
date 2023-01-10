@@ -1,45 +1,104 @@
 <template>
-  <div>
-    <navbar
-      class="main-navbar"
-      :balance="balance"
-      :visible="visible"
-      :pending="pending"
-      :elopageUri="elopageUri"
-      @set-visible="setVisible"
-      @admin="admin"
-      @logout="logout"
-    />
-    <div class="content-gradido">
-      <div class="d-none d-sm-none d-md-none d-lg-flex shadow-lg gradido-width-300">
-        <sidebar class="main-sidebar" :elopageUri="elopageUri" @admin="admin" @logout="logout" />
-      </div>
+  <div class="main-page">
+    <div v-if="skeleton">
+      <skeleton-overview />
+    </div>
+    <div v-else>
+      <!-- navbar -->
+      <b-row>
+        <b-col>
+          <navbar class="main-navbar" :balance="balance"></navbar>
+        </b-col>
+      </b-row>
+      <mobile-sidebar @admin="admin" @logout="logout" />
 
-      <div class="main-page w-100" @click="visible = false">
-        <div class="main-content">
-          <fade-transition :duration="200" origin="center top" mode="out-in">
-            <router-view
-              ref="router-view"
-              :balance="balance"
-              :gdt-balance="GdtBalance"
-              :transactions="transactions"
-              :transactionCount="transactionCount"
-              :transactionLinkCount="transactionLinkCount"
-              :pending="pending"
-              @update-transactions="updateTransactions"
-              @set-tunneled-email="setTunneledEmail"
-            ></router-view>
-          </fade-transition>
-        </div>
-        <content-footer v-if="!$route.meta.hideFooter"></content-footer>
-      </div>
+      <!-- Breadcrumb -->
+      <b-row>
+        <b-col cols="10" offset-lg="2">
+          <breadcrumb />
+        </b-col>
+      </b-row>
+
+      <b-row fluid class="d-flex">
+        <!-- Sidebar left -->
+        <b-col cols="2" class="d-none d-lg-block">
+          <sidebar class="main-sidebar" @admin="admin" @logout="logout" />
+        </b-col>
+        <!-- ContentHeader && Content -->
+        <b-col>
+          <b-row class="px-lg-3">
+            <b-col cols="12">
+              <b-row class="d-lg-flex" cols="12">
+                <!-- ContentHeader -->
+                <b-col>
+                  <content-header
+                    :balance="balance"
+                    :GdtBalance="GdtBalance"
+                    :totalUsers="totalUsers"
+                  />
+                </b-col>
+              </b-row>
+            </b-col>
+            <!-- Right Side Mobil -->
+            <b-col class="d-block d-lg-none">
+              <right-side
+                :transactions="transactions"
+                :transactionCount="transactionCount"
+                :transactionLinkCount="transactionLinkCount"
+                @set-tunneled-email="setTunneledEmail"
+              />
+            </b-col>
+            <b-col cols="12">
+              <!-- router-view -->
+              <div class="main-content mt-3">
+                <fade-transition :duration="200" origin="center top" mode="out-in">
+                  <router-view
+                    ref="router-view"
+                    :balance="balance"
+                    :GdtBalance="GdtBalance"
+                    :transactions="transactions"
+                    :transactionCount="transactionCount"
+                    :transactionLinkCount="transactionLinkCount"
+                    :pending="pending"
+                    @update-transactions="updateTransactions"
+                    @set-tunneled-email="setTunneledEmail"
+                  ></router-view>
+                </fade-transition>
+              </div>
+            </b-col>
+          </b-row>
+        </b-col>
+        <!-- RightSide Desktop -->
+        <b-col cols="3" class="d-none d-lg-block">
+          <right-side
+            :transactions="transactions"
+            :transactionCount="transactionCount"
+            :transactionLinkCount="transactionLinkCount"
+            @set-tunneled-email="setTunneledEmail"
+          />
+        </b-col>
+      </b-row>
+      <b-row>
+        <!-- footer -->
+        <b-col>
+          <content-footer v-if="!$route.meta.hideFooter"></content-footer>
+        </b-col>
+      </b-row>
+      <session-logout-timeout @logout="logout"></session-logout-timeout>
     </div>
   </div>
 </template>
 <script>
+import ContentHeader from '@/layouts/templates/ContentHeader.vue'
+import Breadcrumb from '@/components/Breadcrumb/breadcrumb.vue'
+import RightSide from '@/layouts/templates/RightSide.vue'
+import SkeletonOverview from '@/components/skeleton/Overview.vue'
 import Navbar from '@/components/Menu/Navbar.vue'
 import Sidebar from '@/components/Menu/Sidebar.vue'
-import { logout, transactionsQuery } from '@/graphql/queries'
+import MobileSidebar from '@/components/MobileSidebar/MobileSidebar.vue'
+import SessionLogoutTimeout from '@/components/SessionLogoutTimeout.vue'
+import { transactionsQuery, communityStatistics } from '@/graphql/queries'
+import { logout } from '@/graphql/mutations'
 import ContentFooter from '@/components/ContentFooter.vue'
 import { FadeTransition } from 'vue2-transitions'
 import CONFIG from '@/config'
@@ -47,10 +106,16 @@ import CONFIG from '@/config'
 export default {
   name: 'DashboardLayout',
   components: {
+    SkeletonOverview,
+    ContentHeader,
+    RightSide,
     Navbar,
     Sidebar,
+    MobileSidebar,
+    SessionLogoutTimeout,
     ContentFooter,
     FadeTransition,
+    Breadcrumb,
   },
   data() {
     return {
@@ -62,6 +127,10 @@ export default {
       pending: true,
       visible: false,
       tunneledEmail: null,
+      hamburger: true,
+      darkMode: false,
+      skeleton: true,
+      totalUsers: null,
     }
   },
   provide() {
@@ -69,11 +138,18 @@ export default {
       getTunneledEmail: () => this.tunneledEmail,
     }
   },
+  created() {
+    this.updateTransactions(0)
+    this.getCommunityStatistics()
+    setTimeout(() => {
+      this.skeleton = false
+    }, 1500)
+  },
   methods: {
     async logout() {
       this.$apollo
-        .query({
-          query: logout,
+        .mutate({
+          mutation: logout,
         })
         .then(() => {
           this.$store.dispatch('logout')
@@ -116,6 +192,18 @@ export default {
           // what to do when loading balance fails?
         })
     },
+    async getCommunityStatistics() {
+      this.$apollo
+        .query({
+          query: communityStatistics,
+        })
+        .then((result) => {
+          this.totalUsers = result.data.communityStatistics.totalUsers
+        })
+        .catch(() => {
+          this.toastError('communityStatistics has no result, use default data')
+        })
+    },
     admin() {
       window.location.assign(CONFIG.ADMIN_AUTH_URL.replace('{token}', this.$store.state.token))
       this.$store.dispatch('logout') // logout without redirect
@@ -127,21 +215,20 @@ export default {
       this.tunneledEmail = email
     },
   },
-  computed: {
-    elopageUri() {
-      const pId = this.$store.state.publisherId
-        ? this.$store.state.publisherId
-        : CONFIG.DEFAULT_PUBLISHER_ID
-      return encodeURI(
-        this.$store.state.hasElopage
-          ? `https://elopage.com/s/gradido/sign_in?locale=${this.$i18n.locale}`
-          : `https://elopage.com/s/gradido/basic-de/payment?locale=${this.$i18n.locale}&prid=111&pid=${pId}&firstName=${this.$store.state.firstName}&lastName=${this.$store.state.lastName}&email=${this.$store.state.email}`,
-      )
-    },
-  },
 }
 </script>
 <style>
+/* frontend/public/img/svg/Gradido_Blaetter_Mainpage.svg */
+.main-page {
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url(/img/svg/Gradido_Blaetter_Mainpage.svg) !important;
+}
+.b-right {
+  text-align: -webkit-right;
+}
 .content-gradido {
   display: inline-flex;
   width: 100%;
@@ -153,6 +240,15 @@ export default {
   padding-left: 10px;
 }
 .bg-lightgrey {
-  background-color: #f0f0f0;
+  background-color: #f0f0f0 !important;
+}
+.bg-blueviolet {
+  background-color: blueviolet !important;
+}
+.width70 {
+  width: 70px;
+}
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(4, 112, 6, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 </style>

@@ -25,6 +25,9 @@ import { Connection } from '@dbTools/typeorm'
 import { apolloLogger } from './logger'
 import { Logger } from 'log4js'
 
+// i18n
+import { i18n } from './localization'
+
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
@@ -34,7 +37,9 @@ const createServer = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context: any = serverContext,
   logger: Logger = apolloLogger,
+  localization: i18n.I18n = i18n,
 ): Promise<ServerDef> => {
+  logger.addContext('user', 'unknown')
   logger.debug('createServer...')
 
   // open mysql connection
@@ -62,6 +67,9 @@ const createServer = async (
   // bodyparser urlencoded for elopage
   app.use(express.urlencoded({ extended: true }))
 
+  // i18n
+  app.use(localization.init)
+
   // Elopage Webhook
   app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
 
@@ -75,7 +83,11 @@ const createServer = async (
     logger,
   })
   apollo.applyMiddleware({ app, path: '/' })
+  logger.info(
+    `running with PRODUCTION=${CONFIG.PRODUCTION}, sending EMAIL enabled=${CONFIG.EMAIL} and EMAIL_TEST_MODUS=${CONFIG.EMAIL_TEST_MODUS} ...`,
+  )
   logger.debug('createServer...successful')
+
   return { apollo, app, con }
 }
 

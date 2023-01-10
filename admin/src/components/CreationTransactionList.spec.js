@@ -6,30 +6,29 @@ const localVue = global.localVue
 
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
-    creationTransactionList: [
-      {
-        id: 1,
-        amount: 100,
-        balanceDate: 0,
-        creationDate: new Date(),
-        memo: 'Testing',
-        linkedUser: {
-          firstName: 'Gradido',
-          lastName: 'Akademie',
+    creationTransactionList: {
+      contributionCount: 2,
+      contributionList: [
+        {
+          id: 1,
+          amount: 5.8,
+          createdAt: '2022-09-21T11:09:51.000Z',
+          confirmedAt: null,
+          contributionDate: '2022-08-01T00:00:00.000Z',
+          memo: 'für deine Hilfe, Fräulein Rottenmeier',
+          state: 'PENDING',
         },
-      },
-      {
-        id: 2,
-        amount: 200,
-        balanceDate: 0,
-        creationDate: new Date(),
-        memo: 'Testing 2',
-        linkedUser: {
-          firstName: 'Gradido',
-          lastName: 'Akademie',
+        {
+          id: 2,
+          amount: '47',
+          createdAt: '2022-09-21T11:09:28.000Z',
+          confirmedAt: '2022-09-21T11:09:28.000Z',
+          contributionDate: '2022-08-01T00:00:00.000Z',
+          memo: 'für deine Hilfe, Frau Holle',
+          state: 'CONFIRMED',
         },
-      },
-    ],
+      ],
+    },
   },
 })
 
@@ -43,7 +42,7 @@ const mocks = {
 
 const propsData = {
   userId: 1,
-  fields: ['date', 'balance', 'name', 'memo', 'decay'],
+  fields: ['createdAt', 'contributionDate', 'confirmedAt', 'amount', 'memo'],
 }
 
 describe('CreationTransactionList', () => {
@@ -63,7 +62,7 @@ describe('CreationTransactionList', () => {
         expect.objectContaining({
           variables: {
             currentPage: 1,
-            pageSize: 25,
+            pageSize: 10,
             order: 'DESC',
             userId: 1,
           },

@@ -1,11 +1,40 @@
 {
   "all_emails": "Alle Nutzer",
   "back": "zurück",
+  "contributionLink": {
+    "amount": "Betrag",
+    "changeSaved": "Änderungen gespeichert",
+    "clear": "Löschen",
+    "close": "Schließen",
+    "contributionLinks": "Beitragslinks",
+    "create": "Anlegen",
+    "cycle": "Zyklus",
+    "deleted": "Automatische Schöpfung gelöscht!",
+    "deleteNow": "Automatische Creations '{name}' wirklich löschen?",
+    "maxPerCycle": "Wiederholungen",
+    "memo": "Nachricht",
+    "name": "Name",
+    "newContributionLink": "Neuer Beitragslink",
+    "noContributionLinks": "Es sind keine Beitragslinks angelegt.",
+    "noDateSelected": "Kein Datum ausgewählt",
+    "noEndDate": "Kein Enddatum gewählt.",
+    "noStartDate": "Kein Startdatum gewählt.",
+    "options": {
+      "cycle": {
+        "daily": "täglich",
+        "once": "einmalig"
+      }
+    },
+    "saveChange": "Änderungen speichern",
+    "validFrom": "Startdatum",
+    "validTo": "Enddatum"
+  },
   "creation": "Schöpfung",
   "creationList": "Schöpfungsliste",
   "creation_form": {
     "creation_failed": "Ausstehende Schöpfung für {email} konnte nicht erzeugt werden.",
     "creation_for": "Aktives Grundeinkommen für",
+    "deleteNow": "Möchtest du diesen Beitrag zur Gemeinschaft wirklich löschen?",
     "enter_text": "Text eintragen",
     "form": "Schöpfungsformular",
     "min_characters": "Mindestens 10 Zeichen eingeben",
@@ -39,22 +68,42 @@
     },
     "short_hash": "({shortHash})"
   },
+  "form": {
+    "cancel": "Abbrechen",
+    "submit": "Senden"
+  },
   "GDD": "GDD",
+  "help": {
+    "help": "Hilfe",
+    "transactionlist": {
+      "confirmed": "Wann wurde es von einem Moderator / Admin bestätigt.",
+      "periods": "Für welchen Zeitraum wurde vom Mitglied eingereicht.",
+      "state": "[PENDING = eingereicht, DELETED = gelöscht, IN_PROGRESS = im Dialog mit Moderator, DENIED = abgelehnt, CONFIRMED = bestätigt]",
+      "submitted": "Wann wurde es vom Mitglied eingereicht"
+    }
+  },
   "hide_details": "Details verbergen",
   "lastname": "Nachname",
   "math": {
+    "equals": "=",
     "exclaim": "!",
-    "pipe": "|"
+    "pipe": "|",
+    "plus": "+"
+  },
+  "message": {
+    "request": "Die Anfrage wurde gesendet."
   },
   "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "name": "Name",
   "navbar": {
+    "automaticContributions": "Automatische Beiträge",
     "logout": "Abmelden",
     "multi_creation": "Mehrfachschöpfung",
     "my-account": "Mein Konto",
     "open_creation": "Offene Schöpfungen",
     "overview": "Übersicht",
+    "statistic": "Statistik",
     "user_search": "Nutzersuche"
   },
   "not_open_creations": "Keine offenen Schöpfungen",
@@ -71,9 +120,20 @@
   },
   "redeemed": "eingelöst",
   "remove": "Entfernen",
-  "removeNotSelf": "Als Admin / Moderator kannst du dich nicht selber löschen.",
+  "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
   "remove_all": "alle Nutzer entfernen",
   "save": "Speichern",
+  "statistic": {
+    "activeUsers": "Aktive Mitglieder",
+    "count": "Menge",
+    "deletedUsers": "Gelöschte Mitglieder",
+    "details": "Details",
+    "totalGradidoAvailable": "GDD insgesamt im Umlauf",
+    "totalGradidoCreated": "GDD insgesamt geschöpft",
+    "totalGradidoDecayed": "GDD insgesamt verfallen",
+    "totalGradidoUnbookedDecayed": "Ungebuchter GDD Verfall",
+    "totalUsers": "Mitglieder"
+  },
   "status": "Status",
   "success": "Erfolg",
   "text": "Text",
@@ -84,10 +144,11 @@
   },
   "transactionlist": {
     "amount": "Betrag",
-    "balanceDate": "Schöpfungsdatum",
-    "community": "Gemeinschaft",
-    "date": "Datum",
+    "confirmed": "Bestätigt",
     "memo": "Nachricht",
+    "period": "Zeitraum",
+    "state": "Status",
+    "submitted": "Eingereicht",
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },
   "undelete_user": "Nutzer wiederherstellen",
@@ -100,6 +161,16 @@
     "success": "Erfolgreiches Senden des Bestätigungs-Links an die E-Mail des Nutzers! ({email})",
     "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({email}) gesendet.",
     "text_true": " Die Email wurde bestätigt."
+  },
+  "userRole": {
+    "notChangeYourSelf": "Als Admin/Moderator kannst du nicht selber deine Rolle ändern.",
+    "selectLabel": "Rolle:",
+    "selectRoles": {
+      "admin": "Administrator",
+      "user": "einfacher Nutzer"
+    },
+    "successfullyChangedTo": "Nutzer ist jetzt „{role}“.",
+    "tabTitle": "Nutzer-Rolle"
   },
   "user_deleted": "Nutzer ist gelöscht.",
   "user_recovered": "Nutzer ist wiederhergestellt.",

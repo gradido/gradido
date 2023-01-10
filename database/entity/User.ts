@@ -1,1 +1,1 @@
-export { User } from './0034-drop_server_user_table/User'
+export { User } from './0057-clear_old_password_junk/User'

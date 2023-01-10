@@ -41,9 +41,43 @@ describe('GddSend confirm', () => {
           selected: 'link',
         })
       })
+    })
 
-      it('renders the component div.confirm-box-link', () => {
-        expect(wrapper.findAll('div.confirm-box-link').at(0).exists()).toBeTruthy()
+    describe('has totalBalance under 0', () => {
+      beforeEach(async () => {
+        await wrapper.setProps({
+          balance: 0,
+        })
+      })
+
+      it('has send button disabled', () => {
+        expect(wrapper.find('.send-button').attributes('disabled')).toBe('disabled')
+      })
+    })
+
+    describe('send now button', () => {
+      beforeEach(() => {
+        jest.clearAllMocks()
+      })
+
+      describe('single click', () => {
+        beforeEach(async () => {
+          await wrapper.find('button.btn.btn-gradido').trigger('click')
+        })
+
+        it('emits send transaction one time', () => {
+          expect(wrapper.emitted('send-transaction')).toHaveLength(1)
+        })
+      })
+
+      describe('double click', () => {
+        beforeEach(async () => {
+          await wrapper.find('button.btn.btn-gradido').trigger('click')
+        })
+
+        it('emits send transaction one time', () => {
+          expect(wrapper.emitted('send-transaction')).toHaveLength(1)
+        })
       })
     })
   })

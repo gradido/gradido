@@ -1,18 +1,21 @@
 <template>
   <div class="show-transaction-link-informations">
-    <div class="text-center"><b-img :src="img" fluid alt="logo"></b-img></div>
     <b-container class="mt-4">
       <transaction-link-item :type="itemType">
         <template #LOGGED_OUT>
-          <redeem-logged-out v-bind="linkData" />
+          <redeem-logged-out :linkData="linkData" :isContributionLink="isContributionLink" />
         </template>
 
         <template #SELF_CREATOR>
-          <redeem-self-creator v-bind="linkData" />
+          <redeem-self-creator :linkData="linkData" />
         </template>
 
         <template #VALID>
-          <redeem-valid v-bind="linkData" @redeem-link="redeemLink" />
+          <redeem-valid
+            :linkData="linkData"
+            :isContributionLink="isContributionLink"
+            @mutation-link="mutationLink"
+          />
         </template>
 
         <template #TEXT>
@@ -44,6 +47,7 @@ export default {
     return {
       img: '/img/brand/green.png',
       linkData: {
+        __typename: 'TransactionLink',
         amount: '123.45',
         memo: 'memo',
         user: {
@@ -57,6 +61,7 @@ export default {
     setTransactionLinkInformation() {
       this.$apollo
         .query({
+          fetchPolicy: 'no-cache',
           query: queryTransactionLink,
           variables: {
             code: this.$route.params.code,
@@ -64,39 +69,48 @@ export default {
         })
         .then((result) => {
           this.linkData = result.data.queryTransactionLink
+          if (this.linkData.__typename === 'ContributionLink' && this.$store.state.token) {
+            this.mutationLink(this.linkData.amount)
+          }
         })
         .catch((err) => {
           this.toastError(err.message)
         })
     },
-    redeemLink(amount) {
-      this.$bvModal.msgBoxConfirm(this.$t('gdd_per_link.redeem-text')).then(async (value) => {
-        if (value)
-          await this.$apollo
-            .mutate({
-              mutation: redeemTransactionLink,
-              variables: {
-                code: this.$route.params.code,
-              },
-            })
-            .then(() => {
-              this.toastSuccess(
-                this.$t('gdd_per_link.redeemed', {
-                  n: amount,
-                }),
-              )
-              this.$router.push('/overview')
-            })
-            .catch((err) => {
-              this.toastError(err.message)
-              this.$router.push('/overview')
-            })
-      })
+    mutationLink(amount) {
+      this.$apollo
+        .mutate({
+          mutation: redeemTransactionLink,
+          variables: {
+            code: this.$route.params.code,
+          },
+        })
+        .then(() => {
+          this.toastSuccess(
+            this.$t('gdd_per_link.redeemed', {
+              n: amount,
+            }),
+          )
+          this.$router.push('/overview')
+        })
+        .catch((err) => {
+          this.toastError(err.message)
+          this.$router.push('/overview')
+        })
     },
   },
   computed: {
+    isContributionLink() {
+      return this.$route.params.code.search(/^CL-/) === 0
+    },
+    tokenExpiresInSeconds() {
+      const remainingSecs = Math.floor(
+        (new Date(this.$store.state.tokenTime * 1000).getTime() - new Date().getTime()) / 1000,
+      )
+      return remainingSecs <= 0 ? 0 : remainingSecs
+    },
     itemType() {
-      // link wurde gelöscht: am, von
+      // link is deleted: at, from
       if (this.linkData.deletedAt) {
         // eslint-disable-next-line vue/no-side-effects-in-computed-properties
         this.redeemedBoxText = this.$t('gdd_per_link.link-deleted', {
@@ -122,18 +136,16 @@ export default {
         return `TEXT`
       }
 
-      if (this.$store.state.token) {
+      if (this.$store.state.token && this.$store.state.tokenTime) {
+        if (this.tokenExpiresInSeconds < 5) return `LOGGED_OUT`
+
         // logged in, nicht berechtigt einzulösen, eigener link
-        if (this.$store.state.email === this.linkData.user.email) {
+        if (this.linkData.user && this.$store.state.email === this.linkData.user.email) {
           return `SELF_CREATOR`
         }
 
         // logged in und berechtigt einzulösen
-        if (
-          this.$store.state.email !== this.linkData.user.email &&
-          !this.linkData.redeemedAt &&
-          !this.linkData.deletedAt
-        ) {
+        if (!this.linkData.redeemedAt && !this.linkData.deletedAt) {
           return `VALID`
         }
       }

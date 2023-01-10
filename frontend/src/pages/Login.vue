@@ -1,7 +1,7 @@
 <template>
   <div class="login-form">
     <b-container v-if="enterData">
-      <div class="pb-5">{{ $t('site.login.heading') }}</div>
+      <div class="pb-5" align="center">{{ $t('gdd_per_link.isFree') }}</div>
       <validation-observer ref="observer" v-slot="{ handleSubmit }">
         <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
           <b-row>
@@ -43,7 +43,7 @@
 import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
-import { login } from '@/graphql/queries'
+import { login } from '@/graphql/mutations'
 
 export default {
   name: 'Login',
@@ -71,14 +71,13 @@ export default {
         container: this.$refs.submitButton,
       })
       this.$apollo
-        .query({
-          query: login,
+        .mutate({
+          mutation: login,
           variables: {
             email: this.form.email,
             password: this.form.password,
             publisherId: this.$store.state.publisherId,
           },
-          fetchPolicy: 'network-only',
         })
         .then(async (result) => {
           const {

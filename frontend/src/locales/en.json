@@ -1,31 +1,74 @@
 {
+  "(": "(",
+  ")": ")",
   "100": "100%",
   "1000thanks": "1000 thanks for being with us!",
   "125": "125%",
   "85": "85%",
   "advanced-calculation": "Advanced calculation",
+  "asterisks": "****",
   "auth": {
     "left": {
+      "dignity": "Dignity",
+      "donation": "Donation",
       "gratitude": "Gratitude",
-      "hasAccount": "You already have an account?",
-      "hereLogin": "Log in here",
       "learnMore": "Learn more …",
-      "newCurrency": "The new currency",
-      "oneAnotherNature": "FOR EACH OTHER, FOR ALL, FOR NATURE"
-    },
-    "navbar": {
-      "aboutGradido": "About Gradido"
+      "oneDignity": "We gift to each other and give thanks with Gradido.",
+      "oneDonation": "You are a gift for the community. 1000 thanks because you are with us.",
+      "oneGratitude": "For each other, for all people, for nature."
     }
   },
   "back": "Back",
   "community": {
     "choose-another-community": "Choose another community",
     "community": "Community",
+    "communityMember": "You are an active member",
     "continue-to-registration": "Continue to registration",
-    "current-community": "Current community",
-    "other-communities": "Other communities",
-    "switch-to-this-community": "Switch to this community"
+    "moderator": "Moderator",
+    "moderators": "Moderators",
+    "myContributions": "My contributions",
+    "noOpenContributionLinkText": "Currently there are no automatic creations.",
+    "openContributionLinks": "Open contribution-link list",
+    "openContributionLinkText": "The following {count} automatic creations are currently provided by the \"{name}\" community.",
+    "submitContribution": "writing"
   },
+  "communityInfo": "Community Information",
+  "contact": "Contact",
+  "contribution": {
+    "activity": "Activity",
+    "alert": {
+      "answerQuestion": "Please answer the question",
+      "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
+      "confirm": "confirmed",
+      "in_progress": "There is a question from the moderators.",
+      "myContributionNoteList": "You can edit or delete entries that have not yet been confirmed at any time.",
+      "pending": "Submitted and waiting for confirmation",
+      "rejected": "deleted"
+    },
+    "delete": "Delete Contribution! Are you sure?",
+    "deleted": "The contribution has been deleted! But it will remain visible.",
+    "exhausted": "You cannot create anything more for this month.",
+    "formText": {
+      "bringYourTalentsTo": "Bring your talents to the community! Your voluntary commitment will be rewarded with 20 GDD per hour up to a maximum of 1,000 GDD per month.",
+      "describeYourCommunity": "Describe your community service activity with hours and enter an amount of 20 GDD per hour! After confirmation by a moderator, the amount will be credited to your account.",
+      "maxGDDforMonth": "You can only submit a maximum of {amount} GDD for the selected month.",
+      "openAmountForMonth": "For  <b>{monthAndYear}</b>, you can still submit <b>{creation}</b> GDD.",
+      "yourContribution": "Your contribution to the common good"
+    },
+    "lastContribution": "Last Contributions",
+    "noDateSelected": "Choose any date in the month",
+    "selectDate": "When was your contribution?",
+    "submit": "Submit",
+    "submitted": "The contribution was submitted.",
+    "updated": "The contribution was changed.",
+    "yourActivity": "Please enter an activity!"
+  },
+  "contribution-link": {
+    "thanksYouWith": "thanks you with",
+    "unique": "(unique)"
+  },
+  "contributionText": "Contribution Text",
+  "creation": "Creation",
   "decay": {
     "before_startblock_transaction": "This transaction does not include decay.",
     "calculation_decay": "Calculation of Decay",
@@ -38,13 +81,14 @@
     "Starting_block_decay": "Starting Block Decay",
     "total": "Total",
     "types": {
-      "created": "Created",
+      "creation": "Created",
       "noDecay": "No Decay",
       "receive": "Received",
       "send": "Sent"
     }
   },
   "delete": "Delete",
+  "edit": "edit",
   "em-dash": "—",
   "error": {
     "email-already-sent": "We already sent you an email less than 10 minutes ago.",
@@ -54,8 +98,7 @@
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
     "no-user": "No user with this credentials.",
     "session-expired": "The session was closed for security reasons.",
-    "unknown-error": "Unknown error: ",
-    "user-already-exists": "A user with this data already exists."
+    "unknown-error": "Unknown error: "
   },
   "followUs": "follow us:",
   "footer": {
@@ -73,16 +116,17 @@
     "amount": "Amount",
     "at": "at",
     "cancel": "Cancel",
+    "change": "Change",
     "check_now": "Check now",
     "close": "Close",
     "current_balance": "Current Balance",
     "date": "Date",
     "description": "Description",
-    "edit": "Edit",
     "email": "Email",
     "firstname": "Firstname",
     "from": "from",
     "generate_now": "Generate now",
+    "hours": "Horas",
     "lastname": "Lastname",
     "memo": "Message",
     "message": "Message",
@@ -94,6 +138,7 @@
     "password_new_repeat": "Repeat new password",
     "password_old": "Old password",
     "recipient": "Recipient",
+    "reply": "Reply",
     "reset": "Reset",
     "save": "Save",
     "scann_code": "<strong>QR Code Scanner</strong> - Scan the QR Code of your partner",
@@ -104,10 +149,10 @@
     "send_transaction_success": "Your transaction was successfully completed",
     "sorry": "Sorry",
     "thx": "Thank you",
-    "time": "Time",
     "to": "to",
     "to1": "to",
     "validation": {
+      "gddCreationTime": "The field {_field_} must be a number between {min} and {max} with at most one decimal place.",
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point",
       "is-not": "You cannot send Gradidos to yourself",
       "usernmae-regex": "The username must start with a letter, followed by at least two alphanumeric characters.",
@@ -116,20 +161,24 @@
     "your_amount": "Your amount"
   },
   "GDD": "GDD",
+  "gddKonto": "GDD Konto",
   "gdd_per_link": {
     "choose-amount": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
-    "copy": "copy",
+    "copy-link": "Copy link",
+    "copy-link-with-text": "Copy link and text",
     "created": "Link was created!",
-    "decay-14-day": "Decay for 14 days",
+    "credit-your-gradido": "For the Gradido to be credited, click on the link!",
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
     "expiredOn": "Expired on",
     "has-account": "You already have a Gradido account?",
     "header": "Send Gradidos via link",
     "isFree": "Gradido is free of charge worldwide.",
+    "link-and-text-copied": "The link and your message have been copied to the clipboard. You can now include it in an email or message.",
     "link-copied": "Link has been copied to the clipboard. You can now paste it into an email or message.",
     "link-deleted": "The link was deleted on {date}.",
     "link-expired": "The link is no longer valid. The validity expired on {date}.",
+    "link-hint": "Attention: Anyone can redeem this link. Please be careful with it!",
     "link-overview": "Link overview",
     "links_count": "Active links",
     "links_sum": "Open links and QR codes",
@@ -137,14 +186,15 @@
     "no-redeem": "You not allowed to redeem your own link!",
     "not-copied": "Unfortunately, your device does not allow copying! Please copy the link by hand!",
     "redeem": "Redeem",
-    "redeem-text": "Do you want to redeem the amount now?",
     "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
     "redeemed-at": "The link was already redeemed on {date}.",
     "redeemed-title": "redeemed",
     "to-login": "Log in",
     "to-register": "Register a new account.",
-    "validUntil": "Valid until"
+    "validUntil": "Valid until",
+    "validUntilDate": "The link is valid until {date}."
   },
+  "GDT": "GDT",
   "gdt": {
     "calculation": "Calculation of Gradido Transform",
     "contribution": "Contribution",
@@ -156,50 +206,76 @@
     "funding": "To the funding contributions",
     "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) received",
+    "gdtKonto": "GDT Konto",
     "no-transactions": "You do not have Gradido Transform (GDT) yet.",
     "not-reachable": "The GDT Server is not reachable.",
     "publisher": "A member you referred has paid a contribution",
     "raise": "Increase",
     "recruited-member": "Invited member"
   },
+  "h": "h",
   "language": "Language",
+  "lastMonth": "Last month",
   "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
-  "login": "Login",
+  "login": "Sign in",
   "math": {
-    "aprox": "~",
+    "asterisk": "*",
     "equal": "=",
-    "exclaim": "!",
     "minus": "−",
     "pipe": "|"
   },
+  "maxReached": "Max. reached",
+  "member": "Member",
   "message": {
     "activateEmail": "Your account has not been activated yet. Please check your emails and click the activation link or order a new activation link over the password reset page.",
     "checkEmail": "Your email has been successfully verified. You can sign in now.",
     "email": "We have sent you an email.",
     "errorTitle": "Attention!",
     "register": "You are registered now, please check your emails and click the activation link.",
+    "reply": "Thank you, your reply has been sent.",
     "reset": "Your password has been changed.",
     "title": "Thank you!",
     "unsetPassword": "Your password has not been set yet. Please set it again."
   },
+  "moderatorChat": "Moderator Chat",
   "navigation": {
     "admin_area": "Admin Area",
+    "community": "Community",
+    "info": "Information",
     "logout": "Logout",
-    "members_area": "Members area",
     "overview": "Overview",
-    "profile": "My profile",
     "send": "Send",
+    "settings": "Settings",
     "support": "Support",
     "transactions": "Transactions"
   },
+  "openHours": "Open Hours",
+  "pageTitle": {
+    "community": "My community",
+    "gdt": "Your GDT transactions",
+    "information": "{community}",
+    "overview": "Welcome {name}",
+    "send": "Send Gradidos",
+    "settings": "Settings",
+    "transactions": "Your transactions"
+  },
   "qrCode": "QR Code",
-  "send_gdd": "GDD send",
-  "send_per_link": "GDD send via link",
+  "send_gdd": "Send GDD",
+  "send_per_link": "Send GDD via Link",
+  "session": {
+    "extend": "Stay logged in",
+    "lightText": "If you have not performed any action for more than 10 minutes, you will be logged out for security reasons.",
+    "logoutIn": "Log out in ",
+    "warningText": "Are you still there?"
+  },
   "settings": {
     "language": {
       "changeLanguage": "Change language",
       "de": "Deutsch",
       "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "nl": "Nederlands",
       "success": "Your language has been successfully updated."
     },
     "name": {
@@ -233,16 +309,12 @@
     "forgotPassword": {
       "heading": "Please enter the email address by which you're registered here."
     },
-    "login": {
-      "heading": "Log in with your access data. Keep them safe!"
-    },
     "resetPassword": {
       "heading": "Please enter your password and repeat it."
     },
     "signup": {
       "agree": "I agree to the <a href='https://gradido.net/en/datenschutz/' target='_blank' > privacy policy</a>.",
       "dont_match": "Passwords don't match.",
-      "heading": "Register by entering all data completely and in the correct fields.",
       "lowercase": "One lowercase letter required.",
       "minimum": "8 characters minimum.",
       "no-whitespace": "No white spaces and tabs",
@@ -251,18 +323,20 @@
       "uppercase": "One uppercase letter required."
     }
   },
+  "status": "Status",
+  "submitted": "Submitted",
   "success": "Success",
   "time": {
     "days": "Days",
     "hours": "Hours",
     "minutes": "Minutes",
+    "month": "Month",
     "months": "Months",
     "seconds": "Seconds",
-    "year": "Years"
+    "years": "Year"
   },
   "transaction": {
-    "gdd-text": "Gradido Transactions",
-    "gdt-text": "GradidoTransform Transactions",
+    "lastTransactions": "Last Transactions",
     "nullTransactions": "You don't have any transactions on your account yet.",
     "receiverDeleted": "The recipient account was deleted",
     "receiverNotFound": "Recipient not found",
@@ -272,6 +346,5 @@
     "send_you": "wants to send you"
   },
   "via_link": "via Link",
-  "welcome": "Welcome",
-  "WelcomeBy": "by {name}"
+  "welcome": "Welcome to the community"
 }

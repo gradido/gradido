@@ -8,7 +8,7 @@ const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v2.2022-04-07',
+    EXPECTED: 'v4.2022-12-20',
     CURRENT: '',
   },
 }
@@ -39,6 +39,7 @@ const community = {
   COMMUNITY_REGISTER_URL: process.env.COMMUNITY_REGISTER_URL || 'http://localhost/register',
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
+  COMMUNITY_SUPPORT_MAIL: process.env.COMMUNITY_SUPPORT_MAIL || 'support@supportmail.com',
 }
 
 const meta = {
