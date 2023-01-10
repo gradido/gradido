@@ -237,7 +237,7 @@ This opens the `crontab` in edit-mode and insert the following entry:
 At least at production stage we need a daily backup of our database. This can be done by adding a cronjob
 to start the existing backup.sh script.
 
-### On production
+### On production / stage3 / stage2
 
 To check for existing cronjobs for the `gradido` user, please
 
@@ -258,5 +258,5 @@ crontab -e
 ```
 and insert the following line
 ```bash
-* 3 * * * ~/gradido/deployment/bare_metal/backup.sh
+0 3 * * * ~/gradido/deployment/bare_metal/backup.sh
 ```
