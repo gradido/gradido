@@ -1,30 +1,28 @@
 <template>
   <div class="info-statistic">
-    <b-container>
-      <div class="h3">{{ $t('community.community') }}</div>
-      <div class="h1">{{ CONFIG.COMMUNITY_NAME }}</div>
-      <div>
+    <b-container class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
+      <div>{{ $t('communityInfo') }}</div>
+      <div class="h3">
         {{ CONFIG.COMMUNITY_DESCRIPTION }}
       </div>
       <div>
-        {{ CONFIG.COMMUNITY_URL }}
+        <router-link :to="CONFIG.COMMUNITY_URL">
+          {{ CONFIG.COMMUNITY_URL }}
+        </router-link>
       </div>
-    </b-container>
-
-    <hr />
-    <b-container>
+      <hr />
       <div class="h3">{{ $t('community.openContributionLinks') }}</div>
-      <small v-if="count > 0">
+      <div v-if="count > 0">
         {{
           $t('community.openContributionLinkText', {
             name: CONFIG.COMMUNITY_NAME,
             count,
           })
         }}
-      </small>
-      <small v-else>
+      </div>
+      <div v-else>
         {{ $t('community.noOpenContributionLinkText') }}
-      </small>
+      </div>
       <ul>
         <li v-for="item in itemsContributionLinks" v-bind:key="item.id">
           <div>{{ item.name }}</div>
@@ -35,17 +33,18 @@
           </div>
         </li>
       </ul>
-    </b-container>
-    <hr />
-    <b-container>
+
+      <hr />
+
       <div class="h3">{{ $t('community.moderators') }}</div>
       <ul>
         <li v-for="item in itemsAdminUser" v-bind:key="item.id">
           {{ item.firstName }} {{ item.lastName }}
         </li>
       </ul>
-    </b-container>
-    <b-container>
+
+      <hr />
+
       <div class="h3">{{ $t('contact') }}</div>
       <b-link :href="`mailto:${supportMail}`">{{ supportMail }}</b-link>
     </b-container>
@@ -89,7 +88,7 @@ export default {
       countAdminUser: null,
       itemsContributionLinks: [],
       itemsAdminUser: [],
-      supportMail: CONFIG.SUPPORT_MAIL,
+      supportMail: CONFIG.COMMUNITY_SUPPORT_MAIL,
       membersCount: '1203',
       totalUsers: null,
       totalGradidoCreated: null,

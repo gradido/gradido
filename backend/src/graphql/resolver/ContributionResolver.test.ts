@@ -1146,13 +1146,21 @@ describe('ContributionResolver', () => {
           const now = new Date()
 
           beforeAll(async () => {
-            creation = await creationFactory(testEnv, {
-              email: 'peter@lustig.de',
-              amount: 400,
-              memo: 'Herzlich Willkommen bei Gradido!',
-              creationDate: contributionDateFormatter(
-                new Date(now.getFullYear(), now.getMonth() - 1, 1),
-              ),
+            await mutate({
+              mutation: adminCreateContribution,
+              variables: {
+                email: 'peter@lustig.de',
+                amount: 400,
+                memo: 'Herzlich Willkommen bei Gradido!',
+                creationDate: contributionDateFormatter(
+                  new Date(now.getFullYear(), now.getMonth() - 1, 1),
+                ),
+              },
+            })
+            creation = await Contribution.findOneOrFail({
+              where: {
+                memo: 'Herzlich Willkommen bei Gradido!',
+              },
             })
           })
 
@@ -1879,6 +1887,10 @@ describe('ContributionResolver', () => {
                   new Date(now.getFullYear(), now.getMonth() - 2, 1),
                 ),
               })
+              await query({
+                query: login,
+                variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+              })
             })
 
             it('returns true', async () => {
@@ -1959,10 +1971,13 @@ describe('ContributionResolver', () => {
                   new Date(now.getFullYear(), now.getMonth() - 2, 1),
                 ),
               })
+              await query({
+                query: login,
+                variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+              })
             })
 
-            // In the futrue this should not throw anymore
-            it('throws an error for the second confirmation', async () => {
+            it('throws no error for the second confirmation', async () => {
               const r1 = mutate({
                 mutation: confirmContribution,
                 variables: {
@@ -1982,8 +1997,7 @@ describe('ContributionResolver', () => {
               )
               await expect(r2).resolves.toEqual(
                 expect.objectContaining({
-                  // data: { confirmContribution: true },
-                  errors: [new GraphQLError('Creation was not successful.')],
+                  data: { confirmContribution: true },
                 }),
               )
             })

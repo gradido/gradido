@@ -1,39 +1,27 @@
 <template>
   <div class="transaction-slot-decay">
-    <div @click="visible = !visible">
-      <!-- Collaps Icon  -->
-      <collapse-icon class="text-right" :visible="visible" />
-      <div>
-        <b-row>
-          <!-- ICON  -->
-          <b-col cols="1">
-            <type-icon color="gradido-global-color-gray" icon="droplet-half" />
-          </b-col>
+    <b-row @click="visible = !visible" class="text-color-gdd-yellow align-items-center">
+      <b-col cols="1"><type-icon color="text-color-gdd-yellow" icon="droplet-half" /></b-col>
+      <b-col>
+        {{ $t('decay.decay_since_last_transaction') }}
+      </b-col>
+      <b-col cols="12" md="1" lg="1" class="text-right">
+        <collapse-icon class="text-right" :visible="visible" />
+      </b-col>
+    </b-row>
 
-          <b-col cols="11">
-            <!-- Amount / Name || Text -->
-            <amount-and-name-row
-              :amount="amount"
-              :text="$t('decay.decay_since_last_transaction')"
-            />
-          </b-col>
-        </b-row>
-      </div>
-
-      <b-collapse :class="visible ? 'bg-secondary' : ''" class="pb-4 pt-5" v-model="visible">
-        <decay-information-decay
-          :balance="balance"
-          :decay="decay.decay"
-          :previousBookedBalance="previousBookedBalance"
-        />
-      </b-collapse>
-    </div>
+    <b-collapse class="pb-4 pt-5" v-model="visible">
+      <decay-information-decay
+        :balance="balance"
+        :decay="decay.decay"
+        :previousBookedBalance="previousBookedBalance"
+      />
+    </b-collapse>
   </div>
 </template>
 <script>
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import TypeIcon from '../TransactionRows/TypeIcon'
-import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
 import DecayInformationDecay from '../DecayInformations/DecayInformation-Decay'
 
 export default {
@@ -41,7 +29,6 @@ export default {
   components: {
     CollapseIcon,
     TypeIcon,
-    AmountAndNameRow,
     DecayInformationDecay,
   },
   props: {

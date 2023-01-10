@@ -36,6 +36,8 @@ import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByEmail } from './UserResolver'
 
+import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+
 export const executeTransaction = async (
   amount: Decimal,
   memo: string,
@@ -62,124 +64,133 @@ export const executeTransaction = async (
     throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
   }
 
-  // validate amount
-  const receivedCallDate = new Date()
-  const sendBalance = await calculateBalance(
-    sender.id,
-    amount.mul(-1),
-    receivedCallDate,
-    transactionLink,
-  )
-  logger.debug(`calculated Balance=${sendBalance}`)
-  if (!sendBalance) {
-    logger.error(`user hasn't enough GDD or amount is < 0 : balance=${sendBalance}`)
-    throw new Error("user hasn't enough GDD or amount is < 0")
-  }
+  // acquire lock
+  const releaseLock = await TRANSACTIONS_LOCK.acquire()
 
-  const queryRunner = getConnection().createQueryRunner()
-  await queryRunner.connect()
-  await queryRunner.startTransaction('REPEATABLE READ')
-  logger.debug(`open Transaction to write...`)
   try {
-    // transaction
-    const transactionSend = new dbTransaction()
-    transactionSend.typeId = TransactionTypeId.SEND
-    transactionSend.memo = memo
-    transactionSend.userId = sender.id
-    transactionSend.linkedUserId = recipient.id
-    transactionSend.amount = amount.mul(-1)
-    transactionSend.balance = sendBalance.balance
-    transactionSend.balanceDate = receivedCallDate
-    transactionSend.decay = sendBalance.decay.decay
-    transactionSend.decayStart = sendBalance.decay.start
-    transactionSend.previous = sendBalance.lastTransactionId
-    transactionSend.transactionLinkId = transactionLink ? transactionLink.id : null
-    await queryRunner.manager.insert(dbTransaction, transactionSend)
-
-    logger.debug(`sendTransaction inserted: ${dbTransaction}`)
-
-    const transactionReceive = new dbTransaction()
-    transactionReceive.typeId = TransactionTypeId.RECEIVE
-    transactionReceive.memo = memo
-    transactionReceive.userId = recipient.id
-    transactionReceive.linkedUserId = sender.id
-    transactionReceive.amount = amount
-    const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
-    transactionReceive.balance = receiveBalance ? receiveBalance.balance : amount
-    transactionReceive.balanceDate = receivedCallDate
-    transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
-    transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
-    transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
-    transactionReceive.linkedTransactionId = transactionSend.id
-    transactionReceive.transactionLinkId = transactionLink ? transactionLink.id : null
-    await queryRunner.manager.insert(dbTransaction, transactionReceive)
-    logger.debug(`receive Transaction inserted: ${dbTransaction}`)
-
-    // Save linked transaction id for send
-    transactionSend.linkedTransactionId = transactionReceive.id
-    await queryRunner.manager.update(dbTransaction, { id: transactionSend.id }, transactionSend)
-    logger.debug(`send Transaction updated: ${transactionSend}`)
-
-    if (transactionLink) {
-      logger.info(`transactionLink: ${transactionLink}`)
-      transactionLink.redeemedAt = receivedCallDate
-      transactionLink.redeemedBy = recipient.id
-      await queryRunner.manager.update(
-        dbTransactionLink,
-        { id: transactionLink.id },
-        transactionLink,
-      )
+    // validate amount
+    const receivedCallDate = new Date()
+    const sendBalance = await calculateBalance(
+      sender.id,
+      amount.mul(-1),
+      receivedCallDate,
+      transactionLink,
+    )
+    logger.debug(`calculated Balance=${sendBalance}`)
+    if (!sendBalance) {
+      logger.error(`user hasn't enough GDD or amount is < 0 : balance=${sendBalance}`)
+      throw new Error("user hasn't enough GDD or amount is < 0")
     }
 
-    await queryRunner.commitTransaction()
-    logger.info(`commit Transaction successful...`)
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('REPEATABLE READ')
+    logger.debug(`open Transaction to write...`)
+    try {
+      // transaction
+      const transactionSend = new dbTransaction()
+      transactionSend.typeId = TransactionTypeId.SEND
+      transactionSend.memo = memo
+      transactionSend.userId = sender.id
+      transactionSend.linkedUserId = recipient.id
+      transactionSend.amount = amount.mul(-1)
+      transactionSend.balance = sendBalance.balance
+      transactionSend.balanceDate = receivedCallDate
+      transactionSend.decay = sendBalance.decay.decay
+      transactionSend.decayStart = sendBalance.decay.start
+      transactionSend.previous = sendBalance.lastTransactionId
+      transactionSend.transactionLinkId = transactionLink ? transactionLink.id : null
+      await queryRunner.manager.insert(dbTransaction, transactionSend)
 
-    const eventTransactionSend = new EventTransactionSend()
-    eventTransactionSend.userId = transactionSend.userId
-    eventTransactionSend.xUserId = transactionSend.linkedUserId
-    eventTransactionSend.transactionId = transactionSend.id
-    eventTransactionSend.amount = transactionSend.amount.mul(-1)
-    await eventProtocol.writeEvent(new Event().setEventTransactionSend(eventTransactionSend))
+      logger.debug(`sendTransaction inserted: ${dbTransaction}`)
 
-    const eventTransactionReceive = new EventTransactionReceive()
-    eventTransactionReceive.userId = transactionReceive.userId
-    eventTransactionReceive.xUserId = transactionReceive.linkedUserId
-    eventTransactionReceive.transactionId = transactionReceive.id
-    eventTransactionReceive.amount = transactionReceive.amount
-    await eventProtocol.writeEvent(new Event().setEventTransactionReceive(eventTransactionReceive))
-  } catch (e) {
-    await queryRunner.rollbackTransaction()
-    logger.error(`Transaction was not successful: ${e}`)
-    throw new Error(`Transaction was not successful: ${e}`)
-  } finally {
-    await queryRunner.release()
-  }
-  logger.debug(`prepare Email for transaction received...`)
-  await sendTransactionReceivedEmail({
-    firstName: recipient.firstName,
-    lastName: recipient.lastName,
-    email: recipient.emailContact.email,
-    language: recipient.language,
-    senderFirstName: sender.firstName,
-    senderLastName: sender.lastName,
-    senderEmail: sender.emailContact.email,
-    transactionAmount: amount,
-  })
-  if (transactionLink) {
-    await sendTransactionLinkRedeemedEmail({
-      firstName: sender.firstName,
-      lastName: sender.lastName,
-      email: sender.emailContact.email,
-      language: sender.language,
-      senderFirstName: recipient.firstName,
-      senderLastName: recipient.lastName,
-      senderEmail: recipient.emailContact.email,
+      const transactionReceive = new dbTransaction()
+      transactionReceive.typeId = TransactionTypeId.RECEIVE
+      transactionReceive.memo = memo
+      transactionReceive.userId = recipient.id
+      transactionReceive.linkedUserId = sender.id
+      transactionReceive.amount = amount
+      const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
+      transactionReceive.balance = receiveBalance ? receiveBalance.balance : amount
+      transactionReceive.balanceDate = receivedCallDate
+      transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
+      transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
+      transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
+      transactionReceive.linkedTransactionId = transactionSend.id
+      transactionReceive.transactionLinkId = transactionLink ? transactionLink.id : null
+      await queryRunner.manager.insert(dbTransaction, transactionReceive)
+      logger.debug(`receive Transaction inserted: ${dbTransaction}`)
+
+      // Save linked transaction id for send
+      transactionSend.linkedTransactionId = transactionReceive.id
+      await queryRunner.manager.update(dbTransaction, { id: transactionSend.id }, transactionSend)
+      logger.debug(`send Transaction updated: ${transactionSend}`)
+
+      if (transactionLink) {
+        logger.info(`transactionLink: ${transactionLink}`)
+        transactionLink.redeemedAt = receivedCallDate
+        transactionLink.redeemedBy = recipient.id
+        await queryRunner.manager.update(
+          dbTransactionLink,
+          { id: transactionLink.id },
+          transactionLink,
+        )
+      }
+
+      await queryRunner.commitTransaction()
+      logger.info(`commit Transaction successful...`)
+
+      const eventTransactionSend = new EventTransactionSend()
+      eventTransactionSend.userId = transactionSend.userId
+      eventTransactionSend.xUserId = transactionSend.linkedUserId
+      eventTransactionSend.transactionId = transactionSend.id
+      eventTransactionSend.amount = transactionSend.amount.mul(-1)
+      await eventProtocol.writeEvent(new Event().setEventTransactionSend(eventTransactionSend))
+
+      const eventTransactionReceive = new EventTransactionReceive()
+      eventTransactionReceive.userId = transactionReceive.userId
+      eventTransactionReceive.xUserId = transactionReceive.linkedUserId
+      eventTransactionReceive.transactionId = transactionReceive.id
+      eventTransactionReceive.amount = transactionReceive.amount
+      await eventProtocol.writeEvent(
+        new Event().setEventTransactionReceive(eventTransactionReceive),
+      )
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      logger.error(`Transaction was not successful: ${e}`)
+      throw new Error(`Transaction was not successful: ${e}`)
+    } finally {
+      await queryRunner.release()
+    }
+    logger.debug(`prepare Email for transaction received...`)
+    await sendTransactionReceivedEmail({
+      firstName: recipient.firstName,
+      lastName: recipient.lastName,
+      email: recipient.emailContact.email,
+      language: recipient.language,
+      senderFirstName: sender.firstName,
+      senderLastName: sender.lastName,
+      senderEmail: sender.emailContact.email,
       transactionAmount: amount,
-      transactionMemo: memo,
     })
+    if (transactionLink) {
+      await sendTransactionLinkRedeemedEmail({
+        firstName: sender.firstName,
+        lastName: sender.lastName,
+        email: sender.emailContact.email,
+        language: sender.language,
+        senderFirstName: recipient.firstName,
+        senderLastName: recipient.lastName,
+        senderEmail: recipient.emailContact.email,
+        transactionAmount: amount,
+        transactionMemo: memo,
+      })
+    }
+    logger.info(`finished executeTransaction successfully`)
+    return true
+  } finally {
+    releaseLock()
   }
-  logger.info(`finished executeTransaction successfully`)
-  return true
 }
 
 @Resolver()

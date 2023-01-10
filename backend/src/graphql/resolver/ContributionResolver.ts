@@ -50,6 +50,7 @@ import {
   sendContributionConfirmedEmail,
   sendContributionRejectedEmail,
 } from '@/emails/sendEmailVariants'
+import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
 @Resolver()
 export class ContributionResolver {
@@ -581,8 +582,10 @@ export class ContributionResolver {
       clientTimezoneOffset,
     )
 
-    const receivedCallDate = new Date()
+    // acquire lock
+    const releaseLock = await TRANSACTIONS_LOCK.acquire()
 
+    const receivedCallDate = new Date()
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
@@ -592,7 +595,7 @@ export class ContributionResolver {
         .select('transaction')
         .from(DbTransaction, 'transaction')
         .where('transaction.userId = :id', { id: contribution.userId })
-        .orderBy('transaction.balanceDate', 'DESC')
+        .orderBy('transaction.id', 'DESC')
         .getOne()
       logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
 
@@ -641,10 +644,11 @@ export class ContributionResolver {
       })
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      logger.error(`Creation was not successful: ${e}`)
-      throw new Error(`Creation was not successful.`)
+      logger.error('Creation was not successful', e)
+      throw new Error('Creation was not successful.')
     } finally {
       await queryRunner.release()
+      releaseLock()
     }
 
     const event = new Event()

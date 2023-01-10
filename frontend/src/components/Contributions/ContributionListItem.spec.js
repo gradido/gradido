@@ -74,7 +74,7 @@ describe('ContributionListItem', () => {
 
       it('is warning at when state is IN_PROGRESS', async () => {
         await wrapper.setProps({ state: 'IN_PROGRESS' })
-        expect(wrapper.vm.variant).toBe('warning')
+        expect(wrapper.vm.variant).toBe('f5')
       })
     })
 
@@ -89,7 +89,7 @@ describe('ContributionListItem', () => {
 
       describe('edit contribution', () => {
         beforeEach(() => {
-          wrapper.findAll('div.pointer').at(0).trigger('click')
+          wrapper.find('div.test-edit-contribution').trigger('click')
         })
 
         it('emits update contribution form', () => {
@@ -110,7 +110,7 @@ describe('ContributionListItem', () => {
         beforeEach(() => {
           spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve(true))
-          wrapper.findAll('div.pointer').at(1).trigger('click')
+          wrapper.find('div.test-delete-contribution').trigger('click')
         })
 
         it('opens the modal', () => {
