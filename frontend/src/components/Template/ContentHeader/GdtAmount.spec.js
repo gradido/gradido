@@ -101,7 +101,7 @@ describe('GdtAmount', () => {
     })
   })
 
-  describe.skip('second call to API', () => {
+  describe('second call to API', () => {
     beforeEach(async () => {
       mockAPICall.mockResolvedValue({
         data: {
@@ -111,6 +111,7 @@ describe('GdtAmount', () => {
         },
       })
       jest.clearAllMocks()
+      wrapper.vm.$store.state.hideAmountGDT = true
       await wrapper.find('div.border-left svg').trigger('click')
       await flushPromises()
     })
@@ -120,7 +121,7 @@ describe('GdtAmount', () => {
         expect.objectContaining({
           mutation: updateUserInfos,
           variables: {
-            hideAmountGDT: true,
+            hideAmountGDT: false,
           },
         }),
       )
