@@ -60,6 +60,7 @@ jest.mock('@/emails/sendEmailVariants', () => {
 })
 
 /*
+
 jest.mock('@/apis/KlicktippController', () => {
   return {
     __esModule: true,
@@ -129,6 +130,8 @@ describe('UserResolver', () => {
             {
               id: expect.any(Number),
               gradidoID: expect.any(String),
+              hideAmountGDD: expect.any(Boolean),
+              hideAmountGDT: expect.any(Boolean),
               alias: null,
               emailContact: expect.any(UserContact), // 'peter@lustig.de',
               emailId: expect.any(Number),
