@@ -18,6 +18,8 @@ const communityDbUser: dbUser = {
   lastName: 'Akademie',
   deletedAt: null,
   password: BigInt(0),
+  hideAmountGDD: false,
+  hideAmountGDT: false,
   //  emailHash: Buffer.from(''),
   createdAt: new Date(),
   // emailChecked: false,
