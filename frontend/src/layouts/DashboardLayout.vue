@@ -177,7 +177,7 @@ export default {
           } = result
           this.GdtBalance =
             transactionList.balance.balanceGDT === null
-              ? 0
+              ? null
               : Number(transactionList.balance.balanceGDT)
           this.transactions = transactionList.transactions
           this.balance = Number(transactionList.balance.balance)
