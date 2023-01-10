@@ -1,7 +1,7 @@
 {
-  "name": "gradido-federation",
+  "name": "gradido-dht-node",
   "version": "1.0.0",
-  "description": "Gradido federation module providing Gradido-Hub-Federation and versioned API for inter community communication",
+  "description": "Gradido dht-node module",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/federation",
   "author": "Claus-Peter Huebner",
