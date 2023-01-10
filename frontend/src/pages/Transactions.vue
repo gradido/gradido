@@ -85,7 +85,7 @@ export default {
     }
   },
   watch: {
-    gdt() {
+    currentPage() {
       if (this.gdt) {
         this.updateGdt()
       }
