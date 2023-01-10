@@ -618,9 +618,13 @@ export class UserResolver {
     }
 
     // Save hideAmountGDD value
-    userEntity.hideAmountGDD = hideAmountGDD
+    if (hideAmountGDD !== undefined) {
+      userEntity.hideAmountGDD = hideAmountGDD
+    }
     // Save hideAmountGDT value
-    userEntity.hideAmountGDT = hideAmountGDT
+    if (hideAmountGDT !== undefined) {
+      userEntity.hideAmountGDT = hideAmountGDT
+    }
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
