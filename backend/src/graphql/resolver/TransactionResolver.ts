@@ -211,7 +211,7 @@ export class TransactionResolver {
     // find current balance
     const lastTransaction = await dbTransaction.findOne(
       { userId: user.id },
-      { order: { balanceDate: 'DESC' }, relations: ['contribution'] },
+      { order: { id: 'DESC' }, relations: ['contribution'] },
     )
     logger.debug(`lastTransaction=${lastTransaction}`)
 
