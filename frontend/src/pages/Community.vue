@@ -52,12 +52,7 @@ import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount.
 import ContributionForm from '@/components/Contributions/ContributionForm.vue'
 import ContributionList from '@/components/Contributions/ContributionList.vue'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
-import {
-  listContributions,
-  listAllContributions,
-  verifyLogin,
-  openCreations,
-} from '@/graphql/queries'
+import { listContributions, listAllContributions, openCreations } from '@/graphql/queries'
 
 export default {
   name: 'Community',
@@ -144,15 +139,19 @@ export default {
     },
     maxGddLastMonth() {
       // when existing contribution is edited, the amount is added back on top of the amount
-      return this.form.id && !this.isThisMonth
-        ? parseInt(this.openCreations[1].amount) + parseInt(this.updateAmount)
-        : parseInt(this.openCreations[1].amount)
+      if (this.openCreations && this.openCreations.length)
+        return this.form.id && !this.isThisMonth
+          ? parseInt(this.openCreations[1].amount) + parseInt(this.updateAmount)
+          : parseInt(this.openCreations[1].amount)
+      return 0
     },
     maxGddThisMonth() {
       // when existing contribution is edited, the amount is added back on top of the amount
-      return this.form.id && this.isThisMonth
-        ? parseInt(this.openCreations[2].amount) + parseInt(this.updateAmount)
-        : parseInt(this.openCreations[2].amount)
+      if (this.openCreations && this.openCreations.length)
+        return this.form.id && this.isThisMonth
+          ? parseInt(this.openCreations[2].amount) + parseInt(this.updateAmount)
+          : parseInt(this.openCreations[2].amount)
+      return 0
     },
   },
   methods: {
@@ -184,7 +183,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.pageSize,
           })
-          this.verifyLogin()
+          this.$apollo.queries.OpenCreations.refetch()
         })
         .catch((err) => {
           this.toastError(err.message)
@@ -212,7 +211,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.pageSize,
           })
-          this.verifyLogin()
+          this.$apollo.queries.OpenCreations.refetch()
         })
         .catch((err) => {
           this.toastError(err.message)
@@ -237,7 +236,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.pageSize,
           })
-          this.verifyLogin()
+          this.$apollo.queries.OpenCreations.refetch()
         })
         .catch((err) => {
           this.toastError(err.message)
@@ -292,22 +291,6 @@ export default {
           this.toastError(err.message)
         })
     },
-    verifyLogin() {
-      this.$apollo
-        .query({
-          query: verifyLogin,
-          fetchPolicy: 'network-only',
-        })
-        .then((result) => {
-          const {
-            data: { verifyLogin },
-          } = result
-          this.$store.dispatch('login', verifyLogin)
-        })
-        .catch(() => {
-          this.$emit('logout')
-        })
-    },
     updateContributionForm(item) {
       this.form.id = item.id
       this.form.date = item.contributionDate
@@ -327,8 +310,6 @@ export default {
   },
 
   created() {
-    // verifyLogin is important at this point so that creation is updated on reload if they are deleted in a session in the admin area.
-    this.verifyLogin()
     this.updateListContributions({
       currentPage: this.currentPage,
       pageSize: this.pageSize,
