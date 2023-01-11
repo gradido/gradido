@@ -30,7 +30,6 @@ const {
   publisherId,
   isAdmin,
   hasElopage,
-  creation,
   hideAmountGDD,
   hideAmountGDT,
 } = mutations
@@ -143,14 +142,6 @@ describe('Vuex store', () => {
       })
     })
 
-    describe('creation', () => {
-      it('sets the state of creation', () => {
-        const state = { creation: null }
-        creation(state, true)
-        expect(state.creation).toEqual(true)
-      })
-    })
-
     describe('hideAmountGDD', () => {
       it('sets the state of hideAmountGDD', () => {
         const state = { hideAmountGDD: false }
@@ -183,14 +174,13 @@ describe('Vuex store', () => {
         hasElopage: false,
         publisherId: 1234,
         isAdmin: true,
-        creation: ['1000', '1000', '1000'],
         hideAmountGDD: false,
         hideAmountGDT: true,
       }
 
       it('calls eleven commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(11)
+        expect(commit).toHaveBeenCalledTimes(10)
       })
 
       it('commits email', () => {
@@ -233,19 +223,14 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(8, 'isAdmin', true)
       })
 
-      it('commits creation', () => {
-        login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(9, 'creation', ['1000', '1000', '1000'])
-      })
-
       it('commits hideAmountGDD', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(10, 'hideAmountGDD', false)
+        expect(commit).toHaveBeenNthCalledWith(9, 'hideAmountGDD', false)
       })
 
       it('commits hideAmountGDT', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(11, 'hideAmountGDT', true)
+        expect(commit).toHaveBeenNthCalledWith(10, 'hideAmountGDT', true)
       })
     })
 
@@ -255,7 +240,7 @@ describe('Vuex store', () => {
 
       it('calls eleven commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(11)
+        expect(commit).toHaveBeenCalledTimes(10)
       })
 
       it('commits token', () => {
@@ -298,19 +283,14 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(8, 'isAdmin', false)
       })
 
-      it('commits creation', () => {
-        logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(9, 'creation', null)
-      })
-
       it('commits hideAmountGDD', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(10, 'hideAmountGDD', false)
+        expect(commit).toHaveBeenNthCalledWith(9, 'hideAmountGDD', false)
       })
 
       it('commits hideAmountGDT', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(11, 'hideAmountGDT', true)
+        expect(commit).toHaveBeenNthCalledWith(10, 'hideAmountGDT', true)
       })
       // how to get this working?
       it.skip('calls localStorage.clear()', () => {
