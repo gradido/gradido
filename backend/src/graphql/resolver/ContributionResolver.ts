@@ -564,10 +564,12 @@ export class ContributionResolver {
     const contribution = await DbContribution.findOne(id)
     if (!contribution) {
       logger.error(`Contribution not found for given id: ${id}`)
+      releaseLock()
       throw new Error('Contribution not found to given id.')
     }
     if (contribution.confirmedAt) {
       logger.error(`Contribution already confirmd: ${id}`)
+      releaseLock()
       throw new Error('Contribution already confirmd.')
     }
     if (contribution.contributionStatus === 'DENIED') {
@@ -577,6 +579,7 @@ export class ContributionResolver {
     const moderatorUser = getUser(context)
     if (moderatorUser.id === contribution.userId) {
       logger.error('Moderator can not confirm own contribution')
+      releaseLock()
       throw new Error('Moderator can not confirm own contribution')
     }
     const user = await DbUser.findOneOrFail(
@@ -585,6 +588,7 @@ export class ContributionResolver {
     )
     if (user.deletedAt) {
       logger.error('This user was deleted. Cannot confirm a contribution.')
+      releaseLock()
       throw new Error('This user was deleted. Cannot confirm a contribution.')
     }
     const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
