@@ -557,10 +557,14 @@ export class ContributionResolver {
     const releaseLock = await TRANSACTIONS_LOCK.acquire()
 
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const contribution = await DbContribution.findOne({ where: { id, confirmedAt: IsNull() } })
+    const contribution = await DbContribution.findOne(id)
     if (!contribution) {
-      logger.error(`Contribution not found to given id (${id}) or already confirmed.`)
-      throw new Error('Contribution not found to given id or already confirmed.')
+      logger.error(`Contribution not found for given id: ${id}`)
+      throw new Error('Contribution not found to given id.')
+    }
+    if (contribution.confirmedAt) {
+      logger.error(`Contribution already confirmd: ${id}`)
+      throw new Error('Contribution already confirmd.')
     }
     const moderatorUser = getUser(context)
     if (moderatorUser.id === contribution.userId) {
