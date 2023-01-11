@@ -414,7 +414,7 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-      describe.skip('wrong contribution id', () => {
+      describe('wrong contribution id', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
           await expect(
@@ -429,17 +429,13 @@ describe('ContributionResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [
-                new GraphQLError('Contribution not found to given id or already confirmed.'),
-              ],
+              errors: [new GraphQLError('No contribution found to given id.')],
             }),
           )
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(
-            'Contribution not found to given id (-1) or already confirmed.',
-          )
+          expect(logger.error).toBeCalledWith('No contribution found to given id')
         })
       })
 
@@ -794,7 +790,7 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-      describe.skip('wrong contribution id', () => {
+      describe('wrong contribution id', () => {
         it('returns an error', async () => {
           await expect(
             mutate({
@@ -805,17 +801,13 @@ describe('ContributionResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [
-                new GraphQLError('Contribution not found to given id or already confirmed.'),
-              ],
+              errors: [new GraphQLError('Contribution not found for given id.')],
             }),
           )
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(
-            'Contribution not found to given id (-1) or already confirmed.',
-          )
+          expect(logger.error).toBeCalledWith('Contribution not found for given id')
         })
       })
 
@@ -844,7 +836,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe.skip('User deletes own contribution', () => {
+      describe('User deletes own contribution', () => {
         it('deletes successfully', async () => {
           await expect(
             mutate({
@@ -1833,21 +1825,17 @@ describe('ContributionResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [
-                    new GraphQLError('Contribution not found to given id or already confirmed.'),
-                  ],
+                  errors: [new GraphQLError('Contribution not found to given id.')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith(
-                'Contribution not found to given id (-1) or already confirmed.',
-              )
+              expect(logger.error).toBeCalledWith('Contribution not found for given id: -1')
             })
           })
 
-          describe.skip('confirm own creation', () => {
+          describe('confirm own creation', () => {
             beforeAll(async () => {
               const now = new Date()
               creation = await creationFactory(testEnv, {
@@ -1880,7 +1868,7 @@ describe('ContributionResolver', () => {
             })
           })
 
-          describe.skip('confirm creation for other user', () => {
+          describe('confirm creation for other user', () => {
             beforeAll(async () => {
               const now = new Date()
               creation = await creationFactory(testEnv, {
@@ -1908,7 +1896,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it.skip('stores the contribution confirm event in the database', async () => {
+            it('stores the contribution confirm event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.CONTRIBUTION_CONFIRM,
@@ -1973,7 +1961,7 @@ describe('ContributionResolver', () => {
               })
             })
 
-            it.skip('throws no error for the second confirmation', async () => {
+            it('throws no error for the second confirmation', async () => {
               const r1 = mutate({
                 mutation: confirmContribution,
                 variables: {
