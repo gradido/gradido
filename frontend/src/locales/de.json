@@ -269,6 +269,8 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
+    "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
+    "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
     "language": {
       "changeLanguage": "Sprache ändern",
       "de": "Deutsch",
@@ -301,7 +303,9 @@
         "text": "Speichere nun dein neues Passwort, mit dem du dich zukünftig in deinem Gradido-Konto anmelden kannst."
       },
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
-    }
+    },
+    "showAmountGDD": "Dein GDD Betrag ist sichtbar.",
+    "showAmountGDT": "Dein GDT Betrag ist sichtbar."
   },
   "signin": "Anmelden",
   "signup": "Registrieren",

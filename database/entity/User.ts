@@ -1,1 +1,1 @@
-export { User } from './0057-clear_old_password_junk/User'
+export { User } from './0059-add_hide_amount_to_users/User'

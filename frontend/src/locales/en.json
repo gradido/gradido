@@ -269,6 +269,8 @@
     "warningText": "Are you still there?"
   },
   "settings": {
+    "hideAmountGDD": "Your GDD amount is hidden.",
+    "hideAmountGDT": "Your GDT amount is hidden.",
     "language": {
       "changeLanguage": "Change language",
       "de": "Deutsch",
@@ -301,7 +303,9 @@
         "text": "Now save your new password, which you can use to log in to your Gradido account in the future."
       },
       "subtitle": "If you have forgotten your password, you can reset it here."
-    }
+    },
+    "showAmountGDD": "Your GDD amount is visible.",
+    "showAmountGDT": "Your GDT amount is visible."
   },
   "signin": "Sign in",
   "signup": "Sign up",
