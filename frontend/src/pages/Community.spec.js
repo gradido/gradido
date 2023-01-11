@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import Community from './Community'
 import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
-import { listContributions, listAllContributions, verifyLogin } from '@/graphql/queries'
+import { listContributions, listAllContributions } from '@/graphql/queries'
 
 import VueRouter from 'vue-router'
 import routes from '../routes/routes'
@@ -13,6 +13,7 @@ localVue.use(VueRouter)
 const mockStoreDispach = jest.fn()
 const apolloQueryMock = jest.fn()
 const apolloMutationMock = jest.fn()
+const apolloRefetchMock = jest.fn()
 
 const router = new VueRouter({
   base: '/',
@@ -39,6 +40,11 @@ describe('Community', () => {
     $apollo: {
       query: apolloQueryMock,
       mutate: apolloMutationMock,
+      queries: {
+        OpenCreations: {
+          refetch: apolloRefetchMock,
+        },
+      },
     },
     $store: {
       dispatch: mockStoreDispach,
@@ -207,10 +213,7 @@ describe('Community', () => {
         })
 
         it('verifies the login (to get the new creations available)', () => {
-          expect(apolloQueryMock).toBeCalledWith({
-            query: verifyLogin,
-            fetchPolicy: 'network-only',
-          })
+          expect(apolloRefetchMock).toBeCalled()
         })
 
         it('set all data to the default values)', () => {
@@ -294,10 +297,7 @@ describe('Community', () => {
         })
 
         it('verifies the login (to get the new creations available)', () => {
-          expect(apolloQueryMock).toBeCalledWith({
-            query: verifyLogin,
-            fetchPolicy: 'network-only',
-          })
+          expect(apolloRefetchMock).toBeCalled()
         })
 
         it('set all data to the default values)', () => {
@@ -376,10 +376,7 @@ describe('Community', () => {
         })
 
         it('verifies the login (to get the new creations available)', () => {
-          expect(apolloQueryMock).toBeCalledWith({
-            query: verifyLogin,
-            fetchPolicy: 'network-only',
-          })
+          expect(apolloRefetchMock).toBeCalled()
         })
       })
 
