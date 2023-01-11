@@ -52,7 +52,12 @@ import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount.
 import ContributionForm from '@/components/Contributions/ContributionForm.vue'
 import ContributionList from '@/components/Contributions/ContributionList.vue'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
-import { listContributions, listAllContributions, verifyLogin } from '@/graphql/queries'
+import {
+  listContributions,
+  listAllContributions,
+  verifyLogin,
+  openCreations,
+} from '@/graphql/queries'
 
 export default {
   name: 'Community',
@@ -82,6 +87,7 @@ export default {
       },
       updateAmount: '',
       maximalDate: new Date(),
+      openCreations: [],
     }
   },
   mounted() {
@@ -89,6 +95,23 @@ export default {
       this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === this.$route.hash)
       this.hashLink = this.$route.hash
     })
+  },
+  apollo: {
+    OpenCreations: {
+      query() {
+        return openCreations
+      },
+      fetchPolicy: 'network-only',
+      variables() {
+        return {}
+      },
+      update({ openCreations }) {
+        this.openCreations = openCreations
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
+    },
   },
   watch: {
     $route(to, from) {
@@ -122,14 +145,14 @@ export default {
     maxGddLastMonth() {
       // when existing contribution is edited, the amount is added back on top of the amount
       return this.form.id && !this.isThisMonth
-        ? parseInt(this.$store.state.creation[1]) + parseInt(this.updateAmount)
-        : parseInt(this.$store.state.creation[1])
+        ? parseInt(this.openCreations[1].amount) + parseInt(this.updateAmount)
+        : parseInt(this.openCreations[1].amount)
     },
     maxGddThisMonth() {
       // when existing contribution is edited, the amount is added back on top of the amount
       return this.form.id && this.isThisMonth
-        ? parseInt(this.$store.state.creation[2]) + parseInt(this.updateAmount)
-        : parseInt(this.$store.state.creation[2])
+        ? parseInt(this.openCreations[2].amount) + parseInt(this.updateAmount)
+        : parseInt(this.openCreations[2].amount)
     },
   },
   methods: {
