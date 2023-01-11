@@ -4,10 +4,6 @@ import { IsNull } from '@dbTools/typeorm'
 import { requestGetPublicKey as v1_0_requestGetPublicKey } from './client/1_0/FederationClient'
 // eslint-disable-next-line camelcase
 import { requestGetPublicKey as v1_1_requestGetPublicKey } from './client/1_1/FederationClient'
-// eslint-disable-next-line camelcase
-import { V1_0_FdCommunity } from './graphql/1_0/model/V1_0_FdCommunity'
-// eslint-disable-next-line camelcase
-import { V1_1_FdCommunity } from './graphql/1_1/model/V1_1_FdCommunity'
 import { backendLogger as logger } from '@/server/logger'
 import { ApiVersionType } from './enum/apiVersionType'
 
@@ -29,29 +25,22 @@ export async function startValidateCommunities(timerInterval: number): Promise<v
     if (dbCommunities) {
       dbCommunities.forEach(async function (dbCom) {
         logger.debug(`Federation: dbCom: ${JSON.stringify(dbCom)}`)
-        const fdCom = getVersionedFdCommunity(dbCom)
-        if (!fdCom) {
-          logger.warn(
-            `Federation: unsupported ApiVersion ${dbCom.apiVersion} of Community with id= ${dbCom.id}`,
-          )
-          return
-        }
         const apiValueStrings: string[] = Object.values(ApiVersionType)
         logger.debug(`suppported ApiVersions=`, apiValueStrings)
-        if (apiValueStrings.includes(fdCom.apiVersion)) {
+        if (apiValueStrings.includes(dbCom.apiVersion)) {
           logger.debug(
             `Federation: validate publicKey for dbCom: ${dbCom.id} with apiVersion=${dbCom.apiVersion}`,
           )
-          const pubKey = await invokeVersionedRequestGetPublicKey(fdCom)
+          const pubKey = await invokeVersionedRequestGetPublicKey(dbCom)
           logger.debug(`Federation: received publicKey:  ${pubKey}`)
-          if (pubKey && pubKey === fdCom.publicKey) {
+          if (pubKey && pubKey === dbCom.publicKey.toString('hex')) {
             logger.debug(`Federation: matching publicKey:  ${pubKey}`)
-            DbCommunity.update({ id: fdCom.id }, { verifiedAt: new Date() })
+            DbCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
             logger.debug(`Federation: updated dbCom:  ${JSON.stringify(dbCom)}`)
           }
         } else {
           logger.debug(
-            `Federation: dbCom: ${fdCom.id} with unsupported apiVersion=${fdCom.apiVersion}; supported versions=${apiValueStrings}`,
+            `Federation: dbCom: ${dbCom.id} with unsupported apiVersion=${dbCom.apiVersion}; supported versions=${apiValueStrings}`,
           )
         }
       })
@@ -66,27 +55,12 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-function getVersionedFdCommunity(dbCom: DbCommunity) {
+async function invokeVersionedRequestGetPublicKey(dbCom: DbCommunity): Promise<string | undefined> {
   switch (dbCom.apiVersion) {
     case ApiVersionType.V1_0:
-      // eslint-disable-next-line new-cap
-      return new V1_0_FdCommunity(dbCom)
+      return v1_0_requestGetPublicKey(dbCom)
     case ApiVersionType.V1_1:
-      // eslint-disable-next-line new-cap
-      return new V1_1_FdCommunity(dbCom)
-  }
-  return undefined
-}
-
-async function invokeVersionedRequestGetPublicKey(
-  // eslint-disable-next-line camelcase
-  fdCom: V1_0_FdCommunity | V1_1_FdCommunity,
-): Promise<string | undefined> {
-  switch (fdCom.apiVersion) {
-    case ApiVersionType.V1_0:
-      return v1_0_requestGetPublicKey(fdCom)
-    case ApiVersionType.V1_1:
-      return v1_1_requestGetPublicKey(fdCom)
+      return v1_1_requestGetPublicKey(dbCom)
   }
   return undefined
 }

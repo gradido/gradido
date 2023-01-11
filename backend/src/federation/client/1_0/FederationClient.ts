@@ -1,12 +1,11 @@
 import { GraphQLClient, gql } from 'graphql-request'
 import { backendLogger as logger } from '@/server/logger'
-// eslint-disable-next-line camelcase
-import { V1_0_FdCommunity } from '@/federation/graphql/1_0/model/V1_0_FdCommunity'
+import { Community as DbCommunity } from '@entity/Community'
 
 // eslint-disable-next-line camelcase
-export async function requestGetPublicKey(fdCom: V1_0_FdCommunity): Promise<string | undefined> {
-  let endpoint = fdCom.url.endsWith('/') ? fdCom.url : fdCom.url + '/'
-  endpoint = `${endpoint}${fdCom.apiVersion}/getPublicKey`
+export async function requestGetPublicKey(dbCom: DbCommunity): Promise<string | undefined> {
+  let endpoint = dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'
+  endpoint = `${endpoint}${dbCom.apiVersion}/getPublicKey`
   logger.info(`requestGetPublicKey with endpoint='${endpoint}'...`)
 
   const graphQLClient = new GraphQLClient(endpoint, {
