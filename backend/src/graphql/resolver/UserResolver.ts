@@ -54,7 +54,8 @@ import {
   EventSendConfirmationEmail,
   EventActivateAccount,
 } from '@/event/Event'
-import { getUserCreation, getUserCreations } from './util/creations'
+import { getUserCreations } from './util/creations'
+import { isValidPassword } from '@/password/EncryptorUtils'
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
@@ -110,9 +111,8 @@ export class UserResolver {
   async verifyLogin(@Ctx() context: Context): Promise<User> {
     logger.info('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
-    const clientTimezoneOffset = getClientTimezoneOffset(context)
     const userEntity = getUser(context)
-    const user = new User(userEntity, await getUserCreation(userEntity.id, clientTimezoneOffset))
+    const user = new User(userEntity)
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
 
@@ -128,7 +128,6 @@ export class UserResolver {
     @Ctx() context: Context,
   ): Promise<User> {
     logger.info(`login with ${email}, ***, ${publisherId} ...`)
-    const clientTimezoneOffset = getClientTimezoneOffset(context)
     email = email.trim().toLowerCase()
     const dbUser = await findUserByEmail(email)
     if (dbUser.deletedAt) {
@@ -159,7 +158,7 @@ export class UserResolver {
     logger.addContext('user', dbUser.id)
     logger.debug('validation of login credentials successful...')
 
-    const user = new User(dbUser, await getUserCreation(dbUser.id, clientTimezoneOffset))
+    const user = new User(dbUser)
     logger.debug(`user= ${JSON.stringify(user, null, 2)}`)
 
     i18n.setLocale(user.language)
