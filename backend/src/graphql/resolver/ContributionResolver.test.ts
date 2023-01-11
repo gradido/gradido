@@ -1935,6 +1935,23 @@ describe('ContributionResolver', () => {
                 }),
               )
             })
+
+            describe('confirm same contribution again', () => {
+              it('throws an error', async () => {
+                await expect(
+                  mutate({
+                    mutation: confirmContribution,
+                    variables: {
+                      id: creation ? creation.id : -1,
+                    },
+                  }),
+                ).resolves.toEqual(
+                  expect.objectContaining({
+                    errors: [new GraphQLError('Contribution already confirmd.')],
+                  }),
+                )
+              })
+            })
           })
 
           describe('confirm two creations one after the other quickly', () => {
