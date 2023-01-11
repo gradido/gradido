@@ -11,8 +11,9 @@ import { Transaction as DbTransaction } from '@entity/Transaction'
 import { AdminCreateContributions } from '@model/AdminCreateContributions'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { Contribution, ContributionListResult } from '@model/Contribution'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { Decay } from '@model/Decay'
+import { OpenCreation } from '@model/OpenCreation'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { Order } from '@enum/Order'
 import { ContributionType } from '@enum/ContributionType'
@@ -27,6 +28,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import {
+  getCreationDates,
   getUserCreation,
   getUserCreations,
   validateContribution,
@@ -682,5 +684,24 @@ export class ContributionResolver {
       contributionResult.map((contribution) => new Contribution(contribution, contribution.user)),
     )
     // return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
+  }
+
+  @Authorized([RIGHTS.OPEN_CREATIONS])
+  @Query(() => [OpenCreation])
+  async openCreations(
+    @Arg('userId', () => Int, { nullable: true }) userId: number | null,
+    @Ctx() context: Context,
+  ): Promise<OpenCreation[]> {
+    const id = userId || getUser(context).id
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
+    const creationDates = getCreationDates(clientTimezoneOffset)
+    const creations = await getUserCreation(id, clientTimezoneOffset)
+    return creationDates.map((date, index) => {
+      return {
+        month: date.getMonth(),
+        year: date.getFullYear(),
+        amount: creations[index],
+      }
+    })
   }
 }
