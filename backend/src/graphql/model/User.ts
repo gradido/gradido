@@ -27,6 +27,8 @@ export class User {
     this.klickTipp = null
     this.hasElopage = null
     this.creation = creation
+    this.hideAmountGDD = user.hideAmountGDD
+    this.hideAmountGDT = user.hideAmountGDT
   }
 
   @Field(() => Number)
@@ -71,6 +73,12 @@ export class User {
 
   @Field(() => String)
   language: string
+
+  @Field(() => Boolean)
+  hideAmountGDD: boolean
+
+  @Field(() => Boolean)
+  hideAmountGDT: boolean
 
   // This is not the users publisherId, but the one of the users who recommend him
   @Field(() => Number, { nullable: true })

@@ -40,11 +40,11 @@ export default {
         }
       },
     },
-    name: { type: String, default: 'Email' },
-    label: { type: String, default: 'Email' },
-    placeholder: { type: String, default: 'Email' },
-    value: { required: true, type: String, default: '' },
-    disabled: { required: false, type: Boolean, default: false },
+    name: { type: String, required: true },
+    label: { type: String, required: true },
+    placeholder: { type: String, required: true },
+    value: { type: String, required: true },
+    disabled: { type: Boolean, required: false, default: false },
   },
   data() {
     return {

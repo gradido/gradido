@@ -6,7 +6,7 @@ import {
   DeleteDateColumn,
   OneToOne,
 } from 'typeorm'
-import { User } from './User'
+import { User } from '../User'
 
 @Entity('user_contacts', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class UserContact extends BaseEntity {
