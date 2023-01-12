@@ -70,11 +70,13 @@ const email = {
   EMAIL: process.env.EMAIL === 'true' || false,
   EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true' || false,
   EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER || 'stage1@gradido.net',
-  EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'gradido_email',
+  EMAIL_USERNAME: process.env.EMAIL_USERNAME || '',
   EMAIL_SENDER: process.env.EMAIL_SENDER || 'info@gradido.net',
-  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'xxx',
-  EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
-  EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
+  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || '',
+  EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'mailserver',
+  EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '1025',
+  // eslint-disable-next-line no-unneeded-ternary
+  EMAIL_TLS: process.env.EMAIL_TLS === 'false' ? false : true,
   EMAIL_LINK_VERIFICATION:
     process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{optin}{code}',
   EMAIL_LINK_SETPASSWORD:
