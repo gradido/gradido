@@ -48,6 +48,7 @@ export default {
               },
             })
             .then((result) => {
+              this.updatePendingCreations(item.id)
               this.toastSuccess(this.$t('creation_form.toasted_rejected'))
             })
             .catch((error) => {
