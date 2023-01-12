@@ -38,6 +38,7 @@
     "enter_text": "Enter text",
     "form": "Creation form",
     "min_characters": "Enter at least 10 characters",
+    "rejectNow": "Do you really want to deny this contribution to the community?",
     "reset": "Reset",
     "select_month": "Select month",
     "select_value": "Select amount",
@@ -45,6 +46,7 @@
     "toasted": "Open creation ({value} GDD) for {email} has been saved and is ready for confirmation.",
     "toasted_created": "Creation has been successfully saved",
     "toasted_delete": "Open creation has been deleted",
+    "toasted_rejected": "Open creation has been deny",
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
   },
@@ -54,6 +56,7 @@
   "deleted": "deleted",
   "deleted_user": "All deleted user",
   "delete_user": "Delete user",
+  "deny": "Refuse",
   "edit": "Edit",
   "enabled": "enabled",
   "error": "Error",
