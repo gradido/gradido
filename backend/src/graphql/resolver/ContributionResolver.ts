@@ -555,108 +555,116 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const contribution = await DbContribution.findOne(id)
-    if (!contribution) {
-      logger.error(`Contribution not found for given id: ${id}`)
-      throw new Error('Contribution not found to given id.')
-    }
-    const moderatorUser = getUser(context)
-    if (moderatorUser.id === contribution.userId) {
-      logger.error('Moderator can not confirm own contribution')
-      throw new Error('Moderator can not confirm own contribution')
-    }
-    const user = await DbUser.findOneOrFail(
-      { id: contribution.userId },
-      { withDeleted: true, relations: ['emailContact'] },
-    )
-    if (user.deletedAt) {
-      logger.error('This user was deleted. Cannot confirm a contribution.')
-      throw new Error('This user was deleted. Cannot confirm a contribution.')
-    }
-    const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
-    validateContribution(
-      creations,
-      contribution.amount,
-      contribution.contributionDate,
-      clientTimezoneOffset,
-    )
-
     // acquire lock
     const releaseLock = await TRANSACTIONS_LOCK.acquire()
 
-    const receivedCallDate = new Date()
-    const queryRunner = getConnection().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
     try {
-      const lastTransaction = await queryRunner.manager
-        .createQueryBuilder()
-        .select('transaction')
-        .from(DbTransaction, 'transaction')
-        .where('transaction.userId = :id', { id: contribution.userId })
-        .orderBy('transaction.id', 'DESC')
-        .getOne()
-      logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
-
-      let newBalance = new Decimal(0)
-      let decay: Decay | null = null
-      if (lastTransaction) {
-        decay = calculateDecay(
-          lastTransaction.balance,
-          lastTransaction.balanceDate,
-          receivedCallDate,
-        )
-        newBalance = decay.balance
+      const clientTimezoneOffset = getClientTimezoneOffset(context)
+      const contribution = await DbContribution.findOne(id)
+      if (!contribution) {
+        logger.error(`Contribution not found for given id: ${id}`)
+        throw new Error('Contribution not found to given id.')
       }
-      newBalance = newBalance.add(contribution.amount.toString())
+      if (contribution.confirmedAt) {
+        logger.error(`Contribution already confirmd: ${id}`)
+        throw new Error('Contribution already confirmd.')
+      }
+      const moderatorUser = getUser(context)
+      if (moderatorUser.id === contribution.userId) {
+        logger.error('Moderator can not confirm own contribution')
+        throw new Error('Moderator can not confirm own contribution')
+      }
+      const user = await DbUser.findOneOrFail(
+        { id: contribution.userId },
+        { withDeleted: true, relations: ['emailContact'] },
+      )
+      if (user.deletedAt) {
+        logger.error('This user was deleted. Cannot confirm a contribution.')
+        throw new Error('This user was deleted. Cannot confirm a contribution.')
+      }
+      const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
+      validateContribution(
+        creations,
+        contribution.amount,
+        contribution.contributionDate,
+        clientTimezoneOffset,
+      )
 
-      const transaction = new DbTransaction()
-      transaction.typeId = TransactionTypeId.CREATION
-      transaction.memo = contribution.memo
-      transaction.userId = contribution.userId
-      transaction.previous = lastTransaction ? lastTransaction.id : null
-      transaction.amount = contribution.amount
-      transaction.creationDate = contribution.contributionDate
-      transaction.balance = newBalance
-      transaction.balanceDate = receivedCallDate
-      transaction.decay = decay ? decay.decay : new Decimal(0)
-      transaction.decayStart = decay ? decay.start : null
-      await queryRunner.manager.insert(DbTransaction, transaction)
+      const receivedCallDate = new Date()
+      const queryRunner = getConnection().createQueryRunner()
+      await queryRunner.connect()
+      await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
+      try {
+        const lastTransaction = await queryRunner.manager
+          .createQueryBuilder()
+          .select('transaction')
+          .from(DbTransaction, 'transaction')
+          .where('transaction.userId = :id', { id: contribution.userId })
+          .orderBy('transaction.id', 'DESC')
+          .getOne()
+        logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
 
-      contribution.confirmedAt = receivedCallDate
-      contribution.confirmedBy = moderatorUser.id
-      contribution.transactionId = transaction.id
-      contribution.contributionStatus = ContributionStatus.CONFIRMED
-      await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
+        let newBalance = new Decimal(0)
+        let decay: Decay | null = null
+        if (lastTransaction) {
+          decay = calculateDecay(
+            lastTransaction.balance,
+            lastTransaction.balanceDate,
+            receivedCallDate,
+          )
+          newBalance = decay.balance
+        }
+        newBalance = newBalance.add(contribution.amount.toString())
 
-      await queryRunner.commitTransaction()
-      logger.info('creation commited successfuly.')
-      sendContributionConfirmedEmail({
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.emailContact.email,
-        language: user.language,
-        senderFirstName: moderatorUser.firstName,
-        senderLastName: moderatorUser.lastName,
-        contributionMemo: contribution.memo,
-        contributionAmount: contribution.amount,
-      })
-    } catch (e) {
-      await queryRunner.rollbackTransaction()
-      logger.error('Creation was not successful', e)
-      throw new Error('Creation was not successful.')
+        const transaction = new DbTransaction()
+        transaction.typeId = TransactionTypeId.CREATION
+        transaction.memo = contribution.memo
+        transaction.userId = contribution.userId
+        transaction.previous = lastTransaction ? lastTransaction.id : null
+        transaction.amount = contribution.amount
+        transaction.creationDate = contribution.contributionDate
+        transaction.balance = newBalance
+        transaction.balanceDate = receivedCallDate
+        transaction.decay = decay ? decay.decay : new Decimal(0)
+        transaction.decayStart = decay ? decay.start : null
+        await queryRunner.manager.insert(DbTransaction, transaction)
+
+        contribution.confirmedAt = receivedCallDate
+        contribution.confirmedBy = moderatorUser.id
+        contribution.transactionId = transaction.id
+        contribution.contributionStatus = ContributionStatus.CONFIRMED
+        await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
+
+        await queryRunner.commitTransaction()
+        logger.info('creation commited successfuly.')
+        sendContributionConfirmedEmail({
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.emailContact.email,
+          language: user.language,
+          senderFirstName: moderatorUser.firstName,
+          senderLastName: moderatorUser.lastName,
+          contributionMemo: contribution.memo,
+          contributionAmount: contribution.amount,
+        })
+      } catch (e) {
+        await queryRunner.rollbackTransaction()
+        logger.error('Creation was not successful', e)
+        throw new Error('Creation was not successful.')
+      } finally {
+        await queryRunner.release()
+      }
+
+      const event = new Event()
+      const eventContributionConfirm = new EventContributionConfirm()
+      eventContributionConfirm.userId = user.id
+      eventContributionConfirm.amount = contribution.amount
+      eventContributionConfirm.contributionId = contribution.id
+      await eventProtocol.writeEvent(event.setEventContributionConfirm(eventContributionConfirm))
     } finally {
-      await queryRunner.release()
       releaseLock()
     }
 
-    const event = new Event()
-    const eventContributionConfirm = new EventContributionConfirm()
-    eventContributionConfirm.userId = user.id
-    eventContributionConfirm.amount = contribution.amount
-    eventContributionConfirm.contributionId = contribution.id
-    await eventProtocol.writeEvent(event.setEventContributionConfirm(eventContributionConfirm))
     return true
   }
 
