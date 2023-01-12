@@ -58,6 +58,7 @@
                           :placeholder="$t('form.email')"
                           v-model="form.email"
                           :disabled="isBalanceDisabled"
+                          @onValidation="onValidation"
                         />
                       </div>
                     </b-col>
@@ -142,6 +143,9 @@ export default {
     }
   },
   methods: {
+    onValidation() {
+      this.$refs.formValidator.validate()
+    },
     onSubmit() {
       this.$emit('set-transaction', {
         selected: this.radioSelected,
@@ -155,6 +159,7 @@ export default {
       this.form.email = ''
       this.form.amount = ''
       this.form.memo = ''
+      this.$refs.formValidator.validate()
     },
     setNewRecipientEmail() {
       this.form.email = this.recipientEmail ? this.recipientEmail : this.form.email
@@ -178,6 +183,9 @@ export default {
   },
   created() {
     this.setNewRecipientEmail()
+  },
+  mounted() {
+    if (this.form.email !== '') this.$refs.formValidator.validate()
   },
 }
 </script>

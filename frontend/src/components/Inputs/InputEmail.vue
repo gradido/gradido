@@ -63,7 +63,10 @@ export default {
       this.$emit('input', this.currentValue)
     },
     value() {
-      if (this.value !== this.currentValue) this.currentValue = this.value
+      if (this.value !== this.currentValue) {
+        this.currentValue = this.value
+      }
+      this.$emit('onValidation')
     },
   },
   methods: {
