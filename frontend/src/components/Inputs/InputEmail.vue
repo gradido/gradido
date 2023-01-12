@@ -21,6 +21,7 @@
         @focus="emailFocused = true"
         @blur="normalizeEmail()"
         :disabled="disabled"
+        autocomplete="off"
       ></b-form-input>
       <b-form-invalid-feedback v-bind="ariaMsg">
         {{ errors[0] }}
