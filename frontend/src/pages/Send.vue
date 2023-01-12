@@ -171,7 +171,6 @@ export default {
     },
     onBack() {
       this.currentTransactionStep = TRANSACTION_STEPS.transactionForm
-      this.$mount()
     },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
