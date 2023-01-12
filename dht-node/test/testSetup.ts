@@ -1,9 +1,4 @@
-import CONFIG from '@/config'
-import { backendLogger as logger } from '@/server/logger'
-import { i18n } from '@/server/localization'
-
-CONFIG.EMAIL = true
-CONFIG.EMAIL_TEST_MODUS = false
+import { logger } from '@/server/logger'
 
 jest.setTimeout(1000000)
 
@@ -12,7 +7,7 @@ jest.mock('@/server/logger', () => {
   return {
     __esModule: true,
     ...originalModule,
-    backendLogger: {
+    logger: {
       addContext: jest.fn(),
       trace: jest.fn(),
       debug: jest.fn(),
@@ -24,18 +19,4 @@ jest.mock('@/server/logger', () => {
   }
 })
 
-jest.mock('@/server/localization', () => {
-  const originalModule = jest.requireActual('@/server/localization')
-  return {
-    __esModule: true,
-    ...originalModule,
-    i18n: {
-      init: jest.fn(),
-      // configure: jest.fn(),
-      // __: jest.fn(),
-      // setLocale: jest.fn(),
-    },
-  }
-})
-
-export { logger, i18n }
+export { logger }

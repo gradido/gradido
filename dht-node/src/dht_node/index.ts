@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import DHT from '@hyperswarm/dht'
-import { federationLogger as logger } from '@/server/logger'
+import { logger } from '@/server/logger'
 import CONFIG from '@/config'
 import { Community as DbCommunity } from '@entity/Community'
 
@@ -155,7 +155,7 @@ export const startDHT = async (topic: string): Promise<void> => {
         })
       }
 
-      if(collectedPubKeys.length){
+      if (collectedPubKeys.length) {
         logger.info(`Found new peers: ${collectedPubKeys}`)
       }
 

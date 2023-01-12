@@ -5,7 +5,7 @@ import { createTestClient } from 'apollo-server-testing'
 import createServer from '../src/server/createServer'
 import { initialize } from '@dbTools/helpers'
 import { entities } from '@entity/index'
-import { i18n, logger } from './testSetup'
+import { logger } from './testSetup'
 
 export const headerPushMock = jest.fn((t) => {
   context.token = t.value
@@ -27,8 +27,8 @@ export const cleanDB = async () => {
   }
 }
 
-export const testEnvironment = async (testLogger: any = logger, testI18n: any = i18n) => {
-  const server = await createServer(context, testLogger, testI18n)
+export const testEnvironment = async (testLogger: any = logger) => {
+  const server = await createServer(testLogger)
   const con = server.con
   const testClient = createTestClient(server.apollo)
   const mutate = testClient.mutate

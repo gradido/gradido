@@ -5,31 +5,24 @@ import { readFileSync } from 'fs'
 
 const options = JSON.parse(readFileSync(CONFIG.LOG4JS_CONFIG, 'utf-8'))
 
-options.categories.backend.level = CONFIG.LOG_LEVEL
+options.categories.dht.level = CONFIG.LOG_LEVEL
 options.categories.apollo.level = CONFIG.LOG_LEVEL
-let filename: string = options.appenders.federation.filename
-if (CONFIG.FEDERATION_DHT_TOPIC) {
-  options.appenders.federation.filename = filename
-    .replace('apiversion-%v', 'dht-' + CONFIG.FEDERATION_DHT_TOPIC)
-    .replace('%p', CONFIG.PORT.toString())
-} else {
-  options.appenders.federation.filename = filename.replace('%p', CONFIG.PORT.toString())
-}
+let filename: string = options.appenders.dht.filename
+options.appenders.dht.filename = filename
+  .replace('apiversion-%v', 'dht-' + CONFIG.FEDERATION_DHT_TOPIC)
+  .replace('%p', CONFIG.PORT.toString())
 filename = options.appenders.access.filename
 options.appenders.access.filename = filename.replace('%p', CONFIG.PORT.toString())
 filename = options.appenders.apollo.filename
 options.appenders.apollo.filename = filename.replace('%p', CONFIG.PORT.toString())
-filename = options.appenders.backend.filename
-options.appenders.backend.filename = filename.replace('%p', CONFIG.PORT.toString())
 filename = options.appenders.errorFile.filename
 options.appenders.errorFile.filename = filename.replace('%p', CONFIG.PORT.toString())
 
 log4js.configure(options)
 
 const apolloLogger = log4js.getLogger('apollo')
-// const backendLogger = log4js.getLogger('backend')
-const federationLogger = log4js.getLogger('federation')
+const logger = log4js.getLogger('dht')
 
 // backendLogger.addContext('user', 'unknown')
 
-export { apolloLogger, federationLogger }
+export { apolloLogger, logger }

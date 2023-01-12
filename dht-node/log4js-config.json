@@ -4,7 +4,7 @@
     "access": 
     {
       "type": "dateFile",
-      "filename": "../logs/federation/access-%p.log",
+      "filename": "../logs/dht/access-%p.log",
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
@@ -17,7 +17,7 @@
     "apollo": 
     {
       "type": "dateFile",
-      "filename": "../logs/federation/apollo-%p.log",
+      "filename": "../logs/dht/apollo-%p.log",
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
@@ -27,23 +27,10 @@
       "fileNameSep" : "_",
       "numBackups" : 30
     },
-    "backend": 
+    "dht": 
     {
       "type": "dateFile",
-      "filename": "../logs/federation/backend-%p.log",
-      "pattern": "yyyy-MM-dd",
-      "layout": 
-      {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
-      },
-      "keepFileExt" : true,
-      "fileNameSep" : "_",
-      "numBackups" : 30
-    },
-    "federation": 
-    {
-      "type": "dateFile",
-      "filename": "../logs/federation/apiversion-%v-%p.log",
+      "filename": "../logs/dht/apiversion-%v-%p.log",
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
@@ -56,7 +43,7 @@
     "errorFile": 
     {
       "type": "dateFile",
-      "filename": "../logs/federation/errors-%p.log",
+      "filename": "../logs/dht/errors-%p.log",
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
@@ -112,22 +99,11 @@
       "level": "debug",
       "enableCallStack": true
     },
-    "backend":
+    "dht":
     {
       "appenders":
       [
-        "backend",
-        "out",
-        "errors"
-      ],
-      "level": "debug",
-      "enableCallStack": true
-    },
-    "federation":
-    {
-      "appenders":
-      [
-        "federation",
+        "dht",
         "out",
         "errors"
       ],
