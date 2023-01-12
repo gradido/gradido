@@ -34,7 +34,7 @@
           <b-icon
             :icon="hideAmount ? 'eye-slash' : 'eye'"
             class="mr-3 gradido-global-border-color-accent pointer hover-icon"
-            @click="$store.commit('hideAmountGDT', !hideAmount)"
+            @click="updateHideAmountGDT"
           ></b-icon>
         </b-col>
       </b-row>
@@ -42,6 +42,8 @@
   </div>
 </template>
 <script>
+import { updateUserInfos } from '@/graphql/mutations'
+
 export default {
   name: 'GdtAmount',
   props: {
@@ -52,6 +54,28 @@ export default {
   computed: {
     hideAmount() {
       return this.$store.state.hideAmountGDT
+    },
+  },
+  methods: {
+    async updateHideAmountGDT() {
+      this.$apollo
+        .mutate({
+          mutation: updateUserInfos,
+          variables: {
+            hideAmountGDT: !this.hideAmount,
+          },
+        })
+        .then(() => {
+          this.$store.commit('hideAmountGDT', !this.hideAmount)
+          if (!this.hideAmount) {
+            this.toastSuccess(this.$t('settings.showAmountGDT'))
+          } else {
+            this.toastSuccess(this.$t('settings.hideAmountGDT'))
+          }
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+        })
     },
   },
 }

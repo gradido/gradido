@@ -76,7 +76,7 @@ describe('Login', () => {
       })
 
       it('has an Email input field', () => {
-        expect(wrapper.find('input[placeholder="Email"]').exists()).toBe(true)
+        expect(wrapper.find('div[data-test="input-email"]').find('input').exists()).toBe(true)
       })
 
       it('has an Password input field', () => {
@@ -110,7 +110,10 @@ describe('Login', () => {
       describe('valid data', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
-          await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+          await wrapper
+            .find('div[data-test="input-email"]')
+            .find('input')
+            .setValue('user@example.org')
           await wrapper.find('input[placeholder="form.password"]').setValue('1234')
           await flushPromises()
           apolloMutateMock.mockResolvedValue({
@@ -159,7 +162,10 @@ describe('Login', () => {
                 code: 'some-code',
               }
               wrapper = Wrapper()
-              await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+              await wrapper
+                .find('div[data-test="input-email"]')
+                .find('input')
+                .setValue('user@example.org')
               await wrapper.find('input[placeholder="form.password"]').setValue('1234')
               await flushPromises()
               await wrapper.find('form').trigger('submit')
@@ -180,7 +186,10 @@ describe('Login', () => {
           })
           wrapper = Wrapper()
           jest.clearAllMocks()
-          await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+          await wrapper
+            .find('div[data-test="input-email"]')
+            .find('input')
+            .setValue('user@example.org')
           await wrapper.find('input[placeholder="form.password"]').setValue('1234')
           await flushPromises()
           await wrapper.find('form').trigger('submit')
