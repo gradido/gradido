@@ -35,7 +35,87 @@
                     :balance="balance"
                     :GdtBalance="GdtBalance"
                     :totalUsers="totalUsers"
-                  />
+                  >
+                    <template #overview>
+                      <b-row>
+                        <b-col cols="12" lg="5">
+                          <div>
+                            <gdd-amount :balance="balance" :showStatus="false" :badgeShow="false" />
+                          </div>
+                        </b-col>
+                        <b-col cols="12" lg="7">
+                          <div>
+                            <community-member :totalUsers="totalUsers" />
+                          </div>
+                        </b-col>
+                      </b-row>
+                    </template>
+                    <template #send>
+                      <b-row>
+                        <b-col cols="12" lg="6">
+                          <div>
+                            <gdd-amount
+                              :balance="balance"
+                              :badge="true"
+                              :showStatus="true"
+                              :badgeShow="false"
+                            />
+                          </div>
+                        </b-col>
+                        <b-col cols="12" lg="6">
+                          <div>
+                            <router-link to="gdt">
+                              <gdt-amount :GdtBalance="GdtBalance" :badgeShow="false" />
+                            </router-link>
+                          </div>
+                        </b-col>
+                      </b-row>
+                    </template>
+                    <template #transactions>
+                      <b-row>
+                        <b-col cols="12" lg="6">
+                          <div>
+                            <router-link to="transactions">
+                              <gdd-amount :balance="balance" :showStatus="true" />
+                            </router-link>
+                          </div>
+                        </b-col>
+                        <b-col cols="12" lg="6">
+                          <div>
+                            <router-link to="gdt">
+                              <gdt-amount :GdtBalance="GdtBalance" />
+                            </router-link>
+                          </div>
+                        </b-col>
+                      </b-row>
+                    </template>
+                    <template #gdt>
+                      <b-row>
+                        <b-col cols="12" lg="6">
+                          <div>
+                            <router-link to="transactions">
+                              <gdd-amount :balance="balance" :showStatus="false" />
+                            </router-link>
+                          </div>
+                        </b-col>
+                        <b-col cols="12" lg="6">
+                          <div>
+                            <router-link to="gdt">
+                              <gdt-amount
+                                :badge="true"
+                                :showStatus="true"
+                                :GdtBalance="GdtBalance"
+                              />
+                            </router-link>
+                          </div>
+                        </b-col>
+                      </b-row>
+                    </template>
+                    <template #community>
+                      <nav-community />
+                    </template>
+                    <template #settings></template>
+                  </content-header>
                 </b-col>
               </b-row>
             </b-col>
@@ -46,7 +126,32 @@
                 :transactionCount="transactionCount"
                 :transactionLinkCount="transactionLinkCount"
                 @set-tunneled-email="setTunneledEmail"
-              />
+              >
+                <template #transactions>
+                  <b-container>
+                    <b-row>
+                      <b-col>
+                        <div>
+                          <last-transactions
+                            :transactions="transactions"
+                            :transactionCount="transactionCount"
+                            :transactionLinkCount="transactionLinkCount"
+                            v-on="$listeners"
+                          />
+                        </div>
+                      </b-col>
+                    </b-row>
+                  </b-container>
+                </template>
+                <template #community>
+                  <b-container>
+                    <contribution-info />
+                  </b-container>
+                </template>
+                <template #empty>
+                  <b-container />
+                </template>
+              </right-side>
             </b-col>
             <b-col cols="12">
               <!-- router-view -->
@@ -75,7 +180,32 @@
             :transactionCount="transactionCount"
             :transactionLinkCount="transactionLinkCount"
             @set-tunneled-email="setTunneledEmail"
-          />
+          >
+            <template #transactions>
+              <b-container>
+                <b-row>
+                  <b-col>
+                    <div>
+                      <last-transactions
+                        :transactions="transactions"
+                        :transactionCount="transactionCount"
+                        :transactionLinkCount="transactionLinkCount"
+                        v-on="$listeners"
+                      />
+                    </div>
+                  </b-col>
+                </b-row>
+              </b-container>
+            </template>
+            <template #community>
+              <b-container>
+                <contribution-info />
+              </b-container>
+            </template>
+            <template #empty>
+              <b-container />
+            </template>
+          </right-side>
         </b-col>
       </b-row>
       <b-row>
@@ -102,6 +232,12 @@ import { logout } from '@/graphql/mutations'
 import ContentFooter from '@/components/ContentFooter.vue'
 import { FadeTransition } from 'vue2-transitions'
 import CONFIG from '@/config'
+import GddAmount from '@/components/Template/ContentHeader/GddAmount.vue'
+import GdtAmount from '@/components/Template/ContentHeader/GdtAmount.vue'
+import CommunityMember from '@/components/Template/ContentHeader/CommunityMember.vue'
+import NavCommunity from '@/components/Template/ContentHeader/NavCommunity.vue'
+import LastTransactions from '@/components/Template/RightSide/LastTransactions.vue'
+import ContributionInfo from '@/components/Template/RightSide/ContributionInfo.vue'
 
 export default {
   name: 'DashboardLayout',
@@ -116,6 +252,12 @@ export default {
     ContentFooter,
     FadeTransition,
     Breadcrumb,
+    GddAmount,
+    GdtAmount,
+    CommunityMember,
+    NavCommunity,
+    LastTransactions,
+    ContributionInfo,
   },
   data() {
     return {
