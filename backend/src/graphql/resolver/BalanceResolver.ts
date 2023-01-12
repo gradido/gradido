@@ -32,7 +32,7 @@ export class BalanceResolver {
 
     const lastTransaction = context.lastTransaction
       ? context.lastTransaction
-      : await dbTransaction.findOne({ userId: user.id }, { order: { balanceDate: 'DESC' } })
+      : await dbTransaction.findOne({ userId: user.id }, { order: { id: 'DESC' } })
 
     logger.debug(`lastTransaction=${lastTransaction}`)
 
