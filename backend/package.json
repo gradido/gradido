@@ -31,7 +31,6 @@
     "express": "^4.17.1",
     "graphql": "^15.5.1",
     "i18n": "^0.15.1",
-    "jest": "^27.2.4",
     "jsonwebtoken": "^8.5.1",
     "lodash.clonedeep": "^4.5.0",
     "log4js": "^6.4.6",
