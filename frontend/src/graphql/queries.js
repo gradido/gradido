@@ -14,6 +14,8 @@ export const verifyLogin = gql`
       publisherId
       isAdmin
       creation
+      hideAmountGDD
+      hideAmountGDT
     }
   }
 `
@@ -210,12 +212,6 @@ export const communityStatistics = gql`
   query {
     communityStatistics {
       totalUsers
-      activeUsers
-      deletedUsers
-      totalGradidoCreated
-      totalGradidoDecayed
-      totalGradidoAvailable
-      totalGradidoUnbookedDecayed
     }
   }
 `

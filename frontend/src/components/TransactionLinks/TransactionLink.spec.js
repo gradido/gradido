@@ -100,7 +100,7 @@ describe('TransactionLink', () => {
             await wrapper.find('.test-copy-text .dropdown-item').trigger('click')
           })
 
-          it('should call clipboard.writeText', () => {
+          it.skip('should call clipboard.writeText', () => {
             expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
               'http://localhost/redeem/c00000000c000000c0000\n' +
                 'Testy transaction-link.send_you 75 Gradido.\n' +

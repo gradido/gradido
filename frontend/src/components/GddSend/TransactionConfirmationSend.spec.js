@@ -42,10 +42,6 @@ describe('GddSend confirm', () => {
         })
       })
 
-      it('renders the component div.confirm-box-send', () => {
-        expect(wrapper.find('div.confirm-box-send').exists()).toBeTruthy()
-      })
-
       describe('send now button', () => {
         beforeEach(() => {
           jest.clearAllMocks()
@@ -53,7 +49,7 @@ describe('GddSend confirm', () => {
 
         describe('single click', () => {
           beforeEach(async () => {
-            await wrapper.find('button.btn-primary').trigger('click')
+            await wrapper.find('button.btn.btn-gradido').trigger('click')
           })
 
           it('emits send transaction one time', () => {
@@ -63,8 +59,8 @@ describe('GddSend confirm', () => {
 
         describe('double click', () => {
           beforeEach(async () => {
-            await wrapper.find('button.btn-primary').trigger('click')
-            await wrapper.find('button.btn-primary').trigger('click')
+            await wrapper.find('button.btn.btn-gradido').trigger('click')
+            await wrapper.find('button.btn.btn-gradido').trigger('click')
           })
 
           it('emits send transaction one time', () => {

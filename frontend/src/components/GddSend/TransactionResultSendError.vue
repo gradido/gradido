@@ -1,35 +1,29 @@
 <template>
-  <b-container>
-    <b-row>
-      <b-col>
-        <b-card class="p-0 gradido-custom-background">
-          <div class="p-4 gradido-font-15rem">
-            <div>{{ $t('form.sorry') }}</div>
-            <hr />
+  <div class="bg-white appBoxShadow gradido-border-radius p-4">
+    <div>
+      <div class="gradido-font-15rem">{{ $t('form.sorry') }}</div>
+      <hr />
 
-            <div class="test-send_transaction_error">{{ $t('form.send_transaction_error') }}</div>
+      <div class="test-send_transaction_error">{{ $t('form.send_transaction_error') }}</div>
 
-            <hr />
-            <div class="test-receiver-not-found" v-if="errorResult === 'recipient not known'">
-              {{ $t('transaction.receiverNotFound') }}
-            </div>
-            <div
-              class="test-receiver-not-found"
-              v-if="errorResult === 'GraphQL error: The recipient account was deleted'"
-            >
-              {{ $t('transaction.receiverDeleted') }}
-            </div>
-            <div v-else>{{ errorResult }}</div>
-          </div>
-          <p class="text-center mt-3">
-            <b-button variant="secondary" @click="$emit('on-reset')">
-              {{ $t('form.close') }}
-            </b-button>
-          </p>
-        </b-card>
-      </b-col>
-    </b-row>
-  </b-container>
+      <hr />
+      <div class="test-receiver-not-found" v-if="errorResult === 'recipient not known'">
+        {{ $t('transaction.receiverNotFound') }}
+      </div>
+      <div
+        class="test-receiver-not-found"
+        v-if="errorResult === 'GraphQL error: The recipient account was deleted'"
+      >
+        {{ $t('transaction.receiverDeleted') }}
+      </div>
+      <div v-else>{{ errorResult }}</div>
+    </div>
+    <p class="text-center mt-5">
+      <b-button variant="secondary" @click="$emit('on-reset')">
+        {{ $t('form.close') }}
+      </b-button>
+    </p>
+  </div>
 </template>
 <script>
 export default {

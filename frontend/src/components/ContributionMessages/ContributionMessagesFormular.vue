@@ -1,5 +1,6 @@
 <template>
   <div class="contribution-messages-formular">
+    <small class="pl-2 pt-3">{{ $t('form.reply') }}</small>
     <div>
       <b-form @submit.prevent="onSubmit" @reset="onReset">
         <b-form-textarea
@@ -8,12 +9,12 @@
           :placeholder="$t('form.memo')"
           rows="3"
         ></b-form-textarea>
-        <b-row class="mt-4 mb-6">
+        <b-row class="mt-4 mb-4">
           <b-col>
-            <b-button type="reset" variant="danger">{{ $t('form.cancel') }}</b-button>
+            <b-button type="reset" variant="secondary">{{ $t('form.cancel') }}</b-button>
           </b-col>
           <b-col class="text-right">
-            <b-button type="submit" variant="primary" :disabled="disabled">
+            <b-button type="submit" variant="gradido" :disabled="disabled">
               {{ $t('form.reply') }}
             </b-button>
           </b-col>

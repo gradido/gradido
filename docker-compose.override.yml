@@ -135,6 +135,17 @@ services:
     volumes:
      - /sessions
 
+  ########################################################
+  # MAILSERVER TO FAKE SMTP ##############################
+  ########################################################
+  mailserver:
+    image: maildev/maildev
+    ports:
+      - 1080:1080
+      - 1025:1025
+    networks:
+      - external-net
+
 volumes:
   frontend_node_modules:
   admin_node_modules:

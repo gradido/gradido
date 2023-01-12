@@ -58,11 +58,11 @@ describe('ForgotPassword', () => {
       })
 
       it('has the label "Email"', () => {
-        expect(form.find('label').text()).toEqual('Email')
+        expect(form.find('label').text()).toEqual('form.email')
       })
 
       it('has the placeholder "Email"', () => {
-        expect(form.find('input').attributes('placeholder')).toEqual('Email')
+        expect(form.find('input').attributes('placeholder')).toEqual('form.email')
       })
 
       it('has a submit button', () => {
