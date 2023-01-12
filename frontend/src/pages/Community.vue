@@ -5,8 +5,8 @@
         <b-tab no-body>
           <open-creations-amount
             :minimalDate="minimalDate"
-            :maxGddThisMonth="maxGddThisMonth"
-            :maxGddLastMonth="maxGddLastMonth"
+            :maxGddLastMonth="maxForMonths[0]"
+            :maxGddThisMonth="maxForMonths[1]"
           />
           <div class="mb-3"></div>
           <contribution-form
@@ -15,8 +15,8 @@
             v-model="form"
             :isThisMonth="isThisMonth"
             :minimalDate="minimalDate"
-            :maxGddLastMonth="maxGddLastMonth"
-            :maxGddThisMonth="maxGddThisMonth"
+            :maxGddLastMonth="maxForMonths[0]"
+            :maxGddThisMonth="maxForMonths[1]"
           />
         </b-tab>
         <b-tab no-body>
@@ -137,21 +137,20 @@ export default {
         formDate.getMonth() === this.maximalDate.getMonth()
       )
     },
-    maxGddLastMonth() {
+    amountToAdd() {
       // when existing contribution is edited, the amount is added back on top of the amount
-      if (this.openCreations && this.openCreations.length)
-        return this.form.id && !this.isThisMonth
-          ? parseInt(this.openCreations[1].amount) + parseInt(this.updateAmount)
-          : parseInt(this.openCreations[1].amount)
+      if (this.form.id) return parseInt(this.updateAmount)
       return 0
     },
-    maxGddThisMonth() {
-      // when existing contribution is edited, the amount is added back on top of the amount
+    maxForMonths() {
+      const formDate = new Date(this.form.date)
       if (this.openCreations && this.openCreations.length)
-        return this.form.id && this.isThisMonth
-          ? parseInt(this.openCreations[2].amount) + parseInt(this.updateAmount)
-          : parseInt(this.openCreations[2].amount)
-      return 0
+        return this.openCreations.slice(1).map((creation) => {
+          if (creation.year === formDate.getFullYear() && creation.month === formDate.getMonth())
+            return parseInt(creation.amount) + this.amountToAdd
+          return parseInt(creation.amount)
+        })
+      return [0, 0]
     },
   },
   methods: {
