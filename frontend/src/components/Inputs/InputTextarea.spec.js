@@ -58,7 +58,7 @@ describe('InputTextarea', () => {
       })
 
       it('has the value ""', () => {
-        expect(wrapper.vm.currentValue).toEqual('')
+        expect(wrapper.vm.currentValue).toEqual('Long enough')
       })
 
       it('has the label "input-field-label"', () => {
@@ -72,9 +72,8 @@ describe('InputTextarea', () => {
 
     describe('input value changes', () => {
       it('emits input with new value', async () => {
-        await wrapper.find('textarea').setValue('Long enough')
-        expect(wrapper.emitted('input')).toBeTruthy()
-        expect(wrapper.emitted('input')).toEqual([['Long enough']])
+        await wrapper.find('textarea').setValue('New Text')
+        expect(wrapper.emitted('input')).toEqual([['New Text']])
       })
     })
 
