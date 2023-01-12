@@ -6,7 +6,12 @@
         <b-col>
           <validation-observer ref="observer" v-slot="{ handleSubmit }">
             <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
-              <input-email v-model="form.email"></input-email>
+              <input-email
+                v-model="form.email"
+                :name="$t('form.email')"
+                :label="$t('form.email')"
+                :placeholder="$t('form.email')"
+              ></input-email>
               <div class="text-center">
                 <b-button type="submit" variant="gradido">
                   {{ $t('settings.password.send_now') }}

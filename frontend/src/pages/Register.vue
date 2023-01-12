@@ -59,7 +59,14 @@
             </b-col>
           </b-row>
           <b-row>
-            <b-col><input-email v-model="form.email"></input-email></b-col>
+            <b-col>
+              <input-email
+                v-model="form.email"
+                :name="$t('form.email')"
+                :label="$t('form.email')"
+                :placeholder="$t('form.email')"
+              ></input-email>
+            </b-col>
           </b-row>
           <div class="my-4">
             <b-form-checkbox
