@@ -62,12 +62,12 @@ CMD /bin/sh -c "cd /database && yarn install && yarn build && cd /app && yarn in
 ##################################################################################
 FROM base as build
 
-# Copy everything from backend
-COPY ./backend/ ./
+# Copy everything from dht-node
+COPY ./dht-node/ ./
 # Copy everything from database
 COPY ./database/ ../database/
 
-# yarn install backend
+# yarn install dht-node
 RUN yarn install --production=false --frozen-lockfile --non-interactive
 
 # yarn install database
