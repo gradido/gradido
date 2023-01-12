@@ -322,7 +322,7 @@ Die ganze Welt bezwingen.“`)
               [
                 {
                   email: 'someone@watches.tv',
-                  amount: '87.23',
+                  amount: 87.23,
                   memo: 'Long enough',
                   selected: 'send',
                 },

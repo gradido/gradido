@@ -6,7 +6,7 @@
       {{ $t('form.send_transaction_success') }}
     </div>
     <div class="text-center mt-5">
-      <b-button variant="primary" @click="$emit('on-reset')">{{ $t('form.close') }}</b-button>
+      <b-button variant="primary" @click="$emit('on-back')">{{ $t('form.close') }}</b-button>
     </div>
   </div>
 </template>

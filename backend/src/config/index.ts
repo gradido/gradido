@@ -10,7 +10,7 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0058-add_communities_table',
+  DB_VERSION: '0059-add_hide_amount_to_users',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
@@ -70,11 +70,13 @@ const email = {
   EMAIL: process.env.EMAIL === 'true' || false,
   EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true' || false,
   EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER || 'stage1@gradido.net',
-  EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'gradido_email',
+  EMAIL_USERNAME: process.env.EMAIL_USERNAME || '',
   EMAIL_SENDER: process.env.EMAIL_SENDER || 'info@gradido.net',
-  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'xxx',
-  EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
-  EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
+  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || '',
+  EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'mailserver',
+  EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '1025',
+  // eslint-disable-next-line no-unneeded-ternary
+  EMAIL_TLS: process.env.EMAIL_TLS === 'false' ? false : true,
   EMAIL_LINK_VERIFICATION:
     process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{optin}{code}',
   EMAIL_LINK_SETPASSWORD:
