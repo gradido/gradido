@@ -1,14 +1,14 @@
 // TODO This is super weird - since the entities are defined in another project they have their own globals.
 //      We cannot use our connection here, but must use the external typeorm installation
-import { Connection, createConnection, FileLogger } from "@dbTools/typeorm";
-import CONFIG from "@/config";
-import { entities } from "@entity/index";
+import { Connection, createConnection, FileLogger } from '@dbTools/typeorm'
+import CONFIG from '@/config'
+import { entities } from '@entity/index'
 
 const connection = async (): Promise<Connection | null> => {
   try {
     return createConnection({
-      name: "default",
-      type: "mysql",
+      name: 'default',
+      type: 'mysql',
       host: CONFIG.DB_HOST,
       port: CONFIG.DB_PORT,
       username: CONFIG.DB_USER,
@@ -17,18 +17,18 @@ const connection = async (): Promise<Connection | null> => {
       entities,
       synchronize: false,
       logging: true,
-      logger: new FileLogger("all", {
+      logger: new FileLogger('all', {
         logPath: CONFIG.TYPEORM_LOGGING_RELATIVE_PATH,
       }),
       extra: {
-        charset: "utf8mb4_unicode_ci",
+        charset: 'utf8mb4_unicode_ci',
       },
-    });
+    })
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.log(error);
-    return null;
+    console.log(error)
+    return null
   }
-};
+}
 
-export default connection;
+export default connection

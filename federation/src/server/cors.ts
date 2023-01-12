@@ -1,8 +1,8 @@
-import cors from "cors";
+import cors from 'cors'
 
 const corsOptions = {
-  origin: "*",
-  exposedHeaders: ["token"],
-};
+  origin: '*',
+  exposedHeaders: ['token'],
+}
 
-export default cors(corsOptions);
+export default cors(corsOptions)
