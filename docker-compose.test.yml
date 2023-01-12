@@ -81,6 +81,17 @@ services:
   nginx:
     image: gradido/nginx:test
 
+  ########################################################
+  # MAILSERVER TO FAKE SMTP ##############################
+  ########################################################
+  mailserver:
+    image: maildev/maildev
+    ports:
+      - 1080:1080
+      - 1025:1025
+    networks:
+      - external-net
+
 networks:
   external-net:
   internal-net:
