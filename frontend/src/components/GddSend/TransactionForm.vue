@@ -144,7 +144,7 @@ export default {
       this.$emit('set-transaction', {
         selected: this.radioSelected,
         email: this.form.email,
-        amount: this.form.amount,
+        amount: parseFloat(this.form.amount),
         memo: this.form.memo,
       })
     },
