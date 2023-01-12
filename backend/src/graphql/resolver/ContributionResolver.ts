@@ -709,13 +709,33 @@ export class ContributionResolver {
       )
       throw new Error(`State of the contribution is not allowed.`)
     }
-    const user = getUser(context)
+    const moderator = getUser(context)
+    const user = await DbUser.findOne(
+      { id: contributionToUpdate.userId },
+      { relations: ['emailContact'] },
+    )
+    if (!user) {
+      logger.error(
+        `Could not find User for the Contribution (userId: ${contributionToUpdate.userId}).`,
+      )
+      throw new Error('Could not find User for the Contribution.')
+    }
 
     contributionToUpdate.contributionStatus = ContributionStatus.DENIED
-    contributionToUpdate.deniedBy = user.id
+    contributionToUpdate.deniedBy = moderator.id
     contributionToUpdate.deniedAt = new Date()
-    await contributionToUpdate.save()
+    const res = await contributionToUpdate.save()
 
-    return true
+    sendContributionRejectedEmail({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.emailContact.email,
+      language: user.language,
+      senderFirstName: moderator.firstName,
+      senderLastName: moderator.lastName,
+      contributionMemo: contributionToUpdate.memo,
+    })
+
+    return !!res
   }
 }
