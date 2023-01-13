@@ -19,7 +19,7 @@
       <div v-else>{{ errorResult }}</div>
     </div>
     <p class="text-center mt-5">
-      <b-button variant="secondary" @click="$emit('on-reset')">
+      <b-button variant="secondary" @click="$emit('on-back')">
         {{ $t('form.close') }}
       </b-button>
     </p>
