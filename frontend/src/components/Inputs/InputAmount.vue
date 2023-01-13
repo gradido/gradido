@@ -22,6 +22,7 @@
           @focus="amountFocused = true"
           @blur="normalizeAmount(true)"
           :disabled="disabled"
+          autocomplete="off"
         ></b-form-input>
 
         <b-form-invalid-feedback v-bind="ariaMsg">
@@ -63,7 +64,7 @@ export default {
   },
   data() {
     return {
-      currentValue: '',
+      currentValue: this.value,
       amountValue: 0.0,
       amountFocused: false,
     }
