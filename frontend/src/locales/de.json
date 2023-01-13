@@ -1,9 +1,12 @@
 {
+  "(": "(",
+  ")": ")",
   "100": "100%",
   "1000thanks": "1000 Dank, weil du bei uns bist!",
   "125": "125%",
   "85": "85%",
   "advanced-calculation": "Vorausberechnung",
+  "asterisks": "****",
   "auth": {
     "left": {
       "dignity": "Würde",
@@ -19,18 +22,17 @@
   "community": {
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
     "community": "Gemeinschaft",
+    "communityMember": "Du bist aktives Mitglied",
     "continue-to-registration": "Weiter zur Registrierung",
-    "current-community": "Aktuelle Gemeinschaft",
     "moderator": "Moderator",
     "moderators": "Moderatoren",
-    "myContributions": "Meine Beiträge zum Gemeinwohl",
+    "myContributions": "Meine Beiträge",
     "noOpenContributionLinkText": "Zur Zeit gibt es keine automatischen Schöpfungen.",
     "openContributionLinks": "Öffentliche Beitrags-Linkliste",
     "openContributionLinkText": "Folgende {count} automatische Schöpfungen werden zur Zeit durch die Gemeinschaft „{name}“ bereitgestellt.",
-    "other-communities": "Weitere Gemeinschaften",
-    "submitContribution": "Beitrag einreichen",
-    "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
+    "submitContribution": "schreiben"
   },
+  "communityInfo": "Gemeinschaft Information",
   "contact": "Kontakt",
   "contribution": {
     "activity": "Tätigkeit",
@@ -43,9 +45,9 @@
       "pending": "Eingereicht und wartet auf Bestätigung",
       "rejected": "abgelehnt"
     },
-    "date": "Beitrag für:",
     "delete": "Beitrag löschen! Bist du sicher?",
     "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
+    "exhausted": "Für diesen Monat kannst du nichts mehr schöpfen.",
     "formText": {
       "bringYourTalentsTo": "Bring dich mit deinen Talenten in die Gemeinschaft ein! Dein freiwilliges Engagement honorieren wir mit 20 GDD pro Stunde bis maximal 1.000 GDD im Monat.",
       "describeYourCommunity": "Beschreibe deine Gemeinwohl-Tätigkeit mit Angabe der Stunden und trage einen Betrag von 20 GDD pro Stunde ein! Nach Bestätigung durch einen Moderator wird der Betrag deinem Konto gutgeschrieben.",
@@ -53,6 +55,7 @@
       "openAmountForMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen.",
       "yourContribution": "Dein Beitrag zum Gemeinwohl"
     },
+    "lastContribution": "Letzte Beiträge",
     "noDateSelected": "Wähle irgendein Datum im Monat",
     "selectDate": "Wann war dein Beitrag?",
     "submit": "Einreichen",
@@ -64,6 +67,8 @@
     "thanksYouWith": "dankt dir mit",
     "unique": "(einmalig)"
   },
+  "contributionText": "Beitragstext",
+  "creation": "Schöpfen",
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
     "calculation_decay": "Berechnung der Vergänglichkeit",
@@ -83,6 +88,7 @@
     }
   },
   "delete": "Löschen",
+  "edit": "bearbeiten",
   "em-dash": "—",
   "error": {
     "email-already-sent": "Wir haben dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",
@@ -120,8 +126,8 @@
     "firstname": "Vorname",
     "from": "Von",
     "generate_now": "Jetzt generieren",
+    "hours": "Stunden",
     "lastname": "Nachname",
-    "mandatoryField": "Pflichtfeld",
     "memo": "Nachricht",
     "message": "Nachricht",
     "new_balance": "Neuer Kontostand nach Bestätigung",
@@ -143,10 +149,10 @@
     "send_transaction_success": "Deine Transaktion wurde erfolgreich ausgeführt",
     "sorry": "Entschuldigung",
     "thx": "Danke",
-    "time": "Zeit",
     "to": "bis",
     "to1": "an",
     "validation": {
+      "gddCreationTime": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens einer Nachkommastelle sein",
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
       "is-not": "Du kannst dir selbst keine Gradidos überweisen",
       "usernmae-regex": "Der Username muss mit einem Buchstaben beginnen, auf den mindestens zwei alpha-numerische Zeichen folgen müssen.",
@@ -155,13 +161,13 @@
     "your_amount": "Dein Betrag"
   },
   "GDD": "GDD",
+  "gddKonto": "GDD Konto",
   "gdd_per_link": {
     "choose-amount": "Wähle einen Betrag aus, welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „Jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
     "copy-link": "Link kopieren",
     "copy-link-with-text": "Link und Text kopieren",
     "created": "Der Link wurde erstellt!",
     "credit-your-gradido": "Damit die Gradido gutgeschrieben werden können, klicke auf den Link!",
-    "decay-14-day": "Vergänglichkeit für 14 Tage",
     "delete-the-link": "Den Link löschen?",
     "deleted": "Der Link wurde gelöscht!",
     "expiredOn": "Abgelaufen am",
@@ -172,7 +178,7 @@
     "link-copied": "Link wurde in die Zwischenablage kopiert. Du kannst ihn jetzt in eine E-Mail oder Nachricht einfügen.",
     "link-deleted": "Der Link wurde am {date} gelöscht.",
     "link-expired": "Der Link ist nicht mehr gültig. Die Gültigkeit ist am {date} abgelaufen.",
-    "link-hint": "Achtung: Jeder kann diesen Link einlösen. Gib ihn bitte nicht weiter!",
+    "link-hint": "Achtung: Jeder kann diesen Link einlösen. Bitte geh achtsam mit ihm um!",
     "link-overview": "Linkübersicht",
     "links_count": "Aktive Links",
     "links_sum": "Offene Links und QR-Codes",
@@ -188,6 +194,7 @@
     "validUntil": "Gültig bis",
     "validUntilDate": "Der Link ist bis zum {date} gültig."
   },
+  "GDT": "GDT",
   "gdt": {
     "calculation": "Berechnung der Gradido Transform",
     "contribution": "Beitrag",
@@ -199,22 +206,26 @@
     "funding": "Zu den Förderbeiträgen",
     "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) erhalten",
+    "gdtKonto": "GDT Konto",
     "no-transactions": "Du hast noch keine Gradido Transform (GDT).",
     "not-reachable": "Der GDT Server ist nicht erreichbar.",
     "publisher": "Dein geworbenes Mitglied hat einen Beitrag bezahlt",
     "raise": "Erhöhung",
     "recruited-member": "Eingeladenes Mitglied"
   },
+  "h": "h",
   "language": "Sprache",
+  "lastMonth": "letzter Monat",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
   "login": "Anmelden",
   "math": {
-    "aprox": "~",
     "asterisk": "*",
     "equal": "=",
     "minus": "−",
     "pipe": "|"
   },
+  "maxReached": "Max. erreicht",
+  "member": "Mitglied",
   "message": {
     "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite an.",
     "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.",
@@ -226,17 +237,27 @@
     "title": "Danke!",
     "unsetPassword": "Dein Passwort wurde noch nicht gesetzt. Bitte setze es neu."
   },
+  "moderatorChat": "Moderator Chat",
   "navigation": {
     "admin_area": "Adminbereich",
     "community": "Gemeinschaft",
     "info": "Information",
     "logout": "Abmelden",
-    "members_area": "Mitgliederbereich",
     "overview": "Übersicht",
-    "profile": "Mein Profil",
     "send": "Senden",
+    "settings": "Einstellung",
     "support": "Support",
     "transactions": "Transaktionen"
+  },
+  "openHours": "Offene Stunden",
+  "pageTitle": {
+    "community": "Meine Gemeinschaft",
+    "gdt": "Deine GDT Transaktionen",
+    "information": "{community}",
+    "overview": "Willkommen {name}",
+    "send": "Sende Gradidos",
+    "settings": "Einstellungen",
+    "transactions": "Deine Transaktionen"
   },
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
@@ -248,6 +269,8 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
+    "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
+    "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
     "language": {
       "changeLanguage": "Sprache ändern",
       "de": "Deutsch",
@@ -280,7 +303,9 @@
         "text": "Speichere nun dein neues Passwort, mit dem du dich zukünftig in deinem Gradido-Konto anmelden kannst."
       },
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
-    }
+    },
+    "showAmountGDD": "Dein GDD Betrag ist sichtbar.",
+    "showAmountGDT": "Dein GDT Betrag ist sichtbar."
   },
   "signin": "Anmelden",
   "signup": "Registrieren",
@@ -302,6 +327,8 @@
       "uppercase": "Großbuchstabe erforderlich."
     }
   },
+  "status": "Status",
+  "submitted": "Eingereicht",
   "success": "Erfolg",
   "time": {
     "days": "Tage",
@@ -313,8 +340,7 @@
     "years": "Jahr"
   },
   "transaction": {
-    "gdd-text": "Gradido Transaktionen",
-    "gdt-text": "GradidoTransform Transaktionen",
+    "lastTransactions": "Letzte Transaktionen",
     "nullTransactions": "Du hast noch keine Transaktionen auf deinem Konto.",
     "receiverDeleted": "Das Empfängerkonto wurde gelöscht",
     "receiverNotFound": "Empfänger nicht gefunden",

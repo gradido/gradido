@@ -1,43 +1,25 @@
 <template>
   <div class="community-page">
     <div>
-      <b-tabs v-model="tabIndex" content-class="mt-3" align="center">
-        <b-tab :title="$t('community.submitContribution')" @click="closeAllOpenCollapse">
+      <b-tabs no-nav-style borderless v-model="tabIndex" align="center">
+        <b-tab no-body>
+          <open-creations-amount
+            :minimalDate="minimalDate"
+            :maxGddLastMonth="maxForMonths[0]"
+            :maxGddThisMonth="maxForMonths[1]"
+          />
+          <div class="mb-3"></div>
           <contribution-form
             @set-contribution="setContribution"
             @update-contribution="updateContribution"
             v-model="form"
-            :updateAmount="updateAmount"
+            :isThisMonth="isThisMonth"
+            :minimalDate="minimalDate"
+            :maxGddLastMonth="maxForMonths[0]"
+            :maxGddThisMonth="maxForMonths[1]"
           />
         </b-tab>
-        <b-tab :title="$t('community.myContributions')">
-          <div>
-            <b-alert show dismissible fade variant="secondary" class="text-dark">
-              <h4 class="alert-heading">{{ $t('community.myContributions') }}</h4>
-              <p>
-                {{ $t('contribution.alert.myContributionNoteList') }}
-              </p>
-              <ul class="h2">
-                <li>
-                  <b-icon icon="bell-fill" variant="primary"></b-icon>
-                  {{ $t('contribution.alert.pending') }}
-                </li>
-                <li>
-                  <b-icon icon="question-square" variant="warning"></b-icon>
-                  {{ $t('contribution.alert.in_progress') }}
-                </li>
-                <li>
-                  <b-icon icon="check" variant="success"></b-icon>
-                  {{ $t('contribution.alert.confirm') }}
-                </li>
-                <li>
-                  <b-icon icon="x-circle" variant="danger"></b-icon>
-                  {{ $t('contribution.alert.rejected') }}
-                </li>
-              </ul>
-              <hr />
-            </b-alert>
-          </div>
+        <b-tab no-body>
           <contribution-list
             @closeAllOpenCollapse="closeAllOpenCollapse"
             :items="items"
@@ -50,23 +32,7 @@
             :pageSize="pageSize"
           />
         </b-tab>
-        <b-tab :title="$t('navigation.community')" @click="closeAllOpenCollapse">
-          <b-alert show dismissible fade variant="secondary" class="text-dark">
-            <h4 class="alert-heading">{{ $t('navigation.community') }}</h4>
-            <p>
-              {{ $t('contribution.alert.communityNoteList') }}
-            </p>
-            <ul class="h2">
-              <li>
-                <b-icon icon="bell-fill" variant="primary"></b-icon>
-                {{ $t('contribution.alert.pending') }}
-              </li>
-              <li>
-                <b-icon icon="check" variant="success"></b-icon>
-                {{ $t('contribution.alert.confirm') }}
-              </li>
-            </ul>
-          </b-alert>
+        <b-tab no-body>
           <contribution-list
             :items="itemsAll"
             @update-list-contributions="updateListAllContributions"
@@ -82,19 +48,23 @@
   </div>
 </template>
 <script>
+import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount.vue'
 import ContributionForm from '@/components/Contributions/ContributionForm.vue'
 import ContributionList from '@/components/Contributions/ContributionList.vue'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
-import { listContributions, listAllContributions, verifyLogin } from '@/graphql/queries'
+import { listContributions, listAllContributions, openCreations } from '@/graphql/queries'
 
 export default {
   name: 'Community',
   components: {
     ContributionForm,
     ContributionList,
+    OpenCreationsAmount,
   },
   data() {
     return {
+      hashLink: '',
+      tabLinkHashes: ['#edit', '#my', '#all'],
       tabIndex: 0,
       items: [],
       itemsAll: [],
@@ -107,15 +77,85 @@ export default {
         id: null,
         date: '',
         memo: '',
+        hours: 0,
         amount: '',
       },
       updateAmount: '',
+      maximalDate: new Date(),
+      openCreations: [],
     }
+  },
+  mounted() {
+    this.$nextTick(() => {
+      this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === this.$route.hash)
+      this.hashLink = this.$route.hash
+    })
+  },
+  apollo: {
+    OpenCreations: {
+      query() {
+        return openCreations
+      },
+      fetchPolicy: 'network-only',
+      variables() {
+        return {}
+      },
+      update({ openCreations }) {
+        this.openCreations = openCreations
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
+    },
+  },
+  watch: {
+    $route(to, from) {
+      this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === to.hash)
+      this.hashLink = to.hash
+      this.closeAllOpenCollapse()
+    },
+    tabIndex(num) {
+      if (num !== 0) {
+        this.form = {
+          id: null,
+          date: '',
+          memo: '',
+          hours: 0,
+          amount: '',
+        }
+      }
+    },
+  },
+  computed: {
+    minimalDate() {
+      const date = new Date(this.maximalDate)
+      return new Date(date.setMonth(date.getMonth() - 1, 1))
+    },
+    isThisMonth() {
+      const formDate = new Date(this.form.date)
+      return (
+        formDate.getFullYear() === this.maximalDate.getFullYear() &&
+        formDate.getMonth() === this.maximalDate.getMonth()
+      )
+    },
+    amountToAdd() {
+      // when existing contribution is edited, the amount is added back on top of the amount
+      if (this.form.id) return parseInt(this.updateAmount)
+      return 0
+    },
+    maxForMonths() {
+      const formDate = new Date(this.form.date)
+      if (this.openCreations && this.openCreations.length)
+        return this.openCreations.slice(1).map((creation) => {
+          if (creation.year === formDate.getFullYear() && creation.month === formDate.getMonth())
+            return parseInt(creation.amount) + this.amountToAdd
+          return parseInt(creation.amount)
+        })
+      return [0, 0]
+    },
   },
   methods: {
     closeAllOpenCollapse() {
-      // console.log('Community closeAllOpenCollapse ')
-      // console.log('closeAllOpenCollapse', this.$el.querySelectorAll('.collapse.show'))
       this.$el.querySelectorAll('.collapse.show').forEach((value) => {
         this.$root.$emit('bv::toggle::collapse', value.id)
       })
@@ -141,7 +181,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.pageSize,
           })
-          this.verifyLogin()
+          this.$apollo.queries.OpenCreations.refetch()
         })
         .catch((err) => {
           this.toastError(err.message)
@@ -169,7 +209,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.pageSize,
           })
-          this.verifyLogin()
+          this.$apollo.queries.OpenCreations.refetch()
         })
         .catch((err) => {
           this.toastError(err.message)
@@ -194,7 +234,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.pageSize,
           })
-          this.verifyLogin()
+          this.$apollo.queries.OpenCreations.refetch()
         })
         .catch((err) => {
           this.toastError(err.message)
@@ -239,26 +279,14 @@ export default {
           this.items = listContributions.contributionList
           if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
             this.tabIndex = 1
+            if (this.$route.hash !== '#my') {
+              this.$router.push({ path: '/community#my' })
+            }
+            this.toastInfo('Du hast eine Rückfrage auf eine Contribution. Bitte beantworte diese!')
           }
         })
         .catch((err) => {
           this.toastError(err.message)
-        })
-    },
-    verifyLogin() {
-      this.$apollo
-        .query({
-          query: verifyLogin,
-          fetchPolicy: 'network-only',
-        })
-        .then((result) => {
-          const {
-            data: { verifyLogin },
-          } = result
-          this.$store.dispatch('login', verifyLogin)
-        })
-        .catch(() => {
-          this.$emit('logout')
         })
     },
     updateContributionForm(item) {
@@ -266,7 +294,9 @@ export default {
       this.form.date = item.contributionDate
       this.form.memo = item.memo
       this.form.amount = item.amount
+      this.form.hours = item.amount / 20
       this.updateAmount = item.amount
+      this.$router.push({ path: '#edit' })
       this.tabIndex = 0
     },
     updateTransactions(pagination) {
@@ -276,9 +306,8 @@ export default {
       this.items.find((item) => item.id === id).state = 'PENDING'
     },
   },
+
   created() {
-    // verifyLogin is important at this point so that creation is updated on reload if they are deleted in a session in the admin area.
-    this.verifyLogin()
     this.updateListContributions({
       currentPage: this.currentPage,
       pageSize: this.pageSize,
@@ -289,6 +318,13 @@ export default {
     })
     this.updateTransactions(0)
     this.tabIndex = 1
+    this.$router.push({ path: '/community#my' })
   },
 }
 </script>
+<style scoped>
+.tab-content {
+  border-left: none;
+  border-right: none;
+}
+</style>

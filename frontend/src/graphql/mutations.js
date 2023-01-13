@@ -31,6 +31,8 @@ export const updateUserInfos = gql`
     $password: String
     $passwordNew: String
     $locale: String
+    $hideAmountGDD: Boolean
+    $hideAmountGDT: Boolean
   ) {
     updateUserInfos(
       firstName: $firstName
@@ -38,6 +40,8 @@ export const updateUserInfos = gql`
       password: $password
       passwordNew: $passwordNew
       language: $locale
+      hideAmountGDD: $hideAmountGDD
+      hideAmountGDT: $hideAmountGDT
     )
   }
 `
@@ -150,7 +154,8 @@ export const login = gql`
       hasElopage
       publisherId
       isAdmin
-      creation
+      hideAmountGDD
+      hideAmountGDT
     }
   }
 `

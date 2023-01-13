@@ -1,15 +1,64 @@
 {
-	"emails": {
-		"accountMultiRegistration": {
+  "emails": {
+    "addedContributionMessage": {
+      "commonGoodContributionMessage": "you have received a message from {senderFirstName} {senderLastName} regarding your common good contribution “{contributionMemo}”.",
+      "subject": "Gradido: Message about your common good contribution",
+      "toSeeAndAnswerMessage": "To view and reply to the message, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!"
+    },
+    "accountActivation": {
+      "duration": "The link has a validity of {hours} hours and {minutes} minutes. If the validity of the link has already expired, you can have a new link sent to you here:",
+      "emailRegistered": "Your email address has just been registered with Gradido.",
+      "pleaseClickLink": "Please click on this link to complete the registration and activate your Gradido account:",
+      "subject": "Gradido: Email Verification"
+    },
+    "accountMultiRegistration": {
       "emailExists": "However, an account already exists for your email address.",
       "emailReused": "Your email address has just been used again to register an account with Gradido.",
-			"helloName": "Hello {firstName} {lastName}",
       "ifYouAreNotTheOne": "If you are not the one who tried to register again, please contact our support:",
       "onForgottenPasswordClickLink": "Please click on the following link if you have forgotten your password:",
       "onForgottenPasswordCopyLink": "or copy the link above into your browser window.",
-      "sincerelyYours": "Sincerely yours,",
-			"subject": "Gradido: Try To Register Again With Your Email",
+      "subject": "Gradido: Try To Register Again With Your Email"
+    },
+    "contributionConfirmed": {
+      "commonGoodContributionConfirmed": "Your public good contribution “{contributionMemo}” has just been confirmed by {senderFirstName} {senderLastName} and credited to your Gradido account.",
+      "subject": "Gradido: Your contribution to the common good was confirmed"
+    },
+    "contributionRejected": {
+      "commonGoodContributionRejected": "Your public good contribution “{contributionMemo}” was rejected by {senderFirstName} {senderLastName}.",
+      "subject": "Gradido: Your common good contribution was rejected",
+      "toSeeContributionsAndMessages": "To see your common good contributions and related messages, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!"
+    },
+    "general": {
+      "amountGDD": "Amount: {amountGDD} GDD",
+      "detailsYouFindOnLinkToYourAccount": "You can find transaction details in your Gradido account:",
+      "doNotAnswer": "do not answer",
+      "helloName": "Hello {firstName} {lastName}",
+      "linkToYourAccount": "Link to your account:",
+      "orCopyLink": "or copy the link above into your browser window.",
+      "pleaseDoNotReply": "Please do not reply to this email!",
+      "sincerelyYours": "Kind regards,",
       "yourGradidoTeam": "your Gradido team"
-		}
-	}
+    },
+    "resetPassword": {
+      "duration": "The link has a validity of {hours} hours and {minutes} minutes. If the validity of the link has already expired, you can have a new link sent to you here:",
+      "pleaseClickLink": "If it was you, please click on the link:",
+      "subject": "Gradido: Reset password",
+      "youOrSomeoneResetPassword": "You, or someone else, requested a password reset for this account."
+    },
+    "transactionLinkRedeemed": {
+      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) has just redeemed your link.",
+      "memo": "Message: {transactionMemo}",
+      "subject": "Gradido: {senderFirstName} {senderLastName} has redeemed your Gradido link"
+    },
+    "transactionReceived": {
+      "haveReceivedAmountGDDFrom": "You have just received {transactionAmount} GDD from {senderFirstName} {senderLastName} ({senderEmail}).",
+      "subject": "Gradido: {senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido"
+    }
+  },
+  "general": {
+    "decimalSeparator": ".",
+    "imprint": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+    "imprintImageAlt": "Gradido-Akademie Logo",
+    "imprintImageURL": "https://gdd.gradido.net/img/brand/green.png"
+  }
 }

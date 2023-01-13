@@ -10,14 +10,14 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0054-recalculate_balance_and_decay',
+  DB_VERSION: '0059-add_hide_amount_to_users',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v11.2022-10-27',
+    EXPECTED: 'v14.2022-12-22',
     CURRENT: '',
   },
 }
@@ -58,6 +58,7 @@ const community = {
     process.env.COMMUNITY_REDEEM_CONTRIBUTION_URL || 'http://localhost/redeem/CL-{code}',
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
+  COMMUNITY_SUPPORT_MAIL: process.env.COMMUNITY_SUPPORT_MAIL || 'support@supportmail.com',
 }
 
 const loginServer = {
@@ -69,11 +70,13 @@ const email = {
   EMAIL: process.env.EMAIL === 'true' || false,
   EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true' || false,
   EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER || 'stage1@gradido.net',
-  EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'gradido_email',
+  EMAIL_USERNAME: process.env.EMAIL_USERNAME || '',
   EMAIL_SENDER: process.env.EMAIL_SENDER || 'info@gradido.net',
-  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'xxx',
-  EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
-  EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
+  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || '',
+  EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'mailserver',
+  EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '1025',
+  // eslint-disable-next-line no-unneeded-ternary
+  EMAIL_TLS: process.env.EMAIL_TLS === 'false' ? false : true,
   EMAIL_LINK_VERIFICATION:
     process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{optin}{code}',
   EMAIL_LINK_SETPASSWORD:
@@ -117,7 +120,14 @@ if (
 }
 
 const federation = {
-  DHT_TOPIC: process.env.DHT_TOPIC || null,
+  FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC || null,
+  FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
+  FEDERATION_COMMUNITY_URL:
+    process.env.FEDERATION_COMMUNITY_URL === undefined
+      ? null
+      : process.env.FEDERATION_COMMUNITY_URL.endsWith('/')
+      ? process.env.FEDERATION_COMMUNITY_URL
+      : process.env.FEDERATION_COMMUNITY_URL + '/',
 }
 
 const CONFIG = {

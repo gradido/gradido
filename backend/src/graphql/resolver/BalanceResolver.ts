@@ -1,16 +1,19 @@
-import { backendLogger as logger } from '@/server/logger'
-
-import { Context, getUser } from '@/server/context'
+import Decimal from 'decimal.js-light'
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
+import { getCustomRepository } from '@dbTools/typeorm'
+
+import { Transaction as dbTransaction } from '@entity/Transaction'
+import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+
+import { TransactionLinkRepository } from '@repository/TransactionLink'
+
 import { Balance } from '@model/Balance'
+
+import { backendLogger as logger } from '@/server/logger'
+import { Context, getUser } from '@/server/context'
 import { calculateDecay } from '@/util/decay'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { Transaction as dbTransaction } from '@entity/Transaction'
-import Decimal from 'decimal.js-light'
 import { GdtResolver } from './GdtResolver'
-import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import { getCustomRepository } from '@dbTools/typeorm'
-import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 @Resolver()
 export class BalanceResolver {
@@ -29,7 +32,7 @@ export class BalanceResolver {
 
     const lastTransaction = context.lastTransaction
       ? context.lastTransaction
-      : await dbTransaction.findOne({ userId: user.id }, { order: { balanceDate: 'DESC' } })
+      : await dbTransaction.findOne({ userId: user.id }, { order: { id: 'DESC' } })
 
     logger.debug(`lastTransaction=${lastTransaction}`)
 

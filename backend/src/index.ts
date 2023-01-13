@@ -19,8 +19,17 @@ async function main() {
   })
 
   // start DHT hyperswarm when DHT_TOPIC is set in .env
-  if (CONFIG.DHT_TOPIC) {
-    await startDHT(CONFIG.DHT_TOPIC) // con,
+  if (CONFIG.FEDERATION_DHT_TOPIC) {
+    if (CONFIG.FEDERATION_COMMUNITY_URL === null) {
+      throw Error(`Config-Error: missing configuration of property FEDERATION_COMMUNITY_URL`)
+    }
+    // eslint-disable-next-line no-console
+    console.log(
+      `starting Federation on ${CONFIG.FEDERATION_DHT_TOPIC} ${
+        CONFIG.FEDERATION_DHT_SEED ? 'with seed...' : 'without seed...'
+      }`,
+    )
+    await startDHT(CONFIG.FEDERATION_DHT_TOPIC) // con,
   }
 }
 

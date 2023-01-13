@@ -45,7 +45,7 @@
 import Transaction from '@/components/Transaction.vue'
 
 export default {
-  name: 'gdt-transaction-list',
+  name: 'GdtTransactionList',
   components: {
     Transaction,
   },

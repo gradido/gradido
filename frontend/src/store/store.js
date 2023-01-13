@@ -47,8 +47,11 @@ export const mutations = {
   hasElopage: (state, hasElopage) => {
     state.hasElopage = hasElopage
   },
-  creation: (state, creation) => {
-    state.creation = creation
+  hideAmountGDD: (state, hideAmountGDD) => {
+    state.hideAmountGDD = !!hideAmountGDD
+  },
+  hideAmountGDT: (state, hideAmountGDT) => {
+    state.hideAmountGDT = !!hideAmountGDT
   },
 }
 
@@ -63,7 +66,8 @@ export const actions = {
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
     commit('isAdmin', data.isAdmin)
-    commit('creation', data.creation)
+    commit('hideAmountGDD', data.hideAmountGDD)
+    commit('hideAmountGDT', data.hideAmountGDT)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
@@ -75,7 +79,8 @@ export const actions = {
     commit('hasElopage', false)
     commit('publisherId', null)
     commit('isAdmin', false)
-    commit('creation', null)
+    commit('hideAmountGDD', false)
+    commit('hideAmountGDT', true)
     localStorage.clear()
   },
 }
@@ -101,7 +106,8 @@ try {
       newsletterState: null,
       hasElopage: false,
       publisherId: null,
-      creation: null,
+      hideAmountGDD: null,
+      hideAmountGDT: null,
     },
     getters: {},
     // Syncronous mutation of the state

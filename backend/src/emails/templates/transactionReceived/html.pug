@@ -1,0 +1,15 @@
+doctype html
+html(lang=locale)
+  head
+    title= t('emails.transactionReceived.subject', { senderFirstName, senderLastName, transactionAmount })
+  body
+    h1(style='margin-bottom: 24px;')= t('emails.transactionReceived.subject', { senderFirstName, senderLastName, transactionAmount })
+    #container.col
+      include ../hello.pug
+      p= t('emails.transactionReceived.haveReceivedAmountGDDFrom', { transactionAmount, senderFirstName, senderLastName, senderEmail })
+      p
+        = t('emails.general.detailsYouFindOnLinkToYourAccount')
+        = " "
+        a(href=overviewURL) #{overviewURL}
+      p= t('emails.general.pleaseDoNotReply')
+      include ../greatingFormularImprint.pug

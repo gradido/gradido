@@ -1,10 +1,9 @@
+import CONFIG from '@/config'
 import { backendLogger as logger } from '@/server/logger'
 import path from 'path'
 import { createTransport } from 'nodemailer'
 import Email from 'email-templates'
 import i18n from 'i18n'
-
-import CONFIG from '@/config'
 
 export const sendEmailTranslated = async (params: {
   receiver: {
@@ -12,7 +11,7 @@ export const sendEmailTranslated = async (params: {
     cc?: string
   }
   template: string
-  locals: Record<string, string>
+  locals: Record<string, unknown>
 }): Promise<Record<string, unknown> | null> => {
   let resultSend: Record<string, unknown> | null = null
 
@@ -32,8 +31,7 @@ export const sendEmailTranslated = async (params: {
     logger.info(`Emails are disabled via config...`)
     return null
   }
-  // because 'CONFIG.EMAIL_TEST_MODUS' can be boolean 'true' or string '`false`'
-  if (CONFIG.EMAIL_TEST_MODUS === true) {
+  if (CONFIG.EMAIL_TEST_MODUS) {
     logger.info(
       `Testmodus=ON: change receiver from ${params.receiver.to} to ${CONFIG.EMAIL_TEST_RECEIVER}`,
     )
@@ -43,19 +41,19 @@ export const sendEmailTranslated = async (params: {
     host: CONFIG.EMAIL_SMTP_URL,
     port: Number(CONFIG.EMAIL_SMTP_PORT),
     secure: false, // true for 465, false for other ports
-    requireTLS: true,
+    requireTLS: CONFIG.EMAIL_TLS,
     auth: {
       user: CONFIG.EMAIL_USERNAME,
       pass: CONFIG.EMAIL_PASSWORD,
     },
   })
 
-  i18n.setLocale(params.locals.locale) // for email
+  i18n.setLocale(params.locals.locale as string) // for email
 
   // TESTING: see 'README.md'
   const email = new Email({
     message: {
-      from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
+      from: `Gradido (${i18n.__('emails.general.doNotAnswer')}) <${CONFIG.EMAIL_SENDER}>`,
     },
     transport,
     preview: false,
@@ -65,7 +63,7 @@ export const sendEmailTranslated = async (params: {
   // ATTENTION: await is needed, because otherwise on send the email gets send in the language of the current user, because below the language gets reset
   await email
     .send({
-      template: path.join(__dirname, params.template),
+      template: path.join(__dirname, 'templates', params.template),
       message: params.receiver,
       locals: params.locals, // the 'locale' in here seems not to be used by 'email-template', because it doesn't work if the language isn't set before by 'i18n.setLocale'
     })

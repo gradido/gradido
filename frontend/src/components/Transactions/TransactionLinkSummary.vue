@@ -1,47 +1,34 @@
 <template>
-  <div class="transaction-slot-link gradido-shadow-inset">
-    <div>
-      <div class="transaction-link-details" @click="showTransactionLinks()">
-        <!-- Collaps Icon  -->
+  <div class="transaction-slot-link">
+    <b-row @click="showTransactionLinks()" class="align-items-center">
+      <b-col cols="3" lg="2" md="2">
+        <b-avatar icon="link" variant="light" :size="42"></b-avatar>
+      </b-col>
+      <b-col>
+        <div>{{ $t('gdd_per_link.links_sum') }}</div>
+        <div class="small">{{ transactionLinkCount }} {{ $t('gdd_per_link.links_sum') }}</div>
+      </b-col>
+      <b-col cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
+        <div class="small mb-2">{{ $t('send_per_link') }}</div>
+        <div class="font-weight-bold">{{ amount | GDD }}</div>
+      </b-col>
+      <b-col cols="12" md="1" lg="1" class="text-right">
         <collapse-icon class="text-right" :visible="visible" />
-        <div>
-          <b-row>
-            <b-col cols="1">
-              <type-icon color="text-danger" icon="link45deg" />
-            </b-col>
-
-            <b-col cols="11">
-              <!-- Amount / Name || Text -->
-              <amount-and-name-row :amount="amount" :text="$t('gdd_per_link.links_sum')" />
-
-              <!-- Count Links -->
-              <link-count-row :count="transactionLinkCount" />
-
-              <!-- Decay -->
-              <decay-row :decay="decay.decay" />
-            </b-col>
-          </b-row>
-        </div>
-      </div>
-
-      <b-collapse v-model="visible">
-        <collapse-links-list
-          v-model="currentPage"
-          :pending="pending"
-          :pageSize="pageSize"
-          :transactionLinkCount="transactionLinkCount"
-          :transactionLinks="transactionLinks"
-        />
-      </b-collapse>
-    </div>
+      </b-col>
+    </b-row>
+    <b-collapse v-model="visible">
+      <collapse-links-list
+        v-model="currentPage"
+        :pending="pending"
+        :pageSize="pageSize"
+        :transactionLinkCount="transactionLinkCount"
+        :transactionLinks="transactionLinks"
+      />
+    </b-collapse>
   </div>
 </template>
 <script>
 import CollapseIcon from '../TransactionRows/CollapseIcon'
-import TypeIcon from '../TransactionRows/TypeIcon'
-import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
-import LinkCountRow from '../TransactionRows/LinkCountRow'
-import DecayRow from '../TransactionRows/DecayRow'
 import CollapseLinksList from '../DecayInformations/CollapseLinksList'
 import { listTransactionLinks } from '@/graphql/queries'
 
@@ -49,10 +36,6 @@ export default {
   name: 'TransactionSlotLink',
   components: {
     CollapseIcon,
-    TypeIcon,
-    AmountAndNameRow,
-    LinkCountRow,
-    DecayRow,
     CollapseLinksList,
   },
   props: {

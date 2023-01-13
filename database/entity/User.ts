@@ -1,1 +1,1 @@
-export { User } from './0053-change_password_encryption/User'
+export { User } from './0059-add_hide_amount_to_users/User'

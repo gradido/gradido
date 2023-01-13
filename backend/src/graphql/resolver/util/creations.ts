@@ -101,12 +101,19 @@ export const getUserCreation = async (
 }
 
 const getCreationMonths = (timezoneOffset: number): number[] => {
+  return getCreationDates(timezoneOffset).map((date) => date.getMonth() + 1)
+}
+
+export const getCreationDates = (timezoneOffset: number): Date[] => {
   const clientNow = new Date()
   clientNow.setTime(clientNow.getTime() - timezoneOffset * 60 * 1000)
+  logger.info(
+    `getCreationMonths -- offset: ${timezoneOffset} -- clientNow: ${clientNow.toISOString()}`,
+  )
   return [
-    new Date(clientNow.getFullYear(), clientNow.getMonth() - 2, 1).getMonth() + 1,
-    new Date(clientNow.getFullYear(), clientNow.getMonth() - 1, 1).getMonth() + 1,
-    clientNow.getMonth() + 1,
+    new Date(clientNow.getFullYear(), clientNow.getMonth() - 2, 1),
+    new Date(clientNow.getFullYear(), clientNow.getMonth() - 1, 1),
+    clientNow,
   ]
 }
 

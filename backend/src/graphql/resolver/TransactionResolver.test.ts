@@ -291,7 +291,6 @@ describe('send coins', () => {
       await cleanDB()
     })
 
-    /*
     describe('trying to send negative amount', () => {
       it('throws an error', async () => {
         expect(
@@ -305,18 +304,15 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError(`user hasn't enough GDD or amount is < 0`)],
+            errors: [new GraphQLError(`Amount to send must be positive`)],
           }),
         )
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith(
-          `user hasn't enough GDD or amount is < 0 : balance=null`,
-        )
+        expect(logger.error).toBeCalledWith(`Amount to send must be positive`)
       })
     })
-    */
 
     describe('good transaction', () => {
       it('sends the coins', async () => {
@@ -368,6 +364,75 @@ describe('send coins', () => {
             userId: user[0].id,
             transactionId: transaction[0].id,
             xUserId: user[1].id,
+          }),
+        )
+      })
+    })
+
+    describe('more transactions to test semaphore', () => {
+      it('sends the coins four times in a row', async () => {
+        await expect(
+          mutate({
+            mutation: sendCoins,
+            variables: {
+              email: 'peter@lustig.de',
+              amount: 10,
+              memo: 'first transaction',
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              sendCoins: 'true',
+            },
+          }),
+        )
+        await expect(
+          mutate({
+            mutation: sendCoins,
+            variables: {
+              email: 'peter@lustig.de',
+              amount: 20,
+              memo: 'second transaction',
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              sendCoins: 'true',
+            },
+          }),
+        )
+        await expect(
+          mutate({
+            mutation: sendCoins,
+            variables: {
+              email: 'peter@lustig.de',
+              amount: 30,
+              memo: 'third transaction',
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              sendCoins: 'true',
+            },
+          }),
+        )
+        await expect(
+          mutate({
+            mutation: sendCoins,
+            variables: {
+              email: 'peter@lustig.de',
+              amount: 40,
+              memo: 'fourth transaction',
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              sendCoins: 'true',
+            },
           }),
         )
       })

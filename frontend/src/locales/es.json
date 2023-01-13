@@ -4,6 +4,7 @@
   "125": "125%",
   "85": "85%",
   "advanced-calculation": "Proyección",
+  "asterisks": "****",
   "auth": {
     "left": {
       "dignity": "Dignidad",
@@ -29,7 +30,7 @@
     "openContributionLinkText": "La comunidad \"{name}\" proporciona actualmente las siguientes {count} creaciones automáticas.",
     "other-communities": "Otras comunidades",
     "statistic": "Estadísticas",
-    "submitContribution": "Aportar una contribución",
+    "submitContribution": "escribir",
     "switch-to-this-community": "cambiar a esta comunidad"
   },
   "contribution": {
@@ -121,7 +122,6 @@
     "from": "De",
     "generate_now": "crear ahora",
     "lastname": "Apellido",
-    "mandatoryField": "campo obligatorio",
     "memo": "Mensaje",
     "message": "Noticia",
     "new_balance": "Saldo de cuenta nuevo depués de confirmación",
@@ -172,7 +172,7 @@
     "link-copied": "El enlace se ha copiado en el portapapeles. Ahora puedes pegarlo en un correo electrónico o mensaje.",
     "link-deleted": "El enlace se eliminó el {date}.",
     "link-expired": "El enlace ya no es válido. La validez expiró el {date}.",
-    "link-hint": "Atención: cualquiera puede canjear este enlace. Por favor, no lo transmitan.",
+    "link-hint": "Atención: cualquiera puede canjear este enlace. Por favor, ¡ten cuidado con él!",
     "link-overview": "Resumen de enlaces",
     "links_count": "Enlaces activos",
     "links_sum": "Enlaces abiertos y códigos QR",

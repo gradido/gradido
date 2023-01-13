@@ -14,6 +14,8 @@ export const verifyLogin = gql`
       publisherId
       isAdmin
       creation
+      hideAmountGDD
+      hideAmountGDT
     }
   }
 `
@@ -45,7 +47,7 @@ export const transactionsQuery = gql`
           end
           duration
         }
-        transactionLinkId
+        linkId
       }
     }
   }
@@ -210,12 +212,6 @@ export const communityStatistics = gql`
   query {
     communityStatistics {
       totalUsers
-      activeUsers
-      deletedUsers
-      totalGradidoCreated
-      totalGradidoDecayed
-      totalGradidoAvailable
-      totalGradidoUnbookedDecayed
     }
   }
 `
@@ -251,6 +247,16 @@ export const listContributionMessages = gql`
         userLastName
         userId
       }
+    }
+  }
+`
+
+export const openCreations = gql`
+  query {
+    openCreations {
+      year
+      month
+      amount
     }
   }
 `
