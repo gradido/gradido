@@ -567,9 +567,9 @@ export class ContributionResolver {
         logger.error(`Contribution not found for given id: ${id}`)
         throw new Error('Contribution not found to given id.')
       }
-      if (contribution.confirmedAt) {
-        logger.error(`Contribution already confirmd: ${id}`)
-        throw new Error('Contribution already confirmd.')
+      if (contribution.contributionStatus === 'DENIED') {
+        logger.error(`Contribution state (${contribution.contributionStatus}) can't be confirmed`)
+        throw new Error("Contribution state can't be confirmed")
       }
       const moderatorUser = getUser(context)
       if (moderatorUser.id === contribution.userId) {
