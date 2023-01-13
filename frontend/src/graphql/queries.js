@@ -250,3 +250,13 @@ export const listContributionMessages = gql`
     }
   }
 `
+
+export const openCreations = gql`
+  query {
+    openCreations {
+      year
+      month
+      amount
+    }
+  }
+`
