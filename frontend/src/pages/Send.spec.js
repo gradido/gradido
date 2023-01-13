@@ -13,7 +13,7 @@ const navigatorClipboardMock = jest.fn()
 
 const localVue = global.localVue
 
-describe.skip('Send', () => {
+describe('Send', () => {
   let wrapper
 
   const propsData = {
