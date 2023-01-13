@@ -30,7 +30,11 @@
           <div class="small">
             {{ $t('creation') }} {{ $t('(') }}{{ amount / 20 }} {{ $t('h') }}{{ $t(')') }}
           </div>
-          <div class="font-weight-bold">{{ amount | GDD }}</div>
+          <div v-if="['DENIED'].includes(state) && allContribution" class="font-weight-bold">
+            <b-icon icon="x-circle" variant="danger"></b-icon>
+            {{ $t('contribution.alert.rejected') }}
+          </div>
+          <div v-else class="font-weight-bold">{{ amount | GDD }}</div>
         </b-col>
         <b-col cols="12" md="1" lg="1" class="text-right align-items-center">
           <div v-if="messagesCount > 0" @click="visible = !visible">
@@ -38,10 +42,7 @@
           </div>
         </b-col>
       </b-row>
-      <b-row
-        v-if="(!['CONFIRMED', 'DELETED'].includes(state) && !allContribution) || messagesCount > 0"
-        class="p-2"
-      >
+      <b-row v-if="messagesCount > 0" class="p-2">
         <b-col cols="3" class="mr-auto text-center">
           <div
             v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
@@ -176,7 +177,7 @@ export default {
   },
   computed: {
     icon() {
-      if (this.deletedAt) return 'x-circle'
+      if (this.deletedAt) return 'trash'
       if (this.deniedAt) return 'x-circle'
       if (this.confirmedAt) return 'check'
       if (this.state === 'IN_PROGRESS') return 'question-circle'
@@ -184,7 +185,7 @@ export default {
     },
     variant() {
       if (this.deletedAt) return 'danger'
-      if (this.deniedAt) return 'danger'
+      if (this.deniedAt) return 'warning'
       if (this.confirmedAt) return 'success'
       if (this.state === 'IN_PROGRESS') return 'f5'
       return 'primary'
