@@ -21,6 +21,7 @@
         @focus="emailFocused = true"
         @blur="normalizeEmail()"
         :disabled="disabled"
+        autocomplete="off"
       ></b-form-input>
       <b-form-invalid-feedback v-bind="ariaMsg">
         {{ errors[0] }}
@@ -62,7 +63,10 @@ export default {
       this.$emit('input', this.currentValue)
     },
     value() {
-      if (this.value !== this.currentValue) this.currentValue = this.value
+      if (this.value !== this.currentValue) {
+        this.currentValue = this.value
+      }
+      this.$emit('onValidation')
     },
   },
   methods: {
