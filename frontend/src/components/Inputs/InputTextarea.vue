@@ -41,7 +41,7 @@ export default {
   },
   data() {
     return {
-      currentValue: '',
+      currentValue: this.value,
     }
   },
   computed: {

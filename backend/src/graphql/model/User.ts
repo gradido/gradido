@@ -1,13 +1,11 @@
 import { ObjectType, Field } from 'type-graphql'
 import { KlickTipp } from './KlickTipp'
 import { User as dbUser } from '@entity/User'
-import Decimal from 'decimal.js-light'
-import { FULL_CREATION_AVAILABLE } from '../resolver/const/const'
 import { UserContact } from './UserContact'
 
 @ObjectType()
 export class User {
-  constructor(user: dbUser, creation: Decimal[] = FULL_CREATION_AVAILABLE) {
+  constructor(user: dbUser) {
     this.id = user.id
     this.gradidoID = user.gradidoID
     this.alias = user.alias
@@ -26,16 +24,12 @@ export class User {
     this.isAdmin = user.isAdmin
     this.klickTipp = null
     this.hasElopage = null
-    this.creation = creation
     this.hideAmountGDD = user.hideAmountGDD
     this.hideAmountGDT = user.hideAmountGDT
   }
 
   @Field(() => Number)
   id: number
-
-  // `public_key` binary(32) DEFAULT NULL,
-  // `privkey` binary(80) DEFAULT NULL,
 
   @Field(() => String)
   gradidoID: string
@@ -62,9 +56,6 @@ export class User {
   @Field(() => Date, { nullable: true })
   deletedAt: Date | null
 
-  // `password` bigint(20) unsigned DEFAULT 0,
-  // `email_hash` binary(32) DEFAULT NULL,
-
   @Field(() => Date)
   createdAt: Date
 
@@ -84,8 +75,6 @@ export class User {
   @Field(() => Number, { nullable: true })
   publisherId: number | null
 
-  // `passphrase` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-
   @Field(() => Date, { nullable: true })
   isAdmin: Date | null
 
@@ -94,7 +83,4 @@ export class User {
 
   @Field(() => Boolean, { nullable: true })
   hasElopage: boolean | null
-
-  @Field(() => [Decimal])
-  creation: Decimal[]
 }
