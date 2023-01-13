@@ -557,37 +557,6 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const contribution = await DbContribution.findOne(id)
-    if (!contribution) {
-      logger.error(`Contribution not found for given id: ${id}`)
-      throw new Error('Contribution not found to given id.')
-    }
-    if (contribution.contributionStatus === 'DENIED') {
-      logger.error(`Contribution state (${contribution.contributionStatus}) can't be confirmed`)
-      throw new Error("Contribution state can't be confirmed")
-    }
-    const moderatorUser = getUser(context)
-    if (moderatorUser.id === contribution.userId) {
-      logger.error('Moderator can not confirm own contribution')
-      throw new Error('Moderator can not confirm own contribution')
-    }
-    const user = await DbUser.findOneOrFail(
-      { id: contribution.userId },
-      { withDeleted: true, relations: ['emailContact'] },
-    )
-    if (user.deletedAt) {
-      logger.error('This user was deleted. Cannot confirm a contribution.')
-      throw new Error('This user was deleted. Cannot confirm a contribution.')
-    }
-    const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
-    validateContribution(
-      creations,
-      contribution.amount,
-      contribution.contributionDate,
-      clientTimezoneOffset,
-    )
-
     // acquire lock
     const releaseLock = await TRANSACTIONS_LOCK.acquire()
 
@@ -598,9 +567,9 @@ export class ContributionResolver {
         logger.error(`Contribution not found for given id: ${id}`)
         throw new Error('Contribution not found to given id.')
       }
-      if (contribution.confirmedAt) {
-        logger.error(`Contribution already confirmd: ${id}`)
-        throw new Error('Contribution already confirmd.')
+      if (contribution.contributionStatus === 'DENIED') {
+        logger.error(`Contribution state (${contribution.contributionStatus}) can't be confirmed`)
+        throw new Error("Contribution state can't be confirmed")
       }
       const moderatorUser = getUser(context)
       if (moderatorUser.id === contribution.userId) {
