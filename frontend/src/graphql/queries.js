@@ -205,6 +205,8 @@ export const listAllContributions = gql`
         contributionDate
         confirmedAt
         confirmedBy
+        state
+        messagesCount
         deniedAt
         deniedBy
       }
