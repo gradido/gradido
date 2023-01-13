@@ -149,7 +149,6 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<ContributionListResult> {
     const user = getUser(context)
-    // TODO: Check if deniedAt IsNull()
     const where: {
       userId: number
       confirmedBy?: FindOperator<number> | null
