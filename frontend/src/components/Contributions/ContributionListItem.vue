@@ -42,7 +42,10 @@
           </div>
         </b-col>
       </b-row>
-      <b-row v-if="messagesCount > 0" class="p-2">
+      <b-row
+        v-if="(!['CONFIRMED', 'DELETED'].includes(state) && !allContribution) || messagesCount > 0"
+        class="p-2"
+      >
         <b-col cols="3" class="mr-auto text-center">
           <div
             v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
