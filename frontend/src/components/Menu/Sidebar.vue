@@ -19,7 +19,7 @@
             <b-icon icon="layers" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('gdt.gdt') }}</span>
           </b-nav-item>
-          <b-nav-item to="/community#my" class="" active-class="activeRoute">
+          <b-nav-item to="/community" class="" active-class="activeRoute">
             <b-icon icon="people" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('creation') }}</span>
           </b-nav-item>
