@@ -128,29 +128,17 @@
                 @set-tunneled-email="setTunneledEmail"
               >
                 <template #transactions>
-                  <b-container>
-                    <b-row>
-                      <b-col>
-                        <div>
-                          <last-transactions
-                            :transactions="transactions"
-                            :transactionCount="transactionCount"
-                            :transactionLinkCount="transactionLinkCount"
-                            v-on="$listeners"
-                          />
-                        </div>
-                      </b-col>
-                    </b-row>
-                  </b-container>
+                  <last-transactions
+                    :transactions="transactions"
+                    :transactionCount="transactionCount"
+                    :transactionLinkCount="transactionLinkCount"
+                    v-on="$listeners"
+                  />
                 </template>
                 <template #community>
-                  <b-container>
-                    <contribution-info />
-                  </b-container>
+                  <contribution-info />
                 </template>
-                <template #empty>
-                  <b-container />
-                </template>
+                <template #empty />
               </right-side>
             </b-col>
             <b-col cols="12">
@@ -182,29 +170,17 @@
             @set-tunneled-email="setTunneledEmail"
           >
             <template #transactions>
-              <b-container>
-                <b-row>
-                  <b-col>
-                    <div>
-                      <last-transactions
-                        :transactions="transactions"
-                        :transactionCount="transactionCount"
-                        :transactionLinkCount="transactionLinkCount"
-                        v-on="$listeners"
-                      />
-                    </div>
-                  </b-col>
-                </b-row>
-              </b-container>
+              <last-transactions
+                :transactions="transactions"
+                :transactionCount="transactionCount"
+                :transactionLinkCount="transactionLinkCount"
+                v-on="$listeners"
+              />
             </template>
             <template #community>
-              <b-container>
-                <contribution-info />
-              </b-container>
+              <contribution-info />
             </template>
-            <template #empty>
-              <b-container />
-            </template>
+            <template #empty />
           </right-side>
         </b-col>
       </b-row>
