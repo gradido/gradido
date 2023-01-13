@@ -5,7 +5,14 @@
       <validation-observer ref="observer" v-slot="{ handleSubmit }">
         <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
           <b-row>
-            <b-col sm="12" md="12" lg="6"><input-email v-model="form.email"></input-email></b-col>
+            <b-col sm="12" md="12" lg="6">
+              <input-email
+                v-model="form.email"
+                :name="$t('form.email')"
+                :label="$t('form.email')"
+                :placeholder="$t('form.email')"
+              ></input-email>
+            </b-col>
             <b-col sm="12" md="12" lg="6">
               <input-password
                 :label="$t('form.password')"
