@@ -674,6 +674,7 @@ export class ContributionResolver {
       .from(DbContribution, 'c')
       .leftJoinAndSelect('c.user', 'u')
       .where(`user_id = ${userId}`)
+      .withDeleted()
       .limit(pageSize)
       .offset(offset)
       .orderBy('c.created_at', order)
