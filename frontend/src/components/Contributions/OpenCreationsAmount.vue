@@ -14,9 +14,9 @@
           {{ maxGddLastMonth > 0 ? $t('contribution.submit') : $t('maxReached') }}
         </b-col>
         <b-col class="d-none d-md-inline text-197 text-center">
-          {{ (1000 - maxGddLastMonth) / 20 }} {{ $t('h') }}
+          {{ hoursSubmittedLastMonth }} {{ $t('h') }}
         </b-col>
-        <b-col class="text-4 text-center">{{ maxGddLastMonth / 20 }} {{ $t('h') }}</b-col>
+        <b-col class="text-4 text-center">{{ hoursAvailableLastMonth }} {{ $t('h') }}</b-col>
       </b-row>
 
       <b-row class="font-weight-bold">
@@ -25,9 +25,9 @@
           {{ maxGddThisMonth > 0 ? $t('contribution.submit') : $t('maxReached') }}
         </b-col>
         <b-col class="d-none d-md-inline text-197 text-center">
-          {{ (1000 - maxGddThisMonth) / 20 }} {{ $t('h') }}
+          {{ hoursSubmittedThisMonth }} {{ $t('h') }}
         </b-col>
-        <b-col class="text-4 text-center">{{ maxGddThisMonth / 20 }} {{ $t('h') }}</b-col>
+        <b-col class="text-4 text-center">{{ hoursAvailableThisMonth }} {{ $t('h') }}</b-col>
       </b-row>
     </div>
   </div>
@@ -39,6 +39,20 @@ export default {
     minimalDate: { type: Date, required: true },
     maxGddLastMonth: { type: Number, required: true },
     maxGddThisMonth: { type: Number, required: true },
+  },
+  computed: {
+    hoursSubmittedThisMonth() {
+      return (1000 - this.maxGddThisMonth) / 20
+    },
+    hoursSubmittedLastMonth() {
+      return (1000 - this.maxGddLastMonth) / 20
+    },
+    hoursAvailableThisMonth() {
+      return this.maxGddThisMonth / 20
+    },
+    hoursAvailableLastMonth() {
+      return this.maxGddLastMonth / 20
+    },
   },
 }
 </script>
