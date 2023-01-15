@@ -113,12 +113,24 @@
   "open": "open",
   "open_creations": "Open creations",
   "overlay": {
+    "cancel": "Cancel",
     "confirm": {
-      "cancel": "Cancel",
       "question": "Do you really want to carry out and finally save this pre-stored creation?",
-      "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
+      "text": "After saving, the record can no longer be changed. Please check carefully that everything is correct.",
       "title": "Confirm creation!",
       "yes": "Yes, confirm and save creation!"
+    },
+    "delete": {
+      "question": "Do you really want to carry out and finally save this pre-stored creation?",
+      "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
+      "title": "Delete creation!",
+      "yes": "Yes, delete and save creation!"
+    },
+    "reject": {
+      "question": "Do you really want to carry out and finally save this pre-stored creation?",
+      "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
+      "title": "Reject creation!",
+      "yes": "Yes, reject and save creation!"
     }
   },
   "redeemed": "redeemed",
