@@ -1,7 +1,7 @@
 <template>
   <div class="component-overlay">
     <b-jumbotron class="bg-light p-4">
-      <template #header>{{ $t('overlay.confirm.title') }}</template>
+      <template #header><slot name="title" /></template>
 
       <template #lead>
         <b-row class="mt-4">
@@ -31,26 +31,26 @@
       </template>
 
       <hr class="my-4" />
-      <p>{{ $t('overlay.confirm.text') }}</p>
-      <p>
-        {{ $t('overlay.confirm.question') }}
-      </p>
+      <slot name="text" />
+      <slot name="question" />
+
       <b-container>
         <b-row>
           <b-col>
             <b-button size="md" variant="danger" class="m-3" @click="$emit('overlay-cancel')">
-              {{ $t('overlay.confirm.cancel') }}
+              {{ $t('overlay.cancel') }}
             </b-button>
           </b-col>
           <b-col class="text-right">
-            <b-button
+            <slot name="submit-btn" />
+            <!-- <b-button
               size="md"
               variant="success"
               class="m-3 text-right"
               @click="$emit('confirm-creation', item)"
             >
               {{ $t('overlay.confirm.yes') }}
-            </b-button>
+            </b-button> -->
           </b-col>
         </b-row>
       </b-container>

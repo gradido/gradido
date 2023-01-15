@@ -1,13 +1,38 @@
+<!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys -->
 <template>
   <div class="creation-confirm">
     <div v-if="overlay" id="overlay" @dblclick="overlay = false">
-      <overlay :item="item" @overlay-cancel="overlay = false" @confirm-creation="confirmCreation" />
+      <overlay
+        :item="item"
+        @overlay-cancel="overlay = false"
+        @confirm-creation="confirmCreation"
+        @remove-creation="removeCreation"
+      >
+        <template #title>
+          {{ $t(overlayTitle) }}
+        </template>
+        <template #text>
+          <p>{{ $t(overlayText) }}</p>
+        </template>
+        <template #question>
+          <p>{{ $t(overlayQuestion) }}</p>
+        </template>
+        <template #submit-btn>
+          <b-button
+            size="md"
+            variant="success"
+            class="m-3 text-right"
+            @click="$emit(overlayEvent, item)"
+          >
+            {{ $t(overlyBtnText) }}
+          </b-button>
+        </template>
+      </overlay>
     </div>
     <open-creations-table
       class="mt-4"
       :items="pendingCreations"
       :fields="fields"
-      @remove-creation="removeCreation"
       @show-overlay="showOverlay"
       @update-state="updateState"
       @update-contributions="$apollo.queries.PendingContributions.refetch()"
@@ -31,28 +56,32 @@ export default {
     return {
       pendingCreations: [],
       overlay: false,
+      overlayTitle: '',
+      overlayText: '',
+      overlayQuestion: '',
+      overlayEvent: '',
+      overlyBtnText: '',
       item: {},
     }
   },
   methods: {
-    removeCreation(item) {
-      this.$bvModal.msgBoxConfirm(this.$t('creation_form.deleteNow')).then(async (value) => {
-        if (value)
-          await this.$apollo
-            .mutate({
-              mutation: adminDeleteContribution,
-              variables: {
-                id: item.id,
-              },
-            })
-            .then((result) => {
-              this.updatePendingCreations(item.id)
-              this.toastSuccess(this.$t('creation_form.toasted_delete'))
-            })
-            .catch((error) => {
-              this.toastError(error.message)
-            })
-      })
+    removeCreation() {
+      this.$apollo
+        .mutate({
+          mutation: adminDeleteContribution,
+          variables: {
+            id: this.item.id,
+          },
+        })
+        .then((result) => {
+          this.overlay = false
+          this.updatePendingCreations(this.item.id)
+          this.toastSuccess(this.$t('creation_form.toasted_delete'))
+        })
+        .catch((error) => {
+          this.overlay = false
+          this.toastError(error.message)
+        })
     },
     confirmCreation() {
       this.$apollo
@@ -76,9 +105,35 @@ export default {
       this.pendingCreations = this.pendingCreations.filter((obj) => obj.id !== id)
       this.$store.commit('openCreationsMinus', 1)
     },
-    showOverlay(item) {
+    showOverlay(item, variant) {
       this.overlay = true
       this.item = item
+
+      switch (variant) {
+        case 'confirm':
+          this.overlayTitle = 'overlay.confirm.title'
+          this.overlayText = 'overlay.confirm.text'
+          this.overlayQuestion = 'overlay.confirm.question'
+          this.overlyBtnText = 'overlay.confirm.yes'
+          this.overlayEvent = 'confirm-creation'
+          break
+        case 'delete':
+          this.overlayTitle = 'overlay.delete.title'
+          this.overlayText = 'overlay.delete.text'
+          this.overlayQuestion = 'overlay.delete.question'
+          this.overlyBtnText = 'overlay.delete.yes'
+          this.overlayEvent = 'remove-creation'
+          break
+        case 'reject':
+          this.overlayTitle = 'overlay.reject.title'
+          this.overlayText = 'overlay.reject.text'
+          this.overlayQuestion = 'overlay.reject.question'
+          this.overlyBtnText = 'overlay.reject.yes'
+          this.overlayEvent = 'reject-creation'
+          break
+      }
+      console.log('Overlay variant: ' + variant)
+      console.log('Overlay event: ' + this.overlayEvent)
     },
     updateState(id) {
       this.pendingCreations.find((obj) => obj.id === id).messagesCount++
