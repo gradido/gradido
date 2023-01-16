@@ -33,11 +33,7 @@ export default {
       update({ communityStatistics }) {
         const totals = { ...communityStatistics.totalAvailable }
         this.statistics = { ...communityStatistics, ...totals }
-        this.activeUsers = this.statistics.totalAvailable.activeUsers
-        this.totalGradidoAvailable = this.statistics.totalAvailable.totalGradidoAvailable
-        this.totalGradidoUnbookedDecayed =
-          this.statistics.totalAvailable.totalGradidoUnbookedDecayed
-        delete this.totalAvailable
+        delete this.statistics.totalAvailable
       },
       error({ message }) {
         this.toastError(message)
