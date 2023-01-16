@@ -8,9 +8,9 @@
           width=""
           alt="..."
         />
-        <b-button v-b-toggle.sidebar-mobile class="d-block d-lg-none">
-          <span class="navbar-toggler-icon"></span>
-        </b-button>
+        <div v-b-toggle.sidebar-mobile variant="link" class="d-block d-lg-none">
+          <span class="navbar-toggler-icon h2"></span>
+        </div>
       </b-navbar-brand>
 
       <router-link to="/settings" class="d-block d-lg-none">
