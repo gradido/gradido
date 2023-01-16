@@ -13,7 +13,9 @@
         </div>
       </b-navbar-brand>
 
-      <router-link to="/settings" class="d-block d-lg-none">
+      <b-img class="sheet-img position-absolute zindex-1" :src="sheet"></b-img>
+
+      <b-navbar-nav class="ml-auto" right>
         <div class="d-flex align-items-center">
           <div class="mr-3">
             <avatar
@@ -23,36 +25,15 @@
               :size="61"
             ></avatar>
           </div>
-        </div>
-      </router-link>
-      <b-img class="sheet-img position-absolute zindex-1" :src="sheet"></b-img>
-      <b-collapse id="nav-collapse" is-nav class="ml-5">
-        <b-navbar-nav class="ml-auto" right>
-          <div class="mb-2">
-            <router-link to="/settings">
-              <div>
-                <div class="d-flex align-items-center">
-                  <div class="mr-3">
-                    <avatar
-                      :username="username.username"
-                      :initials="username.initials"
-                      :color="'#fff'"
-                      :size="81"
-                    ></avatar>
-                  </div>
-                  <div>
-                    <div data-test="navbar-item-username">{{ username.username }}</div>
+          <div>
+            <div data-test="navbar-item-username">{{ username.username }}</div>
 
-                    <div class="text-right" data-test="navbar-item-email">
-                      {{ $store.state.email }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </router-link>
+            <div class="text-right" data-test="navbar-item-email">
+              {{ $store.state.email }}
+            </div>
           </div>
-        </b-navbar-nav>
-      </b-collapse>
+        </div>
+      </b-navbar-nav>
     </b-navbar>
     <!-- <div class="alertBox">
       <b-alert show dismissible variant="light" class="nav-alert text-dark">
@@ -126,7 +107,7 @@ button.navbar-toggler > span.navbar-toggler-icon {
 }
 @media screen and (max-width: 1170px) {
   .sheet-img {
-    left: 40%;
+    left: 20%;
   }
   .alertBox {
     position: static;
@@ -137,7 +118,7 @@ button.navbar-toggler > span.navbar-toggler-icon {
 }
 @media screen and (max-width: 450px) {
   .sheet-img {
-    left: 37%;
+    left: 27%;
     max-width: 61%;
   }
 }
