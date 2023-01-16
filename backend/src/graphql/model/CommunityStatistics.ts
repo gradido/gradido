@@ -2,7 +2,7 @@ import { ObjectType, Field } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 
 @ObjectType()
-export class TotalAvailable {
+export class DynamicStatisticsFields {
   @Field(() => Number)
   activeUsers: number
 
@@ -30,6 +30,7 @@ export class CommunityStatistics {
   @Field(() => Decimal)
   totalGradidoDecayed: Decimal
 
-  @Field(() => TotalAvailable)
-  totalAvailable: TotalAvailable
+  // be carefull querying this, takes longer than 2 secs.
+  @Field(() => DynamicStatisticsFields)
+  dynamicStatisticsFields: DynamicStatisticsFields
 }
