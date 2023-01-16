@@ -663,7 +663,6 @@ export class ContributionResolver {
     } finally {
       releaseLock()
     }
-
     return true
   }
 
