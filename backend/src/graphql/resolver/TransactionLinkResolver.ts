@@ -185,7 +185,7 @@ export class TransactionLinkResolver {
             .getOne()
           if (!contributionLink) {
             logger.error('no contribution link found to given code:', code)
-            throw new Error('No contribution link found')
+            throw new Error(`No contribution link found to given code: ${code}`)
           }
           logger.info('...contribution link found with id', contributionLink.id)
           if (new Date(contributionLink.validFrom).getTime() > now.getTime()) {
@@ -197,8 +197,11 @@ export class TransactionLinkResolver {
           }
           if (contributionLink.validTo) {
             if (new Date(contributionLink.validTo).setHours(23, 59, 59) < now.getTime()) {
-              logger.error('contribution link is depricated. Valid to: ', contributionLink.validTo)
-              throw new Error('Contribution link is depricated')
+              logger.error(
+                'contribution link is no longer valid. Valid to: ',
+                contributionLink.validTo,
+              )
+              throw new Error('Contribution link is no longer valid')
             }
           }
           let alreadyRedeemed: DbContribution | undefined
