@@ -17,12 +17,14 @@ const defaultData = () => {
   return {
     communityStatistics: {
       totalUsers: 3113,
-      activeUsers: 1057,
       deletedUsers: 35,
       totalGradidoCreated: '4083774.05000000000000000000',
       totalGradidoDecayed: '-1062639.13634129622923372197',
-      totalGradidoAvailable: '2513565.869444365732411569',
-      totalGradidoUnbookedDecayed: '-500474.6738366222166261272',
+      totalAvailable: {
+        activeUsers: 1057,
+        totalGradidoAvailable: '2513565.869444365732411569',
+        totalGradidoUnbookedDecayed: '-500474.6738366222166261272',
+      },
     },
   }
 }

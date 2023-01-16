@@ -31,7 +31,13 @@ export default {
         return communityStatistics
       },
       update({ communityStatistics }) {
-        this.statistics = communityStatistics
+        const totals = { ...communityStatistics.totalAvailable }
+        this.statistics = { ...communityStatistics, ...totals }
+        this.activeUsers = this.statistics.totalAvailable.activeUsers
+        this.totalGradidoAvailable = this.statistics.totalAvailable.totalGradidoAvailable
+        this.totalGradidoUnbookedDecayed =
+          this.statistics.totalAvailable.totalGradidoUnbookedDecayed
+        delete this.totalAvailable
       },
       error({ message }) {
         this.toastError(message)
