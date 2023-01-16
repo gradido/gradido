@@ -7,7 +7,7 @@ export const communityStatistics = gql`
       deletedUsers
       totalGradidoCreated
       totalGradidoDecayed
-      totalAvailable {
+      dynamicStatisticsFields {
         activeUsers
         totalGradidoAvailable
         totalGradidoUnbookedDecayed
