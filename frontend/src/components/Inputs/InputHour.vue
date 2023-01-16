@@ -32,15 +32,15 @@ export default {
       type: Object,
       default: () => {},
     },
-    name: { type: String, required: true, default: 'Time' },
-    label: { type: String, required: true, default: 'Time' },
-    placeholder: { type: String, required: true, default: 'Time' },
-    value: { type: Number, required: true, default: 0 },
-    validMaxTime: { type: Number, required: true, default: 0 },
+    name: { type: String, required: true },
+    label: { type: String, required: true },
+    placeholder: { type: String, required: true },
+    value: { type: Number, required: true },
+    validMaxTime: { type: Number, required: true },
   },
   data() {
     return {
-      currentValue: 0,
+      currentValue: null,
     }
   },
   computed: {
