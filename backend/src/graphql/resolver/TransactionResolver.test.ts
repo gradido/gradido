@@ -89,7 +89,7 @@ describe('send coins', () => {
     })
 
     it('logs the error thrown', () => {
-      expect(logger.error).toBeCalledWith(`UserContact with email=wrong@email.com does not exists`)
+      expect(logger.error).toBeCalledWith('No user with this credentials', 'wrong@email.com')
     })
 
     describe('deleted recipient', () => {
@@ -120,7 +120,10 @@ describe('send coins', () => {
         // find peter to check the log
         const user = await findUserByEmail(peterData.email)
         expect(logger.error).toBeCalledWith(
-          `The recipient account was deleted: recipientUser=${user}`,
+          'The recipient account was deleted',
+          expect.objectContaining({
+            emailContact: expect.objectContaining({ email: 'stephen@hawking.uk' }),
+          }),
         )
       })
     })
@@ -153,7 +156,10 @@ describe('send coins', () => {
         // find peter to check the log
         const user = await findUserByEmail(peterData.email)
         expect(logger.error).toBeCalledWith(
-          `The recipient account is not activated: recipientUser=${user}`,
+          'The recipient account is not activated',
+          expect.objectContaining({
+            emailContact: expect.objectContaining({ email: 'garrick@ollivander.com' }),
+          }),
         )
       })
     })
@@ -192,6 +198,8 @@ describe('send coins', () => {
     })
 
     describe('memo text is too long', () => {
+      const memo =
+        'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test t'
       it('throws an error', async () => {
         jest.clearAllMocks()
         expect(
@@ -200,7 +208,7 @@ describe('send coins', () => {
             variables: {
               email: 'peter@lustig.de',
               amount: 100,
-              memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test t',
+              memo,
             },
           }),
         ).toEqual(
@@ -211,11 +219,12 @@ describe('send coins', () => {
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('memo text is too long: memo.length=256 > 255')
+        expect(logger.error).toBeCalledWith('memo text is too long (255 characters maximum)', memo)
       })
     })
 
     describe('memo text is too short', () => {
+      const memo = 'test'
       it('throws an error', async () => {
         jest.clearAllMocks()
         expect(
@@ -224,7 +233,7 @@ describe('send coins', () => {
             variables: {
               email: 'peter@lustig.de',
               amount: 100,
-              memo: 'test',
+              memo,
             },
           }),
         ).toEqual(
@@ -235,7 +244,7 @@ describe('send coins', () => {
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('memo text is too short: memo.length=4 < 5')
+        expect(logger.error).toBeCalledWith('memo text is too short (5 characters minimum)', memo)
       })
     })
 
@@ -259,9 +268,7 @@ describe('send coins', () => {
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith(
-          `user hasn't enough GDD or amount is < 0 : balance=null`,
-        )
+        expect(logger.error).toBeCalledWith("user hasn't enough GDD or amount is < 0", null)
       })
     })
   })
