@@ -2,12 +2,7 @@
 <template>
   <div class="creation-confirm">
     <div v-if="overlay" id="overlay" @dblclick="overlay = false">
-      <overlay
-        :item="item"
-        @overlay-cancel="overlay = false"
-        @confirm-creation="confirmCreation"
-        @remove-creation="removeCreation"
-      >
+      <overlay :item="item">
         <template #title>
           {{ $t(overlayTitle) }}
         </template>
@@ -18,12 +13,7 @@
           <p>{{ $t(overlayQuestion) }}</p>
         </template>
         <template #submit-btn>
-          <b-button
-            size="md"
-            variant="success"
-            class="m-3 text-right"
-            @click="$emit(overlayEvent, item)"
-          >
+          <b-button size="md" variant="success" class="m-3 text-right" @click="overlayEvent">
             {{ $t(overlyBtnText) }}
           </b-button>
         </template>
@@ -115,14 +105,14 @@ export default {
           this.overlayText = 'overlay.confirm.text'
           this.overlayQuestion = 'overlay.confirm.question'
           this.overlyBtnText = 'overlay.confirm.yes'
-          this.overlayEvent = 'confirm-creation'
+          this.overlayEvent = this.confirmCreation
           break
         case 'delete':
           this.overlayTitle = 'overlay.delete.title'
           this.overlayText = 'overlay.delete.text'
           this.overlayQuestion = 'overlay.delete.question'
           this.overlyBtnText = 'overlay.delete.yes'
-          this.overlayEvent = 'remove-creation'
+          this.overlayEvent = this.removeCreation
           break
         case 'reject':
           this.overlayTitle = 'overlay.reject.title'
@@ -132,8 +122,6 @@ export default {
           this.overlayEvent = 'reject-creation'
           break
       }
-      console.log('Overlay variant: ' + variant)
-      console.log('Overlay event: ' + this.overlayEvent)
     },
     updateState(id) {
       this.pendingCreations.find((obj) => obj.id === id).messagesCount++
