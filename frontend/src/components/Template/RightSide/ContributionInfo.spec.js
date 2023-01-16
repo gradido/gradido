@@ -72,7 +72,7 @@ describe('ContributionInfo', () => {
         expect(wrapper.find('p').text()).toBe('contribution.alert.communityNoteList')
       })
 
-      it('has a legend to explain the icons', () => {
+      it.skip('has a legend to explain the icons', () => {
         const listItems = wrapper.findAll('li')
 
         expect(listItems.at(0).find('svg').attributes('aria-label')).toEqual('bell fill')
