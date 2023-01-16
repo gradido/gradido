@@ -3,6 +3,7 @@ import { getConnection } from '@dbTools/typeorm'
 import { Contribution } from '@entity/Contribution'
 import Decimal from 'decimal.js-light'
 import { FULL_CREATION_AVAILABLE, MAX_CREATION_AMOUNT } from '../const/const'
+import LogError from '@/server/LogError'
 
 interface CreationMap {
   id: number
@@ -19,18 +20,14 @@ export const validateContribution = (
   const index = getCreationIndex(creationDate.getMonth(), timezoneOffset)
 
   if (index < 0) {
-    logger.error(
-      'No information for available creations with the given creationDate=',
+    throw new LogError(
+      'No information for available creations for the given date',
       creationDate.toString(),
     )
-    throw new Error('No information for available creations for the given date')
   }
 
   if (amount.greaterThan(creations[index].toString())) {
-    logger.error(
-      `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
-    )
-    throw new Error(
+    throw new LogError(
       `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
     )
   }
@@ -126,19 +123,16 @@ export const isStartEndDateValid = (
   endDate: string | null | undefined,
 ): void => {
   if (!startDate) {
-    logger.error('Start-Date is not initialized. A Start-Date must be set!')
-    throw new Error('Start-Date is not initialized. A Start-Date must be set!')
+    throw new LogError('Start-Date is not initialized. A Start-Date must be set!')
   }
 
   if (!endDate) {
-    logger.error('End-Date is not initialized. An End-Date must be set!')
-    throw new Error('End-Date is not initialized. An End-Date must be set!')
+    throw new LogError('End-Date is not initialized. An End-Date must be set!')
   }
 
   // check if endDate is before startDate
   if (new Date(endDate).getTime() - new Date(startDate).getTime() < 0) {
-    logger.error(`The value of validFrom must before or equals the validTo!`)
-    throw new Error(`The value of validFrom must before or equals the validTo!`)
+    throw new LogError(`The value of validFrom must before or equals the validTo!`)
   }
 }
 

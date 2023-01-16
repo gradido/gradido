@@ -12,10 +12,10 @@ import { ContributionStatus } from '@enum/ContributionStatus'
 import { Order } from '@enum/Order'
 import Paginated from '@arg/Paginated'
 
-import { backendLogger as logger } from '@/server/logger'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser } from '@/server/context'
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
+import LogError from '@/server/LogError'
 
 @Resolver()
 export class ContributionMessageResolver {
@@ -54,8 +54,7 @@ export class ContributionMessageResolver {
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      logger.error(`ContributionMessage was not successful: ${e}`)
-      throw new Error(`ContributionMessage was not successful: ${e}`)
+      throw new LogError(`ContributionMessage was not successful: ${e}`)
     } finally {
       await queryRunner.release()
     }
@@ -108,12 +107,10 @@ export class ContributionMessageResolver {
         relations: ['user'],
       })
       if (!contribution) {
-        logger.error('Contribution not found')
-        throw new Error('Contribution not found')
+        throw new LogError('Contribution not found')
       }
       if (contribution.userId === user.id) {
-        logger.error('Admin can not answer on own contribution')
-        throw new Error('Admin can not answer on own contribution')
+        throw new LogError('Admin can not answer on own contribution')
       }
       if (!contribution.user.emailContact) {
         contribution.user.emailContact = await UserContact.findOneOrFail({
@@ -149,8 +146,7 @@ export class ContributionMessageResolver {
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      logger.error(`ContributionMessage was not successful: ${e}`)
-      throw new Error(`ContributionMessage was not successful: ${e}`)
+      throw new LogError(`ContributionMessage was not successful: ${e}`)
     } finally {
       await queryRunner.release()
     }

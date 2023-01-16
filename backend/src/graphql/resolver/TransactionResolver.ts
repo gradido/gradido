@@ -37,6 +37,7 @@ import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByEmail } from './UserResolver'
 
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import LogError from '@/server/LogError'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -50,18 +51,15 @@ export const executeTransaction = async (
   )
 
   if (sender.id === recipient.id) {
-    logger.error(`Sender and Recipient are the same.`)
-    throw new Error('Sender and Recipient are the same.')
+    throw new LogError('Sender and Recipient are the same.')
   }
 
   if (memo.length > MEMO_MAX_CHARS) {
-    logger.error(`memo text is too long: memo.length=${memo.length} > ${MEMO_MAX_CHARS}`)
-    throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
+    throw new LogError(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`, memo)
   }
 
   if (memo.length < MEMO_MIN_CHARS) {
-    logger.error(`memo text is too short: memo.length=${memo.length} < ${MEMO_MIN_CHARS}`)
-    throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
+    throw new LogError(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`, memo)
   }
 
   // acquire lock
@@ -78,8 +76,7 @@ export const executeTransaction = async (
     )
     logger.debug(`calculated Balance=${sendBalance}`)
     if (!sendBalance) {
-      logger.error(`user hasn't enough GDD or amount is < 0 : balance=${sendBalance}`)
-      throw new Error("user hasn't enough GDD or amount is < 0")
+      throw new LogError("user hasn't enough GDD or amount is < 0", sendBalance)
     }
 
     const queryRunner = getConnection().createQueryRunner()
@@ -157,8 +154,7 @@ export const executeTransaction = async (
       )
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      logger.error(`Transaction was not successful: ${e}`)
-      throw new Error(`Transaction was not successful: ${e}`)
+      throw new LogError('Transaction was not successful', e)
     } finally {
       await queryRunner.release()
     }
@@ -320,8 +316,7 @@ export class TransactionResolver {
   ): Promise<boolean> {
     logger.info(`sendCoins(email=${email}, amount=${amount}, memo=${memo})`)
     if (amount.lte(0)) {
-      logger.error(`Amount to send must be positive`)
-      throw new Error('Amount to send must be positive')
+      throw new LogError('Amount to send must be positive')
     }
 
     // TODO this is subject to replay attacks
@@ -330,13 +325,11 @@ export class TransactionResolver {
     // validate recipient user
     const recipientUser = await findUserByEmail(email)
     if (recipientUser.deletedAt) {
-      logger.error(`The recipient account was deleted: recipientUser=${recipientUser}`)
-      throw new Error('The recipient account was deleted')
+      throw new LogError('The recipient account was deleted', recipientUser)
     }
     const emailContact = recipientUser.emailContact
     if (!emailContact.emailChecked) {
-      logger.error(`The recipient account is not activated: recipientUser=${recipientUser}`)
-      throw new Error('The recipient account is not activated')
+      throw new LogError('The recipient account is not activated', recipientUser)
     }
 
     await executeTransaction(amount, memo, senderUser, recipientUser)

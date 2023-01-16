@@ -2,6 +2,7 @@ import CONFIG from '@/config'
 import { backendLogger as logger } from '@/server/logger'
 import { User } from '@entity/User'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
+import LogError from '@/server/LogError'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -16,10 +17,7 @@ export const SecretKeyCryptographyCreateKey = (salt: string, password: string): 
   const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
   const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
   if (configLoginServerKey.length !== sodium.crypto_shorthash_KEYBYTES) {
-    logger.error(
-      `ServerKey has an invalid size. The size must be ${sodium.crypto_shorthash_KEYBYTES} bytes.`,
-    )
-    throw new Error(
+    throw new LogError(
       `ServerKey has an invalid size. The size must be ${sodium.crypto_shorthash_KEYBYTES} bytes.`,
     )
   }
@@ -53,8 +51,7 @@ export const SecretKeyCryptographyCreateKey = (salt: string, password: string): 
 export const getUserCryptographicSalt = (dbUser: User): string => {
   switch (dbUser.passwordEncryptionType) {
     case PasswordEncryptionType.NO_PASSWORD: {
-      logger.error('Password not set for user ' + dbUser.id)
-      throw new Error('Password not set for user ' + dbUser.id) // user has no password
+      throw new LogError('Password not set for user ' + dbUser.id) // user has no password
     }
     case PasswordEncryptionType.EMAIL: {
       return dbUser.emailContact.email
@@ -65,7 +62,6 @@ export const getUserCryptographicSalt = (dbUser: User): string => {
       break
     }
     default:
-      logger.error(`Unknown password encryption type: ${dbUser.passwordEncryptionType}`)
-      throw new Error(`Unknown password encryption type: ${dbUser.passwordEncryptionType}`)
+      throw new LogError(`Unknown password encryption type: ${dbUser.passwordEncryptionType}`)
   }
 }

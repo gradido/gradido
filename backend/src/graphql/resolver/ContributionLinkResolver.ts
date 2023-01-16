@@ -17,6 +17,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { Order } from '@enum/Order'
 import Paginated from '@arg/Paginated'
+import LogError from '@/server/LogError'
 
 // TODO: this is a strange construct
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
@@ -40,33 +41,29 @@ export class ContributionLinkResolver {
   ): Promise<ContributionLink> {
     isStartEndDateValid(validFrom, validTo)
     if (!name) {
-      logger.error(`The name must be initialized!`)
-      throw new Error(`The name must be initialized!`)
+      throw new LogError(`The name must be initialized!`)
     }
     if (
       name.length < CONTRIBUTIONLINK_NAME_MIN_CHARS ||
       name.length > CONTRIBUTIONLINK_NAME_MAX_CHARS
     ) {
-      const msg = `The value of 'name' with a length of ${name.length} did not fulfill the requested bounderies min=${CONTRIBUTIONLINK_NAME_MIN_CHARS} and max=${CONTRIBUTIONLINK_NAME_MAX_CHARS}`
-      logger.error(`${msg}`)
-      throw new Error(`${msg}`)
+      throw new LogError(
+        `The value of 'name' with a length of ${name.length} did not fulfill the requested bounderies min=${CONTRIBUTIONLINK_NAME_MIN_CHARS} and max=${CONTRIBUTIONLINK_NAME_MAX_CHARS}`,
+      )
     }
     if (!memo) {
-      logger.error(`The memo must be initialized!`)
-      throw new Error(`The memo must be initialized!`)
+      throw new LogError(`The memo must be initialized!`)
     }
     if (memo.length < MEMO_MIN_CHARS || memo.length > MEMO_MAX_CHARS) {
-      const msg = `The value of 'memo' with a length of ${memo.length} did not fulfill the requested bounderies min=${MEMO_MIN_CHARS} and max=${MEMO_MAX_CHARS}`
-      logger.error(`${msg}`)
-      throw new Error(`${msg}`)
+      throw new LogError(
+        `The value of 'memo' with a length of ${memo.length} did not fulfill the requested bounderies min=${MEMO_MIN_CHARS} and max=${MEMO_MAX_CHARS}`,
+      )
     }
     if (!amount) {
-      logger.error(`The amount must be initialized!`)
-      throw new Error('The amount must be initialized!')
+      throw new LogError('The amount must be initialized!')
     }
     if (!new Decimal(amount).isPositive()) {
-      logger.error(`The amount=${amount} must be initialized with a positiv value!`)
-      throw new Error(`The amount=${amount} must be initialized with a positiv value!`)
+      throw new LogError(`The amount=${amount} must be initialized with a positiv value!`)
     }
     const dbContributionLink = new DbContributionLink()
     dbContributionLink.amount = amount
@@ -107,8 +104,7 @@ export class ContributionLinkResolver {
   async deleteContributionLink(@Arg('id', () => Int) id: number): Promise<Date | null> {
     const contributionLink = await DbContributionLink.findOne(id)
     if (!contributionLink) {
-      logger.error(`Contribution Link not found to given id: ${id}`)
-      throw new Error('Contribution Link not found to given id.')
+      throw new LogError('Contribution Link not found to given id.', id)
     }
     await contributionLink.softRemove()
     logger.debug(`deleteContributionLink successful!`)
@@ -134,8 +130,7 @@ export class ContributionLinkResolver {
   ): Promise<ContributionLink> {
     const dbContributionLink = await DbContributionLink.findOne(id)
     if (!dbContributionLink) {
-      logger.error(`Contribution Link not found to given id: ${id}`)
-      throw new Error('Contribution Link not found to given id.')
+      throw new LogError('Contribution Link not found to given id.', id)
     }
     dbContributionLink.amount = amount
     dbContributionLink.name = name
