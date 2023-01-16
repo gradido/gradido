@@ -15,6 +15,7 @@ const routerPushMock = jest.fn()
 const stubs = {
   RouterLink: RouterLinkStub,
   RouterView: true,
+  LastTransactions: true,
 }
 
 const mocks = {
@@ -28,6 +29,9 @@ const mocks = {
   $route: {
     meta: {
       hideFooter: false,
+    },
+    path: {
+      replace: jest.fn(),
     },
   },
   $router: {
