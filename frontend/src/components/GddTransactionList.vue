@@ -26,45 +26,46 @@
           </template>
         </transaction-list-item>
       </div>
-      <div v-if="transactionCount > 0" class="h4 m-3">{{ $t('lastMonth') }}</div>
-      <div v-for="({ id, typeId }, index) in transactions" :key="`l2-` + id">
-        <transaction-list-item
-          v-if="typeId !== 'DECAY'"
-          :typeId="typeId"
-          class="pointer mb-4 bg-white appBoxShadow gradido-border-radius p-3 test-list-group-item"
-        >
-          <template #SEND>
-            <transaction-send
-              v-bind="transactions[index]"
-              :previousBookedBalance="previousBookedBalance(index)"
-              v-on="$listeners"
-            />
-          </template>
+      <div class="mt-3">
+        <div v-for="({ id, typeId }, index) in transactions" :key="`l2-` + id">
+          <transaction-list-item
+            v-if="typeId !== 'DECAY'"
+            :typeId="typeId"
+            class="pointer mb-3 bg-white appBoxShadow gradido-border-radius p-3 test-list-group-item"
+          >
+            <template #SEND>
+              <transaction-send
+                v-bind="transactions[index]"
+                :previousBookedBalance="previousBookedBalance(index)"
+                v-on="$listeners"
+              />
+            </template>
 
-          <template #RECEIVE>
-            <transaction-receive
-              v-bind="transactions[index]"
-              :previousBookedBalance="previousBookedBalance(index)"
-              v-on="$listeners"
-            />
-          </template>
+            <template #RECEIVE>
+              <transaction-receive
+                v-bind="transactions[index]"
+                :previousBookedBalance="previousBookedBalance(index)"
+                v-on="$listeners"
+              />
+            </template>
 
-          <template #CREATION>
-            <transaction-creation
-              v-bind="transactions[index]"
-              :previousBookedBalance="previousBookedBalance(index)"
-              v-on="$listeners"
-            />
-          </template>
+            <template #CREATION>
+              <transaction-creation
+                v-bind="transactions[index]"
+                :previousBookedBalance="previousBookedBalance(index)"
+                v-on="$listeners"
+              />
+            </template>
 
-          <template #LINK_SUMMARY>
-            <transaction-link-summary
-              v-bind="transactions[index]"
-              :transactionLinkCount="transactionLinkCount"
-              @update-transactions="updateTransactions"
-            />
-          </template>
-        </transaction-list-item>
+            <template #LINK_SUMMARY>
+              <transaction-link-summary
+                v-bind="transactions[index]"
+                :transactionLinkCount="transactionLinkCount"
+                @update-transactions="updateTransactions"
+              />
+            </template>
+          </transaction-list-item>
+        </div>
       </div>
     </div>
     <b-pagination

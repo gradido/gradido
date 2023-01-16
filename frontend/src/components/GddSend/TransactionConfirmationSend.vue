@@ -17,7 +17,7 @@
         </b-col>
       </b-row>
 
-      <b-row class="mt-5 pr-3 text-color-gdd-yellow h3">
+      <b-row class="mt-5 text-color-gdd-yellow h3">
         <b-col cols="2" class="text-right">
           <b-icon class="text-color-gdd-yellow" icon="droplet-half"></b-icon>
         </b-col>
@@ -39,12 +39,15 @@
         <b-col offset="2">{{ $t('form.new_balance') }}</b-col>
         <b-col>{{ (balance - amount) | GDD }}</b-col>
       </b-row>
-      <b-row class="mt-5 p-5">
-        <b-col>
-          <b-button @click="$emit('on-back')">{{ $t('back') }}</b-button>
+      <b-row class="mt-5">
+        <b-col cols="12" md="6" lg="6">
+          <b-button block @click="$emit('on-back')" class="mb-3 mb-md-0 mb-lg-0">
+            {{ $t('back') }}
+          </b-button>
         </b-col>
-        <b-col class="text-right">
+        <b-col cols="12" md="6" lg="6" class="text-lg-right">
           <b-button
+            block
             variant="gradido"
             :disabled="disabled"
             @click="$emit('send-transaction'), (disabled = true)"

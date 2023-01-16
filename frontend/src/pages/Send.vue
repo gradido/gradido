@@ -1,6 +1,6 @@
 <template>
   <div>
-    <gdd-send :currentTransactionStep="currentTransactionStep" class="pt-3 mt--3">
+    <gdd-send :currentTransactionStep="currentTransactionStep">
       <template #transactionForm>
         <transaction-form
           v-bind="transactionData"
