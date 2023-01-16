@@ -50,7 +50,7 @@
             </b-col>
             <b-col cols="12">
               <!-- router-view -->
-              <div class="main-content mt-3">
+              <div class="main-content mt-lg-3 mt-0">
                 <fade-transition :duration="200" origin="center top" mode="out-in">
                   <router-view
                     ref="router-view"
