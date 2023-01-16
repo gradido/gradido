@@ -139,7 +139,6 @@ button.navbar-toggler > span.navbar-toggler-icon {
   .sheet-img {
     left: 37%;
     max-width: 61%;
-    z-index: 1000;
   }
 }
 </style>
