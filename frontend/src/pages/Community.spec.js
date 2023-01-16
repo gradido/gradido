@@ -2,33 +2,14 @@ import { mount } from '@vue/test-utils'
 import Community from './Community'
 import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
-import { listContributions, listAllContributions, verifyLogin } from '@/graphql/queries'
-
-import VueRouter from 'vue-router'
-import routes from '../routes/routes'
+import { listContributions, listAllContributions } from '@/graphql/queries'
 
 const localVue = global.localVue
-localVue.use(VueRouter)
 
 const mockStoreDispach = jest.fn()
 const apolloQueryMock = jest.fn()
 const apolloMutationMock = jest.fn()
-
-const router = new VueRouter({
-  base: '/',
-  routes,
-  linkActiveClass: 'active',
-  mode: 'history',
-  // scrollBehavior: (to, from, savedPosition) => {
-  //   if (savedPosition) {
-  //     return savedPosition
-  //   }
-  //   if (to.hash) {
-  //     return { selector: to.hash }
-  //   }
-  //   return { x: 0, y: 0 }
-  // },
-})
+const apolloRefetchMock = jest.fn()
 
 describe('Community', () => {
   let wrapper
@@ -39,6 +20,11 @@ describe('Community', () => {
     $apollo: {
       query: apolloQueryMock,
       mutate: apolloMutationMock,
+      queries: {
+        OpenCreations: {
+          refetch: apolloRefetchMock,
+        },
+      },
     },
     $store: {
       dispatch: mockStoreDispach,
@@ -49,12 +35,17 @@ describe('Community', () => {
     $i18n: {
       locale: 'en',
     },
+    $router: {
+      push: jest.fn(),
+    },
+    $route: {
+      hash: 'my',
+    },
   }
 
   const Wrapper = () => {
     return mount(Community, {
       localVue,
-      router,
       mocks,
     })
   }
@@ -207,10 +198,7 @@ describe('Community', () => {
         })
 
         it('verifies the login (to get the new creations available)', () => {
-          expect(apolloQueryMock).toBeCalledWith({
-            query: verifyLogin,
-            fetchPolicy: 'network-only',
-          })
+          expect(apolloRefetchMock).toBeCalled()
         })
 
         it('set all data to the default values)', () => {
@@ -294,10 +282,7 @@ describe('Community', () => {
         })
 
         it('verifies the login (to get the new creations available)', () => {
-          expect(apolloQueryMock).toBeCalledWith({
-            query: verifyLogin,
-            fetchPolicy: 'network-only',
-          })
+          expect(apolloRefetchMock).toBeCalled()
         })
 
         it('set all data to the default values)', () => {
@@ -376,10 +361,7 @@ describe('Community', () => {
         })
 
         it('verifies the login (to get the new creations available)', () => {
-          expect(apolloQueryMock).toBeCalledWith({
-            query: verifyLogin,
-            fetchPolicy: 'network-only',
-          })
+          expect(apolloRefetchMock).toBeCalled()
         })
       })
 

@@ -14,6 +14,8 @@ export const verifyLogin = gql`
       publisherId
       isAdmin
       creation
+      hideAmountGDD
+      hideAmountGDT
     }
   }
 `
@@ -245,6 +247,16 @@ export const listContributionMessages = gql`
         userLastName
         userId
       }
+    }
+  }
+`
+
+export const openCreations = gql`
+  query {
+    openCreations {
+      year
+      month
+      amount
     }
   }
 `

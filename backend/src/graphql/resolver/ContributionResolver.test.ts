@@ -1146,13 +1146,21 @@ describe('ContributionResolver', () => {
           const now = new Date()
 
           beforeAll(async () => {
-            creation = await creationFactory(testEnv, {
-              email: 'peter@lustig.de',
-              amount: 400,
-              memo: 'Herzlich Willkommen bei Gradido!',
-              creationDate: contributionDateFormatter(
-                new Date(now.getFullYear(), now.getMonth() - 1, 1),
-              ),
+            await mutate({
+              mutation: adminCreateContribution,
+              variables: {
+                email: 'peter@lustig.de',
+                amount: 400,
+                memo: 'Herzlich Willkommen bei Gradido!',
+                creationDate: contributionDateFormatter(
+                  new Date(now.getFullYear(), now.getMonth() - 1, 1),
+                ),
+              },
+            })
+            creation = await Contribution.findOneOrFail({
+              where: {
+                memo: 'Herzlich Willkommen bei Gradido!',
+              },
             })
           })
 
@@ -1879,6 +1887,10 @@ describe('ContributionResolver', () => {
                   new Date(now.getFullYear(), now.getMonth() - 2, 1),
                 ),
               })
+              await query({
+                query: login,
+                variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+              })
             })
 
             it('returns true', async () => {
@@ -1935,6 +1947,23 @@ describe('ContributionResolver', () => {
                 }),
               )
             })
+
+            describe('confirm same contribution again', () => {
+              it('throws an error', async () => {
+                await expect(
+                  mutate({
+                    mutation: confirmContribution,
+                    variables: {
+                      id: creation ? creation.id : -1,
+                    },
+                  }),
+                ).resolves.toEqual(
+                  expect.objectContaining({
+                    errors: [new GraphQLError('Contribution already confirmd.')],
+                  }),
+                )
+              })
+            })
           })
 
           describe('confirm two creations one after the other quickly', () => {
@@ -1958,6 +1987,10 @@ describe('ContributionResolver', () => {
                 creationDate: contributionDateFormatter(
                   new Date(now.getFullYear(), now.getMonth() - 2, 1),
                 ),
+              })
+              await query({
+                query: login,
+                variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
               })
             })
 
