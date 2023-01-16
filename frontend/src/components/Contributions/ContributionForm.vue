@@ -3,7 +3,7 @@
     <b-form
       ref="form"
       @submit.prevent="submit"
-      class="border p-3 bg-white appBoxShadow gradido-border-radius"
+      class="p-3 bg-white appBoxShadow gradido-border-radius"
     >
       <label>{{ $t('contribution.selectDate') }}</label>
       <b-form-datepicker
