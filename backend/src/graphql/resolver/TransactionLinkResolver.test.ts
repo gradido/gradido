@@ -111,7 +111,6 @@ describe('TransactionLinkResolver', () => {
           await resetEntity(DbContributionLink)
         })
 
-        // TODO: why the fuck is this possible? ¯\_(ツ)_/¯
         it('throws error when contributionLink cycle is invalid', async () => {
           const now = new Date()
           const {
