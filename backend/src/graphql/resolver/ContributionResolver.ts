@@ -718,4 +718,61 @@ export class ContributionResolver {
       }
     })
   }
+
+  @Authorized([RIGHTS.REJECT_CONTRIBUTION])
+  @Mutation(() => Boolean)
+  async rejectContribution(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const contributionToUpdate = await DbContribution.findOne({
+      id,
+      confirmedAt: IsNull(),
+      deniedBy: IsNull(),
+    })
+    // TODO: Check
+    // - contribution exists
+    // - state has accept one
+    if (!contributionToUpdate) {
+      logger.error(`Contribution not found for given id: ${id}`)
+      throw new Error(`Contribution not found for given id.`)
+    }
+    if (
+      contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
+      contributionToUpdate.contributionStatus !== ContributionStatus.PENDING
+    ) {
+      logger.error(
+        `Contribution state (${contributionToUpdate.contributionStatus}) is not allowed.`,
+      )
+      throw new Error(`State of the contribution is not allowed.`)
+    }
+    const moderator = getUser(context)
+    const user = await DbUser.findOne(
+      { id: contributionToUpdate.userId },
+      { relations: ['emailContact'] },
+    )
+    if (!user) {
+      logger.error(
+        `Could not find User for the Contribution (userId: ${contributionToUpdate.userId}).`,
+      )
+      throw new Error('Could not find User for the Contribution.')
+    }
+
+    contributionToUpdate.contributionStatus = ContributionStatus.DENIED
+    contributionToUpdate.deniedBy = moderator.id
+    contributionToUpdate.deniedAt = new Date()
+    const res = await contributionToUpdate.save()
+
+    sendContributionRejectedEmail({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.emailContact.email,
+      language: user.language,
+      senderFirstName: moderator.firstName,
+      senderLastName: moderator.lastName,
+      contributionMemo: contributionToUpdate.memo,
+    })
+
+    return !!res
+  }
 }
