@@ -46,7 +46,7 @@
     "toasted": "Open creation ({value} GDD) for {email} has been saved and is ready for confirmation.",
     "toasted_created": "Creation has been successfully saved",
     "toasted_delete": "Open creation has been deleted",
-    "toasted_rejected": "Open creation has been deny",
+    "toasted_rejected": "Open creation has been denied",
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
   },
