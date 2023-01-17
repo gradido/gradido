@@ -118,7 +118,7 @@ export default {
       if (num !== 0) {
         this.form = {
           id: null,
-          date: '',
+          date: new Date(),
           memo: '',
           hours: 0,
           amount: '',
