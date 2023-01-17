@@ -76,7 +76,7 @@ describe('CreationConfirm', () => {
 
   const listUnconfirmedContributionsMock = jest.fn()
   const adminDeleteContributionMock = jest.fn()
-  const adminDenyContributionMock = jest.fn()
+  const adminRejectContributionMock = jest.fn()
   const confirmContributionMock = jest.fn()
 
   mockClient.setRequestHandler(
@@ -93,7 +93,7 @@ describe('CreationConfirm', () => {
 
   mockClient.setRequestHandler(
     rejectContribution,
-    adminDenyContributionMock.mockResolvedValue({ data: { rejectContribution: true } }),
+    adminRejectContributionMock.mockResolvedValue({ data: { rejectContribution: true } }),
   )
 
   mockClient.setRequestHandler(
@@ -266,7 +266,7 @@ describe('CreationConfirm', () => {
         })
 
         it('calls the adminDeleteContribution mutation', () => {
-          expect(adminDenyContributionMock).toBeCalledWith({ id: 1 })
+          expect(adminRejectContributionMock).toBeCalledWith({ id: 1 })
         })
 
         it('commits openCreationsMinus to store', () => {
@@ -286,7 +286,7 @@ describe('CreationConfirm', () => {
         })
 
         it('does not call the adminDeleteContribution mutation', () => {
-          expect(adminDenyContributionMock).not.toBeCalled()
+          expect(adminRejectContributionMock).not.toBeCalled()
         })
       })
     })
