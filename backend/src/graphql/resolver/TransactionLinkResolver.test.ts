@@ -79,7 +79,9 @@ describe('TransactionLinkResolver', () => {
 
         it('throws error when link is not valid yet', async () => {
           const now = new Date()
-          await mutate({
+          const {
+            data: { createContributionLink: contributionLink },
+          } = await mutate({
             mutation: createContributionLink,
             variables: {
               amount: new Decimal(5),
@@ -92,9 +94,6 @@ describe('TransactionLinkResolver', () => {
               maxPerCycle: 1,
             },
           })
-          const cls = await DbContributionLink.find()
-          expect(cls).toHaveLength(1)
-          const contributionLink = cls[0]
           await expect(
             mutate({
               mutation: redeemTransactionLink,
@@ -115,7 +114,9 @@ describe('TransactionLinkResolver', () => {
         // TODO: why the fuck is this possible? ¯\_(ツ)_/¯
         it('throws error when contributionLink cycle is invalid', async () => {
           const now = new Date()
-          await mutate({
+          const {
+            data: { createContributionLink: contributionLink },
+          } = await mutate({
             mutation: createContributionLink,
             variables: {
               amount: new Decimal(5),
@@ -128,9 +129,6 @@ describe('TransactionLinkResolver', () => {
               maxPerCycle: 1,
             },
           })
-          const cls = await DbContributionLink.find()
-          expect(cls).toHaveLength(1)
-          const contributionLink = cls[0]
           await expect(
             mutate({
               mutation: redeemTransactionLink,
@@ -150,7 +148,9 @@ describe('TransactionLinkResolver', () => {
 
         it('throws error when link is no longer valid', async () => {
           const now = new Date()
-          await mutate({
+          const {
+            data: { createContributionLink: contributionLink },
+          } = await mutate({
             mutation: createContributionLink,
             variables: {
               amount: new Decimal(5),
@@ -163,9 +163,6 @@ describe('TransactionLinkResolver', () => {
               maxPerCycle: 1,
             },
           })
-          const cls = await DbContributionLink.find()
-          expect(cls).toHaveLength(1)
-          const contributionLink = cls[0]
           await expect(
             mutate({
               mutation: redeemTransactionLink,
