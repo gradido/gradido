@@ -62,6 +62,9 @@ let creation: Contribution | void
 let admin: User
 let result: any
 
+const MEMO_SHORT = 'Test'
+const MEMO_LONG  = 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test'
+
 beforeAll(async () => {
   testEnv = await testEnvironment(logger, localization)
   mutate = testEnv.mutate
@@ -118,7 +121,7 @@ describe('ContributionResolver', () => {
               mutation: createContribution,
               variables: {
                 amount: 100.0,
-                memo: 'Test',
+                memo: MEMO_SHORT,
                 creationDate: date.toString(),
               },
             }),
@@ -130,7 +133,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(`memo text is too short: memo.length=4 < 5`)
+          expect(logger.error).toBeCalledWith('memo text is too short (5 characters minimum)', MEMO_SHORT)
         })
 
         it('throws error when memo length greater than 255 chars', async () => {
@@ -141,7 +144,7 @@ describe('ContributionResolver', () => {
               mutation: createContribution,
               variables: {
                 amount: 100.0,
-                memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
+                memo: MEMO_LONG,
                 creationDate: date.toString(),
               },
             }),
@@ -153,7 +156,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(`memo text is too long: memo.length=259 > 255`)
+          expect(logger.error).toBeCalledWith(`memo text is too long (255 characters maximum)`, MEMO_LONG)
         })
 
         it('throws error when creationDate not-valid', async () => {
@@ -178,7 +181,7 @@ describe('ContributionResolver', () => {
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'No information for available creations with the given creationDate=',
+            'No information for available creations for the given date',
             'Invalid Date',
           )
         })
@@ -206,7 +209,7 @@ describe('ContributionResolver', () => {
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'No information for available creations with the given creationDate=',
+            'No information for available creations for the given date',
             'Invalid Date',
           )
         })
@@ -429,13 +432,13 @@ describe('ContributionResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('No contribution found to given id.')],
+              errors: [new GraphQLError('No contribution found to given id')],
             }),
           )
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('No contribution found to given id')
+          expect(logger.error).toBeCalledWith('No contribution found to given id', -1)
         })
       })
 
@@ -449,7 +452,7 @@ describe('ContributionResolver', () => {
               variables: {
                 contributionId: result.data.createContribution.id,
                 amount: 100.0,
-                memo: 'Test',
+                memo: MEMO_SHORT,
                 creationDate: date.toString(),
               },
             }),
@@ -461,7 +464,10 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('memo text is too short: memo.length=4 < 5')
+          expect(logger.error).toBeCalledWith(
+            'memo text is too short (5 characters minimum)',
+            MEMO_SHORT,
+          )
         })
       })
 
@@ -475,7 +481,7 @@ describe('ContributionResolver', () => {
               variables: {
                 contributionId: result.data.createContribution.id,
                 amount: 100.0,
-                memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
+                memo: MEMO_LONG,
                 creationDate: date.toString(),
               },
             }),
@@ -487,7 +493,10 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('memo text is too long: memo.length=259 > 255')
+          expect(logger.error).toBeCalledWith(
+            'memo text is too long (255 characters maximum)',
+            MEMO_LONG,
+          )
         })
       })
 
@@ -801,13 +810,13 @@ describe('ContributionResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('Contribution not found for given id.')],
+              errors: [new GraphQLError('Contribution not found for given id')],
             }),
           )
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('Contribution not found for given id')
+          expect(logger.error).toBeCalledWith('Contribution not found for given id', -1)
         })
       })
 
@@ -1287,7 +1296,7 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'No information for available creations with the given creationDate=',
+                  'No information for available creations for the given date',
                   new Date(variables.creationDate).toString(),
                 )
               })
@@ -1312,7 +1321,7 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'No information for available creations with the given creationDate=',
+                  'No information for available creations for the given date',
                   new Date(variables.creationDate).toString(),
                 )
               })
@@ -1516,13 +1525,13 @@ describe('ContributionResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('No contribution found to given id.')],
+                  errors: [new GraphQLError('No contribution found to given id')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('No contribution found to given id.')
+              expect(logger.error).toBeCalledWith('No contribution found to given id', -1)
             })
           })
 
@@ -1750,13 +1759,13 @@ describe('ContributionResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Contribution not found for given id.')],
+                  errors: [new GraphQLError('Contribution not found for given id')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('Contribution not found for given id: -1')
+              expect(logger.error).toBeCalledWith('Contribution not found for given id', -1)
             })
           })
 
@@ -1833,13 +1842,13 @@ describe('ContributionResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Contribution not found to given id.')],
+                  errors: [new GraphQLError('Contribution not found for given id')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('Contribution not found for given id: -1')
+              expect(logger.error).toBeCalledWith('Contribution not found for given id', -1)
             })
           })
 

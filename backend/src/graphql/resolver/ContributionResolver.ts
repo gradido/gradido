@@ -111,7 +111,7 @@ export class ContributionResolver {
     const user = getUser(context)
     const contribution = await DbContribution.findOne(id)
     if (!contribution) {
-      throw new LogError('Contribution not found for given id.', id)
+      throw new LogError('Contribution not found for given id', id)
     }
     if (contribution.userId !== user.id) {
       throw new LogError('Can not delete contribution of another user')
@@ -214,7 +214,7 @@ export class ContributionResolver {
       where: { id: contributionId, confirmedAt: IsNull() },
     })
     if (!contributionToUpdate) {
-      throw new LogError('No contribution found to given id.', contributionId)
+      throw new LogError('No contribution found to given id', contributionId)
     }
     if (contributionToUpdate.userId !== user.id) {
       throw new LogError('user of the pending contribution and send user does not correspond')
@@ -392,7 +392,7 @@ export class ContributionResolver {
       where: { id, confirmedAt: IsNull() },
     })
     if (!contributionToUpdate) {
-      throw new LogError('No contribution found to given id.', id)
+      throw new LogError('No contribution found to given id', id)
     }
 
     if (contributionToUpdate.userId !== user.id) {
@@ -485,7 +485,7 @@ export class ContributionResolver {
   ): Promise<boolean> {
     const contribution = await DbContribution.findOne(id)
     if (!contribution) {
-      throw new LogError('Contribution not found for given id.', id)
+      throw new LogError('Contribution not found for given id', id)
     }
     const moderator = getUser(context)
     if (
@@ -537,7 +537,7 @@ export class ContributionResolver {
       const clientTimezoneOffset = getClientTimezoneOffset(context)
       const contribution = await DbContribution.findOne(id)
       if (!contribution) {
-        throw new LogError('Contribution not found to given id.', id)
+        throw new LogError('Contribution not found for given id', id)
       }
       if (contribution.confirmedAt) {
         throw new LogError('Contribution already confirmd.', id)
