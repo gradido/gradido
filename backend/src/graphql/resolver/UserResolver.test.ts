@@ -549,7 +549,9 @@ describe('UserResolver', () => {
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('Password entered is lexically invalid')
+        expect(logger.error).toBeCalledWith(
+          'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+        )
       })
     })
 
@@ -606,9 +608,7 @@ describe('UserResolver', () => {
       })
 
       it('logs the error found', () => {
-        expect(logger.error).toBeCalledWith(
-          'UserContact with email=bibi@bloxberg.de does not exists',
-        )
+        expect(logger.error).toBeCalledWith('No user with this credentials', 'bibi@bloxberg.de')
       })
     })
 
@@ -668,7 +668,7 @@ describe('UserResolver', () => {
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('The User has no valid credentials.')
+        expect(logger.error).toBeCalledWith('No user with this credentials', 'bibi@bloxberg.de')
       })
     })
   })
@@ -1058,7 +1058,9 @@ describe('UserResolver', () => {
           })
 
           it('logs the error found', () => {
-            expect(logger.error).toBeCalledWith('newPassword does not fullfil the rules')
+            expect(logger.error).toBeCalledWith(
+              'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+            )
           })
         })
 
@@ -1116,7 +1118,7 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith('The User has no valid credentials.')
+            expect(logger.error).toBeCalledWith('No user with this credentials')
           })
         })
       })
