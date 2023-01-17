@@ -58,7 +58,7 @@ describe('InputHour', () => {
       })
 
       it('has the value 0', () => {
-        expect(wrapper.vm.currentValue).toEqual(null)
+        expect(wrapper.vm.currentValue).toEqual(0)
       })
 
       it('has the label "input-field-label"', () => {
