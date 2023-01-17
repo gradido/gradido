@@ -20,7 +20,7 @@
           trim
           v-focus="amountFocused"
           @focus="amountFocused = true"
-          @blur="normalizeAmount(true)"
+          @blur="normalizeAmount(valid)"
           :disabled="disabled"
           autocomplete="off"
         ></b-form-input>
@@ -89,6 +89,9 @@ export default {
       this.amountValue = this.currentValue.replace(',', '.')
       this.currentValue = this.$n(this.amountValue, 'ungroupedDecimal')
     },
+  },
+  mounted() {
+    if (this.value !== '') this.normalizeAmount(true)
   },
 }
 </script>
