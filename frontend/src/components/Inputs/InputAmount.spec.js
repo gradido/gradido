@@ -46,13 +46,14 @@ describe('InputAmount', () => {
 
     describe('amount normalization', () => {
       describe('if invalid', () => {
-        beforeEach(() => {
+        beforeEach(async () => {
+          await wrapper.setProps({ value: '12m34' })
           valid = false
         })
 
         it('is not normalized', () => {
-          wrapper.vm.normalizeAmount(valid)
-          expect(wrapper.vm.amountValue).toBe(0.0)
+          wrapper.vm.normalizeAmount(false)
+          expect(wrapper.vm.currentValue).toBe('12m34')
         })
       })
 
@@ -97,13 +98,14 @@ describe('InputAmount', () => {
 
     describe('amount normalization', () => {
       describe('if invalid', () => {
-        beforeEach(() => {
+        beforeEach(async () => {
+          await wrapper.setProps({ value: '12m34' })
           valid = false
         })
 
         it('is not normalized', () => {
           wrapper.vm.normalizeAmount(valid)
-          expect(wrapper.vm.amountValue).toBe(0.0)
+          expect(wrapper.vm.currentValue).toBe('12m34')
         })
       })
 
