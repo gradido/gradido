@@ -48,7 +48,7 @@ describe('ContributionListItem', () => {
 
       it('is x-circle when deletedAt is present', async () => {
         await wrapper.setProps({ deletedAt: new Date().toISOString() })
-        expect(wrapper.vm.icon).toBe('x-circle')
+        expect(wrapper.vm.icon).toBe('trash')
       })
 
       it('is check when confirmedAt is present', async () => {
