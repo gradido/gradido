@@ -50,7 +50,7 @@ export default {
   },
   watch: {
     currentValue() {
-      this.$emit('input', this.currentValue)
+      this.$emit('input', isNaN(Number(this.currentValue)) ? 0 : Number(this.currentValue))
     },
     value() {
       if (this.value !== this.currentValue) this.currentValue = this.value
