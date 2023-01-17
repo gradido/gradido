@@ -3,7 +3,7 @@
     <div v-if="skeleton">
       <skeleton-overview />
     </div>
-    <div v-else>
+    <div v-else class="mx--3 mx-lg-0">
       <!-- navbar -->
       <b-row>
         <b-col>
@@ -13,7 +13,7 @@
       <mobile-sidebar @admin="admin" @logout="logout" />
 
       <!-- Breadcrumb -->
-      <b-row>
+      <b-row class="breadcrumb">
         <b-col cols="10" offset-lg="2">
           <breadcrumb />
         </b-col>
@@ -143,7 +143,7 @@
             </b-col>
             <b-col cols="12">
               <!-- router-view -->
-              <div class="main-content mt-3">
+              <div class="main-content mt-lg-3 mt-0">
                 <fade-transition :duration="200" origin="center top" mode="out-in">
                   <router-view
                     ref="router-view"
@@ -336,7 +336,9 @@ export default {
 }
 </script>
 <style>
-/* frontend/public/img/svg/Gradido_Blaetter_Mainpage.svg */
+.breadcrumb {
+  background-color: transparent;
+}
 .main-page {
   background-attachment: fixed;
   background-position: center;
@@ -368,5 +370,11 @@ export default {
 }
 .navbar-toggler-icon {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(4, 112, 6, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+@media screen and (max-width: 450px) {
+  .breadcrumb {
+    padding-top: 60px;
+  }
 }
 </style>

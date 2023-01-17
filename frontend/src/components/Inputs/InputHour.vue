@@ -32,11 +32,11 @@ export default {
       type: Object,
       default: () => {},
     },
-    name: { type: String, required: true, default: 'Time' },
-    label: { type: String, required: true, default: 'Time' },
-    placeholder: { type: String, required: true, default: 'Time' },
+    name: { type: String, required: true },
+    label: { type: String, required: true },
+    placeholder: { type: String, required: true },
     value: { type: Number, required: true, default: 0 },
-    validMaxTime: { type: Number, required: true, default: 0 },
+    validMaxTime: { type: Number, required: true },
   },
   data() {
     return {
@@ -50,7 +50,7 @@ export default {
   },
   watch: {
     currentValue() {
-      this.$emit('input', this.currentValue)
+      this.$emit('input', Number(this.currentValue))
     },
     value() {
       if (this.value !== this.currentValue) this.currentValue = this.value
