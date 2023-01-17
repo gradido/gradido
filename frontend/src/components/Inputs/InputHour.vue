@@ -35,7 +35,7 @@ export default {
     name: { type: String, required: true },
     label: { type: String, required: true },
     placeholder: { type: String, required: true },
-    value: { type: Number, required: true },
+    value: { type: Number, required: true, default: 0 },
     validMaxTime: { type: Number, required: true },
   },
   data() {
