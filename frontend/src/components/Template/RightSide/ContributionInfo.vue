@@ -19,11 +19,7 @@
           {{ $t('contribution.alert.confirm') }}
         </li>
         <li>
-          <b-icon icon="x-circle" variant="danger"></b-icon>
-          {{ $t('contribution.alert.rejected') }}
-        </li>
-        <li>
-          <b-icon icon="trash" variant="warning"></b-icon>
+          <b-icon icon="x-circle" variant="warning"></b-icon>
           {{ $t('contribution.alert.rejected') }}
         </li>
         <li>
