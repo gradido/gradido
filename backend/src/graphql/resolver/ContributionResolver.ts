@@ -725,7 +725,11 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const contributionToUpdate = await DbContribution.findOne({ id })
+    const contributionToUpdate = await DbContribution.findOne({
+      id,
+      confirmedAt: IsNull(),
+      deniedBy: IsNull(),
+    })
     // TODO: Check
     // - contribution exists
     // - state has accept one
