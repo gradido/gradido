@@ -17,23 +17,25 @@
         <b-img class="sheet-img position-absolute zindex-1" :src="sheet"></b-img>
 
         <b-navbar-nav class="ml-auto" right>
-          <div class="d-flex align-items-center">
-            <div class="mr-3">
-              <avatar
-                :username="username.username"
-                :initials="username.initials"
-                :color="'#fff'"
-                :size="61"
-              ></avatar>
-            </div>
-            <div>
-              <div data-test="navbar-item-username">{{ username.username }}</div>
+          <router-link to="/settings">
+            <div class="d-flex align-items-center">
+              <div class="mr-3">
+                <avatar
+                  :username="username.username"
+                  :initials="username.initials"
+                  :color="'#fff'"
+                  :size="61"
+                ></avatar>
+              </div>
+              <div>
+                <div data-test="navbar-item-username">{{ username.username }}</div>
 
-              <div class="text-right" data-test="navbar-item-email">
-                {{ $store.state.email }}
+                <div class="text-right" data-test="navbar-item-email">
+                  {{ $store.state.email }}
+                </div>
               </div>
             </div>
-          </div>
+          </router-link>
         </b-navbar-nav>
       </b-navbar>
       <!-- <div class="alertBox">
