@@ -130,7 +130,7 @@ button.navbar-toggler > span.navbar-toggler-icon {
     background-color: #f5f5f5e6;
   }
   .sheet-img {
-    left: 27%;
+    left: 5%;
     max-width: 61%;
   }
 }
