@@ -109,7 +109,7 @@ export default {
       this.form.id = null
       this.form.date = ''
       this.form.memo = ''
-      this.form.hours = null
+      this.form.hours = 0
       this.form.amount = ''
     },
   },
