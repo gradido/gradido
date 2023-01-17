@@ -1,6 +1,11 @@
 <template>
   <div id="component-sidebar">
-    <div id="side-menu" ref="sideMenu" class="gradido-border-radius appBoxShadow pt-2">
+    <div
+      id="side-menu"
+      ref="sideMenu"
+      class="gradido-border-radius pt-2 bg-white"
+      :class="shadow ? 'appBoxShadow' : ''"
+    >
       <div class="mb-3 mt-3">
         <b-nav vertical class="w-200">
           <b-nav-item to="/overview" class="mb-3" active-class="activeRoute">
@@ -55,6 +60,9 @@
 <script>
 export default {
   name: 'Sidebar',
+  props: {
+    shadow: { type: Boolean, required: false, default: true },
+  },
 }
 </script>
 <style>

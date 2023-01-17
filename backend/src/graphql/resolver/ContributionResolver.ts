@@ -557,7 +557,6 @@ export class ContributionResolver {
   ): Promise<boolean> {
     // acquire lock
     const releaseLock = await TRANSACTIONS_LOCK.acquire()
-
     try {
       const clientTimezoneOffset = getClientTimezoneOffset(context)
       const contribution = await DbContribution.findOne(id)
@@ -664,7 +663,6 @@ export class ContributionResolver {
     } finally {
       releaseLock()
     }
-
     return true
   }
 

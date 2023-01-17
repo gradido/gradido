@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import Transactions from './Transactions'
 import { GdtEntryType } from '@/graphql/enums'
+import { listGDTEntriesQuery } from '@/graphql/queries'
 
 import { toastErrorSpy } from '@test/testSetup'
 
@@ -45,8 +46,8 @@ describe('Transactions', () => {
     },
   }
 
-  const Wrapper = () => {
-    return mount(Transactions, { localVue, mocks })
+  const Wrapper = (propsData = {}) => {
+    return mount(Transactions, { localVue, mocks, propsData })
   }
 
   describe('mount', () => {
@@ -77,147 +78,111 @@ describe('Transactions', () => {
       )
     })
 
-    it.skip('renders the transaction gradido transform table', () => {
-      beforeEach(() => {
-        wrapper.setData({
-          gdt: true,
-        })
+    it('renders the transaction gradido transform table when gdt is true', async () => {
+      await wrapper.setProps({
+        gdt: true,
       })
       expect(wrapper.findComponent({ name: 'GdtTransactionList' }).exists()).toBeTruthy()
     })
 
-    describe.skip('tabs', () => {
-      it('shows the GDD transactions by default', () => {
-        expect(wrapper.findAll('div[role="tabpanel"]').at(0).isVisible()).toBeTruthy()
+    describe('update gdt with success', () => {
+      beforeEach(() => {
+        apolloMock.mockResolvedValue({
+          data: {
+            listGDTEntries: {
+              count: 4,
+              gdtEntries: [
+                {
+                  id: 1,
+                  amount: 100,
+                  gdt: 1700,
+                  factor: 17,
+                  comment: '',
+                  date: '2021-05-02T17:20:11+00:00',
+                  gdtEntryType: GdtEntryType.FORM,
+                },
+                {
+                  id: 2,
+                  amount: 1810,
+                  gdt: 362,
+                  factor: 0.2,
+                  comment: 'Dezember 20',
+                  date: '2020-12-31T12:00:00+00:00',
+                  gdtEntryType: GdtEntryType.GLOBAL_MODIFICATOR,
+                },
+                {
+                  id: 3,
+                  amount: 100,
+                  gdt: 1700,
+                  factor: 17,
+                  comment: '',
+                  date: '2020-05-07T17:00:00+00:00',
+                  gdtEntryType: GdtEntryType.FORM,
+                },
+                {
+                  id: 4,
+                  amount: 100,
+                  gdt: 110,
+                  factor: 22,
+                  comment: '',
+                  date: '2020-04-10T13:28:00+00:00',
+                  gdtEntryType: GdtEntryType.ELOPAGE_PUBLISHER,
+                },
+              ],
+            },
+          },
+        })
+        wrapper = Wrapper({ gdt: true })
       })
 
-      it('does not show the GDT transactions by default', () => {
-        expect(wrapper.findAll('div[role="tabpanel"]').at(1).isVisible()).toBeFalsy()
+      it('calls the API', () => {
+        expect(apolloMock).toBeCalledWith({
+          query: listGDTEntriesQuery,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+          },
+        })
       })
 
-      describe('click on GDT tab', () => {
-        describe('server returns valid data', () => {
-          beforeEach(() => {
-            apolloMock.mockResolvedValue({
-              data: {
-                listGDTEntries: {
-                  count: 4,
-                  gdtEntries: [
-                    {
-                      id: 1,
-                      amount: 100,
-                      gdt: 1700,
-                      factor: 17,
-                      comment: '',
-                      date: '2021-05-02T17:20:11+00:00',
-                      gdtEntryType: GdtEntryType.FORM,
-                    },
-                    {
-                      id: 2,
-                      amount: 1810,
-                      gdt: 362,
-                      factor: 0.2,
-                      comment: 'Dezember 20',
-                      date: '2020-12-31T12:00:00+00:00',
-                      gdtEntryType: GdtEntryType.GLOBAL_MODIFICATOR,
-                    },
-                    {
-                      id: 3,
-                      amount: 100,
-                      gdt: 1700,
-                      factor: 17,
-                      comment: '',
-                      date: '2020-05-07T17:00:00+00:00',
-                      gdtEntryType: GdtEntryType.FORM,
-                    },
-                    {
-                      id: 4,
-                      amount: 100,
-                      gdt: 110,
-                      factor: 22,
-                      comment: '',
-                      date: '2020-04-10T13:28:00+00:00',
-                      gdtEntryType: GdtEntryType.ELOPAGE_PUBLISHER,
-                    },
-                  ],
-                },
-              },
-            })
-            wrapper.findAll('li[ role="presentation"]').at(1).find('a').trigger('click')
-          })
+      it('does not show the GDD transactions', () => {
+        expect(wrapper.findAll('div.gdd-transaction-list').exists()).toBeFalsy()
+      })
 
-          it('does not show the GDD transactions', () => {
-            expect(wrapper.findAll('div[role="tabpanel"]').at(0).isVisible()).toBeFalsy()
-          })
+      it('shows the GDT transactions', () => {
+        expect(wrapper.findAll('div.gdt-transaction-list').exists()).toBeTruthy()
+      })
 
-          it('shows the GDT transactions', () => {
-            expect(wrapper.findAll('div[role="tabpanel"]').at(1).isVisible()).toBeTruthy()
-          })
+      it('scrolls to (0, 0) after API call', () => {
+        expect(windowScrollToMock).toBeCalledWith(0, 0)
+      })
 
-          it('calls the API', () => {
-            expect(apolloMock).toBeCalledWith(
-              expect.objectContaining({
-                variables: {
-                  currentPage: 1,
-                  pageSize: 25,
-                },
-              }),
-            )
-          })
-
-          it('scrolls to (0, 0) after API call', () => {
-            expect(windowScrollToMock).toBeCalledWith(0, 0)
-          })
-
-          describe('click on GDD tab', () => {
-            beforeEach(() => {
-              wrapper.findAll('li[ role="presentation"]').at(0).find('a').trigger('click')
-            })
-
-            it('shows the GDD transactions', () => {
-              expect(wrapper.findAll('div[role="tabpanel"]').at(0).isVisible()).toBeTruthy()
-            })
-
-            it('does not show the GDT', () => {
-              expect(wrapper.findAll('div[role="tabpanel"]').at(1).isVisible()).toBeFalsy()
-            })
-          })
+      describe('update current page', () => {
+        beforeEach(() => {
+          jest.clearAllMocks()
+          wrapper.vm.currentPage = 2
         })
 
-        describe('server returns error', () => {
-          beforeEach(() => {
-            apolloMock.mockRejectedValue({ message: 'Ouch!' })
-            wrapper.findAll('li[ role="presentation"]').at(1).find('a').trigger('click')
-          })
-
-          it('toasts an error message', () => {
-            expect(toastErrorSpy).toBeCalledWith('Ouch!')
-          })
-
-          it('sets transactionGdtCount to -1', () => {
-            expect(wrapper.vm.transactionGdtCount).toBe(-1)
+        it('calls the API again', () => {
+          expect(apolloMock).toBeCalledWith({
+            query: listGDTEntriesQuery,
+            variables: {
+              currentPage: 2,
+              pageSize: 25,
+            },
           })
         })
       })
     })
 
-    describe.skip('update currentPage', () => {
+    describe('update gdt with error', () => {
       beforeEach(() => {
-        jest.clearAllMocks()
-        wrapper.setData({
-          currentPage: 2,
-        })
+        apolloMock.mockRejectedValue({ message: 'Oh no!' })
+        wrapper = Wrapper({ gdt: true })
       })
 
-      it('calls the API', () => {
-        expect(apolloMock).toBeCalledWith(
-          expect.objectContaining({
-            variables: {
-              currentPage: 2,
-              pageSize: 25,
-            },
-          }),
-        )
+      it('toasts the error', () => {
+        expect(toastErrorSpy).toBeCalledWith('Oh no!')
       })
     })
   })

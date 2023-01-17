@@ -30,7 +30,10 @@
           <div class="small">
             {{ $t('creation') }} {{ $t('(') }}{{ amount / 20 }} {{ $t('h') }}{{ $t(')') }}
           </div>
-          <div class="font-weight-bold">{{ amount | GDD }}</div>
+          <div v-if="state === 'DELETED'" class="small">
+            {{ $t('contribution.deleted') }}
+          </div>
+          <div v-else class="font-weight-bold">{{ amount | GDD }}</div>
         </b-col>
         <b-col cols="12" md="1" lg="1" class="text-right align-items-center">
           <div v-if="messagesCount > 0" @click="visible = !visible">
@@ -168,7 +171,7 @@ export default {
   },
   computed: {
     icon() {
-      if (this.deletedAt) return 'x-circle'
+      if (this.deletedAt) return 'trash'
       if (this.confirmedAt) return 'check'
       if (this.state === 'IN_PROGRESS') return 'question-circle'
       return 'bell-fill'
