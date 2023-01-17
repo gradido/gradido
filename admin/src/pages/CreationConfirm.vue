@@ -3,7 +3,7 @@
 <template>
   <div class="creation-confirm">
     <div v-if="overlay" id="overlay" @dblclick="overlay = false">
-      <overlay :item="item">
+      <overlay :item="item" @overlay-cancel="overlay = false">
         <template #title>
           {{ $t(overlayTitle) }}
         </template>
