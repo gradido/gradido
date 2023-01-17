@@ -74,7 +74,7 @@ describe('InputHour', () => {
       it('emits input with new value', async () => {
         await wrapper.find('input').setValue('12')
         expect(wrapper.emitted('input')).toBeTruthy()
-        expect(wrapper.emitted('input')).toEqual([['12']])
+        expect(wrapper.emitted('input')).toEqual([[12]])
       })
     })
 
