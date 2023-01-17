@@ -31,7 +31,9 @@ export default {
         return communityStatistics
       },
       update({ communityStatistics }) {
-        this.statistics = communityStatistics
+        const totals = { ...communityStatistics.dynamicStatisticsFields }
+        this.statistics = { ...communityStatistics, ...totals }
+        delete this.statistics.dynamicStatisticsFields
       },
       error({ message }) {
         this.toastError(message)
