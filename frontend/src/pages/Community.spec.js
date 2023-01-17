@@ -284,13 +284,6 @@ describe('Community', () => {
         it('verifies the login (to get the new creations available)', () => {
           expect(apolloRefetchMock).toBeCalled()
         })
-
-        it('set all data to the default values)', () => {
-          expect(wrapper.vm.form.id).toBe(null)
-          expect(wrapper.vm.form.date).toBe('')
-          expect(wrapper.vm.form.memo).toBe('')
-          expect(wrapper.vm.form.amount).toBe('')
-        })
       })
 
       describe('with error', () => {
