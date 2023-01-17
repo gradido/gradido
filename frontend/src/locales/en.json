@@ -47,7 +47,6 @@
     },
     "delete": "Delete Contribution! Are you sure?",
     "deleted": "The contribution has been deleted! But it will remain visible.",
-    "exhausted": "You cannot create anything more for this month.",
     "formText": {
       "bringYourTalentsTo": "Bring your talents to the community! Your voluntary commitment will be rewarded with 20 GDD per hour up to a maximum of 1,000 GDD per month.",
       "describeYourCommunity": "Describe your community service activity with hours and enter an amount of 20 GDD per hour! After confirmation by a moderator, the amount will be credited to your account.",
