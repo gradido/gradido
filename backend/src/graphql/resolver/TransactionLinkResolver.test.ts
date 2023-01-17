@@ -180,7 +180,7 @@ describe('TransactionLinkResolver', () => {
         })
       })
 
-      // TODO: have this test separated into a transactionLink and a contributionLink part (if possible)
+      // TODO: have this test separated into a transactionLink and a contributionLink part
       describe('redeem daily Contribution Link', () => {
         const now = new Date()
         let contributionLink: DbContributionLink | undefined
