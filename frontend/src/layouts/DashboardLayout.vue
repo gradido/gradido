@@ -3,7 +3,7 @@
     <div v-if="skeleton">
       <skeleton-overview />
     </div>
-    <div v-else>
+    <div v-else class="mx--3 mx-lg-0">
       <!-- navbar -->
       <b-row>
         <b-col>
@@ -13,7 +13,7 @@
       <mobile-sidebar @admin="admin" @logout="logout" />
 
       <!-- Breadcrumb -->
-      <b-row>
+      <b-row class="breadcrumb">
         <b-col cols="10" offset-lg="2">
           <breadcrumb />
         </b-col>
@@ -35,7 +35,87 @@
                     :balance="balance"
                     :GdtBalance="GdtBalance"
                     :totalUsers="totalUsers"
-                  />
+                  >
+                    <template #overview>
+                      <b-row>
+                        <b-col cols="12" lg="5">
+                          <div>
+                            <gdd-amount :balance="balance" :showStatus="false" :badgeShow="false" />
+                          </div>
+                        </b-col>
+                        <b-col cols="12" lg="7">
+                          <div>
+                            <community-member :totalUsers="totalUsers" />
+                          </div>
+                        </b-col>
+                      </b-row>
+                    </template>
+                    <template #send>
+                      <b-row>
+                        <b-col cols="12" lg="6">
+                          <div>
+                            <gdd-amount
+                              :balance="balance"
+                              :badge="true"
+                              :showStatus="true"
+                              :badgeShow="false"
+                            />
+                          </div>
+                        </b-col>
+                        <b-col cols="12" lg="6">
+                          <div>
+                            <router-link to="gdt">
+                              <gdt-amount :GdtBalance="GdtBalance" :badgeShow="false" />
+                            </router-link>
+                          </div>
+                        </b-col>
+                      </b-row>
+                    </template>
+                    <template #transactions>
+                      <b-row>
+                        <b-col cols="12" lg="6">
+                          <div>
+                            <router-link to="transactions">
+                              <gdd-amount :balance="balance" :showStatus="true" />
+                            </router-link>
+                          </div>
+                        </b-col>
+                        <b-col cols="12" lg="6">
+                          <div>
+                            <router-link to="gdt">
+                              <gdt-amount :GdtBalance="GdtBalance" />
+                            </router-link>
+                          </div>
+                        </b-col>
+                      </b-row>
+                    </template>
+                    <template #gdt>
+                      <b-row>
+                        <b-col cols="12" lg="6">
+                          <div>
+                            <router-link to="transactions">
+                              <gdd-amount :balance="balance" :showStatus="false" />
+                            </router-link>
+                          </div>
+                        </b-col>
+                        <b-col cols="12" lg="6">
+                          <div>
+                            <router-link to="gdt">
+                              <gdt-amount
+                                :badge="true"
+                                :showStatus="true"
+                                :GdtBalance="GdtBalance"
+                              />
+                            </router-link>
+                          </div>
+                        </b-col>
+                      </b-row>
+                    </template>
+                    <template #community>
+                      <nav-community />
+                    </template>
+                    <template #settings></template>
+                  </content-header>
                 </b-col>
               </b-row>
             </b-col>
@@ -46,11 +126,24 @@
                 :transactionCount="transactionCount"
                 :transactionLinkCount="transactionLinkCount"
                 @set-tunneled-email="setTunneledEmail"
-              />
+              >
+                <template #transactions>
+                  <last-transactions
+                    :transactions="transactions"
+                    :transactionCount="transactionCount"
+                    :transactionLinkCount="transactionLinkCount"
+                    v-on="$listeners"
+                  />
+                </template>
+                <template #community>
+                  <contribution-info />
+                </template>
+                <template #empty />
+              </right-side>
             </b-col>
             <b-col cols="12">
               <!-- router-view -->
-              <div class="main-content mt-3">
+              <div class="main-content mt-lg-3 mt-0">
                 <fade-transition :duration="200" origin="center top" mode="out-in">
                   <router-view
                     ref="router-view"
@@ -75,7 +168,20 @@
             :transactionCount="transactionCount"
             :transactionLinkCount="transactionLinkCount"
             @set-tunneled-email="setTunneledEmail"
-          />
+          >
+            <template #transactions>
+              <last-transactions
+                :transactions="transactions"
+                :transactionCount="transactionCount"
+                :transactionLinkCount="transactionLinkCount"
+                v-on="$listeners"
+              />
+            </template>
+            <template #community>
+              <contribution-info />
+            </template>
+            <template #empty />
+          </right-side>
         </b-col>
       </b-row>
       <b-row>
@@ -102,6 +208,12 @@ import { logout } from '@/graphql/mutations'
 import ContentFooter from '@/components/ContentFooter.vue'
 import { FadeTransition } from 'vue2-transitions'
 import CONFIG from '@/config'
+import GddAmount from '@/components/Template/ContentHeader/GddAmount.vue'
+import GdtAmount from '@/components/Template/ContentHeader/GdtAmount.vue'
+import CommunityMember from '@/components/Template/ContentHeader/CommunityMember.vue'
+import NavCommunity from '@/components/Template/ContentHeader/NavCommunity.vue'
+import LastTransactions from '@/components/Template/RightSide/LastTransactions.vue'
+import ContributionInfo from '@/components/Template/RightSide/ContributionInfo.vue'
 
 export default {
   name: 'DashboardLayout',
@@ -116,6 +228,12 @@ export default {
     ContentFooter,
     FadeTransition,
     Breadcrumb,
+    GddAmount,
+    GdtAmount,
+    CommunityMember,
+    NavCommunity,
+    LastTransactions,
+    ContributionInfo,
   },
   data() {
     return {
@@ -218,7 +336,9 @@ export default {
 }
 </script>
 <style>
-/* frontend/public/img/svg/Gradido_Blaetter_Mainpage.svg */
+.breadcrumb {
+  background-color: transparent;
+}
 .main-page {
   background-attachment: fixed;
   background-position: center;
@@ -250,5 +370,11 @@ export default {
 }
 .navbar-toggler-icon {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(4, 112, 6, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+@media screen and (max-width: 450px) {
+  .breadcrumb {
+    padding-top: 60px;
+  }
 }
 </style>
