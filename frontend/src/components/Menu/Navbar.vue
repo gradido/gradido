@@ -1,45 +1,47 @@
 <template>
-  <div class="navbar-component position-sticky">
-    <b-navbar toggleable="lg" class="pr-4">
-      <b-navbar-brand>
-        <b-img
-          class="imgLogo mt-lg--2 mt-3 mb-3 d-none d-lg-block zindex10"
-          :src="logo"
-          width=""
-          alt="..."
-        />
-        <div v-b-toggle.sidebar-mobile variant="link" class="d-block d-lg-none">
-          <span class="navbar-toggler-icon h2"></span>
-        </div>
-      </b-navbar-brand>
-
-      <b-img class="sheet-img position-absolute zindex-1" :src="sheet"></b-img>
-
-      <b-navbar-nav class="ml-auto" right>
-        <div class="d-flex align-items-center">
-          <div class="mr-3">
-            <avatar
-              :username="username.username"
-              :initials="username.initials"
-              :color="'#fff'"
-              :size="61"
-            ></avatar>
+  <div class="navbar-component">
+    <div class="navbar-element">
+      <b-navbar toggleable="lg" class="pr-4">
+        <b-navbar-brand>
+          <b-img
+            class="imgLogo mt-lg--2 mt-3 mb-3 d-none d-lg-block zindex10"
+            :src="logo"
+            width=""
+            alt="..."
+          />
+          <div v-b-toggle.sidebar-mobile variant="link" class="d-block d-lg-none">
+            <span class="navbar-toggler-icon h2"></span>
           </div>
-          <div>
-            <div data-test="navbar-item-username">{{ username.username }}</div>
+        </b-navbar-brand>
 
-            <div class="text-right" data-test="navbar-item-email">
-              {{ $store.state.email }}
+        <b-img class="sheet-img position-absolute zindex-1" :src="sheet"></b-img>
+
+        <b-navbar-nav class="ml-auto" right>
+          <div class="d-flex align-items-center">
+            <div class="mr-3">
+              <avatar
+                :username="username.username"
+                :initials="username.initials"
+                :color="'#fff'"
+                :size="61"
+              ></avatar>
+            </div>
+            <div>
+              <div data-test="navbar-item-username">{{ username.username }}</div>
+
+              <div class="text-right" data-test="navbar-item-email">
+                {{ $store.state.email }}
+              </div>
             </div>
           </div>
-        </div>
-      </b-navbar-nav>
-    </b-navbar>
-    <!-- <div class="alertBox">
+        </b-navbar-nav>
+      </b-navbar>
+      <!-- <div class="alertBox">
       <b-alert show dismissible variant="light" class="nav-alert text-dark">
         <small>{{ $t('1000thanks') }}</small>
       </b-alert>
     </div> -->
+    </div>
   </div>
 </template>
 
@@ -72,6 +74,10 @@ export default {
 </script>
 
 <style lang="scss">
+.navbar-element {
+  position: sticky;
+}
+
 .auth-header {
   font-family: 'Open Sans', sans-serif !important;
   height: 150px;
@@ -117,6 +123,12 @@ button.navbar-toggler > span.navbar-toggler-icon {
   }
 }
 @media screen and (max-width: 450px) {
+  .navbar-element {
+    z-index: 1000;
+    position: fixed;
+    width: 100%;
+    background-color: #f5f5f5e6;
+  }
   .sheet-img {
     left: 27%;
     max-width: 61%;
