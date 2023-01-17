@@ -30,9 +30,12 @@
           <div class="small">
             {{ $t('creation') }} {{ $t('(') }}{{ amount / 20 }} {{ $t('h') }}{{ $t(')') }}
           </div>
-          <div v-if="['DENIED'].includes(state) && allContribution" class="font-weight-bold">
+          <div v-if="state === 'DENIED' && allContribution" class="font-weight-bold">
             <b-icon icon="x-circle" variant="danger"></b-icon>
             {{ $t('contribution.alert.rejected') }}
+          </div>
+          <div v-if="state === 'DELETED'" class="small">
+            {{ $t('contribution.deleted') }}
           </div>
           <div v-else class="font-weight-bold">{{ amount | GDD }}</div>
         </b-col>

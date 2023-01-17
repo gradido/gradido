@@ -92,14 +92,20 @@
               <div v-if="!!isBalanceDisabled" class="text-danger mt-5">
                 {{ $t('form.no_gdd_available') }}
               </div>
-              <b-row v-else class="test-buttons mt-5">
-                <b-col>
-                  <b-button type="reset" variant="secondary" @click="onReset">
+              <b-row v-else class="test-buttons mt-3">
+                <b-col cols="12" md="6" lg="6">
+                  <b-button
+                    block
+                    type="reset"
+                    variant="secondary"
+                    @click="onReset"
+                    class="mb-3 mb-md-0 mb-lg-0"
+                  >
                     {{ $t('form.reset') }}
                   </b-button>
                 </b-col>
-                <b-col class="text-right">
-                  <b-button type="submit" variant="gradido">
+                <b-col cols="12" md="6" lg="6" class="text-lg-right">
+                  <b-button block type="submit" variant="gradido">
                     {{ $t('form.check_now') }}
                   </b-button>
                 </b-col>

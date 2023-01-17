@@ -26,6 +26,10 @@
           <b-icon icon="trash" variant="warning"></b-icon>
           {{ $t('contribution.alert.rejected') }}
         </li>
+        <li>
+          <b-icon icon="trash" variant="danger"></b-icon>
+          {{ $t('contribution.alert.deleted') }}
+        </li>
       </ul>
     </div>
     <div v-if="hash === '#all'" show fade variant="secondary" class="text-dark">
