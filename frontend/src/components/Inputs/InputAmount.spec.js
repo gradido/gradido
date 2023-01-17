@@ -9,10 +9,11 @@ describe('InputAmount', () => {
 
   const mocks = {
     $t: jest.fn((t) => t),
+    $n: jest.fn((n) => n),
     $i18n: {
       locale: jest.fn(() => 'en'),
     },
-    $n: jest.fn((n) => String(n)),
+    // $n: jest.fn((n) => String(n)),
     $route: {
       params: {},
     },
