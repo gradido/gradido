@@ -125,14 +125,13 @@
                 :transactions="transactions"
                 :transactionCount="transactionCount"
                 :transactionLinkCount="transactionLinkCount"
-                @set-tunneled-email="setTunneledEmail"
               >
                 <template #transactions>
                   <last-transactions
                     :transactions="transactions"
                     :transactionCount="transactionCount"
                     :transactionLinkCount="transactionLinkCount"
-                    v-on="$listeners"
+                    @set-tunneled-email="setTunneledEmail"
                   />
                 </template>
                 <template #community>
@@ -167,14 +166,13 @@
             :transactions="transactions"
             :transactionCount="transactionCount"
             :transactionLinkCount="transactionLinkCount"
-            @set-tunneled-email="setTunneledEmail"
           >
             <template #transactions>
               <last-transactions
                 :transactions="transactions"
                 :transactionCount="transactionCount"
                 :transactionLinkCount="transactionLinkCount"
-                v-on="$listeners"
+                @set-tunneled-email="setTunneledEmail"
               />
             </template>
             <template #community>
