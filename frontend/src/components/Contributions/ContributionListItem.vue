@@ -30,9 +30,8 @@
           <div class="small">
             {{ $t('creation') }} {{ $t('(') }}{{ amount / 20 }} {{ $t('h') }}{{ $t(')') }}
           </div>
-          <div v-if="['DENIED'].includes(state) && allContribution" class="font-weight-bold">
-            <b-icon icon="x-circle" variant="danger"></b-icon>
-            {{ $t('contribution.alert.rejected') }}
+          <div v-if="state === 'DELETED'" class="small">
+            {{ $t('contribution.deleted') }}
           </div>
           <div v-else class="font-weight-bold">{{ amount | GDD }}</div>
         </b-col>
@@ -181,7 +180,6 @@ export default {
   computed: {
     icon() {
       if (this.deletedAt) return 'trash'
-      if (this.deniedAt) return 'x-circle'
       if (this.confirmedAt) return 'check'
       if (this.state === 'IN_PROGRESS') return 'question-circle'
       return 'bell-fill'
