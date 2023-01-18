@@ -30,7 +30,7 @@
     "noOpenContributionLinkText": "Zur Zeit gibt es keine automatischen Schöpfungen.",
     "openContributionLinks": "Öffentliche Beitrags-Linkliste",
     "openContributionLinkText": "Folgende {count} automatische Schöpfungen werden zur Zeit durch die Gemeinschaft „{name}“ bereitgestellt.",
-    "submitContribution": "schreiben"
+    "submitContribution": "Schreiben"
   },
   "communityInfo": "Gemeinschaft Information",
   "contact": "Kontakt",
