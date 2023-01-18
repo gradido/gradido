@@ -513,6 +513,10 @@ export class ContributionResolver {
       logger.error(`Contribution not found for given id: ${id}`)
       throw new Error('Contribution not found for given id.')
     }
+    if (contribution.confirmedAt) {
+      logger.error('A confirmed contribution can not be deleted')
+      throw new Error('A confirmed contribution can not be deleted')
+    }
     const moderator = getUser(context)
     if (
       contribution.contributionType === ContributionType.USER &&
