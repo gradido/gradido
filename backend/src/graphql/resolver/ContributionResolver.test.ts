@@ -3,6 +3,7 @@
 
 import Decimal from 'decimal.js-light'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import {
@@ -26,7 +27,13 @@ import {
   sendContributionConfirmedEmail,
   // sendContributionRejectedEmail,
 } from '@/emails/sendEmailVariants'
-import { cleanDB, resetToken, testEnvironment, contributionDateFormatter } from '@test/helpers'
+import {
+  cleanDB,
+  resetToken,
+  testEnvironment,
+  contributionDateFormatter,
+  resetEntity,
+} from '@test/helpers'
 import { GraphQLError } from 'graphql'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
@@ -1816,6 +1823,49 @@ describe('ContributionResolver', () => {
                   userId: admin.id,
                 }),
               )
+            })
+          })
+
+          describe('creation already confirmed', () => {
+            it('throws an error', async () => {
+              await userFactory(testEnv, bobBaumeister)
+              await query({
+                query: login,
+                variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+              })
+              const {
+                data: { createContribution: confirmedContribution },
+              } = await mutate({
+                mutation: createContribution,
+                variables: {
+                  amount: 100.0,
+                  memo: 'Confirmed Contribution',
+                  creationDate: contributionDateFormatter(new Date()),
+                },
+              })
+              await query({
+                query: login,
+                variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+              })
+              await mutate({
+                mutation: confirmContribution,
+                variables: {
+                  id: confirmedContribution.id ? confirmedContribution.id : -1,
+                },
+              })
+              await expect(
+                mutate({
+                  mutation: adminDeleteContribution,
+                  variables: {
+                    id: confirmedContribution.id ? confirmedContribution.id : -1,
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('A confirmed contribution can not be deleted')],
+                }),
+              )
+              await resetEntity(DbTransaction)
             })
           })
         })
