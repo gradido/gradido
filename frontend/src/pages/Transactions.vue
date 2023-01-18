@@ -90,6 +90,11 @@ export default {
         this.updateGdt()
       }
     },
+    gdt() {
+      if (this.gdt) {
+        this.updateGdt()
+      }
+    },
   },
 }
 </script>
