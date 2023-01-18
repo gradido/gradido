@@ -5,6 +5,7 @@
         v-model="currentPage"
         :transactionsGdt="transactionsGdt"
         :transactionGdtCount="transactionGdtCount"
+        :showPagination="true"
         :pageSize="pageSize"
       />
     </div>
@@ -15,6 +16,7 @@
         :transactionLinkCount="transactionLinkCount"
         :transactions="transactions"
         :showPagination="true"
+        :pageSize="pageSize"
         @update-transactions="updateTransactions"
         v-on="$listeners"
       />
@@ -46,7 +48,7 @@ export default {
       transactionsGdt: [],
       transactionGdtCount: 0,
       currentPage: 1,
-      pageSize: 25,
+      pageSize: 5,
       tabIndex: 0,
     }
   },
