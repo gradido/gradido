@@ -15,7 +15,7 @@
           :placeholder="placeholder"
           type="number"
           :state="validated ? valid : false"
-          step="0.5"
+          step="0.25"
           min="0"
           :max="validMaxTime"
           class="bg-248"
