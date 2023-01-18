@@ -15,6 +15,7 @@
         :transactionLinkCount="transactionLinkCount"
         :transactions="transactions"
         :showPagination="true"
+        :pageSize="pageSize"
         @update-transactions="updateTransactions"
         v-on="$listeners"
       />
