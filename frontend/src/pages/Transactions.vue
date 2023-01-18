@@ -79,13 +79,18 @@ export default {
       this.$emit('update-transactions', pagination)
     },
   },
-  created() {
+  mounted() {
     if (this.gdt) {
       this.updateGdt()
     }
   },
   watch: {
     currentPage() {
+      if (this.gdt) {
+        this.updateGdt()
+      }
+    },
+    gdt() {
       if (this.gdt) {
         this.updateGdt()
       }
