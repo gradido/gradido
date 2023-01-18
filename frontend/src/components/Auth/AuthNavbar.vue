@@ -53,6 +53,7 @@ export default {
 
 .auth-header {
   font-family: 'Open Sans', sans-serif !important;
+  height: 150px;
 }
 
 .sheet-img {
@@ -61,6 +62,17 @@ export default {
   max-width: 64%;
 }
 
+@media screen and (max-width: 1024px) {
+  .auth-header {
+    height: 100px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .auth-header {
+    height: 70px;
+  }
+}
 @media screen and (max-width: 450px) {
   .sheet-img {
     top: -15px;
