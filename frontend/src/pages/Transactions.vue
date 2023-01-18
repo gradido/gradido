@@ -80,7 +80,7 @@ export default {
       this.$emit('update-transactions', pagination)
     },
   },
-  mounted() {
+  created() {
     if (this.gdt) {
       this.updateGdt()
     }
