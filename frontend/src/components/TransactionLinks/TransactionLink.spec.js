@@ -28,6 +28,7 @@ const propsData = {
   id: 12,
   memo: 'Katzenauge, Eulenschrei, was verschwunden komm herbei!',
   validUntil: '2022-03-30T14:22:40.000Z',
+  text: '',
 }
 
 describe('TransactionLink', () => {
