@@ -35,7 +35,6 @@ jobs:
   build_test_admin:
     name: Docker Build Test - Admin Interface
     runs-on: ubuntu-latest
-    #needs: [nothing]
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
