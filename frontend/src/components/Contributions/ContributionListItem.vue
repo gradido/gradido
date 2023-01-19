@@ -26,7 +26,7 @@
             {{ $t('contribution.alert.answerQuestion') }}
           </div>
         </b-col>
-        <b-col cols="12" lg="3" offset="3" offset-md="0" offset-lg="0">
+        <b-col cols="9" lg="3" offset="3" offset-md="0" offset-lg="0">
           <div class="small">
             {{ $t('creation') }} {{ $t('(') }}{{ amount / 20 }} {{ $t('h') }}{{ $t(')') }}
           </div>
