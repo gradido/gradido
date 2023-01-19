@@ -30,7 +30,6 @@
             </b-button>
           </div>
         </div>
-        <div></div>
       </div>
     </div>
     <div v-else>
