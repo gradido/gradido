@@ -3,6 +3,13 @@ import Community from './Community'
 import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions } from '@/graphql/queries'
+import { createMockClient } from 'mock-apollo-client'
+import VueApollo from 'vue-apollo'
+
+const mockClient = createMockClient()
+const apolloProvider = new VueApollo({
+  defaultClient: mockClient,
+})
 
 const localVue = global.localVue
 
