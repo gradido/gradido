@@ -1,4 +1,6 @@
 {
+  "(": "(",
+  ")": ")",
   "100": "100%",
   "1000thanks": "1000 mercis d'être avec nous!",
   "125": "125%",
@@ -20,25 +22,25 @@
   "community": {
     "choose-another-community": "Choisissez une autre communauté",
     "community": "Communauté",
+    "communityMember": "Vous etes un membre actif",
     "continue-to-registration": "Continuez l´inscription",
-    "current-community": "Communauté actuelle",
-    "members": "Membres",
     "moderator": "Modérateur",
     "moderators": "Modérateurs",
-    "myContributions": "Mes contributions aux biens communs",
+    "myContributions": "Mes contributions",
+    "noOpenContributionLinkText": "Currently there are no automatic creations.",
     "openContributionLinks": "liste de liens de contribution publique",
     "openContributionLinkText": "Les {count} créations automatiques suivantes sont actuellement fournies par la communauté \"{name}\".",
-    "other-communities": "Autres communautés",
-    "statistic": "Statistiques",
-    "submitContribution": "écrire",
-    "switch-to-this-community": "Passer à cette communauté"
+    "submitContribution": "Contribuer"
   },
+  "communityInfo": "Information communauté^^",
+  "contact": "Contact",
   "contribution": {
     "activity": "Activité",
     "alert": {
       "answerQuestion": "S'il te plais répond à la question",
       "communityNoteList": "Vous trouverez ci-contre toutes les contributions versées et certifiées de tous les membres de cette communauté.",
-      "confirm": " Approuvé",
+      "confirm": "Approuvé",
+      "deleted": "Supprimé",
       "in_progress": "Il y a une question du modérateur.",
       "myContributionNoteList": "À tout moment vous pouvez éditer ou supprimer les données qui n´ont pas été confirmées.",
       "pending": "Inscription en attente de validation",
@@ -65,6 +67,8 @@
     "thanksYouWith": "vous remercie avec",
     "unique": "(unique)"
   },
+  "contributionText": "Texte de la contribution",
+  "creation": "Création",
   "decay": {
     "before_startblock_transaction": "Cette transaction n´est pas péremptoire.",
     "calculation_decay": "Calcul de la décroissance",
@@ -84,6 +88,7 @@
     }
   },
   "delete": "Supprimer",
+  "edit": "modifier",
   "em-dash": "—",
   "error": {
     "email-already-sent": "Nous vous avons déjà envoyé un email il y a moins de 10 minutes.",
@@ -121,7 +126,7 @@
     "firstname": " Prénom",
     "from": "de",
     "generate_now": "Produire maintenant",
-    "hours": "Uren",
+    "hours": "Heures",
     "lastname": "Nom",
     "memo": "Note",
     "message": "Message",
@@ -147,7 +152,8 @@
     "to": "à",
     "to1": "à",
     "validation": {
-      "gddSendAmount": "L´espace {_field_} doit comprendre un nombre entre {min} et {max} avec un maximum de deux chiffres après la virgule",
+      "gddCreationTime": "Le champ {_field_} doit comprendre un nombre entre {min} et {max} avec un maximum de une décimale.",
+      "gddSendAmount": "Le champ {_field_} doit comprendre un nombre entre {min} et {max} avec un maximum de deux chiffres après la virgule",
       "is-not": "Vous ne pouvez pas vous envoyer de Gradido à vous-même",
       "usernmae-regex": "Le nom d´utilisateur doit commencer par une lettre, suivi d´au moins deux caractères alphanumériques.",
       "usernmae-unique": "Ce nom d´utilisateur est déjà pris."
@@ -155,13 +161,13 @@
     "your_amount": "Votre montant"
   },
   "GDD": "GDD",
+  "gddKonto": "Compte GDD",
   "gdd_per_link": {
     "choose-amount": "Sélectionnez le montant que vous souhaitez envoyer via lien. Vous pouvez également joindre un message. Cliquez sur ‘créer maintenant’ pour établir un lien que vous pourrez partager.",
     "copy-link": "Copier le lien",
     "copy-link-with-text": "Copier le lien et le texte",
     "created": "Le lien a été créé!",
     "credit-your-gradido": "Pour l´accréditation du Gradido, cliquer sur le lien!",
-    "decay-14-day": "Perte sur 14 jours",
     "delete-the-link": "Supprimer le lien?",
     "deleted": "Le lien a été supprimé!",
     "expiredOn": "A expiré le",
@@ -188,6 +194,7 @@
     "validUntil": "Valide jusqu´au",
     "validUntilDate": "Le lien est valide jusqu´au {date}."
   },
+  "GDT": "GDT",
   "gdt": {
     "calculation": "Calcul de Gradido Transform",
     "contribution": "Contribution",
@@ -199,22 +206,25 @@
     "funding": "Aux contributions au financement",
     "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) perçu",
+    "gdtKonto": "Compte GDT",
     "no-transactions": "Vous ne possédez pas encore Gradido Transform (GDT).",
     "not-reachable": "Le Serveur GDT n´est pas accessible.",
     "publisher": "Un membre que vous avez référé a apporté un contribution",
     "raise": "Augmentation",
     "recruited-member": "Membre invité"
   },
+  "h": "h",
   "language": "Langage",
   "link-load": "Enregistrer le dernier lien | Enregistrer les derniers {n} liens |  Enregistrer plus de {n} liens",
   "login": "Connexion",
   "math": {
-    "aprox": "~",
     "asterisk": "*",
     "equal": "=",
     "minus": "−",
     "pipe": "|"
   },
+  "maxReached": "Max. atteint",
+  "member": "Membre",
   "message": {
     "activateEmail": "Votre compte n´a pas encore été activé. Veuillez vérifier vos emails et cliquer sur le lien d´activation ou faites la demande d´un nouveau lien en utilisant la page qui permet de générer un nouveau mot de passe.",
     "checkEmail": "Votre email a bien été vérifié. Vous pouvez vous enregistrer maintenant.",
@@ -231,12 +241,21 @@
     "community": "Communauté",
     "info": "Information",
     "logout": "Déconnexion",
-    "members_area": "Partie réservée aux membres",
     "overview": "Aperçu",
-    "profile": "Mon profile",
     "send": "Envoyer",
+    "settings": "Configuration",
     "support": "Aide",
     "transactions": "Transactions"
+  },
+  "openHours": "Heures ouverte",
+  "pageTitle": {
+    "community": "Ma communauté",
+    "gdt": "Vos transactions GDT",
+    "information": "{community}",
+    "overview": "Bienvenue {name}",
+    "send": "Envoyé Gradidos",
+    "settings": "Configuration",
+    "transactions": "Vos transactions"
   },
   "qrCode": "QR Code",
   "send_gdd": "Envoyer GDD",
@@ -248,6 +267,8 @@
     "warningText": "Êtes-vous toujours connecté?"
   },
   "settings": {
+    "hideAmountGDD": "Votre montant GDD est caché.",
+    "hideAmountGDT": "Votre montant GDT est caché.",
     "language": {
       "changeLanguage": "Changer la langue",
       "de": "Deutsch",
@@ -280,7 +301,9 @@
         "text": "Sauvegardez votre nouveau mot de passe maintenant, que vous pourrez utiliser pour vous connecter à votre compte Gradido dans le futur."
       },
       "subtitle": "Si vous avez oublié votre mot de passe, vous pouvez le réinitialiser ici."
-    }
+    },
+    "showAmountGDD": "Votre montant GDD est visible.",
+    "showAmountGDT": "Votre montant GDT est visible."
   },
   "signin": "S´identifier",
   "signup": "S´inscrire",
@@ -302,11 +325,8 @@
       "uppercase": "Une lettre majuscule requise."
     }
   },
-  "statistic": {
-    "totalGradidoAvailable": "GDD total en circulation",
-    "totalGradidoCreated": "GDD total puisé",
-    "totalGradidoDecayed": "Total de GDD écoulé"
-  },
+  "status": "Statu",
+  "submitted": "Envoyé",
   "success": "Avec succès",
   "time": {
     "days": "Jours",
@@ -318,8 +338,7 @@
     "years": "Année"
   },
   "transaction": {
-    "gdd-text": "Transactions Gradido",
-    "gdt-text": "Transactions de GradidoTransform",
+    "lastTransactions": "Dernières transactions",
     "nullTransactions": "Vous n´avez pas encore de transaction effectuée sur votre compte.",
     "receiverDeleted": "Le compte du destinataire n´existe plus",
     "receiverNotFound": "Destinataire inconnu",

@@ -57,7 +57,7 @@ const propsData = {
         return value + ' GDD'
       },
     },
-    { key: 'memo', label: 'text' },
+    { key: 'memo', label: 'text', class: 'text-break' },
     {
       key: 'date',
       label: 'date',
