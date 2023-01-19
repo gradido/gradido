@@ -35,12 +35,12 @@
         v-model="form.hours"
         :name="$t('form.hours')"
         :label="$t('form.hours')"
-        placeholder="0.5"
+        placeholder="0.25"
         :rules="{
           required: true,
-          min: 0.5,
+          min: 0.25,
           max: validMaxTime,
-          gddCreationTime: [0.5, validMaxTime],
+          gddCreationTime: [0.25, validMaxTime],
         }"
         :validMaxTime="validMaxTime"
         @updateAmount="updateAmount"
