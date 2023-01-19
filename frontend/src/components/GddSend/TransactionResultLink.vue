@@ -6,7 +6,6 @@
       :amount="amount"
       :memo="memo"
       :validUntil="validUntil"
-      :text="text"
     ></clipboard-copy>
     <label>{{ $t('qrCode') }}</label>
     <div class="text-center">
@@ -34,17 +33,6 @@ export default {
     amount: { type: String, required: true },
     memo: { type: String, required: true },
     validUntil: { type: String, required: true },
-  },
-  data() {
-    return {
-      text: `${this.link}
-${this.$store.state.firstName} ${this.$t('transaction-link.send_you')} ${this.amount} Gradido.
-"${this.memo}"
-${this.$t('gdd_per_link.credit-your-gradido')} ${this.$t('gdd_per_link.validUntilDate', {
-        date: this.$d(new Date(this.validUntil), 'short'),
-      })}
-${this.$t('gdd_per_link.link-hint')}`,
-    }
   },
 }
 </script>

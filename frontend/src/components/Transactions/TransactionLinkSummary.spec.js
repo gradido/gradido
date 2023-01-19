@@ -52,7 +52,6 @@ describe('TransactionLinkSummary', () => {
                 'Hokuspokus Haselnuss, Vogelbein und Fliegenfuß, damit der Trick gelingen muss!',
               redeemedAt: null,
               validUntil: '2022-03-30T14:22:40.000Z',
-              text: '',
             },
             {
               amount: '85',
@@ -63,7 +62,6 @@ describe('TransactionLinkSummary', () => {
               memo: 'Mäusespeck und Katzenbuckel, Tricks und Tracks und Zauberkugel!',
               redeemedAt: null,
               validUntil: '2022-03-30T14:22:40.000Z',
-              text: '',
             },
             {
               amount: '95',
@@ -75,7 +73,6 @@ describe('TransactionLinkSummary', () => {
                 'Abrakadabra 1,2,3, die Sonne kommt herbei. Schweinepups und Spuckebrei, der Regen ist vorbei.',
               redeemedAt: null,
               validUntil: '2022-03-30T14:22:40.000Z',
-              text: '',
             },
             {
               amount: '150',
@@ -87,7 +84,6 @@ describe('TransactionLinkSummary', () => {
                 'Abrakadabra 1,2,3 was verschwunden ist komme herbei.Wieseldreck und Schweinemist, zaubern das ist keine List.',
               redeemedAt: null,
               validUntil: '2022-03-30T14:22:40.000Z',
-              text: '',
             },
           ],
         },
@@ -175,7 +171,6 @@ describe('TransactionLinkSummary', () => {
                     'Hat jemand die Nummer von der Hexe aus Schneewittchen? Ich bräuchte mal ein paar Äpfel.',
                   redeemedAt: null,
                   validUntil: '2022-03-30T14:22:40.000Z',
-                  text: '',
                 },
                 {
                   amount: '86',
@@ -187,7 +182,6 @@ describe('TransactionLinkSummary', () => {
                     'Die Windfahn´ krächzt am Dach, Der Uhu im Geklüfte; Was wispert wie ein Ach Verhallend in die Lüfte?',
                   redeemedAt: null,
                   validUntil: '2022-03-30T14:22:40.000Z',
-                  text: '',
                 },
                 {
                   amount: '96',
@@ -199,7 +193,6 @@ describe('TransactionLinkSummary', () => {
                     'Verschlafen kräht der Hahn, Ein Blitz noch, und ein trüber, Umwölbter Tag bricht an – Walpurgisnacht vorüber!',
                   redeemedAt: null,
                   validUntil: '2022-03-30T14:22:40.000Z',
-                  text: '',
                 },
                 {
                   amount: '150',
@@ -210,7 +203,6 @@ describe('TransactionLinkSummary', () => {
                   memo: 'Eene meene Flaschenschrank, fertig ist der Hexentrank!',
                   redeemedAt: null,
                   validUntil: '2022-03-30T14:22:40.000Z',
-                  text: '',
                 },
               ],
             },
@@ -222,7 +214,7 @@ describe('TransactionLinkSummary', () => {
           })
         })
 
-        it('has eight transactionLinks', () => {
+        it('has four transactionLinks', () => {
           expect(wrapper.vm.transactionLinks).toHaveLength(4)
         })
 
