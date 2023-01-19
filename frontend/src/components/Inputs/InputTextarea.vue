@@ -18,7 +18,7 @@
         rows="4"
         max-rows="4"
         :disabled="disabled"
-        no-resize="true"
+        no-resize
       ></b-form-textarea>
       <b-form-invalid-feedback v-bind="ariaMsg">
         {{ errors[0] }}
