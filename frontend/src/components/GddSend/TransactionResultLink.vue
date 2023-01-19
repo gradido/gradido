@@ -7,6 +7,7 @@
       :memo="memo"
       :validUntil="validUntil"
     ></clipboard-copy>
+    <label>{{ $t('qrCode') }}</label>
     <div class="text-center">
       <div><figure-qr-code :link="link" /></div>
       <div>

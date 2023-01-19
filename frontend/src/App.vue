@@ -30,7 +30,7 @@ export default {
   font-family: 'WorkSans', sans-serif !important;
 }
 .appContent {
-  min-width: 360px;
+  min-width: 330px;
   max-width: 1320px;
   margin-right: auto;
   margin-left: auto;
