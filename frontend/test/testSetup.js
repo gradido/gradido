@@ -22,6 +22,7 @@ import { loadFilters } from '@/filters/amount'
 import { toasters } from '@/mixins/toaster'
 export const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
 export const toastSuccessSpy = jest.spyOn(toasters.methods, 'toastSuccess')
+export const toastInfoSpy = jest.spyOn(toasters.methods, 'toastInfo')
 
 Object.keys(rules).forEach((rule) => {
   extend(rule, {
