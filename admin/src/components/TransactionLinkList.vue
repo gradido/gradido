@@ -67,7 +67,7 @@ export default {
             return `${value} GDD`
           },
         },
-        { key: 'memo', label: this.$t('transactionlist.memo') },
+        { key: 'memo', label: this.$t('transactionlist.memo'), class: 'text-break' },
         {
           key: 'validUntil',
           label: this.$t('transactionlink.valid_until'),
