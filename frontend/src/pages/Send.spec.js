@@ -254,7 +254,7 @@ describe('Send', () => {
           describe('copy link with success', () => {
             beforeEach(async () => {
               navigatorClipboardMock.mockResolvedValue()
-              await wrapper.find('.pointer').trigger('click')
+              await wrapper.find('div[data-test="copyLink"]').trigger('click')
             })
 
             it('should call clipboard.writeText', () => {
@@ -270,7 +270,7 @@ describe('Send', () => {
           describe('copy link with error', () => {
             beforeEach(async () => {
               navigatorClipboardMock.mockRejectedValue()
-              await wrapper.find('.clipboard-copy').find('.btn-secondary').trigger('click')
+              await wrapper.find('div[data-test="copyLink"]').trigger('click')
             })
 
             it('toasts error message', () => {
@@ -292,7 +292,7 @@ describe('Send', () => {
           describe('copy link and text with success', () => {
             beforeEach(async () => {
               navigatorClipboardMock.mockResolvedValue()
-              await wrapper.findAll('button').at(0).trigger('click')
+              await wrapper.find('div[data-test="copyLinkWithText"]').trigger('click')
             })
 
             it('should call clipboard.writeText', () => {
@@ -312,7 +312,7 @@ describe('Send', () => {
           describe('copy link and text with error', () => {
             beforeEach(async () => {
               navigatorClipboardMock.mockRejectedValue()
-              await wrapper.findAll('button').at(0).trigger('click')
+              await wrapper.find('div[data-test="copyLinkWithText"]').trigger('click')
             })
 
             it('toasts error message', () => {

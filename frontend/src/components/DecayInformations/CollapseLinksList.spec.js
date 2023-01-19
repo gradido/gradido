@@ -24,6 +24,7 @@ const propsData = {
       memo: 'Eene meene Siegerpreis, vor mir steht ein Schokoeis. Hex-hex!',
       redeemedAt: null,
       validUntil: '2022-03-30T14:22:40.000Z',
+      text: '',
     },
     {
       amount: '6',
@@ -35,6 +36,7 @@ const propsData = {
       memo: 'Eene meene buntes Laub, auf dem Schrank da liegt kein Staub.',
       redeemedAt: null,
       validUntil: '2022-03-30T14:22:40.000Z',
+      text: '',
     },
   ],
   transactionLinkCount: 3,
