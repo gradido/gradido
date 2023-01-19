@@ -30,7 +30,7 @@
     "noOpenContributionLinkText": "Currently there are no automatic creations.",
     "openContributionLinks": "Open contribution-link list",
     "openContributionLinkText": "The following {count} automatic creations are currently provided by the \"{name}\" community.",
-    "submitContribution": "writing"
+    "submitContribution": "Contribute"
   },
   "communityInfo": "Community Information",
   "contact": "Contact",
