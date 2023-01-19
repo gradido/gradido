@@ -37,7 +37,8 @@
   "contribution": {
     "activity": "Tätigkeit",
     "alert": {
-      "answerQuestion": "Bitte beantworte die Rückfrage!",
+      "answerQuestionToast": "Du hast eine Rückfrage auf einen Beitrag. Bitte antworte auf diese.",
+      "answerQuestion": "Bitte beantworte diese Rückfrage.",
       "communityNoteList": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
       "confirm": "bestätigt",
       "deleted": "gelöscht",
