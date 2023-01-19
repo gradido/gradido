@@ -1,21 +1,31 @@
 <template>
   <div class="clipboard-copy">
-    <div v-if="canCopyLink" size="lg" class="mb-5">
-      <div class="d-flex">
-        <div>
-          <label>{{ $t('gdd_per_link.copy-link') }}</label>
-          <div class="pointer text-center bg-secondary gradido-border-radius p-4" @click="copyLink">
-            {{ link }}
-          </div>
-        </div>
-        <div class="ml-5">
-          <label>{{ $t('gdd_per_link.copy-link-with-text') }}</label>
+    <div v-if="canCopyLink" class="mb-5">
+      <div>
+        <label>{{ $t('gdd_per_link.copy-link') }}</label>
+        <div class="pointer text-center bg-secondary gradido-border-radius p-3" @click="copyLink">
+          {{ link }}
           <div>
-            <b-button @click="copyLinkWithText" class="p-4">
+            <b-button class="p-4">
               <b-icon icon="link45deg"></b-icon>
             </b-button>
           </div>
         </div>
+      </div>
+      <div class="mt-5">
+        <label>{{ $t('gdd_per_link.copy-link-with-text') }}</label>
+        <div
+          class="pointer text-center bg-secondary gradido-border-radius p-3"
+          @click="copyLinkWithText"
+        >
+          {{ text }}
+          <div>
+            <b-button class="p-4">
+              <b-icon icon="link45deg"></b-icon>
+            </b-button>
+          </div>
+        </div>
+        <div></div>
       </div>
     </div>
     <div v-else>
