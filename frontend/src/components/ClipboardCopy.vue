@@ -23,7 +23,7 @@
           data-test="copyLinkWithText"
           @click="copyLinkWithText"
         >
-          {{ text }}
+          {{ linkText }}
           <div>
             <b-button class="p-4">
               <b-icon icon="link45deg"></b-icon>
