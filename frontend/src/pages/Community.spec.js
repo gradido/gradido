@@ -406,7 +406,7 @@ describe('Community', () => {
 
       beforeEach(async () => {
         await wrapper.setData({ tabIndex: 1 })
-        contributionListComponent = await wrapper.findComponent({ name: 'ContributionList' })
+        contributionListComponent = wrapper.findComponent({ name: 'ContributionList' })
       })
 
       describe('with error', () => {
@@ -454,7 +454,7 @@ describe('Community', () => {
       })
     })
 
-    describe.skip('update contribution form', () => {
+    describe('update contribution form', () => {
       const now = new Date().toISOString()
       beforeEach(async () => {
         await wrapper.setData({ tabIndex: 1 })
@@ -472,11 +472,57 @@ describe('Community', () => {
         expect(wrapper.vm.form.id).toBe(2)
         expect(wrapper.vm.form.date).toBe(now)
         expect(wrapper.vm.form.memo).toBe('Mein Beitrag zur Gemeinschaft für diesen Monat ...')
-        expect(wrapper.vm.form.amount).toBe('400')
+        expect(wrapper.vm.form.amount).toBe('400.00')
       })
 
       it('sets tab index back to 0', () => {
         expect(wrapper.vm.tabIndex).toBe(0)
+      })
+    })
+
+    describe('update list all contributions', () => {
+      beforeEach(async () => {
+        jest.clearAllMocks()
+        await wrapper.setData({ tabIndex: 2 })
+        await wrapper
+          .findAllComponents({ name: 'ContributionList' })
+          .at(1)
+          .vm.$emit('update-list-contributions', {
+            currentPage: 2,
+            pageSize: 5,
+          })
+      })
+
+      it('updates page size and current page', () => {
+        expect(wrapper.vm.pageSizeAll).toBe(5)
+        expect(wrapper.vm.currentPageAll).toBe(2)
+      })
+
+      it('updates the all contribution list', () => {
+        expect(refetchAllContributionsSpy).toBeCalled()
+      })
+    })
+
+    describe('update list contributions', () => {
+      beforeEach(async () => {
+        jest.clearAllMocks()
+        await wrapper.setData({ tabIndex: 1 })
+        await wrapper
+          .findAllComponents({ name: 'ContributionList' })
+          .at(0)
+          .vm.$emit('update-list-contributions', {
+            currentPage: 2,
+            pageSize: 5,
+          })
+      })
+
+      it('updates page size and current page', () => {
+        expect(wrapper.vm.pageSize).toBe(5)
+        expect(wrapper.vm.currentPage).toBe(2)
+      })
+
+      it('updates the all contribution list', () => {
+        expect(refetchContributionsSpy).toBeCalled()
       })
     })
   })
