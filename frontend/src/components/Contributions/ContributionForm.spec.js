@@ -23,6 +23,7 @@ describe('ContributionForm', () => {
   const mocks = {
     $t: jest.fn((t) => t),
     $d: jest.fn((d) => d),
+    $n: jest.fn((n) => n),
     $store: {
       state: {
         creation: ['1000', '1000', '1000'],
