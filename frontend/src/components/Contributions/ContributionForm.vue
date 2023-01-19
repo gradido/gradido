@@ -17,7 +17,7 @@
         :label-no-date-selected="$t('contribution.noDateSelected')"
         required
         :disabled="this.form.id !== null"
-        :dropleft="true"
+        :no-flip="true"
       >
         <template #nav-prev-year><span></span></template>
         <template #nav-next-year><span></span></template>
@@ -35,12 +35,12 @@
         v-model="form.hours"
         :name="$t('form.hours')"
         :label="$t('form.hours')"
-        placeholder="0.5"
+        placeholder="0.25"
         :rules="{
           required: true,
-          min: 0.5,
+          min: 0.25,
           max: validMaxTime,
-          gddCreationTime: [0.5, validMaxTime],
+          gddCreationTime: [0.25, validMaxTime],
         }"
         :validMaxTime="validMaxTime"
         @updateAmount="updateAmount"
