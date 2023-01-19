@@ -71,6 +71,6 @@ console.warn = (m) => {
 }
 
 // throw errors for vue warnings to force the programmers to take care about warnings
-Vue.config.warnHandler = (w) => {
+Vue.config.warnHandler = async (w) => {
   throw new Error(w)
 }
