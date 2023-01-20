@@ -53,6 +53,11 @@ import ContributionForm from '@/components/Contributions/ContributionForm.vue'
 import ContributionList from '@/components/Contributions/ContributionList.vue'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions, openCreations } from '@/graphql/queries'
+import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount.vue'
+import ContributionForm from '@/components/Contributions/ContributionForm.vue'
+import ContributionList from '@/components/Contributions/ContributionList.vue'
+import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
+import { listContributions, listAllContributions, openCreations } from '@/graphql/queries'
 
 export default {
   name: 'Community',
@@ -146,7 +151,7 @@ export default {
           if (this.$route.hash !== '#my') {
             this.$router.push({ path: '/community#my' })
           }
-          this.toastInfo('Du hast eine Rückfrage auf eine Contribution. Bitte beantworte diese!')
+          this.toastInfo(this.$t('contribution.alert.answerQuestionToast'))
         }
       },
       error({ message }) {
@@ -158,6 +163,7 @@ export default {
     $route(to, from) {
       this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === to.hash)
       this.hashLink = to.hash
+      this.closeAllOpenCollapse()
     },
     tabIndex(num) {
       if (num !== 0) {
@@ -201,8 +207,6 @@ export default {
   },
   methods: {
     closeAllOpenCollapse() {
-      // console.log('Community closeAllOpenCollapse ')
-      // console.log('closeAllOpenCollapse', this.$el.querySelectorAll('.collapse.show'))
       this.$el.querySelectorAll('.collapse.show').forEach((value) => {
         this.$root.$emit('bv::toggle::collapse', value.id)
       })
