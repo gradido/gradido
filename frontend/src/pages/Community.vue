@@ -282,7 +282,7 @@ export default {
             if (this.$route.hash !== '#my') {
               this.$router.push({ path: '/community#my' })
             }
-            this.toastInfo('Du hast eine Rückfrage auf eine Contribution. Bitte beantworte diese!')
+            this.toastInfo(this.$t('contribution.alert.answerQuestionToast'))
           }
         })
         .catch((err) => {
