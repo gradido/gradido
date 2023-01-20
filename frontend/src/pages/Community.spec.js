@@ -249,9 +249,7 @@ describe('Community', () => {
       })
 
       it('toasts an info', () => {
-        expect(toastInfoSpy).toBeCalledWith(
-          'contribution.alert.answerQuestionToast',
-        )
+        expect(toastInfoSpy).toBeCalledWith('contribution.alert.answerQuestionToast')
       })
     })
 
