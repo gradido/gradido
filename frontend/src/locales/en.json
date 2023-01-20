@@ -37,7 +37,8 @@
   "contribution": {
     "activity": "Activity",
     "alert": {
-      "answerQuestion": "Please answer the question",
+      "answerQuestion": "Please answer the question.",
+      "answerQuestionToast": "You have a question about a post. Please reply to it.",
       "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
       "confirm": "confirmed",
       "deleted": "deleted",
