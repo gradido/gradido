@@ -732,9 +732,6 @@ export class ContributionResolver {
       confirmedAt: IsNull(),
       deniedBy: IsNull(),
     })
-    // TODO: Check
-    // - contribution exists
-    // - state has accept one
     if (!contributionToUpdate) {
       logger.error(`Contribution not found for given id: ${id}`)
       throw new Error(`Contribution not found for given id.`)

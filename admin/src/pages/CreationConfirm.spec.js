@@ -76,7 +76,7 @@ describe('CreationConfirm', () => {
 
   const listUnconfirmedContributionsMock = jest.fn()
   const adminDeleteContributionMock = jest.fn()
-  const adminRejectContributionMock = jest.fn()
+  const adminDenyContributionMock = jest.fn()
   const confirmContributionMock = jest.fn()
 
   mockClient.setRequestHandler(
@@ -93,7 +93,9 @@ describe('CreationConfirm', () => {
 
   mockClient.setRequestHandler(
     denyContribution,
-    adminRejectContributionMock.mockResolvedValue({ data: { denyContribution: true } }),
+    adminDenyContributionMock
+      .mockRejectedValueOnce({ message: 'Ouch!' })
+      .mockResolvedValue({ data: { denyContribution: true } }),
   )
 
   mockClient.setRequestHandler(
@@ -251,6 +253,20 @@ describe('CreationConfirm', () => {
       })
     })
 
+    describe('deny creation with error', () => {
+      let spy
+
+      beforeEach(async () => {
+        spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+        spy.mockImplementation(() => Promise.resolve('some value'))
+        await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
+      })
+
+      it('toasts an error message', () => {
+        expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
+      })
+    })
+
     describe('deny creation with success', () => {
       let spy
 
@@ -266,7 +282,7 @@ describe('CreationConfirm', () => {
         })
 
         it('calls the adminDeleteContribution mutation', () => {
-          expect(adminRejectContributionMock).toBeCalledWith({ id: 1 })
+          expect(adminDenyContributionMock).toBeCalledWith({ id: 1 })
         })
 
         it('commits openCreationsMinus to store', () => {
@@ -286,7 +302,7 @@ describe('CreationConfirm', () => {
         })
 
         it('does not call the adminDeleteContribution mutation', () => {
-          expect(adminRejectContributionMock).not.toBeCalled()
+          expect(adminDenyContributionMock).not.toBeCalled()
         })
       })
     })
