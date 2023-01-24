@@ -197,10 +197,8 @@ export class ContributionResolver {
       let i = 0
       for (i; i < length; i++) {
         const filterState = filterStates[i].toUpperCase()
-        logger.info('filterState', filterState)
         const contributionStatus =
           ContributionStatus[filterState as keyof typeof ContributionStatus]
-        logger.info('contributionStatus', contributionStatus)
         if (!typeStatus.includes(contributionStatus)) {
           logger.error(
             `${i18n.__('error.contributions.wrongFilterState', {
