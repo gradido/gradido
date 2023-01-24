@@ -9,7 +9,7 @@ import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
   sendContributionConfirmedEmail,
-  sendContributionRejectedEmail,
+  sendContributionDeniedEmail,
   sendResetPasswordEmail,
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
@@ -360,9 +360,9 @@ describe('sendEmailVariants', () => {
     })
   })
 
-  describe('sendContributionRejectedEmail', () => {
+  describe('sendContributionDeniedEmail', () => {
     beforeAll(async () => {
-      result = await sendContributionRejectedEmail({
+      result = await sendContributionDeniedEmail({
         firstName: 'Peter',
         lastName: 'Lustig',
         email: 'peter@lustig.de',
@@ -379,7 +379,7 @@ describe('sendEmailVariants', () => {
           receiver: {
             to: 'Peter Lustig <peter@lustig.de>',
           },
-          template: 'contributionRejected',
+          template: 'contributionDenied',
           locals: {
             firstName: 'Peter',
             lastName: 'Lustig',

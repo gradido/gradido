@@ -183,6 +183,8 @@ export const listContributions = gql`
         deletedAt
         state
         messagesCount
+        deniedAt
+        deniedBy
       }
     }
   }
@@ -202,6 +204,10 @@ export const listAllContributions = gql`
         contributionDate
         confirmedAt
         confirmedBy
+        state
+        messagesCount
+        deniedAt
+        deniedBy
       }
     }
   }
