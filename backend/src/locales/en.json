@@ -1,4 +1,5 @@
 {
+  "contributions": {},
   "emails": {
     "addedContributionMessage": {
       "commonGoodContributionMessage": "you have received a message from {senderFirstName} {senderLastName} regarding your common good contribution “{contributionMemo}”.",
@@ -53,6 +54,11 @@
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "You have just received {transactionAmount} GDD from {senderFirstName} {senderLastName} ({senderEmail}).",
       "subject": "Gradido: {senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido"
+    }
+  },
+  "error": {
+    "contributions": {
+      "wrongFilterState": "Send a state that isn't defined: {contributionState}"
     }
   },
   "general": {

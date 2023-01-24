@@ -1,4 +1,5 @@
 import Decimal from 'decimal.js-light'
+import i18n from 'i18n'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { FindOperator, IsNull, In, getConnection, Equal } from '@dbTools/typeorm'
 
@@ -179,18 +180,43 @@ export class ContributionResolver {
   async listAllContributions(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
-    @Arg('filterState', () => String, { nullable: true })
-    filterState: string | null,
+    @Arg('filterState', () => [String], { nullable: true })
+    filterStates: string[] | null,
+    @Ctx() context: Context,
   ): Promise<ContributionListResult> {
     const where: {
       contributionStatus?: FindOperator<string> | null
     } = {}
     const typeStatus = Object.values(ContributionStatus)
-    if (filterState !== null) {
+    const filterStateArray = []
+    const user = getUser(context)
+    i18n.setLocale(user.language)
+    if (filterStates !== null) {
       // Asked ChatGBT for explanation => filterState converted to ContributionStatus
-      const contributionStatus = ContributionStatus[filterState as keyof typeof ContributionStatus]
-      if (typeStatus.includes(contributionStatus)) {
-        where.contributionStatus = Equal(filterState)
+      const length = filterStates.length
+      let i = 0
+      for (i; i < length; i++) {
+        const filterState = filterStates[i].toUpperCase()
+        logger.info('filterState', filterState)
+        const contributionStatus =
+          ContributionStatus[filterState as keyof typeof ContributionStatus]
+        logger.info('contributionStatus', contributionStatus)
+        if (!typeStatus.includes(contributionStatus)) {
+          logger.error(
+            `${i18n.__('error.contributions.wrongFilterState', {
+              contributionState: filterStates[i],
+            })}`,
+          )
+          throw new Error(
+            `${i18n.__('error.contributions.wrongFilterState', {
+              contributionState: filterStates[i],
+            })}`,
+          )
+        }
+        filterStateArray.push(contributionStatus)
+      }
+      if (filterStateArray.length > 0) {
+        where.contributionStatus = In(filterStateArray)
       }
     }
 
