@@ -180,26 +180,23 @@ export class ContributionResolver {
   async listAllContributions(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
-    @Arg('filterState', () => [String], { nullable: true })
-    filterStates: string[] | null,
+    @Arg('filterState', () => [ContributionStatus], { nullable: true })
+    filterStates: ContributionStatus[] | null,
     @Ctx() context: Context,
   ): Promise<ContributionListResult> {
     const where: {
       contributionStatus?: FindOperator<string> | null
     } = {}
     const typeStatus = Object.values(ContributionStatus)
-    const filterStateArray = []
     const user = getUser(context)
     i18n.setLocale(user.language)
     if (filterStates !== null) {
-      // Asked ChatGBT for explanation => filterState converted to ContributionStatus
+      const filterStateArray = []
       const length = filterStates.length
       let i = 0
       for (i; i < length; i++) {
-        const filterState = filterStates[i].toUpperCase()
-        const contributionStatus =
-          ContributionStatus[filterState as keyof typeof ContributionStatus]
-        if (!typeStatus.includes(contributionStatus)) {
+        const filterState = filterStates[i]
+        if (!typeStatus.includes(filterState)) {
           logger.error(
             `${i18n.__('error.contributions.wrongFilterState', {
               contributionState: filterStates[i],
@@ -211,7 +208,7 @@ export class ContributionResolver {
             })}`,
           )
         }
-        filterStateArray.push(contributionStatus)
+        filterStateArray.push(filterState)
       }
       if (filterStateArray.length > 0) {
         where.contributionStatus = In(filterStateArray)
