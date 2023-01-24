@@ -42,7 +42,7 @@
       "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
       "confirm": "confirmed",
       "deleted": "deleted",
-      "denied": "deleted",
+      "denied": "rejected",
       "in_progress": "There is a question from the moderators.",
       "myContributionNoteList": "You can edit or delete entries that have not yet been confirmed at any time.",
       "pending": "Submitted and waiting for confirmation"
