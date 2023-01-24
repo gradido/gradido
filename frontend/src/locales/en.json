@@ -30,16 +30,18 @@
     "noOpenContributionLinkText": "Currently there are no automatic creations.",
     "openContributionLinks": "Open contribution-link list",
     "openContributionLinkText": "The following {count} automatic creations are currently provided by the \"{name}\" community.",
-    "submitContribution": "writing"
+    "submitContribution": "Contribute"
   },
   "communityInfo": "Community Information",
   "contact": "Contact",
   "contribution": {
     "activity": "Activity",
     "alert": {
-      "answerQuestion": "Please answer the question",
+      "answerQuestion": "Please answer the question.",
+      "answerQuestionToast": "You have a question about a post. Please reply to it.",
       "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
       "confirm": "confirmed",
+      "deleted": "deleted",
       "in_progress": "There is a question from the moderators.",
       "myContributionNoteList": "You can edit or delete entries that have not yet been confirmed at any time.",
       "pending": "Submitted and waiting for confirmation",
@@ -47,7 +49,6 @@
     },
     "delete": "Delete Contribution! Are you sure?",
     "deleted": "The contribution has been deleted! But it will remain visible.",
-    "exhausted": "You cannot create anything more for this month.",
     "formText": {
       "bringYourTalentsTo": "Bring your talents to the community! Your voluntary commitment will be rewarded with 20 GDD per hour up to a maximum of 1,000 GDD per month.",
       "describeYourCommunity": "Describe your community service activity with hours and enter an amount of 20 GDD per hour! After confirmation by a moderator, the amount will be credited to your account.",
@@ -126,7 +127,7 @@
     "firstname": "Firstname",
     "from": "from",
     "generate_now": "Generate now",
-    "hours": "Horas",
+    "hours": "Hours",
     "lastname": "Lastname",
     "memo": "Message",
     "message": "Message",
@@ -215,7 +216,6 @@
   },
   "h": "h",
   "language": "Language",
-  "lastMonth": "Last month",
   "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
   "login": "Sign in",
   "math": {

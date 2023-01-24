@@ -16,21 +16,27 @@
           <b-avatar v-else :icon="icon" :variant="variant" size="3em"></b-avatar>
         </b-col>
         <b-col>
-          <div v-if="firstName" class="mr-3 font-weight-bold">{{ firstName }} {{ lastName }}</div>
+          <div v-if="firstName" class="mr-3 font-weight-bold">
+            {{ firstName }} {{ lastName }}
+            <b-icon :icon="icon" :variant="variant"></b-icon>
+          </div>
           <div class="small">
             {{ $d(new Date(contributionDate), 'monthAndYear') }}
           </div>
           <div class="mt-3 font-weight-bold">{{ $t('contributionText') }}</div>
-          <div class="mb-3">{{ memo }}</div>
+          <div class="mb-3 text-break word-break">{{ memo }}</div>
           <div v-if="state === 'IN_PROGRESS'" class="text-205">
             {{ $t('contribution.alert.answerQuestion') }}
           </div>
         </b-col>
-        <b-col cols="12" lg="3" offset="3" offset-md="0" offset-lg="0">
+        <b-col cols="9" lg="3" offset="3" offset-md="0" offset-lg="0">
           <div class="small">
             {{ $t('creation') }} {{ $t('(') }}{{ amount / 20 }} {{ $t('h') }}{{ $t(')') }}
           </div>
-          <div class="font-weight-bold">{{ amount | GDD }}</div>
+          <div v-if="state === 'DELETED'" class="small">
+            {{ $t('contribution.deleted') }}
+          </div>
+          <div v-else class="font-weight-bold">{{ amount | GDD }}</div>
         </b-col>
         <b-col cols="12" md="1" lg="1" class="text-right align-items-center">
           <div v-if="messagesCount > 0" @click="visible = !visible">
@@ -168,7 +174,7 @@ export default {
   },
   computed: {
     icon() {
-      if (this.deletedAt) return 'x-circle'
+      if (this.deletedAt) return 'trash'
       if (this.confirmedAt) return 'check'
       if (this.state === 'IN_PROGRESS') return 'question-circle'
       return 'bell-fill'

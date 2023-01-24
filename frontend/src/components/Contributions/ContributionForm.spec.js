@@ -12,6 +12,7 @@ describe('ContributionForm', () => {
       date: '',
       memo: '',
       amount: '',
+      hours: 0,
     },
     isThisMonth: true,
     minimalDate: new Date(),
@@ -22,6 +23,7 @@ describe('ContributionForm', () => {
   const mocks = {
     $t: jest.fn((t) => t),
     $d: jest.fn((d) => d),
+    $n: jest.fn((n) => n),
     $store: {
       state: {
         creation: ['1000', '1000', '1000'],
@@ -375,6 +377,7 @@ describe('ContributionForm', () => {
                       date: now,
                       memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
                       amount: '200',
+                      hours: 0,
                     },
                   ]),
                 ]),
