@@ -121,7 +121,7 @@ export default {
             return value + ' GDD'
           },
         },
-        { key: 'memo', label: this.$t('text') },
+        { key: 'memo', label: this.$t('text'), class: 'text-break' },
         {
           key: 'date',
           label: this.$t('date'),
