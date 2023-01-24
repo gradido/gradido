@@ -34,10 +34,10 @@
     "alert": {
       "communityNoteList": "Burada, bu topluluğun tüm üyelerinden gönderilen ve onaylanan bütün faydalı hizmetleri bulacaksın.",
       "confirm": "onaylandı",
+      "denied": "reddedildi",
       "myContributionNoteList": "Bildirmiş olduğun henüz onaylanmamış olan  faaliyetleri istediğin zaman düzenleyebilir veya silebilirsin.",
       "myContributionNoteSupport": "Yakın zamanda moderatörlerle aranda bir diyalog olasılığı olacak. Şu anda herhangi bir sorun yaşıyorsan, lütfen destek hattına başvur.",
-      "pending": "Gönderildi ve onay bekleniyor",
-      "denied": "reddedildi"
+      "pending": "Gönderildi ve onay bekleniyor"
     },
     "date": "Hizmet:",
     "delete": "Hizmeti sil! Emin misin?",

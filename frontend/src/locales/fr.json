@@ -41,10 +41,10 @@
       "communityNoteList": "Vous trouverez ci-contre toutes les contributions versées et certifiées de tous les membres de cette communauté.",
       "confirm": "Approuvé",
       "deleted": "Supprimé",
+      "denied": "supprimé",
       "in_progress": "Il y a une question du modérateur.",
       "myContributionNoteList": "À tout moment vous pouvez éditer ou supprimer les données qui n´ont pas été confirmées.",
-      "pending": "Inscription en attente de validation",
-      "denied": "supprimé"
+      "pending": "Inscription en attente de validation"
     },
     "date": "Contribution pour:",
     "delete": "Supprimer la contribution! Êtes-vous sûr?",
