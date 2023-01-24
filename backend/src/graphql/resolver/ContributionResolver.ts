@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js-light'
 import i18n from 'i18n'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
-import { FindOperator, IsNull, In, getConnection, Equal } from '@dbTools/typeorm'
+import { FindOperator, IsNull, In, getConnection } from '@dbTools/typeorm'
 
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage } from '@entity/ContributionMessage'
