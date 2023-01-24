@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js-light'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
-import { FindOperator, IsNull, In, getConnection } from '@dbTools/typeorm'
+import { FindOperator, IsNull, In, getConnection, Equal } from '@dbTools/typeorm'
 
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage } from '@entity/ContributionMessage'
@@ -179,12 +179,27 @@ export class ContributionResolver {
   async listAllContributions(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    @Arg('filterState', () => String, { nullable: true })
+    filterState: string | null,
   ): Promise<ContributionListResult> {
+    const where: {
+      contributionStatus?: FindOperator<string> | null
+    } = {}
+    const typeStatus = Object.values(ContributionStatus)
+    if (filterState !== null) {
+      // Asked ChatGBT for explanation => filterState converted to ContributionStatus
+      const contributionStatus = ContributionStatus[filterState as keyof typeof ContributionStatus]
+      if (typeStatus.includes(contributionStatus)) {
+        where.contributionStatus = Equal(filterState)
+      }
+    }
+
     const [dbContributions, count] = await getConnection()
       .createQueryBuilder()
       .select('c')
       .from(DbContribution, 'c')
       .innerJoinAndSelect('c.user', 'u')
+      .where(where)
       .orderBy('c.createdAt', order)
       .limit(pageSize)
       .offset((currentPage - 1) * pageSize)
