@@ -42,7 +42,7 @@
       "in_progress": "There is a question from the moderators.",
       "myContributionNoteList": "Ingediende bijdragen, die nog niet bevestigd zijn, kun je op elk moment wijzigen of verwijderen.",
       "pending": "Ingediend en wacht op bevestiging",
-      "rejected": "afgewezen"
+      "denied": "afgewezen"
     },
     "date": "Bijdrage voor:",
     "delete": "Bijdrage verwijderen! Weet je het zeker?",

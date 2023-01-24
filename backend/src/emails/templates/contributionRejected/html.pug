@@ -1,13 +1,13 @@
 doctype html
 html(lang=locale)
   head
-    title= t('emails.contributionRejected.subject')
+    title= t('emails.contributionDenied.subject')
   body
-    h1(style='margin-bottom: 24px;')= t('emails.contributionRejected.subject')
+    h1(style='margin-bottom: 24px;')= t('emails.contributionDenied.subject')
     #container.col
       include ../hello.pug
-      p= t('emails.contributionRejected.commonGoodContributionRejected', { senderFirstName, senderLastName, contributionMemo })
-      p= t('emails.contributionRejected.toSeeContributionsAndMessages')
+      p= t('emails.contributionDenied.commonGoodContributionDenied', { senderFirstName, senderLastName, contributionMemo })
+      p= t('emails.contributionDenied.toSeeContributionsAndMessages')
       p
         = t('emails.general.linkToYourAccount')
         = " "

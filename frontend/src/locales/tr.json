@@ -37,7 +37,7 @@
       "myContributionNoteList": "Bildirmiş olduğun henüz onaylanmamış olan  faaliyetleri istediğin zaman düzenleyebilir veya silebilirsin.",
       "myContributionNoteSupport": "Yakın zamanda moderatörlerle aranda bir diyalog olasılığı olacak. Şu anda herhangi bir sorun yaşıyorsan, lütfen destek hattına başvur.",
       "pending": "Gönderildi ve onay bekleniyor",
-      "rejected": "reddedildi"
+      "denied": "reddedildi"
     },
     "date": "Hizmet:",
     "delete": "Hizmeti sil! Emin misin?",

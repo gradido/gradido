@@ -55,7 +55,7 @@ describe('ContributionInfo', () => {
         expect(listItems.at(2).text()).toBe('contribution.alert.confirm')
 
         expect(listItems.at(3).find('svg').attributes('aria-label')).toEqual('x circle')
-        expect(listItems.at(3).text()).toBe('contribution.alert.rejected')
+        expect(listItems.at(3).text()).toBe('contribution.alert.denied')
       })
     })
 

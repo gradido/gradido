@@ -54,7 +54,7 @@
           <b-button
             variant="danger"
             size="md"
-            @click="$emit('reject-creation', row.item)"
+            @click="$emit('deny-creation', row.item)"
             class="mr-2"
           >
             <b-icon icon="x" variant="light"></b-icon>
