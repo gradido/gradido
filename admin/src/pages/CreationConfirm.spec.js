@@ -251,10 +251,10 @@ describe('CreationConfirm', () => {
       })
     })
 
-    describe('decline creation with success', () => {
+    describe('deny creation with success', () => {
       let spy
 
-      describe('admin confirms decline', () => {
+      describe('admin confirms deny', () => {
         beforeEach(async () => {
           spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve('some value'))
@@ -278,7 +278,7 @@ describe('CreationConfirm', () => {
         })
       })
 
-      describe('admin cancels decline', () => {
+      describe('admin cancels deny', () => {
         beforeEach(async () => {
           spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve(false))
