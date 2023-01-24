@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm.vue'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
-import { rejectContribution } from '../graphql/rejectContribution'
+import { denyContribution } from '../graphql/denyContribution'
 import { listUnconfirmedContributions } from '../graphql/listUnconfirmedContributions'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
@@ -92,7 +92,7 @@ describe('CreationConfirm', () => {
   )
 
   mockClient.setRequestHandler(
-    rejectContribution,
+    denyContribution,
     adminRejectContributionMock.mockResolvedValue({ data: { rejectContribution: true } }),
   )
 

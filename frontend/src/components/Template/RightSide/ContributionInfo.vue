@@ -20,7 +20,7 @@
         </li>
         <li>
           <b-icon icon="x-circle" variant="warning"></b-icon>
-          {{ $t('contribution.alert.rejected') }}
+          {{ $t('contribution.alert.denied') }}
         </li>
         <li>
           <b-icon icon="trash" variant="danger"></b-icon>

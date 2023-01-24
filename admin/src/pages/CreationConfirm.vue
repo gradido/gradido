@@ -7,7 +7,7 @@
       class="mt-4"
       :items="pendingCreations"
       :fields="fields"
-      @reject-creation="rejectCreation"
+      @deny-creation="denyCreation"
       @remove-creation="removeCreation"
       @show-overlay="showOverlay"
       @update-state="updateState"
@@ -21,7 +21,7 @@ import OpenCreationsTable from '../components/Tables/OpenCreationsTable.vue'
 import { listUnconfirmedContributions } from '../graphql/listUnconfirmedContributions'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
-import { rejectContribution } from '../graphql/rejectContribution'
+import { denyContribution } from '../graphql/denyContribution'
 
 export default {
   name: 'CreationConfirm',
@@ -37,19 +37,19 @@ export default {
     }
   },
   methods: {
-    rejectCreation(item) {
-      this.$bvModal.msgBoxConfirm(this.$t('creation_form.rejectNow')).then(async (value) => {
+    denyCreation(item) {
+      this.$bvModal.msgBoxConfirm(this.$t('creation_form.denyNow')).then(async (value) => {
         if (value) {
           await this.$apollo
             .mutate({
-              mutation: rejectContribution,
+              mutation: denyContribution,
               variables: {
                 id: item.id,
               },
             })
             .then((result) => {
               this.updatePendingCreations(item.id)
-              this.toastSuccess(this.$t('creation_form.toasted_rejected'))
+              this.toastSuccess(this.$t('creation_form.toasted_denied'))
             })
             .catch((error) => {
               this.toastError(error.message)
@@ -132,7 +132,7 @@ export default {
         { key: 'moderator', label: this.$t('moderator') },
         { key: 'editCreation', label: this.$t('edit') },
         { key: 'confirm', label: this.$t('save') },
-        { key: 'reject', label: this.$t('reject') },
+        { key: 'deny', label: this.$t('deny') },
       ]
     },
   },

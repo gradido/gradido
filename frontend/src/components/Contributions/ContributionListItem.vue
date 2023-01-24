@@ -33,6 +33,10 @@
           <div class="small">
             {{ $t('creation') }} {{ $t('(') }}{{ amount / 20 }} {{ $t('h') }}{{ $t(')') }}
           </div>
+          <div v-if="state === 'DENIED' && allContribution" class="font-weight-bold">
+            <b-icon icon="x-circle" variant="danger"></b-icon>
+            {{ $t('contribution.alert.denied') }}
+          </div>
           <div v-if="state === 'DELETED'" class="small">
             {{ $t('contribution.deleted') }}
           </div>

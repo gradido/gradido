@@ -44,7 +44,7 @@
       "in_progress": "Il y a une question du modérateur.",
       "myContributionNoteList": "À tout moment vous pouvez éditer ou supprimer les données qui n´ont pas été confirmées.",
       "pending": "Inscription en attente de validation",
-      "rejected": "supprimé"
+      "denied": "supprimé"
     },
     "date": "Contribution pour:",
     "delete": "Supprimer la contribution! Êtes-vous sûr?",

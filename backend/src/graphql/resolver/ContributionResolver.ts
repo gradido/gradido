@@ -50,7 +50,7 @@ import { eventProtocol } from '@/event/EventProtocolEmitter'
 import { calculateDecay } from '@/util/decay'
 import {
   sendContributionConfirmedEmail,
-  sendContributionRejectedEmail,
+  sendContributionDeniedEmail,
 } from '@/emails/sendEmailVariants'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
@@ -541,7 +541,7 @@ export class ContributionResolver {
     await eventProtocol.writeEvent(
       event.setEventAdminContributionDelete(eventAdminContributionDelete),
     )
-    sendContributionRejectedEmail({
+    sendContributionDeniedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.emailContact.email,
@@ -721,9 +721,9 @@ export class ContributionResolver {
     })
   }
 
-  @Authorized([RIGHTS.REJECT_CONTRIBUTION])
+  @Authorized([RIGHTS.DENY_CONTRIBUTION])
   @Mutation(() => Boolean)
-  async rejectContribution(
+  async denyContribution(
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
@@ -765,7 +765,7 @@ export class ContributionResolver {
     contributionToUpdate.deniedAt = new Date()
     const res = await contributionToUpdate.save()
 
-    sendContributionRejectedEmail({
+    sendContributionDeniedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.emailContact.email,

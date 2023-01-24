@@ -42,7 +42,7 @@
       "in_progress": "Hay una pregunta de los moderatores.",
       "myContributionNoteList": "Puedes editar o eliminar las contribuciones enviadas que aún no han sido confirmadas en cualquier momento.",
       "pending": "Enviado y a la espera de confirmación",
-      "rejected": "rechazado"
+      "denied": "rechazado"
     },
     "date": "Contribución para:",
     "delete": "Eliminar la contribución. ¿Estás seguro?",
