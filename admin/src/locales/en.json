@@ -29,6 +29,13 @@
     "validFrom": "Start-date",
     "validTo": "End-Date"
   },
+  "contributions": {
+    "all": "All",
+    "confirmed": "Confirmed",
+    "deleted": "Deleted",
+    "denied": "Denied",
+    "open": "Open"
+  },
   "creation": "Creation",
   "creationList": "Creation list",
   "creation_form": {
@@ -101,7 +108,6 @@
     "logout": "Logout",
     "multi_creation": "Multiple creation",
     "my-account": "My Account",
-    "open_creation": "Open creations",
     "overview": "Overview",
     "statistic": "Statistic",
     "user_search": "User search"

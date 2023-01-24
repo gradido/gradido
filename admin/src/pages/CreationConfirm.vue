@@ -1,17 +1,36 @@
 <template>
   <div class="creation-confirm">
+    <div>
+      <b-tabs content-class="mt-3" fill>
+        <b-tab :title="$t('contributions.open')" active>
+          <open-creations-table
+            class="mt-4"
+            :items="pendingCreations"
+            :fields="fields"
+            @remove-creation="removeCreation"
+            @show-overlay="showOverlay"
+            @update-state="updateState"
+            @update-contributions="$apollo.queries.PendingContributions.refetch()"
+          />
+        </b-tab>
+        <b-tab :title="$t('contributions.deleted')">
+          <p>{{ $t('contributions.deleted') }}</p>
+        </b-tab>
+        <b-tab :title="$t('contributions.confirmed')">
+          <p>{{ $t('contributions.confirmed') }}</p>
+        </b-tab>
+        <b-tab :title="$t('contributions.denied')">
+          <p>{{ $t('contributions.denied') }}</p>
+        </b-tab>
+        <b-tab :title="$t('contributions.all')">
+          <p>{{ $t('contributions.all') }}</p>
+        </b-tab>
+      </b-tabs>
+    </div>
+
     <div v-if="overlay" id="overlay" @dblclick="overlay = false">
       <overlay :item="item" @overlay-cancel="overlay = false" @confirm-creation="confirmCreation" />
     </div>
-    <open-creations-table
-      class="mt-4"
-      :items="pendingCreations"
-      :fields="fields"
-      @remove-creation="removeCreation"
-      @show-overlay="showOverlay"
-      @update-state="updateState"
-      @update-contributions="$apollo.queries.PendingContributions.refetch()"
-    />
   </div>
 </template>
 <script>

@@ -29,6 +29,13 @@
     "validFrom": "Startdatum",
     "validTo": "Enddatum"
   },
+  "contributions": {
+    "all": "Alle",
+    "confirmed": "Bestätigte",
+    "deleted": "Gelöscht",
+    "denied": "Abgelehnt",
+    "open": "Offen"
+  },
   "creation": "Schöpfung",
   "creationList": "Schöpfungsliste",
   "creation_form": {
@@ -101,7 +108,6 @@
     "logout": "Abmelden",
     "multi_creation": "Mehrfachschöpfung",
     "my-account": "Mein Konto",
-    "open_creation": "Offene Schöpfungen",
     "overview": "Übersicht",
     "statistic": "Statistik",
     "user_search": "Nutzersuche"

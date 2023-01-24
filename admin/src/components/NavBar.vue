@@ -12,12 +12,11 @@
           <b-nav-item to="/">{{ $t('navbar.overview') }}</b-nav-item>
           <b-nav-item to="/user">{{ $t('navbar.user_search') }}</b-nav-item>
           <b-nav-item to="/creation">{{ $t('navbar.multi_creation') }}</b-nav-item>
-          <b-nav-item
-            v-show="$store.state.openCreations > 0"
-            class="bg-color-creation p-1"
-            to="/creation-confirm"
-          >
-            {{ $store.state.openCreations }} {{ $t('navbar.open_creation') }}
+          <b-nav-item class="bg-color-creation p-1" to="/creation-confirm">
+            {{ $t('creation') }}
+            <b-badge v-show="$store.state.openCreations > 0" variant="danger">
+              {{ $store.state.openCreations }}
+            </b-badge>
           </b-nav-item>
           <b-nav-item to="/contribution-links">
             {{ $t('navbar.automaticContributions') }}
@@ -56,8 +55,5 @@ export default {
 .navbar-brand-img {
   height: 2rem;
   padding-left: 10px;
-}
-.bg-color-creation {
-  background-color: #cf1010dc;
 }
 </style>
