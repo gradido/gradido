@@ -19,8 +19,8 @@
           {{ $t('contribution.alert.confirm') }}
         </li>
         <li>
-          <b-icon icon="x-circle" variant="danger"></b-icon>
-          {{ $t('contribution.alert.rejected') }}
+          <b-icon icon="x-circle" variant="warning"></b-icon>
+          {{ $t('contribution.alert.denied') }}
         </li>
         <li>
           <b-icon icon="trash" variant="danger"></b-icon>
@@ -33,16 +33,6 @@
       <p>
         {{ $t('contribution.alert.communityNoteList') }}
       </p>
-      <ul>
-        <li>
-          <b-icon icon="bell-fill" variant="primary"></b-icon>
-          {{ $t('contribution.alert.pending') }}
-        </li>
-        <li>
-          <b-icon icon="check" variant="success"></b-icon>
-          {{ $t('contribution.alert.confirm') }}
-        </li>
-      </ul>
     </div>
     <div v-if="hash === '#edit'" show fade variant="secondary" class="text-dark">
       <div>

@@ -8,7 +8,7 @@
           @click="$emit('remove-creation', row.item)"
           class="mr-2"
         >
-          <b-icon icon="x" variant="light"></b-icon>
+          <b-icon icon="trash" variant="light"></b-icon>
         </b-button>
       </template>
       <template #cell(editCreation)="row">
@@ -46,6 +46,18 @@
             class="mr-2"
           >
             <b-icon icon="check" scale="2" variant=""></b-icon>
+          </b-button>
+        </div>
+      </template>
+      <template #cell(deny)="row">
+        <div v-if="$store.state.moderator.id !== row.item.userId">
+          <b-button
+            variant="danger"
+            size="md"
+            @click="$emit('deny-creation', row.item)"
+            class="mr-2"
+          >
+            <b-icon icon="x" variant="light"></b-icon>
           </b-button>
         </div>
       </template>

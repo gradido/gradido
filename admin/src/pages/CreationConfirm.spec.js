@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm.vue'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
+import { denyContribution } from '../graphql/denyContribution'
 import { listUnconfirmedContributions } from '../graphql/listUnconfirmedContributions'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
@@ -75,6 +76,7 @@ describe('CreationConfirm', () => {
 
   const listUnconfirmedContributionsMock = jest.fn()
   const adminDeleteContributionMock = jest.fn()
+  const adminDenyContributionMock = jest.fn()
   const confirmContributionMock = jest.fn()
 
   mockClient.setRequestHandler(
@@ -87,6 +89,13 @@ describe('CreationConfirm', () => {
   mockClient.setRequestHandler(
     adminDeleteContribution,
     adminDeleteContributionMock.mockResolvedValue({ data: { adminDeleteContribution: true } }),
+  )
+
+  mockClient.setRequestHandler(
+    denyContribution,
+    adminDenyContributionMock
+      .mockRejectedValueOnce({ message: 'Ouch!' })
+      .mockResolvedValue({ data: { denyContribution: true } }),
   )
 
   mockClient.setRequestHandler(
@@ -240,6 +249,60 @@ describe('CreationConfirm', () => {
           it('toasts an error message', () => {
             expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
           })
+        })
+      })
+    })
+
+    describe('deny creation with error', () => {
+      let spy
+
+      beforeEach(async () => {
+        spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+        spy.mockImplementation(() => Promise.resolve('some value'))
+        await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
+      })
+
+      it('toasts an error message', () => {
+        expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
+      })
+    })
+
+    describe('deny creation with success', () => {
+      let spy
+
+      describe('admin confirms deny', () => {
+        beforeEach(async () => {
+          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy.mockImplementation(() => Promise.resolve('some value'))
+          await wrapper.findAll('tr').at(1).findAll('button').at(3).trigger('click')
+        })
+
+        it('opens a modal', () => {
+          expect(spy).toBeCalled()
+        })
+
+        it('calls the adminDeleteContribution mutation', () => {
+          expect(adminDenyContributionMock).toBeCalledWith({ id: 1 })
+        })
+
+        it('commits openCreationsMinus to store', () => {
+          expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
+        })
+
+        it('toasts a success message', () => {
+          expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_denied')
+        })
+      })
+
+      describe('admin cancels deny', () => {
+        beforeEach(async () => {
+          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy.mockImplementation(() => Promise.resolve(false))
+          await wrapper.findAll('tr').at(1).findAll('button').at(3).trigger('click')
+        })
+
+        it('does not call the adminDeleteContribution mutation', () => {
+          expect(adminDenyContributionMock).not.toBeCalled()
         })
       })
     })
