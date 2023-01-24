@@ -20,28 +20,34 @@
           />
         </b-tab>
         <b-tab no-body>
-          <contribution-list
-            @closeAllOpenCollapse="closeAllOpenCollapse"
-            :items="items"
-            @update-list-contributions="updateListContributions"
-            @update-contribution-form="updateContributionForm"
-            @delete-contribution="deleteContribution"
-            @update-state="updateState"
-            :contributionCount="contributionCount"
-            :showPagination="true"
-            :pageSize="pageSize"
-          />
+          <div v-if="items.length === 0">Du hast noch keine Beiträge eingereicht.</div>
+          <div v-else>
+            <contribution-list
+              @closeAllOpenCollapse="closeAllOpenCollapse"
+              :items="items"
+              @update-list-contributions="updateListContributions"
+              @update-contribution-form="updateContributionForm"
+              @delete-contribution="deleteContribution"
+              @update-state="updateState"
+              :contributionCount="contributionCount"
+              :showPagination="true"
+              :pageSize="pageSize"
+            />
+          </div>
         </b-tab>
         <b-tab no-body>
-          <contribution-list
-            :items="itemsAll"
-            @update-list-contributions="updateListAllContributions"
-            @update-contribution-form="updateContributionForm"
-            :contributionCount="contributionCountAll"
-            :showPagination="true"
-            :pageSize="pageSizeAll"
-            :allContribution="true"
-          />
+          <div v-if="items.length === 0">Du hast noch keine Beiträge eingereicht.</div>
+          <div v-else>
+            <contribution-list
+              :items="itemsAll"
+              @update-list-contributions="updateListAllContributions"
+              @update-contribution-form="updateContributionForm"
+              :contributionCount="contributionCountAll"
+              :showPagination="true"
+              :pageSize="pageSizeAll"
+              :allContribution="true"
+            />
+          </div>
         </b-tab>
       </b-tabs>
     </div>
@@ -277,6 +283,11 @@ export default {
           } = result
           this.contributionCount = listContributions.contributionCount
           this.items = listContributions.contributionList
+          if (this.items.length === 0) {
+            this.tabIndex = 0
+            this.$router.push({ path: '/community#edit' })
+            return
+          }
           if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
             this.tabIndex = 1
             if (this.$route.hash !== '#my') {
