@@ -57,12 +57,12 @@
       "yourContribution": "Dein Beitrag zum Gemeinwohl"
     },
     "lastContribution": "Letzte Beiträge",
+    "noDateSelected": "Wähle irgendein Datum im Monat",
     "noOpenCreation": {
       "allMonth": "Für alle beiden Monate ist dein Schöpfungslimit erreicht. Den Nächsten Monat kannst du wieder 1000 GDD Schöpfen.",
-      "thisMonth": "Für den aktuellen Monat ist das Schöpfungslimit erreicht.",
-      "lastMonth": "Für den ausgewählten Monat ist das Schöpfungslimit erreicht."
+      "lastMonth": "Für den ausgewählten Monat ist das Schöpfungslimit erreicht.",
+      "thisMonth": "Für den aktuellen Monat ist das Schöpfungslimit erreicht."
     },
-    "noDateSelected": "Wähle irgendein Datum im Monat",
     "selectDate": "Wann war dein Beitrag?",
     "submit": "Einreichen",
     "submitted": "Der Beitrag wurde eingereicht.",
