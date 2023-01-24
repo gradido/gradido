@@ -681,7 +681,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterConfirmed: false,
+              filterState: null,
             },
           }),
         ).resolves.toEqual(
@@ -726,7 +726,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterConfirmed: false,
+              filterState: null,
             },
           }),
         ).resolves.toEqual(
