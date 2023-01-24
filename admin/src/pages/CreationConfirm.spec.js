@@ -93,7 +93,7 @@ describe('CreationConfirm', () => {
 
   mockClient.setRequestHandler(
     denyContribution,
-    adminRejectContributionMock.mockResolvedValue({ data: { rejectContribution: true } }),
+    adminRejectContributionMock.mockResolvedValue({ data: { denyContribution: true } }),
   )
 
   mockClient.setRequestHandler(
@@ -274,7 +274,7 @@ describe('CreationConfirm', () => {
         })
 
         it('toasts a success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_rejected')
+          expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_denied')
         })
       })
 
