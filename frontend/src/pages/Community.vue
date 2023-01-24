@@ -20,7 +20,9 @@
           />
         </b-tab>
         <b-tab no-body>
-          <div v-if="items.length === 0">Du hast noch keine Beiträge eingereicht.</div>
+          <div v-if="items.length === 0">
+            {{ $t('contribution.noContributions.myContributions') }}
+          </div>
           <div v-else>
             <contribution-list
               @closeAllOpenCollapse="closeAllOpenCollapse"
@@ -36,7 +38,9 @@
           </div>
         </b-tab>
         <b-tab no-body>
-          <div v-if="items.length === 0">Du hast noch keine Beiträge eingereicht.</div>
+          <div v-if="itemsAll.length === 0">
+            {{ $t('contribution.noContributions.allContributions') }}
+          </div>
           <div v-else>
             <contribution-list
               :items="itemsAll"

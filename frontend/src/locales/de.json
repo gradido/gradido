@@ -63,6 +63,10 @@
       "lastMonth": "Für den ausgewählten Monat ist das Schöpfungslimit erreicht.",
       "thisMonth": "Für den aktuellen Monat ist das Schöpfungslimit erreicht."
     },
+    "noContributions": {
+      "myContributions":"Du hast noch keine Beiträge eingereicht.",
+      "allContributions":"Es wurden noch keine Beiträge eingereicht."
+    },
     "selectDate": "Wann war dein Beitrag?",
     "submit": "Einreichen",
     "submitted": "Der Beitrag wurde eingereicht.",
