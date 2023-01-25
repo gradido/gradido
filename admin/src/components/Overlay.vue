@@ -38,8 +38,13 @@
       <b-container>
         <b-row>
           <b-col>
+<<<<<<< Updated upstream
             <b-button size="md" variant="danger" class="m-3" @click="$emit('overlay-cancel')">
               {{ $t('overlay.confirm.cancel') }}
+=======
+            <b-button size="md" variant="info" class="m-3" @click="$emit('overlay-cancel')">
+              {{ $t('overlay.cancel') }}
+>>>>>>> Stashed changes
             </b-button>
           </b-col>
           <b-col class="text-right">
