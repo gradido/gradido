@@ -177,13 +177,18 @@ query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC, $filterS
   	contributionCount
     contributionList {
       id
-      firstName
-      lastName
-      amount
-      memo
-      createdAt
-      confirmedAt
-      confirmedBy
+        firstName
+        lastName
+        amount
+        memo
+        createdAt
+        confirmedAt
+        confirmedBy
+        contributionDate
+        state
+        messagesCount
+        deniedAt
+        deniedBy
     }
 	}
 }

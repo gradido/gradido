@@ -45,6 +45,7 @@ import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { logger, i18n as localization } from '@test/testSetup'
+import { ContributionStatus } from '@enum/ContributionStatus'
 
 // mock account activation email to avoid console spam
 // mock account activation email to avoid console spam
@@ -737,11 +738,121 @@ describe('ContributionResolver', () => {
                 contributionList: expect.arrayContaining([
                   expect.objectContaining({
                     id: expect.any(Number),
+                    state: 'CONFIRMED',
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
                   }),
                   expect.objectContaining({
                     id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
+      })
+
+      it('returns all CONFIRMED Creation', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              filterState: ['CONFIRMED'],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              listAllContributions: {
+                contributionCount: 1,
+                contributionList: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
+      })
+
+      it('returns all PENDING Creation', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              filterState: ['PENDING'],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              listAllContributions: {
+                contributionCount: 1,
+                contributionList: expect.arrayContaining([
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
+      })
+
+      it('returns all DENIED Creation', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              filterState: ['DENIED'],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              listAllContributions: {
+                contributionCount: 0,
+                contributionList: expect.not.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
                     memo: 'Test env contribution',
                     amount: '100',
                   }),
