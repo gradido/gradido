@@ -72,25 +72,23 @@ export default {
           this.toastError(error.message)
         })
     },
-    denyCreation(item) {
-      this.$bvModal.msgBoxConfirm(this.$t('creation_form.denyNow')).then(async (value) => {
-        if (value) {
-          await this.$apollo
-            .mutate({
-              mutation: denyContribution,
-              variables: {
-                id: item.id,
-              },
-            })
-            .then((result) => {
-              this.updatePendingCreations(item.id)
-              this.toastSuccess(this.$t('creation_form.toasted_denied'))
-            })
-            .catch((error) => {
-              this.toastError(error.message)
-            })
-        }
-      })
+    denyCreation() {
+      this.$apollo
+        .mutate({
+          mutation: denyContribution,
+          variables: {
+            id: this.item.id,
+          },
+        })
+        .then((result) => {
+          this.overlay = false
+          this.updatePendingCreations(this.item.id)
+          this.toastSuccess(this.$t('creation_form.toasted_denied'))
+        })
+        .catch((error) => {
+          this.overlay = false
+          this.toastError(error.message)
+        })
     },
     confirmCreation() {
       this.$apollo
@@ -148,8 +146,8 @@ export default {
         },
         { key: 'moderator', label: this.$t('moderator') },
         { key: 'editCreation', label: this.$t('edit') },
-        { key: 'confirm', label: this.$t('save') },
         { key: 'deny', label: this.$t('deny') },
+        { key: 'confirm', label: this.$t('save') },
       ]
     },
     overlayTitle() {

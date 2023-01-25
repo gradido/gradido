@@ -37,6 +37,18 @@
           </b-button>
         </div>
       </template>
+      <template #cell(deny)="row">
+        <div v-if="$store.state.moderator.id !== row.item.userId">
+          <b-button
+            variant="warning"
+            size="md"
+            @click="$emit('show-overlay', row.item, 'deny')"
+            class="mr-2"
+          >
+            <b-icon icon="x" variant="light"></b-icon>
+          </b-button>
+        </div>
+      </template>
       <template #cell(confirm)="row">
         <div v-if="$store.state.moderator.id !== row.item.userId">
           <b-button
@@ -46,18 +58,6 @@
             class="mr-2"
           >
             <b-icon icon="check" scale="2" variant=""></b-icon>
-          </b-button>
-        </div>
-      </template>
-      <template #cell(deny)="row">
-        <div v-if="$store.state.moderator.id !== row.item.userId">
-          <b-button
-            variant="danger"
-            size="md"
-            @click="$emit('deny-creation', row.item)"
-            class="mr-2"
-          >
-            <b-icon icon="x" variant="light"></b-icon>
           </b-button>
         </div>
       </template>
