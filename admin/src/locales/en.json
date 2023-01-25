@@ -123,7 +123,7 @@
       "title": "Delete creation!",
       "yes": "Yes, delete and save creation!"
     },
-    "reject": {
+    "deny": {
       "question": "Do you really want to carry out and finally save this pre-stored creation?",
       "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
       "title": "Reject creation!",
