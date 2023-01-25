@@ -16,19 +16,26 @@
           <b-avatar v-else :icon="icon" :variant="variant" size="3em"></b-avatar>
         </b-col>
         <b-col>
-          <div v-if="firstName" class="mr-3 font-weight-bold">{{ firstName }} {{ lastName }}</div>
+          <div v-if="firstName" class="mr-3 font-weight-bold">
+            {{ firstName }} {{ lastName }}
+            <b-icon :icon="icon" :variant="variant"></b-icon>
+          </div>
           <div class="small">
             {{ $d(new Date(contributionDate), 'monthAndYear') }}
           </div>
           <div class="mt-3 font-weight-bold">{{ $t('contributionText') }}</div>
-          <div class="mb-3">{{ memo }}</div>
+          <div class="mb-3 text-break word-break">{{ memo }}</div>
           <div v-if="state === 'IN_PROGRESS'" class="text-205">
             {{ $t('contribution.alert.answerQuestion') }}
           </div>
         </b-col>
-        <b-col cols="12" lg="3" offset="3" offset-md="0" offset-lg="0">
+        <b-col cols="9" lg="3" offset="3" offset-md="0" offset-lg="0">
           <div class="small">
             {{ $t('creation') }} {{ $t('(') }}{{ amount / 20 }} {{ $t('h') }}{{ $t(')') }}
+          </div>
+          <div v-if="state === 'DENIED' && allContribution" class="font-weight-bold">
+            <b-icon icon="x-circle" variant="danger"></b-icon>
+            {{ $t('contribution.alert.denied') }}
           </div>
           <div v-if="state === 'DELETED'" class="small">
             {{ $t('contribution.deleted') }}
@@ -143,6 +150,14 @@ export default {
       type: String,
       required: false,
     },
+    deniedBy: {
+      type: Number,
+      required: false,
+    },
+    deniedAt: {
+      type: String,
+      required: false,
+    },
     state: {
       type: String,
       required: false,
@@ -172,12 +187,14 @@ export default {
   computed: {
     icon() {
       if (this.deletedAt) return 'trash'
+      if (this.deniedAt) return 'x-circle'
       if (this.confirmedAt) return 'check'
       if (this.state === 'IN_PROGRESS') return 'question-circle'
       return 'bell-fill'
     },
     variant() {
       if (this.deletedAt) return 'danger'
+      if (this.deniedAt) return 'warning'
       if (this.confirmedAt) return 'success'
       if (this.state === 'IN_PROGRESS') return 'f5'
       return 'primary'

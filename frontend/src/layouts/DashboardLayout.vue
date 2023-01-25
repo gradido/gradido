@@ -3,7 +3,7 @@
     <div v-if="skeleton">
       <skeleton-overview />
     </div>
-    <div v-else class="mx--3 mx-lg-0">
+    <div v-else class="mx-lg-0">
       <!-- navbar -->
       <b-row>
         <b-col>
@@ -125,14 +125,13 @@
                 :transactions="transactions"
                 :transactionCount="transactionCount"
                 :transactionLinkCount="transactionLinkCount"
-                @set-tunneled-email="setTunneledEmail"
               >
                 <template #transactions>
                   <last-transactions
                     :transactions="transactions"
                     :transactionCount="transactionCount"
                     :transactionLinkCount="transactionLinkCount"
-                    v-on="$listeners"
+                    @set-tunneled-email="setTunneledEmail"
                   />
                 </template>
                 <template #community>
@@ -167,14 +166,13 @@
             :transactions="transactions"
             :transactionCount="transactionCount"
             :transactionLinkCount="transactionLinkCount"
-            @set-tunneled-email="setTunneledEmail"
           >
             <template #transactions>
               <last-transactions
                 :transactions="transactions"
                 :transactionCount="transactionCount"
                 :transactionLinkCount="transactionLinkCount"
-                v-on="$listeners"
+                @set-tunneled-email="setTunneledEmail"
               />
             </template>
             <template #community>
