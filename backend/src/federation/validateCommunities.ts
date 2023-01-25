@@ -73,7 +73,7 @@ async function invokeVersionedRequestGetPublicKey(dbCom: DbCommunity): Promise<s
       return v1_0_requestGetPublicKey(dbCom)
     case ApiVersionType.V1_1:
       return v1_1_requestGetPublicKey(dbCom)
-  default: 
-    return undefined
-}
+    default:
+      return undefined
+  }
 }
