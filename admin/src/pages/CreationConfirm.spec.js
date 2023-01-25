@@ -314,52 +314,6 @@ describe('CreationConfirm', () => {
             expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
           })
         })
-        // describe('admin confirms deny', () => {
-        //   beforeEach(async () => {
-        //     spy.mockImplementation(() => Promise.resolve('some value'))
-        //     await wrapper.findAll('tr').at(1).findAll('button').at(3).trigger('click')
-        //   })
-
-        //   it('opens a modal', () => {})
-
-        //   it('calls the adminDeleteContribution mutation', () => {
-        //     expect(adminDenyContributionMock).toBeCalledWith({ id: 1 })
-        //   })
-
-        //   it('commits openCreationsMinus to store', () => {
-        //     expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
-        //   })
-
-        //   it('toasts a success message', () => {
-        //     expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_denied')
-        //   })
-        // })
-
-        // describe('admin cancels deny', () => {
-        //   beforeEach(async () => {
-        //     spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-        //     spy.mockImplementation(() => Promise.resolve(false))
-        //     await wrapper.findAll('tr').at(1).findAll('button').at(3).trigger('click')
-        //   })
-
-        //   it('does not call the adminDeleteContribution mutation', () => {
-        //     expect(adminDenyContributionMock).not.toBeCalled()
-        //   })
-        // })
-
-        // describe('deny creation with error', () => {
-        //   let spy
-
-        //   beforeEach(async () => {
-        //     spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-        //     spy.mockImplementation(() => Promise.resolve('some value'))
-        //     await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
-        //   })
-
-        //   it('toasts an error message', () => {
-        //     expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
-        //   })
-        // })
       })
     })
   })
