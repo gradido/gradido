@@ -10,7 +10,7 @@
           />
           <div class="mb-3"></div>
           <contribution-form
-            @set-contribution="setContribution"
+            @set-contribution="saveContribution"
             @update-contribution="updateContribution"
             v-model="form"
             :isThisMonth="isThisMonth"
@@ -70,6 +70,7 @@ export default {
       itemsAll: [],
       currentPage: 1,
       pageSize: 25,
+      currentPageAll: 1,
       pageSizeAll: 25,
       contributionCount: 0,
       contributionCountAll: 0,
@@ -102,6 +103,51 @@ export default {
       },
       update({ openCreations }) {
         this.openCreations = openCreations
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
+    },
+    ListAllContributions: {
+      query() {
+        return listAllContributions
+      },
+      fetchPolicy: 'network-only',
+      variables() {
+        return {
+          currentPage: this.currentPageAll,
+          pageSize: this.pageSizeAll,
+        }
+      },
+      update({ listAllContributions }) {
+        this.contributionCountAll = listAllContributions.contributionCount
+        this.itemsAll = listAllContributions.contributionList
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
+    },
+    ListContributions: {
+      query() {
+        return listContributions
+      },
+      fetchPolicy: 'network-only',
+      variables() {
+        return {
+          currentPage: this.currentPage,
+          pageSize: this.pageSize,
+        }
+      },
+      update({ listContributions }) {
+        this.contributionCount = listContributions.contributionCount
+        this.items = listContributions.contributionList
+        if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
+          this.tabIndex = 1
+          if (this.$route.hash !== '#my') {
+            this.$router.push({ path: '/community#my' })
+          }
+          this.toastInfo(this.$t('contribution.alert.answerQuestionToast'))
+        }
       },
       error({ message }) {
         this.toastError(message)
@@ -160,7 +206,12 @@ export default {
         this.$root.$emit('bv::toggle::collapse', value.id)
       })
     },
-    setContribution(data) {
+    refetchData() {
+      this.$apollo.queries.ListAllContributions.refetch()
+      this.$apollo.queries.ListContributions.refetch()
+      this.$apollo.queries.OpenCreations.refetch()
+    },
+    saveContribution(data) {
       this.$apollo
         .mutate({
           fetchPolicy: 'no-cache',
@@ -173,15 +224,7 @@ export default {
         })
         .then((result) => {
           this.toastSuccess(this.$t('contribution.submitted'))
-          this.updateListContributions({
-            currentPage: this.currentPage,
-            pageSize: this.pageSize,
-          })
-          this.updateListAllContributions({
-            currentPage: this.currentPage,
-            pageSize: this.pageSize,
-          })
-          this.$apollo.queries.OpenCreations.refetch()
+          this.refetchData()
         })
         .catch((err) => {
           this.toastError(err.message)
@@ -201,15 +244,7 @@ export default {
         })
         .then((result) => {
           this.toastSuccess(this.$t('contribution.updated'))
-          this.updateListContributions({
-            currentPage: this.currentPage,
-            pageSize: this.pageSize,
-          })
-          this.updateListAllContributions({
-            currentPage: this.currentPage,
-            pageSize: this.pageSize,
-          })
-          this.$apollo.queries.OpenCreations.refetch()
+          this.refetchData()
         })
         .catch((err) => {
           this.toastError(err.message)
@@ -226,68 +261,21 @@ export default {
         })
         .then((result) => {
           this.toastSuccess(this.$t('contribution.deleted'))
-          this.updateListContributions({
-            currentPage: this.currentPage,
-            pageSize: this.pageSize,
-          })
-          this.updateListAllContributions({
-            currentPage: this.currentPage,
-            pageSize: this.pageSize,
-          })
-          this.$apollo.queries.OpenCreations.refetch()
+          this.refetchData()
         })
         .catch((err) => {
           this.toastError(err.message)
         })
     },
     updateListAllContributions(pagination) {
-      this.$apollo
-        .query({
-          fetchPolicy: 'no-cache',
-          query: listAllContributions,
-          variables: {
-            currentPage: pagination.currentPage,
-            pageSize: pagination.pageSize,
-          },
-        })
-        .then((result) => {
-          const {
-            data: { listAllContributions },
-          } = result
-          this.contributionCountAll = listAllContributions.contributionCount
-          this.itemsAll = listAllContributions.contributionList
-        })
-        .catch((err) => {
-          this.toastError(err.message)
-        })
+      this.currentPageAll = pagination.currentPage
+      this.pageSizeAll = pagination.pageSize
+      this.$apollo.queries.ListAllContributions.refetch()
     },
     updateListContributions(pagination) {
-      this.$apollo
-        .query({
-          fetchPolicy: 'no-cache',
-          query: listContributions,
-          variables: {
-            currentPage: pagination.currentPage,
-            pageSize: pagination.pageSize,
-          },
-        })
-        .then((result) => {
-          const {
-            data: { listContributions },
-          } = result
-          this.contributionCount = listContributions.contributionCount
-          this.items = listContributions.contributionList
-          if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
-            this.tabIndex = 1
-            if (this.$route.hash !== '#my') {
-              this.$router.push({ path: '/community#my' })
-            }
-            this.toastInfo(this.$t('contribution.alert.answerQuestionToast'))
-          }
-        })
-        .catch((err) => {
-          this.toastError(err.message)
-        })
+      this.currentPage = pagination.currentPage
+      this.pageSize = pagination.pageSize
+      this.$apollo.queries.ListContributions.refetch()
     },
     updateContributionForm(item) {
       this.form.id = item.id
@@ -306,16 +294,7 @@ export default {
       this.items.find((item) => item.id === id).state = 'PENDING'
     },
   },
-
   created() {
-    this.updateListContributions({
-      currentPage: this.currentPage,
-      pageSize: this.pageSize,
-    })
-    this.updateListAllContributions({
-      currentPage: this.currentPage,
-      pageSize: this.pageSize,
-    })
     this.updateTransactions(0)
     this.tabIndex = 1
     this.$router.push({ path: '/community#my' })
