@@ -35,6 +35,7 @@
     "creation_failed": "Ausstehende Schöpfung für {email} konnte nicht erzeugt werden.",
     "creation_for": "Aktives Grundeinkommen für",
     "deleteNow": "Möchtest du diesen Beitrag zur Gemeinschaft wirklich löschen?",
+    "denyNow": "Möchtest du diesen Beitrag zur Gemeinschaft wirklich ablehnen?",
     "enter_text": "Text eintragen",
     "form": "Schöpfungsformular",
     "min_characters": "Mindestens 10 Zeichen eingeben",
@@ -45,6 +46,7 @@
     "toasted": "Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegt zur Bestätigung bereit",
     "toasted_created": "Schöpfung wurde erfolgreich gespeichert",
     "toasted_delete": "Offene Schöpfung wurde gelöscht",
+    "toasted_denied": "Offene Schöpfung wurde abgelehnt",
     "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
     "update_creation": "Schöpfung aktualisieren"
   },
@@ -54,6 +56,7 @@
   "deleted": "gelöscht",
   "deleted_user": "Alle gelöschten Nutzer",
   "delete_user": "Nutzer löschen",
+  "deny": "Ablehnen",
   "edit": "Bearbeiten",
   "enabled": "aktiviert",
   "error": "Fehler",
