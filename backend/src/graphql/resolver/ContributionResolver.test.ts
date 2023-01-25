@@ -681,7 +681,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterState: null,
+              statusFilter: null,
             },
           }),
         ).resolves.toEqual(
@@ -726,7 +726,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterState: null,
+              statusFilter: null,
             },
           }),
         ).resolves.toEqual(
@@ -762,7 +762,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterState: [],
+              statusFilter: [],
             },
           }),
         ).resolves.toEqual(
@@ -798,7 +798,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterState: ['CONFIRMED'],
+              statusFilter: ['CONFIRMED'],
             },
           }),
         ).resolves.toEqual(
@@ -834,7 +834,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterState: ['PENDING'],
+              statusFilter: ['PENDING'],
             },
           }),
         ).resolves.toEqual(
@@ -870,7 +870,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterState: ['IN_PROGRESS'],
+              statusFilter: ['IN_PROGRESS'],
             },
           }),
         ).resolves.toEqual(
@@ -906,7 +906,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterState: ['DENIED'],
+              statusFilter: ['DENIED'],
             },
           }),
         ).resolves.toEqual(
@@ -942,7 +942,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterState: ['DELETED'],
+              statusFilter: ['DELETED'],
             },
           }),
         ).resolves.toEqual(
@@ -978,7 +978,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterState: ['CONFIRMED', 'PENDING'],
+              statusFilter: ['CONFIRMED', 'PENDING'],
             },
           }),
         ).resolves.toEqual(
