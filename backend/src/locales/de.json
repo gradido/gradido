@@ -55,11 +55,6 @@
       "subject": "Gradido: {senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet"
     }
   },
-  "error": {
-    "contributions": {
-      "wrongFilterState": "Nicht definierter Status wurde gesendet: {contributionState}"
-    }
-  },
   "general": {
     "decimalSeparator": ",",
     "imprint": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",

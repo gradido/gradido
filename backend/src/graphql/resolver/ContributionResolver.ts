@@ -180,38 +180,27 @@ export class ContributionResolver {
   async listAllContributions(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
-    @Arg('filterState', () => [ContributionStatus], { nullable: true })
-    filterStates: ContributionStatus[] | null,
-    @Ctx() context: Context,
+    @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
+    statusFilters: ContributionStatus[] | null,
   ): Promise<ContributionListResult> {
     const where: {
       contributionStatus?: FindOperator<string> | null
     } = {}
     const typeStatus = Object.values(ContributionStatus)
-    const user = getUser(context)
-    i18n.setLocale(user.language)
-    if (filterStates !== null) {
-      const filterStateArray = []
-      const length = filterStates.length
+    if (statusFilters !== null) {
+      const statusFilterArray = []
+      const length = statusFilters.length
       let i = 0
       for (i; i < length; i++) {
-        const filterState = filterStates[i]
-        if (!typeStatus.includes(filterState)) {
-          logger.error(
-            `${i18n.__('error.contributions.wrongFilterState', {
-              contributionState: filterStates[i],
-            })}`,
-          )
-          throw new Error(
-            `${i18n.__('error.contributions.wrongFilterState', {
-              contributionState: filterStates[i],
-            })}`,
-          )
+        const statusFilter = statusFilters[i]
+        if (!typeStatus.includes(statusFilter)) {
+          logger.error(`Nicht definierter Status wurde gesendet: ${statusFilters[i]}`)
+          throw new Error(`Nicht definierter Status wurde gesendet: ${statusFilters[i]}`)
         }
-        filterStateArray.push(filterState)
+        statusFilterArray.push(statusFilter)
       }
-      if (filterStateArray.length > 0) {
-        where.contributionStatus = In(filterStateArray)
+      if (statusFilterArray.length > 0) {
+        where.contributionStatus = In(statusFilterArray)
       }
     }
 
