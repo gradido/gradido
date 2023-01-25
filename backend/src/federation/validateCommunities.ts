@@ -40,12 +40,20 @@ export async function validateCommunities(): Promise<void> {
           `Federation: validate publicKey for dbCom: ${dbCom.id} with apiVersion=${dbCom.apiVersion}`,
         )
         const pubKey = await invokeVersionedRequestGetPublicKey(dbCom)
-        logger.debug(`Federation: received publicKey:  ${pubKey}`)
+        logger.info(
+          `Federation: received publicKey=${pubKey} from endpoint=${dbCom.endPoint}/${dbCom.apiVersion}`,
+        )
         if (pubKey && pubKey === dbCom.publicKey.toString('hex')) {
-          logger.debug(`Federation: matching publicKey:  ${pubKey}`)
+          logger.info(`Federation: matching publicKey:  ${pubKey}`)
           DbCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
           logger.debug(`Federation: updated dbCom:  ${JSON.stringify(dbCom)}`)
         }
+        /*
+        else {
+          logger.warn(`Federation: received unknown publicKey -> delete dbCom with id=${dbCom.id} `)
+          DbCommunity.delete({ id: dbCom.id })
+        }
+        */
       } else {
         logger.warn(
           `Federation: dbCom: ${dbCom.id} with unsupported apiVersion=${dbCom.apiVersion}; supported versions=${apiValueStrings}`,
