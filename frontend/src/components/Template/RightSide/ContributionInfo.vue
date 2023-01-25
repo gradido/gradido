@@ -33,6 +33,24 @@
       <p>
         {{ $t('contribution.alert.communityNoteList') }}
       </p>
+      <ul>
+        <li>
+          <b-icon icon="bell-fill" variant="primary"></b-icon>
+          {{ $t('contribution.alert.pending') }}
+        </li>
+        <li>
+          <b-icon icon="question-square" variant="warning"></b-icon>
+          {{ $t('contribution.alert.in_progress') }}
+        </li>
+        <li>
+          <b-icon icon="check" variant="success"></b-icon>
+          {{ $t('contribution.alert.confirm') }}
+        </li>
+        <li>
+          <b-icon icon="x-circle" variant="warning"></b-icon>
+          {{ $t('contribution.alert.denied') }}
+        </li>
+      </ul>
     </div>
     <div v-if="hash === '#edit'" show fade variant="secondary" class="text-dark">
       <div>
