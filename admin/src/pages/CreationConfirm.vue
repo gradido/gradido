@@ -28,8 +28,6 @@
       class="mt-4"
       :items="pendingCreations"
       :fields="fields"
-      @deny-creation="denyCreation"
-      @remove-creation="removeCreation"
       @show-overlay="showOverlay"
       @update-state="updateState"
       @update-contributions="$apollo.queries.PendingContributions.refetch()"
@@ -55,47 +53,45 @@ export default {
       pendingCreations: [],
       overlay: false,
       item: {},
+      variant: 'confirm',
     }
   },
   methods: {
-    denyCreation(item) {
-      this.$bvModal.msgBoxConfirm(this.$t('creation_form.denyNow')).then(async (value) => {
-        if (value) {
-          await this.$apollo
-            .mutate({
-              mutation: denyContribution,
-              variables: {
-                id: item.id,
-              },
-            })
-            .then((result) => {
-              this.updatePendingCreations(item.id)
-              this.toastSuccess(this.$t('creation_form.toasted_denied'))
-            })
-            .catch((error) => {
-              this.toastError(error.message)
-            })
-        }
-      })
+    deleteCreation() {
+      this.$apollo
+        .mutate({
+          mutation: adminDeleteContribution,
+          variables: {
+            id: this.item.id,
+          },
+        })
+        .then((result) => {
+          this.overlay = false
+          this.updatePendingCreations(this.item.id)
+          this.toastSuccess(this.$t('creation_form.toasted_delete'))
+        })
+        .catch((error) => {
+          this.overlay = false
+          this.toastError(error.message)
+        })
     },
-    removeCreation(item) {
-      this.$bvModal.msgBoxConfirm(this.$t('creation_form.deleteNow')).then(async (value) => {
-        if (value)
-          await this.$apollo
-            .mutate({
-              mutation: adminDeleteContribution,
-              variables: {
-                id: item.id,
-              },
-            })
-            .then((result) => {
-              this.updatePendingCreations(item.id)
-              this.toastSuccess(this.$t('creation_form.toasted_delete'))
-            })
-            .catch((error) => {
-              this.toastError(error.message)
-            })
-      })
+    denyCreation() {
+      this.$apollo
+        .mutate({
+          mutation: denyContribution,
+          variables: {
+            id: this.item.id,
+          },
+        })
+        .then((result) => {
+          this.overlay = false
+          this.updatePendingCreations(this.item.id)
+          this.toastSuccess(this.$t('creation_form.toasted_denied'))
+        })
+        .catch((error) => {
+          this.overlay = false
+          this.toastError(error.message)
+        })
     },
     confirmCreation() {
       this.$apollo
@@ -119,9 +115,10 @@ export default {
       this.pendingCreations = this.pendingCreations.filter((obj) => obj.id !== id)
       this.$store.commit('openCreationsMinus', 1)
     },
-    showOverlay(item) {
+    showOverlay(item, variant) {
       this.overlay = true
       this.item = item
+      this.variant = variant
     },
     updateState(id) {
       this.pendingCreations.find((obj) => obj.id === id).messagesCount++
@@ -152,8 +149,8 @@ export default {
         },
         { key: 'moderator', label: this.$t('moderator') },
         { key: 'editCreation', label: this.$t('edit') },
-        { key: 'confirm', label: this.$t('save') },
         { key: 'deny', label: this.$t('deny') },
+        { key: 'confirm', label: this.$t('save') },
       ]
     },
     overlayTitle() {
