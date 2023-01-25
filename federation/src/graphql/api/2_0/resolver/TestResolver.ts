@@ -1,15 +1,6 @@
-import { Field, ObjectType, Query, Resolver } from "type-graphql";
-import { federationLogger as logger } from "@/server/logger";
-
-@ObjectType()
-class GetTestApiResult {
-  constructor(apiVersion: string) {
-    this.api = `${apiVersion}`;
-  }
-
-  @Field(() => String)
-  api: string;
-}
+import { Field, ObjectType, Query, Resolver } from 'type-graphql'
+import { federationLogger as logger } from '@/server/logger'
+import { GetTestApiResult } from '../../GetTestApiResult'
 
 @Resolver()
 export class TestResolver {
