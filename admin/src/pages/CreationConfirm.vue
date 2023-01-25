@@ -23,8 +23,6 @@
       class="mt-4"
       :items="pendingCreations"
       :fields="fields"
-      @deny-creation="denyCreation"
-      @remove-creation="deleteCreation"
       @show-overlay="showOverlay"
       @update-state="updateState"
       @update-contributions="$apollo.queries.PendingContributions.refetch()"

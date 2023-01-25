@@ -43,14 +43,6 @@
           </b-col>
           <b-col class="text-right">
             <slot name="submit-btn" />
-            <!-- <b-button
-              size="md"
-              variant="success"
-              class="m-3 text-right"
-              @click="$emit('confirm-creation', item)"
-            >
-              {{ $t('overlay.confirm.yes') }}
-            </b-button> -->
           </b-col>
         </b-row>
       </b-container>
