@@ -1,3 +1,4 @@
+<!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys -->
 <template>
   <div class="creation-confirm">
     <div v-if="overlay" id="overlay" @dblclick="overlay = false">
@@ -155,8 +156,6 @@ export default {
         { key: 'deny', label: this.$t('deny') },
       ]
     },
-<<<<<<< Updated upstream
-=======
     overlayTitle() {
       return `overlay.${this.variant}.title`
     },
@@ -184,7 +183,6 @@ export default {
           return 'info'
       }
     },
->>>>>>> Stashed changes
   },
   apollo: {
     PendingContributions: {
