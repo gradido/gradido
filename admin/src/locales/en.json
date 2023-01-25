@@ -35,6 +35,7 @@
     "creation_failed": "Could not create pending creation for {email}",
     "creation_for": "Active Basic Income for",
     "deleteNow": "Do you really want to delete this contribution to the community?",
+    "denyNow": "Do you really want to reject this contribution to the community?",
     "enter_text": "Enter text",
     "form": "Creation form",
     "min_characters": "Enter at least 10 characters",
@@ -45,6 +46,7 @@
     "toasted": "Open creation ({value} GDD) for {email} has been saved and is ready for confirmation.",
     "toasted_created": "Creation has been successfully saved",
     "toasted_delete": "Open creation has been deleted",
+    "toasted_denied": "Open creation has been denied",
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
   },
@@ -54,6 +56,7 @@
   "deleted": "deleted",
   "deleted_user": "All deleted user",
   "delete_user": "Delete user",
+  "deny": "Reject",
   "edit": "Edit",
   "enabled": "enabled",
   "error": "Error",
