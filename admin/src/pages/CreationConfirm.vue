@@ -1,7 +1,31 @@
 <template>
   <div class="creation-confirm">
     <div v-if="overlay" id="overlay" @dblclick="overlay = false">
+<<<<<<< Updated upstream
       <overlay :item="item" @overlay-cancel="overlay = false" @confirm-creation="confirmCreation" />
+=======
+      <overlay :item="item" @overlay-cancel="overlay = false">
+        <template #title>
+          {{ $t(overlayTitle) }}
+        </template>
+        <template #text>
+          <p>{{ $t(overlayText) }}</p>
+        </template>
+        <template #question>
+          <p>{{ $t(overlayQuestion) }}</p>
+        </template>
+        <template #submit-btn>
+          <b-button
+            size="md"
+            v-bind:variant="overlayIcon"
+            class="m-3 text-right"
+            @click="overlayEvent"
+          >
+            {{ $t(overlayBtnText) }}
+          </b-button>
+        </template>
+      </overlay>
+>>>>>>> Stashed changes
     </div>
     <open-creations-table
       class="mt-4"
@@ -135,6 +159,36 @@ export default {
         { key: 'deny', label: this.$t('deny') },
       ]
     },
+<<<<<<< Updated upstream
+=======
+    overlayTitle() {
+      return `overlay.${this.variant}.title`
+    },
+    overlayText() {
+      return `overlay.${this.variant}.text`
+    },
+    overlayQuestion() {
+      return `overlay.${this.variant}.question`
+    },
+    overlayBtnText() {
+      return `overlay.${this.variant}.yes`
+    },
+    overlayEvent() {
+      return this[`${this.variant}Creation`]
+    },
+    overlayIcon() {
+      switch (this.variant) {
+        case 'confirm':
+          return 'success'
+        case 'deny':
+          return 'warning'
+        case 'delete':
+          return 'danger'
+        default:
+          return 'info'
+      }
+    },
+>>>>>>> Stashed changes
   },
   apollo: {
     PendingContributions: {
