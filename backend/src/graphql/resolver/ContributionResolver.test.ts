@@ -45,7 +45,6 @@ import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { logger, i18n as localization } from '@test/testSetup'
-import { ContributionStatus } from '@enum/ContributionStatus'
 
 // mock account activation email to avoid console spam
 // mock account activation email to avoid console spam
