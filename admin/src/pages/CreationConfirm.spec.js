@@ -149,7 +149,7 @@ describe('CreationConfirm', () => {
           expect(wrapper.find('#overlay').isVisible()).toBeTruthy()
         })
 
-        describe(' with success', () => {
+        describe('with success', () => {
           describe('cancel deletion', () => {
             beforeEach(async () => {
               await wrapper.find('#overlay').findAll('button').at(0).trigger('click')
@@ -200,7 +200,7 @@ describe('CreationConfirm', () => {
 
       describe('confirm creation', () => {
         beforeEach(async () => {
-          await wrapper.findAll('tr').at(2).findAll('button').at(2).trigger('click')
+          await wrapper.findAll('tr').at(2).findAll('button').at(3).trigger('click')
         })
 
         it('opens the overlay', () => {
@@ -256,59 +256,110 @@ describe('CreationConfirm', () => {
           })
         })
       })
-    })
 
-    describe('deny creation with error', () => {
-      let spy
-
-      beforeEach(async () => {
-        spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-        spy.mockImplementation(() => Promise.resolve('some value'))
-        await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
-      })
-
-      it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
-      })
-    })
-
-    describe('deny creation with success', () => {
-      let spy
-
-      describe('admin confirms deny', () => {
+      describe('deny creation', () => {
         beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          spy.mockImplementation(() => Promise.resolve('some value'))
-          await wrapper.findAll('tr').at(1).findAll('button').at(3).trigger('click')
+          await wrapper.findAll('tr').at(1).findAll('button').at(2).trigger('click')
         })
 
-        it('opens a modal', () => {
-          expect(spy).toBeCalled()
+        it('opens the overlay', () => {
+          expect(wrapper.find('#overlay').isVisible()).toBeTruthy()
         })
 
-        it('calls the adminDeleteContribution mutation', () => {
-          expect(adminDenyContributionMock).toBeCalledWith({ id: 1 })
+        describe('with succes', () => {
+          describe('cancel deny', () => {
+            beforeEach(async () => {
+              await wrapper.find('#overlay').findAll('button').at(0).trigger('click')
+            })
+
+            it('closes the overlay', async () => {
+              expect(wrapper.find('#overlay').exists()).toBeFalsy()
+            })
+
+            it('still has 2 items in the table', () => {
+              expect(wrapper.findAll('tbody > tr')).toHaveLength(2)
+            })
+          })
+
+          describe('confirm deny', () => {
+            beforeEach(async () => {
+              await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
+            })
+
+            it('calls the denyContribution mutation', () => {
+              expect(adminDenyContributionMock).toBeCalledWith({ id: 1 })
+            })
+
+            it('commits openCreationsMinus to store', () => {
+              expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
+            })
+
+            it('toasts a success message', () => {
+              expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_denied')
+            })
+
+            it('has 1 item left in the table', () => {
+              expect(wrapper.findAll('tbody > tr')).toHaveLength(1)
+            })
+          })
         })
 
-        it('commits openCreationsMinus to store', () => {
-          expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
-        })
+        describe('with error', () => {
+          beforeEach(async () => {
+            adminDenyContributionMock.mockRejectedValue({ message: 'Ouchhh!' })
+            await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
+          })
 
-        it('toasts a success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_denied')
+          it('toasts an error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
+          })
         })
-      })
+        // describe('admin confirms deny', () => {
+        //   beforeEach(async () => {
+        //     spy.mockImplementation(() => Promise.resolve('some value'))
+        //     await wrapper.findAll('tr').at(1).findAll('button').at(3).trigger('click')
+        //   })
 
-      describe('admin cancels deny', () => {
-        beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          spy.mockImplementation(() => Promise.resolve(false))
-          await wrapper.findAll('tr').at(1).findAll('button').at(3).trigger('click')
-        })
+        //   it('opens a modal', () => {})
 
-        it('does not call the adminDeleteContribution mutation', () => {
-          expect(adminDenyContributionMock).not.toBeCalled()
-        })
+        //   it('calls the adminDeleteContribution mutation', () => {
+        //     expect(adminDenyContributionMock).toBeCalledWith({ id: 1 })
+        //   })
+
+        //   it('commits openCreationsMinus to store', () => {
+        //     expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
+        //   })
+
+        //   it('toasts a success message', () => {
+        //     expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_denied')
+        //   })
+        // })
+
+        // describe('admin cancels deny', () => {
+        //   beforeEach(async () => {
+        //     spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+        //     spy.mockImplementation(() => Promise.resolve(false))
+        //     await wrapper.findAll('tr').at(1).findAll('button').at(3).trigger('click')
+        //   })
+
+        //   it('does not call the adminDeleteContribution mutation', () => {
+        //     expect(adminDenyContributionMock).not.toBeCalled()
+        //   })
+        // })
+
+        // describe('deny creation with error', () => {
+        //   let spy
+
+        //   beforeEach(async () => {
+        //     spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+        //     spy.mockImplementation(() => Promise.resolve('some value'))
+        //     await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
+        //   })
+
+        //   it('toasts an error message', () => {
+        //     expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
+        //   })
+        // })
       })
     })
   })
