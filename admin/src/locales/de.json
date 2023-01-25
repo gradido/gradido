@@ -126,7 +126,7 @@
       "title": "Gemeinwohl-Beitrag löschen!",
       "yes": "Ja, Beitrag löschen!"
     },
-    "reject": {
+    "deny": {
       "question": "Willst du diesen Gemeinwohl-Beitrag  wirklich ablehnen?",
       "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
       "title": "Gemeinwohl-Beitrag ablehnen!",

@@ -15,7 +15,7 @@
         </template>
         <template #submit-btn>
           <b-button size="md" variant="success" class="m-3 text-right" @click="overlayEvent">
-            {{ $t(overlyBtnText) }}
+            {{ $t(overlayBtnText) }}
           </b-button>
         </template>
       </overlay>
@@ -48,16 +48,12 @@ export default {
     return {
       pendingCreations: [],
       overlay: false,
-      overlayTitle: '',
-      overlayText: '',
-      overlayQuestion: '',
-      overlayEvent: '',
-      overlyBtnText: '',
       item: {},
+      variant: 'confirm',
     }
   },
   methods: {
-    removeCreation() {
+    deleteCreation() {
       this.$apollo
         .mutate({
           mutation: adminDeleteContribution,
@@ -100,30 +96,7 @@ export default {
     showOverlay(item, variant) {
       this.overlay = true
       this.item = item
-
-      switch (variant) {
-        case 'confirm':
-          this.overlayTitle = 'overlay.confirm.title'
-          this.overlayText = 'overlay.confirm.text'
-          this.overlayQuestion = 'overlay.confirm.question'
-          this.overlyBtnText = 'overlay.confirm.yes'
-          this.overlayEvent = this.confirmCreation
-          break
-        case 'delete':
-          this.overlayTitle = 'overlay.delete.title'
-          this.overlayText = 'overlay.delete.text'
-          this.overlayQuestion = 'overlay.delete.question'
-          this.overlyBtnText = 'overlay.delete.yes'
-          this.overlayEvent = this.removeCreation
-          break
-        case 'reject':
-          this.overlayTitle = 'overlay.reject.title'
-          this.overlayText = 'overlay.reject.text'
-          this.overlayQuestion = 'overlay.reject.question'
-          this.overlyBtnText = 'overlay.reject.yes'
-          this.overlayEvent = 'reject-creation'
-          break
-      }
+      this.variant = variant
     },
     updateState(id) {
       this.pendingCreations.find((obj) => obj.id === id).messagesCount++
@@ -172,18 +145,6 @@ export default {
     },
     overlayEvent() {
       return this[`${this.variant}Creation`]
-    },
-    overlayIcon() {
-      switch (this.variant) {
-        case 'confirm':
-          return 'success'
-        case 'deny':
-          return 'warning'
-        case 'delete':
-          return 'danger'
-        default:
-          return 'info'
-      }
     },
   },
   apollo: {
