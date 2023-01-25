@@ -72,14 +72,20 @@ describe('ContributionInfo', () => {
         expect(wrapper.find('p').text()).toBe('contribution.alert.communityNoteList')
       })
 
-      it.skip('has a legend to explain the icons', () => {
+      it('has a legend to explain the icons', () => {
         const listItems = wrapper.findAll('li')
 
         expect(listItems.at(0).find('svg').attributes('aria-label')).toEqual('bell fill')
         expect(listItems.at(0).text()).toBe('contribution.alert.pending')
 
-        expect(listItems.at(1).find('svg').attributes('aria-label')).toEqual('check')
-        expect(listItems.at(1).text()).toBe('contribution.alert.confirm')
+        expect(listItems.at(1).find('svg').attributes('aria-label')).toEqual('question square')
+        expect(listItems.at(1).text()).toBe('contribution.alert.in_progress')
+
+        expect(listItems.at(2).find('svg').attributes('aria-label')).toEqual('check')
+        expect(listItems.at(2).text()).toBe('contribution.alert.confirm')
+
+        expect(listItems.at(3).find('svg').attributes('aria-label')).toEqual('x circle')
+        expect(listItems.at(3).text()).toBe('contribution.alert.denied')
       })
     })
 
