@@ -7,6 +7,7 @@ class EventProtocolEmitter {
   /* }extends EventEmitter { */
   private events: Event[]
 
+  /*
   public addEvent(event: Event) {
     this.events.push(event)
   }
@@ -14,6 +15,7 @@ class EventProtocolEmitter {
   public getEvents(): Event[] {
     return this.events
   }
+  */
 
   public isDisabled() {
     logger.info(`EventProtocol - isDisabled=${CONFIG.EVENT_PROTOCOL_DISABLED}`)
