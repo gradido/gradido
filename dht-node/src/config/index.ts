@@ -23,8 +23,6 @@ const constants = {
 }
 
 const server = {
-  PORT: process.env.PORT || 5000,
-  GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
 }
 
