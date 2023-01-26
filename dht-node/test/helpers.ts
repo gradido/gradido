@@ -28,7 +28,7 @@ export const cleanDB = async () => {
   }
 }
 
-export const testEnvironment = async (testLogger: any = logger) => {
+export const testEnvironment = async () => {
   // open mysql connection
   const con = await connection()
   if (!con || !con.isConnected) {
