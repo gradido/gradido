@@ -1,4 +1,4 @@
-import { mount, RouterLinkStub } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import { toastErrorSpy } from '@test/testSetup'
 import ForgotPassword from './ForgotPassword'
@@ -7,43 +7,28 @@ const mockAPIcall = jest.fn()
 
 const localVue = global.localVue
 
-const mockRouterPush = jest.fn()
-
-const stubs = {
-  RouterLink: RouterLinkStub,
-}
-
-const createMockObject = (comingFrom) => {
-  return {
-    localVue,
-    mocks: {
-      $t: jest.fn((t) => t),
-      $router: {
-        push: mockRouterPush,
-      },
-      $apollo: {
-        mutate: mockAPIcall,
-      },
-      $route: {
-        params: {
-          comingFrom,
-        },
-      },
+const mocks = {
+  $t: jest.fn((t) => t),
+  $apollo: {
+    mutate: mockAPIcall,
+  },
+  $route: {
+    params: {
+      comingFrom: '',
     },
-    stubs,
-  }
+  },
 }
 
 describe('ForgotPassword', () => {
   let wrapper
 
-  const Wrapper = (functionN) => {
-    return mount(ForgotPassword, functionN)
+  const Wrapper = () => {
+    return mount(ForgotPassword, { localVue, mocks })
   }
 
   describe('mount', () => {
     beforeEach(() => {
-      wrapper = Wrapper(createMockObject())
+      wrapper = Wrapper()
     })
 
     it('renders the component', () => {
@@ -110,12 +95,6 @@ describe('ForgotPassword', () => {
               expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
             })
 
-            it.skip('click redirects to "/login"', async () => {
-              // wrapper.find('.test-message-button').trigger('click')
-              // await wrapper.vm.$nextTick()
-              expect(mockRouterPush).toBeCalledWith('/login')
-            })
-
             it('toasts a standard error message', () => {
               expect(toastErrorSpy).toBeCalledWith('error.email-already-sent')
             })
@@ -144,12 +123,19 @@ describe('ForgotPassword', () => {
             it('button link redirects to "/login"', () => {
               expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
             })
-
-            it.skip('click redirects to "/login"', () => {
-              // expect(mockRouterPush).toBeCalledWith('/login')
-            })
           })
         })
+      })
+    })
+
+    describe('route has coming from ', () => {
+      beforeEach(() => {
+        mocks.$route.params.comingFrom = 'coming from'
+        wrapper = Wrapper()
+      })
+
+      it('changes subtitle', () => {
+        expect(wrapper.vm.subtitle).toBe('settings.password.resend_subtitle')
       })
     })
   })

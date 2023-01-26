@@ -39,7 +39,7 @@ module.exports = {
       {
         src: './src',
         extensions: ['.js', '.vue'],
-        ignores: [],
+        ignores: ['/overlay/'],
         enableFix: false,
       },
     ],

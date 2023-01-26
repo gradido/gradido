@@ -18,6 +18,8 @@ export class Contribution {
     this.contributionDate = contribution.contributionDate
     this.state = contribution.contributionStatus
     this.messagesCount = contribution.messages ? contribution.messages.length : 0
+    this.deniedAt = contribution.deniedAt
+    this.deniedBy = contribution.deniedBy
   }
 
   @Field(() => Number)
@@ -46,6 +48,12 @@ export class Contribution {
 
   @Field(() => Number, { nullable: true })
   confirmedBy: number | null
+
+  @Field(() => Date, { nullable: true })
+  deniedAt: Date | null
+
+  @Field(() => Number, { nullable: true })
+  deniedBy: number | null
 
   @Field(() => Date)
   contributionDate: Date

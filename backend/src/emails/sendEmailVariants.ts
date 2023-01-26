@@ -103,7 +103,7 @@ export const sendContributionConfirmedEmail = (data: {
   })
 }
 
-export const sendContributionRejectedEmail = (data: {
+export const sendContributionDeniedEmail = (data: {
   firstName: string
   lastName: string
   email: string
@@ -114,7 +114,7 @@ export const sendContributionRejectedEmail = (data: {
 }): Promise<Record<string, unknown> | null> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
-    template: 'contributionRejected',
+    template: 'contributionDenied',
     locals: {
       firstName: data.firstName,
       lastName: data.lastName,

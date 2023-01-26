@@ -19,8 +19,12 @@
           {{ $t('contribution.alert.confirm') }}
         </li>
         <li>
-          <b-icon icon="x-circle" variant="danger"></b-icon>
-          {{ $t('contribution.alert.rejected') }}
+          <b-icon icon="x-circle" variant="warning"></b-icon>
+          {{ $t('contribution.alert.denied') }}
+        </li>
+        <li>
+          <b-icon icon="trash" variant="danger"></b-icon>
+          {{ $t('contribution.alert.deleted') }}
         </li>
       </ul>
     </div>
@@ -35,8 +39,16 @@
           {{ $t('contribution.alert.pending') }}
         </li>
         <li>
+          <b-icon icon="question-square" variant="warning"></b-icon>
+          {{ $t('contribution.alert.in_progress') }}
+        </li>
+        <li>
           <b-icon icon="check" variant="success"></b-icon>
           {{ $t('contribution.alert.confirm') }}
+        </li>
+        <li>
+          <b-icon icon="x-circle" variant="warning"></b-icon>
+          {{ $t('contribution.alert.denied') }}
         </li>
       </ul>
     </div>

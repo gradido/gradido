@@ -3,13 +3,12 @@
     <b-form
       ref="form"
       @submit.prevent="submit"
-      class="border p-3 bg-white appBoxShadow gradido-border-radius"
+      class="p-3 bg-white appBoxShadow gradido-border-radius"
     >
       <label>{{ $t('contribution.selectDate') }}</label>
       <b-form-datepicker
         id="contribution-date"
         v-model="form.date"
-        size="lg"
         :locale="$i18n.locale"
         :max="maximalDate"
         :min="minimalDate"
@@ -18,44 +17,44 @@
         :label-no-date-selected="$t('contribution.noDateSelected')"
         required
         :disabled="this.form.id !== null"
+        :no-flip="true"
       >
         <template #nav-prev-year><span></span></template>
         <template #nav-next-year><span></span></template>
       </b-form-datepicker>
-      <div v-if="validMaxGDD > 0">
-        <input-textarea
-          id="contribution-memo"
-          v-model="form.memo"
-          :name="$t('form.message')"
-          :label="$t('contribution.activity')"
-          :placeholder="$t('contribution.yourActivity')"
-          :rules="{ required: true, min: 5, max: 255 }"
-        />
-        <input-hour
-          v-model="form.hours"
-          :name="$t('form.hours')"
-          :label="$t('form.hours')"
-          placeholder="0.5"
-          :rules="{
-            required: true,
-            min: 0.5,
-            max: validMaxTime,
-            gddCreationTime: [0.5, validMaxTime],
-          }"
-          :validMaxTime="validMaxTime"
-          @updateAmount="updateAmount"
-        ></input-hour>
-        <input-amount
-          id="contribution-amount"
-          v-model="form.amount"
-          :name="$t('form.amount')"
-          :label="$t('form.amount')"
-          placeholder="20"
-          :rules="{ required: true, gddSendAmount: [20, validMaxGDD] }"
-          typ="ContributionForm"
-        ></input-amount>
-      </div>
-      <div v-else class="mb-5">{{ $t('contribution.exhausted') }}</div>
+
+      <input-textarea
+        id="contribution-memo"
+        v-model="form.memo"
+        :name="$t('form.message')"
+        :label="$t('contribution.activity')"
+        :placeholder="$t('contribution.yourActivity')"
+        :rules="{ required: true, min: 5, max: 255 }"
+      />
+      <input-hour
+        v-model="form.hours"
+        :name="$t('form.hours')"
+        :label="$t('form.hours')"
+        placeholder="0.25"
+        :rules="{
+          required: true,
+          min: 0.25,
+          max: validMaxTime,
+          gddCreationTime: [0.25, validMaxTime],
+        }"
+        :validMaxTime="validMaxTime"
+        @updateAmount="updateAmount"
+      ></input-hour>
+      <input-amount
+        id="contribution-amount"
+        v-model="form.amount"
+        :name="$t('form.amount')"
+        :label="$t('form.amount')"
+        placeholder="20"
+        :rules="{ required: true, gddSendAmount: [20, validMaxGDD] }"
+        typ="ContributionForm"
+      ></input-amount>
+
       <b-row class="mt-5">
         <b-col>
           <b-button type="reset" variant="secondary" @click="reset" data-test="button-cancel">
@@ -111,7 +110,7 @@ export default {
       this.form.id = null
       this.form.date = ''
       this.form.memo = ''
-      this.form.hours = 0.0
+      this.form.hours = 0
       this.form.amount = ''
     },
   },

@@ -11,8 +11,9 @@ import { Transaction as DbTransaction } from '@entity/Transaction'
 import { AdminCreateContributions } from '@model/AdminCreateContributions'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { Contribution, ContributionListResult } from '@model/Contribution'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { Decay } from '@model/Decay'
+import { OpenCreation } from '@model/OpenCreation'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { Order } from '@enum/Order'
 import { ContributionType } from '@enum/ContributionType'
@@ -27,6 +28,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import {
+  getCreationDates,
   getUserCreation,
   getUserCreations,
   validateContribution,
@@ -48,7 +50,7 @@ import { eventProtocol } from '@/event/EventProtocolEmitter'
 import { calculateDecay } from '@/util/decay'
 import {
   sendContributionConfirmedEmail,
-  sendContributionRejectedEmail,
+  sendContributionDeniedEmail,
 } from '@/emails/sendEmailVariants'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
@@ -215,7 +217,7 @@ export class ContributionResolver {
     const user = getUser(context)
 
     const contributionToUpdate = await DbContribution.findOne({
-      where: { id: contributionId, confirmedAt: IsNull() },
+      where: { id: contributionId, confirmedAt: IsNull(), deniedAt: IsNull() },
     })
     if (!contributionToUpdate) {
       logger.error('No contribution found to given id')
@@ -407,7 +409,7 @@ export class ContributionResolver {
     const moderator = getUser(context)
 
     const contributionToUpdate = await DbContribution.findOne({
-      where: { id, confirmedAt: IsNull() },
+      where: { id, confirmedAt: IsNull(), deniedAt: IsNull() },
     })
     if (!contributionToUpdate) {
       logger.error('No contribution found to given id.')
@@ -473,6 +475,7 @@ export class ContributionResolver {
       .from(DbContribution, 'c')
       .leftJoinAndSelect('c.messages', 'm')
       .where({ confirmedAt: IsNull() })
+      .andWhere({ deniedAt: IsNull() })
       .getMany()
 
     if (contributions.length === 0) {
@@ -510,6 +513,10 @@ export class ContributionResolver {
       logger.error(`Contribution not found for given id: ${id}`)
       throw new Error('Contribution not found for given id.')
     }
+    if (contribution.confirmedAt) {
+      logger.error('A confirmed contribution can not be deleted')
+      throw new Error('A confirmed contribution can not be deleted')
+    }
     const moderator = getUser(context)
     if (
       contribution.contributionType === ContributionType.USER &&
@@ -534,7 +541,7 @@ export class ContributionResolver {
     await eventProtocol.writeEvent(
       event.setEventAdminContributionDelete(eventAdminContributionDelete),
     )
-    sendContributionRejectedEmail({
+    sendContributionDeniedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.emailContact.email,
@@ -555,7 +562,6 @@ export class ContributionResolver {
   ): Promise<boolean> {
     // acquire lock
     const releaseLock = await TRANSACTIONS_LOCK.acquire()
-
     try {
       const clientTimezoneOffset = getClientTimezoneOffset(context)
       const contribution = await DbContribution.findOne(id)
@@ -566,6 +572,10 @@ export class ContributionResolver {
       if (contribution.confirmedAt) {
         logger.error(`Contribution already confirmd: ${id}`)
         throw new Error('Contribution already confirmd.')
+      }
+      if (contribution.contributionStatus === 'DENIED') {
+        logger.error(`Contribution already denied: ${id}`)
+        throw new Error('Contribution already denied.')
       }
       const moderatorUser = getUser(context)
       if (moderatorUser.id === contribution.userId) {
@@ -662,7 +672,6 @@ export class ContributionResolver {
     } finally {
       releaseLock()
     }
-
     return true
   }
 
@@ -680,6 +689,7 @@ export class ContributionResolver {
       .from(DbContribution, 'c')
       .leftJoinAndSelect('c.user', 'u')
       .where(`user_id = ${userId}`)
+      .withDeleted()
       .limit(pageSize)
       .offset(offset)
       .orderBy('c.created_at', order)
@@ -690,5 +700,78 @@ export class ContributionResolver {
       contributionResult.map((contribution) => new Contribution(contribution, contribution.user)),
     )
     // return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
+  }
+
+  @Authorized([RIGHTS.OPEN_CREATIONS])
+  @Query(() => [OpenCreation])
+  async openCreations(
+    @Arg('userId', () => Int, { nullable: true }) userId: number | null,
+    @Ctx() context: Context,
+  ): Promise<OpenCreation[]> {
+    const id = userId || getUser(context).id
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
+    const creationDates = getCreationDates(clientTimezoneOffset)
+    const creations = await getUserCreation(id, clientTimezoneOffset)
+    return creationDates.map((date, index) => {
+      return {
+        month: date.getMonth(),
+        year: date.getFullYear(),
+        amount: creations[index],
+      }
+    })
+  }
+
+  @Authorized([RIGHTS.DENY_CONTRIBUTION])
+  @Mutation(() => Boolean)
+  async denyContribution(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const contributionToUpdate = await DbContribution.findOne({
+      id,
+      confirmedAt: IsNull(),
+      deniedBy: IsNull(),
+    })
+    if (!contributionToUpdate) {
+      logger.error(`Contribution not found for given id: ${id}`)
+      throw new Error(`Contribution not found for given id.`)
+    }
+    if (
+      contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
+      contributionToUpdate.contributionStatus !== ContributionStatus.PENDING
+    ) {
+      logger.error(
+        `Contribution state (${contributionToUpdate.contributionStatus}) is not allowed.`,
+      )
+      throw new Error(`State of the contribution is not allowed.`)
+    }
+    const moderator = getUser(context)
+    const user = await DbUser.findOne(
+      { id: contributionToUpdate.userId },
+      { relations: ['emailContact'] },
+    )
+    if (!user) {
+      logger.error(
+        `Could not find User for the Contribution (userId: ${contributionToUpdate.userId}).`,
+      )
+      throw new Error('Could not find User for the Contribution.')
+    }
+
+    contributionToUpdate.contributionStatus = ContributionStatus.DENIED
+    contributionToUpdate.deniedBy = moderator.id
+    contributionToUpdate.deniedAt = new Date()
+    const res = await contributionToUpdate.save()
+
+    sendContributionDeniedEmail({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.emailContact.email,
+      language: user.language,
+      senderFirstName: moderator.firstName,
+      senderLastName: moderator.lastName,
+      contributionMemo: contributionToUpdate.memo,
+    })
+
+    return !!res
   }
 }

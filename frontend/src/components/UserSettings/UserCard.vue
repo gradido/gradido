@@ -1,41 +1,46 @@
 <template>
   <div class="userdata-card">
-    <b-row>
-      <b-col class="centerPerMargin">
-        <avatar
-          :username="username.username"
-          :initials="username.initials"
-          :color="'#fff'"
-          :size="90"
-        ></avatar>
-      </b-col>
-    </b-row>
-    <b-card class="border-0">
-      <b-container class="justify-content-center mt-md-5">
-        <b-row>
-          <b-col>
-            <div class="text-center font-weight-bold">
-              {{ $n(balance, 'decimal') }}
-            </div>
-            <div class="text-center">{{ $t('GDD') }}</div>
-          </b-col>
-          <b-col>
-            <div class="text-center font-weight-bold">
-              {{ transactionCount }}
-            </div>
-            <div class="text-center">
-              {{ $t('navigation.transactions') }}
-            </div>
-          </b-col>
-          <b-col>
-            <div class="text-center font-weight-bold">{{ CONFIG.COMMUNITY_NAME }}</div>
-            <div class="text-center">
-              {{ $t('community.community') }}
-            </div>
-          </b-col>
-        </b-row>
-      </b-container>
-    </b-card>
+    <div class="centerPerMargin">
+      <avatar
+        :username="username.username"
+        :initials="username.initials"
+        :color="'#fff'"
+        :size="90"
+      ></avatar>
+    </div>
+
+    <div class="justify-content-center mt-5 mb-5">
+      <b-row align-v="stretch">
+        <b-col cols="4">
+          <div class="text-center font-weight-bold">
+            {{ $n(balance, 'decimal') }}
+          </div>
+        </b-col>
+        <b-col cols="4">
+          <div class="text-center font-weight-bold">
+            {{ transactionCount }}
+          </div>
+        </b-col>
+        <b-col cols="4">
+          <div class="text-center font-weight-bold">{{ CONFIG.COMMUNITY_NAME }}</div>
+        </b-col>
+      </b-row>
+      <b-row>
+        <b-col cols="4">
+          <div class="text-center">{{ $t('GDD') }}</div>
+        </b-col>
+        <b-col cols="4">
+          <div class="text-center">
+            {{ $t('navigation.transactions') }}
+          </div>
+        </b-col>
+        <b-col cols="4">
+          <div class="text-center">
+            {{ $t('community.community') }}
+          </div>
+        </b-col>
+      </b-row>
+    </div>
   </div>
 </template>
 <script>
@@ -69,5 +74,15 @@ export default {
 <style scoped>
 .centerPerMargin {
   padding-left: 44%;
+}
+@media screen and (max-width: 850px) {
+  .centerPerMargin {
+    padding-left: 38%;
+  }
+}
+@media screen and (max-width: 450px) {
+  .centerPerMargin {
+    padding-left: 34%;
+  }
 }
 </style>

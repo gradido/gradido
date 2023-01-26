@@ -22,6 +22,7 @@ import { loadFilters } from '@/filters/amount'
 import { toasters } from '@/mixins/toaster'
 export const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
 export const toastSuccessSpy = jest.spyOn(toasters.methods, 'toastSuccess')
+export const toastInfoSpy = jest.spyOn(toasters.methods, 'toastInfo')
 
 Object.keys(rules).forEach((rule) => {
   extend(rule, {
@@ -70,6 +71,6 @@ console.warn = (m) => {
 }
 
 // throw errors for vue warnings to force the programmers to take care about warnings
-Vue.config.warnHandler = (w) => {
+Vue.config.warnHandler = async (w) => {
   throw new Error(w)
 }
