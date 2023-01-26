@@ -15,7 +15,7 @@ jobs:
       
       - name: Build `test` image
         run: |
-          docker build --target test -t "gradido/dht-node:test" dht-node/
+          docker build --target test -t "gradido/dht-node:test" -f dht-node/Dockerfile .
           docker save "gradido/dht-node:test" > /tmp/dht-node.tar
 
       - name: Upload Artifact
