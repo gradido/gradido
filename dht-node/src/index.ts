@@ -9,13 +9,6 @@ import CONFIG from './config'
 async function main() {
   const { app } = await createServer()
 
-  // die when there is no FEDERATION_DHT_TOPIC defined
-  if (!CONFIG.FEDERATION_DHT_TOPIC) {
-    throw new Error(
-      'You have to configure a `FEDERATION_DHT_TOPIC` in the config to run this service.',
-    )
-  }
-
   // eslint-disable-next-line no-console
   console.log(
     `starting Federation on ${CONFIG.FEDERATION_DHT_TOPIC} ${
