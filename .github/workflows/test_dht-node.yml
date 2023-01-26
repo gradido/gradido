@@ -78,11 +78,7 @@ jobs:
 
       - name: Unit tests
         run: cd database && yarn && yarn build && cd ../backend && yarn && yarn test
-     #   run: |
-     #     docker run --env NODE_ENV=test -v ~/coverage:/app/coverage --rm gradido/dht-node:test yarn run test
-     #     cp -r ~/coverage ./coverage
           
-      
       - name: Coverage check
         uses: webcraftmedia/coverage-check-action@master
         with:
