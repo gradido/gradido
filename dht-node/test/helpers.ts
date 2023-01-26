@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createTestClient } from 'apollo-server-testing'
-import createServer from '../src/server/createServer'
+import CONFIG from '@/config'
+import connection from '@/typeorm/connection'
+import { checkDBVersion } from '@/typeorm/DBVersion'
 import { initialize } from '@dbTools/helpers'
 import { entities } from '@entity/index'
 import { logger } from './testSetup'
@@ -28,13 +29,21 @@ export const cleanDB = async () => {
 }
 
 export const testEnvironment = async (testLogger: any = logger) => {
-  const server = await createServer(testLogger)
-  const con = server.con
-  const testClient = createTestClient(server.apollo)
-  const mutate = testClient.mutate
-  const query = testClient.query
+  // open mysql connection
+  const con = await connection()
+  if (!con || !con.isConnected) {
+    logger.fatal(`Couldn't open connection to database!`)
+    throw new Error(`Fatal: Couldn't open connection to database`)
+  }
+
+  // check for correct database version
+  const dbVersion = await checkDBVersion(CONFIG.DB_VERSION)
+  if (!dbVersion) {
+    logger.fatal('Fatal: Database Version incorrect')
+    throw new Error('Fatal: Database Version incorrect')
+  }
   await initialize()
-  return { mutate, query, con }
+  return { con }
 }
 
 export const resetEntity = async (entity: any) => {
