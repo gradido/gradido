@@ -95,7 +95,7 @@ let con: any
 let testEnv: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger)
+  testEnv = await testEnvironment()
   con = testEnv.con
   await cleanDB()
 })
