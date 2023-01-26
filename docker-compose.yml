@@ -126,7 +126,7 @@ services:
     networks:
       - internal-net
     ports:
-      - 4000:4000
+      - 5000:5000
     depends_on:
       - mariadb
     restart: always
