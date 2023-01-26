@@ -1,5 +1,4 @@
 import { Given, Then, When } from "@badeball/cypress-cucumber-preprocessor";
-import { LoginPage } from "../../e2e/models/LoginPage";
 import { OverviewPage } from "../../e2e/models/OverviewPage";
 import { SideNavMenu } from "../../e2e/models/SideNavMenu";
 import { Toasts } from "../../e2e/models/Toasts";
@@ -8,7 +7,7 @@ Given("the browser navigates to page {string}", (page: string) => {
   cy.visit(page);
 });
 
-// login-related
+// login related
 
 Given(
   "the user is logged in as {string} {string}",
@@ -31,18 +30,6 @@ Then("the user cannot login", () => {
     cy.get(toast.toastMessage).should("be.visible");
   });
 });
-
-//
-
-When(
-  "the user submits the credentials {string} {string}",
-  (email: string, password: string) => {
-    const loginPage = new LoginPage();
-    loginPage.enterEmail(email);
-    loginPage.enterPassword(password);
-    loginPage.submitLogin();
-  }
-);
 
 // logout
 
