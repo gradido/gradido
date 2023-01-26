@@ -2,6 +2,8 @@ import { defineConfig } from "cypress";
 import { addCucumberPreprocessorPlugin } from "@badeball/cypress-cucumber-preprocessor";
 import browserify from "@badeball/cypress-cucumber-preprocessor/browserify";
 
+let resetPasswordLink: string;
+
 async function setupNodeEvents(
   on: Cypress.PluginEvents,
   config: Cypress.PluginConfigOptions
@@ -14,6 +16,15 @@ async function setupNodeEvents(
       typescript: require.resolve("typescript"),
     })
   );
+
+  on("task", {
+    setResetPasswordLink: (val) => {
+      return (resetPasswordLink = val);
+    },
+    getResetPasswordLink: () => {
+      return resetPasswordLink;
+    },
+  });
 
   on("after:run", (results) => {
     if (results) {
@@ -30,6 +41,7 @@ export default defineConfig({
   e2e: {
     specPattern: "**/*.feature",
     excludeSpecPattern: "*.js",
+    experimentalSessionAndOrigin: true,
     baseUrl: "http://localhost:3000",
     chromeWebSecurity: false,
     defaultCommandTimeout: 10000,
@@ -43,6 +55,7 @@ export default defineConfig({
     },
     env: {
       backendURL: "http://localhost:4000",
+      mailserverURL: "http://localhost:1080",
       loginQuery: `query ($email: String!, $password: String!, $publisherId: Int) {
   login(email: $email, password: $password, publisherId: $publisherId) {
     email
