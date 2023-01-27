@@ -27,8 +27,8 @@ export class Community extends BaseEntity {
   @Column({ name: 'last_announced_at', type: 'datetime', nullable: false })
   lastAnnouncedAt: Date
 
-  @Column({ name: 'pubkey_verified_at', type: 'datetime', nullable: false })
-  pubKeyVerifiedAt: Date
+  @Column({ name: 'verified_at', type: 'datetime', nullable: false })
+  verifiedAt: Date
 
   @CreateDateColumn({
     name: 'created_at',
