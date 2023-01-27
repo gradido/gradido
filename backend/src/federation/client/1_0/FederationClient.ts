@@ -5,7 +5,7 @@ import { Community as DbCommunity } from '@entity/Community'
 // eslint-disable-next-line camelcase
 export async function requestGetPublicKey(dbCom: DbCommunity): Promise<string | undefined> {
   let endpoint = dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'
-  endpoint = `${endpoint}${dbCom.apiVersion}/getPublicKey`
+  endpoint = `${endpoint}${dbCom.apiVersion}/`
   logger.info(`requestGetPublicKey with endpoint='${endpoint}'...`)
 
   const graphQLClient = new GraphQLClient(endpoint, {
