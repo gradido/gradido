@@ -4,7 +4,7 @@
 import { logger } from '@test/testSetup'
 import { Community as DbCommunity } from '@entity/Community'
 import { testEnvironment, cleanDB } from '@test/helpers'
-import { validateCommunities } from './validateCommunities'
+import { startValidateCommunities, validateCommunities } from './validateCommunities'
 
 let con: any
 let testEnv: any
@@ -21,7 +21,6 @@ afterAll(async () => {
 })
 
 describe('validate Communities', () => {
-  /*
   describe('start validation loop', () => {
     beforeEach(async () => {
       jest.clearAllMocks()
@@ -34,7 +33,7 @@ describe('validate Communities', () => {
       )
     })
   })
-  */
+
   describe('start validation logic without loop', () => {
     beforeEach(async () => {
       jest.clearAllMocks()
@@ -72,7 +71,7 @@ describe('validate Communities', () => {
       })
       it('logs requestGetPublicKey for community api 1_0 ', () => {
         expect(logger.info).toBeCalledWith(
-          `requestGetPublicKey with endpoint='http//localhost:5001/api/1_0/getPublicKey'...`,
+          `requestGetPublicKey with endpoint='http//localhost:5001/api/1_0/'...`,
         )
       })
     })
@@ -102,12 +101,12 @@ describe('validate Communities', () => {
       })
       it('logs requestGetPublicKey for community api 1_0 ', () => {
         expect(logger.info).toBeCalledWith(
-          `requestGetPublicKey with endpoint='http//localhost:5001/api/1_0/getPublicKey'...`,
+          `requestGetPublicKey with endpoint='http//localhost:5001/api/1_0/'...`,
         )
       })
       it('logs requestGetPublicKey for community api 1_1 ', () => {
         expect(logger.info).toBeCalledWith(
-          `requestGetPublicKey with endpoint='http//localhost:5001/api/1_1/getPublicKey'...`,
+          `requestGetPublicKey with endpoint='http//localhost:5001/api/1_1/'...`,
         )
       })
     })
@@ -140,12 +139,12 @@ describe('validate Communities', () => {
       })
       it('logs requestGetPublicKey for community api 1_0 ', () => {
         expect(logger.info).toBeCalledWith(
-          `requestGetPublicKey with endpoint='http//localhost:5001/api/1_0/getPublicKey'...`,
+          `requestGetPublicKey with endpoint='http//localhost:5001/api/1_0/'...`,
         )
       })
       it('logs requestGetPublicKey for community api 1_1 ', () => {
         expect(logger.info).toBeCalledWith(
-          `requestGetPublicKey with endpoint='http//localhost:5001/api/1_1/getPublicKey'...`,
+          `requestGetPublicKey with endpoint='http//localhost:5001/api/1_1/'...`,
         )
       })
       it('logs unsupported api for community with api 2_0 ', () => {
