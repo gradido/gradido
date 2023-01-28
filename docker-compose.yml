@@ -124,7 +124,7 @@ services:
       dockerfile: ./dht-node/Dockerfile
       target: production
     networks:
-      #- internal-net
+      - internal-net
       - external-net
     #ports:
     #  - 5000:5000

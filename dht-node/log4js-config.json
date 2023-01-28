@@ -1,40 +1,14 @@
 {
   "appenders": 
   {
-    "access": 
-    {
-      "type": "dateFile",
-      "filename": "../logs/dht/access-%p.log",
-      "pattern": "yyyy-MM-dd",
-      "layout": 
-      {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
-      },
-      "keepFileExt" : true,
-      "fileNameSep" : "_",
-      "numBackups" : 30
-    },
-    "apollo": 
-    {
-      "type": "dateFile",
-      "filename": "../logs/dht/apollo-%p.log",
-      "pattern": "yyyy-MM-dd",
-      "layout": 
-      {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
-      },
-      "keepFileExt" : true,
-      "fileNameSep" : "_",
-      "numBackups" : 30
-    },
     "dht": 
     {
       "type": "dateFile",
-      "filename": "../logs/dht/apiversion-%v-%p.log",
+      "filename": "../logs/dht-node/apiversion-%v.log",
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %c [%X{user}] [%f : %l] -  %m"
       },
       "keepFileExt" : true,
       "fileNameSep" : "_",
@@ -43,11 +17,11 @@
     "errorFile": 
     {
       "type": "dateFile",
-      "filename": "../logs/dht/errors-%p.log",
+      "filename": "../logs/dht-node/errors.log",
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %c [%X{user}] [%f : %l] -  %m"
       },
       "keepFileExt" : true,
       "fileNameSep" : "_",
@@ -66,15 +40,7 @@
       {
         "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
       }
-    },
-    "apolloOut": 
-    {
-      "type": "stdout",
-      "layout": 
-      {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
-      }
-    }    
+    }
   },
   "categories":
   {
@@ -83,17 +49,6 @@
       "appenders": 
       [
         "out",
-        "errors"
-      ],
-      "level": "debug",
-      "enableCallStack": true
-    },
-    "apollo":
-    {
-      "appenders":
-      [
-        "apollo",
-        "apolloOut",
         "errors"
       ],
       "level": "debug",
@@ -109,14 +64,6 @@
       ],
       "level": "debug",
       "enableCallStack": true
-    },
-    "http": 
-    {
-      "appenders": 
-      [
-        "access"
-      ],
-      "level": "info"
     }
   }
 }
