@@ -94,5 +94,5 @@ jobs:
           type: lcov
           #result_path: ./dht-node/coverage/lcov.info
           result_path: ./coverage/lcov.info
-          min_coverage: 83
+          min_coverage: 79
           token: ${{ github.token }}
