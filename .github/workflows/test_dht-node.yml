@@ -66,21 +66,21 @@ jobs:
       - name: Load Docker Image
         run: docker load < /tmp/dht-node.tar
       
-      - name: backend | docker-compose mariadb
+      - name: docker-compose mariadb
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
       
       - name: Sleep for 30 seconds
         run: sleep 30s
         shell: bash
 
-      - name: backend | docker-compose database
+      - name: docker-compose database
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
 
       #- name: Unit tests
       #  run: cd database && yarn && yarn build && cd ../dht-node && yarn && yarn test
       - name: Unit tests
         run: |
-          docker run --env NODE_ENV=test -v ~/coverage:/app/coverage --rm gradido/dht-node:test yarn run test
+          docker run --env NODE_ENV=test -env DB_HOST=mariadb --network gradido_internal-net -v ~/coverage:/app/coverage --rm gradido/dht-node:test yarn run test
           cp -r ~/coverage ./coverage
           
       - name: Coverage check
