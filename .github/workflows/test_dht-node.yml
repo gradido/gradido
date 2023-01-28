@@ -76,6 +76,10 @@ jobs:
       - name: docker-compose database
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
 
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
+
       #- name: Unit tests
       #  run: cd database && yarn && yarn build && cd ../dht-node && yarn && yarn test
       - name: Unit tests
