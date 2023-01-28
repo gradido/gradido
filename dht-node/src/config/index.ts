@@ -1,14 +1,6 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 import dotenv from 'dotenv'
 dotenv.config()
-/*
-import Decimal from 'decimal.js-light'
-
-Decimal.set({
-  precision: 25,
-  rounding: Decimal.ROUND_HALF_UP,
-})
-*/
 
 const constants = {
   DB_VERSION: '0059-add_hide_amount_to_users',
