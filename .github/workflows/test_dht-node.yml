@@ -80,7 +80,7 @@ jobs:
       #  run: cd database && yarn && yarn build && cd ../dht-node && yarn && yarn test
       - name: Unit tests
         run: |
-          docker run --env NODE_ENV=test -v ~/coverage:/app/coverage --rm gradido/frontend:test yarn run test
+          docker run --env NODE_ENV=test -v ~/coverage:/app/coverage --rm gradido/dht-node:test yarn run test
           cp -r ~/coverage ./coverage
           
       - name: Coverage check
