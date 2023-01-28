@@ -45,6 +45,7 @@ import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { logger, i18n as localization } from '@test/testSetup'
+import { UserInputError } from 'apollo-server-express'
 
 // mock account activation email to avoid console spam
 // mock account activation email to avoid console spam
@@ -716,6 +717,28 @@ describe('ContributionResolver', () => {
       afterAll(async () => {
         await cleanDB()
         resetToken()
+      })
+
+      it('throws an error with non existing filter', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              statusFilter: ['CONFIRMD'],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [
+              new UserInputError(
+                'Variable "$statusFilter" got invalid value "CONFIRMD" at "statusFilter[0]"; Value "CONFIRMD" does not exist in "ContributionStatus" enum. Did you mean the enum value "CONFIRMED"?',
+              ),
+            ],
+          }),
+        )
       })
 
       it('returns allCreation', async () => {
