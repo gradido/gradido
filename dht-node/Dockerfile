@@ -2,6 +2,7 @@
 # BASE ###########################################################################
 ##################################################################################
 FROM node:19.5.0-alpine3.17 as base
+#FROM ubuntu:latest as base
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
 ## DOCKER_WORKDIR would be a classical ARG, but that is not multi layer persistent - shame
@@ -31,8 +32,11 @@ LABEL org.label-schema.schema-version="1.0"
 LABEL maintainer="support@gradido.net"
 
 # Install Additional Software
-## install: git
-#RUN apk --no-cache add git
+## install: sodium requirements
+RUN apk add --no-cache --virtual build-deps python3 alpine-sdk autoconf libtool automake && \
+  mkdir -p /prebuilds && cd /prebuilds && npm init -y && npm install sodium-native@3.1.1 && \
+  apk del build-deps
+ENV SODIUM_NATIVE_PREBUILD=/prebuilds/node_modules/sodium-native/
 
 # Settings
 ## Expose Container Port
