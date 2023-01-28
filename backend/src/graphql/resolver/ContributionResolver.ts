@@ -185,22 +185,9 @@ export class ContributionResolver {
     const where: {
       contributionStatus?: FindOperator<string> | null
     } = {}
-    const typeStatus = Object.values(ContributionStatus)
-    if (statusFilters !== null) {
-      const statusFilterArray = []
-      const length = statusFilters.length
-      let i = 0
-      for (i; i < length; i++) {
-        const statusFilter = statusFilters[i]
-        if (!typeStatus.includes(statusFilter)) {
-          logger.error(`Nicht definierter Status wurde gesendet: ${statusFilters[i]}`)
-          throw new Error(`Nicht definierter Status wurde gesendet: ${statusFilters[i]}`)
-        }
-        statusFilterArray.push(statusFilter)
-      }
-      if (statusFilterArray.length > 0) {
-        where.contributionStatus = In(statusFilterArray)
-      }
+
+    if (statusFilters !== null && statusFilters.length) {
+      where.contributionStatus = In(statusFilters)
     }
 
     const [dbContributions, count] = await getConnection()
