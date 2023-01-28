@@ -1,5 +1,4 @@
 {
-  "contributions": {},
   "emails": {
     "addedContributionMessage": {
       "commonGoodContributionMessage": "you have received a message from {senderFirstName} {senderLastName} regarding your common good contribution “{contributionMemo}”.",
