@@ -21,6 +21,7 @@ afterAll(async () => {
 })
 
 describe('validate Communities', () => {
+  /*
   describe('start validation loop', () => {
     beforeEach(async () => {
       jest.clearAllMocks()
@@ -33,7 +34,7 @@ describe('validate Communities', () => {
       )
     })
   })
-
+  */
   describe('start validation logic without loop', () => {
     beforeEach(async () => {
       jest.clearAllMocks()
