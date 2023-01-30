@@ -24,10 +24,20 @@
     </b-container>
     <b-container v-else>
       <message
-        :headline="success ? $t('message.title') : $t('message.errorTitle')"
-        :subtitle="success ? $t('message.email') : $t('error.email-already-sent')"
+        v-if="success"
+        :headline="$t('message.title')"
+        :subtitle="$t('message.email')"
         :buttonText="$t('login')"
         linkTo="/login"
+        data-test="forgot-password-success"
+      />
+      <message
+        v-else
+        :headline="$t('message.errorTitle')"
+        :subtitle="$t('error.email-already-sent')"
+        :buttonText="$t('login')"
+        linkTo="/login"
+        data-test="forgot-password-error"
       />
     </b-container>
   </div>
