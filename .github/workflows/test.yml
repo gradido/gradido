@@ -624,7 +624,7 @@ jobs:
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
 
       - name: Boot up test system | docker-compose backend
-        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps -e EMAIL='true' -e -e EMAIL_TEST_MODUS='false' -e EMAIL_TLS='false' -e EMAIL_CODE_REQUEST_TIME=1 backend 
+        run: EMAIL=true EMAIL_TEST_MODUS=false EMAIL_TLS=false EMAIL_CODE_REQUEST_TIME=1 docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend 
 
       - name: Sleep for 10 seconds
         run: sleep 10s
