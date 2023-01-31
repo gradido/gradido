@@ -58,57 +58,56 @@ export const startDHT = async (topic: string): Promise<void> => {
           logger.info(`data: ${data.toString('ascii')}`)
           const recApiVersions: CommunityApi[] = JSON.parse(data.toString('ascii'))
 
-          // TODO better to introduce the validation by https://github.com/typestack/class-validato
-          if (recApiVersions && Array.isArray(recApiVersions) && recApiVersions.length < 5) {
-            for (const recApiVersion of recApiVersions) {
-              if (
-                !recApiVersion.api ||
-                typeof recApiVersion.api !== 'string' ||
-                !recApiVersion.url ||
-                typeof recApiVersion.url !== 'string'
-              ) {
-                logger.warn(
-                  `received invalid apiVersion-Definition: ${JSON.stringify(recApiVersion)}`,
-                )
-                // in a forEach-loop use return instead of continue
-                return
-              }
-              // TODO better to introduce the validation on entity-Level by https://github.com/typestack/class-validator
-              if (recApiVersion.api.length > 10 || recApiVersion.url.length > 255) {
-                logger.warn(
-                  `received apiVersion with content longer than max length: ${JSON.stringify(
-                    recApiVersion,
-                  )}`,
-                )
-                // in a forEach-loop use return instead of continue
-                return
-              }
-
-              const variables = {
-                apiVersion: recApiVersion.api,
-                endPoint: recApiVersion.url,
-                publicKey: socket.remotePublicKey.toString('hex'),
-                lastAnnouncedAt: new Date(),
-              }
-              logger.debug(`upsert with variables=${JSON.stringify(variables)}`)
-              // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
-              await DbCommunity.createQueryBuilder()
-                .insert()
-                .into(DbCommunity)
-                .values(variables)
-                .orUpdate({
-                  conflict_target: ['id', 'publicKey', 'apiVersion'],
-                  overwrite: ['end_point', 'last_announced_at'],
-                })
-                .execute()
-              logger.info(`federation community upserted successfully...`)
-            }
-          } else {
+          // TODO better to introduce the validation by https://github.com/typestack/class-validator
+          if (!recApiVersions || !Array.isArray(recApiVersions) || recApiVersions.length >= 5) {
             logger.warn(
               `received totaly wrong or too much apiVersions-Definition JSON-String: ${JSON.stringify(
                 recApiVersions,
               )}`,
             )
+            return
+          }
+
+          for (const recApiVersion of recApiVersions) {
+            if (
+              !recApiVersion.api ||
+              typeof recApiVersion.api !== 'string' ||
+              !recApiVersion.url ||
+              typeof recApiVersion.url !== 'string'
+            ) {
+              logger.warn(
+                `received invalid apiVersion-Definition: ${JSON.stringify(recApiVersion)}`,
+              )
+              return
+            }
+            // TODO better to introduce the validation on entity-Level by https://github.com/typestack/class-validator
+            if (recApiVersion.api.length > 10 || recApiVersion.url.length > 255) {
+              logger.warn(
+                `received apiVersion with content longer than max length: ${JSON.stringify(
+                  recApiVersion,
+                )}`,
+              )
+              return
+            }
+
+            const variables = {
+              apiVersion: recApiVersion.api,
+              endPoint: recApiVersion.url,
+              publicKey: socket.remotePublicKey.toString('hex'),
+              lastAnnouncedAt: new Date(),
+            }
+            logger.debug(`upsert with variables=${JSON.stringify(variables)}`)
+            // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
+            await DbCommunity.createQueryBuilder()
+              .insert()
+              .into(DbCommunity)
+              .values(variables)
+              .orUpdate({
+                conflict_target: ['id', 'publicKey', 'apiVersion'],
+                overwrite: ['end_point', 'last_announced_at'],
+              })
+              .execute()
+            logger.info(`federation community upserted successfully...`)
           }
         } catch (e) {
           logger.error('Error on receiving data from socket:', e)
