@@ -140,6 +140,7 @@ export class UserResolver {
     if (!dbUser.emailContact.emailChecked) {
       throw new LogError('The Users email is not validate yet', dbUser)
     }
+    // TODO: at least in test this does not work since `dbUser.password = 0` and `BigInto(0) = 0n`
     if (dbUser.password === BigInt(0)) {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new LogError('The User has not set a password yet', dbUser)

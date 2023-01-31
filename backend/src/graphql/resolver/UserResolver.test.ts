@@ -675,9 +675,82 @@ describe('UserResolver', () => {
     describe('user is in database but deleted', () => {
       beforeAll(async () => {
         jest.clearAllMocks()
+        await userFactory(testEnv, stephenHawking)
+        const variables = {
+          email: stephenHawking.email,
+          password: 'Aa12345_',
+          publisherId: 1234,
+        }
+        result = await mutate({ mutation: login, variables })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('returns an error', () => {
+        expect(result).toEqual(
+          expect.objectContaining({
+            errors: [
+              new GraphQLError('This user was permanently deleted. Contact support for questions'),
+            ],
+          }),
+        )
+      })
+
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith(
+          'This user was permanently deleted. Contact support for questions',
+          expect.objectContaining({
+            firstName: stephenHawking.firstName,
+            lastName: stephenHawking.lastName,
+          }),
+        )
+      })
+    })
+
+    describe('user is in database but email not confirmed', () => {
+      beforeAll(async () => {
+        jest.clearAllMocks()
+        await userFactory(testEnv, garrickOllivander)
+        const variables = {
+          email: garrickOllivander.email,
+          password: 'Aa12345_',
+          publisherId: 1234,
+        }
+        result = await mutate({ mutation: login, variables })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('returns an error', () => {
+        expect(result).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('The Users email is not validate yet')],
+          }),
+        )
+      })
+
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith(
+          'The Users email is not validate yet',
+          expect.objectContaining({
+            firstName: garrickOllivander.firstName,
+            lastName: garrickOllivander.lastName,
+          }),
+        )
+      })
+    })
+
+    describe.skip('user is in database but password is not set', () => {
+      beforeAll(async () => {
+        jest.clearAllMocks()
+        // TODO: we need an user without password set
         const user = await userFactory(testEnv, bibiBloxberg)
-        // Hint: softRemove does not soft-delete the email contact of this user
-        await user.softRemove()
+        user.password = BigInt(0)
+        await user.save()
         result = await mutate({ mutation: login, variables })
       })
 
