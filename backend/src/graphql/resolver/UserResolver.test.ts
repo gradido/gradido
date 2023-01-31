@@ -761,16 +761,14 @@ describe('UserResolver', () => {
       it('returns an error', () => {
         expect(result).toEqual(
           expect.objectContaining({
-            errors: [
-              new GraphQLError('This user was permanently deleted. Contact support for questions'),
-            ],
+            errors: [new GraphQLError('The User has not set a password yet')],
           }),
         )
       })
 
       it('logs the error thrown', () => {
         expect(logger.error).toBeCalledWith(
-          'This user was permanently deleted. Contact support for questions',
+          'The User has not set a password yet',
           expect.objectContaining({
             firstName: bibiBloxberg.firstName,
             lastName: bibiBloxberg.lastName,
