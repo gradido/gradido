@@ -626,7 +626,7 @@ jobs:
       - name: Boot up test system | docker-compose backend
         run: |
           docker run -i --rm gradido/backend:test /bin/sh
-          ls -la
+          cd backend
           cp .env.test_email .env && exit
           docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend 
 
