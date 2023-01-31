@@ -549,7 +549,9 @@ describe('UserResolver', () => {
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('Password entered is lexically invalid')
+        expect(logger.error).toBeCalledWith(
+          'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+        )
       })
     })
 
@@ -606,9 +608,7 @@ describe('UserResolver', () => {
       })
 
       it('logs the error found', () => {
-        expect(logger.error).toBeCalledWith(
-          'UserContact with email=bibi@bloxberg.de does not exists',
-        )
+        expect(logger.error).toBeCalledWith('No user with this credentials', variables.email)
       })
     })
 
@@ -668,7 +668,7 @@ describe('UserResolver', () => {
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('The User has no valid credentials.')
+        expect(logger.error).toBeCalledWith('No user with this credentials', variables.email)
       })
     })
   })
@@ -828,7 +828,7 @@ describe('UserResolver', () => {
             expect.objectContaining({
               errors: [
                 new GraphQLError(
-                  `email already sent less than ${printTimeDuration(
+                  `Email already sent less than ${printTimeDuration(
                     CONFIG.EMAIL_CODE_REQUEST_TIME,
                   )} minutes ago`,
                 ),
@@ -870,13 +870,13 @@ describe('UserResolver', () => {
           CONFIG.EMAIL_CODE_REQUEST_TIME = emailCodeRequestTime
           await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('email already sent less than 10 minutes minutes ago')],
+              errors: [new GraphQLError('Email already sent less than 10 minutes minutes ago')],
             }),
           )
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(`email already sent less than 10 minutes minutes ago`)
+          expect(logger.error).toBeCalledWith(`Email already sent less than 10 minutes minutes ago`)
         })
       })
     })
@@ -1007,7 +1007,7 @@ describe('UserResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(`"not-valid" isn't a valid language`)
+          expect(logger.error).toBeCalledWith(`"not-valid" isn't a valid language`, 'not-valid')
         })
       })
 
@@ -1058,7 +1058,9 @@ describe('UserResolver', () => {
           })
 
           it('logs the error found', () => {
-            expect(logger.error).toBeCalledWith('newPassword does not fullfil the rules')
+            expect(logger.error).toBeCalledWith(
+              'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+            )
           })
         })
 
@@ -1116,7 +1118,7 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith('The User has no valid credentials.')
+            expect(logger.error).toBeCalledWith('Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!')
           })
         })
       })
@@ -1328,7 +1330,10 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith(`Could not find user with userId: ${admin.id + 1}`)
+            expect(logger.error).toBeCalledWith(
+              `Could not find user with userId: ${admin.id + 1}`,
+              admin.id + 1,
+            )
           })
         })
 
@@ -1379,12 +1384,12 @@ describe('UserResolver', () => {
                 mutate({ mutation: setUserRole, variables: { userId: admin.id, isAdmin: false } }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Administrator can not change his own role!')],
+                  errors: [new GraphQLError('Administrator can not change his own role')],
                 }),
               )
             })
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('Administrator can not change his own role!')
+              expect(logger.error).toBeCalledWith('Administrator can not change his own role')
             })
           })
 
@@ -1400,13 +1405,13 @@ describe('UserResolver', () => {
                   mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: true } }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [new GraphQLError('User is already admin!')],
+                    errors: [new GraphQLError('User is already admin')],
                   }),
                 )
               })
 
               it('logs the error thrown', () => {
-                expect(logger.error).toBeCalledWith('User is already admin!')
+                expect(logger.error).toBeCalledWith('User is already admin')
               })
             })
 
@@ -1421,13 +1426,13 @@ describe('UserResolver', () => {
                   mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: false } }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [new GraphQLError('User is already a usual user!')],
+                    errors: [new GraphQLError('User is already an usual user')],
                   }),
                 )
               })
 
               it('logs the error thrown', () => {
-                expect(logger.error).toBeCalledWith('User is already a usual user!')
+                expect(logger.error).toBeCalledWith('User is already an usual user')
               })
             })
           })
@@ -1500,7 +1505,10 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith(`Could not find user with userId: ${admin.id + 1}`)
+            expect(logger.error).toBeCalledWith(
+              `Could not find user with userId: ${admin.id + 1}`,
+              admin.id + 1,
+            )
           })
         })
 
@@ -1511,13 +1519,13 @@ describe('UserResolver', () => {
               mutate({ mutation: deleteUser, variables: { userId: admin.id } }),
             ).resolves.toEqual(
               expect.objectContaining({
-                errors: [new GraphQLError('Moderator can not delete his own account!')],
+                errors: [new GraphQLError('Moderator can not delete his own account')],
               }),
             )
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith('Moderator can not delete his own account!')
+            expect(logger.error).toBeCalledWith('Moderator can not delete his own account')
           })
         })
 
@@ -1551,7 +1559,10 @@ describe('UserResolver', () => {
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith(`Could not find user with userId: ${user.id}`)
+              expect(logger.error).toBeCalledWith(
+                `Could not find user with userId: ${user.id}`,
+                user.id,
+              )
             })
           })
         })
@@ -1623,7 +1634,10 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith(`Could not find user with userId: ${admin.id + 1}`)
+            expect(logger.error).toBeCalledWith(
+              `Could not find user with userId: ${admin.id + 1}`,
+              admin.id + 1,
+            )
           })
         })
 
