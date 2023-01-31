@@ -727,21 +727,56 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              statusFilter: ['CONFIRMD'],
+              statusFilter: ['NOT_VALID'],
             },
           }),
         ).resolves.toEqual(
           expect.objectContaining({
             errors: [
               new UserInputError(
-                'Variable "$statusFilter" got invalid value "CONFIRMD" at "statusFilter[0]"; Value "CONFIRMD" does not exist in "ContributionStatus" enum. Did you mean the enum value "CONFIRMED"?',
+                'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[0]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
               ),
             ],
           }),
         )
       })
 
-      it('returns allCreation', async () => {
+      it('returns allCreation without statusFilter', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              listAllContributions: {
+                contributionCount: 2,
+                contributionList: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
+      })
+
+      it('returns allCreation for statusFilter = null', async () => {
         await expect(
           query({
             query: listAllContributions,
@@ -777,7 +812,7 @@ describe('ContributionResolver', () => {
         )
       })
 
-      it('returns allCreation', async () => {
+      it('returns allCreation for statusFilter = []', async () => {
         await expect(
           query({
             query: listAllContributions,
