@@ -23,15 +23,20 @@
             </b-col>
           </b-row>
           <b-row>
-            <b-col class="d-flex justify-content-end">
-              <router-link to="/forgot-password" class="mt-3">
+            <b-col class="d-flex justify-content-end mb-4 mb-lg-0">
+              <router-link to="/forgot-password">
                 {{ $t('settings.password.forgot_pwd') }}
               </router-link>
             </b-col>
           </b-row>
-          <div class="mt-5">
-            <b-button type="submit" variant="gradido">{{ $t('login') }}</b-button>
-          </div>
+          <b-row>
+            <b-col cols="12" lg="4">
+              <b-button type="submit" variant="gradido" block>{{ $t('login') }}</b-button>
+            </b-col>
+          </b-row>
+          <!-- <div class="mt-5">
+            <b-button type="submit" variant="gradido" class="">{{ $t('login') }}</b-button>
+          </div> -->
         </b-form>
       </validation-observer>
     </b-container>
