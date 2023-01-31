@@ -4,7 +4,7 @@
 import { logger } from '@test/testSetup'
 import { Community as DbCommunity } from '@entity/Community'
 import { testEnvironment, cleanDB } from '@test/helpers'
-import { startValidateCommunities, validateCommunities } from './validateCommunities'
+import { validateCommunities } from './validateCommunities'
 
 let con: any
 let testEnv: any
