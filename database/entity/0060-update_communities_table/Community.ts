@@ -30,6 +30,9 @@ export class Community extends BaseEntity {
   @Column({ name: 'verified_at', type: 'datetime', nullable: false })
   verifiedAt: Date
 
+  @Column({ name: 'last_error_at', type: 'datetime', nullable: false })
+  lastErrorAt: Date
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'datetime',
