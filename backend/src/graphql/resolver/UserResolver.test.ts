@@ -1223,7 +1223,9 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith('Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!')
+            expect(logger.error).toBeCalledWith(
+              'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+            )
           })
         })
       })
