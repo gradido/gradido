@@ -10,6 +10,7 @@ import {
   createContribution,
   updateContribution,
   deleteContribution,
+  denyContribution,
   confirmContribution,
   adminCreateContribution,
   adminCreateContributions,
@@ -664,6 +665,123 @@ describe('ContributionResolver', () => {
               amount: expect.decimalEqual(10),
               contributionId: result.data.createContribution.id,
               userId: bibi.data.login.id,
+            }),
+          )
+        })
+      })
+    })
+  })
+
+  describe('denyContribution', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          mutate({
+            mutation: denyContribution,
+            variables: {
+              id: 1,
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, peterLustig)
+        await userFactory(testEnv, bibiBloxberg)
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+        result = await mutate({
+          mutation: createContribution,
+          variables: {
+            amount: 100.0,
+            memo: 'Test env contribution',
+            creationDate: new Date().toString(),
+          },
+        })
+        await mutate({
+          mutation: login,
+          variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+        resetToken()
+      })
+
+      describe('wrong contribution id', () => {
+        it('throws an error', async () => {
+          jest.clearAllMocks()
+          await expect(
+            mutate({
+              mutation: denyContribution,
+              variables: {
+                id: -1,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Contribution not found for given id.')],
+            }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('Contribution not found for given id: -1')
+        })
+      })
+
+      describe('wrong user tries to deny the contribution', () => {
+        beforeAll(async () => {
+          await mutate({
+            mutation: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        it('throws an error', async () => {
+          jest.clearAllMocks()
+          await expect(
+            mutate({
+              mutation: denyContribution,
+              variables: {
+                id: result.data.createContribution.id,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
+      describe('valid input', () => {
+        it('deny contribution', async () => {
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+          await expect(
+            mutate({
+              mutation: denyContribution,
+              variables: {
+                id: result.data.createContribution.id,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                denyContribution: true,
+              },
             }),
           )
         })
