@@ -164,7 +164,7 @@
   "GDD": "GDD",
   "gddKonto": "GDD Konto",
   "gdd_per_link": {
-    "choose-amount": "Wähle einen Betrag aus, welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „Jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
+    "choose-amount": "Wähle einen Betrag aus, welchen du per Link versenden möchtest, und trage eine Nachricht ein. Die Nachricht ist Pflichtfeld.",
     "copy-link": "Link kopieren",
     "copy-link-with-text": "Link und Text kopieren",
     "created": "Der Link wurde erstellt!",
