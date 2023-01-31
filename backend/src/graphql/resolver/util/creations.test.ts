@@ -21,7 +21,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  await cleanDB()
+  // await cleanDB()
   await con.close()
 })
 
@@ -62,7 +62,7 @@ describe('util/creation', () => {
           amount: 160.0,
           memo: 'Admin contribution for the last month',
           creationDate: contributionDateFormatter(
-            new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()),
+            new Date(now.getFullYear(), now.getMonth() - 1, 1),
           ),
         },
       })
@@ -73,7 +73,7 @@ describe('util/creation', () => {
           amount: 450.0,
           memo: 'Admin contribution for two months ago',
           creationDate: contributionDateFormatter(
-            new Date(now.getFullYear(), now.getMonth() - 2, now.getDate()),
+            new Date(now.getFullYear(), now.getMonth() - 2, 1),
           ),
         },
       })
@@ -95,7 +95,7 @@ describe('util/creation', () => {
           amount: 500.0,
           memo: 'Contribution for the last month',
           creationDate: contributionDateFormatter(
-            new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()),
+            new Date(now.getFullYear(), now.getMonth() - 1, 1),
           ),
         },
       })
@@ -114,9 +114,7 @@ describe('util/creation', () => {
         }),
         expect.objectContaining({
           userId: user.id,
-          contributionDate: setZeroHours(
-            new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()),
-          ),
+          contributionDate: setZeroHours(new Date(now.getFullYear(), now.getMonth() - 1, 1)),
           amount: expect.decimalEqual(160),
           memo: 'Admin contribution for the last month',
           moderatorId: admin.id,
@@ -125,9 +123,7 @@ describe('util/creation', () => {
         }),
         expect.objectContaining({
           userId: user.id,
-          contributionDate: setZeroHours(
-            new Date(now.getFullYear(), now.getMonth() - 2, now.getDate()),
-          ),
+          contributionDate: setZeroHours(new Date(now.getFullYear(), now.getMonth() - 2, 1)),
           amount: expect.decimalEqual(450),
           memo: 'Admin contribution for two months ago',
           moderatorId: admin.id,
@@ -145,9 +141,7 @@ describe('util/creation', () => {
         }),
         expect.objectContaining({
           userId: user.id,
-          contributionDate: setZeroHours(
-            new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()),
-          ),
+          contributionDate: setZeroHours(new Date(now.getFullYear(), now.getMonth() - 1, 1)),
           amount: expect.decimalEqual(500),
           memo: 'Contribution for the last month',
           moderatorId: null,
