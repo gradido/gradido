@@ -719,7 +719,7 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-      it('throws an error with non existing filter', async () => {
+      it('throws an error with "NOT_VALID" in statusFilter', async () => {
         await expect(
           query({
             query: listAllContributions,
@@ -735,6 +735,53 @@ describe('ContributionResolver', () => {
             errors: [
               new UserInputError(
                 'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[0]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
+              ),
+            ],
+          }),
+        )
+      })
+
+      it('throws an error with a null in statusFilter', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              statusFilter: [null],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [
+              new UserInputError(
+                'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
+              ),
+            ],
+          }),
+        )
+      })
+
+      it('throws an error with null and "NOT_VALID" in statusFilter', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              statusFilter: [null, 'NOT_VALID'],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [
+              new UserInputError(
+                'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
+              ),
+              new UserInputError(
+                'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[1]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
               ),
             ],
           }),
