@@ -664,7 +664,7 @@ jobs:
           yarn
           yarn run cypress run --spec cypress/e2e/User.Authentication.feature,User.Authentication.ResetPassword.feature
       - name: End-to-end tests | if tests failed, upload screenshots
-        if: steps.e2e-tests.outcome == 'failure'
+        if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
         uses: actions/upload-artifact@v3
         with:
           name: cypress-screenshots
