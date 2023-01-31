@@ -854,31 +854,16 @@ async function checkEmailExists(email: string): Promise<boolean> {
   return false
 }
 
-/*
-const isTimeExpired = (optIn: LoginEmailOptIn, duration: number): boolean => {
-  const timeElapsed = Date.now() - new Date(optIn.updatedAt).getTime()
-  // time is given in minutes
-  return timeElapsed <= duration * 60 * 1000
-}
-*/
 const isTimeExpired = (updatedAt: Date, duration: number): boolean => {
   const timeElapsed = Date.now() - new Date(updatedAt).getTime()
   // time is given in minutes
   return timeElapsed <= duration * 60 * 1000
 }
-/*
-const isOptInValid = (optIn: LoginEmailOptIn): boolean => {
-  return isTimeExpired(optIn, CONFIG.EMAIL_CODE_VALID_TIME)
-}
-*/
+
 const isEmailVerificationCodeValid = (updatedAt: Date): boolean => {
   return isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_VALID_TIME)
 }
-/*
-const canResendOptIn = (optIn: LoginEmailOptIn): boolean => {
-  return !isTimeExpired(optIn, CONFIG.EMAIL_CODE_REQUEST_TIME)
-}
-*/
+
 const canEmailResend = (updatedAt: Date): boolean => {
   return !isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_REQUEST_TIME)
 }
