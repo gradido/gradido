@@ -671,6 +671,40 @@ describe('UserResolver', () => {
         expect(logger.error).toBeCalledWith('No user with this credentials', variables.email)
       })
     })
+
+    describe('user is in database but deleted', () => {
+      beforeAll(async () => {
+        jest.clearAllMocks()
+        const user = await userFactory(testEnv, bibiBloxberg)
+        // Hint: softRemove does not soft-delete the email contact of this user
+        await user.softRemove()
+        result = await mutate({ mutation: login, variables })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('returns an error', () => {
+        expect(result).toEqual(
+          expect.objectContaining({
+            errors: [
+              new GraphQLError('This user was permanently deleted. Contact support for questions'),
+            ],
+          }),
+        )
+      })
+
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith(
+          'This user was permanently deleted. Contact support for questions',
+          expect.objectContaining({
+            firstName: bibiBloxberg.firstName,
+            lastName: bibiBloxberg.lastName,
+          }),
+        )
+      })
+    })
   })
 
   describe('logout', () => {
