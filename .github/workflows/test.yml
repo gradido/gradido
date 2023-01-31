@@ -562,6 +562,12 @@ jobs:
     name: End-to-End Tests
     runs-on: ubuntu-latest
     needs: [build_test_mariadb, build_test_database_up, build_test_backend, build_test_admin, build_test_frontend, build_test_nginx]
+    env:
+      jobs: 2
+    strategy:
+      matrix:
+        # run copies of the current job in parallel
+        job: [1, 2]
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
@@ -656,7 +662,7 @@ jobs:
         run: |
           cd e2e-tests/cypress/tests/
           yarn
-          yarn run cypress run --spec cypress/e2e/User.Authentication.feature
+          yarn run cypress run --spec cypress/e2e/User.Authentication.feature,User.Authentication.ResetPassword.feature
       - name: End-to-end tests | if tests failed, upload screenshots
         if: steps.e2e-tests.outcome == 'failure'
         uses: actions/upload-artifact@v3
