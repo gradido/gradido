@@ -179,7 +179,7 @@ export class ContributionResolver {
   async listAllContributions(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
-    @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
+    @Arg('statusFilter', () => [ContributionStatus!], { nullable: true })
     statusFilters?: ContributionStatus[],
   ): Promise<ContributionListResult> {
     const where: {
