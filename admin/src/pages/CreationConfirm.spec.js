@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm.vue'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
+import { denyContribution } from '../graphql/denyContribution'
 import { listUnconfirmedContributions } from '../graphql/listUnconfirmedContributions'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
@@ -75,6 +76,7 @@ describe('CreationConfirm', () => {
 
   const listUnconfirmedContributionsMock = jest.fn()
   const adminDeleteContributionMock = jest.fn()
+  const adminDenyContributionMock = jest.fn()
   const confirmContributionMock = jest.fn()
 
   mockClient.setRequestHandler(
@@ -87,6 +89,13 @@ describe('CreationConfirm', () => {
   mockClient.setRequestHandler(
     adminDeleteContribution,
     adminDeleteContributionMock.mockResolvedValue({ data: { adminDeleteContribution: true } }),
+  )
+
+  mockClient.setRequestHandler(
+    denyContribution,
+    adminDenyContributionMock
+      .mockRejectedValueOnce({ message: 'Ouch!' })
+      .mockResolvedValue({ data: { denyContribution: true } }),
   )
 
   mockClient.setRequestHandler(
@@ -130,110 +139,174 @@ describe('CreationConfirm', () => {
       })
     })
 
-    describe('remove creation with success', () => {
-      let spy
-
-      describe('admin confirms deletion', () => {
+    describe('actions in overlay', () => {
+      describe('delete creation', () => {
         beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          spy.mockImplementation(() => Promise.resolve('some value'))
           await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
         })
 
-        it('opens a modal', () => {
-          expect(spy).toBeCalled()
-        })
-
-        it('calls the adminDeleteContribution mutation', () => {
-          expect(adminDeleteContributionMock).toBeCalledWith({ id: 1 })
-        })
-
-        it('commits openCreationsMinus to store', () => {
-          expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
-        })
-
-        it('toasts a success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_delete')
-        })
-      })
-
-      describe('admin cancels deletion', () => {
-        beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          spy.mockImplementation(() => Promise.resolve(false))
-          await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
-        })
-
-        it('does not call the adminDeleteContribution mutation', () => {
-          expect(adminDeleteContributionMock).not.toBeCalled()
-        })
-      })
-    })
-
-    describe('remove creation with error', () => {
-      let spy
-
-      beforeEach(async () => {
-        spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-        spy.mockImplementation(() => Promise.resolve('some value'))
-        adminDeleteContributionMock.mockRejectedValue({ message: 'Ouchhh!' })
-        await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
-      })
-
-      it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
-      })
-    })
-
-    describe('confirm creation with success', () => {
-      beforeEach(async () => {
-        await wrapper.findAll('tr').at(2).findAll('button').at(2).trigger('click')
-      })
-
-      describe('overlay', () => {
         it('opens the overlay', () => {
           expect(wrapper.find('#overlay').isVisible()).toBeTruthy()
         })
 
-        describe('cancel confirmation', () => {
-          beforeEach(async () => {
-            await wrapper.find('#overlay').findAll('button').at(0).trigger('click')
+        describe('with success', () => {
+          describe('cancel deletion', () => {
+            beforeEach(async () => {
+              await wrapper.find('#overlay').findAll('button').at(0).trigger('click')
+            })
+
+            it('closes the overlay', async () => {
+              expect(wrapper.find('#overlay').exists()).toBeFalsy()
+            })
+
+            it('still has 2 items in the table', () => {
+              expect(wrapper.findAll('tbody > tr')).toHaveLength(2)
+            })
           })
 
-          it('closes the overlay', async () => {
-            expect(wrapper.find('#overlay').exists()).toBeFalsy()
+          describe('confirm deletion', () => {
+            beforeEach(async () => {
+              await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
+            })
+
+            it('calls the adminDeleteContribution mutation', () => {
+              expect(adminDeleteContributionMock).toBeCalledWith({ id: 1 })
+            })
+            it('commits openCreationsMinus to store', () => {
+              expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
+            })
+
+            it('toasts a success message', () => {
+              expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_delete')
+            })
+
+            it('has 1 item left in the table', () => {
+              expect(wrapper.findAll('tbody > tr')).toHaveLength(1)
+            })
           })
 
-          it('still has 2 items in the table', () => {
-            expect(wrapper.findAll('tbody > tr')).toHaveLength(2)
+          describe('with error', () => {
+            beforeEach(async () => {
+              adminDeleteContributionMock.mockRejectedValue({ message: 'Ouchhh!' })
+              await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
+            })
+
+            it('toasts an error message', () => {
+              expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
+            })
+          })
+        })
+      })
+
+      describe('confirm creation', () => {
+        beforeEach(async () => {
+          await wrapper.findAll('tr').at(2).findAll('button').at(3).trigger('click')
+        })
+
+        it('opens the overlay', () => {
+          expect(wrapper.find('#overlay').isVisible()).toBeTruthy()
+        })
+
+        describe('with succes', () => {
+          describe('cancel confirmation', () => {
+            beforeEach(async () => {
+              await wrapper.find('#overlay').findAll('button').at(0).trigger('click')
+            })
+
+            it('closes the overlay', async () => {
+              expect(wrapper.find('#overlay').exists()).toBeFalsy()
+            })
+
+            it('still has 2 items in the table', () => {
+              expect(wrapper.findAll('tbody > tr')).toHaveLength(2)
+            })
+          })
+
+          describe('confirm confirmation', () => {
+            beforeEach(async () => {
+              await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
+            })
+
+            it('calls the confirmContribution mutation', () => {
+              expect(confirmContributionMock).toBeCalledWith({ id: 2 })
+            })
+
+            it('commits openCreationsMinus to store', () => {
+              expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
+            })
+
+            it('toasts a success message', () => {
+              expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_created')
+            })
+
+            it('has 1 item left in the table', () => {
+              expect(wrapper.findAll('tbody > tr')).toHaveLength(1)
+            })
           })
         })
 
-        describe('confirm creation', () => {
+        describe('with error', () => {
           beforeEach(async () => {
+            confirmContributionMock.mockRejectedValue({ message: 'Ouchhh!' })
             await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
           })
 
-          it('calls the confirmContribution mutation', () => {
-            expect(confirmContributionMock).toBeCalledWith({ id: 2 })
+          it('toasts an error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
+          })
+        })
+      })
+
+      describe('deny creation', () => {
+        beforeEach(async () => {
+          await wrapper.findAll('tr').at(1).findAll('button').at(2).trigger('click')
+        })
+
+        it('opens the overlay', () => {
+          expect(wrapper.find('#overlay').isVisible()).toBeTruthy()
+        })
+
+        describe('with succes', () => {
+          describe('cancel deny', () => {
+            beforeEach(async () => {
+              await wrapper.find('#overlay').findAll('button').at(0).trigger('click')
+            })
+
+            it('closes the overlay', async () => {
+              expect(wrapper.find('#overlay').exists()).toBeFalsy()
+            })
+
+            it('still has 2 items in the table', () => {
+              expect(wrapper.findAll('tbody > tr')).toHaveLength(2)
+            })
           })
 
-          it('commits openCreationsMinus to store', () => {
-            expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
-          })
+          describe('confirm deny', () => {
+            beforeEach(async () => {
+              await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
+            })
 
-          it('toasts a success message', () => {
-            expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_created')
-          })
+            it('calls the denyContribution mutation', () => {
+              expect(adminDenyContributionMock).toBeCalledWith({ id: 1 })
+            })
 
-          it('has 1 item left in the table', () => {
-            expect(wrapper.findAll('tbody > tr')).toHaveLength(1)
+            it('commits openCreationsMinus to store', () => {
+              expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
+            })
+
+            it('toasts a success message', () => {
+              expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_denied')
+            })
+
+            it('has 1 item left in the table', () => {
+              expect(wrapper.findAll('tbody > tr')).toHaveLength(1)
+            })
           })
         })
 
-        describe('confirm creation with error', () => {
+        describe('with error', () => {
           beforeEach(async () => {
-            confirmContributionMock.mockRejectedValue({ message: 'Ouchhh!' })
+            adminDenyContributionMock.mockRejectedValue({ message: 'Ouchhh!' })
             await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
           })
 
