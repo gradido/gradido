@@ -49,8 +49,6 @@
     },
     "delete": "Delete Contribution! Are you sure?",
     "deleted": "The contribution has been deleted! But it will remain visible.",
-    "isEdited":"edited the contribution",
-    "oldContribution":"The last post was:",
     "formText": {
       "bringYourTalentsTo": "Bring your talents to the community! Your voluntary commitment will be rewarded with 20 GDD per hour up to a maximum of 1,000 GDD per month.",
       "describeYourCommunity": "Describe your community service activity with hours and enter an amount of 20 GDD per hour! After confirmation by a moderator, the amount will be credited to your account.",
@@ -58,8 +56,10 @@
       "openAmountForMonth": "For  <b>{monthAndYear}</b>, you can still submit <b>{creation}</b> GDD.",
       "yourContribution": "Your contribution to the common good"
     },
+    "isEdited": "edited the contribution",
     "lastContribution": "Last Contributions",
     "noDateSelected": "Choose any date in the month",
+    "oldContribution": "The last post was:",
     "selectDate": "When was your contribution?",
     "submit": "Submit",
     "submitted": "The contribution was submitted.",

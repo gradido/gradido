@@ -49,8 +49,6 @@
     },
     "delete": "Beitrag löschen! Bist du sicher?",
     "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
-    "isEdited":"hat den Beitrag bearbeitet",
-    "oldContribution":"Der letzte Beitrag war:",
     "formText": {
       "bringYourTalentsTo": "Bring dich mit deinen Talenten in die Gemeinschaft ein! Dein freiwilliges Engagement honorieren wir mit 20 GDD pro Stunde bis maximal 1.000 GDD im Monat.",
       "describeYourCommunity": "Beschreibe deine Gemeinwohl-Tätigkeit mit Angabe der Stunden und trage einen Betrag von 20 GDD pro Stunde ein! Nach Bestätigung durch einen Moderator wird der Betrag deinem Konto gutgeschrieben.",
@@ -58,8 +56,10 @@
       "openAmountForMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen.",
       "yourContribution": "Dein Beitrag zum Gemeinwohl"
     },
+    "isEdited": "hat den Beitrag bearbeitet",
     "lastContribution": "Letzte Beiträge",
     "noDateSelected": "Wähle irgendein Datum im Monat",
+    "oldContribution": "Der letzte Beitrag war:",
     "selectDate": "Wann war dein Beitrag?",
     "submit": "Einreichen",
     "submitted": "Der Beitrag wurde eingereicht.",
