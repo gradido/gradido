@@ -1,0 +1,98 @@
+name: gradido test_dht-node CI
+
+on: push
+
+jobs:
+  ##############################################################################
+  # JOB: DOCKER BUILD TEST #####################################################
+  ##############################################################################
+  build:
+    name: Docker Build Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Build `test` image
+        run: |
+          docker build --target test -t "gradido/dht-node:test" -f dht-node/Dockerfile .
+          docker save "gradido/dht-node:test" > /tmp/dht-node.tar
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-dht-node-test
+          path: /tmp/dht-node.tar
+
+  ##############################################################################
+  # JOB: LINT ##################################################################
+  ##############################################################################
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download Docker Image
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-dht-node-test
+          path: /tmp
+      - name: Load Docker Image
+        run: docker load < /tmp/dht-node.tar
+      
+      - name: Lint
+        run: docker run --rm gradido/dht-node:test yarn run lint
+
+  ##############################################################################
+  # JOB: UNIT TEST #############################################################
+  ##############################################################################
+  unit_test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Download Docker Image
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-dht-node-test
+          path: /tmp
+
+      - name: Load Docker Image
+        run: docker load < /tmp/dht-node.tar
+      
+      - name: docker-compose mariadb
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
+      
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
+
+      - name: docker-compose database
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
+
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
+
+      #- name: Unit tests
+      #  run: cd database && yarn && yarn build && cd ../dht-node && yarn && yarn test
+      - name: Unit tests
+        run: |
+          docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net -v ~/coverage:/app/coverage --rm gradido/dht-node:test yarn run test
+          cp -r ~/coverage ./coverage
+          
+      - name: Coverage check
+        uses: webcraftmedia/coverage-check-action@master
+        with:
+          report_name: Coverage dht-node
+          type: lcov
+          #result_path: ./dht-node/coverage/lcov.info
+          result_path: ./coverage/lcov.info
+          min_coverage: 79
+          token: ${{ github.token }}
