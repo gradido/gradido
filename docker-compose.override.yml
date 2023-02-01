@@ -62,6 +62,29 @@ services:
       - ./database:/database
 
   ########################################################
+  # DHT-NODE #############################################
+  ########################################################
+  dht-node:
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/dht-node:local-development
+    build:
+      target: development
+    networks:
+      - external-net
+      - internal-net
+    environment:
+      - NODE_ENV="development"
+    volumes:
+      # This makes sure the docker container has its own node modules.
+      # Therefore it is possible to have a different node version on the host machine
+      - dht_node_modules:/app/node_modules
+      - dht_database_node_modules:/database/node_modules
+      - dht_database_build:/database/build
+      # bind the local folder to the docker to allow live reload
+      - ./dht-node:/app
+      - ./database:/database
+
+  ########################################################
   # DATABASE ##############################################
   ########################################################
   database:
@@ -129,5 +152,8 @@ volumes:
   backend_node_modules:
   backend_database_node_modules:
   backend_database_build:
+  dht_node_modules:
+  dht_database_node_modules:
+  dht_database_build:
   database_node_modules:
   database_build:

@@ -2,10 +2,10 @@
   <div class="transaction-form">
     <b-row>
       <b-col cols="12">
-        <b-card class="appBoxShadow gradido-border-radius" body-class="p-3">
+        <b-card class="appBoxShadow gradido-border-radius" body-class="p-4">
           <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
             <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
-              <b-form-radio-group v-model="radioSelected" class="container">
+              <b-form-radio-group v-model="radioSelected">
                 <b-row class="mb-4">
                   <b-col cols="12" lg="6">
                     <b-row class="bg-248 gradido-border-radius pt-lg-2 mr-lg-2">
@@ -39,14 +39,13 @@
                     </b-row>
                   </b-col>
                 </b-row>
-
-                <div class="mt-4 mb-4" v-if="radioSelected === sendTypes.link">
-                  <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
-                  <div>
-                    {{ $t('gdd_per_link.choose-amount') }}
-                  </div>
-                </div>
               </b-form-radio-group>
+              <div class="mt-4 mb-4" v-if="radioSelected === sendTypes.link">
+                <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
+                <div>
+                  {{ $t('gdd_per_link.choose-amount') }}
+                </div>
+              </div>
               <b-row>
                 <b-col>
                   <b-row>
@@ -106,7 +105,10 @@
                 </b-col>
                 <b-col cols="12" md="6" lg="6" class="text-lg-right">
                   <b-button block type="submit" variant="gradido">
-                    {{ $t('form.check_now') }}
+                    <span v-if="radioSelected === sendTypes.send">{{ $t('form.check_now') }}</span>
+                    <span v-if="radioSelected === sendTypes.link">
+                      {{ $t('form.generate_now') }}
+                    </span>
                   </b-button>
                 </b-col>
               </b-row>
