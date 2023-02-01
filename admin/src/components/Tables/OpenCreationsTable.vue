@@ -1,6 +1,12 @@
 <template>
   <div class="open-creations-table">
     <b-table-lite :items="items" :fields="fields" caption-top striped hover stacked="md">
+      <template #cell(state)="row">
+        <b-icon v-if="row.item.state === 'IN_PROGRESS'" icon="bell-fill"></b-icon>
+        <b-icon v-if="row.item.state === 'PENDING'" icon="bell-fill"></b-icon>
+        <b-icon v-if="row.item.state === 'CONFIRMED'" icon="check"></b-icon>
+        <b-icon v-if="row.item.state === 'DELETED'" icon="trash"></b-icon>
+      </template>
       <template #cell(bookmark)="row">
         <b-button
           variant="danger"
@@ -36,6 +42,9 @@
             ></b-icon>
           </b-button>
         </div>
+      </template>
+      <template #cell(chatCreation)="row">
+        {{ row.item.messagesCount }}
       </template>
       <template #cell(deny)="row">
         <div v-if="$store.state.moderator.id !== row.item.userId">

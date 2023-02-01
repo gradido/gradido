@@ -22,8 +22,13 @@
         <b-tab :title="$t('contributions.denied')">
           <p>{{ $t('contributions.denied') }}</p>
         </b-tab>
-        <b-tab :title="$t('contributions.all')">
+        <b-tab :title="$t('contributions.all')" @click="$apollo.queries.AllContributions.refetch()">
           <p>{{ $t('contributions.all') }}</p>
+          <open-creations-table
+            class="mt-4"
+            :items="allCreations"
+            :fields="fieldsAllContributions"
+          />
         </b-tab>
       </b-tabs>
     </div>
@@ -57,6 +62,7 @@
 import Overlay from '../components/Overlay.vue'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable.vue'
 import { listUnconfirmedContributions } from '../graphql/listUnconfirmedContributions'
+import { listAllContributions } from '../graphql/listAllContributions'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
@@ -70,6 +76,7 @@ export default {
   data() {
     return {
       pendingCreations: [],
+      allCreations: [],
       overlay: false,
       item: {},
       variant: 'confirm',
@@ -172,6 +179,30 @@ export default {
         { key: 'confirm', label: this.$t('save') },
       ]
     },
+    fieldsAllContributions() {
+      return [
+        { key: 'state', label: 'state' },
+        { key: 'messagesCount', label: 'mc' },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        {
+          key: 'amount',
+          label: this.$t('creation'),
+          formatter: (value) => {
+            return value + ' GDD'
+          },
+        },
+        { key: 'memo', label: this.$t('text'), class: 'text-break' },
+        {
+          key: 'date',
+          label: this.$t('date'),
+          formatter: (value) => {
+            return this.$d(new Date(value), 'short')
+          },
+        },
+        { key: 'chatCreation', label: this.$t('chat') },
+      ]
+    },
     overlayTitle() {
       return `overlay.${this.variant}.title`
     },
@@ -213,6 +244,21 @@ export default {
         this.$store.commit('resetOpenCreations')
         this.pendingCreations = listUnconfirmedContributions
         this.$store.commit('setOpenCreations', listUnconfirmedContributions.length)
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
+    },
+    AllContributions: {
+      query() {
+        return listAllContributions
+      },
+      variables() {
+        // may be at some point we need a pagination here
+        return {}
+      },
+      update({ listAllContributions }) {
+        this.allCreations = listAllContributions.contributionList
       },
       error({ message }) {
         this.toastError(message)
