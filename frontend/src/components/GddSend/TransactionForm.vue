@@ -105,7 +105,7 @@
                   </b-button>
                 </b-col>
                 <b-col cols="12" md="6" lg="6" class="text-lg-right">
-                  <b-button block type="submit" variant="gradido">
+                  <b-button block type="submit" variant="gradido" :disabled="disabled">
                     {{ $t('form.check_now') }}
                   </b-button>
                 </b-col>
@@ -177,6 +177,17 @@ export default {
     },
   },
   computed: {
+    disabled() {
+      if (
+        this.form.email.length > 5 &&
+        parseInt(this.form.amount) <= parseInt(this.balance) &&
+        this.form.memo.length > 5 &&
+        this.form.memo.length <= 255
+      ) {
+        return false
+      }
+      return true
+    },
     isBalanceDisabled() {
       return this.balance <= 0 ? 'disabled' : false
     },
