@@ -392,16 +392,11 @@ export class UserResolver {
     }
 
     if (!canEmailResend(user.emailContact.updatedAt || user.emailContact.createdAt)) {
-      logger.error(
-        `email already sent less than ${printTimeDuration(
-          CONFIG.EMAIL_CODE_REQUEST_TIME,
-        )} minutes ago`,
-      )
-      throw new Error(
-        `email already sent less than ${printTimeDuration(
-          CONFIG.EMAIL_CODE_REQUEST_TIME,
-        )} minutes ago`,
-      )
+      const errorMessage = `email already sent less than ${printTimeDuration(
+        CONFIG.EMAIL_CODE_REQUEST_TIME,
+      )} ago`
+      logger.error(errorMessage)
+      throw new Error(errorMessage)
     }
 
     user.emailContact.updatedAt = new Date()
