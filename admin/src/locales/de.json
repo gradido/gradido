@@ -41,7 +41,6 @@
   "creation_form": {
     "creation_failed": "Ausstehende Schöpfung für {email} konnte nicht erzeugt werden.",
     "creation_for": "Aktives Grundeinkommen für",
-    "deleteNow": "Möchtest du diesen Beitrag zur Gemeinschaft wirklich löschen?",
     "enter_text": "Text eintragen",
     "form": "Schöpfungsformular",
     "min_characters": "Mindestens 10 Zeichen eingeben",
@@ -52,6 +51,7 @@
     "toasted": "Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegt zur Bestätigung bereit",
     "toasted_created": "Schöpfung wurde erfolgreich gespeichert",
     "toasted_delete": "Offene Schöpfung wurde gelöscht",
+    "toasted_denied": "Offene Schöpfung wurde abgelehnt",
     "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
     "update_creation": "Schöpfung aktualisieren"
   },
@@ -61,6 +61,7 @@
   "deleted": "gelöscht",
   "deleted_user": "Alle gelöschten Nutzer",
   "delete_user": "Nutzer löschen",
+  "deny": "Ablehnen",
   "edit": "Bearbeiten",
   "enabled": "aktiviert",
   "error": "Fehler",
@@ -116,12 +117,24 @@
   "open": "offen",
   "open_creations": "Offene Schöpfungen",
   "overlay": {
+    "cancel": "Abbrechen",
     "confirm": {
-      "cancel": "Abbrechen",
-      "question": "Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und endgültig speichern?",
+      "question": "Willst du diesen Gemeinwohl-Beitrag wirklich bestätigen und gutschreiben?",
+      "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar. Bitte überprüfe genau, dass alles stimmt.",
+      "title": "Gemeinwohl-Beitrag bestätigen!",
+      "yes": "Ja, Beitrag bestätigen und speichern!"
+    },
+    "delete": {
+      "question": "Willst du diesen Gemeinwohl-Beitrag  wirklich endgültig löschen?",
+      "text": "Nach dem Löschen ist der Datensatz nicht mehr vorhanden.",
+      "title": "Gemeinwohl-Beitrag löschen!",
+      "yes": "Ja, Beitrag löschen!"
+    },
+    "deny": {
+      "question": "Willst du diesen Gemeinwohl-Beitrag  wirklich ablehnen?",
       "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
-      "title": "Schöpfung bestätigen!",
-      "yes": "Ja, Schöpfung bestätigen und speichern!"
+      "title": "Gemeinwohl-Beitrag ablehnen!",
+      "yes": "Ja, Beitrag ablehnen und speichern!"
     }
   },
   "redeemed": "eingelöst",

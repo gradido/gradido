@@ -42,19 +42,19 @@
       "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
       "confirm": "confirmed",
       "deleted": "deleted",
+      "denied": "rejected",
       "in_progress": "There is a question from the moderators.",
       "myContributionNoteList": "You can edit or delete entries that have not yet been confirmed at any time.",
-      "pending": "Submitted and waiting for confirmation",
-      "rejected": "deleted"
+      "pending": "Submitted and waiting for confirmation"
     },
     "delete": "Delete Contribution! Are you sure?",
     "deleted": "The contribution has been deleted! But it will remain visible.",
     "formText": {
-      "bringYourTalentsTo": "Bring your talents to the community! Your voluntary commitment will be rewarded with 20 GDD per hour up to a maximum of 1,000 GDD per month.",
-      "describeYourCommunity": "Describe your community service activity with hours and enter an amount of 20 GDD per hour! After confirmation by a moderator, the amount will be credited to your account.",
+      "bringYourTalentsTo": "Bring your talents to the community! We reward your voluntary commitment with 20 GDD per hour up to a maximum of 1,000 GDD per month.",
+      "describeYourCommunity": "Describe your community service activity and specify the number of hours! The amount of 20 GDD per hour will be calculated automatically. After confirmation by a moderator, the amount will be credited to your account.",
       "maxGDDforMonth": "You can only submit a maximum of {amount} GDD for the selected month.",
       "openAmountForMonth": "For  <b>{monthAndYear}</b>, you can still submit <b>{creation}</b> GDD.",
-      "yourContribution": "Your contribution to the common good"
+      "yourContribution": "Your Contributions to the Common Good"
     },
     "lastContribution": "Last Contributions",
     "noDateSelected": "Choose any date in the month",
@@ -251,7 +251,7 @@
   },
   "openHours": "Open Hours",
   "pageTitle": {
-    "community": "My community",
+    "community": "Create Gradido",
     "gdt": "Your GDT transactions",
     "information": "{community}",
     "overview": "Welcome {name}",
