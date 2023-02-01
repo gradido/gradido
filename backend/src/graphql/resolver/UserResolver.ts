@@ -379,9 +379,7 @@ export class UserResolver {
 
     if (!canEmailResend(user.emailContact.updatedAt || user.emailContact.createdAt)) {
       throw new LogError(
-        `Email already sent less than ${printTimeDuration(
-          CONFIG.EMAIL_CODE_REQUEST_TIME,
-        )} minutes ago`,
+        `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
       )
     }
 

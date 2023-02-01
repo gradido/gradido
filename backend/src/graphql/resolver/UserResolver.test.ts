@@ -935,7 +935,7 @@ describe('UserResolver', () => {
                 new GraphQLError(
                   `Email already sent less than ${printTimeDuration(
                     CONFIG.EMAIL_CODE_REQUEST_TIME,
-                  )} minutes ago`,
+                  )} ago`,
                 ),
               ],
             }),
@@ -975,13 +975,13 @@ describe('UserResolver', () => {
           CONFIG.EMAIL_CODE_REQUEST_TIME = emailCodeRequestTime
           await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('Email already sent less than 10 minutes minutes ago')],
+              errors: [new GraphQLError('Email already sent less than 10 minutes ago')],
             }),
           )
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(`Email already sent less than 10 minutes minutes ago`)
+          expect(logger.error).toBeCalledWith(`Email already sent less than 10 minutes ago`)
         })
       })
     })
