@@ -51,7 +51,7 @@
     "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
     "formText": {
       "bringYourTalentsTo": "Bring dich mit deinen Talenten in die Gemeinschaft ein! Dein freiwilliges Engagement honorieren wir mit 20 GDD pro Stunde bis maximal 1.000 GDD im Monat.",
-      "describeYourCommunity": "Beschreibe deine Gemeinwohl-Tätigkeit mit Angabe der Stunden und trage einen Betrag von 20 GDD pro Stunde ein! Nach Bestätigung durch einen Moderator wird der Betrag deinem Konto gutgeschrieben.",
+      "describeYourCommunity": "Beschreibe deine Gemeinwohl-Tätigkeit und gib die Anzahl der Stunden an! Der Betrag von 20 GDD pro Stunde wird automatisch berechnet. Nach Bestätigung durch einen Moderator wird der Betrag deinem Konto gutgeschrieben.",
       "maxGDDforMonth": "Du kannst für den ausgewählten Monat nur noch maximal {amount} GDD einreichen.",
       "openAmountForMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen.",
       "yourContribution": "Dein Beitrag zum Gemeinwohl"
@@ -251,7 +251,7 @@
   },
   "openHours": "Offene Stunden",
   "pageTitle": {
-    "community": "Meine Gemeinschaft",
+    "community": "Gradido schöpfen",
     "gdt": "Deine GDT Transaktionen",
     "information": "{community}",
     "overview": "Willkommen {name}",
