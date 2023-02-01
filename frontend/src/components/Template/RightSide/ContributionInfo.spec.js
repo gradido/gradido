@@ -55,7 +55,7 @@ describe('ContributionInfo', () => {
         expect(listItems.at(2).text()).toBe('contribution.alert.confirm')
 
         expect(listItems.at(3).find('svg').attributes('aria-label')).toEqual('x circle')
-        expect(listItems.at(3).text()).toBe('contribution.alert.rejected')
+        expect(listItems.at(3).text()).toBe('contribution.alert.denied')
       })
     })
 
@@ -78,8 +78,14 @@ describe('ContributionInfo', () => {
         expect(listItems.at(0).find('svg').attributes('aria-label')).toEqual('bell fill')
         expect(listItems.at(0).text()).toBe('contribution.alert.pending')
 
-        expect(listItems.at(1).find('svg').attributes('aria-label')).toEqual('check')
-        expect(listItems.at(1).text()).toBe('contribution.alert.confirm')
+        expect(listItems.at(1).find('svg').attributes('aria-label')).toEqual('question square')
+        expect(listItems.at(1).text()).toBe('contribution.alert.in_progress')
+
+        expect(listItems.at(2).find('svg').attributes('aria-label')).toEqual('check')
+        expect(listItems.at(2).text()).toBe('contribution.alert.confirm')
+
+        expect(listItems.at(3).find('svg').attributes('aria-label')).toEqual('x circle')
+        expect(listItems.at(3).text()).toBe('contribution.alert.denied')
       })
     })
 

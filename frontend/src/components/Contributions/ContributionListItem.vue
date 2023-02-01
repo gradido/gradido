@@ -33,6 +33,10 @@
           <div class="small">
             {{ $t('creation') }} {{ $t('(') }}{{ amount / 20 }} {{ $t('h') }}{{ $t(')') }}
           </div>
+          <div v-if="state === 'DENIED' && allContribution" class="font-weight-bold">
+            <b-icon icon="x-circle" variant="danger"></b-icon>
+            {{ $t('contribution.alert.denied') }}
+          </div>
           <div v-if="state === 'DELETED'" class="small">
             {{ $t('contribution.deleted') }}
           </div>
@@ -146,6 +150,14 @@ export default {
       type: String,
       required: false,
     },
+    deniedBy: {
+      type: Number,
+      required: false,
+    },
+    deniedAt: {
+      type: String,
+      required: false,
+    },
     state: {
       type: String,
       required: false,
@@ -175,12 +187,14 @@ export default {
   computed: {
     icon() {
       if (this.deletedAt) return 'trash'
+      if (this.deniedAt) return 'x-circle'
       if (this.confirmedAt) return 'check'
       if (this.state === 'IN_PROGRESS') return 'question-circle'
       return 'bell-fill'
     },
     variant() {
       if (this.deletedAt) return 'danger'
+      if (this.deniedAt) return 'warning'
       if (this.confirmedAt) return 'success'
       if (this.state === 'IN_PROGRESS') return 'f5'
       return 'primary'

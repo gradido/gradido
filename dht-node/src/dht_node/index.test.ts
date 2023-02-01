@@ -95,7 +95,7 @@ let con: any
 let testEnv: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger)
+  testEnv = await testEnvironment()
   con = testEnv.con
   await cleanDB()
 })
@@ -181,7 +181,7 @@ describe('federation', () => {
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
-                  new SyntaxError('Unexpected token o in JSON at position 1'),
+                  new SyntaxError('Unexpected token \'o\', "no-json string" is not valid JSON'),
                 )
               })
             })
@@ -200,7 +200,7 @@ describe('federation', () => {
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
-                  new SyntaxError('Unexpected token i in JSON at position 0'),
+                  new SyntaxError('Unexpected token \'i\', "invalid ty"... is not valid JSON'),
                 )
               })
             })
@@ -224,7 +224,7 @@ describe('federation', () => {
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
-                  new SyntaxError('Unexpected token a in JSON at position 0'),
+                  new SyntaxError('Unexpected token \'a\', "api,url,in"... is not valid JSON'),
                 )
               })
             })
