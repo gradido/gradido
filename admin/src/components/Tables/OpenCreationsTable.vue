@@ -1,11 +1,20 @@
 <template>
   <div class="open-creations-table">
-    <b-table-lite :items="items" :fields="fields" caption-top striped hover stacked="md">
+    <b-table-lite
+      :items="items"
+      :fields="fields"
+      caption-top
+      striped
+      hover
+      stacked="md"
+      :tbody-tr-class="rowClass"
+    >
       <template #cell(state)="row">
-        <b-icon v-if="row.item.state === 'IN_PROGRESS'" icon="bell-fill"></b-icon>
+        <b-icon v-if="row.item.state === 'IN_PROGRESS'" icon="question-square"></b-icon>
         <b-icon v-if="row.item.state === 'PENDING'" icon="bell-fill"></b-icon>
         <b-icon v-if="row.item.state === 'CONFIRMED'" icon="check"></b-icon>
         <b-icon v-if="row.item.state === 'DELETED'" icon="trash"></b-icon>
+        <b-icon v-if="row.item.state === 'DENIED'" icon="x-circle"></b-icon>
       </template>
       <template #cell(bookmark)="row">
         <b-button
@@ -43,8 +52,15 @@
           </b-button>
         </div>
       </template>
+      <template #cell(reActive)>
+        <b-button variant="warning" size="md" @click="reActive" class="mr-2">
+          <b-icon icon="arrow-up" variant="light"></b-icon>
+        </b-button>
+      </template>
       <template #cell(chatCreation)="row">
-        {{ row.item.messagesCount }}
+        <b-button v-if="row.item.messagesCount > 0" @click="rowToggleDetails(row, 0)">
+          <b-icon icon="chat-dots"></b-icon>
+        </b-button>
       </template>
       <template #cell(deny)="row">
         <div v-if="$store.state.moderator.id !== row.item.userId">
@@ -138,6 +154,11 @@ export default {
     }
   },
   methods: {
+    rowClass(item, type) {
+      if (!item || type !== 'row') return
+      if (item.state === 'CONFIRMED') return 'table-success'
+      if (item.state === 'DENIED') return 'table-info'
+    },
     updateCreationData(data) {
       const row = data.row
       this.$emit('update-contributions', data)
@@ -150,6 +171,9 @@ export default {
     },
     updateState(id) {
       this.$emit('update-state', id)
+    },
+    reActive() {
+      alert('reActive Contribution')
     },
   },
 }

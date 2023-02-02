@@ -3,7 +3,7 @@
   <div class="creation-confirm">
     <div>
       <b-tabs content-class="mt-3" fill>
-        <b-tab active>
+        <b-tab active @click="listContributions(['IN_PROGRESS', 'PENDING'])">
           <template #title>
             {{ $t('contributions.open') }}
             <b-badge v-if="$store.state.openCreations > 0" variant="danger">
@@ -12,23 +12,38 @@
           </template>
           <open-creations-table
             class="mt-4"
-            :items="pendingCreations"
+            :items="allCreations"
             :fields="fields"
             @show-overlay="showOverlay"
             @update-state="updateState"
-            @update-contributions="$apollo.queries.PendingContributions.refetch()"
+            @update-contributions="listContributions(['IN_PROGRESS', 'PENDING'])"
           />
         </b-tab>
-        <b-tab :title="$t('contributions.deleted')">
+        <b-tab :title="$t('contributions.denied')" @click="listContributions(['DENIED'])">
+          <p>{{ $t('contributions.denied') }}</p>
+          <open-creations-table
+            class="mt-4"
+            :items="allCreations"
+            :fields="fieldsDeniedContributions"
+            @update-contributions="listContributions(['DENIED'])"
+          />
+        </b-tab>
+        <b-tab :title="$t('contributions.confirmed')" @click="listContributions(['CONFIRMED'])">
+          <p>{{ $t('contributions.confirmed') }}</p>
+          <open-creations-table
+            class="mt-4"
+            :items="allCreations"
+            :fields="fieldsConfirmContributions"
+            @update-contributions="listContributions(['CONFIRMED'])"
+          />
+        </b-tab>
+        <b-tab :title="$t('contributions.deleted')" @click="listContributions(['DELETED'])">
           <p>{{ $t('contributions.deleted') }}</p>
         </b-tab>
-        <b-tab :title="$t('contributions.confirmed')">
-          <p>{{ $t('contributions.confirmed') }}</p>
-        </b-tab>
-        <b-tab :title="$t('contributions.denied')">
-          <p>{{ $t('contributions.denied') }}</p>
-        </b-tab>
-        <b-tab :title="$t('contributions.all')" @click="$apollo.queries.AllContributions.refetch()">
+        <b-tab
+          :title="$t('contributions.all')"
+          @click="listContributions(['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED'])"
+        >
           <p>{{ $t('contributions.all') }}</p>
           <open-creations-table
             class="mt-4"
@@ -38,6 +53,16 @@
         </b-tab>
       </b-tabs>
     </div>
+    {{ rows }}
+    <b-pagination
+      pills
+      size="lg"
+      v-model="currentPage"
+      :per-page="pageSize"
+      :total-rows="rows"
+      align="center"
+      :hide-ellipsis="true"
+    ></b-pagination>
 
     <div v-if="overlay" id="overlay" @dblclick="overlay = false">
       <overlay :item="item" @overlay-cancel="overlay = false">
@@ -67,7 +92,6 @@
 <script>
 import Overlay from '../components/Overlay.vue'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable.vue'
-import { listUnconfirmedContributions } from '../graphql/listUnconfirmedContributions'
 import { listAllContributions } from '../graphql/listAllContributions'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
@@ -83,12 +107,20 @@ export default {
     return {
       pendingCreations: [],
       allCreations: [],
+      statusFilter: ['IN_PROGRESS', 'PENDING'],
       overlay: false,
       item: {},
       variant: 'confirm',
+      rows: 0,
+      currentPage: 1,
+      pageSize: 25,
     }
   },
   methods: {
+    listContributions(arr) {
+      this.statusFilter = arr
+      this.$apollo.queries.AllContributions.refetch()
+    },
     deleteCreation() {
       this.$apollo
         .mutate({
@@ -188,7 +220,6 @@ export default {
     fieldsAllContributions() {
       return [
         { key: 'state', label: 'state' },
-        { key: 'messagesCount', label: 'mc' },
         { key: 'firstName', label: this.$t('firstname') },
         { key: 'lastName', label: this.$t('lastname') },
         {
@@ -200,12 +231,94 @@ export default {
         },
         { key: 'memo', label: this.$t('text'), class: 'text-break' },
         {
-          key: 'date',
-          label: this.$t('date'),
+          key: 'contributionDate',
+          label: this.$t('created'),
           formatter: (value) => {
             return this.$d(new Date(value), 'short')
           },
         },
+        {
+          key: 'createdAt',
+          label: this.$t('createdAt'),
+          formatter: (value) => {
+            return this.$d(new Date(value), 'short')
+          },
+        },
+        { key: 'chatCreation', label: this.$t('chat') },
+      ]
+    },
+    fieldsDeniedContributions() {
+      return [
+        { key: 'reActive', label: 'reActive' },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        {
+          key: 'amount',
+          label: this.$t('creation'),
+          formatter: (value) => {
+            return value + ' GDD'
+          },
+        },
+        { key: 'memo', label: this.$t('text'), class: 'text-break' },
+        {
+          key: 'contributionDate',
+          label: this.$t('created'),
+          formatter: (value) => {
+            return this.$d(new Date(value), 'short')
+          },
+        },
+        {
+          key: 'createdAt',
+          label: this.$t('createdAt'),
+          formatter: (value) => {
+            return this.$d(new Date(value), 'short')
+          },
+        },
+        {
+          key: 'deniedAt',
+          label: this.$t('contributions.denied'),
+          formatter: (value) => {
+            return this.$d(new Date(value), 'short')
+          },
+        },
+        { key: 'deniedBy', label: this.$t('mod') },
+        { key: 'chatCreation', label: this.$t('chat') },
+      ]
+    },
+    fieldsConfirmContributions() {
+      return [
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        {
+          key: 'amount',
+          label: this.$t('creation'),
+          formatter: (value) => {
+            return value + ' GDD'
+          },
+        },
+        { key: 'memo', label: this.$t('text'), class: 'text-break' },
+        {
+          key: 'contributionDate',
+          label: this.$t('created'),
+          formatter: (value) => {
+            return this.$d(new Date(value), 'short')
+          },
+        },
+        {
+          key: 'createdAt',
+          label: this.$t('createdAt'),
+          formatter: (value) => {
+            return this.$d(new Date(value), 'short')
+          },
+        },
+        {
+          key: 'confirmedAt',
+          label: this.$t('contributions.confirms'),
+          formatter: (value) => {
+            return this.$d(new Date(value), 'short')
+          },
+        },
+        { key: 'confirmedBy', label: this.$t('mod') },
         { key: 'chatCreation', label: this.$t('chat') },
       ]
     },
@@ -238,32 +351,20 @@ export default {
     },
   },
   apollo: {
-    PendingContributions: {
-      query() {
-        return listUnconfirmedContributions
-      },
-      variables() {
-        // may be at some point we need a pagination here
-        return {}
-      },
-      update({ listUnconfirmedContributions }) {
-        this.$store.commit('resetOpenCreations')
-        this.pendingCreations = listUnconfirmedContributions
-        this.$store.commit('setOpenCreations', listUnconfirmedContributions.length)
-      },
-      error({ message }) {
-        this.toastError(message)
-      },
-    },
     AllContributions: {
       query() {
         return listAllContributions
       },
       variables() {
         // may be at some point we need a pagination here
-        return {}
+        return {
+          currentPage: this.currentPage,
+          pageSize: this.pageSize,
+          statusFilter: this.statusFilter,
+        }
       },
       update({ listAllContributions }) {
+        this.rows = listAllContributions.contributionCount
         this.allCreations = listAllContributions.contributionList
       },
       error({ message }) {

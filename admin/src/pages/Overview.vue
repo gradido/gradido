@@ -31,24 +31,33 @@
   </div>
 </template>
 <script>
-import { listUnconfirmedContributions } from '@/graphql/listUnconfirmedContributions.js'
+import { listAllContributions } from '../graphql/listAllContributions'
 
 export default {
   name: 'overview',
-  methods: {
-    getPendingCreations() {
-      this.$apollo
-        .query({
-          query: listUnconfirmedContributions,
-          fetchPolicy: 'network-only',
-        })
-        .then((result) => {
-          this.$store.commit('setOpenCreations', result.data.listUnconfirmedContributions.length)
-        })
-    },
+  data() {
+    return {
+      statusFilter: ['IN_PROGRESS', 'PENDING'],
+    }
   },
-  created() {
-    this.getPendingCreations()
+  apollo: {
+    AllContributions: {
+      query() {
+        return listAllContributions
+      },
+      variables() {
+        // may be at some point we need a pagination here
+        return {
+          statusFilter: this.statusFilter,
+        }
+      },
+      update({ listAllContributions }) {
+        this.$store.commit('setOpenCreations', listAllContributions.contributionCount)
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
+    },
   },
 }
 </script>

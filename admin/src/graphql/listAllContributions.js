@@ -3,7 +3,7 @@ import gql from 'graphql-tag'
 export const listAllContributions = gql`
   query (
     $currentPage: Int = 1
-    $pageSize: Int = 5
+    $pageSize: Int = 25
     $order: Order = DESC
     $statusFilter: [ContributionStatus!]
   ) {
