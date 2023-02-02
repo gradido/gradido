@@ -1106,13 +1106,13 @@ describe('UserResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError(`"not-valid" isn't a valid language`)],
+              errors: [new GraphQLError('Given language is not a valid language')],
             }),
           )
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(`"not-valid" isn't a valid language`, 'not-valid')
+          expect(logger.error).toBeCalledWith('Given language is not a valid language', 'not-valid')
         })
       })
 

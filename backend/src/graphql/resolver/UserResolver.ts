@@ -550,7 +550,7 @@ export class UserResolver {
 
     if (language) {
       if (!isLanguage(language)) {
-        throw new LogError(`"${language}" isn't a valid language`, language)
+        throw new LogError('Given language is not a valid language', language)
       }
       userEntity.language = language
       i18n.setLocale(language)
