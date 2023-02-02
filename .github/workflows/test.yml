@@ -585,13 +585,13 @@ jobs:
           path: /tmp
       - name: Load Docker Image (Database Up)
         run: docker load < /tmp/database_up.tar
-      - name: Download Docker Image (Backend)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-backend-test
-          path: /tmp
-      - name: Load Docker Image (Backend)
-        run: docker load < /tmp/backend.tar
+      # - name: Download Docker Image (Backend)
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: docker-backend-test
+      #     path: /tmp
+      # - name: Load Docker Image (Backend)
+      #   run: docker load < /tmp/backend.tar
       - name: Download Docker Image (Frontend)
         uses: actions/download-artifact@v3
         with:
@@ -624,7 +624,11 @@ jobs:
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
 
       - name: Boot up test system | docker-compose backend
-        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend 
+        run: |
+          cd backend
+          cp .env.XX .env
+          cd ..
+          docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend 
 
       - name: Sleep for 10 seconds
         run: sleep 10s
@@ -640,6 +644,9 @@ jobs:
 
       - name: Boot up test system | docker-compose frontends
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps frontend admin nginx
+
+      - name: Boot up test system | docker-compose frontends
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mailserver
 
       - name: Sleep for 15 seconds
         run: sleep 15s
