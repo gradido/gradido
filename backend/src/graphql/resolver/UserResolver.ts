@@ -480,7 +480,7 @@ export class UserResolver {
       eventProtocol.writeEvent(event.setEventActivateAccount(eventActivateAccount))
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      throw new LogError(`Error on writing User and UserContact data: ${e}`, e)
+      throw new LogError('Error on writing User and User Contact data', e)
     } finally {
       await queryRunner.release()
     }
