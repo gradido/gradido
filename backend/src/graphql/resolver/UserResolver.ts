@@ -48,7 +48,7 @@ import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddle
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
-import { eventProtocol } from '@/event/EventProtocolEmitter'
+import { writeEvent } from '@/event/EventProtocolEmitter'
 import {
   Event,
   EventLogin,
@@ -181,7 +181,7 @@ export class UserResolver {
     })
     const ev = new EventLogin()
     ev.userId = user.id
-    eventProtocol.writeEvent(new Event().setEventLogin(ev))
+    writeEvent(new Event().setEventLogin(ev))
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
     return user
   }
@@ -253,9 +253,7 @@ export class UserResolver {
         })
         const eventSendAccountMultiRegistrationEmail = new EventSendAccountMultiRegistrationEmail()
         eventSendAccountMultiRegistrationEmail.userId = foundUser.id
-        eventProtocol.writeEvent(
-          event.setEventSendConfirmationEmail(eventSendAccountMultiRegistrationEmail),
-        )
+        writeEvent(event.setEventSendConfirmationEmail(eventSendAccountMultiRegistrationEmail))
         logger.info(
           `sendAccountMultiRegistrationEmail by ${firstName} ${lastName} to ${foundUser.firstName} ${foundUser.lastName} <${email}>`,
         )
@@ -349,7 +347,7 @@ export class UserResolver {
       })
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
       eventSendConfirmEmail.userId = dbUser.id
-      eventProtocol.writeEvent(event.setEventSendConfirmationEmail(eventSendConfirmEmail))
+      writeEvent(event.setEventSendConfirmationEmail(eventSendConfirmEmail))
 
       if (!emailSent) {
         logger.debug(`Account confirmation link: ${activationLink}`)
@@ -368,10 +366,10 @@ export class UserResolver {
 
     if (redeemCode) {
       eventRedeemRegister.userId = dbUser.id
-      await eventProtocol.writeEvent(event.setEventRedeemRegister(eventRedeemRegister))
+      await writeEvent(event.setEventRedeemRegister(eventRedeemRegister))
     } else {
       eventRegister.userId = dbUser.id
-      await eventProtocol.writeEvent(event.setEventRegister(eventRegister))
+      await writeEvent(event.setEventRegister(eventRegister))
     }
 
     return new User(dbUser)
@@ -507,7 +505,7 @@ export class UserResolver {
 
       const eventActivateAccount = new EventActivateAccount()
       eventActivateAccount.userId = user.id
-      eventProtocol.writeEvent(event.setEventActivateAccount(eventActivateAccount))
+      writeEvent(event.setEventActivateAccount(eventActivateAccount))
     } catch (e) {
       await queryRunner.rollbackTransaction()
       logger.error('Error on writing User and UserContact data:' + e)
@@ -874,9 +872,7 @@ export class UserResolver {
       const event = new Event()
       const eventSendConfirmationEmail = new EventSendConfirmationEmail()
       eventSendConfirmationEmail.userId = user.id
-      await eventProtocol.writeEvent(
-        event.setEventSendConfirmationEmail(eventSendConfirmationEmail),
-      )
+      await writeEvent(event.setEventSendConfirmationEmail(eventSendConfirmationEmail))
     }
 
     return true
