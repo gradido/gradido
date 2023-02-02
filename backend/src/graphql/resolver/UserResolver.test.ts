@@ -1431,16 +1431,13 @@ describe('UserResolver', () => {
               mutate({ mutation: setUserRole, variables: { userId: admin.id + 1, isAdmin: true } }),
             ).resolves.toEqual(
               expect.objectContaining({
-                errors: [new GraphQLError(`Could not find user with userId: ${admin.id + 1}`)],
+                errors: [new GraphQLError('Could not find user with given ID')],
               }),
             )
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith(
-              `Could not find user with userId: ${admin.id + 1}`,
-              admin.id + 1,
-            )
+            expect(logger.error).toBeCalledWith('Could not find user with given ID', admin.id + 1)
           })
         })
 
@@ -1606,16 +1603,13 @@ describe('UserResolver', () => {
               mutate({ mutation: deleteUser, variables: { userId: admin.id + 1 } }),
             ).resolves.toEqual(
               expect.objectContaining({
-                errors: [new GraphQLError(`Could not find user with userId: ${admin.id + 1}`)],
+                errors: [new GraphQLError('Could not find user with given ID')],
               }),
             )
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith(
-              `Could not find user with userId: ${admin.id + 1}`,
-              admin.id + 1,
-            )
+            expect(logger.error).toBeCalledWith('Could not find user with given ID', admin.id + 1)
           })
         })
 
@@ -1660,16 +1654,13 @@ describe('UserResolver', () => {
                 mutate({ mutation: deleteUser, variables: { userId: user.id } }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError(`Could not find user with userId: ${user.id}`)],
+                  errors: [new GraphQLError('Could not find user with given ID')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith(
-                `Could not find user with userId: ${user.id}`,
-                user.id,
-              )
+              expect(logger.error).toBeCalledWith('Could not find user with given ID', user.id)
             })
           })
         })
@@ -1735,16 +1726,13 @@ describe('UserResolver', () => {
               mutate({ mutation: unDeleteUser, variables: { userId: admin.id + 1 } }),
             ).resolves.toEqual(
               expect.objectContaining({
-                errors: [new GraphQLError(`Could not find user with userId: ${admin.id + 1}`)],
+                errors: [new GraphQLError('Could not find user with given ID')],
               }),
             )
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith(
-              `Could not find user with userId: ${admin.id + 1}`,
-              admin.id + 1,
-            )
+            expect(logger.error).toBeCalledWith('Could not find user with given ID', admin.id + 1)
           })
         })
 
