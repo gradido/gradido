@@ -21,16 +21,26 @@ When(
         req.body.hasOwnProperty("query") &&
         req.body.query.includes("mutation")
       ) {
+<<<<<<< Updated upstream
         req.alias = "login";
+=======
+        req.alias = "loging";
+>>>>>>> Stashed changes
       }
     });
 
     loginPage.enterEmail(email);
     loginPage.enterPassword(password);
     loginPage.submitLogin();
+<<<<<<< Updated upstream
     cy.wait("@login").then((interception) => {
       expect(interception.response.statusCode).equals(200);
       expect(JSON.stringify(interception.response.body)).contains(email);
+=======
+
+    cy.wait("@loging").then((interception) => {
+      expect(interception.response.statusCode).equals(200);
+>>>>>>> Stashed changes
     });
   }
 );
