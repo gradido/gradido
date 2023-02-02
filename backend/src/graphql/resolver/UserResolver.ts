@@ -346,7 +346,7 @@ export class UserResolver {
       logger.addContext('user', dbUser.id)
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      throw new LogError(`Error during create user with error: ${e}`, e)
+      throw new LogError('Error creating user', e)
     } finally {
       await queryRunner.release()
     }
