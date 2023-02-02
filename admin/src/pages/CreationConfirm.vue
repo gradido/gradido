@@ -19,6 +19,15 @@
             @update-contributions="listContributions(['IN_PROGRESS', 'PENDING'])"
           />
         </b-tab>
+        <b-tab :title="$t('contributions.confirms')" @click="listContributions(['CONFIRMED'])">
+          <p>{{ $t('contributions.confirms') }}</p>
+          <open-creations-table
+            class="mt-4"
+            :items="allCreations"
+            :fields="fieldsConfirmContributions"
+            @update-contributions="listContributions(['CONFIRMED'])"
+          />
+        </b-tab>
         <b-tab :title="$t('contributions.denied')" @click="listContributions(['DENIED'])">
           <p>{{ $t('contributions.denied') }}</p>
           <open-creations-table
@@ -26,15 +35,6 @@
             :items="allCreations"
             :fields="fieldsDeniedContributions"
             @update-contributions="listContributions(['DENIED'])"
-          />
-        </b-tab>
-        <b-tab :title="$t('contributions.confirmed')" @click="listContributions(['CONFIRMED'])">
-          <p>{{ $t('contributions.confirmed') }}</p>
-          <open-creations-table
-            class="mt-4"
-            :items="allCreations"
-            :fields="fieldsConfirmContributions"
-            @update-contributions="listContributions(['CONFIRMED'])"
           />
         </b-tab>
         <b-tab :title="$t('contributions.deleted')" @click="listContributions(['DELETED'])">
