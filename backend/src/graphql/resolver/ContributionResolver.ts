@@ -180,14 +180,14 @@ export class ContributionResolver {
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
-    statusFilters?: ContributionStatus[],
+    statusFilter?: ContributionStatus[],
   ): Promise<ContributionListResult> {
     const where: {
       contributionStatus?: FindOperator<string> | null
     } = {}
 
-    if (statusFilters && statusFilters.length) {
-      where.contributionStatus = In(statusFilters)
+    if (statusFilter && statusFilter.length) {
+      where.contributionStatus = In(statusFilter)
     }
 
     const [dbContributions, count] = await getConnection()
