@@ -89,7 +89,7 @@ describe('send coins', () => {
     })
 
     it('logs the error thrown', () => {
-      expect(logger.error).toBeCalledWith(`UserContact with email=wrong@email.com does not exists`)
+      expect(logger.error).toBeCalledWith('No user with this credentials', 'wrong@email.com')
     })
 
     describe('deleted recipient', () => {
