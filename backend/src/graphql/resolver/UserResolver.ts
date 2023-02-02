@@ -588,7 +588,7 @@ export class UserResolver {
 
     try {
       await queryRunner.manager.save(userEntity).catch((error) => {
-        throw new LogError(`error saving user: ${error}`, error)
+        throw new LogError('Error saving user', error)
       })
 
       await queryRunner.commitTransaction()
