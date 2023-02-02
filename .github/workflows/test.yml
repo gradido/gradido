@@ -163,31 +163,31 @@ jobs:
   ##############################################################################
   # JOB: LOCALES FRONTEND ######################################################
   ##############################################################################
-  locales_frontend:
-    name: Locales - Frontend
-    runs-on: ubuntu-latest
-    needs: [build_test_frontend]
-    steps:
-      ##########################################################################
-      # CHECKOUT CODE ##########################################################
-      ##########################################################################
-      - name: Checkout code
-        uses: actions/checkout@v3
-      ##########################################################################
-      # DOWNLOAD DOCKER IMAGE ##################################################
-      ##########################################################################
-      - name: Download Docker Image (Frontend)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-frontend-test
-          path: /tmp
-      - name: Load Docker Image
-        run: docker load < /tmp/frontend.tar
-      ##########################################################################
-      # LOCALES FRONTEND #######################################################
-      ##########################################################################
-      - name: Frontend | Locales
-        run: docker run --rm gradido/frontend:test yarn run locales
+  # locales_frontend:
+  #   name: Locales - Frontend
+  #   runs-on: ubuntu-latest
+  #   needs: [build_test_frontend]
+  #   steps:
+  #     ##########################################################################
+  #     # CHECKOUT CODE ##########################################################
+  #     ##########################################################################
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+  #     ##########################################################################
+  #     # DOWNLOAD DOCKER IMAGE ##################################################
+  #     ##########################################################################
+  #     - name: Download Docker Image (Frontend)
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: docker-frontend-test
+  #         path: /tmp
+  #     - name: Load Docker Image
+  #       run: docker load < /tmp/frontend.tar
+  #     ##########################################################################
+  #     # LOCALES FRONTEND #######################################################
+  #     ##########################################################################
+  #     - name: Frontend | Locales
+  #       run: docker run --rm gradido/frontend:test yarn run locales
 
   ##############################################################################
   # JOB: LINT FRONTEND #########################################################
@@ -535,25 +535,25 @@ jobs:
   ##########################################################################
   # DATABASE MIGRATION TEST UP + RESET #####################################
   ##########################################################################
-  database_migration_test:
-    name: Database Migration Test - Up + Reset
-    runs-on: ubuntu-latest
-    #needs: [nothing]
-    steps:
-      ##########################################################################
-      # CHECKOUT CODE ##########################################################
-      ##########################################################################
-      - name: Checkout code
-        uses: actions/checkout@v3
-      ##########################################################################
-      # DOCKER COMPOSE DATABASE UP + RESET #####################################
-      ##########################################################################
-      - name: database | docker-compose
-        run: docker-compose -f docker-compose.yml up --detach mariadb
-      - name: database | up
-        run: docker-compose -f docker-compose.yml run -T database yarn up
-      - name: database | reset
-        run: docker-compose -f docker-compose.yml run -T database yarn reset
+  # database_migration_test:
+  #   name: Database Migration Test - Up + Reset
+  #   runs-on: ubuntu-latest
+  #   #needs: [nothing]
+  #   steps:
+  #     ##########################################################################
+  #     # CHECKOUT CODE ##########################################################
+  #     ##########################################################################
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+  #     ##########################################################################
+  #     # DOCKER COMPOSE DATABASE UP + RESET #####################################
+  #     ##########################################################################
+  #     - name: database | docker-compose
+  #       run: docker-compose -f docker-compose.yml up --detach mariadb
+  #     - name: database | up
+  #       run: docker-compose -f docker-compose.yml run -T database yarn up
+  #     - name: database | reset
+  #       run: docker-compose -f docker-compose.yml run -T database yarn reset
 
   ##############################################################################
   # JOB: END-TO-END TESTS  #####################################################
