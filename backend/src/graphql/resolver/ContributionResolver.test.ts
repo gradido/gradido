@@ -823,7 +823,7 @@ describe('ContributionResolver', () => {
         )
       })
 
-      it('returns allCreation for statusFilter = null', async () => {
+      it('returns all contributions for statusFilter = null', async () => {
         await expect(
           query({
             query: listAllContributions,
