@@ -801,7 +801,7 @@ export class UserResolver {
     }
     const emailContact = user.emailContact
     if (emailContact.deletedAt) {
-      throw new LogError(`The emailContact: ${email} of this User is deleted`, email)
+      throw new LogError('The given email contact for this user is deleted', email)
     }
 
     emailContact.emailResendCount++
