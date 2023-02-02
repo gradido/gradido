@@ -18,7 +18,6 @@
     "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/klicktipp.ts"
   },
   "dependencies": {
-    "@hyperswarm/dht": "^6.2.0",
     "apollo-server-express": "^2.25.2",
     "await-semaphore": "^0.1.3",
     "axios": "^0.21.1",
