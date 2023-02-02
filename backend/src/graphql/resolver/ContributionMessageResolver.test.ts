@@ -88,6 +88,7 @@ describe('ContributionMessageResolver', () => {
 
       describe('input not valid', () => {
         it('throws error when contribution does not exist', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: adminCreateContributionMessage,
@@ -98,16 +99,20 @@ describe('ContributionMessageResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [
-                new GraphQLError(
-                  'ContributionMessage was not successful: Error: Contribution not found',
-                ),
-              ],
+              errors: [new GraphQLError('ContributionMessage was not sent successfully')],
             }),
           )
         })
 
+        it('logs the error thrown', () => {
+          expect(logger.error).toBeCalledWith(
+            'ContributionMessage was not sent successfully',
+            new Error('Contribution not found'),
+          )
+        })
+
         it('throws error when contribution.userId equals user.id', async () => {
+          jest.clearAllMocks()
           await mutate({
             mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
@@ -130,12 +135,15 @@ describe('ContributionMessageResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [
-                new GraphQLError(
-                  'ContributionMessage was not successful: Error: Admin can not answer on own contribution',
-                ),
-              ],
+              errors: [new GraphQLError('ContributionMessage was not sent successfully')],
             }),
+          )
+        })
+
+        it('logs the error thrown', () => {
+          expect(logger.error).toBeCalledWith(
+            'ContributionMessage was not sent successfully',
+            new Error('Admin can not answer on his own contribution'),
           )
         })
       })
@@ -210,6 +218,7 @@ describe('ContributionMessageResolver', () => {
 
       describe('input not valid', () => {
         it('throws error when contribution does not exist', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: createContributionMessage,
@@ -220,16 +229,20 @@ describe('ContributionMessageResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [
-                new GraphQLError(
-                  'ContributionMessage was not successful: Error: Contribution not found',
-                ),
-              ],
+              errors: [new GraphQLError('ContributionMessage was not sent successfully')],
             }),
           )
         })
 
+        it('logs the error thrown', () => {
+          expect(logger.error).toBeCalledWith(
+            'ContributionMessage was not sent successfully',
+            new Error('Contribution not found'),
+          )
+        })
+
         it('throws error when other user tries to send createContributionMessage', async () => {
+          jest.clearAllMocks()
           await mutate({
             mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
@@ -244,12 +257,15 @@ describe('ContributionMessageResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [
-                new GraphQLError(
-                  'ContributionMessage was not successful: Error: Can not send message to contribution of another user',
-                ),
-              ],
+              errors: [new GraphQLError('ContributionMessage was not sent successfully')],
             }),
+          )
+        })
+
+        it('logs the error thrown', () => {
+          expect(logger.error).toBeCalledWith(
+            'ContributionMessage was not sent successfully',
+            new Error('Can not send message to contribution of another user'),
           )
         })
       })
