@@ -296,8 +296,8 @@ export default {
   },
   created() {
     this.updateTransactions(0)
-    this.tabIndex = 1
-    this.$router.push({ path: '/community#my' })
+    this.tabIndex = 0
+    this.$router.push({ path: '/community#edit' })
   },
 }
 </script>
