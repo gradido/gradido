@@ -96,7 +96,7 @@ describe('EmailOptinCodes', () => {
         mutate({ mutation: forgotPassword, variables: { email: 'peter@lustig.de' } }),
       ).resolves.toMatchObject({
         data: null,
-        errors: [new GraphQLError('email already sent less than 10 minutes minutes ago')],
+        errors: [new GraphQLError('email already sent less than 10 minutes ago')],
       })
     })
 

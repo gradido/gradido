@@ -788,7 +788,7 @@ describe('ContributionResolver', () => {
         )
       })
 
-      it('returns allCreation without statusFilter', async () => {
+      it('returns all contributions without statusFilter', async () => {
         await expect(
           query({
             query: listAllContributions,
@@ -823,7 +823,7 @@ describe('ContributionResolver', () => {
         )
       })
 
-      it('returns allCreation for statusFilter = null', async () => {
+      it('returns all contributions for statusFilter = null', async () => {
         await expect(
           query({
             query: listAllContributions,
@@ -859,7 +859,7 @@ describe('ContributionResolver', () => {
         )
       })
 
-      it('returns allCreation for statusFilter = []', async () => {
+      it('returns all contributions for statusFilter = []', async () => {
         await expect(
           query({
             query: listAllContributions,
@@ -895,7 +895,7 @@ describe('ContributionResolver', () => {
         )
       })
 
-      it('returns all CONFIRMED Creation', async () => {
+      it('returns all CONFIRMED contributions', async () => {
         await expect(
           query({
             query: listAllContributions,
@@ -931,7 +931,7 @@ describe('ContributionResolver', () => {
         )
       })
 
-      it('returns all PENDING Creation', async () => {
+      it('returns all PENDING contributions', async () => {
         await expect(
           query({
             query: listAllContributions,
