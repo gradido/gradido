@@ -794,7 +794,7 @@ export class UserResolver {
     // const user = await dbUser.findOne({ id: emailContact.userId })
     const user = await findUserByEmail(email)
     if (!user) {
-      throw new LogError(`Could not find User to emailContact: ${email}`, email)
+      throw new LogError('Could not find user to given email contact', email)
     }
     if (user.deletedAt) {
       throw new LogError(`User with emailContact: ${email} is deleted`, email)
