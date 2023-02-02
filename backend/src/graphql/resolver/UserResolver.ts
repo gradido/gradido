@@ -595,7 +595,7 @@ export class UserResolver {
       logger.debug('writing User data successful...')
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      throw new LogError(`error on writing updated user data: ${e}`, e)
+      throw new LogError(`Error on writing updated user data', e)
     } finally {
       await queryRunner.release()
     }
