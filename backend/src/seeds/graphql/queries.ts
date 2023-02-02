@@ -172,18 +172,23 @@ export const listContributions = gql`
 `
 
 export const listAllContributions = `
-query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC) {
-  listAllContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC, $statusFilter: [ContributionStatus!]) {
+  listAllContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order, statusFilter: $statusFilter) {
   	contributionCount
     contributionList {
       id
-      firstName
-      lastName
-      amount
-      memo
-      createdAt
-      confirmedAt
-      confirmedBy
+        firstName
+        lastName
+        amount
+        memo
+        createdAt
+        confirmedAt
+        confirmedBy
+        contributionDate
+        state
+        messagesCount
+        deniedAt
+        deniedBy
     }
 	}
 }

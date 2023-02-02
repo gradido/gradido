@@ -20,28 +20,38 @@
           />
         </b-tab>
         <b-tab no-body>
-          <contribution-list
-            @closeAllOpenCollapse="closeAllOpenCollapse"
-            :items="items"
-            @update-list-contributions="updateListContributions"
-            @update-contribution-form="updateContributionForm"
-            @delete-contribution="deleteContribution"
-            @update-state="updateState"
-            :contributionCount="contributionCount"
-            :showPagination="true"
-            :pageSize="pageSize"
-          />
+          <div v-if="items.length === 0">
+            {{ $t('contribution.noContributions.myContributions') }}
+          </div>
+          <div v-else>
+            <contribution-list
+              @closeAllOpenCollapse="closeAllOpenCollapse"
+              :items="items"
+              @update-list-contributions="updateListContributions"
+              @update-contribution-form="updateContributionForm"
+              @delete-contribution="deleteContribution"
+              @update-state="updateState"
+              :contributionCount="contributionCount"
+              :showPagination="true"
+              :pageSize="pageSize"
+            />
+          </div>
         </b-tab>
         <b-tab no-body>
-          <contribution-list
-            :items="itemsAll"
-            @update-list-contributions="updateListAllContributions"
-            @update-contribution-form="updateContributionForm"
-            :contributionCount="contributionCountAll"
-            :showPagination="true"
-            :pageSize="pageSizeAll"
-            :allContribution="true"
-          />
+          <div v-if="itemsAll.length === 0">
+            {{ $t('contribution.noContributions.allContributions') }}
+          </div>
+          <div v-else>
+            <contribution-list
+              :items="itemsAll"
+              @update-list-contributions="updateListAllContributions"
+              @update-contribution-form="updateContributionForm"
+              :contributionCount="contributionCountAll"
+              :showPagination="true"
+              :pageSize="pageSizeAll"
+              :allContribution="true"
+            />
+          </div>
         </b-tab>
       </b-tabs>
     </div>
