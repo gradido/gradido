@@ -494,7 +494,7 @@ export class UserResolver {
           `klicktippSignIn(${userContact.email}, ${user.language}, ${user.firstName}, ${user.lastName})`,
         )
       } catch (e) {
-        logger.error(`Error subscribe to klicktipp: ${e}`, e)
+        logger.error('Error subscribing to klicktipp', e)
         // TODO is this a problem?
         // eslint-disable-next-line no-console
         /*  uncomment this, when you need the activation link on the console
