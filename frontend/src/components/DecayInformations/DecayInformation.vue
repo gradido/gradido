@@ -1,5 +1,6 @@
 <template>
   <div class="decay-information-box">
+    <div v-if="decay.start === null && memo" class="mb-4">{{ memo }}</div>
     <decay-information-before-startblock v-if="decay.start === null" />
     <decay-information-decay-startblock
       v-else-if="isStartBlock"
