@@ -63,6 +63,7 @@ import { isValidPassword } from '@/password/EncryptorUtils'
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
+import LogError from '@/server/LogError'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -134,22 +135,19 @@ export class UserResolver {
     email = email.trim().toLowerCase()
     const dbUser = await findUserByEmail(email)
     if (dbUser.deletedAt) {
-      logger.error('The User was permanently deleted in database.')
-      throw new Error('This user was permanently deleted. Contact support for questions.')
+      throw new LogError('This user was permanently deleted. Contact support for questions', dbUser)
     }
     if (!dbUser.emailContact.emailChecked) {
-      logger.error('The Users email is not validate yet.')
-      throw new Error('User email not validated')
+      throw new LogError('The Users email is not validate yet', dbUser)
     }
+    // TODO: at least in test this does not work since `dbUser.password = 0` and `BigInto(0) = 0n`
     if (dbUser.password === BigInt(0)) {
-      logger.error('The User has not set a password yet.')
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
-      throw new Error('User has no password set yet')
+      throw new LogError('The User has not set a password yet', dbUser)
     }
 
     if (!verifyPassword(dbUser, password)) {
-      logger.error('The User has no valid credentials.')
-      throw new Error('No user with this credentials')
+      throw new LogError('No user with this credentials', dbUser)
     }
 
     if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
@@ -309,29 +307,18 @@ export class UserResolver {
     await queryRunner.startTransaction('REPEATABLE READ')
     try {
       dbUser = await queryRunner.manager.save(dbUser).catch((error) => {
-        logger.error('Error while saving dbUser', error)
-        throw new Error('error saving user')
+        throw new LogError('Error while saving dbUser', error)
       })
       let emailContact = newEmailContact(email, dbUser.id)
       emailContact = await queryRunner.manager.save(emailContact).catch((error) => {
-        logger.error('Error while saving emailContact', error)
-        throw new Error('error saving email user contact')
+        throw new LogError('Error while saving user email contact', error)
       })
 
       dbUser.emailContact = emailContact
       dbUser.emailId = emailContact.id
       await queryRunner.manager.save(dbUser).catch((error) => {
-        logger.error('Error while updating dbUser', error)
-        throw new Error('error updating user')
+        throw new LogError('Error while updating dbUser', error)
       })
-
-      /*
-      const emailOptIn = newEmailOptIn(dbUser.id)
-      await queryRunner.manager.save(emailOptIn).catch((error) => {
-        logger.error('Error while saving emailOptIn', error)
-        throw new Error('error saving email opt in')
-      })
-      */
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
         /{optin}/g,
@@ -358,9 +345,8 @@ export class UserResolver {
       await queryRunner.commitTransaction()
       logger.addContext('user', dbUser.id)
     } catch (e) {
-      logger.error(`error during create user with ${e}`)
       await queryRunner.rollbackTransaction()
-      throw e
+      throw new LogError('Error creating user', e)
     } finally {
       await queryRunner.release()
     }
@@ -392,15 +378,8 @@ export class UserResolver {
     }
 
     if (!canEmailResend(user.emailContact.updatedAt || user.emailContact.createdAt)) {
-      logger.error(
-        `email already sent less than ${printTimeDuration(
-          CONFIG.EMAIL_CODE_REQUEST_TIME,
-        )} minutes ago`,
-      )
-      throw new Error(
-        `email already sent less than ${printTimeDuration(
-          CONFIG.EMAIL_CODE_REQUEST_TIME,
-        )} minutes ago`,
+      throw new LogError(
+        `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
       )
     }
 
@@ -409,8 +388,7 @@ export class UserResolver {
     user.emailContact.emailVerificationCode = random(64)
     user.emailContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_RESET_PASSWORD
     await user.emailContact.save().catch(() => {
-      logger.error('Unable to save email verification code= ' + user.emailContact)
-      throw new Error('Unable to save email verification code.')
+      throw new LogError('Unable to save email verification code', user.emailContact)
     })
 
     logger.info(`optInCode for ${email}=${user.emailContact}`)
@@ -445,34 +423,23 @@ export class UserResolver {
     logger.info(`setPassword(${code}, ***)...`)
     // Validate Password
     if (!isValidPassword(password)) {
-      logger.error('Password entered is lexically invalid')
-      throw new Error(
+      throw new LogError(
         'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
       )
     }
 
-    // Load code
-    /*
-    const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: code }).catch(() => {
-      logger.error('Could not login with emailVerificationCode')
-      throw new Error('Could not login with emailVerificationCode')
-    })
-    */
+    // load code
     const userContact = await DbUserContact.findOneOrFail(
       { emailVerificationCode: code },
       { relations: ['user'] },
     ).catch(() => {
-      logger.error('Could not login with emailVerificationCode')
-      throw new Error('Could not login with emailVerificationCode')
+      throw new LogError('Could not login with emailVerificationCode')
     })
     logger.debug('userContact loaded...')
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     if (!isEmailVerificationCodeValid(userContact.updatedAt || userContact.createdAt)) {
-      logger.error(
-        `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
-      )
-      throw new Error(
-        `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
+      throw new LogError(
+        `Email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
       )
     }
     logger.debug('EmailVerificationCode is valid...')
@@ -498,13 +465,11 @@ export class UserResolver {
     try {
       // Save user
       await queryRunner.manager.save(user).catch((error) => {
-        logger.error('error saving user: ' + error)
-        throw new Error('error saving user: ' + error)
+        throw new LogError('Error saving user', error)
       })
       // Save userContact
       await queryRunner.manager.save(userContact).catch((error) => {
-        logger.error('error saving userContact: ' + error)
-        throw new Error('error saving userContact: ' + error)
+        throw new LogError('Error saving userContact', error)
       })
 
       await queryRunner.commitTransaction()
@@ -515,8 +480,7 @@ export class UserResolver {
       eventProtocol.writeEvent(event.setEventActivateAccount(eventActivateAccount))
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      logger.error('Error on writing User and UserContact data:' + e)
-      throw e
+      throw new LogError('Error on writing User and User Contact data', e)
     } finally {
       await queryRunner.release()
     }
@@ -530,7 +494,7 @@ export class UserResolver {
           `klicktippSignIn(${userContact.email}, ${user.language}, ${user.firstName}, ${user.lastName})`,
         )
       } catch (e) {
-        logger.error('Error subscribe to klicktipp:' + e)
+        logger.error('Error subscribing to klicktipp', e)
         // TODO is this a problem?
         // eslint-disable-next-line no-console
         /*  uncomment this, when you need the activation link on the console
@@ -550,11 +514,8 @@ export class UserResolver {
     logger.debug(`found optInCode=${userContact}`)
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     if (!isEmailVerificationCodeValid(userContact.updatedAt || userContact.createdAt)) {
-      logger.error(
-        `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
-      )
-      throw new Error(
-        `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
+      throw new LogError(
+        `Email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
       )
     }
     logger.info(`queryOptIn(${optIn}) successful...`)
@@ -589,8 +550,7 @@ export class UserResolver {
 
     if (language) {
       if (!isLanguage(language)) {
-        logger.error(`"${language}" isn't a valid language`)
-        throw new Error(`"${language}" isn't a valid language`)
+        throw new LogError('Given language is not a valid language', language)
       }
       userEntity.language = language
       i18n.setLocale(language)
@@ -599,15 +559,13 @@ export class UserResolver {
     if (password && passwordNew) {
       // Validate Password
       if (!isValidPassword(passwordNew)) {
-        logger.error('newPassword does not fullfil the rules')
-        throw new Error(
+        throw new LogError(
           'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
         )
       }
 
       if (!verifyPassword(userEntity, password)) {
-        logger.error(`Old password is invalid`)
-        throw new Error(`Old password is invalid`)
+        throw new LogError(`Old password is invalid`)
       }
 
       // Save new password hash and newly encrypted private key
@@ -630,16 +588,14 @@ export class UserResolver {
 
     try {
       await queryRunner.manager.save(userEntity).catch((error) => {
-        logger.error('error saving user: ' + error)
-        throw new Error('error saving user: ' + error)
+        throw new LogError('Error saving user', error)
       })
 
       await queryRunner.commitTransaction()
       logger.debug('writing User data successful...')
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      logger.error(`error on writing updated user data: ${e}`)
-      throw e
+      throw new LogError('Error on writing updated user data', e)
     } finally {
       await queryRunner.release()
     }
@@ -766,14 +722,12 @@ export class UserResolver {
     const user = await DbUser.findOne({ id: userId })
     // user exists ?
     if (!user) {
-      logger.error(`Could not find user with userId: ${userId}`)
-      throw new Error(`Could not find user with userId: ${userId}`)
+      throw new LogError('Could not find user with given ID', userId)
     }
     // administrator user changes own role?
     const moderatorUser = getUser(context)
     if (moderatorUser.id === userId) {
-      logger.error('Administrator can not change his own role!')
-      throw new Error('Administrator can not change his own role!')
+      throw new LogError('Administrator can not change his own role')
     }
     // change isAdmin
     switch (user.isAdmin) {
@@ -781,16 +735,14 @@ export class UserResolver {
         if (isAdmin === true) {
           user.isAdmin = new Date()
         } else {
-          logger.error('User is already a usual user!')
-          throw new Error('User is already a usual user!')
+          throw new LogError('User is already an usual user')
         }
         break
       default:
         if (isAdmin === false) {
           user.isAdmin = null
         } else {
-          logger.error('User is already admin!')
-          throw new Error('User is already admin!')
+          throw new LogError('User is already admin')
         }
         break
     }
@@ -808,14 +760,12 @@ export class UserResolver {
     const user = await DbUser.findOne({ id: userId })
     // user exists ?
     if (!user) {
-      logger.error(`Could not find user with userId: ${userId}`)
-      throw new Error(`Could not find user with userId: ${userId}`)
+      throw new LogError('Could not find user with given ID', userId)
     }
     // moderator user disabled own account?
     const moderatorUser = getUser(context)
     if (moderatorUser.id === userId) {
-      logger.error('Moderator can not delete his own account!')
-      throw new Error('Moderator can not delete his own account!')
+      throw new LogError('Moderator can not delete his own account')
     }
     // soft-delete user
     await user.softRemove()
@@ -828,12 +778,10 @@ export class UserResolver {
   async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
     const user = await DbUser.findOne({ id: userId }, { withDeleted: true })
     if (!user) {
-      logger.error(`Could not find user with userId: ${userId}`)
-      throw new Error(`Could not find user with userId: ${userId}`)
+      throw new LogError('Could not find user with given ID', userId)
     }
     if (!user.deletedAt) {
-      logger.error('User is not deleted')
-      throw new Error('User is not deleted')
+      throw new LogError('User is not deleted')
     }
     await user.recover()
     return null
@@ -846,17 +794,14 @@ export class UserResolver {
     // const user = await dbUser.findOne({ id: emailContact.userId })
     const user = await findUserByEmail(email)
     if (!user) {
-      logger.error(`Could not find User to emailContact: ${email}`)
-      throw new Error(`Could not find User to emailContact: ${email}`)
+      throw new LogError('Could not find user to given email contact', email)
     }
     if (user.deletedAt) {
-      logger.error(`User with emailContact: ${email} is deleted.`)
-      throw new Error(`User with emailContact: ${email} is deleted.`)
+      throw new LogError('User with given email contact is deleted', email)
     }
     const emailContact = user.emailContact
     if (emailContact.deletedAt) {
-      logger.error(`The emailContact: ${email} of this User is deleted.`)
-      throw new Error(`The emailContact: ${email} of this User is deleted.`)
+      throw new LogError('The given email contact for this user is deleted', email)
     }
 
     emailContact.emailResendCount++
@@ -893,8 +838,7 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
     { email: email },
     { withDeleted: true, relations: ['user'] },
   ).catch(() => {
-    logger.error(`UserContact with email=${email} does not exists`)
-    throw new Error('No user with this credentials')
+    throw new LogError('No user with this credentials', email)
   })
   const dbUser = dbUserContact.user
   dbUser.emailContact = dbUserContact
@@ -909,31 +853,16 @@ async function checkEmailExists(email: string): Promise<boolean> {
   return false
 }
 
-/*
-const isTimeExpired = (optIn: LoginEmailOptIn, duration: number): boolean => {
-  const timeElapsed = Date.now() - new Date(optIn.updatedAt).getTime()
-  // time is given in minutes
-  return timeElapsed <= duration * 60 * 1000
-}
-*/
 const isTimeExpired = (updatedAt: Date, duration: number): boolean => {
   const timeElapsed = Date.now() - new Date(updatedAt).getTime()
   // time is given in minutes
   return timeElapsed <= duration * 60 * 1000
 }
-/*
-const isOptInValid = (optIn: LoginEmailOptIn): boolean => {
-  return isTimeExpired(optIn, CONFIG.EMAIL_CODE_VALID_TIME)
-}
-*/
+
 const isEmailVerificationCodeValid = (updatedAt: Date): boolean => {
   return isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_VALID_TIME)
 }
-/*
-const canResendOptIn = (optIn: LoginEmailOptIn): boolean => {
-  return !isTimeExpired(optIn, CONFIG.EMAIL_CODE_REQUEST_TIME)
-}
-*/
+
 const canEmailResend = (updatedAt: Date): boolean => {
   return !isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_REQUEST_TIME)
 }
