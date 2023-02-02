@@ -778,7 +778,7 @@ export class UserResolver {
   async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
     const user = await DbUser.findOne({ id: userId }, { withDeleted: true })
     if (!user) {
-      throw new LogError(`Could not find user with userId: ${userId}`, userId)
+      throw new LogError('Could not find user with given ID', userId)
     }
     if (!user.deletedAt) {
       throw new LogError('User is not deleted')
