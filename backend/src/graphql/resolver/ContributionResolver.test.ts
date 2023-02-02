@@ -17,6 +17,7 @@ import {
   adminDeleteContribution,
   login,
   adminCreateContributionMessage,
+  denyContribution,
 } from '@/seeds/graphql/mutations'
 import {
   listAllContributions,
@@ -695,6 +696,11 @@ describe('ContributionResolver', () => {
     })
 
     describe('authenticated', () => {
+      let pendingContribution: any
+      let inProgressContribution: any
+      let confirmedContribution: any
+      let deniedContribution: any
+      let deletedContribution: any
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
         await userFactory(testEnv, peterLustig)
@@ -704,7 +710,7 @@ describe('ContributionResolver', () => {
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
-        const pendingContribution = await mutate({
+        pendingContribution = await mutate({
           mutation: createContribution,
           variables: {
             amount: 100.0,
@@ -712,7 +718,7 @@ describe('ContributionResolver', () => {
             creationDate: new Date().toString(),
           },
         })
-        const inProgressContribution = await mutate({
+        inProgressContribution = await mutate({
           mutation: createContribution,
           variables: {
             amount: 100.0,
@@ -720,7 +726,7 @@ describe('ContributionResolver', () => {
             creationDate: new Date().toString(),
           },
         })
-        const confirmedContribution = await mutate({
+        confirmedContribution = await mutate({
           mutation: createContribution,
           variables: {
             amount: 100.0,
@@ -728,15 +734,15 @@ describe('ContributionResolver', () => {
             creationDate: new Date().toString(),
           },
         })
-        // const deniedContribution = await mutate({
-        //   mutation: createContribution,
-        //   variables: {
-        //     amount: 100.0,
-        //     memo: 'Test DENIED contribution',
-        //     creationDate: new Date().toString(),
-        //   },
-        // })
-        const deletedContribution = await mutate({
+        deniedContribution = await mutate({
+          mutation: createContribution,
+          variables: {
+            amount: 100.0,
+            memo: 'Test DENIED contribution',
+            creationDate: new Date().toString(),
+          },
+        })
+        deletedContribution = await mutate({
           mutation: createContribution,
           variables: {
             amount: 100.0,
@@ -767,12 +773,12 @@ describe('ContributionResolver', () => {
             id: deletedContribution.data.createContribution.id,
           },
         })
-        // await mutate({
-        //   mutation: denyContribution,
-        //   variables: {
-        //     id: deniedContribution.data.createContribution.id,
-        //   },
-        // })
+        await mutate({
+          mutation: denyContribution,
+          variables: {
+            id: deniedContribution.data.createContribution.id,
+          },
+        })
       })
 
       afterAll(async () => {
@@ -863,24 +869,36 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 3,
+                contributionCount: 4,
                 contributionList: expect.arrayContaining([
                   expect.objectContaining({
-                    id: expect.any(Number),
+                    id: pendingContribution.data.createContribution.id,
                     state: 'PENDING',
                     memo: 'Test PENDING contribution',
                     amount: '100',
                   }),
                   expect.objectContaining({
-                    id: expect.any(Number),
+                    id: inProgressContribution.data.createContribution.id,
                     state: 'IN_PROGRESS',
                     memo: 'Test IN_PROGRESS contribution',
                     amount: '100',
                   }),
                   expect.objectContaining({
-                    id: expect.any(Number),
+                    id: confirmedContribution.data.createContribution.id,
                     state: 'CONFIRMED',
                     memo: 'Test CONFIRMED contribution',
+                    amount: '100',
+                  }),
+                  expect.objectContaining({
+                    id: deniedContribution.data.createContribution.id,
+                    state: 'DENIED',
+                    memo: 'Test DENIED contribution',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: deletedContribution.data.createContribution.id,
+                    state: 'DELETED',
+                    memo: 'Test DELETED contribution',
                     amount: '100',
                   }),
                 ]),
@@ -905,24 +923,36 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 3,
+                contributionCount: 4,
                 contributionList: expect.arrayContaining([
                   expect.objectContaining({
-                    id: expect.any(Number),
+                    id: pendingContribution.data.createContribution.id,
                     state: 'PENDING',
                     memo: 'Test PENDING contribution',
                     amount: '100',
                   }),
                   expect.objectContaining({
-                    id: expect.any(Number),
+                    id: inProgressContribution.data.createContribution.id,
                     state: 'IN_PROGRESS',
                     memo: 'Test IN_PROGRESS contribution',
                     amount: '100',
                   }),
                   expect.objectContaining({
-                    id: expect.any(Number),
+                    id: confirmedContribution.data.createContribution.id,
                     state: 'CONFIRMED',
                     memo: 'Test CONFIRMED contribution',
+                    amount: '100',
+                  }),
+                  expect.objectContaining({
+                    id: deniedContribution.data.createContribution.id,
+                    state: 'DENIED',
+                    memo: 'Test DENIED contribution',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: deletedContribution.data.createContribution.id,
+                    state: 'DELETED',
+                    memo: 'Test DELETED contribution',
                     amount: '100',
                   }),
                 ]),
@@ -947,24 +977,36 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 3,
+                contributionCount: 4,
                 contributionList: expect.arrayContaining([
                   expect.objectContaining({
-                    id: expect.any(Number),
+                    id: pendingContribution.data.createContribution.id,
                     state: 'PENDING',
                     memo: 'Test PENDING contribution',
                     amount: '100',
                   }),
                   expect.objectContaining({
-                    id: expect.any(Number),
+                    id: inProgressContribution.data.createContribution.id,
                     state: 'IN_PROGRESS',
                     memo: 'Test IN_PROGRESS contribution',
                     amount: '100',
                   }),
                   expect.objectContaining({
-                    id: expect.any(Number),
+                    id: confirmedContribution.data.createContribution.id,
                     state: 'CONFIRMED',
                     memo: 'Test CONFIRMED contribution',
+                    amount: '100',
+                  }),
+                  expect.objectContaining({
+                    id: deniedContribution.data.createContribution.id,
+                    state: 'DENIED',
+                    memo: 'Test DENIED contribution',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: deletedContribution.data.createContribution.id,
+                    state: 'DELETED',
+                    memo: 'Test DELETED contribution',
                     amount: '100',
                   }),
                 ]),
@@ -991,26 +1033,32 @@ describe('ContributionResolver', () => {
               listAllContributions: {
                 contributionCount: 1,
                 contributionList: expect.arrayContaining([
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Test CONFIRMED contribution',
-                    amount: '100',
-                  }),
                   expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGRESS contribution',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
+                    id: pendingContribution.data.createContribution.id,
                     state: 'PENDING',
                     memo: 'Test PENDING contribution',
                     amount: '100',
                   }),
                   expect.not.objectContaining({
-                    id: expect.any(Number),
+                    id: inProgressContribution.data.createContribution.id,
+                    state: 'IN_PROGRESS',
+                    memo: 'Test IN_PROGRESS contribution',
+                    amount: '100',
+                  }),
+                  expect.objectContaining({
+                    id: confirmedContribution.data.createContribution.id,
+                    state: 'CONFIRMED',
+                    memo: 'Test CONFIRMED contribution',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: deniedContribution.data.createContribution.id,
+                    state: 'DENIED',
+                    memo: 'Test DENIED contribution',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: deletedContribution.data.createContribution.id,
                     state: 'DELETED',
                     memo: 'Test DELETED contribution',
                     amount: '100',
@@ -1055,6 +1103,12 @@ describe('ContributionResolver', () => {
                     id: expect.any(Number),
                     state: 'PENDING',
                     memo: 'Test PENDING contribution',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Test DENIED contribution',
                     amount: '100',
                   }),
                   expect.not.objectContaining({
@@ -1107,6 +1161,12 @@ describe('ContributionResolver', () => {
                   }),
                   expect.not.objectContaining({
                     id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Test DENIED contribution',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
                     state: 'DELETED',
                     memo: 'Test DELETED contribution',
                     amount: '100',
@@ -1133,12 +1193,12 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 0,
-                contributionList: expect.not.arrayContaining([
+                contributionCount: 1,
+                contributionList: expect.arrayContaining([
                   expect.objectContaining({
                     id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test PENDING contribution',
+                    state: 'DENIED',
+                    memo: 'Test DENIED contribution',
                     amount: '100',
                   }),
                 ]),
