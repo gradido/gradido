@@ -9,7 +9,7 @@ export const writeEvent = async (event: Event): Promise<EventProtocol | null> =>
     return null
   }
 
-  logger.info(`writeEvent(${JSON.stringify(event)})`)
+  logger.info('writeEvent', event)
   const dbEvent = new EventProtocol()
   dbEvent.type = event.type
   dbEvent.createdAt = event.createdAt
