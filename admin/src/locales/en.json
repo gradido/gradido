@@ -1,7 +1,7 @@
 {
   "all_emails": "All users",
   "back": "back",
-  "create":"Create",
+  "chat": "Chat",
   "contributionLink": {
     "amount": "Amount",
     "changeSaved": "Changes saved",
@@ -32,13 +32,14 @@
   },
   "contributions": {
     "all": "All",
-    "confirms":"Bestätigt",
     "confirmed": "Confirmed",
+    "confirms": "Bestätigt",
     "deleted": "Deleted",
     "denied": "Denied",
     "open": "Open"
   },
-  "created":"Created",
+  "created": "Created",
+  "createdAt": "Created",
   "creation": "Creation",
   "creationList": "Creation list",
   "creation_form": {
@@ -104,8 +105,8 @@
   "message": {
     "request": "Request has been sent."
   },
-  "moderator": "Moderator",
   "mod": "Mod",
+  "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "name": "Name",
   "navbar": {

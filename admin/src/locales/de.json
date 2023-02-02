@@ -1,8 +1,7 @@
 {
   "all_emails": "Alle Nutzer",
   "back": "zurück",
-  "create":"Schöpfen",
-  "created":"Geschöpft",
+  "chat": "Chat",
   "contributionLink": {
     "amount": "Betrag",
     "changeSaved": "Änderungen gespeichert",
@@ -33,12 +32,14 @@
   },
   "contributions": {
     "all": "Alle",
-    "confirms":"Bestätigt",
     "confirmed": "Bestätigte",
+    "confirms": "Bestätigt",
     "deleted": "Gelöscht",
     "denied": "Abgelehnt",
     "open": "Offen"
   },
+  "created": "Geschöpft",
+  "createdAt": "Angelegt",
   "creation": "Schöpfung",
   "creationList": "Schöpfungsliste",
   "creation_form": {
@@ -58,7 +59,6 @@
     "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
     "update_creation": "Schöpfung aktualisieren"
   },
-  "createdAt":"Angelegt",
   "creation_for_month": "Schöpfung für Monat",
   "date": "Datum",
   "delete": "Löschen",
@@ -105,8 +105,8 @@
   "message": {
     "request": "Die Anfrage wurde gesendet."
   },
-  "moderator": "Moderator",
   "mod": "Mod",
+  "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "name": "Name",
   "navbar": {
