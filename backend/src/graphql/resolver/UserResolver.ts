@@ -797,7 +797,7 @@ export class UserResolver {
       throw new LogError('Could not find user to given email contact', email)
     }
     if (user.deletedAt) {
-      throw new LogError(`User with emailContact: ${email} is deleted`, email)
+      throw new LogError('User with given email contact is deleted', email)
     }
     const emailContact = user.emailContact
     if (emailContact.deletedAt) {
