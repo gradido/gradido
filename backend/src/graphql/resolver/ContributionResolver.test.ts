@@ -895,7 +895,7 @@ describe('ContributionResolver', () => {
         )
       })
 
-      it('returns all CONFIRMED Creation', async () => {
+      it('returns all CONFIRMED contributions', async () => {
         await expect(
           query({
             query: listAllContributions,
