@@ -788,7 +788,7 @@ describe('ContributionResolver', () => {
         )
       })
 
-      it('returns allCreation without statusFilter', async () => {
+      it('returns all contributions without statusFilter', async () => {
         await expect(
           query({
             query: listAllContributions,
