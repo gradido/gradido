@@ -931,7 +931,7 @@ describe('ContributionResolver', () => {
         )
       })
 
-      it('returns all PENDING Creation', async () => {
+      it('returns all PENDING contributions', async () => {
         await expect(
           query({
             query: listAllContributions,
