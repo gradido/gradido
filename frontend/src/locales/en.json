@@ -57,7 +57,16 @@
       "yourContribution": "Your Contributions to the Common Good"
     },
     "lastContribution": "Last Contributions",
+    "noContributions": {
+      "allContributions": "No contributions have been submitted yet.",
+      "myContributions": "You have not submitted any entries yet."
+    },
     "noDateSelected": "Choose any date in the month",
+    "noOpenCreation": {
+      "allMonth": "For all two months your creation limit is reached. The next month you can create 1000 GDD again.",
+      "lastMonth": "The creation limit is reached for the selected month.",
+      "thisMonth": "The creation limit has been reached for the current month."
+    },
     "selectDate": "When was your contribution?",
     "submit": "Submit",
     "submitted": "The contribution was submitted.",
