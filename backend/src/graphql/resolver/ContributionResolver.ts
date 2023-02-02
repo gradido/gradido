@@ -179,12 +179,23 @@ export class ContributionResolver {
   async listAllContributions(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
+    statusFilters?: ContributionStatus[],
   ): Promise<ContributionListResult> {
+    const where: {
+      contributionStatus?: FindOperator<string> | null
+    } = {}
+
+    if (statusFilters && statusFilters.length) {
+      where.contributionStatus = In(statusFilters)
+    }
+
     const [dbContributions, count] = await getConnection()
       .createQueryBuilder()
       .select('c')
       .from(DbContribution, 'c')
       .innerJoinAndSelect('c.user', 'u')
+      .where(where)
       .orderBy('c.createdAt', order)
       .limit(pageSize)
       .offset((currentPage - 1) * pageSize)
