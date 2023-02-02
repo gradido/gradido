@@ -465,7 +465,7 @@ export class UserResolver {
     try {
       // Save user
       await queryRunner.manager.save(user).catch((error) => {
-        throw new LogError(`Error saving user: ${error}`, error)
+        throw new LogError('Error saving user', error)
       })
       // Save userContact
       await queryRunner.manager.save(userContact).catch((error) => {
