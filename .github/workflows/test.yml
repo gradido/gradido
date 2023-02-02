@@ -645,7 +645,7 @@ jobs:
       - name: Boot up test system | docker-compose frontends
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps frontend admin nginx
 
-      - name: Boot up test system | docker-compose frontends
+      - name: Boot up test system | docker-compose mailserver
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mailserver
 
       - name: Sleep for 15 seconds
