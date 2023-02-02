@@ -3,7 +3,13 @@
   <div class="creation-confirm">
     <div>
       <b-tabs content-class="mt-3" fill>
-        <b-tab :title="$t('contributions.open')" active>
+        <b-tab active>
+          <template #title>
+            {{ $t('contributions.open') }}
+            <b-badge v-if="$store.state.openCreations > 0" variant="danger">
+              {{ $store.state.openCreations }}
+            </b-badge>
+          </template>
           <open-creations-table
             class="mt-4"
             :items="pendingCreations"
