@@ -75,7 +75,7 @@ describe('EmailOptinCodes', () => {
           query({ query: queryOptIn, variables: { optIn: optinCode } }),
         ).resolves.toMatchObject({
           data: null,
-          errors: [new GraphQLError('email was sent more than 24 hours ago')],
+          errors: [new GraphQLError('Email was sent more than 24 hours ago')],
         })
       })
 
@@ -84,7 +84,7 @@ describe('EmailOptinCodes', () => {
           mutate({ mutation: setPassword, variables: { code: optinCode, password: 'Aa12345_' } }),
         ).resolves.toMatchObject({
           data: null,
-          errors: [new GraphQLError('email was sent more than 24 hours ago')],
+          errors: [new GraphQLError('Email was sent more than 24 hours ago')],
         })
       })
     })
