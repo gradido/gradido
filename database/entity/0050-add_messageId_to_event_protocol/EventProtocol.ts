@@ -16,16 +16,16 @@ export class EventProtocol extends BaseEntity {
   @Column({ name: 'user_id', unsigned: true, nullable: false })
   userId: number
 
-  @Column({ name: 'x_user_id', unsigned: true, nullable: true })
+  @Column({ name: 'x_user_id', type: 'int', unsigned: true, nullable: true })
   xUserId: number | null
 
-  @Column({ name: 'x_community_id', unsigned: true, nullable: true })
+  @Column({ name: 'x_community_id', type: 'int', unsigned: true, nullable: true })
   xCommunityId: number | null
 
-  @Column({ name: 'transaction_id', unsigned: true, nullable: true })
+  @Column({ name: 'transaction_id', type: 'int', unsigned: true, nullable: true })
   transactionId: number | null
 
-  @Column({ name: 'contribution_id', unsigned: true, nullable: true })
+  @Column({ name: 'contribution_id', type: 'int', unsigned: true, nullable: true })
   contributionId: number | null
 
   @Column({
@@ -37,6 +37,6 @@ export class EventProtocol extends BaseEntity {
   })
   amount: Decimal | null
 
-  @Column({ name: 'message_id', unsigned: true, nullable: true })
+  @Column({ name: 'message_id', type: 'int', unsigned: true, nullable: true })
   messageId: number | null
 }

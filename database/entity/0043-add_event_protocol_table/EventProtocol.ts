@@ -14,19 +14,19 @@ export class EventProtocol extends BaseEntity {
   createdAt: Date
 
   @Column({ name: 'user_id', unsigned: true, nullable: false })
-  userId: number | null
+  userId: number
 
   @Column({ name: 'x_user_id', unsigned: true, nullable: true })
-  xUserId: number | null
+  xUserId: number
 
   @Column({ name: 'x_community_id', unsigned: true, nullable: true })
-  xCommunityId: number | null
+  xCommunityId: number
 
   @Column({ name: 'transaction_id', unsigned: true, nullable: true })
-  transactionId: number | null
+  transactionId: number
 
   @Column({ name: 'contribution_id', unsigned: true, nullable: true })
-  contributionId: number | null
+  contributionId: number
 
   @Column({
     type: 'decimal',
@@ -35,5 +35,5 @@ export class EventProtocol extends BaseEntity {
     nullable: true,
     transformer: DecimalTransformer,
   })
-  amount: Decimal | null
+  amount: Decimal
 }
