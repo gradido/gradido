@@ -666,3 +666,5 @@ jobs:
         with:
           name: cypress-screenshots
           path: /home/runner/work/gradido/gradido/e2e-tests/cypress/tests/cypress/screenshots/
+          name: cypress-videos
+          path: /home/runner/work/gradido/gradido/e2e-tests/cypress/tests/cypress/videos/
