@@ -722,7 +722,7 @@ export class UserResolver {
     const user = await DbUser.findOne({ id: userId })
     // user exists ?
     if (!user) {
-      throw new LogError(`Could not find user with userId: ${userId}`, userId)
+      throw new LogError('Could not find user with given ID', userId)
     }
     // administrator user changes own role?
     const moderatorUser = getUser(context)
