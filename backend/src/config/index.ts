@@ -17,7 +17,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v15.2023-01-03',
+    EXPECTED: 'v16.2023-02-02',
     CURRENT: '',
   },
 }
@@ -120,14 +120,6 @@ if (
 }
 
 const federation = {
-  FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC || null,
-  FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
-  FEDERATION_COMMUNITY_URL:
-    process.env.FEDERATION_COMMUNITY_URL === undefined
-      ? null
-      : process.env.FEDERATION_COMMUNITY_URL.endsWith('/')
-      ? process.env.FEDERATION_COMMUNITY_URL
-      : process.env.FEDERATION_COMMUNITY_URL + '/',
   FEDERATION_VALIDATE_COMMUNITY_TIMER: process.env.FEDERATION_VALIDATE_COMMUNITY_TIMER || 60000,
 }
 
