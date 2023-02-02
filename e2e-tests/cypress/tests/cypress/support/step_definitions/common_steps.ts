@@ -18,6 +18,18 @@ Given(
 
 Then("the user is logged in with username {string}", (username: string) => {
   const overviewPage = new OverviewPage();
+  cy.intercept("POST", "/graphql", (req) => {
+    if (
+      req.body.hasOwnProperty("query") &&
+      req.body.query.includes("mutation")
+    ) {
+      req.alias = "login";
+    }
+  });
+  cy.wait("@login").then((interception) => {
+    expect(interception.response.statusCode).equals(200);
+    expect(JSON.stringify(interception.response.body)).contains(email);
+  });
   cy.url().should("include", "/overview");
   cy.get(overviewPage.navbarName).should("contain", username);
 });

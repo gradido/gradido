@@ -16,22 +16,9 @@ When("the user submits no credentials", () => {
 When(
   "the user submits the credentials {string} {string}",
   (email: string, password: string) => {
-    cy.intercept("POST", "/graphql", (req) => {
-      if (
-        req.body.hasOwnProperty("query") &&
-        req.body.query.includes("mutation")
-      ) {
-        req.alias = "login";
-      }
-    });
-
     loginPage.enterEmail(email);
     loginPage.enterPassword(password);
     loginPage.submitLogin();
-    cy.wait("@login").then((interception) => {
-      expect(interception.response.statusCode).equals(200);
-      expect(JSON.stringify(interception.response.body)).contains(email);
-    });
   }
 );
 
