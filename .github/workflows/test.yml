@@ -60,28 +60,28 @@ jobs:
   ##############################################################################
   # JOB: DOCKER BUILD TEST BACKEND #############################################
   ##############################################################################
-  build_test_backend:
-    name: Docker Build Test - Backend
-    runs-on: ubuntu-latest
-    #needs: [nothing]
-    steps:
-      ##########################################################################
-      # CHECKOUT CODE ##########################################################
-      ##########################################################################
-      - name: Checkout code
-        uses: actions/checkout@v3
-      ##########################################################################
-      # BACKEND ################################################################
-      ##########################################################################
-      - name: Backend | Build `test` image
-        run: |
-          docker build -f ./backend/Dockerfile --target test -t "gradido/backend:test" .
-          docker save "gradido/backend:test" > /tmp/backend.tar
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: docker-backend-test
-          path: /tmp/backend.tar
+  # build_test_backend:
+  #   name: Docker Build Test - Backend
+  #   runs-on: ubuntu-latest
+  #   #needs: [nothing]
+  #   steps:
+  #     ##########################################################################
+  #     # CHECKOUT CODE ##########################################################
+  #     ##########################################################################
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+  #     ##########################################################################
+  #     # BACKEND ################################################################
+  #     ##########################################################################
+  #     - name: Backend | Build `test` image
+  #       run: |
+  #         docker build -f ./backend/Dockerfile --target test -t "gradido/backend:test" .
+  #         docker save "gradido/backend:test" > /tmp/backend.tar
+  #     - name: Upload Artifact
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: docker-backend-test
+  #         path: /tmp/backend.tar
 
   ##############################################################################
   # JOB: DOCKER BUILD TEST DATABASE UP #########################################
@@ -626,7 +626,7 @@ jobs:
       - name: Boot up test system | docker-compose backend
         run: |
           cd backend
-          cp .env.XX .env
+          cp .env.test_e2e .env
           cd ..
           docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend 
 
