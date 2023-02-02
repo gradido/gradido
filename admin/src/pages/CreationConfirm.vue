@@ -53,7 +53,6 @@
         </b-tab>
       </b-tabs>
     </div>
-    {{ rows }}
     <b-pagination
       pills
       size="lg"
