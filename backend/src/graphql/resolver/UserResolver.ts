@@ -760,7 +760,7 @@ export class UserResolver {
     const user = await DbUser.findOne({ id: userId })
     // user exists ?
     if (!user) {
-      throw new LogError(`Could not find user with userId: ${userId}`, userId)
+      throw new LogError('Could not find user with given ID', userId)
     }
     // moderator user disabled own account?
     const moderatorUser = getUser(context)
