@@ -78,7 +78,24 @@ export default {
   min-width: 200px;
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (min-width: 1025px) {
+  #side-menu {
+    max-width: 180px;
+  }
+  #component-sidebar {
+    min-width: 180px;
+  }
+}
+
+@media screen and (min-width: 1075px) {
+  #side-menu {
+    max-width: 200px;
+  }
+  #component-sidebar {
+    min-width: 200px;
+  }
+}
+@media screen and (max-width: 1108px) {
   #side-menu {
     max-width: 100%;
   }
