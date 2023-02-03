@@ -117,6 +117,7 @@ describe('federation', () => {
     beforeEach(async () => {
       DHT.mockClear()
       jest.clearAllMocks()
+      await cleanDB()
       await startDHT(TEST_TOPIC)
     })
 
