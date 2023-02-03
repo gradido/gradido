@@ -15,9 +15,9 @@ const ERRORTIME = 240000
 const ANNOUNCETIME = 30000
 
 enum ApiVersionType {
-  V1_0 = 'v1_0',
-  V1_1 = 'v1_1',
-  V2_0 = 'v2_0',
+  V1_0 = '1_0',
+  V1_1 = '1_1',
+  V2_0 = '2_0',
 }
 type CommunityApi = {
   api: string
@@ -31,13 +31,16 @@ export const startDHT = async (topic: string): Promise<void> => {
     logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
 
+    const ownApiVersions = writeHomeCommunityEnries(keyPair.publicKey)
+    /*
     const ownApiVersions = Object.values(ApiVersionType).map(function (apiEnum) {
       const comApi: CommunityApi = {
         api: apiEnum,
-        url: CONFIG.FEDERATION_COMMUNITY_URL + apiEnum,
+        url: CONFIG.FEDERATION_COMMUNITY_URL,
       }
       return comApi
     })
+    */
     logger.debug(`ApiList: ${JSON.stringify(ownApiVersions)}`)
 
     const node = new DHT({ keyPair })
@@ -183,4 +186,40 @@ export const startDHT = async (topic: string): Promise<void> => {
   } catch (err) {
     logger.error('DHT unexpected error:', err)
   }
+}
+
+async function writeHomeCommunityEnries(pubKey: any): Promise<CommunityApi[]> {
+  const homeApiVersions: CommunityApi[] = Object.values(ApiVersionType).map(function (
+    apiEnum,
+    idx,
+  ) {
+    const port = Number.parseInt(CONFIG.FEDERATION_COMMUNITY_API_PORT) + idx + 1
+    const comApi: CommunityApi = {
+      api: apiEnum,
+      url: CONFIG.FEDERATION_COMMUNITY_URL + ':' + port.toString() + '/api/',
+    }
+    return comApi
+  })
+
+  homeApiVersions.forEach(async function (homeApi) {
+    const variables = {
+      foreign: false,
+      apiVersion: homeApi.api,
+      endPoint: homeApi.url,
+      publicKey: pubKey.toString('hex'),
+    }
+    // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
+    await DbCommunity.createQueryBuilder()
+      .insert()
+      .into(DbCommunity)
+      .values(variables)
+      .orUpdate({
+        conflict_target: ['id', 'foreign', 'publicKey', 'apiVersion'],
+        overwrite: ['foreign', 'api_version', 'end_point', 'public_key'],
+      })
+      .execute()
+    logger.info(`federation home-community upserted successfully...`)
+  })
+
+  return homeApiVersions
 }
