@@ -32,8 +32,7 @@
   },
   "contributions": {
     "all": "All",
-    "confirmed": "Confirmed",
-    "confirms": "Bestätigt",
+    "confirms": "Confirmed",
     "deleted": "Deleted",
     "denied": "Denied",
     "open": "Open"
