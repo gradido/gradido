@@ -17,6 +17,8 @@ import {
   adminUpdateContribution,
   adminDeleteContribution,
   login,
+  logout,
+  adminCreateContributionMessage,
 } from '@/seeds/graphql/mutations'
 import {
   listAllContributions,
@@ -69,7 +71,13 @@ let mutate: any, query: any, con: any
 let testEnv: any
 let creation: Contribution | void
 let admin: User
-let result: any
+// let result: any
+// let contribution: any
+let pendingContribution: any
+let inProgressContribution: any
+let contributionToConfirm: any
+let contributionToDeny: any
+let contributionToDelete: any
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger, localization)
@@ -86,6 +94,75 @@ afterAll(async () => {
 
 describe('ContributionResolver', () => {
   let bibi: any
+  let peter: any
+
+  beforeAll(async () => {
+    bibi = await userFactory(testEnv, bibiBloxberg)
+    admin = peter = await userFactory(testEnv, peterLustig)
+    const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    await creationFactory(testEnv, bibisCreation!)
+    await mutate({
+      mutation: login,
+      variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+    })
+    pendingContribution = await mutate({
+      mutation: createContribution,
+      variables: {
+        amount: 100.0,
+        memo: 'Test PENDING contribution',
+        creationDate: new Date().toString(),
+      },
+    })
+    inProgressContribution = await mutate({
+      mutation: createContribution,
+      variables: {
+        amount: 100.0,
+        memo: 'Test IN_PROGESS contribution',
+        creationDate: new Date().toString(),
+      },
+    })
+    await mutate({
+      mutation: adminCreateContributionMessage,
+      variables: {
+        contributionId: inProgressContribution.data.createContribution.id,
+        message: 'Test message to IN_PROGESS contribution',
+      },
+    })
+    contributionToConfirm = await mutate({
+      mutation: createContribution,
+      variables: {
+        amount: 100.0,
+        memo: 'Test contribution to confirm',
+        creationDate: new Date().toString(),
+      },
+    })
+    contributionToDeny = await mutate({
+      mutation: createContribution,
+      variables: {
+        amount: 100.0,
+        memo: 'Test contribution to deny',
+        creationDate: new Date().toString(),
+      },
+    })
+    contributionToDelete = await mutate({
+      mutation: createContribution,
+      variables: {
+        amount: 100.0,
+        memo: 'Test contribution to delete',
+        creationDate: new Date().toString(),
+      },
+    })
+    await mutate({
+      mutation: logout,
+    })
+    resetToken()
+  })
+
+  afterAll(async () => {
+    await cleanDB()
+    resetToken()
+  })
 
   describe('createContribution', () => {
     describe('unauthenticated', () => {
@@ -105,8 +182,6 @@ describe('ContributionResolver', () => {
 
     describe('authenticated with valid user', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg)
-
         bibi = await mutate({
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -114,7 +189,6 @@ describe('ContributionResolver', () => {
       })
 
       afterAll(async () => {
-        await cleanDB()
         resetToken()
       })
 
@@ -222,27 +296,14 @@ describe('ContributionResolver', () => {
       })
 
       describe('valid input', () => {
-        let contribution: any
-
-        beforeAll(async () => {
-          contribution = await mutate({
-            mutation: createContribution,
-            variables: {
-              amount: 100.0,
-              memo: 'Test env contribution',
-              creationDate: new Date().toString(),
-            },
-          })
-        })
-
         it('creates contribution', async () => {
-          expect(contribution).toEqual(
+          expect(pendingContribution).toEqual(
             expect.objectContaining({
               data: {
                 createContribution: {
                   id: expect.any(Number),
                   amount: '100',
-                  memo: 'Test env contribution',
+                  memo: 'Test PENDING contribution',
                 },
               },
             }),
@@ -254,124 +315,8 @@ describe('ContributionResolver', () => {
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_CREATE,
               amount: expect.decimalEqual(100),
-              contributionId: contribution.data.createContribution.id,
+              contributionId: pendingContribution.data.createContribution.id,
               userId: bibi.data.login.id,
-            }),
-          )
-        })
-      })
-    })
-  })
-
-  describe('listContributions', () => {
-    describe('unauthenticated', () => {
-      it('returns an error', async () => {
-        await expect(
-          query({
-            query: listContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              filterConfirmed: false,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
-      })
-    })
-
-    describe('authenticated', () => {
-      beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg)
-        await userFactory(testEnv, peterLustig)
-        const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        await creationFactory(testEnv, bibisCreation!)
-        await mutate({
-          mutation: login,
-          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-        })
-        await mutate({
-          mutation: createContribution,
-          variables: {
-            amount: 100.0,
-            memo: 'Test env contribution',
-            creationDate: new Date().toString(),
-          },
-        })
-      })
-
-      afterAll(async () => {
-        await cleanDB()
-        resetToken()
-      })
-
-      describe('filter confirmed is false', () => {
-        it('returns creations', async () => {
-          await expect(
-            query({
-              query: listContributions,
-              variables: {
-                currentPage: 1,
-                pageSize: 25,
-                order: 'DESC',
-                filterConfirmed: false,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                listContributions: {
-                  contributionCount: 2,
-                  contributionList: expect.arrayContaining([
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Herzlich Willkommen bei Gradido!',
-                      amount: '1000',
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Test env contribution',
-                      amount: '100',
-                    }),
-                  ]),
-                },
-              },
-            }),
-          )
-        })
-      })
-
-      describe('filter confirmed is true', () => {
-        it('returns only unconfirmed creations', async () => {
-          await expect(
-            query({
-              query: listContributions,
-              variables: {
-                currentPage: 1,
-                pageSize: 25,
-                order: 'DESC',
-                filterConfirmed: true,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                listContributions: {
-                  contributionCount: 1,
-                  contributionList: expect.arrayContaining([
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Test env contribution',
-                      amount: '100',
-                    }),
-                  ]),
-                },
-              },
             }),
           )
         })
@@ -402,24 +347,13 @@ describe('ContributionResolver', () => {
 
     describe('authenticated', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, peterLustig)
-        await userFactory(testEnv, bibiBloxberg)
         await mutate({
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
-        result = await mutate({
-          mutation: createContribution,
-          variables: {
-            amount: 100.0,
-            memo: 'Test env contribution',
-            creationDate: new Date().toString(),
-          },
-        })
       })
 
       afterAll(async () => {
-        await cleanDB()
         resetToken()
       })
 
@@ -456,7 +390,7 @@ describe('ContributionResolver', () => {
             mutate({
               mutation: updateContribution,
               variables: {
-                contributionId: result.data.createContribution.id,
+                contributionId: pendingContribution.data.createContribution.id,
                 amount: 100.0,
                 memo: 'Test',
                 creationDate: date.toString(),
@@ -482,7 +416,7 @@ describe('ContributionResolver', () => {
             mutate({
               mutation: updateContribution,
               variables: {
-                contributionId: result.data.createContribution.id,
+                contributionId: pendingContribution.data.createContribution.id,
                 amount: 100.0,
                 memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
                 creationDate: date.toString(),
@@ -514,7 +448,7 @@ describe('ContributionResolver', () => {
             mutate({
               mutation: updateContribution,
               variables: {
-                contributionId: result.data.createContribution.id,
+                contributionId: pendingContribution.data.createContribution.id,
                 amount: 10.0,
                 memo: 'Test env contribution',
                 creationDate: new Date().toString(),
@@ -539,13 +473,20 @@ describe('ContributionResolver', () => {
       })
 
       describe('admin tries to update a user contribution', () => {
+        beforeAll(async () => {
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
         it('throws an error', async () => {
           jest.clearAllMocks()
           await expect(
             mutate({
               mutation: adminUpdateContribution,
               variables: {
-                id: result.data.createContribution.id,
+                id: pendingContribution.data.createContribution.id,
                 email: 'bibi@bloxberg.de',
                 amount: 10.0,
                 memo: 'Test env contribution',
@@ -562,7 +503,7 @@ describe('ContributionResolver', () => {
         // TODO check that the error is logged (need to modify AdminResolver, avoid conflicts)
       })
 
-      describe('update too much so that the limit is exceeded', () => {
+      describe('update to much so that the limit is exceeded', () => {
         beforeAll(async () => {
           await mutate({
             mutation: login,
@@ -576,7 +517,7 @@ describe('ContributionResolver', () => {
             mutate({
               mutation: updateContribution,
               variables: {
-                contributionId: result.data.createContribution.id,
+                contributionId: pendingContribution.data.createContribution.id,
                 amount: 1019.0,
                 memo: 'Test env contribution',
                 creationDate: new Date().toString(),
@@ -586,7 +527,7 @@ describe('ContributionResolver', () => {
             expect.objectContaining({
               errors: [
                 new GraphQLError(
-                  'The amount (1019 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+                  'The amount (1019 GDD) to be created exceeds the amount (600 GDD) still available for this month.',
                 ),
               ],
             }),
@@ -595,7 +536,7 @@ describe('ContributionResolver', () => {
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'The amount (1019 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+            'The amount (1019 GDD) to be created exceeds the amount (600 GDD) still available for this month.',
           )
         })
       })
@@ -608,7 +549,7 @@ describe('ContributionResolver', () => {
             mutate({
               mutation: updateContribution,
               variables: {
-                contributionId: result.data.createContribution.id,
+                contributionId: pendingContribution.data.createContribution.id,
                 amount: 10.0,
                 memo: 'Test env contribution',
                 creationDate: date.setMonth(date.getMonth() - 3).toString(),
@@ -635,9 +576,9 @@ describe('ContributionResolver', () => {
             mutate({
               mutation: updateContribution,
               variables: {
-                contributionId: result.data.createContribution.id,
+                contributionId: pendingContribution.data.createContribution.id,
                 amount: 10.0,
-                memo: 'Test contribution',
+                memo: 'Test PENDING contribution update',
                 creationDate: new Date().toString(),
               },
             }),
@@ -645,9 +586,9 @@ describe('ContributionResolver', () => {
             expect.objectContaining({
               data: {
                 updateContribution: {
-                  id: result.data.createContribution.id,
+                  id: pendingContribution.data.createContribution.id,
                   amount: '10',
-                  memo: 'Test contribution',
+                  memo: 'Test PENDING contribution update',
                 },
               },
             }),
@@ -664,7 +605,7 @@ describe('ContributionResolver', () => {
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_UPDATE,
               amount: expect.decimalEqual(10),
-              contributionId: result.data.createContribution.id,
+              contributionId: pendingContribution.data.createContribution.id,
               userId: bibi.data.login.id,
             }),
           )
@@ -691,22 +632,36 @@ describe('ContributionResolver', () => {
       })
     })
 
-    describe('authenticated', () => {
+    describe('authenticated without admin rights', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, peterLustig)
-        await userFactory(testEnv, bibiBloxberg)
         await mutate({
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
-        result = await mutate({
-          mutation: createContribution,
-          variables: {
-            amount: 100.0,
-            memo: 'Test env contribution',
-            creationDate: new Date().toString(),
-          },
-        })
+      })
+
+      afterAll(() => {
+        resetToken()
+      })
+
+      it('returns an error', async () => {
+        await expect(
+          mutate({
+            mutation: denyContribution,
+            variables: {
+              id: 1,
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated with admin rights', () => {
+      beforeAll(async () => {
         await mutate({
           mutation: login,
           variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
@@ -714,13 +669,11 @@ describe('ContributionResolver', () => {
       })
 
       afterAll(async () => {
-        await cleanDB()
         resetToken()
       })
 
       describe('wrong contribution id', () => {
         it('throws an error', async () => {
-          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: denyContribution,
@@ -740,31 +693,6 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe('wrong user tries to deny the contribution', () => {
-        beforeAll(async () => {
-          await mutate({
-            mutation: login,
-            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-          })
-        })
-
-        it('throws an error', async () => {
-          jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: denyContribution,
-              variables: {
-                id: result.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('401 Unauthorized')],
-            }),
-          )
-        })
-      })
-
       describe('valid input', () => {
         it('deny contribution', async () => {
           await mutate({
@@ -775,13 +703,289 @@ describe('ContributionResolver', () => {
             mutate({
               mutation: denyContribution,
               variables: {
-                id: result.data.createContribution.id,
+                id: contributionToDeny.data.createContribution.id,
               },
             }),
           ).resolves.toEqual(
             expect.objectContaining({
               data: {
                 denyContribution: true,
+              },
+            }),
+          )
+        })
+      })
+    })
+  })
+
+  describe('deleteContribution', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          query({
+            query: deleteContribution,
+            variables: {
+              id: -1,
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        bibi = await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(async () => {
+        resetToken()
+      })
+
+      describe('wrong contribution id', () => {
+        it('returns an error', async () => {
+          await expect(
+            mutate({
+              mutation: deleteContribution,
+              variables: {
+                id: -1,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Contribution not found for given id.')],
+            }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('Contribution not found for given id')
+        })
+      })
+
+      describe('other user sends a deleteContribution', () => {
+        it('returns an error', async () => {
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+          await expect(
+            mutate({
+              mutation: deleteContribution,
+              variables: {
+                id: contributionToDelete.data.createContribution.id,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Can not delete contribution of another user')],
+            }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('Can not delete contribution of another user')
+        })
+      })
+
+      describe('User deletes own contribution', () => {
+        it('deletes successfully', async () => {
+          await expect(
+            mutate({
+              mutation: deleteContribution,
+              variables: {
+                id: contributionToDelete.data.createContribution.id,
+              },
+            }),
+          ).resolves.toBeTruthy()
+        })
+
+        it('stores the delete contribution event in the database', async () => {
+          const contribution = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 166.0,
+              memo: 'Whatever contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+
+          await mutate({
+            mutation: deleteContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+
+          await expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.CONTRIBUTION_DELETE,
+              contributionId: contribution.data.createContribution.id,
+              amount: expect.decimalEqual(166),
+              userId: peter.id,
+            }),
+          )
+        })
+      })
+
+      describe('User deletes already confirmed contribution', () => {
+        it('throws an error', async () => {
+          jest.clearAllMocks()
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+          await mutate({
+            mutation: confirmContribution,
+            variables: {
+              id: contributionToConfirm.data.createContribution.id,
+            },
+          })
+          await mutate({
+            mutation: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+          await expect(
+            mutate({
+              mutation: deleteContribution,
+              variables: {
+                id: contributionToConfirm.data.createContribution.id,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('A confirmed contribution can not be deleted')],
+            }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('A confirmed contribution can not be deleted')
+        })
+      })
+    })
+  })
+
+  describe('listContributions', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          query({
+            query: listContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              filterConfirmed: false,
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(async () => {
+        resetToken()
+      })
+
+      describe('filter confirmed is false', () => {
+        it('returns creations', async () => {
+          await expect(
+            query({
+              query: listContributions,
+              variables: {
+                currentPage: 1,
+                pageSize: 25,
+                order: 'DESC',
+                filterConfirmed: false,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                listContributions: {
+                  contributionCount: 6,
+                  contributionList: expect.arrayContaining([
+                    expect.objectContaining({
+                      amount: '100',
+                      id: expect.any(Number),
+                      memo: 'Test contribution to confirm',
+                    }),
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Test PENDING contribution update',
+                      amount: '10',
+                    }),
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Test contribution to deny',
+                      amount: '100',
+                    }),
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Test contribution to delete',
+                      amount: '100',
+                    }),
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Test IN_PROGESS contribution',
+                      amount: '100',
+                    }),
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Herzlich Willkommen bei Gradido!',
+                      amount: '1000',
+                    }),
+                  ]),
+                },
+              },
+            }),
+          )
+        })
+      })
+
+      describe('filter confirmed is true', () => {
+        it('returns only unconfirmed creations', async () => {
+          await expect(
+            query({
+              query: listContributions,
+              variables: {
+                currentPage: 1,
+                pageSize: 25,
+                order: 'DESC',
+                filterConfirmed: true,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                listContributions: {
+                  contributionCount: 4,
+                  contributionList: expect.arrayContaining([
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Test contribution to delete',
+                      amount: '100',
+                    }),
+                  ]),
+                },
               },
             }),
           )
@@ -813,27 +1017,13 @@ describe('ContributionResolver', () => {
 
     describe('authenticated', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg)
-        await userFactory(testEnv, peterLustig)
-        const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        await creationFactory(testEnv, bibisCreation!)
         await mutate({
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
-        await mutate({
-          mutation: createContribution,
-          variables: {
-            amount: 100.0,
-            memo: 'Test env contribution',
-            creationDate: new Date().toString(),
-          },
-        })
       })
 
       afterAll(async () => {
-        await cleanDB()
         resetToken()
       })
 
@@ -920,19 +1110,43 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 2,
+                contributionCount: 6,
                 contributionList: expect.arrayContaining([
+                  expect.objectContaining({
+                    amount: '100',
+                    state: 'CONFIRMED',
+                    id: expect.any(Number),
+                    memo: 'Test contribution to confirm',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test PENDING contribution update',
+                    amount: '10',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Test contribution to deny',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DELETED',
+                    memo: 'Test contribution to delete',
+                    amount: '100',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'IN_PROGRESS',
+                    memo: 'Test IN_PROGESS contribution',
+                    amount: '100',
+                  }),
                   expect.objectContaining({
                     id: expect.any(Number),
                     state: 'CONFIRMED',
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
                   }),
                 ]),
               },
@@ -956,19 +1170,43 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 2,
+                contributionCount: 6,
                 contributionList: expect.arrayContaining([
+                  expect.objectContaining({
+                    amount: '100',
+                    state: 'CONFIRMED',
+                    id: expect.any(Number),
+                    memo: 'Test contribution to confirm',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test PENDING contribution update',
+                    amount: '10',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Test contribution to deny',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DELETED',
+                    memo: 'Test contribution to delete',
+                    amount: '100',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'IN_PROGRESS',
+                    memo: 'Test IN_PROGESS contribution',
+                    amount: '100',
+                  }),
                   expect.objectContaining({
                     id: expect.any(Number),
                     state: 'CONFIRMED',
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
                   }),
                 ]),
               },
@@ -992,19 +1230,43 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 2,
+                contributionCount: 6,
                 contributionList: expect.arrayContaining([
+                  expect.objectContaining({
+                    amount: '100',
+                    state: 'CONFIRMED',
+                    id: expect.any(Number),
+                    memo: 'Test contribution to confirm',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test PENDING contribution update',
+                    amount: '10',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Test contribution to deny',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DELETED',
+                    memo: 'Test contribution to delete',
+                    amount: '100',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'IN_PROGRESS',
+                    memo: 'Test IN_PROGESS contribution',
+                    amount: '100',
+                  }),
                   expect.objectContaining({
                     id: expect.any(Number),
                     state: 'CONFIRMED',
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
                   }),
                 ]),
               },
@@ -1028,19 +1290,43 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 1,
+                contributionCount: 2,
                 contributionList: expect.arrayContaining([
+                  expect.objectContaining({
+                    amount: '100',
+                    state: 'CONFIRMED',
+                    id: expect.any(Number),
+                    memo: 'Test contribution to confirm',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test PENDING contribution update',
+                    amount: '10',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Test contribution to deny',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DELETED',
+                    memo: 'Test contribution to delete',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'IN_PROGRESS',
+                    memo: 'Test IN_PROGESS contribution',
+                    amount: '100',
+                  }),
                   expect.objectContaining({
                     id: expect.any(Number),
                     state: 'CONFIRMED',
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
                   }),
                 ]),
               },
@@ -1067,16 +1353,40 @@ describe('ContributionResolver', () => {
                 contributionCount: 1,
                 contributionList: expect.arrayContaining([
                   expect.not.objectContaining({
-                    id: expect.any(Number),
+                    amount: '100',
                     state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
+                    id: expect.any(Number),
+                    memo: 'Test contribution to confirm',
                   }),
                   expect.objectContaining({
                     id: expect.any(Number),
                     state: 'PENDING',
-                    memo: 'Test env contribution',
+                    memo: 'Test PENDING contribution update',
+                    amount: '10',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Test contribution to deny',
                     amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DELETED',
+                    memo: 'Test contribution to delete',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'IN_PROGRESS',
+                    memo: 'Test IN_PROGESS contribution',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
                   }),
                 ]),
               },
@@ -1100,19 +1410,43 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 0,
-                contributionList: expect.not.arrayContaining([
+                contributionCount: 1,
+                contributionList: expect.arrayContaining([
+                  expect.not.objectContaining({
+                    amount: '100',
+                    state: 'CONFIRMED',
+                    id: expect.any(Number),
+                    memo: 'Test contribution to confirm',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test PENDING contribution update',
+                    amount: '10',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Test contribution to deny',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DELETED',
+                    memo: 'Test contribution to delete',
+                    amount: '100',
+                  }),
                   expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'IN_PROGRESS',
+                    memo: 'Test IN_PROGESS contribution',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
                     id: expect.any(Number),
                     state: 'CONFIRMED',
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
                   }),
                 ]),
               },
@@ -1136,19 +1470,43 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 0,
-                contributionList: expect.not.arrayContaining([
+                contributionCount: 1,
+                contributionList: expect.arrayContaining([
+                  expect.not.objectContaining({
+                    amount: '100',
+                    state: 'CONFIRMED',
+                    id: expect.any(Number),
+                    memo: 'Test contribution to confirm',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test PENDING contribution update',
+                    amount: '10',
+                  }),
                   expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Test contribution to deny',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DELETED',
+                    memo: 'Test contribution to delete',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'IN_PROGRESS',
+                    memo: 'Test IN_PROGESS contribution',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
                     id: expect.any(Number),
                     state: 'CONFIRMED',
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
                   }),
                 ]),
               },
@@ -1173,20 +1531,7 @@ describe('ContributionResolver', () => {
             data: {
               listAllContributions: {
                 contributionCount: 0,
-                contributionList: expect.not.arrayContaining([
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
-                  }),
-                ]),
+                contributionList: [],
               },
             },
           }),
@@ -1208,192 +1553,49 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 2,
+                contributionCount: 3,
                 contributionList: expect.arrayContaining([
+                  expect.objectContaining({
+                    amount: '100',
+                    state: 'CONFIRMED',
+                    id: expect.any(Number),
+                    memo: 'Test contribution to confirm',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test PENDING contribution update',
+                    amount: '10',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Test contribution to deny',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DELETED',
+                    memo: 'Test contribution to delete',
+                    amount: '100',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'IN_PROGRESS',
+                    memo: 'Test IN_PROGESS contribution',
+                    amount: '100',
+                  }),
                   expect.objectContaining({
                     id: expect.any(Number),
                     state: 'CONFIRMED',
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
                   }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
-                  }),
                 ]),
               },
             },
           }),
         )
-      })
-    })
-  })
-
-  describe('deleteContribution', () => {
-    describe('unauthenticated', () => {
-      it('returns an error', async () => {
-        await expect(
-          query({
-            query: deleteContribution,
-            variables: {
-              id: -1,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
-      })
-    })
-
-    describe('authenticated', () => {
-      let peter: any
-      beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg)
-        peter = await userFactory(testEnv, peterLustig)
-
-        await mutate({
-          mutation: login,
-          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-        })
-        result = await mutate({
-          mutation: createContribution,
-          variables: {
-            amount: 100.0,
-            memo: 'Test env contribution',
-            creationDate: new Date().toString(),
-          },
-        })
-      })
-
-      afterAll(async () => {
-        await cleanDB()
-        resetToken()
-      })
-
-      describe('wrong contribution id', () => {
-        it('returns an error', async () => {
-          await expect(
-            mutate({
-              mutation: deleteContribution,
-              variables: {
-                id: -1,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Contribution not found for given id.')],
-            }),
-          )
-        })
-
-        it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('Contribution not found for given id')
-        })
-      })
-
-      describe('other user sends a deleteContribution', () => {
-        it('returns an error', async () => {
-          await mutate({
-            mutation: login,
-            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
-          })
-          await expect(
-            mutate({
-              mutation: deleteContribution,
-              variables: {
-                id: result.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Can not delete contribution of another user')],
-            }),
-          )
-        })
-
-        it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('Can not delete contribution of another user')
-        })
-      })
-
-      describe('User deletes own contribution', () => {
-        it('deletes successfully', async () => {
-          await expect(
-            mutate({
-              mutation: deleteContribution,
-              variables: {
-                id: result.data.createContribution.id,
-              },
-            }),
-          ).resolves.toBeTruthy()
-        })
-
-        it('stores the delete contribution event in the database', async () => {
-          const contribution = await mutate({
-            mutation: createContribution,
-            variables: {
-              amount: 166.0,
-              memo: 'Whatever contribution',
-              creationDate: new Date().toString(),
-            },
-          })
-
-          await mutate({
-            mutation: deleteContribution,
-            variables: {
-              id: contribution.data.createContribution.id,
-            },
-          })
-
-          await expect(EventProtocol.find()).resolves.toContainEqual(
-            expect.objectContaining({
-              type: EventProtocolType.CONTRIBUTION_DELETE,
-              contributionId: contribution.data.createContribution.id,
-              amount: expect.decimalEqual(166),
-              userId: peter.id,
-            }),
-          )
-        })
-      })
-
-      describe('User deletes already confirmed contribution', () => {
-        it('throws an error', async () => {
-          jest.clearAllMocks()
-          await mutate({
-            mutation: login,
-            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
-          })
-          await mutate({
-            mutation: confirmContribution,
-            variables: {
-              id: result.data.createContribution.id,
-            },
-          })
-          await mutate({
-            mutation: login,
-            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-          })
-          await expect(
-            mutate({
-              mutation: deleteContribution,
-              variables: {
-                id: result.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('A confirmed contribution can not be deleted')],
-            }),
-          )
-        })
-
-        it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('A confirmed contribution can not be deleted')
-        })
       })
     })
   })
@@ -1505,7 +1707,6 @@ describe('ContributionResolver', () => {
     describe('authenticated', () => {
       describe('without admin rights', () => {
         beforeAll(async () => {
-          await userFactory(testEnv, bibiBloxberg)
           await mutate({
             mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -1513,7 +1714,6 @@ describe('ContributionResolver', () => {
         })
 
         afterAll(async () => {
-          await cleanDB()
           resetToken()
         })
 
@@ -1614,7 +1814,6 @@ describe('ContributionResolver', () => {
 
       describe('with admin rights', () => {
         beforeAll(async () => {
-          admin = await userFactory(testEnv, peterLustig)
           await mutate({
             mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
@@ -1622,7 +1821,6 @@ describe('ContributionResolver', () => {
         })
 
         afterAll(async () => {
-          await cleanDB()
           resetToken()
         })
 
@@ -1644,6 +1842,7 @@ describe('ContributionResolver', () => {
             creation = await Contribution.findOneOrFail({
               where: {
                 memo: 'Herzlich Willkommen bei Gradido!',
+                amount: 400,
               },
             })
           })
@@ -1651,6 +1850,7 @@ describe('ContributionResolver', () => {
           describe('user to create for does not exist', () => {
             it('throws an error', async () => {
               jest.clearAllMocks()
+              variables.email = 'some@fake.email'
               variables.creationDate = contributionDateFormatter(
                 new Date(now.getFullYear(), now.getMonth() - 1, 1),
               )
@@ -1658,15 +1858,13 @@ describe('ContributionResolver', () => {
                 mutate({ mutation: adminCreateContribution, variables }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Could not find user with email: bibi@bloxberg.de')],
+                  errors: [new GraphQLError('Could not find user with email: some@fake.email')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith(
-                'Could not find user with email: bibi@bloxberg.de',
-              )
+              expect(logger.error).toBeCalledWith('Could not find user with email: some@fake.email')
             })
           })
 
@@ -1730,7 +1928,6 @@ describe('ContributionResolver', () => {
 
           describe('valid user to create for', () => {
             beforeAll(async () => {
-              await userFactory(testEnv, bibiBloxberg)
               variables.email = 'bibi@bloxberg.de'
               variables.creationDate = 'invalid-date'
             })
@@ -1812,7 +2009,7 @@ describe('ContributionResolver', () => {
                   expect.objectContaining({
                     errors: [
                       new GraphQLError(
-                        'The amount (2000 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+                        'The amount (2000 GDD) to be created exceeds the amount (900 GDD) still available for this month.',
                       ),
                     ],
                   }),
@@ -1821,7 +2018,7 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'The amount (2000 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+                  'The amount (2000 GDD) to be created exceeds the amount (900 GDD) still available for this month.',
                 )
               })
             })
@@ -1834,7 +2031,7 @@ describe('ContributionResolver', () => {
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      adminCreateContribution: [1000, 1000, 800],
+                      adminCreateContribution: [1000, 1000, 700],
                     },
                   }),
                 )
@@ -1859,7 +2056,7 @@ describe('ContributionResolver', () => {
                   expect.objectContaining({
                     errors: [
                       new GraphQLError(
-                        'The amount (1000 GDD) to be created exceeds the amount (800 GDD) still available for this month.',
+                        'The amount (1000 GDD) to be created exceeds the amount (700 GDD) still available for this month.',
                       ),
                     ],
                   }),
@@ -1868,7 +2065,7 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'The amount (1000 GDD) to be created exceeds the amount (800 GDD) still available for this month.',
+                  'The amount (1000 GDD) to be created exceeds the amount (700 GDD) still available for this month.',
                 )
               })
             })
@@ -2013,6 +2210,7 @@ describe('ContributionResolver', () => {
           describe('user email does not match creation user', () => {
             it('throws an error', async () => {
               jest.clearAllMocks()
+              console.log('creation', creation)
               await expect(
                 mutate({
                   mutation: adminUpdateContribution,
@@ -2170,7 +2368,7 @@ describe('ContributionResolver', () => {
               expect.objectContaining({
                 data: {
                   listUnconfirmedContributions: expect.arrayContaining([
-                    {
+                    expect.objectContaining({
                       id: expect.any(Number),
                       firstName: 'Peter',
                       lastName: 'Lustig',
@@ -2179,9 +2377,9 @@ describe('ContributionResolver', () => {
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
                       moderator: admin.id,
-                      creation: ['1000', '800', '500'],
-                    },
-                    {
+                      creation: ['1000', '600', '500'],
+                    }),
+                    expect.objectContaining({
                       id: expect.any(Number),
                       firstName: 'Peter',
                       lastName: 'Lustig',
@@ -2190,9 +2388,20 @@ describe('ContributionResolver', () => {
                       memo: 'Grundeinkommen',
                       amount: '500',
                       moderator: admin.id,
-                      creation: ['1000', '800', '500'],
-                    },
-                    {
+                      creation: ['1000', '600', '500'],
+                    }),
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      firstName: 'Bibi',
+                      lastName: 'Bloxberg',
+                      email: 'bibi@bloxberg.de',
+                      date: expect.any(String),
+                      memo: 'Test contribution to delete',
+                      amount: '100',
+                      moderator: null,
+                      creation: ['1000', '1000', '200'],
+                    }),
+                    expect.objectContaining({
                       id: expect.any(Number),
                       firstName: 'Bibi',
                       lastName: 'Bloxberg',
@@ -2201,9 +2410,9 @@ describe('ContributionResolver', () => {
                       memo: 'Grundeinkommen',
                       amount: '500',
                       moderator: admin.id,
-                      creation: ['1000', '1000', '300'],
-                    },
-                    {
+                      creation: ['1000', '1000', '200'],
+                    }),
+                    expect.objectContaining({
                       id: expect.any(Number),
                       firstName: 'Bibi',
                       lastName: 'Bloxberg',
@@ -2212,8 +2421,8 @@ describe('ContributionResolver', () => {
                       memo: 'Aktives Grundeinkommen',
                       amount: '200',
                       moderator: admin.id,
-                      creation: ['1000', '1000', '300'],
-                    },
+                      creation: ['1000', '1000', '200'],
+                    }),
                   ]),
                 },
               }),
@@ -2245,12 +2454,13 @@ describe('ContributionResolver', () => {
           })
 
           describe('admin deletes own user contribution', () => {
+            let ownContribution: any
             beforeAll(async () => {
               await query({
                 query: login,
                 variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
               })
-              result = await mutate({
+              ownContribution = await mutate({
                 mutation: createContribution,
                 variables: {
                   amount: 100.0,
@@ -2266,7 +2476,7 @@ describe('ContributionResolver', () => {
                 mutate({
                   mutation: adminDeleteContribution,
                   variables: {
-                    id: result.data.createContribution.id,
+                    id: ownContribution.data.createContribution.id,
                   },
                 }),
               ).resolves.toEqual(
