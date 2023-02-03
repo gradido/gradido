@@ -1,9 +1,6 @@
 name: gradido test CI
 
-on:
-  push:
-    branches: 
-      - 2352-feat-user-story-user-authentication-reset-password
+on: push
 
 jobs:
   ##############################################################################
