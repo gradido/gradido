@@ -29,7 +29,6 @@
         <b-tab :title="$t('contributions.all')" @click="listContributions('all')" data-test="all" />
       </b-tabs>
     </div>
-    {{ contributionFilter }}
     <open-creations-table
       class="mt-4"
       :items="items"
