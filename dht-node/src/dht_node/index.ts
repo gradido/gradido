@@ -216,7 +216,7 @@ async function writeHomeCommunityEnries(pubKey: any): Promise<CommunityApi[]> {
 
       // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
       await DbCommunity.insert(homeCom)
-      logger.info(`federation home-community inserted successfully: ${homeCom}`)
+      logger.info(`federation home-community inserted successfully: ${JSON.stringify(homeCom)}`)
     })
   } catch (err) {
     throw new Error(`Federation: Error writing HomeCommunity-Entries: ${err}`)
