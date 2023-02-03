@@ -200,26 +200,27 @@ async function writeHomeCommunityEnries(pubKey: any): Promise<CommunityApi[]> {
     }
     return comApi
   })
-
-  homeApiVersions.forEach(async function (homeApi) {
-    const variables = {
-      foreign: false,
-      apiVersion: homeApi.api,
-      endPoint: homeApi.url,
-      publicKey: pubKey.toString('hex'),
+  try {
+    // first remove privious existing homeCommunity entries
+    const homeComs = await DbCommunity.find({ foreign: false })
+    if (homeComs.length > 0) {
+      await DbCommunity.remove(homeComs)
     }
-    // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
-    await DbCommunity.createQueryBuilder()
-      .insert()
-      .into(DbCommunity)
-      .values(variables)
-      .orUpdate({
-        conflict_target: ['id', 'foreign', 'publicKey', 'apiVersion'],
-        overwrite: ['foreign', 'api_version', 'end_point', 'public_key'],
-      })
-      .execute()
-    logger.info(`federation home-community upserted successfully...`)
-  })
+
+    homeApiVersions.forEach(async function (homeApi) {
+      const homeCom = new DbCommunity()
+      homeCom.foreign = false
+      homeCom.apiVersion = homeApi.api
+      homeCom.endPoint = homeApi.url
+      homeCom.publicKey = pubKey.toString('hex')
+
+      // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
+      await DbCommunity.insert(homeCom)
+      logger.info(`federation home-community inserted successfully: ${homeCom}`)
+    })
+  } catch (err) {
+    throw new Error(`Federation: Error writing HomeCommunity-Entries: ${err}`)
+  }
 
   return homeApiVersions
 }
