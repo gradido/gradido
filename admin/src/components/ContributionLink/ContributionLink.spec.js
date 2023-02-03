@@ -42,14 +42,30 @@ describe('ContributionLink', () => {
       expect(wrapper.find('div.contribution-link').exists()).toBe(true)
     })
 
-    it('emits toggle::collapse new Contribution', async () => {
-      wrapper.vm.editContributionLinkData()
-      expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
+    describe('function editContributionLinkData', () => {
+      beforeEach(() => {
+        wrapper.vm.editContributionLinkData()
+      })
+      it('emits toggle::collapse new Contribution', async () => {
+        await expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
+      })
     })
 
-    it('emits toggle::collapse close Contribution-Form ', async () => {
-      wrapper.vm.closeContributionForm()
-      expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
+    describe('function closeContributionForm', () => {
+      beforeEach(async () => {
+        await wrapper.setData({ visible: true })
+        wrapper.vm.closeContributionForm()
+      })
+
+      it('emits toggle::collapse close Contribution-Form ', async () => {
+        await expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
+      })
+      it('editContributionLink is false', async () => {
+        await expect(wrapper.vm.editContributionLink).toBe(false)
+      })
+      it('contributionLinkData is empty', async () => {
+        await expect(wrapper.vm.contributionLinkData).toEqual({})
+      })
     })
   })
 })
