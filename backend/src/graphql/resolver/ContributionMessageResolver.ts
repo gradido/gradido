@@ -12,7 +12,6 @@ import { ContributionStatus } from '@enum/ContributionStatus'
 import { Order } from '@enum/Order'
 import Paginated from '@arg/Paginated'
 
-import { backendLogger as logger } from '@/server/logger'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser } from '@/server/context'
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
