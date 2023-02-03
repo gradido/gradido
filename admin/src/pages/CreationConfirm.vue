@@ -3,56 +3,43 @@
   <div class="creation-confirm">
     <div>
       <b-tabs content-class="mt-3" fill>
-        <b-tab active @click="listContributions(['IN_PROGRESS', 'PENDING'])">
+        <b-tab active @click="listContributions('open')" data-test="open">
           <template #title>
             {{ $t('contributions.open') }}
             <b-badge v-if="$store.state.openCreations > 0" variant="danger">
               {{ $store.state.openCreations }}
             </b-badge>
           </template>
-          <open-creations-table
-            class="mt-4"
-            :items="allCreations"
-            :fields="fields"
-            @show-overlay="showOverlay"
-            @update-state="updateState"
-            @update-contributions="listContributions(['IN_PROGRESS', 'PENDING'])"
-          />
-        </b-tab>
-        <b-tab :title="$t('contributions.confirms')" @click="listContributions(['CONFIRMED'])">
-          <p>{{ $t('contributions.confirms') }}</p>
-          <open-creations-table
-            class="mt-4"
-            :items="allCreations"
-            :fields="fieldsConfirmContributions"
-            @update-contributions="listContributions(['CONFIRMED'])"
-          />
-        </b-tab>
-        <b-tab :title="$t('contributions.denied')" @click="listContributions(['DENIED'])">
-          <p>{{ $t('contributions.denied') }}</p>
-          <open-creations-table
-            class="mt-4"
-            :items="allCreations"
-            :fields="fieldsDeniedContributions"
-            @update-contributions="listContributions(['DENIED'])"
-          />
-        </b-tab>
-        <b-tab :title="$t('contributions.deleted')" @click="listContributions(['DELETED'])">
-          <p>{{ $t('contributions.deleted') }}</p>
         </b-tab>
         <b-tab
-          :title="$t('contributions.all')"
-          @click="listContributions(['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED'])"
-        >
-          <p>{{ $t('contributions.all') }}</p>
-          <open-creations-table
-            class="mt-4"
-            :items="allCreations"
-            :fields="fieldsAllContributions"
-          />
-        </b-tab>
+          :title="$t('contributions.confirms')"
+          @click="listContributions('confirmed')"
+          data-test="confirmed"
+        />
+        <b-tab
+          :title="$t('contributions.denied')"
+          @click="listContributions('denied')"
+          data-test="denied"
+        />
+        <b-tab
+          :title="$t('contributions.deleted')"
+          @click="listContributions('deleted')"
+          data-test="deleted"
+        />
+        <b-tab :title="$t('contributions.all')" @click="listContributions('all')" data-test="all" />
       </b-tabs>
     </div>
+    {{ contributionFilter }}
+    <open-creations-table
+      class="mt-4"
+      :items="items"
+      :fields="fields"
+      :filterTab="filterTab"
+      @show-overlay="showOverlay"
+      @update-state="updateState"
+      @update-contributions="$apollo.queries.AllContributions.refetch()"
+    />
+
     <b-pagination
       pills
       size="lg"
@@ -104,8 +91,8 @@ export default {
   },
   data() {
     return {
-      pendingCreations: [],
-      allCreations: [],
+      items: [],
+      filterTab: 'open',
       statusFilter: ['IN_PROGRESS', 'PENDING'],
       overlay: false,
       item: {},
@@ -116,8 +103,9 @@ export default {
     }
   },
   methods: {
-    listContributions(arr) {
-      this.statusFilter = arr
+    listContributions(filter) {
+      this.filterTab = filter
+      this.statusFilter = this.contributionFilter
       this.$apollo.queries.AllContributions.refetch()
     },
     deleteCreation() {
@@ -175,7 +163,7 @@ export default {
         })
     },
     updatePendingCreations(id) {
-      this.pendingCreations = this.pendingCreations.filter((obj) => obj.id !== id)
+      this.items = this.items.filter((obj) => obj.id !== id)
       this.$store.commit('openCreationsMinus', 1)
     },
     showOverlay(item, variant) {
@@ -184,142 +172,163 @@ export default {
       this.variant = variant
     },
     updateState(id) {
-      this.pendingCreations.find((obj) => obj.id === id).messagesCount++
-      this.pendingCreations.find((obj) => obj.id === id).state = 'IN_PROGRESS'
+      this.items.find((obj) => obj.id === id).messagesCount++
+      this.items.find((obj) => obj.id === id).state = 'IN_PROGRESS'
     },
   },
   computed: {
     fields() {
-      return [
-        { key: 'bookmark', label: this.$t('delete') },
-        { key: 'email', label: this.$t('e_mail') },
-        { key: 'firstName', label: this.$t('firstname') },
-        { key: 'lastName', label: this.$t('lastname') },
-        {
-          key: 'amount',
-          label: this.$t('creation'),
-          formatter: (value) => {
-            return value + ' GDD'
+      if (this.filterTab === 'open') {
+        return [
+          { key: 'bookmark', label: this.$t('delete') },
+          { key: 'email', label: this.$t('e_mail') },
+          { key: 'firstName', label: this.$t('firstname') },
+          { key: 'lastName', label: this.$t('lastname') },
+          {
+            key: 'amount',
+            label: this.$t('creation'),
+            formatter: (value) => {
+              return value + ' GDD'
+            },
           },
-        },
-        { key: 'memo', label: this.$t('text'), class: 'text-break' },
-        {
-          key: 'date',
-          label: this.$t('date'),
-          formatter: (value) => {
-            return this.$d(new Date(value), 'short')
+          { key: 'memo', label: this.$t('text'), class: 'text-break' },
+          {
+            key: 'contributionDate',
+            label: this.$t('created'),
+            formatter: (value) => {
+              return this.$d(new Date(value), 'short')
+            },
           },
-        },
-        { key: 'moderator', label: this.$t('moderator') },
-        { key: 'editCreation', label: this.$t('edit') },
-        { key: 'deny', label: this.$t('deny') },
-        { key: 'confirm', label: this.$t('save') },
-      ]
+          { key: 'moderator', label: this.$t('moderator') },
+          { key: 'editCreation', label: this.$t('edit') },
+          { key: 'deny', label: this.$t('deny') },
+          { key: 'confirm', label: this.$t('save') },
+        ]
+      }
+      if (this.filterTab === 'all') {
+        return [
+          { key: 'state', label: 'state' },
+          { key: 'firstName', label: this.$t('firstname') },
+          { key: 'lastName', label: this.$t('lastname') },
+          {
+            key: 'amount',
+            label: this.$t('creation'),
+            formatter: (value) => {
+              return value + ' GDD'
+            },
+          },
+          { key: 'memo', label: this.$t('text'), class: 'text-break' },
+          {
+            key: 'contributionDate',
+            label: this.$t('created'),
+            formatter: (value) => {
+              return this.$d(new Date(value), 'short')
+            },
+          },
+          {
+            key: 'createdAt',
+            label: this.$t('createdAt'),
+            formatter: (value) => {
+              return this.$d(new Date(value), 'short')
+            },
+          },
+          { key: 'chatCreation', label: this.$t('chat') },
+        ]
+      }
+      if (this.filterTab === 'denied') {
+        return [
+          { key: 'reActive', label: 'reActive' },
+          { key: 'firstName', label: this.$t('firstname') },
+          { key: 'lastName', label: this.$t('lastname') },
+          {
+            key: 'amount',
+            label: this.$t('creation'),
+            formatter: (value) => {
+              return value + ' GDD'
+            },
+          },
+          { key: 'memo', label: this.$t('text'), class: 'text-break' },
+          {
+            key: 'contributionDate',
+            label: this.$t('created'),
+            formatter: (value) => {
+              return this.$d(new Date(value), 'short')
+            },
+          },
+          {
+            key: 'createdAt',
+            label: this.$t('createdAt'),
+            formatter: (value) => {
+              return this.$d(new Date(value), 'short')
+            },
+          },
+          {
+            key: 'deniedAt',
+            label: this.$t('contributions.denied'),
+            formatter: (value) => {
+              return this.$d(new Date(value), 'short')
+            },
+          },
+          { key: 'deniedBy', label: this.$t('mod') },
+          { key: 'chatCreation', label: this.$t('chat') },
+        ]
+      }
+      if (this.filterTab === 'confirmed') {
+        return [
+          { key: 'firstName', label: this.$t('firstname') },
+          { key: 'lastName', label: this.$t('lastname') },
+          {
+            key: 'amount',
+            label: this.$t('creation'),
+            formatter: (value) => {
+              return value + ' GDD'
+            },
+          },
+          { key: 'memo', label: this.$t('text'), class: 'text-break' },
+          {
+            key: 'contributionDate',
+            label: this.$t('created'),
+            formatter: (value) => {
+              return this.$d(new Date(value), 'short')
+            },
+          },
+          {
+            key: 'createdAt',
+            label: this.$t('createdAt'),
+            formatter: (value) => {
+              return this.$d(new Date(value), 'short')
+            },
+          },
+          {
+            key: 'confirmedAt',
+            label: this.$t('contributions.confirms'),
+            formatter: (value) => {
+              return this.$d(new Date(value), 'short')
+            },
+          },
+          { key: 'confirmedBy', label: this.$t('mod') },
+          { key: 'chatCreation', label: this.$t('chat') },
+        ]
+      }
+      return []
     },
-    fieldsAllContributions() {
-      return [
-        { key: 'state', label: 'state' },
-        { key: 'firstName', label: this.$t('firstname') },
-        { key: 'lastName', label: this.$t('lastname') },
-        {
-          key: 'amount',
-          label: this.$t('creation'),
-          formatter: (value) => {
-            return value + ' GDD'
-          },
-        },
-        { key: 'memo', label: this.$t('text'), class: 'text-break' },
-        {
-          key: 'contributionDate',
-          label: this.$t('created'),
-          formatter: (value) => {
-            return this.$d(new Date(value), 'short')
-          },
-        },
-        {
-          key: 'createdAt',
-          label: this.$t('createdAt'),
-          formatter: (value) => {
-            return this.$d(new Date(value), 'short')
-          },
-        },
-        { key: 'chatCreation', label: this.$t('chat') },
-      ]
-    },
-    fieldsDeniedContributions() {
-      return [
-        { key: 'reActive', label: 'reActive' },
-        { key: 'firstName', label: this.$t('firstname') },
-        { key: 'lastName', label: this.$t('lastname') },
-        {
-          key: 'amount',
-          label: this.$t('creation'),
-          formatter: (value) => {
-            return value + ' GDD'
-          },
-        },
-        { key: 'memo', label: this.$t('text'), class: 'text-break' },
-        {
-          key: 'contributionDate',
-          label: this.$t('created'),
-          formatter: (value) => {
-            return this.$d(new Date(value), 'short')
-          },
-        },
-        {
-          key: 'createdAt',
-          label: this.$t('createdAt'),
-          formatter: (value) => {
-            return this.$d(new Date(value), 'short')
-          },
-        },
-        {
-          key: 'deniedAt',
-          label: this.$t('contributions.denied'),
-          formatter: (value) => {
-            return this.$d(new Date(value), 'short')
-          },
-        },
-        { key: 'deniedBy', label: this.$t('mod') },
-        { key: 'chatCreation', label: this.$t('chat') },
-      ]
-    },
-    fieldsConfirmContributions() {
-      return [
-        { key: 'firstName', label: this.$t('firstname') },
-        { key: 'lastName', label: this.$t('lastname') },
-        {
-          key: 'amount',
-          label: this.$t('creation'),
-          formatter: (value) => {
-            return value + ' GDD'
-          },
-        },
-        { key: 'memo', label: this.$t('text'), class: 'text-break' },
-        {
-          key: 'contributionDate',
-          label: this.$t('created'),
-          formatter: (value) => {
-            return this.$d(new Date(value), 'short')
-          },
-        },
-        {
-          key: 'createdAt',
-          label: this.$t('createdAt'),
-          formatter: (value) => {
-            return this.$d(new Date(value), 'short')
-          },
-        },
-        {
-          key: 'confirmedAt',
-          label: this.$t('contributions.confirms'),
-          formatter: (value) => {
-            return this.$d(new Date(value), 'short')
-          },
-        },
-        { key: 'confirmedBy', label: this.$t('mod') },
-        { key: 'chatCreation', label: this.$t('chat') },
-      ]
+    contributionFilter() {
+      if (this.filterTab === 'open') {
+        return ['IN_PROGRESS', 'PENDING']
+      }
+      if (this.filterTab === 'all') {
+        return ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED']
+      }
+      if (this.filterTab === 'denied') {
+        return ['DENIED']
+      }
+      if (this.filterTab === 'confirmed') {
+        return ['CONFIRMED']
+      }
+      if (this.filterTab === 'deleted') {
+        return ['DELETED']
+      }
+      return ['IN_PROGRESS', 'PENDING']
     },
     overlayTitle() {
       return `overlay.${this.variant}.title`
@@ -364,7 +373,7 @@ export default {
       },
       update({ listAllContributions }) {
         this.rows = listAllContributions.contributionCount
-        this.allCreations = listAllContributions.contributionList
+        this.items = listAllContributions.contributionList
       },
       error({ message }) {
         this.toastError(message)

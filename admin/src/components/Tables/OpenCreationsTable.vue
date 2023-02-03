@@ -142,6 +142,10 @@ export default {
       type: Array,
       required: true,
     },
+    filterTab: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
@@ -170,7 +174,7 @@ export default {
       rowItem.creation = newCreation
     },
     updateState(id) {
-      this.$emit('update-state', id)
+      if (this.filterTab === 'open') this.$emit('update-state', id)
     },
     reActive() {
       alert('reActive Contribution')
