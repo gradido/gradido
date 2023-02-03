@@ -4,7 +4,7 @@ Feature: User registration
 
   @skip
   Scenario: Register successfully
-    Given the browser navigates to page "/register"
+    Given the user navigates to page "/register"
     When the user fills name and email "Regina" "Register" "regina@register.com"
     And the user agrees to the privacy policy
     And the user submits the registration form

@@ -3,7 +3,7 @@ import { OverviewPage } from "../../e2e/models/OverviewPage";
 import { SideNavMenu } from "../../e2e/models/SideNavMenu";
 import { Toasts } from "../../e2e/models/Toasts";
 
-Given("the browser navigates to page {string}", (page: string) => {
+Given("the user navigates to page {string}", (page: string) => {
   cy.visit(page);
 });
 

@@ -9,7 +9,7 @@ Feature: User Authentication - reset password
   #     | bibi@bloxberg.de | Aa12345_ | Bibi Bloxberg |
 
   Scenario: Reset password from signin page successfully
-    Given the browser navigates to page "/login"
+    Given the user navigates to page "/login"
     And the user navigates to the forgot password page
     When the user enters the e-mail address "bibi@bloxberg.de"
     And the user submits the e-mail form
