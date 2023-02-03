@@ -1,6 +1,6 @@
 Feature: User Authentication - reset password
   As a user
-  I want the option to reset my password from the sign in page
+  I want to reset my password from the sign in page
 
   # TODO for these pre-conditions utilize seeding or API check, if user exists in test system
   # Background:
