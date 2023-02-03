@@ -26,7 +26,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn(
     'ALTER TABLE `communities` MODIFY COLUMN `last_announced_at` datetime(3) NOT NULL AFTER `end_point`;',
   )
-  await queryFn('ALTER TABLE communities DROP COLUMN foreign;')
-  await queryFn('ALTER TABLE communities DROP COLUMN verified_at;')
-  await queryFn('ALTER TABLE communities DROP COLUMN last_error_at;')
+  await queryFn('ALTER TABLE `communities` DROP COLUMN `foreign`;')
+  await queryFn('ALTER TABLE `communities` DROP COLUMN `verified_at`;')
+  await queryFn('ALTER TABLE `communities` DROP COLUMN `last_error_at`;')
 }
