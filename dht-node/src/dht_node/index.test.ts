@@ -44,10 +44,11 @@ const lookupResultMock = {
   token: Buffer.from(TEST_TOPIC),
   from: {
     id: Buffer.from('somone'),
+    foreign: true,
     host: '188.95.53.5',
     port: 63561,
   },
-  to: { id: null, host: '83.53.31.27', port: 55723 },
+  to: { id: null, foreign: true, host: '83.53.31.27', port: 55723 },
   peers: [
     {
       publicKey: Buffer.from('some-public-key'),
@@ -234,18 +235,18 @@ describe('federation', () => {
               beforeEach(async () => {
                 jest.clearAllMocks()
                 jsonArray = [
-                  { api: 'v1_0', url: 'too much versions at the same time test' },
-                  { api: 'v1_0', url: 'url2' },
-                  { api: 'v1_0', url: 'url3' },
-                  { api: 'v1_0', url: 'url4' },
-                  { api: 'v1_0', url: 'url5' },
+                  { api: '1_0', url: 'too much versions at the same time test' },
+                  { api: '1_0', url: 'url2' },
+                  { api: '1_0', url: 'url3' },
+                  { api: '1_0', url: 'url4' },
+                  { api: '1_0', url: 'url5' },
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
               })
 
               it('logs the received data', () => {
                 expect(logger.info).toBeCalledWith(
-                  'data: [{"api":"v1_0","url":"too much versions at the same time test"},{"api":"v1_0","url":"url2"},{"api":"v1_0","url":"url3"},{"api":"v1_0","url":"url4"},{"api":"v1_0","url":"url5"}]',
+                  'data: [{"api":"1_0","url":"too much versions at the same time test"},{"api":"1_0","url":"url2"},{"api":"1_0","url":"url3"},{"api":"1_0","url":"url4"},{"api":"1_0","url":"url5"}]',
                 )
               })
 
@@ -266,17 +267,17 @@ describe('federation', () => {
                 jsonArray = [
                   {
                     wrong: 'wrong but tolerated property test',
-                    api: 'v1_0',
+                    api: '1_0',
                     url: 'url1',
                   },
                   {
-                    api: 'v2_0',
+                    api: '2_0',
                     url: 'url2',
                     wrong: 'wrong but tolerated property test',
                   },
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
-                result = await DbCommunity.find()
+                result = await DbCommunity.find({ foreign: true })
               })
 
               afterAll(async () => {
@@ -287,13 +288,14 @@ describe('federation', () => {
                 expect(result).toHaveLength(2)
               })
 
-              it('has an entry for api version v1_0', () => {
+              it('has an entry for api version 1_0', () => {
                 expect(result).toEqual(
                   expect.arrayContaining([
                     expect.objectContaining({
                       id: expect.any(Number),
+                      foreign: true,
                       publicKey: expect.any(Buffer),
-                      apiVersion: 'v1_0',
+                      apiVersion: '1_0',
                       endPoint: 'url1',
                       lastAnnouncedAt: expect.any(Date),
                       createdAt: expect.any(Date),
@@ -303,13 +305,14 @@ describe('federation', () => {
                 )
               })
 
-              it('has an entry for api version v2_0', () => {
+              it('has an entry for api version 2_0', () => {
                 expect(result).toEqual(
                   expect.arrayContaining([
                     expect.objectContaining({
                       id: expect.any(Number),
+                      foreign: true,
                       publicKey: expect.any(Buffer),
-                      apiVersion: 'v2_0',
+                      apiVersion: '2_0',
                       endPoint: 'url2',
                       lastAnnouncedAt: expect.any(Date),
                       createdAt: expect.any(Date),
@@ -535,7 +538,7 @@ describe('federation', () => {
                   { api: 'toolong api', url: 'some valid url' },
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
-                result = await DbCommunity.find()
+                result = await DbCommunity.find({ foreign: true })
               })
 
               afterAll(async () => {
@@ -551,6 +554,7 @@ describe('federation', () => {
                   expect.arrayContaining([
                     expect.objectContaining({
                       id: expect.any(Number),
+                      foreign: true,
                       publicKey: expect.any(Buffer),
                       apiVersion: 'valid  api',
                       endPoint:
@@ -588,7 +592,7 @@ describe('federation', () => {
                   },
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
-                result = await DbCommunity.find()
+                result = await DbCommunity.find({ foreign: true })
               })
 
               afterAll(async () => {
@@ -604,6 +608,7 @@ describe('federation', () => {
                   expect.arrayContaining([
                     expect.objectContaining({
                       id: expect.any(Number),
+                      foreign: true,
                       publicKey: expect.any(Buffer),
                       apiVersion: 'valid api1',
                       endPoint:
@@ -621,6 +626,7 @@ describe('federation', () => {
                   expect.arrayContaining([
                     expect.objectContaining({
                       id: expect.any(Number),
+                      foreign: true,
                       publicKey: expect.any(Buffer),
                       apiVersion: 'valid api2',
                       endPoint:
@@ -638,6 +644,7 @@ describe('federation', () => {
                   expect.arrayContaining([
                     expect.objectContaining({
                       id: expect.any(Number),
+                      foreign: true,
                       publicKey: expect.any(Buffer),
                       apiVersion: 'valid api3',
                       endPoint:
@@ -655,6 +662,7 @@ describe('federation', () => {
                   expect.arrayContaining([
                     expect.objectContaining({
                       id: expect.any(Number),
+                      foreign: true,
                       publicKey: expect.any(Buffer),
                       apiVersion: 'valid api4',
                       endPoint:
@@ -710,17 +718,17 @@ describe('federation', () => {
                   Buffer.from(
                     JSON.stringify([
                       {
-                        api: 'v1_0',
-                        url: 'http://localhost:4000/api/v1_0',
+                        api: '1_0',
+                        url: 'http://localhost:5001/api/',
                       },
                       {
-                        api: 'v2_0',
-                        url: 'http://localhost:4000/api/v2_0',
+                        api: '2_0',
+                        url: 'http://localhost:5002/api/',
                       },
                     ]),
                   ),
                 )
-                result = await DbCommunity.find()
+                result = await DbCommunity.find({ foreign: true })
               })
 
               afterAll(async () => {
@@ -736,9 +744,10 @@ describe('federation', () => {
                   expect.arrayContaining([
                     expect.objectContaining({
                       id: expect.any(Number),
+                      foreign: true,
                       publicKey: expect.any(Buffer),
-                      apiVersion: 'v1_0',
-                      endPoint: 'http://localhost:4000/api/v1_0',
+                      apiVersion: '1_0',
+                      endPoint: 'http://localhost:5001/api/',
                       lastAnnouncedAt: expect.any(Date),
                       createdAt: expect.any(Date),
                       updatedAt: null,
@@ -747,14 +756,15 @@ describe('federation', () => {
                 )
               })
 
-              it('has an entry for api version v2_0', () => {
+              it('has an entry for api version 2_0', () => {
                 expect(result).toEqual(
                   expect.arrayContaining([
                     expect.objectContaining({
                       id: expect.any(Number),
+                      foreign: true,
                       publicKey: expect.any(Buffer),
-                      apiVersion: 'v2_0',
-                      endPoint: 'http://localhost:4000/api/v2_0',
+                      apiVersion: '2_0',
+                      endPoint: 'http://localhost:5002/api/',
                       lastAnnouncedAt: expect.any(Date),
                       createdAt: expect.any(Date),
                       updatedAt: null,
@@ -775,16 +785,16 @@ describe('federation', () => {
                 Buffer.from(
                   JSON.stringify([
                     {
-                      api: 'v1_0',
-                      url: 'http://localhost:4000/api/v1_0',
+                      api: '1_0',
+                      url: 'http://localhost:5001/api/',
                     },
                     {
-                      api: 'v1_1',
-                      url: 'http://localhost:4000/api/v1_1',
+                      api: '1_1',
+                      url: 'http://localhost:5002/api/',
                     },
                     {
-                      api: 'v2_0',
-                      url: 'http://localhost:4000/api/v2_0',
+                      api: '2_0',
+                      url: 'http://localhost:5003/api/',
                     },
                   ]),
                 ),
