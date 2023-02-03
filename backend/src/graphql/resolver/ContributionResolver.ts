@@ -53,6 +53,7 @@ import {
   sendContributionDeniedEmail,
 } from '@/emails/sendEmailVariants'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import LogError from '@/server/LogError'
 
 @Resolver()
 export class ContributionResolver {
@@ -63,14 +64,11 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    if (memo.length > MEMO_MAX_CHARS) {
-      logger.error(`memo text is too long: memo.length=${memo.length} > ${MEMO_MAX_CHARS}`)
-      throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
-    }
-
     if (memo.length < MEMO_MIN_CHARS) {
-      logger.error(`memo text is too short: memo.length=${memo.length} < ${MEMO_MIN_CHARS}`)
-      throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
+      throw new LogError('Memo text is too short', memo.length)
+    }
+    if (memo.length > MEMO_MAX_CHARS) {
+      throw new LogError('Memo text is too long', memo.length)
     }
 
     const event = new Event()
@@ -112,16 +110,13 @@ export class ContributionResolver {
     const user = getUser(context)
     const contribution = await DbContribution.findOne(id)
     if (!contribution) {
-      logger.error('Contribution not found for given id')
-      throw new Error('Contribution not found for given id.')
+      throw new LogError('Contribution not found', id)
     }
     if (contribution.userId !== user.id) {
-      logger.error('Can not delete contribution of another user')
-      throw new Error('Can not delete contribution of another user')
+      throw new LogError('Can not delete contribution of another user', contribution, user.id)
     }
     if (contribution.confirmedAt) {
-      logger.error('A confirmed contribution can not be deleted')
-      throw new Error('A confirmed contribution can not be deleted')
+      throw new LogError('A confirmed contribution can not be deleted', contribution)
     }
 
     contribution.contributionStatus = ContributionStatus.DELETED
@@ -215,14 +210,11 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    if (memo.length > MEMO_MAX_CHARS) {
-      logger.error(`memo text is too long: memo.length=${memo.length} > ${MEMO_MAX_CHARS}`)
-      throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
-    }
-
     if (memo.length < MEMO_MIN_CHARS) {
-      logger.error(`memo text is too short: memo.length=${memo.length} < ${MEMO_MIN_CHARS}`)
-      throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
+      throw new LogError('Memo text is too short', memo.length)
+    }
+    if (memo.length > MEMO_MAX_CHARS) {
+      throw new LogError('Memo text is too long', memo.length)
     }
 
     const user = getUser(context)
@@ -231,22 +223,22 @@ export class ContributionResolver {
       where: { id: contributionId, confirmedAt: IsNull(), deniedAt: IsNull() },
     })
     if (!contributionToUpdate) {
-      logger.error('No contribution found to given id')
-      throw new Error('No contribution found to given id.')
+      throw new LogError('Contribution not found', contributionId)
     }
     if (contributionToUpdate.userId !== user.id) {
-      logger.error('user of the pending contribution and send user does not correspond')
-      throw new Error('user of the pending contribution and send user does not correspond')
+      throw new LogError(
+        'Can not update contribution of another user',
+        contributionToUpdate,
+        user.id,
+      )
     }
     if (
       contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
       contributionToUpdate.contributionStatus !== ContributionStatus.PENDING
     ) {
-      logger.error(
-        `Contribution can not be updated since the state is ${contributionToUpdate.contributionStatus}`,
-      )
-      throw new Error(
-        `Contribution can not be updated since the state is ${contributionToUpdate.contributionStatus}`,
+      throw new LogError(
+        'Contribution can not be updated due to status',
+        contributionToUpdate.contributionStatus,
       )
     }
     const creationDateObj = new Date(creationDate)
@@ -254,8 +246,7 @@ export class ContributionResolver {
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
       creations = updateCreations(creations, contributionToUpdate, clientTimezoneOffset)
     } else {
-      logger.error('Currently the month of the contribution cannot change.')
-      throw new Error('Currently the month of the contribution cannot change.')
+      throw new LogError('Month of contribution can not be changed')
     }
 
     // all possible cases not to be true are thrown in this function
@@ -306,8 +297,7 @@ export class ContributionResolver {
     )
     const clientTimezoneOffset = getClientTimezoneOffset(context)
     if (!isValidDateString(creationDate)) {
-      logger.error(`invalid Date for creationDate=${creationDate}`)
-      throw new Error(`invalid Date for creationDate=${creationDate}`)
+      throw new LogError('CreationDate is invalid', creationDate)
     }
     const emailContact = await UserContact.findOne({
       where: { email },
@@ -315,20 +305,22 @@ export class ContributionResolver {
       relations: ['user'],
     })
     if (!emailContact) {
-      logger.error(`Could not find user with email: ${email}`)
-      throw new Error(`Could not find user with email: ${email}`)
+      throw new LogError('Could not find user', email)
     }
     if (emailContact.deletedAt) {
-      logger.error('This emailContact was deleted. Cannot create a contribution.')
-      throw new Error('This emailContact was deleted. Cannot create a contribution.')
+      throw new LogError(
+        'Cannot create contribution since the emailContact was deleted',
+        emailContact,
+      )
     }
     if (emailContact.user.deletedAt) {
-      logger.error('This user was deleted. Cannot create a contribution.')
-      throw new Error('This user was deleted. Cannot create a contribution.')
+      throw new LogError('Cannot create contribution since the user was deleted', emailContact.user)
     }
     if (!emailContact.emailChecked) {
-      logger.error('Contribution could not be saved, Email is not activated')
-      throw new Error('Contribution could not be saved, Email is not activated')
+      throw new LogError(
+        'Cannot create contribution since the users email is not activated',
+        emailContact,
+      )
     }
 
     const event = new Event()
@@ -404,17 +396,14 @@ export class ContributionResolver {
       relations: ['user'],
     })
     if (!emailContact) {
-      logger.error(`Could not find UserContact with email: ${email}`)
-      throw new Error(`Could not find UserContact with email: ${email}`)
+      throw new LogError('Could not find UserContact', email)
     }
     const user = emailContact.user
     if (!user) {
-      logger.error(`Could not find User to emailContact: ${email}`)
-      throw new Error(`Could not find User to emailContact: ${email}`)
+      throw new LogError('Could not find User', email)
     }
     if (user.deletedAt) {
-      logger.error(`User was deleted (${email})`)
-      throw new Error(`User was deleted (${email})`)
+      throw new LogError('User was deleted', email)
     }
 
     const moderator = getUser(context)
@@ -423,18 +412,15 @@ export class ContributionResolver {
       where: { id, confirmedAt: IsNull(), deniedAt: IsNull() },
     })
     if (!contributionToUpdate) {
-      logger.error('No contribution found to given id.')
-      throw new Error('No contribution found to given id.')
+      throw new LogError('Contribution not found', id)
     }
 
     if (contributionToUpdate.userId !== user.id) {
-      logger.error('user of the pending contribution and send user does not correspond')
-      throw new Error('user of the pending contribution and send user does not correspond')
+      throw new LogError('User of the pending contribution and send user does not correspond')
     }
 
     if (contributionToUpdate.moderatorId === null) {
-      logger.error('An admin is not allowed to update a user contribution.')
-      throw new Error('An admin is not allowed to update a user contribution.')
+      throw new LogError('An admin is not allowed to update an user contribution')
     }
 
     const creationDateObj = new Date(creationDate)
@@ -443,8 +429,7 @@ export class ContributionResolver {
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
       creations = updateCreations(creations, contributionToUpdate, clientTimezoneOffset)
     } else {
-      logger.error('Currently the month of the contribution cannot change.')
-      throw new Error('Currently the month of the contribution cannot change.')
+      throw new LogError('Month of contribution can not be changed')
     }
 
     // all possible cases not to be true are thrown in this function
@@ -521,19 +506,17 @@ export class ContributionResolver {
   ): Promise<boolean> {
     const contribution = await DbContribution.findOne(id)
     if (!contribution) {
-      logger.error(`Contribution not found for given id: ${id}`)
-      throw new Error('Contribution not found for given id.')
+      throw new LogError('Contribution not found', id)
     }
     if (contribution.confirmedAt) {
-      logger.error('A confirmed contribution can not be deleted')
-      throw new Error('A confirmed contribution can not be deleted')
+      throw new LogError('A confirmed contribution can not be deleted')
     }
     const moderator = getUser(context)
     if (
       contribution.contributionType === ContributionType.USER &&
       contribution.userId === moderator.id
     ) {
-      throw new Error('Own contribution can not be deleted as admin')
+      throw new LogError('Own contribution can not be deleted as admin')
     }
     const user = await DbUser.findOneOrFail(
       { id: contribution.userId },
@@ -577,29 +560,24 @@ export class ContributionResolver {
       const clientTimezoneOffset = getClientTimezoneOffset(context)
       const contribution = await DbContribution.findOne(id)
       if (!contribution) {
-        logger.error(`Contribution not found for given id: ${id}`)
-        throw new Error('Contribution not found to given id.')
+        throw new LogError('Contribution not found', id)
       }
       if (contribution.confirmedAt) {
-        logger.error(`Contribution already confirmd: ${id}`)
-        throw new Error('Contribution already confirmd.')
+        throw new LogError('Contribution already confirmed', id)
       }
       if (contribution.contributionStatus === 'DENIED') {
-        logger.error(`Contribution already denied: ${id}`)
-        throw new Error('Contribution already denied.')
+        throw new LogError('Contribution already denied', id)
       }
       const moderatorUser = getUser(context)
       if (moderatorUser.id === contribution.userId) {
-        logger.error('Moderator can not confirm own contribution')
-        throw new Error('Moderator can not confirm own contribution')
+        throw new LogError('Moderator can not confirm own contribution')
       }
       const user = await DbUser.findOneOrFail(
         { id: contribution.userId },
         { withDeleted: true, relations: ['emailContact'] },
       )
       if (user.deletedAt) {
-        logger.error('This user was deleted. Cannot confirm a contribution.')
-        throw new Error('This user was deleted. Cannot confirm a contribution.')
+        throw new LogError('Can not confirm contribution since the user was deleted')
       }
       const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
       validateContribution(
@@ -668,8 +646,7 @@ export class ContributionResolver {
         })
       } catch (e) {
         await queryRunner.rollbackTransaction()
-        logger.error('Creation was not successful', e)
-        throw new Error('Creation was not successful.')
+        throw new LogError('Creation was not successful', e)
       } finally {
         await queryRunner.release()
       }
@@ -744,17 +721,16 @@ export class ContributionResolver {
       deniedBy: IsNull(),
     })
     if (!contributionToUpdate) {
-      logger.error(`Contribution not found for given id: ${id}`)
-      throw new Error(`Contribution not found for given id.`)
+      throw new LogError('Contribution not found', id)
     }
     if (
       contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
       contributionToUpdate.contributionStatus !== ContributionStatus.PENDING
     ) {
-      logger.error(
-        `Contribution state (${contributionToUpdate.contributionStatus}) is not allowed.`,
+      throw new LogError(
+        'Status of the contribution is not allowed',
+        contributionToUpdate.contributionStatus,
       )
-      throw new Error(`State of the contribution is not allowed.`)
     }
     const moderator = getUser(context)
     const user = await DbUser.findOne(
@@ -762,10 +738,7 @@ export class ContributionResolver {
       { relations: ['emailContact'] },
     )
     if (!user) {
-      logger.error(
-        `Could not find User for the Contribution (userId: ${contributionToUpdate.userId}).`,
-      )
-      throw new Error('Could not find User for the Contribution.')
+      throw new LogError('Could not find User of the Contribution', contributionToUpdate.userId)
     }
 
     contributionToUpdate.contributionStatus = ContributionStatus.DENIED
