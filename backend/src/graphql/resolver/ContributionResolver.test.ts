@@ -46,6 +46,7 @@ import { User } from '@entity/User'
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { logger, i18n as localization } from '@test/testSetup'
 import { UserInputError } from 'apollo-server-express'
+import { ContributionStatus } from '../enum/ContributionStatus'
 
 // mock account activation email to avoid console spam
 // mock account activation email to avoid console spam
@@ -422,31 +423,6 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-      describe('wrong contribution id', () => {
-        it('throws an error', async () => {
-          jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: -1,
-                amount: 100.0,
-                memo: 'Test env contribution',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Contribution not found')],
-            }),
-          )
-        })
-
-        it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('Contribution not found', -1)
-        })
-      })
-
       describe('Memo length smaller than 5 chars', () => {
         it('throws error', async () => {
           jest.clearAllMocks()
@@ -499,6 +475,31 @@ describe('ContributionResolver', () => {
         })
       })
 
+      describe('wrong contribution id', () => {
+        it('throws an error', async () => {
+          jest.clearAllMocks()
+          await expect(
+            mutate({
+              mutation: updateContribution,
+              variables: {
+                contributionId: -1,
+                amount: 100.0,
+                memo: 'Test env contribution',
+                creationDate: new Date().toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Contribution not found')],
+            }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('Contribution not found', -1)
+        })
+      })
+
       describe('wrong user tries to update the contribution', () => {
         beforeAll(async () => {
           await mutate({
@@ -535,6 +536,7 @@ describe('ContributionResolver', () => {
         })
       })
 
+      // TODO: why is this here - this is a different call `adminUpdateContribution` not `updateContribution`
       describe('admin tries to update a user contribution', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
@@ -559,6 +561,54 @@ describe('ContributionResolver', () => {
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
             'An admin is not allowed to update an user contribution',
+          )
+        })
+      })
+
+      describe('contribution has wrong status', () => {
+        beforeAll(async () => {
+          const contribution = await Contribution.findOneOrFail({
+            id: result.data.createContribution.id,
+          })
+          contribution.contributionStatus = ContributionStatus.DELETED
+          contribution.save()
+          await mutate({
+            mutation: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          const contribution = await Contribution.findOneOrFail({
+            id: result.data.createContribution.id,
+          })
+          contribution.contributionStatus = ContributionStatus.PENDING
+          contribution.save()
+        })
+
+        it('throws an error', async () => {
+          jest.clearAllMocks()
+          await expect(
+            mutate({
+              mutation: updateContribution,
+              variables: {
+                contributionId: result.data.createContribution.id,
+                amount: 10.0,
+                memo: 'Test env contribution',
+                creationDate: new Date().toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Contribution can not be updated due to status')],
+            }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            'Contribution can not be updated due to status',
+            ContributionStatus.DELETED,
           )
         })
       })
