@@ -24,7 +24,7 @@
     >
       <b-card-text>
         <b-link to="creation-confirm">
-          <h1>{{ $store.state.openCreations }}</h1>
+          <h1 data-test="open-creation">{{ $store.state.openCreations }}</h1>
         </b-link>
       </b-card-text>
     </b-card>

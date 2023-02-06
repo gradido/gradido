@@ -135,6 +135,10 @@ describe('CreationConfirm', () => {
       it('toast an error message', () => {
         expect(toastErrorSpy).toBeCalledWith('Ouch!')
       })
+
+      it('has statusFilter ["IN_PROGRESS", "PENDING"]', () => {
+        expect(wrapper.vm.statusFilter).toEqual(['IN_PROGRESS', 'PENDING'])
+      })
     })
 
     describe('server response is succes', () => {
@@ -143,7 +147,7 @@ describe('CreationConfirm', () => {
       })
 
       it('has two pending creations', () => {
-        expect(wrapper.find('[data-test="tab-1"]').find('tbody').findAll('tr')).toHaveLength(2)
+        expect(wrapper.find('tbody').findAll('tr')).toHaveLength(2)
       })
     })
 
@@ -331,6 +335,42 @@ describe('CreationConfirm', () => {
           it('toasts an error message', () => {
             expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
           })
+        })
+      })
+    })
+
+    describe('click tab "confirmed"', () => {
+      beforeEach(() => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          // console.log('click tab "confirmed"', wrapper.vm.statusFilter)
+          // console.log(wrapper.find('a[data-test="confirmed"]').html())
+          await wrapper.find('a[data-test="confirmed"]').trigger('click')
+          // await wrapper.setData({ tabIndex: 1 })
+          await wrapper.vm.$nextTick()
+        })
+      })
+      it('has statusFilter ["CONFIRMED"]', () => {
+        // console.log('click tab "confirmed2"', wrapper.vm.statusFilter)
+        // console.log(wrapper.find('[data-test="confirmed"]').html())
+        expect(wrapper.vm.statusFilter).toEqual(['CONFIRMED'])
+      })
+      it('list all Contributions confirmed', () => {
+        expect(wrapper.vm.$apollo.queries.ListAllContributions).toBeTruthy()
+      })
+
+      describe('click tab "open"', () => {
+        beforeEach(() => {
+          beforeEach(async () => {
+            await wrapper.find('a[data-test="open"]').trigger('click')
+            await wrapper.vm.$nextTick()
+          })
+        })
+        it('has statusFilter ["IN_PROGRESS", "PENDING"]', () => {
+          expect(wrapper.vm.statusFilter).toEqual(['IN_PROGRESS', 'PENDING'])
+        })
+        it('list all Contributions open', () => {
+          expect(wrapper.vm.$apollo.queries.ListAllContributions).toBeTruthy()
         })
       })
     })

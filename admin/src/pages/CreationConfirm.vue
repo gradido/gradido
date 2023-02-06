@@ -2,8 +2,8 @@
 <template>
   <div class="creation-confirm">
     <div>
-      <b-tabs content-class="mt-3" fill>
-        <b-tab active @click="listContributions('open')" data-test="open">
+      <b-tabs v-model="tabIndex" content-class="mt-3" fill>
+        <b-tab active :title-link-attributes="{ 'data-test': 'open' }">
           <template #title>
             {{ $t('contributions.open') }}
             <b-badge v-if="$store.state.openCreations > 0" variant="danger">
@@ -13,27 +13,23 @@
         </b-tab>
         <b-tab
           :title="$t('contributions.confirms')"
-          @click="listContributions('confirmed')"
-          data-test="confirmed"
+          :title-link-attributes="{ 'data-test': 'confirmed' }"
         />
         <b-tab
           :title="$t('contributions.denied')"
-          @click="listContributions('denied')"
-          data-test="denied"
+          :title-link-attributes="{ 'data-test': 'denied' }"
         />
         <b-tab
           :title="$t('contributions.deleted')"
-          @click="listContributions('deleted')"
-          data-test="deleted"
+          :title-link-attributes="{ 'data-test': 'deleted' }"
         />
-        <b-tab :title="$t('contributions.all')" @click="listContributions('all')" data-test="all" />
+        <b-tab :title="$t('contributions.all')" :title-link-attributes="{ 'data-test': 'all' }" />
       </b-tabs>
     </div>
     <open-creations-table
       class="mt-4"
       :items="items"
       :fields="fields"
-      :filterTab="filterTab"
       @show-overlay="showOverlay"
       @update-state="updateState"
       @update-contributions="$apollo.queries.AllContributions.refetch()"
@@ -82,6 +78,14 @@ import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
 
+const FILTER_TAB_MAP = [
+  ['IN_PROGRESS', 'PENDING'],
+  ['CONFIRMED'],
+  ['DENIED'],
+  ['DELETED'],
+  ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED'],
+]
+
 export default {
   name: 'CreationConfirm',
   components: {
@@ -90,9 +94,8 @@ export default {
   },
   data() {
     return {
+      tabIndex: 0,
       items: [],
-      filterTab: 'open',
-      statusFilter: ['IN_PROGRESS', 'PENDING'],
       overlay: false,
       item: {},
       variant: 'confirm',
@@ -102,11 +105,6 @@ export default {
     }
   },
   methods: {
-    listContributions(filter) {
-      this.filterTab = filter
-      this.statusFilter = this.contributionFilter
-      this.$apollo.queries.AllContributions.refetch()
-    },
     deleteCreation() {
       this.$apollo
         .mutate({
@@ -175,10 +173,16 @@ export default {
       this.items.find((obj) => obj.id === id).state = 'IN_PROGRESS'
     },
   },
+  watch: {
+    statusFilter() {
+      // console.log('statusFilter', this.statusFilter)
+      this.$apollo.queries.ListAllContributions.refetch()
+    },
+  },
   computed: {
     fields() {
-      if (this.filterTab === 'open') {
-        return [
+      return [
+        [
           { key: 'bookmark', label: this.$t('delete') },
           { key: 'email', label: this.$t('e_mail') },
           { key: 'firstName', label: this.$t('firstname') },
@@ -202,10 +206,8 @@ export default {
           { key: 'editCreation', label: this.$t('edit') },
           { key: 'deny', label: this.$t('deny') },
           { key: 'confirm', label: this.$t('save') },
-        ]
-      }
-      if (this.filterTab === 'all') {
-        return [
+        ],
+        [
           { key: 'state', label: 'state' },
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
@@ -232,10 +234,8 @@ export default {
             },
           },
           { key: 'chatCreation', label: this.$t('chat') },
-        ]
-      }
-      if (this.filterTab === 'denied') {
-        return [
+        ],
+        [
           { key: 'reActive', label: 'reActive' },
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
@@ -270,10 +270,9 @@ export default {
           },
           { key: 'deniedBy', label: this.$t('mod') },
           { key: 'chatCreation', label: this.$t('chat') },
-        ]
-      }
-      if (this.filterTab === 'confirmed') {
-        return [
+        ],
+        [],
+        [
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {
@@ -307,27 +306,11 @@ export default {
           },
           { key: 'confirmedBy', label: this.$t('mod') },
           { key: 'chatCreation', label: this.$t('chat') },
-        ]
-      }
-      return []
+        ],
+      ][this.tabIndex]
     },
-    contributionFilter() {
-      if (this.filterTab === 'open') {
-        return ['IN_PROGRESS', 'PENDING']
-      }
-      if (this.filterTab === 'all') {
-        return ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED']
-      }
-      if (this.filterTab === 'denied') {
-        return ['DENIED']
-      }
-      if (this.filterTab === 'confirmed') {
-        return ['CONFIRMED']
-      }
-      if (this.filterTab === 'deleted') {
-        return ['DELETED']
-      }
-      return ['IN_PROGRESS', 'PENDING']
+    statusFilter() {
+      return FILTER_TAB_MAP[this.tabIndex]
     },
     overlayTitle() {
       return `overlay.${this.variant}.title`
@@ -358,7 +341,7 @@ export default {
     },
   },
   apollo: {
-    AllContributions: {
+    ListAllContributions: {
       query() {
         return listAllContributions
       },
