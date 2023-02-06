@@ -31,7 +31,7 @@
       :items="items"
       :fields="fields"
       @show-overlay="showOverlay"
-      @update-state="updateState"
+      @update-state="updateStatus"
       @update-contributions="$apollo.queries.AllContributions.refetch()"
     />
 
@@ -83,7 +83,7 @@ const FILTER_TAB_MAP = [
   ['CONFIRMED'],
   ['DENIED'],
   ['DELETED'],
-  ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED'],
+  ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
 ]
 
 export default {
@@ -168,7 +168,7 @@ export default {
       this.item = item
       this.variant = variant
     },
-    updateState(id) {
+    updateStatus(id) {
       this.items.find((obj) => obj.id === id).messagesCount++
       this.items.find((obj) => obj.id === id).state = 'IN_PROGRESS'
     },

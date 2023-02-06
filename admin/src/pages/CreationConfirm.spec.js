@@ -151,16 +151,6 @@ describe('CreationConfirm', () => {
       })
     })
 
-    describe.skip('store', () => {
-      it('commits resetOpenCreations to store', () => {
-        expect(storeCommitMock).toBeCalledWith('resetOpenCreations')
-      })
-
-      it('commits setOpenCreations to store', () => {
-        expect(storeCommitMock).toBeCalledWith('setOpenCreations', 2)
-      })
-    })
-
     describe('actions in overlay', () => {
       describe('delete creation', () => {
         beforeEach(async () => {
@@ -339,39 +329,92 @@ describe('CreationConfirm', () => {
       })
     })
 
-    describe('click tab "confirmed"', () => {
-      beforeEach(() => {
+    describe('filter tabs', () => {
+      describe('click tab "confirmed"', () => {
+        let refetchSpy
+
         beforeEach(async () => {
           jest.clearAllMocks()
-          // console.log('click tab "confirmed"', wrapper.vm.statusFilter)
-          // console.log(wrapper.find('a[data-test="confirmed"]').html())
+          refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
           await wrapper.find('a[data-test="confirmed"]').trigger('click')
-          // await wrapper.setData({ tabIndex: 1 })
-          await wrapper.vm.$nextTick()
         })
-      })
-      it('has statusFilter ["CONFIRMED"]', () => {
-        // console.log('click tab "confirmed2"', wrapper.vm.statusFilter)
-        // console.log(wrapper.find('[data-test="confirmed"]').html())
-        expect(wrapper.vm.statusFilter).toEqual(['CONFIRMED'])
-      })
-      it('list all Contributions confirmed', () => {
-        expect(wrapper.vm.$apollo.queries.ListAllContributions).toBeTruthy()
-      })
 
-      describe('click tab "open"', () => {
-        beforeEach(() => {
+        it('has statusFilter set to ["CONFIRMED"]', () => {
+          expect(
+            wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
+          ).toMatchObject({ statusFilter: ['CONFIRMED'] })
+        })
+
+        it('refetches contributions', () => {
+          expect(refetchSpy).toBeCalled()
+        })
+
+        describe('click tab "open"', () => {
           beforeEach(async () => {
+            jest.clearAllMocks()
+            refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
             await wrapper.find('a[data-test="open"]').trigger('click')
-            await wrapper.vm.$nextTick()
+          })
+
+          it('has statusFilter set to ["IN_PROGRESS", "PENDING"]', () => {
+            expect(
+              wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
+            ).toMatchObject({ statusFilter: ['IN_PROGRESS', 'PENDING'] })
+          })
+
+          it('refetches contributions', () => {
+            expect(refetchSpy).toBeCalled()
           })
         })
-        it('has statusFilter ["IN_PROGRESS", "PENDING"]', () => {
-          expect(wrapper.vm.statusFilter).toEqual(['IN_PROGRESS', 'PENDING'])
+
+        describe('click tab "denied"', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
+            await wrapper.find('a[data-test="denied"]').trigger('click')
+          })
+
+          it('has statusFilter set to ["DENIED"]', () => {
+            expect(
+              wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
+            ).toMatchObject({ statusFilter: ['DENIED'] })
+          })
+
+          it('refetches contributions', () => {
+            expect(refetchSpy).toBeCalled()
+          })
         })
-        it('list all Contributions open', () => {
-          expect(wrapper.vm.$apollo.queries.ListAllContributions).toBeTruthy()
+
+        describe('click tab "all"', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
+            await wrapper.find('a[data-test="all"]').trigger('click')
+          })
+
+          it('has statusFilter set to ["IN_PROGRESS", "PENDING", "CONFIRMED", "DENIED", "DELETED"]', () => {
+            expect(
+              wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
+            ).toMatchObject({
+              statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
+            })
+          })
+
+          it('refetches contributions', () => {
+            expect(refetchSpy).toBeCalled()
+          })
         })
+      })
+    })
+
+    describe('update status', () => {
+      beforeEach(async () => {
+        await wrapper.findComponent({ name: 'OpenCreationsTable' }).vm.$emit('update-state', 2)
+      })
+
+      it.skip('updates the status', () => {
+        expect(wrapper.vm.items.find((obj) => obj.id === 2).messagesCount).toBe(1)
+        expect(wrapper.vm.items.find((obj) => obj.id === 2).state).toBe('IN_PROGRESS')
       })
     })
   })
