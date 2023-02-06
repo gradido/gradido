@@ -62,10 +62,6 @@ export async function validateCommunities(): Promise<void> {
   }
 }
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 async function invokeVersionedRequestGetPublicKey(dbCom: DbCommunity): Promise<string | undefined> {
   switch (dbCom.apiVersion) {
     case ApiVersionType.V1_0:
