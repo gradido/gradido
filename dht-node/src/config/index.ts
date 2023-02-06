@@ -9,7 +9,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v1.2023-01-01',
+    EXPECTED: 'v2.2023-02-07',
     CURRENT: '',
   },
 }
@@ -26,11 +26,6 @@ const database = {
   DB_DATABASE: process.env.DB_DATABASE || 'gradido_community',
   TYPEORM_LOGGING_RELATIVE_PATH:
     process.env.TYPEORM_LOGGING_RELATIVE_PATH || 'typeorm.dht-node.log',
-}
-
-const eventProtocol = {
-  // global switch to enable writing of EventProtocol-Entries
-  EVENT_PROTOCOL_DISABLED: process.env.EVENT_PROTOCOL_DISABLED === 'true' || false,
 }
 
 const federation = {
