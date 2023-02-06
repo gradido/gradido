@@ -49,6 +49,7 @@ import { User } from '@entity/User'
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { logger, i18n as localization } from '@test/testSetup'
 import { UserInputError } from 'apollo-server-express'
+import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 
 // mock account activation email to avoid console spam
 // mock account activation email to avoid console spam
@@ -94,11 +95,13 @@ afterAll(async () => {
 
 describe('ContributionResolver', () => {
   let bibi: any
+  let raueber: any
   let peter: any
 
   beforeAll(async () => {
     bibi = await userFactory(testEnv, bibiBloxberg)
     admin = peter = await userFactory(testEnv, peterLustig)
+    raueber = await userFactory(testEnv, raeuberHotzenplotz)
     const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     await creationFactory(testEnv, bibisCreation!)
@@ -697,6 +700,158 @@ describe('ContributionResolver', () => {
         })
       })
 
+      describe('deny contribution that is already confirmed', () => {
+        let contribution: any
+        it('throws an error', async () => {
+          await mutate({
+            mutation: login,
+            variables: { email: 'raeuber@hotzenplotz.de', password: 'Aa12345_' },
+          })
+
+          contribution = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 166.0,
+              memo: 'Whatever contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+
+          await mutate({
+            mutation: confirmContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+
+          await expect(
+            mutate({
+              mutation: denyContribution,
+              variables: {
+                id: contribution.data.createContribution.id,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Contribution not found for given id.')],
+            }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            `Contribution not found for given id: ${contribution.data.createContribution.id}`,
+          )
+        })
+      })
+
+      describe('deny contribution that is already deleted', () => {
+        let contribution: any
+
+        it('throws an error', async () => {
+          await mutate({
+            mutation: login,
+            variables: { email: 'raeuber@hotzenplotz.de', password: 'Aa12345_' },
+          })
+
+          contribution = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 166.0,
+              memo: 'Whatever contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+
+          await mutate({
+            mutation: deleteContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+
+          await expect(
+            mutate({
+              mutation: denyContribution,
+              variables: {
+                id: contribution.data.createContribution.id,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Contribution not found for given id.')],
+            }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            `Contribution not found for given id: ${contribution.data.createContribution.id}`,
+          )
+        })
+      })
+
+      describe('deny contribution that is already denied', () => {
+        let contribution: any
+
+        it('throws an error', async () => {
+          await mutate({
+            mutation: login,
+            variables: { email: 'raeuber@hotzenplotz.de', password: 'Aa12345_' },
+          })
+
+          contribution = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 166.0,
+              memo: 'Whatever contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+
+          await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+
+          await expect(
+            mutate({
+              mutation: denyContribution,
+              variables: {
+                id: contribution.data.createContribution.id,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Contribution not found for given id.')],
+            }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            `Contribution not found for given id: ${contribution.data.createContribution.id}`,
+          )
+        })
+      })
+
       describe('valid input', () => {
         it('deny contribution', async () => {
           await mutate({
@@ -1168,7 +1323,7 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 5,
+                contributionCount: 7,
                 contributionList: expect.arrayContaining([
                   expect.objectContaining({
                     amount: '100',
@@ -1205,6 +1360,18 @@ describe('ContributionResolver', () => {
                     state: 'CONFIRMED',
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
                   }),
                 ]),
               },
@@ -1228,7 +1395,7 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 5,
+                contributionCount: 7,
                 contributionList: expect.arrayContaining([
                   expect.objectContaining({
                     amount: '100',
@@ -1265,6 +1432,18 @@ describe('ContributionResolver', () => {
                     state: 'CONFIRMED',
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
                   }),
                 ]),
               },
@@ -1288,7 +1467,7 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 5,
+                contributionCount: 7,
                 contributionList: expect.arrayContaining([
                   expect.objectContaining({
                     amount: '100',
@@ -1325,6 +1504,18 @@ describe('ContributionResolver', () => {
                     state: 'CONFIRMED',
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
                   }),
                 ]),
               },
@@ -1348,7 +1539,7 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 2,
+                contributionCount: 3,
                 contributionList: expect.arrayContaining([
                   expect.objectContaining({
                     amount: '100',
@@ -1385,6 +1576,18 @@ describe('ContributionResolver', () => {
                     state: 'CONFIRMED',
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
                   }),
                 ]),
               },
@@ -1446,6 +1649,18 @@ describe('ContributionResolver', () => {
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
                   }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
+                  }),
                 ]),
               },
             },
@@ -1506,6 +1721,18 @@ describe('ContributionResolver', () => {
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
                   }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
+                  }),
                 ]),
               },
             },
@@ -1528,7 +1755,7 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 1,
+                contributionCount: 2,
                 contributionList: expect.arrayContaining([
                   expect.not.objectContaining({
                     amount: '100',
@@ -1565,6 +1792,18 @@ describe('ContributionResolver', () => {
                     state: 'CONFIRMED',
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
                   }),
                 ]),
               },
@@ -1611,7 +1850,7 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 3,
+                contributionCount: 4,
                 contributionList: expect.arrayContaining([
                   expect.objectContaining({
                     amount: '100',
@@ -1648,6 +1887,18 @@ describe('ContributionResolver', () => {
                     state: 'CONFIRMED',
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'DENIED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Whatever contribution',
+                    amount: '166',
                   }),
                 ]),
               },
