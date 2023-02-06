@@ -416,6 +416,7 @@ export class ContributionResolver {
     const creationDateObj = new Date(creationDate)
     let creations = await getUserCreation(emailContact.user.id, clientTimezoneOffset)
 
+    // TODO: remove this restriction
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
       creations = updateCreations(creations, contributionToUpdate, clientTimezoneOffset)
     } else {
