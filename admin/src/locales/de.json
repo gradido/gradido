@@ -2,7 +2,6 @@
   "all_emails": "Alle Nutzer",
   "back": "zurück",
   "chat": "Chat",
-  "created": "Geschöpft",
   "contributionLink": {
     "amount": "Betrag",
     "changeSaved": "Änderungen gespeichert",
@@ -38,6 +37,8 @@
     "denied": "Abgelehnt",
     "open": "Offen"
   },
+  "created": "Geschöpft",
+  "createdAt": "Angelegt",
   "creation": "Schöpfung",
   "creationList": "Schöpfungsliste",
   "creation_form": {
@@ -57,7 +58,6 @@
     "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
     "update_creation": "Schöpfung aktualisieren"
   },
-  "createdAt": "Angelegt",
   "creation_for_month": "Schöpfung für Monat",
   "delete": "Löschen",
   "deleted": "gelöscht",
@@ -103,8 +103,8 @@
   "message": {
     "request": "Die Anfrage wurde gesendet."
   },
-  "moderator": "Moderator",
   "mod": "Mod",
+  "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "name": "Name",
   "navbar": {
