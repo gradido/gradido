@@ -17,7 +17,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v14.2022-12-22',
+    EXPECTED: 'v15.2023-02-07',
     CURRENT: '',
   },
 }
@@ -97,11 +97,6 @@ const email = {
 const webhook = {
   // Elopage
   WEBHOOK_ELOPAGE_SECRET: process.env.WEBHOOK_ELOPAGE_SECRET || 'secret',
-}
-
-const eventProtocol = {
-  // global switch to enable writing of EventProtocol-Entries
-  EVENT_PROTOCOL_DISABLED: process.env.EVENT_PROTOCOL_DISABLED === 'true' || false,
 }
 
 // This is needed by graphql-directive-auth
