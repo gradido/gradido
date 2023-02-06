@@ -24,6 +24,7 @@ import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import Decimal from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { logger } from '@test/testSetup'
 
 // mock semaphore to allow use fake timers
 jest.mock('@/util/TRANSACTIONS_LOCK')
@@ -61,6 +62,7 @@ describe('TransactionLinkResolver', () => {
         })
 
         it('throws error when link does not exists', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: redeemTransactionLink,
@@ -69,16 +71,26 @@ describe('TransactionLinkResolver', () => {
               },
             }),
           ).resolves.toMatchObject({
-            errors: [
-              new GraphQLError(
-                'Creation from contribution link was not successful. Error: No contribution link found to given code: CL-123456',
-              ),
-            ],
+            errors: [new GraphQLError('Creation from contribution link was not successful')],
           })
         })
 
+        it('logs the error thrown', () => {
+          expect(logger.error).toBeCalledWith(
+            'No contribution link found to given code',
+            'CL-123456',
+          )
+          expect(logger.error).toBeCalledWith(
+            'Creation from contribution link was not successful',
+            new Error('No contribution link found to given code'),
+          )
+        })
+
+        const now = new Date()
+        const validFrom = new Date(now.getFullYear() + 1, 0, 1)
+
         it('throws error when link is not valid yet', async () => {
-          const now = new Date()
+          jest.clearAllMocks()
           const {
             data: { createContributionLink: contributionLink },
           } = await mutate({
@@ -88,7 +100,7 @@ describe('TransactionLinkResolver', () => {
               name: 'Daily Contribution  Link',
               memo: 'Thank you for contribute daily to the community',
               cycle: 'DAILY',
-              validFrom: new Date(now.getFullYear() + 1, 0, 1).toISOString(),
+              validFrom: validFrom.toISOString(),
               validTo: new Date(now.getFullYear() + 1, 11, 31, 23, 59, 59, 999).toISOString(),
               maxAmountPerMonth: new Decimal(200),
               maxPerCycle: 1,
@@ -102,16 +114,21 @@ describe('TransactionLinkResolver', () => {
               },
             }),
           ).resolves.toMatchObject({
-            errors: [
-              new GraphQLError(
-                'Creation from contribution link was not successful. Error: Contribution link not valid yet',
-              ),
-            ],
+            errors: [new GraphQLError('Creation from contribution link was not successful')],
           })
           await resetEntity(DbContributionLink)
         })
 
+        it('logs the error thrown', () => {
+          expect(logger.error).toBeCalledWith('Contribution link is not valid yet', validFrom)
+          expect(logger.error).toBeCalledWith(
+            'Creation from contribution link was not successful',
+            new Error('Contribution link is not valid yet'),
+          )
+        })
+
         it('throws error when contributionLink cycle is invalid', async () => {
+          jest.clearAllMocks()
           const now = new Date()
           const {
             data: { createContributionLink: contributionLink },
@@ -136,17 +153,22 @@ describe('TransactionLinkResolver', () => {
               },
             }),
           ).resolves.toMatchObject({
-            errors: [
-              new GraphQLError(
-                'Creation from contribution link was not successful. Error: Contribution link has unknown cycle',
-              ),
-            ],
+            errors: [new GraphQLError('Creation from contribution link was not successful')],
           })
           await resetEntity(DbContributionLink)
         })
 
+        it('logs the error thrown', () => {
+          expect(logger.error).toBeCalledWith('Contribution link has unknown cycle', 'INVALID')
+          expect(logger.error).toBeCalledWith(
+            'Creation from contribution link was not successful',
+            new Error('Contribution link has unknown cycle'),
+          )
+        })
+
+        const validTo = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 0)
         it('throws error when link is no longer valid', async () => {
-          const now = new Date()
+          jest.clearAllMocks()
           const {
             data: { createContributionLink: contributionLink },
           } = await mutate({
@@ -157,7 +179,7 @@ describe('TransactionLinkResolver', () => {
               memo: 'Thank you for contribute daily to the community',
               cycle: 'DAILY',
               validFrom: new Date(now.getFullYear() - 1, 0, 1).toISOString(),
-              validTo: new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 999).toISOString(),
+              validTo: validTo.toISOString(),
               maxAmountPerMonth: new Decimal(200),
               maxPerCycle: 1,
             },
@@ -170,13 +192,17 @@ describe('TransactionLinkResolver', () => {
               },
             }),
           ).resolves.toMatchObject({
-            errors: [
-              new GraphQLError(
-                'Creation from contribution link was not successful. Error: Contribution link is no longer valid',
-              ),
-            ],
+            errors: [new GraphQLError('Creation from contribution link was not successful')],
           })
           await resetEntity(DbContributionLink)
+        })
+
+        it('logs the error thrown', () => {
+          expect(logger.error).toBeCalledWith('Contribution link is no longer valid', validTo)
+          expect(logger.error).toBeCalledWith(
+            'Creation from contribution link was not successful',
+            new Error('Contribution link is no longer valid'),
+          )
         })
       })
 
@@ -250,6 +276,7 @@ describe('TransactionLinkResolver', () => {
           })
 
           it('does not allow the user to redeem the contribution link', async () => {
+            jest.clearAllMocks()
             await expect(
               mutate({
                 mutation: redeemTransactionLink,
@@ -258,12 +285,17 @@ describe('TransactionLinkResolver', () => {
                 },
               }),
             ).resolves.toMatchObject({
-              errors: [
-                new GraphQLError(
-                  'Creation from contribution link was not successful. Error: The amount (5 GDD) to be created exceeds the amount (0 GDD) still available for this month.',
-                ),
-              ],
+              errors: [new GraphQLError('Creation from contribution link was not successful')],
             })
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              'Creation from contribution link was not successful',
+              new Error(
+                'The amount (5 GDD) to be created exceeds the amount (0 GDD) still available for this month.',
+              ),
+            )
           })
         })
 
@@ -301,6 +333,7 @@ describe('TransactionLinkResolver', () => {
           })
 
           it('does not allow the user to redeem the contribution link a second time on the same day', async () => {
+            jest.clearAllMocks()
             await expect(
               mutate({
                 mutation: redeemTransactionLink,
@@ -309,12 +342,15 @@ describe('TransactionLinkResolver', () => {
                 },
               }),
             ).resolves.toMatchObject({
-              errors: [
-                new GraphQLError(
-                  'Creation from contribution link was not successful. Error: Contribution link already redeemed today',
-                ),
-              ],
+              errors: [new GraphQLError('Creation from contribution link was not successful')],
             })
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              'Creation from contribution link was not successful',
+              new Error('Contribution link already redeemed today'),
+            )
           })
 
           describe('after one day', () => {
@@ -349,6 +385,7 @@ describe('TransactionLinkResolver', () => {
             })
 
             it('does not allow the user to redeem the contribution link a second time on the same day', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({
                   mutation: redeemTransactionLink,
@@ -357,12 +394,15 @@ describe('TransactionLinkResolver', () => {
                   },
                 }),
               ).resolves.toMatchObject({
-                errors: [
-                  new GraphQLError(
-                    'Creation from contribution link was not successful. Error: Contribution link already redeemed today',
-                  ),
-                ],
+                errors: [new GraphQLError('Creation from contribution link was not successful')],
               })
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'Creation from contribution link was not successful',
+                new Error('Contribution link already redeemed today'),
+              )
             })
           })
         })
