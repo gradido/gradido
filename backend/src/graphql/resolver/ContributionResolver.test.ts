@@ -118,15 +118,8 @@ describe('ContributionResolver', () => {
       mutation: createContribution,
       variables: {
         amount: 100.0,
-        memo: 'Test IN_PROGESS contribution',
+        memo: 'Test IN_PROGRESS contribution',
         creationDate: new Date().toString(),
-      },
-    })
-    await mutate({
-      mutation: adminCreateContributionMessage,
-      variables: {
-        contributionId: inProgressContribution.data.createContribution.id,
-        message: 'Test message to IN_PROGESS contribution',
       },
     })
     contributionToConfirm = await mutate({
@@ -151,6 +144,17 @@ describe('ContributionResolver', () => {
         amount: 100.0,
         memo: 'Test contribution to delete',
         creationDate: new Date().toString(),
+      },
+    })
+    await mutate({
+      mutation: login,
+      variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+    })
+    await mutate({
+      mutation: adminCreateContributionMessage,
+      variables: {
+        contributionId: inProgressContribution.data.createContribution.id,
+        message: 'Test message to IN_PROGRESS contribution',
       },
     })
     await mutate({
@@ -770,11 +774,18 @@ describe('ContributionResolver', () => {
       })
 
       describe('other user sends a deleteContribution', () => {
-        it('returns an error', async () => {
+        beforeAll(async () => {
           await mutate({
             mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
+        })
+
+        afterAll(() => {
+          resetToken()
+        })
+
+        it('returns an error', async () => {
           await expect(
             mutate({
               mutation: deleteContribution,
@@ -795,6 +806,17 @@ describe('ContributionResolver', () => {
       })
 
       describe('User deletes own contribution', () => {
+        beforeAll(async () => {
+          await mutate({
+            mutation: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(() => {
+          resetToken()
+        })
+
         it('deletes successfully', async () => {
           await expect(
             mutate({
@@ -803,10 +825,21 @@ describe('ContributionResolver', () => {
                 id: contributionToDelete.data.createContribution.id,
               },
             }),
-          ).resolves.toBeTruthy()
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                deleteContribution: true,
+              },
+            }),
+          )
         })
 
         it('stores the delete contribution event in the database', async () => {
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+
           const contribution = await mutate({
             mutation: createContribution,
             variables: {
@@ -945,7 +978,7 @@ describe('ContributionResolver', () => {
                     }),
                     expect.objectContaining({
                       id: expect.any(Number),
-                      memo: 'Test IN_PROGESS contribution',
+                      memo: 'Test IN_PROGRESS contribution',
                       amount: '100',
                     }),
                     expect.objectContaining({
@@ -979,10 +1012,35 @@ describe('ContributionResolver', () => {
                 listContributions: {
                   contributionCount: 4,
                   contributionList: expect.arrayContaining([
+                    expect.not.objectContaining({
+                      amount: '100',
+                      id: expect.any(Number),
+                      memo: 'Test contribution to confirm',
+                    }),
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Test PENDING contribution update',
+                      amount: '10',
+                    }),
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Test contribution to deny',
+                      amount: '100',
+                    }),
                     expect.objectContaining({
                       id: expect.any(Number),
                       memo: 'Test contribution to delete',
                       amount: '100',
+                    }),
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Test IN_PROGRESS contribution',
+                      amount: '100',
+                    }),
+                    expect.not.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Herzlich Willkommen bei Gradido!',
+                      amount: '1000',
                     }),
                   ]),
                 },
@@ -1110,7 +1168,7 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 6,
+                contributionCount: 5,
                 contributionList: expect.arrayContaining([
                   expect.objectContaining({
                     amount: '100',
@@ -1139,7 +1197,7 @@ describe('ContributionResolver', () => {
                   expect.objectContaining({
                     id: expect.any(Number),
                     state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGESS contribution',
+                    memo: 'Test IN_PROGRESS contribution',
                     amount: '100',
                   }),
                   expect.objectContaining({
@@ -1170,7 +1228,7 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 6,
+                contributionCount: 5,
                 contributionList: expect.arrayContaining([
                   expect.objectContaining({
                     amount: '100',
@@ -1199,7 +1257,7 @@ describe('ContributionResolver', () => {
                   expect.objectContaining({
                     id: expect.any(Number),
                     state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGESS contribution',
+                    memo: 'Test IN_PROGRESS contribution',
                     amount: '100',
                   }),
                   expect.objectContaining({
@@ -1230,7 +1288,7 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                contributionCount: 6,
+                contributionCount: 5,
                 contributionList: expect.arrayContaining([
                   expect.objectContaining({
                     amount: '100',
@@ -1259,7 +1317,7 @@ describe('ContributionResolver', () => {
                   expect.objectContaining({
                     id: expect.any(Number),
                     state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGESS contribution',
+                    memo: 'Test IN_PROGRESS contribution',
                     amount: '100',
                   }),
                   expect.objectContaining({
@@ -1319,7 +1377,7 @@ describe('ContributionResolver', () => {
                   expect.not.objectContaining({
                     id: expect.any(Number),
                     state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGESS contribution',
+                    memo: 'Test IN_PROGRESS contribution',
                     amount: '100',
                   }),
                   expect.objectContaining({
@@ -1379,7 +1437,7 @@ describe('ContributionResolver', () => {
                   expect.not.objectContaining({
                     id: expect.any(Number),
                     state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGESS contribution',
+                    memo: 'Test IN_PROGRESS contribution',
                     amount: '100',
                   }),
                   expect.not.objectContaining({
@@ -1439,7 +1497,7 @@ describe('ContributionResolver', () => {
                   expect.objectContaining({
                     id: expect.any(Number),
                     state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGESS contribution',
+                    memo: 'Test IN_PROGRESS contribution',
                     amount: '100',
                   }),
                   expect.not.objectContaining({
@@ -1499,7 +1557,7 @@ describe('ContributionResolver', () => {
                   expect.not.objectContaining({
                     id: expect.any(Number),
                     state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGESS contribution',
+                    memo: 'Test IN_PROGRESS contribution',
                     amount: '100',
                   }),
                   expect.not.objectContaining({
@@ -1582,7 +1640,7 @@ describe('ContributionResolver', () => {
                   expect.not.objectContaining({
                     id: expect.any(Number),
                     state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGESS contribution',
+                    memo: 'Test IN_PROGRESS contribution',
                     amount: '100',
                   }),
                   expect.objectContaining({
@@ -2009,7 +2067,7 @@ describe('ContributionResolver', () => {
                   expect.objectContaining({
                     errors: [
                       new GraphQLError(
-                        'The amount (2000 GDD) to be created exceeds the amount (900 GDD) still available for this month.',
+                        'The amount (2000 GDD) to be created exceeds the amount (790 GDD) still available for this month.',
                       ),
                     ],
                   }),
@@ -2018,7 +2076,7 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'The amount (2000 GDD) to be created exceeds the amount (900 GDD) still available for this month.',
+                  'The amount (2000 GDD) to be created exceeds the amount (790 GDD) still available for this month.',
                 )
               })
             })
@@ -2031,7 +2089,7 @@ describe('ContributionResolver', () => {
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      adminCreateContribution: [1000, 1000, 700],
+                      adminCreateContribution: [1000, 1000, 590],
                     },
                   }),
                 )
@@ -2056,7 +2114,7 @@ describe('ContributionResolver', () => {
                   expect.objectContaining({
                     errors: [
                       new GraphQLError(
-                        'The amount (1000 GDD) to be created exceeds the amount (700 GDD) still available for this month.',
+                        'The amount (1000 GDD) to be created exceeds the amount (590 GDD) still available for this month.',
                       ),
                     ],
                   }),
@@ -2065,7 +2123,7 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'The amount (1000 GDD) to be created exceeds the amount (700 GDD) still available for this month.',
+                  'The amount (1000 GDD) to be created exceeds the amount (590 GDD) still available for this month.',
                 )
               })
             })
@@ -2210,7 +2268,6 @@ describe('ContributionResolver', () => {
           describe('user email does not match creation user', () => {
             it('throws an error', async () => {
               jest.clearAllMocks()
-              console.log('creation', creation)
               await expect(
                 mutate({
                   mutation: adminUpdateContribution,
@@ -2377,7 +2434,7 @@ describe('ContributionResolver', () => {
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
                       moderator: admin.id,
-                      creation: ['1000', '600', '500'],
+                      creation: ['1000', '800', '500'],
                     }),
                     expect.objectContaining({
                       id: expect.any(Number),
@@ -2388,9 +2445,9 @@ describe('ContributionResolver', () => {
                       memo: 'Grundeinkommen',
                       amount: '500',
                       moderator: admin.id,
-                      creation: ['1000', '600', '500'],
+                      creation: ['1000', '800', '500'],
                     }),
-                    expect.objectContaining({
+                    expect.not.objectContaining({
                       id: expect.any(Number),
                       firstName: 'Bibi',
                       lastName: 'Bloxberg',
@@ -2399,7 +2456,29 @@ describe('ContributionResolver', () => {
                       memo: 'Test contribution to delete',
                       amount: '100',
                       moderator: null,
-                      creation: ['1000', '1000', '200'],
+                      creation: ['1000', '1000', '90'],
+                    }),
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      firstName: 'Bibi',
+                      lastName: 'Bloxberg',
+                      email: 'bibi@bloxberg.de',
+                      date: expect.any(String),
+                      memo: 'Test PENDING contribution update',
+                      amount: '10',
+                      moderator: null,
+                      creation: ['1000', '1000', '90'],
+                    }),
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      firstName: 'Bibi',
+                      lastName: 'Bloxberg',
+                      email: 'bibi@bloxberg.de',
+                      date: expect.any(String),
+                      memo: 'Test IN_PROGRESS contribution',
+                      amount: '100',
+                      moderator: null,
+                      creation: ['1000', '1000', '90'],
                     }),
                     expect.objectContaining({
                       id: expect.any(Number),
@@ -2410,7 +2489,7 @@ describe('ContributionResolver', () => {
                       memo: 'Grundeinkommen',
                       amount: '500',
                       moderator: admin.id,
-                      creation: ['1000', '1000', '200'],
+                      creation: ['1000', '1000', '90'],
                     }),
                     expect.objectContaining({
                       id: expect.any(Number),
@@ -2421,7 +2500,7 @@ describe('ContributionResolver', () => {
                       memo: 'Aktives Grundeinkommen',
                       amount: '200',
                       moderator: admin.id,
-                      creation: ['1000', '1000', '200'],
+                      creation: ['1000', '1000', '90'],
                     }),
                   ]),
                 },
