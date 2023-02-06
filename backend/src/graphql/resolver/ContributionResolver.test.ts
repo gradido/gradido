@@ -95,13 +95,12 @@ afterAll(async () => {
 
 describe('ContributionResolver', () => {
   let bibi: any
-  let raueber: any
   let peter: any
 
   beforeAll(async () => {
     bibi = await userFactory(testEnv, bibiBloxberg)
     admin = peter = await userFactory(testEnv, peterLustig)
-    raueber = await userFactory(testEnv, raeuberHotzenplotz)
+    await userFactory(testEnv, raeuberHotzenplotz)
     const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     await creationFactory(testEnv, bibisCreation!)
