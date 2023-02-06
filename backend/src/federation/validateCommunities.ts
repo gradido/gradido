@@ -11,12 +11,11 @@ export async function startValidateCommunities(timerInterval: number): Promise<v
   logger.info(
     `Federation: startValidateCommunities loop with an interval of ${timerInterval} ms...`,
   )
-  while (true) {
+  // better to use setTimeout twice than setInterval once -> see https://javascript.info/settimeout-setinterval
+  setTimeout(function run() {
     validateCommunities()
-    logger.debug(`Federation: loop starts sleeping...`)
-    await sleep(timerInterval)
-    logger.debug(`Federation: loop ends sleeping`)
-  }
+    setTimeout(run, timerInterval)
+  }, timerInterval)
 }
 
 export async function validateCommunities(): Promise<void> {
