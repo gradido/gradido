@@ -32,6 +32,7 @@ import { getUserCreation, validateContribution } from './util/creations'
 import { executeTransaction } from './TransactionResolver'
 import QueryLinkResult from '@union/QueryLinkResult'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import LogError from '@/server/LogError'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -184,24 +185,15 @@ export class TransactionLinkResolver {
             .where('contributionLink.code = :code', { code: code.replace('CL-', '') })
             .getOne()
           if (!contributionLink) {
-            logger.error('no contribution link found to given code:', code)
-            throw new Error(`No contribution link found to given code: ${code}`)
+            throw new LogError('No contribution link found to given code', code)
           }
           logger.info('...contribution link found with id', contributionLink.id)
           if (new Date(contributionLink.validFrom).getTime() > now.getTime()) {
-            logger.error(
-              'contribution link is not valid yet. Valid from: ',
-              contributionLink.validFrom,
-            )
-            throw new Error('Contribution link not valid yet')
+            throw new LogError('Contribution link is not valid yet', contributionLink.validFrom)
           }
           if (contributionLink.validTo) {
             if (new Date(contributionLink.validTo).setHours(23, 59, 59) < now.getTime()) {
-              logger.error(
-                'contribution link is no longer valid. Valid to: ',
-                contributionLink.validTo,
-              )
-              throw new Error('Contribution link is no longer valid')
+              throw new LogError('Contribution link is no longer valid', contributionLink.validTo)
             }
           }
           let alreadyRedeemed: DbContribution | undefined
@@ -217,11 +209,7 @@ export class TransactionLinkResolver {
                 })
                 .getOne()
               if (alreadyRedeemed) {
-                logger.error(
-                  'contribution link with rule ONCE already redeemed by user with id',
-                  user.id,
-                )
-                throw new Error('Contribution link already redeemed')
+                throw new LogError('Contribution link already redeemed', user.id)
               }
               break
             }
@@ -246,17 +234,12 @@ export class TransactionLinkResolver {
                 )
                 .getOne()
               if (alreadyRedeemed) {
-                logger.error(
-                  'contribution link with rule DAILY already redeemed by user with id',
-                  user.id,
-                )
-                throw new Error('Contribution link already redeemed today')
+                throw new LogError('Contribution link already redeemed today', user.id)
               }
               break
             }
             default: {
-              logger.error('contribution link has unknown cycle', contributionLink.cycle)
-              throw new Error('Contribution link has unknown cycle')
+              throw new LogError('Contribution link has unknown cycle', contributionLink.cycle)
             }
           }
 
@@ -312,8 +295,7 @@ export class TransactionLinkResolver {
           logger.info('creation from contribution link commited successfuly.')
         } catch (e) {
           await queryRunner.rollbackTransaction()
-          logger.error(`Creation from contribution link was not successful: ${e}`)
-          throw new Error(`Creation from contribution link was not successful. ${e}`)
+          throw new LogError('Creation from contribution link was not successful', e)
         } finally {
           await queryRunner.release()
         }
