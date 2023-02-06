@@ -1,10 +1,10 @@
 import { calculateDecay } from './decay'
 import Decimal from 'decimal.js-light'
-import { Transaction } from '@entity/Transaction'
 import { Decay } from '@model/Decay'
 import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { getLastTransaction } from '../graphql/resolver/accessLayer/getLastTransaction'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()
@@ -20,7 +20,7 @@ async function calculateBalance(
   time: Date,
   transactionLink?: dbTransactionLink | null,
 ): Promise<{ balance: Decimal; decay: Decay; lastTransactionId: number } | null> {
-  const lastTransaction = await Transaction.findOne({ userId }, { order: { id: 'DESC' } })
+  const lastTransaction = await getLastTransaction(userId)
   if (!lastTransaction) return null
 
   const decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time)

@@ -38,6 +38,8 @@ import { findUserByEmail } from './UserResolver'
 
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
+import { getLastTransaction } from './accessLayer/getLastTransaction'
+
 export const executeTransaction = async (
   amount: Decimal,
   memo: string,
@@ -208,10 +210,7 @@ export class TransactionResolver {
     logger.info(`transactionList(user=${user.firstName}.${user.lastName}, ${user.emailId})`)
 
     // find current balance
-    const lastTransaction = await dbTransaction.findOne(
-      { userId: user.id },
-      { order: { id: 'DESC' }, relations: ['contribution'] },
-    )
+    const lastTransaction = await getLastTransaction(user.id, ['contribution'])
     logger.debug(`lastTransaction=${lastTransaction}`)
 
     const balanceResolver = new BalanceResolver()
