@@ -47,8 +47,5 @@
     "ts-mysql-migrate": "^1.0.2",
     "typeorm": "^0.2.38",
     "uuid": "^8.3.2"
-  },
-  "nodemonConfig": {
-    "ignore": ["**/*.test.ts"]
   }
 }

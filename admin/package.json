@@ -86,8 +86,5 @@
     "> 1%",
     "last 2 versions",
     "not ie <= 10"
-  ],
-  "nodemonConfig": {
-    "ignore": ["**/*.spec.js"]
-  }
+  ]
 }
