@@ -1890,13 +1890,13 @@ describe('ContributionResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Could not find UserContact')],
+                  errors: [new GraphQLError('Could not find User')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('Could not find UserContact', 'bob@baumeister.de')
+              expect(logger.error).toBeCalledWith('Could not find User', 'bob@baumeister.de')
             })
           })
 

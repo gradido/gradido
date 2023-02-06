@@ -304,7 +304,7 @@ export class ContributionResolver {
       withDeleted: true,
       relations: ['user'],
     })
-    if (!emailContact) {
+    if (!emailContact || !emailContact.user) {
       throw new LogError('Could not find user', email)
     }
     if (emailContact.deletedAt || emailContact.user.deletedAt) {
@@ -389,14 +389,10 @@ export class ContributionResolver {
       withDeleted: true,
       relations: ['user'],
     })
-    if (!emailContact) {
-      throw new LogError('Could not find UserContact', email)
-    }
-    const user = emailContact.user
-    if (!user) {
+    if (!emailContact || !emailContact.user) {
       throw new LogError('Could not find User', email)
     }
-    if (user.deletedAt) {
+    if (emailContact.deletedAt || emailContact.user.deletedAt) {
       throw new LogError('User was deleted', email)
     }
 
@@ -409,7 +405,7 @@ export class ContributionResolver {
       throw new LogError('Contribution not found', id)
     }
 
-    if (contributionToUpdate.userId !== user.id) {
+    if (contributionToUpdate.userId !== emailContact.user.id) {
       throw new LogError('User of the pending contribution and send user does not correspond')
     }
 
@@ -418,7 +414,7 @@ export class ContributionResolver {
     }
 
     const creationDateObj = new Date(creationDate)
-    let creations = await getUserCreation(user.id, clientTimezoneOffset)
+    let creations = await getUserCreation(emailContact.user.id, clientTimezoneOffset)
 
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
       creations = updateCreations(creations, contributionToUpdate, clientTimezoneOffset)
@@ -441,11 +437,11 @@ export class ContributionResolver {
     result.memo = contributionToUpdate.memo
     result.date = contributionToUpdate.contributionDate
 
-    result.creation = await getUserCreation(user.id, clientTimezoneOffset)
+    result.creation = await getUserCreation(emailContact.user.id, clientTimezoneOffset)
 
     const event = new Event()
     const eventAdminContributionUpdate = new EventAdminContributionUpdate()
-    eventAdminContributionUpdate.userId = user.id
+    eventAdminContributionUpdate.userId = emailContact.user.id
     eventAdminContributionUpdate.amount = amount
     eventAdminContributionUpdate.contributionId = contributionToUpdate.id
     await eventProtocol.writeEvent(
