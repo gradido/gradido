@@ -307,14 +307,8 @@ export class ContributionResolver {
     if (!emailContact) {
       throw new LogError('Could not find user', email)
     }
-    if (emailContact.deletedAt) {
-      throw new LogError(
-        'Cannot create contribution since the emailContact was deleted',
-        emailContact,
-      )
-    }
-    if (emailContact.user.deletedAt) {
-      throw new LogError('Cannot create contribution since the user was deleted', emailContact.user)
+    if (emailContact.deletedAt || emailContact.user.deletedAt) {
+      throw new LogError('Cannot create contribution since the user was deleted', emailContact)
     }
     if (!emailContact.emailChecked) {
       throw new LogError(

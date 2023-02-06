@@ -1,5 +1,6 @@
 import { UserInterface } from './UserInterface'
 
+// TODO: the generated email_contact is not deleted
 export const stephenHawking: UserInterface = {
   email: 'stephen@hawking.uk',
   firstName: 'Stephen',

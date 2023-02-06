@@ -1633,7 +1633,11 @@ describe('ContributionResolver', () => {
             it('logs the error thrown', () => {
               expect(logger.error).toBeCalledWith(
                 'Cannot create contribution since the user was deleted',
-                expect.objectContaining({ deletedAt: new Date('2018-03-14T09:17:52.000Z') }),
+                expect.objectContaining({
+                  user: expect.objectContaining({
+                    deletedAt: new Date('2018-03-14T09:17:52.000Z'),
+                  }),
+                }),
               )
             })
           })
