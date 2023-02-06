@@ -134,7 +134,6 @@ const CONFIG = {
   ...email,
   ...loginServer,
   ...webhook,
-  ...eventProtocol,
   ...federation,
 }
 

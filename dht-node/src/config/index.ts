@@ -50,7 +50,6 @@ const CONFIG = {
   ...constants,
   ...server,
   ...database,
-  ...eventProtocol,
   ...federation,
 }
 
