@@ -23,7 +23,7 @@ import {
 import {
   listAllContributions,
   listContributions,
-  listUnconfirmedContributions,
+  adminListAllContributions,
 } from '@/seeds/graphql/queries'
 import {
   // sendAccountActivationEmail,
@@ -1963,11 +1963,11 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe('listUnconfirmedContributions', () => {
+      describe('adminListAllContributions', () => {
         it('returns an error', async () => {
           await expect(
             query({
-              query: listUnconfirmedContributions,
+              query: adminListAllContributions,
             }),
           ).resolves.toEqual(
             expect.objectContaining({
@@ -2071,11 +2071,11 @@ describe('ContributionResolver', () => {
           })
         })
 
-        describe('listUnconfirmedContributions', () => {
+        describe('adminListAllContributions', () => {
           it('returns an error', async () => {
             await expect(
               query({
-                query: listUnconfirmedContributions,
+                query: adminListAllContributions,
               }),
             ).resolves.toEqual(
               expect.objectContaining({
@@ -2665,94 +2665,97 @@ describe('ContributionResolver', () => {
           })
         })
 
-        describe('listUnconfirmedContributions', () => {
+        describe('adminListAllContributions', () => {
           it('returns four pending creations', async () => {
             await expect(
               query({
-                query: listUnconfirmedContributions,
+                query: adminListAllContributions,
               }),
             ).resolves.toEqual(
               expect.objectContaining({
                 data: {
-                  listUnconfirmedContributions: expect.arrayContaining([
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      firstName: 'Peter',
-                      lastName: 'Lustig',
-                      email: 'peter@lustig.de',
-                      date: expect.any(String),
-                      memo: 'Das war leider zu Viel!',
-                      amount: '200',
-                      moderator: admin.id,
-                      creation: ['1000', '800', '500'],
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      firstName: 'Peter',
-                      lastName: 'Lustig',
-                      email: 'peter@lustig.de',
-                      date: expect.any(String),
-                      memo: 'Grundeinkommen',
-                      amount: '500',
-                      moderator: admin.id,
-                      creation: ['1000', '800', '500'],
-                    }),
-                    expect.not.objectContaining({
-                      id: expect.any(Number),
-                      firstName: 'Bibi',
-                      lastName: 'Bloxberg',
-                      email: 'bibi@bloxberg.de',
-                      date: expect.any(String),
-                      memo: 'Test contribution to delete',
-                      amount: '100',
-                      moderator: null,
-                      creation: ['1000', '1000', '90'],
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      firstName: 'Bibi',
-                      lastName: 'Bloxberg',
-                      email: 'bibi@bloxberg.de',
-                      date: expect.any(String),
-                      memo: 'Test PENDING contribution update',
-                      amount: '10',
-                      moderator: null,
-                      creation: ['1000', '1000', '90'],
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      firstName: 'Bibi',
-                      lastName: 'Bloxberg',
-                      email: 'bibi@bloxberg.de',
-                      date: expect.any(String),
-                      memo: 'Test IN_PROGRESS contribution',
-                      amount: '100',
-                      moderator: null,
-                      creation: ['1000', '1000', '90'],
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      firstName: 'Bibi',
-                      lastName: 'Bloxberg',
-                      email: 'bibi@bloxberg.de',
-                      date: expect.any(String),
-                      memo: 'Grundeinkommen',
-                      amount: '500',
-                      moderator: admin.id,
-                      creation: ['1000', '1000', '90'],
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      firstName: 'Bibi',
-                      lastName: 'Bloxberg',
-                      email: 'bibi@bloxberg.de',
-                      date: expect.any(String),
-                      memo: 'Aktives Grundeinkommen',
-                      amount: '200',
-                      moderator: admin.id,
-                      creation: ['1000', '1000', '90'],
-                    }),
-                  ]),
+                  adminListAllContributions: {
+                    contributionCount: 4,
+                    contributionList: expect.arrayContaining([
+                      expect.objectContaining({
+                        id: expect.any(Number),
+                        firstName: 'Peter',
+                        lastName: 'Lustig',
+                        email: 'peter@lustig.de',
+                        date: expect.any(String),
+                        memo: 'Das war leider zu Viel!',
+                        amount: '200',
+                        moderator: admin.id,
+                        creation: ['1000', '800', '500'],
+                      }),
+                      expect.objectContaining({
+                        id: expect.any(Number),
+                        firstName: 'Peter',
+                        lastName: 'Lustig',
+                        email: 'peter@lustig.de',
+                        date: expect.any(String),
+                        memo: 'Grundeinkommen',
+                        amount: '500',
+                        moderator: admin.id,
+                        creation: ['1000', '800', '500'],
+                      }),
+                      expect.not.objectContaining({
+                        id: expect.any(Number),
+                        firstName: 'Bibi',
+                        lastName: 'Bloxberg',
+                        email: 'bibi@bloxberg.de',
+                        date: expect.any(String),
+                        memo: 'Test contribution to delete',
+                        amount: '100',
+                        moderator: null,
+                        creation: ['1000', '1000', '90'],
+                      }),
+                      expect.objectContaining({
+                        id: expect.any(Number),
+                        firstName: 'Bibi',
+                        lastName: 'Bloxberg',
+                        email: 'bibi@bloxberg.de',
+                        date: expect.any(String),
+                        memo: 'Test PENDING contribution update',
+                        amount: '10',
+                        moderator: null,
+                        creation: ['1000', '1000', '90'],
+                      }),
+                      expect.objectContaining({
+                        id: expect.any(Number),
+                        firstName: 'Bibi',
+                        lastName: 'Bloxberg',
+                        email: 'bibi@bloxberg.de',
+                        date: expect.any(String),
+                        memo: 'Test IN_PROGRESS contribution',
+                        amount: '100',
+                        moderator: null,
+                        creation: ['1000', '1000', '90'],
+                      }),
+                      expect.objectContaining({
+                        id: expect.any(Number),
+                        firstName: 'Bibi',
+                        lastName: 'Bloxberg',
+                        email: 'bibi@bloxberg.de',
+                        date: expect.any(String),
+                        memo: 'Grundeinkommen',
+                        amount: '500',
+                        moderator: admin.id,
+                        creation: ['1000', '1000', '90'],
+                      }),
+                      expect.objectContaining({
+                        id: expect.any(Number),
+                        firstName: 'Bibi',
+                        lastName: 'Bloxberg',
+                        email: 'bibi@bloxberg.de',
+                        date: expect.any(String),
+                        memo: 'Aktives Grundeinkommen',
+                        amount: '200',
+                        moderator: admin.id,
+                        creation: ['1000', '1000', '90'],
+                      }),
+                    ]),
+                  },
                 },
               }),
             )

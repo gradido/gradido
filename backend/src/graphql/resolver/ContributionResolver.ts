@@ -477,40 +477,39 @@ export class ContributionResolver {
   }
 
   @Authorized([RIGHTS.LIST_UNCONFIRMED_CONTRIBUTIONS])
-  @Query(() => [UnconfirmedContribution])
-  async listUnconfirmedContributions(@Ctx() context: Context): Promise<UnconfirmedContribution[]> {
-    const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const contributions = await getConnection()
+  @Query(() => ContributionListResult) // [UnconfirmedContribution]
+  async adminListAllContributions(
+    @Args()
+    { currentPage = 1, pageSize = 3, order = Order.DESC }: Paginated,
+    @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
+    statusFilter?: ContributionStatus[],
+  ): Promise<ContributionListResult> {
+    const where: {
+      contributionStatus?: FindOperator<string> | null
+    } = {}
+
+    if (statusFilter && statusFilter.length) {
+      where.contributionStatus = In(statusFilter)
+    }
+
+    const [dbContributions, count] = await getConnection()
       .createQueryBuilder()
       .select('c')
       .from(DbContribution, 'c')
-      .leftJoinAndSelect('c.messages', 'm')
-      .where({ confirmedAt: IsNull() })
-      .andWhere({ deniedAt: IsNull() })
-      .getMany()
+      .innerJoinAndSelect('c.user', 'u')
+      .where(where)
+      .withDeleted()
+      .orderBy('c.createdAt', order)
+      .limit(pageSize)
+      .offset((currentPage - 1) * pageSize)
+      .getManyAndCount()
 
-    if (contributions.length === 0) {
-      return []
-    }
-
-    const userIds = contributions.map((p) => p.userId)
-    const userCreations = await getUserCreations(userIds, clientTimezoneOffset)
-    const users = await DbUser.find({
-      where: { id: In(userIds) },
-      withDeleted: true,
-      relations: ['emailContact'],
-    })
-
-    return contributions.map((contribution) => {
-      const user = users.find((u) => u.id === contribution.userId)
-      const creation = userCreations.find((c) => c.id === contribution.userId)
-
-      return new UnconfirmedContribution(
-        contribution,
-        user,
-        creation ? creation.creations : FULL_CREATION_AVAILABLE,
-      )
-    })
+    console.log('dbContributions', dbContributions)
+    console.log('count', count)
+    return new ContributionListResult(
+      count,
+      dbContributions.map((contribution) => new Contribution(contribution, contribution.user)),
+    )
   }
 
   @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION])
