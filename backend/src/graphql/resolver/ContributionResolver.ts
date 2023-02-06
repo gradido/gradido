@@ -30,12 +30,11 @@ import { backendLogger as logger } from '@/server/logger'
 import {
   getCreationDates,
   getUserCreation,
-  getUserCreations,
   validateContribution,
   updateCreations,
   isValidDateString,
 } from './util/creations'
-import { MEMO_MAX_CHARS, MEMO_MIN_CHARS, FULL_CREATION_AVAILABLE } from './const/const'
+import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import {
   Event,
   EventContributionCreate,
@@ -504,8 +503,6 @@ export class ContributionResolver {
       .offset((currentPage - 1) * pageSize)
       .getManyAndCount()
 
-    console.log('dbContributions', dbContributions)
-    console.log('count', count)
     return new ContributionListResult(
       count,
       dbContributions.map((contribution) => new Contribution(contribution, contribution.user)),

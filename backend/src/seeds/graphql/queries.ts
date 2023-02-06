@@ -198,7 +198,7 @@ query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC, $statusF
 export const adminListAllContributions = gql`
   query (
     $currentPage: Int = 1
-    $pageSize: Int = 3
+    $pageSize: Int = 25
     $order: Order = DESC
     $statusFilter: [ContributionStatus!]
   ) {
