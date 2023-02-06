@@ -42,14 +42,32 @@ describe('ContributionLink', () => {
       expect(wrapper.find('div.contribution-link').exists()).toBe(true)
     })
 
-    it('emits toggle::collapse new Contribution', async () => {
-      wrapper.vm.editContributionLinkData()
-      expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
+    describe('collapse open new Contribution', () => {
+      beforeEach(() => {
+        wrapper.vm.editContributionLinkData()
+      })
+      it('emits toggle::collapse new Contribution', () => {
+        expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
+      })
+      it('has collapse visible true', () => {
+        expect(wrapper.vm.visible).toBe(true)
+      })
     })
 
-    it('emits toggle::collapse close Contribution-Form ', async () => {
-      wrapper.vm.closeContributionForm()
-      expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
+    describe('collapse close Contribution Form', () => {
+      beforeEach(() => {
+        wrapper.setData({ visible: true })
+        wrapper.vm.closeContributionForm()
+      })
+
+      it('has collapse visible false', async () => {
+        await wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')
+        expect(wrapper.vm.visible).toBe(false)
+      })
+
+      it('has editContributionLink false', () => {
+        expect(wrapper.vm.editContributionLink).toBe(false)
+      })
     })
   })
 })

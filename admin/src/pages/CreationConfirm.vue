@@ -208,7 +208,6 @@ export default {
           { key: 'confirm', label: this.$t('save') },
         ],
         [
-          { key: 'state', label: 'state' },
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {
@@ -229,6 +228,13 @@ export default {
           {
             key: 'createdAt',
             label: this.$t('createdAt'),
+            formatter: (value) => {
+              return this.$d(new Date(value), 'short')
+            },
+          },
+          {
+            key: 'confirmedAt',
+            label: this.$t('contributions.confirms'),
             formatter: (value) => {
               return this.$d(new Date(value), 'short')
             },
@@ -273,6 +279,7 @@ export default {
         ],
         [],
         [
+          { key: 'state', label: 'state' },
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {
