@@ -52,10 +52,6 @@ const community = {
      process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
 }
 */
-// const eventProtocol = {
-// global switch to enable writing of EventProtocol-Entries
-// EVENT_PROTOCOL_DISABLED: process.env.EVENT_PROTOCOL_DISABLED === 'true' || false,
-// }
 
 // This is needed by graphql-directive-auth
 // process.env.APP_SECRET = server.JWT_SECRET
