@@ -12,7 +12,7 @@ export class Community extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ name: 'foreign', type: 'bool', nullable: false, default: false })
+  @Column({ name: 'foreign', type: 'bool', nullable: false, default: true })
   foreign: boolean
 
   @Column({ name: 'public_key', type: 'binary', length: 64, default: null, nullable: true })
