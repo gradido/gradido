@@ -46,7 +46,7 @@ import {
   EventAdminContributionDelete,
   EventAdminContributionUpdate,
 } from '@/event/Event'
-import { eventProtocol } from '@/event/EventProtocolEmitter'
+import { writeEvent } from '@/event/EventProtocolEmitter'
 import { calculateDecay } from '@/util/decay'
 import {
   sendContributionConfirmedEmail,
@@ -97,7 +97,7 @@ export class ContributionResolver {
     eventCreateContribution.userId = user.id
     eventCreateContribution.amount = amount
     eventCreateContribution.contributionId = contribution.id
-    await eventProtocol.writeEvent(event.setEventContributionCreate(eventCreateContribution))
+    await writeEvent(event.setEventContributionCreate(eventCreateContribution))
 
     return new UnconfirmedContribution(contribution, user, creations)
   }
@@ -133,7 +133,7 @@ export class ContributionResolver {
     eventDeleteContribution.userId = user.id
     eventDeleteContribution.contributionId = contribution.id
     eventDeleteContribution.amount = contribution.amount
-    await eventProtocol.writeEvent(event.setEventContributionDelete(eventDeleteContribution))
+    await writeEvent(event.setEventContributionDelete(eventDeleteContribution))
 
     const res = await contribution.softRemove()
     return !!res
@@ -290,7 +290,7 @@ export class ContributionResolver {
     eventUpdateContribution.userId = user.id
     eventUpdateContribution.contributionId = contributionId
     eventUpdateContribution.amount = amount
-    await eventProtocol.writeEvent(event.setEventContributionUpdate(eventUpdateContribution))
+    await writeEvent(event.setEventContributionUpdate(eventUpdateContribution))
 
     return new UnconfirmedContribution(contributionToUpdate, user, creations)
   }
@@ -357,9 +357,7 @@ export class ContributionResolver {
     eventAdminCreateContribution.userId = moderator.id
     eventAdminCreateContribution.amount = amount
     eventAdminCreateContribution.contributionId = contribution.id
-    await eventProtocol.writeEvent(
-      event.setEventAdminContributionCreate(eventAdminCreateContribution),
-    )
+    await writeEvent(event.setEventAdminContributionCreate(eventAdminCreateContribution))
 
     return getUserCreation(emailContact.userId, clientTimezoneOffset)
   }
@@ -469,9 +467,7 @@ export class ContributionResolver {
     eventAdminContributionUpdate.userId = user.id
     eventAdminContributionUpdate.amount = amount
     eventAdminContributionUpdate.contributionId = contributionToUpdate.id
-    await eventProtocol.writeEvent(
-      event.setEventAdminContributionUpdate(eventAdminContributionUpdate),
-    )
+    await writeEvent(event.setEventAdminContributionUpdate(eventAdminContributionUpdate))
 
     return result
   }
@@ -549,9 +545,7 @@ export class ContributionResolver {
     eventAdminContributionDelete.userId = contribution.userId
     eventAdminContributionDelete.amount = contribution.amount
     eventAdminContributionDelete.contributionId = contribution.id
-    await eventProtocol.writeEvent(
-      event.setEventAdminContributionDelete(eventAdminContributionDelete),
-    )
+    await writeEvent(event.setEventAdminContributionDelete(eventAdminContributionDelete))
     sendContributionDeniedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
@@ -679,7 +673,7 @@ export class ContributionResolver {
       eventContributionConfirm.userId = user.id
       eventContributionConfirm.amount = contribution.amount
       eventContributionConfirm.contributionId = contribution.id
-      await eventProtocol.writeEvent(event.setEventContributionConfirm(eventContributionConfirm))
+      await writeEvent(event.setEventContributionConfirm(eventContributionConfirm))
     } finally {
       releaseLock()
     }
