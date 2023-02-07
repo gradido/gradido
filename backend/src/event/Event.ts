@@ -1,4 +1,3 @@
-import { EventProtocol } from '@entity/EventProtocol'
 import decimal from 'decimal.js-light'
 import { EventProtocolType } from './EventProtocolType'
 
@@ -87,21 +86,6 @@ export class EventDeleteContributionLink extends EventBasicCt {}
 export class EventUpdateContributionLink extends EventBasicCt {}
 
 export class Event {
-  constructor()
-  constructor(event?: EventProtocol) {
-    if (event) {
-      this.id = event.id
-      this.type = event.type
-      this.createdAt = event.createdAt
-      this.userId = event.userId
-      this.xUserId = event.xUserId
-      this.xCommunityId = event.xCommunityId
-      this.transactionId = event.transactionId
-      this.contributionId = event.contributionId
-      this.amount = event.amount
-    }
-  }
-
   public setEventBasic(): Event {
     this.type = EventProtocolType.BASIC
     this.createdAt = new Date()
