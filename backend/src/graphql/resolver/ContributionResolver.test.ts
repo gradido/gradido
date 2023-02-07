@@ -1769,7 +1769,9 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'The amount to be created exceeds the amount still available for this month', new Decimal(2000), new Decimal(1000)
+                  'The amount to be created exceeds the amount still available for this month',
+                  new Decimal(2000),
+                  new Decimal(1000),
                 )
               })
             })
@@ -1817,7 +1819,9 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'The amount to be created exceeds the amount still available for this month', new Decimal(1000), new Decimal(800)
+                  'The amount to be created exceeds the amount still available for this month',
+                  new Decimal(1000),
+                  new Decimal(800),
                 )
               })
             })
@@ -2019,7 +2023,9 @@ describe('ContributionResolver', () => {
 
             it('logs the error thrown', () => {
               expect(logger.error).toBeCalledWith(
-                'The amount to be created exceeds the amount still available for this month', new Decimal(1900), new Decimal(1000)
+                'The amount to be created exceeds the amount still available for this month',
+                new Decimal(1900),
+                new Decimal(1000),
               )
             })
           })
