@@ -1,3 +1,4 @@
+<!-- eslint-disable prettier/prettier -->
 <template>
   <div class="forgot-password">
     <b-container v-if="enterData">
