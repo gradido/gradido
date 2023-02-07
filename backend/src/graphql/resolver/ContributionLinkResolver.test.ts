@@ -246,6 +246,7 @@ describe('Contribution Links', () => {
         })
 
         it('returns an error if missing startDate', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: createContributionLink,
@@ -270,6 +271,7 @@ describe('Contribution Links', () => {
         })
 
         it('returns an error if missing endDate', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: createContributionLink,
@@ -292,6 +294,7 @@ describe('Contribution Links', () => {
         })
 
         it('returns an error if endDate is before startDate', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: createContributionLink,
@@ -316,27 +319,8 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('returns an error if name is an empty string', async () => {
-          await expect(
-            mutate({
-              mutation: createContributionLink,
-              variables: {
-                ...variables,
-                name: '',
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('The name must be initialized!')],
-            }),
-          )
-        })
-
-        it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith('The name must be initialized!')
-        })
-
         it('returns an error if name is shorter than 5 characters', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: createContributionLink,
@@ -347,22 +331,17 @@ describe('Contribution Links', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [
-                new GraphQLError(
-                  `The value of 'name' with a length of 3 did not fulfill the requested bounderies min=5 and max=100`,
-                ),
-              ],
+              errors: [new GraphQLError('The value of name is too short')],
             }),
           )
         })
 
         it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith(
-            `The value of 'name' with a length of 3 did not fulfill the requested bounderies min=5 and max=100`,
-          )
+          expect(logger.error).toBeCalledWith('The value of name is too short', 3)
         })
 
         it('returns an error if name is longer than 100 characters', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: createContributionLink,
@@ -373,42 +352,17 @@ describe('Contribution Links', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [
-                new GraphQLError(
-                  `The value of 'name' with a length of 101 did not fulfill the requested bounderies min=5 and max=100`,
-                ),
-              ],
+              errors: [new GraphQLError('The value of name is too long')],
             }),
           )
         })
 
         it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith(
-            `The value of 'name' with a length of 101 did not fulfill the requested bounderies min=5 and max=100`,
-          )
-        })
-
-        it('returns an error if memo is an empty string', async () => {
-          await expect(
-            mutate({
-              mutation: createContributionLink,
-              variables: {
-                ...variables,
-                memo: '',
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('The memo must be initialized!')],
-            }),
-          )
-        })
-
-        it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith('The memo must be initialized!')
+          expect(logger.error).toBeCalledWith('The value of name is too long', 101)
         })
 
         it('returns an error if memo is shorter than 5 characters', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: createContributionLink,
@@ -419,22 +373,17 @@ describe('Contribution Links', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [
-                new GraphQLError(
-                  `The value of 'memo' with a length of 3 did not fulfill the requested bounderies min=5 and max=255`,
-                ),
-              ],
+              errors: [new GraphQLError('The value of memo is too short')],
             }),
           )
         })
 
         it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith(
-            `The value of 'memo' with a length of 3 did not fulfill the requested bounderies min=5 and max=255`,
-          )
+          expect(logger.error).toBeCalledWith('The value of memo is too short', 3)
         })
 
         it('returns an error if memo is longer than 255 characters', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: createContributionLink,
@@ -445,22 +394,17 @@ describe('Contribution Links', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [
-                new GraphQLError(
-                  `The value of 'memo' with a length of 256 did not fulfill the requested bounderies min=5 and max=255`,
-                ),
-              ],
+              errors: [new GraphQLError('The value of memo is too long')],
             }),
           )
         })
 
         it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith(
-            `The value of 'memo' with a length of 256 did not fulfill the requested bounderies min=5 and max=255`,
-          )
+          expect(logger.error).toBeCalledWith('The value of memo is too long', 256)
         })
 
         it('returns an error if amount is not positive', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: createContributionLink,
@@ -471,15 +415,13 @@ describe('Contribution Links', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('The amount=0 must be initialized with a positiv value!')],
+              errors: [new GraphQLError('The amount must be a positiv value')],
             }),
           )
         })
 
         it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith(
-            'The amount=0 must be initialized with a positiv value!',
-          )
+          expect(logger.error).toBeCalledWith('The amount must be a positiv value', new Decimal(0))
         })
       })
 
@@ -530,14 +472,14 @@ describe('Contribution Links', () => {
               }),
             ).resolves.toEqual(
               expect.objectContaining({
-                errors: [new GraphQLError('Contribution Link not found to given id.')],
+                errors: [new GraphQLError('Contribution Link not found')],
               }),
             )
           })
         })
 
         it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith('Contribution Link not found to given id: -1')
+          expect(logger.error).toBeCalledWith('Contribution Link not found', -1)
         })
 
         describe('valid id', () => {
@@ -601,13 +543,13 @@ describe('Contribution Links', () => {
               mutate({ mutation: deleteContributionLink, variables: { id: -1 } }),
             ).resolves.toEqual(
               expect.objectContaining({
-                errors: [new GraphQLError('Contribution Link not found to given id.')],
+                errors: [new GraphQLError('Contribution Link not found')],
               }),
             )
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith('Contribution Link not found to given id: -1')
+            expect(logger.error).toBeCalledWith('Contribution Link not found', -1)
           })
         })
 
