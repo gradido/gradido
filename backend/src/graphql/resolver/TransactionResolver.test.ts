@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import Decimal from 'decimal.js-light'
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { userFactory } from '@/seeds/factory/user'
 import {
@@ -118,10 +119,8 @@ describe('send coins', () => {
 
       it('logs the error thrown', async () => {
         // find peter to check the log
-        const user = await findUserByEmail(peterData.email)
-        expect(logger.error).toBeCalledWith(
-          `The recipient account was deleted: recipientUser=${user}`,
-        )
+        const user = await findUserByEmail('stephen@hawking.uk')
+        expect(logger.error).toBeCalledWith('The recipient account was deleted', user)
       })
     })
 
@@ -151,10 +150,8 @@ describe('send coins', () => {
 
       it('logs the error thrown', async () => {
         // find peter to check the log
-        const user = await findUserByEmail(peterData.email)
-        expect(logger.error).toBeCalledWith(
-          `The recipient account is not activated: recipientUser=${user}`,
-        )
+        const user = await findUserByEmail('garrick@ollivander.com')
+        expect(logger.error).toBeCalledWith('The recipient account is not activated', user)
       })
     })
   })
@@ -181,37 +178,13 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('Sender and Recipient are the same.')],
+            errors: [new GraphQLError('Sender and Recipient are the same')],
           }),
         )
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('Sender and Recipient are the same.')
-      })
-    })
-
-    describe('memo text is too long', () => {
-      it('throws an error', async () => {
-        jest.clearAllMocks()
-        expect(
-          await mutate({
-            mutation: sendCoins,
-            variables: {
-              email: 'peter@lustig.de',
-              amount: 100,
-              memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test t',
-            },
-          }),
-        ).toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('memo text is too long (255 characters maximum)')],
-          }),
-        )
-      })
-
-      it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('memo text is too long: memo.length=256 > 255')
+        expect(logger.error).toBeCalledWith('Sender and Recipient are the same', expect.any(Number))
       })
     })
 
@@ -229,13 +202,37 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('memo text is too short (5 characters minimum)')],
+            errors: [new GraphQLError('Memo text is too short')],
           }),
         )
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('memo text is too short: memo.length=4 < 5')
+        expect(logger.error).toBeCalledWith('Memo text is too short', 4)
+      })
+    })
+
+    describe('memo text is too long', () => {
+      it('throws an error', async () => {
+        jest.clearAllMocks()
+        expect(
+          await mutate({
+            mutation: sendCoins,
+            variables: {
+              email: 'peter@lustig.de',
+              amount: 100,
+              memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test t',
+            },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('Memo text is too long')],
+          }),
+        )
+      })
+
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith('Memo text is too long', 256)
       })
     })
 
@@ -253,15 +250,13 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError(`user hasn't enough GDD or amount is < 0`)],
+            errors: [new GraphQLError('User has not enough GDD or amount is < 0')],
           }),
         )
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith(
-          `user hasn't enough GDD or amount is < 0 : balance=null`,
-        )
+        expect(logger.error).toBeCalledWith('User has not enough GDD or amount is < 0', null)
       })
     })
   })
@@ -293,6 +288,7 @@ describe('send coins', () => {
 
     describe('trying to send negative amount', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         expect(
           await mutate({
             mutation: sendCoins,
@@ -304,13 +300,13 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError(`Amount to send must be positive`)],
+            errors: [new GraphQLError('Amount to send must be positive')],
           }),
         )
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith(`Amount to send must be positive`)
+        expect(logger.error).toBeCalledWith('Amount to send must be positive', new Decimal(-50))
       })
     })
 
