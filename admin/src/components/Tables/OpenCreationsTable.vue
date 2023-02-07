@@ -10,11 +10,7 @@
       :tbody-tr-class="rowClass"
     >
       <template #cell(state)="row">
-        <b-icon v-if="row.item.state === 'IN_PROGRESS'" icon="question-square"></b-icon>
-        <b-icon v-if="row.item.state === 'PENDING'" icon="bell-fill"></b-icon>
-        <b-icon v-if="row.item.state === 'CONFIRMED'" icon="check"></b-icon>
-        <b-icon v-if="row.item.state === 'DELETED'" icon="trash"></b-icon>
-        <b-icon v-if="row.item.state === 'DENIED'" icon="x-circle"></b-icon>
+        <b-icon :icon="getStatusIcon(row.item.state)"></b-icon>
       </template>
       <template #cell(bookmark)="row">
         <b-button
@@ -53,7 +49,7 @@
         </div>
       </template>
       <template #cell(reActive)>
-        <b-button variant="warning" size="md" @click="reActive" class="mr-2">
+        <b-button variant="warning" size="md" class="mr-2">
           <b-icon icon="arrow-up" variant="light"></b-icon>
         </b-button>
       </template>
@@ -125,6 +121,14 @@ import RowDetails from '../RowDetails.vue'
 import EditCreationFormular from '../EditCreationFormular.vue'
 import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList.vue'
 
+const iconMap = {
+  IN_PROGRESS: 'question-square',
+  PENDING: 'bell-fill',
+  CONFIRMED: 'check',
+  DELETED: 'trash',
+  DENIED: 'x-circle',
+}
+
 export default {
   name: 'OpenCreationsTable',
   mixins: [toggleRowDetails],
@@ -154,6 +158,9 @@ export default {
     }
   },
   methods: {
+    getStatusIcon(status) {
+      return iconMap[status] ? iconMap[status] : 'default-icon'
+    },
     rowClass(item, type) {
       if (!item || type !== 'row') return
       if (item.state === 'CONFIRMED') return 'table-success'
@@ -171,9 +178,6 @@ export default {
     },
     updateState(id) {
       this.$emit('update-state', id)
-    },
-    reActive() {
-      alert('reActive Contribution')
     },
   },
 }
