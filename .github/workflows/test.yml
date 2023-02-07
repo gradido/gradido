@@ -478,7 +478,7 @@ jobs:
           report_name: Coverage Admin Interface
           type: lcov
           result_path: ./coverage/lcov.info
-          min_coverage: 96
+          min_coverage: 97
           token: ${{ github.token }}
 
   ##############################################################################
