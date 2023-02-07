@@ -354,10 +354,15 @@ describe('TransactionLinkResolver', () => {
           })
 
           it('logs the error thrown', () => {
+            /* expect(logger.error).toBeCalledWith(
+              'The amount to be created exceeds the amount still available for this month',
+              new Decimal(5),
+              new Decimal(0),
+            ) */
             expect(logger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
               new Error(
-                'The amount (5 GDD) to be created exceeds the amount (0 GDD) still available for this month.',
+                'The amount to be created exceeds the amount still available for this month',
               ),
             )
           })
