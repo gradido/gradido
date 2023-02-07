@@ -298,6 +298,13 @@ export class Event {
     return this
   }
 
+  public setEventAdminContributionDeny(ev: EventAdminContributionDeny): Event {
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    this.type = EventProtocolType.ADMIN_CONTRIBUTION_DENY
+
+    return this
+  }
+
   public setEventAdminContributionUpdate(ev: EventAdminContributionUpdate): Event {
     this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
     this.type = EventProtocolType.ADMIN_CONTRIBUTION_UPDATE
