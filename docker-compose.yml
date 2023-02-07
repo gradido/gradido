@@ -148,6 +148,42 @@ services:
       - ./logs/dht-node:/logs/dht-node
 
   ########################################################
+  # FEDERATION ###########################################
+  ########################################################
+  federation:
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/federation:local-production
+    build:
+      # since we have to include the entities from ./database we cannot define the context as ./federation
+      # this might blow build image size to the moon ?!
+      context: ./
+      dockerfile: ./federation/Dockerfile
+      target: production
+    networks:
+      - internal-net
+      - external-net
+    ports:
+      - 5000:5000
+    depends_on:
+      - mariadb
+    restart: always
+    environment:
+      # Envs used in Dockerfile
+      # - DOCKER_WORKDIR="/app"
+      - PORT=5000
+      - BUILD_DATE
+      - BUILD_VERSION
+      - BUILD_COMMIT
+      - NODE_ENV="production"
+      - DB_HOST=mariadb
+      # Application only envs
+    #env_file:
+    #  - ./frontend/.env
+    volumes:
+      # <host_machine_directory>:<container_directory> – mirror bidirectional path in local context with path in Docker container
+      - ./logs/federation:/logs/federation
+
+  ########################################################
   # DATABASE #############################################
   ########################################################
   database:
