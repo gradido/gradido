@@ -99,14 +99,18 @@ describe('ContributionMessageResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('ContributionMessage was not sent successfully')],
+              errors: [
+                new GraphQLError(
+                  'ContributionMessage was not sent successfully: Error: Contribution not found',
+                ),
+              ],
             }),
           )
         })
 
         it('logs the error thrown', () => {
           expect(logger.error).toBeCalledWith(
-            'ContributionMessage was not sent successfully',
+            'ContributionMessage was not sent successfully: Error: Contribution not found',
             new Error('Contribution not found'),
           )
         })
@@ -135,14 +139,18 @@ describe('ContributionMessageResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('ContributionMessage was not sent successfully')],
+              errors: [
+                new GraphQLError(
+                  'ContributionMessage was not sent successfully: Error: Admin can not answer on his own contribution',
+                ),
+              ],
             }),
           )
         })
 
         it('logs the error thrown', () => {
           expect(logger.error).toBeCalledWith(
-            'ContributionMessage was not sent successfully',
+            'ContributionMessage was not sent successfully: Error: Admin can not answer on his own contribution',
             new Error('Admin can not answer on his own contribution'),
           )
         })
@@ -229,14 +237,18 @@ describe('ContributionMessageResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('ContributionMessage was not sent successfully')],
+              errors: [
+                new GraphQLError(
+                  'ContributionMessage was not sent successfully: Error: Contribution not found',
+                ),
+              ],
             }),
           )
         })
 
         it('logs the error thrown', () => {
           expect(logger.error).toBeCalledWith(
-            'ContributionMessage was not sent successfully',
+            'ContributionMessage was not sent successfully: Error: Contribution not found',
             new Error('Contribution not found'),
           )
         })
@@ -257,14 +269,18 @@ describe('ContributionMessageResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('ContributionMessage was not sent successfully')],
+              errors: [
+                new GraphQLError(
+                  'ContributionMessage was not sent successfully: Error: Can not send message to contribution of another user',
+                ),
+              ],
             }),
           )
         })
 
         it('logs the error thrown', () => {
           expect(logger.error).toBeCalledWith(
-            'ContributionMessage was not sent successfully',
+            'ContributionMessage was not sent successfully: Error: Can not send message to contribution of another user',
             new Error('Can not send message to contribution of another user'),
           )
         })
