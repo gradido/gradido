@@ -8,7 +8,7 @@
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(
-    'ALTER TABLE `communities` ADD COLUMN `foreign` tinyint(4) NOT NULL DEFAULT 0 AFTER `id`;',
+    'ALTER TABLE `communities` ADD COLUMN `foreign` tinyint(4) NOT NULL DEFAULT 1 AFTER `id`;',
   )
   await queryFn(
     'ALTER TABLE `communities` ADD COLUMN `verified_at` datetime(3) AFTER `last_announced_at`;',
