@@ -40,19 +40,11 @@ export class ContributionLinkResolver {
     }: ContributionLinkArgs,
   ): Promise<ContributionLink> {
     isStartEndDateValid(validFrom, validTo)
-    // TODO: this should be enforced by the schema.
-    if (!name) {
-      throw new LogError('The name must be initialized')
-    }
     if (name.length < CONTRIBUTIONLINK_NAME_MIN_CHARS) {
       throw new LogError('The value of name is too short', name.length)
     }
     if (name.length > CONTRIBUTIONLINK_NAME_MAX_CHARS) {
       throw new LogError('The value of name is too long', name.length)
-    }
-    // TODO: this should be enforced by the schema.
-    if (!memo) {
-      throw new LogError('The memo must be initialized')
     }
     if (memo.length < MEMO_MIN_CHARS) {
       throw new LogError('The value of memo is too short', memo.length)
