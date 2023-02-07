@@ -33,10 +33,14 @@ export class ContributionMessageResolver {
     try {
       const contribution = await DbContribution.findOne({ id: contributionId })
       if (!contribution) {
-        throw new Error('Contribution not found')
+        throw new LogError('Contribution not found', contributionId)
       }
       if (contribution.userId !== user.id) {
-        throw new Error('Can not send message to contribution of another user')
+        throw new LogError(
+          'Can not send message to contribution of another user',
+          contribution.userId,
+          user.id,
+        )
       }
 
       contributionMessage.contributionId = contributionId

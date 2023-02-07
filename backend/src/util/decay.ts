@@ -22,7 +22,7 @@ function calculateDecay(
   const startBlockMs = startBlock.getTime()
 
   if (toMs < fromMs) {
-    throw new Error('to < from, reverse decay calculation is invalid')
+    throw new LogError('calculateDecay: to < from, reverse decay calculation is invalid')
   }
 
   // Initialize with no decay

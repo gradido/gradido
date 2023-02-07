@@ -5,7 +5,7 @@ import { User } from '@entity/User'
 export async function retrieveNotRegisteredEmails(): Promise<string[]> {
   const con = await connection()
   if (!con) {
-    throw new Error('No connection to database')
+    throw new LogError('No connection to database')
   }
   const users = await User.find({ relations: ['emailContact'] })
   const notRegisteredUser = []
