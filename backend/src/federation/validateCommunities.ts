@@ -20,7 +20,7 @@ export async function startValidateCommunities(timerInterval: number): Promise<v
 
 export async function validateCommunities(): Promise<void> {
   const dbCommunities: DbCommunity[] = await DbCommunity.createQueryBuilder()
-    .where({ verifiedAt: IsNull() })
+    .where({ foreign: true, verifiedAt: IsNull() })
     .orWhere('verified_at < last_announced_at')
     .getMany()
   /*

@@ -1,21 +1,15 @@
-import { GraphQLClient, gql } from 'graphql-request'
+import { gql } from 'graphql-request'
 import { backendLogger as logger } from '@/server/logger'
 import { Community as DbCommunity } from '@entity/Community'
+import { GraphQLGetClient } from '../GraphQLGetClient'
 
-// eslint-disable-next-line camelcase
 export async function requestGetPublicKey(dbCom: DbCommunity): Promise<string | undefined> {
   let endpoint = dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'
   endpoint = `${endpoint}${dbCom.apiVersion}/`
   logger.info(`requestGetPublicKey with endpoint='${endpoint}'...`)
 
-  const graphQLClient = new GraphQLClient(endpoint, {
-    method: 'GET',
-    jsonSerializer: {
-      parse: JSON.parse,
-      stringify: JSON.stringify,
-    },
-  })
-  logger.info(`graphQLClient=${JSON.stringify(graphQLClient)}`)
+  const graphQLClient = GraphQLGetClient.getInstance(endpoint)
+  logger.debug(`graphQLClient=${JSON.stringify(graphQLClient)}`)
   const query = gql`
     query {
       getPublicKey {

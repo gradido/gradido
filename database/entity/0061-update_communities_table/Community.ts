@@ -15,7 +15,7 @@ export class Community extends BaseEntity {
   @Column({ name: 'foreign', type: 'bool', nullable: false, default: true })
   foreign: boolean
 
-  @Column({ name: 'public_key', type: 'binary', length: 64, default: null, nullable: true })
+  @Column({ name: 'public_key', type: 'binary', length: 64, default: null, nullable: false })
   publicKey: Buffer
 
   @Column({ name: 'api_version', length: 10, nullable: false })
@@ -28,7 +28,7 @@ export class Community extends BaseEntity {
   lastAnnouncedAt: Date
 
   @Column({ name: 'verified_at', type: 'datetime', nullable: true })
-  verifiedAt: Date
+  verifiedAt: Date | null
 
   @Column({ name: 'last_error_at', type: 'datetime', nullable: true })
   lastErrorAt: Date
