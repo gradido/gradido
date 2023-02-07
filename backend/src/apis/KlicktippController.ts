@@ -31,7 +31,7 @@ export const unsubscribe = async (email: string): Promise<boolean> => {
   if (isLogin) {
     return await klicktippConnector.unsubscribe(email)
   }
-  throw new LogError('Could not unsubscribe', email)
+  throw new Error(`Could not unsubscribe ${email}`)
 }
 
 export const getKlickTippUser = async (email: string): Promise<any> => {

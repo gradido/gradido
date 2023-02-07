@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 import CONFIG from '@/config/'
 import { CustomJwtPayload } from './CustomJwtPayload'
+import LogError from '@/server/LogError'
 
 export const decode = (token: string): CustomJwtPayload | null => {
   if (!token) throw new LogError('401 Unauthorized')
