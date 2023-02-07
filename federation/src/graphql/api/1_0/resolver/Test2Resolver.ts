@@ -1,8 +1,10 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Query, Resolver } from 'type-graphql'
 import { federationLogger as logger } from '@/server/logger'
 import { GetTestApiResult } from '../../GetTestApiResult'
 
 @Resolver()
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class Test2Resolver {
   @Query(() => GetTestApiResult)
   async test2(): Promise<GetTestApiResult> {
