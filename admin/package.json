@@ -88,6 +88,8 @@
     "not ie <= 10"
   ],
   "nodemonConfig": {
-    "ignore": ["**/*.spec.js"]
+    "ignore": [
+      "**/*.spec.js"
+    ]
   }
 }
