@@ -51,6 +51,7 @@ import { writeEvent } from '@/event/EventProtocolEmitter'
 import { calculateDecay } from '@/util/decay'
 import {
   sendContributionConfirmedEmail,
+  sendContributionDeletedEmail,
   sendContributionDeniedEmail,
 } from '@/emails/sendEmailVariants'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
@@ -547,57 +548,7 @@ export class ContributionResolver {
     eventAdminContributionDelete.amount = contribution.amount
     eventAdminContributionDelete.contributionId = contribution.id
     await writeEvent(event.setEventAdminContributionDelete(eventAdminContributionDelete))
-    sendContributionDeniedEmail({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.emailContact.email,
-      language: user.language,
-      senderFirstName: moderator.firstName,
-      senderLastName: moderator.lastName,
-      contributionMemo: contribution.memo,
-    })
-
-    return !!res
-  }
-
-  @Authorized([RIGHTS.ADMIN_DENY_CONTRIBUTION])
-  @Mutation(() => Boolean)
-  async adminDenyContribution(
-    @Arg('id', () => Int) id: number,
-    @Ctx() context: Context,
-  ): Promise<boolean> {
-    const contribution = await DbContribution.findOne(id)
-    if (!contribution) {
-      logger.error(`Contribution not found for given id: ${id}`)
-      throw new Error('Contribution not found for given id.')
-    }
-    if (contribution.confirmedAt) {
-      logger.error('A confirmed contribution can not be denied')
-      throw new Error('A confirmed contribution can not be denied')
-    }
-    const moderator = getUser(context)
-    if (
-      contribution.contributionType === ContributionType.USER &&
-      contribution.userId === moderator.id
-    ) {
-      throw new Error('Own contribution can not be denied as admin')
-    }
-    const user = await DbUser.findOneOrFail(
-      { id: contribution.userId },
-      { relations: ['emailContact'] },
-    )
-    contribution.contributionStatus = ContributionStatus.DENIED
-    contribution.deniedBy = moderator.id
-    await contribution.save()
-    const res = await contribution.softRemove()
-
-    const event = new Event()
-    const eventAdminContributionDeny = new EventAdminContributionDeny()
-    eventAdminContributionDeny.userId = contribution.userId
-    eventAdminContributionDeny.amount = contribution.amount
-    eventAdminContributionDeny.contributionId = contribution.id
-    await writeEvent(event.setEventAdminContributionDeny(eventAdminContributionDeny))
-    sendContributionDeniedEmail({
+    sendContributionDeletedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.emailContact.email,
@@ -817,6 +768,13 @@ export class ContributionResolver {
     contributionToUpdate.deniedBy = moderator.id
     contributionToUpdate.deniedAt = new Date()
     const res = await contributionToUpdate.save()
+
+    const event = new Event()
+    const eventAdminContributionDeny = new EventAdminContributionDeny()
+    eventAdminContributionDeny.userId = contributionToUpdate.userId
+    eventAdminContributionDeny.amount = contributionToUpdate.amount
+    eventAdminContributionDeny.contributionId = contributionToUpdate.id
+    await writeEvent(event.setEventAdminContributionDeny(eventAdminContributionDeny))
 
     sendContributionDeniedEmail({
       firstName: user.firstName,
