@@ -4,7 +4,7 @@ import { Decay } from '@model/Decay'
 import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import { getLastTransaction } from '../graphql/resolver/accessLayer/getLastTransaction'
+import { getLastTransaction } from '../graphql/resolver/util/getLastTransaction'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()

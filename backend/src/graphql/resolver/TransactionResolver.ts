@@ -38,7 +38,7 @@ import { findUserByEmail } from './UserResolver'
 
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
-import { getLastTransaction } from './accessLayer/getLastTransaction'
+import { getLastTransaction } from './util/getLastTransaction'
 
 export const executeTransaction = async (
   amount: Decimal,

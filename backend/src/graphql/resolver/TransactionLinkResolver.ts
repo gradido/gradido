@@ -33,7 +33,7 @@ import { executeTransaction } from './TransactionResolver'
 import QueryLinkResult from '@union/QueryLinkResult'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
-import { getLastTransaction } from './accessLayer/getLastTransaction'
+import { getLastTransaction } from './util/getLastTransaction'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {

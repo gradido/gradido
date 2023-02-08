@@ -54,7 +54,7 @@ import {
 } from '@/emails/sendEmailVariants'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
-import { getLastTransaction } from './accessLayer/getLastTransaction'
+import { getLastTransaction } from './util/getLastTransaction'
 
 @Resolver()
 export class ContributionResolver {

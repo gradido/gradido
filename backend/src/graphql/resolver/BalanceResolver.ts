@@ -15,7 +15,7 @@ import { calculateDecay } from '@/util/decay'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { GdtResolver } from './GdtResolver'
 
-import { getLastTransaction } from './accessLayer/getLastTransaction'
+import { getLastTransaction } from './util/getLastTransaction'
 
 @Resolver()
 export class BalanceResolver {
