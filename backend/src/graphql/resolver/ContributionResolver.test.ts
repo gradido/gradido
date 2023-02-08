@@ -44,7 +44,6 @@ import { logger, i18n as localization } from '@test/testSetup'
 import { UserInputError } from 'apollo-server-express'
 
 // mock account activation email to avoid console spam
-// mock account activation email to avoid console spam
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
   return {
