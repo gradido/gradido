@@ -6,7 +6,7 @@ html(lang=locale)
     h1(style='margin-bottom: 24px;')= t('emails.contributionDeleted.subject')
     #container.col
       include ../hello.pug
-      p= t('emails.contributionDeleted.contributionDeleted', { senderFirstName, senderLastName, contributionMemo })
+      p= t('emails.contributionDeleted.commonGoodContributionDeleted', { senderFirstName, senderLastName, contributionMemo })
       p= t('emails.contributionDeleted.toSeeContributionsAndMessages')
       p
         = t('emails.general.linkToYourAccount')
