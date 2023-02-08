@@ -123,5 +123,11 @@ export default {
       return !this.showPageMessage
     },
   },
+  mounted() {
+    if (this.$store.state.automaticallyLoggedOut) {
+      this.toastInfoNoHide('Du wurdest automatisch abgemeldet')
+      this.$store.commit('automaticallyLoggedOut', false)
+    }
+  },
 }
 </script>
