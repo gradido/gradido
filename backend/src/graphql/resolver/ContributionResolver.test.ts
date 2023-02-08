@@ -72,8 +72,6 @@ let mutate: any, query: any, con: any
 let testEnv: any
 let creation: Contribution | void
 let admin: User
-// let result: any
-// let contribution: any
 let pendingContribution: any
 let inProgressContribution: any
 let contributionToConfirm: any
@@ -173,16 +171,12 @@ describe('ContributionResolver', () => {
   describe('createContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        await expect(
-          mutate({
-            mutation: createContribution,
-            variables: { amount: 100.0, memo: 'Test Contribution', creationDate: 'not-valid' },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          mutation: createContribution,
+          variables: { amount: 100.0, memo: 'Test Contribution', creationDate: 'not-valid' },
+        })
+
+        expect(errorObjects).toMatchObject([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -202,20 +196,18 @@ describe('ContributionResolver', () => {
         it('throws error when memo length smaller than 5 chars', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: createContribution,
-              variables: {
-                amount: 100.0,
-                memo: 'Test',
-                creationDate: date.toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('memo text is too short (5 characters minimum)')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test',
+              creationDate: date.toString(),
+            },
+          })
+
+          expect(errorObjects).toMatchObject([
+            new GraphQLError('memo text is too short (5 characters minimum)'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -225,20 +217,17 @@ describe('ContributionResolver', () => {
         it('throws error when memo length greater than 255 chars', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: createContribution,
-              variables: {
-                amount: 100.0,
-                memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
-                creationDate: date.toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('memo text is too long (255 characters maximum)')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
+              creationDate: date.toString(),
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            new GraphQLError('memo text is too long (255 characters maximum)'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -247,22 +236,17 @@ describe('ContributionResolver', () => {
 
         it('throws error when creationDate not-valid', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: createContribution,
-              variables: {
-                amount: 100.0,
-                memo: 'Test env contribution',
-                creationDate: 'not-valid',
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [
-                new GraphQLError('No information for available creations for the given date'),
-              ],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test env contribution',
+              creationDate: 'not-valid',
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            new GraphQLError('No information for available creations for the given date'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -275,22 +259,17 @@ describe('ContributionResolver', () => {
         it('throws error when creationDate 3 month behind', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: createContribution,
-              variables: {
-                amount: 100.0,
-                memo: 'Test env contribution',
-                creationDate: date.setMonth(date.getMonth() - 3).toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [
-                new GraphQLError('No information for available creations for the given date'),
-              ],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test env contribution',
+              creationDate: date.setMonth(date.getMonth() - 3).toString(),
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            new GraphQLError('No information for available creations for the given date'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -303,17 +282,11 @@ describe('ContributionResolver', () => {
 
       describe('valid input', () => {
         it('creates contribution', async () => {
-          expect(pendingContribution).toEqual(
-            expect.objectContaining({
-              data: {
-                createContribution: {
-                  id: expect.any(Number),
-                  amount: '100',
-                  memo: 'Test PENDING contribution',
-                },
-              },
-            }),
-          )
+          expect(pendingContribution.data.createContribution).toMatchObject({
+            id: expect.any(Number),
+            amount: '100',
+            memo: 'Test PENDING contribution',
+          })
         })
 
         it('stores the create contribution event in the database', async () => {
