@@ -22,11 +22,7 @@ import {
   listContributions,
   listUnconfirmedContributions,
 } from '@/seeds/graphql/queries'
-import {
-  // sendAccountActivationEmail,
-  sendContributionConfirmedEmail,
-  // sendContributionRejectedEmail,
-} from '@/emails/sendEmailVariants'
+import { sendContributionConfirmedEmail } from '@/emails/sendEmailVariants'
 import {
   cleanDB,
   resetToken,
