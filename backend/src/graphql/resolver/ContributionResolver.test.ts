@@ -50,6 +50,7 @@ import { EventProtocolType } from '@/event/EventProtocolType'
 import { logger, i18n as localization } from '@test/testSetup'
 import { UserInputError } from 'apollo-server-express'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
+import { UnconfirmedContribution } from '../model/UnconfirmedContribution'
 
 // mock account activation email to avoid console spam
 // mock account activation email to avoid console spam
@@ -306,21 +307,16 @@ describe('ContributionResolver', () => {
   describe('updateContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        await expect(
-          mutate({
-            mutation: updateContribution,
-            variables: {
-              contributionId: 1,
-              amount: 100.0,
-              memo: 'Test Contribution',
-              creationDate: 'not-valid',
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          mutation: updateContribution,
+          variables: {
+            contributionId: 1,
+            amount: 100.0,
+            memo: 'Test Contribution',
+            creationDate: 'not-valid',
+          },
+        })
+        expect(errorObjects).toMatchObject([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -339,21 +335,18 @@ describe('ContributionResolver', () => {
       describe('wrong contribution id', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: -1,
-                amount: 100.0,
-                memo: 'Test env contribution',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('No contribution found to given id.')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: -1,
+              amount: 100.0,
+              memo: 'Test env contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            new GraphQLError('No contribution found to given id.'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -365,21 +358,18 @@ describe('ContributionResolver', () => {
         it('throws error', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: pendingContribution.data.createContribution.id,
-                amount: 100.0,
-                memo: 'Test',
-                creationDate: date.toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('memo text is too short (5 characters minimum)')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 100.0,
+              memo: 'Test',
+              creationDate: date.toString(),
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            new GraphQLError('memo text is too short (5 characters minimum)'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -391,21 +381,18 @@ describe('ContributionResolver', () => {
         it('throws error', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: pendingContribution.data.createContribution.id,
-                amount: 100.0,
-                memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
-                creationDate: date.toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('memo text is too long (255 characters maximum)')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 100.0,
+              memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
+              creationDate: date.toString(),
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            new GraphQLError('memo text is too long (255 characters maximum)'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -423,25 +410,18 @@ describe('ContributionResolver', () => {
 
         it('throws an error', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: pendingContribution.data.createContribution.id,
-                amount: 10.0,
-                memo: 'Test env contribution',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [
-                new GraphQLError(
-                  'user of the pending contribution and send user does not correspond',
-                ),
-              ],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 10.0,
+              memo: 'Test env contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            new GraphQLError('user of the pending contribution and send user does not correspond'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -461,25 +441,26 @@ describe('ContributionResolver', () => {
 
         it('throws an error', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: adminUpdateContribution,
-              variables: {
-                id: pendingContribution.data.createContribution.id,
-                email: 'bibi@bloxberg.de',
-                amount: 10.0,
-                memo: 'Test env contribution',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('An admin is not allowed to update a user contribution.')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: adminUpdateContribution,
+            variables: {
+              id: pendingContribution.data.createContribution.id,
+              email: 'bibi@bloxberg.de',
+              amount: 10.0,
+              memo: 'Test env contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            new GraphQLError('An admin is not allowed to update a user contribution.'),
+          ])
         })
 
-        // TODO check that the error is logged (need to modify AdminResolver, avoid conflicts)
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            'An admin is not allowed to update a user contribution.',
+          )
+        })
       })
 
       describe('update to much so that the limit is exceeded', () => {
@@ -492,25 +473,20 @@ describe('ContributionResolver', () => {
 
         it('throws an error', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: pendingContribution.data.createContribution.id,
-                amount: 1019.0,
-                memo: 'Test env contribution',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [
-                new GraphQLError(
-                  'The amount (1019 GDD) to be created exceeds the amount (600 GDD) still available for this month.',
-                ),
-              ],
-            }),
-          )
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 1019.0,
+              memo: 'Test env contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            new GraphQLError(
+              'The amount (1019 GDD) to be created exceeds the amount (600 GDD) still available for this month.',
+            ),
+          ])
         })
 
         it('logs the error found', () => {
@@ -524,21 +500,18 @@ describe('ContributionResolver', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: pendingContribution.data.createContribution.id,
-                amount: 10.0,
-                memo: 'Test env contribution',
-                creationDate: date.setMonth(date.getMonth() - 3).toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Currently the month of the contribution cannot change.')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 10.0,
+              memo: 'Test env contribution',
+              creationDate: date.setMonth(date.getMonth() - 3).toString(),
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            new GraphQLError('Currently the month of the contribution cannot change.'),
+          ])
         })
 
         it.skip('logs the error found', () => {
@@ -551,27 +524,22 @@ describe('ContributionResolver', () => {
 
       describe('valid input', () => {
         it('updates contribution', async () => {
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: pendingContribution.data.createContribution.id,
-                amount: 10.0,
-                memo: 'Test PENDING contribution update',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                updateContribution: {
-                  id: pendingContribution.data.createContribution.id,
-                  amount: '10',
-                  memo: 'Test PENDING contribution update',
-                },
-              },
-            }),
-          )
+          const {
+            data: { updateContribution: contribution },
+          }: { data: { updateContribution: UnconfirmedContribution } } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 10.0,
+              memo: 'Test PENDING contribution update',
+              creationDate: new Date().toString(),
+            },
+          })
+          expect(contribution).toMatchObject({
+            id: pendingContribution.data.createContribution.id,
+            amount: '10',
+            memo: 'Test PENDING contribution update',
+          })
         })
 
         it('stores the update contribution event in the database', async () => {
