@@ -564,18 +564,13 @@ describe('ContributionResolver', () => {
   describe('denyContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        await expect(
-          mutate({
-            mutation: denyContribution,
-            variables: {
-              id: 1,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+          mutation: denyContribution,
+          variables: {
+            id: 1,
+          },
+        })
+        expect(errorObjects).toMatchObject([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -592,18 +587,13 @@ describe('ContributionResolver', () => {
       })
 
       it('returns an error', async () => {
-        await expect(
-          mutate({
-            mutation: denyContribution,
-            variables: {
-              id: 1,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+          mutation: denyContribution,
+          variables: {
+            id: 1,
+          },
+        })
+        expect(errorObjects).toMatchObject([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -621,18 +611,15 @@ describe('ContributionResolver', () => {
 
       describe('wrong contribution id', () => {
         it('throws an error', async () => {
-          await expect(
-            mutate({
-              mutation: denyContribution,
-              variables: {
-                id: -1,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Contribution not found for given id.')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: -1,
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            new GraphQLError('Contribution not found for given id.'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -669,18 +656,15 @@ describe('ContributionResolver', () => {
             },
           })
 
-          await expect(
-            mutate({
-              mutation: denyContribution,
-              variables: {
-                id: contribution.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Contribution not found for given id.')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            new GraphQLError('Contribution not found for given id.'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -720,18 +704,15 @@ describe('ContributionResolver', () => {
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
 
-          await expect(
-            mutate({
-              mutation: denyContribution,
-              variables: {
-                id: contribution.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Contribution not found for given id.')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            new GraphQLError('Contribution not found for given id.'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -771,18 +752,15 @@ describe('ContributionResolver', () => {
             },
           })
 
-          await expect(
-            mutate({
-              mutation: denyContribution,
-              variables: {
-                id: contribution.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Contribution not found for given id.')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            new GraphQLError('Contribution not found for given id.'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -798,20 +776,15 @@ describe('ContributionResolver', () => {
             mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
-          await expect(
-            mutate({
-              mutation: denyContribution,
-              variables: {
-                id: contributionToDeny.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                denyContribution: true,
-              },
-            }),
-          )
+          const {
+            data: { denyContribution: isDenied },
+          }: { data: { denyContribution: boolean } } = await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: contributionToDeny.data.createContribution.id,
+            },
+          })
+          expect(isDenied).toBeTruthy()
         })
       })
     })
@@ -930,32 +903,11 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the delete contribution event in the database', async () => {
-          await mutate({
-            mutation: login,
-            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
-          })
-
-          const contribution = await mutate({
-            mutation: createContribution,
-            variables: {
-              amount: 166.0,
-              memo: 'Whatever contribution',
-              creationDate: new Date().toString(),
-            },
-          })
-
-          await mutate({
-            mutation: deleteContribution,
-            variables: {
-              id: contribution.data.createContribution.id,
-            },
-          })
-
           await expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_DELETE,
-              contributionId: contribution.data.createContribution.id,
-              amount: expect.decimalEqual(166),
+              contributionId: contributionToDelete.data.createContribution.id,
+              amount: expect.decimalEqual(100),
               userId: peter.id,
             }),
           )
@@ -979,18 +931,15 @@ describe('ContributionResolver', () => {
             mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
-          await expect(
-            mutate({
-              mutation: deleteContribution,
-              variables: {
-                id: contributionToConfirm.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('A confirmed contribution can not be deleted')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: deleteContribution,
+            variables: {
+              id: contributionToConfirm.data.createContribution.id,
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            new GraphQLError('A confirmed contribution can not be deleted'),
+          ])
         })
 
         it('logs the error found', () => {
