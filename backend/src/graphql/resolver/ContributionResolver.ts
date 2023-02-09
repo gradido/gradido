@@ -56,6 +56,8 @@ import {
 } from '@/emails/sendEmailVariants'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
+import { getLastTransaction } from './util/getLastTransaction'
+
 @Resolver()
 export class ContributionResolver {
   @Authorized([RIGHTS.CREATE_CONTRIBUTION])
@@ -609,16 +611,11 @@ export class ContributionResolver {
       const queryRunner = getConnection().createQueryRunner()
       await queryRunner.connect()
       await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
-      try {
-        const lastTransaction = await queryRunner.manager
-          .createQueryBuilder()
-          .select('transaction')
-          .from(DbTransaction, 'transaction')
-          .where('transaction.userId = :id', { id: contribution.userId })
-          .orderBy('transaction.id', 'DESC')
-          .getOne()
-        logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
 
+      const lastTransaction = await getLastTransaction(contribution.userId)
+      logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
+
+      try {
         let newBalance = new Decimal(0)
         let decay: Decay | null = null
         if (lastTransaction) {
