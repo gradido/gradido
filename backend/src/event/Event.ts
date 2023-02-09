@@ -1,4 +1,3 @@
-import { EventProtocol } from '@entity/EventProtocol'
 import decimal from 'decimal.js-light'
 import { EventProtocolType } from './EventProtocolType'
 
@@ -68,6 +67,7 @@ export class EventTransactionReceiveRedeem extends EventBasicTxX {}
 export class EventContributionCreate extends EventBasicCt {}
 export class EventAdminContributionCreate extends EventBasicCt {}
 export class EventAdminContributionDelete extends EventBasicCt {}
+export class EventAdminContributionDeny extends EventBasicCt {}
 export class EventAdminContributionUpdate extends EventBasicCt {}
 export class EventUserCreateContributionMessage extends EventBasicCtMsg {}
 export class EventAdminCreateContributionMessage extends EventBasicCtMsg {}
@@ -87,21 +87,6 @@ export class EventDeleteContributionLink extends EventBasicCt {}
 export class EventUpdateContributionLink extends EventBasicCt {}
 
 export class Event {
-  constructor()
-  constructor(event?: EventProtocol) {
-    if (event) {
-      this.id = event.id
-      this.type = event.type
-      this.createdAt = event.createdAt
-      this.userId = event.userId
-      this.xUserId = event.xUserId
-      this.xCommunityId = event.xCommunityId
-      this.transactionId = event.transactionId
-      this.contributionId = event.contributionId
-      this.amount = event.amount
-    }
-  }
-
   public setEventBasic(): Event {
     this.type = EventProtocolType.BASIC
     this.createdAt = new Date()
@@ -310,6 +295,13 @@ export class Event {
   public setEventAdminContributionDelete(ev: EventAdminContributionDelete): Event {
     this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
     this.type = EventProtocolType.ADMIN_CONTRIBUTION_DELETE
+
+    return this
+  }
+
+  public setEventAdminContributionDeny(ev: EventAdminContributionDeny): Event {
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    this.type = EventProtocolType.ADMIN_CONTRIBUTION_DENY
 
     return this
   }
