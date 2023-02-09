@@ -67,7 +67,7 @@ export default {
       }
       if (this.tokenExpiresInSeconds === 0) {
         this.$timer.stop('tokenExpires')
-        this.$store.commit('automaticallyLoggedOut', true)
+        this.toastInfoNoHide('Du wurdest automatisch abgemeldet')
         this.$emit('logout')
       }
     },
@@ -85,7 +85,7 @@ export default {
         })
         .catch(() => {
           this.$timer.stop('tokenExpires')
-          this.$store.commit('automaticallyLoggedOut', true)
+          this.toastInfoNoHide('Du wurdest automatisch abgemeldet')
           this.$emit('logout')
         })
     },

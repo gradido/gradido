@@ -53,9 +53,6 @@ export const mutations = {
   hideAmountGDT: (state, hideAmountGDT) => {
     state.hideAmountGDT = !!hideAmountGDT
   },
-  automaticallyLoggedOut: (state, automaticallyLoggedOut) => {
-    state.automaticallyLoggedOut = !!automaticallyLoggedOut
-  },
 }
 
 export const actions = {
@@ -71,7 +68,6 @@ export const actions = {
     commit('isAdmin', data.isAdmin)
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
-    commit('automaticallyLoggedOut', false)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
@@ -112,7 +108,6 @@ try {
       publisherId: null,
       hideAmountGDD: null,
       hideAmountGDT: null,
-      automaticallyLoggedOut: false,
     },
     getters: {},
     // Syncronous mutation of the state
