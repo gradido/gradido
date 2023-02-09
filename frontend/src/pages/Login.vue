@@ -34,9 +34,6 @@
               <b-button type="submit" variant="gradido" block>{{ $t('login') }}</b-button>
             </b-col>
           </b-row>
-          <!-- <div class="mt-5">
-            <b-button type="submit" variant="gradido" class="">{{ $t('login') }}</b-button>
-          </div> -->
         </b-form>
       </validation-observer>
     </b-container>
