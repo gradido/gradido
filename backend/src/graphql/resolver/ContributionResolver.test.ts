@@ -96,11 +96,10 @@ afterAll(async () => {
 
 describe('ContributionResolver', () => {
   let bibi: any
-  let peter: any
 
   beforeAll(async () => {
     bibi = await userFactory(testEnv, bibiBloxberg)
-    admin = peter = await userFactory(testEnv, peterLustig)
+    admin = await userFactory(testEnv, peterLustig)
     await userFactory(testEnv, raeuberHotzenplotz)
     const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -1163,6 +1162,9 @@ describe('ContributionResolver', () => {
         expect(contributionListObject).toMatchObject({
           contributionCount: 7,
           contributionList: expect.arrayContaining([
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
             expect.objectContaining({
               amount: '100',
               state: 'CONFIRMED',
@@ -1179,12 +1181,6 @@ describe('ContributionResolver', () => {
               id: contributionToDeny.data.createContribution.id,
               state: 'DENIED',
               memo: 'Test contribution to deny',
-              amount: '100',
-            }),
-            expect.not.objectContaining({
-              id: contributionToDelete.data.createContribution.id,
-              state: 'DELETED',
-              memo: 'Test contribution to delete',
               amount: '100',
             }),
             expect.objectContaining({
@@ -1230,6 +1226,9 @@ describe('ContributionResolver', () => {
         expect(contributionListObject).toMatchObject({
           contributionCount: 7,
           contributionList: expect.arrayContaining([
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
             expect.objectContaining({
               amount: '100',
               state: 'CONFIRMED',
@@ -1246,12 +1245,6 @@ describe('ContributionResolver', () => {
               id: contributionToDeny.data.createContribution.id,
               state: 'DENIED',
               memo: 'Test contribution to deny',
-              amount: '100',
-            }),
-            expect.not.objectContaining({
-              id: contributionToDelete.data.createContribution.id,
-              state: 'DELETED',
-              memo: 'Test contribution to delete',
               amount: '100',
             }),
             expect.objectContaining({
@@ -1297,6 +1290,9 @@ describe('ContributionResolver', () => {
         expect(contributionListObject).toMatchObject({
           contributionCount: 7,
           contributionList: expect.arrayContaining([
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
             expect.objectContaining({
               amount: '100',
               state: 'CONFIRMED',
@@ -1313,12 +1309,6 @@ describe('ContributionResolver', () => {
               id: contributionToDeny.data.createContribution.id,
               state: 'DENIED',
               memo: 'Test contribution to deny',
-              amount: '100',
-            }),
-            expect.not.objectContaining({
-              id: contributionToDelete.data.createContribution.id,
-              state: 'DELETED',
-              memo: 'Test contribution to delete',
               amount: '100',
             }),
             expect.objectContaining({
@@ -1370,30 +1360,6 @@ describe('ContributionResolver', () => {
               id: contributionToConfirm.data.createContribution.id,
               memo: 'Test contribution to confirm',
             }),
-            expect.not.objectContaining({
-              id: pendingContribution.data.createContribution.id,
-              state: 'PENDING',
-              memo: 'Test PENDING contribution update',
-              amount: '10',
-            }),
-            expect.not.objectContaining({
-              id: contributionToDeny.data.createContribution.id,
-              state: 'DENIED',
-              memo: 'Test contribution to deny',
-              amount: '100',
-            }),
-            expect.not.objectContaining({
-              id: contributionToDelete.data.createContribution.id,
-              state: 'DELETED',
-              memo: 'Test contribution to delete',
-              amount: '100',
-            }),
-            expect.not.objectContaining({
-              id: inProgressContribution.data.createContribution.id,
-              state: 'IN_PROGRESS',
-              memo: 'Test IN_PROGRESS contribution',
-              amount: '100',
-            }),
             expect.objectContaining({
               id: bibiCreatedContribution.id,
               state: 'CONFIRMED',
@@ -1407,10 +1373,16 @@ describe('ContributionResolver', () => {
               amount: '166',
             }),
             expect.not.objectContaining({
-              id: expect.any(Number),
+              state: 'PENDING',
+            }),
+            expect.not.objectContaining({
               state: 'DENIED',
-              memo: 'Whatever contribution',
-              amount: '166',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.not.objectContaining({
+              state: 'IN_PROGRESS',
             }),
           ]),
         })
@@ -1432,52 +1404,22 @@ describe('ContributionResolver', () => {
           contributionCount: 1,
           contributionList: expect.arrayContaining([
             expect.not.objectContaining({
-              amount: '100',
               state: 'CONFIRMED',
-              id: contributionToConfirm.data.createContribution.id,
-              memo: 'Test contribution to confirm',
+            }),
+            expect.not.objectContaining({
+              state: 'DENIED',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.not.objectContaining({
+              state: 'IN_PROGRESS',
             }),
             expect.objectContaining({
               id: pendingContribution.data.createContribution.id,
               state: 'PENDING',
               memo: 'Test PENDING contribution update',
               amount: '10',
-            }),
-            expect.not.objectContaining({
-              id: contributionToDeny.data.createContribution.id,
-              state: 'DENIED',
-              memo: 'Test contribution to deny',
-              amount: '100',
-            }),
-            expect.not.objectContaining({
-              id: contributionToDelete.data.createContribution.id,
-              state: 'DELETED',
-              memo: 'Test contribution to delete',
-              amount: '100',
-            }),
-            expect.not.objectContaining({
-              id: inProgressContribution.data.createContribution.id,
-              state: 'IN_PROGRESS',
-              memo: 'Test IN_PROGRESS contribution',
-              amount: '100',
-            }),
-            expect.not.objectContaining({
-              id: bibiCreatedContribution.id,
-              state: 'CONFIRMED',
-              memo: 'Herzlich Willkommen bei Gradido!',
-              amount: '1000',
-            }),
-            expect.not.objectContaining({
-              id: expect.any(Number),
-              state: 'CONFIRMED',
-              memo: 'Whatever contribution',
-              amount: '166',
-            }),
-            expect.not.objectContaining({
-              id: expect.any(Number),
-              state: 'DENIED',
-              memo: 'Whatever contribution',
-              amount: '166',
             }),
           ]),
         })
@@ -1499,52 +1441,22 @@ describe('ContributionResolver', () => {
           contributionCount: 1,
           contributionList: expect.arrayContaining([
             expect.not.objectContaining({
-              amount: '100',
               state: 'CONFIRMED',
-              id: contributionToConfirm.data.createContribution.id,
-              memo: 'Test contribution to confirm',
             }),
             expect.not.objectContaining({
-              id: pendingContribution.data.createContribution.id,
               state: 'PENDING',
-              memo: 'Test PENDING contribution update',
-              amount: '10',
             }),
             expect.not.objectContaining({
-              id: contributionToDeny.data.createContribution.id,
               state: 'DENIED',
-              memo: 'Test contribution to deny',
-              amount: '100',
             }),
             expect.not.objectContaining({
-              id: contributionToDelete.data.createContribution.id,
               state: 'DELETED',
-              memo: 'Test contribution to delete',
-              amount: '100',
             }),
             expect.objectContaining({
               id: inProgressContribution.data.createContribution.id,
               state: 'IN_PROGRESS',
               memo: 'Test IN_PROGRESS contribution',
               amount: '100',
-            }),
-            expect.not.objectContaining({
-              id: bibiCreatedContribution.id,
-              state: 'CONFIRMED',
-              memo: 'Herzlich Willkommen bei Gradido!',
-              amount: '1000',
-            }),
-            expect.not.objectContaining({
-              id: expect.any(Number),
-              state: 'CONFIRMED',
-              memo: 'Whatever contribution',
-              amount: '166',
-            }),
-            expect.not.objectContaining({
-              id: expect.any(Number),
-              state: 'DENIED',
-              memo: 'Whatever contribution',
-              amount: '166',
             }),
           ]),
         })
@@ -1565,53 +1477,29 @@ describe('ContributionResolver', () => {
         expect(contributionListObject).toMatchObject({
           contributionCount: 2,
           contributionList: expect.arrayContaining([
-            expect.not.objectContaining({
-              amount: '100',
-              state: 'CONFIRMED',
-              id: contributionToConfirm.data.createContribution.id,
-              memo: 'Test contribution to confirm',
-            }),
-            expect.not.objectContaining({
-              id: pendingContribution.data.createContribution.id,
-              state: 'PENDING',
-              memo: 'Test PENDING contribution update',
-              amount: '10',
-            }),
             expect.objectContaining({
               id: contributionToDeny.data.createContribution.id,
               state: 'DENIED',
               memo: 'Test contribution to deny',
               amount: '100',
             }),
-            expect.not.objectContaining({
-              id: contributionToDelete.data.createContribution.id,
-              state: 'DELETED',
-              memo: 'Test contribution to delete',
-              amount: '100',
-            }),
-            expect.not.objectContaining({
-              id: inProgressContribution.data.createContribution.id,
-              state: 'IN_PROGRESS',
-              memo: 'Test IN_PROGRESS contribution',
-              amount: '100',
-            }),
-            expect.not.objectContaining({
-              id: bibiCreatedContribution.id,
-              state: 'CONFIRMED',
-              memo: 'Herzlich Willkommen bei Gradido!',
-              amount: '1000',
-            }),
-            expect.not.objectContaining({
-              id: expect.any(Number),
-              state: 'CONFIRMED',
-              memo: 'Whatever contribution',
-              amount: '166',
-            }),
             expect.objectContaining({
               id: expect.any(Number),
               state: 'DENIED',
               memo: 'Whatever contribution',
               amount: '166',
+            }),
+            expect.not.objectContaining({
+              state: 'CONFIRMED',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.not.objectContaining({
+              state: 'IN_PROGRESS',
+            }),
+            expect.not.objectContaining({
+              state: 'PENDING',
             }),
           ]),
         })
@@ -1662,41 +1550,26 @@ describe('ContributionResolver', () => {
               memo: 'Test PENDING contribution update',
               amount: '10',
             }),
-            expect.not.objectContaining({
-              id: contributionToDeny.data.createContribution.id,
-              state: 'DENIED',
-              memo: 'Test contribution to deny',
-              amount: '100',
-            }),
-            expect.not.objectContaining({
-              id: contributionToDelete.data.createContribution.id,
-              state: 'DELETED',
-              memo: 'Test contribution to delete',
-              amount: '100',
-            }),
-            expect.not.objectContaining({
-              id: inProgressContribution.data.createContribution.id,
-              state: 'IN_PROGRESS',
-              memo: 'Test IN_PROGRESS contribution',
-              amount: '100',
-            }),
             expect.objectContaining({
               id: bibiCreatedContribution.id,
               state: 'CONFIRMED',
               memo: 'Herzlich Willkommen bei Gradido!',
               amount: '1000',
             }),
-            expect.not.objectContaining({
-              id: expect.any(Number),
-              state: 'DENIED',
-              memo: 'Whatever contribution',
-              amount: '166',
-            }),
             expect.objectContaining({
               id: expect.any(Number),
               state: 'CONFIRMED',
               memo: 'Whatever contribution',
               amount: '166',
+            }),
+            expect.not.objectContaining({
+              state: 'DENIED',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.not.objectContaining({
+              state: 'IN_PROGRESS',
             }),
           ]),
         })
