@@ -18,7 +18,6 @@ export const toasters = {
       this.toast(message, {
         title: this.$t('navigation.info'),
         variant: 'warning',
-        autoHideDelay: 5000,
       })
     },
     toastInfoNoHide(message, { noAutoHide: true }) {
