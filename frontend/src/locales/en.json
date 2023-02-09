@@ -173,7 +173,7 @@
   "GDD": "GDD",
   "gddKonto": "GDD Konto",
   "gdd_per_link": {
-    "choose-amount": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
+    "choose-amount": "Select an amount you want to send via link and enter a message. The message is mandatory.",
     "copy-link": "Copy link",
     "copy-link-with-text": "Copy link and text",
     "created": "Link was created!",
