@@ -275,7 +275,8 @@
     "extend": "Stay logged in",
     "lightText": "If you have not performed any action for more than 10 minutes, you will be logged out for security reasons.",
     "logoutIn": "Log out in ",
-    "warningText": "Are you still there?"
+    "warningText": "Are you still there?",
+    "automaticallyLoggedOut":"You have been automatically logged out."
   },
   "settings": {
     "hideAmountGDD": "Your GDD amount is hidden.",

@@ -275,7 +275,8 @@
     "extend": "Angemeldet bleiben",
     "lightText": "Wenn du länger als 10 Minuten keine Aktion getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
     "logoutIn": "Abmelden in ",
-    "warningText": "Bist du noch da?"
+    "warningText": "Bist du noch da?",
+    "automaticallyLoggedOut":"Du wurdest automatisch abgemeldet"
   },
   "settings": {
     "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
