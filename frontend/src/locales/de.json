@@ -51,15 +51,23 @@
     "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
     "formText": {
       "bringYourTalentsTo": "Bring dich mit deinen Talenten in die Gemeinschaft ein! Dein freiwilliges Engagement honorieren wir mit 20 GDD pro Stunde bis maximal 1.000 GDD im Monat.",
-      "describeYourCommunity": "Beschreibe deine Gemeinwohl-Tätigkeit mit Angabe der Stunden und trage einen Betrag von 20 GDD pro Stunde ein! Nach Bestätigung durch einen Moderator wird der Betrag deinem Konto gutgeschrieben.",
+      "describeYourCommunity": "Beschreibe deine Gemeinwohl-Tätigkeit und gib die Anzahl der Stunden an! Der Betrag von 20 GDD pro Stunde wird automatisch berechnet. Nach Bestätigung durch einen Moderator wird der Betrag deinem Konto gutgeschrieben.",
       "maxGDDforMonth": "Du kannst für den ausgewählten Monat nur noch maximal {amount} GDD einreichen.",
       "openAmountForMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen.",
       "yourContribution": "Dein Beitrag zum Gemeinwohl"
     },
     "isEdited": "hat den Beitrag bearbeitet",
     "lastContribution": "Letzte Beiträge",
+    "noContributions": {
+      "allContributions": "Es wurden noch keine Beiträge eingereicht.",
+      "myContributions": "Du hast noch keine Beiträge eingereicht."
+    },
     "noDateSelected": "Wähle irgendein Datum im Monat",
-    "oldContribution": "Der letzte Beitrag war:",
+    "noOpenCreation": {
+      "allMonth": "Für alle beiden Monate ist dein Schöpfungslimit erreicht. Den Nächsten Monat kannst du wieder 1000 GDD Schöpfen.",
+      "lastMonth": "Für den ausgewählten Monat ist das Schöpfungslimit erreicht.",
+      "thisMonth": "Für den aktuellen Monat ist das Schöpfungslimit erreicht."
+    },
     "selectDate": "Wann war dein Beitrag?",
     "submit": "Einreichen",
     "submitted": "Der Beitrag wurde eingereicht.",
@@ -253,7 +261,7 @@
   },
   "openHours": "Offene Stunden",
   "pageTitle": {
-    "community": "Meine Gemeinschaft",
+    "community": "Gradido schöpfen",
     "gdt": "Deine GDT Transaktionen",
     "information": "{community}",
     "overview": "Willkommen {name}",
