@@ -163,14 +163,14 @@ services:
       - internal-net
       - external-net
     ports:
-      - 5000:5000
+      - 5010:5010
     depends_on:
       - mariadb
     restart: always
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
-      - PORT=5000
+      - PORT=5010
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT

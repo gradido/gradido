@@ -15,7 +15,8 @@ ENV BUILD_COMMIT="0000000"
 ## SET NODE_ENV
 ENV NODE_ENV="production"
 ## App relevant Envs
-ENV PORT="5000"
+ENV PORT="5010"
+# ENV PORT="${env.FEDERATION_PORT}"
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"

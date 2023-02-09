@@ -24,7 +24,7 @@ const constants = {
 }
 
 const server = {
-  PORT: process.env.PORT || 5000,
+  PORT: process.env.PORT || 5010,
   // JWT_SECRET: process.env.JWT_SECRET || 'secret123',
   // JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '10m',
   GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
@@ -73,7 +73,7 @@ if (
 const federation = {
   // FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC || null,
   // FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
-  FEDERATION_PORT: process.env.FEDERATION_PORT || 5000,
+  FEDERATION_PORT: process.env.FEDERATION_PORT || 5010,
   FEDERATION_API: process.env.FEDERATION_API || '1_0',
   FEDERATION_COMMUNITY_URL: process.env.FEDERATION_COMMUNITY_URL || null,
 }
