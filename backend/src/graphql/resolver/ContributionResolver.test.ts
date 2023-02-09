@@ -938,21 +938,16 @@ describe('ContributionResolver', () => {
   describe('listContributions', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        await expect(
-          query({
-            query: listContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              filterConfirmed: false,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: [GraphQLError] } = await query({
+          query: listContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            filterConfirmed: false,
+          },
+        })
+        expect(errorObjects).toMatchObject([new GraphQLError('401 Unauthorized')])
       })
     })
 
