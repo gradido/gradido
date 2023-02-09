@@ -4,6 +4,7 @@ export const toasters = {
       this.toast(message, {
         title: this.$t('success'),
         variant: 'success',
+        autoHideDelay: 5000,
       })
     },
     toastError(message) {
@@ -17,12 +18,14 @@ export const toasters = {
       this.toast(message, {
         title: this.$t('navigation.info'),
         variant: 'warning',
+        autoHideDelay: 5000,
       })
     },
-    toastInfoNoHide(message, { noAutoHide: true }) {
+    toastInfoNoHide(message) {
       this.toast(message, {
         title: this.$t('navigation.info'),
         variant: 'warning',
+        noAutoHide: true,
       })
     },
     toast(message, options) {
