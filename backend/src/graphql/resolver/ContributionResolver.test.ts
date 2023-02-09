@@ -25,11 +25,7 @@ import {
   listContributions,
   adminListAllContributions,
 } from '@/seeds/graphql/queries'
-import {
-  // sendAccountActivationEmail,
-  sendContributionConfirmedEmail,
-  // sendContributionRejectedEmail,
-} from '@/emails/sendEmailVariants'
+import { sendContributionConfirmedEmail } from '@/emails/sendEmailVariants'
 import {
   cleanDB,
   resetToken,
@@ -51,7 +47,6 @@ import { logger, i18n as localization } from '@test/testSetup'
 import { UserInputError } from 'apollo-server-express'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 
-// mock account activation email to avoid console spam
 // mock account activation email to avoid console spam
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
