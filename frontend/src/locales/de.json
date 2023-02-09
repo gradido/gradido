@@ -272,11 +272,11 @@
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
   "session": {
+    "automaticallyLoggedOut": "Du wurdest automatisch abgemeldet",
     "extend": "Angemeldet bleiben",
     "lightText": "Wenn du länger als 10 Minuten keine Aktion getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
     "logoutIn": "Abmelden in ",
-    "warningText": "Bist du noch da?",
-    "automaticallyLoggedOut": "Du wurdest automatisch abgemeldet"
+    "warningText": "Bist du noch da?"
   },
   "settings": {
     "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
