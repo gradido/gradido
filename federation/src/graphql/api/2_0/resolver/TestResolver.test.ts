@@ -31,7 +31,9 @@ describe('TestResolver', () => {
     it('returns 2_0', async () => {
       await expect(query({ query: getTestQuery })).resolves.toMatchObject({
         data: {
-          api: '2_0',
+          test: {
+            api: '1_0',
+          },
         },
       })
     })

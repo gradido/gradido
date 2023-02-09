@@ -28,7 +28,7 @@ export const cleanDB = async () => {
 }
 
 export const testEnvironment = async (testLogger: any = logger) => {
-  const server = await createServer()
+  const server = await createServer(testLogger)
   const con = server.con
   const testClient = createTestClient(server.apollo)
   const mutate = testClient.mutate
