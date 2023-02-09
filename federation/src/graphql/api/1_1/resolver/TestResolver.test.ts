@@ -2,6 +2,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { createTestClient } from 'apollo-server-testing'
 import createServer from '@/server/createServer'
+import CONFIG from '@/config'
+
+CONFIG.FEDERATION_API = '1_1'
 
 let query: any
 
@@ -32,7 +35,7 @@ describe('TestResolver', () => {
       await expect(query({ query: getTestQuery })).resolves.toMatchObject({
         data: {
           test: {
-            api: '1_0',
+            api: '1_1',
           },
         },
       })
