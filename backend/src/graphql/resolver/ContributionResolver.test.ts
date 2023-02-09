@@ -536,7 +536,6 @@ describe('ContributionResolver', () => {
         })
       })
 
-      // TODO: why is this here - this is a different call `adminUpdateContribution` not `updateContribution`
       describe('admin tries to update a user contribution', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
