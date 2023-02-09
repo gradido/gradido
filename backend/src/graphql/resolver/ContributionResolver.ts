@@ -44,12 +44,14 @@ import {
   EventContributionConfirm,
   EventAdminContributionCreate,
   EventAdminContributionDelete,
+  EventAdminContributionDeny,
   EventAdminContributionUpdate,
 } from '@/event/Event'
 import { writeEvent } from '@/event/EventProtocolEmitter'
 import { calculateDecay } from '@/util/decay'
 import {
   sendContributionConfirmedEmail,
+  sendContributionDeletedEmail,
   sendContributionDeniedEmail,
 } from '@/emails/sendEmailVariants'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
@@ -522,7 +524,7 @@ export class ContributionResolver {
     eventAdminContributionDelete.amount = contribution.amount
     eventAdminContributionDelete.contributionId = contribution.id
     await writeEvent(event.setEventAdminContributionDelete(eventAdminContributionDelete))
-    sendContributionDeniedEmail({
+    sendContributionDeletedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.emailContact.email,
@@ -727,6 +729,13 @@ export class ContributionResolver {
     contributionToUpdate.deniedBy = moderator.id
     contributionToUpdate.deniedAt = new Date()
     const res = await contributionToUpdate.save()
+
+    const event = new Event()
+    const eventAdminContributionDeny = new EventAdminContributionDeny()
+    eventAdminContributionDeny.userId = contributionToUpdate.userId
+    eventAdminContributionDeny.amount = contributionToUpdate.amount
+    eventAdminContributionDeny.contributionId = contributionToUpdate.id
+    await writeEvent(event.setEventAdminContributionDeny(eventAdminContributionDeny))
 
     sendContributionDeniedEmail({
       firstName: user.firstName,
