@@ -4,7 +4,6 @@ export const toasters = {
       this.toast(message, {
         title: this.$t('success'),
         variant: 'success',
-        autoHideDelay: 5000,
       })
     },
     toastError(message) {
