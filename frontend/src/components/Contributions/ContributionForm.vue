@@ -3,7 +3,7 @@
     <b-form
       ref="form"
       @submit.prevent="submit"
-      class="p-3 bg-white appBoxShadow gradido-border-radius"
+      class="form-style p-3 bg-white appBoxShadow gradido-border-radius"
     >
       <label>{{ $t('contribution.selectDate') }}</label>
       <b-form-datepicker
@@ -23,50 +23,70 @@
         <template #nav-next-year><span></span></template>
       </b-form-datepicker>
 
-      <input-textarea
-        id="contribution-memo"
-        v-model="form.memo"
-        :name="$t('form.message')"
-        :label="$t('contribution.activity')"
-        :placeholder="$t('contribution.yourActivity')"
-        :rules="{ required: true, min: 5, max: 255 }"
-      />
-      <input-hour
-        v-model="form.hours"
-        :name="$t('form.hours')"
-        :label="$t('form.hours')"
-        placeholder="0.25"
-        :rules="{
-          required: true,
-          min: 0.25,
-          max: validMaxTime,
-          gddCreationTime: [0.25, validMaxTime],
-        }"
-        :validMaxTime="validMaxTime"
-        @updateAmount="updateAmount"
-      ></input-hour>
-      <input-amount
-        id="contribution-amount"
-        v-model="form.amount"
-        :name="$t('form.amount')"
-        :label="$t('form.amount')"
-        placeholder="20"
-        :rules="{ required: true, gddSendAmount: [20, validMaxGDD] }"
-        typ="ContributionForm"
-      ></input-amount>
+      <div
+        v-if="(isThisMonth && maxGddThisMonth <= 0) || (!isThisMonth && maxGddLastMonth <= 0)"
+        class="p-3"
+      >
+        {{ noOpenCreation }}
+      </div>
+      <div v-else>
+        <input-textarea
+          id="contribution-memo"
+          v-model="form.memo"
+          :name="$t('form.message')"
+          :label="$t('contribution.activity')"
+          :placeholder="$t('contribution.yourActivity')"
+          :rules="{ required: true, min: 5, max: 255 }"
+        />
+        <input-hour
+          v-model="form.hours"
+          :name="$t('form.hours')"
+          :label="$t('form.hours')"
+          placeholder="0.25"
+          :rules="{
+            required: true,
+            min: 0.25,
+            max: validMaxTime,
+            gddCreationTime: [0.25, validMaxTime],
+          }"
+          :validMaxTime="validMaxTime"
+          @updateAmount="updateAmount"
+        ></input-hour>
+        <input-amount
+          id="contribution-amount"
+          v-model="form.amount"
+          :name="$t('form.amount')"
+          :label="$t('form.amount')"
+          placeholder="20"
+          :rules="{ required: true, gddSendAmount: [20, validMaxGDD] }"
+          typ="ContributionForm"
+        ></input-amount>
 
-      <b-row class="mt-5">
-        <b-col>
-          <b-button type="reset" variant="secondary" @click="reset" data-test="button-cancel">
-            {{ $t('form.cancel') }}
-          </b-button>
-        </b-col>
-        <b-col class="text-right">
-          <b-button type="submit" variant="gradido" :disabled="disabled" data-test="button-submit">
-            {{ form.id ? $t('form.change') : $t('contribution.submit') }}
-          </b-button>
-        </b-col>
-      </b-row>
+        <b-row class="mt-5">
+          <b-col cols="12" lg="6">
+            <b-button
+              block
+              type="reset"
+              variant="secondary"
+              @click="reset"
+              data-test="button-cancel"
+            >
+              {{ $t('form.cancel') }}
+            </b-button>
+          </b-col>
+          <b-col cols="12" lg="6" class="text-right mt-4 mt-lg-0">
+            <b-button
+              block
+              type="submit"
+              variant="gradido"
+              :disabled="disabled"
+              data-test="button-submit"
+            >
+              {{ form.id ? $t('form.change') : $t('contribution.submit') }}
+            </b-button>
+          </b-col>
+        </b-row>
+      </div>
     </b-form>
   </div>
 </template>
@@ -133,6 +153,18 @@ export default {
     validMaxTime() {
       return Number(this.validMaxGDD / 20)
     },
+    noOpenCreation() {
+      if (this.maxGddThisMonth <= 0 && this.maxGddLastMonth <= 0) {
+        return this.$t('contribution.noOpenCreation.allMonth')
+      }
+      if (this.isThisMonth && this.maxGddThisMonth <= 0) {
+        return this.$t('contribution.noOpenCreation.thisMonth')
+      }
+      if (!this.isThisMonth && this.maxGddLastMonth <= 0) {
+        return this.$t('contribution.noOpenCreation.lastMonth')
+      }
+      return ''
+    },
   },
   watch: {
     value() {
@@ -142,6 +174,9 @@ export default {
 }
 </script>
 <style>
+.form-style {
+  min-height: 410px;
+}
 span.errors {
   color: red;
 }
