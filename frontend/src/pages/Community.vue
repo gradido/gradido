@@ -188,6 +188,7 @@ export default {
       return new Date(date.setMonth(date.getMonth() - 1, 1))
     },
     isThisMonth() {
+      if (!this.form.date) return false
       const formDate = new Date(this.form.date)
       return (
         formDate.getFullYear() === this.maximalDate.getFullYear() &&
