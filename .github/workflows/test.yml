@@ -387,7 +387,7 @@ jobs:
       # LOCALES FRONTEND #######################################################
       ##########################################################################
       - name: Backendend | Locales
-        run: docker run --rm gradido/backend:test yarn run locales
+        run: docker run --rm gradido/backend:test pwd && yarn run locales
   
   ##############################################################################
   # JOB: LINT DATABASE UP ######################################################
