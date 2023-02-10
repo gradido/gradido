@@ -140,14 +140,14 @@ export const executeTransaction = async (
       await queryRunner.commitTransaction()
       logger.info(`commit Transaction successful...`)
 
-      EVENT_TRANSACTION_SEND(
+      await EVENT_TRANSACTION_SEND(
         transactionSend.userId,
         transactionSend.linkedUserId,
         transactionSend.id,
         transactionSend.amount.mul(-1),
       )
 
-      EVENT_TRANSACTION_RECEIVE(
+      await EVENT_TRANSACTION_RECEIVE(
         transactionReceive.userId,
         transactionReceive.linkedUserId,
         transactionReceive.id,

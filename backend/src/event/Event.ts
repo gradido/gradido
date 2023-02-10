@@ -1,8 +1,9 @@
-import { EventProtocol as dbEvent } from '@entity/EventProtocol'
+import { EventProtocol as DbEvent } from '@entity/EventProtocol'
 import Decimal from 'decimal.js-light'
 import { EventProtocolType } from './EventProtocolType'
 
-export class Event extends dbEvent {
+export class Event {
+  event: DbEvent
   constructor(
     type: EventProtocolType,
     userId: number,
@@ -12,31 +13,28 @@ export class Event extends dbEvent {
     contributionId: number | null = null,
     amount: Decimal | null = null,
     messageId: number | null = null,
-    autosave = true,
   ) {
-    super()
-    this.type = type
-    this.userId = userId
-    this.xUserId = xUserId
-    this.xCommunityId = xCommunityId
-    this.transactionId = transactionId
-    this.contributionId = contributionId
-    this.amount = amount
-    this.messageId = messageId
+    this.event = new DbEvent()
+    this.event.type = type
+    this.event.userId = userId
+    this.event.xUserId = xUserId
+    this.event.xCommunityId = xCommunityId
+    this.event.transactionId = transactionId
+    this.event.contributionId = contributionId
+    this.event.amount = amount
+    this.event.messageId = messageId
+  }
 
-    if (autosave) {
-      // This is unsafe, since we cannot wait for this in the constructor - the saving process is async therefore
-      this.save()
-    }
+  save(): Promise<DbEvent> {
+    return this.event.save()
   }
 }
 
-export const EVENT_CONTRIBUTION_CREATE = (
+export const EVENT_CONTRIBUTION_CREATE = async (
   userId: number,
   contributionId: number,
   amount: Decimal,
-  autosave = true,
-): Event =>
+): Promise<DbEvent> =>
   new Event(
     EventProtocolType.CONTRIBUTION_CREATE,
     userId,
@@ -46,14 +44,13 @@ export const EVENT_CONTRIBUTION_CREATE = (
     contributionId,
     amount,
     null,
-    autosave,
-  )
-export const EVENT_CONTRIBUTION_DELETE = (
+  ).save()
+
+export const EVENT_CONTRIBUTION_DELETE = async (
   userId: number,
   contributionId: number,
   amount: Decimal,
-  autosave = true,
-): Event =>
+): Promise<DbEvent> =>
   new Event(
     EventProtocolType.CONTRIBUTION_DELETE,
     userId,
@@ -63,14 +60,13 @@ export const EVENT_CONTRIBUTION_DELETE = (
     contributionId,
     amount,
     null,
-    autosave,
-  )
-export const EVENT_CONTRIBUTION_UPDATE = (
+  ).save()
+
+export const EVENT_CONTRIBUTION_UPDATE = async (
   userId: number,
   contributionId: number,
   amount: Decimal,
-  autosave = true,
-): Event =>
+): Promise<DbEvent> =>
   new Event(
     EventProtocolType.CONTRIBUTION_UPDATE,
     userId,
@@ -80,15 +76,13 @@ export const EVENT_CONTRIBUTION_UPDATE = (
     contributionId,
     amount,
     null,
-    autosave,
-  )
+  ).save()
 
-export const EVENT_ADMIN_CONTRIBUTION_CREATE = (
+export const EVENT_ADMIN_CONTRIBUTION_CREATE = async (
   userId: number,
   contributionId: number,
   amount: Decimal,
-  autosave = true,
-): Event =>
+): Promise<DbEvent> =>
   new Event(
     EventProtocolType.ADMIN_CONTRIBUTION_CREATE,
     userId,
@@ -98,15 +92,13 @@ export const EVENT_ADMIN_CONTRIBUTION_CREATE = (
     contributionId,
     amount,
     null,
-    autosave,
-  )
+  ).save()
 
-export const EVENT_ADMIN_CONTRIBUTION_UPDATE = (
+export const EVENT_ADMIN_CONTRIBUTION_UPDATE = async (
   userId: number,
   contributionId: number,
   amount: Decimal,
-  autosave = true,
-): Event =>
+): Promise<DbEvent> =>
   new Event(
     EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
     userId,
@@ -116,15 +108,13 @@ export const EVENT_ADMIN_CONTRIBUTION_UPDATE = (
     contributionId,
     amount,
     null,
-    autosave,
-  )
+  ).save()
 
-export const EVENT_ADMIN_CONTRIBUTION_DELETE = (
+export const EVENT_ADMIN_CONTRIBUTION_DELETE = async (
   userId: number,
   contributionId: number,
   amount: Decimal,
-  autosave = true,
-): Event =>
+): Promise<DbEvent> =>
   new Event(
     EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
     userId,
@@ -134,15 +124,13 @@ export const EVENT_ADMIN_CONTRIBUTION_DELETE = (
     contributionId,
     amount,
     null,
-    autosave,
-  )
+  ).save()
 
-export const EVENT_CONTRIBUTION_CONFIRM = (
+export const EVENT_CONTRIBUTION_CONFIRM = async (
   userId: number,
   contributionId: number,
   amount: Decimal,
-  autosave = true,
-): Event =>
+): Promise<DbEvent> =>
   new Event(
     EventProtocolType.CONTRIBUTION_CONFIRM,
     userId,
@@ -152,15 +140,13 @@ export const EVENT_CONTRIBUTION_CONFIRM = (
     contributionId,
     amount,
     null,
-    autosave,
-  )
+  ).save()
 
-export const EVENT_ADMIN_CONTRIBUTION_DENY = (
+export const EVENT_ADMIN_CONTRIBUTION_DENY = async (
   userId: number,
   contributionId: number,
   amount: Decimal,
-  autosave = true,
-): Event =>
+): Promise<DbEvent> =>
   new Event(
     EventProtocolType.ADMIN_CONTRIBUTION_DENY,
     userId,
@@ -170,16 +156,14 @@ export const EVENT_ADMIN_CONTRIBUTION_DENY = (
     contributionId,
     amount,
     null,
-    autosave,
-  )
+  ).save()
 
-export const EVENT_TRANSACTION_SEND = (
+export const EVENT_TRANSACTION_SEND = async (
   userId: number,
   xUserId: number,
   transactionId: number,
   amount: Decimal,
-  autosave = true,
-): Event =>
+): Promise<DbEvent> =>
   new Event(
     EventProtocolType.TRANSACTION_SEND,
     userId,
@@ -189,16 +173,14 @@ export const EVENT_TRANSACTION_SEND = (
     null,
     amount,
     null,
-    autosave,
-  )
+  ).save()
 
-export const EVENT_TRANSACTION_RECEIVE = (
+export const EVENT_TRANSACTION_RECEIVE = async (
   userId: number,
   xUserId: number,
   transactionId: number,
   amount: Decimal,
-  autosave = true,
-): Event =>
+): Promise<DbEvent> =>
   new Event(
     EventProtocolType.TRANSACTION_RECEIVE,
     userId,
@@ -208,16 +190,14 @@ export const EVENT_TRANSACTION_RECEIVE = (
     null,
     amount,
     null,
-    autosave,
-  )
+  ).save()
 
-export const EVENT_LOGIN = (userId: number, autosave = true): Event =>
-  new Event(EventProtocolType.LOGIN, userId, null, null, null, null, null, null, autosave)
+export const EVENT_LOGIN = async (userId: number): Promise<DbEvent> =>
+  new Event(EventProtocolType.LOGIN, userId, null, null, null, null, null, null).save()
 
-export const EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL = (
+export const EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL = async (
   userId: number,
-  autosave = true,
-): Event =>
+): Promise<DbEvent> =>
   new Event(
     EventProtocolType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
     userId,
@@ -227,10 +207,9 @@ export const EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL = (
     null,
     null,
     null,
-    autosave,
-  )
+  ).save()
 
-export const EVENT_SEND_CONFIRMATION_EMAIL = (userId: number, autosave = true): Event =>
+export const EVENT_SEND_CONFIRMATION_EMAIL = async (userId: number): Promise<DbEvent> =>
   new Event(
     EventProtocolType.SEND_CONFIRMATION_EMAIL,
     userId,
@@ -240,15 +219,13 @@ export const EVENT_SEND_CONFIRMATION_EMAIL = (userId: number, autosave = true): 
     null,
     null,
     null,
-    autosave,
-  )
+  ).save()
 
-export const EVENT_REDEEM_REGISTER = (
+/* export const EVENT_REDEEM_REGISTER = async (
   userId: number,
   transactionId: number | null = null,
   contributionId: number | null = null,
-  autosave = true,
-): Event =>
+): Promise<Event> =>
   new Event(
     EventProtocolType.REDEEM_REGISTER,
     userId,
@@ -258,21 +235,11 @@ export const EVENT_REDEEM_REGISTER = (
     contributionId,
     null,
     null,
-    autosave,
-  )
+  ).save()
+*/
 
-export const EVENT_REGISTER = (userId: number, autosave = true): Event =>
-  new Event(EventProtocolType.REGISTER, userId, null, null, null, null, null, null, autosave)
+export const EVENT_REGISTER = async (userId: number): Promise<DbEvent> =>
+  new Event(EventProtocolType.REGISTER, userId, null, null, null, null, null, null).save()
 
-export const EVENT_ACTIVATE_ACCOUNT = (userId: number, autosave = true): Event =>
-  new Event(
-    EventProtocolType.ACTIVATE_ACCOUNT,
-    userId,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    autosave,
-  )
+export const EVENT_ACTIVATE_ACCOUNT = async (userId: number): Promise<DbEvent> =>
+  new Event(EventProtocolType.ACTIVATE_ACCOUNT, userId, null, null, null, null, null, null).save()

@@ -49,10 +49,10 @@ import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import {
+  Event,
   EVENT_LOGIN,
   EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
   EVENT_SEND_CONFIRMATION_EMAIL,
-  EVENT_REDEEM_REGISTER,
   EVENT_REGISTER,
   EVENT_ACTIVATE_ACCOUNT,
 } from '@/event/Event'
@@ -62,6 +62,7 @@ import { FULL_CREATION_AVAILABLE } from './const/const'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 import LogError from '@/server/LogError'
+import { EventProtocolType } from '@/event/EventProtocolType'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -176,8 +177,7 @@ export class UserResolver {
       value: encode(dbUser.gradidoID),
     })
 
-    EVENT_LOGIN(user.id)
-
+    await EVENT_LOGIN(user.id)
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
     return user
   }
@@ -247,7 +247,7 @@ export class UserResolver {
           language: foundUser.language, // use language of the emails owner for sending
         })
 
-        EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL(foundUser.id)
+        await EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL(foundUser.id)
 
         logger.info(
           `sendAccountMultiRegistrationEmail by ${firstName} ${lastName} to ${foundUser.firstName} ${foundUser.lastName} <${email}>`,
@@ -265,7 +265,7 @@ export class UserResolver {
 
     const gradidoID = await newGradidoID()
 
-    const eventRegisterRedeem = EVENT_REDEEM_REGISTER(0, null, null, false)
+    const eventRegisterRedeem = new Event(EventProtocolType.REDEEM_REGISTER, 0)
     let dbUser = new DbUser()
     dbUser.gradidoID = gradidoID
     dbUser.firstName = firstName
@@ -282,14 +282,14 @@ export class UserResolver {
         logger.info('redeemCode found contributionLink=' + contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
-          eventRegisterRedeem.contributionId = contributionLink.id
+          eventRegisterRedeem.event.contributionId = contributionLink.id
         }
       } else {
         const transactionLink = await DbTransactionLink.findOne({ code: redeemCode })
         logger.info('redeemCode found transactionLink=' + transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
-          eventRegisterRedeem.transactionId = transactionLink.id
+          eventRegisterRedeem.event.transactionId = transactionLink.id
         }
       }
     }
@@ -329,7 +329,7 @@ export class UserResolver {
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
 
       // TODO: this event is used twice, why?
-      EVENT_SEND_CONFIRMATION_EMAIL(dbUser.id)
+      await EVENT_SEND_CONFIRMATION_EMAIL(dbUser.id)
 
       if (!emailSent) {
         logger.debug(`Account confirmation link: ${activationLink}`)
@@ -346,10 +346,10 @@ export class UserResolver {
     logger.info('createUser() successful...')
 
     if (redeemCode) {
-      eventRegisterRedeem.userId = dbUser.id
-      eventRegisterRedeem.save()
+      eventRegisterRedeem.event.userId = dbUser.id
+      await eventRegisterRedeem.save()
     } else {
-      EVENT_REGISTER(dbUser.id)
+      await EVENT_REGISTER(dbUser.id)
     }
 
     return new User(dbUser)
@@ -465,7 +465,7 @@ export class UserResolver {
       await queryRunner.commitTransaction()
       logger.info('User and UserContact data written successfully...')
 
-      EVENT_ACTIVATE_ACCOUNT(user.id)
+      await EVENT_ACTIVATE_ACCOUNT(user.id)
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Error on writing User and User Contact data', e)
@@ -810,7 +810,7 @@ export class UserResolver {
       logger.info(`Account confirmation link: ${activationLink}`)
     } else {
       // TODO: this event is used twice, why?
-      EVENT_SEND_CONFIRMATION_EMAIL(user.id)
+      await EVENT_SEND_CONFIRMATION_EMAIL(user.id)
     }
 
     return true
