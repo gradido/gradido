@@ -363,7 +363,7 @@ jobs:
   ##############################################################################
   # JOB: LOCALES BACKEND #######################################################
   ##############################################################################
-  locales_frontend:
+  locales_backend:
     name: Locales - Backend
     runs-on: ubuntu-latest
     needs: [build_test_backend]
