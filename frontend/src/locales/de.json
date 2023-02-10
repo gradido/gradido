@@ -175,7 +175,7 @@
   "GDD": "GDD",
   "gddKonto": "GDD Konto",
   "gdd_per_link": {
-    "choose-amount": "Wähle einen Betrag aus, welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „Jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
+    "choose-amount": "Wähle einen Betrag aus, welchen du per Link versenden möchtest, und trage eine Nachricht ein. Die Nachricht ist ein Pflichtfeld.",
     "copy-link": "Link kopieren",
     "copy-link-with-text": "Link und Text kopieren",
     "created": "Der Link wurde erstellt!",
@@ -274,6 +274,7 @@
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
   "session": {
+    "automaticallyLoggedOut": "Du wurdest automatisch abgemeldet",
     "extend": "Angemeldet bleiben",
     "lightText": "Wenn du länger als 10 Minuten keine Aktion getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
     "logoutIn": "Abmelden in ",
