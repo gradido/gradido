@@ -1,42 +1,42 @@
-/// <reference types="cypress" />
+/// <reference types='cypress' />
 
 export class RegistrationPage {
   // selectors
-  firstnameInput = "#registerFirstname";
-  lastnameInput = "#registerLastname";
-  emailInput = "#Email-input-field";
-  checkbox = "#registerCheckbox";
-  submitBtn = "[type=submit]";
+  firstnameInput = '#registerFirstname'
+  lastnameInput = '#registerLastname'
+  emailInput = '#Email-input-field'
+  checkbox = '#registerCheckbox'
+  submitBtn = '[type=submit]'
 
-  RegistrationThanxHeadline = ".test-message-headline";
-  RegistrationThanxText = ".test-message-subtitle";
+  RegistrationThanxHeadline = '.test-message-headline'
+  RegistrationThanxText = '.test-message-subtitle'
 
   goto() {
-    cy.visit("/register");
-    return this;
+    cy.visit('/register')
+    return this
   }
 
   enterFirstname(firstname: string) {
-    cy.get(this.firstnameInput).clear().type(firstname);
-    return this;
+    cy.get(this.firstnameInput).clear().type(firstname)
+    return this
   }
 
   enterLastname(lastname: string) {
-    cy.get(this.lastnameInput).clear().type(lastname);
-    return this;
+    cy.get(this.lastnameInput).clear().type(lastname)
+    return this
   }
 
   enterEmail(email: string) {
-    cy.get(this.emailInput).clear().type(email);
-    return this;
+    cy.get(this.emailInput).clear().type(email)
+    return this
   }
 
   checkPrivacyCheckbox() {
-    cy.get(this.checkbox).click({ force: true });
+    cy.get(this.checkbox).click({ force: true })
   }
 
   submitRegistrationPage() {
-    cy.get(this.submitBtn).should("be.enabled");
-    cy.get(this.submitBtn).click();
+    cy.get(this.submitBtn).should('be.enabled')
+    cy.get(this.submitBtn).click()
   }
 }

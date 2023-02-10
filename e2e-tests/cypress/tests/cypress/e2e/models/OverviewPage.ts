@@ -1,10 +1,10 @@
-/// <reference types="cypress" />
+/// <reference types='cypress' />
 
 export class OverviewPage {
-  navbarName = '[data-test="navbar-item-username"]';
+  navbarName = '[data-test="navbar-item-username"]'
 
   goto() {
-    cy.visit("/overview");
-    return this;
+    cy.visit('/overview')
+    return this
   }
 }
