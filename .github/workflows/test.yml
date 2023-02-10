@@ -379,7 +379,7 @@ jobs:
       - name: Download Docker Image (Backend)
         uses: actions/download-artifact@v3
         with:
-          name: docker-backendend-test
+          name: docker-backend-test
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/backend.tar
