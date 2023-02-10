@@ -3,10 +3,13 @@
     <div v-if="message.type === 'HISTORY'">
       <b-row class="mb-3 border border-197 p-1">
         <b-col cols="10">
+          <small>{{ $d(new Date(message.createdAt), 'short') }}</small>
           <div class="font-weight-bold" data-test="username">
             {{ storeName.username }} {{ $t('contribution.isEdited') }}
           </div>
-          <div class="small">{{ $t('contribution.oldContribution') }}</div>
+          <div class="small">
+            {{ $t('contribution.oldContribution') }}
+          </div>
           <parse-message v-bind="message" data-test="message" class="p-2"></parse-message>
         </b-col>
         <b-col cols="2">
