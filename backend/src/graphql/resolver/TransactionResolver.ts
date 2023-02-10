@@ -29,8 +29,7 @@ import {
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
 } from '@/emails/sendEmailVariants'
-import { Event, EventTransactionReceive, EventTransactionSend } from '@/event/Event'
-import { writeEvent } from '@/event/EventProtocolEmitter'
+import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Event'
 
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
@@ -141,19 +140,19 @@ export const executeTransaction = async (
       await queryRunner.commitTransaction()
       logger.info(`commit Transaction successful...`)
 
-      const eventTransactionSend = new EventTransactionSend()
-      eventTransactionSend.userId = transactionSend.userId
-      eventTransactionSend.xUserId = transactionSend.linkedUserId
-      eventTransactionSend.transactionId = transactionSend.id
-      eventTransactionSend.amount = transactionSend.amount.mul(-1)
-      await writeEvent(new Event().setEventTransactionSend(eventTransactionSend))
+      EVENT_TRANSACTION_SEND(
+        transactionSend.userId,
+        transactionSend.linkedUserId,
+        transactionSend.id,
+        transactionSend.amount.mul(-1),
+      )
 
-      const eventTransactionReceive = new EventTransactionReceive()
-      eventTransactionReceive.userId = transactionReceive.userId
-      eventTransactionReceive.xUserId = transactionReceive.linkedUserId
-      eventTransactionReceive.transactionId = transactionReceive.id
-      eventTransactionReceive.amount = transactionReceive.amount
-      await writeEvent(new Event().setEventTransactionReceive(eventTransactionReceive))
+      EVENT_TRANSACTION_RECEIVE(
+        transactionReceive.userId,
+        transactionReceive.linkedUserId,
+        transactionReceive.id,
+        transactionReceive.amount,
+      )
     } catch (e) {
       await queryRunner.rollbackTransaction()
       logger.error(`Transaction was not successful: ${e}`)
