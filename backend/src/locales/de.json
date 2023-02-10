@@ -23,8 +23,13 @@
       "commonGoodContributionConfirmed": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde soeben von {senderFirstName} {senderLastName} bestätigt und in deinem Gradido-Konto gutgeschrieben.",
       "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde bestätigt"
     },
-    "contributionRejected": {
-      "commonGoodContributionRejected": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} abgelehnt.",
+    "contributionDeleted": {
+      "commonGoodContributionDeleted": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} gelöscht.",
+      "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde gelöscht",
+      "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Gemeinschaft“ auf den Tab „Meine Beiträge zum Gemeinwohl“!"
+    },
+    "contributionDenied": {
+      "commonGoodContributionDenied": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} abgelehnt.",
       "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde abgelehnt",
       "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Gemeinschaft“ auf den Tab „Meine Beiträge zum Gemeinwohl“!"
     },
