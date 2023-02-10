@@ -23,7 +23,7 @@
         <template #nav-next-year><span></span></template>
       </b-form-datepicker>
 
-      <div v-if="showMessage" class="p-3">
+      <div v-if="showMessage" class="p-3" data-test="contribtion-message">
         {{ noOpenCreation }}
       </div>
       <div v-else>
@@ -115,8 +115,8 @@ export default {
     }
   },
   methods: {
-    updateAmount(amount) {
-      this.form.amount = (amount * 20).toFixed(2).toString()
+    updateAmount(hours) {
+      this.form.amount = (hours * 20).toFixed(2).toString()
     },
     submit() {
       this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
