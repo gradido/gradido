@@ -49,7 +49,7 @@ import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import {
-  Event,
+  EVENT,
   EVENT_LOGIN,
   EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
   EVENT_SEND_CONFIRMATION_EMAIL,
@@ -265,7 +265,7 @@ export class UserResolver {
 
     const gradidoID = await newGradidoID()
 
-    const eventRegisterRedeem = new Event(EventProtocolType.REDEEM_REGISTER, 0)
+    const eventRegisterRedeem = EVENT(EventProtocolType.REDEEM_REGISTER, 0)
     let dbUser = new DbUser()
     dbUser.gradidoID = gradidoID
     dbUser.firstName = firstName
@@ -282,14 +282,14 @@ export class UserResolver {
         logger.info('redeemCode found contributionLink=' + contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
-          eventRegisterRedeem.event.contributionId = contributionLink.id
+          eventRegisterRedeem.contributionId = contributionLink.id
         }
       } else {
         const transactionLink = await DbTransactionLink.findOne({ code: redeemCode })
         logger.info('redeemCode found transactionLink=' + transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
-          eventRegisterRedeem.event.transactionId = transactionLink.id
+          eventRegisterRedeem.transactionId = transactionLink.id
         }
       }
     }
@@ -346,7 +346,7 @@ export class UserResolver {
     logger.info('createUser() successful...')
 
     if (redeemCode) {
-      eventRegisterRedeem.event.userId = dbUser.id
+      eventRegisterRedeem.userId = dbUser.id
       await eventRegisterRedeem.save()
     } else {
       await EVENT_REGISTER(dbUser.id)
