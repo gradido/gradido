@@ -10,6 +10,7 @@ import {
   sendAccountMultiRegistrationEmail,
   sendContributionConfirmedEmail,
   sendContributionDeniedEmail,
+  sendContributionDeletedEmail,
   sendResetPasswordEmail,
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
@@ -421,6 +422,84 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain('Hello Peter Lustig')
         expect(result.originalMessage.html).toContain(
           'Your public good contribution “My contribution.” was rejected by Bibi Bloxberg.',
+        )
+        expect(result.originalMessage.html).toContain(
+          'To see your common good contributions and related messages, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!',
+        )
+        expect(result.originalMessage.html).toContain(
+          `Link to your account: <a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
+        )
+        expect(result.originalMessage.html).toContain('Please do not reply to this email!')
+        expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
+        expect(result.originalMessage.html).toContain('—————')
+        expect(result.originalMessage.html).toContain(
+          '<div style="position: relative; left: -22px;"><img src="https://gdd.gradido.net/img/brand/green.png" width="200" alt="Gradido-Akademie Logo"></div><br>Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+        )
+      })
+    })
+  })
+
+  describe('sendContributionDeletedEmail', () => {
+    beforeAll(async () => {
+      result = await sendContributionDeletedEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderFirstName: 'Bibi',
+        senderLastName: 'Bloxberg',
+        contributionMemo: 'My contribution.',
+      })
+    })
+
+    describe('calls "sendEmailTranslated"', () => {
+      it('with expected parameters', () => {
+        expect(sendEmailTranslated).toBeCalledWith({
+          receiver: {
+            to: 'Peter Lustig <peter@lustig.de>',
+          },
+          template: 'contributionDeleted',
+          locals: {
+            firstName: 'Peter',
+            lastName: 'Lustig',
+            locale: 'en',
+            senderFirstName: 'Bibi',
+            senderLastName: 'Bloxberg',
+            contributionMemo: 'My contribution.',
+            overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+            supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+            communityURL: CONFIG.COMMUNITY_URL,
+          },
+        })
+      })
+
+      it('has expected result', () => {
+        expect(result).toMatchObject({
+          envelope: {
+            from: 'info@gradido.net',
+            to: ['peter@lustig.de'],
+          },
+          message: expect.any(String),
+          originalMessage: expect.objectContaining({
+            to: 'Peter Lustig <peter@lustig.de>',
+            from: 'Gradido (do not answer) <info@gradido.net>',
+            attachments: [],
+            subject: 'Gradido: Your common good contribution was deleted',
+            html: expect.any(String),
+            text: expect.stringContaining('GRADIDO: YOUR COMMON GOOD CONTRIBUTION WAS DELETED'),
+          }),
+        })
+        expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
+        expect(result.originalMessage.html).toContain('<html lang="en">')
+        expect(result.originalMessage.html).toContain(
+          '<title>Gradido: Your common good contribution was deleted</title>',
+        )
+        expect(result.originalMessage.html).toContain(
+          '>Gradido: Your common good contribution was deleted</h1>',
+        )
+        expect(result.originalMessage.html).toContain('Hello Peter Lustig')
+        expect(result.originalMessage.html).toContain(
+          'Your public good contribution “My contribution.” was deleted by Bibi Bloxberg.',
         )
         expect(result.originalMessage.html).toContain(
           'To see your common good contributions and related messages, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!',
