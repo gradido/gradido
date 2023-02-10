@@ -23,10 +23,7 @@
         <template #nav-next-year><span></span></template>
       </b-form-datepicker>
 
-      <div
-        v-if="(isThisMonth && maxGddThisMonth <= 0) || (!isThisMonth && maxGddLastMonth <= 0)"
-        class="p-3"
-      >
+      <div v-if="showMessage" class="p-3">
         {{ noOpenCreation }}
       </div>
       <div v-else>
@@ -135,6 +132,15 @@ export default {
     },
   },
   computed: {
+    showMessage() {
+      if (this.maxGddThisMonth <= 0 && this.maxGddLastMonth <= 0) return true
+      if (this.form.date)
+        return (
+          (this.isThisMonth && this.maxGddThisMonth <= 0) ||
+          (!this.isThisMonth && this.maxGddLastMonth <= 0)
+        )
+      return false
+    },
     disabled() {
       return (
         this.form.date === '' ||
