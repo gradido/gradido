@@ -374,20 +374,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       ##########################################################################
-      # DOWNLOAD DOCKER IMAGE ##################################################
+      # LOCALES BACKEND #####################################################
       ##########################################################################
-      - name: Download Docker Image (Backend)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-backend-test
-          path: /tmp
-      - name: Load Docker Image
-        run: docker load < /tmp/backend.tar
-      ##########################################################################
-      # LOCALES FRONTEND #######################################################
-      ##########################################################################
-      - name: Backendend | Locales
-        run: docker run --rm gradido/backend:test cd backend && yarn run locales
+      - name: Backend | Locales
+        run: cd backend && yarn && yarn locales
   
   ##############################################################################
   # JOB: LINT DATABASE UP ######################################################
