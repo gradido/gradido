@@ -1,0 +1,69 @@
+{
+  "appenders": 
+  {
+    "dht": 
+    {
+      "type": "dateFile",
+      "filename": "../logs/dht-node/apiversion-%v.log",
+      "pattern": "yyyy-MM-dd",
+      "layout": 
+      {
+        "type": "pattern", "pattern": "%d{ISO8601} %c [%X{user}] [%f : %l] -  %m"
+      },
+      "keepFileExt" : true,
+      "fileNameSep" : "_",
+      "numBackups" : 30
+    },
+    "errorFile": 
+    {
+      "type": "dateFile",
+      "filename": "../logs/dht-node/errors.log",
+      "pattern": "yyyy-MM-dd",
+      "layout": 
+      {
+        "type": "pattern", "pattern": "%d{ISO8601} %c [%X{user}] [%f : %l] -  %m"
+      },
+      "keepFileExt" : true,
+      "fileNameSep" : "_",
+      "numBackups" : 30
+    },
+    "errors": 
+    {
+      "type": "logLevelFilter",
+      "level": "error",
+      "appender": "errorFile"
+    },
+    "out":
+    {
+      "type": "stdout",
+      "layout": 
+      {
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
+      }
+    }
+  },
+  "categories":
+  {
+    "default": 
+    {
+      "appenders": 
+      [
+        "out",
+        "errors"
+      ],
+      "level": "debug",
+      "enableCallStack": true
+    },
+    "dht":
+    {
+      "appenders":
+      [
+        "dht",
+        "out",
+        "errors"
+      ],
+      "level": "debug",
+      "enableCallStack": true
+    }
+  }
+}
