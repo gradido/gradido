@@ -11,7 +11,7 @@
 ###############################################################################
 FROM cypress/base:16.14.2-slim
 
-ARG DOCKER_WORKDIR=/tests/
+ARG DOCKER_WORKDIR"="/tests"
 WORKDIR $DOCKER_WORKDIR
 
 # install dependencies

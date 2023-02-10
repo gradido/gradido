@@ -1,6 +1,6 @@
 import { Then, When } from '@badeball/cypress-cucumber-preprocessor'
-import { ResetPasswordPage } from '../../e2e/models/ResetPasswordPage'
-import { UserEMailSite } from '../../e2e/models/UserEMailSite'
+import { ResetPasswordPage } from '@models/ResetPasswordPage'
+import { UserEMailSite } from '@models/UserEMailSite'
 
 const userEMailSite = new UserEMailSite()
 const resetPasswordPage = new ResetPasswordPage()

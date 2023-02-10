@@ -1,5 +1,5 @@
 import { And, When } from '@badeball/cypress-cucumber-preprocessor'
-import { RegistrationPage } from '../../e2e/models/RegistrationPage'
+import { RegistrationPage } from '@models/RegistrationPage'
 
 const registrationPage = new RegistrationPage()
 
