@@ -37,7 +37,6 @@ export const EVENT_CONTRIBUTION_CREATE = async (
     null,
     contributionId,
     amount,
-    null,
   ).save()
 
 export const EVENT_CONTRIBUTION_DELETE = async (
@@ -53,7 +52,6 @@ export const EVENT_CONTRIBUTION_DELETE = async (
     null,
     contributionId,
     amount,
-    null,
   ).save()
 
 export const EVENT_CONTRIBUTION_UPDATE = async (
@@ -69,7 +67,6 @@ export const EVENT_CONTRIBUTION_UPDATE = async (
     null,
     contributionId,
     amount,
-    null,
   ).save()
 
 export const EVENT_ADMIN_CONTRIBUTION_CREATE = async (
@@ -85,7 +82,6 @@ export const EVENT_ADMIN_CONTRIBUTION_CREATE = async (
     null,
     contributionId,
     amount,
-    null,
   ).save()
 
 export const EVENT_ADMIN_CONTRIBUTION_UPDATE = async (
@@ -101,7 +97,6 @@ export const EVENT_ADMIN_CONTRIBUTION_UPDATE = async (
     null,
     contributionId,
     amount,
-    null,
   ).save()
 
 export const EVENT_ADMIN_CONTRIBUTION_DELETE = async (
@@ -117,7 +112,6 @@ export const EVENT_ADMIN_CONTRIBUTION_DELETE = async (
     null,
     contributionId,
     amount,
-    null,
   ).save()
 
 export const EVENT_CONTRIBUTION_CONFIRM = async (
@@ -133,7 +127,6 @@ export const EVENT_CONTRIBUTION_CONFIRM = async (
     null,
     contributionId,
     amount,
-    null,
   ).save()
 
 export const EVENT_ADMIN_CONTRIBUTION_DENY = async (
@@ -149,7 +142,6 @@ export const EVENT_ADMIN_CONTRIBUTION_DENY = async (
     null,
     contributionId,
     amount,
-    null,
   ).save()
 
 export const EVENT_TRANSACTION_SEND = async (
@@ -166,7 +158,6 @@ export const EVENT_TRANSACTION_SEND = async (
     transactionId,
     null,
     amount,
-    null,
   ).save()
 
 export const EVENT_TRANSACTION_RECEIVE = async (
@@ -183,7 +174,6 @@ export const EVENT_TRANSACTION_RECEIVE = async (
     transactionId,
     null,
     amount,
-    null,
   ).save()
 
 export const EVENT_LOGIN = async (userId: number): Promise<DbEvent> =>
@@ -191,29 +181,10 @@ export const EVENT_LOGIN = async (userId: number): Promise<DbEvent> =>
 
 export const EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL = async (
   userId: number,
-): Promise<DbEvent> =>
-  EVENT(
-    EventProtocolType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
-    userId,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-  ).save()
+): Promise<DbEvent> => EVENT(EventProtocolType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL, userId).save()
 
 export const EVENT_SEND_CONFIRMATION_EMAIL = async (userId: number): Promise<DbEvent> =>
-  EVENT(
-    EventProtocolType.SEND_CONFIRMATION_EMAIL,
-    userId,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-  ).save()
+  EVENT(EventProtocolType.SEND_CONFIRMATION_EMAIL, userId).save()
 
 /* export const EVENT_REDEEM_REGISTER = async (
   userId: number,
@@ -227,13 +198,11 @@ export const EVENT_SEND_CONFIRMATION_EMAIL = async (userId: number): Promise<DbE
     null,
     transactionId,
     contributionId,
-    null,
-    null,
   ).save()
 */
 
 export const EVENT_REGISTER = async (userId: number): Promise<DbEvent> =>
-  EVENT(EventProtocolType.REGISTER, userId, null, null, null, null, null, null).save()
+  EVENT(EventProtocolType.REGISTER, userId).save()
 
 export const EVENT_ACTIVATE_ACCOUNT = async (userId: number): Promise<DbEvent> =>
-  EVENT(EventProtocolType.ACTIVATE_ACCOUNT, userId, null, null, null, null, null, null).save()
+  EVENT(EventProtocolType.ACTIVATE_ACCOUNT, userId).save()
