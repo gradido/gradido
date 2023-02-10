@@ -21,6 +21,7 @@
         @focus="emailFocused = true"
         @blur="normalizeEmail()"
         :disabled="disabled"
+        autocomplete="off"
       ></b-form-input>
       <b-form-invalid-feedback v-bind="ariaMsg">
         {{ errors[0] }}
@@ -40,11 +41,11 @@ export default {
         }
       },
     },
-    name: { type: String, default: 'Email' },
-    label: { type: String, default: 'Email' },
-    placeholder: { type: String, default: 'Email' },
-    value: { required: true, type: String, default: '' },
-    disabled: { required: false, type: Boolean, default: false },
+    name: { type: String, required: true },
+    label: { type: String, required: true },
+    placeholder: { type: String, required: true },
+    value: { type: String, required: true },
+    disabled: { type: Boolean, required: false, default: false },
   },
   data() {
     return {
@@ -62,7 +63,10 @@ export default {
       this.$emit('input', this.currentValue)
     },
     value() {
-      if (this.value !== this.currentValue) this.currentValue = this.value
+      if (this.value !== this.currentValue) {
+        this.currentValue = this.value
+      }
+      this.$emit('onValidation')
     },
   },
   methods: {

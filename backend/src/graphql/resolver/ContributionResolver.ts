@@ -11,8 +11,9 @@ import { Transaction as DbTransaction } from '@entity/Transaction'
 import { AdminCreateContributions } from '@model/AdminCreateContributions'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { Contribution, ContributionListResult } from '@model/Contribution'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { Decay } from '@model/Decay'
+import { OpenCreation } from '@model/OpenCreation'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { Order } from '@enum/Order'
 import { ContributionType } from '@enum/ContributionType'
@@ -27,6 +28,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import {
+  getCreationDates,
   getUserCreation,
   getUserCreations,
   validateContribution,
@@ -42,15 +44,19 @@ import {
   EventContributionConfirm,
   EventAdminContributionCreate,
   EventAdminContributionDelete,
+  EventAdminContributionDeny,
   EventAdminContributionUpdate,
 } from '@/event/Event'
-import { eventProtocol } from '@/event/EventProtocolEmitter'
+import { writeEvent } from '@/event/EventProtocolEmitter'
 import { calculateDecay } from '@/util/decay'
 import {
   sendContributionConfirmedEmail,
-  sendContributionRejectedEmail,
+  sendContributionDeletedEmail,
+  sendContributionDeniedEmail,
 } from '@/emails/sendEmailVariants'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+
+import { getLastTransaction } from './util/getLastTransaction'
 
 @Resolver()
 export class ContributionResolver {
@@ -95,7 +101,7 @@ export class ContributionResolver {
     eventCreateContribution.userId = user.id
     eventCreateContribution.amount = amount
     eventCreateContribution.contributionId = contribution.id
-    await eventProtocol.writeEvent(event.setEventContributionCreate(eventCreateContribution))
+    await writeEvent(event.setEventContributionCreate(eventCreateContribution))
 
     return new UnconfirmedContribution(contribution, user, creations)
   }
@@ -131,7 +137,7 @@ export class ContributionResolver {
     eventDeleteContribution.userId = user.id
     eventDeleteContribution.contributionId = contribution.id
     eventDeleteContribution.amount = contribution.amount
-    await eventProtocol.writeEvent(event.setEventContributionDelete(eventDeleteContribution))
+    await writeEvent(event.setEventContributionDelete(eventDeleteContribution))
 
     const res = await contribution.softRemove()
     return !!res
@@ -177,12 +183,23 @@ export class ContributionResolver {
   async listAllContributions(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
+    statusFilter?: ContributionStatus[],
   ): Promise<ContributionListResult> {
+    const where: {
+      contributionStatus?: FindOperator<string> | null
+    } = {}
+
+    if (statusFilter && statusFilter.length) {
+      where.contributionStatus = In(statusFilter)
+    }
+
     const [dbContributions, count] = await getConnection()
       .createQueryBuilder()
       .select('c')
       .from(DbContribution, 'c')
       .innerJoinAndSelect('c.user', 'u')
+      .where(where)
       .orderBy('c.createdAt', order)
       .limit(pageSize)
       .offset((currentPage - 1) * pageSize)
@@ -215,7 +232,7 @@ export class ContributionResolver {
     const user = getUser(context)
 
     const contributionToUpdate = await DbContribution.findOne({
-      where: { id: contributionId, confirmedAt: IsNull() },
+      where: { id: contributionId, confirmedAt: IsNull(), deniedAt: IsNull() },
     })
     if (!contributionToUpdate) {
       logger.error('No contribution found to given id')
@@ -277,7 +294,7 @@ export class ContributionResolver {
     eventUpdateContribution.userId = user.id
     eventUpdateContribution.contributionId = contributionId
     eventUpdateContribution.amount = amount
-    await eventProtocol.writeEvent(event.setEventContributionUpdate(eventUpdateContribution))
+    await writeEvent(event.setEventContributionUpdate(eventUpdateContribution))
 
     return new UnconfirmedContribution(contributionToUpdate, user, creations)
   }
@@ -344,9 +361,7 @@ export class ContributionResolver {
     eventAdminCreateContribution.userId = moderator.id
     eventAdminCreateContribution.amount = amount
     eventAdminCreateContribution.contributionId = contribution.id
-    await eventProtocol.writeEvent(
-      event.setEventAdminContributionCreate(eventAdminCreateContribution),
-    )
+    await writeEvent(event.setEventAdminContributionCreate(eventAdminCreateContribution))
 
     return getUserCreation(emailContact.userId, clientTimezoneOffset)
   }
@@ -407,7 +422,7 @@ export class ContributionResolver {
     const moderator = getUser(context)
 
     const contributionToUpdate = await DbContribution.findOne({
-      where: { id, confirmedAt: IsNull() },
+      where: { id, confirmedAt: IsNull(), deniedAt: IsNull() },
     })
     if (!contributionToUpdate) {
       logger.error('No contribution found to given id.')
@@ -456,9 +471,7 @@ export class ContributionResolver {
     eventAdminContributionUpdate.userId = user.id
     eventAdminContributionUpdate.amount = amount
     eventAdminContributionUpdate.contributionId = contributionToUpdate.id
-    await eventProtocol.writeEvent(
-      event.setEventAdminContributionUpdate(eventAdminContributionUpdate),
-    )
+    await writeEvent(event.setEventAdminContributionUpdate(eventAdminContributionUpdate))
 
     return result
   }
@@ -473,6 +486,7 @@ export class ContributionResolver {
       .from(DbContribution, 'c')
       .leftJoinAndSelect('c.messages', 'm')
       .where({ confirmedAt: IsNull() })
+      .andWhere({ deniedAt: IsNull() })
       .getMany()
 
     if (contributions.length === 0) {
@@ -510,6 +524,10 @@ export class ContributionResolver {
       logger.error(`Contribution not found for given id: ${id}`)
       throw new Error('Contribution not found for given id.')
     }
+    if (contribution.confirmedAt) {
+      logger.error('A confirmed contribution can not be deleted')
+      throw new Error('A confirmed contribution can not be deleted')
+    }
     const moderator = getUser(context)
     if (
       contribution.contributionType === ContributionType.USER &&
@@ -531,10 +549,8 @@ export class ContributionResolver {
     eventAdminContributionDelete.userId = contribution.userId
     eventAdminContributionDelete.amount = contribution.amount
     eventAdminContributionDelete.contributionId = contribution.id
-    await eventProtocol.writeEvent(
-      event.setEventAdminContributionDelete(eventAdminContributionDelete),
-    )
-    sendContributionRejectedEmail({
+    await writeEvent(event.setEventAdminContributionDelete(eventAdminContributionDelete))
+    sendContributionDeletedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.emailContact.email,
@@ -553,108 +569,113 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const contribution = await DbContribution.findOne(id)
-    if (!contribution) {
-      logger.error(`Contribution not found for given id: ${id}`)
-      throw new Error('Contribution not found to given id.')
-    }
-    const moderatorUser = getUser(context)
-    if (moderatorUser.id === contribution.userId) {
-      logger.error('Moderator can not confirm own contribution')
-      throw new Error('Moderator can not confirm own contribution')
-    }
-    const user = await DbUser.findOneOrFail(
-      { id: contribution.userId },
-      { withDeleted: true, relations: ['emailContact'] },
-    )
-    if (user.deletedAt) {
-      logger.error('This user was deleted. Cannot confirm a contribution.')
-      throw new Error('This user was deleted. Cannot confirm a contribution.')
-    }
-    const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
-    validateContribution(
-      creations,
-      contribution.amount,
-      contribution.contributionDate,
-      clientTimezoneOffset,
-    )
-
     // acquire lock
     const releaseLock = await TRANSACTIONS_LOCK.acquire()
-
-    const receivedCallDate = new Date()
-    const queryRunner = getConnection().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
     try {
-      const lastTransaction = await queryRunner.manager
-        .createQueryBuilder()
-        .select('transaction')
-        .from(DbTransaction, 'transaction')
-        .where('transaction.userId = :id', { id: contribution.userId })
-        .orderBy('transaction.id', 'DESC')
-        .getOne()
+      const clientTimezoneOffset = getClientTimezoneOffset(context)
+      const contribution = await DbContribution.findOne(id)
+      if (!contribution) {
+        logger.error(`Contribution not found for given id: ${id}`)
+        throw new Error('Contribution not found to given id.')
+      }
+      if (contribution.confirmedAt) {
+        logger.error(`Contribution already confirmd: ${id}`)
+        throw new Error('Contribution already confirmd.')
+      }
+      if (contribution.contributionStatus === 'DENIED') {
+        logger.error(`Contribution already denied: ${id}`)
+        throw new Error('Contribution already denied.')
+      }
+      const moderatorUser = getUser(context)
+      if (moderatorUser.id === contribution.userId) {
+        logger.error('Moderator can not confirm own contribution')
+        throw new Error('Moderator can not confirm own contribution')
+      }
+      const user = await DbUser.findOneOrFail(
+        { id: contribution.userId },
+        { withDeleted: true, relations: ['emailContact'] },
+      )
+      if (user.deletedAt) {
+        logger.error('This user was deleted. Cannot confirm a contribution.')
+        throw new Error('This user was deleted. Cannot confirm a contribution.')
+      }
+      const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
+      validateContribution(
+        creations,
+        contribution.amount,
+        contribution.contributionDate,
+        clientTimezoneOffset,
+      )
+
+      const receivedCallDate = new Date()
+      const queryRunner = getConnection().createQueryRunner()
+      await queryRunner.connect()
+      await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
+
+      const lastTransaction = await getLastTransaction(contribution.userId)
       logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
 
-      let newBalance = new Decimal(0)
-      let decay: Decay | null = null
-      if (lastTransaction) {
-        decay = calculateDecay(
-          lastTransaction.balance,
-          lastTransaction.balanceDate,
-          receivedCallDate,
-        )
-        newBalance = decay.balance
+      try {
+        let newBalance = new Decimal(0)
+        let decay: Decay | null = null
+        if (lastTransaction) {
+          decay = calculateDecay(
+            lastTransaction.balance,
+            lastTransaction.balanceDate,
+            receivedCallDate,
+          )
+          newBalance = decay.balance
+        }
+        newBalance = newBalance.add(contribution.amount.toString())
+
+        const transaction = new DbTransaction()
+        transaction.typeId = TransactionTypeId.CREATION
+        transaction.memo = contribution.memo
+        transaction.userId = contribution.userId
+        transaction.previous = lastTransaction ? lastTransaction.id : null
+        transaction.amount = contribution.amount
+        transaction.creationDate = contribution.contributionDate
+        transaction.balance = newBalance
+        transaction.balanceDate = receivedCallDate
+        transaction.decay = decay ? decay.decay : new Decimal(0)
+        transaction.decayStart = decay ? decay.start : null
+        await queryRunner.manager.insert(DbTransaction, transaction)
+
+        contribution.confirmedAt = receivedCallDate
+        contribution.confirmedBy = moderatorUser.id
+        contribution.transactionId = transaction.id
+        contribution.contributionStatus = ContributionStatus.CONFIRMED
+        await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
+
+        await queryRunner.commitTransaction()
+        logger.info('creation commited successfuly.')
+        sendContributionConfirmedEmail({
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.emailContact.email,
+          language: user.language,
+          senderFirstName: moderatorUser.firstName,
+          senderLastName: moderatorUser.lastName,
+          contributionMemo: contribution.memo,
+          contributionAmount: contribution.amount,
+        })
+      } catch (e) {
+        await queryRunner.rollbackTransaction()
+        logger.error('Creation was not successful', e)
+        throw new Error('Creation was not successful.')
+      } finally {
+        await queryRunner.release()
       }
-      newBalance = newBalance.add(contribution.amount.toString())
 
-      const transaction = new DbTransaction()
-      transaction.typeId = TransactionTypeId.CREATION
-      transaction.memo = contribution.memo
-      transaction.userId = contribution.userId
-      transaction.previous = lastTransaction ? lastTransaction.id : null
-      transaction.amount = contribution.amount
-      transaction.creationDate = contribution.contributionDate
-      transaction.balance = newBalance
-      transaction.balanceDate = receivedCallDate
-      transaction.decay = decay ? decay.decay : new Decimal(0)
-      transaction.decayStart = decay ? decay.start : null
-      await queryRunner.manager.insert(DbTransaction, transaction)
-
-      contribution.confirmedAt = receivedCallDate
-      contribution.confirmedBy = moderatorUser.id
-      contribution.transactionId = transaction.id
-      contribution.contributionStatus = ContributionStatus.CONFIRMED
-      await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
-
-      await queryRunner.commitTransaction()
-      logger.info('creation commited successfuly.')
-      sendContributionConfirmedEmail({
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.emailContact.email,
-        language: user.language,
-        senderFirstName: moderatorUser.firstName,
-        senderLastName: moderatorUser.lastName,
-        contributionMemo: contribution.memo,
-        contributionAmount: contribution.amount,
-      })
-    } catch (e) {
-      await queryRunner.rollbackTransaction()
-      logger.error('Creation was not successful', e)
-      throw new Error('Creation was not successful.')
+      const event = new Event()
+      const eventContributionConfirm = new EventContributionConfirm()
+      eventContributionConfirm.userId = user.id
+      eventContributionConfirm.amount = contribution.amount
+      eventContributionConfirm.contributionId = contribution.id
+      await writeEvent(event.setEventContributionConfirm(eventContributionConfirm))
     } finally {
-      await queryRunner.release()
       releaseLock()
     }
-
-    const event = new Event()
-    const eventContributionConfirm = new EventContributionConfirm()
-    eventContributionConfirm.userId = user.id
-    eventContributionConfirm.amount = contribution.amount
-    eventContributionConfirm.contributionId = contribution.id
-    await eventProtocol.writeEvent(event.setEventContributionConfirm(eventContributionConfirm))
     return true
   }
 
@@ -672,6 +693,7 @@ export class ContributionResolver {
       .from(DbContribution, 'c')
       .leftJoinAndSelect('c.user', 'u')
       .where(`user_id = ${userId}`)
+      .withDeleted()
       .limit(pageSize)
       .offset(offset)
       .orderBy('c.created_at', order)
@@ -682,5 +704,85 @@ export class ContributionResolver {
       contributionResult.map((contribution) => new Contribution(contribution, contribution.user)),
     )
     // return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
+  }
+
+  @Authorized([RIGHTS.OPEN_CREATIONS])
+  @Query(() => [OpenCreation])
+  async openCreations(
+    @Arg('userId', () => Int, { nullable: true }) userId: number | null,
+    @Ctx() context: Context,
+  ): Promise<OpenCreation[]> {
+    const id = userId || getUser(context).id
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
+    const creationDates = getCreationDates(clientTimezoneOffset)
+    const creations = await getUserCreation(id, clientTimezoneOffset)
+    return creationDates.map((date, index) => {
+      return {
+        month: date.getMonth(),
+        year: date.getFullYear(),
+        amount: creations[index],
+      }
+    })
+  }
+
+  @Authorized([RIGHTS.DENY_CONTRIBUTION])
+  @Mutation(() => Boolean)
+  async denyContribution(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const contributionToUpdate = await DbContribution.findOne({
+      id,
+      confirmedAt: IsNull(),
+      deniedBy: IsNull(),
+    })
+    if (!contributionToUpdate) {
+      logger.error(`Contribution not found for given id: ${id}`)
+      throw new Error(`Contribution not found for given id.`)
+    }
+    if (
+      contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
+      contributionToUpdate.contributionStatus !== ContributionStatus.PENDING
+    ) {
+      logger.error(
+        `Contribution state (${contributionToUpdate.contributionStatus}) is not allowed.`,
+      )
+      throw new Error(`State of the contribution is not allowed.`)
+    }
+    const moderator = getUser(context)
+    const user = await DbUser.findOne(
+      { id: contributionToUpdate.userId },
+      { relations: ['emailContact'] },
+    )
+    if (!user) {
+      logger.error(
+        `Could not find User for the Contribution (userId: ${contributionToUpdate.userId}).`,
+      )
+      throw new Error('Could not find User for the Contribution.')
+    }
+
+    contributionToUpdate.contributionStatus = ContributionStatus.DENIED
+    contributionToUpdate.deniedBy = moderator.id
+    contributionToUpdate.deniedAt = new Date()
+    const res = await contributionToUpdate.save()
+
+    const event = new Event()
+    const eventAdminContributionDeny = new EventAdminContributionDeny()
+    eventAdminContributionDeny.userId = contributionToUpdate.userId
+    eventAdminContributionDeny.amount = contributionToUpdate.amount
+    eventAdminContributionDeny.contributionId = contributionToUpdate.id
+    await writeEvent(event.setEventAdminContributionDeny(eventAdminContributionDeny))
+
+    sendContributionDeniedEmail({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.emailContact.email,
+      language: user.language,
+      senderFirstName: moderator.firstName,
+      senderLastName: moderator.lastName,
+      contributionMemo: contributionToUpdate.memo,
+    })
+
+    return !!res
   }
 }

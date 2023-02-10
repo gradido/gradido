@@ -5,43 +5,53 @@
         <b-tab no-body>
           <open-creations-amount
             :minimalDate="minimalDate"
-            :maxGddThisMonth="maxGddThisMonth"
-            :maxGddLastMonth="maxGddLastMonth"
+            :maxGddLastMonth="maxForMonths[0]"
+            :maxGddThisMonth="maxForMonths[1]"
           />
           <div class="mb-3"></div>
           <contribution-form
-            @set-contribution="setContribution"
+            @set-contribution="saveContribution"
             @update-contribution="updateContribution"
             v-model="form"
             :isThisMonth="isThisMonth"
             :minimalDate="minimalDate"
-            :maxGddLastMonth="maxGddLastMonth"
-            :maxGddThisMonth="maxGddThisMonth"
+            :maxGddLastMonth="maxForMonths[0]"
+            :maxGddThisMonth="maxForMonths[1]"
           />
         </b-tab>
         <b-tab no-body>
-          <contribution-list
-            @closeAllOpenCollapse="closeAllOpenCollapse"
-            :items="items"
-            @update-list-contributions="updateListContributions"
-            @update-contribution-form="updateContributionForm"
-            @delete-contribution="deleteContribution"
-            @update-state="updateState"
-            :contributionCount="contributionCount"
-            :showPagination="true"
-            :pageSize="pageSize"
-          />
+          <div v-if="items.length === 0">
+            {{ $t('contribution.noContributions.myContributions') }}
+          </div>
+          <div v-else>
+            <contribution-list
+              @closeAllOpenCollapse="closeAllOpenCollapse"
+              :items="items"
+              @update-list-contributions="updateListContributions"
+              @update-contribution-form="updateContributionForm"
+              @delete-contribution="deleteContribution"
+              @update-state="updateState"
+              :contributionCount="contributionCount"
+              :showPagination="true"
+              :pageSize="pageSize"
+            />
+          </div>
         </b-tab>
         <b-tab no-body>
-          <contribution-list
-            :items="itemsAll"
-            @update-list-contributions="updateListAllContributions"
-            @update-contribution-form="updateContributionForm"
-            :contributionCount="contributionCountAll"
-            :showPagination="true"
-            :pageSize="pageSizeAll"
-            :allContribution="true"
-          />
+          <div v-if="itemsAll.length === 0">
+            {{ $t('contribution.noContributions.allContributions') }}
+          </div>
+          <div v-else>
+            <contribution-list
+              :items="itemsAll"
+              @update-list-contributions="updateListAllContributions"
+              @update-contribution-form="updateContributionForm"
+              :contributionCount="contributionCountAll"
+              :showPagination="true"
+              :pageSize="pageSizeAll"
+              :allContribution="true"
+            />
+          </div>
         </b-tab>
       </b-tabs>
     </div>
@@ -52,7 +62,7 @@ import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount.
 import ContributionForm from '@/components/Contributions/ContributionForm.vue'
 import ContributionList from '@/components/Contributions/ContributionList.vue'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
-import { listContributions, listAllContributions, verifyLogin } from '@/graphql/queries'
+import { listContributions, listAllContributions, openCreations } from '@/graphql/queries'
 
 export default {
   name: 'Community',
@@ -70,6 +80,7 @@ export default {
       itemsAll: [],
       currentPage: 1,
       pageSize: 25,
+      currentPageAll: 1,
       pageSizeAll: 25,
       contributionCount: 0,
       contributionCountAll: 0,
@@ -82,6 +93,7 @@ export default {
       },
       updateAmount: '',
       maximalDate: new Date(),
+      openCreations: [],
     }
   },
   mounted() {
@@ -89,6 +101,68 @@ export default {
       this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === this.$route.hash)
       this.hashLink = this.$route.hash
     })
+  },
+  apollo: {
+    OpenCreations: {
+      query() {
+        return openCreations
+      },
+      fetchPolicy: 'network-only',
+      variables() {
+        return {}
+      },
+      update({ openCreations }) {
+        this.openCreations = openCreations
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
+    },
+    ListAllContributions: {
+      query() {
+        return listAllContributions
+      },
+      fetchPolicy: 'network-only',
+      variables() {
+        return {
+          currentPage: this.currentPageAll,
+          pageSize: this.pageSizeAll,
+        }
+      },
+      update({ listAllContributions }) {
+        this.contributionCountAll = listAllContributions.contributionCount
+        this.itemsAll = listAllContributions.contributionList
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
+    },
+    ListContributions: {
+      query() {
+        return listContributions
+      },
+      fetchPolicy: 'network-only',
+      variables() {
+        return {
+          currentPage: this.currentPage,
+          pageSize: this.pageSize,
+        }
+      },
+      update({ listContributions }) {
+        this.contributionCount = listContributions.contributionCount
+        this.items = listContributions.contributionList
+        if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
+          this.tabIndex = 1
+          if (this.$route.hash !== '#my') {
+            this.$router.push({ path: '/community#my' })
+          }
+          this.toastInfo(this.$t('contribution.alert.answerQuestionToast'))
+        }
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
+    },
   },
   watch: {
     $route(to, from) {
@@ -100,7 +174,7 @@ export default {
       if (num !== 0) {
         this.form = {
           id: null,
-          date: '',
+          date: new Date(),
           memo: '',
           hours: 0,
           amount: '',
@@ -120,17 +194,20 @@ export default {
         formDate.getMonth() === this.maximalDate.getMonth()
       )
     },
-    maxGddLastMonth() {
+    amountToAdd() {
       // when existing contribution is edited, the amount is added back on top of the amount
-      return this.form.id && !this.isThisMonth
-        ? parseInt(this.$store.state.creation[1]) + parseInt(this.updateAmount)
-        : parseInt(this.$store.state.creation[1])
+      if (this.form.id) return parseInt(this.updateAmount)
+      return 0
     },
-    maxGddThisMonth() {
-      // when existing contribution is edited, the amount is added back on top of the amount
-      return this.form.id && this.isThisMonth
-        ? parseInt(this.$store.state.creation[2]) + parseInt(this.updateAmount)
-        : parseInt(this.$store.state.creation[2])
+    maxForMonths() {
+      const formDate = new Date(this.form.date)
+      if (this.openCreations && this.openCreations.length)
+        return this.openCreations.slice(1).map((creation) => {
+          if (creation.year === formDate.getFullYear() && creation.month === formDate.getMonth())
+            return parseInt(creation.amount) + this.amountToAdd
+          return parseInt(creation.amount)
+        })
+      return [0, 0]
     },
   },
   methods: {
@@ -139,7 +216,12 @@ export default {
         this.$root.$emit('bv::toggle::collapse', value.id)
       })
     },
-    setContribution(data) {
+    refetchData() {
+      this.$apollo.queries.ListAllContributions.refetch()
+      this.$apollo.queries.ListContributions.refetch()
+      this.$apollo.queries.OpenCreations.refetch()
+    },
+    saveContribution(data) {
       this.$apollo
         .mutate({
           fetchPolicy: 'no-cache',
@@ -152,15 +234,7 @@ export default {
         })
         .then((result) => {
           this.toastSuccess(this.$t('contribution.submitted'))
-          this.updateListContributions({
-            currentPage: this.currentPage,
-            pageSize: this.pageSize,
-          })
-          this.updateListAllContributions({
-            currentPage: this.currentPage,
-            pageSize: this.pageSize,
-          })
-          this.verifyLogin()
+          this.refetchData()
         })
         .catch((err) => {
           this.toastError(err.message)
@@ -180,15 +254,7 @@ export default {
         })
         .then((result) => {
           this.toastSuccess(this.$t('contribution.updated'))
-          this.updateListContributions({
-            currentPage: this.currentPage,
-            pageSize: this.pageSize,
-          })
-          this.updateListAllContributions({
-            currentPage: this.currentPage,
-            pageSize: this.pageSize,
-          })
-          this.verifyLogin()
+          this.refetchData()
         })
         .catch((err) => {
           this.toastError(err.message)
@@ -205,84 +271,21 @@ export default {
         })
         .then((result) => {
           this.toastSuccess(this.$t('contribution.deleted'))
-          this.updateListContributions({
-            currentPage: this.currentPage,
-            pageSize: this.pageSize,
-          })
-          this.updateListAllContributions({
-            currentPage: this.currentPage,
-            pageSize: this.pageSize,
-          })
-          this.verifyLogin()
+          this.refetchData()
         })
         .catch((err) => {
           this.toastError(err.message)
         })
     },
     updateListAllContributions(pagination) {
-      this.$apollo
-        .query({
-          fetchPolicy: 'no-cache',
-          query: listAllContributions,
-          variables: {
-            currentPage: pagination.currentPage,
-            pageSize: pagination.pageSize,
-          },
-        })
-        .then((result) => {
-          const {
-            data: { listAllContributions },
-          } = result
-          this.contributionCountAll = listAllContributions.contributionCount
-          this.itemsAll = listAllContributions.contributionList
-        })
-        .catch((err) => {
-          this.toastError(err.message)
-        })
+      this.currentPageAll = pagination.currentPage
+      this.pageSizeAll = pagination.pageSize
+      this.$apollo.queries.ListAllContributions.refetch()
     },
     updateListContributions(pagination) {
-      this.$apollo
-        .query({
-          fetchPolicy: 'no-cache',
-          query: listContributions,
-          variables: {
-            currentPage: pagination.currentPage,
-            pageSize: pagination.pageSize,
-          },
-        })
-        .then((result) => {
-          const {
-            data: { listContributions },
-          } = result
-          this.contributionCount = listContributions.contributionCount
-          this.items = listContributions.contributionList
-          if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
-            this.tabIndex = 1
-            if (this.$route.hash !== '#my') {
-              this.$router.push({ path: '#my' })
-            }
-            this.toastInfo('Du hast eine Rückfrage auf eine Contribution. Bitte beantworte diese!')
-          }
-        })
-        .catch((err) => {
-          this.toastError(err.message)
-        })
-    },
-    verifyLogin() {
-      this.$apollo
-        .query({
-          query: verifyLogin,
-          fetchPolicy: 'network-only',
-        })
-        .then((result) => {
-          const {
-            data: { verifyLogin },
-          } = result
-          this.$store.dispatch('login', verifyLogin)
-        })
-        .catch(() => {
-          this.$emit('logout')
-        })
+      this.currentPage = pagination.currentPage
+      this.pageSize = pagination.pageSize
+      this.$apollo.queries.ListContributions.refetch()
     },
     updateContributionForm(item) {
       this.form.id = item.id
@@ -301,20 +304,10 @@ export default {
       this.items.find((item) => item.id === id).state = 'PENDING'
     },
   },
-
   created() {
-    // verifyLogin is important at this point so that creation is updated on reload if they are deleted in a session in the admin area.
-    this.verifyLogin()
-    this.updateListContributions({
-      currentPage: this.currentPage,
-      pageSize: this.pageSize,
-    })
-    this.updateListAllContributions({
-      currentPage: this.currentPage,
-      pageSize: this.pageSize,
-    })
     this.updateTransactions(0)
-    this.tabIndex = 1
+    this.tabIndex = 0
+    this.$router.push({ path: '/community#edit' })
   },
 }
 </script>

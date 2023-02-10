@@ -39,10 +39,10 @@
       "answerQuestion": "Please answer the question",
       "communityNoteList": "Hier vind je alle ingediende en bevestigde bijdragen van alle leden uit deze gemeenschap.",
       "confirm": "bevestigt",
+      "denied": "afgewezen",
       "in_progress": "There is a question from the moderators.",
       "myContributionNoteList": "Ingediende bijdragen, die nog niet bevestigd zijn, kun je op elk moment wijzigen of verwijderen.",
-      "pending": "Ingediend en wacht op bevestiging",
-      "rejected": "afgewezen"
+      "pending": "Ingediend en wacht op bevestiging"
     },
     "date": "Bijdrage voor:",
     "delete": "Bijdrage verwijderen! Weet je het zeker?",

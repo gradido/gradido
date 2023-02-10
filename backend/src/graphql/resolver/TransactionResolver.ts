@@ -30,13 +30,15 @@ import {
   sendTransactionReceivedEmail,
 } from '@/emails/sendEmailVariants'
 import { Event, EventTransactionReceive, EventTransactionSend } from '@/event/Event'
-import { eventProtocol } from '@/event/EventProtocolEmitter'
+import { writeEvent } from '@/event/EventProtocolEmitter'
 
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByEmail } from './UserResolver'
 
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+
+import { getLastTransaction } from './util/getLastTransaction'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -45,29 +47,28 @@ export const executeTransaction = async (
   recipient: dbUser,
   transactionLink?: dbTransactionLink | null,
 ): Promise<boolean> => {
-  logger.info(
-    `executeTransaction(amount=${amount}, memo=${memo}, sender=${sender}, recipient=${recipient})...`,
-  )
-
-  if (sender.id === recipient.id) {
-    logger.error(`Sender and Recipient are the same.`)
-    throw new Error('Sender and Recipient are the same.')
-  }
-
-  if (memo.length > MEMO_MAX_CHARS) {
-    logger.error(`memo text is too long: memo.length=${memo.length} > ${MEMO_MAX_CHARS}`)
-    throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
-  }
-
-  if (memo.length < MEMO_MIN_CHARS) {
-    logger.error(`memo text is too short: memo.length=${memo.length} < ${MEMO_MIN_CHARS}`)
-    throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
-  }
-
   // acquire lock
   const releaseLock = await TRANSACTIONS_LOCK.acquire()
-
   try {
+    logger.info(
+      `executeTransaction(amount=${amount}, memo=${memo}, sender=${sender}, recipient=${recipient})...`,
+    )
+
+    if (sender.id === recipient.id) {
+      logger.error(`Sender and Recipient are the same.`)
+      throw new Error('Sender and Recipient are the same.')
+    }
+
+    if (memo.length > MEMO_MAX_CHARS) {
+      logger.error(`memo text is too long: memo.length=${memo.length} > ${MEMO_MAX_CHARS}`)
+      throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
+    }
+
+    if (memo.length < MEMO_MIN_CHARS) {
+      logger.error(`memo text is too short: memo.length=${memo.length} < ${MEMO_MIN_CHARS}`)
+      throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
+    }
+
     // validate amount
     const receivedCallDate = new Date()
     const sendBalance = await calculateBalance(
@@ -145,16 +146,14 @@ export const executeTransaction = async (
       eventTransactionSend.xUserId = transactionSend.linkedUserId
       eventTransactionSend.transactionId = transactionSend.id
       eventTransactionSend.amount = transactionSend.amount.mul(-1)
-      await eventProtocol.writeEvent(new Event().setEventTransactionSend(eventTransactionSend))
+      await writeEvent(new Event().setEventTransactionSend(eventTransactionSend))
 
       const eventTransactionReceive = new EventTransactionReceive()
       eventTransactionReceive.userId = transactionReceive.userId
       eventTransactionReceive.xUserId = transactionReceive.linkedUserId
       eventTransactionReceive.transactionId = transactionReceive.id
       eventTransactionReceive.amount = transactionReceive.amount
-      await eventProtocol.writeEvent(
-        new Event().setEventTransactionReceive(eventTransactionReceive),
-      )
+      await writeEvent(new Event().setEventTransactionReceive(eventTransactionReceive))
     } catch (e) {
       await queryRunner.rollbackTransaction()
       logger.error(`Transaction was not successful: ${e}`)
@@ -187,10 +186,10 @@ export const executeTransaction = async (
       })
     }
     logger.info(`finished executeTransaction successfully`)
-    return true
   } finally {
     releaseLock()
   }
+  return true
 }
 
 @Resolver()
@@ -209,10 +208,7 @@ export class TransactionResolver {
     logger.info(`transactionList(user=${user.firstName}.${user.lastName}, ${user.emailId})`)
 
     // find current balance
-    const lastTransaction = await dbTransaction.findOne(
-      { userId: user.id },
-      { order: { balanceDate: 'DESC' }, relations: ['contribution'] },
-    )
+    const lastTransaction = await getLastTransaction(user.id, ['contribution'])
     logger.debug(`lastTransaction=${lastTransaction}`)
 
     const balanceResolver = new BalanceResolver()

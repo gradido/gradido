@@ -7,10 +7,11 @@
       :memo="memo"
       :validUntil="validUntil"
     ></clipboard-copy>
+    <label>{{ $t('qrCode') }}</label>
     <div class="text-center">
       <div><figure-qr-code :link="link" /></div>
       <div>
-        <b-button variant="secondary" @click="$emit('on-reset')" class="mt-4" data-test="close-btn">
+        <b-button variant="secondary" @click="$emit('on-back')" class="mt-4" data-test="close-btn">
           {{ $t('form.close') }}
         </b-button>
       </div>

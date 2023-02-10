@@ -33,6 +33,8 @@ import { executeTransaction } from './TransactionResolver'
 import QueryLinkResult from '@union/QueryLinkResult'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
+import { getLastTransaction } from './util/getLastTransaction'
+
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
   const time = date.getTime().toString(16)
@@ -170,148 +172,148 @@ export class TransactionLinkResolver {
     if (code.match(/^CL-/)) {
       // acquire lock
       const releaseLock = await TRANSACTIONS_LOCK.acquire()
-      logger.info('redeem contribution link...')
-      const now = new Date()
-      const queryRunner = getConnection().createQueryRunner()
-      await queryRunner.connect()
-      await queryRunner.startTransaction('REPEATABLE READ')
       try {
-        const contributionLink = await queryRunner.manager
-          .createQueryBuilder()
-          .select('contributionLink')
-          .from(DbContributionLink, 'contributionLink')
-          .where('contributionLink.code = :code', { code: code.replace('CL-', '') })
-          .getOne()
-        if (!contributionLink) {
-          logger.error('no contribution link found to given code:', code)
-          throw new Error('No contribution link found')
-        }
-        logger.info('...contribution link found with id', contributionLink.id)
-        if (new Date(contributionLink.validFrom).getTime() > now.getTime()) {
-          logger.error(
-            'contribution link is not valid yet. Valid from: ',
-            contributionLink.validFrom,
-          )
-          throw new Error('Contribution link not valid yet')
-        }
-        if (contributionLink.validTo) {
-          if (new Date(contributionLink.validTo).setHours(23, 59, 59) < now.getTime()) {
-            logger.error('contribution link is depricated. Valid to: ', contributionLink.validTo)
-            throw new Error('Contribution link is depricated')
+        logger.info('redeem contribution link...')
+        const now = new Date()
+        const queryRunner = getConnection().createQueryRunner()
+        await queryRunner.connect()
+        await queryRunner.startTransaction('REPEATABLE READ')
+        try {
+          const contributionLink = await queryRunner.manager
+            .createQueryBuilder()
+            .select('contributionLink')
+            .from(DbContributionLink, 'contributionLink')
+            .where('contributionLink.code = :code', { code: code.replace('CL-', '') })
+            .getOne()
+          if (!contributionLink) {
+            logger.error('no contribution link found to given code:', code)
+            throw new Error(`No contribution link found to given code: ${code}`)
           }
-        }
-        let alreadyRedeemed: DbContribution | undefined
-        switch (contributionLink.cycle) {
-          case ContributionCycleType.ONCE: {
-            alreadyRedeemed = await queryRunner.manager
-              .createQueryBuilder()
-              .select('contribution')
-              .from(DbContribution, 'contribution')
-              .where('contribution.contributionLinkId = :linkId AND contribution.userId = :id', {
-                linkId: contributionLink.id,
-                id: user.id,
-              })
-              .getOne()
-            if (alreadyRedeemed) {
+          logger.info('...contribution link found with id', contributionLink.id)
+          if (new Date(contributionLink.validFrom).getTime() > now.getTime()) {
+            logger.error(
+              'contribution link is not valid yet. Valid from: ',
+              contributionLink.validFrom,
+            )
+            throw new Error('Contribution link not valid yet')
+          }
+          if (contributionLink.validTo) {
+            if (new Date(contributionLink.validTo).setHours(23, 59, 59) < now.getTime()) {
               logger.error(
-                'contribution link with rule ONCE already redeemed by user with id',
-                user.id,
+                'contribution link is no longer valid. Valid to: ',
+                contributionLink.validTo,
               )
-              throw new Error('Contribution link already redeemed')
+              throw new Error('Contribution link is no longer valid')
             }
-            break
           }
-          case ContributionCycleType.DAILY: {
-            const start = new Date()
-            start.setHours(0, 0, 0, 0)
-            const end = new Date()
-            end.setHours(23, 59, 59, 999)
-            alreadyRedeemed = await queryRunner.manager
-              .createQueryBuilder()
-              .select('contribution')
-              .from(DbContribution, 'contribution')
-              .where(
-                `contribution.contributionLinkId = :linkId AND contribution.userId = :id
-                      AND Date(contribution.confirmedAt) BETWEEN :start AND :end`,
-                {
+          let alreadyRedeemed: DbContribution | undefined
+          switch (contributionLink.cycle) {
+            case ContributionCycleType.ONCE: {
+              alreadyRedeemed = await queryRunner.manager
+                .createQueryBuilder()
+                .select('contribution')
+                .from(DbContribution, 'contribution')
+                .where('contribution.contributionLinkId = :linkId AND contribution.userId = :id', {
                   linkId: contributionLink.id,
                   id: user.id,
-                  start,
-                  end,
-                },
-              )
-              .getOne()
-            if (alreadyRedeemed) {
-              logger.error(
-                'contribution link with rule DAILY already redeemed by user with id',
-                user.id,
-              )
-              throw new Error('Contribution link already redeemed today')
+                })
+                .getOne()
+              if (alreadyRedeemed) {
+                logger.error(
+                  'contribution link with rule ONCE already redeemed by user with id',
+                  user.id,
+                )
+                throw new Error('Contribution link already redeemed')
+              }
+              break
             }
-            break
+            case ContributionCycleType.DAILY: {
+              const start = new Date()
+              start.setHours(0, 0, 0, 0)
+              const end = new Date()
+              end.setHours(23, 59, 59, 999)
+              alreadyRedeemed = await queryRunner.manager
+                .createQueryBuilder()
+                .select('contribution')
+                .from(DbContribution, 'contribution')
+                .where(
+                  `contribution.contributionLinkId = :linkId AND contribution.userId = :id
+                        AND Date(contribution.confirmedAt) BETWEEN :start AND :end`,
+                  {
+                    linkId: contributionLink.id,
+                    id: user.id,
+                    start,
+                    end,
+                  },
+                )
+                .getOne()
+              if (alreadyRedeemed) {
+                logger.error(
+                  'contribution link with rule DAILY already redeemed by user with id',
+                  user.id,
+                )
+                throw new Error('Contribution link already redeemed today')
+              }
+              break
+            }
+            default: {
+              logger.error('contribution link has unknown cycle', contributionLink.cycle)
+              throw new Error('Contribution link has unknown cycle')
+            }
           }
-          default: {
-            logger.error('contribution link has unknown cycle', contributionLink.cycle)
-            throw new Error('Contribution link has unknown cycle')
+
+          const creations = await getUserCreation(user.id, clientTimezoneOffset)
+          logger.info('open creations', creations)
+          validateContribution(creations, contributionLink.amount, now, clientTimezoneOffset)
+          const contribution = new DbContribution()
+          contribution.userId = user.id
+          contribution.createdAt = now
+          contribution.contributionDate = now
+          contribution.memo = contributionLink.memo
+          contribution.amount = contributionLink.amount
+          contribution.contributionLinkId = contributionLink.id
+          contribution.contributionType = ContributionType.LINK
+          contribution.contributionStatus = ContributionStatus.CONFIRMED
+
+          await queryRunner.manager.insert(DbContribution, contribution)
+
+          const lastTransaction = await getLastTransaction(user.id)
+          let newBalance = new Decimal(0)
+
+          let decay: Decay | null = null
+          if (lastTransaction) {
+            decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now)
+            newBalance = decay.balance
           }
+          newBalance = newBalance.add(contributionLink.amount.toString())
+
+          const transaction = new DbTransaction()
+          transaction.typeId = TransactionTypeId.CREATION
+          transaction.memo = contribution.memo
+          transaction.userId = contribution.userId
+          transaction.previous = lastTransaction ? lastTransaction.id : null
+          transaction.amount = contribution.amount
+          transaction.creationDate = contribution.contributionDate
+          transaction.balance = newBalance
+          transaction.balanceDate = now
+          transaction.decay = decay ? decay.decay : new Decimal(0)
+          transaction.decayStart = decay ? decay.start : null
+          await queryRunner.manager.insert(DbTransaction, transaction)
+
+          contribution.confirmedAt = now
+          contribution.transactionId = transaction.id
+          await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
+
+          await queryRunner.commitTransaction()
+          logger.info('creation from contribution link commited successfuly.')
+        } catch (e) {
+          await queryRunner.rollbackTransaction()
+          logger.error(`Creation from contribution link was not successful: ${e}`)
+          throw new Error(`Creation from contribution link was not successful. ${e}`)
+        } finally {
+          await queryRunner.release()
         }
-
-        const creations = await getUserCreation(user.id, clientTimezoneOffset)
-        logger.info('open creations', creations)
-        validateContribution(creations, contributionLink.amount, now, clientTimezoneOffset)
-        const contribution = new DbContribution()
-        contribution.userId = user.id
-        contribution.createdAt = now
-        contribution.contributionDate = now
-        contribution.memo = contributionLink.memo
-        contribution.amount = contributionLink.amount
-        contribution.contributionLinkId = contributionLink.id
-        contribution.contributionType = ContributionType.LINK
-        contribution.contributionStatus = ContributionStatus.CONFIRMED
-
-        await queryRunner.manager.insert(DbContribution, contribution)
-
-        const lastTransaction = await queryRunner.manager
-          .createQueryBuilder()
-          .select('transaction')
-          .from(DbTransaction, 'transaction')
-          .where('transaction.userId = :id', { id: user.id })
-          .orderBy('transaction.id', 'DESC')
-          .getOne()
-        let newBalance = new Decimal(0)
-
-        let decay: Decay | null = null
-        if (lastTransaction) {
-          decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now)
-          newBalance = decay.balance
-        }
-        newBalance = newBalance.add(contributionLink.amount.toString())
-
-        const transaction = new DbTransaction()
-        transaction.typeId = TransactionTypeId.CREATION
-        transaction.memo = contribution.memo
-        transaction.userId = contribution.userId
-        transaction.previous = lastTransaction ? lastTransaction.id : null
-        transaction.amount = contribution.amount
-        transaction.creationDate = contribution.contributionDate
-        transaction.balance = newBalance
-        transaction.balanceDate = now
-        transaction.decay = decay ? decay.decay : new Decimal(0)
-        transaction.decayStart = decay ? decay.start : null
-        await queryRunner.manager.insert(DbTransaction, transaction)
-
-        contribution.confirmedAt = now
-        contribution.transactionId = transaction.id
-        await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
-
-        await queryRunner.commitTransaction()
-        logger.info('creation from contribution link commited successfuly.')
-      } catch (e) {
-        await queryRunner.rollbackTransaction()
-        logger.error(`Creation from contribution link was not successful: ${e}`)
-        throw new Error(`Creation from contribution link was not successful. ${e}`)
       } finally {
-        await queryRunner.release()
         releaseLock()
       }
       return true

@@ -3,6 +3,7 @@
 
 import Decimal from 'decimal.js-light'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import {
@@ -21,12 +22,14 @@ import {
   listContributions,
   listUnconfirmedContributions,
 } from '@/seeds/graphql/queries'
+import { sendContributionConfirmedEmail } from '@/emails/sendEmailVariants'
 import {
-  // sendAccountActivationEmail,
-  sendContributionConfirmedEmail,
-  // sendContributionRejectedEmail,
-} from '@/emails/sendEmailVariants'
-import { cleanDB, resetToken, testEnvironment, contributionDateFormatter } from '@test/helpers'
+  cleanDB,
+  resetToken,
+  testEnvironment,
+  contributionDateFormatter,
+  resetEntity,
+} from '@test/helpers'
 import { GraphQLError } from 'graphql'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
@@ -38,8 +41,8 @@ import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { logger, i18n as localization } from '@test/testSetup'
+import { UserInputError } from 'apollo-server-express'
 
-// mock account activation email to avoid console spam
 // mock account activation email to avoid console spam
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
@@ -674,7 +677,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterConfirmed: false,
+              statusFilter: null,
             },
           }),
         ).resolves.toEqual(
@@ -711,7 +714,7 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-      it('returns allCreation', async () => {
+      it('throws an error with "NOT_VALID" in statusFilter', async () => {
         await expect(
           query({
             query: listAllContributions,
@@ -719,7 +722,75 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterConfirmed: false,
+              statusFilter: ['NOT_VALID'],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [
+              new UserInputError(
+                'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[0]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
+              ),
+            ],
+          }),
+        )
+      })
+
+      it('throws an error with a null in statusFilter', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              statusFilter: [null],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [
+              new UserInputError(
+                'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
+              ),
+            ],
+          }),
+        )
+      })
+
+      it('throws an error with null and "NOT_VALID" in statusFilter', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              statusFilter: [null, 'NOT_VALID'],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [
+              new UserInputError(
+                'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
+              ),
+              new UserInputError(
+                'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[1]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
+              ),
+            ],
+          }),
+        )
+      })
+
+      it('returns all contributions without statusFilter', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
             },
           }),
         ).resolves.toEqual(
@@ -730,11 +801,301 @@ describe('ContributionResolver', () => {
                 contributionList: expect.arrayContaining([
                   expect.objectContaining({
                     id: expect.any(Number),
+                    state: 'CONFIRMED',
                     memo: 'Herzlich Willkommen bei Gradido!',
                     amount: '1000',
                   }),
                   expect.objectContaining({
                     id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
+      })
+
+      it('returns all contributions for statusFilter = null', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              statusFilter: null,
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              listAllContributions: {
+                contributionCount: 2,
+                contributionList: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
+      })
+
+      it('returns all contributions for statusFilter = []', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              statusFilter: [],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              listAllContributions: {
+                contributionCount: 2,
+                contributionList: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
+      })
+
+      it('returns all CONFIRMED contributions', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              statusFilter: ['CONFIRMED'],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              listAllContributions: {
+                contributionCount: 1,
+                contributionList: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
+      })
+
+      it('returns all PENDING contributions', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              statusFilter: ['PENDING'],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              listAllContributions: {
+                contributionCount: 1,
+                contributionList: expect.arrayContaining([
+                  expect.not.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
+      })
+
+      it('returns all IN_PROGRESS Creation', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              statusFilter: ['IN_PROGRESS'],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              listAllContributions: {
+                contributionCount: 0,
+                contributionList: expect.not.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
+      })
+
+      it('returns all DENIED Creation', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              statusFilter: ['DENIED'],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              listAllContributions: {
+                contributionCount: 0,
+                contributionList: expect.not.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
+      })
+
+      it('returns all DELETED Creation', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              statusFilter: ['DELETED'],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              listAllContributions: {
+                contributionCount: 0,
+                contributionList: expect.not.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
+      })
+
+      it('returns all CONFIRMED and PENDING Creation', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              statusFilter: ['CONFIRMED', 'PENDING'],
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              listAllContributions: {
+                contributionCount: 2,
+                contributionList: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'CONFIRMED',
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    state: 'PENDING',
                     memo: 'Test env contribution',
                     amount: '100',
                   }),
@@ -1146,13 +1507,21 @@ describe('ContributionResolver', () => {
           const now = new Date()
 
           beforeAll(async () => {
-            creation = await creationFactory(testEnv, {
-              email: 'peter@lustig.de',
-              amount: 400,
-              memo: 'Herzlich Willkommen bei Gradido!',
-              creationDate: contributionDateFormatter(
-                new Date(now.getFullYear(), now.getMonth() - 1, 1),
-              ),
+            await mutate({
+              mutation: adminCreateContribution,
+              variables: {
+                email: 'peter@lustig.de',
+                amount: 400,
+                memo: 'Herzlich Willkommen bei Gradido!',
+                creationDate: contributionDateFormatter(
+                  new Date(now.getFullYear(), now.getMonth() - 1, 1),
+                ),
+              },
+            })
+            creation = await Contribution.findOneOrFail({
+              where: {
+                memo: 'Herzlich Willkommen bei Gradido!',
+              },
             })
           })
 
@@ -1810,6 +2179,49 @@ describe('ContributionResolver', () => {
               )
             })
           })
+
+          describe('creation already confirmed', () => {
+            it('throws an error', async () => {
+              await userFactory(testEnv, bobBaumeister)
+              await query({
+                query: login,
+                variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+              })
+              const {
+                data: { createContribution: confirmedContribution },
+              } = await mutate({
+                mutation: createContribution,
+                variables: {
+                  amount: 100.0,
+                  memo: 'Confirmed Contribution',
+                  creationDate: contributionDateFormatter(new Date()),
+                },
+              })
+              await query({
+                query: login,
+                variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+              })
+              await mutate({
+                mutation: confirmContribution,
+                variables: {
+                  id: confirmedContribution.id ? confirmedContribution.id : -1,
+                },
+              })
+              await expect(
+                mutate({
+                  mutation: adminDeleteContribution,
+                  variables: {
+                    id: confirmedContribution.id ? confirmedContribution.id : -1,
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('A confirmed contribution can not be deleted')],
+                }),
+              )
+              await resetEntity(DbTransaction)
+            })
+          })
         })
 
         describe('confirmContribution', () => {
@@ -1879,6 +2291,10 @@ describe('ContributionResolver', () => {
                   new Date(now.getFullYear(), now.getMonth() - 2, 1),
                 ),
               })
+              await query({
+                query: login,
+                variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+              })
             })
 
             it('returns true', async () => {
@@ -1935,6 +2351,23 @@ describe('ContributionResolver', () => {
                 }),
               )
             })
+
+            describe('confirm same contribution again', () => {
+              it('throws an error', async () => {
+                await expect(
+                  mutate({
+                    mutation: confirmContribution,
+                    variables: {
+                      id: creation ? creation.id : -1,
+                    },
+                  }),
+                ).resolves.toEqual(
+                  expect.objectContaining({
+                    errors: [new GraphQLError('Contribution already confirmd.')],
+                  }),
+                )
+              })
+            })
           })
 
           describe('confirm two creations one after the other quickly', () => {
@@ -1958,6 +2391,10 @@ describe('ContributionResolver', () => {
                 creationDate: contributionDateFormatter(
                   new Date(now.getFullYear(), now.getMonth() - 2, 1),
                 ),
+              })
+              await query({
+                query: login,
+                variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
               })
             })
 

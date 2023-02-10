@@ -13,7 +13,8 @@ export const verifyLogin = gql`
       hasElopage
       publisherId
       isAdmin
-      creation
+      hideAmountGDD
+      hideAmountGDT
     }
   }
 `
@@ -182,6 +183,8 @@ export const listContributions = gql`
         deletedAt
         state
         messagesCount
+        deniedAt
+        deniedBy
       }
     }
   }
@@ -201,6 +204,10 @@ export const listAllContributions = gql`
         contributionDate
         confirmedAt
         confirmedBy
+        state
+        messagesCount
+        deniedAt
+        deniedBy
       }
     }
   }
@@ -245,6 +252,16 @@ export const listContributionMessages = gql`
         userLastName
         userId
       }
+    }
+  }
+`
+
+export const openCreations = gql`
+  query {
+    openCreations {
+      year
+      month
+      amount
     }
   }
 `

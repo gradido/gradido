@@ -1,6 +1,11 @@
 <template>
   <div id="component-sidebar">
-    <div id="side-menu" ref="sideMenu" class="gradido-border-radius appBoxShadow pt-2">
+    <div
+      id="side-menu"
+      ref="sideMenu"
+      class="gradido-border-radius pt-2 bg-white"
+      :class="shadow ? 'appBoxShadow' : ''"
+    >
       <div class="mb-3 mt-3">
         <b-nav vertical class="w-200">
           <b-nav-item to="/overview" class="mb-3" active-class="activeRoute">
@@ -19,7 +24,7 @@
             <b-icon icon="layers" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('gdt.gdt') }}</span>
           </b-nav-item>
-          <b-nav-item to="/community#my" class="" active-class="activeRoute">
+          <b-nav-item to="/community" class="" active-class="activeRoute">
             <b-icon icon="people" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('creation') }}</span>
           </b-nav-item>
@@ -55,6 +60,9 @@
 <script>
 export default {
   name: 'Sidebar',
+  props: {
+    shadow: { type: Boolean, required: false, default: true },
+  },
 }
 </script>
 <style>
@@ -70,7 +78,24 @@ export default {
   min-width: 200px;
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (min-width: 1025px) {
+  #side-menu {
+    max-width: 180px;
+  }
+  #component-sidebar {
+    min-width: 180px;
+  }
+}
+
+@media screen and (min-width: 1075px) {
+  #side-menu {
+    max-width: 200px;
+  }
+  #component-sidebar {
+    min-width: 200px;
+  }
+}
+@media screen and (max-width: 1108px) {
   #side-menu {
     max-width: 100%;
   }

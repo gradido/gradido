@@ -103,7 +103,7 @@ export const sendContributionConfirmedEmail = (data: {
   })
 }
 
-export const sendContributionRejectedEmail = (data: {
+export const sendContributionDeletedEmail = (data: {
   firstName: string
   lastName: string
   email: string
@@ -114,7 +114,33 @@ export const sendContributionRejectedEmail = (data: {
 }): Promise<Record<string, unknown> | null> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
-    template: 'contributionRejected',
+    template: 'contributionDeleted',
+    locals: {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      locale: data.language,
+      senderFirstName: data.senderFirstName,
+      senderLastName: data.senderLastName,
+      contributionMemo: data.contributionMemo,
+      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+      communityURL: CONFIG.COMMUNITY_URL,
+    },
+  })
+}
+
+export const sendContributionDeniedEmail = (data: {
+  firstName: string
+  lastName: string
+  email: string
+  language: string
+  senderFirstName: string
+  senderLastName: string
+  contributionMemo: string
+}): Promise<Record<string, unknown> | null> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'contributionDenied',
     locals: {
       firstName: data.firstName,
       lastName: data.lastName,

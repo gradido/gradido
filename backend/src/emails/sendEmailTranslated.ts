@@ -4,6 +4,7 @@ import path from 'path'
 import { createTransport } from 'nodemailer'
 import Email from 'email-templates'
 import i18n from 'i18n'
+import LogError from '@/server/LogError'
 
 export const sendEmailTranslated = async (params: {
   receiver: {
@@ -41,7 +42,7 @@ export const sendEmailTranslated = async (params: {
     host: CONFIG.EMAIL_SMTP_URL,
     port: Number(CONFIG.EMAIL_SMTP_PORT),
     secure: false, // true for 465, false for other ports
-    requireTLS: true,
+    requireTLS: CONFIG.EMAIL_TLS,
     auth: {
       user: CONFIG.EMAIL_USERNAME,
       pass: CONFIG.EMAIL_PASSWORD,
@@ -73,8 +74,7 @@ export const sendEmailTranslated = async (params: {
       logger.info('Result: ', result)
     })
     .catch((error: unknown) => {
-      logger.error('Error sending notification email: ', error)
-      throw new Error('Error sending notification email!')
+      throw new LogError('Error sending notification email', error)
     })
 
   i18n.setLocale(rememberLocaleToRestore)

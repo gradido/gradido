@@ -15,6 +15,7 @@
         :transactionLinkCount="transactionLinkCount"
         :transactions="transactions"
         :showPagination="true"
+        :pageSize="pageSize"
         @update-transactions="updateTransactions"
         v-on="$listeners"
       />
@@ -85,6 +86,11 @@ export default {
     }
   },
   watch: {
+    currentPage() {
+      if (this.gdt) {
+        this.updateGdt()
+      }
+    },
     gdt() {
       if (this.gdt) {
         this.updateGdt()

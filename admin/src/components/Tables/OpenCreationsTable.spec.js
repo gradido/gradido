@@ -5,6 +5,7 @@ const localVue = global.localVue
 
 const apolloMutateMock = jest.fn().mockResolvedValue({})
 const apolloQueryMock = jest.fn().mockResolvedValue({})
+const toggleDetailsMock = jest.fn()
 
 const propsData = {
   items: [
@@ -57,7 +58,7 @@ const propsData = {
         return value + ' GDD'
       },
     },
-    { key: 'memo', label: 'text' },
+    { key: 'memo', label: 'text', class: 'text-break' },
     {
       key: 'date',
       label: 'date',
@@ -136,6 +137,51 @@ describe('OpenCreationsTable', () => {
         wrapper.vm.updateUserData(propsData.items[0], [444, 555, 666])
         await wrapper.vm.$nextTick()
         expect(wrapper.vm.items[0].creation).toEqual([444, 555, 666])
+      })
+    })
+
+    describe('call updateState', () => {
+      beforeEach(() => {
+        wrapper.vm.updateState(4)
+      })
+
+      it('emits update-state', () => {
+        expect(wrapper.vm.$root.$emit('update-state', 4)).toBeTruthy()
+      })
+    })
+
+    describe('call updateCreationData', () => {
+      const date = new Date()
+      beforeEach(() => {
+        wrapper.vm.updateCreationData({
+          amount: Number(80.0),
+          date: date,
+          memo: 'Test memo',
+          row: {
+            item: {},
+            detailsShowing: false,
+            toggleDetails: toggleDetailsMock,
+          },
+        })
+      })
+
+      it('emits update-state', () => {
+        expect(
+          wrapper.vm.$emit('update-contributions', {
+            amount: Number(80.0),
+            date: date,
+            memo: 'Test memo',
+            row: {
+              item: {},
+              detailsShowing: false,
+              toggleDetails: toggleDetailsMock,
+            },
+          }),
+        ).toBeTruthy()
+      })
+
+      it('calls toggleDetails', () => {
+        expect(toggleDetailsMock).toBeCalled()
       })
     })
   })
