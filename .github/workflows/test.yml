@@ -358,7 +358,7 @@ jobs:
       # LINT BACKEND ###########################################################
       ##########################################################################
       - name: backend | Lint
-        run: docker run --rm gradido/backend:test yarn run lint
+        run: docker run --rm gradido/backend:test pwd && yarn run lint
 
   ##############################################################################
   # JOB: LOCALES BACKEND #######################################################
