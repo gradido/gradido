@@ -272,6 +272,7 @@
   "send_gdd": "Send GDD",
   "send_per_link": "Send GDD via Link",
   "session": {
+    "automaticallyLoggedOut": "You have been automatically logged out.",
     "extend": "Stay logged in",
     "lightText": "If you have not performed any action for more than 10 minutes, you will be logged out for security reasons.",
     "logoutIn": "Log out in ",
