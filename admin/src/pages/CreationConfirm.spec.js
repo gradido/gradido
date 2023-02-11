@@ -259,7 +259,7 @@ describe('CreationConfirm', () => {
 
       describe('deny creation', () => {
         beforeEach(async () => {
-          await wrapper.findAll('tr').at(1).findAll('button').at(2).trigger('click')
+          await wrapper.findAll('tr').at(1).findAll('button').at(1).trigger('click')
         })
 
         it('opens the overlay', () => {
