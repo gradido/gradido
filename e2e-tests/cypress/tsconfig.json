@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es2016",
+    "target": "es6",
     "lib": ["es6", "dom"],
     "baseUrl": ".",
     "types": ["cypress", "node"],
     "strict": true,
-    "esModuleInterop": true,     
+    "esModuleInterop": true,
     "moduleResolution": "node",
     "paths": {
-      "@/*": ["src/*"],
-      "@models/*": ["src/e2e/models/*"],
+      "@/*": ["cypress/*"],
+      "@models/*": ["cypress/e2e/models/*"],
     }
   },
+  "include": ["**/*.ts"],
 }

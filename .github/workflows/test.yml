@@ -649,10 +649,10 @@ jobs:
         run: |
           cd e2e-tests/cypress/
           yarn
-          yarn run cypress run --spec src/e2e/User.Authentication.feature,cypress/e2e/User.Authentication.ResetPassword.feature
+          yarn run cypress run --spec cypress/e2e/User.Authentication.feature,cypress/e2e/User.Authentication.ResetPassword.feature
       - name: End-to-end tests | if tests failed, upload screenshots
         if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
         uses: actions/upload-artifact@v3
         with:
           name: cypress-screenshots
-          path: /home/runner/work/gradido/gradido/e2e-tests/cypress/tests/cypress/screenshots/
+          path: /home/runner/work/gradido/gradido/e2e-tests/tests/screenshots/

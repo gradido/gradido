@@ -1,4 +1,4 @@
 node_modules/
-src/screenshots/
-src/videos/
-src/cucumber-messages.ndjson
+cypress/screenshots/
+cypress/videos/
+cypress/cucumber-messages.ndjson
