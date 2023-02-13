@@ -189,11 +189,9 @@ export const startDHT = async (topic: string): Promise<void> => {
 }
 
 async function writeHomeCommunityEnries(pubKey: any): Promise<CommunityApi[]> {
-  const homeApiVersions: CommunityApi[] = Object.values(ApiVersionType).map(function (
-    apiEnum,
-    idx,
-  ) {
-    const port = Number.parseInt(CONFIG.FEDERATION_COMMUNITY_API_PORT) + idx + 1
+  const homeApiVersions: CommunityApi[] = Object.values(ApiVersionType).map(function (apiEnum) {
+    const port =
+      Number.parseInt(CONFIG.FEDERATION_COMMUNITY_API_PORT) + Number(apiEnum.replace('_', ''))
     const comApi: CommunityApi = {
       api: apiEnum,
       url: CONFIG.FEDERATION_COMMUNITY_URL + ':' + port.toString() + '/api/',
@@ -202,10 +200,7 @@ async function writeHomeCommunityEnries(pubKey: any): Promise<CommunityApi[]> {
   })
   try {
     // first remove privious existing homeCommunity entries
-    const homeComs = await DbCommunity.find({ foreign: false })
-    if (homeComs.length > 0) {
-      await DbCommunity.remove(homeComs)
-    }
+    DbCommunity.createQueryBuilder().delete().where({ foreign: false }).execute()
 
     homeApiVersions.forEach(async function (homeApi) {
       const homeCom = new DbCommunity()
