@@ -186,6 +186,9 @@ export const EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL = async (
 export const EVENT_SEND_CONFIRMATION_EMAIL = async (userId: number): Promise<DbEvent> =>
   EVENT(EventProtocolType.SEND_CONFIRMATION_EMAIL, userId).save()
 
+export const EVENT_ADMIN_SEND_CONFIRMATION_EMAIL = async (userId: number): Promise<DbEvent> =>
+  EVENT(EventProtocolType.ADMIN_SEND_CONFIRMATION_EMAIL, userId).save()
+
 /* export const EVENT_REDEEM_REGISTER = async (
   userId: number,
   transactionId: number | null = null,

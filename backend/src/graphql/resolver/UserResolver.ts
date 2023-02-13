@@ -55,6 +55,7 @@ import {
   EVENT_SEND_CONFIRMATION_EMAIL,
   EVENT_REGISTER,
   EVENT_ACTIVATE_ACCOUNT,
+  EVENT_ADMIN_SEND_CONFIRMATION_EMAIL,
 } from '@/event/Event'
 import { getUserCreations } from './util/creations'
 import { isValidPassword } from '@/password/EncryptorUtils'
@@ -328,7 +329,6 @@ export class UserResolver {
       })
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
 
-      // TODO: this event is used twice, why?
       await EVENT_SEND_CONFIRMATION_EMAIL(dbUser.id)
 
       if (!emailSent) {
@@ -809,8 +809,7 @@ export class UserResolver {
     if (!emailSent) {
       logger.info(`Account confirmation link: ${activationLink}`)
     } else {
-      // TODO: this event is used twice, why?
-      await EVENT_SEND_CONFIRMATION_EMAIL(user.id)
+      await EVENT_ADMIN_SEND_CONFIRMATION_EMAIL(user.id)
     }
 
     return true
