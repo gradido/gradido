@@ -18,11 +18,18 @@ export const toasters = {
         variant: 'warning',
       })
     },
+    toastInfoNoHide(message) {
+      this.toast(message, {
+        title: this.$t('navigation.info'),
+        variant: 'warning',
+        noAutoHide: true,
+      })
+    },
     toast(message, options) {
       if (message.replace) message = message.replace(/^GraphQL error: /, '')
       this.$root.$bvToast.toast(message, {
-        autoHideDelay: 5000,
         appendToast: true,
+        autoHideDelay: 5000,
         solid: true,
         toaster: 'b-toaster-top-right',
         headerClass: 'gdd-toaster-title',

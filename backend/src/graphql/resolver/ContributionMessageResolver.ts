@@ -54,7 +54,7 @@ export class ContributionMessageResolver {
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      throw new LogError('ContributionMessage was not sent successfully', e)
+      throw new LogError(`ContributionMessage was not sent successfully: ${e}`, e)
     } finally {
       await queryRunner.release()
     }
@@ -144,7 +144,7 @@ export class ContributionMessageResolver {
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      throw new LogError('ContributionMessage was not sent successfully', e)
+      throw new LogError(`ContributionMessage was not sent successfully: ${e}`, e)
     } finally {
       await queryRunner.release()
     }
