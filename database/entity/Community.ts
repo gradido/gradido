@@ -1,1 +1,1 @@
-export { Community } from './0061-update_communities_table/Community'
+export { Community } from './0060-update_communities_table/Community'
