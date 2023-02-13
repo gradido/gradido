@@ -175,6 +175,19 @@ describe('UserResolver', () => {
           })
         })
       })
+
+      it('stores the register event in the database', async () => {
+        const userConatct = await UserContact.findOneOrFail(
+          { email: 'peter@lustig.de' },
+          { relations: ['user'] },
+        )
+        expect(EventProtocol.find()).resolves.toContainEqual(
+          expect.objectContaining({
+            type: EventProtocolType.REGISTER,
+            userId: userConatct.user.id,
+          }),
+        )
+      })
     })
 
     describe('account activation email', () => {
