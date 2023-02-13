@@ -1820,6 +1820,28 @@ describe('UserResolver', () => {
             )
           })
 
+          it('sends an account activation email', async () => {
+            const userConatct = await UserContact.findOneOrFail(
+              { email: 'bibi@bloxberg.de' },
+              { relations: ['user'] },
+            )
+            const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
+              /{optin}/g,
+              userConatct.emailVerificationCode.toString(),
+            ).replace(/{code}/g, '')
+            expect(sendAccountActivationEmail).toBeCalledWith({
+              firstName: 'Bibi',
+              lastName: 'Bloxberg',
+              email: 'bibi@bloxberg.de',
+              language: 'de',
+              activationLink,
+              timeDurationObject: expect.objectContaining({
+                hours: expect.any(Number),
+                minutes: expect.any(Number),
+              }),
+            })
+          })
+
           it('stores the ADMIN_SEND_CONFIRMATION_EMAIL event in the database', async () => {
             const userConatct = await UserContact.findOneOrFail(
               { email: 'bibi@bloxberg.de' },
