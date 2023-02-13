@@ -647,6 +647,19 @@ describe('UserResolver', () => {
       it('sets the token in the header', () => {
         expect(headerPushMock).toBeCalledWith({ key: 'token', value: expect.any(String) })
       })
+
+      it('stores the login event in the database', async () => {
+        const userConatct = await UserContact.findOneOrFail(
+          { email: 'bibi@bloxberg.de' },
+          { relations: ['user'] },
+        )
+        expect(EventProtocol.find()).resolves.toContainEqual(
+          expect.objectContaining({
+            type: EventProtocolType.LOGIN,
+            userId: userConatct.user.id,
+          }),
+        )
+      })
     })
 
     describe('user is in database and wrong password', () => {
