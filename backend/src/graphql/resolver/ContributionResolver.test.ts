@@ -48,6 +48,7 @@ import { UserInputError } from 'apollo-server-express'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { UnconfirmedContribution } from '../model/UnconfirmedContribution'
 import { ContributionListResult } from '../model/Contribution'
+import { ContributionStatus } from '../enum/ContributionStatus'
 
 // mock account activation email to avoid console spam
 jest.mock('@/emails/sendEmailVariants', () => {
@@ -202,13 +203,11 @@ describe('ContributionResolver', () => {
             },
           })
 
-          expect(errorObjects).toMatchObject([
-            new GraphQLError('memo text is too short (5 characters minimum)'),
-          ])
+          expect(errorObjects).toMatchObject([new GraphQLError('Memo text is too short')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(`memo text is too short: memo.length=4 < 5`)
+          expect(logger.error).toBeCalledWith('Memo text is too short', 4)
         })
 
         it('throws error when memo length greater than 255 chars', async () => {
@@ -222,13 +221,11 @@ describe('ContributionResolver', () => {
               creationDate: date.toString(),
             },
           })
-          expect(errorObjects).toMatchObject([
-            new GraphQLError('memo text is too long (255 characters maximum)'),
-          ])
+          expect(errorObjects).toMatchObject([new GraphQLError('Memo text is too long')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(`memo text is too long: memo.length=259 > 255`)
+          expect(logger.error).toBeCalledWith('Memo text is too long', 259)
         })
 
         it('throws error when creationDate not-valid', async () => {
@@ -328,28 +325,6 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-      describe('wrong contribution id', () => {
-        it('throws an error', async () => {
-          jest.clearAllMocks()
-          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
-            mutation: updateContribution,
-            variables: {
-              contributionId: -1,
-              amount: 100.0,
-              memo: 'Test env contribution',
-              creationDate: new Date().toString(),
-            },
-          })
-          expect(errorObjects).toMatchObject([
-            new GraphQLError('No contribution found to given id.'),
-          ])
-        })
-
-        it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('No contribution found to given id')
-        })
-      })
-
       describe('Memo length smaller than 5 chars', () => {
         it('throws error', async () => {
           jest.clearAllMocks()
@@ -363,13 +338,11 @@ describe('ContributionResolver', () => {
               creationDate: date.toString(),
             },
           })
-          expect(errorObjects).toMatchObject([
-            new GraphQLError('memo text is too short (5 characters minimum)'),
-          ])
+          expect(errorObjects).toMatchObject([new GraphQLError('Memo text is too short')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('memo text is too short: memo.length=4 < 5')
+          expect(logger.error).toBeCalledWith('Memo text is too short', 4)
         })
       })
 
@@ -386,13 +359,36 @@ describe('ContributionResolver', () => {
               creationDate: date.toString(),
             },
           })
-          expect(errorObjects).toMatchObject([
-            new GraphQLError('memo text is too long (255 characters maximum)'),
-          ])
+          expect(errorObjects).toMatchObject([new GraphQLError('Memo text is too long')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('memo text is too long: memo.length=259 > 255')
+          expect(logger.error).toBeCalledWith('Memo text is too long', 259)
+        })
+      })
+
+      describe('wrong contribution id', () => {
+        it('throws an error', async () => {
+          jest.clearAllMocks()
+          await expect(
+            mutate({
+              mutation: updateContribution,
+              variables: {
+                contributionId: -1,
+                amount: 100.0,
+                memo: 'Test env contribution',
+                creationDate: new Date().toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Contribution not found')],
+            }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('Contribution not found', -1)
         })
       })
 
@@ -416,13 +412,15 @@ describe('ContributionResolver', () => {
             },
           })
           expect(errorObjects).toMatchObject([
-            new GraphQLError('user of the pending contribution and send user does not correspond'),
+            new GraphQLError('Can not update contribution of another user'),
           ])
         })
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'user of the pending contribution and send user does not correspond',
+            'Can not update contribution of another user',
+            expect.any(Object),
+            expect.any(Number),
           )
         })
       })
@@ -448,14 +446,62 @@ describe('ContributionResolver', () => {
             },
           })
           expect(errorObjects).toMatchObject([
-            new GraphQLError('An admin is not allowed to update a user contribution.'),
+            new GraphQLError('An admin is not allowed to update an user contribution'),
           ])
         })
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'An admin is not allowed to update a user contribution.',
+            'An admin is not allowed to update an user contribution',
           )
+        })
+
+        describe('contribution has wrong status', () => {
+          beforeAll(async () => {
+            const contribution = await Contribution.findOneOrFail({
+              id: pendingContribution.data.createContribution.id,
+            })
+            contribution.contributionStatus = ContributionStatus.DELETED
+            contribution.save()
+            await mutate({
+              mutation: login,
+              variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+            })
+          })
+
+          afterAll(async () => {
+            const contribution = await Contribution.findOneOrFail({
+              id: pendingContribution.data.createContribution.id,
+            })
+            contribution.contributionStatus = ContributionStatus.PENDING
+            contribution.save()
+          })
+
+          it('throws an error', async () => {
+            jest.clearAllMocks()
+            await expect(
+              mutate({
+                mutation: updateContribution,
+                variables: {
+                  contributionId: pendingContribution.data.createContribution.id,
+                  amount: 10.0,
+                  memo: 'Test env contribution',
+                  creationDate: new Date().toString(),
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('Contribution can not be updated due to status')],
+              }),
+            )
+          })
+
+          it('logs the error found', () => {
+            expect(logger.error).toBeCalledWith(
+              'Contribution can not be updated due to status',
+              ContributionStatus.DELETED,
+            )
+          })
         })
       })
 
@@ -506,15 +552,12 @@ describe('ContributionResolver', () => {
             },
           })
           expect(errorObjects).toMatchObject([
-            new GraphQLError('Currently the month of the contribution cannot change.'),
+            new GraphQLError('Month of contribution can not be changed'),
           ])
         })
 
-        it.skip('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(
-            'No information for available creations with the given creationDate=',
-            'Invalid Date',
-          )
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('Month of contribution can not be changed')
         })
       })
 
@@ -607,25 +650,25 @@ describe('ContributionResolver', () => {
 
       describe('wrong contribution id', () => {
         it('throws an error', async () => {
+          jest.clearAllMocks()
           const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
             mutation: denyContribution,
             variables: {
               id: -1,
             },
           })
-          expect(errorObjects).toMatchObject([
-            new GraphQLError('Contribution not found for given id.'),
-          ])
+          expect(errorObjects).toMatchObject([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('Contribution not found for given id: -1')
+          expect(logger.error).toBeCalledWith('Contribution not found', -1)
         })
       })
 
       describe('deny contribution that is already confirmed', () => {
         let contribution: any
         it('throws an error', async () => {
+          jest.clearAllMocks()
           await mutate({
             mutation: login,
             variables: { email: 'raeuber@hotzenplotz.de', password: 'Aa12345_' },
@@ -658,15 +701,11 @@ describe('ContributionResolver', () => {
               id: contribution.data.createContribution.id,
             },
           })
-          expect(errorObjects).toMatchObject([
-            new GraphQLError('Contribution not found for given id.'),
-          ])
+          expect(errorObjects).toMatchObject([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(
-            `Contribution not found for given id: ${contribution.data.createContribution.id}`,
-          )
+          expect(logger.error).toBeCalledWith('Contribution not found', expect.any(Number))
         })
       })
 
@@ -674,6 +713,7 @@ describe('ContributionResolver', () => {
         let contribution: any
 
         it('throws an error', async () => {
+          jest.clearAllMocks()
           await mutate({
             mutation: login,
             variables: { email: 'raeuber@hotzenplotz.de', password: 'Aa12345_' },
@@ -706,15 +746,11 @@ describe('ContributionResolver', () => {
               id: contribution.data.createContribution.id,
             },
           })
-          expect(errorObjects).toMatchObject([
-            new GraphQLError('Contribution not found for given id.'),
-          ])
+          expect(errorObjects).toMatchObject([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(
-            `Contribution not found for given id: ${contribution.data.createContribution.id}`,
-          )
+          expect(logger.error).toBeCalledWith(`Contribution not found`, expect.any(Number))
         })
       })
 
@@ -722,6 +758,7 @@ describe('ContributionResolver', () => {
         let contribution: any
 
         it('throws an error', async () => {
+          jest.clearAllMocks()
           await mutate({
             mutation: login,
             variables: { email: 'raeuber@hotzenplotz.de', password: 'Aa12345_' },
@@ -754,15 +791,11 @@ describe('ContributionResolver', () => {
               id: contribution.data.createContribution.id,
             },
           })
-          expect(errorObjects).toMatchObject([
-            new GraphQLError('Contribution not found for given id.'),
-          ])
+          expect(errorObjects).toMatchObject([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(
-            `Contribution not found for given id: ${contribution.data.createContribution.id}`,
-          )
+          expect(logger.error).toBeCalledWith(`Contribution not found`, expect.any(Number))
         })
       })
 
@@ -813,19 +846,18 @@ describe('ContributionResolver', () => {
 
       describe('wrong contribution id', () => {
         it('returns an error', async () => {
+          jest.clearAllMocks()
           const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
             mutation: deleteContribution,
             variables: {
               id: -1,
             },
           })
-          expect(errorObjects).toMatchObject([
-            new GraphQLError('Contribution not found for given id.'),
-          ])
+          expect(errorObjects).toMatchObject([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('Contribution not found for given id')
+          expect(logger.error).toBeCalledWith('Contribution not found', expect.any(Number))
         })
       })
 
@@ -842,6 +874,7 @@ describe('ContributionResolver', () => {
         })
 
         it('returns an error', async () => {
+          jest.clearAllMocks()
           const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
             mutation: deleteContribution,
             variables: {
@@ -854,7 +887,11 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('Can not delete contribution of another user')
+          expect(logger.error).toBeCalledWith(
+            'Can not delete contribution of another user',
+            expect.any(Contribution),
+            expect.any(Number),
+          )
         })
       })
 
@@ -923,7 +960,10 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('A confirmed contribution can not be deleted')
+          expect(logger.error).toBeCalledWith(
+            'A confirmed contribution can not be deleted',
+            expect.objectContaining({ contributionStatus: 'CONFIRMED' }),
+          )
         })
       })
     })
@@ -1830,13 +1870,13 @@ describe('ContributionResolver', () => {
                 mutate({ mutation: adminCreateContribution, variables }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Could not find user with email: some@fake.email')],
+                  errors: [new GraphQLError('Could not find user')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('Could not find user with email: some@fake.email')
+              expect(logger.error).toBeCalledWith('Could not find user', 'some@fake.email')
             })
           })
 
@@ -1856,7 +1896,7 @@ describe('ContributionResolver', () => {
               ).resolves.toEqual(
                 expect.objectContaining({
                   errors: [
-                    new GraphQLError('This user was deleted. Cannot create a contribution.'),
+                    new GraphQLError('Cannot create contribution since the user was deleted'),
                   ],
                 }),
               )
@@ -1864,7 +1904,12 @@ describe('ContributionResolver', () => {
 
             it('logs the error thrown', () => {
               expect(logger.error).toBeCalledWith(
-                'This user was deleted. Cannot create a contribution.',
+                'Cannot create contribution since the user was deleted',
+                expect.objectContaining({
+                  user: expect.objectContaining({
+                    deletedAt: new Date('2018-03-14T09:17:52.000Z'),
+                  }),
+                }),
               )
             })
           })
@@ -1885,7 +1930,9 @@ describe('ContributionResolver', () => {
               ).resolves.toEqual(
                 expect.objectContaining({
                   errors: [
-                    new GraphQLError('Contribution could not be saved, Email is not activated'),
+                    new GraphQLError(
+                      'Cannot create contribution since the users email is not activated',
+                    ),
                   ],
                 }),
               )
@@ -1893,7 +1940,8 @@ describe('ContributionResolver', () => {
 
             it('logs the error thrown', () => {
               expect(logger.error).toBeCalledWith(
-                'Contribution could not be saved, Email is not activated',
+                'Cannot create contribution since the users email is not activated',
+                expect.objectContaining({ emailChecked: false }),
               )
             })
           })
@@ -1911,13 +1959,13 @@ describe('ContributionResolver', () => {
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [new GraphQLError(`invalid Date for creationDate=invalid-date`)],
+                    errors: [new GraphQLError('CreationDate is invalid')],
                   }),
                 )
               })
 
               it('logs the error thrown', () => {
-                expect(logger.error).toBeCalledWith(`invalid Date for creationDate=invalid-date`)
+                expect(logger.error).toBeCalledWith('CreationDate is invalid', 'invalid-date')
               })
             })
 
@@ -2021,6 +2069,7 @@ describe('ContributionResolver', () => {
 
             describe('second creation surpasses the available amount ', () => {
               it('returns an array of the open creations for the last three months', async () => {
+                jest.clearAllMocks()
                 variables.amount = new Decimal(1000)
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
@@ -2113,17 +2162,13 @@ describe('ContributionResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [
-                    new GraphQLError('Could not find UserContact with email: bob@baumeister.de'),
-                  ],
+                  errors: [new GraphQLError('Could not find User')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith(
-                'Could not find UserContact with email: bob@baumeister.de',
-              )
+              expect(logger.error).toBeCalledWith('Could not find User', 'bob@baumeister.de')
             })
           })
 
@@ -2143,13 +2188,13 @@ describe('ContributionResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('User was deleted (stephen@hawking.uk)')],
+                  errors: [new GraphQLError('User was deleted')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('User was deleted (stephen@hawking.uk)')
+              expect(logger.error).toBeCalledWith('User was deleted', 'stephen@hawking.uk')
             })
           })
 
@@ -2169,13 +2214,13 @@ describe('ContributionResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('No contribution found to given id.')],
+                  errors: [new GraphQLError('Contribution not found')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('No contribution found to given id.')
+              expect(logger.error).toBeCalledWith('Contribution not found', -1)
             })
           })
 
@@ -2199,7 +2244,7 @@ describe('ContributionResolver', () => {
                 expect.objectContaining({
                   errors: [
                     new GraphQLError(
-                      'user of the pending contribution and send user does not correspond',
+                      'User of the pending contribution and send user does not correspond',
                     ),
                   ],
                 }),
@@ -2208,7 +2253,7 @@ describe('ContributionResolver', () => {
 
             it('logs the error thrown', () => {
               expect(logger.error).toBeCalledWith(
-                'user of the pending contribution and send user does not correspond',
+                'User of the pending contribution and send user does not correspond',
               )
             })
           })
@@ -2436,13 +2481,13 @@ describe('ContributionResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Contribution not found for given id.')],
+                  errors: [new GraphQLError('Contribution not found')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('Contribution not found for given id: -1')
+              expect(logger.error).toBeCalledWith('Contribution not found', -1)
             })
           })
 
@@ -2563,13 +2608,13 @@ describe('ContributionResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Contribution not found to given id.')],
+                  errors: [new GraphQLError('Contribution not found')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('Contribution not found for given id: -1')
+              expect(logger.error).toBeCalledWith('Contribution not found', -1)
             })
           })
 
@@ -2587,6 +2632,7 @@ describe('ContributionResolver', () => {
             })
 
             it('thows an error', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({
                   mutation: confirmContribution,
@@ -2680,6 +2726,7 @@ describe('ContributionResolver', () => {
 
             describe('confirm same contribution again', () => {
               it('throws an error', async () => {
+                jest.clearAllMocks()
                 await expect(
                   mutate({
                     mutation: confirmContribution,
@@ -2689,10 +2736,17 @@ describe('ContributionResolver', () => {
                   }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [new GraphQLError('Contribution already confirmd.')],
+                    errors: [new GraphQLError('Contribution already confirmed')],
                   }),
                 )
               })
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'Contribution already confirmed',
+                expect.any(Number),
+              )
             })
           })
 
