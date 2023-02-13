@@ -24,11 +24,6 @@ describe('ContributionForm', () => {
     $t: jest.fn((t) => t),
     $d: jest.fn((d) => d),
     $n: jest.fn((n) => n),
-    $store: {
-      state: {
-        creation: ['1000', '1000', '1000'],
-      },
-    },
     $i18n: {
       locale: 'en',
     },
@@ -61,7 +56,7 @@ describe('ContributionForm', () => {
       })
     })
 
-    describe('dates', () => {
+    describe('dates and max amounts', () => {
       beforeEach(async () => {
         await wrapper.setData({
           form: {
@@ -73,204 +68,176 @@ describe('ContributionForm', () => {
         })
       })
 
-      describe('actual date', () => {
-        describe('same month', () => {
-          beforeEach(async () => {
-            const now = new Date().toISOString()
-            await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
+      describe('max amount reached for both months', () => {
+        beforeEach(() => {
+          wrapper.setProps({
+            maxGddLastMonth: 0,
+            maxGddThisMonth: 0,
           })
-
-          describe('isThisMonth', () => {
-            it('has true', () => {
-              expect(wrapper.vm.isThisMonth).toBe(true)
-            })
+          wrapper.setData({
+            form: {
+              id: null,
+              date: 'set',
+              memo: '',
+              amount: '',
+            },
           })
         })
 
-        describe.skip('month before', () => {
-          beforeEach(async () => {
-            await wrapper
-              .findComponent({ name: 'BFormDatepicker' })
-              .vm.$emit('input', wrapper.vm.minimalDate)
-          })
-
-          describe('isThisMonth', () => {
-            it('has false', () => {
-              expect(wrapper.vm.isThisMonth).toBe(false)
-            })
-          })
+        it('shows message that no contributions are available', () => {
+          expect(wrapper.find('[data-test="contribtion-message"]').text()).toBe(
+            'contribution.noOpenCreation.allMonth',
+          )
         })
       })
 
-      describe.skip('date in middle of year', () => {
-        describe('same month', () => {
-          beforeEach(async () => {
-            // jest.useFakeTimers('modern')
-            // jest.setSystemTime(new Date('2020-07-06'))
-            // await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
-            await wrapper.setData({
-              maximalDate: new Date(2020, 6, 6),
-              form: { date: new Date(2020, 6, 6) },
-            })
-          })
-
-          describe('minimalDate', () => {
-            it('has "2020-06-01T00:00:00.000Z"', () => {
-              expect(wrapper.vm.minimalDate.toISOString()).toBe('2020-06-01T00:00:00.000Z')
-            })
-          })
-
-          describe('isThisMonth', () => {
-            it('has true', () => {
-              expect(wrapper.vm.isThisMonth).toBe(true)
-            })
+      describe('max amount reached for last month, no date selected', () => {
+        beforeEach(() => {
+          wrapper.setProps({
+            maxGddLastMonth: 0,
           })
         })
 
-        describe('month before', () => {
-          beforeEach(async () => {
-            // jest.useFakeTimers('modern')
-            // jest.setSystemTime(new Date('2020-07-06'))
-            // console.log('middle of year date – now:', wrapper.vm.minimalDate)
-            // await wrapper
-            //   .findComponent({ name: 'BFormDatepicker' })
-            //   .vm.$emit('input', wrapper.vm.minimalDate)
-            await wrapper.setData({
-              maximalDate: new Date(2020, 6, 6),
-              form: { date: new Date(2020, 5, 6) },
-            })
-          })
-
-          describe('minimalDate', () => {
-            it('has "2020-06-01T00:00:00.000Z"', () => {
-              expect(wrapper.vm.minimalDate.toISOString()).toBe('2020-06-01T00:00:00.000Z')
-            })
-          })
-
-          describe('isThisMonth', () => {
-            it('has false', () => {
-              expect(wrapper.vm.isThisMonth).toBe(false)
-            })
-          })
+        it('shows no message', () => {
+          expect(wrapper.find('[data-test="contribtion-message"]').exists()).toBe(false)
         })
       })
 
-      describe.skip('date in january', () => {
-        describe('same month', () => {
-          beforeEach(async () => {
-            await wrapper.setData({
-              maximalDate: new Date(2020, 0, 6),
-              form: { date: new Date(2020, 0, 6) },
-            })
+      describe('max amount reached for last month, last month selected', () => {
+        beforeEach(async () => {
+          wrapper.setProps({
+            maxGddLastMonth: 0,
+            isThisMonth: false,
           })
-
-          describe('minimalDate', () => {
-            it('has "2019-12-01T00:00:00.000Z"', () => {
-              expect(wrapper.vm.minimalDate.toISOString()).toBe('2019-12-01T00:00:00.000Z')
-            })
-          })
-
-          describe('isThisMonth', () => {
-            it('has true', () => {
-              expect(wrapper.vm.isThisMonth).toBe(true)
-            })
+          await wrapper.setData({
+            form: {
+              id: null,
+              date: 'set',
+              memo: '',
+              amount: '',
+            },
           })
         })
 
-        describe('month before', () => {
-          beforeEach(async () => {
-            // jest.useFakeTimers('modern')
-            // jest.setSystemTime(new Date('2020-07-06'))
-            // console.log('middle of year date – now:', wrapper.vm.minimalDate)
-            // await wrapper
-            //   .findComponent({ name: 'BFormDatepicker' })
-            //   .vm.$emit('input', wrapper.vm.minimalDate)
-            await wrapper.setData({
-              maximalDate: new Date(2020, 0, 6),
-              form: { date: new Date(2019, 11, 6) },
-            })
-          })
-
-          describe('minimalDate', () => {
-            it('has "2019-12-01T00:00:00.000Z"', () => {
-              expect(wrapper.vm.minimalDate.toISOString()).toBe('2019-12-01T00:00:00.000Z')
-            })
-          })
-
-          describe('isThisMonth', () => {
-            it('has false', () => {
-              expect(wrapper.vm.isThisMonth).toBe(false)
-            })
-          })
+        it('shows message that no contributions are available for last month', () => {
+          expect(wrapper.find('[data-test="contribtion-message"]').text()).toBe(
+            'contribution.noOpenCreation.lastMonth',
+          )
         })
       })
 
-      describe.skip('date with the 31st day of the month', () => {
-        describe('same month', () => {
-          beforeEach(async () => {
-            await wrapper.setData({
-              maximalDate: new Date('2022-10-31T00:00:00.000Z'),
-              form: { date: new Date('2022-10-31T00:00:00.000Z') },
-            })
+      describe('max amount reached for last month, this month selected', () => {
+        beforeEach(async () => {
+          wrapper.setProps({
+            maxGddLastMonth: 0,
+            isThisMonth: true,
           })
+          await wrapper.setData({
+            form: {
+              id: null,
+              date: 'set',
+              memo: '',
+              amount: '',
+            },
+          })
+        })
 
-          describe('minimalDate', () => {
-            it('has "2022-09-01T00:00:00.000Z"', () => {
-              expect(wrapper.vm.minimalDate.toISOString()).toBe('2022-09-01T00:00:00.000Z')
-            })
-          })
-
-          describe('isThisMonth', () => {
-            it('has true', () => {
-              expect(wrapper.vm.isThisMonth).toBe(true)
-            })
-          })
+        it('shows no message', () => {
+          expect(wrapper.find('[data-test="contribtion-message"]').exists()).toBe(false)
         })
       })
 
-      describe.skip('date with the 28th day of the month', () => {
-        describe('same month', () => {
-          beforeEach(async () => {
-            await wrapper.setData({
-              maximalDate: new Date('2023-02-28T00:00:00.000Z'),
-              form: { date: new Date('2023-02-28T00:00:00.000Z') },
-            })
+      describe('max amount reached for this month, no date selected', () => {
+        beforeEach(() => {
+          wrapper.setProps({
+            maxGddThisMonth: 0,
           })
+        })
 
-          describe('minimalDate', () => {
-            it('has "2023-01-01T00:00:00.000Z"', () => {
-              expect(wrapper.vm.minimalDate.toISOString()).toBe('2023-01-01T00:00:00.000Z')
-            })
-          })
-
-          describe('isThisMonth', () => {
-            it('has true', () => {
-              expect(wrapper.vm.isThisMonth).toBe(true)
-            })
-          })
+        it('shows no message', () => {
+          expect(wrapper.find('[data-test="contribtion-message"]').exists()).toBe(false)
         })
       })
 
-      describe.skip('date with 29.02.2024 leap year', () => {
-        describe('same month', () => {
-          beforeEach(async () => {
-            await wrapper.setData({
-              maximalDate: new Date('2024-02-29T00:00:00.000Z'),
-              form: { date: new Date('2024-02-29T00:00:00.000Z') },
-            })
+      describe('max amount reached for this month, this month selected', () => {
+        beforeEach(async () => {
+          wrapper.setProps({
+            maxGddThisMonth: 0,
+            isThisMonth: true,
           })
+          await wrapper.setData({
+            form: {
+              id: null,
+              date: 'set',
+              memo: '',
+              amount: '',
+            },
+          })
+        })
 
-          describe('minimalDate', () => {
-            it('has "2024-01-01T00:00:00.000Z"', () => {
-              expect(wrapper.vm.minimalDate.toISOString()).toBe('2024-01-01T00:00:00.000Z')
-            })
-          })
+        it('shows message that no contributions are available for last month', () => {
+          expect(wrapper.find('[data-test="contribtion-message"]').text()).toBe(
+            'contribution.noOpenCreation.thisMonth',
+          )
+        })
+      })
 
-          describe('isThisMonth', () => {
-            it('has true', () => {
-              expect(wrapper.vm.isThisMonth).toBe(true)
-            })
+      describe('max amount reached for this month, last month selected', () => {
+        beforeEach(async () => {
+          wrapper.setProps({
+            maxGddThisMonth: 0,
+            isThisMonth: false,
           })
+          await wrapper.setData({
+            form: {
+              id: null,
+              date: 'set',
+              memo: '',
+              amount: '',
+            },
+          })
+        })
+
+        it('shows no message', () => {
+          expect(wrapper.find('[data-test="contribtion-message"]').exists()).toBe(false)
+        })
+      })
+    })
+
+    describe('default return message', () => {
+      it('returns an empty string', () => {
+        expect(wrapper.vm.noOpenCreation).toBe('')
+      })
+    })
+
+    describe('update amount', () => {
+      beforeEach(() => {
+        wrapper.findComponent({ name: 'InputHour' }).vm.$emit('updateAmount', 20)
+      })
+
+      it('updates form amount', () => {
+        expect(wrapper.vm.form.amount).toBe('400.00')
+      })
+    })
+
+    describe('watch value', () => {
+      beforeEach(() => {
+        wrapper.setProps({
+          value: {
+            id: 42,
+            date: 'set',
+            memo: 'Some Memo',
+            amount: '400.00',
+          },
+        })
+      })
+
+      it('updates form', () => {
+        expect(wrapper.vm.form).toEqual({
+          id: 42,
+          date: 'set',
+          memo: 'Some Memo',
+          amount: '400.00',
         })
       })
     })
@@ -477,24 +444,23 @@ describe('ContributionForm', () => {
             })
           })
 
-          describe.skip('on trigger submit', () => {
+          describe('on trigger submit', () => {
             beforeEach(async () => {
               await wrapper.find('form').trigger('submit')
             })
 
             it('emits "update-contribution"', () => {
-              expect(wrapper.emitted('update-contribution')).toEqual(
-                expect.arrayContaining([
-                  expect.arrayContaining([
-                    {
-                      id: 2,
-                      date: now,
-                      memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
-                      amount: '200',
-                    },
-                  ]),
-                ]),
-              )
+              expect(wrapper.emitted('update-contribution')).toEqual([
+                [
+                  {
+                    id: 2,
+                    date: now,
+                    hours: 0,
+                    memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
+                    amount: '200',
+                  },
+                ],
+              ])
             })
           })
         })
