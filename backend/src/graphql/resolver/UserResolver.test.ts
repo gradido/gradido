@@ -206,7 +206,7 @@ describe('UserResolver', () => {
       })
     })
 
-    describe('email already exists', () => {
+    describe('user already exists', () => {
       let mutation: User
       beforeAll(async () => {
         mutation = await mutate({ mutation: createUser, variables })
@@ -233,6 +233,19 @@ describe('UserResolver', () => {
                 id: expect.any(Number),
               },
             },
+          }),
+        )
+      })
+
+      it('stores the send account multi registration email event in the database', async () => {
+        const userConatct = await UserContact.findOneOrFail(
+          { email: 'peter@lustig.de' },
+          { relations: ['user'] },
+        )
+        expect(EventProtocol.find()).resolves.toContainEqual(
+          expect.objectContaining({
+            type: EventProtocolType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
+            userId: userConatct.user.id,
           }),
         )
       })
