@@ -200,11 +200,13 @@ async function writeHomeCommunityEnries(pubKey: any): Promise<CommunityApi[]> {
   })
   try {
     // first remove privious existing homeCommunity entries
+    DbCommunity.createQueryBuilder().delete().where({ foreign: false }).execute()
+    /*
     const homeComs = await DbCommunity.find({ foreign: false })
     if (homeComs.length > 0) {
       await DbCommunity.remove(homeComs)
     }
-
+    */
     homeApiVersions.forEach(async function (homeApi) {
       const homeCom = new DbCommunity()
       homeCom.foreign = false

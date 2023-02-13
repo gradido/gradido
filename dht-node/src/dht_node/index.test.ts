@@ -44,11 +44,10 @@ const lookupResultMock = {
   token: Buffer.from(TEST_TOPIC),
   from: {
     id: Buffer.from('somone'),
-    foreign: true,
     host: '188.95.53.5',
     port: 63561,
   },
-  to: { id: null, foreign: true, host: '83.53.31.27', port: 55723 },
+  to: { id: null, host: '83.53.31.27', port: 55723 },
   peers: [
     {
       publicKey: Buffer.from('some-public-key'),
