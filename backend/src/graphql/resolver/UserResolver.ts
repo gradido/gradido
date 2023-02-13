@@ -781,19 +781,12 @@ export class UserResolver {
     email = email.trim().toLowerCase()
     // const user = await dbUser.findOne({ id: emailContact.userId })
     const user = await findUserByEmail(email)
-    if (!user) {
-      throw new LogError('Could not find user to given email contact', email)
-    }
-    if (user.deletedAt) {
+    if (user.deletedAt || user.emailContact.deletedAt) {
       throw new LogError('User with given email contact is deleted', email)
     }
-    const emailContact = user.emailContact
-    if (emailContact.deletedAt) {
-      throw new LogError('The given email contact for this user is deleted', email)
-    }
 
-    emailContact.emailResendCount++
-    await emailContact.save()
+    user.emailContact.emailResendCount++
+    await user.emailContact.save()
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendAccountActivationEmail({
@@ -801,7 +794,7 @@ export class UserResolver {
       lastName: user.lastName,
       email,
       language: user.language,
-      activationLink: activationLink(emailContact.emailVerificationCode),
+      activationLink: activationLink(user.emailContact.emailVerificationCode),
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
