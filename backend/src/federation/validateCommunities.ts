@@ -12,6 +12,7 @@ export async function startValidateCommunities(timerInterval: number): Promise<v
   logger.info(
     `Federation: startValidateCommunities loop with an interval of ${timerInterval} ms...`,
   )
+  // TODO: replace the timer-loop by an event-based communication to verify announced foreign communities
   // better to use setTimeout twice than setInterval once -> see https://javascript.info/settimeout-setinterval
   setTimeout(function run() {
     validateCommunities()
