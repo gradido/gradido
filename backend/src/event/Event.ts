@@ -131,13 +131,14 @@ export const EVENT_CONTRIBUTION_CONFIRM = async (
 
 export const EVENT_ADMIN_CONTRIBUTION_DENY = async (
   userId: number,
+  xUserId: number,
   contributionId: number,
   amount: Decimal,
 ): Promise<DbEvent> =>
   EVENT(
     EventProtocolType.ADMIN_CONTRIBUTION_DENY,
     userId,
-    null,
+    xUserId,
     null,
     null,
     contributionId,
