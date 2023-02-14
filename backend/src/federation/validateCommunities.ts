@@ -64,9 +64,10 @@ export async function validateCommunities(): Promise<void> {
   })
 }
 
-function isLogError(err: any) {
+function isLogError(err: unknown) {
   return err instanceof LogError
 }
+
 async function invokeVersionedRequestGetPublicKey(dbCom: DbCommunity): Promise<string | undefined> {
   switch (dbCom.apiVersion) {
     case ApiVersionType.V1_0:
