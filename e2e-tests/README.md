@@ -63,7 +63,7 @@ yarn cypress open
 
 ```bash
 # change to the cypress directory 
-cd /path/to/gradido/e2e-tests/cypress/
+cd /path/to/gradido/e2e-tests/
 
 # build a Docker image from the Dockerfile
 docker build -t gradido_e2e-tests-cypress .
