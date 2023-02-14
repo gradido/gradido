@@ -45,7 +45,7 @@ describe('router', () => {
 
     describe('routes', () => {
       it('has nine routes defined', () => {
-        expect(routes).toHaveLength(9)
+        expect(routes).toHaveLength(8)
       })
 
       it('has "/overview" as default', async () => {
@@ -64,13 +64,6 @@ describe('router', () => {
         it('loads the "UserSearch" component', async () => {
           const component = await routes.find((r) => r.path === '/user').component()
           expect(component.default.name).toBe('UserSearch')
-        })
-      })
-
-      describe('creation', () => {
-        it('loads the "Creation" component', async () => {
-          const component = await routes.find((r) => r.path === '/creation').component()
-          expect(component.default.name).toBe('Creation')
         })
       })
 
