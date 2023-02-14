@@ -32,7 +32,6 @@
   "creation": "Schöpfung",
   "creationList": "Schöpfungsliste",
   "creation_form": {
-    "creation_failed": "Ausstehende Schöpfung für {email} konnte nicht erzeugt werden.",
     "creation_for": "Aktives Grundeinkommen für",
     "enter_text": "Text eintragen",
     "form": "Schöpfungsformular",
@@ -87,7 +86,6 @@
   "lastname": "Nachname",
   "math": {
     "equals": "=",
-    "exclaim": "!",
     "pipe": "|",
     "plus": "+"
   },
@@ -95,15 +93,12 @@
     "request": "Die Anfrage wurde gesendet."
   },
   "moderator": "Moderator",
-  "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "name": "Name",
   "navbar": {
     "automaticContributions": "Automatische Beiträge",
     "logout": "Abmelden",
-    "multi_creation": "Mehrfachschöpfung",
     "my-account": "Mein Konto",
     "open_creation": "Offene Schöpfungen",
-    "overview": "Übersicht",
     "statistic": "Statistik",
     "user_search": "Nutzersuche"
   },
@@ -132,9 +127,7 @@
     }
   },
   "redeemed": "eingelöst",
-  "remove": "Entfernen",
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
-  "remove_all": "alle Nutzer entfernen",
   "save": "Speichern",
   "statistic": {
     "activeUsers": "Aktive Mitglieder",
