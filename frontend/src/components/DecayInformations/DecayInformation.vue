@@ -1,6 +1,6 @@
 <template>
   <div class="decay-information-box">
-    <decay-information-before-startblock v-if="decay.start === null" />
+    <decay-information-before-startblock v-if="decay.start === null" :memo="memo" />
     <decay-information-decay-startblock
       v-else-if="isStartBlock"
       :amount="amount"
