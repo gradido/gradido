@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import ContributionLinks from './ContributionLinks.vue'
 import { listContributionLinks } from '@/graphql/listContributionLinks.js'
+import { toastErrorSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -46,13 +47,31 @@ describe('ContributionLinks', () => {
     beforeEach(() => {
       wrapper = Wrapper()
     })
+    describe('apollo returns', () => {
+      it('calls listContributionLinks', () => {
+        expect(apolloQueryMock).toBeCalledWith(
+          expect.objectContaining({
+            query: listContributionLinks,
+          }),
+        )
+      })
+    })
 
-    it('calls listContributionLinks', () => {
-      expect(apolloQueryMock).toBeCalledWith(
-        expect.objectContaining({
-          query: listContributionLinks,
-        }),
-      )
+    describe.skip('query transaction with error', () => {
+      beforeEach(() => {
+        apolloQueryMock.mockRejectedValue({ message: 'OUCH!' })
+        wrapper = Wrapper()
+      })
+
+      it('calls the API', () => {
+        expect(apolloQueryMock).toBeCalled()
+      })
+
+      it('toast error', () => {
+        expect(toastErrorSpy).toBeCalledWith(
+          'listContributionLinks has no result, use default data',
+        )
+      })
     })
   })
 })
