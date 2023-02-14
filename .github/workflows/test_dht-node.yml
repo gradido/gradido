@@ -1,6 +1,9 @@
 name: gradido test_dht-node CI
 
-on: push
+on:
+  push:
+    branches:
+      - 2664-refactordevops-refine-test-ci-workflow-test
 
 jobs:
   ##############################################################################
