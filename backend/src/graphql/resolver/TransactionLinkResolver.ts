@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto'
 import Decimal from 'decimal.js-light'
 
-import { getConnection, MoreThan, FindOperator } from '@dbTools/typeorm'
+import { getConnection, MoreThan } from '@dbTools/typeorm'
 
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
@@ -35,7 +35,6 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import LogError from '@/server/LogError'
 
 import { getLastTransaction } from './util/getLastTransaction'
-import { filter } from 'lodash'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
