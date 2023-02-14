@@ -56,7 +56,7 @@ jobs:
       - name: Load Docker Image
         run: docker load < /tmp/frontend.tar
       - name: Frontend | Lint
-        run: docker run --rm gradido/frontend:development cd frontend && yarn run lint
+        run: docker run --rm gradido/frontend:development ls -l && yarn run lint
 
   # STYLELINT FRONTEND
   stylelint_frontend:
