@@ -116,6 +116,11 @@ describe('TransactionLinkResolver', () => {
   })
 
   describe('redeemTransactionLink', () => {
+    afterAll(async () => {
+      await cleanDB()
+      resetToken()
+    })
+
     describe('contributionLink', () => {
       describe('input not valid', () => {
         beforeAll(async () => {
@@ -482,8 +487,7 @@ describe('TransactionLinkResolver', () => {
       pageSize: 5,
     }
 
-    // TODO: there is a test not cleaning up after itself! Fix it!
-    beforeAll(async () => {
+    afterAll(async () => {
       await cleanDB()
       resetToken()
     })

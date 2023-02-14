@@ -22,11 +22,7 @@ import {
   listContributions,
   listUnconfirmedContributions,
 } from '@/seeds/graphql/queries'
-import {
-  // sendAccountActivationEmail,
-  sendContributionConfirmedEmail,
-  // sendContributionRejectedEmail,
-} from '@/emails/sendEmailVariants'
+import { sendContributionConfirmedEmail } from '@/emails/sendEmailVariants'
 import {
   cleanDB,
   resetToken,
@@ -48,7 +44,6 @@ import { logger, i18n as localization } from '@test/testSetup'
 import { UserInputError } from 'apollo-server-express'
 import { ContributionStatus } from '../enum/ContributionStatus'
 
-// mock account activation email to avoid console spam
 // mock account activation email to avoid console spam
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
@@ -536,7 +531,6 @@ describe('ContributionResolver', () => {
         })
       })
 
-      // TODO: why is this here - this is a different call `adminUpdateContribution` not `updateContribution`
       describe('admin tries to update a user contribution', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()

@@ -44,16 +44,20 @@ import {
   EventContributionConfirm,
   EventAdminContributionCreate,
   EventAdminContributionDelete,
+  EventAdminContributionDeny,
   EventAdminContributionUpdate,
 } from '@/event/Event'
-import { eventProtocol } from '@/event/EventProtocolEmitter'
+import { writeEvent } from '@/event/EventProtocolEmitter'
 import { calculateDecay } from '@/util/decay'
 import {
   sendContributionConfirmedEmail,
+  sendContributionDeletedEmail,
   sendContributionDeniedEmail,
 } from '@/emails/sendEmailVariants'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import LogError from '@/server/LogError'
+
+import { getLastTransaction } from './util/getLastTransaction'
 
 @Resolver()
 export class ContributionResolver {
@@ -95,7 +99,7 @@ export class ContributionResolver {
     eventCreateContribution.userId = user.id
     eventCreateContribution.amount = amount
     eventCreateContribution.contributionId = contribution.id
-    await eventProtocol.writeEvent(event.setEventContributionCreate(eventCreateContribution))
+    await writeEvent(event.setEventContributionCreate(eventCreateContribution))
 
     return new UnconfirmedContribution(contribution, user, creations)
   }
@@ -128,7 +132,7 @@ export class ContributionResolver {
     eventDeleteContribution.userId = user.id
     eventDeleteContribution.contributionId = contribution.id
     eventDeleteContribution.amount = contribution.amount
-    await eventProtocol.writeEvent(event.setEventContributionDelete(eventDeleteContribution))
+    await writeEvent(event.setEventContributionDelete(eventDeleteContribution))
 
     const res = await contribution.softRemove()
     return !!res
@@ -281,7 +285,7 @@ export class ContributionResolver {
     eventUpdateContribution.userId = user.id
     eventUpdateContribution.contributionId = contributionId
     eventUpdateContribution.amount = amount
-    await eventProtocol.writeEvent(event.setEventContributionUpdate(eventUpdateContribution))
+    await writeEvent(event.setEventContributionUpdate(eventUpdateContribution))
 
     return new UnconfirmedContribution(contributionToUpdate, user, creations)
   }
@@ -343,9 +347,7 @@ export class ContributionResolver {
     eventAdminCreateContribution.userId = moderator.id
     eventAdminCreateContribution.amount = amount
     eventAdminCreateContribution.contributionId = contribution.id
-    await eventProtocol.writeEvent(
-      event.setEventAdminContributionCreate(eventAdminCreateContribution),
-    )
+    await writeEvent(event.setEventAdminContributionCreate(eventAdminCreateContribution))
 
     return getUserCreation(emailContact.userId, clientTimezoneOffset)
   }
@@ -445,9 +447,7 @@ export class ContributionResolver {
     eventAdminContributionUpdate.userId = emailContact.user.id
     eventAdminContributionUpdate.amount = amount
     eventAdminContributionUpdate.contributionId = contributionToUpdate.id
-    await eventProtocol.writeEvent(
-      event.setEventAdminContributionUpdate(eventAdminContributionUpdate),
-    )
+    await writeEvent(event.setEventAdminContributionUpdate(eventAdminContributionUpdate))
 
     return result
   }
@@ -523,10 +523,8 @@ export class ContributionResolver {
     eventAdminContributionDelete.userId = contribution.userId
     eventAdminContributionDelete.amount = contribution.amount
     eventAdminContributionDelete.contributionId = contribution.id
-    await eventProtocol.writeEvent(
-      event.setEventAdminContributionDelete(eventAdminContributionDelete),
-    )
-    sendContributionDeniedEmail({
+    await writeEvent(event.setEventAdminContributionDelete(eventAdminContributionDelete))
+    sendContributionDeletedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.emailContact.email,
@@ -582,16 +580,11 @@ export class ContributionResolver {
       const queryRunner = getConnection().createQueryRunner()
       await queryRunner.connect()
       await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
-      try {
-        const lastTransaction = await queryRunner.manager
-          .createQueryBuilder()
-          .select('transaction')
-          .from(DbTransaction, 'transaction')
-          .where('transaction.userId = :id', { id: contribution.userId })
-          .orderBy('transaction.id', 'DESC')
-          .getOne()
-        logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
 
+      const lastTransaction = await getLastTransaction(contribution.userId)
+      logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
+
+      try {
         let newBalance = new Decimal(0)
         let decay: Decay | null = null
         if (lastTransaction) {
@@ -647,7 +640,7 @@ export class ContributionResolver {
       eventContributionConfirm.userId = user.id
       eventContributionConfirm.amount = contribution.amount
       eventContributionConfirm.contributionId = contribution.id
-      await eventProtocol.writeEvent(event.setEventContributionConfirm(eventContributionConfirm))
+      await writeEvent(event.setEventContributionConfirm(eventContributionConfirm))
     } finally {
       releaseLock()
     }
@@ -736,6 +729,13 @@ export class ContributionResolver {
     contributionToUpdate.deniedBy = moderator.id
     contributionToUpdate.deniedAt = new Date()
     const res = await contributionToUpdate.save()
+
+    const event = new Event()
+    const eventAdminContributionDeny = new EventAdminContributionDeny()
+    eventAdminContributionDeny.userId = contributionToUpdate.userId
+    eventAdminContributionDeny.amount = contributionToUpdate.amount
+    eventAdminContributionDeny.contributionId = contributionToUpdate.id
+    await writeEvent(event.setEventAdminContributionDeny(eventAdminContributionDeny))
 
     sendContributionDeniedEmail({
       firstName: user.firstName,
