@@ -46,7 +46,7 @@ For now the test setup can only be used locally in two modes.
 
 ```bash
 # change to the tests directory 
-cd /path/to/gradido/e2e-tests/cypress/tests
+cd /path/to/gradido/e2e-tests/
 
 # install all dependencies
 yarn install
