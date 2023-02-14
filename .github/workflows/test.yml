@@ -647,7 +647,7 @@ jobs:
       - name: End-to-end tests | run tests
         id: e2e-tests
         run: |
-          cd e2e-tests/cypress/tests/
+          cd e2e-tests/
           yarn
           yarn run cypress run --spec cypress/e2e/User.Authentication.feature,cypress/e2e/User.Authentication.ResetPassword.feature
       - name: End-to-end tests | if tests failed, upload screenshots
@@ -655,4 +655,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: cypress-screenshots
-          path: /home/runner/work/gradido/gradido/e2e-tests/cypress/tests/cypress/screenshots/
+          path: /home/runner/work/gradido/gradido/e2e-tests/cypress/screenshots/
