@@ -68,25 +68,30 @@
               ></input-email>
             </b-col>
           </b-row>
-          <div class="my-4">
-            <b-form-checkbox
-              id="registerCheckbox"
-              v-model="form.agree"
-              :name="$t('site.signup.agree')"
-            >
-              <!-- eslint-disable-next-line @intlify/vue-i18n/no-v-html -->
-              <span class="text-muted" v-html="$t('site.signup.agree')"></span>
-            </b-form-checkbox>
-          </div>
-          <div>
-            <b-button
-              type="submit"
-              :disabled="disabled"
-              :variant="disabled ? 'gradido-disable' : 'gradido'"
-            >
-              {{ $t('signup') }}
-            </b-button>
-          </div>
+          <b-row>
+            <b-col cols="12" class="my-4">
+              <b-form-checkbox
+                id="registerCheckbox"
+                v-model="form.agree"
+                :name="$t('site.signup.agree')"
+              >
+                <!-- eslint-disable-next-line @intlify/vue-i18n/no-v-html -->
+                <span class="text-muted" v-html="$t('site.signup.agree')"></span>
+              </b-form-checkbox>
+            </b-col>
+          </b-row>
+          <b-row>
+            <b-col cols="12" lg="5">
+              <b-button
+                block
+                type="submit"
+                :disabled="disabled"
+                :variant="disabled ? 'gradido-disable' : 'gradido'"
+              >
+                {{ $t('signup') }}
+              </b-button>
+            </b-col>
+          </b-row>
         </b-form>
       </validation-observer>
     </b-container>
