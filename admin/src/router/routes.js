@@ -20,10 +20,6 @@ const routes = [
     component: () => import('@/pages/UserSearch.vue'),
   },
   {
-    path: '/creation',
-    component: () => import('@/pages/Creation.vue'),
-  },
-  {
     path: '/creation-confirm',
     component: () => import('@/pages/CreationConfirm.vue'),
   },
