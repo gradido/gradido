@@ -78,7 +78,7 @@ jobs:
       - name: Download Docker Image (Admin Interface)
         uses: actions/download-artifact@v3
         with:
-          name: docker-admin-build"
+          name: docker-admin-build
           path: /tmp
 
       - name: Load Docker Image
@@ -87,7 +87,7 @@ jobs:
       - name: Download Docker Image (Admin Interface)
         uses: actions/download-artifact@v3
         with:
-          name: docker-admin-build"
+          name: docker-admin-build
           path: /tmp
 
       - name: Load Docker Image
@@ -108,7 +108,7 @@ jobs:
       - name: Download Docker Image (Admin Interface)
         uses: actions/download-artifact@v3
         with:
-          name: docker-admin-build"
+          name: docker-admin-build
           path: /tmp
 
       - name: Load Docker Image
