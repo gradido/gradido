@@ -693,7 +693,7 @@ export class ContributionResolver {
     const res = await contributionToUpdate.save()
 
     await EVENT_ADMIN_CONTRIBUTION_DENY(
-      contributionToUpdate.userId,
+      moderator.id,
       contributionToUpdate.id,
       contributionToUpdate.amount,
     )
