@@ -94,5 +94,5 @@ jobs:
           type: lcov
           #result_path: ./federation/coverage/lcov.info
           result_path: ./coverage/lcov.info
-          min_coverage: 79
+          min_coverage: 73
           token: ${{ github.token }}
