@@ -75,26 +75,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Download Docker Image (Admin Interface)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-admin-build
-          path: /tmp
-
-      - name: Load Docker Image
-        run: docker load < /tmp/admin.tar
-
-      - name: Download Docker Image (Admin Interface)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-admin-build
-          path: /tmp
-
-      - name: Load Docker Image
-        run: docker load < /tmp/admin.tar
-
       - name: admin | Locales
-        run: docker run --rm gradido/admin:build yarn run locales
+        run: |
+          cd admin
+          yarn run locales
 
   # UNIT TEST ADMIN INTERFACE
   unit_test_admin:
