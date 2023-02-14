@@ -49,7 +49,7 @@ import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import {
-  EVENT,
+  Event,
   EVENT_LOGIN,
   EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
   EVENT_SEND_CONFIRMATION_EMAIL,
@@ -266,7 +266,7 @@ export class UserResolver {
 
     const gradidoID = await newGradidoID()
 
-    const eventRegisterRedeem = EVENT(EventProtocolType.REDEEM_REGISTER, 0)
+    const eventRegisterRedeem = Event(EventProtocolType.REDEEM_REGISTER, 0)
     let dbUser = new DbUser()
     dbUser.gradidoID = gradidoID
     dbUser.firstName = firstName
