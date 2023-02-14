@@ -1,34 +1,11 @@
 name: gradido test CI
 
-on: push
+on:
+  push:
+    branches:
+      - 2664-refactordevops-refine-test-ci-workflow
 
 jobs:
-  ##############################################################################
-  # JOB: DOCKER BUILD TEST FRONTEND ############################################
-  ##############################################################################
-  build_test_frontend:
-    name: Docker Build Test - Frontend
-    runs-on: ubuntu-latest
-    #needs: [nothing]
-    steps:
-      ##########################################################################
-      # CHECKOUT CODE ##########################################################
-      ##########################################################################
-      - name: Checkout code
-        uses: actions/checkout@v3
-      ##########################################################################
-      # FRONTEND ###############################################################
-      ##########################################################################
-      - name: Frontend | Build `test` image
-        run: |
-          docker build --target test -t "gradido/frontend:test" frontend/
-          docker save "gradido/frontend:test" > /tmp/frontend.tar
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: docker-frontend-test
-          path: /tmp/frontend.tar
-
   ##############################################################################
   # JOB: DOCKER BUILD TEST ADMIN INTERFACE #####################################
   ##############################################################################
@@ -158,93 +135,6 @@ jobs:
           path: /tmp/nginx.tar
 
   ##############################################################################
-  # JOB: LOCALES FRONTEND ######################################################
-  ##############################################################################
-  locales_frontend:
-    name: Locales - Frontend
-    runs-on: ubuntu-latest
-    needs: [build_test_frontend]
-    steps:
-      ##########################################################################
-      # CHECKOUT CODE ##########################################################
-      ##########################################################################
-      - name: Checkout code
-        uses: actions/checkout@v3
-      ##########################################################################
-      # DOWNLOAD DOCKER IMAGE ##################################################
-      ##########################################################################
-      - name: Download Docker Image (Frontend)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-frontend-test
-          path: /tmp
-      - name: Load Docker Image
-        run: docker load < /tmp/frontend.tar
-      ##########################################################################
-      # LOCALES FRONTEND #######################################################
-      ##########################################################################
-      - name: Frontend | Locales
-        run: docker run --rm gradido/frontend:test yarn run locales
-
-  ##############################################################################
-  # JOB: LINT FRONTEND #########################################################
-  ##############################################################################
-  lint_frontend:
-    name: Lint - Frontend
-    runs-on: ubuntu-latest
-    needs: [build_test_frontend]
-    steps:
-      ##########################################################################
-      # CHECKOUT CODE ##########################################################
-      ##########################################################################
-      - name: Checkout code
-        uses: actions/checkout@v3
-      ##########################################################################
-      # DOWNLOAD DOCKER IMAGE ##################################################
-      ##########################################################################
-      - name: Download Docker Image (Frontend)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-frontend-test
-          path: /tmp
-      - name: Load Docker Image
-        run: docker load < /tmp/frontend.tar
-      ##########################################################################
-      # LINT FRONTEND ##########################################################
-      ##########################################################################
-      - name: Frontend | Lint
-        run: docker run --rm gradido/frontend:test yarn run lint
-
-  ##############################################################################
-  # JOB: STYLELINT FRONTEND ####################################################
-  ##############################################################################
-  stylelint_frontend:
-    name: Stylelint - Frontend
-    runs-on: ubuntu-latest
-    needs: [build_test_frontend]
-    steps:
-      ##########################################################################
-      # CHECKOUT CODE ##########################################################
-      ##########################################################################
-      - name: Checkout code
-        uses: actions/checkout@v3
-      ##########################################################################
-      # DOWNLOAD DOCKER IMAGE ##################################################
-      ##########################################################################
-      - name: Download Docker Image (Frontend)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-frontend-test
-          path: /tmp
-      - name: Load Docker Image
-        run: docker load < /tmp/frontend.tar
-      ##########################################################################
-      # STYLELINT FRONTEND #####################################################
-      ##########################################################################
-      - name: Frontend | Stylelint
-        run: docker run --rm gradido/frontend:test yarn run stylelint
-
-  ##############################################################################
   # JOB: LINT ADMIN INTERFACE ##################################################
   ##############################################################################
   lint_admin:
@@ -326,7 +216,7 @@ jobs:
       - name: Load Docker Image
         run: docker load < /tmp/admin.tar
       ##########################################################################
-      # LOCALES FRONTEND #######################################################
+      # LOCALES ADMIN ##########################################################
       ##########################################################################
       - name: admin | Locales
         run: docker run --rm gradido/admin:test yarn run locales
@@ -407,56 +297,6 @@ jobs:
       ##########################################################################
       - name: database | Lint
         run: docker run --rm gradido/database:test_up yarn run lint
-
-  ##############################################################################
-  # JOB: UNIT TEST FRONTEND  ###################################################
-  ##############################################################################
-  unit_test_frontend:
-    name: Unit tests - Frontend
-    runs-on: ubuntu-latest
-    needs: [build_test_frontend]
-    steps:
-      ##########################################################################
-      # CHECKOUT CODE ##########################################################
-      ##########################################################################
-      - name: Checkout code
-        uses: actions/checkout@v3
-      ##########################################################################
-      # DOWNLOAD DOCKER IMAGES #################################################
-      ##########################################################################
-      - name: Download Docker Image (Frontend)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-frontend-test
-          path: /tmp
-      - name: Load Docker Image
-        run: docker load < /tmp/frontend.tar
-      ##########################################################################
-      # UNIT TESTS FRONTEND ####################################################
-      ##########################################################################
-      - name: frontend | Unit tests
-        run: |
-          docker run --env NODE_ENV=test -v ~/coverage:/app/coverage --rm gradido/frontend:test yarn run test
-          cp -r ~/coverage ./coverage
-      ##########################################################################
-      # COVERAGE REPORT FRONTEND ###############################################
-      ##########################################################################
-      #- name: frontend | Coverage report
-      #  uses: romeovs/lcov-reporter-action@v0.2.21
-      #  with:
-      #    github-token: ${{ secrets.GITHUB_TOKEN }}
-      #    lcov-file: ./coverage/lcov.info
-      ##########################################################################
-      # COVERAGE CHECK FRONTEND ################################################
-      ##########################################################################
-      - name: frontend | Coverage check
-        uses: webcraftmedia/coverage-check-action@master
-        with:
-          report_name: Coverage Frontend
-          type: lcov
-          result_path: ./coverage/lcov.info
-          min_coverage: 95
-          token: ${{ github.token }}
   
   ##############################################################################
   # JOB: UNIT TEST ADMIN INTERFACE #############################################
@@ -577,7 +417,7 @@ jobs:
   end-to-end-tests:
     name: End-to-End Tests
     runs-on: ubuntu-latest
-    needs: [build_test_mariadb, build_test_database_up, build_test_backend, build_test_admin, build_test_frontend, build_test_nginx]
+    needs: [build_test_mariadb, build_test_database_up, build_test_backend, build_test_admin, build_test_nginx]
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
@@ -608,13 +448,6 @@ jobs:
           path: /tmp
       - name: Load Docker Image (Backend)
         run: docker load < /tmp/backend.tar
-      - name: Download Docker Image (Frontend)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-frontend-test
-          path: /tmp
-      - name: Load Docker Image (Frontend)
-        run: docker load < /tmp/frontend.tar
       - name: Download Docker Image (Admin Interface)
         uses: actions/download-artifact@v3
         with:
