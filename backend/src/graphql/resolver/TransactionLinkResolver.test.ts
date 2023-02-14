@@ -611,8 +611,8 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 6,
-                    linkList: expect.not.arrayContaining([
+                    count: 6,
+                    links: expect.not.arrayContaining([
                       expect.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
                         createdAt: expect.any(String),
@@ -647,8 +647,8 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 6,
-                    linkList: expect.not.arrayContaining([
+                    count: 6,
+                    links: expect.not.arrayContaining([
                       expect.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
                         createdAt: expect.any(String),
@@ -681,8 +681,8 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 7,
-                    linkList: expect.arrayContaining([
+                    count: 7,
+                    links: expect.arrayContaining([
                       expect.not.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
                         createdAt: expect.any(String),
@@ -715,8 +715,8 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 7,
-                    linkList: expect.arrayContaining([
+                    count: 7,
+                    links: expect.arrayContaining([
                       expect.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
                         createdAt: expect.any(String),
@@ -752,8 +752,8 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 6,
-                    linkList: expect.arrayContaining([
+                    count: 6,
+                    links: expect.arrayContaining([
                       expect.not.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
                         createdAt: expect.any(String),
