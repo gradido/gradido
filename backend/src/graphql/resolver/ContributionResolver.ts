@@ -732,7 +732,7 @@ export class ContributionResolver {
 
     const event = new Event()
     const eventAdminContributionDeny = new EventAdminContributionDeny()
-    eventAdminContributionDeny.userId = contributionToUpdate.userId
+    eventAdminContributionDeny.userId = moderator.id
     eventAdminContributionDeny.amount = contributionToUpdate.amount
     eventAdminContributionDeny.contributionId = contributionToUpdate.id
     await writeEvent(event.setEventAdminContributionDeny(eventAdminContributionDeny))

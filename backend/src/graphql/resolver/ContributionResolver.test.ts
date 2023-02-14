@@ -815,6 +815,15 @@ describe('ContributionResolver', () => {
           })
           expect(isDenied).toBeTruthy()
         })
+
+        it('stores the admin deny contribution event in the database', async () => {
+          await expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.ADMIN_CONTRIBUTION_DENY,
+              userId: admin.id,
+            }),
+          )
+        })
       })
     })
   })
