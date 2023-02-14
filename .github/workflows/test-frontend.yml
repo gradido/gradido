@@ -7,22 +7,22 @@ on:
 
 jobs:
   # DOCKER BUILD TEST FRONTEND
-  build_test_frontend:
-    name: Docker Build Test - Frontend
+  build_development_frontend:
+    name: Docker Build 'development' Frontend
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build 'test' image
+      - name: Build 'development' image
         run: |
-          docker build --target test -t "gradido/frontend:test" frontend/
-          docker save "gradido/frontend:test" > /tmp/frontend.tar
+          docker build --target development -t "gradido/frontend:development" frontend/
+          docker save "gradido/frontend:development" > /tmp/frontend.tar
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: docker-frontend-test
+          name: docker-frontend-development
           path: /tmp/frontend.tar
 
   # LOCALES FRONTEND 
@@ -42,7 +42,7 @@ jobs:
   lint_frontend:
     name: Lint - Frontend
     runs-on: ubuntu-latest
-    needs: [build_test_frontend]
+    needs: [build_development_frontend]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -50,19 +50,19 @@ jobs:
       - name: Download Docker Image (Frontend)
         uses: actions/download-artifact@v3
         with:
-          name: docker-frontend-test
+          name: docker-frontend-development
           path: /tmp
 
       - name: Load Docker Image
         run: docker load < /tmp/frontend.tar
       - name: Frontend | Lint
-        run: docker run --rm gradido/frontend:test yarn run lint
+        run: docker run --rm gradido/frontend:development yarn run lint
 
   # STYLELINT FRONTEND
   stylelint_frontend:
     name: Stylelint - Frontend
     runs-on: ubuntu-latest
-    needs: [build_test_frontend]
+    needs: [build_development_frontend]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -70,20 +70,20 @@ jobs:
       - name: Download Docker Image (Frontend)
         uses: actions/download-artifact@v3
         with:
-          name: docker-frontend-test
+          name: docker-frontend-development
           path: /tmp
 
       - name: Load Docker Image
         run: docker load < /tmp/frontend.tar
 
       - name: Frontend | Stylelint
-        run: docker run --rm gradido/frontend:test yarn run stylelint
+        run: docker run --rm gradido/frontend:development yarn run stylelint
 
   # UNIT TEST FRONTEND
   unit_test_frontend:
     name: Unit tests - Frontend
     runs-on: ubuntu-latest
-    needs: [build_test_frontend]
+    needs: [build_development_frontend]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -91,7 +91,7 @@ jobs:
       - name: Download Docker Image (Frontend)
         uses: actions/download-artifact@v3
         with:
-          name: docker-frontend-test
+          name: docker-frontend-development
           path: /tmp
 
       - name: Load Docker Image
@@ -99,7 +99,7 @@ jobs:
 
       - name: frontend | Unit tests
         run: |
-          docker run --env NODE_ENV=test -v ~/coverage:/app/coverage --rm gradido/frontend:test yarn run test
+          docker run --env NODE_ENV=test -v ~/coverage:/app/coverage --rm gradido/frontend:development yarn run test
           cp -r ~/coverage ./coverage
 
       #- name: frontend | Coverage report
