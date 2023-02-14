@@ -22,11 +22,7 @@ import {
   listContributions,
   listUnconfirmedContributions,
 } from '@/seeds/graphql/queries'
-import {
-  // sendAccountActivationEmail,
-  sendContributionConfirmedEmail,
-  // sendContributionRejectedEmail,
-} from '@/emails/sendEmailVariants'
+import { sendContributionConfirmedEmail } from '@/emails/sendEmailVariants'
 import {
   cleanDB,
   resetToken,
@@ -48,7 +44,6 @@ import { logger, i18n as localization } from '@test/testSetup'
 import { UserInputError } from 'apollo-server-express'
 import { ContributionStatus } from '../enum/ContributionStatus'
 
-// mock account activation email to avoid console spam
 // mock account activation email to avoid console spam
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
@@ -249,7 +244,7 @@ describe('ContributionResolver', () => {
           )
         })
 
-        it('stores the create contribution event in the database', async () => {
+        it('stores the CONTRIBUTION_CREATE event in the database', async () => {
           await expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_CREATE,
@@ -536,7 +531,6 @@ describe('ContributionResolver', () => {
         })
       })
 
-      // TODO: why is this here - this is a different call `adminUpdateContribution` not `updateContribution`
       describe('admin tries to update a user contribution', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
@@ -704,7 +698,7 @@ describe('ContributionResolver', () => {
           )
         })
 
-        it('stores the update contribution event in the database', async () => {
+        it('stores the CONTRIBUTION_UPDATE event in the database', async () => {
           bibi = await query({
             query: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -1271,7 +1265,7 @@ describe('ContributionResolver', () => {
           ).resolves.toBeTruthy()
         })
 
-        it('stores the delete contribution event in the database', async () => {
+        it('stores the CONTRIBUTION_DELETE event in the database', async () => {
           const contribution = await mutate({
             mutation: createContribution,
             variables: {
@@ -1790,7 +1784,7 @@ describe('ContributionResolver', () => {
                 )
               })
 
-              it('stores the admin create contribution event in the database', async () => {
+              it('stores the ADMIN_CONTRIBUTION_CREATE event in the database', async () => {
                 await expect(EventProtocol.find()).resolves.toContainEqual(
                   expect.objectContaining({
                     type: EventProtocolType.ADMIN_CONTRIBUTION_CREATE,
@@ -2060,7 +2054,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('stores the admin update contribution event in the database', async () => {
+            it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
@@ -2100,7 +2094,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('stores the admin update contribution event in the database', async () => {
+            it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
@@ -2244,7 +2238,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('stores the admin  delete contribution event in the database', async () => {
+            it('stores the ADMIN_CONTRIBUTION_DELETE event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
@@ -2386,7 +2380,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('stores the contribution confirm event in the database', async () => {
+            it('stores the CONTRIBUTION_CONFIRM event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.CONTRIBUTION_CONFIRM,
@@ -2418,7 +2412,7 @@ describe('ContributionResolver', () => {
               })
             })
 
-            it('stores the send confirmation email event in the database', async () => {
+            it('stores the SEND_CONFIRMATION_EMAIL event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.SEND_CONFIRMATION_EMAIL,

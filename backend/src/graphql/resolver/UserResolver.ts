@@ -48,15 +48,14 @@ import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddle
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
-import { eventProtocol } from '@/event/EventProtocolEmitter'
 import {
   Event,
-  EventLogin,
-  EventRedeemRegister,
-  EventRegister,
-  EventSendAccountMultiRegistrationEmail,
-  EventSendConfirmationEmail,
-  EventActivateAccount,
+  EVENT_LOGIN,
+  EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
+  EVENT_SEND_CONFIRMATION_EMAIL,
+  EVENT_REGISTER,
+  EVENT_ACTIVATE_ACCOUNT,
+  EVENT_ADMIN_SEND_CONFIRMATION_EMAIL,
 } from '@/event/Event'
 import { getUserCreations } from './util/creations'
 import { isValidPassword } from '@/password/EncryptorUtils'
@@ -64,6 +63,7 @@ import { FULL_CREATION_AVAILABLE } from './const/const'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 import LogError from '@/server/LogError'
+import { EventProtocolType } from '@/event/EventProtocolType'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -177,9 +177,8 @@ export class UserResolver {
       key: 'token',
       value: encode(dbUser.gradidoID),
     })
-    const ev = new EventLogin()
-    ev.userId = user.id
-    eventProtocol.writeEvent(new Event().setEventLogin(ev))
+
+    await EVENT_LOGIN(user.id)
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
     return user
   }
@@ -211,7 +210,6 @@ export class UserResolver {
     )
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
-    const event = new Event()
 
     // Validate Language (no throw)
     if (!language || !isLanguage(language)) {
@@ -249,11 +247,9 @@ export class UserResolver {
           email,
           language: foundUser.language, // use language of the emails owner for sending
         })
-        const eventSendAccountMultiRegistrationEmail = new EventSendAccountMultiRegistrationEmail()
-        eventSendAccountMultiRegistrationEmail.userId = foundUser.id
-        eventProtocol.writeEvent(
-          event.setEventSendConfirmationEmail(eventSendAccountMultiRegistrationEmail),
-        )
+
+        await EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL(foundUser.id)
+
         logger.info(
           `sendAccountMultiRegistrationEmail by ${firstName} ${lastName} to ${foundUser.firstName} ${foundUser.lastName} <${email}>`,
         )
@@ -270,10 +266,7 @@ export class UserResolver {
 
     const gradidoID = await newGradidoID()
 
-    const eventRegister = new EventRegister()
-    const eventRedeemRegister = new EventRedeemRegister()
-    const eventSendConfirmEmail = new EventSendConfirmationEmail()
-
+    const eventRegisterRedeem = Event(EventProtocolType.REDEEM_REGISTER, 0)
     let dbUser = new DbUser()
     dbUser.gradidoID = gradidoID
     dbUser.firstName = firstName
@@ -290,14 +283,14 @@ export class UserResolver {
         logger.info('redeemCode found contributionLink=' + contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
-          eventRedeemRegister.contributionId = contributionLink.id
+          eventRegisterRedeem.contributionId = contributionLink.id
         }
       } else {
         const transactionLink = await DbTransactionLink.findOne({ code: redeemCode })
         logger.info('redeemCode found transactionLink=' + transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
-          eventRedeemRegister.transactionId = transactionLink.id
+          eventRegisterRedeem.transactionId = transactionLink.id
         }
       }
     }
@@ -335,8 +328,8 @@ export class UserResolver {
         timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
       })
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
-      eventSendConfirmEmail.userId = dbUser.id
-      eventProtocol.writeEvent(event.setEventSendConfirmationEmail(eventSendConfirmEmail))
+
+      await EVENT_SEND_CONFIRMATION_EMAIL(dbUser.id)
 
       if (!emailSent) {
         logger.debug(`Account confirmation link: ${activationLink}`)
@@ -353,11 +346,10 @@ export class UserResolver {
     logger.info('createUser() successful...')
 
     if (redeemCode) {
-      eventRedeemRegister.userId = dbUser.id
-      await eventProtocol.writeEvent(event.setEventRedeemRegister(eventRedeemRegister))
+      eventRegisterRedeem.userId = dbUser.id
+      await eventRegisterRedeem.save()
     } else {
-      eventRegister.userId = dbUser.id
-      await eventProtocol.writeEvent(event.setEventRegister(eventRegister))
+      await EVENT_REGISTER(dbUser.id)
     }
 
     return new User(dbUser)
@@ -460,8 +452,6 @@ export class UserResolver {
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
 
-    const event = new Event()
-
     try {
       // Save user
       await queryRunner.manager.save(user).catch((error) => {
@@ -475,9 +465,7 @@ export class UserResolver {
       await queryRunner.commitTransaction()
       logger.info('User and UserContact data written successfully...')
 
-      const eventActivateAccount = new EventActivateAccount()
-      eventActivateAccount.userId = user.id
-      eventProtocol.writeEvent(event.setEventActivateAccount(eventActivateAccount))
+      await EVENT_ACTIVATE_ACCOUNT(user.id)
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Error on writing User and User Contact data', e)
@@ -793,19 +781,12 @@ export class UserResolver {
     email = email.trim().toLowerCase()
     // const user = await dbUser.findOne({ id: emailContact.userId })
     const user = await findUserByEmail(email)
-    if (!user) {
-      throw new LogError('Could not find user to given email contact', email)
-    }
-    if (user.deletedAt) {
+    if (user.deletedAt || user.emailContact.deletedAt) {
       throw new LogError('User with given email contact is deleted', email)
     }
-    const emailContact = user.emailContact
-    if (emailContact.deletedAt) {
-      throw new LogError('The given email contact for this user is deleted', email)
-    }
 
-    emailContact.emailResendCount++
-    await emailContact.save()
+    user.emailContact.emailResendCount++
+    await user.emailContact.save()
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendAccountActivationEmail({
@@ -813,7 +794,7 @@ export class UserResolver {
       lastName: user.lastName,
       email,
       language: user.language,
-      activationLink: activationLink(emailContact.emailVerificationCode),
+      activationLink: activationLink(user.emailContact.emailVerificationCode),
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
@@ -821,12 +802,7 @@ export class UserResolver {
     if (!emailSent) {
       logger.info(`Account confirmation link: ${activationLink}`)
     } else {
-      const event = new Event()
-      const eventSendConfirmationEmail = new EventSendConfirmationEmail()
-      eventSendConfirmationEmail.userId = user.id
-      await eventProtocol.writeEvent(
-        event.setEventSendConfirmationEmail(eventSendConfirmationEmail),
-      )
+      await EVENT_ADMIN_SEND_CONFIRMATION_EMAIL(user.id)
     }
 
     return true
