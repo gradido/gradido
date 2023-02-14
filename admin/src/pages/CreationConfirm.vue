@@ -129,6 +129,7 @@ export default {
     fields() {
       return [
         { key: 'bookmark', label: this.$t('delete') },
+        { key: 'deny', label: this.$t('deny') },
         { key: 'email', label: this.$t('e_mail') },
         { key: 'firstName', label: this.$t('firstname') },
         { key: 'lastName', label: this.$t('lastname') },
@@ -149,7 +150,6 @@ export default {
         },
         { key: 'moderator', label: this.$t('moderator') },
         { key: 'editCreation', label: this.$t('edit') },
-        { key: 'deny', label: this.$t('deny') },
         { key: 'confirm', label: this.$t('save') },
       ]
     },
