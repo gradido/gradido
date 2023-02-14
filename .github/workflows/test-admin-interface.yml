@@ -71,7 +71,6 @@ jobs:
   locales_admin:
     name: Locales - Admin Interface
     runs-on: ubuntu-latest
-    needs: [build_development_admin]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
