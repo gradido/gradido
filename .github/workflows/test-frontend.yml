@@ -3,7 +3,7 @@ name: Gradido Frontend Test CI
 on:
   push:
     branches:
-      - 2664-refactordevops-refine-test-ci-workflow
+      - 2664-refactordevops-refine-test-ci-workflow-test
 
 jobs:
   # DOCKER BUILD TEST FRONTEND
