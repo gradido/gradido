@@ -15,59 +15,6 @@ const localVue = global.localVue
 localVue.use(VueApollo)
 
 const storeCommitMock = jest.fn()
-// const apolloQueryMock = jest.fn().mockResolvedValue({
-//   data: {
-//     listAllContributions: {
-//       contributionCount: 2,
-//       contributionList: [
-//         {
-//           id: 1,
-//           firstName: 'Bibi',
-//           lastName: 'Bloxberg',
-//           userId: 99,
-//           email: 'bibi@bloxberg.de',
-//           amount: 500,
-//           memo: 'Danke für alles',
-//           date: new Date(),
-//           moderator: 1,
-//           state: 'PENDING',
-//           creation: [500, 500, 500],
-//           messagesCount: 0,
-//           deniedBy: null,
-//           deniedAt: null,
-//           confirmedBy: null,
-//           confirmedAt: null,
-//           contributionDate: new Date(),
-//           deletedBy: null,
-//           deletedAt: null,
-//           createdAt: new Date(),
-//         },
-//         {
-//           id: 2,
-//           firstName: 'Räuber',
-//           lastName: 'Hotzenplotz',
-//           userId: 100,
-//           email: 'raeuber@hotzenplotz.de',
-//           amount: 1000000,
-//           memo: 'Gut Ergattert',
-//           date: new Date(),
-//           moderator: 1,
-//           state: 'PENDING',
-//           creation: [500, 500, 500],
-//           messagesCount: 0,
-//           deniedBy: null,
-//           deniedAt: null,
-//           confirmedBy: null,
-//           confirmedAt: null,
-//           contributionDate: new Date(),
-//           deletedBy: null,
-//           deletedAt: null,
-//           createdAt: new Date(),
-//         },
-//       ],
-//     },
-//   },
-// })
 
 const mocks = {
   $t: jest.fn((t) => t),
