@@ -76,7 +76,11 @@ git clone git@github.com:gradido/gradido.git
 git submodule update --recursive --init
 ```
 
-### 2. Run docker-compose
+### 2. Install modules
+
+You can go in each under folder (admin, frontend, database, backend, ...) and call ``yarn`` in each folder or you can call ``yarn installAll``.
+
+### 3. Run docker-compose
 
 Run docker-compose to bring up the development environment
 
