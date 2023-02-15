@@ -32,7 +32,6 @@
   "creation": "Creation",
   "creationList": "Creation list",
   "creation_form": {
-    "creation_failed": "Could not create pending creation for {email}",
     "creation_for": "Active Basic Income for",
     "enter_text": "Enter text",
     "form": "Creation form",
@@ -87,7 +86,6 @@
   "lastname": "Lastname",
   "math": {
     "equals": "=",
-    "exclaim": "!",
     "pipe": "|",
     "plus": "+"
   },
@@ -95,15 +93,12 @@
     "request": "Request has been sent."
   },
   "moderator": "Moderator",
-  "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "name": "Name",
   "navbar": {
     "automaticContributions": "Automatic Contributions",
     "logout": "Logout",
-    "multi_creation": "Multiple creation",
     "my-account": "My Account",
     "open_creation": "Open creations",
-    "overview": "Overview",
     "statistic": "Statistic",
     "user_search": "User search"
   },
@@ -132,9 +127,7 @@
     }
   },
   "redeemed": "redeemed",
-  "remove": "Remove",
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
-  "remove_all": "Remove all users",
   "save": "Speichern",
   "statistic": {
     "activeUsers": "Active members",

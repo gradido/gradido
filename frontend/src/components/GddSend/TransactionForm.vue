@@ -179,6 +179,17 @@ export default {
     },
   },
   computed: {
+    disabled() {
+      if (
+        this.form.email.length > 5 &&
+        parseInt(this.form.amount) <= parseInt(this.balance) &&
+        this.form.memo.length > 5 &&
+        this.form.memo.length <= 255
+      ) {
+        return false
+      }
+      return true
+    },
     isBalanceDisabled() {
       return this.balance <= 0 ? 'disabled' : false
     },
