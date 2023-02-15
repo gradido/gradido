@@ -175,7 +175,6 @@ export default {
   },
   watch: {
     statusFilter() {
-      // console.log('statusFilter', this.statusFilter)
       this.$apollo.queries.ListAllContributions.refetch()
     },
   },
