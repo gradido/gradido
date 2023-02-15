@@ -7,29 +7,29 @@ on:
 
 jobs:
   # DOCKER BUILD TEST ADMIN INTERFACE
-  build_build_admin:
-    name: Docker Build 'build' Admin Interface
+  build_base_admin:
+    name: Docker Build 'base' Admin Interface
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Admin | Build 'build' image
+      - name: Admin | Build 'base' image
         run: |
-          docker build --target build -t "gradido/admin:build" admin/ --build-arg NODE_ENV="test"
-          docker save "gradido/admin:build" > /tmp/admin.tar
+          docker build --target base -t "gradido/admin:base" admin/ --build-arg NODE_ENV="test"
+          docker save "gradido/admin:base" > /tmp/admin.tar
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: docker-admin-build
+          name: docker-admin-base
           path: /tmp/admin.tar
 
   # LINT ADMIN INTERFACE
   lint_admin:
     name: Lint - Admin Interface
     runs-on: ubuntu-latest
-    needs: [build_build_admin]
+    needs: [build_base_admin]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -37,20 +37,20 @@ jobs:
       - name: Download Docker Image (Admin Interface)
         uses: actions/download-artifact@v3
         with:
-          name: docker-admin-build
+          name: docker-admin-base
           path: /tmp
 
       - name: Load Docker Image
         run: docker load < /tmp/admin.tar
 
       - name: Admin Interface | Lint
-        run: docker run --rm gradido/admin:build yarn run lint
+        run: docker run --rm -v /home/runner/work/gradido/gradido/admin:/app gradido/admin:base yarn && yarn run lint
 
   # STYLELINT ADMIN INTERFACE
   stylelint_admin:
     name: Stylelint - Admin Interface
     runs-on: ubuntu-latest
-    needs: [build_build_admin]
+    needs: [build_base_admin]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -58,14 +58,14 @@ jobs:
       - name: Download Docker Image (Admin Interface)
         uses: actions/download-artifact@v3
         with:
-          name: docker-admin-build
+          name: docker-admin-base
           path: /tmp
 
       - name: Load Docker Image
         run: docker load < /tmp/admin.tar
 
       - name: Admin Interface | Stylelint
-        run: docker run --rm gradido/admin:build yarn run stylelint
+        run: docker run --rm -v /home/runner/work/gradido/gradido/admin:/app gradido/admin:base yarn && yarn run stylelint
 
   # LOCALES ADMIN
   locales_admin:
@@ -84,7 +84,7 @@ jobs:
   unit_test_admin:
     name: Unit tests - Admin Interface
     runs-on: ubuntu-latest
-    needs: [build_build_admin]
+    needs: [build_base_admin]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -92,7 +92,7 @@ jobs:
       - name: Download Docker Image (Admin Interface)
         uses: actions/download-artifact@v3
         with:
-          name: docker-admin-build
+          name: docker-admin-base
           path: /tmp
 
       - name: Load Docker Image
@@ -100,7 +100,7 @@ jobs:
 
       - name: Admin Interface | Unit tests
         run: |
-          docker run -v ~/coverage:/app/coverage --rm gradido/admin:build yarn run test
+          docker run -v ~/coverage:/app/coverage --rm gradido/admin:base yarn run test
           cp -r ~/coverage ./coverage
 
       - name: Admin Interface | Coverage check
