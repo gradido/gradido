@@ -4,29 +4,6 @@ This document contains the concept and technical details for the *federation* of
 
 But meanwhile the usage of a DHT like HyperSwarm promises more coverage of the gradido requirements out of the box. More details about HyperSwarm can be found here [@hyperswarm/dht](https://github.com/hyperswarm/dht).
 
-## ActivityPub (deprecated)
-
-The activity pub defines a server-to-server federation protocol to share information between decentralized instances and will be the main komponent for the gradido community federation.
-
-At first we asume a *gradido community* as an *ActivityPub user*. A user is represented by "*actors*" via the users's accounts on servers. User's accounts on different servers corrsponds to different actors, which means community accounts on different servers corrsponds to different communities.
-
-Every community (actor) has an:
-
-* inbox: to get messages from the world
-* outbox: to send messages to others
-
-and are simple endpoints or just URLs, which are described in the *ActivityStream* of each *ActivityPub community*.
-
-### Open Decision:
-
-It has to be decided, if the Federation will work with an internal or with external ActivityPub-Server, as shown in the picture below:
-
-![FederationActivityPub](./image/FederationActivityPub.png " ")
-
-The Variant A with an internal server contains the benefit to be as independent as possible from third party service providers and will not cause additional hosting costs. But this solution will cause the additional efforts of impementing an ActivityPub-Server in the gradido application and the responsibility for this component.
-
-The Varaint B with an external server contains the benefit to reduce the implementation efforts and the responsibility for an own ActivitPub-Server. But it will cause an additional dependency to a third party service provider and the growing hosting costs.
-
 ## HyperSwarm
 
 The decision to switch from ActivityPub to HyperSwarm base on the arguments, that the *hyperswarm/dht* library will satify the most federation requirements out of the box. It is now to design the business requirements of the [gradido community communication](../BusinessRequirements/CommunityVerwaltung.md#UC-createCommunity) in a technical conception.
@@ -41,11 +18,27 @@ To enable such a relationship between an existing community and a new community 
 2. Authentication
 3. Autorized Communication
 
-### Overview
+### Overview of Federation-Handshake
 
 At first the following diagramm gives an overview of the three stages and shows the handshake between an existing community-A and a new created community-B including the data exchange for buildup such a federated, authenticated and autorized relationship.
 
 ![FederationHyperSwarm.png](./image/FederationHyperSwarm.png)
+
+### Technical Architecture
+
+The previous described handshake will be done by several technical moduls of the gradido system. The following picture gives an overview about the moduls and how the communicate with each other.
+
+![img](./image/TechnicalOverview_V1-19.svg)
+
+As soon as a Gradido Community is up and running the DHT-Modul first write the home-community-entries in the database and starts with the federation per HyperSwarm. Each community, which is configured to listen on the GRADIDO_HUB of the DHT will be part of the Gradido-Net-Federation. That means each DHT-Modul of each community will receive the publicKey of all connected communities. The DHT-Modul will open for each received publicKey a communication-socket with the associated community DHT-Modul, to exchange api-version info and hosted urls for later direct communication between both communities. The exchanged api-version info and urls will be written in the own database.
+
+The up and running Backend-Modul contains a validation logic to verify the community entries from the own DHT-Modul. For each announced but unverified community-entry the GraphQL-Client is used to invoke a getPublicKey-Request. Depending on the containing api-version the matching GraphQL-Client is used and the getPublicKey-Request will be send to the given URL.
+
+As soon as the FederationModul of the assoziated community received the getPublicKey-request the own publicKey is read from database and send back in the response.
+
+The GraphQL-Client will read from the returned response data the publicKey of the other community and compare it with the data of the community-entry, which cause the getPublicKey-Request. If they match the community-entry will be updated be inserting the current timestamp in the verifiedAt-field of this community-entry.
+
+This federation and verification logic will work the whole time and can be monitored by observing the communities-table changes. The Admin-UI will contain a Page to have a look on the current state of the communities table content.
 
 ### Prerequisits
 
@@ -235,7 +228,7 @@ For the first federation release the *DHT-Node* will be part of the *apollo serv
            | communityApiVersion.apiversion            | keep existing value         |
            | communityApiVersion.validFrom             | exchangedData.API.validFrom |
            | communityApiVersion.verifiedAt            | keep existing value         |
-         *
+         * 
    3. After all received data is stored successfully, the *DHT-Node* starts the *stage2 - Authentication* of the federation handshake
 
 ### Stage2 - Authentication
@@ -284,8 +277,8 @@ As soon the *openConnection* request is invoked:
 3. check if the decrypted `parameter.signedAndEncryptedURL` is equals the selected url from the previous selected CommunityFederationEntry
    1. if not then break the further processing of this request by only writing an error-log event. There will be no answer to the invoker community, because this community will only go on with a `openConnectionRedirect`-request from this community.
    2. if yes then verify the signature of `parameter.signedAndEncryptedURL` with the `cf.pubKey` read in step 2 before
-   3.
-4.
+   3. 
+4. 
 
 ### Stage3 - Autorized Business Communication
 
