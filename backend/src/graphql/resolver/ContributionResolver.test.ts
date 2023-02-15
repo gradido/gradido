@@ -2569,7 +2569,7 @@ describe('ContributionResolver', () => {
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
                   userId: admin.id,
-                  amount: expect.decimalEqual(400),
+                  amount: expect.decimalEqual(200),
                 }),
               )
             })
