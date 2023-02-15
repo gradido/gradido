@@ -505,7 +505,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe('update to much so that the limit is exceeded', () => {
+      describe('update too much so that the limit is exceeded', () => {
         beforeAll(async () => {
           await mutate({
             mutation: login,
