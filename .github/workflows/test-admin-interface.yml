@@ -45,7 +45,7 @@ jobs:
 
       - name: Admin Interface | Lint
         run: |
-          docker run --rm -v /home/runner/work/gradido/gradido/admin:/app gradido/admin:base yarn && ls -l node_modules && yarn run lint
+          docker run --rm -v /home/runner/work/gradido/gradido/admin:/app gradido/admin:base ls -l && yarn && ls -l && yarn run lint
 
   # STYLELINT ADMIN INTERFACE
   stylelint_admin:
