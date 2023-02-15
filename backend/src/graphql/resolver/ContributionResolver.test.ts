@@ -822,6 +822,8 @@ describe('ContributionResolver', () => {
               type: EventProtocolType.ADMIN_CONTRIBUTION_DENY,
               userId: bibi.id,
               xUserId: admin.id,
+              contributionId: contributionToDeny.data.createContribution.id,
+              amount: expect.decimalEqual(100),
             }),
           )
         })
@@ -2080,6 +2082,7 @@ describe('ContributionResolver', () => {
                   expect.objectContaining({
                     type: EventProtocolType.ADMIN_CONTRIBUTION_CREATE,
                     userId: admin.id,
+                    amount: expect.decimalEqual(200),
                   }),
                 )
               })
@@ -2345,7 +2348,8 @@ describe('ContributionResolver', () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
-                  userId: bibi.id,
+                  userId: admin.id,
+                  amount: 300,
                 }),
               )
             })
@@ -2385,7 +2389,8 @@ describe('ContributionResolver', () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
-                  userId: bibi.id,
+                  userId: admin.id,
+                  amount: expect.decimalEqual(200),
                 }),
               )
             })
@@ -2563,7 +2568,8 @@ describe('ContributionResolver', () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
-                  userId: bibi.id,
+                  userId: admin.id,
+                  amount: expect.decimalEqual(400),
                 }),
               )
             })
