@@ -3,21 +3,20 @@ name: Gradido Frontend Test CI
 on:
   push:
     branches:
-      - 2664-refactordevops-refine-test-ci-workflow-test
+      - 2664-refactordevops-refine-test-ci-workflow
 
 jobs:
-  # DOCKER BUILD TEST FRONTEND
-  build_build_frontend:
-    name: Docker Build 'build' Frontend
+  build_base_frontend:
+    name: Docker Build 'base' Frontend
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build 'build' image
+      - name: Frontend | Build 'base' image
         run: |
-          docker build --target build -t "gradido/frontend:build" frontend/
-          docker save "gradido/frontend:build" > /tmp/frontend.tar
+          docker build --target base -t "gradido/frontend:base" frontend/
+          docker save "gradido/frontend:base" > /tmp/frontend.tar
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
@@ -25,24 +24,22 @@ jobs:
           name: docker-frontend-build
           path: /tmp/frontend.tar
 
-  # LOCALES FRONTEND 
   locales_frontend:
-    name: Locales - Frontend
+    name: Locales Frontend
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Locales
+      - name: Frontend | Locales
         run: |
           cd frontend 
           yarn run locales
 
-  # LINT FRONTEND
   lint_frontend:
-    name: Lint - Frontend
+    name: Lint Frontend
     runs-on: ubuntu-latest
-    needs: [build_build_frontend]
+    needs: [build_base_frontend]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -56,13 +53,12 @@ jobs:
       - name: Load Docker Image
         run: docker load < /tmp/frontend.tar
       - name: Frontend | Lint
-        run: docker run --rm gradido/frontend:build yarn run lint
+        run: docker run --rm -v /home/runner/work/gradido/gradido/frontend:/app gradido/frontend:base sh -c "yarn && yarn run lint"
 
-  # STYLELINT FRONTEND
   stylelint_frontend:
-    name: Stylelint - Frontend
+    name: Stylelint Frontend
     runs-on: ubuntu-latest
-    needs: [build_build_frontend]
+    needs: [build_base_frontend]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -77,13 +73,12 @@ jobs:
         run: docker load < /tmp/frontend.tar
 
       - name: Frontend | Stylelint
-        run: docker run --rm gradido/frontend:build yarn run stylelint
+        run: docker run --rm -v /home/runner/work/gradido/gradido/frontend:/app gradido/frontend:base sh -c "yarn && yarn run stylelint"
 
-  # UNIT TEST FRONTEND
   unit_test_frontend:
-    name: Unit tests - Frontend
+    name: Unit Tests Frontend
     runs-on: ubuntu-latest
-    needs: [build_build_frontend]
+    needs: [build_base_frontend]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -99,16 +94,10 @@ jobs:
 
       - name: frontend | Unit tests
         run: |
-          docker run --env NODE_ENV=test -v ~/coverage:/app/coverage --rm gradido/frontend:build yarn run test
-          cp -r ~/coverage ./coverage
+          docker run --rm -v /home/runner/work/gradido/gradido/frontend:/app gradido/frontend:base sh -c "yarn && yarn run test"
+          cp -r /home/runner/work/gradido/gradido/admin/coverage ./coverage
 
-      #- name: frontend | Coverage report
-      #  uses: romeovs/lcov-reporter-action@v0.2.21
-      #  with:
-      #    github-token: ${{ secrets.GITHUB_TOKEN }}
-      #    lcov-file: ./coverage/lcov.info
-
-      - name: frontend | Coverage check
+      - name: Frontend | Coverage check
         uses: webcraftmedia/coverage-check-action@master
         with:
           report_name: Coverage Frontend
