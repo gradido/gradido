@@ -44,7 +44,9 @@ jobs:
         run: docker load < /tmp/admin.tar
 
       - name: Admin Interface | Lint
-        run: docker run --rm -v /home/runner/work/gradido/gradido/admin:/app gradido/admin:base yarn && yarn run lint
+        run: |
+          pwd
+          docker run --rm -v /home/runner/work/gradido/gradido/admin:/app gradido/admin:base yarn && yarn run lint
 
   # STYLELINT ADMIN INTERFACE
   stylelint_admin:
@@ -100,7 +102,7 @@ jobs:
 
       - name: Admin Interface | Unit tests
         run: |
-          docker run -v ~/coverage:/app/coverage --rm gradido/admin:base yarn run test
+          docker run --rm -v /home/runner/work/gradido/gradido/admin:/app ~/coverage:/app/coverage gradido/admin:base yarn && yarn run test
           cp -r ~/coverage ./coverage
 
       - name: Admin Interface | Coverage check
