@@ -813,14 +813,15 @@ describe('ContributionResolver', () => {
               id: contributionToDeny.data.createContribution.id,
             },
           })
-          expect(isDenied).toBeTruthy()
+          expect(isDenied).toBe(true)
         })
 
         it('stores the admin deny contribution event in the database', async () => {
           await expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.ADMIN_CONTRIBUTION_DENY,
-              userId: admin.id,
+              userId: bibi.id,
+              xUserId: admin.id,
             }),
           )
         })
@@ -925,7 +926,7 @@ describe('ContributionResolver', () => {
               id: contributionToDelete.data.createContribution.id,
             },
           })
-          expect(isDenied).toBeTruthy()
+          expect(isDenied).toBe(true)
         })
 
         it('stores the CONTRIBUTION_DELETE event in the database', async () => {
@@ -1022,38 +1023,39 @@ describe('ContributionResolver', () => {
           expect(contributionListResult).toMatchObject({
             contributionCount: 6,
             contributionList: expect.arrayContaining([
-              {
+              expect.objectContaining({
                 amount: '100',
                 id: contributionToConfirm.data.createContribution.id,
                 memo: 'Test contribution to confirm',
-              },
-              {
+              }),
+              expect.objectContaining({
                 id: pendingContribution.data.createContribution.id,
                 memo: 'Test PENDING contribution update',
                 amount: '10',
-              },
-              {
+              }),
+              expect.objectContaining({
                 id: contributionToDeny.data.createContribution.id,
                 memo: 'Test contribution to deny',
                 amount: '100',
-              },
-              {
+              }),
+              expect.objectContaining({
                 id: contributionToDelete.data.createContribution.id,
                 memo: 'Test contribution to delete',
                 amount: '100',
-              },
-              {
+              }),
+              expect.objectContaining({
                 id: inProgressContribution.data.createContribution.id,
                 memo: 'Test IN_PROGRESS contribution',
                 amount: '100',
-              },
-              {
+              }),
+              expect.objectContaining({
                 id: bibiCreatedContribution.id,
                 memo: 'Herzlich Willkommen bei Gradido!',
                 amount: '1000',
-              },
+              }),
             ]),
           })
+          expect(contributionListResult.contributionList).toHaveLength(6)
         })
       })
 
@@ -1074,37 +1076,35 @@ describe('ContributionResolver', () => {
             contributionCount: 4,
             contributionList: expect.arrayContaining([
               expect.not.objectContaining({
-                amount: '100',
-                id: contributionToConfirm.data.createContribution.id,
-                memo: 'Test contribution to confirm',
+                state: 'CONFIRMED',
               }),
               expect.objectContaining({
                 id: pendingContribution.data.createContribution.id,
+                state: 'PENDING',
                 memo: 'Test PENDING contribution update',
                 amount: '10',
               }),
               expect.objectContaining({
                 id: contributionToDeny.data.createContribution.id,
+                state: 'DENIED',
                 memo: 'Test contribution to deny',
                 amount: '100',
               }),
               expect.objectContaining({
                 id: contributionToDelete.data.createContribution.id,
+                state: 'DELETED',
                 memo: 'Test contribution to delete',
                 amount: '100',
               }),
               expect.objectContaining({
                 id: inProgressContribution.data.createContribution.id,
+                state: 'IN_PROGRESS',
                 memo: 'Test IN_PROGRESS contribution',
                 amount: '100',
               }),
-              expect.not.objectContaining({
-                id: bibiCreatedContribution.id,
-                memo: 'Herzlich Willkommen bei Gradido!',
-                amount: '1000',
-              }),
             ]),
           })
+          expect(contributionListResult.contributionList).toHaveLength(4)
         })
       })
     })
@@ -1253,6 +1253,7 @@ describe('ContributionResolver', () => {
             }),
           ]),
         })
+        expect(contributionListObject.contributionList).toHaveLength(7)
       })
 
       it('returns all contributions for statusFilter = null', async () => {
@@ -1317,6 +1318,7 @@ describe('ContributionResolver', () => {
             }),
           ]),
         })
+        expect(contributionListObject.contributionList).toHaveLength(7)
       })
 
       it('returns all contributions for statusFilter = []', async () => {
@@ -1381,6 +1383,7 @@ describe('ContributionResolver', () => {
             }),
           ]),
         })
+        expect(contributionListObject.contributionList).toHaveLength(7)
       })
 
       it('returns all CONFIRMED contributions', async () => {
@@ -1430,6 +1433,7 @@ describe('ContributionResolver', () => {
             }),
           ]),
         })
+        expect(contributionListObject.contributionList).toHaveLength(3)
       })
 
       it('returns all PENDING contributions', async () => {
@@ -1467,6 +1471,7 @@ describe('ContributionResolver', () => {
             }),
           ]),
         })
+        expect(contributionListObject.contributionList).toHaveLength(1)
       })
 
       it('returns all IN_PROGRESS Creation', async () => {
@@ -1504,6 +1509,7 @@ describe('ContributionResolver', () => {
             }),
           ]),
         })
+        expect(contributionListObject.contributionList).toHaveLength(1)
       })
 
       it('returns all DENIED Creation', async () => {
@@ -1547,6 +1553,7 @@ describe('ContributionResolver', () => {
             }),
           ]),
         })
+        expect(contributionListObject.contributionList).toHaveLength(2)
       })
 
       it('does not return any DELETED Creation', async () => {
@@ -1565,6 +1572,7 @@ describe('ContributionResolver', () => {
           contributionCount: 0,
           contributionList: [],
         })
+        expect(contributionListObject.contributionList).toHaveLength(0)
       })
 
       it('returns all CONFIRMED and PENDING Creation', async () => {
@@ -1617,6 +1625,7 @@ describe('ContributionResolver', () => {
             }),
           ]),
         })
+        expect(contributionListObject.contributionList).toHaveLength(4)
       })
     })
   })
@@ -2336,7 +2345,7 @@ describe('ContributionResolver', () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
-                  userId: admin.id,
+                  userId: bibi.id,
                 }),
               )
             })
@@ -2376,7 +2385,7 @@ describe('ContributionResolver', () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
-                  userId: admin.id,
+                  userId: bibi.id,
                 }),
               )
             })
@@ -2554,7 +2563,7 @@ describe('ContributionResolver', () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
-                  userId: admin.id,
+                  userId: bibi.id,
                 }),
               )
             })
