@@ -11,7 +11,7 @@ Feature: User authentication
   #     | bibi@bloxberg.de | Aa12345_ | Bibi Bloxberg |
 
   Scenario: Log in successfully
-    Given the browser navigates to page "/login"
+    Given the user navigates to page "/login"
     When the user submits the credentials "bibi@bloxberg.de" "Aa12345_"
     Then the user is logged in with username "Bibi Bloxberg"
 
