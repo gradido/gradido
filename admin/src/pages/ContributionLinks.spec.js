@@ -5,7 +5,7 @@ import { toastErrorSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
-const apolloQueryMock = jest.fn().mockResolvedValueOnce({
+const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
     listContributionLinks: {
       links: [
@@ -47,6 +47,7 @@ describe('ContributionLinks', () => {
     beforeEach(() => {
       wrapper = Wrapper()
     })
+
     describe('apollo returns', () => {
       it('calls listContributionLinks', () => {
         expect(apolloQueryMock).toBeCalledWith(
@@ -57,7 +58,7 @@ describe('ContributionLinks', () => {
       })
     })
 
-    describe.skip('query transaction with error', () => {
+    describe('query transaction with error', () => {
       beforeEach(() => {
         apolloQueryMock.mockRejectedValue({ message: 'OUCH!' })
         wrapper = Wrapper()

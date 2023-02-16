@@ -1,6 +1,17 @@
 <template>
   <div class="open-creations-table">
-    <b-table-lite :items="items" :fields="fields" caption-top striped hover stacked="md">
+    <b-table-lite
+      :items="items"
+      :fields="fields"
+      caption-top
+      striped
+      hover
+      stacked="md"
+      :tbody-tr-class="rowClass"
+    >
+      <template #cell(state)="row">
+        <b-icon :icon="getStatusIcon(row.item.state)"></b-icon>
+      </template>
       <template #cell(bookmark)="row">
         <b-button
           variant="danger"
@@ -36,6 +47,16 @@
             ></b-icon>
           </b-button>
         </div>
+      </template>
+      <template #cell(reActive)>
+        <b-button variant="warning" size="md" class="mr-2">
+          <b-icon icon="arrow-up" variant="light"></b-icon>
+        </b-button>
+      </template>
+      <template #cell(chatCreation)="row">
+        <b-button v-if="row.item.messagesCount > 0" @click="rowToggleDetails(row, 0)">
+          <b-icon icon="chat-dots"></b-icon>
+        </b-button>
       </template>
       <template #cell(deny)="row">
         <div v-if="$store.state.moderator.id !== row.item.userId">
@@ -100,6 +121,14 @@ import RowDetails from '../RowDetails.vue'
 import EditCreationFormular from '../EditCreationFormular.vue'
 import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList.vue'
 
+const iconMap = {
+  IN_PROGRESS: 'question-square',
+  PENDING: 'bell-fill',
+  CONFIRMED: 'check',
+  DELETED: 'trash',
+  DENIED: 'x-circle',
+}
+
 export default {
   name: 'OpenCreationsTable',
   mixins: [toggleRowDetails],
@@ -129,6 +158,14 @@ export default {
     }
   },
   methods: {
+    getStatusIcon(status) {
+      return iconMap[status] ? iconMap[status] : 'default-icon'
+    },
+    rowClass(item, type) {
+      if (!item || type !== 'row') return
+      if (item.state === 'CONFIRMED') return 'table-success'
+      if (item.state === 'DENIED') return 'table-info'
+    },
     updateCreationData(data) {
       const row = data.row
       this.$emit('update-contributions', data)
