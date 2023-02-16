@@ -7,7 +7,7 @@
   "author": "Ulf Gebhardt <ulf.gebhardt@webcraft-media.de>",
   "license": "Apache-2.0",
   "scripts": {
-    "release": "scripts/release.sh",
+    "release": "scripts/release.sh"
   },
   "dependencies": {
     "auto-changelog": "^2.4.0",
