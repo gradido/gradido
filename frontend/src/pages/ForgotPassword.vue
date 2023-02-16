@@ -1,3 +1,4 @@
+<!-- eslint-disable prettier/prettier -->
 <template>
   <div class="forgot-password">
     <b-container v-if="enterData">
@@ -26,6 +27,7 @@
       <message
         :headline="success ? $t('message.title') : $t('message.errorTitle')"
         :subtitle="success ? $t('message.email') : $t('error.email-already-sent')"
+        :data-test="success ? 'forgot-password-success' : 'forgot-password-error'"
         :buttonText="$t('login')"
         linkTo="/login"
       />
