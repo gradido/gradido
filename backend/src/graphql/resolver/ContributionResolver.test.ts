@@ -174,7 +174,7 @@ describe('ContributionResolver', () => {
           variables: { amount: 100.0, memo: 'Test Contribution', creationDate: 'not-valid' },
         })
 
-        expect(errorObjects).toMatchObject([new GraphQLError('401 Unauthorized')])
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -203,7 +203,7 @@ describe('ContributionResolver', () => {
             },
           })
 
-          expect(errorObjects).toMatchObject([new GraphQLError('Memo text is too short')])
+          expect(errorObjects).toEqual([new GraphQLError('Memo text is too short')])
         })
 
         it('logs the error found', () => {
@@ -221,7 +221,7 @@ describe('ContributionResolver', () => {
               creationDate: date.toString(),
             },
           })
-          expect(errorObjects).toMatchObject([new GraphQLError('Memo text is too long')])
+          expect(errorObjects).toEqual([new GraphQLError('Memo text is too long')])
         })
 
         it('logs the error found', () => {
@@ -238,7 +238,7 @@ describe('ContributionResolver', () => {
               creationDate: 'not-valid',
             },
           })
-          expect(errorObjects).toMatchObject([
+          expect(errorObjects).toEqual([
             new GraphQLError('No information for available creations for the given date'),
           ])
         })
@@ -261,7 +261,7 @@ describe('ContributionResolver', () => {
               creationDate: date.setMonth(date.getMonth() - 3).toString(),
             },
           })
-          expect(errorObjects).toMatchObject([
+          expect(errorObjects).toEqual([
             new GraphQLError('No information for available creations for the given date'),
           ])
         })
@@ -309,7 +309,7 @@ describe('ContributionResolver', () => {
             creationDate: 'not-valid',
           },
         })
-        expect(errorObjects).toMatchObject([new GraphQLError('401 Unauthorized')])
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -338,7 +338,7 @@ describe('ContributionResolver', () => {
               creationDate: date.toString(),
             },
           })
-          expect(errorObjects).toMatchObject([new GraphQLError('Memo text is too short')])
+          expect(errorObjects).toEqual([new GraphQLError('Memo text is too short')])
         })
 
         it('logs the error found', () => {
@@ -359,7 +359,7 @@ describe('ContributionResolver', () => {
               creationDate: date.toString(),
             },
           })
-          expect(errorObjects).toMatchObject([new GraphQLError('Memo text is too long')])
+          expect(errorObjects).toEqual([new GraphQLError('Memo text is too long')])
         })
 
         it('logs the error found', () => {
@@ -411,7 +411,7 @@ describe('ContributionResolver', () => {
               creationDate: new Date().toString(),
             },
           })
-          expect(errorObjects).toMatchObject([
+          expect(errorObjects).toEqual([
             new GraphQLError('Can not update contribution of another user'),
           ])
         })
@@ -445,7 +445,7 @@ describe('ContributionResolver', () => {
               creationDate: new Date().toString(),
             },
           })
-          expect(errorObjects).toMatchObject([
+          expect(errorObjects).toEqual([
             new GraphQLError('An admin is not allowed to update an user contribution'),
           ])
         })
@@ -524,7 +524,7 @@ describe('ContributionResolver', () => {
               creationDate: new Date().toString(),
             },
           })
-          expect(errorObjects).toMatchObject([
+          expect(errorObjects).toEqual([
             new GraphQLError(
               'The amount (1019 GDD) to be created exceeds the amount (600 GDD) still available for this month.',
             ),
@@ -551,7 +551,7 @@ describe('ContributionResolver', () => {
               creationDate: date.setMonth(date.getMonth() - 3).toString(),
             },
           })
-          expect(errorObjects).toMatchObject([
+          expect(errorObjects).toEqual([
             new GraphQLError('Month of contribution can not be changed'),
           ])
         })
@@ -609,7 +609,7 @@ describe('ContributionResolver', () => {
             id: 1,
           },
         })
-        expect(errorObjects).toMatchObject([new GraphQLError('401 Unauthorized')])
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -632,7 +632,7 @@ describe('ContributionResolver', () => {
             id: 1,
           },
         })
-        expect(errorObjects).toMatchObject([new GraphQLError('401 Unauthorized')])
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -657,7 +657,7 @@ describe('ContributionResolver', () => {
               id: -1,
             },
           })
-          expect(errorObjects).toMatchObject([new GraphQLError('Contribution not found')])
+          expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
@@ -701,7 +701,7 @@ describe('ContributionResolver', () => {
               id: contribution.data.createContribution.id,
             },
           })
-          expect(errorObjects).toMatchObject([new GraphQLError('Contribution not found')])
+          expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
@@ -746,7 +746,7 @@ describe('ContributionResolver', () => {
               id: contribution.data.createContribution.id,
             },
           })
-          expect(errorObjects).toMatchObject([new GraphQLError('Contribution not found')])
+          expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
@@ -791,7 +791,7 @@ describe('ContributionResolver', () => {
               id: contribution.data.createContribution.id,
             },
           })
-          expect(errorObjects).toMatchObject([new GraphQLError('Contribution not found')])
+          expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
@@ -840,7 +840,7 @@ describe('ContributionResolver', () => {
             id: -1,
           },
         })
-        expect(errorObjects).toMatchObject([new GraphQLError('401 Unauthorized')])
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -865,7 +865,7 @@ describe('ContributionResolver', () => {
               id: -1,
             },
           })
-          expect(errorObjects).toMatchObject([new GraphQLError('Contribution not found')])
+          expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
@@ -893,7 +893,7 @@ describe('ContributionResolver', () => {
               id: contributionToDelete.data.createContribution.id,
             },
           })
-          expect(errorObjects).toMatchObject([
+          expect(errorObjects).toEqual([
             new GraphQLError('Can not delete contribution of another user'),
           ])
         })
@@ -966,7 +966,7 @@ describe('ContributionResolver', () => {
               id: contributionToConfirm.data.createContribution.id,
             },
           })
-          expect(errorObjects).toMatchObject([
+          expect(errorObjects).toEqual([
             new GraphQLError('A confirmed contribution can not be deleted'),
           ])
         })
@@ -993,7 +993,7 @@ describe('ContributionResolver', () => {
             filterConfirmed: false,
           },
         })
-        expect(errorObjects).toMatchObject([new GraphQLError('401 Unauthorized')])
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -1124,7 +1124,7 @@ describe('ContributionResolver', () => {
             statusFilter: null,
           },
         })
-        expect(errorObjects).toMatchObject([new GraphQLError('401 Unauthorized')])
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -1150,7 +1150,7 @@ describe('ContributionResolver', () => {
             statusFilter: ['NOT_VALID'],
           },
         })
-        expect(errorObjects).toMatchObject([
+        expect(errorObjects).toEqual([
           new UserInputError(
             'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[0]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
           ),
@@ -1167,7 +1167,7 @@ describe('ContributionResolver', () => {
             statusFilter: [null],
           },
         })
-        expect(errorObjects).toMatchObject([
+        expect(errorObjects).toEqual([
           new UserInputError(
             'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
           ),
@@ -1184,7 +1184,7 @@ describe('ContributionResolver', () => {
             statusFilter: [null, 'NOT_VALID'],
           },
         })
-        expect(errorObjects).toMatchObject([
+        expect(errorObjects).toEqual([
           new UserInputError(
             'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
           ),
@@ -1570,7 +1570,7 @@ describe('ContributionResolver', () => {
             statusFilter: ['DELETED'],
           },
         })
-        expect(contributionListObject).toMatchObject({
+        expect(contributionListObject).toEqual({
           contributionCount: 0,
           contributionList: [],
         })
