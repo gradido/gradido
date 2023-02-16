@@ -526,7 +526,7 @@ describe('ContributionResolver', () => {
           })
           expect(errorObjects).toEqual([
             new GraphQLError(
-              'The amount to be created exceeds the amount still available for this month',,
+              'The amount to be created exceeds the amount still available for this month',
             ),
           ])
         })
