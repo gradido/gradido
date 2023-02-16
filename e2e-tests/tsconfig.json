@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "lib": ["es6", "dom"],
+    "baseUrl": ".",
+    "types": ["cypress", "node"],
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "paths": {
+      "@/*": ["cypress/*"],
+      "@models/*": ["cypress/e2e/models/*"],
+    }
+  },
+  "include": ["**/*.ts"],
+}
