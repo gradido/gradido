@@ -16,9 +16,6 @@ export const mutations = {
   email: (state, email) => {
     state.email = email
   },
-  // username: (state, username) => {
-  //   state.username = username
-  // },
   firstName: (state, firstName) => {
     state.firstName = firstName
   },
@@ -53,13 +50,15 @@ export const mutations = {
   hideAmountGDT: (state, hideAmountGDT) => {
     state.hideAmountGDT = !!hideAmountGDT
   },
+  communityTabIndex: (state, communityTabIndex) => {
+    state.communityTabIndex = communityTabIndex
+  },
 }
 
 export const actions = {
   login: ({ dispatch, commit }, data) => {
     commit('email', data.email)
     commit('language', data.language)
-    // commit('username', data.username)
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
     commit('newsletterState', data.klickTipp.newsletterState)
@@ -68,11 +67,11 @@ export const actions = {
     commit('isAdmin', data.isAdmin)
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
+    commit('communityTabIndex', data.communityTabIndex)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
     commit('email', null)
-    // commit('username', '')
     commit('firstName', '')
     commit('lastName', '')
     commit('newsletterState', null)
@@ -81,6 +80,7 @@ export const actions = {
     commit('isAdmin', false)
     commit('hideAmountGDD', false)
     commit('hideAmountGDT', true)
+    commit('communityTabIndex', 0)
     localStorage.clear()
   },
 }
@@ -99,7 +99,6 @@ try {
       language: null,
       firstName: '',
       lastName: '',
-      // username: '',
       token: null,
       tokenTime: null,
       isAdmin: false,
@@ -108,6 +107,7 @@ try {
       publisherId: null,
       hideAmountGDD: null,
       hideAmountGDT: null,
+      communityTabIndex: 0,
     },
     getters: {},
     // Syncronous mutation of the state

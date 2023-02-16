@@ -2,7 +2,7 @@
   <div>
     <div
       class="contribution-list-item bg-white appBoxShadow gradido-border-radius pt-3 px-3"
-      :class="state === 'IN_PROGRESS' ? 'pulse border border-205' : ''"
+      :class="state === 'IN_PROGRESS' && !allContribution ? 'pulse border border-205' : ''"
     >
       <b-row>
         <b-col cols="3" lg="2" md="2">
@@ -16,8 +16,8 @@
           <b-avatar v-else :icon="icon" :variant="variant" size="3em"></b-avatar>
         </b-col>
         <b-col>
-          <div v-if="firstName" class="mr-3 font-weight-bold">
-            {{ firstName }} {{ lastName }}
+          <div v-if="allContribution" class="mr-3 font-weight-bold">
+            {{ firstName }} {{ lastName }} {{ state }}
             <b-icon :icon="icon" :variant="variant"></b-icon>
           </div>
           <div class="small">
@@ -25,7 +25,7 @@
           </div>
           <div class="mt-3 font-weight-bold">{{ $t('contributionText') }}</div>
           <div class="mb-3 text-break word-break">{{ memo }}</div>
-          <div v-if="state === 'IN_PROGRESS'" class="text-205">
+          <div v-if="state === 'IN_PROGRESS' && !allContribution" class="text-205">
             {{ $t('contribution.alert.answerQuestion') }}
           </div>
         </b-col>
@@ -43,7 +43,7 @@
           <div v-else class="font-weight-bold">{{ amount | GDD }}</div>
         </b-col>
         <b-col cols="12" md="1" lg="1" class="text-right align-items-center">
-          <div v-if="messagesCount > 0" @click="visible = !visible">
+          <div v-if="messagesCount > 0 && !allContribution" @click="visible = !visible">
             <collapse-icon class="text-right" :visible="visible" />
           </div>
         </b-col>
@@ -82,13 +82,17 @@
         </b-col>
 
         <b-col cols="6" class="text-center">
-          <div v-if="messagesCount > 0" class="pointer" @click="visible = !visible">
+          <div
+            v-if="messagesCount > 0 && !allContribution"
+            class="pointer"
+            @click="visible = !visible"
+          >
             <b-icon icon="chat-dots"></b-icon>
             <div>{{ $t('moderatorChat') }}</div>
           </div>
         </b-col>
       </b-row>
-      <div v-else class="pb-3"></div>
+      <div class="pb-3"></div>
       <b-collapse :id="collapsId" class="mt-2" v-model="visible">
         <contribution-messages-list
           :messages="messages_get"
@@ -185,11 +189,14 @@ export default {
     }
   },
   computed: {
+    tabIndex() {
+      return this.$store.state.communityTabIndex
+    },
     icon() {
       if (this.deletedAt) return 'trash'
       if (this.deniedAt) return 'x-circle'
       if (this.confirmedAt) return 'check'
-      if (this.state === 'IN_PROGRESS') return 'question-circle'
+      if (this.state === 'IN_PROGRESS') return 'question-square'
       return 'bell-fill'
     },
     variant() {
@@ -213,15 +220,24 @@ export default {
     },
   },
   methods: {
+    closeAllOpenCollapse() {
+      // console.log('closeAllOpenCollapse', this.$el)
+      if (this.$el) {
+        if (this.$el.querySelectorAll('.collapse.show').length > 0) {
+          this.$el.querySelectorAll('.collapse.show').forEach((value) => {
+            this.$root.$emit('bv::toggle::collapse', value.id)
+          })
+        }
+      }
+    },
     deleteContribution(item) {
       this.$bvModal.msgBoxConfirm(this.$t('contribution.delete')).then(async (value) => {
         if (value) this.$emit('delete-contribution', item)
       })
     },
-    getListContributionMessages(closeCollapse = true) {
-      if (closeCollapse) {
-        this.$emit('closeAllOpenCollapse')
-      }
+    getListContributionMessages() {
+      this.closeAllOpenCollapse()
+
       this.$apollo
         .query({
           query: listContributionMessages,
@@ -242,6 +258,9 @@ export default {
     },
   },
   watch: {
+    tabIndex() {
+      if (this.visible) this.visible = !this.visible
+    },
     visible() {
       if (this.visible) this.getListContributionMessages()
     },

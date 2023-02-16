@@ -23,9 +23,9 @@
           <div v-if="items.length === 0">
             {{ $t('contribution.noContributions.myContributions') }}
           </div>
+
           <div v-else>
             <contribution-list
-              @closeAllOpenCollapse="closeAllOpenCollapse"
               :items="items"
               @update-list-contributions="updateListContributions"
               @update-contribution-form="updateContributionForm"
@@ -73,9 +73,7 @@ export default {
   },
   data() {
     return {
-      hashLink: '',
-      tabLinkHashes: ['#edit', '#my', '#all'],
-      tabIndex: 0,
+      zahler: 0, // TODO:
       items: [],
       itemsAll: [],
       currentPage: 1,
@@ -96,23 +94,28 @@ export default {
       openCreations: [],
     }
   },
-  mounted() {
-    this.$nextTick(() => {
-      this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === this.$route.hash)
-      this.hashLink = this.$route.hash
-    })
-  },
   apollo: {
-    OpenCreations: {
+    ListContributions: {
       query() {
-        return openCreations
+        return listContributions
       },
-      fetchPolicy: 'network-only',
       variables() {
-        return {}
+        return {
+          currentPage: this.currentPage,
+          pageSize: this.pageSize,
+        }
       },
-      update({ openCreations }) {
-        this.openCreations = openCreations
+      fetchPolicy: 'no-cache',
+      update({ listContributions }) {
+        if (this.zahler > 1) return
+
+        this.contributionCount = listContributions.contributionCount
+        this.items = listContributions.contributionList
+        this.zahler = this.zahler + 1
+        if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
+          this.tabIndex = 1
+          this.toastInfo(this.$t('contribution.alert.answerQuestionToast'))
+        }
       },
       error({ message }) {
         this.toastError(message)
@@ -137,52 +140,40 @@ export default {
         this.toastError(message)
       },
     },
-    ListContributions: {
+    OpenCreations: {
       query() {
-        return listContributions
+        return openCreations
       },
       fetchPolicy: 'network-only',
       variables() {
-        return {
-          currentPage: this.currentPage,
-          pageSize: this.pageSize,
-        }
+        return {}
       },
-      update({ listContributions }) {
-        this.contributionCount = listContributions.contributionCount
-        this.items = listContributions.contributionList
-        if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
-          this.tabIndex = 1
-          if (this.$route.hash !== '#my') {
-            this.$router.push({ path: '/community#my' })
-          }
-          this.toastInfo(this.$t('contribution.alert.answerQuestionToast'))
-        }
+      update({ openCreations }) {
+        this.openCreations = openCreations
       },
       error({ message }) {
         this.toastError(message)
       },
     },
   },
-  watch: {
-    $route(to, from) {
-      this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === to.hash)
-      this.hashLink = to.hash
-      this.closeAllOpenCollapse()
-    },
-    tabIndex(num) {
-      if (num !== 0) {
-        this.form = {
-          id: null,
-          date: new Date(),
-          memo: '',
-          hours: 0,
-          amount: '',
-        }
-      }
-    },
-  },
   computed: {
+    tabIndex: {
+      get() {
+        return this.$store.state.communityTabIndex
+      },
+      set(newValue) {
+        if (newValue !== 0) {
+          this.form = {
+            id: null,
+            date: new Date(),
+            memo: '',
+            hours: 0,
+            amount: '',
+          }
+        }
+        this.$store.commit('communityTabIndex', newValue)
+      },
+    },
     minimalDate() {
       const date = new Date(this.maximalDate)
       return new Date(date.setMonth(date.getMonth() - 1, 1))
@@ -211,11 +202,6 @@ export default {
     },
   },
   methods: {
-    closeAllOpenCollapse() {
-      this.$el.querySelectorAll('.collapse.show').forEach((value) => {
-        this.$root.$emit('bv::toggle::collapse', value.id)
-      })
-    },
     refetchData() {
       this.$apollo.queries.ListAllContributions.refetch()
       this.$apollo.queries.ListContributions.refetch()
@@ -294,20 +280,14 @@ export default {
       this.form.amount = item.amount
       this.form.hours = item.amount / 20
       this.updateAmount = item.amount
-      this.$router.push({ path: '#edit' })
       this.tabIndex = 0
-    },
-    updateTransactions(pagination) {
-      this.$emit('update-transactions', pagination)
     },
     updateState(id) {
       this.items.find((item) => item.id === id).state = 'PENDING'
     },
   },
   created() {
-    this.updateTransactions(0)
     this.tabIndex = 0
-    this.$router.push({ path: '/community#edit' })
   },
 }
 </script>

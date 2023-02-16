@@ -2,22 +2,8 @@
   <div class="contribution-list">
     <div class="mb-3" v-for="item in items" :key="item.id + 'a'">
       <contribution-list-item
-        v-if="item.state === 'IN_PROGRESS'"
         v-bind="item"
-        @closeAllOpenCollapse="$emit('closeAllOpenCollapse')"
         :contributionId="item.id"
-        :allContribution="allContribution"
-        @update-contribution-form="updateContributionForm"
-        @delete-contribution="deleteContribution"
-        @update-state="updateState"
-      />
-    </div>
-    <div class="mb-3" v-for="item2 in items" :key="item2.id">
-      <contribution-list-item
-        v-if="item2.state !== 'IN_PROGRESS'"
-        v-bind="item2"
-        @closeAllOpenCollapse="$emit('closeAllOpenCollapse')"
-        :contributionId="item2.id"
         :allContribution="allContribution"
         @update-contribution-form="updateContributionForm"
         @delete-contribution="deleteContribution"

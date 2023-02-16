@@ -1,6 +1,6 @@
 <template>
   <div class="contribution-info d-none d-lg-block">
-    <div v-if="hash === '#my'">
+    <div v-if="$store.state.communityTabIndex === 1">
       <h4 class="alert-heading">{{ $t('community.myContributions') }}</h4>
       <p>
         {{ $t('contribution.alert.myContributionNoteList') }}
@@ -28,7 +28,13 @@
         </li>
       </ul>
     </div>
-    <div v-if="hash === '#all'" show fade variant="secondary" class="text-dark">
+    <div
+      v-if="$store.state.communityTabIndex === 2"
+      show
+      fade
+      variant="secondary"
+      class="text-dark"
+    >
       <h4 class="alert-heading">{{ $t('navigation.community') }}</h4>
       <p>
         {{ $t('contribution.alert.communityNoteList') }}
@@ -52,7 +58,13 @@
         </li>
       </ul>
     </div>
-    <div v-if="hash === '#edit'" show fade variant="secondary" class="text-dark">
+    <div
+      v-if="$store.state.communityTabIndex === 0"
+      show
+      fade
+      variant="secondary"
+      class="text-dark"
+    >
       <div>
         <h3>{{ $t('contribution.formText.yourContribution') }}</h3>
         {{ $t('contribution.formText.bringYourTalentsTo') }}
