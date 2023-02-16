@@ -96,7 +96,7 @@ jobs:
       - name: Admin Interface | Unit tests
         run: |
           docker run --rm -v /home/runner/work/gradido/gradido/admin:/app gradido/admin:base sh -c "yarn && yarn run test"
-          cp -r /home/runner/work/gradido/gradido/admin/coverage ./coverage
+          cp -r /home/runner/work/gradido/gradido/admin ./coverage
 
       - name: Admin Interface | Coverage check
         uses: webcraftmedia/coverage-check-action@master
