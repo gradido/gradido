@@ -70,8 +70,6 @@ export default {
           formatter: (value, key, item) => {
             if (value) {
               return this.$d(new Date(value))
-            } else {
-              return null
             }
           },
         },
@@ -81,8 +79,6 @@ export default {
           formatter: (value, key, item) => {
             if (value) {
               return this.$d(new Date(value))
-            } else {
-              return null
             }
           },
         },

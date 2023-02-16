@@ -42,29 +42,72 @@ describe('ContributionLink', () => {
       expect(wrapper.find('div.contribution-link').exists()).toBe(true)
     })
 
-    describe('function editContributionLinkData', () => {
-      beforeEach(() => {
-        wrapper.vm.editContributionLinkData()
+    it('has one contribution link in table', () => {
+      expect(wrapper.find('div.contribution-link-list').find('tbody').findAll('tr')).toHaveLength(1)
+    })
+
+    it('has contribution form not visible by default', () => {
+      expect(wrapper.find('#newContribution').isVisible()).toBe(false)
+    })
+
+    describe('click on create new contribution', () => {
+      beforeEach(async () => {
+        await wrapper.find('[data-test="new-contribution-link-button"]').trigger('click')
       })
-      it('emits toggle::collapse new Contribution', async () => {
-        await expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
+
+      it('shows the contribution form', () => {
+        expect(wrapper.find('#newContribution').isVisible()).toBe(true)
+      })
+
+      describe('click on create new contribution again', () => {
+        beforeEach(async () => {
+          await wrapper.find('[data-test="new-contribution-link-button"]').trigger('click')
+        })
+
+        it('closes the contribution form', () => {
+          expect(wrapper.find('#newContribution').isVisible()).toBe(false)
+        })
+      })
+
+      describe('click on close button', () => {
+        beforeEach(async () => {
+          await wrapper.find('button.btn-secondary').trigger('click')
+        })
+
+        it('closes the contribution form', () => {
+          expect(wrapper.find('#newContribution').isVisible()).toBe(false)
+        })
       })
     })
 
-    describe('function closeContributionForm', () => {
+    describe('edit contribution link', () => {
       beforeEach(async () => {
-        await wrapper.setData({ visible: true })
-        wrapper.vm.closeContributionForm()
+        await wrapper
+          .find('div.contribution-link-list')
+          .find('tbody')
+          .findAll('tr')
+          .at(0)
+          .findAll('button')
+          .at(1)
+          .trigger('click')
       })
 
-      it('emits toggle::collapse close Contribution-Form ', async () => {
-        await expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
+      it('shows the contribution form', () => {
+        expect(wrapper.find('#newContribution').isVisible()).toBe(true)
       })
-      it('editContributionLink is false', async () => {
-        await expect(wrapper.vm.editContributionLink).toBe(false)
+
+      it('does not show the new contribution button', () => {
+        expect(wrapper.find('[data-test="new-contribution-link-button"]').exists()).toBe(false)
       })
-      it('contributionLinkData is empty', async () => {
-        await expect(wrapper.vm.contributionLinkData).toEqual({})
+
+      describe('click on close button', () => {
+        beforeEach(async () => {
+          await wrapper.find('button.btn-secondary').trigger('click')
+        })
+
+        it('closes the contribution form', () => {
+          expect(wrapper.find('#newContribution').isVisible()).toBe(false)
+        })
       })
     })
   })
