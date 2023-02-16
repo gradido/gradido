@@ -3,13 +3,13 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0059-add_hide_amount_to_users',
+  DB_VERSION: '0060-update_communities_table',
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v1.2023-01-01',
+    EXPECTED: 'v2.2023-02-07',
     CURRENT: '',
   },
 }
@@ -28,15 +28,11 @@ const database = {
     process.env.TYPEORM_LOGGING_RELATIVE_PATH || 'typeorm.dht-node.log',
 }
 
-const eventProtocol = {
-  // global switch to enable writing of EventProtocol-Entries
-  EVENT_PROTOCOL_DISABLED: process.env.EVENT_PROTOCOL_DISABLED === 'true' || false,
-}
-
 const federation = {
   FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC || 'GRADIDO_HUB',
   FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
-  FEDERATION_COMMUNITY_URL: process.env.FEDERATION_COMMUNITY_URL || null,
+  FEDERATION_COMMUNITY_URL: process.env.FEDERATION_COMMUNITY_URL || 'http://localhost',
+  FEDERATION_COMMUNITY_API_PORT: process.env.FEDERATION_COMMUNITY_API_PORT || '5000',
 }
 
 // Check config version
@@ -55,7 +51,6 @@ const CONFIG = {
   ...constants,
   ...server,
   ...database,
-  ...eventProtocol,
   ...federation,
 }
 

@@ -116,5 +116,15 @@ describe('ContributionList', () => {
         expect(wrapper.emitted('delete-contribution')).toEqual([[{ id: 2 }]])
       })
     })
+
+    describe('update status', () => {
+      beforeEach(() => {
+        wrapper.findComponent({ name: 'ContributionListItem' }).vm.$emit('update-state', { id: 2 })
+      })
+
+      it('emits update status', () => {
+        expect(wrapper.emitted('update-state')).toEqual([[{ id: 2 }]])
+      })
+    })
   })
 })

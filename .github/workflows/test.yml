@@ -274,7 +274,7 @@ jobs:
         run: docker run --rm gradido/admin:test yarn run lint
 
   ##############################################################################
-  # JOB: STYLELINT ADMIN INTERFACE ##############################################
+  # JOB: STYLELINT ADMIN INTERFACE #############################################
   ##############################################################################
   stylelint_admin:
     name: Stylelint - Admin Interface
@@ -360,6 +360,25 @@ jobs:
       - name: backend | Lint
         run: docker run --rm gradido/backend:test yarn run lint
 
+  ##############################################################################
+  # JOB: LOCALES BACKEND #######################################################
+  ##############################################################################
+  locales_backend:
+    name: Locales - Backend
+    runs-on: ubuntu-latest
+    needs: [build_test_backend]
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v3
+      ##########################################################################
+      # LOCALES BACKEND #####################################################
+      ##########################################################################
+      - name: Backend | Locales
+        run: cd backend && yarn && yarn locales
+  
   ##############################################################################
   # JOB: LINT DATABASE UP ######################################################
   ##############################################################################
@@ -478,7 +497,7 @@ jobs:
           report_name: Coverage Admin Interface
           type: lcov
           result_path: ./coverage/lcov.info
-          min_coverage: 96
+          min_coverage: 97
           token: ${{ github.token }}
 
   ##############################################################################
@@ -526,7 +545,7 @@ jobs:
           report_name: Coverage Backend
           type: lcov
           result_path: ./backend/coverage/lcov.info
-          min_coverage: 78
+          min_coverage: 80
           token: ${{ github.token }}
 
   ##########################################################################
@@ -558,7 +577,7 @@ jobs:
   end-to-end-tests:
     name: End-to-End Tests
     runs-on: ubuntu-latest
-    needs: [build_test_mariadb, build_test_database_up, build_test_backend, build_test_admin, build_test_frontend, build_test_nginx]
+    needs: [build_test_mariadb, build_test_database_up, build_test_admin, build_test_frontend, build_test_nginx]
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
@@ -582,13 +601,6 @@ jobs:
           path: /tmp
       - name: Load Docker Image (Database Up)
         run: docker load < /tmp/database_up.tar
-      - name: Download Docker Image (Backend)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-backend-test
-          path: /tmp
-      - name: Load Docker Image (Backend)
-        run: docker load < /tmp/backend.tar
       - name: Download Docker Image (Frontend)
         uses: actions/download-artifact@v3
         with:
@@ -621,7 +633,11 @@ jobs:
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
 
       - name: Boot up test system | docker-compose backend
-        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend
+        run: |
+          cd backend
+          cp .env.test_e2e .env
+          cd ..
+          docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend 
 
       - name: Sleep for 10 seconds
         run: sleep 10s
@@ -638,6 +654,9 @@ jobs:
       - name: Boot up test system | docker-compose frontends
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps frontend admin nginx
 
+      - name: Boot up test system | docker-compose mailserver
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mailserver
+
       - name: Sleep for 15 seconds
         run: sleep 15s
 
@@ -647,12 +666,12 @@ jobs:
       - name: End-to-end tests | run tests
         id: e2e-tests
         run: |
-          cd e2e-tests/cypress/tests/
+          cd e2e-tests/
           yarn
-          yarn run cypress run --spec cypress/e2e/User.Authentication.feature
+          yarn run cypress run --spec cypress/e2e/User.Authentication.feature,cypress/e2e/User.Authentication.ResetPassword.feature
       - name: End-to-end tests | if tests failed, upload screenshots
-        if: steps.e2e-tests.outcome == 'failure'
+        if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
         uses: actions/upload-artifact@v3
         with:
           name: cypress-screenshots
-          path: /home/runner/work/gradido/gradido/e2e-tests/cypress/tests/cypress/screenshots/
+          path: /home/runner/work/gradido/gradido/e2e-tests/cypress/screenshots/

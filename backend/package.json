@@ -1,6 +1,6 @@
 {
   "name": "gradido-backend",
-  "version": "1.17.1",
+  "version": "1.18.2",
   "description": "Gradido unified backend providing an API-Service for Gradido Transactions",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/backend",
@@ -15,10 +15,10 @@
     "lint": "eslint --max-warnings=0 --ext .js,.ts .",
     "test": "cross-env TZ=UTC NODE_ENV=development jest --runInBand --coverage --forceExit --detectOpenHandles",
     "seed": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/index.ts",
-    "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/klicktipp.ts"
+    "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/klicktipp.ts",
+    "locales": "scripts/sort.sh"
   },
   "dependencies": {
-    "@hyperswarm/dht": "^6.2.0",
     "apollo-server-express": "^2.25.2",
     "await-semaphore": "^0.1.3",
     "axios": "^0.21.1",
@@ -30,6 +30,7 @@
     "email-templates": "^10.0.1",
     "express": "^4.17.1",
     "graphql": "^15.5.1",
+    "graphql-request": "5.0.0",
     "i18n": "^0.15.1",
     "jsonwebtoken": "^8.5.1",
     "lodash.clonedeep": "^4.5.0",
@@ -72,5 +73,10 @@
     "ts-node": "^10.0.0",
     "tsconfig-paths": "^3.14.0",
     "typescript": "^4.3.4"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "**/*.test.ts"
+    ]
   }
 }

@@ -12,7 +12,7 @@ export class Community extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ name: 'foreign', type: 'bool', nullable: false, default: false })
+  @Column({ name: 'foreign', type: 'bool', nullable: false, default: true })
   foreign: boolean
 
   @Column({ name: 'public_key', type: 'binary', length: 64, default: null, nullable: true })
@@ -24,13 +24,13 @@ export class Community extends BaseEntity {
   @Column({ name: 'end_point', length: 255, nullable: false })
   endPoint: string
 
-  @Column({ name: 'last_announced_at', type: 'datetime', nullable: false })
+  @Column({ name: 'last_announced_at', type: 'datetime', nullable: true })
   lastAnnouncedAt: Date
 
-  @Column({ name: 'verified_at', type: 'datetime', nullable: false })
+  @Column({ name: 'verified_at', type: 'datetime', nullable: true })
   verifiedAt: Date
 
-  @Column({ name: 'last_error_at', type: 'datetime', nullable: false })
+  @Column({ name: 'last_error_at', type: 'datetime', nullable: true })
   lastErrorAt: Date
 
   @CreateDateColumn({

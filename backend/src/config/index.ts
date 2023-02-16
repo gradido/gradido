@@ -17,7 +17,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v14.2022-12-22',
+    EXPECTED: 'v15.2023-02-07',
     CURRENT: '',
   },
 }
@@ -99,11 +99,6 @@ const webhook = {
   WEBHOOK_ELOPAGE_SECRET: process.env.WEBHOOK_ELOPAGE_SECRET || 'secret',
 }
 
-const eventProtocol = {
-  // global switch to enable writing of EventProtocol-Entries
-  EVENT_PROTOCOL_DISABLED: process.env.EVENT_PROTOCOL_DISABLED === 'true' || false,
-}
-
 // This is needed by graphql-directive-auth
 process.env.APP_SECRET = server.JWT_SECRET
 
@@ -120,14 +115,8 @@ if (
 }
 
 const federation = {
-  FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC || null,
-  FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
-  FEDERATION_COMMUNITY_URL:
-    process.env.FEDERATION_COMMUNITY_URL === undefined
-      ? null
-      : process.env.FEDERATION_COMMUNITY_URL.endsWith('/')
-      ? process.env.FEDERATION_COMMUNITY_URL
-      : process.env.FEDERATION_COMMUNITY_URL + '/',
+  FEDERATION_VALIDATE_COMMUNITY_TIMER:
+    Number(process.env.FEDERATION_VALIDATE_COMMUNITY_TIMER) || 60000,
 }
 
 const CONFIG = {
@@ -139,7 +128,6 @@ const CONFIG = {
   ...email,
   ...loginServer,
   ...webhook,
-  ...eventProtocol,
   ...federation,
 }
 

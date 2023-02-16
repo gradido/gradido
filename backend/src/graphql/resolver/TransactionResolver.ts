@@ -29,14 +29,16 @@ import {
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
 } from '@/emails/sendEmailVariants'
-import { Event, EventTransactionReceive, EventTransactionSend } from '@/event/Event'
-import { eventProtocol } from '@/event/EventProtocolEmitter'
+import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Event'
 
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByEmail } from './UserResolver'
 
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import LogError from '@/server/LogError'
+
+import { getLastTransaction } from './util/getLastTransaction'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -53,18 +55,15 @@ export const executeTransaction = async (
     )
 
     if (sender.id === recipient.id) {
-      logger.error(`Sender and Recipient are the same.`)
-      throw new Error('Sender and Recipient are the same.')
-    }
-
-    if (memo.length > MEMO_MAX_CHARS) {
-      logger.error(`memo text is too long: memo.length=${memo.length} > ${MEMO_MAX_CHARS}`)
-      throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
+      throw new LogError('Sender and Recipient are the same', sender.id)
     }
 
     if (memo.length < MEMO_MIN_CHARS) {
-      logger.error(`memo text is too short: memo.length=${memo.length} < ${MEMO_MIN_CHARS}`)
-      throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
+      throw new LogError('Memo text is too short', memo.length)
+    }
+
+    if (memo.length > MEMO_MAX_CHARS) {
+      throw new LogError('Memo text is too long', memo.length)
     }
 
     // validate amount
@@ -77,8 +76,7 @@ export const executeTransaction = async (
     )
     logger.debug(`calculated Balance=${sendBalance}`)
     if (!sendBalance) {
-      logger.error(`user hasn't enough GDD or amount is < 0 : balance=${sendBalance}`)
-      throw new Error("user hasn't enough GDD or amount is < 0")
+      throw new LogError('User has not enough GDD or amount is < 0', sendBalance)
     }
 
     const queryRunner = getConnection().createQueryRunner()
@@ -139,25 +137,22 @@ export const executeTransaction = async (
       await queryRunner.commitTransaction()
       logger.info(`commit Transaction successful...`)
 
-      const eventTransactionSend = new EventTransactionSend()
-      eventTransactionSend.userId = transactionSend.userId
-      eventTransactionSend.xUserId = transactionSend.linkedUserId
-      eventTransactionSend.transactionId = transactionSend.id
-      eventTransactionSend.amount = transactionSend.amount.mul(-1)
-      await eventProtocol.writeEvent(new Event().setEventTransactionSend(eventTransactionSend))
+      await EVENT_TRANSACTION_SEND(
+        transactionSend.userId,
+        transactionSend.linkedUserId,
+        transactionSend.id,
+        transactionSend.amount.mul(-1),
+      )
 
-      const eventTransactionReceive = new EventTransactionReceive()
-      eventTransactionReceive.userId = transactionReceive.userId
-      eventTransactionReceive.xUserId = transactionReceive.linkedUserId
-      eventTransactionReceive.transactionId = transactionReceive.id
-      eventTransactionReceive.amount = transactionReceive.amount
-      await eventProtocol.writeEvent(
-        new Event().setEventTransactionReceive(eventTransactionReceive),
+      await EVENT_TRANSACTION_RECEIVE(
+        transactionReceive.userId,
+        transactionReceive.linkedUserId,
+        transactionReceive.id,
+        transactionReceive.amount,
       )
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      logger.error(`Transaction was not successful: ${e}`)
-      throw new Error(`Transaction was not successful: ${e}`)
+      throw new LogError('Transaction was not successful', e)
     } finally {
       await queryRunner.release()
     }
@@ -208,10 +203,7 @@ export class TransactionResolver {
     logger.info(`transactionList(user=${user.firstName}.${user.lastName}, ${user.emailId})`)
 
     // find current balance
-    const lastTransaction = await dbTransaction.findOne(
-      { userId: user.id },
-      { order: { id: 'DESC' }, relations: ['contribution'] },
-    )
+    const lastTransaction = await getLastTransaction(user.id, ['contribution'])
     logger.debug(`lastTransaction=${lastTransaction}`)
 
     const balanceResolver = new BalanceResolver()
@@ -319,8 +311,7 @@ export class TransactionResolver {
   ): Promise<boolean> {
     logger.info(`sendCoins(email=${email}, amount=${amount}, memo=${memo})`)
     if (amount.lte(0)) {
-      logger.error(`Amount to send must be positive`)
-      throw new Error('Amount to send must be positive')
+      throw new LogError('Amount to send must be positive', amount)
     }
 
     // TODO this is subject to replay attacks
@@ -329,13 +320,11 @@ export class TransactionResolver {
     // validate recipient user
     const recipientUser = await findUserByEmail(email)
     if (recipientUser.deletedAt) {
-      logger.error(`The recipient account was deleted: recipientUser=${recipientUser}`)
-      throw new Error('The recipient account was deleted')
+      throw new LogError('The recipient account was deleted', recipientUser)
     }
     const emailContact = recipientUser.emailContact
     if (!emailContact.emailChecked) {
-      logger.error(`The recipient account is not activated: recipientUser=${recipientUser}`)
-      throw new Error('The recipient account is not activated')
+      throw new LogError('The recipient account is not activated', recipientUser)
     }
 
     await executeTransaction(amount, memo, senderUser, recipientUser)
