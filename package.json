@@ -7,7 +7,8 @@
   "author": "Ulf Gebhardt <ulf.gebhardt@webcraft-media.de>",
   "license": "Apache-2.0",
   "scripts": {
-    "release": "scripts/release.sh"
+    "release": "scripts/release.sh",
+    "update": "cd admin && yarn && cd ../backend && yarn && cd ../database && yarn && cd ../dht-node && yarn && cd ../e2e-tests && yarn && cd ../federation && yarn && cd ../frontend && yarn"
   },
   "dependencies": {
     "auto-changelog": "^2.4.0",

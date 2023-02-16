@@ -122,13 +122,13 @@ export default {
       query() {
         return listAllContributions
       },
-      fetchPolicy: 'network-only',
       variables() {
         return {
           currentPage: this.currentPageAll,
           pageSize: this.pageSizeAll,
         }
       },
+      fetchPolicy: 'no-cache',
       update({ listAllContributions }) {
         this.contributionCountAll = listAllContributions.contributionCount
         this.itemsAll = listAllContributions.contributionList
