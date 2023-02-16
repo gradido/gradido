@@ -10,8 +10,9 @@
     >
       <b-button
         v-if="!editContributionLink"
-        v-b-toggle.newContribution
+        @click="visible = !visible"
         class="my-3 d-flex justify-content-left"
+        data-test="new-contribution-link-button"
       >
         {{ $t('math.plus') }} {{ $t('contributionLink.newContributionLink') }}
       </b-button>

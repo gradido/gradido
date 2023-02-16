@@ -1,6 +1,6 @@
 <template>
   <div class="show-transaction-link-informations">
-    <b-container class="mt-4">
+    <div class="mt-4">
       <transaction-link-item :type="itemType">
         <template #LOGGED_OUT>
           <redeem-logged-out :linkData="linkData" :isContributionLink="isContributionLink" />
@@ -22,7 +22,7 @@
           <redeemed-text-box :text="redeemedBoxText" />
         </template>
       </transaction-link-item>
-    </b-container>
+    </div>
   </div>
 </template>
 <script>
