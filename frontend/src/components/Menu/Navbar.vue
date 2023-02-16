@@ -4,10 +4,10 @@
       <b-navbar toggleable="lg" class="pr-4">
         <b-navbar-brand>
           <b-img
-            class="imgLogo mt-lg--2 mt-3 mb-3 d-none d-lg-block zindex10"
+            class="mt-lg--2 mt-3 mb-3 d-none d-lg-block zindex10"
             :src="logo"
-            width=""
-            alt="..."
+            width="200"
+            alt="Logo"
           />
           <div v-b-toggle.sidebar-mobile variant="link" class="d-block d-lg-none">
             <span class="navbar-toggler-icon h2"></span>
@@ -60,7 +60,7 @@ export default {
   },
   data() {
     return {
-      logo: '/img/brand/green.png',
+      logo: '/img/brand/gradido-logo.png',
       sheet: '/img/template/Blaetter.png',
     }
   },

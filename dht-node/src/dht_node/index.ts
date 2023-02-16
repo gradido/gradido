@@ -32,15 +32,6 @@ export const startDHT = async (topic: string): Promise<void> => {
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
 
     const ownApiVersions = writeHomeCommunityEnries(keyPair.publicKey)
-    /*
-    const ownApiVersions = Object.values(ApiVersionType).map(function (apiEnum) {
-      const comApi: CommunityApi = {
-        api: apiEnum,
-        url: CONFIG.FEDERATION_COMMUNITY_URL,
-      }
-      return comApi
-    })
-    */
     logger.debug(`ApiList: ${JSON.stringify(ownApiVersions)}`)
 
     const node = new DHT({ keyPair })
@@ -216,6 +207,5 @@ async function writeHomeCommunityEnries(pubKey: any): Promise<CommunityApi[]> {
   } catch (err) {
     throw new Error(`Federation: Error writing HomeCommunity-Entries: ${err}`)
   }
-
   return homeApiVersions
 }
