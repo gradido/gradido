@@ -1,6 +1,7 @@
 {
   "all_emails": "Alle Nutzer",
   "back": "zurück",
+  "chat": "Chat",
   "contributionLink": {
     "amount": "Betrag",
     "changeSaved": "Änderungen gespeichert",
@@ -29,6 +30,15 @@
     "validFrom": "Startdatum",
     "validTo": "Enddatum"
   },
+  "contributions": {
+    "all": "Alle",
+    "confirms": "Bestätigt",
+    "deleted": "Gelöscht",
+    "denied": "Abgelehnt",
+    "open": "Offen"
+  },
+  "created": "Geschöpft",
+  "createdAt": "Angelegt",
   "creation": "Schöpfung",
   "creationList": "Schöpfungsliste",
   "creation_form": {
@@ -48,7 +58,6 @@
     "update_creation": "Schöpfung aktualisieren"
   },
   "creation_for_month": "Schöpfung für Monat",
-  "date": "Datum",
   "delete": "Löschen",
   "deleted": "gelöscht",
   "deleted_user": "Alle gelöschten Nutzer",
@@ -92,13 +101,13 @@
   "message": {
     "request": "Die Anfrage wurde gesendet."
   },
+  "mod": "Mod",
   "moderator": "Moderator",
   "name": "Name",
   "navbar": {
     "automaticContributions": "Automatische Beiträge",
     "logout": "Abmelden",
     "my-account": "Mein Konto",
-    "open_creation": "Offene Schöpfungen",
     "statistic": "Statistik",
     "user_search": "Nutzersuche"
   },

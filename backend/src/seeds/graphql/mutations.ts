@@ -272,6 +272,12 @@ export const deleteContribution = gql`
   }
 `
 
+export const denyContribution = gql`
+  mutation ($id: Int!) {
+    denyContribution(id: $id)
+  }
+`
+
 export const createContributionMessage = gql`
   mutation ($contributionId: Float!, $message: String!) {
     createContributionMessage(contributionId: $contributionId, message: $message) {
