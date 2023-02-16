@@ -545,7 +545,7 @@ jobs:
           report_name: Coverage Backend
           type: lcov
           result_path: ./backend/coverage/lcov.info
-          min_coverage: 78
+          min_coverage: 80
           token: ${{ github.token }}
 
   ##########################################################################
