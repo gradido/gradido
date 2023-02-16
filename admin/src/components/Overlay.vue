@@ -13,7 +13,8 @@
         <b-row>
           <b-col class="col-3">{{ $t('creation_for_month') }}</b-col>
           <b-col class="h3">
-            {{ $d(new Date(item.date), 'month') }} {{ $d(new Date(item.date), 'year') }}
+            {{ $d(new Date(item.contributionDate), 'month') }}
+            {{ $d(new Date(item.contributionDate), 'year') }}
           </b-col>
         </b-row>
         <b-row>
