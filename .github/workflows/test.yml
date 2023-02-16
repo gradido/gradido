@@ -325,7 +325,6 @@ jobs:
   unit_test_frontend:
     name: Unit tests - Frontend
     runs-on: ubuntu-latest
-    needs: [build_test_frontend]
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
@@ -333,30 +332,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       ##########################################################################
-      # DOWNLOAD DOCKER IMAGES #################################################
-      ##########################################################################
-      - name: Download Docker Image (Frontend)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-frontend-test
-          path: /tmp
-      - name: Load Docker Image
-        run: docker load < /tmp/frontend.tar
-      ##########################################################################
       # UNIT TESTS FRONTEND ####################################################
       ##########################################################################
-      - name: frontend | Unit tests
-        run: |
-          docker run --env NODE_ENV=test -v ~/coverage:/app/coverage --rm gradido/frontend:test yarn run test
-          cp -r ~/coverage ./coverage
-      ##########################################################################
-      # COVERAGE REPORT FRONTEND ###############################################
-      ##########################################################################
-      #- name: frontend | Coverage report
-      #  uses: romeovs/lcov-reporter-action@v0.2.21
-      #  with:
-      #    github-token: ${{ secrets.GITHUB_TOKEN }}
-      #    lcov-file: ./coverage/lcov.info
+      - name: Frontend | Unit tests
+        run: cd frontend && yarn && yarn run test
       ##########################################################################
       # COVERAGE CHECK FRONTEND ################################################
       ##########################################################################
@@ -375,7 +354,6 @@ jobs:
   unit_test_admin:
     name: Unit tests - Admin Interface
     runs-on: ubuntu-latest
-    needs: [build_test_admin]
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
@@ -383,22 +361,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       ##########################################################################
-      # DOWNLOAD DOCKER IMAGES #################################################
-      ##########################################################################
-      - name: Download Docker Image (Admin Interface)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-admin-test
-          path: /tmp
-      - name: Load Docker Image
-        run: docker load < /tmp/admin.tar
-      ##########################################################################
       # UNIT TESTS ADMIN INTERFACE #############################################
       ##########################################################################
       - name: Admin Interface | Unit tests
-        run: |
-          docker run -v ~/coverage:/app/coverage --rm gradido/admin:test yarn run test
-          cp -r ~/coverage ./coverage
+        run: cd admin && yarn && yarn run test
       ##########################################################################
       # COVERAGE CHECK ADMIN INTERFACE #########################################
       ##########################################################################
