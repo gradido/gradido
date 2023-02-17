@@ -2772,7 +2772,7 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-      it('returns 19 pending creations', async () => {
+      it('returns 19 creations in total', async () => {
         const {
           data: { adminListAllContributions: contributionListObject },
         }: { data: { adminListAllContributions: ContributionListResult } } = await query({
