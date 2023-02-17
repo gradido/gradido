@@ -325,7 +325,6 @@ export class TransactionLinkResolver {
     paginated: Paginated,
     @Ctx() context: Context,
   ): Promise<TransactionLinkResult> {
-    const user = getUser(context)
     return transactionLinkList(
       paginated,
       {
@@ -333,7 +332,7 @@ export class TransactionLinkResolver {
         withExpired: true,
         withRedeemed: false,
       },
-      user,
+      getUser(context),
     )
   }
 
