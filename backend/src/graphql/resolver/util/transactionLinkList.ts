@@ -5,6 +5,7 @@ import { Order } from '@enum/Order'
 import Paginated from '@arg/Paginated'
 import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
+import { User } from '@/graphql/model/User'
 
 export default async function transactionLinkList(
   { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
@@ -18,7 +19,7 @@ export default async function transactionLinkList(
   }
   const [transactionLinks, count] = await DbTransactionLink.findAndCount({
     where: {
-      user: user.id,
+      userId: user.id,
       ...(!withRedeemed && { redeemedBy: null }),
       ...(!withExpired && { validUntil: MoreThan(new Date()) }),
     },
@@ -32,6 +33,6 @@ export default async function transactionLinkList(
 
   return {
     count,
-    links: transactionLinks.map((tl) => new TransactionLink(tl, user)),
+    links: transactionLinks.map((tl) => new TransactionLink(tl, new User(user))),
   }
 }
