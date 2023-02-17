@@ -6,19 +6,21 @@
   </div>
 </template>
 <script>
-export default {
-  name: 'RightSide',
-  computed: {
-    name() {
-      switch (this.$route.path.replace(/^\//, '')) {
-        case 'settings':
-          return 'empty'
-        case 'community':
-          return 'community'
-        default:
-          return 'transactions'
-      }
-    },
-  },
-}
+ export default {
+   name: 'RightSide',
+   computed: {
+     name() {
+       console.log('RightSide', this.$route.path.replace(/^\/(.+?)(\/.+)?$/, '$1'))
+       switch (this.$route.path.replace(/^\/(.+?)(\/.+)?$/, '$1')) {
+         case 'settings':
+           return 'empty'
+         case 'community':
+           console.log('-----------')
+           return 'community'
+         default:
+           return 'transactions'
+       }
+     },
+   },
+ }
 </script>

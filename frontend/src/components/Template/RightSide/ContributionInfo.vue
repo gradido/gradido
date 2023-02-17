@@ -65,12 +65,18 @@
   </div>
 </template>
 <script>
-export default {
-  name: 'ContributionInfo',
-  computed: {
-    hash() {
-      return this.$route.hash
-    },
-  },
-}
+ export default {
+   name: 'ContributionInfo',
+   computed: {
+     hash() {
+       return this.$route.hash
+     },
+     currentTab() {
+       console.log('ROUTE', this.$route)
+       if (this.$route.from && this.$route.from.params && this.$route.from.params.tab)
+         return this.$route.from.params.tab
+       return 0
+     },
+   },
+ }
 </script>
