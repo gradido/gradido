@@ -245,8 +245,8 @@ describe('ContributionResolver', () => {
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'No information for available creations with the given creationDate=',
-            'Invalid Date',
+            'No information for available creations for the given date',
+            expect.any(Date),
           )
         })
 
@@ -268,8 +268,8 @@ describe('ContributionResolver', () => {
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'No information for available creations with the given creationDate=',
-            'Invalid Date',
+            'No information for available creations for the given date',
+            expect.any(Date),
           )
         })
       })
@@ -526,14 +526,16 @@ describe('ContributionResolver', () => {
           })
           expect(errorObjects).toEqual([
             new GraphQLError(
-              'The amount (1019 GDD) to be created exceeds the amount (600 GDD) still available for this month.',
+              'The amount to be created exceeds the amount still available for this month',
             ),
           ])
         })
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'The amount (1019 GDD) to be created exceeds the amount (600 GDD) still available for this month.',
+            'The amount to be created exceeds the amount still available for this month',
+            new Decimal(1019),
+            new Decimal(600),
           )
         })
       })
@@ -2009,8 +2011,8 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'No information for available creations with the given creationDate=',
-                  new Date(variables.creationDate).toString(),
+                  'No information for available creations for the given date',
+                  new Date(variables.creationDate),
                 )
               })
             })
@@ -2034,8 +2036,8 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'No information for available creations with the given creationDate=',
-                  new Date(variables.creationDate).toString(),
+                  'No information for available creations for the given date',
+                  new Date(variables.creationDate),
                 )
               })
             })
@@ -2050,7 +2052,7 @@ describe('ContributionResolver', () => {
                   expect.objectContaining({
                     errors: [
                       new GraphQLError(
-                        'The amount (2000 GDD) to be created exceeds the amount (790 GDD) still available for this month.',
+                        'The amount to be created exceeds the amount still available for this month',
                       ),
                     ],
                   }),
@@ -2059,7 +2061,9 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'The amount (2000 GDD) to be created exceeds the amount (790 GDD) still available for this month.',
+                  'The amount to be created exceeds the amount still available for this month',
+                  new Decimal(2000),
+                  new Decimal(790),
                 )
               })
             })
@@ -2099,7 +2103,7 @@ describe('ContributionResolver', () => {
                   expect.objectContaining({
                     errors: [
                       new GraphQLError(
-                        'The amount (1000 GDD) to be created exceeds the amount (590 GDD) still available for this month.',
+                        'The amount to be created exceeds the amount still available for this month',
                       ),
                     ],
                   }),
@@ -2108,7 +2112,9 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'The amount (1000 GDD) to be created exceeds the amount (590 GDD) still available for this month.',
+                  'The amount to be created exceeds the amount still available for this month',
+                  new Decimal(1000),
+                  new Decimal(590),
                 )
               })
             })
@@ -2301,7 +2307,7 @@ describe('ContributionResolver', () => {
                 expect.objectContaining({
                   errors: [
                     new GraphQLError(
-                      'The amount (1900 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+                      'The amount to be created exceeds the amount still available for this month',
                     ),
                   ],
                 }),
@@ -2310,7 +2316,9 @@ describe('ContributionResolver', () => {
 
             it('logs the error thrown', () => {
               expect(logger.error).toBeCalledWith(
-                'The amount (1900 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+                'The amount to be created exceeds the amount still available for this month',
+                new Decimal(1900),
+                new Decimal(1000),
               )
             })
           })
