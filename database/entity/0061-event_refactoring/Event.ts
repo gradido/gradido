@@ -1,12 +1,12 @@
 import { Contribution } from '../Contribution'
 import { ContributionMessage } from '../ContributionMessage'
 import { User } from '../User'
+import { Transaction } from '../Transaction'
 import Decimal from 'decimal.js-light'
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, Transaction } from 'typeorm'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 
-@Entity('event')
-// TODO tablename event_protocol
+@Entity('events')
 export class Event extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
@@ -14,28 +14,24 @@ export class Event extends BaseEntity {
   @Column({ length: 100, nullable: false, collation: 'utf8mb4_unicode_ci' })
   type: string
 
-  // TODO proper field type
-  @Column({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP()' , nullable: false })
   createdAt: Date
 
-  // TODO field name user_id
   // @Column({ name: 'affected_user_id', unsigned: true, nullable: false })
   // affectedUserId: number
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'affected_user_id', referencedColumnName: 'id' })
-  affectedUser: User | null
+  affectedUser: User
 
-  // TODO new column
-  // TODO potentially save actingRole aswell
+  // TODO potentially save actingRole as well
   // @Column({ name: 'acting_user_id', unsigned: true, nullable: false })
   // actingUserId: number
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'acting_user_id', referencedColumnName: 'id' })
-  actingUser: User | null
+  actingUser: User
 
-  // TODO rename column x_user_id
   // @Column({ name: 'involved_user_id', type: 'int', unsigned: true, nullable: true })
   // involvedUserId: number | null
 
@@ -43,9 +39,6 @@ export class Event extends BaseEntity {
   @JoinColumn({ name: 'involved_user_id', referencedColumnName: 'id' })
   involvedUser: User | null
 
-  // TODO drop column xCommunityId
-
-  // TODO rename column transaction_id
   // @Column({ name: 'involved_transaction_id', type: 'int', unsigned: true, nullable: true })
   // involvedTransactionId: number | null
 
@@ -53,7 +46,6 @@ export class Event extends BaseEntity {
   @JoinColumn({ name: 'involved_transaction_id', referencedColumnName: 'id' })
   involvedTransaction: Transaction | null
 
-  // TODO rename column contribution_id
   // @Column({ name: 'involved_contribution_id', type: 'int', unsigned: true, nullable: true })
   // involvedContributionId: number | null
 
@@ -61,8 +53,6 @@ export class Event extends BaseEntity {
   @JoinColumn({ name: 'involved_contribution_id', referencedColumnName: 'id' })
   involvedContribution: Contribution | null
 
-  // TODO move column
-  // TODO rename column message_id
   // TEST do we need the Id field definition?
   // @Column({ name: 'involved_contribution_message_id', type: 'int', unsigned: true, nullable: true })
   // involvedContributionMessageId: number | null
