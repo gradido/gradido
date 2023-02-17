@@ -335,7 +335,9 @@ jobs:
       # UNIT TESTS FRONTEND ####################################################
       ##########################################################################
       - name: Frontend | Unit tests
-        run: cd frontend && yarn && yarn run test
+        run: |
+          cd frontend && yarn && yarn run test
+          cp -r ./coverage ../
       ##########################################################################
       # COVERAGE CHECK FRONTEND ################################################
       ##########################################################################
@@ -364,7 +366,9 @@ jobs:
       # UNIT TESTS ADMIN INTERFACE #############################################
       ##########################################################################
       - name: Admin Interface | Unit tests
-        run: cd admin && yarn && yarn run test
+        run: |
+          cd admin && yarn && yarn run test
+          cp -r ./coverage ../
       ##########################################################################
       # COVERAGE CHECK ADMIN INTERFACE #########################################
       ##########################################################################
@@ -411,8 +415,9 @@ jobs:
       - name: backend | docker-compose database
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
       - name: backend Unit tests | test
-        run: cd database && yarn && yarn build && cd ../backend && yarn && yarn test
-        # run: docker-compose -f docker-compose.yml -f docker-compose.test.yml exec -T backend yarn test
+        run: |
+          cd database && yarn && yarn build && cd ../backend && yarn && yarn test
+          cp -r ./coverage ../
       ##########################################################################
       # COVERAGE CHECK BACKEND #################################################
       ##########################################################################
