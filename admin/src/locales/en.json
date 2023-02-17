@@ -1,6 +1,7 @@
 {
   "all_emails": "All users",
   "back": "back",
+  "chat": "Chat",
   "contributionLink": {
     "amount": "Amount",
     "changeSaved": "Changes saved",
@@ -29,10 +30,18 @@
     "validFrom": "Start-date",
     "validTo": "End-Date"
   },
+  "contributions": {
+    "all": "All",
+    "confirms": "Confirmed",
+    "deleted": "Deleted",
+    "denied": "Denied",
+    "open": "Open"
+  },
+  "created": "Confirmed",
+  "createdAt": "Created",
   "creation": "Creation",
   "creationList": "Creation list",
   "creation_form": {
-    "creation_failed": "Could not create pending creation for {email}",
     "creation_for": "Active Basic Income for",
     "enter_text": "Enter text",
     "form": "Creation form",
@@ -49,7 +58,6 @@
     "update_creation": "Creation update"
   },
   "creation_for_month": "Creation for month",
-  "date": "Date",
   "delete": "Delete",
   "deleted": "deleted",
   "deleted_user": "All deleted user",
@@ -87,23 +95,19 @@
   "lastname": "Lastname",
   "math": {
     "equals": "=",
-    "exclaim": "!",
     "pipe": "|",
     "plus": "+"
   },
   "message": {
     "request": "Request has been sent."
   },
+  "mod": "Mod",
   "moderator": "Moderator",
-  "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "name": "Name",
   "navbar": {
     "automaticContributions": "Automatic Contributions",
     "logout": "Logout",
-    "multi_creation": "Multiple creation",
     "my-account": "My Account",
-    "open_creation": "Open creations",
-    "overview": "Overview",
     "statistic": "Statistic",
     "user_search": "User search"
   },
@@ -132,9 +136,7 @@
     }
   },
   "redeemed": "redeemed",
-  "remove": "Remove",
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
-  "remove_all": "Remove all users",
   "save": "Speichern",
   "statistic": {
     "activeUsers": "Active members",

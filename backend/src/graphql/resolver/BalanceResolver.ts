@@ -15,6 +15,8 @@ import { calculateDecay } from '@/util/decay'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { GdtResolver } from './GdtResolver'
 
+import { getLastTransaction } from './util/getLastTransaction'
+
 @Resolver()
 export class BalanceResolver {
   @Authorized([RIGHTS.BALANCE])
@@ -32,7 +34,7 @@ export class BalanceResolver {
 
     const lastTransaction = context.lastTransaction
       ? context.lastTransaction
-      : await dbTransaction.findOne({ userId: user.id }, { order: { id: 'DESC' } })
+      : await getLastTransaction(user.id)
 
     logger.debug(`lastTransaction=${lastTransaction}`)
 

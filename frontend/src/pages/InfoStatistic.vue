@@ -6,9 +6,9 @@
         {{ CONFIG.COMMUNITY_DESCRIPTION }}
       </div>
       <div>
-        <router-link :to="CONFIG.COMMUNITY_URL">
+        <b-link :href="CONFIG.COMMUNITY_URL">
           {{ CONFIG.COMMUNITY_URL }}
-        </router-link>
+        </b-link>
       </div>
       <hr />
       <div class="h3">{{ $t('community.openContributionLinks') }}</div>

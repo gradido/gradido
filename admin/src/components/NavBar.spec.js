@@ -46,43 +46,45 @@ describe('NavBar', () => {
   })
 
   describe('Navbar Menu', () => {
-    it('has a link to overview', () => {
-      expect(wrapper.findAll('.nav-item').at(0).find('a').attributes('href')).toBe('/')
-    })
-
     it('has a link to /user', () => {
-      expect(wrapper.findAll('.nav-item').at(1).find('a').attributes('href')).toBe('/user')
-    })
-
-    it('has a link to /creation', () => {
-      expect(wrapper.findAll('.nav-item').at(2).find('a').attributes('href')).toBe('/creation')
+      expect(wrapper.findAll('.nav-item').at(0).find('a').attributes('href')).toBe('/user')
     })
 
     it('has a link to /creation-confirm', () => {
-      expect(wrapper.findAll('.nav-item').at(3).find('a').attributes('href')).toBe(
+      expect(wrapper.findAll('.nav-item').at(1).find('a').attributes('href')).toBe(
         '/creation-confirm',
       )
     })
 
     it('has a link to /contribution-links', () => {
-      expect(wrapper.findAll('.nav-item').at(4).find('a').attributes('href')).toBe(
+      expect(wrapper.findAll('.nav-item').at(2).find('a').attributes('href')).toBe(
         '/contribution-links',
       )
     })
 
     it('has a link to /statistic', () => {
-      expect(wrapper.findAll('.nav-item').at(5).find('a').attributes('href')).toBe('/statistic')
+      expect(wrapper.findAll('.nav-item').at(3).find('a').attributes('href')).toBe('/statistic')
     })
   })
 
   describe('wallet', () => {
-    const assignLocationSpy = jest.fn()
+    const windowLocationMock = jest.fn()
+    const windowLocation = window.location
     beforeEach(async () => {
-      await wrapper.findAll('.nav-item').at(6).find('a').trigger('click')
+      delete window.location
+      window.location = {
+        assign: windowLocationMock,
+      }
+      await wrapper.findAll('.nav-item').at(5).find('a').trigger('click')
+    })
+
+    afterEach(() => {
+      delete window.location
+      window.location = windowLocation
     })
 
     it.skip('changes window location to wallet', () => {
-      expect(assignLocationSpy).toBeCalledWith('valid-token')
+      expect(windowLocationMock()).toBe('valid-token')
     })
 
     it('dispatches logout to store', () => {
@@ -92,12 +94,18 @@ describe('NavBar', () => {
 
   describe('logout', () => {
     const windowLocationMock = jest.fn()
+    const windowLocation = window.location
     beforeEach(async () => {
       delete window.location
       window.location = {
         assign: windowLocationMock,
       }
-      await wrapper.findAll('.nav-item').at(7).find('a').trigger('click')
+      await wrapper.findAll('.nav-item').at(5).find('a').trigger('click')
+    })
+
+    afterEach(() => {
+      delete window.location
+      window.location = windowLocation
     })
 
     it('redirects to /logout', () => {

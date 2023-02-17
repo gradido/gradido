@@ -19,6 +19,7 @@ import {
   setUserRole,
   deleteUser,
   unDeleteUser,
+  sendActivationEmail,
 } from '@/seeds/graphql/mutations'
 import { verifyLogin, queryOptIn, searchAdminUsers, searchUsers } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
@@ -175,6 +176,19 @@ describe('UserResolver', () => {
           })
         })
       })
+
+      it('stores the REGISTER event in the database', async () => {
+        const userConatct = await UserContact.findOneOrFail(
+          { email: 'peter@lustig.de' },
+          { relations: ['user'] },
+        )
+        expect(EventProtocol.find()).resolves.toContainEqual(
+          expect.objectContaining({
+            type: EventProtocolType.REGISTER,
+            userId: userConatct.user.id,
+          }),
+        )
+      })
     })
 
     describe('account activation email', () => {
@@ -196,7 +210,7 @@ describe('UserResolver', () => {
         })
       })
 
-      it('stores the send confirmation event in the database', () => {
+      it('stores the SEND_CONFIRMATION_EMAIL event in the database', () => {
         expect(EventProtocol.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
@@ -206,7 +220,7 @@ describe('UserResolver', () => {
       })
     })
 
-    describe('email already exists', () => {
+    describe('user already exists', () => {
       let mutation: User
       beforeAll(async () => {
         mutation = await mutate({ mutation: createUser, variables })
@@ -233,6 +247,19 @@ describe('UserResolver', () => {
                 id: expect.any(Number),
               },
             },
+          }),
+        )
+      })
+
+      it('stores the SEND_ACCOUNT_MULTIREGISTRATION_EMAIL event in the database', async () => {
+        const userConatct = await UserContact.findOneOrFail(
+          { email: 'peter@lustig.de' },
+          { relations: ['user'] },
+        )
+        expect(EventProtocol.find()).resolves.toContainEqual(
+          expect.objectContaining({
+            type: EventProtocolType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
+            userId: userConatct.user.id,
           }),
         )
       })
@@ -328,7 +355,7 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the account activated event in the database', () => {
+        it('stores the ACTIVATE_ACCOUNT event in the database', () => {
           expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.ACTIVATE_ACCOUNT,
@@ -337,7 +364,7 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the redeem register event in the database', () => {
+        it('stores the REDEEM_REGISTER event in the database', () => {
           expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.REDEEM_REGISTER,
@@ -421,7 +448,7 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the redeem register event in the database', async () => {
+        it('stores the REDEEM_REGISTER event in the database', async () => {
           await expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.REDEEM_REGISTER,
@@ -646,6 +673,19 @@ describe('UserResolver', () => {
 
       it('sets the token in the header', () => {
         expect(headerPushMock).toBeCalledWith({ key: 'token', value: expect.any(String) })
+      })
+
+      it('stores the LOGIN event in the database', async () => {
+        const userConatct = await UserContact.findOneOrFail(
+          { email: 'bibi@bloxberg.de' },
+          { relations: ['user'] },
+        )
+        expect(EventProtocol.find()).resolves.toContainEqual(
+          expect.objectContaining({
+            type: EventProtocolType.LOGIN,
+            userId: userConatct.user.id,
+          }),
+        )
       })
     })
 
@@ -887,7 +927,7 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the login event in the database', () => {
+        it('stores the LOGIN event in the database', () => {
           expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.LOGIN,
@@ -1662,6 +1702,157 @@ describe('UserResolver', () => {
             it('logs the error thrown', () => {
               expect(logger.error).toBeCalledWith('Could not find user with given ID', user.id)
             })
+          })
+        })
+      })
+    })
+  })
+
+  ///
+
+  describe('sendActivationEmail', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          mutate({ mutation: sendActivationEmail, variables: { email: 'bibi@bloxberg.de' } }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      describe('without admin rights', () => {
+        beforeAll(async () => {
+          user = await userFactory(testEnv, bibiBloxberg)
+          await mutate({
+            mutation: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        it('returns an error', async () => {
+          await expect(
+            mutate({ mutation: sendActivationEmail, variables: { email: 'bibi@bloxberg.de' } }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
+      describe('with admin rights', () => {
+        beforeAll(async () => {
+          admin = await userFactory(testEnv, peterLustig)
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        describe('user does not exist', () => {
+          it('throws an error', async () => {
+            jest.clearAllMocks()
+            await expect(
+              mutate({ mutation: sendActivationEmail, variables: { email: 'INVALID' } }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('No user with this credentials')],
+              }),
+            )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('No user with this credentials', 'invalid')
+          })
+        })
+
+        describe('user is deleted', () => {
+          it('throws an error', async () => {
+            jest.clearAllMocks()
+            await userFactory(testEnv, stephenHawking)
+            await expect(
+              mutate({ mutation: sendActivationEmail, variables: { email: 'stephen@hawking.uk' } }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('User with given email contact is deleted')],
+              }),
+            )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              'User with given email contact is deleted',
+              'stephen@hawking.uk',
+            )
+          })
+        })
+
+        describe('sendActivationEmail with success', () => {
+          beforeAll(async () => {
+            user = await userFactory(testEnv, bibiBloxberg)
+          })
+
+          it('returns true', async () => {
+            const result = await mutate({
+              mutation: sendActivationEmail,
+              variables: { email: 'bibi@bloxberg.de' },
+            })
+            expect(result).toEqual(
+              expect.objectContaining({
+                data: {
+                  sendActivationEmail: true,
+                },
+              }),
+            )
+          })
+
+          it('sends an account activation email', async () => {
+            const userConatct = await UserContact.findOneOrFail(
+              { email: 'bibi@bloxberg.de' },
+              { relations: ['user'] },
+            )
+            const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
+              /{optin}/g,
+              userConatct.emailVerificationCode.toString(),
+            ).replace(/{code}/g, '')
+            expect(sendAccountActivationEmail).toBeCalledWith({
+              firstName: 'Bibi',
+              lastName: 'Bloxberg',
+              email: 'bibi@bloxberg.de',
+              language: 'de',
+              activationLink,
+              timeDurationObject: expect.objectContaining({
+                hours: expect.any(Number),
+                minutes: expect.any(Number),
+              }),
+            })
+          })
+
+          it('stores the ADMIN_SEND_CONFIRMATION_EMAIL event in the database', async () => {
+            const userConatct = await UserContact.findOneOrFail(
+              { email: 'bibi@bloxberg.de' },
+              { relations: ['user'] },
+            )
+            expect(EventProtocol.find()).resolves.toContainEqual(
+              expect.objectContaining({
+                type: EventProtocolType.ADMIN_SEND_CONFIRMATION_EMAIL,
+                userId: userConatct.user.id,
+              }),
+            )
           })
         })
       })
