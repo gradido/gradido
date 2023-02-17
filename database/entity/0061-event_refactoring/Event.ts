@@ -3,7 +3,15 @@ import { ContributionMessage } from '../ContributionMessage'
 import { User } from '../User'
 import { Transaction } from '../Transaction'
 import Decimal from 'decimal.js-light'
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm'
+import {
+  BaseEntity,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 
 @Entity('events')
@@ -14,7 +22,12 @@ export class Event extends BaseEntity {
   @Column({ length: 100, nullable: false, collation: 'utf8mb4_unicode_ci' })
   type: string
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP()' , nullable: false })
+  @CreateDateColumn({
+    name: 'created_at',
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP()',
+    nullable: false,
+  })
   createdAt: Date
 
   // @Column({ name: 'affected_user_id', unsigned: true, nullable: false })
