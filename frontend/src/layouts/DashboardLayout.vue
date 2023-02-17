@@ -121,11 +121,7 @@
             </b-col>
             <!-- Right Side Mobil -->
             <b-col class="d-block d-lg-none">
-              <right-side
-                :transactions="transactions"
-                :transactionCount="transactionCount"
-                :transactionLinkCount="transactionLinkCount"
-              >
+              <right-side>
                 <template #transactions>
                   <last-transactions
                     :transactions="transactions"
@@ -135,7 +131,7 @@
                   />
                 </template>
                 <template #community>
-                  <contribution-info />
+                  <community-template />
                 </template>
                 <template #empty />
               </right-side>
@@ -162,11 +158,7 @@
         </b-col>
         <!-- RightSide Desktop -->
         <b-col cols="3" class="d-none d-lg-block">
-          <right-side
-            :transactions="transactions"
-            :transactionCount="transactionCount"
-            :transactionLinkCount="transactionLinkCount"
-          >
+          <right-side>
             <template #transactions>
               <last-transactions
                 :transactions="transactions"
@@ -175,10 +167,10 @@
                 @set-tunneled-email="setTunneledEmail"
               />
             </template>
-            <template #community>
-              <contribution-info />
-            </template>
             <template #empty />
+            <template #community>
+              <community-template />
+            </template>
           </right-side>
         </b-col>
       </b-row>
@@ -194,6 +186,7 @@
 </template>
 <script>
 import ContentHeader from '@/layouts/templates/ContentHeader.vue'
+import CommunityTemplate from '@/layouts/templates/CommunityTemplate.vue'
 import Breadcrumb from '@/components/Breadcrumb/breadcrumb.vue'
 import RightSide from '@/layouts/templates/RightSide.vue'
 import SkeletonOverview from '@/components/skeleton/Overview.vue'
@@ -211,7 +204,6 @@ import GdtAmount from '@/components/Template/ContentHeader/GdtAmount.vue'
 import CommunityMember from '@/components/Template/ContentHeader/CommunityMember.vue'
 import NavCommunity from '@/components/Template/ContentHeader/NavCommunity.vue'
 import LastTransactions from '@/components/Template/RightSide/LastTransactions.vue'
-import ContributionInfo from '@/components/Template/RightSide/ContributionInfo.vue'
 
 export default {
   name: 'DashboardLayout',
@@ -231,7 +223,7 @@ export default {
     CommunityMember,
     NavCommunity,
     LastTransactions,
-    ContributionInfo,
+    CommunityTemplate,
   },
   data() {
     return {

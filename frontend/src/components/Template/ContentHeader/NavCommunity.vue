@@ -2,19 +2,19 @@
   <div class="nav-community container">
     <b-row class="nav-row">
       <b-col cols="12" lg="4" md="4" class="px-0">
-        <b-btn active-class="btn-active" block variant="link" to="/community#edit">
+        <b-btn to="contribute" active-class="btn-active" block variant="link">
           <b-icon icon="pencil" class="mr-2" />
           {{ $t('community.submitContribution') }}
         </b-btn>
       </b-col>
       <b-col cols="12" lg="4" md="4" class="px-0">
-        <b-btn active-class="btn-active" block variant="link" to="/community#my">
+        <b-btn to="contributions" active-class="btn-active" block variant="link">
           <b-icon icon="person" class="mr-2" />
           {{ $t('community.myContributions') }}
         </b-btn>
       </b-col>
       <b-col cols="12" lg="4" md="4" class="px-0">
-        <b-btn active-class="btn-active" block variant="link" to="/community#all">
+        <b-btn to="community" active-class="btn-active" block variant="link">
           <b-icon icon="people" class="mr-2" />
           {{ $t('community.community') }}
         </b-btn>
