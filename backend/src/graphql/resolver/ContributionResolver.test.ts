@@ -49,6 +49,7 @@ import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { ContributionListResult } from '@model/Contribution'
 import { ContributionStatus } from '@enum/ContributionStatus'
+import { Order } from '@enum/Order'
 
 // mock account activation email to avoid console spam
 jest.mock('@/emails/sendEmailVariants', () => {
@@ -1690,20 +1691,6 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe('adminListAllContributions', () => {
-        it('returns an error', async () => {
-          await expect(
-            query({
-              query: adminListAllContributions,
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('401 Unauthorized')],
-            }),
-          )
-        })
-      })
-
       describe('adminDeleteContribution', () => {
         it('returns an error', async () => {
           await expect(
@@ -1789,20 +1776,6 @@ describe('ContributionResolver', () => {
                   memo: 'Danke Bibi!',
                   creationDate: contributionDateFormatter(new Date()),
                 },
-              }),
-            ).resolves.toEqual(
-              expect.objectContaining({
-                errors: [new GraphQLError('401 Unauthorized')],
-              }),
-            )
-          })
-        })
-
-        describe('adminListAllContributions', () => {
-          it('returns an error', async () => {
-            await expect(
-              query({
-                query: adminListAllContributions,
               }),
             ).resolves.toEqual(
               expect.objectContaining({
@@ -2406,217 +2379,6 @@ describe('ContributionResolver', () => {
           })
         })
 
-        describe('adminListAllContributions', () => {
-          it('returns four pending creations', async () => {
-            const {
-              data: { adminListAllContributions: contributionListObject },
-            }: { data: { adminListAllContributions: ContributionListResult } } = await query({
-              query: adminListAllContributions,
-            })
-            expect(contributionListObject.contributionList).toHaveLength(13)
-            expect(contributionListObject).toMatchObject({
-              contributionCount: 13,
-              contributionList: expect.arrayContaining([
-                expect.objectContaining({
-                  amount: '500',
-                  confirmedAt: null,
-                  confirmedBy: null,
-                  contributionDate: expect.any(String),
-                  createdAt: expect.any(String),
-                  deniedAt: null,
-                  deniedBy: null,
-                  firstName: 'Bibi',
-                  id: expect.any(Number),
-                  lastName: 'Bloxberg',
-                  memo: 'Grundeinkommen',
-                  messagesCount: 0,
-                  state: 'PENDING',
-                }),
-                expect.objectContaining({
-                  amount: '200',
-                  confirmedAt: null,
-                  confirmedBy: null,
-                  contributionDate: expect.any(String),
-                  createdAt: expect.any(String),
-                  deniedAt: null,
-                  deniedBy: null,
-                  firstName: 'Bibi',
-                  id: expect.any(Number),
-                  lastName: 'Bloxberg',
-                  memo: 'Aktives Grundeinkommen',
-                  messagesCount: 0,
-                  state: 'PENDING',
-                }),
-                expect.objectContaining({
-                  amount: '500',
-                  confirmedAt: null,
-                  confirmedBy: null,
-                  contributionDate: expect.any(String),
-                  createdAt: expect.any(String),
-                  deniedAt: null,
-                  deniedBy: null,
-                  firstName: 'Peter',
-                  id: expect.any(Number),
-                  lastName: 'Lustig',
-                  memo: 'Grundeinkommen',
-                  messagesCount: 0,
-                  state: 'PENDING',
-                }),
-                expect.objectContaining({
-                  amount: '200',
-                  confirmedAt: null,
-                  confirmedBy: null,
-                  contributionDate: expect.any(String),
-                  createdAt: expect.any(String),
-                  deniedAt: null,
-                  deniedBy: null,
-                  firstName: 'Peter',
-                  id: expect.any(Number),
-                  lastName: 'Lustig',
-                  memo: 'Das war leider zu Viel!',
-                  messagesCount: 0,
-                  state: 'PENDING',
-                }),
-                expect.objectContaining({
-                  amount: '166',
-                  confirmedAt: null,
-                  confirmedBy: null,
-                  contributionDate: expect.any(String),
-                  createdAt: expect.any(String),
-                  deniedAt: expect.any(String),
-                  deniedBy: expect.any(Number),
-                  firstName: 'Räuber',
-                  id: expect.any(Number),
-                  lastName: 'Hotzenplotz',
-                  memo: 'Whatever contribution',
-                  messagesCount: 0,
-                  state: 'DENIED',
-                }),
-                expect.objectContaining({
-                  amount: '166',
-                  confirmedAt: null,
-                  confirmedBy: null,
-                  contributionDate: expect.any(String),
-                  createdAt: expect.any(String),
-                  deniedAt: null,
-                  deniedBy: null,
-                  firstName: 'Räuber',
-                  id: expect.any(Number),
-                  lastName: 'Hotzenplotz',
-                  memo: 'Whatever contribution',
-                  messagesCount: 0,
-                  state: 'DELETED',
-                }),
-                expect.objectContaining({
-                  amount: '166',
-                  confirmedAt: expect.any(String),
-                  confirmedBy: expect.any(Number),
-                  contributionDate: expect.any(String),
-                  createdAt: expect.any(String),
-                  deniedAt: null,
-                  deniedBy: null,
-                  firstName: 'Räuber',
-                  id: expect.any(Number),
-                  lastName: 'Hotzenplotz',
-                  memo: 'Whatever contribution',
-                  messagesCount: 0,
-                  state: 'CONFIRMED',
-                }),
-                expect.objectContaining({
-                  amount: '100',
-                  confirmedAt: null,
-                  confirmedBy: null,
-                  contributionDate: expect.any(String),
-                  createdAt: expect.any(String),
-                  deniedAt: expect.any(String),
-                  deniedBy: expect.any(Number),
-                  firstName: 'Bibi',
-                  id: expect.any(Number),
-                  lastName: 'Bloxberg',
-                  memo: 'Test contribution to deny',
-                  messagesCount: 0,
-                  state: 'DENIED',
-                }),
-                expect.objectContaining({
-                  amount: '100',
-                  confirmedAt: expect.any(String),
-                  confirmedBy: expect.any(Number),
-                  contributionDate: expect.any(String),
-                  createdAt: expect.any(String),
-                  deniedAt: null,
-                  deniedBy: null,
-                  firstName: 'Bibi',
-                  id: expect.any(Number),
-                  lastName: 'Bloxberg',
-                  memo: 'Test contribution to confirm',
-                  messagesCount: 0,
-                  state: 'CONFIRMED',
-                }),
-                expect.objectContaining({
-                  amount: '100',
-                  confirmedAt: null,
-                  confirmedBy: null,
-                  contributionDate: expect.any(String),
-                  createdAt: expect.any(String),
-                  deniedAt: null,
-                  deniedBy: null,
-                  firstName: 'Bibi',
-                  id: expect.any(Number),
-                  lastName: 'Bloxberg',
-                  memo: 'Test IN_PROGRESS contribution',
-                  messagesCount: 0,
-                  state: 'IN_PROGRESS',
-                }),
-                expect.objectContaining({
-                  amount: '10',
-                  confirmedAt: null,
-                  confirmedBy: null,
-                  contributionDate: expect.any(String),
-                  createdAt: expect.any(String),
-                  deniedAt: null,
-                  deniedBy: null,
-                  firstName: 'Bibi',
-                  id: expect.any(Number),
-                  lastName: 'Bloxberg',
-                  memo: 'Test PENDING contribution update',
-                  messagesCount: 0,
-                  state: 'PENDING',
-                }),
-                expect.objectContaining({
-                  amount: '100',
-                  confirmedAt: null,
-                  confirmedBy: null,
-                  contributionDate: expect.any(String),
-                  createdAt: expect.any(String),
-                  deniedAt: null,
-                  deniedBy: null,
-                  firstName: 'Bibi',
-                  id: expect.any(Number),
-                  lastName: 'Bloxberg',
-                  memo: 'Test contribution to delete',
-                  messagesCount: 0,
-                  state: 'DELETED',
-                }),
-                expect.objectContaining({
-                  amount: '1000',
-                  confirmedAt: expect.any(String),
-                  confirmedBy: expect.any(Number),
-                  contributionDate: expect.any(String),
-                  createdAt: expect.any(String),
-                  deniedAt: null,
-                  deniedBy: null,
-                  firstName: 'Bibi',
-                  id: expect.any(Number),
-                  lastName: 'Bloxberg',
-                  memo: 'Herzlich Willkommen bei Gradido!',
-                  messagesCount: 0,
-                  state: 'CONFIRMED',
-                }),
-              ]),
-            })
-          })
-        })
-
         describe('adminDeleteContribution', () => {
           describe('creation id does not exist', () => {
             it('throws an error', async () => {
@@ -2953,6 +2715,323 @@ describe('ContributionResolver', () => {
               )
             })
           })
+        })
+      })
+    })
+  })
+
+  describe('adminListAllContribution', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          query({
+            query: adminListAllContributions,
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated as user', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(() => {
+        resetToken()
+      })
+
+      it('returns an error', async () => {
+        await expect(
+          query({
+            query: adminListAllContributions,
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated as admin', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(() => {
+        resetToken()
+      })
+
+      it('returns thirteen pending creations', async () => {
+        const {
+          data: { adminListAllContributions: contributionListObject },
+        }: { data: { adminListAllContributions: ContributionListResult } } = await query({
+          query: adminListAllContributions,
+        })
+        expect(contributionListObject.contributionList).toHaveLength(19)
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 19,
+          contributionList: expect.arrayContaining([
+            expect.objectContaining({
+              amount: expect.decimalEqual(50),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
+              messagesCount: 0,
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(50),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
+              messagesCount: 0,
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(450),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
+              messagesCount: 0,
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bob',
+              id: expect.any(Number),
+              lastName: 'der Baumeister',
+              memo: 'Confirmed Contribution',
+              messagesCount: 0,
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(400),
+              firstName: 'Peter',
+              id: expect.any(Number),
+              lastName: 'Lustig',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Peter',
+              id: expect.any(Number),
+              lastName: 'Lustig',
+              memo: 'Test env contribution',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(200),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Aktives Grundeinkommen',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(500),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Grundeinkommen',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(500),
+              firstName: 'Peter',
+              id: expect.any(Number),
+              lastName: 'Lustig',
+              memo: 'Grundeinkommen',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(10),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test PENDING contribution update',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(200),
+              firstName: 'Peter',
+              id: expect.any(Number),
+              lastName: 'Lustig',
+              memo: 'Das war leider zu Viel!',
+              messagesCount: 0,
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(166),
+              firstName: 'Räuber',
+              id: expect.any(Number),
+              lastName: 'Hotzenplotz',
+              memo: 'Whatever contribution',
+              messagesCount: 0,
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(166),
+              firstName: 'Räuber',
+              id: expect.any(Number),
+              lastName: 'Hotzenplotz',
+              memo: 'Whatever contribution',
+              messagesCount: 0,
+              state: 'DENIED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(166),
+              firstName: 'Räuber',
+              id: expect.any(Number),
+              lastName: 'Hotzenplotz',
+              memo: 'Whatever contribution',
+              messagesCount: 0,
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test IN_PROGRESS contribution',
+              messagesCount: 0,
+              state: 'IN_PROGRESS',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test contribution to confirm',
+              messagesCount: 0,
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test contribution to deny',
+              messagesCount: 0,
+              state: 'DENIED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test contribution to delete',
+              messagesCount: 0,
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(1000),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              messagesCount: 0,
+              state: 'CONFIRMED',
+            }),
+          ]),
+        })
+      })
+
+      it('returns five pending creations', async () => {
+        const {
+          data: { adminListAllContributions: contributionListObject },
+        }: { data: { adminListAllContributions: ContributionListResult } } = await query({
+          query: adminListAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 5,
+            order: Order.DESC,
+            statusFilter: ['PENDING'],
+          },
+        })
+        console.log(contributionListObject.contributionList)
+        expect(contributionListObject.contributionList).toHaveLength(5)
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 6,
+          contributionList: expect.arrayContaining([
+            expect.objectContaining({
+              amount: '400',
+              firstName: 'Peter',
+              id: expect.any(Number),
+              lastName: 'Lustig',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: '200',
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Aktives Grundeinkommen',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: '500',
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Grundeinkommen',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: '500',
+              firstName: 'Peter',
+              id: expect.any(Number),
+              lastName: 'Lustig',
+              memo: 'Grundeinkommen',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: '100',
+              firstName: 'Peter',
+              id: expect.any(Number),
+              lastName: 'Lustig',
+              memo: 'Test env contribution',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.not.objectContaining({
+              state: 'DENIED',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.not.objectContaining({
+              state: 'CONFIRMED',
+            }),
+            expect.not.objectContaining({
+              state: 'IN_PROGRESS',
+            }),
+          ]),
         })
       })
     })
