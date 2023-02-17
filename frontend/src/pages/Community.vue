@@ -63,7 +63,8 @@ import ContributionForm from '@/components/Contributions/ContributionForm.vue'
 import ContributionList from '@/components/Contributions/ContributionList.vue'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions, openCreations } from '@/graphql/queries'
-import { COMMUNITY_TABS } from '@/components/Template/ContentHeader/NavCommunity'
+
+const COMMUNITY_TABS = ['contribute', 'contributions', 'community']
 
 export default {
   name: 'Community',
@@ -148,7 +149,9 @@ export default {
         this.contributionCount = listContributions.contributionCount
         this.items = listContributions.contributionList
         if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
-          this.$router.push({ params: { tab: 'contributions' } })
+          this.tabIndex = 1
+          if (this.$route.params.tab !== 'contributions')
+            this.$router.push({ params: { tab: 'contributions' } })
           this.toastInfo(this.$t('contribution.alert.answerQuestionToast'))
         }
       },
@@ -193,11 +196,7 @@ export default {
   methods: {
     updateTabIndex() {
       const index = COMMUNITY_TABS.indexOf(this.$route.params.tab)
-      if (index > -1) {
-        this.tabIndex = index
-      } else {
-        this.tabIndex = 0
-      }
+      this.tabIndex = index > -1 ? index : 0
       this.closeAllOpenCollapse()
     },
     closeAllOpenCollapse() {
@@ -291,9 +290,6 @@ export default {
     updateState(id) {
       this.items.find((item) => item.id === id).state = 'PENDING'
     },
-  },
-  created() {
-    this.updateTransactions(0)
   },
 }
 </script>
