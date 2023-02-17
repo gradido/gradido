@@ -333,7 +333,7 @@ export class TransactionLinkResolver {
         withExpired: true,
         withRedeemed: false,
       },
-      user.id,
+      user,
     )
   }
 
@@ -347,16 +347,15 @@ export class TransactionLinkResolver {
     @Arg('userId', () => Int)
     userId: number,
   ): Promise<TransactionLinkResult> {
-    return transactionLinkList(paginated, filters, userId)
+    return transactionLinkList(paginated, filters, await DbUser.findOneOrFail({ id: userId }))
   }
 }
 
 const transactionLinkList = async (
   { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   filters: TransactionLinkFilters | null,
-  userId: number,
+  user: DbUser,
 ): Promise<TransactionLinkResult> => {
-  const user = await DbUser.findOneOrFail({ id: userId })
   const { withDeleted, withExpired, withRedeemed } = filters || {
     withDeleted: false,
     withExpired: false,
@@ -364,7 +363,7 @@ const transactionLinkList = async (
   }
   const [transactionLinks, count] = await DbTransactionLink.findAndCount({
     where: {
-      userId,
+      user: user.id,
       ...(!withRedeemed && { redeemedBy: null }),
       ...(!withExpired && { validUntil: MoreThan(new Date()) }),
     },
@@ -378,6 +377,6 @@ const transactionLinkList = async (
 
   return {
     count,
-    links: transactionLinks.map((tl) => new TransactionLink(tl, new User(user))),
+    links: transactionLinks.map((tl) => new TransactionLink(tl, user)),
   }
 }
