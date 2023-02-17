@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm.vue'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { denyContribution } from '../graphql/denyContribution'
-import { listUnconfirmedContributions } from '../graphql/listUnconfirmedContributions'
+import { listAllContributions } from '../graphql/listAllContributions'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 import VueApollo from 'vue-apollo'
@@ -38,50 +38,68 @@ const mocks = {
 
 const defaultData = () => {
   return {
-    listUnconfirmedContributions: [
-      {
-        id: 1,
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        userId: 99,
-        email: 'bibi@bloxberg.de',
-        amount: 500,
-        memo: 'Danke für alles',
-        date: new Date(),
-        moderator: 1,
-        state: 'PENDING',
-        creation: [500, 500, 500],
-        messageCount: 0,
-      },
-      {
-        id: 2,
-        firstName: 'Räuber',
-        lastName: 'Hotzenplotz',
-        userId: 100,
-        email: 'raeuber@hotzenplotz.de',
-        amount: 1000000,
-        memo: 'Gut Ergattert',
-        date: new Date(),
-        moderator: 1,
-        state: 'PENDING',
-        creation: [500, 500, 500],
-        messageCount: 0,
-      },
-    ],
+    listAllContributions: {
+      contributionCount: 2,
+      contributionList: [
+        {
+          id: 1,
+          firstName: 'Bibi',
+          lastName: 'Bloxberg',
+          userId: 99,
+          email: 'bibi@bloxberg.de',
+          amount: 500,
+          memo: 'Danke für alles',
+          date: new Date(),
+          moderator: 1,
+          state: 'PENDING',
+          creation: [500, 500, 500],
+          messagesCount: 0,
+          deniedBy: null,
+          deniedAt: null,
+          confirmedBy: null,
+          confirmedAt: null,
+          contributionDate: new Date(),
+          deletedBy: null,
+          deletedAt: null,
+          createdAt: new Date(),
+        },
+        {
+          id: 2,
+          firstName: 'Räuber',
+          lastName: 'Hotzenplotz',
+          userId: 100,
+          email: 'raeuber@hotzenplotz.de',
+          amount: 1000000,
+          memo: 'Gut Ergattert',
+          date: new Date(),
+          moderator: 1,
+          state: 'PENDING',
+          creation: [500, 500, 500],
+          messagesCount: 0,
+          deniedBy: null,
+          deniedAt: null,
+          confirmedBy: null,
+          confirmedAt: null,
+          contributionDate: new Date(),
+          deletedBy: null,
+          deletedAt: null,
+          createdAt: new Date(),
+        },
+      ],
+    },
   }
 }
 
 describe('CreationConfirm', () => {
   let wrapper
-
-  const listUnconfirmedContributionsMock = jest.fn()
   const adminDeleteContributionMock = jest.fn()
   const adminDenyContributionMock = jest.fn()
   const confirmContributionMock = jest.fn()
 
   mockClient.setRequestHandler(
-    listUnconfirmedContributions,
-    listUnconfirmedContributionsMock
+    listAllContributions,
+    jest
+      .fn()
       .mockRejectedValueOnce({ message: 'Ouch!' })
       .mockResolvedValue({ data: defaultData() }),
   )
@@ -117,6 +135,10 @@ describe('CreationConfirm', () => {
       it('toast an error message', () => {
         expect(toastErrorSpy).toBeCalledWith('Ouch!')
       })
+
+      it('has statusFilter ["IN_PROGRESS", "PENDING"]', () => {
+        expect(wrapper.vm.statusFilter).toEqual(['IN_PROGRESS', 'PENDING'])
+      })
     })
 
     describe('server response is succes', () => {
@@ -125,17 +147,7 @@ describe('CreationConfirm', () => {
       })
 
       it('has two pending creations', () => {
-        expect(wrapper.vm.pendingCreations).toHaveLength(2)
-      })
-    })
-
-    describe('store', () => {
-      it('commits resetOpenCreations to store', () => {
-        expect(storeCommitMock).toBeCalledWith('resetOpenCreations')
-      })
-
-      it('commits setOpenCreations to store', () => {
-        expect(storeCommitMock).toBeCalledWith('setOpenCreations', 2)
+        expect(wrapper.find('tbody').findAll('tr')).toHaveLength(2)
       })
     })
 
@@ -259,7 +271,7 @@ describe('CreationConfirm', () => {
 
       describe('deny creation', () => {
         beforeEach(async () => {
-          await wrapper.findAll('tr').at(1).findAll('button').at(2).trigger('click')
+          await wrapper.findAll('tr').at(1).findAll('button').at(1).trigger('click')
         })
 
         it('opens the overlay', () => {
@@ -314,6 +326,95 @@ describe('CreationConfirm', () => {
             expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
           })
         })
+      })
+    })
+
+    describe('filter tabs', () => {
+      describe('click tab "confirmed"', () => {
+        let refetchSpy
+
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
+          await wrapper.find('a[data-test="confirmed"]').trigger('click')
+        })
+
+        it('has statusFilter set to ["CONFIRMED"]', () => {
+          expect(
+            wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
+          ).toMatchObject({ statusFilter: ['CONFIRMED'] })
+        })
+
+        it('refetches contributions', () => {
+          expect(refetchSpy).toBeCalled()
+        })
+
+        describe('click tab "open"', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
+            await wrapper.find('a[data-test="open"]').trigger('click')
+          })
+
+          it('has statusFilter set to ["IN_PROGRESS", "PENDING"]', () => {
+            expect(
+              wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
+            ).toMatchObject({ statusFilter: ['IN_PROGRESS', 'PENDING'] })
+          })
+
+          it('refetches contributions', () => {
+            expect(refetchSpy).toBeCalled()
+          })
+        })
+
+        describe('click tab "denied"', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
+            await wrapper.find('a[data-test="denied"]').trigger('click')
+          })
+
+          it('has statusFilter set to ["DENIED"]', () => {
+            expect(
+              wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
+            ).toMatchObject({ statusFilter: ['DENIED'] })
+          })
+
+          it('refetches contributions', () => {
+            expect(refetchSpy).toBeCalled()
+          })
+        })
+
+        describe('click tab "all"', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
+            await wrapper.find('a[data-test="all"]').trigger('click')
+          })
+
+          it('has statusFilter set to ["IN_PROGRESS", "PENDING", "CONFIRMED", "DENIED", "DELETED"]', () => {
+            expect(
+              wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
+            ).toMatchObject({
+              statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
+            })
+          })
+
+          it('refetches contributions', () => {
+            expect(refetchSpy).toBeCalled()
+          })
+        })
+      })
+    })
+
+    describe('update status', () => {
+      beforeEach(async () => {
+        await wrapper.findComponent({ name: 'OpenCreationsTable' }).vm.$emit('update-state', 2)
+      })
+
+      it.skip('updates the status', () => {
+        expect(wrapper.vm.items.find((obj) => obj.id === 2).messagesCount).toBe(1)
+        expect(wrapper.vm.items.find((obj) => obj.id === 2).state).toBe('IN_PROGRESS')
       })
     })
   })

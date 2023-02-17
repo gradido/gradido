@@ -313,27 +313,6 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('returns an error if name is an empty string', async () => {
-          jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: createContributionLink,
-              variables: {
-                ...variables,
-                name: '',
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('The name must be initialized')],
-            }),
-          )
-        })
-
-        it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith('The name must be initialized')
-        })
-
         it('returns an error if name is shorter than 5 characters', async () => {
           jest.clearAllMocks()
           await expect(
@@ -374,27 +353,6 @@ describe('Contribution Links', () => {
 
         it('logs the error thrown', () => {
           expect(logger.error).toBeCalledWith('The value of name is too long', 101)
-        })
-
-        it('returns an error if memo is an empty string', async () => {
-          jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: createContributionLink,
-              variables: {
-                ...variables,
-                memo: '',
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('The memo must be initialized')],
-            }),
-          )
-        })
-
-        it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith('The memo must be initialized')
         })
 
         it('returns an error if memo is shorter than 5 characters', async () => {

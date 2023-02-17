@@ -116,6 +116,11 @@ describe('TransactionLinkResolver', () => {
   })
 
   describe('redeemTransactionLink', () => {
+    afterAll(async () => {
+      await cleanDB()
+      resetToken()
+    })
+
     describe('contributionLink', () => {
       describe('input not valid', () => {
         beforeAll(async () => {
@@ -354,11 +359,6 @@ describe('TransactionLinkResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            /* expect(logger.error).toBeCalledWith(
-              'The amount to be created exceeds the amount still available for this month',
-              new Decimal(5),
-              new Decimal(0),
-            ) */
             expect(logger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
               new Error(
@@ -487,8 +487,7 @@ describe('TransactionLinkResolver', () => {
       pageSize: 5,
     }
 
-    // TODO: there is a test not cleaning up after itself! Fix it!
-    beforeAll(async () => {
+    afterAll(async () => {
       await cleanDB()
       resetToken()
     })

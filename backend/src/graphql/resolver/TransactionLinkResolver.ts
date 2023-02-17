@@ -34,6 +34,8 @@ import QueryLinkResult from '@union/QueryLinkResult'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import LogError from '@/server/LogError'
 
+import { getLastTransaction } from './util/getLastTransaction'
+
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
   const time = date.getTime().toString(16)
@@ -262,13 +264,7 @@ export class TransactionLinkResolver {
 
           await queryRunner.manager.insert(DbContribution, contribution)
 
-          const lastTransaction = await queryRunner.manager
-            .createQueryBuilder()
-            .select('transaction')
-            .from(DbTransaction, 'transaction')
-            .where('transaction.userId = :id', { id: user.id })
-            .orderBy('transaction.id', 'DESC')
-            .getOne()
+          const lastTransaction = await getLastTransaction(user.id)
           let newBalance = new Decimal(0)
 
           let decay: Decay | null = null

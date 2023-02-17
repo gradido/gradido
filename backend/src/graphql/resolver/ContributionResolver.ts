@@ -37,23 +37,25 @@ import {
 } from './util/creations'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS, FULL_CREATION_AVAILABLE } from './const/const'
 import {
-  Event,
-  EventContributionCreate,
-  EventContributionDelete,
-  EventContributionUpdate,
-  EventContributionConfirm,
-  EventAdminContributionCreate,
-  EventAdminContributionDelete,
-  EventAdminContributionUpdate,
+  EVENT_CONTRIBUTION_CREATE,
+  EVENT_CONTRIBUTION_DELETE,
+  EVENT_CONTRIBUTION_UPDATE,
+  EVENT_ADMIN_CONTRIBUTION_CREATE,
+  EVENT_ADMIN_CONTRIBUTION_UPDATE,
+  EVENT_ADMIN_CONTRIBUTION_DELETE,
+  EVENT_CONTRIBUTION_CONFIRM,
+  EVENT_ADMIN_CONTRIBUTION_DENY,
 } from '@/event/Event'
-import { eventProtocol } from '@/event/EventProtocolEmitter'
 import { calculateDecay } from '@/util/decay'
 import {
   sendContributionConfirmedEmail,
+  sendContributionDeletedEmail,
   sendContributionDeniedEmail,
 } from '@/emails/sendEmailVariants'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import LogError from '@/server/LogError'
+
+import { getLastTransaction } from './util/getLastTransaction'
 
 @Resolver()
 export class ContributionResolver {
@@ -70,8 +72,6 @@ export class ContributionResolver {
     if (memo.length > MEMO_MAX_CHARS) {
       throw new LogError('Memo text is too long', memo.length)
     }
-
-    const event = new Event()
 
     const user = getUser(context)
     const creations = await getUserCreation(user.id, clientTimezoneOffset)
@@ -91,11 +91,7 @@ export class ContributionResolver {
     logger.trace('contribution to save', contribution)
     await DbContribution.save(contribution)
 
-    const eventCreateContribution = new EventContributionCreate()
-    eventCreateContribution.userId = user.id
-    eventCreateContribution.amount = amount
-    eventCreateContribution.contributionId = contribution.id
-    await eventProtocol.writeEvent(event.setEventContributionCreate(eventCreateContribution))
+    await EVENT_CONTRIBUTION_CREATE(user.id, contribution.id, amount)
 
     return new UnconfirmedContribution(contribution, user, creations)
   }
@@ -106,7 +102,6 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const event = new Event()
     const user = getUser(context)
     const contribution = await DbContribution.findOne(id)
     if (!contribution) {
@@ -124,11 +119,7 @@ export class ContributionResolver {
     contribution.deletedAt = new Date()
     await contribution.save()
 
-    const eventDeleteContribution = new EventContributionDelete()
-    eventDeleteContribution.userId = user.id
-    eventDeleteContribution.contributionId = contribution.id
-    eventDeleteContribution.amount = contribution.amount
-    await eventProtocol.writeEvent(event.setEventContributionDelete(eventDeleteContribution))
+    await EVENT_CONTRIBUTION_DELETE(user.id, contribution.id, contribution.amount)
 
     const res = await contribution.softRemove()
     return !!res
@@ -190,6 +181,7 @@ export class ContributionResolver {
       .select('c')
       .from(DbContribution, 'c')
       .innerJoinAndSelect('c.user', 'u')
+      .leftJoinAndSelect('c.messages', 'm')
       .where(where)
       .orderBy('c.createdAt', order)
       .limit(pageSize)
@@ -275,13 +267,7 @@ export class ContributionResolver {
     contributionToUpdate.updatedAt = new Date()
     DbContribution.save(contributionToUpdate)
 
-    const event = new Event()
-
-    const eventUpdateContribution = new EventContributionUpdate()
-    eventUpdateContribution.userId = user.id
-    eventUpdateContribution.contributionId = contributionId
-    eventUpdateContribution.amount = amount
-    await eventProtocol.writeEvent(event.setEventContributionUpdate(eventUpdateContribution))
+    await EVENT_CONTRIBUTION_UPDATE(user.id, contributionId, amount)
 
     return new UnconfirmedContribution(contributionToUpdate, user, creations)
   }
@@ -317,7 +303,6 @@ export class ContributionResolver {
       )
     }
 
-    const event = new Event()
     const moderator = getUser(context)
     logger.trace('moderator: ', moderator.id)
     const creations = await getUserCreation(emailContact.userId, clientTimezoneOffset)
@@ -339,13 +324,7 @@ export class ContributionResolver {
 
     await DbContribution.save(contribution)
 
-    const eventAdminCreateContribution = new EventAdminContributionCreate()
-    eventAdminCreateContribution.userId = moderator.id
-    eventAdminCreateContribution.amount = amount
-    eventAdminCreateContribution.contributionId = contribution.id
-    await eventProtocol.writeEvent(
-      event.setEventAdminContributionCreate(eventAdminCreateContribution),
-    )
+    await EVENT_ADMIN_CONTRIBUTION_CREATE(moderator.id, contribution.id, amount)
 
     return getUserCreation(emailContact.userId, clientTimezoneOffset)
   }
@@ -440,14 +419,7 @@ export class ContributionResolver {
 
     result.creation = await getUserCreation(emailContact.user.id, clientTimezoneOffset)
 
-    const event = new Event()
-    const eventAdminContributionUpdate = new EventAdminContributionUpdate()
-    eventAdminContributionUpdate.userId = emailContact.user.id
-    eventAdminContributionUpdate.amount = amount
-    eventAdminContributionUpdate.contributionId = contributionToUpdate.id
-    await eventProtocol.writeEvent(
-      event.setEventAdminContributionUpdate(eventAdminContributionUpdate),
-    )
+    await EVENT_ADMIN_CONTRIBUTION_UPDATE(emailContact.user.id, contributionToUpdate.id, amount)
 
     return result
   }
@@ -518,15 +490,9 @@ export class ContributionResolver {
     await contribution.save()
     const res = await contribution.softRemove()
 
-    const event = new Event()
-    const eventAdminContributionDelete = new EventAdminContributionDelete()
-    eventAdminContributionDelete.userId = contribution.userId
-    eventAdminContributionDelete.amount = contribution.amount
-    eventAdminContributionDelete.contributionId = contribution.id
-    await eventProtocol.writeEvent(
-      event.setEventAdminContributionDelete(eventAdminContributionDelete),
-    )
-    sendContributionDeniedEmail({
+    await EVENT_ADMIN_CONTRIBUTION_DELETE(contribution.userId, contribution.id, contribution.amount)
+
+    sendContributionDeletedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.emailContact.email,
@@ -582,16 +548,11 @@ export class ContributionResolver {
       const queryRunner = getConnection().createQueryRunner()
       await queryRunner.connect()
       await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
-      try {
-        const lastTransaction = await queryRunner.manager
-          .createQueryBuilder()
-          .select('transaction')
-          .from(DbTransaction, 'transaction')
-          .where('transaction.userId = :id', { id: contribution.userId })
-          .orderBy('transaction.id', 'DESC')
-          .getOne()
-        logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
 
+      const lastTransaction = await getLastTransaction(contribution.userId)
+      logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
+
+      try {
         let newBalance = new Decimal(0)
         let decay: Decay | null = null
         if (lastTransaction) {
@@ -642,12 +603,7 @@ export class ContributionResolver {
         await queryRunner.release()
       }
 
-      const event = new Event()
-      const eventContributionConfirm = new EventContributionConfirm()
-      eventContributionConfirm.userId = user.id
-      eventContributionConfirm.amount = contribution.amount
-      eventContributionConfirm.contributionId = contribution.id
-      await eventProtocol.writeEvent(event.setEventContributionConfirm(eventContributionConfirm))
+      await EVENT_CONTRIBUTION_CONFIRM(user.id, contribution.id, contribution.amount)
     } finally {
       releaseLock()
     }
@@ -736,6 +692,13 @@ export class ContributionResolver {
     contributionToUpdate.deniedBy = moderator.id
     contributionToUpdate.deniedAt = new Date()
     const res = await contributionToUpdate.save()
+
+    await EVENT_ADMIN_CONTRIBUTION_DENY(
+      contributionToUpdate.userId,
+      moderator.id,
+      contributionToUpdate.id,
+      contributionToUpdate.amount,
+    )
 
     sendContributionDeniedEmail({
       firstName: user.firstName,
