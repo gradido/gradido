@@ -46,6 +46,8 @@ import { EventProtocolType } from '@/event/EventProtocolType'
 import { logger, i18n as localization } from '@test/testSetup'
 import { UserInputError } from 'apollo-server-express'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import { ContributionListResult } from '@model/Contribution'
 import { ContributionStatus } from '@enum/ContributionStatus'
 
 // mock account activation email to avoid console spam
@@ -68,13 +70,12 @@ let mutate: any, query: any, con: any
 let testEnv: any
 let creation: Contribution | void
 let admin: User
-// let result: any
-// let contribution: any
 let pendingContribution: any
 let inProgressContribution: any
 let contributionToConfirm: any
 let contributionToDeny: any
 let contributionToDelete: any
+let bibiCreatedContribution: Contribution
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger, localization)
@@ -91,15 +92,14 @@ afterAll(async () => {
 
 describe('ContributionResolver', () => {
   let bibi: any
-  let peter: any
 
   beforeAll(async () => {
     bibi = await userFactory(testEnv, bibiBloxberg)
-    admin = peter = await userFactory(testEnv, peterLustig)
+    admin = await userFactory(testEnv, peterLustig)
     await userFactory(testEnv, raeuberHotzenplotz)
     const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    await creationFactory(testEnv, bibisCreation!)
+    bibiCreatedContribution = await creationFactory(testEnv, bibisCreation!)
     await mutate({
       mutation: login,
       variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -169,22 +169,18 @@ describe('ContributionResolver', () => {
   describe('createContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        await expect(
-          mutate({
-            mutation: createContribution,
-            variables: { amount: 100.0, memo: 'Test Contribution', creationDate: 'not-valid' },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          mutation: createContribution,
+          variables: { amount: 100.0, memo: 'Test Contribution', creationDate: 'not-valid' },
+        })
+
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
     describe('authenticated with valid user', () => {
       beforeAll(async () => {
-        bibi = await mutate({
+        await mutate({
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
@@ -198,20 +194,16 @@ describe('ContributionResolver', () => {
         it('throws error when memo length smaller than 5 chars', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: createContribution,
-              variables: {
-                amount: 100.0,
-                memo: 'Test',
-                creationDate: date.toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Memo text is too short')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test',
+              creationDate: date.toString(),
+            },
+          })
+
+          expect(errorObjects).toEqual([new GraphQLError('Memo text is too short')])
         })
 
         it('logs the error found', () => {
@@ -221,20 +213,15 @@ describe('ContributionResolver', () => {
         it('throws error when memo length greater than 255 chars', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: createContribution,
-              variables: {
-                amount: 100.0,
-                memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
-                creationDate: date.toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Memo text is too long')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
+              creationDate: date.toString(),
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Memo text is too long')])
         })
 
         it('logs the error found', () => {
@@ -243,22 +230,17 @@ describe('ContributionResolver', () => {
 
         it('throws error when creationDate not-valid', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: createContribution,
-              variables: {
-                amount: 100.0,
-                memo: 'Test env contribution',
-                creationDate: 'not-valid',
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [
-                new GraphQLError('No information for available creations for the given date'),
-              ],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test env contribution',
+              creationDate: 'not-valid',
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError('No information for available creations for the given date'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -271,22 +253,17 @@ describe('ContributionResolver', () => {
         it('throws error when creationDate 3 month behind', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: createContribution,
-              variables: {
-                amount: 100.0,
-                memo: 'Test env contribution',
-                creationDate: date.setMonth(date.getMonth() - 3).toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [
-                new GraphQLError('No information for available creations for the given date'),
-              ],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test env contribution',
+              creationDate: date.setMonth(date.getMonth() - 3).toString(),
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError('No information for available creations for the given date'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -299,26 +276,20 @@ describe('ContributionResolver', () => {
 
       describe('valid input', () => {
         it('creates contribution', async () => {
-          expect(pendingContribution).toEqual(
-            expect.objectContaining({
-              data: {
-                createContribution: {
-                  id: expect.any(Number),
-                  amount: '100',
-                  memo: 'Test PENDING contribution',
-                },
-              },
-            }),
-          )
+          expect(pendingContribution.data.createContribution).toMatchObject({
+            id: expect.any(Number),
+            amount: '100',
+            memo: 'Test PENDING contribution',
+          })
         })
 
-        it('stores the create contribution event in the database', async () => {
+        it('stores the CONTRIBUTION_CREATE event in the database', async () => {
           await expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_CREATE,
               amount: expect.decimalEqual(100),
               contributionId: pendingContribution.data.createContribution.id,
-              userId: bibi.data.login.id,
+              userId: bibi.id,
             }),
           )
         })
@@ -329,21 +300,16 @@ describe('ContributionResolver', () => {
   describe('updateContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        await expect(
-          mutate({
-            mutation: updateContribution,
-            variables: {
-              contributionId: 1,
-              amount: 100.0,
-              memo: 'Test Contribution',
-              creationDate: 'not-valid',
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          mutation: updateContribution,
+          variables: {
+            contributionId: 1,
+            amount: 100.0,
+            memo: 'Test Contribution',
+            creationDate: 'not-valid',
+          },
+        })
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -363,21 +329,16 @@ describe('ContributionResolver', () => {
         it('throws error', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: pendingContribution.data.createContribution.id,
-                amount: 100.0,
-                memo: 'Test',
-                creationDate: date.toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Memo text is too short')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 100.0,
+              memo: 'Test',
+              creationDate: date.toString(),
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Memo text is too short')])
         })
 
         it('logs the error found', () => {
@@ -389,21 +350,16 @@ describe('ContributionResolver', () => {
         it('throws error', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: pendingContribution.data.createContribution.id,
-                amount: 100.0,
-                memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
-                creationDate: date.toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Memo text is too long')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 100.0,
+              memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
+              creationDate: date.toString(),
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Memo text is too long')])
         })
 
         it('logs the error found', () => {
@@ -446,21 +402,18 @@ describe('ContributionResolver', () => {
 
         it('throws an error', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: pendingContribution.data.createContribution.id,
-                amount: 10.0,
-                memo: 'Test env contribution',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Can not update contribution of another user')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 10.0,
+              memo: 'Test env contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError('Can not update contribution of another user'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -482,22 +435,19 @@ describe('ContributionResolver', () => {
 
         it('throws an error', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: adminUpdateContribution,
-              variables: {
-                id: pendingContribution.data.createContribution.id,
-                email: 'bibi@bloxberg.de',
-                amount: 10.0,
-                memo: 'Test env contribution',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('An admin is not allowed to update an user contribution')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: adminUpdateContribution,
+            variables: {
+              id: pendingContribution.data.createContribution.id,
+              email: 'bibi@bloxberg.de',
+              amount: 10.0,
+              memo: 'Test env contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError('An admin is not allowed to update an user contribution'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -505,85 +455,80 @@ describe('ContributionResolver', () => {
             'An admin is not allowed to update an user contribution',
           )
         })
+
+        describe('contribution has wrong status', () => {
+          beforeAll(async () => {
+            const contribution = await Contribution.findOneOrFail({
+              id: pendingContribution.data.createContribution.id,
+            })
+            contribution.contributionStatus = ContributionStatus.DELETED
+            contribution.save()
+            await mutate({
+              mutation: login,
+              variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+            })
+          })
+
+          afterAll(async () => {
+            const contribution = await Contribution.findOneOrFail({
+              id: pendingContribution.data.createContribution.id,
+            })
+            contribution.contributionStatus = ContributionStatus.PENDING
+            contribution.save()
+          })
+
+          it('throws an error', async () => {
+            jest.clearAllMocks()
+            await expect(
+              mutate({
+                mutation: updateContribution,
+                variables: {
+                  contributionId: pendingContribution.data.createContribution.id,
+                  amount: 10.0,
+                  memo: 'Test env contribution',
+                  creationDate: new Date().toString(),
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('Contribution can not be updated due to status')],
+              }),
+            )
+          })
+
+          it('logs the error found', () => {
+            expect(logger.error).toBeCalledWith(
+              'Contribution can not be updated due to status',
+              ContributionStatus.DELETED,
+            )
+          })
+        })
       })
 
-      describe('contribution has wrong status', () => {
+      describe('update too much so that the limit is exceeded', () => {
         beforeAll(async () => {
-          const contribution = await Contribution.findOneOrFail({
-            id: pendingContribution.data.createContribution.id,
-          })
-          contribution.contributionStatus = ContributionStatus.DELETED
-          contribution.save()
           await mutate({
             mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
         })
 
-        afterAll(async () => {
-          const contribution = await Contribution.findOneOrFail({
-            id: pendingContribution.data.createContribution.id,
-          })
-          contribution.contributionStatus = ContributionStatus.PENDING
-          contribution.save()
-        })
-
         it('throws an error', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: pendingContribution.data.createContribution.id,
-                amount: 10.0,
-                memo: 'Test env contribution',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Contribution can not be updated due to status')],
-            }),
-          )
-        })
-
-        it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(
-            'Contribution can not be updated due to status',
-            ContributionStatus.DELETED,
-          )
-        })
-      })
-
-      describe('update to much so that the limit is exceeded', () => {
-        beforeAll(async () => {
-          await mutate({
-            mutation: login,
-            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 1019.0,
+              memo: 'Test env contribution',
+              creationDate: new Date().toString(),
+            },
           })
-        })
-
-        it('throws an error', async () => {
-          jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: pendingContribution.data.createContribution.id,
-                amount: 1019.0,
-                memo: 'Test env contribution',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [
-                new GraphQLError(
-                  'The amount (1019 GDD) to be created exceeds the amount (600 GDD) still available for this month.',
-                ),
-              ],
-            }),
-          )
+          expect(errorObjects).toEqual([
+            new GraphQLError(
+              'The amount (1019 GDD) to be created exceeds the amount (600 GDD) still available for this month.',
+            ),
+          ])
         })
 
         it('logs the error found', () => {
@@ -597,21 +542,18 @@ describe('ContributionResolver', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: pendingContribution.data.createContribution.id,
-                amount: 10.0,
-                memo: 'Test env contribution',
-                creationDate: date.setMonth(date.getMonth() - 3).toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Month of contribution can not be changed')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 10.0,
+              memo: 'Test env contribution',
+              creationDate: date.setMonth(date.getMonth() - 3).toString(),
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError('Month of contribution can not be changed'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -621,31 +563,26 @@ describe('ContributionResolver', () => {
 
       describe('valid input', () => {
         it('updates contribution', async () => {
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: pendingContribution.data.createContribution.id,
-                amount: 10.0,
-                memo: 'Test PENDING contribution update',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                updateContribution: {
-                  id: pendingContribution.data.createContribution.id,
-                  amount: '10',
-                  memo: 'Test PENDING contribution update',
-                },
-              },
-            }),
-          )
+          const {
+            data: { updateContribution: contribution },
+          }: { data: { updateContribution: UnconfirmedContribution } } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 10.0,
+              memo: 'Test PENDING contribution update',
+              creationDate: new Date().toString(),
+            },
+          })
+          expect(contribution).toMatchObject({
+            id: pendingContribution.data.createContribution.id,
+            amount: '10',
+            memo: 'Test PENDING contribution update',
+          })
         })
 
-        it('stores the update contribution event in the database', async () => {
-          bibi = await query({
+        it('stores the CONTRIBUTION_UPDATE event in the database', async () => {
+          await query({
             query: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
@@ -655,7 +592,7 @@ describe('ContributionResolver', () => {
               type: EventProtocolType.CONTRIBUTION_UPDATE,
               amount: expect.decimalEqual(10),
               contributionId: pendingContribution.data.createContribution.id,
-              userId: bibi.data.login.id,
+              userId: bibi.id,
             }),
           )
         })
@@ -666,18 +603,13 @@ describe('ContributionResolver', () => {
   describe('denyContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        await expect(
-          mutate({
-            mutation: denyContribution,
-            variables: {
-              id: 1,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+          mutation: denyContribution,
+          variables: {
+            id: 1,
+          },
+        })
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -694,18 +626,13 @@ describe('ContributionResolver', () => {
       })
 
       it('returns an error', async () => {
-        await expect(
-          mutate({
-            mutation: denyContribution,
-            variables: {
-              id: 1,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+          mutation: denyContribution,
+          variables: {
+            id: 1,
+          },
+        })
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -723,28 +650,25 @@ describe('ContributionResolver', () => {
 
       describe('wrong contribution id', () => {
         it('throws an error', async () => {
-          await expect(
-            mutate({
-              mutation: denyContribution,
-              variables: {
-                id: -1,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Contribution not found for given id.')],
-            }),
-          )
+          jest.clearAllMocks()
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: -1,
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('Contribution not found for given id: -1')
+          expect(logger.error).toBeCalledWith('Contribution not found', -1)
         })
       })
 
       describe('deny contribution that is already confirmed', () => {
         let contribution: any
         it('throws an error', async () => {
+          jest.clearAllMocks()
           await mutate({
             mutation: login,
             variables: { email: 'raeuber@hotzenplotz.de', password: 'Aa12345_' },
@@ -771,24 +695,17 @@ describe('ContributionResolver', () => {
             },
           })
 
-          await expect(
-            mutate({
-              mutation: denyContribution,
-              variables: {
-                id: contribution.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Contribution not found for given id.')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(
-            `Contribution not found for given id: ${contribution.data.createContribution.id}`,
-          )
+          expect(logger.error).toBeCalledWith('Contribution not found', expect.any(Number))
         })
       })
 
@@ -796,6 +713,7 @@ describe('ContributionResolver', () => {
         let contribution: any
 
         it('throws an error', async () => {
+          jest.clearAllMocks()
           await mutate({
             mutation: login,
             variables: { email: 'raeuber@hotzenplotz.de', password: 'Aa12345_' },
@@ -822,24 +740,17 @@ describe('ContributionResolver', () => {
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
 
-          await expect(
-            mutate({
-              mutation: denyContribution,
-              variables: {
-                id: contribution.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Contribution not found for given id.')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(
-            `Contribution not found for given id: ${contribution.data.createContribution.id}`,
-          )
+          expect(logger.error).toBeCalledWith(`Contribution not found`, expect.any(Number))
         })
       })
 
@@ -847,6 +758,7 @@ describe('ContributionResolver', () => {
         let contribution: any
 
         it('throws an error', async () => {
+          jest.clearAllMocks()
           await mutate({
             mutation: login,
             variables: { email: 'raeuber@hotzenplotz.de', password: 'Aa12345_' },
@@ -873,24 +785,17 @@ describe('ContributionResolver', () => {
             },
           })
 
-          await expect(
-            mutate({
-              mutation: denyContribution,
-              variables: {
-                id: contribution.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Contribution not found for given id.')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(
-            `Contribution not found for given id: ${contribution.data.createContribution.id}`,
-          )
+          expect(logger.error).toBeCalledWith(`Contribution not found`, expect.any(Number))
         })
       })
 
@@ -900,18 +805,25 @@ describe('ContributionResolver', () => {
             mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
-          await expect(
-            mutate({
-              mutation: denyContribution,
-              variables: {
-                id: contributionToDeny.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
+          const {
+            data: { denyContribution: isDenied },
+          }: { data: { denyContribution: boolean } } = await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: contributionToDeny.data.createContribution.id,
+            },
+          })
+          expect(isDenied).toBe(true)
+        })
+
+        it('stores the ADMIN_CONTRIBUTION_DENY event in the database', async () => {
+          await expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
-              data: {
-                denyContribution: true,
-              },
+              type: EventProtocolType.ADMIN_CONTRIBUTION_DENY,
+              userId: bibi.id,
+              xUserId: admin.id,
+              contributionId: contributionToDeny.data.createContribution.id,
+              amount: expect.decimalEqual(100),
             }),
           )
         })
@@ -922,133 +834,111 @@ describe('ContributionResolver', () => {
   describe('deleteContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        await expect(
-          query({
-            query: deleteContribution,
-            variables: {
-              id: -1,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          query: deleteContribution,
+          variables: {
+            id: -1,
+          },
+        })
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
     describe('authenticated', () => {
-      let peter: any
       beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg)
-        peter = await userFactory(testEnv, peterLustig)
-
         await mutate({
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
-        // result = await mutate({
-        //   mutation: createContribution,
-        //   variables: {
-        //     amount: 100.0,
-        //     memo: 'Test env contribution',
-        //     creationDate: new Date().toString(),
-        //   },
-        // })
       })
 
       afterAll(async () => {
-        await cleanDB()
         resetToken()
       })
 
       describe('wrong contribution id', () => {
         it('returns an error', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: deleteContribution,
-              variables: {
-                id: -1,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Contribution not found')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: deleteContribution,
+            variables: {
+              id: -1,
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('Contribution not found', -1)
+          expect(logger.error).toBeCalledWith('Contribution not found', expect.any(Number))
         })
       })
 
       describe('other user sends a deleteContribution', () => {
-        it('returns an error', async () => {
+        beforeAll(async () => {
           jest.clearAllMocks()
           await mutate({
             mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
-          await expect(
-            mutate({
-              mutation: deleteContribution,
-              variables: {
-                id: contributionToDelete.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Can not delete contribution of another user')],
-            }),
-          )
+        })
+
+        afterAll(() => {
+          resetToken()
+        })
+
+        it('returns an error', async () => {
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: deleteContribution,
+            variables: {
+              id: contributionToDelete.data.createContribution.id,
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError('Can not delete contribution of another user'),
+          ])
         })
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
             'Can not delete contribution of another user',
-            expect.any(Object),
+            expect.any(Contribution),
             expect.any(Number),
           )
         })
       })
 
       describe('User deletes own contribution', () => {
-        it('deletes successfully', async () => {
-          await expect(
-            mutate({
-              mutation: deleteContribution,
-              variables: {
-                id: contributionToDelete.data.createContribution.id,
-              },
-            }),
-          ).resolves.toBeTruthy()
+        beforeAll(async () => {
+          jest.clearAllMocks()
+          await mutate({
+            mutation: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
         })
 
-        it('stores the delete contribution event in the database', async () => {
-          const contribution = await mutate({
-            mutation: createContribution,
-            variables: {
-              amount: 166.0,
-              memo: 'Whatever contribution',
-              creationDate: new Date().toString(),
-            },
-          })
+        afterAll(() => {
+          resetToken()
+        })
 
-          await mutate({
+        it('deletes successfully', async () => {
+          const {
+            data: { deleteContribution: isDenied },
+          }: { data: { deleteContribution: boolean } } = await mutate({
             mutation: deleteContribution,
             variables: {
-              id: contribution.data.createContribution.id,
+              id: contributionToDelete.data.createContribution.id,
             },
           })
+          expect(isDenied).toBe(true)
+        })
 
+        it('stores the CONTRIBUTION_DELETE event in the database', async () => {
           await expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_DELETE,
-              contributionId: contribution.data.createContribution.id,
-              amount: expect.decimalEqual(166),
-              userId: peter.id,
+              contributionId: contributionToDelete.data.createContribution.id,
+              amount: expect.decimalEqual(100),
+              userId: bibi.id,
             }),
           )
         })
@@ -1071,18 +961,15 @@ describe('ContributionResolver', () => {
             mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
-          await expect(
-            mutate({
-              mutation: deleteContribution,
-              variables: {
-                id: contributionToConfirm.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('A confirmed contribution can not be deleted')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: deleteContribution,
+            variables: {
+              id: contributionToConfirm.data.createContribution.id,
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError('A confirmed contribution can not be deleted'),
+          ])
         })
 
         it('logs the error found', () => {
@@ -1092,63 +979,22 @@ describe('ContributionResolver', () => {
           )
         })
       })
-
-      describe('User deletes already confirmed contribution', () => {
-        it('throws an error', async () => {
-          jest.clearAllMocks()
-          await mutate({
-            mutation: login,
-            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
-          })
-          await mutate({
-            mutation: confirmContribution,
-            variables: {
-              id: contributionToConfirm.data.createContribution.id,
-            },
-          })
-          await mutate({
-            mutation: login,
-            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-          })
-          await expect(
-            mutate({
-              mutation: deleteContribution,
-              variables: {
-                id: contributionToConfirm.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('A confirmed contribution can not be deleted')],
-            }),
-          )
-        })
-
-        it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('A confirmed contribution can not be deleted')
-        })
-      })
     })
   })
 
   describe('listContributions', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        await expect(
-          query({
-            query: listContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              filterConfirmed: false,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: [GraphQLError] } = await query({
+          query: listContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            filterConfirmed: false,
+          },
+        })
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -1166,113 +1012,102 @@ describe('ContributionResolver', () => {
 
       describe('filter confirmed is false', () => {
         it('returns creations', async () => {
-          await expect(
-            query({
-              query: listContributions,
-              variables: {
-                currentPage: 1,
-                pageSize: 25,
-                order: 'DESC',
-                filterConfirmed: false,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                listContributions: {
-                  contributionCount: 6,
-                  contributionList: expect.arrayContaining([
-                    expect.objectContaining({
-                      amount: '100',
-                      id: expect.any(Number),
-                      memo: 'Test contribution to confirm',
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Test PENDING contribution update',
-                      amount: '10',
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Test contribution to deny',
-                      amount: '100',
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Test contribution to delete',
-                      amount: '100',
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Test IN_PROGRESS contribution',
-                      amount: '100',
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Herzlich Willkommen bei Gradido!',
-                      amount: '1000',
-                    }),
-                  ]),
-                },
-              },
-            }),
-          )
+          const {
+            data: { listContributions: contributionListResult },
+          }: { data: { listContributions: ContributionListResult } } = await query({
+            query: listContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              filterConfirmed: false,
+            },
+          })
+          expect(contributionListResult).toMatchObject({
+            contributionCount: 6,
+            contributionList: expect.arrayContaining([
+              expect.objectContaining({
+                amount: '100',
+                id: contributionToConfirm.data.createContribution.id,
+                memo: 'Test contribution to confirm',
+              }),
+              expect.objectContaining({
+                id: pendingContribution.data.createContribution.id,
+                memo: 'Test PENDING contribution update',
+                amount: '10',
+              }),
+              expect.objectContaining({
+                id: contributionToDeny.data.createContribution.id,
+                memo: 'Test contribution to deny',
+                amount: '100',
+              }),
+              expect.objectContaining({
+                id: contributionToDelete.data.createContribution.id,
+                memo: 'Test contribution to delete',
+                amount: '100',
+              }),
+              expect.objectContaining({
+                id: inProgressContribution.data.createContribution.id,
+                memo: 'Test IN_PROGRESS contribution',
+                amount: '100',
+              }),
+              expect.objectContaining({
+                id: bibiCreatedContribution.id,
+                memo: 'Herzlich Willkommen bei Gradido!',
+                amount: '1000',
+              }),
+            ]),
+          })
+          expect(contributionListResult.contributionList).toHaveLength(6)
         })
       })
 
       describe('filter confirmed is true', () => {
         it('returns only unconfirmed creations', async () => {
-          await expect(
-            query({
-              query: listContributions,
-              variables: {
-                currentPage: 1,
-                pageSize: 25,
-                order: 'DESC',
-                filterConfirmed: true,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                listContributions: {
-                  contributionCount: 4,
-                  contributionList: expect.arrayContaining([
-                    expect.not.objectContaining({
-                      amount: '100',
-                      id: expect.any(Number),
-                      memo: 'Test contribution to confirm',
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Test PENDING contribution update',
-                      amount: '10',
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Test contribution to deny',
-                      amount: '100',
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Test contribution to delete',
-                      amount: '100',
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Test IN_PROGRESS contribution',
-                      amount: '100',
-                    }),
-                    expect.not.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Herzlich Willkommen bei Gradido!',
-                      amount: '1000',
-                    }),
-                  ]),
-                },
-              },
-            }),
-          )
+          const {
+            data: { listContributions: contributionListResult },
+          }: { data: { listContributions: ContributionListResult } } = await query({
+            query: listContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              filterConfirmed: true,
+            },
+          })
+          expect(contributionListResult).toMatchObject({
+            contributionCount: 4,
+            contributionList: expect.arrayContaining([
+              expect.not.objectContaining({
+                state: 'CONFIRMED',
+              }),
+              expect.objectContaining({
+                id: pendingContribution.data.createContribution.id,
+                state: 'PENDING',
+                memo: 'Test PENDING contribution update',
+                amount: '10',
+              }),
+              expect.objectContaining({
+                id: contributionToDeny.data.createContribution.id,
+                state: 'DENIED',
+                memo: 'Test contribution to deny',
+                amount: '100',
+              }),
+              expect.objectContaining({
+                id: contributionToDelete.data.createContribution.id,
+                state: 'DELETED',
+                memo: 'Test contribution to delete',
+                amount: '100',
+              }),
+              expect.objectContaining({
+                id: inProgressContribution.data.createContribution.id,
+                state: 'IN_PROGRESS',
+                memo: 'Test IN_PROGRESS contribution',
+                amount: '100',
+              }),
+            ]),
+          })
+          expect(contributionListResult.contributionList).toHaveLength(4)
         })
       })
     })
@@ -1281,21 +1116,16 @@ describe('ContributionResolver', () => {
   describe('listAllContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: null,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: [GraphQLError] } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: null,
+          },
+        })
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
@@ -1312,670 +1142,493 @@ describe('ContributionResolver', () => {
       })
 
       it('throws an error with "NOT_VALID" in statusFilter', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: ['NOT_VALID'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [
-              new UserInputError(
-                'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[0]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
-              ),
-            ],
-          }),
-        )
+        const { errors: errorObjects }: { errors: [GraphQLError | UserInputError] } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: ['NOT_VALID'],
+          },
+        })
+        expect(errorObjects).toEqual([
+          new UserInputError(
+            'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[0]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
+          ),
+        ])
       })
 
       it('throws an error with a null in statusFilter', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: [null],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [
-              new UserInputError(
-                'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
-              ),
-            ],
-          }),
-        )
+        const { errors: errorObjects }: { errors: [Error] } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: [null],
+          },
+        })
+        expect(errorObjects).toEqual([
+          new UserInputError(
+            'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
+          ),
+        ])
       })
 
       it('throws an error with null and "NOT_VALID" in statusFilter', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: [null, 'NOT_VALID'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [
-              new UserInputError(
-                'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
-              ),
-              new UserInputError(
-                'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[1]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
-              ),
-            ],
-          }),
-        )
+        const { errors: errorObjects }: { errors: [Error] } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: [null, 'NOT_VALID'],
+          },
+        })
+        expect(errorObjects).toEqual([
+          new UserInputError(
+            'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
+          ),
+          new UserInputError(
+            'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[1]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
+          ),
+        ])
       })
 
       it('returns all contributions without statusFilter', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 7,
-                contributionList: expect.arrayContaining([
-                  expect.objectContaining({
-                    amount: '100',
-                    state: 'CONFIRMED',
-                    id: expect.any(Number),
-                    memo: 'Test contribution to confirm',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test PENDING contribution update',
-                    amount: '10',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Test contribution to deny',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DELETED',
-                    memo: 'Test contribution to delete',
-                    amount: '100',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGRESS contribution',
-                    amount: '100',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 7,
+          contributionList: expect.arrayContaining([
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: '100',
+              state: 'CONFIRMED',
+              id: contributionToConfirm.data.createContribution.id,
+              memo: 'Test contribution to confirm',
+            }),
+            expect.objectContaining({
+              id: pendingContribution.data.createContribution.id,
+              state: 'PENDING',
+              memo: 'Test PENDING contribution update',
+              amount: '10',
+            }),
+            expect.objectContaining({
+              id: contributionToDeny.data.createContribution.id,
+              state: 'DENIED',
+              memo: 'Test contribution to deny',
+              amount: '100',
+            }),
+            expect.objectContaining({
+              id: inProgressContribution.data.createContribution.id,
+              state: 'IN_PROGRESS',
+              memo: 'Test IN_PROGRESS contribution',
+              amount: '100',
+            }),
+            expect.objectContaining({
+              id: bibiCreatedContribution.id,
+              state: 'CONFIRMED',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              amount: '1000',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'CONFIRMED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'DENIED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(7)
       })
 
       it('returns all contributions for statusFilter = null', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: null,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 7,
-                contributionList: expect.arrayContaining([
-                  expect.objectContaining({
-                    amount: '100',
-                    state: 'CONFIRMED',
-                    id: expect.any(Number),
-                    memo: 'Test contribution to confirm',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test PENDING contribution update',
-                    amount: '10',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Test contribution to deny',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DELETED',
-                    memo: 'Test contribution to delete',
-                    amount: '100',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGRESS contribution',
-                    amount: '100',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: null,
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 7,
+          contributionList: expect.arrayContaining([
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: '100',
+              state: 'CONFIRMED',
+              id: contributionToConfirm.data.createContribution.id,
+              memo: 'Test contribution to confirm',
+            }),
+            expect.objectContaining({
+              id: pendingContribution.data.createContribution.id,
+              state: 'PENDING',
+              memo: 'Test PENDING contribution update',
+              amount: '10',
+            }),
+            expect.objectContaining({
+              id: contributionToDeny.data.createContribution.id,
+              state: 'DENIED',
+              memo: 'Test contribution to deny',
+              amount: '100',
+            }),
+            expect.objectContaining({
+              id: inProgressContribution.data.createContribution.id,
+              state: 'IN_PROGRESS',
+              memo: 'Test IN_PROGRESS contribution',
+              amount: '100',
+            }),
+            expect.objectContaining({
+              id: bibiCreatedContribution.id,
+              state: 'CONFIRMED',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              amount: '1000',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'CONFIRMED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'DENIED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(7)
       })
 
       it('returns all contributions for statusFilter = []', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: [],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 7,
-                contributionList: expect.arrayContaining([
-                  expect.objectContaining({
-                    amount: '100',
-                    state: 'CONFIRMED',
-                    id: expect.any(Number),
-                    memo: 'Test contribution to confirm',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test PENDING contribution update',
-                    amount: '10',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Test contribution to deny',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DELETED',
-                    memo: 'Test contribution to delete',
-                    amount: '100',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGRESS contribution',
-                    amount: '100',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: [],
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 7,
+          contributionList: expect.arrayContaining([
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: '100',
+              state: 'CONFIRMED',
+              id: contributionToConfirm.data.createContribution.id,
+              memo: 'Test contribution to confirm',
+            }),
+            expect.objectContaining({
+              id: pendingContribution.data.createContribution.id,
+              state: 'PENDING',
+              memo: 'Test PENDING contribution update',
+              amount: '10',
+            }),
+            expect.objectContaining({
+              id: contributionToDeny.data.createContribution.id,
+              state: 'DENIED',
+              memo: 'Test contribution to deny',
+              amount: '100',
+            }),
+            expect.objectContaining({
+              id: inProgressContribution.data.createContribution.id,
+              state: 'IN_PROGRESS',
+              memo: 'Test IN_PROGRESS contribution',
+              amount: '100',
+            }),
+            expect.objectContaining({
+              id: bibiCreatedContribution.id,
+              state: 'CONFIRMED',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              amount: '1000',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'CONFIRMED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'DENIED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(7)
       })
 
       it('returns all CONFIRMED contributions', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: ['CONFIRMED'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 3,
-                contributionList: expect.arrayContaining([
-                  expect.objectContaining({
-                    amount: '100',
-                    state: 'CONFIRMED',
-                    id: expect.any(Number),
-                    memo: 'Test contribution to confirm',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test PENDING contribution update',
-                    amount: '10',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Test contribution to deny',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DELETED',
-                    memo: 'Test contribution to delete',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGRESS contribution',
-                    amount: '100',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: ['CONFIRMED'],
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 3,
+          contributionList: expect.arrayContaining([
+            expect.objectContaining({
+              amount: '100',
+              state: 'CONFIRMED',
+              id: contributionToConfirm.data.createContribution.id,
+              memo: 'Test contribution to confirm',
+            }),
+            expect.objectContaining({
+              id: bibiCreatedContribution.id,
+              state: 'CONFIRMED',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              amount: '1000',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'CONFIRMED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+            expect.not.objectContaining({
+              state: 'PENDING',
+            }),
+            expect.not.objectContaining({
+              state: 'DENIED',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.not.objectContaining({
+              state: 'IN_PROGRESS',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(3)
       })
 
       it('returns all PENDING contributions', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: ['PENDING'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 1,
-                contributionList: expect.arrayContaining([
-                  expect.not.objectContaining({
-                    amount: '100',
-                    state: 'CONFIRMED',
-                    id: expect.any(Number),
-                    memo: 'Test contribution to confirm',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test PENDING contribution update',
-                    amount: '10',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Test contribution to deny',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DELETED',
-                    memo: 'Test contribution to delete',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGRESS contribution',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: ['PENDING'],
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 1,
+          contributionList: expect.arrayContaining([
+            expect.not.objectContaining({
+              state: 'CONFIRMED',
+            }),
+            expect.not.objectContaining({
+              state: 'DENIED',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.not.objectContaining({
+              state: 'IN_PROGRESS',
+            }),
+            expect.objectContaining({
+              id: pendingContribution.data.createContribution.id,
+              state: 'PENDING',
+              memo: 'Test PENDING contribution update',
+              amount: '10',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(1)
       })
 
       it('returns all IN_PROGRESS Creation', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: ['IN_PROGRESS'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 1,
-                contributionList: expect.arrayContaining([
-                  expect.not.objectContaining({
-                    amount: '100',
-                    state: 'CONFIRMED',
-                    id: expect.any(Number),
-                    memo: 'Test contribution to confirm',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test PENDING contribution update',
-                    amount: '10',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Test contribution to deny',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DELETED',
-                    memo: 'Test contribution to delete',
-                    amount: '100',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGRESS contribution',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: ['IN_PROGRESS'],
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 1,
+          contributionList: expect.arrayContaining([
+            expect.not.objectContaining({
+              state: 'CONFIRMED',
+            }),
+            expect.not.objectContaining({
+              state: 'PENDING',
+            }),
+            expect.not.objectContaining({
+              state: 'DENIED',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              id: inProgressContribution.data.createContribution.id,
+              state: 'IN_PROGRESS',
+              memo: 'Test IN_PROGRESS contribution',
+              amount: '100',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(1)
       })
 
       it('returns all DENIED Creation', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: ['DENIED'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 2,
-                contributionList: expect.arrayContaining([
-                  expect.not.objectContaining({
-                    amount: '100',
-                    state: 'CONFIRMED',
-                    id: expect.any(Number),
-                    memo: 'Test contribution to confirm',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test PENDING contribution update',
-                    amount: '10',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Test contribution to deny',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DELETED',
-                    memo: 'Test contribution to delete',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGRESS contribution',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: ['DENIED'],
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 2,
+          contributionList: expect.arrayContaining([
+            expect.objectContaining({
+              id: contributionToDeny.data.createContribution.id,
+              state: 'DENIED',
+              memo: 'Test contribution to deny',
+              amount: '100',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'DENIED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+            expect.not.objectContaining({
+              state: 'CONFIRMED',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.not.objectContaining({
+              state: 'IN_PROGRESS',
+            }),
+            expect.not.objectContaining({
+              state: 'PENDING',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(2)
       })
 
-      it('returns all DELETED Creation', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: ['DELETED'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 0,
-                contributionList: [],
-              },
-            },
-          }),
-        )
+      it('does not return any DELETED Creation', async () => {
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: ['DELETED'],
+          },
+        })
+        expect(contributionListObject).toEqual({
+          contributionCount: 0,
+          contributionList: [],
+        })
+        expect(contributionListObject.contributionList).toHaveLength(0)
       })
 
       it('returns all CONFIRMED and PENDING Creation', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: ['CONFIRMED', 'PENDING'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 4,
-                contributionList: expect.arrayContaining([
-                  expect.objectContaining({
-                    amount: '100',
-                    state: 'CONFIRMED',
-                    id: expect.any(Number),
-                    memo: 'Test contribution to confirm',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test PENDING contribution update',
-                    amount: '10',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Test contribution to deny',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DELETED',
-                    memo: 'Test contribution to delete',
-                    amount: '100',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'IN_PROGRESS',
-                    memo: 'Test IN_PROGRESS contribution',
-                    amount: '100',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'DENIED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Whatever contribution',
-                    amount: '166',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: ['CONFIRMED', 'PENDING'],
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 4,
+          contributionList: expect.arrayContaining([
+            expect.objectContaining({
+              amount: '100',
+              state: 'CONFIRMED',
+              id: contributionToConfirm.data.createContribution.id,
+              memo: 'Test contribution to confirm',
+            }),
+            expect.objectContaining({
+              id: pendingContribution.data.createContribution.id,
+              state: 'PENDING',
+              memo: 'Test PENDING contribution update',
+              amount: '10',
+            }),
+            expect.objectContaining({
+              id: bibiCreatedContribution.id,
+              state: 'CONFIRMED',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              amount: '1000',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'CONFIRMED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+            expect.not.objectContaining({
+              state: 'DENIED',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.not.objectContaining({
+              state: 'IN_PROGRESS',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(4)
       })
     })
   })
@@ -2425,11 +2078,12 @@ describe('ContributionResolver', () => {
                 )
               })
 
-              it('stores the admin create contribution event in the database', async () => {
+              it('stores the ADMIN_CONTRIBUTION_CREATE event in the database', async () => {
                 await expect(EventProtocol.find()).resolves.toContainEqual(
                   expect.objectContaining({
                     type: EventProtocolType.ADMIN_CONTRIBUTION_CREATE,
                     userId: admin.id,
+                    amount: expect.decimalEqual(200),
                   }),
                 )
               })
@@ -2437,6 +2091,7 @@ describe('ContributionResolver', () => {
 
             describe('second creation surpasses the available amount ', () => {
               it('returns an array of the open creations for the last three months', async () => {
+                jest.clearAllMocks()
                 variables.amount = new Decimal(1000)
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
@@ -2690,11 +2345,12 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('stores the admin update contribution event in the database', async () => {
+            it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
                   userId: admin.id,
+                  amount: 300,
                 }),
               )
             })
@@ -2730,11 +2386,12 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('stores the admin update contribution event in the database', async () => {
+            it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
                   userId: admin.id,
+                  amount: expect.decimalEqual(200),
                 }),
               )
             })
@@ -2743,231 +2400,212 @@ describe('ContributionResolver', () => {
 
         describe('adminListAllContributions', () => {
           it('returns four pending creations', async () => {
-            await expect(
-              query({
-                query: adminListAllContributions,
-              }),
-            ).resolves.toEqual(
-              expect.objectContaining({
-                data: {
-                  adminListAllContributions: {
-                    contributionCount: 14,
-                    contributionList: expect.arrayContaining([
-                      expect.objectContaining({
-                        amount: '500',
-                        confirmedAt: null,
-                        confirmedBy: null,
-                        contributionDate: expect.any(String),
-                        createdAt: expect.any(String),
-                        deniedAt: null,
-                        deniedBy: null,
-                        firstName: 'Bibi',
-                        id: expect.any(Number),
-                        lastName: 'Bloxberg',
-                        memo: 'Grundeinkommen',
-                        messagesCount: 0,
-                        state: 'PENDING',
-                      }),
-                      expect.objectContaining({
-                        amount: '200',
-                        confirmedAt: null,
-                        confirmedBy: null,
-                        contributionDate: expect.any(String),
-                        createdAt: expect.any(String),
-                        deniedAt: null,
-                        deniedBy: null,
-                        firstName: 'Bibi',
-                        id: expect.any(Number),
-                        lastName: 'Bloxberg',
-                        memo: 'Aktives Grundeinkommen',
-                        messagesCount: 0,
-                        state: 'PENDING',
-                      }),
-                      expect.objectContaining({
-                        amount: '500',
-                        confirmedAt: null,
-                        confirmedBy: null,
-                        contributionDate: expect.any(String),
-                        createdAt: expect.any(String),
-                        deniedAt: null,
-                        deniedBy: null,
-                        firstName: 'Peter',
-                        id: expect.any(Number),
-                        lastName: 'Lustig',
-                        memo: 'Grundeinkommen',
-                        messagesCount: 0,
-                        state: 'PENDING',
-                      }),
-                      expect.objectContaining({
-                        amount: '200',
-                        confirmedAt: null,
-                        confirmedBy: null,
-                        contributionDate: expect.any(String),
-                        createdAt: expect.any(String),
-                        deniedAt: null,
-                        deniedBy: null,
-                        firstName: 'Peter',
-                        id: expect.any(Number),
-                        lastName: 'Lustig',
-                        memo: 'Das war leider zu Viel!',
-                        messagesCount: 0,
-                        state: 'PENDING',
-                      }),
-                      expect.objectContaining({
-                        amount: '166',
-                        confirmedAt: null,
-                        confirmedBy: null,
-                        contributionDate: expect.any(String),
-                        createdAt: expect.any(String),
-                        deniedAt: null,
-                        deniedBy: null,
-                        firstName: 'Peter',
-                        id: expect.any(Number),
-                        lastName: 'Lustig',
-                        memo: 'Whatever contribution',
-                        messagesCount: 0,
-                        state: 'DELETED',
-                      }),
-                      expect.objectContaining({
-                        amount: '166',
-                        confirmedAt: null,
-                        confirmedBy: null,
-                        contributionDate: expect.any(String),
-                        createdAt: expect.any(String),
-                        deniedAt: expect.any(String),
-                        deniedBy: expect.any(Number),
-                        firstName: 'Räuber',
-                        id: expect.any(Number),
-                        lastName: 'Hotzenplotz',
-                        memo: 'Whatever contribution',
-                        messagesCount: 0,
-                        state: 'DENIED',
-                      }),
-                      expect.objectContaining({
-                        amount: '166',
-                        confirmedAt: null,
-                        confirmedBy: null,
-                        contributionDate: expect.any(String),
-                        createdAt: expect.any(String),
-                        deniedAt: null,
-                        deniedBy: null,
-                        firstName: 'Räuber',
-                        id: expect.any(Number),
-                        lastName: 'Hotzenplotz',
-                        memo: 'Whatever contribution',
-                        messagesCount: 0,
-                        state: 'DELETED',
-                      }),
-                      expect.objectContaining({
-                        amount: '166',
-                        confirmedAt: expect.any(String),
-                        confirmedBy: expect.any(Number),
-                        contributionDate: expect.any(String),
-                        createdAt: expect.any(String),
-                        deniedAt: null,
-                        deniedBy: null,
-                        firstName: 'Räuber',
-                        id: expect.any(Number),
-                        lastName: 'Hotzenplotz',
-                        memo: 'Whatever contribution',
-                        messagesCount: 0,
-                        state: 'CONFIRMED',
-                      }),
-                      expect.objectContaining({
-                        amount: '100',
-                        confirmedAt: null,
-                        confirmedBy: null,
-                        contributionDate: expect.any(String),
-                        createdAt: expect.any(String),
-                        deniedAt: expect.any(String),
-                        deniedBy: expect.any(Number),
-                        firstName: 'Bibi',
-                        id: expect.any(Number),
-                        lastName: 'Bloxberg',
-                        memo: 'Test contribution to deny',
-                        messagesCount: 0,
-                        state: 'DENIED',
-                      }),
-                      expect.objectContaining({
-                        amount: '100',
-                        confirmedAt: expect.any(String),
-                        confirmedBy: expect.any(Number),
-                        contributionDate: expect.any(String),
-                        createdAt: expect.any(String),
-                        deniedAt: null,
-                        deniedBy: null,
-                        firstName: 'Bibi',
-                        id: expect.any(Number),
-                        lastName: 'Bloxberg',
-                        memo: 'Test contribution to confirm',
-                        messagesCount: 0,
-                        state: 'CONFIRMED',
-                      }),
-                      expect.objectContaining({
-                        amount: '100',
-                        confirmedAt: null,
-                        confirmedBy: null,
-                        contributionDate: expect.any(String),
-                        createdAt: expect.any(String),
-                        deniedAt: null,
-                        deniedBy: null,
-                        firstName: 'Bibi',
-                        id: expect.any(Number),
-                        lastName: 'Bloxberg',
-                        memo: 'Test IN_PROGRESS contribution',
-                        messagesCount: 0,
-                        state: 'IN_PROGRESS',
-                      }),
-                      expect.objectContaining({
-                        amount: '10',
-                        confirmedAt: null,
-                        confirmedBy: null,
-                        contributionDate: expect.any(String),
-                        createdAt: expect.any(String),
-                        deniedAt: null,
-                        deniedBy: null,
-                        firstName: 'Bibi',
-                        id: expect.any(Number),
-                        lastName: 'Bloxberg',
-                        memo: 'Test PENDING contribution update',
-                        messagesCount: 0,
-                        state: 'PENDING',
-                      }),
-                      expect.objectContaining({
-                        amount: '100',
-                        confirmedAt: null,
-                        confirmedBy: null,
-                        contributionDate: expect.any(String),
-                        createdAt: expect.any(String),
-                        deniedAt: null,
-                        deniedBy: null,
-                        firstName: 'Bibi',
-                        id: expect.any(Number),
-                        lastName: 'Bloxberg',
-                        memo: 'Test contribution to delete',
-                        messagesCount: 0,
-                        state: 'DELETED',
-                      }),
-                      expect.objectContaining({
-                        amount: '1000',
-                        confirmedAt: expect.any(String),
-                        confirmedBy: expect.any(Number),
-                        contributionDate: expect.any(String),
-                        createdAt: expect.any(String),
-                        deniedAt: null,
-                        deniedBy: null,
-                        firstName: 'Bibi',
-                        id: expect.any(Number),
-                        lastName: 'Bloxberg',
-                        memo: 'Herzlich Willkommen bei Gradido!',
-                        messagesCount: 0,
-                        state: 'CONFIRMED',
-                      }),
-                    ]),
-                  },
-                },
-              }),
-            )
+            const {
+              data: { adminListAllContributions: contributionListObject },
+            }: { data: { adminListAllContributions: ContributionListResult } } = await query({
+              query: adminListAllContributions,
+            })
+            expect(contributionListObject.contributionList).toHaveLength(13)
+            expect(contributionListObject).toMatchObject({
+              contributionCount: 13,
+              contributionList: expect.arrayContaining([
+                expect.objectContaining({
+                  amount: '500',
+                  confirmedAt: null,
+                  confirmedBy: null,
+                  contributionDate: expect.any(String),
+                  createdAt: expect.any(String),
+                  deniedAt: null,
+                  deniedBy: null,
+                  firstName: 'Bibi',
+                  id: expect.any(Number),
+                  lastName: 'Bloxberg',
+                  memo: 'Grundeinkommen',
+                  messagesCount: 0,
+                  state: 'PENDING',
+                }),
+                expect.objectContaining({
+                  amount: '200',
+                  confirmedAt: null,
+                  confirmedBy: null,
+                  contributionDate: expect.any(String),
+                  createdAt: expect.any(String),
+                  deniedAt: null,
+                  deniedBy: null,
+                  firstName: 'Bibi',
+                  id: expect.any(Number),
+                  lastName: 'Bloxberg',
+                  memo: 'Aktives Grundeinkommen',
+                  messagesCount: 0,
+                  state: 'PENDING',
+                }),
+                expect.objectContaining({
+                  amount: '500',
+                  confirmedAt: null,
+                  confirmedBy: null,
+                  contributionDate: expect.any(String),
+                  createdAt: expect.any(String),
+                  deniedAt: null,
+                  deniedBy: null,
+                  firstName: 'Peter',
+                  id: expect.any(Number),
+                  lastName: 'Lustig',
+                  memo: 'Grundeinkommen',
+                  messagesCount: 0,
+                  state: 'PENDING',
+                }),
+                expect.objectContaining({
+                  amount: '200',
+                  confirmedAt: null,
+                  confirmedBy: null,
+                  contributionDate: expect.any(String),
+                  createdAt: expect.any(String),
+                  deniedAt: null,
+                  deniedBy: null,
+                  firstName: 'Peter',
+                  id: expect.any(Number),
+                  lastName: 'Lustig',
+                  memo: 'Das war leider zu Viel!',
+                  messagesCount: 0,
+                  state: 'PENDING',
+                }),
+                expect.objectContaining({
+                  amount: '166',
+                  confirmedAt: null,
+                  confirmedBy: null,
+                  contributionDate: expect.any(String),
+                  createdAt: expect.any(String),
+                  deniedAt: expect.any(String),
+                  deniedBy: expect.any(Number),
+                  firstName: 'Räuber',
+                  id: expect.any(Number),
+                  lastName: 'Hotzenplotz',
+                  memo: 'Whatever contribution',
+                  messagesCount: 0,
+                  state: 'DENIED',
+                }),
+                expect.objectContaining({
+                  amount: '166',
+                  confirmedAt: null,
+                  confirmedBy: null,
+                  contributionDate: expect.any(String),
+                  createdAt: expect.any(String),
+                  deniedAt: null,
+                  deniedBy: null,
+                  firstName: 'Räuber',
+                  id: expect.any(Number),
+                  lastName: 'Hotzenplotz',
+                  memo: 'Whatever contribution',
+                  messagesCount: 0,
+                  state: 'DELETED',
+                }),
+                expect.objectContaining({
+                  amount: '166',
+                  confirmedAt: expect.any(String),
+                  confirmedBy: expect.any(Number),
+                  contributionDate: expect.any(String),
+                  createdAt: expect.any(String),
+                  deniedAt: null,
+                  deniedBy: null,
+                  firstName: 'Räuber',
+                  id: expect.any(Number),
+                  lastName: 'Hotzenplotz',
+                  memo: 'Whatever contribution',
+                  messagesCount: 0,
+                  state: 'CONFIRMED',
+                }),
+                expect.objectContaining({
+                  amount: '100',
+                  confirmedAt: null,
+                  confirmedBy: null,
+                  contributionDate: expect.any(String),
+                  createdAt: expect.any(String),
+                  deniedAt: expect.any(String),
+                  deniedBy: expect.any(Number),
+                  firstName: 'Bibi',
+                  id: expect.any(Number),
+                  lastName: 'Bloxberg',
+                  memo: 'Test contribution to deny',
+                  messagesCount: 0,
+                  state: 'DENIED',
+                }),
+                expect.objectContaining({
+                  amount: '100',
+                  confirmedAt: expect.any(String),
+                  confirmedBy: expect.any(Number),
+                  contributionDate: expect.any(String),
+                  createdAt: expect.any(String),
+                  deniedAt: null,
+                  deniedBy: null,
+                  firstName: 'Bibi',
+                  id: expect.any(Number),
+                  lastName: 'Bloxberg',
+                  memo: 'Test contribution to confirm',
+                  messagesCount: 0,
+                  state: 'CONFIRMED',
+                }),
+                expect.objectContaining({
+                  amount: '100',
+                  confirmedAt: null,
+                  confirmedBy: null,
+                  contributionDate: expect.any(String),
+                  createdAt: expect.any(String),
+                  deniedAt: null,
+                  deniedBy: null,
+                  firstName: 'Bibi',
+                  id: expect.any(Number),
+                  lastName: 'Bloxberg',
+                  memo: 'Test IN_PROGRESS contribution',
+                  messagesCount: 0,
+                  state: 'IN_PROGRESS',
+                }),
+                expect.objectContaining({
+                  amount: '10',
+                  confirmedAt: null,
+                  confirmedBy: null,
+                  contributionDate: expect.any(String),
+                  createdAt: expect.any(String),
+                  deniedAt: null,
+                  deniedBy: null,
+                  firstName: 'Bibi',
+                  id: expect.any(Number),
+                  lastName: 'Bloxberg',
+                  memo: 'Test PENDING contribution update',
+                  messagesCount: 0,
+                  state: 'PENDING',
+                }),
+                expect.objectContaining({
+                  amount: '100',
+                  confirmedAt: null,
+                  confirmedBy: null,
+                  contributionDate: expect.any(String),
+                  createdAt: expect.any(String),
+                  deniedAt: null,
+                  deniedBy: null,
+                  firstName: 'Bibi',
+                  id: expect.any(Number),
+                  lastName: 'Bloxberg',
+                  memo: 'Test contribution to delete',
+                  messagesCount: 0,
+                  state: 'DELETED',
+                }),
+                expect.objectContaining({
+                  amount: '1000',
+                  confirmedAt: expect.any(String),
+                  confirmedBy: expect.any(Number),
+                  contributionDate: expect.any(String),
+                  createdAt: expect.any(String),
+                  deniedAt: null,
+                  deniedBy: null,
+                  firstName: 'Bibi',
+                  id: expect.any(Number),
+                  lastName: 'Bloxberg',
+                  memo: 'Herzlich Willkommen bei Gradido!',
+                  messagesCount: 0,
+                  state: 'CONFIRMED',
+                }),
+              ]),
+            })
           })
         })
 
@@ -3044,11 +2682,12 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('stores the admin  delete contribution event in the database', async () => {
+            it('stores the ADMIN_CONTRIBUTION_DELETE event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
                   userId: admin.id,
+                  amount: expect.decimalEqual(200),
                 }),
               )
             })
@@ -3135,6 +2774,7 @@ describe('ContributionResolver', () => {
             })
 
             it('thows an error', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({
                   mutation: confirmContribution,
@@ -3186,7 +2826,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('stores the contribution confirm event in the database', async () => {
+            it('stores the CONTRIBUTION_CONFIRM event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.CONTRIBUTION_CONFIRM,
@@ -3218,7 +2858,7 @@ describe('ContributionResolver', () => {
               })
             })
 
-            it('stores the send confirmation email event in the database', async () => {
+            it('stores the SEND_CONFIRMATION_EMAIL event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.SEND_CONFIRMATION_EMAIL,

@@ -166,6 +166,15 @@ export const listContributions = gql`
         id
         amount
         memo
+        createdAt
+        contributionDate
+        confirmedAt
+        confirmedBy
+        deletedAt
+        state
+        messagesCount
+        deniedAt
+        deniedBy
       }
     }
   }

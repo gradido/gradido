@@ -68,6 +68,12 @@ export const createUser = gql`
   }
 `
 
+export const sendActivationEmail = gql`
+  mutation ($email: String!) {
+    sendActivationEmail(email: $email)
+  }
+`
+
 export const sendCoins = gql`
   mutation ($email: String!, $amount: Decimal!, $memo: String!) {
     sendCoins(email: $email, amount: $amount, memo: $memo)
