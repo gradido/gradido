@@ -5,13 +5,12 @@
 </template>
 
 <script>
- export default {
-   name: 'ContentHeader',
-   computed: {
-     path() {
-       console.log('ContentHeader', this.$route.path.replace(/^\/(.+?)(\/.+)?$/, '$1'))
-       return this.$route.path.replace(/^\/(.+?)(\/.+)?$/, '$1')
-     },
-   },
- }
+export default {
+  name: 'ContentHeader',
+  computed: {
+    path() {
+      return this.$route.path.replace(/^\/(.+?)(\/.+)?$/, '$1')
+    },
+  },
+}
 </script>

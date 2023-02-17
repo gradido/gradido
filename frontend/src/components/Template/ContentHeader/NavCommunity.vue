@@ -23,22 +23,24 @@
   </div>
 </template>
 <script>
- export default {
-   name: 'NavCommunity',
-   methods: {
-     handleClick(tab) {
-       console.log('handleClick', tab)
-       if (this.$route.params && this.$route.params.tab && Number(this.$route.params.tab) !== tab) {
-         this.$router.push({ params: { tab } })
-       }
-     },
-   },
+export const COMMUNITY_TABS = ['contribute', 'contributions', 'community']
+
+export default {
+  name: 'NavCommunity',
+  methods: {
+    handleClick(tab) {
+      if (this.$route.params.tab !== COMMUNITY_TABS[tab]) {
+        this.$router.push({ params: { tab: COMMUNITY_TABS[tab] } })
+      }
+    },
+  },
+  /*
    watch: {
-     '$route.params.tab'(tab) {
-       this.handleClick(tab)
+     '$route.params.tab'() {
      },
    },
- }
+   */
+}
 </script>
 <style scoped>
 .nav-row {

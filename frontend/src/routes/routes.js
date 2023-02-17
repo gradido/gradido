@@ -59,7 +59,7 @@ const routes = [
       pageTitle: 'community',
     },
     redirect: (to) => {
-      return { path: '/community/1' }
+      return { path: '/community/contribute' }
     },
   },
   {
