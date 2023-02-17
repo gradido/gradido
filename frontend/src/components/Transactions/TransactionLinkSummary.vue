@@ -90,7 +90,7 @@ export default {
             fetchPolicy: 'network-only',
           })
           .then((result) => {
-            this.transactionLinks.links = [
+            this.transactionLinks = [
               ...this.transactionLinks,
               ...result.data.listTransactionLinks.links,
             ]
