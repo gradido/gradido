@@ -86,8 +86,8 @@ export class TransactionLinkResolver {
     transactionLink.code = transactionLinkCode(createdDate)
     transactionLink.createdAt = createdDate
     transactionLink.validUntil = validUntil
-    await DbTransactionLink.save(transactionLink).catch(() => {
-      throw new Error('Unable to save transaction link')
+    await DbTransactionLink.save(transactionLink).catch((e) => {
+      throw new LogError('Unable to save transaction link', e)
     })
 
     return new TransactionLink(transactionLink, new User(user))
@@ -103,19 +103,23 @@ export class TransactionLinkResolver {
 
     const transactionLink = await DbTransactionLink.findOne({ id })
     if (!transactionLink) {
-      throw new Error('Transaction Link not found!')
+      throw new LogError('Transaction link not found', id)
     }
 
     if (transactionLink.userId !== user.id) {
-      throw new Error('Transaction Link cannot be deleted!')
+      throw new LogError(
+        'Transaction link cannot be deleted by another user',
+        transactionLink.userId,
+        user.id,
+      )
     }
 
     if (transactionLink.redeemedBy) {
-      throw new Error('Transaction Link already redeemed!')
+      throw new LogError('Transaction link already redeemed', transactionLink.redeemedBy)
     }
 
-    await transactionLink.softRemove().catch(() => {
-      throw new Error('Transaction Link could not be deleted!')
+    await transactionLink.softRemove().catch((e) => {
+      throw new LogError('Transaction link could not be deleted', e)
     })
 
     return true
@@ -288,18 +292,18 @@ export class TransactionLinkResolver {
       )
 
       if (user.id === linkedUser.id) {
-        throw new Error('Cannot redeem own transaction link.')
+        throw new LogError('Cannot redeem own transaction link', user.id)
       }
 
       // TODO: The now check should be done within the semaphore lock,
       // since the program might wait a while till it is ready to proceed
       // writing the transaction.
       if (transactionLink.validUntil.getTime() < now.getTime()) {
-        throw new Error('Transaction Link is not valid anymore.')
+        throw new LogError('Transaction link is not valid anymore', transactionLink.validUntil)
       }
 
       if (transactionLink.redeemedBy) {
-        throw new Error('Transaction Link already redeemed.')
+        throw new LogError('Transaction link already redeemed', transactionLink.redeemedBy)
       }
 
       await executeTransaction(

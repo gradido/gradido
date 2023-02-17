@@ -1,3 +1,4 @@
+import LogError from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { getConnection } from '@dbTools/typeorm'
 import { Contribution } from '@entity/Contribution'
@@ -19,19 +20,14 @@ export const validateContribution = (
   const index = getCreationIndex(creationDate.getMonth(), timezoneOffset)
 
   if (index < 0) {
-    logger.error(
-      'No information for available creations with the given creationDate=',
-      creationDate.toString(),
-    )
-    throw new Error('No information for available creations for the given date')
+    throw new LogError('No information for available creations for the given date', creationDate)
   }
 
   if (amount.greaterThan(creations[index].toString())) {
-    logger.error(
-      `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
-    )
-    throw new Error(
-      `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
+    throw new LogError(
+      'The amount to be created exceeds the amount still available for this month',
+      amount,
+      creations[index],
     )
   }
 }
@@ -126,19 +122,16 @@ export const isStartEndDateValid = (
   endDate: string | null | undefined,
 ): void => {
   if (!startDate) {
-    logger.error('Start-Date is not initialized. A Start-Date must be set!')
-    throw new Error('Start-Date is not initialized. A Start-Date must be set!')
+    throw new LogError('A Start-Date must be set')
   }
 
   if (!endDate) {
-    logger.error('End-Date is not initialized. An End-Date must be set!')
-    throw new Error('End-Date is not initialized. An End-Date must be set!')
+    throw new LogError('An End-Date must be set')
   }
 
   // check if endDate is before startDate
   if (new Date(endDate).getTime() - new Date(startDate).getTime() < 0) {
-    logger.error(`The value of validFrom must before or equals the validTo!`)
-    throw new Error(`The value of validFrom must before or equals the validTo!`)
+    throw new LogError(`The value of validFrom must before or equals the validTo`)
   }
 }
 
@@ -150,7 +143,7 @@ export const updateCreations = (
   const index = getCreationIndex(contribution.contributionDate.getMonth(), timezoneOffset)
 
   if (index < 0) {
-    throw new Error('You cannot create GDD for a month older than the last three months.')
+    throw new LogError('You cannot create GDD for a month older than the last three months')
   }
   creations[index] = creations[index].plus(contribution.amount.toString())
   return creations
