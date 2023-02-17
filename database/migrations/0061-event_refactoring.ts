@@ -31,6 +31,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(
     'ALTER TABLE `events` RENAME COLUMN `message_id` TO `involved_contribution_message_id`;',
   )
+
+  // TODO insert data based on event type
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
