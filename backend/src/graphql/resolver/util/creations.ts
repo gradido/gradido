@@ -143,7 +143,7 @@ export const updateCreations = (
   const index = getCreationIndex(contribution.contributionDate.getMonth(), timezoneOffset)
 
   if (index < 0) {
-    throw new Error('You cannot create GDD for a month older than the last three months.')
+    throw new LogError('You cannot create GDD for a month older than the last three months')
   }
   creations[index] = creations[index].plus(contribution.amount.toString())
   return creations
