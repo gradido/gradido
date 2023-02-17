@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto'
 import Decimal from 'decimal.js-light'
 
-import { getConnection, MoreThan } from '@dbTools/typeorm'
+import { getConnection } from '@dbTools/typeorm'
 
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
@@ -13,7 +13,6 @@ import { User } from '@model/User'
 import { ContributionLink } from '@model/ContributionLink'
 import { Decay } from '@model/Decay'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
-import { Order } from '@enum/Order'
 import { ContributionType } from '@enum/ContributionType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
@@ -35,6 +34,7 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import LogError from '@/server/LogError'
 
 import { getLastTransaction } from './util/getLastTransaction'
+import transactionLinkList from './util/transactionLinkList'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -348,35 +348,5 @@ export class TransactionLinkResolver {
     userId: number,
   ): Promise<TransactionLinkResult> {
     return transactionLinkList(paginated, filters, await DbUser.findOneOrFail({ id: userId }))
-  }
-}
-
-const transactionLinkList = async (
-  { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
-  filters: TransactionLinkFilters | null,
-  user: DbUser,
-): Promise<TransactionLinkResult> => {
-  const { withDeleted, withExpired, withRedeemed } = filters || {
-    withDeleted: false,
-    withExpired: false,
-    withRedeemed: false,
-  }
-  const [transactionLinks, count] = await DbTransactionLink.findAndCount({
-    where: {
-      user: user.id,
-      ...(!withRedeemed && { redeemedBy: null }),
-      ...(!withExpired && { validUntil: MoreThan(new Date()) }),
-    },
-    withDeleted,
-    order: {
-      createdAt: order,
-    },
-    skip: (currentPage - 1) * pageSize,
-    take: pageSize,
-  })
-
-  return {
-    count,
-    links: transactionLinks.map((tl) => new TransactionLink(tl, user)),
   }
 }
