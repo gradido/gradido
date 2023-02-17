@@ -49,8 +49,8 @@ describe('router', () => {
         expect(routes.find((r) => r.path === '/').redirect()).toEqual({ path: '/login' })
       })
 
-      it('has sixteen routes defined', () => {
-        expect(routes).toHaveLength(18)
+      it('has 19 routes defined', () => {
+        expect(routes).toHaveLength(19)
       })
 
       describe('overview', () => {
@@ -75,7 +75,19 @@ describe('router', () => {
         })
       })
 
-      describe('community', () => {
+      describe('community without tab parameter', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/community').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('redirects to contribute tab', async () => {
+          expect(routes.find((r) => r.path === '/community').redirect()).toEqual({
+            path: '/community/contribute',
+          })
+        })
+      })
+
+      describe('community with tab parameter', () => {
         it('requires authorization', () => {
           expect(routes.find((r) => r.path === '/community').meta.requiresAuth).toBeTruthy()
         })

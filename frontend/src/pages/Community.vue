@@ -161,7 +161,7 @@ export default {
     },
   },
   watch: {
-    '$route.params.tab'(tab) {
+    '$route.params.tab'() {
       this.updateTabIndex()
     },
   },
@@ -282,6 +282,7 @@ export default {
       this.form.amount = item.amount
       this.form.hours = item.amount / 20
       this.updateAmount = item.amount
+      this.tabIndex = 0
       this.$router.push({ params: { tab: 'contribute' } })
     },
     updateTransactions(pagination) {
