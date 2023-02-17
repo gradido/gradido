@@ -55,6 +55,7 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import LogError from '@/server/LogError'
 
 import { getLastTransaction } from './util/getLastTransaction'
+import { findContributions } from './util/findContributions'
 
 @Resolver()
 export class ContributionResolver {
@@ -167,25 +168,14 @@ export class ContributionResolver {
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
     statusFilter?: ContributionStatus[],
   ): Promise<ContributionListResult> {
-    const where: {
-      contributionStatus?: FindOperator<string> | null
-    } = {}
+    const [dbContributions, count] = await findContributions(
+      order,
+      currentPage,
+      pageSize,
+      false,
+      statusFilter,
+    )
 
-    if (statusFilter && statusFilter.length) {
-      where.contributionStatus = In(statusFilter)
-    }
-
-    const [dbContributions, count] = await getConnection()
-      .createQueryBuilder()
-      .select('c')
-      .from(DbContribution, 'c')
-      .innerJoinAndSelect('c.user', 'u')
-      .leftJoinAndSelect('c.messages', 'm')
-      .where(where)
-      .orderBy('c.createdAt', order)
-      .limit(pageSize)
-      .offset((currentPage - 1) * pageSize)
-      .getManyAndCount()
     return new ContributionListResult(
       count,
       dbContributions.map((contribution) => new Contribution(contribution, contribution.user)),
@@ -431,18 +421,13 @@ export class ContributionResolver {
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
     statusFilter?: ContributionStatus[],
   ): Promise<ContributionListResult> {
-    const [dbContributions, count] = await DbContribution.findAndCount({
-      where: {
-        ...(statusFilter && statusFilter.length && { contributionStatus: In(statusFilter) }),
-      },
-      withDeleted: true,
-      order: {
-        createdAt: order,
-      },
-      relations: ['user'],
-      skip: (currentPage - 1) * pageSize,
-      take: pageSize,
-    })
+    const [dbContributions, count] = await findContributions(
+      order,
+      currentPage,
+      pageSize,
+      true,
+      statusFilter,
+    )
 
     return new ContributionListResult(
       count,
