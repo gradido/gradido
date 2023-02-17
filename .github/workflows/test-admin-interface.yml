@@ -1,0 +1,69 @@
+name: Gradido Admin Interface Test CI
+
+on:
+  push:
+    branches:
+      - separate-admin-interface-workflow
+
+jobs:
+  build_test_admin:
+    name: Docker Build Test - Admin Interface
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Admin Interface | Build 'test' image
+        run: docker build --target test -t "gradido/admin:test" admin/ --build-arg NODE_ENV="test"
+
+  unit_test_admin:
+    name: Unit Tests - Admin Interface
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Admin Interface | Unit tests
+        run: |
+          cd admin && yarn && yarn run test
+          cp -r ./coverage ../
+
+      - name: Admin Interface | Coverage check
+        uses: webcraftmedia/coverage-check-action@master
+        with:
+          report_name: Coverage Admin Interface
+          type: lcov
+          result_path: ./admin/coverage/lcov.info
+          min_coverage: 97
+          token: ${{ github.token }}
+  
+  lint_admin:
+    name: Lint - Admin Interface
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Admin Interface | Lint
+        run: cd admin && yarn && yarn run lint
+
+  stylelint_admin:
+    name: Stylelint - Admin Interface
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Admin Interface | Stylelint
+        run: cd admin && yarn && yarn run stylelint
+
+  locales_admin:
+    name: Locales - Admin Interface
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Admin Interface | Locales
+        run: cd admin && yarn && yarn run locales
