@@ -2969,7 +2969,6 @@ describe('ContributionResolver', () => {
             statusFilter: ['PENDING'],
           },
         })
-        console.log(contributionListObject.contributionList)
         expect(contributionListObject.contributionList).toHaveLength(5)
         expect(contributionListObject).toMatchObject({
           contributionCount: 6,
