@@ -431,25 +431,18 @@ export class ContributionResolver {
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
     statusFilter?: ContributionStatus[],
   ): Promise<ContributionListResult> {
-    const where: {
-      contributionStatus?: FindOperator<string> | null
-    } = {}
-
-    if (statusFilter && statusFilter.length) {
-      where.contributionStatus = In(statusFilter)
-    }
-
-    const [dbContributions, count] = await getConnection()
-      .createQueryBuilder()
-      .select('c')
-      .from(DbContribution, 'c')
-      .innerJoinAndSelect('c.user', 'u')
-      .where(where)
-      .withDeleted()
-      .orderBy('c.createdAt', order)
-      .limit(pageSize)
-      .offset((currentPage - 1) * pageSize)
-      .getManyAndCount()
+    const [dbContributions, count] = await DbContribution.findAndCount({
+      where: {
+        ...(statusFilter && statusFilter.length && { contributionStatus: In(statusFilter) }),
+      },
+      withDeleted: true,
+      order: {
+        createdAt: order,
+      },
+      relations: ['user'],
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
 
     return new ContributionListResult(
       count,
