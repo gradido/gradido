@@ -185,7 +185,8 @@ describe('UserResolver', () => {
         expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.REGISTER,
-            userId: userConatct.user.id,
+            affectedUserId: userConatct.user.id,
+            actingUserId: userConatct.user.id,
           }),
         )
       })
@@ -214,7 +215,8 @@ describe('UserResolver', () => {
         expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
-            userId: user[0].id,
+            affectedUserId: user[0].id,
+            actingUserId: user[0].id,
           }),
         )
       })
@@ -259,7 +261,8 @@ describe('UserResolver', () => {
         expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
-            userId: userConatct.user.id,
+            affectedUserId: userConatct.user.id,
+            actingUserId: 0,
           }),
         )
       })
@@ -359,7 +362,8 @@ describe('UserResolver', () => {
           expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.ACTIVATE_ACCOUNT,
-              userId: user[0].id,
+              affectedUserId: user[0].id,
+              actingUserId: user[0].id,
             }),
           )
         })
@@ -368,8 +372,9 @@ describe('UserResolver', () => {
           expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.REDEEM_REGISTER,
-              userId: result.data.createUser.id,
-              contributionId: link.id,
+              affectedUserId: result.data.createUser.id,
+              actingUserId: result.data.createUser.id,
+              involvedContributionId: link.id,
             }),
           )
         })
@@ -452,7 +457,9 @@ describe('UserResolver', () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.REDEEM_REGISTER,
-              userId: newUser.data.createUser.id,
+              affectedUserId: newUser.data.createUser.id,
+              actingUserId: newUser.data.createUser.id,
+              involvedTransactionId: transactionLink.id,
             }),
           )
         })
@@ -683,7 +690,8 @@ describe('UserResolver', () => {
         expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.LOGIN,
-            userId: userConatct.user.id,
+            affectedUserId: userConatct.user.id,
+            actingUserId: userConatct.user.id,
           }),
         )
       })
@@ -931,7 +939,8 @@ describe('UserResolver', () => {
           expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.LOGIN,
-              userId: user[0].id,
+              affectedUserId: user[0].id,
+              actingUserId: user[0].id,
             }),
           )
         })
@@ -1850,7 +1859,8 @@ describe('UserResolver', () => {
             expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
                 type: EventProtocolType.ADMIN_SEND_CONFIRMATION_EMAIL,
-                userId: userConatct.user.id,
+                affectedUserId: userConatct.user.id,
+                actingUserId: admin.id,
               }),
             )
           })
