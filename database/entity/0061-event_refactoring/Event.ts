@@ -30,45 +30,46 @@ export class Event extends BaseEntity {
   })
   createdAt: Date
 
-  // @Column({ name: 'affected_user_id', unsigned: true, nullable: false })
-  // affectedUserId: number
+  @Column({ name: 'affected_user_id', unsigned: true, nullable: false })
+  affectedUserId: number
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'affected_user_id', referencedColumnName: 'id' })
   affectedUser: User
 
   // TODO potentially save actingRole as well
-  // @Column({ name: 'acting_user_id', unsigned: true, nullable: false })
-  // actingUserId: number
+  @Column({ name: 'acting_user_id', unsigned: true, nullable: false })
+  actingUserId: number
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'acting_user_id', referencedColumnName: 'id' })
   actingUser: User
 
-  // @Column({ name: 'involved_user_id', type: 'int', unsigned: true, nullable: true })
-  // involvedUserId: number | null
+  @Column({ name: 'involved_user_id', type: 'int', unsigned: true, nullable: true })
+  involvedUserId: number | null
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'involved_user_id', referencedColumnName: 'id' })
   involvedUser: User | null
 
-  // @Column({ name: 'involved_transaction_id', type: 'int', unsigned: true, nullable: true })
-  // involvedTransactionId: number | null
+  @Column({ name: 'involved_transaction_id', type: 'int', unsigned: true, nullable: true })
+  involvedTransactionId: number | null
 
   @ManyToOne(() => Transaction)
   @JoinColumn({ name: 'involved_transaction_id', referencedColumnName: 'id' })
   involvedTransaction: Transaction | null
 
-  // @Column({ name: 'involved_contribution_id', type: 'int', unsigned: true, nullable: true })
-  // involvedContributionId: number | null
+  @Column({ name: 'involved_contribution_id', type: 'int', unsigned: true, nullable: true })
+  involvedContributionId: number | null
 
   @ManyToOne(() => Contribution)
   @JoinColumn({ name: 'involved_contribution_id', referencedColumnName: 'id' })
   involvedContribution: Contribution | null
 
   // TEST do we need the Id field definition?
-  // @Column({ name: 'involved_contribution_message_id', type: 'int', unsigned: true, nullable: true })
-  // involvedContributionMessageId: number | null
+  // TODO we need proper foreign keys to have things working without the explicit column
+  @Column({ name: 'involved_contribution_message_id', type: 'int', unsigned: true, nullable: true })
+  involvedContributionMessageId: number | null
 
   @ManyToOne(() => ContributionMessage)
   @JoinColumn({ name: 'involved_contribution_message_id', referencedColumnName: 'id' })
