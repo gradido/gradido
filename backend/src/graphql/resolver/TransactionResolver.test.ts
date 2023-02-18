@@ -14,7 +14,7 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
-import { EventProtocol } from '@entity/EventProtocol'
+import { Event as DbEvent } from '@entity/Event'
 import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { cleanDB, testEnvironment } from '@test/helpers'
@@ -337,7 +337,7 @@ describe('send coins', () => {
           memo: 'unrepeatable memo',
         })
 
-        expect(EventProtocol.find()).resolves.toContainEqual(
+        expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.TRANSACTION_SEND,
             userId: user[1].id,
@@ -354,7 +354,7 @@ describe('send coins', () => {
           memo: 'unrepeatable memo',
         })
 
-        expect(EventProtocol.find()).resolves.toContainEqual(
+        expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.TRANSACTION_RECEIVE,
             userId: user[0].id,

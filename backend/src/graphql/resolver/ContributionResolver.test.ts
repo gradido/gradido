@@ -38,7 +38,7 @@ import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { EventProtocol } from '@entity/EventProtocol'
+import { Event as DbEvent } from '@entity/Event'
 import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
@@ -284,7 +284,7 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the CONTRIBUTION_CREATE event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_CREATE,
               amount: expect.decimalEqual(100),
@@ -589,7 +589,7 @@ describe('ContributionResolver', () => {
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
 
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_UPDATE,
               amount: expect.decimalEqual(10),
@@ -819,7 +819,7 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the ADMIN_CONTRIBUTION_DENY event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.ADMIN_CONTRIBUTION_DENY,
               userId: bibi.id,
@@ -934,7 +934,7 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the CONTRIBUTION_DELETE event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_DELETE,
               contributionId: contributionToDelete.data.createContribution.id,
@@ -2082,7 +2082,7 @@ describe('ContributionResolver', () => {
               })
 
               it('stores the ADMIN_CONTRIBUTION_CREATE event in the database', async () => {
-                await expect(EventProtocol.find()).resolves.toContainEqual(
+                await expect(DbEvent.find()).resolves.toContainEqual(
                   expect.objectContaining({
                     type: EventProtocolType.ADMIN_CONTRIBUTION_CREATE,
                     userId: admin.id,
@@ -2353,7 +2353,7 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
                   userId: admin.id,
@@ -2394,7 +2394,7 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
                   userId: admin.id,
@@ -2573,7 +2573,7 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the ADMIN_CONTRIBUTION_DELETE event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
                   userId: admin.id,
@@ -2717,7 +2717,7 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the CONTRIBUTION_CONFIRM event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.CONTRIBUTION_CONFIRM,
                 }),
@@ -2749,7 +2749,7 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the SEND_CONFIRMATION_EMAIL event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
                 }),

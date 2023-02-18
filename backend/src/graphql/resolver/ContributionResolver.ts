@@ -91,7 +91,7 @@ export class ContributionResolver {
     logger.trace('contribution to save', contribution)
     await DbContribution.save(contribution)
 
-    await EVENT_CONTRIBUTION_CREATE(user.id, contribution.id, amount)
+    await EVENT_CONTRIBUTION_CREATE(user, contribution, amount)
 
     return new UnconfirmedContribution(contribution, user, creations)
   }
@@ -119,7 +119,7 @@ export class ContributionResolver {
     contribution.deletedAt = new Date()
     await contribution.save()
 
-    await EVENT_CONTRIBUTION_DELETE(user.id, contribution.id, contribution.amount)
+    await EVENT_CONTRIBUTION_DELETE(user, contribution, contribution.amount)
 
     const res = await contribution.softRemove()
     return !!res
@@ -267,7 +267,7 @@ export class ContributionResolver {
     contributionToUpdate.updatedAt = new Date()
     DbContribution.save(contributionToUpdate)
 
-    await EVENT_CONTRIBUTION_UPDATE(user.id, contributionId, amount)
+    await EVENT_CONTRIBUTION_UPDATE(user, contributionToUpdate, amount)
 
     return new UnconfirmedContribution(contributionToUpdate, user, creations)
   }
@@ -324,7 +324,7 @@ export class ContributionResolver {
 
     await DbContribution.save(contribution)
 
-    await EVENT_ADMIN_CONTRIBUTION_CREATE(moderator.id, contribution.id, amount)
+    await EVENT_ADMIN_CONTRIBUTION_CREATE(emailContact.user, moderator, contribution, amount)
 
     return getUserCreation(emailContact.userId, clientTimezoneOffset)
   }
@@ -419,7 +419,12 @@ export class ContributionResolver {
 
     result.creation = await getUserCreation(emailContact.user.id, clientTimezoneOffset)
 
-    await EVENT_ADMIN_CONTRIBUTION_UPDATE(emailContact.user.id, contributionToUpdate.id, amount)
+    await EVENT_ADMIN_CONTRIBUTION_UPDATE(
+      emailContact.user,
+      moderator,
+      contributionToUpdate,
+      amount,
+    )
 
     return result
   }
@@ -490,7 +495,13 @@ export class ContributionResolver {
     await contribution.save()
     const res = await contribution.softRemove()
 
-    await EVENT_ADMIN_CONTRIBUTION_DELETE(contribution.userId, contribution.id, contribution.amount)
+    // TODO allow to query the user with relation
+    await EVENT_ADMIN_CONTRIBUTION_DELETE(
+      { id: contribution.userId } as DbUser,
+      moderator,
+      contribution,
+      contribution.amount,
+    )
 
     sendContributionDeletedEmail({
       firstName: user.firstName,
@@ -603,7 +614,7 @@ export class ContributionResolver {
         await queryRunner.release()
       }
 
-      await EVENT_CONTRIBUTION_CONFIRM(user.id, contribution.id, contribution.amount)
+      await EVENT_CONTRIBUTION_CONFIRM(user, moderatorUser, contribution, contribution.amount)
     } finally {
       releaseLock()
     }
@@ -694,9 +705,9 @@ export class ContributionResolver {
     const res = await contributionToUpdate.save()
 
     await EVENT_ADMIN_CONTRIBUTION_DENY(
-      contributionToUpdate.userId,
-      moderator.id,
-      contributionToUpdate.id,
+      user,
+      moderator,
+      contributionToUpdate,
       contributionToUpdate.amount,
     )
 

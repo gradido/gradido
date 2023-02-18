@@ -16,7 +16,9 @@ import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeor
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
+import { Transaction as DbTransaction } from '@entity/Transaction'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { Contribution as DbContribution } from '@entity/Contribution'
 import { UserRepository } from '@repository/User'
 
 import { User } from '@model/User'
@@ -178,7 +180,7 @@ export class UserResolver {
       value: encode(dbUser.gradidoID),
     })
 
-    await EVENT_LOGIN(user.id)
+    await EVENT_LOGIN(dbUser)
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
     return user
   }
@@ -248,7 +250,7 @@ export class UserResolver {
           language: foundUser.language, // use language of the emails owner for sending
         })
 
-        await EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL(foundUser.id)
+        await EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL(foundUser)
 
         logger.info(
           `sendAccountMultiRegistrationEmail by ${firstName} ${lastName} to ${foundUser.firstName} ${foundUser.lastName} <${email}>`,
@@ -266,7 +268,11 @@ export class UserResolver {
 
     const gradidoID = await newGradidoID()
 
-    const eventRegisterRedeem = Event(EventProtocolType.REDEEM_REGISTER, 0)
+    const eventRegisterRedeem = Event(
+      EventProtocolType.REDEEM_REGISTER,
+      { id: 0 } as DbUser,
+      { id: 0 } as DbUser,
+    )
     let dbUser = new DbUser()
     dbUser.gradidoID = gradidoID
     dbUser.firstName = firstName
@@ -283,14 +289,16 @@ export class UserResolver {
         logger.info('redeemCode found contributionLink=' + contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
-          eventRegisterRedeem.contributionId = contributionLink.id
+          // TODO this is so wrong
+          eventRegisterRedeem.involvedContribution = { id: contributionLink.id } as DbContribution
         }
       } else {
         const transactionLink = await DbTransactionLink.findOne({ code: redeemCode })
         logger.info('redeemCode found transactionLink=' + transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
-          eventRegisterRedeem.transactionId = transactionLink.id
+          // TODO this is so wrong
+          eventRegisterRedeem.involvedTransaction = { id: transactionLink.id } as DbTransaction
         }
       }
     }
@@ -329,7 +337,7 @@ export class UserResolver {
       })
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
 
-      await EVENT_SEND_CONFIRMATION_EMAIL(dbUser.id)
+      await EVENT_SEND_CONFIRMATION_EMAIL(dbUser)
 
       if (!emailSent) {
         logger.debug(`Account confirmation link: ${activationLink}`)
@@ -346,10 +354,11 @@ export class UserResolver {
     logger.info('createUser() successful...')
 
     if (redeemCode) {
-      eventRegisterRedeem.userId = dbUser.id
+      eventRegisterRedeem.affectedUser = dbUser
+      eventRegisterRedeem.actingUser = dbUser
       await eventRegisterRedeem.save()
     } else {
-      await EVENT_REGISTER(dbUser.id)
+      await EVENT_REGISTER(dbUser)
     }
 
     return new User(dbUser)
@@ -465,7 +474,7 @@ export class UserResolver {
       await queryRunner.commitTransaction()
       logger.info('User and UserContact data written successfully...')
 
-      await EVENT_ACTIVATE_ACCOUNT(user.id)
+      await EVENT_ACTIVATE_ACCOUNT(user)
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Error on writing User and User Contact data', e)
@@ -775,9 +784,13 @@ export class UserResolver {
     return null
   }
 
+  // TODO this is an admin function - needs refactor
   @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
   @Mutation(() => Boolean)
-  async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
+  async sendActivationEmail(
+    @Arg('email') email: string,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
     email = email.trim().toLowerCase()
     // const user = await dbUser.findOne({ id: emailContact.userId })
     const user = await findUserByEmail(email)
@@ -802,7 +815,7 @@ export class UserResolver {
     if (!emailSent) {
       logger.info(`Account confirmation link: ${activationLink}`)
     } else {
-      await EVENT_ADMIN_SEND_CONFIRMATION_EMAIL(user.id)
+      await EVENT_ADMIN_SEND_CONFIRMATION_EMAIL(user, getUser(context))
     }
 
     return true

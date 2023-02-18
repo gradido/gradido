@@ -35,7 +35,7 @@ import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { ContributionLink } from '@model/ContributionLink'
 import { TransactionLink } from '@entity/TransactionLink'
 import { EventProtocolType } from '@/event/EventProtocolType'
-import { EventProtocol } from '@entity/EventProtocol'
+import { Event as DbEvent } from '@entity/Event'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { UserContact } from '@entity/UserContact'
@@ -182,7 +182,7 @@ describe('UserResolver', () => {
           { email: 'peter@lustig.de' },
           { relations: ['user'] },
         )
-        expect(EventProtocol.find()).resolves.toContainEqual(
+        expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.REGISTER,
             userId: userConatct.user.id,
@@ -211,7 +211,7 @@ describe('UserResolver', () => {
       })
 
       it('stores the SEND_CONFIRMATION_EMAIL event in the database', () => {
-        expect(EventProtocol.find()).resolves.toContainEqual(
+        expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
             userId: user[0].id,
@@ -256,7 +256,7 @@ describe('UserResolver', () => {
           { email: 'peter@lustig.de' },
           { relations: ['user'] },
         )
-        expect(EventProtocol.find()).resolves.toContainEqual(
+        expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
             userId: userConatct.user.id,
@@ -356,7 +356,7 @@ describe('UserResolver', () => {
         })
 
         it('stores the ACTIVATE_ACCOUNT event in the database', () => {
-          expect(EventProtocol.find()).resolves.toContainEqual(
+          expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.ACTIVATE_ACCOUNT,
               userId: user[0].id,
@@ -365,7 +365,7 @@ describe('UserResolver', () => {
         })
 
         it('stores the REDEEM_REGISTER event in the database', () => {
-          expect(EventProtocol.find()).resolves.toContainEqual(
+          expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.REDEEM_REGISTER,
               userId: result.data.createUser.id,
@@ -449,7 +449,7 @@ describe('UserResolver', () => {
         })
 
         it('stores the REDEEM_REGISTER event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.REDEEM_REGISTER,
               userId: newUser.data.createUser.id,
@@ -680,7 +680,7 @@ describe('UserResolver', () => {
           { email: 'bibi@bloxberg.de' },
           { relations: ['user'] },
         )
-        expect(EventProtocol.find()).resolves.toContainEqual(
+        expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.LOGIN,
             userId: userConatct.user.id,
@@ -928,7 +928,7 @@ describe('UserResolver', () => {
         })
 
         it('stores the LOGIN event in the database', () => {
-          expect(EventProtocol.find()).resolves.toContainEqual(
+          expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.LOGIN,
               userId: user[0].id,
@@ -1847,7 +1847,7 @@ describe('UserResolver', () => {
               { email: 'bibi@bloxberg.de' },
               { relations: ['user'] },
             )
-            expect(EventProtocol.find()).resolves.toContainEqual(
+            expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
                 type: EventProtocolType.ADMIN_SEND_CONFIRMATION_EMAIL,
                 userId: userConatct.user.id,

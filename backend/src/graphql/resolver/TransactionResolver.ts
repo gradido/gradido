@@ -138,16 +138,17 @@ export const executeTransaction = async (
       logger.info(`commit Transaction successful...`)
 
       await EVENT_TRANSACTION_SEND(
-        transactionSend.userId,
-        transactionSend.linkedUserId,
-        transactionSend.id,
+        sender,
+        recipient,
+        transactionSend,
+        // TODO why mul -1?
         transactionSend.amount.mul(-1),
       )
 
       await EVENT_TRANSACTION_RECEIVE(
-        transactionReceive.userId,
-        transactionReceive.linkedUserId,
-        transactionReceive.id,
+        recipient,
+        sender,
+        transactionReceive,
         transactionReceive.amount,
       )
     } catch (e) {
