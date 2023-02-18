@@ -340,9 +340,10 @@ describe('send coins', () => {
         expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.TRANSACTION_SEND,
-            userId: user[1].id,
-            transactionId: transaction[0].id,
-            xUserId: user[0].id,
+            affectedUserId: user[1].id,
+            actingUserId: user[1].id,
+            involvedUserId: user[0].id,
+            involvedTransactionId: transaction[0].id,
           }),
         )
       })
@@ -357,9 +358,10 @@ describe('send coins', () => {
         expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.TRANSACTION_RECEIVE,
-            userId: user[0].id,
-            transactionId: transaction[0].id,
-            xUserId: user[1].id,
+            affectedUserId: user[0].id,
+            actingUserId: user[1].id,
+            involvedUserId: user[1].id,
+            involvedTransactionId: transaction[0].id,
           }),
         )
       })
