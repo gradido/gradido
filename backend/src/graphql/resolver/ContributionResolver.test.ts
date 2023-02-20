@@ -13,7 +13,6 @@ import {
   denyContribution,
   confirmContribution,
   adminCreateContribution,
-  adminCreateContributions,
   adminUpdateContribution,
   adminDeleteContribution,
   login,
@@ -1653,21 +1652,6 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe('adminCreateContributions', () => {
-        it('returns an error', async () => {
-          await expect(
-            mutate({
-              mutation: adminCreateContributions,
-              variables: { pendingCreations: [variables] },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('401 Unauthorized')],
-            }),
-          )
-        })
-      })
-
       describe('adminUpdateContribution', () => {
         it('returns an error', async () => {
           await expect(
@@ -1754,21 +1738,6 @@ describe('ContributionResolver', () => {
         describe('adminCreateContribution', () => {
           it('returns an error', async () => {
             await expect(mutate({ mutation: adminCreateContribution, variables })).resolves.toEqual(
-              expect.objectContaining({
-                errors: [new GraphQLError('401 Unauthorized')],
-              }),
-            )
-          })
-        })
-
-        describe('adminCreateContributions', () => {
-          it('returns an error', async () => {
-            await expect(
-              mutate({
-                mutation: adminCreateContributions,
-                variables: { pendingCreations: [variables] },
-              }),
-            ).resolves.toEqual(
               expect.objectContaining({
                 errors: [new GraphQLError('401 Unauthorized')],
               }),
@@ -2120,56 +2089,10 @@ describe('ContributionResolver', () => {
           })
         })
 
-        describe('adminCreateContributions', () => {
+        describe('adminUpdateContribution', () => {
           // at this point we have this data in DB:
           // bibi@bloxberg.de: [1000, 1000, 800]
           // peter@lustig.de: [1000, 600, 1000]
-          // stephen@hawking.uk: [1000, 1000, 1000] - deleted
-          // garrick@ollivander.com: [1000, 1000, 1000] - not activated
-
-          const massCreationVariables = [
-            'bibi@bloxberg.de',
-            'peter@lustig.de',
-            'stephen@hawking.uk',
-            'garrick@ollivander.com',
-            'bob@baumeister.de',
-          ].map((email) => {
-            return {
-              email,
-              amount: new Decimal(500),
-              memo: 'Grundeinkommen',
-              creationDate: contributionDateFormatter(new Date()),
-            }
-          })
-
-          it('returns success, two successful creation and three failed creations', async () => {
-            await expect(
-              mutate({
-                mutation: adminCreateContributions,
-                variables: { pendingCreations: massCreationVariables },
-              }),
-            ).resolves.toEqual(
-              expect.objectContaining({
-                data: {
-                  adminCreateContributions: {
-                    success: true,
-                    successfulContribution: ['bibi@bloxberg.de', 'peter@lustig.de'],
-                    failedContribution: [
-                      'stephen@hawking.uk',
-                      'garrick@ollivander.com',
-                      'bob@baumeister.de',
-                    ],
-                  },
-                },
-              }),
-            )
-          })
-        })
-
-        describe('adminUpdateContribution', () => {
-          // at this I expect to have this data in DB:
-          // bibi@bloxberg.de: [1000, 1000, 300]
-          // peter@lustig.de: [1000, 600, 500]
           // stephen@hawking.uk: [1000, 1000, 1000] - deleted
           // garrick@ollivander.com: [1000, 1000, 1000] - not activated
 
@@ -2386,7 +2309,7 @@ describe('ContributionResolver', () => {
                       date: expect.any(String),
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
-                      creation: ['1000', '800', '500'],
+                      creation: ['1000', '800', '1000'],
                     },
                   },
                 }),
@@ -2424,29 +2347,12 @@ describe('ContributionResolver', () => {
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
                       moderator: admin.id,
-                      creation: ['1000', '800', '500'],
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      firstName: 'Peter',
-                      lastName: 'Lustig',
-                      email: 'peter@lustig.de',
-                      date: expect.any(String),
-                      memo: 'Grundeinkommen',
-                      amount: '500',
-                      moderator: admin.id,
-                      creation: ['1000', '800', '500'],
+                      creation: ['1000', '800', '1000'],
                     }),
                     expect.not.objectContaining({
-                      id: expect.any(Number),
-                      firstName: 'Bibi',
-                      lastName: 'Bloxberg',
                       email: 'bibi@bloxberg.de',
-                      date: expect.any(String),
                       memo: 'Test contribution to delete',
                       amount: '100',
-                      moderator: null,
-                      creation: ['1000', '1000', '90'],
                     }),
                     expect.objectContaining({
                       id: expect.any(Number),
@@ -2457,7 +2363,7 @@ describe('ContributionResolver', () => {
                       memo: 'Test PENDING contribution update',
                       amount: '10',
                       moderator: null,
-                      creation: ['1000', '1000', '90'],
+                      creation: ['1000', '1000', '590'],
                     }),
                     expect.objectContaining({
                       id: expect.any(Number),
@@ -2468,18 +2374,7 @@ describe('ContributionResolver', () => {
                       memo: 'Test IN_PROGRESS contribution',
                       amount: '100',
                       moderator: null,
-                      creation: ['1000', '1000', '90'],
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      firstName: 'Bibi',
-                      lastName: 'Bloxberg',
-                      email: 'bibi@bloxberg.de',
-                      date: expect.any(String),
-                      memo: 'Grundeinkommen',
-                      amount: '500',
-                      moderator: admin.id,
-                      creation: ['1000', '1000', '90'],
+                      creation: ['1000', '1000', '590'],
                     }),
                     expect.objectContaining({
                       id: expect.any(Number),
@@ -2490,7 +2385,7 @@ describe('ContributionResolver', () => {
                       memo: 'Aktives Grundeinkommen',
                       amount: '200',
                       moderator: admin.id,
-                      creation: ['1000', '1000', '90'],
+                      creation: ['1000', '1000', '590'],
                     }),
                   ]),
                 },
