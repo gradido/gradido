@@ -8,7 +8,6 @@ import { UserContact } from '@entity/UserContact'
 import { User as DbUser } from '@entity/User'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 
-import { AdminCreateContributions } from '@model/AdminCreateContributions'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { Contribution, ContributionListResult } from '@model/Contribution'
 import { Decay } from '@model/Decay'
@@ -327,33 +326,6 @@ export class ContributionResolver {
     await EVENT_ADMIN_CONTRIBUTION_CREATE(moderator.id, contribution.id, amount)
 
     return getUserCreation(emailContact.userId, clientTimezoneOffset)
-  }
-
-  @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTIONS])
-  @Mutation(() => AdminCreateContributions)
-  async adminCreateContributions(
-    @Arg('pendingCreations', () => [AdminCreateContributionArgs])
-    contributions: AdminCreateContributionArgs[],
-    @Ctx() context: Context,
-  ): Promise<AdminCreateContributions> {
-    let success = false
-    const successfulContribution: string[] = []
-    const failedContribution: string[] = []
-    for (const contribution of contributions) {
-      await this.adminCreateContribution(contribution, context)
-        .then(() => {
-          successfulContribution.push(contribution.email)
-          success = true
-        })
-        .catch(() => {
-          failedContribution.push(contribution.email)
-        })
-    }
-    return {
-      success,
-      successfulContribution,
-      failedContribution,
-    }
   }
 
   @Authorized([RIGHTS.ADMIN_UPDATE_CONTRIBUTION])
