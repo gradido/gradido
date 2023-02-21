@@ -2,3 +2,7 @@
 
 admin_locales: &admin_locales
   - 'admin/src/locales/**'
+
+admin_stylelinting: &admin_stylelinting
+  - 'admin/{components,layouts,pages}/**/*.{scss,vue}'
+  - 'admin/.stylelintrc.js'

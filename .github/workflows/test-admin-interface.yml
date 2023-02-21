@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       admin_locales: ${{ steps.changes.outputs.admin_locales }}
+      admin_stylelinting: ${{ steps.changes.outputs.admin_stylelinting }}
     steps:
       - uses: actions/checkout@v3.3.0
 
@@ -66,7 +67,9 @@ jobs:
         run: cd admin && yarn && yarn run lint
 
   stylelint_admin:
+    if: needs.files-changed.outputs.admin_stylelinting == 'true'
     name: Stylelint - Admin Interface
+    needs: admin_stylelinting
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
