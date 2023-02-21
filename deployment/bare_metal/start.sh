@@ -93,10 +93,12 @@ cp -f $PROJECT_ROOT/database/.env $PROJECT_ROOT/database/.env.bak
 cp -f $PROJECT_ROOT/backend/.env $PROJECT_ROOT/backend/.env.bak
 cp -f $PROJECT_ROOT/frontend/.env $PROJECT_ROOT/frontend/.env.bak
 cp -f $PROJECT_ROOT/admin/.env $PROJECT_ROOT/admin/.env.bak
+cp -f $PROJECT_ROOT/dht-node/.env $PROJECT_ROOT/dht-node/.env.bak
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/database/.env.template > $PROJECT_ROOT/database/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/backend/.env.template > $PROJECT_ROOT/backend/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env.template > $PROJECT_ROOT/frontend/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env.template > $PROJECT_ROOT/dht-node/.env
 
 # Install & build database
 echo 'Updating database' >> $UPDATE_HTML
@@ -150,6 +152,19 @@ yarn build
 export NODE_ENV=production
 pm2 delete gradido-admin
 pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+pm2 save
+
+# Install & build dht-node
+echo 'Updating dht-node' >> $UPDATE_HTML
+cd $PROJECT_ROOT/dht-node
+# TODO maybe handle this differently?
+unset NODE_ENV
+yarn install
+yarn build
+# TODO maybe handle this differently?
+export NODE_ENV=production
+pm2 delete gradido-dht-node
+pm2 start --name gradido-dht-node "yarn --cwd $PROJECT_ROOT/dht-node start" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 pm2 save
 
 # let nginx showing gradido
