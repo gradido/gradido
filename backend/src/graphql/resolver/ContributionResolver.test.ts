@@ -2957,7 +2957,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      it('returns five pending creations', async () => {
+      it('returns five pending creations with page size set to 5', async () => {
         const {
           data: { adminListAllContributions: contributionListObject },
         }: { data: { adminListAllContributions: ContributionListResult } } = await query({
