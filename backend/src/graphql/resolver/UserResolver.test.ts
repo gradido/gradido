@@ -1134,6 +1134,129 @@ describe('UserResolver', () => {
         })
       })
 
+      describe('alias', () => {
+        beforeEach(() => {
+          jest.clearAllMocks()
+        })
+
+        describe('too short', () => {
+          it('throws and logs an error', async () => {
+            await expect(
+              mutate({
+                mutation: updateUserInfos,
+                variables: {
+                  alias: 'bibi',
+                },
+              }),
+            ).resolves.toMatchObject({
+              errors: [new GraphQLError('Given alias is too short')],
+              data: null,
+            })
+            expect(logger.error).toBeCalledWith('Given alias is too short', 'bibi')
+          })
+        })
+
+        describe('too long', () => {
+          it('throws and logs an error', async () => {
+            await expect(
+              mutate({
+                mutation: updateUserInfos,
+                variables: {
+                  alias: 'bibis_alias_far_too_long',
+                },
+              }),
+            ).resolves.toMatchObject({
+              errors: [new GraphQLError('Given alias is too long')],
+              data: null,
+            })
+            expect(logger.error).toBeCalledWith(
+              'Given alias is too long',
+              'bibis_alias_far_too_long',
+            )
+          })
+        })
+
+        describe('invalid characters', () => {
+          it('throws and logs an error', async () => {
+            await expect(
+              mutate({
+                mutation: updateUserInfos,
+                variables: {
+                  alias: 'no_underscore',
+                },
+              }),
+            ).resolves.toMatchObject({
+              errors: [new GraphQLError('Invalid characters in alias')],
+              data: null,
+            })
+            expect(logger.error).toBeCalledWith('Invalid characters in alias', 'no_underscore')
+          })
+        })
+
+        describe('alias exists', () => {
+          let peter: User
+          beforeAll(async () => {
+            peter = await userFactory(testEnv, peterLustig)
+            await mutate({
+              mutation: login,
+              variables: {
+                email: 'peter@lustig.de',
+                password: 'Aa12345_',
+              },
+            })
+            await mutate({
+              mutation: updateUserInfos,
+              variables: {
+                alias: 'bibiBloxberg',
+              },
+            })
+            await mutate({
+              mutation: login,
+              variables: {
+                email: 'bibi@bloxberg.de',
+                password: 'Aa12345_',
+              },
+            })
+          })
+
+          afterAll(async () => {
+            const [user] = await User.find({ id: peter.id })
+            await user.remove()
+          })
+
+          it('throws and logs an error', async () => {
+            await expect(
+              mutate({
+                mutation: updateUserInfos,
+                variables: {
+                  alias: 'bibiBloxberg',
+                },
+              }),
+            ).resolves.toMatchObject({
+              errors: [new GraphQLError('Alias already in use')],
+              data: null,
+            })
+            expect(logger.error).toBeCalledWith('Alias already in use', 'bibiBloxberg')
+          })
+        })
+
+        describe('valid alias', () => {
+          it('updates the user in DB', async () => {
+            await mutate({
+              mutation: updateUserInfos,
+              variables: {
+                alias: 'bibiBloxberg',
+              },
+            })
+            await expect(User.findOne()).resolves.toEqual(
+              expect.objectContaining({
+                alias: 'bibiBloxberg',
+              }),
+            )
+          })
+        })
+      })
+
       describe('language is not valid', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()

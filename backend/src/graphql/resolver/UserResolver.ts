@@ -517,6 +517,7 @@ export class UserResolver {
     {
       firstName,
       lastName,
+      alias,
       language,
       password,
       passwordNew,
@@ -534,6 +535,23 @@ export class UserResolver {
 
     if (lastName) {
       userEntity.lastName = lastName
+    }
+
+    if (alias) {
+      if (alias.length < 5) {
+        throw new LogError('Given alias is too short', alias)
+      }
+      if (alias.length > 20) {
+        throw new LogError('Given alias is too long', alias)
+      }
+      if (!alias.match(/^[0-9A-Za-z]+$/)) {
+        throw new LogError('Invalid characters in alias', alias)
+      }
+      const aliasInUse = await DbUser.find({ alias })
+      if (aliasInUse.length !== 0) {
+        throw new LogError('Alias already in use', alias)
+      }
+      userEntity.alias = alias
     }
 
     if (language) {
