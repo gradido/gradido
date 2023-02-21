@@ -6,6 +6,23 @@ on:
       - separate-admin-interface-workflow
 
 jobs:
+  #
+  files-changed:
+    name: Detect File Changes - Admin Interface
+    runs-on: ubuntu-latest
+    outputs:
+      admin_locales: ${{ steps.changes.outputs.admin_locales }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - name: Check for admin interface file changes
+        uses: dorny/paths-filter@v2.11.1
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: .github/file-filters.yml
+          list-files: shell
+  
   build_test_admin:
     name: Docker Build Test - Admin Interface
     runs-on: ubuntu-latest
@@ -59,7 +76,9 @@ jobs:
         run: cd admin && yarn && yarn run stylelint
 
   locales_admin:
+    if: needs.files-changed.outputs.admin_locales == 'true'
     name: Locales - Admin Interface
+    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
