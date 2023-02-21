@@ -58,9 +58,9 @@
   </div>
 </template>
 <script>
-import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount.vue'
-import ContributionForm from '@/components/Contributions/ContributionForm.vue'
-import ContributionList from '@/components/Contributions/ContributionList.vue'
+import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount'
+import ContributionForm from '@/components/Contributions/ContributionForm'
+import ContributionList from '@/components/Contributions/ContributionList'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions, openCreations } from '@/graphql/queries'
 

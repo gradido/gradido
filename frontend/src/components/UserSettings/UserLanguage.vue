@@ -61,7 +61,7 @@
   </b-card>
 </template>
 <script>
-import LanguageSwitchSelect from '@/components/LanguageSwitchSelect.vue'
+import LanguageSwitchSelect from '@/components/LanguageSwitchSelect'
 import { updateUserInfos } from '@/graphql/mutations'
 
 export default {

@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
-import ContributionMessagesList from './ContributionMessagesList.vue'
-import ContributionMessagesListItem from './ContributionMessagesListItem.vue'
+import ContributionMessagesList from './ContributionMessagesList'
+import ContributionMessagesListItem from './ContributionMessagesListItem'
 
 const localVue = global.localVue
 let wrapper

@@ -15,8 +15,8 @@
   </div>
 </template>
 <script>
-import ContributionMessagesListItem from './slots/ContributionMessagesListItem.vue'
-import ContributionMessagesFormular from '../ContributionMessages/ContributionMessagesFormular.vue'
+import ContributionMessagesListItem from './slots/ContributionMessagesListItem'
+import ContributionMessagesFormular from '../ContributionMessages/ContributionMessagesFormular'
 import { listContributionMessages } from '../../graphql/listContributionMessages.js'
 
 export default {
