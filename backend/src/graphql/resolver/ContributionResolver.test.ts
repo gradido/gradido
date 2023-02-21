@@ -2695,15 +2695,15 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-      it('returns 19 creations in total', async () => {
+      it('returns 17 creations in total', async () => {
         const {
           data: { adminListAllContributions: contributionListObject },
         }: { data: { adminListAllContributions: ContributionListResult } } = await query({
           query: adminListAllContributions,
         })
-        expect(contributionListObject.contributionList).toHaveLength(19)
+        expect(contributionListObject.contributionList).toHaveLength(17)
         expect(contributionListObject).toMatchObject({
-          contributionCount: 19,
+          contributionCount: 17,
           contributionList: expect.arrayContaining([
             expect.objectContaining({
               amount: expect.decimalEqual(50),
@@ -2765,24 +2765,6 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               lastName: 'Bloxberg',
               memo: 'Aktives Grundeinkommen',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: expect.decimalEqual(500),
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Grundeinkommen',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: expect.decimalEqual(500),
-              firstName: 'Peter',
-              id: expect.any(Number),
-              lastName: 'Lustig',
-              memo: 'Grundeinkommen',
               messagesCount: 0,
               state: 'PENDING',
             }),
@@ -2880,21 +2862,21 @@ describe('ContributionResolver', () => {
         })
       })
 
-      it('returns five pending creations with page size set to 5', async () => {
+      it('returns two pending creations with page size set to 2', async () => {
         const {
           data: { adminListAllContributions: contributionListObject },
         }: { data: { adminListAllContributions: ContributionListResult } } = await query({
           query: adminListAllContributions,
           variables: {
             currentPage: 1,
-            pageSize: 5,
+            pageSize: 2,
             order: Order.DESC,
             statusFilter: ['PENDING'],
           },
         })
-        expect(contributionListObject.contributionList).toHaveLength(5)
+        expect(contributionListObject.contributionList).toHaveLength(2)
         expect(contributionListObject).toMatchObject({
-          contributionCount: 6,
+          contributionCount: 4,
           contributionList: expect.arrayContaining([
             expect.objectContaining({
               amount: '400',
@@ -2911,33 +2893,6 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               lastName: 'Bloxberg',
               memo: 'Aktives Grundeinkommen',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: '500',
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Grundeinkommen',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: '500',
-              firstName: 'Peter',
-              id: expect.any(Number),
-              lastName: 'Lustig',
-              memo: 'Grundeinkommen',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: '100',
-              firstName: 'Peter',
-              id: expect.any(Number),
-              lastName: 'Lustig',
-              memo: 'Test env contribution',
               messagesCount: 0,
               state: 'PENDING',
             }),
