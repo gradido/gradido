@@ -1,6 +1,7 @@
 {
   "all_emails": "All users",
   "back": "back",
+  "chat": "Chat",
   "contributionLink": {
     "amount": "Amount",
     "changeSaved": "Changes saved",
@@ -29,6 +30,15 @@
     "validFrom": "Start-date",
     "validTo": "End-Date"
   },
+  "contributions": {
+    "all": "All",
+    "confirms": "Confirmed",
+    "deleted": "Deleted",
+    "denied": "Denied",
+    "open": "Open"
+  },
+  "created": "Confirmed",
+  "createdAt": "Created",
   "creation": "Creation",
   "creationList": "Creation list",
   "creation_form": {
@@ -48,7 +58,6 @@
     "update_creation": "Creation update"
   },
   "creation_for_month": "Creation for month",
-  "date": "Date",
   "delete": "Delete",
   "deleted": "deleted",
   "deleted_user": "All deleted user",
@@ -92,13 +101,13 @@
   "message": {
     "request": "Request has been sent."
   },
+  "mod": "Mod",
   "moderator": "Moderator",
   "name": "Name",
   "navbar": {
     "automaticContributions": "Automatic Contributions",
     "logout": "Logout",
     "my-account": "My Account",
-    "open_creation": "Open creations",
     "statistic": "Statistic",
     "user_search": "User search"
   },
