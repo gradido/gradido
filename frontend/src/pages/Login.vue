@@ -24,7 +24,7 @@
           </b-row>
           <b-row>
             <b-col class="d-flex justify-content-end mb-4 mb-lg-0">
-              <router-link to="/forgot-password">
+              <router-link to="/forgot-password" data-test="forgot-password-link">
                 {{ $t('settings.password.forgot_pwd') }}
               </router-link>
             </b-col>

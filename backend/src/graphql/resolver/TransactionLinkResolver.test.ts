@@ -53,65 +53,81 @@ afterAll(async () => {
 
 describe('TransactionLinkResolver', () => {
   describe('createTransactionLink', () => {
-    beforeAll(async () => {
-      await mutate({
-        mutation: login,
-        variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+    describe('unauthenticated', () => {
+      it('throws an error', async () => {
+        jest.clearAllMocks()
+        resetToken()
+        await expect(
+          mutate({ mutation: createTransactionLink, variables: { amount: 0, memo: 'Test' } }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
       })
     })
 
-    it('throws error when amount is zero', async () => {
-      jest.clearAllMocks()
-      await expect(
-        mutate({
-          mutation: createTransactionLink,
-          variables: {
-            amount: 0,
-            memo: 'Test',
-          },
-        }),
-      ).resolves.toMatchObject({
-        errors: [new GraphQLError('Amount must be a positive number')],
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+        })
       })
-    })
-    it('logs the error thrown', () => {
-      expect(logger.error).toBeCalledWith('Amount must be a positive number', new Decimal(0))
-    })
 
-    it('throws error when amount is negative', async () => {
-      jest.clearAllMocks()
-      await expect(
-        mutate({
-          mutation: createTransactionLink,
-          variables: {
-            amount: -10,
-            memo: 'Test',
-          },
-        }),
-      ).resolves.toMatchObject({
-        errors: [new GraphQLError('Amount must be a positive number')],
+      it('throws error when amount is zero', async () => {
+        jest.clearAllMocks()
+        await expect(
+          mutate({
+            mutation: createTransactionLink,
+            variables: {
+              amount: 0,
+              memo: 'Test',
+            },
+          }),
+        ).resolves.toMatchObject({
+          errors: [new GraphQLError('Amount must be a positive number')],
+        })
       })
-    })
-    it('logs the error thrown', () => {
-      expect(logger.error).toBeCalledWith('Amount must be a positive number', new Decimal(-10))
-    })
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith('Amount must be a positive number', new Decimal(0))
+      })
 
-    it('throws error when user has not enough GDD', async () => {
-      jest.clearAllMocks()
-      await expect(
-        mutate({
-          mutation: createTransactionLink,
-          variables: {
-            amount: 1001,
-            memo: 'Test',
-          },
-        }),
-      ).resolves.toMatchObject({
-        errors: [new GraphQLError('User has not enough GDD')],
+      it('throws error when amount is negative', async () => {
+        jest.clearAllMocks()
+        await expect(
+          mutate({
+            mutation: createTransactionLink,
+            variables: {
+              amount: -10,
+              memo: 'Test',
+            },
+          }),
+        ).resolves.toMatchObject({
+          errors: [new GraphQLError('Amount must be a positive number')],
+        })
       })
-    })
-    it('logs the error thrown', () => {
-      expect(logger.error).toBeCalledWith('User has not enough GDD', expect.any(Number))
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith('Amount must be a positive number', new Decimal(-10))
+      })
+
+      it('throws error when user has not enough GDD', async () => {
+        jest.clearAllMocks()
+        await expect(
+          mutate({
+            mutation: createTransactionLink,
+            variables: {
+              amount: 1001,
+              memo: 'Test',
+            },
+          }),
+        ).resolves.toMatchObject({
+          errors: [new GraphQLError('User has not enough GDD')],
+        })
+      })
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith('User has not enough GDD', expect.any(Number))
+      })
     })
   })
 
@@ -121,236 +137,37 @@ describe('TransactionLinkResolver', () => {
       resetToken()
     })
 
-    describe('contributionLink', () => {
-      describe('input not valid', () => {
-        beforeAll(async () => {
-          await mutate({
-            mutation: login,
-            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
-          })
-        })
-
-        it('throws error when link does not exists', async () => {
-          jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: redeemTransactionLink,
-              variables: {
-                code: 'CL-123456',
-              },
-            }),
-          ).resolves.toMatchObject({
-            errors: [new GraphQLError('Creation from contribution link was not successful')],
-          })
-        })
-
-        it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith(
-            'No contribution link found to given code',
-            'CL-123456',
-          )
-          expect(logger.error).toBeCalledWith(
-            'Creation from contribution link was not successful',
-            new Error('No contribution link found to given code'),
-          )
-        })
-
-        const now = new Date()
-        const validFrom = new Date(now.getFullYear() + 1, 0, 1)
-
-        it('throws error when link is not valid yet', async () => {
-          jest.clearAllMocks()
-          const {
-            data: { createContributionLink: contributionLink },
-          } = await mutate({
-            mutation: createContributionLink,
-            variables: {
-              amount: new Decimal(5),
-              name: 'Daily Contribution  Link',
-              memo: 'Thank you for contribute daily to the community',
-              cycle: 'DAILY',
-              validFrom: validFrom.toISOString(),
-              validTo: new Date(now.getFullYear() + 1, 11, 31, 23, 59, 59, 999).toISOString(),
-              maxAmountPerMonth: new Decimal(200),
-              maxPerCycle: 1,
-            },
-          })
-          await expect(
-            mutate({
-              mutation: redeemTransactionLink,
-              variables: {
-                code: 'CL-' + contributionLink.code,
-              },
-            }),
-          ).resolves.toMatchObject({
-            errors: [new GraphQLError('Creation from contribution link was not successful')],
-          })
-          await resetEntity(DbContributionLink)
-        })
-
-        it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith('Contribution link is not valid yet', validFrom)
-          expect(logger.error).toBeCalledWith(
-            'Creation from contribution link was not successful',
-            new Error('Contribution link is not valid yet'),
-          )
-        })
-
-        it('throws error when contributionLink cycle is invalid', async () => {
-          jest.clearAllMocks()
-          const now = new Date()
-          const {
-            data: { createContributionLink: contributionLink },
-          } = await mutate({
-            mutation: createContributionLink,
-            variables: {
-              amount: new Decimal(5),
-              name: 'Daily Contribution  Link',
-              memo: 'Thank you for contribute daily to the community',
-              cycle: 'INVALID',
-              validFrom: new Date(now.getFullYear(), 0, 1).toISOString(),
-              validTo: new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999).toISOString(),
-              maxAmountPerMonth: new Decimal(200),
-              maxPerCycle: 1,
-            },
-          })
-          await expect(
-            mutate({
-              mutation: redeemTransactionLink,
-              variables: {
-                code: 'CL-' + contributionLink.code,
-              },
-            }),
-          ).resolves.toMatchObject({
-            errors: [new GraphQLError('Creation from contribution link was not successful')],
-          })
-          await resetEntity(DbContributionLink)
-        })
-
-        it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith('Contribution link has unknown cycle', 'INVALID')
-          expect(logger.error).toBeCalledWith(
-            'Creation from contribution link was not successful',
-            new Error('Contribution link has unknown cycle'),
-          )
-        })
-
-        const validTo = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 0)
-        it('throws error when link is no longer valid', async () => {
-          jest.clearAllMocks()
-          const {
-            data: { createContributionLink: contributionLink },
-          } = await mutate({
-            mutation: createContributionLink,
-            variables: {
-              amount: new Decimal(5),
-              name: 'Daily Contribution  Link',
-              memo: 'Thank you for contribute daily to the community',
-              cycle: 'DAILY',
-              validFrom: new Date(now.getFullYear() - 1, 0, 1).toISOString(),
-              validTo: validTo.toISOString(),
-              maxAmountPerMonth: new Decimal(200),
-              maxPerCycle: 1,
-            },
-          })
-          await expect(
-            mutate({
-              mutation: redeemTransactionLink,
-              variables: {
-                code: 'CL-' + contributionLink.code,
-              },
-            }),
-          ).resolves.toMatchObject({
-            errors: [new GraphQLError('Creation from contribution link was not successful')],
-          })
-          await resetEntity(DbContributionLink)
-        })
-
-        it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith('Contribution link is no longer valid', validTo)
-          expect(logger.error).toBeCalledWith(
-            'Creation from contribution link was not successful',
-            new Error('Contribution link is no longer valid'),
-          )
-        })
+    describe('unauthenticated', () => {
+      it('throws an error', async () => {
+        jest.clearAllMocks()
+        resetToken()
+        await expect(
+          mutate({ mutation: redeemTransactionLink, variables: { code: 'CL-123456' } }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
       })
+    })
 
-      // TODO: have this test separated into a transactionLink and a contributionLink part
-      describe('redeem daily Contribution Link', () => {
-        const now = new Date()
-        let contributionLink: DbContributionLink | undefined
-        let contribution: UnconfirmedContribution | undefined
-
-        beforeAll(async () => {
-          await mutate({
-            mutation: login,
-            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
-          })
-          await mutate({
-            mutation: createContributionLink,
-            variables: {
-              amount: new Decimal(5),
-              name: 'Daily Contribution  Link',
-              memo: 'Thank you for contribute daily to the community',
-              cycle: 'DAILY',
-              validFrom: new Date(now.getFullYear(), 0, 1).toISOString(),
-              validTo: new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999).toISOString(),
-              maxAmountPerMonth: new Decimal(200),
-              maxPerCycle: 1,
-            },
-          })
-        })
-
-        it('has a daily contribution link in the database', async () => {
-          const cls = await DbContributionLink.find()
-          expect(cls).toHaveLength(1)
-          contributionLink = cls[0]
-          expect(contributionLink).toEqual(
-            expect.objectContaining({
-              id: expect.any(Number),
-              name: 'Daily Contribution  Link',
-              memo: 'Thank you for contribute daily to the community',
-              validFrom: new Date(now.getFullYear(), 0, 1),
-              validTo: new Date(now.getFullYear(), 11, 31, 23, 59, 59, 0),
-              cycle: 'DAILY',
-              maxPerCycle: 1,
-              totalMaxCountOfContribution: null,
-              maxAccountBalance: null,
-              minGapHours: null,
-              createdAt: expect.any(Date),
-              deletedAt: null,
-              code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
-              linkEnabled: true,
-              amount: expect.decimalEqual(5),
-              maxAmountPerMonth: expect.decimalEqual(200),
-            }),
-          )
-        })
-
-        describe('user has pending contribution of 1000 GDD', () => {
+    describe('authenticated', () => {
+      describe('contributionLink', () => {
+        describe('input not valid', () => {
           beforeAll(async () => {
             await mutate({
               mutation: login,
-              variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+              variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
             })
-            const result = await mutate({
-              mutation: createContribution,
-              variables: {
-                amount: new Decimal(1000),
-                memo: 'I was brewing potions for the community the whole month',
-                creationDate: now.toISOString(),
-              },
-            })
-            contribution = result.data.createContribution
           })
 
-          it('does not allow the user to redeem the contribution link', async () => {
+          it('throws error when link does not exists', async () => {
             jest.clearAllMocks()
             await expect(
               mutate({
                 mutation: redeemTransactionLink,
                 variables: {
-                  code: 'CL-' + (contributionLink ? contributionLink.code : ''),
+                  code: 'CL-123456',
                 },
               }),
             ).resolves.toMatchObject({
@@ -360,84 +177,246 @@ describe('TransactionLinkResolver', () => {
 
           it('logs the error thrown', () => {
             expect(logger.error).toBeCalledWith(
+              'No contribution link found to given code',
+              'CL-123456',
+            )
+            expect(logger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
-              new Error(
-                'The amount (5 GDD) to be created exceeds the amount (0 GDD) still available for this month.',
-              ),
+              new Error('No contribution link found to given code'),
             )
           })
-        })
 
-        describe('user has no pending contributions that would not allow to redeem the link', () => {
-          beforeAll(async () => {
-            await mutate({
-              mutation: login,
-              variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-            })
-            await mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: contribution ? contribution.id : -1,
-                amount: new Decimal(800),
-                memo: 'I was brewing potions for the community the whole month',
-                creationDate: now.toISOString(),
-              },
-            })
-          })
+          const now = new Date()
+          const validFrom = new Date(now.getFullYear() + 1, 0, 1)
 
-          it('allows the user to redeem the contribution link', async () => {
-            await expect(
-              mutate({
-                mutation: redeemTransactionLink,
-                variables: {
-                  code: 'CL-' + (contributionLink ? contributionLink.code : ''),
-                },
-              }),
-            ).resolves.toMatchObject({
-              data: {
-                redeemTransactionLink: true,
-              },
-              errors: undefined,
-            })
-          })
-
-          it('does not allow the user to redeem the contribution link a second time on the same day', async () => {
+          it('throws error when link is not valid yet', async () => {
             jest.clearAllMocks()
+            const {
+              data: { createContributionLink: contributionLink },
+            } = await mutate({
+              mutation: createContributionLink,
+              variables: {
+                amount: new Decimal(5),
+                name: 'Daily Contribution  Link',
+                memo: 'Thank you for contribute daily to the community',
+                cycle: 'DAILY',
+                validFrom: validFrom.toISOString(),
+                validTo: new Date(now.getFullYear() + 1, 11, 31, 23, 59, 59, 999).toISOString(),
+                maxAmountPerMonth: new Decimal(200),
+                maxPerCycle: 1,
+              },
+            })
             await expect(
               mutate({
                 mutation: redeemTransactionLink,
                 variables: {
-                  code: 'CL-' + (contributionLink ? contributionLink.code : ''),
+                  code: 'CL-' + contributionLink.code,
                 },
               }),
             ).resolves.toMatchObject({
               errors: [new GraphQLError('Creation from contribution link was not successful')],
             })
+            await resetEntity(DbContributionLink)
           })
 
           it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('Contribution link is not valid yet', validFrom)
             expect(logger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
-              new Error('Contribution link already redeemed today'),
+              new Error('Contribution link is not valid yet'),
             )
           })
 
-          describe('after one day', () => {
+          it('throws error when contributionLink cycle is invalid', async () => {
+            jest.clearAllMocks()
+            const now = new Date()
+            const {
+              data: { createContributionLink: contributionLink },
+            } = await mutate({
+              mutation: createContributionLink,
+              variables: {
+                amount: new Decimal(5),
+                name: 'Daily Contribution  Link',
+                memo: 'Thank you for contribute daily to the community',
+                cycle: 'INVALID',
+                validFrom: new Date(now.getFullYear(), 0, 1).toISOString(),
+                validTo: new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999).toISOString(),
+                maxAmountPerMonth: new Decimal(200),
+                maxPerCycle: 1,
+              },
+            })
+            await expect(
+              mutate({
+                mutation: redeemTransactionLink,
+                variables: {
+                  code: 'CL-' + contributionLink.code,
+                },
+              }),
+            ).resolves.toMatchObject({
+              errors: [new GraphQLError('Creation from contribution link was not successful')],
+            })
+            await resetEntity(DbContributionLink)
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('Contribution link has unknown cycle', 'INVALID')
+            expect(logger.error).toBeCalledWith(
+              'Creation from contribution link was not successful',
+              new Error('Contribution link has unknown cycle'),
+            )
+          })
+
+          const validTo = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 0)
+          it('throws error when link is no longer valid', async () => {
+            jest.clearAllMocks()
+            const {
+              data: { createContributionLink: contributionLink },
+            } = await mutate({
+              mutation: createContributionLink,
+              variables: {
+                amount: new Decimal(5),
+                name: 'Daily Contribution  Link',
+                memo: 'Thank you for contribute daily to the community',
+                cycle: 'DAILY',
+                validFrom: new Date(now.getFullYear() - 1, 0, 1).toISOString(),
+                validTo: validTo.toISOString(),
+                maxAmountPerMonth: new Decimal(200),
+                maxPerCycle: 1,
+              },
+            })
+            await expect(
+              mutate({
+                mutation: redeemTransactionLink,
+                variables: {
+                  code: 'CL-' + contributionLink.code,
+                },
+              }),
+            ).resolves.toMatchObject({
+              errors: [new GraphQLError('Creation from contribution link was not successful')],
+            })
+            await resetEntity(DbContributionLink)
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('Contribution link is no longer valid', validTo)
+            expect(logger.error).toBeCalledWith(
+              'Creation from contribution link was not successful',
+              new Error('Contribution link is no longer valid'),
+            )
+          })
+        })
+
+        // TODO: have this test separated into a transactionLink and a contributionLink part
+        describe('redeem daily Contribution Link', () => {
+          const now = new Date()
+          let contributionLink: DbContributionLink | undefined
+          let contribution: UnconfirmedContribution | undefined
+
+          beforeAll(async () => {
+            await mutate({
+              mutation: login,
+              variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+            })
+            await mutate({
+              mutation: createContributionLink,
+              variables: {
+                amount: new Decimal(5),
+                name: 'Daily Contribution  Link',
+                memo: 'Thank you for contribute daily to the community',
+                cycle: 'DAILY',
+                validFrom: new Date(now.getFullYear(), 0, 1).toISOString(),
+                validTo: new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999).toISOString(),
+                maxAmountPerMonth: new Decimal(200),
+                maxPerCycle: 1,
+              },
+            })
+          })
+
+          it('has a daily contribution link in the database', async () => {
+            const cls = await DbContributionLink.find()
+            expect(cls).toHaveLength(1)
+            contributionLink = cls[0]
+            expect(contributionLink).toEqual(
+              expect.objectContaining({
+                id: expect.any(Number),
+                name: 'Daily Contribution  Link',
+                memo: 'Thank you for contribute daily to the community',
+                validFrom: new Date(now.getFullYear(), 0, 1),
+                validTo: new Date(now.getFullYear(), 11, 31, 23, 59, 59, 0),
+                cycle: 'DAILY',
+                maxPerCycle: 1,
+                totalMaxCountOfContribution: null,
+                maxAccountBalance: null,
+                minGapHours: null,
+                createdAt: expect.any(Date),
+                deletedAt: null,
+                code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
+                linkEnabled: true,
+                amount: expect.decimalEqual(5),
+                maxAmountPerMonth: expect.decimalEqual(200),
+              }),
+            )
+          })
+
+          describe('user has pending contribution of 1000 GDD', () => {
             beforeAll(async () => {
-              jest.useFakeTimers()
-              setTimeout(jest.fn(), 1000 * 60 * 60 * 24)
-              jest.runAllTimers()
               await mutate({
                 mutation: login,
                 variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
               })
+              const result = await mutate({
+                mutation: createContribution,
+                variables: {
+                  amount: new Decimal(1000),
+                  memo: 'I was brewing potions for the community the whole month',
+                  creationDate: now.toISOString(),
+                },
+              })
+              contribution = result.data.createContribution
             })
 
-            afterAll(() => {
-              jest.useRealTimers()
+            it('does not allow the user to redeem the contribution link', async () => {
+              jest.clearAllMocks()
+              await expect(
+                mutate({
+                  mutation: redeemTransactionLink,
+                  variables: {
+                    code: 'CL-' + (contributionLink ? contributionLink.code : ''),
+                  },
+                }),
+              ).resolves.toMatchObject({
+                errors: [new GraphQLError('Creation from contribution link was not successful')],
+              })
             })
 
-            it('allows the user to redeem the contribution link again', async () => {
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'Creation from contribution link was not successful',
+                new Error(
+                  'The amount to be created exceeds the amount still available for this month',
+                ),
+              )
+            })
+          })
+
+          describe('user has no pending contributions that would not allow to redeem the link', () => {
+            beforeAll(async () => {
+              await mutate({
+                mutation: login,
+                variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+              })
+              await mutate({
+                mutation: updateContribution,
+                variables: {
+                  contributionId: contribution ? contribution.id : -1,
+                  amount: new Decimal(800),
+                  memo: 'I was brewing potions for the community the whole month',
+                  creationDate: now.toISOString(),
+                },
+              })
+            })
+
+            it('allows the user to redeem the contribution link', async () => {
               await expect(
                 mutate({
                   mutation: redeemTransactionLink,
@@ -472,6 +451,59 @@ describe('TransactionLinkResolver', () => {
                 'Creation from contribution link was not successful',
                 new Error('Contribution link already redeemed today'),
               )
+            })
+
+            describe('after one day', () => {
+              beforeAll(async () => {
+                jest.useFakeTimers()
+                setTimeout(jest.fn(), 1000 * 60 * 60 * 24)
+                jest.runAllTimers()
+                await mutate({
+                  mutation: login,
+                  variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+                })
+              })
+
+              afterAll(() => {
+                jest.useRealTimers()
+              })
+
+              it('allows the user to redeem the contribution link again', async () => {
+                await expect(
+                  mutate({
+                    mutation: redeemTransactionLink,
+                    variables: {
+                      code: 'CL-' + (contributionLink ? contributionLink.code : ''),
+                    },
+                  }),
+                ).resolves.toMatchObject({
+                  data: {
+                    redeemTransactionLink: true,
+                  },
+                  errors: undefined,
+                })
+              })
+
+              it('does not allow the user to redeem the contribution link a second time on the same day', async () => {
+                jest.clearAllMocks()
+                await expect(
+                  mutate({
+                    mutation: redeemTransactionLink,
+                    variables: {
+                      code: 'CL-' + (contributionLink ? contributionLink.code : ''),
+                    },
+                  }),
+                ).resolves.toMatchObject({
+                  errors: [new GraphQLError('Creation from contribution link was not successful')],
+                })
+              })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith(
+                  'Creation from contribution link was not successful',
+                  new Error('Contribution link already redeemed today'),
+                )
+              })
             })
           })
         })

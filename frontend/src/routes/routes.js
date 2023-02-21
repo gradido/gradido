@@ -58,6 +58,17 @@ const routes = [
       requiresAuth: true,
       pageTitle: 'community',
     },
+    redirect: (to) => {
+      return { path: '/community/contribute' }
+    },
+  },
+  {
+    path: '/community/:tab',
+    component: () => import('@/pages/Community.vue'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'community',
+    },
   },
   {
     path: '/information',

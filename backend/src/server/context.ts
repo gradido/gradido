@@ -3,6 +3,7 @@ import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
 import { ExpressContext } from 'apollo-server-express'
+import LogError from './LogError'
 
 export interface Context {
   token: string | null
@@ -35,7 +36,7 @@ const context = (args: ExpressContext): Context => {
 
 export const getUser = (context: Context): dbUser => {
   if (context.user) return context.user
-  throw new Error('No user given in context!')
+  throw new LogError('No user given in context')
 }
 
 export const getClientTimezoneOffset = (context: Context): number => {
@@ -45,7 +46,7 @@ export const getClientTimezoneOffset = (context: Context): number => {
   ) {
     return context.clientTimezoneOffset
   }
-  throw new Error('No valid client time zone offset in context!')
+  throw new LogError('No valid client time zone offset in context')
 }
 
 export default context
