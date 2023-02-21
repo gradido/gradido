@@ -69,7 +69,7 @@ jobs:
   stylelint_admin:
     if: needs.files-changed.outputs.admin_stylelinting == 'true'
     name: Stylelint - Admin Interface
-    needs: admin_stylelinting
+    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
