@@ -184,7 +184,7 @@ yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
-pm2 delete gradido-federation
+pm2 delete gradido-federation  || : 
 # set FEDERATION_PORT from ARG_API
 port=${ARG_API//_/}
 FEDERATION_PORT=$(($FEDERATION_PORT + $port))
