@@ -164,7 +164,11 @@ yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 pm2 delete gradido-dht-node
-pm2 start --name gradido-dht-node "yarn --cwd $PROJECT_ROOT/dht-node start" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+if [ ! -z $FEDERATION_DHT_TOPIC ]; then
+  pm2 start --name gradido-dht-node "yarn --cwd $PROJECT_ROOT/dht-node start" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+else
+  echo "No Federation DHT-Topic configured. DHT-Node not started..."  
+fi  
 pm2 save
 
 # let nginx showing gradido
