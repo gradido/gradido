@@ -1,9 +1,16 @@
 #!/bin/bash
 
+#==================================================
+# Commandline Arguments:
+# -a value             short arg: api-version (default=1_0)
+# -b value             short arg: branch (default=master)
+# --api-version=value  arg: api-version (default=1_0)
+# --branch=value       arg: branch (default=master)
+#==================================================
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    -a) ARG_API="${2:-1_0}"; shift 2;;
-    -b) ARG_BRANCH="${2:-master}"; shift 2;;
+    -a) ARG_API="$2"; shift 2;;
+    -b) ARG_BRANCH="$2"; shift 2;;
 
     --api-version=*) ARG_API="${1#*=}"; shift 1;;
     --branch=*) ARG_BRANCH="${1#*=}"; shift 1;;
@@ -13,7 +20,13 @@ while [ "$#" -gt 0 ]; do
     *) handle_argument "$1"; shift 1;;
   esac
 done
-
+if [ -z $ARG_API ]; then
+  ARG_API="1_0"
+fi
+if [ -z $ARG_BRANCH ]; then
+  ARG_BRANCH="master"
+fi
+ 
 echo "=================================================="
 echo "Arguments:"
 echo " -api-version = $ARG_API"
