@@ -73,7 +73,7 @@ if (
 const federation = {
   // FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC || null,
   // FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
-  FEDERATION_PORT: process.env.FEDERATION_PORT || 5010,
+  FEDERATION_PORT: process.env.FEDERATION_PORT || 5000,
   FEDERATION_API: process.env.FEDERATION_API || '1_0',
   FEDERATION_COMMUNITY_URL: process.env.FEDERATION_COMMUNITY_URL || null,
 }
