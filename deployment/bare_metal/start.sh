@@ -167,7 +167,9 @@ pm2 delete gradido-dht-node
 if [ ! -z $FEDERATION_DHT_TOPIC ]; then
   pm2 start --name gradido-dht-node "yarn --cwd $PROJECT_ROOT/dht-node start" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 else
-  echo "No Federation DHT-Topic configured. DHT-Node not started..."  
+  echo "====================================================================="
+  echo "WARNING: FEDERATION_DHT_TOPIC not configured. DHT-Node not started..."  
+  echo "====================================================================="
 fi  
 pm2 save
 
