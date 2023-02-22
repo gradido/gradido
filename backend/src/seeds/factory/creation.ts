@@ -16,7 +16,7 @@ export const nMonthsBefore = (date: Date, months = 1): string => {
 export const creationFactory = async (
   client: ApolloServerTestClient,
   creation: CreationInterface,
-): Promise<Contribution | void> => {
+): Promise<Contribution> => {
   const { mutate } = client
   await mutate({ mutation: login, variables: { email: creation.email, password: 'Aa12345_' } })
 
@@ -51,6 +51,7 @@ export const creationFactory = async (
         await confirmedContribution.save()
       }
     }
+    return confirmedContribution
   } else {
     return contribution
   }

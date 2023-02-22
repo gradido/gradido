@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ContributionInfo from './ContributionInfo'
+import CommunityTemplate from './CommunityTemplate'
 
 const localVue = global.localVue
 
@@ -10,15 +10,17 @@ const mocks = {
   $t: jest.fn((t) => t),
   $d: jest.fn((d) => d),
   $route: {
-    hash: '',
+    params: {
+      tab: 'contribute',
+    },
   },
 }
 
-describe('ContributionInfo', () => {
+describe('CommunityTemplate', () => {
   let wrapper
 
   const Wrapper = () => {
-    return mount(ContributionInfo, { localVue, mocks })
+    return mount(CommunityTemplate, { localVue, mocks })
   }
   describe('mount', () => {
     beforeEach(() => {
@@ -29,9 +31,9 @@ describe('ContributionInfo', () => {
       expect(wrapper.findComponent({ name: 'ContributionInfo' }).exists()).toBe(true)
     })
 
-    describe('mounted with hash #my', () => {
+    describe('mounted with parameter contributions', () => {
       beforeEach(() => {
-        mocks.$route.hash = '#my'
+        mocks.$route.params.tab = 'contributions'
       })
 
       it('has a header related to "my contribitions"', () => {
@@ -59,9 +61,9 @@ describe('ContributionInfo', () => {
       })
     })
 
-    describe('mounted with hash #all', () => {
+    describe('mounted with parameter community', () => {
       beforeEach(() => {
-        mocks.$route.hash = '#all'
+        mocks.$route.params.tab = 'community'
       })
 
       it('has a header related to "the community"', () => {
@@ -89,9 +91,9 @@ describe('ContributionInfo', () => {
       })
     })
 
-    describe('mounted with hash #edit', () => {
+    describe('mounted with parameter contribute', () => {
       beforeEach(() => {
-        mocks.$route.hash = '#edit'
+        mocks.$route.params.tab = 'contribute'
       })
 
       it('has a header related to "the community"', () => {
