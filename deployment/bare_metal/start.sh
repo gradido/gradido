@@ -184,7 +184,6 @@ yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
-pm2 delete gradido-federation  || : 
 # set FEDERATION_PORT from ARG_API
 port=${ARG_API//_/}
 FEDERATION_PORT=$(($FEDERATION_PORT + $port))
@@ -192,7 +191,7 @@ export FEDERATION_PORT
 echo "===================================================="
 echo " start federation listening on port=$FEDERATION_PORT
 echo "===================================================="
-pm2 start --name gradido-federation "yarn --cwd $PROJECT_ROOT/federation start" -l $GRADIDO_LOG_PATH/pm2.federation.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+pm2 delete gradido-federation || : && pm2 start --name gradido-federation "yarn --cwd $PROJECT_ROOT/federation start" -l $GRADIDO_LOG_PATH/pm2.federation.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 pm2 save
 
 # let nginx showing gradido
