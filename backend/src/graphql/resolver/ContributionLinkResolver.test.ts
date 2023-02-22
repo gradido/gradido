@@ -257,17 +257,13 @@ describe('Contribution Links', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [
-                new GraphQLError('Start-Date is not initialized. A Start-Date must be set!'),
-              ],
+              errors: [new GraphQLError('A Start-Date must be set')],
             }),
           )
         })
 
         it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith(
-            'Start-Date is not initialized. A Start-Date must be set!',
-          )
+          expect(logger.error).toBeCalledWith('A Start-Date must be set')
         })
 
         it('returns an error if missing endDate', async () => {
@@ -282,15 +278,13 @@ describe('Contribution Links', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('End-Date is not initialized. An End-Date must be set!')],
+              errors: [new GraphQLError('An End-Date must be set')],
             }),
           )
         })
 
         it('logs the error thrown', () => {
-          expect(logger.error).toBeCalledWith(
-            'End-Date is not initialized. An End-Date must be set!',
-          )
+          expect(logger.error).toBeCalledWith('An End-Date must be set')
         })
 
         it('returns an error if endDate is before startDate', async () => {
@@ -307,7 +301,7 @@ describe('Contribution Links', () => {
           ).resolves.toEqual(
             expect.objectContaining({
               errors: [
-                new GraphQLError(`The value of validFrom must before or equals the validTo!`),
+                new GraphQLError(`The value of validFrom must before or equals the validTo`),
               ],
             }),
           )
@@ -315,7 +309,7 @@ describe('Contribution Links', () => {
 
         it('logs the error thrown', () => {
           expect(logger.error).toBeCalledWith(
-            `The value of validFrom must before or equals the validTo!`,
+            `The value of validFrom must before or equals the validTo`,
           )
         })
 
