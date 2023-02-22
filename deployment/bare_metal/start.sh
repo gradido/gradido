@@ -1,5 +1,18 @@
 #!/bin/bash
 
+echo "Before getopt"
+for i
+do
+  echo $i
+done
+args=`getopt b:p: $*`
+set -- $args
+echo "After getopt"
+for i
+do
+  echo "-->$i"
+done
+
 # Find current directory & configure paths
 set -o allexport
 SCRIPT_PATH=$(realpath $0)
@@ -93,10 +106,12 @@ cp -f $PROJECT_ROOT/database/.env $PROJECT_ROOT/database/.env.bak
 cp -f $PROJECT_ROOT/backend/.env $PROJECT_ROOT/backend/.env.bak
 cp -f $PROJECT_ROOT/frontend/.env $PROJECT_ROOT/frontend/.env.bak
 cp -f $PROJECT_ROOT/admin/.env $PROJECT_ROOT/admin/.env.bak
+cp -f $PROJECT_ROOT/federation/.env $PROJECT_ROOT/federation/.env.bak
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/database/.env.template > $PROJECT_ROOT/database/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/backend/.env.template > $PROJECT_ROOT/backend/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env.template > $PROJECT_ROOT/frontend/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.env.template > $PROJECT_ROOT/federation/.env
 
 # Install & build database
 echo 'Updating database' >> $UPDATE_HTML
@@ -150,6 +165,19 @@ yarn build
 export NODE_ENV=production
 pm2 delete gradido-admin
 pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+pm2 save
+
+# Install & build federation
+echo 'Updating federation' >> $UPDATE_HTML
+cd $PROJECT_ROOT/federation
+# TODO maybe handle this differently?
+unset NODE_ENV
+yarn install
+yarn build
+# TODO maybe handle this differently?
+export NODE_ENV=production
+pm2 delete gradido-federation
+pm2 start --name gradido-federation "yarn --cwd $PROJECT_ROOT/federation start" -l $GRADIDO_LOG_PATH/pm2.federation.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 pm2 save
 
 # let nginx showing gradido
