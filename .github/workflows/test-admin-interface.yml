@@ -28,7 +28,7 @@ jobs:
           list-files: shell
   
   build_test_admin:
-  if: needs.files-changed.outputs.admin_docker_building == 'true'
+    if: needs.files-changed.outputs.admin_docker_building == 'true'
     name: Docker Build Test - Admin Interface
     needs: files-changed
     runs-on: ubuntu-latest
