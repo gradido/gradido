@@ -60,7 +60,7 @@ jobs:
   lint_admin:
     if: needs.files-changed.outputs.admin_linting == 'true'
     name: Lint - Admin Interface
-    needs:files-changed
+    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
