@@ -1,38 +1,5 @@
 #!/bin/bash
 
-#==================================================
-# Commandline Arguments:
-# -a value             short arg: api-version (default=1_0)
-# -b value             short arg: branch (default=master)
-# --api-version=value  arg: api-version (default=1_0)
-# --branch=value       arg: branch (default=master)
-#==================================================
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    -a) ARG_API="$2"; shift 2;;
-    -b) ARG_BRANCH="$2"; shift 2;;
-
-    --api-version=*) ARG_API="${1#*=}"; shift 1;;
-    --branch=*) ARG_BRANCH="${1#*=}"; shift 1;;
-    --api-version|--branch) echo "$1 requires an argument" >&2; exit 1;;
-    
-    -*) echo "unknown option: $1" >&2; exit 1;;
-    *) handle_argument "$1"; shift 1;;
-  esac
-done
-if [ -z $ARG_API ]; then
-  ARG_API="1_0"
-fi
-if [ -z $ARG_BRANCH ]; then
-  ARG_BRANCH="master"
-fi
- 
-echo "=================================================="
-echo "Arguments:"
-echo " -api-version = $ARG_API"
-echo " -branch      = $ARG_BRANCH"
-echo "=================================================="
-
 # Find current directory & configure paths
 set -o allexport
 SCRIPT_PATH=$(realpath $0)
@@ -96,8 +63,7 @@ echo 'Stopping all Gradido services' >> $UPDATE_HTML
 pm2 stop all
 
 # git
-# BRANCH=${1:-master}
-BRANCH=$ARG_BRANCH
+BRANCH=${1:-master}
 echo "Starting with git pull - branch:$BRANCH" >> $UPDATE_HTML
 cd $PROJECT_ROOT
 # TODO: this overfetches alot, but ensures we can use start.sh with tags
@@ -219,17 +185,28 @@ yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
-pm2 delete gradido-federation
-# set FEDERATION_PORT from ARG_API
-port=${ARG_API//_/}
-FEDERATION_PORT=${FEDERATION_PORT:-5000}
-FEDERATION_PORT=$(($FEDERATION_PORT + $port))
-export FEDERATION_PORT
-echo "===================================================="
-echo " start federation listening on port=$FEDERATION_PORT"
-echo "===================================================="
-pm2 start --name gradido-federation "yarn --cwd $PROJECT_ROOT/federation start" -l $GRADIDO_LOG_PATH/pm2.federation.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-pm2 save
+# set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS
+IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
+for api in "${API_ARRAY[@]}"
+do
+  FEDERATION_API=$api
+  export FEDERATION_API
+  modulname=gradido-federation-$api
+  # calculate port by remove '_' and add value of api to baseport
+  port=${api//_/}
+  FEDERATION_PORT=${FEDERATION_COMMUNITY_API_PORT:-5000}
+  FEDERATION_PORT=$(($FEDERATION_PORT + $port))
+  export FEDERATION_PORT
+  echo "===================================================="
+  echo " start $modulename listening on port=$FEDERATION_PORT"
+  echo "===================================================="
+  pm2 delete $modulename
+  pm2 start --name $modulename "yarn --cwd $PROJECT_ROOT/federation start" -l $GRADIDO_LOG_PATH/pm2.$modulename.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+  pm2 save
+done
+
+
+
 
 # let nginx showing gradido
 echo 'Configuring nginx to serve gradido again' >> $UPDATE_HTML

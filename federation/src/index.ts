@@ -20,7 +20,7 @@ async function main() {
     if (CONFIG.GRAPHIQL) {
       // eslint-disable-next-line no-console
       console.log(
-        `GraphIQL available at http://localhost:${CONFIG.FEDERATION_PORT}`
+        `GraphIQL available at ${CONFIG.FEDERATION_COMMUNITY_URL}:${CONFIG.FEDERATION_PORT}/api`
       )
     }
   })
