@@ -11,6 +11,7 @@ jobs:
     name: Detect File Changes - Admin Interface
     runs-on: ubuntu-latest
     outputs:
+      admin_linting: ${{ steps.changes.outputs.admin_linting }}
       admin_locales: ${{ steps.changes.outputs.admin_locales }}
       admin_stylelinting: ${{ steps.changes.outputs.admin_stylelinting }}
     steps:
@@ -57,7 +58,9 @@ jobs:
           token: ${{ github.token }}
   
   lint_admin:
+    if: needs.files-changed.outputs.admin_linting == 'true'
     name: Lint - Admin Interface
+    needs:files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

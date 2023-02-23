@@ -6,3 +6,9 @@ admin_locales: &admin_locales
 admin_stylelinting: &admin_stylelinting
   - 'admin/{components,layouts,pages}/**/*.{scss,vue}'
   - 'admin/.stylelintrc.js'
+
+admin_linting: &admin_linting
+  - 'admin/.eslint*'
+  - 'admin/babel.config.js'
+  - 'admin/package.json'
+  - 'admin/**/*.{js,vue}'
