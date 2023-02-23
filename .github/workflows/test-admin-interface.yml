@@ -11,6 +11,7 @@ jobs:
     name: Detect File Changes - Admin Interface
     runs-on: ubuntu-latest
     outputs:
+      admin_docker_building: ${{ steps.changes.outputs.admin_docker_building }}
       admin_linting: ${{ steps.changes.outputs.admin_linting }}
       admin_locales: ${{ steps.changes.outputs.admin_locales }}
       admin_stylelinting: ${{ steps.changes.outputs.admin_stylelinting }}
@@ -27,7 +28,9 @@ jobs:
           list-files: shell
   
   build_test_admin:
+  if: needs.files-changed.outputs.admin_docker_building == 'true'
     name: Docker Build Test - Admin Interface
+    needs: files-changed
     runs-on: ubuntu-latest
     steps:
 

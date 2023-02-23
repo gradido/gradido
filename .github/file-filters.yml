@@ -19,3 +19,8 @@ admin_unit_testing: &admin_unit_testing
   - 'admin/package.json'
   - 'admin/{jest,vue}.config.js'
   - 'admin/{public,run,src,test}/**/*'
+
+admin_docker_building: &admin_docker_building
+  - 'admin/.dockerignore'
+  - 'admin/Dockerfile'
+  - *admin_unit_testing
