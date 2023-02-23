@@ -14,6 +14,7 @@ jobs:
       admin_linting: ${{ steps.changes.outputs.admin_linting }}
       admin_locales: ${{ steps.changes.outputs.admin_locales }}
       admin_stylelinting: ${{ steps.changes.outputs.admin_stylelinting }}
+      admin_unit_testing: ${{ steps.changes.outputs.admin_unit_testing }}
     steps:
       - uses: actions/checkout@v3.3.0
 
@@ -37,7 +38,9 @@ jobs:
         run: docker build --target test -t "gradido/admin:test" admin/ --build-arg NODE_ENV="test"
 
   unit_test_admin:
+    if: needs.files-changed.outputs.admin_unit_testing == 'true'
     name: Unit Tests - Admin Interface
+    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

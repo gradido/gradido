@@ -17,4 +17,5 @@ admin_linting: &admin_linting
 
 admin_unit_testing: &admin_unit_testing
   - 'admin/package.json'
-  - 'admin/**/*.{js,vue}'
+  - 'admin/{jest,vue}.config.js'
+  - 'admin/{public,run,src,test}/**/*'
