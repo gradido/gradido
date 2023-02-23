@@ -1,7 +1,9 @@
 name: gradido test_dht-node CI
 
-on: push
-
+on:
+  push:
+    branches:
+      - none
 jobs:
   ##############################################################################
   # JOB: DOCKER BUILD TEST #####################################################
