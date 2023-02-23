@@ -6,7 +6,8 @@ on:
       - separate-admin-interface-workflow
 
 jobs:
-  #
+  # only (but most important) job from this workflow required for pull requests
+  # check results serve as run conditions for all other jobs here 
   files-changed:
     name: Detect File Changes - Admin Interface
     runs-on: ubuntu-latest
