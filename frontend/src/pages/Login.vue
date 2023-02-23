@@ -30,7 +30,7 @@
             </b-col>
           </b-row>
           <b-row>
-            <b-col cols="12" lg="4">
+            <b-col cols="12" lg="6">
               <b-button type="submit" variant="gradido" block>{{ $t('login') }}</b-button>
             </b-col>
           </b-row>
