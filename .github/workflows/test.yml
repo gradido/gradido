@@ -3,7 +3,7 @@ name: gradido test CI
 on:
   push:
     branches:
-      - none
+      - separate-admin-interface-workflow
 
 jobs:
   ##############################################################################
