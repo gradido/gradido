@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js-light'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
-import { FindOperator, IsNull, In, getConnection } from '@dbTools/typeorm'
+import { FindOperator, IsNull, getConnection } from '@dbTools/typeorm'
 
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage } from '@entity/ContributionMessage'
@@ -30,12 +30,11 @@ import { backendLogger as logger } from '@/server/logger'
 import {
   getCreationDates,
   getUserCreation,
-  getUserCreations,
   validateContribution,
   updateCreations,
   isValidDateString,
 } from './util/creations'
-import { MEMO_MAX_CHARS, MEMO_MIN_CHARS, FULL_CREATION_AVAILABLE } from './const/const'
+import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import {
   EVENT_CONTRIBUTION_CREATE,
   EVENT_CONTRIBUTION_DELETE,
@@ -56,6 +55,7 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import LogError from '@/server/LogError'
 
 import { getLastTransaction } from './util/getLastTransaction'
+import { findContributions } from './util/findContributions'
 
 @Resolver()
 export class ContributionResolver {
@@ -168,25 +168,14 @@ export class ContributionResolver {
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
     statusFilter?: ContributionStatus[],
   ): Promise<ContributionListResult> {
-    const where: {
-      contributionStatus?: FindOperator<string> | null
-    } = {}
+    const [dbContributions, count] = await findContributions(
+      order,
+      currentPage,
+      pageSize,
+      false,
+      statusFilter,
+    )
 
-    if (statusFilter && statusFilter.length) {
-      where.contributionStatus = In(statusFilter)
-    }
-
-    const [dbContributions, count] = await getConnection()
-      .createQueryBuilder()
-      .select('c')
-      .from(DbContribution, 'c')
-      .innerJoinAndSelect('c.user', 'u')
-      .leftJoinAndSelect('c.messages', 'm')
-      .where(where)
-      .orderBy('c.createdAt', order)
-      .limit(pageSize)
-      .offset((currentPage - 1) * pageSize)
-      .getManyAndCount()
     return new ContributionListResult(
       count,
       dbContributions.map((contribution) => new Contribution(contribution, contribution.user)),
@@ -425,40 +414,25 @@ export class ContributionResolver {
   }
 
   @Authorized([RIGHTS.LIST_UNCONFIRMED_CONTRIBUTIONS])
-  @Query(() => [UnconfirmedContribution])
-  async listUnconfirmedContributions(@Ctx() context: Context): Promise<UnconfirmedContribution[]> {
-    const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const contributions = await getConnection()
-      .createQueryBuilder()
-      .select('c')
-      .from(DbContribution, 'c')
-      .leftJoinAndSelect('c.messages', 'm')
-      .where({ confirmedAt: IsNull() })
-      .andWhere({ deniedAt: IsNull() })
-      .getMany()
+  @Query(() => ContributionListResult) // [UnconfirmedContribution]
+  async adminListAllContributions(
+    @Args()
+    { currentPage = 1, pageSize = 3, order = Order.DESC }: Paginated,
+    @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
+    statusFilter?: ContributionStatus[],
+  ): Promise<ContributionListResult> {
+    const [dbContributions, count] = await findContributions(
+      order,
+      currentPage,
+      pageSize,
+      true,
+      statusFilter,
+    )
 
-    if (contributions.length === 0) {
-      return []
-    }
-
-    const userIds = contributions.map((p) => p.userId)
-    const userCreations = await getUserCreations(userIds, clientTimezoneOffset)
-    const users = await DbUser.find({
-      where: { id: In(userIds) },
-      withDeleted: true,
-      relations: ['emailContact'],
-    })
-
-    return contributions.map((contribution) => {
-      const user = users.find((u) => u.id === contribution.userId)
-      const creation = userCreations.find((c) => c.id === contribution.userId)
-
-      return new UnconfirmedContribution(
-        contribution,
-        user,
-        creation ? creation.creations : FULL_CREATION_AVAILABLE,
-      )
-    })
+    return new ContributionListResult(
+      count,
+      dbContributions.map((contribution) => new Contribution(contribution, contribution.user)),
+    )
   }
 
   @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION])
