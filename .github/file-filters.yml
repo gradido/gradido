@@ -13,3 +13,8 @@ admin_linting: &admin_linting
   - 'admin/babel.config.js'
   - 'admin/package.json'
   - 'admin/**/*.{js,vue}'
+  - *admin_locales
+
+admin_unit_testing: &admin_unit_testing
+  - 'admin/package.json'
+  - 'admin/**/*.{js,vue}'
