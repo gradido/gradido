@@ -64,6 +64,8 @@ import ContributionList from '@/components/Contributions/ContributionList.vue'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions, openCreations } from '@/graphql/queries'
 
+const COMMUNITY_TABS = ['contribute', 'contributions', 'community']
+
 export default {
   name: 'Community',
   components: {
@@ -73,8 +75,6 @@ export default {
   },
   data() {
     return {
-      hashLink: '',
-      tabLinkHashes: ['#edit', '#my', '#all'],
       tabIndex: 0,
       items: [],
       itemsAll: [],
@@ -97,10 +97,7 @@ export default {
     }
   },
   mounted() {
-    this.$nextTick(() => {
-      this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === this.$route.hash)
-      this.hashLink = this.$route.hash
-    })
+    this.updateTabIndex()
   },
   apollo: {
     OpenCreations: {
@@ -122,13 +119,13 @@ export default {
       query() {
         return listAllContributions
       },
-      fetchPolicy: 'network-only',
       variables() {
         return {
           currentPage: this.currentPageAll,
           pageSize: this.pageSizeAll,
         }
       },
+      fetchPolicy: 'no-cache',
       update({ listAllContributions }) {
         this.contributionCountAll = listAllContributions.contributionCount
         this.itemsAll = listAllContributions.contributionList
@@ -153,9 +150,8 @@ export default {
         this.items = listContributions.contributionList
         if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
           this.tabIndex = 1
-          if (this.$route.hash !== '#my') {
-            this.$router.push({ path: '/community#my' })
-          }
+          if (this.$route.params.tab !== 'contributions')
+            this.$router.push({ params: { tab: 'contributions' } })
           this.toastInfo(this.$t('contribution.alert.answerQuestionToast'))
         }
       },
@@ -165,21 +161,8 @@ export default {
     },
   },
   watch: {
-    $route(to, from) {
-      this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === to.hash)
-      this.hashLink = to.hash
-      this.closeAllOpenCollapse()
-    },
-    tabIndex(num) {
-      if (num !== 0) {
-        this.form = {
-          id: null,
-          date: new Date(),
-          memo: '',
-          hours: 0,
-          amount: '',
-        }
-      }
+    '$route.params.tab'() {
+      this.updateTabIndex()
     },
   },
   computed: {
@@ -211,6 +194,11 @@ export default {
     },
   },
   methods: {
+    updateTabIndex() {
+      const index = COMMUNITY_TABS.indexOf(this.$route.params.tab)
+      this.tabIndex = index > -1 ? index : 0
+      this.closeAllOpenCollapse()
+    },
     closeAllOpenCollapse() {
       this.$el.querySelectorAll('.collapse.show').forEach((value) => {
         this.$root.$emit('bv::toggle::collapse', value.id)
@@ -294,8 +282,8 @@ export default {
       this.form.amount = item.amount
       this.form.hours = item.amount / 20
       this.updateAmount = item.amount
-      this.$router.push({ path: '#edit' })
       this.tabIndex = 0
+      this.$router.push({ params: { tab: 'contribute' } })
     },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
@@ -303,11 +291,6 @@ export default {
     updateState(id) {
       this.items.find((item) => item.id === id).state = 'PENDING'
     },
-  },
-  created() {
-    this.updateTransactions(0)
-    this.tabIndex = 0
-    this.$router.push({ path: '/community#edit' })
   },
 }
 </script>

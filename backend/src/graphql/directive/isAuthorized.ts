@@ -7,6 +7,7 @@ import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN } from '@/auth/ROLES'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { User } from '@entity/User'
+import LogError from '@/server/LogError'
 
 const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
@@ -17,13 +18,13 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
 
   // Do we have a token?
   if (!context.token) {
-    throw new Error('401 Unauthorized')
+    throw new LogError('401 Unauthorized')
   }
 
   // Decode the token
   const decoded = decode(context.token)
   if (!decoded) {
-    throw new Error('403.13 - Client certificate revoked')
+    throw new LogError('403.13 - Client certificate revoked')
   }
   // Set context gradidoID
   context.gradidoID = decoded.gradidoID
@@ -39,13 +40,13 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
     context.role = user.isAdmin ? ROLE_ADMIN : ROLE_USER
   } catch {
     // in case the database query fails (user deleted)
-    throw new Error('401 Unauthorized')
+    throw new LogError('401 Unauthorized')
   }
 
   // check for correct rights
   const missingRights = (<RIGHTS[]>rights).filter((right) => !context.role.hasRight(right))
   if (missingRights.length !== 0) {
-    throw new Error('401 Unauthorized')
+    throw new LogError('401 Unauthorized')
   }
 
   // set new header token
