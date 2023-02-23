@@ -319,7 +319,7 @@ export class TransactionLinkResolver {
   }
 
   @Authorized([RIGHTS.LIST_TRANSACTION_LINKS])
-  @Query(() => [TransactionLink])
+  @Query(() => TransactionLinkResult)
   async listTransactionLinks(
     @Args()
     paginated: Paginated,
