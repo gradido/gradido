@@ -9,7 +9,7 @@
       no-header-close
     >
       <b-img src="img/svg/lines.png" />
-      <div class="px-3 py-2">
+      <div class="py-2">
         <sidebar @admin="$emit('admin')" @logout="$emit('logout')" :shadow="false" />
       </div>
     </b-sidebar>
