@@ -11,7 +11,7 @@ jobs:
   # only (but most important) job from this workflow required for pull requests
   # check results serve as run conditions for all other jobs here 
   files-changed:
-    name: "Detect File Changes - $SERVICE"
+    name: Detect File Changes - ${{ SERVICE }}
     runs-on: ubuntu-latest
     outputs:
       admin: ${{ steps.changes.outputs.admin }}
