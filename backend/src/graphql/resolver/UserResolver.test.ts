@@ -1220,7 +1220,7 @@ describe('UserResolver', () => {
           })
 
           afterAll(async () => {
-            const [user] = await User.find({ id: peter.id })
+            const user = await User.findOne({ id: peter.id })
             await user.remove()
           })
 
