@@ -185,6 +185,15 @@ yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
+# first remove previous pm2 gradido-federation processes from list
+IFS="+--- " read -a PROCESS_ARRAY <<< pm2 ls -m | grep "+--- gradido-federation"
+for proc in "${PROCESS_ARRAY[@]}"
+do
+  echo "delete process $proc"
+  pm2 delete $proc
+done
+pm2 save
+
 # set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
 for api in "${API_ARRAY[@]}"
