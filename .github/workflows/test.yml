@@ -1,9 +1,6 @@
 name: gradido test CI
 
-on:
-  push:
-    branches:
-      - separate-admin-interface-workflow
+on: push
 
 jobs:
   ##############################################################################
