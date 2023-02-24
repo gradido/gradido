@@ -90,7 +90,7 @@ jobs:
       - name: Coverage check
         uses: webcraftmedia/coverage-check-action@master
         with:
-          report_name: Coverage federation
+          report_name: Coverage Federation
           type: lcov
           #result_path: ./federation/coverage/lcov.info
           result_path: ./coverage/lcov.info

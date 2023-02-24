@@ -90,7 +90,7 @@ jobs:
       - name: Coverage check
         uses: webcraftmedia/coverage-check-action@master
         with:
-          report_name: Coverage dht-node
+          report_name: Coverage DHT Node
           type: lcov
           #result_path: ./dht-node/coverage/lcov.info
           result_path: ./coverage/lcov.info
