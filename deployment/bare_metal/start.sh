@@ -189,19 +189,20 @@ export NODE_ENV=production
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
 for api in "${API_ARRAY[@]}"
 do
-  FEDERATION_API="$api"
-  export FEDERATION_API
-  modulname="gradido-federation-$api"
+  export FEDERATION_API=$api
+  echo "FEDERATION_API=$FEDERATION_API"
+  export MODULENAME=gradido-federation-$api
+  echo "MODULENAME=$MODULENAME"
   # calculate port by remove '_' and add value of api to baseport
   port=${api//_/}
   FEDERATION_PORT=${FEDERATION_COMMUNITY_API_PORT:-5000}
   FEDERATION_PORT=$(($FEDERATION_PORT + $port))
   export FEDERATION_PORT
   echo "===================================================="
-  echo " start $modulename listening on port=$FEDERATION_PORT"
+  echo " start $MODULENAME listening on port=$FEDERATION_PORT"
   echo "===================================================="
-  pm2 delete $modulename
-  pm2 start --name $modulename "yarn --cwd $PROJECT_ROOT/federation start" -l $GRADIDO_LOG_PATH/pm2.$modulename.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+  pm2 delete $MODULENAME
+  pm2 start --name $MODULENAME "yarn --cwd $PROJECT_ROOT/federation start" -l $GRADIDO_LOG_PATH/pm2.$MODULENAME.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
   pm2 save
 done
 
