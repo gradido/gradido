@@ -194,6 +194,7 @@ do
   pm2 delete $proc
 done
 pm2 save
+rm proc.list
 
 # set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
