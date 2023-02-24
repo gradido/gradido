@@ -186,10 +186,12 @@ yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 # first remove previous pm2 gradido-federation processes from list
-IFS="+--- " read -a PROCESS_ARRAY <<< pm2 ls -m | grep "+--- gradido-federation"
+pm2 ls -m | grep "+--- gradido-federation" | tr '\n' ',' > proc.list
+sed -i 's/+--- //g' < proc.list
+IFS="\n" read -a PROCESS_ARRAY < proc.list
 for proc in "${PROCESS_ARRAY[@]}"
 do
-  echo "delete process $proc"
+  echo "---> delete process $proc"
   pm2 delete $proc
 done
 pm2 save
