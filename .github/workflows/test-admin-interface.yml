@@ -5,7 +5,7 @@ on:
     branches:
       - separate-admin-interface-workflow
 env:
-  SERVICE: "Admin Interface"
+  SERVICE: Admin Interface
 
 jobs:
   # only (but most important) job from this workflow required for pull requests
@@ -25,6 +25,7 @@ jobs:
           token: ${{ github.token }}
           filters: .github/file-filters.yml
           list-files: shell
+      - name: Try out env variable
         run: echo "This service's name is: $SERVICE"
 
   
