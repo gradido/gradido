@@ -104,7 +104,7 @@
 <script>
 import { createUser } from '@/graphql/mutations'
 import CONFIG from '@/config'
-import InputEmail from '@/components/Inputs/InputEmail.vue'
+import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
 
 export default {

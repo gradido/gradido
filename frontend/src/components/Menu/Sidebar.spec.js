@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import Sidebar from './Sidebar.vue'
+import Sidebar from './Sidebar'
 
 const localVue = global.localVue
 
