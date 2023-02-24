@@ -189,9 +189,9 @@ export NODE_ENV=production
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
 for api in "${API_ARRAY[@]}"
 do
-  FEDERATION_API=$api
+  FEDERATION_API="$api"
   export FEDERATION_API
-  modulname=gradido-federation-$api
+  modulname="gradido-federation-$api"
   # calculate port by remove '_' and add value of api to baseport
   port=${api//_/}
   FEDERATION_PORT=${FEDERATION_COMMUNITY_API_PORT:-5000}
