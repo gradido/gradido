@@ -466,7 +466,7 @@ export class ContributionResolver {
 
     await EVENT_ADMIN_CONTRIBUTION_DELETE(contribution.userId, contribution.id, contribution.amount)
 
-    sendContributionDeletedEmail({
+    await sendContributionDeletedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.emailContact.email,
