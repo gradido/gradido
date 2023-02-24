@@ -1182,14 +1182,14 @@ describe('UserResolver', () => {
               mutate({
                 mutation: updateUserInfos,
                 variables: {
-                  alias: 'no_underscore',
+                  alias: 'no+äöllll',
                 },
               }),
             ).resolves.toMatchObject({
               errors: [new GraphQLError('Invalid characters in alias')],
               data: null,
             })
-            expect(logger.error).toBeCalledWith('Invalid characters in alias', 'no_underscore')
+            expect(logger.error).toBeCalledWith('Invalid characters in alias', 'no+äöllll')
           })
         })
 
@@ -1245,12 +1245,12 @@ describe('UserResolver', () => {
             await mutate({
               mutation: updateUserInfos,
               variables: {
-                alias: 'bibiBloxberg',
+                alias: 'bibi_Bloxberg',
               },
             })
             await expect(User.findOne()).resolves.toEqual(
               expect.objectContaining({
-                alias: 'bibiBloxberg',
+                alias: 'bibi_Bloxberg',
               }),
             )
           })

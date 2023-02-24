@@ -544,7 +544,7 @@ export class UserResolver {
       if (alias.length > 20) {
         throw new LogError('Given alias is too long', alias)
       }
-      if (!alias.match(/^[0-9A-Za-z]+$/)) {
+      if (!alias.match(/^[0-9A-Za-z]([_-]?[A-Za-z0-9])+$/)) {
         throw new LogError('Invalid characters in alias', alias)
       }
       const aliasInUse = await DbUser.find({ alias })
