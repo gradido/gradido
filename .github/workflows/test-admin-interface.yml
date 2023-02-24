@@ -25,6 +25,8 @@ jobs:
           token: ${{ github.token }}
           filters: .github/file-filters.yml
           list-files: shell
+        run: echo "This service's name is: $SERVICE"
+
   
   build_test:
     if: needs.files-changed.outputs.admin == 'true'
