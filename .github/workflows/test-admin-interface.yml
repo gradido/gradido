@@ -54,7 +54,7 @@ jobs:
       - name: Admin Interface | Coverage check
         uses: webcraftmedia/coverage-check-action@master
         with:
-          report_name: Coverage Admin Interface
+          report_name: Coverage - Admin Interface
           type: lcov
           result_path: ./admin/coverage/lcov.info
           min_coverage: 97
