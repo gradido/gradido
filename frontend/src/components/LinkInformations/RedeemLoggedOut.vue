@@ -23,7 +23,7 @@
   </div>
 </template>
 <script>
-import RedeemInformation from '@/components/LinkInformations/RedeemInformation.vue'
+import RedeemInformation from '@/components/LinkInformations/RedeemInformation'
 import { authLinks } from '@/mixins/authLinks'
 
 export default {

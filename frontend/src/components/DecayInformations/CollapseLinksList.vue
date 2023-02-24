@@ -30,7 +30,7 @@
   </div>
 </template>
 <script>
-import TransactionLink from '@/components/TransactionLinks/TransactionLink.vue'
+import TransactionLink from '@/components/TransactionLinks/TransactionLink'
 export default {
   name: 'CollapseLinksList',
   components: {

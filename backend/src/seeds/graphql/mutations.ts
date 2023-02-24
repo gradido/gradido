@@ -126,16 +126,6 @@ export const unDeleteUser = gql`
   }
 `
 
-export const adminCreateContributions = gql`
-  mutation ($pendingCreations: [AdminCreateContributionArgs!]!) {
-    adminCreateContributions(pendingCreations: $pendingCreations) {
-      success
-      successfulContribution
-      failedContribution
-    }
-  }
-`
-
 export const adminUpdateContribution = gql`
   mutation ($id: Int!, $email: String!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
     adminUpdateContribution(
