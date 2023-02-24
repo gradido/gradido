@@ -24,7 +24,7 @@ jobs:
           filters: .github/file-filters.yml
           list-files: shell
   
-  build_test_admin:
+  build_test:
     if: needs.files-changed.outputs.admin_main == 'true'
     name: Docker Build Test - Admin Interface
     needs: files-changed
@@ -37,7 +37,7 @@ jobs:
       - name: Admin Interface | Build 'test' image
         run: docker build --target test -t "gradido/admin:test" admin/ --build-arg NODE_ENV="test"
 
-  unit_test_admin:
+  unit_test:
     if: needs.files-changed.outputs.admin_main == 'true'
     name: Unit Tests - Admin Interface
     needs: files-changed
@@ -60,7 +60,7 @@ jobs:
           min_coverage: 97
           token: ${{ github.token }}
   
-  lint_admin:
+  lint:
     if: needs.files-changed.outputs.admin_main == 'true'
     name: Lint - Admin Interface
     needs: files-changed
@@ -72,7 +72,7 @@ jobs:
       - name: Admin Interface | Lint
         run: cd admin && yarn && yarn run lint
 
-  stylelint_admin:
+  stylelint:
     if: needs.files-changed.outputs.admin_main == 'true'
     name: Stylelint - Admin Interface
     needs: files-changed
@@ -84,7 +84,7 @@ jobs:
       - name: Admin Interface | Stylelint
         run: cd admin && yarn && yarn run stylelint
 
-  locales_admin:
+  locales:
     if: needs.files-changed.outputs.admin_main == 'true'
     name: Locales - Admin Interface
     needs: files-changed
