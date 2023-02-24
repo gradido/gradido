@@ -195,6 +195,8 @@ do
 done
 pm2 save
 rm proc.list
+echo "finished removeing previous gradido-federation processes from pm2"
+echo
 
 # set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
