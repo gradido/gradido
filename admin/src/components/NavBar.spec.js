@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import NavBar from './NavBar.vue'
+import NavBar from './NavBar'
 
 const localVue = global.localVue
 

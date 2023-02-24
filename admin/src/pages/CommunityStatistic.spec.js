@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import CommunityStatistic from './CommunityStatistic.vue'
+import CommunityStatistic from './CommunityStatistic'
 import { communityStatistics } from '@/graphql/communityStatistics.js'
 import { toastErrorSpy } from '../../test/testSetup'
 import VueApollo from 'vue-apollo'
