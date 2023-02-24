@@ -12,11 +12,7 @@ jobs:
     name: Detect File Changes - Admin Interface
     runs-on: ubuntu-latest
     outputs:
-      admin_docker_building: ${{ steps.changes.outputs.admin_docker_building }}
-      admin_linting: ${{ steps.changes.outputs.admin_linting }}
-      admin_locales: ${{ steps.changes.outputs.admin_locales }}
-      admin_stylelinting: ${{ steps.changes.outputs.admin_stylelinting }}
-      admin_unit_testing: ${{ steps.changes.outputs.admin_unit_testing }}
+      admin_main: ${{ steps.changes.outputs.admin_main }}
     steps:
       - uses: actions/checkout@v3.3.0
 
@@ -29,7 +25,7 @@ jobs:
           list-files: shell
   
   build_test_admin:
-    if: needs.files-changed.outputs.admin_docker_building == 'true'
+    if: needs.files-changed.outputs.admin_main == 'true'
     name: Docker Build Test - Admin Interface
     needs: files-changed
     runs-on: ubuntu-latest
@@ -42,7 +38,7 @@ jobs:
         run: docker build --target test -t "gradido/admin:test" admin/ --build-arg NODE_ENV="test"
 
   unit_test_admin:
-    if: needs.files-changed.outputs.admin_unit_testing == 'true'
+    if: needs.files-changed.outputs.admin_main == 'true'
     name: Unit Tests - Admin Interface
     needs: files-changed
     runs-on: ubuntu-latest
@@ -65,7 +61,7 @@ jobs:
           token: ${{ github.token }}
   
   lint_admin:
-    if: needs.files-changed.outputs.admin_linting == 'true'
+    if: needs.files-changed.outputs.admin_main == 'true'
     name: Lint - Admin Interface
     needs: files-changed
     runs-on: ubuntu-latest
@@ -77,7 +73,7 @@ jobs:
         run: cd admin && yarn && yarn run lint
 
   stylelint_admin:
-    if: needs.files-changed.outputs.admin_stylelinting == 'true'
+    if: needs.files-changed.outputs.admin_main == 'true'
     name: Stylelint - Admin Interface
     needs: files-changed
     runs-on: ubuntu-latest
@@ -89,7 +85,7 @@ jobs:
         run: cd admin && yarn && yarn run stylelint
 
   locales_admin:
-    if: needs.files-changed.outputs.admin_locales == 'true'
+    if: needs.files-changed.outputs.admin_main == 'true'
     name: Locales - Admin Interface
     needs: files-changed
     runs-on: ubuntu-latest

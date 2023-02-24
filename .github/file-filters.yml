@@ -25,3 +25,6 @@ admin_docker_building: &admin_docker_building
   - 'admin/.dockerignore'
   - 'admin/Dockerfile'
   - *admin_unit_testing
+
+admin_main: &admin_main
+  - 'admin/**/*'
