@@ -1,9 +1,6 @@
 name: gradido test_federation CI
 
-on:
-  push:
-    branches:
-      - none
+on: push
 
 jobs:
   ##############################################################################

@@ -1,9 +1,6 @@
 name: Gradido Admin Interface Test CI
 
-on:
-  push:
-    branches:
-      - separate-admin-interface-workflow
+on: push
 
 jobs:
   # only (but most important) job from this workflow required for pull requests
