@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import OpenCreationsAmount from './OpenCreationsAmount.vue'
+import OpenCreationsAmount from './OpenCreationsAmount'
 
 const localVue = global.localVue
 

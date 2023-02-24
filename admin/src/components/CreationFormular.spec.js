@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import CreationFormular from './CreationFormular.vue'
+import CreationFormular from './CreationFormular'
 import { adminCreateContribution } from '../graphql/adminCreateContribution'
 import { adminCreateContributions } from '../graphql/adminCreateContributions'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
