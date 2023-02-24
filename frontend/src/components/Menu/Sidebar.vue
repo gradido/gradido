@@ -13,7 +13,7 @@
             <span class="ml-2">{{ $t('navigation.overview') }}</span>
           </b-nav-item>
           <b-nav-item to="/send" class="mb-3" active-class="activeRoute">
-            <b-img src="/img/svg/senden.svg" height="20" class="svg-icon" />
+            <b-img src="/img/svg/send.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.send') }}</span>
           </b-nav-item>
           <b-nav-item to="/transactions" class="mb-3" active-class="activeRoute">
