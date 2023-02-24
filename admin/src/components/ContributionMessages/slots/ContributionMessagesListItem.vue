@@ -1,17 +1,15 @@
 <template>
   <div class="contribution-messages-list-item">
     <div v-if="message.isModerator" class="text-right is-moderator">
-      <b-avatar square variant="warning"></b-avatar><span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
+      <b-avatar square variant="warning"></b-avatar>
+      <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
       <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
       <small class="ml-4 text-success">{{ $t('moderator') }}</small>
       <parse-message v-bind="message"></parse-message>
     </div>
     <div v-else class="text-left is-not-moderator">
       <b-avatar variant="info"></b-avatar>
-      <span class="ml-2 mr-2">
-        {{ message.userFirstName }}
-        {{ message.userLastName }}
-      </span>
+      <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
       <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
       <parse-message v-bind="message"></parse-message>
     </div>
