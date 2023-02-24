@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ConfirmRegisterMailFormular from './ConfirmRegisterMailFormular.vue'
+import ConfirmRegisterMailFormular from './ConfirmRegisterMailFormular'
 
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 

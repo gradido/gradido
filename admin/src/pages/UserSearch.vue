@@ -58,7 +58,7 @@
   </div>
 </template>
 <script>
-import SearchUserTable from '../components/Tables/SearchUserTable.vue'
+import SearchUserTable from '../components/Tables/SearchUserTable'
 import { searchUsers } from '../graphql/searchUsers'
 import { creationMonths } from '../mixins/creationMonths'
 

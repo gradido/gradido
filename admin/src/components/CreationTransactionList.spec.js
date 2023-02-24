@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import CreationTransactionList from './CreationTransactionList.vue'
+import CreationTransactionList from './CreationTransactionList'
 import { toastErrorSpy } from '../../test/testSetup'
 
 const localVue = global.localVue

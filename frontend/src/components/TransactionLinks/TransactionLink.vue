@@ -75,7 +75,7 @@ import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
 import MemoRow from '../TransactionRows/MemoRow'
 import DateRow from '../TransactionRows/DateRow'
 import DecayRow from '../TransactionRows/DecayRow'
-import FigureQrCode from '@/components/QrCode/FigureQrCode.vue'
+import FigureQrCode from '@/components/QrCode/FigureQrCode'
 import { copyLinks } from '../../mixins/copyLinks'
 
 export default {
