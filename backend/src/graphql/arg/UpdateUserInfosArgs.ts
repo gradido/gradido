@@ -1,5 +1,4 @@
 import { ArgsType, Field } from 'type-graphql'
-// import { Length } from 'class-validator'
 
 @ArgsType()
 export default class UpdateUserInfosArgs {
@@ -10,7 +9,6 @@ export default class UpdateUserInfosArgs {
   lastName?: string
 
   @Field({ nullable: true })
-  //  @Length(5, 20)
   alias?: string
 
   @Field({ nullable: true })
