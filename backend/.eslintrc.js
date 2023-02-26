@@ -1,4 +1,3 @@
-// TODO issue for jest lint
 module.exports = {
   root: true,
   env: {
