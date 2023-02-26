@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, Int } from 'type-graphql'
+import { ObjectType, Field, Int } from 'type-graphql'
 import { UserContact as dbUserContact } from '@entity/UserContact'
 
 @ObjectType()
@@ -18,13 +18,13 @@ export class UserContact {
     this.deletedAt = userContact.deletedAt
   }
 
-  @Field(() => ID)
+  @Field(() => Int)
   id: number
 
   @Field(() => String)
   type: string
 
-  @Field(() => ID)
+  @Field(() => Int)
   userId: number
 
   @Field(() => String)

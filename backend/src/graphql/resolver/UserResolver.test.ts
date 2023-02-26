@@ -288,7 +288,7 @@ describe('UserResolver', () => {
     })
 
     describe('no publisher id', () => {
-      it('sets publisher id to null', async () => {
+      it('sets publisher id to 0', async () => {
         await mutate({
           mutation: createUser,
           variables: { ...variables, email: 'raeuber@hotzenplotz.de', publisherId: undefined },
@@ -299,7 +299,7 @@ describe('UserResolver', () => {
               emailContact: expect.objectContaining({
                 email: 'raeuber@hotzenplotz.de',
               }),
-              publisherId: null,
+              publisherId: 0,
             }),
           ]),
         )
@@ -854,7 +854,7 @@ describe('UserResolver', () => {
       it('returns true', async () => {
         await expect(mutate({ mutation: logout })).resolves.toEqual(
           expect.objectContaining({
-            data: { logout: 'true' },
+            data: { logout: true },
             errors: undefined,
           }),
         )

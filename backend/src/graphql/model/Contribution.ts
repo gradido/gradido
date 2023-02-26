@@ -1,4 +1,4 @@
-import { ObjectType, Field, Int, ID } from 'type-graphql'
+import { ObjectType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 import { Contribution as dbContribution } from '@entity/Contribution'
 import { User } from '@entity/User'
@@ -23,7 +23,7 @@ export class Contribution {
     this.deletedBy = contribution.deletedBy
   }
 
-  @Field(() => ID)
+  @Field(() => Int)
   id: number
 
   @Field(() => String, { nullable: true })
@@ -44,13 +44,13 @@ export class Contribution {
   @Field(() => Date, { nullable: true })
   confirmedAt: Date | null
 
-  @Field(() => ID, { nullable: true })
+  @Field(() => Int, { nullable: true })
   confirmedBy: number | null
 
   @Field(() => Date, { nullable: true })
   deniedAt: Date | null
 
-  @Field(() => ID, { nullable: true })
+  @Field(() => Int, { nullable: true })
   deniedBy: number | null
 
   @Field(() => Date, { nullable: true })

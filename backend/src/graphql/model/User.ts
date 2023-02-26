@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, Int } from 'type-graphql'
+import { ObjectType, Field, Int } from 'type-graphql'
 import { KlickTipp } from './KlickTipp'
 import { User as dbUser } from '@entity/User'
 import { UserContact } from './UserContact'
@@ -28,7 +28,7 @@ export class User {
     this.hideAmountGDT = user.hideAmountGDT
   }
 
-  @Field(() => ID)
+  @Field(() => Int)
   id: number
 
   @Field(() => String)
@@ -37,7 +37,7 @@ export class User {
   @Field(() => String, { nullable: true })
   alias: string | null
 
-  @Field(() => ID, { nullable: true })
+  @Field(() => Int, { nullable: true })
   emailId: number | null
 
   // TODO privacy issue here

@@ -328,7 +328,7 @@ describe('send coins', () => {
         ).toEqual(
           expect.objectContaining({
             data: {
-              sendCoins: 'true',
+              sendCoins: true,
             },
           }),
         )
@@ -383,7 +383,7 @@ describe('send coins', () => {
         ).resolves.toEqual(
           expect.objectContaining({
             data: {
-              sendCoins: 'true',
+              sendCoins: true,
             },
           }),
         )
@@ -399,7 +399,7 @@ describe('send coins', () => {
         ).resolves.toEqual(
           expect.objectContaining({
             data: {
-              sendCoins: 'true',
+              sendCoins: true,
             },
           }),
         )
@@ -415,7 +415,7 @@ describe('send coins', () => {
         ).resolves.toEqual(
           expect.objectContaining({
             data: {
-              sendCoins: 'true',
+              sendCoins: true,
             },
           }),
         )
@@ -431,7 +431,7 @@ describe('send coins', () => {
         ).resolves.toEqual(
           expect.objectContaining({
             data: {
-              sendCoins: 'true',
+              sendCoins: true,
             },
           }),
         )

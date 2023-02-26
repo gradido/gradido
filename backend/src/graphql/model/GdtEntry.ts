@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { ObjectType, Field, Float, ID } from 'type-graphql'
+import { ObjectType, Field, Float, Int } from 'type-graphql'
 import { GdtEntryType } from '@enum/GdtEntryType'
 
 @ObjectType()
@@ -21,7 +21,7 @@ export class GdtEntry {
     this.gdt = json.gdt
   }
 
-  @Field(() => ID)
+  @Field(() => Int)
   id: number
 
   @Field(() => Float)

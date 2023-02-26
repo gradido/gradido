@@ -1,4 +1,4 @@
-import { ObjectType, Field, Int, ID } from 'type-graphql'
+import { ObjectType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 import { User } from '@entity/User'
 
@@ -17,7 +17,7 @@ export class UserAdmin {
     this.isAdmin = user.isAdmin
   }
 
-  @Field(() => ID)
+  @Field(() => Int)
   userId: number
 
   @Field(() => String)

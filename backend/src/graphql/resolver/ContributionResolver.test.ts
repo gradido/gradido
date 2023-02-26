@@ -2024,7 +2024,7 @@ describe('ContributionResolver', () => {
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      adminCreateContribution: [1000, 1000, 590],
+                      adminCreateContribution: ['1000', '1000', '590'],
                     },
                   }),
                 )

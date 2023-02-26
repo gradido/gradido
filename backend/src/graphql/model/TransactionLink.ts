@@ -1,4 +1,4 @@
-import { ObjectType, Field, Int, ID } from 'type-graphql'
+import { ObjectType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User } from './User'
@@ -21,7 +21,7 @@ export class TransactionLink {
     this.link = CONFIG.COMMUNITY_REDEEM_URL.replace(/{code}/g, this.code)
   }
 
-  @Field(() => ID)
+  @Field(() => Int)
   id: number
 
   @Field(() => User)
