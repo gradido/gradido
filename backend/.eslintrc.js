@@ -28,6 +28,7 @@ module.exports = {
         'plugin:type-graphql/recommended',
       ],
       parserOptions: {
+        tsconfigRootDir: __dirname,
         project: ['./tsconfig.json'],
       },
     },
