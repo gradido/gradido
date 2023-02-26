@@ -35,6 +35,8 @@ module.exports = {
       parserOptions: {
         tsconfigRootDir: __dirname,
         project: ['./tsconfig.json'],
+        // this is to properly reference the referenced project database without requirement of compiling it
+        EXPERIMENTAL_useSourceOfProjectReferenceRedirect: true,
       },
     },
   ],
