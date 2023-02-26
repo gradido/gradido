@@ -27,6 +27,11 @@ module.exports = {
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
         'plugin:type-graphql/recommended',
       ],
+      // allow explicitly defined dangling promises
+      rules: {
+        '@typescript-eslint/no-floating-promises': ['error', { ignoreVoid: true }],
+        'no-void': ['error', { allowAsStatement: true }],
+      },
       parserOptions: {
         tsconfigRootDir: __dirname,
         project: ['./tsconfig.json'],
