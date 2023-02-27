@@ -228,7 +228,6 @@ For the first federation release the *DHT-Node* will be part of the *apollo serv
            | communityApiVersion.apiversion            | keep existing value         |
            | communityApiVersion.validFrom             | exchangedData.API.validFrom |
            | communityApiVersion.verifiedAt            | keep existing value         |
-         * 
    3. After all received data is stored successfully, the *DHT-Node* starts the *stage2 - Authentication* of the federation handshake
 
 ### Stage2 - Authentication
