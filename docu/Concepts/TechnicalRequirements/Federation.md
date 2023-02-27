@@ -26,7 +26,7 @@ At first the following diagramm gives an overview of the three stages and shows 
 
 ### Technical Architecture
 
-The previous described handshake will be done by several technical moduls of the gradido system. The following picture gives an overview about the moduls and how the communicate with each other.
+The previous described handshake will be done by several technical modules of the gradido system. The following picture gives an overview about the modules and how the communicate with each other.
 
 ![img](./image/TechnicalOverview_V1-19.svg)
 
