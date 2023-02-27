@@ -18,9 +18,13 @@ export async function requestGetPublicKey(dbCom: DbCommunity): Promise<string | 
       }
     }
   `
+  const variables = {}
 
   try {
-    const { data, errors, extensions, headers, status } = await graphQLClient.rawRequest(query)
+    const { data, errors, extensions, headers, status } = await graphQLClient.rawRequest(
+      query,
+      variables,
+    )
     logger.debug(`Response-Data:`, data, errors, extensions, headers, status)
     if (data) {
       logger.debug(`Response-PublicKey:`, data.getPublicKey.publicKey)
