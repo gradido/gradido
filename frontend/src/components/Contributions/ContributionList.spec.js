@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ContributionList from './ContributionList.vue'
+import ContributionList from './ContributionList'
 
 const localVue = global.localVue
 

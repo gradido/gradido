@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import CreationConfirm from './CreationConfirm.vue'
+import CreationConfirm from './CreationConfirm'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { denyContribution } from '../graphql/denyContribution'
 import { listAllContributions } from '../graphql/listAllContributions'

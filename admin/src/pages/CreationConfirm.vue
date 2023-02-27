@@ -71,8 +71,8 @@
   </div>
 </template>
 <script>
-import Overlay from '../components/Overlay.vue'
-import OpenCreationsTable from '../components/Tables/OpenCreationsTable.vue'
+import Overlay from '../components/Overlay'
+import OpenCreationsTable from '../components/Tables/OpenCreationsTable'
 import { listAllContributions } from '../graphql/listAllContributions'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'

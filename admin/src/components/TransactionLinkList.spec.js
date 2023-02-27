@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import TransactionLinkList from './TransactionLinkList.vue'
+import TransactionLinkList from './TransactionLinkList'
 import { listTransactionLinksAdmin } from '../graphql/listTransactionLinksAdmin.js'
 import { toastErrorSpy } from '../../test/testSetup'
 

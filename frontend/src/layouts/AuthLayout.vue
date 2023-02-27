@@ -81,11 +81,11 @@
 </template>
 
 <script>
-import AuthNavbar from '@/components/Auth/AuthNavbar.vue'
-import AuthNavbarSmall from '@/components/Auth/AuthNavbarSmall.vue'
-import AuthCarousel from '@/components/Auth/AuthCarousel.vue'
+import AuthNavbar from '@/components/Auth/AuthNavbar'
+import AuthNavbarSmall from '@/components/Auth/AuthNavbarSmall'
+import AuthCarousel from '@/components/Auth/AuthCarousel'
 import LanguageSwitch from '@/components/LanguageSwitch2'
-import AuthFooter from '@/components/Auth/AuthFooter.vue'
+import AuthFooter from '@/components/Auth/AuthFooter'
 import CONFIG from '@/config'
 
 export default {

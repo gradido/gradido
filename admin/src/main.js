@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import App from './App.vue'
+import App from './App'
 
 // without this async calls are not working
 import 'regenerator-runtime'
