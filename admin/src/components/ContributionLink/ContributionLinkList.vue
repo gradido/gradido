@@ -46,7 +46,7 @@
 </template>
 <script>
 import { deleteContributionLink } from '@/graphql/deleteContributionLink.js'
-import FigureQrCode from '../FigureQrCode.vue'
+import FigureQrCode from '../FigureQrCode'
 
 export default {
   name: 'ContributionLinkList',

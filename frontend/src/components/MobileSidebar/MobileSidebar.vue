@@ -8,7 +8,7 @@
   </div>
 </template>
 <script>
-import Sidebar from '@/components/Menu/Sidebar.vue'
+import Sidebar from '@/components/Menu/Sidebar'
 
 export default {
   name: 'MobileSidebar',

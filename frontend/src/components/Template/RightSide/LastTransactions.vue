@@ -55,7 +55,7 @@
 </template>
 <script>
 import Avatar from 'vue-avatar'
-import Name from '@/components/TransactionRows/Name.vue'
+import Name from '@/components/TransactionRows/Name'
 
 export default {
   name: 'LastTransactions',

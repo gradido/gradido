@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import Overview from './Overview.vue'
+import Overview from './Overview'
 import { listAllContributions } from '../graphql/listAllContributions'
 import VueApollo from 'vue-apollo'
 import { createMockClient } from 'mock-apollo-client'

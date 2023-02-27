@@ -117,9 +117,9 @@
 
 <script>
 import { toggleRowDetails } from '../../mixins/toggleRowDetails'
-import RowDetails from '../RowDetails.vue'
-import EditCreationFormular from '../EditCreationFormular.vue'
-import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList.vue'
+import RowDetails from '../RowDetails'
+import EditCreationFormular from '../EditCreationFormular'
+import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList'
 
 const iconMap = {
   IN_PROGRESS: 'question-square',

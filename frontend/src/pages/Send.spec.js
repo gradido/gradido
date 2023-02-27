@@ -1,9 +1,9 @@
 import { mount } from '@vue/test-utils'
 import Send, { SEND_TYPES } from './Send'
 import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
-import { TRANSACTION_STEPS } from '@/components/GddSend.vue'
+import { TRANSACTION_STEPS } from '@/components/GddSend'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
-import DashboardLayout from '@/layouts/DashboardLayout.vue'
+import DashboardLayout from '@/layouts/DashboardLayout'
 import flushPromises from 'flush-promises'
 
 const apolloMutationMock = jest.fn()

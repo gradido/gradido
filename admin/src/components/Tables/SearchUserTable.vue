@@ -53,7 +53,6 @@
             <b-tab :title="$t('creation')" active :disabled="row.item.deletedAt !== null">
               <creation-formular
                 v-if="!row.item.deletedAt"
-                type="singleCreation"
                 pagetype="singleCreation"
                 :creation="row.item.creation"
                 :item="row.item"
@@ -92,12 +91,12 @@
   </div>
 </template>
 <script>
-import CreationFormular from '../CreationFormular.vue'
-import ConfirmRegisterMailFormular from '../ConfirmRegisterMailFormular.vue'
-import CreationTransactionList from '../CreationTransactionList.vue'
-import TransactionLinkList from '../TransactionLinkList.vue'
-import ChangeUserRoleFormular from '../ChangeUserRoleFormular.vue'
-import DeletedUserFormular from '../DeletedUserFormular.vue'
+import CreationFormular from '../CreationFormular'
+import ConfirmRegisterMailFormular from '../ConfirmRegisterMailFormular'
+import CreationTransactionList from '../CreationTransactionList'
+import TransactionLinkList from '../TransactionLinkList'
+import ChangeUserRoleFormular from '../ChangeUserRoleFormular'
+import DeletedUserFormular from '../DeletedUserFormular'
 
 export default {
   name: 'SearchUserTable',

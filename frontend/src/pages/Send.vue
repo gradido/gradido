@@ -52,13 +52,13 @@
   </div>
 </template>
 <script>
-import GddSend, { TRANSACTION_STEPS } from '@/components/GddSend.vue'
-import TransactionForm from '@/components/GddSend/TransactionForm.vue'
-import TransactionConfirmationSend from '@/components/GddSend/TransactionConfirmationSend.vue'
-import TransactionConfirmationLink from '@/components/GddSend/TransactionConfirmationLink.vue'
-import TransactionResultSendSuccess from '@/components/GddSend/TransactionResultSendSuccess.vue'
-import TransactionResultSendError from '@/components/GddSend/TransactionResultSendError.vue'
-import TransactionResultLink from '@/components/GddSend/TransactionResultLink.vue'
+import GddSend, { TRANSACTION_STEPS } from '@/components/GddSend'
+import TransactionForm from '@/components/GddSend/TransactionForm'
+import TransactionConfirmationSend from '@/components/GddSend/TransactionConfirmationSend'
+import TransactionConfirmationLink from '@/components/GddSend/TransactionConfirmationLink'
+import TransactionResultSendSuccess from '@/components/GddSend/TransactionResultSendSuccess'
+import TransactionResultSendError from '@/components/GddSend/TransactionResultSendError'
+import TransactionResultLink from '@/components/GddSend/TransactionResultLink'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 
 const EMPTY_TRANSACTION_DATA = {

@@ -1,11 +1,12 @@
 import connection from '@/typeorm/connection'
 import { getKlickTippUser } from '@/apis/KlicktippController'
 import { User } from '@entity/User'
+import LogError from '@/server/LogError'
 
 export async function retrieveNotRegisteredEmails(): Promise<string[]> {
   const con = await connection()
   if (!con) {
-    throw new Error('No connection to database')
+    throw new LogError('No connection to database')
   }
   const users = await User.find({ relations: ['emailContact'] })
   const notRegisteredUser = []
