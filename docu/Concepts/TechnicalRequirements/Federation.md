@@ -34,7 +34,7 @@ As soon as a Gradido Community is up and running the DHT-Modul first write the h
 
 The up and running Backend-Modul contains a validation logic to verify the community entries from the own DHT-Modul. For each announced but unverified community-entry the GraphQL-Client is used to invoke a getPublicKey-Request. Depending on the containing api-version the matching GraphQL-Client is used and the getPublicKey-Request will be send to the given URL.
 
-As soon as the FederationModul of the assoziated community received the getPublicKey-request the own publicKey is read from database and send back in the response.
+As soon as the FederationModul of the associated community received the getPublicKey-request the own publicKey is read from database and send back in the response.
 
 The GraphQL-Client will read from the returned response data the publicKey of the other community and compare it with the data of the community-entry, which cause the getPublicKey-Request. If they match the community-entry will be updated be inserting the current timestamp in the verifiedAt-field of this community-entry.
 
