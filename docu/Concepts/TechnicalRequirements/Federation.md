@@ -36,7 +36,7 @@ The up and running Backend-Modul contains a validation logic to verify the commu
 
 As soon as the FederationModul of the associated community received the getPublicKey-request the own publicKey is read from database and send back in the response.
 
-The GraphQL-Client will read from the returned response data the publicKey of the other community and compare it with the data of the community-entry, which cause the getPublicKey-Request. If they match the community-entry will be updated be inserting the current timestamp in the verifiedAt-field of this community-entry.
+The GraphQL-Client will read the publicKey of the other community from the returned response data and compare it with the data of the community-entry, which caused the getPublicKey-Request. If they match the community-entry will be updated be inserting the current timestamp in the verifiedAt-field of this community-entry.
 
 This federation and verification logic will work the whole time and can be monitored by observing the communities-table changes. The Admin-UI will contain a Page to have a look on the current state of the communities table content.
 
