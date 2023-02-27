@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ChangeUserRoleFormular from './ChangeUserRoleFormular.vue'
+import ChangeUserRoleFormular from './ChangeUserRoleFormular'
 import { setUserRole } from '../graphql/setUserRole'
 import { toastSuccessSpy, toastErrorSpy } from '../../test/testSetup'
 

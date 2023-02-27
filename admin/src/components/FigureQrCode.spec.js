@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import FigureQrCode from './FigureQrCode.vue'
+import FigureQrCode from './FigureQrCode'
 
 const localVue = global.localVue
 

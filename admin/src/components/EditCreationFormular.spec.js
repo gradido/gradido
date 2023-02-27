@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import EditCreationFormular from './EditCreationFormular.vue'
+import EditCreationFormular from './EditCreationFormular'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
