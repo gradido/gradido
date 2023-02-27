@@ -346,6 +346,10 @@ export class TransactionLinkResolver {
     @Arg('userId', () => Int)
     userId: number,
   ): Promise<TransactionLinkResult> {
-    return transactionLinkList(paginated, filters, await DbUser.findOneOrFail({ id: userId }))
+    const user = await DbUser.findOne({ id: userId })
+    if (!user) {
+      throw new LogError('Could not find requested User', userId)
+    }
+    return transactionLinkList(paginated, filters, user)
   }
 }

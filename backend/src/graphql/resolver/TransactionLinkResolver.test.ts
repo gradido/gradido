@@ -600,6 +600,26 @@ describe('TransactionLinkResolver', () => {
           resetToken()
         })
 
+        describe('', () => {
+          it('throws error when user does not exists', async () => {
+            jest.clearAllMocks()
+            await expect(
+              mutate({
+                mutation: listTransactionLinksAdmin,
+                variables: {
+                  userId: -1,
+                },
+              }),
+            ).resolves.toMatchObject({
+              errors: [new GraphQLError('Could not find requested User')],
+            })
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('Could not find requested User', -1)
+          })
+        })
+
         describe('without any filters', () => {
           it('finds 6 open transaction links and no deleted or redeemed', async () => {
             await expect(
