@@ -277,8 +277,6 @@ As soon the *openConnection* request is invoked:
 3. check if the decrypted `parameter.signedAndEncryptedURL` is equals the selected url from the previous selected CommunityFederationEntry
    1. if not then break the further processing of this request by only writing an error-log event. There will be no answer to the invoker community, because this community will only go on with a `openConnectionRedirect`-request from this community.
    2. if yes then verify the signature of `parameter.signedAndEncryptedURL` with the `cf.pubKey` read in step 2 before
-   3. 
-4. 
 
 ### Stage3 - Autorized Business Communication
 
