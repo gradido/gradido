@@ -61,8 +61,8 @@ export class TransactionLink {
 @ObjectType()
 export class TransactionLinkResult {
   @Field(() => Int)
-  linkCount: number
+  count: number
 
   @Field(() => [TransactionLink])
-  linkList: TransactionLink[]
+  links: TransactionLink[]
 }

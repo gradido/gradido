@@ -106,7 +106,7 @@ describe('sendEmailVariants', () => {
           'you have received a message from Bibi Bloxberg regarding your common good contribution “My contribution.”.',
         )
         expect(result.originalMessage.html).toContain(
-          'To view and reply to the message, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!',
+          'To view and reply to the message, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab!',
         )
         expect(result.originalMessage.html).toContain(
           `Link to your account: <a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
@@ -424,7 +424,7 @@ describe('sendEmailVariants', () => {
           'Your public good contribution “My contribution.” was rejected by Bibi Bloxberg.',
         )
         expect(result.originalMessage.html).toContain(
-          'To see your common good contributions and related messages, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!',
+          'To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab!',
         )
         expect(result.originalMessage.html).toContain(
           `Link to your account: <a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
@@ -502,7 +502,7 @@ describe('sendEmailVariants', () => {
           'Your public good contribution “My contribution.” was deleted by Bibi Bloxberg.',
         )
         expect(result.originalMessage.html).toContain(
-          'To see your common good contributions and related messages, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!',
+          'To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab!',
         )
         expect(result.originalMessage.html).toContain(
           `Link to your account: <a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
