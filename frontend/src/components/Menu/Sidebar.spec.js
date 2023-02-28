@@ -64,7 +64,7 @@ describe('Sidebar', () => {
 
     describe('the specific section', () => {
       describe('for standard users', () => {
-        it('has three nav-item', () => {
+        it('has two nav-items', () => {
           expect(wrapper.findAll('ul').at(1).findAll('.nav-item')).toHaveLength(2)
         })
 
