@@ -33,7 +33,7 @@ describe('Sidebar', () => {
     })
 
     describe('the genaral section', () => {
-      it('has five nav-item', () => {
+      it('has six nav-items', () => {
         expect(wrapper.findAll('ul').at(0).findAll('.nav-item')).toHaveLength(6)
       })
 
