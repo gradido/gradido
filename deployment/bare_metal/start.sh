@@ -75,6 +75,7 @@ export BUILD_COMMIT="$(git rev-parse HEAD)"
 # Generate gradido.conf from template
 # *** 1st prepare for each apiversion the federation conf for nginx from federation-template
 # *** set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS and create gradido-federation.conf file
+rm $NGINX_CONFIG_DIR/gradido-federation.conf
 echo "================================================================================================"
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
 for api in "${API_ARRAY[@]}"
@@ -91,8 +92,7 @@ done
 echo "================================================================================================"
 
 # *** 2nd read gradido-federation.conf file in env variable
-FEDERATION_NGINX_CONF < $NGINX_CONFIG_DIR/gradido-federation.conf
-export FEDERATION_NGINX_CONF
+export FEDERATION_NGINX_CONF < $NGINX_CONFIG_DIR/gradido-federation.conf
 echo "FEDERATION_NGINX_CONF=$FEDERATION_NGINX_CONF"
 
 # *** 3rd generate gradido nginx config including federation modules per api-version
