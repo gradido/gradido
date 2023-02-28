@@ -92,14 +92,14 @@ const defaultData = () => {
 
 describe('CreationConfirm', () => {
   let wrapper
+  const adminListAllContributionsMock = jest.fn()
   const adminDeleteContributionMock = jest.fn()
   const adminDenyContributionMock = jest.fn()
   const confirmContributionMock = jest.fn()
 
   mockClient.setRequestHandler(
     adminListAllContributions,
-    jest
-      .fn()
+    adminListAllContributionsMock
       .mockRejectedValueOnce({ message: 'Ouch!' })
       .mockResolvedValue({ data: defaultData() }),
   )
@@ -331,97 +331,79 @@ describe('CreationConfirm', () => {
 
     describe('filter tabs', () => {
       describe('click tab "confirmed"', () => {
-        let requestIdCounter
-
         beforeEach(async () => {
-          requestIdCounter = wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId
+          jest.clearAllMocks()
           await wrapper.find('a[data-test="confirmed"]').trigger('click')
         })
 
-        it('refetches contributions', () => {
-          expect(wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId).toBe(
-            `${Number(requestIdCounter) + 1}`,
-          )
-        })
-
-        it('has statusFilter set to ["CONFIRMED"]', () => {
-          expect(
-            wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
-          ).toMatchObject({ statusFilter: ['CONFIRMED'] })
+        it('refetches contributions with proper filter', () => {
+          expect(adminListAllContributionsMock).toBeCalledWith({
+            currentPage: 1,
+            order: 'DESC',
+            pageSize: 25,
+            statusFilter: ['CONFIRMED'],
+          })
         })
 
         describe('click tab "open"', () => {
           beforeEach(async () => {
-            requestIdCounter = wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId
+            jest.clearAllMocks()
             await wrapper.find('a[data-test="open"]').trigger('click')
           })
 
-          it('refetches contributions', () => {
-            expect(wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId).toBe(
-              `${Number(requestIdCounter) + 1}`,
-            )
-          })
-
-          it('has statusFilter set to ["IN_PROGRESS", "PENDING"]', () => {
-            expect(
-              wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
-            ).toMatchObject({ statusFilter: ['IN_PROGRESS', 'PENDING'] })
+          it('refetches contributions with proper filter', () => {
+            expect(adminListAllContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              statusFilter: ['IN_PROGRESS', 'PENDING'],
+            })
           })
         })
 
         describe('click tab "denied"', () => {
           beforeEach(async () => {
-            requestIdCounter = wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId
+            jest.clearAllMocks()
             await wrapper.find('a[data-test="denied"]').trigger('click')
           })
 
-          it('refetches contributions', () => {
-            expect(wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId).toBe(
-              `${Number(requestIdCounter) + 1}`,
-            )
-          })
-
-          it('has statusFilter set to ["DENIED"]', () => {
-            expect(
-              wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
-            ).toMatchObject({ statusFilter: ['DENIED'] })
+          it('refetches contributions with proper filter', () => {
+            expect(adminListAllContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              statusFilter: ['DENIED'],
+            })
           })
         })
 
         describe('click tab "deleted"', () => {
           beforeEach(async () => {
-            requestIdCounter = wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId
+            jest.clearAllMocks()
             await wrapper.find('a[data-test="deleted"]').trigger('click')
           })
 
-          it('refetches contributions', () => {
-            expect(wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId).toBe(
-              `${Number(requestIdCounter) + 1}`,
-            )
-          })
-
-          it('has statusFilter set to ["DELETED"]', () => {
-            expect(
-              wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
-            ).toMatchObject({ statusFilter: ['DELETED'] })
+          it('refetches contributions with proper filter', () => {
+            expect(adminListAllContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              statusFilter: ['DELETED'],
+            })
           })
         })
 
         describe('click tab "all"', () => {
           beforeEach(async () => {
-            requestIdCounter = wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId
+            jest.clearAllMocks()
             await wrapper.find('a[data-test="all"]').trigger('click')
           })
 
-          it('refetches contributions', () => {
-            expect(wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId).toBe(
-              `${Number(requestIdCounter) + 1}`,
-            )
-          })
-          it('has statusFilter set to ["IN_PROGRESS", "PENDING", "CONFIRMED", "DENIED", "DELETED"]', () => {
-            expect(
-              wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
-            ).toMatchObject({
+          it('refetches contributions with proper filter', () => {
+            expect(adminListAllContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
               statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
             })
           })
