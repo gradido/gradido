@@ -90,7 +90,10 @@ export default {
             fetchPolicy: 'network-only',
           })
           .then((result) => {
-            this.transactionLinks = [...this.transactionLinks, ...result.data.listTransactionLinks]
+            this.transactionLinks = [
+              ...this.transactionLinks,
+              ...result.data.listTransactionLinks.links,
+            ]
             this.$emit('update-transactions')
             this.pending = false
           })

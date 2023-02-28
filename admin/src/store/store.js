@@ -24,9 +24,6 @@ export const mutations = {
   moderator: (state, moderator) => {
     state.moderator = moderator
   },
-  setUserSelectedInMassCreation: (state, userSelectedInMassCreation) => {
-    state.userSelectedInMassCreation = userSelectedInMassCreation
-  },
 }
 
 export const actions = {
