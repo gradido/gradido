@@ -1,14 +1,15 @@
 import { ObjectType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 import { Contribution as dbContribution } from '@entity/Contribution'
-import { User } from '@entity/User'
+import { User as DbUser } from '@entity/User'
+import { User } from './User'
 
 @ObjectType()
 export class Contribution {
-  constructor(contribution: dbContribution, user?: User | null) {
+  constructor(contribution: dbContribution, user: DbUser) {
     this.id = contribution.id
-    this.firstName = user ? user.firstName : null
-    this.lastName = user ? user.lastName : null
+    this.user = new User(user)
+    this.user.email = '***'
     this.amount = contribution.amount
     this.memo = contribution.memo
     this.createdAt = contribution.createdAt
@@ -25,11 +26,8 @@ export class Contribution {
   @Field(() => Number)
   id: number
 
-  @Field(() => String, { nullable: true })
-  firstName: string | null
-
-  @Field(() => String, { nullable: true })
-  lastName: string | null
+  @Field(() => User)
+  user: User
 
   @Field(() => Decimal)
   amount: Decimal
