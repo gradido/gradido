@@ -87,7 +87,7 @@ describe('Sidebar', () => {
           wrapper = Wrapper()
         })
 
-        it('has four nav-item', () => {
+        it('has three nav-items', () => {
           expect(wrapper.findAll('ul').at(1).findAll('.nav-item')).toHaveLength(3)
         })
 
