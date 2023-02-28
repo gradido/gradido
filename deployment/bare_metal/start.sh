@@ -61,6 +61,7 @@ sudo /etc/init.d/nginx restart
 # stop all services
 echo 'Stopping and Delete all Gradido services' >> $UPDATE_HTML
 pm2 delete all
+pm2 save
 
 # git
 BRANCH=${1:-master}
@@ -75,7 +76,7 @@ export BUILD_COMMIT="$(git rev-parse HEAD)"
 # Generate gradido.conf from template
 # *** 1st prepare for each apiversion the federation conf for nginx from federation-template
 # *** set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS and create gradido-federation.conf file
-rm $NGINX_CONFIG_DIR/gradido-federation.conf
+rm -f $NGINX_CONFIG_DIR/gradido-federation.conf
 echo "===================================================================================================="
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
 for api in "${API_ARRAY[@]}"
