@@ -162,7 +162,7 @@ export default {
     }
   },
   methods: {
-    myself(name) {
+    myself(item) {
       return (
         name === `${this.$store.state.moderator.firstName} ${this.$store.state.moderator.lastName}`
       )
