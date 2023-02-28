@@ -51,7 +51,7 @@
         </div>
       </template>
       <template #cell(reActive)>
-        <div v-if="!myself(`${row.item.firstName} ${row.item.lastName}`)">
+        <div v-if="!myself(row.item)">
           <b-button variant="warning" size="md" class="mr-2">
             <b-icon icon="arrow-up" variant="light"></b-icon>
           </b-button>
