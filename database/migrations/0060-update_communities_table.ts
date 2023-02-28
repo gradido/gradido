@@ -23,7 +23,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // write downgrade logic as parameter of queryFn
-  await queryFn('DELETE * FROM TABLE `communities` WHERE `last_announced_at` IS NULL`;')
+  await queryFn('DELETE FROM TABLE `communities` WHERE `last_announced_at` IS NULL`;')
   await queryFn(
     'ALTER TABLE `communities` MODIFY COLUMN `last_announced_at` datetime(3) NOT NULL AFTER `end_point`;',
   )
