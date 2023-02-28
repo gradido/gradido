@@ -76,7 +76,7 @@ export BUILD_COMMIT="$(git rev-parse HEAD)"
 # *** 1st prepare for each apiversion the federation conf for nginx from federation-template
 # *** set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS and create gradido-federation.conf file
 rm $NGINX_CONFIG_DIR/gradido-federation.conf
-echo "================================================================================================"
+echo "===================================================================================================="
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
 for api in "${API_ARRAY[@]}"
 do
@@ -86,14 +86,13 @@ do
   FEDERATION_PORT=${FEDERATION_COMMUNITY_API_PORT:-5000}
   FEDERATION_PORT=$(($FEDERATION_PORT + $port))
   export FEDERATION_PORT
-  echo " create ngingx config: location /api/$FEDERATION_APIVERSION to http://127.0.0.1:$FEDERATION_PORT"
+  echo " create ngingx config: location /api/$FEDERATION_APIVERSION  to  http://127.0.0.1:$FEDERATION_PORT"
   envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/gradido-federation.conf.template >> $NGINX_CONFIG_DIR/gradido-federation.conf
 done
-echo "================================================================================================"
+echo "===================================================================================================="
 
-# *** 2nd read gradido-federation.conf file in env variable
+# *** 2nd read gradido-federation.conf file in env variable to be replaced in 3rd step
 export FEDERATION_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-federation.conf)
-echo "FEDERATION_NGINX_CONF=$FEDERATION_NGINX_CONF"
 
 # *** 3rd generate gradido nginx config including federation modules per api-version
 echo 'Generate new gradido nginx config' >> $UPDATE_HTML
@@ -102,10 +101,7 @@ case "$NGINX_SSL" in
     *) TEMPLATE_FILE="gradido.conf.template" ;;
 esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf
-
-# release lock
-rm $LOCK_FILE
-exit 1
+rm $NGINX_CONFIG_DIR/gradido-federation.conf
 
 # Generate update-page.conf from template
 echo 'Generate new update-page nginx config' >> $UPDATE_HTML

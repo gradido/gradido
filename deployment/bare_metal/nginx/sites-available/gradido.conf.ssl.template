@@ -113,50 +113,7 @@ server {
     }
     
     # Federation
-    location /api/1_0 {
-        proxy_http_version 1.1;
-        proxy_set_header   Upgrade $http_upgrade;
-        proxy_set_header   Connection 'upgrade';
-        proxy_set_header   X-Forwarded-For $remote_addr;
-        proxy_set_header   X-Real-IP  $remote_addr;
-        proxy_set_header   Host $host;
-        
-        proxy_pass         http://127.0.0.1:5010;
-        proxy_redirect     off;
-
-        access_log $GRADIDO_LOG_PATH/nginx-access.federation-5010.log gradido_log;
-        error_log $GRADIDO_LOG_PATH/nginx-error.federation-5010.log warn;
-    }
-
-    location /api/1_1 {
-        proxy_http_version 1.1;
-        proxy_set_header   Upgrade $http_upgrade;
-        proxy_set_header   Connection 'upgrade';
-        proxy_set_header   X-Forwarded-For $remote_addr;
-        proxy_set_header   X-Real-IP  $remote_addr;
-        proxy_set_header   Host $host;
-        
-        proxy_pass         http://127.0.0.1:5011;
-        proxy_redirect     off;
-
-        access_log $GRADIDO_LOG_PATH/nginx-access.federation-5011.log gradido_log;
-        error_log $GRADIDO_LOG_PATH/nginx-error.federation-5011.log warn;
-    }
-
-    location /api/2_0 {
-        proxy_http_version 1.1;
-        proxy_set_header   Upgrade $http_upgrade;
-        proxy_set_header   Connection 'upgrade';
-        proxy_set_header   X-Forwarded-For $remote_addr;
-        proxy_set_header   X-Real-IP  $remote_addr;
-        proxy_set_header   Host $host;
-        
-        proxy_pass         http://127.0.0.1:5020;
-        proxy_redirect     off;
-
-        access_log $GRADIDO_LOG_PATH/nginx-access.federation-5020.log gradido_log;
-        error_log $GRADIDO_LOG_PATH/nginx-error.federation-5020.log warn;
-    }
+    $FEDERATION_NGINX_CONF
 
     # TODO this could be a performance optimization
     #location /vue {
