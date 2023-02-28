@@ -303,7 +303,7 @@ export default {
           },
           {
             key: 'deletedAt',
-            label: this.$t('contributions.denied'),
+            label: this.$t('contributions.deleted'),
             formatter: (value) => {
               return this.$d(new Date(value), 'short')
             },
