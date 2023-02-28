@@ -13,14 +13,16 @@
         <b-icon :icon="getStatusIcon(row.item.state)"></b-icon>
       </template>
       <template #cell(bookmark)="row">
-        <b-button
-          variant="danger"
-          size="md"
-          @click="$emit('show-overlay', row.item, 'delete')"
-          class="mr-2"
-        >
-          <b-icon icon="trash" variant="light"></b-icon>
-        </b-button>
+        <div v-if="!myself(`${row.item.firstName} ${row.item.lastName}`)">
+          <b-button
+            variant="danger"
+            size="md"
+            @click="$emit('show-overlay', row.item, 'delete')"
+            class="mr-2"
+          >
+            <b-icon icon="trash" variant="light"></b-icon>
+          </b-button>
+        </div>
       </template>
       <template #cell(editCreation)="row">
         <div v-if="$store.state.moderator.id !== row.item.userId">
@@ -49,9 +51,11 @@
         </div>
       </template>
       <template #cell(reActive)>
-        <b-button variant="warning" size="md" class="mr-2">
-          <b-icon icon="arrow-up" variant="light"></b-icon>
-        </b-button>
+        <div v-if="!myself(`${row.item.firstName} ${row.item.lastName}`)">
+          <b-button variant="warning" size="md" class="mr-2">
+            <b-icon icon="arrow-up" variant="light"></b-icon>
+          </b-button>
+        </div>
       </template>
       <template #cell(chatCreation)="row">
         <b-button v-if="row.item.messagesCount > 0" @click="rowToggleDetails(row, 0)">
@@ -59,7 +63,7 @@
         </b-button>
       </template>
       <template #cell(deny)="row">
-        <div v-if="$store.state.moderator.id !== row.item.userId">
+        <div v-if="!myself(`${row.item.firstName} ${row.item.lastName}`)">
           <b-button
             variant="warning"
             size="md"
@@ -71,7 +75,7 @@
         </div>
       </template>
       <template #cell(confirm)="row">
-        <div v-if="$store.state.moderator.id !== row.item.userId">
+        <div v-if="!myself(`${row.item.firstName} ${row.item.lastName}`)">
           <b-button
             variant="success"
             size="md"
@@ -158,6 +162,11 @@ export default {
     }
   },
   methods: {
+    myself(name) {
+      return (
+        name === `${this.$store.state.moderator.firstName} ${this.$store.state.moderator.lastName}`
+      )
+    },
     getStatusIcon(status) {
       return iconMap[status] ? iconMap[status] : 'default-icon'
     },
