@@ -51,8 +51,8 @@ export default {
           statusFilter: this.statusFilter,
         }
       },
-      update({ listAllContributions }) {
-        this.$store.commit('setOpenCreations', listAllContributions.contributionCount)
+      update({ adminListAllContributions }) {
+        this.$store.commit('setOpenCreations', adminListAllContributions.contributionCount)
       },
       error({ message }) {
         this.toastError(message)

@@ -7,7 +7,7 @@ export const listAllContributions = gql`
     $order: Order = DESC
     $statusFilter: [ContributionStatus!]
   ) {
-    listAllContributions(
+    adminListAllContributions(
       currentPage: $currentPage
       pageSize: $pageSize
       order: $order
@@ -28,6 +28,8 @@ export const listAllContributions = gql`
         messagesCount
         deniedAt
         deniedBy
+        deletedAt
+        deletedBy
       }
     }
   }

@@ -173,15 +173,11 @@ export default {
       this.items.find((obj) => obj.id === id).state = 'IN_PROGRESS'
     },
   },
-  watch: {
-    statusFilter() {
-      this.$apollo.queries.ListAllContributions.refetch()
-    },
-  },
   computed: {
     fields() {
       return [
         [
+          // open contributions
           { key: 'bookmark', label: this.$t('delete') },
           { key: 'deny', label: this.$t('deny') },
           { key: 'email', label: this.$t('e_mail') },
@@ -207,6 +203,7 @@ export default {
           { key: 'confirm', label: this.$t('save') },
         ],
         [
+          // confirmed contributions
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {
@@ -241,6 +238,7 @@ export default {
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
+          // denied contributions
           { key: 'reActive', label: 'reActive' },
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
@@ -276,8 +274,45 @@ export default {
           { key: 'deniedBy', label: this.$t('mod') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
-        [],
         [
+          // deleted contributions
+          { key: 'reActive', label: 'reActive' },
+          { key: 'firstName', label: this.$t('firstname') },
+          { key: 'lastName', label: this.$t('lastname') },
+          {
+            key: 'amount',
+            label: this.$t('creation'),
+            formatter: (value) => {
+              return value + ' GDD'
+            },
+          },
+          { key: 'memo', label: this.$t('text'), class: 'text-break' },
+          {
+            key: 'contributionDate',
+            label: this.$t('created'),
+            formatter: (value) => {
+              return this.$d(new Date(value), 'short')
+            },
+          },
+          {
+            key: 'createdAt',
+            label: this.$t('createdAt'),
+            formatter: (value) => {
+              return this.$d(new Date(value), 'short')
+            },
+          },
+          {
+            key: 'deletedAt',
+            label: this.$t('contributions.denied'),
+            formatter: (value) => {
+              return this.$d(new Date(value), 'short')
+            },
+          },
+          { key: 'deletedBy', label: this.$t('mod') },
+          { key: 'chatCreation', label: this.$t('chat') },
+        ],
+        [
+          // all contributions
           { key: 'state', label: 'state' },
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
@@ -352,16 +387,16 @@ export default {
         return listAllContributions
       },
       variables() {
-        // may be at some point we need a pagination here
         return {
           currentPage: this.currentPage,
           pageSize: this.pageSize,
           statusFilter: this.statusFilter,
         }
       },
-      update({ listAllContributions }) {
-        this.rows = listAllContributions.contributionCount
-        this.items = listAllContributions.contributionList
+      fetchPolicy: 'no-cache',
+      update({ adminListAllContributions }) {
+        this.rows = adminListAllContributions.contributionCount
+        this.items = adminListAllContributions.contributionList
       },
       error({ message }) {
         this.toastError(message)
