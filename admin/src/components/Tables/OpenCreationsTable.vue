@@ -13,7 +13,7 @@
         <b-icon :icon="getStatusIcon(row.item.state)"></b-icon>
       </template>
       <template #cell(bookmark)="row">
-        <div v-if="!myself(`${row.item.firstName} ${row.item.lastName}`)">
+        <div v-if="!myself(row.item)">
           <b-button
             variant="danger"
             size="md"
