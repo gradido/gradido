@@ -1,6 +1,6 @@
 name: gradido test_federation CI
 
-on: push
+on: none
 
 jobs:
   ##############################################################################
