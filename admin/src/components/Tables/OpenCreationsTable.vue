@@ -63,7 +63,7 @@
         </b-button>
       </template>
       <template #cell(deny)="row">
-        <div v-if="!myself(`${row.item.firstName} ${row.item.lastName}`)">
+        <div v-if="!myself(row.item)">
           <b-button
             variant="warning"
             size="md"
