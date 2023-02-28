@@ -92,7 +92,7 @@ done
 echo "================================================================================================"
 
 # *** 2nd read gradido-federation.conf file in env variable
-export FEDERATION_NGINX_CONFr=$(< $NGINX_CONFIG_DIR/gradido-federation.conf)
+export FEDERATION_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-federation.conf)
 echo "FEDERATION_NGINX_CONF=$FEDERATION_NGINX_CONF"
 
 # *** 3rd generate gradido nginx config including federation modules per api-version
