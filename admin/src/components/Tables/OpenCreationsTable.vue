@@ -164,7 +164,7 @@ export default {
   methods: {
     myself(item) {
       return (
-        name === `${this.$store.state.moderator.firstName} ${this.$store.state.moderator.lastName}`
+        `${item.firstName} ${item.lastName}` === `${this.$store.state.moderator.firstName} ${this.$store.state.moderator.lastName}`
       )
     },
     getStatusIcon(status) {
