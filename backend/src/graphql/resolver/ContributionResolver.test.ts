@@ -993,7 +993,6 @@ describe('ContributionResolver', () => {
             currentPage: 1,
             pageSize: 25,
             order: 'DESC',
-            filterConfirmed: false,
           },
         })
         expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
@@ -1012,7 +1011,7 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-      describe('filter confirmed is false', () => {
+      describe('no status filter', () => {
         it('returns creations', async () => {
           const {
             data: { listContributions: contributionListResult },
@@ -1064,7 +1063,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe('filter confirmed is true', () => {
+      describe('with status filter [PENDING, IN_PROGRESS, DENIED, DELETED]', () => {
         it('returns only unconfirmed creations', async () => {
           const {
             data: { listContributions: contributionListResult },
@@ -1074,7 +1073,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterConfirmed: true,
+              statusFilter: ['PENDING', 'IN_PROGRESS', 'DENIED', 'DELETED'],
             },
           })
           expect(contributionListResult).toMatchObject({
