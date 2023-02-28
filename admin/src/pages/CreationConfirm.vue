@@ -73,7 +73,7 @@
 <script>
 import Overlay from '../components/Overlay'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable'
-import { listAllContributions } from '../graphql/listAllContributions'
+import { adminListAllContributions } from '../graphql/adminListAllContributions'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
@@ -384,7 +384,7 @@ export default {
   apollo: {
     ListAllContributions: {
       query() {
-        return listAllContributions
+        return adminListAllContributions
       },
       variables() {
         return {

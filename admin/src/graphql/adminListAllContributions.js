@@ -1,6 +1,6 @@
 import gql from 'graphql-tag'
 
-export const listAllContributions = gql`
+export const adminListAllContributions = gql`
   query (
     $currentPage: Int = 1
     $pageSize: Int = 25

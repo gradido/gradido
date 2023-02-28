@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { denyContribution } from '../graphql/denyContribution'
-import { listAllContributions } from '../graphql/listAllContributions'
+import { adminListAllContributions } from '../graphql/adminListAllContributions'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 import VueApollo from 'vue-apollo'
@@ -38,7 +38,7 @@ const mocks = {
 
 const defaultData = () => {
   return {
-    listAllContributions: {
+    adminListAllContributions: {
       contributionCount: 2,
       contributionList: [
         {
@@ -97,7 +97,7 @@ describe('CreationConfirm', () => {
   const confirmContributionMock = jest.fn()
 
   mockClient.setRequestHandler(
-    listAllContributions,
+    adminListAllContributions,
     jest
       .fn()
       .mockRejectedValueOnce({ message: 'Ouch!' })
@@ -331,12 +331,17 @@ describe('CreationConfirm', () => {
 
     describe('filter tabs', () => {
       describe('click tab "confirmed"', () => {
-        let refetchSpy
+        let requestIdCounter
 
         beforeEach(async () => {
-          jest.clearAllMocks()
-          refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
+          requestIdCounter = wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId
           await wrapper.find('a[data-test="confirmed"]').trigger('click')
+        })
+
+        it('refetches contributions', () => {
+          expect(wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId).toBe(
+            `${Number(requestIdCounter) + 1}`,
+          )
         })
 
         it('has statusFilter set to ["CONFIRMED"]', () => {
@@ -345,15 +350,16 @@ describe('CreationConfirm', () => {
           ).toMatchObject({ statusFilter: ['CONFIRMED'] })
         })
 
-        it('refetches contributions', () => {
-          expect(refetchSpy).toBeCalled()
-        })
-
         describe('click tab "open"', () => {
           beforeEach(async () => {
-            jest.clearAllMocks()
-            refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
+            requestIdCounter = wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId
             await wrapper.find('a[data-test="open"]').trigger('click')
+          })
+
+          it('refetches contributions', () => {
+            expect(wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId).toBe(
+              `${Number(requestIdCounter) + 1}`,
+            )
           })
 
           it('has statusFilter set to ["IN_PROGRESS", "PENDING"]', () => {
@@ -361,17 +367,18 @@ describe('CreationConfirm', () => {
               wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
             ).toMatchObject({ statusFilter: ['IN_PROGRESS', 'PENDING'] })
           })
-
-          it('refetches contributions', () => {
-            expect(refetchSpy).toBeCalled()
-          })
         })
 
         describe('click tab "denied"', () => {
           beforeEach(async () => {
-            jest.clearAllMocks()
-            refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
+            requestIdCounter = wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId
             await wrapper.find('a[data-test="denied"]').trigger('click')
+          })
+
+          it('refetches contributions', () => {
+            expect(wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId).toBe(
+              `${Number(requestIdCounter) + 1}`,
+            )
           })
 
           it('has statusFilter set to ["DENIED"]', () => {
@@ -379,29 +386,44 @@ describe('CreationConfirm', () => {
               wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
             ).toMatchObject({ statusFilter: ['DENIED'] })
           })
+        })
+
+        describe('click tab "deleted"', () => {
+          beforeEach(async () => {
+            requestIdCounter = wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId
+            await wrapper.find('a[data-test="deleted"]').trigger('click')
+          })
 
           it('refetches contributions', () => {
-            expect(refetchSpy).toBeCalled()
+            expect(wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId).toBe(
+              `${Number(requestIdCounter) + 1}`,
+            )
+          })
+
+          it('has statusFilter set to ["DELETED"]', () => {
+            expect(
+              wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
+            ).toMatchObject({ statusFilter: ['DELETED'] })
           })
         })
 
         describe('click tab "all"', () => {
           beforeEach(async () => {
-            jest.clearAllMocks()
-            refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
+            requestIdCounter = wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId
             await wrapper.find('a[data-test="all"]').trigger('click')
           })
 
+          it('refetches contributions', () => {
+            expect(wrapper.vm.$apollo.queries.ListAllContributions.observer.queryId).toBe(
+              `${Number(requestIdCounter) + 1}`,
+            )
+          })
           it('has statusFilter set to ["IN_PROGRESS", "PENDING", "CONFIRMED", "DENIED", "DELETED"]', () => {
             expect(
               wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
             ).toMatchObject({
               statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
             })
-          })
-
-          it('refetches contributions', () => {
-            expect(refetchSpy).toBeCalled()
           })
         })
       })
@@ -412,9 +434,19 @@ describe('CreationConfirm', () => {
         await wrapper.findComponent({ name: 'OpenCreationsTable' }).vm.$emit('update-state', 2)
       })
 
-      it.skip('updates the status', () => {
+      it('updates the status', () => {
         expect(wrapper.vm.items.find((obj) => obj.id === 2).messagesCount).toBe(1)
         expect(wrapper.vm.items.find((obj) => obj.id === 2).state).toBe('IN_PROGRESS')
+      })
+    })
+
+    describe('unknown variant', () => {
+      beforeEach(async () => {
+        await wrapper.setData({ variant: 'unknown' })
+      })
+
+      it('has overlay icon "info"', () => {
+        expect(wrapper.vm.overlayIcon).toBe('info')
       })
     })
   })
