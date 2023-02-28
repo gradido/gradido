@@ -75,7 +75,7 @@
         </div>
       </template>
       <template #cell(confirm)="row">
-        <div v-if="!myself(`${row.item.firstName} ${row.item.lastName}`)">
+        <div v-if="!myself(row.item)">
           <b-button
             variant="success"
             size="md"
