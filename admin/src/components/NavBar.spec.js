@@ -68,14 +68,11 @@ describe('NavBar', () => {
   })
 
   describe('wallet', () => {
-    const windowLocationMock = jest.fn()
     const windowLocation = window.location
     beforeEach(async () => {
       delete window.location
-      window.location = {
-        assign: windowLocationMock,
-      }
-      await wrapper.findAll('.nav-item').at(5).find('a').trigger('click')
+      window.location = ''
+      await wrapper.findAll('.nav-item').at(4).find('a').trigger('click')
     })
 
     afterEach(() => {
@@ -83,8 +80,8 @@ describe('NavBar', () => {
       window.location = windowLocation
     })
 
-    it.skip('changes window location to wallet', () => {
-      expect(windowLocationMock()).toBe('valid-token')
+    it('changes window location to wallet', () => {
+      expect(window.location).toBe('http://localhost/authenticate?token=valid-token')
     })
 
     it('dispatches logout to store', () => {
