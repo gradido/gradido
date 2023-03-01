@@ -91,6 +91,8 @@ do
   echo " create ngingx config: location /api/$FEDERATION_APIVERSION  to  http://127.0.0.1:$FEDERATION_PORT"
   envsubst '$FEDERATION_APIVERSION, $FEDERATION_PORT' < $NGINX_CONFIG_DIR/gradido-federation.conf.template >> $NGINX_CONFIG_DIR/gradido-federation.conf
 done
+export FEDERATION_APIVERSION=
+export FEDERATION_PORT=
 echo "===================================================================================================="
 
 # *** 2nd read gradido-federation.conf file in env variable to be replaced in 3rd step
@@ -103,6 +105,7 @@ case "$NGINX_SSL" in
     *) TEMPLATE_FILE="gradido.conf.template" ;;
 esac
 envsubst '$FEDERATION_NGINX_CONF' < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf.tmp
+export FEDERATION_NGINX_CONF=
 # echo "$(env | sed -e 's/=.*//' -e 's/^/\$/g')"
 echo "$(env)"
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/gradido.conf.tmp > $NGINX_CONFIG_DIR/gradido.conf
