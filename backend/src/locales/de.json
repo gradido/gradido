@@ -17,7 +17,7 @@
     "addedContributionMessage": {
       "commonGoodContributionMessage": "du hast zu deinem Gemeinwohl-Beitrag „{contributionMemo}“ eine Nachricht von {senderFirstName} {senderLastName} erhalten.",
       "subject": "Gradido: Nachricht zu deinem Gemeinwohl-Beitrag",
-      "toSeeAndAnswerMessage": "Um die Nachricht zu sehen und darauf zu antworten, gehe in deinem Gradido-Konto ins Menü „Gemeinschaft“ auf den Tab „Meine Beiträge zum Gemeinwohl“!"
+      "toSeeAndAnswerMessage": "Um die Nachricht zu sehen und darauf zu antworten, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“!"
     },
     "contributionConfirmed": {
       "commonGoodContributionConfirmed": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde soeben von {senderFirstName} {senderLastName} bestätigt und in deinem Gradido-Konto gutgeschrieben.",
@@ -26,12 +26,12 @@
     "contributionDeleted": {
       "commonGoodContributionDeleted": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} gelöscht.",
       "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde gelöscht",
-      "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Gemeinschaft“ auf den Tab „Meine Beiträge zum Gemeinwohl“!"
+      "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“!"
     },
     "contributionDenied": {
       "commonGoodContributionDenied": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} abgelehnt.",
       "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde abgelehnt",
-      "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Gemeinschaft“ auf den Tab „Meine Beiträge zum Gemeinwohl“!"
+      "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“!"
     },
     "general": {
       "amountGDD": "Betrag: {amountGDD} GDD",
