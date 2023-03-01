@@ -76,6 +76,7 @@ export BUILD_COMMIT="$(git rev-parse HEAD)"
 # Generate gradido.conf from template
 # *** 1st prepare for each apiversion the federation conf for nginx from federation-template
 # *** set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS and create gradido-federation.conf file
+rm -f $NGINX_CONFIG_DIR/gradido.conf.tmp
 rm -f $NGINX_CONFIG_DIR/gradido-federation.conf
 echo "===================================================================================================="
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
@@ -88,7 +89,7 @@ do
   FEDERATION_PORT=$(($FEDERATION_PORT + $port))
   export FEDERATION_PORT
   echo " create ngingx config: location /api/$FEDERATION_APIVERSION  to  http://127.0.0.1:$FEDERATION_PORT"
-  envsubst "$FEDERATION_APIVERSION, $FEDERATION_PORT" < $NGINX_CONFIG_DIR/gradido-federation.conf.template >> $NGINX_CONFIG_DIR/gradido-federation.conf
+  envsubst '$FEDERATION_APIVERSION, $FEDERATION_PORT' < $NGINX_CONFIG_DIR/gradido-federation.conf.template >> $NGINX_CONFIG_DIR/gradido-federation.conf
 done
 echo "===================================================================================================="
 
@@ -101,8 +102,9 @@ case "$NGINX_SSL" in
  true) TEMPLATE_FILE="gradido.conf.ssl.template" ;;
     *) TEMPLATE_FILE="gradido.conf.template" ;;
 esac
-envsubst "$FEDERATION_NGINX_CONF" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf.tmp
-echo "$(env | sed -e 's/=.*//' -e 's/^/\$/g')"
+envsubst '$FEDERATION_NGINX_CONF' < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf.tmp
+# echo "$(env | sed -e 's/=.*//' -e 's/^/\$/g')"
+echo "$(env)"
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/gradido.conf.tmp > $NGINX_CONFIG_DIR/gradido.conf
 # rm $NGINX_CONFIG_DIR/gradido.conf.tmp
 # rm $NGINX_CONFIG_DIR/gradido-federation.conf
