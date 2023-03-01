@@ -88,11 +88,12 @@ do
   FEDERATION_PORT=$(($FEDERATION_PORT + $port))
   export FEDERATION_PORT
   echo " create ngingx config: location /api/$FEDERATION_APIVERSION  to  http://127.0.0.1:$FEDERATION_PORT"
-  envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/gradido-federation.conf.template >> $NGINX_CONFIG_DIR/gradido-federation.conf
+  envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/gradido-federation.conf.template >> $NGINX_CONFIG_DIR/gradido-federation.conf.append
 done
 echo "===================================================================================================="
 
 # *** 2nd read gradido-federation.conf file in env variable to be replaced in 3rd step
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/gradido-federation.conf.append > $NGINX_CONFIG_DIR/gradido-federation.conf
 export FEDERATION_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-federation.conf)
 
 # *** 3rd generate gradido nginx config including federation modules per api-version
@@ -102,6 +103,7 @@ case "$NGINX_SSL" in
     *) TEMPLATE_FILE="gradido.conf.template" ;;
 esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf
+rm $NGINX_CONFIG_DIR/gradido-federation.conf.append
 rm $NGINX_CONFIG_DIR/gradido-federation.conf
 
 # Generate update-page.conf from template
