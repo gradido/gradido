@@ -72,7 +72,6 @@ export default {
     return {
       showArrays: false,
       searchResult: [],
-      massCreation: [],
       criteria: '',
       filters: {
         byActivated: null,

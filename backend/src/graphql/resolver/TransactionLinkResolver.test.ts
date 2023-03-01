@@ -600,6 +600,26 @@ describe('TransactionLinkResolver', () => {
           resetToken()
         })
 
+        describe('', () => {
+          it('throws error when user does not exists', async () => {
+            jest.clearAllMocks()
+            await expect(
+              mutate({
+                mutation: listTransactionLinksAdmin,
+                variables: {
+                  userId: -1,
+                },
+              }),
+            ).resolves.toMatchObject({
+              errors: [new GraphQLError('Could not find requested User')],
+            })
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('Could not find requested User', -1)
+          })
+        })
+
         describe('without any filters', () => {
           it('finds 6 open transaction links and no deleted or redeemed', async () => {
             await expect(
@@ -611,8 +631,8 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 6,
-                    linkList: expect.not.arrayContaining([
+                    count: 6,
+                    links: expect.not.arrayContaining([
                       expect.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
                         createdAt: expect.any(String),
@@ -647,8 +667,8 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 6,
-                    linkList: expect.not.arrayContaining([
+                    count: 6,
+                    links: expect.not.arrayContaining([
                       expect.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
                         createdAt: expect.any(String),
@@ -681,8 +701,8 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 7,
-                    linkList: expect.arrayContaining([
+                    count: 7,
+                    links: expect.arrayContaining([
                       expect.not.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
                         createdAt: expect.any(String),
@@ -715,8 +735,8 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 7,
-                    linkList: expect.arrayContaining([
+                    count: 7,
+                    links: expect.arrayContaining([
                       expect.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
                         createdAt: expect.any(String),
@@ -752,8 +772,8 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 6,
-                    linkList: expect.arrayContaining([
+                    count: 6,
+                    links: expect.arrayContaining([
                       expect.not.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
                         createdAt: expect.any(String),
