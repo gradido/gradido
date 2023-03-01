@@ -250,8 +250,8 @@ export const listTransactionLinksAdmin = gql`
       currentPage: $currentPage
       pageSize: $pageSize
     ) {
-      linkCount
-      linkList {
+      count
+      links {
         id
         amount
         holdAvailableAmount

@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import SearchUserTable from './SearchUserTable.vue'
+import SearchUserTable from './SearchUserTable'
 
 const localVue = global.localVue
 
