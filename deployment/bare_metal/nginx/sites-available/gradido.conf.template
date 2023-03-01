@@ -99,7 +99,7 @@ server {
     }
 
     # Federation
-    include ./gradido-federation.conf
+    $FEDERATION_NGINX_CONF
 
     # TODO this could be a performance optimization
     #location /vue {
