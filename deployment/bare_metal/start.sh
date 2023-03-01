@@ -77,6 +77,7 @@ export BUILD_COMMIT="$(git rev-parse HEAD)"
 # *** 1st prepare for each apiversion the federation conf for nginx from federation-template
 # *** set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS and create gradido-federation.conf file
 rm -f $NGINX_CONFIG_DIR/gradido-federation.conf
+rm -f $NGINX_CONFIG_DIR/gradido-federation.conf.append
 echo "===================================================================================================="
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
 for api in "${API_ARRAY[@]}"
@@ -103,8 +104,8 @@ case "$NGINX_SSL" in
     *) TEMPLATE_FILE="gradido.conf.template" ;;
 esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf
-rm $NGINX_CONFIG_DIR/gradido-federation.conf.append
-rm $NGINX_CONFIG_DIR/gradido-federation.conf
+# rm $NGINX_CONFIG_DIR/gradido-federation.conf.append
+# rm $NGINX_CONFIG_DIR/gradido-federation.conf
 
 # Generate update-page.conf from template
 echo 'Generate new update-page nginx config' >> $UPDATE_HTML
