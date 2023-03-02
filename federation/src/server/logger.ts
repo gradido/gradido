@@ -5,8 +5,8 @@ import { readFileSync } from 'fs'
 
 const options = JSON.parse(readFileSync(CONFIG.LOG4JS_CONFIG, 'utf-8'))
 
-options.categories.backend.level = CONFIG.LOG_LEVEL
-options.categories.apollo.level = CONFIG.LOG_LEVEL
+options.categories.backend.level = CONFIG.LOG_LEVEL || 'info'
+options.categories.apollo.level = CONFIG.LOG_LEVEL || 'info'
 let filename: string = options.appenders.federation.filename
 options.appenders.federation.filename = filename
   .replace('%v', CONFIG.FEDERATION_API)
