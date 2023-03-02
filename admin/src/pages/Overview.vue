@@ -31,7 +31,7 @@
   </div>
 </template>
 <script>
-import { listAllContributions } from '../graphql/listAllContributions'
+import { adminListAllContributions } from '../graphql/adminListAllContributions'
 
 export default {
   name: 'overview',
@@ -43,7 +43,7 @@ export default {
   apollo: {
     AllContributions: {
       query() {
-        return listAllContributions
+        return adminListAllContributions
       },
       variables() {
         // may be at some point we need a pagination here
@@ -51,8 +51,8 @@ export default {
           statusFilter: this.statusFilter,
         }
       },
-      update({ listAllContributions }) {
-        this.$store.commit('setOpenCreations', listAllContributions.contributionCount)
+      update({ adminListAllContributions }) {
+        this.$store.commit('setOpenCreations', adminListAllContributions.contributionCount)
       },
       error({ message }) {
         this.toastError(message)
