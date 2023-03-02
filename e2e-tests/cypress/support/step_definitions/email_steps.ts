@@ -74,12 +74,12 @@ When('the user opens the password reset link in the browser', () => {
   cy.task('getResetPasswordLink').then((passwordResetLink) => {
     cy.visit(passwordResetLink)
   })
-  cy.get(resetPasswordPage.newPasswordRepeatBlock).should('be.visible')
+  cy.get(resetPasswordPage.newPasswordInput).should('be.visible')
 })
 
 When('the user opens the activation link in the browser', () => {
   cy.task('getActivationLink').then((activationLink) => {
     cy.visit(activationLink)
   })
-  cy.get(resetPasswordPage.newPasswordRepeatBlock).should('be.visible')
+  cy.get(resetPasswordPage.newPasswordInput).should('be.visible')
 })
