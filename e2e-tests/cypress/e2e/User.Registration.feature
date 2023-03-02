@@ -9,5 +9,9 @@ Feature: User registration
     And the user submits the registration form
     Then the user receives an e-mail containing the activation link
     When the user opens the activation link in the browser
-    Then the user can set a password "Aa12345_"
-    And the user can login with the credentials "regina@register.com" "Aa12345_"
+    And the user enters the password "12345Aa_"
+    And the user repeats the password "12345Aa_"
+    And the user submits the password form
+    And the user clicks the sign in button
+    Then the user submits the credentials "regina@register.com" "12345Aa_"
+    And the user is logged in with username "Regina Register"
