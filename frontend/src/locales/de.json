@@ -56,7 +56,7 @@
       "openAmountForMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen.",
       "yourContribution": "Dein Beitrag zum Gemeinwohl"
     },
-    "isEdited": "hat seinen Beitrag bearbeitet",
+    "isEdited": "hat den Beitrag bearbeitet",
     "lastContribution": "Letzte Beiträge",
     "noContributions": {
       "allContributions": "Es wurden noch keine Beiträge eingereicht.",
