@@ -106,11 +106,9 @@ case "$NGINX_SSL" in
 esac
 envsubst '$FEDERATION_NGINX_CONF' < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf.tmp
 export FEDERATION_NGINX_CONF=
-# echo "$(env | sed -e 's/=.*//' -e 's/^/\$/g')"
-echo "$(env)"
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/gradido.conf.tmp > $NGINX_CONFIG_DIR/gradido.conf
-# rm $NGINX_CONFIG_DIR/gradido.conf.tmp
-# rm $NGINX_CONFIG_DIR/gradido-federation.conf
+rm $NGINX_CONFIG_DIR/gradido.conf.tmp
+rm $NGINX_CONFIG_DIR/gradido-federation.conf
 
 # Generate update-page.conf from template
 echo 'Generate new update-page nginx config' >> $UPDATE_HTML
@@ -217,18 +215,6 @@ yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
-# # first remove previous pm2 gradido-federation processes from list
-# pm2 ls -m | grep "+--- gradido-federation" | tr '\n' ',' | sed -e 's/+---//g' > proc.list
-# IFS="," read -a PROCESS_ARRAY < proc.list
-# for proc in "${PROCESS_ARRAY[@]}"
-# do
-#   echo "---> delete process $proc"
-#   pm2 delete $proc
-# done
-# pm2 save
-# rm proc.list
-# echo "finished removeing previous gradido-federation processes from pm2"
-# echo
 
 # set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
