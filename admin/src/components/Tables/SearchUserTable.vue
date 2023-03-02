@@ -53,7 +53,6 @@
             <b-tab :title="$t('creation')" active :disabled="row.item.deletedAt !== null">
               <creation-formular
                 v-if="!row.item.deletedAt"
-                type="singleCreation"
                 pagetype="singleCreation"
                 :creation="row.item.creation"
                 :item="row.item"

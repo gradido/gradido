@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto'
 import Decimal from 'decimal.js-light'
 
-import { getConnection, MoreThan, FindOperator } from '@dbTools/typeorm'
+import { getConnection } from '@dbTools/typeorm'
 
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
@@ -13,7 +13,6 @@ import { User } from '@model/User'
 import { ContributionLink } from '@model/ContributionLink'
 import { Decay } from '@model/Decay'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
-import { Order } from '@enum/Order'
 import { ContributionType } from '@enum/ContributionType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
@@ -35,6 +34,7 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import LogError from '@/server/LogError'
 
 import { getLastTransaction } from './util/getLastTransaction'
+import transactionLinkList from './util/transactionLinkList'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -143,30 +143,6 @@ export class TransactionLinkResolver {
       }
       return new TransactionLink(transactionLink, new User(user), redeemedBy)
     }
-  }
-
-  @Authorized([RIGHTS.LIST_TRANSACTION_LINKS])
-  @Query(() => [TransactionLink])
-  async listTransactionLinks(
-    @Args()
-    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
-    @Ctx() context: Context,
-  ): Promise<TransactionLink[]> {
-    const user = getUser(context)
-    // const now = new Date()
-    const transactionLinks = await DbTransactionLink.find({
-      where: {
-        userId: user.id,
-        redeemedBy: null,
-        // validUntil: MoreThan(now),
-      },
-      order: {
-        createdAt: order,
-      },
-      skip: (currentPage - 1) * pageSize,
-      take: pageSize,
-    })
-    return transactionLinks.map((tl) => new TransactionLink(tl, new User(user)))
   }
 
   @Authorized([RIGHTS.REDEEM_TRANSACTION_LINK])
@@ -342,43 +318,38 @@ export class TransactionLinkResolver {
     }
   }
 
+  @Authorized([RIGHTS.LIST_TRANSACTION_LINKS])
+  @Query(() => TransactionLinkResult)
+  async listTransactionLinks(
+    @Args()
+    paginated: Paginated,
+    @Ctx() context: Context,
+  ): Promise<TransactionLinkResult> {
+    return transactionLinkList(
+      paginated,
+      {
+        withDeleted: false,
+        withExpired: true,
+        withRedeemed: false,
+      },
+      getUser(context),
+    )
+  }
+
   @Authorized([RIGHTS.LIST_TRANSACTION_LINKS_ADMIN])
   @Query(() => TransactionLinkResult)
   async listTransactionLinksAdmin(
     @Args()
-    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    paginated: Paginated,
     @Arg('filters', () => TransactionLinkFilters, { nullable: true })
-    filters: TransactionLinkFilters,
+    filters: TransactionLinkFilters | null,
     @Arg('userId', () => Int)
     userId: number,
   ): Promise<TransactionLinkResult> {
-    const user = await DbUser.findOneOrFail({ id: userId })
-    const where: {
-      userId: number
-      redeemedBy?: number | null
-      validUntil?: FindOperator<Date> | null
-    } = {
-      userId,
-      redeemedBy: null,
-      validUntil: MoreThan(new Date()),
+    const user = await DbUser.findOne({ id: userId })
+    if (!user) {
+      throw new LogError('Could not find requested User', userId)
     }
-    if (filters) {
-      if (filters.withRedeemed) delete where.redeemedBy
-      if (filters.withExpired) delete where.validUntil
-    }
-    const [transactionLinks, count] = await DbTransactionLink.findAndCount({
-      where,
-      withDeleted: filters ? filters.withDeleted : false,
-      order: {
-        createdAt: order,
-      },
-      skip: (currentPage - 1) * pageSize,
-      take: pageSize,
-    })
-
-    return {
-      linkCount: count,
-      linkList: transactionLinks.map((tl) => new TransactionLink(tl, new User(user))),
-    }
+    return transactionLinkList(paginated, filters, user)
   }
 }

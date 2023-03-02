@@ -13,7 +13,6 @@ import {
   denyContribution,
   confirmContribution,
   adminCreateContribution,
-  adminCreateContributions,
   adminUpdateContribution,
   adminDeleteContribution,
   login,
@@ -1655,21 +1654,6 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe('adminCreateContributions', () => {
-        it('returns an error', async () => {
-          await expect(
-            mutate({
-              mutation: adminCreateContributions,
-              variables: { pendingCreations: [variables] },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('401 Unauthorized')],
-            }),
-          )
-        })
-      })
-
       describe('adminUpdateContribution', () => {
         it('returns an error', async () => {
           await expect(
@@ -1742,21 +1726,6 @@ describe('ContributionResolver', () => {
         describe('adminCreateContribution', () => {
           it('returns an error', async () => {
             await expect(mutate({ mutation: adminCreateContribution, variables })).resolves.toEqual(
-              expect.objectContaining({
-                errors: [new GraphQLError('401 Unauthorized')],
-              }),
-            )
-          })
-        })
-
-        describe('adminCreateContributions', () => {
-          it('returns an error', async () => {
-            await expect(
-              mutate({
-                mutation: adminCreateContributions,
-                variables: { pendingCreations: [variables] },
-              }),
-            ).resolves.toEqual(
               expect.objectContaining({
                 errors: [new GraphQLError('401 Unauthorized')],
               }),
@@ -2094,56 +2063,10 @@ describe('ContributionResolver', () => {
           })
         })
 
-        describe('adminCreateContributions', () => {
+        describe('adminUpdateContribution', () => {
           // at this point we have this data in DB:
           // bibi@bloxberg.de: [1000, 1000, 800]
           // peter@lustig.de: [1000, 600, 1000]
-          // stephen@hawking.uk: [1000, 1000, 1000] - deleted
-          // garrick@ollivander.com: [1000, 1000, 1000] - not activated
-
-          const massCreationVariables = [
-            'bibi@bloxberg.de',
-            'peter@lustig.de',
-            'stephen@hawking.uk',
-            'garrick@ollivander.com',
-            'bob@baumeister.de',
-          ].map((email) => {
-            return {
-              email,
-              amount: new Decimal(500),
-              memo: 'Grundeinkommen',
-              creationDate: contributionDateFormatter(new Date()),
-            }
-          })
-
-          it('returns success, two successful creation and three failed creations', async () => {
-            await expect(
-              mutate({
-                mutation: adminCreateContributions,
-                variables: { pendingCreations: massCreationVariables },
-              }),
-            ).resolves.toEqual(
-              expect.objectContaining({
-                data: {
-                  adminCreateContributions: {
-                    success: true,
-                    successfulContribution: ['bibi@bloxberg.de', 'peter@lustig.de'],
-                    failedContribution: [
-                      'stephen@hawking.uk',
-                      'garrick@ollivander.com',
-                      'bob@baumeister.de',
-                    ],
-                  },
-                },
-              }),
-            )
-          })
-        })
-
-        describe('adminUpdateContribution', () => {
-          // at this I expect to have this data in DB:
-          // bibi@bloxberg.de: [1000, 1000, 300]
-          // peter@lustig.de: [1000, 600, 500]
           // stephen@hawking.uk: [1000, 1000, 1000] - deleted
           // garrick@ollivander.com: [1000, 1000, 1000] - not activated
 
@@ -2360,7 +2283,7 @@ describe('ContributionResolver', () => {
                       date: expect.any(String),
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
-                      creation: ['1000', '800', '500'],
+                      creation: ['1000', '800', '1000'],
                     },
                   },
                 }),
@@ -2772,15 +2695,15 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-      it('returns 19 creations in total', async () => {
+      it('returns 17 creations in total', async () => {
         const {
           data: { adminListAllContributions: contributionListObject },
         }: { data: { adminListAllContributions: ContributionListResult } } = await query({
           query: adminListAllContributions,
         })
-        expect(contributionListObject.contributionList).toHaveLength(19)
+        expect(contributionListObject.contributionList).toHaveLength(17)
         expect(contributionListObject).toMatchObject({
-          contributionCount: 19,
+          contributionCount: 17,
           contributionList: expect.arrayContaining([
             expect.objectContaining({
               amount: expect.decimalEqual(50),
@@ -2842,24 +2765,6 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               lastName: 'Bloxberg',
               memo: 'Aktives Grundeinkommen',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: expect.decimalEqual(500),
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Grundeinkommen',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: expect.decimalEqual(500),
-              firstName: 'Peter',
-              id: expect.any(Number),
-              lastName: 'Lustig',
-              memo: 'Grundeinkommen',
               messagesCount: 0,
               state: 'PENDING',
             }),
@@ -2957,21 +2862,21 @@ describe('ContributionResolver', () => {
         })
       })
 
-      it('returns five pending creations with page size set to 5', async () => {
+      it('returns two pending creations with page size set to 2', async () => {
         const {
           data: { adminListAllContributions: contributionListObject },
         }: { data: { adminListAllContributions: ContributionListResult } } = await query({
           query: adminListAllContributions,
           variables: {
             currentPage: 1,
-            pageSize: 5,
+            pageSize: 2,
             order: Order.DESC,
             statusFilter: ['PENDING'],
           },
         })
-        expect(contributionListObject.contributionList).toHaveLength(5)
+        expect(contributionListObject.contributionList).toHaveLength(2)
         expect(contributionListObject).toMatchObject({
-          contributionCount: 6,
+          contributionCount: 4,
           contributionList: expect.arrayContaining([
             expect.objectContaining({
               amount: '400',
@@ -2979,33 +2884,6 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               lastName: 'Lustig',
               memo: 'Herzlich Willkommen bei Gradido!',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: '200',
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Aktives Grundeinkommen',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: '500',
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Grundeinkommen',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: '500',
-              firstName: 'Peter',
-              id: expect.any(Number),
-              lastName: 'Lustig',
-              memo: 'Grundeinkommen',
               messagesCount: 0,
               state: 'PENDING',
             }),
