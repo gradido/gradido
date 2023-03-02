@@ -2,8 +2,7 @@ import { defineConfig } from 'cypress'
 import { addCucumberPreprocessorPlugin } from '@badeball/cypress-cucumber-preprocessor'
 import browserify from '@badeball/cypress-cucumber-preprocessor/browserify'
 
-let activationLink:string
-let resetPasswordLink: string
+let emailLink: string
 
 async function setupNodeEvents(
   on: Cypress.PluginEvents,
@@ -19,17 +18,11 @@ async function setupNodeEvents(
   )
 
   on('task', {
-    setResetPasswordLink: (val) => {
-      return (resetPasswordLink = val)
+    setEmailLink: (link: string) => {
+      return (emailLink = link)
     },
-    getResetPasswordLink: () => {
-      return resetPasswordLink
-    },
-    setActivationLink: (val) => {
-      return (activationLink = val)
-    },
-    getActivationLink: () => {
-      return activationLink
+    getEmailLink: () => {
+      return emailLink
     },
   })
 
