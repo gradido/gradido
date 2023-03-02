@@ -56,6 +56,7 @@
       "openAmountForMonth": "For  <b>{monthAndYear}</b>, you can still submit <b>{creation}</b> GDD.",
       "yourContribution": "Your Contributions to the Common Good"
     },
+    "isEdited": "edited the contribution",
     "lastContribution": "Last Contributions",
     "noContributions": {
       "allContributions": "No contributions have been submitted yet.",
@@ -67,6 +68,7 @@
       "lastMonth": "The creation limit is reached for the selected month.",
       "thisMonth": "The creation limit has been reached for the current month."
     },
+    "oldContribution": "Previous version",
     "selectDate": "When was your contribution?",
     "submit": "Submit",
     "submitted": "The contribution was submitted.",
@@ -214,7 +216,6 @@
     "factor": "Factor",
     "formula": "Calculation formula",
     "funding": "To the funding contributions",
-    "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) received",
     "gdtKonto": "GDT Konto",
     "no-transactions": "You do not have Gradido Transform (GDT) yet.",
