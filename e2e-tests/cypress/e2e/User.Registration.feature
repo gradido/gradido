@@ -7,8 +7,8 @@ Feature: User registration
     When the user fills name and email "Regina" "Register" "regina@register.com"
     And the user agrees to the privacy policy
     And the user submits the registration form
-    Then the user receives an e-mail containing the activation link
-    When the user opens the activation link in the browser
+    Then the user receives an e-mail containing the "activation" link
+    When the user opens the "activation" link in the browser
     And the user enters the password "12345Aa_"
     And the user repeats the password "12345Aa_"
     And the user submits the password form
