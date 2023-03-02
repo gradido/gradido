@@ -25,7 +25,11 @@
           </div>
           <div class="mt-3 font-weight-bold">{{ $t('contributionText') }}</div>
           <div class="mb-3 text-break word-break">{{ memo }}</div>
-          <div v-if="state === 'IN_PROGRESS'" class="text-205">
+          <div
+            v-if="state === 'IN_PROGRESS'"
+            class="text-205 pointer hover-font-bold"
+            @click="visible = !visible"
+          >
             {{ $t('contribution.alert.answerQuestion') }}
           </div>
         </b-col>
