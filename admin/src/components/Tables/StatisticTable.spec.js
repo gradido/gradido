@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import StatisticTable from './StatisticTable.vue'
+import StatisticTable from './StatisticTable'
 
 const localVue = global.localVue
 

@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import OpenCreationsTable from './OpenCreationsTable.vue'
+import OpenCreationsTable from './OpenCreationsTable'
 
 const localVue = global.localVue
 

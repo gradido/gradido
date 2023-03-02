@@ -104,7 +104,7 @@
 <script>
 import Avatar from 'vue-avatar'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
-import ContributionMessagesList from '@/components/ContributionMessages/ContributionMessagesList.vue'
+import ContributionMessagesList from '@/components/ContributionMessages/ContributionMessagesList'
 import { listContributionMessages } from '../../graphql/queries.js'
 
 export default {

@@ -66,7 +66,7 @@
   </div>
 </template>
 <script>
-import DurationRow from '@/components/TransactionRows/DurationRow.vue'
+import DurationRow from '@/components/TransactionRows/DurationRow'
 
 export default {
   name: 'DecayInformation-StartBlock',
