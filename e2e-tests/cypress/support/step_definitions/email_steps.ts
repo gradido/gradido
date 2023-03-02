@@ -39,8 +39,7 @@ Then('the user receives an e-mail containing the {string} link', (linkName: stri
         .find(userEMailSite.emailSubject)
         .contains(emailSubject)
 
-      cy.get('.email-content')
-        .wait(2000)
+      cy.get('.email-content', { timeout: 2000})
         .find('.plain-text')
         .contains(linkPattern)
         .invoke('text')
