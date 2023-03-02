@@ -166,6 +166,15 @@ export const listContributions = gql`
         id
         amount
         memo
+        createdAt
+        contributionDate
+        confirmedAt
+        confirmedBy
+        deletedAt
+        state
+        messagesCount
+        deniedAt
+        deniedBy
       }
     }
   }
@@ -177,6 +186,40 @@ query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC, $statusF
   	contributionCount
     contributionList {
       id
+      firstName
+      lastName
+      amount
+      memo
+      createdAt
+      confirmedAt
+      confirmedBy
+      contributionDate
+      state
+      messagesCount
+      deniedAt
+      deniedBy
+    }
+	}
+}
+`
+// from admin interface
+
+export const adminListAllContributions = gql`
+  query (
+    $currentPage: Int = 1
+    $pageSize: Int = 25
+    $order: Order = DESC
+    $statusFilter: [ContributionStatus!]
+  ) {
+    adminListAllContributions(
+      currentPage: $currentPage
+      pageSize: $pageSize
+      order: $order
+      statusFilter: $statusFilter
+    ) {
+      contributionCount
+      contributionList {
+        id
         firstName
         lastName
         amount
@@ -189,24 +232,7 @@ query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC, $statusF
         messagesCount
         deniedAt
         deniedBy
-    }
-	}
-}
-`
-// from admin interface
-
-export const listUnconfirmedContributions = gql`
-  query {
-    listUnconfirmedContributions {
-      id
-      firstName
-      lastName
-      email
-      amount
-      memo
-      date
-      moderator
-      creation
+      }
     }
   }
 `
@@ -224,8 +250,8 @@ export const listTransactionLinksAdmin = gql`
       currentPage: $currentPage
       pageSize: $pageSize
     ) {
-      linkCount
-      linkList {
+      count
+      links {
         id
         amount
         holdAvailableAmount

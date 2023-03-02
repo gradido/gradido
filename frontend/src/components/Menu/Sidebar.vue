@@ -9,34 +9,34 @@
       <div class="mb-3 mt-3">
         <b-nav vertical class="w-200">
           <b-nav-item to="/overview" class="mb-3" active-class="activeRoute">
-            <b-icon icon="house" aria-hidden="true"></b-icon>
+            <b-img src="/img/svg/home.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.overview') }}</span>
           </b-nav-item>
           <b-nav-item to="/send" class="mb-3" active-class="activeRoute">
-            <b-icon icon="cash-stack" aria-hidden="true"></b-icon>
+            <b-img src="/img/svg/send.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.send') }}</span>
           </b-nav-item>
           <b-nav-item to="/transactions" class="mb-3" active-class="activeRoute">
-            <b-icon icon="layers" aria-hidden="true"></b-icon>
+            <b-img src="/img/svg/transaction.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.transactions') }}</span>
+          </b-nav-item>
+          <b-nav-item to="/community" class="mb-3" active-class="activeRoute">
+            <b-img src="/img/svg/community.svg" height="20" class="svg-icon" />
+            <span class="ml-2">{{ $t('creation') }}</span>
           </b-nav-item>
           <b-nav-item to="/gdt" class="mb-3" active-class="activeRoute">
             <b-icon icon="layers" aria-hidden="true"></b-icon>
-            <span class="ml-2">{{ $t('gdt.gdt') }}</span>
+            <span class="ml-2">{{ $t('GDT') }}</span>
           </b-nav-item>
-          <b-nav-item to="/community" class="" active-class="activeRoute">
-            <b-icon icon="people" aria-hidden="true"></b-icon>
-            <span class="ml-2">{{ $t('creation') }}</span>
-          </b-nav-item>
-        </b-nav>
-        <hr />
-        <b-nav vertical class="w-100">
-          <b-nav-item to="/information" class="mb-3" active-class="activeRoute">
-            <b-icon icon="info-circle" aria-hidden="true"></b-icon>
+          <b-nav-item to="/information" active-class="activeRoute">
+            <b-img src="/img/svg/info.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.info') }}</span>
           </b-nav-item>
+        </b-nav>
+        <hr class="m-3" />
+        <b-nav vertical class="w-100">
           <b-nav-item to="/settings" class="mb-3" active-class="activeRoute">
-            <b-icon icon="gear" aria-hidden="true"></b-icon>
+            <b-img src="/img/svg/settings.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.settings') }}</span>
           </b-nav-item>
           <b-nav-item
@@ -49,7 +49,7 @@
             <span class="ml-2">{{ $t('navigation.admin_area') }}</span>
           </b-nav-item>
           <b-nav-item class="font-weight-bold" @click="$emit('logout')" active-class="activeRoute">
-            <b-icon icon="power" aria-hidden="true" variant="danger"></b-icon>
+            <b-img src="/img/svg/logout.svg" height="20" class="svg-icon" />
             <span class="ml-2 text-205">{{ $t('navigation.logout') }}</span>
           </b-nav-item>
         </b-nav>
@@ -74,10 +74,17 @@ export default {
   color: rgb(2, 2, 1);
   border-left: 4px rgb(219, 129, 19) solid;
 }
+.svg-icon {
+  filter: brightness(1) invert(0);
+}
+
+.activeRoute .svg-icon {
+  filter: brightness(0) invert(0);
+}
+
 #component-sidebar {
   min-width: 200px;
 }
-
 @media screen and (min-width: 1025px) {
   #side-menu {
     max-width: 180px;
@@ -86,7 +93,7 @@ export default {
     min-width: 180px;
   }
 }
-
+/*
 @media screen and (min-width: 1075px) {
   #side-menu {
     max-width: 200px;
@@ -102,5 +109,5 @@ export default {
   #component-sidebar {
     max-width: 100%;
   }
-}
+} */
 </style>

@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import CreationTransactionList from './CreationTransactionList.vue'
+import CreationTransactionList from './CreationTransactionList'
 import { toastErrorSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
@@ -86,6 +86,17 @@ describe('CreationTransactionList', () => {
 
       it('toast error', () => {
         expect(toastErrorSpy).toBeCalledWith('OUCH!')
+      })
+    })
+
+    describe('watch currentPage', () => {
+      beforeEach(async () => {
+        jest.clearAllMocks()
+        await wrapper.setData({ currentPage: 2 })
+      })
+
+      it('returns the string in normal order if reversed property is not true', () => {
+        expect(wrapper.vm.currentPage).toBe(2)
       })
     })
   })

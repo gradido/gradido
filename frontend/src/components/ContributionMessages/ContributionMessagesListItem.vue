@@ -52,7 +52,7 @@
 
 <script>
 import Avatar from 'vue-avatar'
-import ParseMessage from '@/components/ContributionMessages/ParseMessage.vue'
+import ParseMessage from '@/components/ContributionMessages/ParseMessage'
 
 export default {
   name: 'ContributionMessagesListItem',

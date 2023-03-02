@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ContributionLink from './ContributionLink.vue'
+import ContributionLink from './ContributionLink'
 
 const localVue = global.localVue
 
@@ -42,14 +42,73 @@ describe('ContributionLink', () => {
       expect(wrapper.find('div.contribution-link').exists()).toBe(true)
     })
 
-    it('emits toggle::collapse new Contribution', async () => {
-      wrapper.vm.editContributionLinkData()
-      expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
+    it('has one contribution link in table', () => {
+      expect(wrapper.find('div.contribution-link-list').find('tbody').findAll('tr')).toHaveLength(1)
     })
 
-    it('emits toggle::collapse close Contribution-Form ', async () => {
-      wrapper.vm.closeContributionForm()
-      expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
+    it('has contribution form not visible by default', () => {
+      expect(wrapper.find('#newContribution').isVisible()).toBe(false)
+    })
+
+    describe('click on create new contribution', () => {
+      beforeEach(async () => {
+        await wrapper.find('[data-test="new-contribution-link-button"]').trigger('click')
+      })
+
+      it('shows the contribution form', () => {
+        expect(wrapper.find('#newContribution').isVisible()).toBe(true)
+      })
+
+      describe('click on create new contribution again', () => {
+        beforeEach(async () => {
+          await wrapper.find('[data-test="new-contribution-link-button"]').trigger('click')
+        })
+
+        it('closes the contribution form', () => {
+          expect(wrapper.find('#newContribution').isVisible()).toBe(false)
+        })
+      })
+
+      describe('click on close button', () => {
+        beforeEach(async () => {
+          await wrapper.find('button.btn-secondary').trigger('click')
+        })
+
+        it('closes the contribution form', () => {
+          expect(wrapper.find('#newContribution').isVisible()).toBe(false)
+        })
+      })
+    })
+
+    describe('edit contribution link', () => {
+      beforeEach(async () => {
+        await wrapper
+          .find('div.contribution-link-list')
+          .find('tbody')
+          .findAll('tr')
+          .at(0)
+          .findAll('button')
+          .at(1)
+          .trigger('click')
+      })
+
+      it('shows the contribution form', () => {
+        expect(wrapper.find('#newContribution').isVisible()).toBe(true)
+      })
+
+      it('does not show the new contribution button', () => {
+        expect(wrapper.find('[data-test="new-contribution-link-button"]').exists()).toBe(false)
+      })
+
+      describe('click on close button', () => {
+        beforeEach(async () => {
+          await wrapper.find('button.btn-secondary').trigger('click')
+        })
+
+        it('closes the contribution form', () => {
+          expect(wrapper.find('#newContribution').isVisible()).toBe(false)
+        })
+      })
     })
   })
 })

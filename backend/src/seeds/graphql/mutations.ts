@@ -68,6 +68,12 @@ export const createUser = gql`
   }
 `
 
+export const sendActivationEmail = gql`
+  mutation ($email: String!) {
+    sendActivationEmail(email: $email)
+  }
+`
+
 export const sendCoins = gql`
   mutation ($email: String!, $amount: Decimal!, $memo: String!) {
     sendCoins(email: $email, amount: $amount, memo: $memo)
@@ -117,16 +123,6 @@ export const deleteUser = gql`
 export const unDeleteUser = gql`
   mutation ($userId: Int!) {
     unDeleteUser(userId: $userId)
-  }
-`
-
-export const adminCreateContributions = gql`
-  mutation ($pendingCreations: [AdminCreateContributionArgs!]!) {
-    adminCreateContributions(pendingCreations: $pendingCreations) {
-      success
-      successfulContribution
-      failedContribution
-    }
   }
 `
 
@@ -263,6 +259,12 @@ export const updateContribution = gql`
 export const deleteContribution = gql`
   mutation ($id: Int!) {
     deleteContribution(id: $id)
+  }
+`
+
+export const denyContribution = gql`
+  mutation ($id: Int!) {
+    denyContribution(id: $id)
   }
 `
 

@@ -121,11 +121,7 @@
             </b-col>
             <!-- Right Side Mobil -->
             <b-col class="d-block d-lg-none">
-              <right-side
-                :transactions="transactions"
-                :transactionCount="transactionCount"
-                :transactionLinkCount="transactionLinkCount"
-              >
+              <right-side>
                 <template #transactions>
                   <last-transactions
                     :transactions="transactions"
@@ -135,7 +131,7 @@
                   />
                 </template>
                 <template #community>
-                  <contribution-info />
+                  <community-template />
                 </template>
                 <template #empty />
               </right-side>
@@ -162,11 +158,7 @@
         </b-col>
         <!-- RightSide Desktop -->
         <b-col cols="3" class="d-none d-lg-block">
-          <right-side
-            :transactions="transactions"
-            :transactionCount="transactionCount"
-            :transactionLinkCount="transactionLinkCount"
-          >
+          <right-side>
             <template #transactions>
               <last-transactions
                 :transactions="transactions"
@@ -175,10 +167,10 @@
                 @set-tunneled-email="setTunneledEmail"
               />
             </template>
-            <template #community>
-              <contribution-info />
-            </template>
             <template #empty />
+            <template #community>
+              <community-template />
+            </template>
           </right-side>
         </b-col>
       </b-row>
@@ -193,25 +185,25 @@
   </div>
 </template>
 <script>
-import ContentHeader from '@/layouts/templates/ContentHeader.vue'
-import Breadcrumb from '@/components/Breadcrumb/breadcrumb.vue'
-import RightSide from '@/layouts/templates/RightSide.vue'
-import SkeletonOverview from '@/components/skeleton/Overview.vue'
-import Navbar from '@/components/Menu/Navbar.vue'
-import Sidebar from '@/components/Menu/Sidebar.vue'
-import MobileSidebar from '@/components/MobileSidebar/MobileSidebar.vue'
-import SessionLogoutTimeout from '@/components/SessionLogoutTimeout.vue'
+import ContentHeader from '@/layouts/templates/ContentHeader'
+import CommunityTemplate from '@/layouts/templates/CommunityTemplate'
+import Breadcrumb from '@/components/Breadcrumb/breadcrumb'
+import RightSide from '@/layouts/templates/RightSide'
+import SkeletonOverview from '@/components/skeleton/Overview'
+import Navbar from '@/components/Menu/Navbar'
+import Sidebar from '@/components/Menu/Sidebar'
+import MobileSidebar from '@/components/MobileSidebar/MobileSidebar'
+import SessionLogoutTimeout from '@/components/SessionLogoutTimeout'
 import { transactionsQuery, communityStatistics } from '@/graphql/queries'
 import { logout } from '@/graphql/mutations'
-import ContentFooter from '@/components/ContentFooter.vue'
+import ContentFooter from '@/components/ContentFooter'
 import { FadeTransition } from 'vue2-transitions'
 import CONFIG from '@/config'
-import GddAmount from '@/components/Template/ContentHeader/GddAmount.vue'
-import GdtAmount from '@/components/Template/ContentHeader/GdtAmount.vue'
-import CommunityMember from '@/components/Template/ContentHeader/CommunityMember.vue'
-import NavCommunity from '@/components/Template/ContentHeader/NavCommunity.vue'
-import LastTransactions from '@/components/Template/RightSide/LastTransactions.vue'
-import ContributionInfo from '@/components/Template/RightSide/ContributionInfo.vue'
+import GddAmount from '@/components/Template/ContentHeader/GddAmount'
+import GdtAmount from '@/components/Template/ContentHeader/GdtAmount'
+import CommunityMember from '@/components/Template/ContentHeader/CommunityMember'
+import NavCommunity from '@/components/Template/ContentHeader/NavCommunity'
+import LastTransactions from '@/components/Template/RightSide/LastTransactions'
 
 export default {
   name: 'DashboardLayout',
@@ -231,7 +223,7 @@ export default {
     CommunityMember,
     NavCommunity,
     LastTransactions,
-    ContributionInfo,
+    CommunityTemplate,
   },
   data() {
     return {

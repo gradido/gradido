@@ -47,51 +47,53 @@ describe('TransactionLinkSummary', () => {
     beforeEach(() => {
       apolloQueryMock.mockResolvedValue({
         data: {
-          listTransactionLinks: [
-            {
-              amount: '75',
-              link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-              createdAt: '2022-03-16T14:22:40.000Z',
-              holdAvailableAmount: '5.13109484759482747111',
-              id: 86,
-              memo:
-                'Hokuspokus Haselnuss, Vogelbein und Fliegenfuß, damit der Trick gelingen muss!',
-              redeemedAt: null,
-              validUntil: '2022-03-30T14:22:40.000Z',
-            },
-            {
-              amount: '85',
-              link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-              createdAt: '2022-03-16T14:22:40.000Z',
-              holdAvailableAmount: '5.13109484759482747111',
-              id: 107,
-              memo: 'Mäusespeck und Katzenbuckel, Tricks und Tracks und Zauberkugel!',
-              redeemedAt: null,
-              validUntil: '2022-03-30T14:22:40.000Z',
-            },
-            {
-              amount: '95',
-              link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-              createdAt: '2022-03-16T14:22:40.000Z',
-              holdAvailableAmount: '5.13109484759482747111',
-              id: 92,
-              memo:
-                'Abrakadabra 1,2,3, die Sonne kommt herbei. Schweinepups und Spuckebrei, der Regen ist vorbei.',
-              redeemedAt: null,
-              validUntil: '2022-03-30T14:22:40.000Z',
-            },
-            {
-              amount: '150',
-              link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-              createdAt: '2022-03-16T14:22:40.000Z',
-              holdAvailableAmount: '5.13109484759482747111',
-              id: 16,
-              memo:
-                'Abrakadabra 1,2,3 was verschwunden ist komme herbei.Wieseldreck und Schweinemist, zaubern das ist keine List.',
-              redeemedAt: null,
-              validUntil: '2022-03-30T14:22:40.000Z',
-            },
-          ],
+          listTransactionLinks: {
+            links: [
+              {
+                amount: '75',
+                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
+                createdAt: '2022-03-16T14:22:40.000Z',
+                holdAvailableAmount: '5.13109484759482747111',
+                id: 86,
+                memo:
+                  'Hokuspokus Haselnuss, Vogelbein und Fliegenfuß, damit der Trick gelingen muss!',
+                redeemedAt: null,
+                validUntil: '2022-03-30T14:22:40.000Z',
+              },
+              {
+                amount: '85',
+                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
+                createdAt: '2022-03-16T14:22:40.000Z',
+                holdAvailableAmount: '5.13109484759482747111',
+                id: 107,
+                memo: 'Mäusespeck und Katzenbuckel, Tricks und Tracks und Zauberkugel!',
+                redeemedAt: null,
+                validUntil: '2022-03-30T14:22:40.000Z',
+              },
+              {
+                amount: '95',
+                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
+                createdAt: '2022-03-16T14:22:40.000Z',
+                holdAvailableAmount: '5.13109484759482747111',
+                id: 92,
+                memo:
+                  'Abrakadabra 1,2,3, die Sonne kommt herbei. Schweinepups und Spuckebrei, der Regen ist vorbei.',
+                redeemedAt: null,
+                validUntil: '2022-03-30T14:22:40.000Z',
+              },
+              {
+                amount: '150',
+                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
+                createdAt: '2022-03-16T14:22:40.000Z',
+                holdAvailableAmount: '5.13109484759482747111',
+                id: 16,
+                memo:
+                  'Abrakadabra 1,2,3 was verschwunden ist komme herbei.Wieseldreck und Schweinemist, zaubern das ist keine List.',
+                redeemedAt: null,
+                validUntil: '2022-03-30T14:22:40.000Z',
+              },
+            ],
+          },
         },
       })
 
@@ -166,51 +168,53 @@ describe('TransactionLinkSummary', () => {
           jest.clearAllMocks()
           apolloQueryMock.mockResolvedValue({
             data: {
-              listTransactionLinks: [
-                {
-                  amount: '76',
-                  link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                  createdAt: '2022-03-16T14:22:40.000Z',
-                  holdAvailableAmount: '5.13109484759482747111',
-                  id: 87,
-                  memo:
-                    'Hat jemand die Nummer von der Hexe aus Schneewittchen? Ich bräuchte mal ein paar Äpfel.',
-                  redeemedAt: null,
-                  validUntil: '2022-03-30T14:22:40.000Z',
-                },
-                {
-                  amount: '86',
-                  link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                  createdAt: '2022-03-16T14:22:40.000Z',
-                  holdAvailableAmount: '5.13109484759482747111',
-                  id: 108,
-                  memo:
-                    'Die Windfahn´ krächzt am Dach, Der Uhu im Geklüfte; Was wispert wie ein Ach Verhallend in die Lüfte?',
-                  redeemedAt: null,
-                  validUntil: '2022-03-30T14:22:40.000Z',
-                },
-                {
-                  amount: '96',
-                  link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                  createdAt: '2022-03-16T14:22:40.000Z',
-                  holdAvailableAmount: '5.13109484759482747111',
-                  id: 93,
-                  memo:
-                    'Verschlafen kräht der Hahn, Ein Blitz noch, und ein trüber, Umwölbter Tag bricht an – Walpurgisnacht vorüber!',
-                  redeemedAt: null,
-                  validUntil: '2022-03-30T14:22:40.000Z',
-                },
-                {
-                  amount: '150',
-                  link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                  createdAt: '2022-03-16T14:22:40.000Z',
-                  holdAvailableAmount: '5.13109484759482747111',
-                  id: 17,
-                  memo: 'Eene meene Flaschenschrank, fertig ist der Hexentrank!',
-                  redeemedAt: null,
-                  validUntil: '2022-03-30T14:22:40.000Z',
-                },
-              ],
+              listTransactionLinks: {
+                links: [
+                  {
+                    amount: '76',
+                    link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
+                    createdAt: '2022-03-16T14:22:40.000Z',
+                    holdAvailableAmount: '5.13109484759482747111',
+                    id: 87,
+                    memo:
+                      'Hat jemand die Nummer von der Hexe aus Schneewittchen? Ich bräuchte mal ein paar Äpfel.',
+                    redeemedAt: null,
+                    validUntil: '2022-03-30T14:22:40.000Z',
+                  },
+                  {
+                    amount: '86',
+                    link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
+                    createdAt: '2022-03-16T14:22:40.000Z',
+                    holdAvailableAmount: '5.13109484759482747111',
+                    id: 108,
+                    memo:
+                      'Die Windfahn´ krächzt am Dach, Der Uhu im Geklüfte; Was wispert wie ein Ach Verhallend in die Lüfte?',
+                    redeemedAt: null,
+                    validUntil: '2022-03-30T14:22:40.000Z',
+                  },
+                  {
+                    amount: '96',
+                    link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
+                    createdAt: '2022-03-16T14:22:40.000Z',
+                    holdAvailableAmount: '5.13109484759482747111',
+                    id: 93,
+                    memo:
+                      'Verschlafen kräht der Hahn, Ein Blitz noch, und ein trüber, Umwölbter Tag bricht an – Walpurgisnacht vorüber!',
+                    redeemedAt: null,
+                    validUntil: '2022-03-30T14:22:40.000Z',
+                  },
+                  {
+                    amount: '150',
+                    link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
+                    createdAt: '2022-03-16T14:22:40.000Z',
+                    holdAvailableAmount: '5.13109484759482747111',
+                    id: 17,
+                    memo: 'Eene meene Flaschenschrank, fertig ist der Hexentrank!',
+                    redeemedAt: null,
+                    validUntil: '2022-03-30T14:22:40.000Z',
+                  },
+                ],
+              },
             },
           })
           await wrapper.setData({

@@ -1,10 +1,11 @@
 import { mount } from '@vue/test-utils'
-import ContributionLinks from './ContributionLinks.vue'
+import ContributionLinks from './ContributionLinks'
 import { listContributionLinks } from '@/graphql/listContributionLinks.js'
+import { toastErrorSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
-const apolloQueryMock = jest.fn().mockResolvedValueOnce({
+const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
     listContributionLinks: {
       links: [
@@ -47,12 +48,31 @@ describe('ContributionLinks', () => {
       wrapper = Wrapper()
     })
 
-    it('calls listContributionLinks', () => {
-      expect(apolloQueryMock).toBeCalledWith(
-        expect.objectContaining({
-          query: listContributionLinks,
-        }),
-      )
+    describe('apollo returns', () => {
+      it('calls listContributionLinks', () => {
+        expect(apolloQueryMock).toBeCalledWith(
+          expect.objectContaining({
+            query: listContributionLinks,
+          }),
+        )
+      })
+    })
+
+    describe('query transaction with error', () => {
+      beforeEach(() => {
+        apolloQueryMock.mockRejectedValue({ message: 'OUCH!' })
+        wrapper = Wrapper()
+      })
+
+      it('calls the API', () => {
+        expect(apolloQueryMock).toBeCalled()
+      })
+
+      it('toast error', () => {
+        expect(toastErrorSpy).toBeCalledWith(
+          'listContributionLinks has no result, use default data',
+        )
+      })
     })
   })
 })

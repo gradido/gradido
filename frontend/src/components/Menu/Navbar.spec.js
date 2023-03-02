@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import VueRouter from 'vue-router'
-import AuthNavbar from './Navbar.vue'
+import AuthNavbar from './Navbar'
 
 const localVue = global.localVue
 localVue.use(VueRouter)

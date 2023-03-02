@@ -10,17 +10,19 @@ import {
   createContribution,
   updateContribution,
   deleteContribution,
+  denyContribution,
   confirmContribution,
   adminCreateContribution,
-  adminCreateContributions,
   adminUpdateContribution,
   adminDeleteContribution,
   login,
+  logout,
+  adminCreateContributionMessage,
 } from '@/seeds/graphql/mutations'
 import {
   listAllContributions,
   listContributions,
-  listUnconfirmedContributions,
+  adminListAllContributions,
 } from '@/seeds/graphql/queries'
 import { sendContributionConfirmedEmail } from '@/emails/sendEmailVariants'
 import {
@@ -42,6 +44,11 @@ import { User } from '@entity/User'
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { logger, i18n as localization } from '@test/testSetup'
 import { UserInputError } from 'apollo-server-express'
+import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import { ContributionListResult } from '@model/Contribution'
+import { ContributionStatus } from '@enum/ContributionStatus'
+import { Order } from '@enum/Order'
 
 // mock account activation email to avoid console spam
 jest.mock('@/emails/sendEmailVariants', () => {
@@ -63,7 +70,12 @@ let mutate: any, query: any, con: any
 let testEnv: any
 let creation: Contribution | void
 let admin: User
-let result: any
+let pendingContribution: any
+let inProgressContribution: any
+let contributionToConfirm: any
+let contributionToDeny: any
+let contributionToDelete: any
+let bibiCreatedContribution: Contribution
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger, localization)
@@ -81,34 +93,100 @@ afterAll(async () => {
 describe('ContributionResolver', () => {
   let bibi: any
 
+  beforeAll(async () => {
+    bibi = await userFactory(testEnv, bibiBloxberg)
+    admin = await userFactory(testEnv, peterLustig)
+    await userFactory(testEnv, raeuberHotzenplotz)
+    const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    bibiCreatedContribution = await creationFactory(testEnv, bibisCreation!)
+    await mutate({
+      mutation: login,
+      variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+    })
+    pendingContribution = await mutate({
+      mutation: createContribution,
+      variables: {
+        amount: 100.0,
+        memo: 'Test PENDING contribution',
+        creationDate: new Date().toString(),
+      },
+    })
+    inProgressContribution = await mutate({
+      mutation: createContribution,
+      variables: {
+        amount: 100.0,
+        memo: 'Test IN_PROGRESS contribution',
+        creationDate: new Date().toString(),
+      },
+    })
+    contributionToConfirm = await mutate({
+      mutation: createContribution,
+      variables: {
+        amount: 100.0,
+        memo: 'Test contribution to confirm',
+        creationDate: new Date().toString(),
+      },
+    })
+    contributionToDeny = await mutate({
+      mutation: createContribution,
+      variables: {
+        amount: 100.0,
+        memo: 'Test contribution to deny',
+        creationDate: new Date().toString(),
+      },
+    })
+    contributionToDelete = await mutate({
+      mutation: createContribution,
+      variables: {
+        amount: 100.0,
+        memo: 'Test contribution to delete',
+        creationDate: new Date().toString(),
+      },
+    })
+    await mutate({
+      mutation: login,
+      variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+    })
+    await mutate({
+      mutation: adminCreateContributionMessage,
+      variables: {
+        contributionId: inProgressContribution.data.createContribution.id,
+        message: 'Test message to IN_PROGRESS contribution',
+      },
+    })
+    await mutate({
+      mutation: logout,
+    })
+    resetToken()
+  })
+
+  afterAll(async () => {
+    await cleanDB()
+    resetToken()
+  })
+
   describe('createContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        await expect(
-          mutate({
-            mutation: createContribution,
-            variables: { amount: 100.0, memo: 'Test Contribution', creationDate: 'not-valid' },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          mutation: createContribution,
+          variables: { amount: 100.0, memo: 'Test Contribution', creationDate: 'not-valid' },
+        })
+
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
     describe('authenticated with valid user', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg)
-
-        bibi = await mutate({
+        await mutate({
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
       })
 
       afterAll(async () => {
-        await cleanDB()
         resetToken()
       })
 
@@ -116,256 +194,102 @@ describe('ContributionResolver', () => {
         it('throws error when memo length smaller than 5 chars', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: createContribution,
-              variables: {
-                amount: 100.0,
-                memo: 'Test',
-                creationDate: date.toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('memo text is too short (5 characters minimum)')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test',
+              creationDate: date.toString(),
+            },
+          })
+
+          expect(errorObjects).toEqual([new GraphQLError('Memo text is too short')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(`memo text is too short: memo.length=4 < 5`)
+          expect(logger.error).toBeCalledWith('Memo text is too short', 4)
         })
 
         it('throws error when memo length greater than 255 chars', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: createContribution,
-              variables: {
-                amount: 100.0,
-                memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
-                creationDate: date.toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('memo text is too long (255 characters maximum)')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
+              creationDate: date.toString(),
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Memo text is too long')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(`memo text is too long: memo.length=259 > 255`)
+          expect(logger.error).toBeCalledWith('Memo text is too long', 259)
         })
 
         it('throws error when creationDate not-valid', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: createContribution,
-              variables: {
-                amount: 100.0,
-                memo: 'Test env contribution',
-                creationDate: 'not-valid',
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [
-                new GraphQLError('No information for available creations for the given date'),
-              ],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test env contribution',
+              creationDate: 'not-valid',
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError('No information for available creations for the given date'),
+          ])
         })
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'No information for available creations with the given creationDate=',
-            'Invalid Date',
+            'No information for available creations for the given date',
+            expect.any(Date),
           )
         })
 
         it('throws error when creationDate 3 month behind', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: createContribution,
-              variables: {
-                amount: 100.0,
-                memo: 'Test env contribution',
-                creationDate: date.setMonth(date.getMonth() - 3).toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [
-                new GraphQLError('No information for available creations for the given date'),
-              ],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test env contribution',
+              creationDate: date.setMonth(date.getMonth() - 3).toString(),
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError('No information for available creations for the given date'),
+          ])
         })
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'No information for available creations with the given creationDate=',
-            'Invalid Date',
+            'No information for available creations for the given date',
+            expect.any(Date),
           )
         })
       })
 
       describe('valid input', () => {
-        let contribution: any
-
-        beforeAll(async () => {
-          contribution = await mutate({
-            mutation: createContribution,
-            variables: {
-              amount: 100.0,
-              memo: 'Test env contribution',
-              creationDate: new Date().toString(),
-            },
+        it('creates contribution', async () => {
+          expect(pendingContribution.data.createContribution).toMatchObject({
+            id: expect.any(Number),
+            amount: '100',
+            memo: 'Test PENDING contribution',
           })
         })
 
-        it('creates contribution', async () => {
-          expect(contribution).toEqual(
-            expect.objectContaining({
-              data: {
-                createContribution: {
-                  id: expect.any(Number),
-                  amount: '100',
-                  memo: 'Test env contribution',
-                },
-              },
-            }),
-          )
-        })
-
-        it('stores the create contribution event in the database', async () => {
+        it('stores the CONTRIBUTION_CREATE event in the database', async () => {
           await expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_CREATE,
               amount: expect.decimalEqual(100),
-              contributionId: contribution.data.createContribution.id,
-              userId: bibi.data.login.id,
-            }),
-          )
-        })
-      })
-    })
-  })
-
-  describe('listContributions', () => {
-    describe('unauthenticated', () => {
-      it('returns an error', async () => {
-        await expect(
-          query({
-            query: listContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              filterConfirmed: false,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
-      })
-    })
-
-    describe('authenticated', () => {
-      beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg)
-        await userFactory(testEnv, peterLustig)
-        const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        await creationFactory(testEnv, bibisCreation!)
-        await mutate({
-          mutation: login,
-          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-        })
-        await mutate({
-          mutation: createContribution,
-          variables: {
-            amount: 100.0,
-            memo: 'Test env contribution',
-            creationDate: new Date().toString(),
-          },
-        })
-      })
-
-      afterAll(async () => {
-        await cleanDB()
-        resetToken()
-      })
-
-      describe('filter confirmed is false', () => {
-        it('returns creations', async () => {
-          await expect(
-            query({
-              query: listContributions,
-              variables: {
-                currentPage: 1,
-                pageSize: 25,
-                order: 'DESC',
-                filterConfirmed: false,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                listContributions: {
-                  contributionCount: 2,
-                  contributionList: expect.arrayContaining([
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Herzlich Willkommen bei Gradido!',
-                      amount: '1000',
-                    }),
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Test env contribution',
-                      amount: '100',
-                    }),
-                  ]),
-                },
-              },
-            }),
-          )
-        })
-      })
-
-      describe('filter confirmed is true', () => {
-        it('returns only unconfirmed creations', async () => {
-          await expect(
-            query({
-              query: listContributions,
-              variables: {
-                currentPage: 1,
-                pageSize: 25,
-                order: 'DESC',
-                filterConfirmed: true,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                listContributions: {
-                  contributionCount: 1,
-                  contributionList: expect.arrayContaining([
-                    expect.objectContaining({
-                      id: expect.any(Number),
-                      memo: 'Test env contribution',
-                      amount: '100',
-                    }),
-                  ]),
-                },
-              },
+              contributionId: pendingContribution.data.createContribution.id,
+              userId: bibi.id,
             }),
           )
         })
@@ -376,45 +300,71 @@ describe('ContributionResolver', () => {
   describe('updateContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        await expect(
-          mutate({
-            mutation: updateContribution,
-            variables: {
-              contributionId: 1,
-              amount: 100.0,
-              memo: 'Test Contribution',
-              creationDate: 'not-valid',
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          mutation: updateContribution,
+          variables: {
+            contributionId: 1,
+            amount: 100.0,
+            memo: 'Test Contribution',
+            creationDate: 'not-valid',
+          },
+        })
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
     describe('authenticated', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, peterLustig)
-        await userFactory(testEnv, bibiBloxberg)
         await mutate({
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
-        result = await mutate({
-          mutation: createContribution,
-          variables: {
-            amount: 100.0,
-            memo: 'Test env contribution',
-            creationDate: new Date().toString(),
-          },
-        })
       })
 
       afterAll(async () => {
-        await cleanDB()
         resetToken()
+      })
+
+      describe('Memo length smaller than 5 chars', () => {
+        it('throws error', async () => {
+          jest.clearAllMocks()
+          const date = new Date()
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 100.0,
+              memo: 'Test',
+              creationDate: date.toString(),
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Memo text is too short')])
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('Memo text is too short', 4)
+        })
+      })
+
+      describe('Memo length greater than 255 chars', () => {
+        it('throws error', async () => {
+          jest.clearAllMocks()
+          const date = new Date()
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 100.0,
+              memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
+              creationDate: date.toString(),
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Memo text is too long')])
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('Memo text is too long', 259)
+        })
       })
 
       describe('wrong contribution id', () => {
@@ -432,65 +382,13 @@ describe('ContributionResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('No contribution found to given id.')],
+              errors: [new GraphQLError('Contribution not found')],
             }),
           )
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('No contribution found to given id')
-        })
-      })
-
-      describe('Memo length smaller than 5 chars', () => {
-        it('throws error', async () => {
-          jest.clearAllMocks()
-          const date = new Date()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: result.data.createContribution.id,
-                amount: 100.0,
-                memo: 'Test',
-                creationDate: date.toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('memo text is too short (5 characters minimum)')],
-            }),
-          )
-        })
-
-        it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('memo text is too short: memo.length=4 < 5')
-        })
-      })
-
-      describe('Memo length greater than 255 chars', () => {
-        it('throws error', async () => {
-          jest.clearAllMocks()
-          const date = new Date()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: result.data.createContribution.id,
-                amount: 100.0,
-                memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
-                creationDate: date.toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('memo text is too long (255 characters maximum)')],
-            }),
-          )
-        })
-
-        it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('memo text is too long: memo.length=259 > 255')
+          expect(logger.error).toBeCalledWith('Contribution not found', -1)
         })
       })
 
@@ -504,56 +402,107 @@ describe('ContributionResolver', () => {
 
         it('throws an error', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: result.data.createContribution.id,
-                amount: 10.0,
-                memo: 'Test env contribution',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [
-                new GraphQLError(
-                  'user of the pending contribution and send user does not correspond',
-                ),
-              ],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 10.0,
+              memo: 'Test env contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError('Can not update contribution of another user'),
+          ])
         })
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'user of the pending contribution and send user does not correspond',
+            'Can not update contribution of another user',
+            expect.any(Object),
+            expect.any(Number),
           )
         })
       })
 
       describe('admin tries to update a user contribution', () => {
+        beforeAll(async () => {
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
         it('throws an error', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: adminUpdateContribution,
-              variables: {
-                id: result.data.createContribution.id,
-                email: 'bibi@bloxberg.de',
-                amount: 10.0,
-                memo: 'Test env contribution',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('An admin is not allowed to update a user contribution.')],
-            }),
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: adminUpdateContribution,
+            variables: {
+              id: pendingContribution.data.createContribution.id,
+              email: 'bibi@bloxberg.de',
+              amount: 10.0,
+              memo: 'Test env contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError('An admin is not allowed to update an user contribution'),
+          ])
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            'An admin is not allowed to update an user contribution',
           )
         })
 
-        // TODO check that the error is logged (need to modify AdminResolver, avoid conflicts)
+        describe('contribution has wrong status', () => {
+          beforeAll(async () => {
+            const contribution = await Contribution.findOneOrFail({
+              id: pendingContribution.data.createContribution.id,
+            })
+            contribution.contributionStatus = ContributionStatus.DELETED
+            contribution.save()
+            await mutate({
+              mutation: login,
+              variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+            })
+          })
+
+          afterAll(async () => {
+            const contribution = await Contribution.findOneOrFail({
+              id: pendingContribution.data.createContribution.id,
+            })
+            contribution.contributionStatus = ContributionStatus.PENDING
+            contribution.save()
+          })
+
+          it('throws an error', async () => {
+            jest.clearAllMocks()
+            await expect(
+              mutate({
+                mutation: updateContribution,
+                variables: {
+                  contributionId: pendingContribution.data.createContribution.id,
+                  amount: 10.0,
+                  memo: 'Test env contribution',
+                  creationDate: new Date().toString(),
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('Contribution can not be updated due to status')],
+              }),
+            )
+          })
+
+          it('logs the error found', () => {
+            expect(logger.error).toBeCalledWith(
+              'Contribution can not be updated due to status',
+              ContributionStatus.DELETED,
+            )
+          })
+        })
       })
 
       describe('update too much so that the limit is exceeded', () => {
@@ -566,30 +515,27 @@ describe('ContributionResolver', () => {
 
         it('throws an error', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: result.data.createContribution.id,
-                amount: 1019.0,
-                memo: 'Test env contribution',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [
-                new GraphQLError(
-                  'The amount (1019 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
-                ),
-              ],
-            }),
-          )
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 1019.0,
+              memo: 'Test env contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError(
+              'The amount to be created exceeds the amount still available for this month',
+            ),
+          ])
         })
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'The amount (1019 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+            'The amount to be created exceeds the amount still available for this month',
+            new Decimal(1019),
+            new Decimal(600),
           )
         })
       })
@@ -598,58 +544,47 @@ describe('ContributionResolver', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: result.data.createContribution.id,
-                amount: 10.0,
-                memo: 'Test env contribution',
-                creationDate: date.setMonth(date.getMonth() - 3).toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Currently the month of the contribution cannot change.')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 10.0,
+              memo: 'Test env contribution',
+              creationDate: date.setMonth(date.getMonth() - 3).toString(),
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError('Month of contribution can not be changed'),
+          ])
         })
 
-        it.skip('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(
-            'No information for available creations with the given creationDate=',
-            'Invalid Date',
-          )
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('Month of contribution can not be changed')
         })
       })
 
       describe('valid input', () => {
         it('updates contribution', async () => {
-          await expect(
-            mutate({
-              mutation: updateContribution,
-              variables: {
-                contributionId: result.data.createContribution.id,
-                amount: 10.0,
-                memo: 'Test contribution',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                updateContribution: {
-                  id: result.data.createContribution.id,
-                  amount: '10',
-                  memo: 'Test contribution',
-                },
-              },
-            }),
-          )
+          const {
+            data: { updateContribution: contribution },
+          }: { data: { updateContribution: UnconfirmedContribution } } = await mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: pendingContribution.data.createContribution.id,
+              amount: 10.0,
+              memo: 'Test PENDING contribution update',
+              creationDate: new Date().toString(),
+            },
+          })
+          expect(contribution).toMatchObject({
+            id: pendingContribution.data.createContribution.id,
+            amount: '10',
+            memo: 'Test PENDING contribution update',
+          })
         })
 
-        it('stores the update contribution event in the database', async () => {
-          bibi = await query({
+        it('stores the CONTRIBUTION_UPDATE event in the database', async () => {
+          await query({
             query: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
@@ -658,8 +593,8 @@ describe('ContributionResolver', () => {
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_UPDATE,
               amount: expect.decimalEqual(10),
-              contributionId: result.data.createContribution.id,
-              userId: bibi.data.login.id,
+              contributionId: pendingContribution.data.createContribution.id,
+              userId: bibi.id,
             }),
           )
         })
@@ -667,550 +602,126 @@ describe('ContributionResolver', () => {
     })
   })
 
-  describe('listAllContribution', () => {
+  describe('denyContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: null,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+          mutation: denyContribution,
+          variables: {
+            id: 1,
+          },
+        })
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
-    describe('authenticated', () => {
+    describe('authenticated without admin rights', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg)
-        await userFactory(testEnv, peterLustig)
-        const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        await creationFactory(testEnv, bibisCreation!)
         await mutate({
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
-        await mutate({
-          mutation: createContribution,
-          variables: {
-            amount: 100.0,
-            memo: 'Test env contribution',
-            creationDate: new Date().toString(),
-          },
-        })
       })
 
-      afterAll(async () => {
-        await cleanDB()
+      afterAll(() => {
         resetToken()
       })
 
-      it('throws an error with "NOT_VALID" in statusFilter', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: ['NOT_VALID'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [
-              new UserInputError(
-                'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[0]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
-              ),
-            ],
-          }),
-        )
-      })
-
-      it('throws an error with a null in statusFilter', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: [null],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [
-              new UserInputError(
-                'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
-              ),
-            ],
-          }),
-        )
-      })
-
-      it('throws an error with null and "NOT_VALID" in statusFilter', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: [null, 'NOT_VALID'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [
-              new UserInputError(
-                'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
-              ),
-              new UserInputError(
-                'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[1]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
-              ),
-            ],
-          }),
-        )
-      })
-
-      it('returns all contributions without statusFilter', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 2,
-                contributionList: expect.arrayContaining([
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
-      })
-
-      it('returns all contributions for statusFilter = null', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: null,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 2,
-                contributionList: expect.arrayContaining([
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
-      })
-
-      it('returns all contributions for statusFilter = []', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: [],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 2,
-                contributionList: expect.arrayContaining([
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
-      })
-
-      it('returns all CONFIRMED contributions', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: ['CONFIRMED'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 1,
-                contributionList: expect.arrayContaining([
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
-      })
-
-      it('returns all PENDING contributions', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: ['PENDING'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 1,
-                contributionList: expect.arrayContaining([
-                  expect.not.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
-      })
-
-      it('returns all IN_PROGRESS Creation', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: ['IN_PROGRESS'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 0,
-                contributionList: expect.not.arrayContaining([
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
-      })
-
-      it('returns all DENIED Creation', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: ['DENIED'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 0,
-                contributionList: expect.not.arrayContaining([
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
-      })
-
-      it('returns all DELETED Creation', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: ['DELETED'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 0,
-                contributionList: expect.not.arrayContaining([
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
-      })
-
-      it('returns all CONFIRMED and PENDING Creation', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: ['CONFIRMED', 'PENDING'],
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: {
-                contributionCount: 2,
-                contributionList: expect.arrayContaining([
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'CONFIRMED',
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    state: 'PENDING',
-                    memo: 'Test env contribution',
-                    amount: '100',
-                  }),
-                ]),
-              },
-            },
-          }),
-        )
-      })
-    })
-  })
-
-  describe('deleteContribution', () => {
-    describe('unauthenticated', () => {
       it('returns an error', async () => {
-        await expect(
-          query({
-            query: deleteContribution,
-            variables: {
-              id: -1,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
+        const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+          mutation: denyContribution,
+          variables: {
+            id: 1,
+          },
+        })
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
       })
     })
 
-    describe('authenticated', () => {
-      let peter: any
+    describe('authenticated with admin rights', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg)
-        peter = await userFactory(testEnv, peterLustig)
-
         await mutate({
           mutation: login,
-          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-        })
-        result = await mutate({
-          mutation: createContribution,
-          variables: {
-            amount: 100.0,
-            memo: 'Test env contribution',
-            creationDate: new Date().toString(),
-          },
+          variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
         })
       })
 
       afterAll(async () => {
-        await cleanDB()
         resetToken()
       })
 
       describe('wrong contribution id', () => {
-        it('returns an error', async () => {
-          await expect(
-            mutate({
-              mutation: deleteContribution,
-              variables: {
-                id: -1,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Contribution not found for given id.')],
-            }),
-          )
+        it('throws an error', async () => {
+          jest.clearAllMocks()
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: -1,
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('Contribution not found for given id')
+          expect(logger.error).toBeCalledWith('Contribution not found', -1)
         })
       })
 
-      describe('other user sends a deleteContribution', () => {
-        it('returns an error', async () => {
+      describe('deny contribution that is already confirmed', () => {
+        let contribution: any
+        it('throws an error', async () => {
+          jest.clearAllMocks()
+          await mutate({
+            mutation: login,
+            variables: { email: 'raeuber@hotzenplotz.de', password: 'Aa12345_' },
+          })
+
+          contribution = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 166.0,
+              memo: 'Whatever contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+
           await mutate({
             mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
-          await expect(
-            mutate({
-              mutation: deleteContribution,
-              variables: {
-                id: result.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Can not delete contribution of another user')],
-            }),
-          )
+
+          await mutate({
+            mutation: confirmContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('Can not delete contribution of another user')
+          expect(logger.error).toBeCalledWith('Contribution not found', expect.any(Number))
         })
       })
 
-      describe('User deletes own contribution', () => {
-        it('deletes successfully', async () => {
-          await expect(
-            mutate({
-              mutation: deleteContribution,
-              variables: {
-                id: result.data.createContribution.id,
-              },
-            }),
-          ).resolves.toBeTruthy()
-        })
+      describe('deny contribution that is already deleted', () => {
+        let contribution: any
 
-        it('stores the delete contribution event in the database', async () => {
-          const contribution = await mutate({
+        it('throws an error', async () => {
+          jest.clearAllMocks()
+          await mutate({
+            mutation: login,
+            variables: { email: 'raeuber@hotzenplotz.de', password: 'Aa12345_' },
+          })
+
+          contribution = await mutate({
             mutation: createContribution,
             variables: {
               amount: 166.0,
@@ -1226,12 +737,210 @@ describe('ContributionResolver', () => {
             },
           })
 
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(`Contribution not found`, expect.any(Number))
+        })
+      })
+
+      describe('deny contribution that is already denied', () => {
+        let contribution: any
+
+        it('throws an error', async () => {
+          jest.clearAllMocks()
+          await mutate({
+            mutation: login,
+            variables: { email: 'raeuber@hotzenplotz.de', password: 'Aa12345_' },
+          })
+
+          contribution = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 166.0,
+              memo: 'Whatever contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+
+          await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+
+          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(`Contribution not found`, expect.any(Number))
+        })
+      })
+
+      describe('valid input', () => {
+        it('deny contribution', async () => {
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+          const {
+            data: { denyContribution: isDenied },
+          }: { data: { denyContribution: boolean } } = await mutate({
+            mutation: denyContribution,
+            variables: {
+              id: contributionToDeny.data.createContribution.id,
+            },
+          })
+          expect(isDenied).toBe(true)
+        })
+
+        it('stores the ADMIN_CONTRIBUTION_DENY event in the database', async () => {
+          await expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.ADMIN_CONTRIBUTION_DENY,
+              userId: bibi.id,
+              xUserId: admin.id,
+              contributionId: contributionToDeny.data.createContribution.id,
+              amount: expect.decimalEqual(100),
+            }),
+          )
+        })
+      })
+    })
+  })
+
+  describe('deleteContribution', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          query: deleteContribution,
+          variables: {
+            id: -1,
+          },
+        })
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(async () => {
+        resetToken()
+      })
+
+      describe('wrong contribution id', () => {
+        it('returns an error', async () => {
+          jest.clearAllMocks()
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: deleteContribution,
+            variables: {
+              id: -1,
+            },
+          })
+          expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('Contribution not found', expect.any(Number))
+        })
+      })
+
+      describe('other user sends a deleteContribution', () => {
+        beforeAll(async () => {
+          jest.clearAllMocks()
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(() => {
+          resetToken()
+        })
+
+        it('returns an error', async () => {
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: deleteContribution,
+            variables: {
+              id: contributionToDelete.data.createContribution.id,
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError('Can not delete contribution of another user'),
+          ])
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            'Can not delete contribution of another user',
+            expect.any(Contribution),
+            expect.any(Number),
+          )
+        })
+      })
+
+      describe('User deletes own contribution', () => {
+        beforeAll(async () => {
+          jest.clearAllMocks()
+          await mutate({
+            mutation: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(() => {
+          resetToken()
+        })
+
+        it('deletes successfully', async () => {
+          const {
+            data: { deleteContribution: isDenied },
+          }: { data: { deleteContribution: boolean } } = await mutate({
+            mutation: deleteContribution,
+            variables: {
+              id: contributionToDelete.data.createContribution.id,
+            },
+          })
+          expect(isDenied).toBe(true)
+        })
+
+        it('stores the CONTRIBUTION_DELETE event in the database', async () => {
           await expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_DELETE,
-              contributionId: contribution.data.createContribution.id,
-              amount: expect.decimalEqual(166),
-              userId: peter.id,
+              contributionId: contributionToDelete.data.createContribution.id,
+              amount: expect.decimalEqual(100),
+              userId: bibi.id,
             }),
           )
         })
@@ -1247,30 +956,681 @@ describe('ContributionResolver', () => {
           await mutate({
             mutation: confirmContribution,
             variables: {
-              id: result.data.createContribution.id,
+              id: contributionToConfirm.data.createContribution.id,
             },
           })
           await mutate({
             mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
-          await expect(
-            mutate({
-              mutation: deleteContribution,
-              variables: {
-                id: result.data.createContribution.id,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('A confirmed contribution can not be deleted')],
-            }),
-          )
+          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+            mutation: deleteContribution,
+            variables: {
+              id: contributionToConfirm.data.createContribution.id,
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError('A confirmed contribution can not be deleted'),
+          ])
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('A confirmed contribution can not be deleted')
+          expect(logger.error).toBeCalledWith(
+            'A confirmed contribution can not be deleted',
+            expect.objectContaining({ contributionStatus: 'CONFIRMED' }),
+          )
         })
+      })
+    })
+  })
+
+  describe('listContributions', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        const { errors: errorObjects }: { errors: [GraphQLError] } = await query({
+          query: listContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            filterConfirmed: false,
+          },
+        })
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(async () => {
+        resetToken()
+      })
+
+      describe('filter confirmed is false', () => {
+        it('returns creations', async () => {
+          const {
+            data: { listContributions: contributionListResult },
+          }: { data: { listContributions: ContributionListResult } } = await query({
+            query: listContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              filterConfirmed: false,
+            },
+          })
+          expect(contributionListResult).toMatchObject({
+            contributionCount: 6,
+            contributionList: expect.arrayContaining([
+              expect.objectContaining({
+                amount: '100',
+                id: contributionToConfirm.data.createContribution.id,
+                memo: 'Test contribution to confirm',
+              }),
+              expect.objectContaining({
+                id: pendingContribution.data.createContribution.id,
+                memo: 'Test PENDING contribution update',
+                amount: '10',
+              }),
+              expect.objectContaining({
+                id: contributionToDeny.data.createContribution.id,
+                memo: 'Test contribution to deny',
+                amount: '100',
+              }),
+              expect.objectContaining({
+                id: contributionToDelete.data.createContribution.id,
+                memo: 'Test contribution to delete',
+                amount: '100',
+              }),
+              expect.objectContaining({
+                id: inProgressContribution.data.createContribution.id,
+                memo: 'Test IN_PROGRESS contribution',
+                amount: '100',
+              }),
+              expect.objectContaining({
+                id: bibiCreatedContribution.id,
+                memo: 'Herzlich Willkommen bei Gradido!',
+                amount: '1000',
+              }),
+            ]),
+          })
+          expect(contributionListResult.contributionList).toHaveLength(6)
+        })
+      })
+
+      describe('filter confirmed is true', () => {
+        it('returns only unconfirmed creations', async () => {
+          const {
+            data: { listContributions: contributionListResult },
+          }: { data: { listContributions: ContributionListResult } } = await query({
+            query: listContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              filterConfirmed: true,
+            },
+          })
+          expect(contributionListResult).toMatchObject({
+            contributionCount: 4,
+            contributionList: expect.arrayContaining([
+              expect.not.objectContaining({
+                state: 'CONFIRMED',
+              }),
+              expect.objectContaining({
+                id: pendingContribution.data.createContribution.id,
+                state: 'PENDING',
+                memo: 'Test PENDING contribution update',
+                amount: '10',
+              }),
+              expect.objectContaining({
+                id: contributionToDeny.data.createContribution.id,
+                state: 'DENIED',
+                memo: 'Test contribution to deny',
+                amount: '100',
+              }),
+              expect.objectContaining({
+                id: contributionToDelete.data.createContribution.id,
+                state: 'DELETED',
+                memo: 'Test contribution to delete',
+                amount: '100',
+              }),
+              expect.objectContaining({
+                id: inProgressContribution.data.createContribution.id,
+                state: 'IN_PROGRESS',
+                memo: 'Test IN_PROGRESS contribution',
+                amount: '100',
+              }),
+            ]),
+          })
+          expect(contributionListResult.contributionList).toHaveLength(4)
+        })
+      })
+    })
+  })
+
+  describe('listAllContribution', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        const { errors: errorObjects }: { errors: [GraphQLError] } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: null,
+          },
+        })
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(async () => {
+        resetToken()
+      })
+
+      it('throws an error with "NOT_VALID" in statusFilter', async () => {
+        const { errors: errorObjects }: { errors: [GraphQLError | UserInputError] } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: ['NOT_VALID'],
+          },
+        })
+        expect(errorObjects).toEqual([
+          new UserInputError(
+            'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[0]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
+          ),
+        ])
+      })
+
+      it('throws an error with a null in statusFilter', async () => {
+        const { errors: errorObjects }: { errors: [Error] } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: [null],
+          },
+        })
+        expect(errorObjects).toEqual([
+          new UserInputError(
+            'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
+          ),
+        ])
+      })
+
+      it('throws an error with null and "NOT_VALID" in statusFilter', async () => {
+        const { errors: errorObjects }: { errors: [Error] } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: [null, 'NOT_VALID'],
+          },
+        })
+        expect(errorObjects).toEqual([
+          new UserInputError(
+            'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
+          ),
+          new UserInputError(
+            'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[1]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
+          ),
+        ])
+      })
+
+      it('returns all contributions without statusFilter', async () => {
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 7,
+          contributionList: expect.arrayContaining([
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: '100',
+              state: 'CONFIRMED',
+              id: contributionToConfirm.data.createContribution.id,
+              memo: 'Test contribution to confirm',
+            }),
+            expect.objectContaining({
+              id: pendingContribution.data.createContribution.id,
+              state: 'PENDING',
+              memo: 'Test PENDING contribution update',
+              amount: '10',
+            }),
+            expect.objectContaining({
+              id: contributionToDeny.data.createContribution.id,
+              state: 'DENIED',
+              memo: 'Test contribution to deny',
+              amount: '100',
+            }),
+            expect.objectContaining({
+              id: inProgressContribution.data.createContribution.id,
+              state: 'IN_PROGRESS',
+              memo: 'Test IN_PROGRESS contribution',
+              amount: '100',
+            }),
+            expect.objectContaining({
+              id: bibiCreatedContribution.id,
+              state: 'CONFIRMED',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              amount: '1000',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'CONFIRMED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'DENIED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(7)
+      })
+
+      it('returns all contributions for statusFilter = null', async () => {
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: null,
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 7,
+          contributionList: expect.arrayContaining([
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: '100',
+              state: 'CONFIRMED',
+              id: contributionToConfirm.data.createContribution.id,
+              memo: 'Test contribution to confirm',
+            }),
+            expect.objectContaining({
+              id: pendingContribution.data.createContribution.id,
+              state: 'PENDING',
+              memo: 'Test PENDING contribution update',
+              amount: '10',
+            }),
+            expect.objectContaining({
+              id: contributionToDeny.data.createContribution.id,
+              state: 'DENIED',
+              memo: 'Test contribution to deny',
+              amount: '100',
+            }),
+            expect.objectContaining({
+              id: inProgressContribution.data.createContribution.id,
+              state: 'IN_PROGRESS',
+              memo: 'Test IN_PROGRESS contribution',
+              amount: '100',
+            }),
+            expect.objectContaining({
+              id: bibiCreatedContribution.id,
+              state: 'CONFIRMED',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              amount: '1000',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'CONFIRMED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'DENIED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(7)
+      })
+
+      it('returns all contributions for statusFilter = []', async () => {
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: [],
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 7,
+          contributionList: expect.arrayContaining([
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: '100',
+              state: 'CONFIRMED',
+              id: contributionToConfirm.data.createContribution.id,
+              memo: 'Test contribution to confirm',
+            }),
+            expect.objectContaining({
+              id: pendingContribution.data.createContribution.id,
+              state: 'PENDING',
+              memo: 'Test PENDING contribution update',
+              amount: '10',
+            }),
+            expect.objectContaining({
+              id: contributionToDeny.data.createContribution.id,
+              state: 'DENIED',
+              memo: 'Test contribution to deny',
+              amount: '100',
+            }),
+            expect.objectContaining({
+              id: inProgressContribution.data.createContribution.id,
+              state: 'IN_PROGRESS',
+              memo: 'Test IN_PROGRESS contribution',
+              amount: '100',
+            }),
+            expect.objectContaining({
+              id: bibiCreatedContribution.id,
+              state: 'CONFIRMED',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              amount: '1000',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'CONFIRMED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'DENIED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(7)
+      })
+
+      it('returns all CONFIRMED contributions', async () => {
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: ['CONFIRMED'],
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 3,
+          contributionList: expect.arrayContaining([
+            expect.objectContaining({
+              amount: '100',
+              state: 'CONFIRMED',
+              id: contributionToConfirm.data.createContribution.id,
+              memo: 'Test contribution to confirm',
+            }),
+            expect.objectContaining({
+              id: bibiCreatedContribution.id,
+              state: 'CONFIRMED',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              amount: '1000',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'CONFIRMED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+            expect.not.objectContaining({
+              state: 'PENDING',
+            }),
+            expect.not.objectContaining({
+              state: 'DENIED',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.not.objectContaining({
+              state: 'IN_PROGRESS',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(3)
+      })
+
+      it('returns all PENDING contributions', async () => {
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: ['PENDING'],
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 1,
+          contributionList: expect.arrayContaining([
+            expect.not.objectContaining({
+              state: 'CONFIRMED',
+            }),
+            expect.not.objectContaining({
+              state: 'DENIED',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.not.objectContaining({
+              state: 'IN_PROGRESS',
+            }),
+            expect.objectContaining({
+              id: pendingContribution.data.createContribution.id,
+              state: 'PENDING',
+              memo: 'Test PENDING contribution update',
+              amount: '10',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(1)
+      })
+
+      it('returns all IN_PROGRESS Creation', async () => {
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: ['IN_PROGRESS'],
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 1,
+          contributionList: expect.arrayContaining([
+            expect.not.objectContaining({
+              state: 'CONFIRMED',
+            }),
+            expect.not.objectContaining({
+              state: 'PENDING',
+            }),
+            expect.not.objectContaining({
+              state: 'DENIED',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              id: inProgressContribution.data.createContribution.id,
+              state: 'IN_PROGRESS',
+              memo: 'Test IN_PROGRESS contribution',
+              amount: '100',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(1)
+      })
+
+      it('returns all DENIED Creation', async () => {
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: ['DENIED'],
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 2,
+          contributionList: expect.arrayContaining([
+            expect.objectContaining({
+              id: contributionToDeny.data.createContribution.id,
+              state: 'DENIED',
+              memo: 'Test contribution to deny',
+              amount: '100',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'DENIED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+            expect.not.objectContaining({
+              state: 'CONFIRMED',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.not.objectContaining({
+              state: 'IN_PROGRESS',
+            }),
+            expect.not.objectContaining({
+              state: 'PENDING',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(2)
+      })
+
+      it('does not return any DELETED Creation', async () => {
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: ['DELETED'],
+          },
+        })
+        expect(contributionListObject).toEqual({
+          contributionCount: 0,
+          contributionList: [],
+        })
+        expect(contributionListObject.contributionList).toHaveLength(0)
+      })
+
+      it('returns all CONFIRMED and PENDING Creation', async () => {
+        const {
+          data: { listAllContributions: contributionListObject },
+        }: { data: { listAllContributions: ContributionListResult } } = await query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            statusFilter: ['CONFIRMED', 'PENDING'],
+          },
+        })
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 4,
+          contributionList: expect.arrayContaining([
+            expect.objectContaining({
+              amount: '100',
+              state: 'CONFIRMED',
+              id: contributionToConfirm.data.createContribution.id,
+              memo: 'Test contribution to confirm',
+            }),
+            expect.objectContaining({
+              id: pendingContribution.data.createContribution.id,
+              state: 'PENDING',
+              memo: 'Test PENDING contribution update',
+              amount: '10',
+            }),
+            expect.objectContaining({
+              id: bibiCreatedContribution.id,
+              state: 'CONFIRMED',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              amount: '1000',
+            }),
+            expect.objectContaining({
+              id: expect.any(Number),
+              state: 'CONFIRMED',
+              memo: 'Whatever contribution',
+              amount: '166',
+            }),
+            expect.not.objectContaining({
+              state: 'DENIED',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.not.objectContaining({
+              state: 'IN_PROGRESS',
+            }),
+          ]),
+        })
+        expect(contributionListObject.contributionList).toHaveLength(4)
       })
     })
   })
@@ -1294,21 +1654,6 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe('adminCreateContributions', () => {
-        it('returns an error', async () => {
-          await expect(
-            mutate({
-              mutation: adminCreateContributions,
-              variables: { pendingCreations: [variables] },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('401 Unauthorized')],
-            }),
-          )
-        })
-      })
-
       describe('adminUpdateContribution', () => {
         it('returns an error', async () => {
           await expect(
@@ -1321,20 +1666,6 @@ describe('ContributionResolver', () => {
                 memo: 'Danke Bibi!',
                 creationDate: contributionDateFormatter(new Date()),
               },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('401 Unauthorized')],
-            }),
-          )
-        })
-      })
-
-      describe('listUnconfirmedContributions', () => {
-        it('returns an error', async () => {
-          await expect(
-            query({
-              query: listUnconfirmedContributions,
             }),
           ).resolves.toEqual(
             expect.objectContaining({
@@ -1382,7 +1713,6 @@ describe('ContributionResolver', () => {
     describe('authenticated', () => {
       describe('without admin rights', () => {
         beforeAll(async () => {
-          await userFactory(testEnv, bibiBloxberg)
           await mutate({
             mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -1390,28 +1720,12 @@ describe('ContributionResolver', () => {
         })
 
         afterAll(async () => {
-          await cleanDB()
           resetToken()
         })
 
         describe('adminCreateContribution', () => {
           it('returns an error', async () => {
             await expect(mutate({ mutation: adminCreateContribution, variables })).resolves.toEqual(
-              expect.objectContaining({
-                errors: [new GraphQLError('401 Unauthorized')],
-              }),
-            )
-          })
-        })
-
-        describe('adminCreateContributions', () => {
-          it('returns an error', async () => {
-            await expect(
-              mutate({
-                mutation: adminCreateContributions,
-                variables: { pendingCreations: [variables] },
-              }),
-            ).resolves.toEqual(
               expect.objectContaining({
                 errors: [new GraphQLError('401 Unauthorized')],
               }),
@@ -1431,20 +1745,6 @@ describe('ContributionResolver', () => {
                   memo: 'Danke Bibi!',
                   creationDate: contributionDateFormatter(new Date()),
                 },
-              }),
-            ).resolves.toEqual(
-              expect.objectContaining({
-                errors: [new GraphQLError('401 Unauthorized')],
-              }),
-            )
-          })
-        })
-
-        describe('listUnconfirmedContributions', () => {
-          it('returns an error', async () => {
-            await expect(
-              query({
-                query: listUnconfirmedContributions,
               }),
             ).resolves.toEqual(
               expect.objectContaining({
@@ -1491,7 +1791,6 @@ describe('ContributionResolver', () => {
 
       describe('with admin rights', () => {
         beforeAll(async () => {
-          admin = await userFactory(testEnv, peterLustig)
           await mutate({
             mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
@@ -1499,7 +1798,6 @@ describe('ContributionResolver', () => {
         })
 
         afterAll(async () => {
-          await cleanDB()
           resetToken()
         })
 
@@ -1521,6 +1819,7 @@ describe('ContributionResolver', () => {
             creation = await Contribution.findOneOrFail({
               where: {
                 memo: 'Herzlich Willkommen bei Gradido!',
+                amount: 400,
               },
             })
           })
@@ -1528,6 +1827,7 @@ describe('ContributionResolver', () => {
           describe('user to create for does not exist', () => {
             it('throws an error', async () => {
               jest.clearAllMocks()
+              variables.email = 'some@fake.email'
               variables.creationDate = contributionDateFormatter(
                 new Date(now.getFullYear(), now.getMonth() - 1, 1),
               )
@@ -1535,15 +1835,13 @@ describe('ContributionResolver', () => {
                 mutate({ mutation: adminCreateContribution, variables }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Could not find user with email: bibi@bloxberg.de')],
+                  errors: [new GraphQLError('Could not find user')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith(
-                'Could not find user with email: bibi@bloxberg.de',
-              )
+              expect(logger.error).toBeCalledWith('Could not find user', 'some@fake.email')
             })
           })
 
@@ -1563,7 +1861,7 @@ describe('ContributionResolver', () => {
               ).resolves.toEqual(
                 expect.objectContaining({
                   errors: [
-                    new GraphQLError('This user was deleted. Cannot create a contribution.'),
+                    new GraphQLError('Cannot create contribution since the user was deleted'),
                   ],
                 }),
               )
@@ -1571,7 +1869,12 @@ describe('ContributionResolver', () => {
 
             it('logs the error thrown', () => {
               expect(logger.error).toBeCalledWith(
-                'This user was deleted. Cannot create a contribution.',
+                'Cannot create contribution since the user was deleted',
+                expect.objectContaining({
+                  user: expect.objectContaining({
+                    deletedAt: new Date('2018-03-14T09:17:52.000Z'),
+                  }),
+                }),
               )
             })
           })
@@ -1592,7 +1895,9 @@ describe('ContributionResolver', () => {
               ).resolves.toEqual(
                 expect.objectContaining({
                   errors: [
-                    new GraphQLError('Contribution could not be saved, Email is not activated'),
+                    new GraphQLError(
+                      'Cannot create contribution since the users email is not activated',
+                    ),
                   ],
                 }),
               )
@@ -1600,14 +1905,14 @@ describe('ContributionResolver', () => {
 
             it('logs the error thrown', () => {
               expect(logger.error).toBeCalledWith(
-                'Contribution could not be saved, Email is not activated',
+                'Cannot create contribution since the users email is not activated',
+                expect.objectContaining({ emailChecked: false }),
               )
             })
           })
 
           describe('valid user to create for', () => {
             beforeAll(async () => {
-              await userFactory(testEnv, bibiBloxberg)
               variables.email = 'bibi@bloxberg.de'
               variables.creationDate = 'invalid-date'
             })
@@ -1619,13 +1924,13 @@ describe('ContributionResolver', () => {
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [new GraphQLError(`invalid Date for creationDate=invalid-date`)],
+                    errors: [new GraphQLError('CreationDate is invalid')],
                   }),
                 )
               })
 
               it('logs the error thrown', () => {
-                expect(logger.error).toBeCalledWith(`invalid Date for creationDate=invalid-date`)
+                expect(logger.error).toBeCalledWith('CreationDate is invalid', 'invalid-date')
               })
             })
 
@@ -1648,8 +1953,8 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'No information for available creations with the given creationDate=',
-                  new Date(variables.creationDate).toString(),
+                  'No information for available creations for the given date',
+                  new Date(variables.creationDate),
                 )
               })
             })
@@ -1673,8 +1978,8 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'No information for available creations with the given creationDate=',
-                  new Date(variables.creationDate).toString(),
+                  'No information for available creations for the given date',
+                  new Date(variables.creationDate),
                 )
               })
             })
@@ -1689,7 +1994,7 @@ describe('ContributionResolver', () => {
                   expect.objectContaining({
                     errors: [
                       new GraphQLError(
-                        'The amount (2000 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+                        'The amount to be created exceeds the amount still available for this month',
                       ),
                     ],
                   }),
@@ -1698,7 +2003,9 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'The amount (2000 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+                  'The amount to be created exceeds the amount still available for this month',
+                  new Decimal(2000),
+                  new Decimal(790),
                 )
               })
             })
@@ -1711,17 +2018,18 @@ describe('ContributionResolver', () => {
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      adminCreateContribution: [1000, 1000, 800],
+                      adminCreateContribution: [1000, 1000, 590],
                     },
                   }),
                 )
               })
 
-              it('stores the admin create contribution event in the database', async () => {
+              it('stores the ADMIN_CONTRIBUTION_CREATE event in the database', async () => {
                 await expect(EventProtocol.find()).resolves.toContainEqual(
                   expect.objectContaining({
                     type: EventProtocolType.ADMIN_CONTRIBUTION_CREATE,
                     userId: admin.id,
+                    amount: expect.decimalEqual(200),
                   }),
                 )
               })
@@ -1729,6 +2037,7 @@ describe('ContributionResolver', () => {
 
             describe('second creation surpasses the available amount ', () => {
               it('returns an array of the open creations for the last three months', async () => {
+                jest.clearAllMocks()
                 variables.amount = new Decimal(1000)
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
@@ -1736,7 +2045,7 @@ describe('ContributionResolver', () => {
                   expect.objectContaining({
                     errors: [
                       new GraphQLError(
-                        'The amount (1000 GDD) to be created exceeds the amount (800 GDD) still available for this month.',
+                        'The amount to be created exceeds the amount still available for this month',
                       ),
                     ],
                   }),
@@ -1745,63 +2054,19 @@ describe('ContributionResolver', () => {
 
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
-                  'The amount (1000 GDD) to be created exceeds the amount (800 GDD) still available for this month.',
+                  'The amount to be created exceeds the amount still available for this month',
+                  new Decimal(1000),
+                  new Decimal(590),
                 )
               })
             })
           })
         })
 
-        describe('adminCreateContributions', () => {
+        describe('adminUpdateContribution', () => {
           // at this point we have this data in DB:
           // bibi@bloxberg.de: [1000, 1000, 800]
           // peter@lustig.de: [1000, 600, 1000]
-          // stephen@hawking.uk: [1000, 1000, 1000] - deleted
-          // garrick@ollivander.com: [1000, 1000, 1000] - not activated
-
-          const massCreationVariables = [
-            'bibi@bloxberg.de',
-            'peter@lustig.de',
-            'stephen@hawking.uk',
-            'garrick@ollivander.com',
-            'bob@baumeister.de',
-          ].map((email) => {
-            return {
-              email,
-              amount: new Decimal(500),
-              memo: 'Grundeinkommen',
-              creationDate: contributionDateFormatter(new Date()),
-            }
-          })
-
-          it('returns success, two successful creation and three failed creations', async () => {
-            await expect(
-              mutate({
-                mutation: adminCreateContributions,
-                variables: { pendingCreations: massCreationVariables },
-              }),
-            ).resolves.toEqual(
-              expect.objectContaining({
-                data: {
-                  adminCreateContributions: {
-                    success: true,
-                    successfulContribution: ['bibi@bloxberg.de', 'peter@lustig.de'],
-                    failedContribution: [
-                      'stephen@hawking.uk',
-                      'garrick@ollivander.com',
-                      'bob@baumeister.de',
-                    ],
-                  },
-                },
-              }),
-            )
-          })
-        })
-
-        describe('adminUpdateContribution', () => {
-          // at this I expect to have this data in DB:
-          // bibi@bloxberg.de: [1000, 1000, 300]
-          // peter@lustig.de: [1000, 600, 500]
           // stephen@hawking.uk: [1000, 1000, 1000] - deleted
           // garrick@ollivander.com: [1000, 1000, 1000] - not activated
 
@@ -1821,17 +2086,13 @@ describe('ContributionResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [
-                    new GraphQLError('Could not find UserContact with email: bob@baumeister.de'),
-                  ],
+                  errors: [new GraphQLError('Could not find User')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith(
-                'Could not find UserContact with email: bob@baumeister.de',
-              )
+              expect(logger.error).toBeCalledWith('Could not find User', 'bob@baumeister.de')
             })
           })
 
@@ -1851,13 +2112,13 @@ describe('ContributionResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('User was deleted (stephen@hawking.uk)')],
+                  errors: [new GraphQLError('User was deleted')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('User was deleted (stephen@hawking.uk)')
+              expect(logger.error).toBeCalledWith('User was deleted', 'stephen@hawking.uk')
             })
           })
 
@@ -1877,13 +2138,13 @@ describe('ContributionResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('No contribution found to given id.')],
+                  errors: [new GraphQLError('Contribution not found')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('No contribution found to given id.')
+              expect(logger.error).toBeCalledWith('Contribution not found', -1)
             })
           })
 
@@ -1907,7 +2168,7 @@ describe('ContributionResolver', () => {
                 expect.objectContaining({
                   errors: [
                     new GraphQLError(
-                      'user of the pending contribution and send user does not correspond',
+                      'User of the pending contribution and send user does not correspond',
                     ),
                   ],
                 }),
@@ -1916,7 +2177,7 @@ describe('ContributionResolver', () => {
 
             it('logs the error thrown', () => {
               expect(logger.error).toBeCalledWith(
-                'user of the pending contribution and send user does not correspond',
+                'User of the pending contribution and send user does not correspond',
               )
             })
           })
@@ -1942,7 +2203,7 @@ describe('ContributionResolver', () => {
                 expect.objectContaining({
                   errors: [
                     new GraphQLError(
-                      'The amount (1900 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+                      'The amount to be created exceeds the amount still available for this month',
                     ),
                   ],
                 }),
@@ -1951,7 +2212,9 @@ describe('ContributionResolver', () => {
 
             it('logs the error thrown', () => {
               expect(logger.error).toBeCalledWith(
-                'The amount (1900 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+                'The amount to be created exceeds the amount still available for this month',
+                new Decimal(1900),
+                new Decimal(1000),
               )
             })
           })
@@ -1986,11 +2249,12 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('stores the admin update contribution event in the database', async () => {
+            it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
                   userId: admin.id,
+                  amount: 300,
                 }),
               )
             })
@@ -2019,82 +2283,22 @@ describe('ContributionResolver', () => {
                       date: expect.any(String),
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
-                      creation: ['1000', '800', '500'],
+                      creation: ['1000', '800', '1000'],
                     },
                   },
                 }),
               )
             })
 
-            it('stores the admin update contribution event in the database', async () => {
+            it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
                   userId: admin.id,
+                  amount: expect.decimalEqual(200),
                 }),
               )
             })
-          })
-        })
-
-        describe('listUnconfirmedContributions', () => {
-          it('returns four pending creations', async () => {
-            await expect(
-              query({
-                query: listUnconfirmedContributions,
-              }),
-            ).resolves.toEqual(
-              expect.objectContaining({
-                data: {
-                  listUnconfirmedContributions: expect.arrayContaining([
-                    {
-                      id: expect.any(Number),
-                      firstName: 'Peter',
-                      lastName: 'Lustig',
-                      email: 'peter@lustig.de',
-                      date: expect.any(String),
-                      memo: 'Das war leider zu Viel!',
-                      amount: '200',
-                      moderator: admin.id,
-                      creation: ['1000', '800', '500'],
-                    },
-                    {
-                      id: expect.any(Number),
-                      firstName: 'Peter',
-                      lastName: 'Lustig',
-                      email: 'peter@lustig.de',
-                      date: expect.any(String),
-                      memo: 'Grundeinkommen',
-                      amount: '500',
-                      moderator: admin.id,
-                      creation: ['1000', '800', '500'],
-                    },
-                    {
-                      id: expect.any(Number),
-                      firstName: 'Bibi',
-                      lastName: 'Bloxberg',
-                      email: 'bibi@bloxberg.de',
-                      date: expect.any(String),
-                      memo: 'Grundeinkommen',
-                      amount: '500',
-                      moderator: admin.id,
-                      creation: ['1000', '1000', '300'],
-                    },
-                    {
-                      id: expect.any(Number),
-                      firstName: 'Bibi',
-                      lastName: 'Bloxberg',
-                      email: 'bibi@bloxberg.de',
-                      date: expect.any(String),
-                      memo: 'Aktives Grundeinkommen',
-                      amount: '200',
-                      moderator: admin.id,
-                      creation: ['1000', '1000', '300'],
-                    },
-                  ]),
-                },
-              }),
-            )
           })
         })
 
@@ -2111,23 +2315,24 @@ describe('ContributionResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Contribution not found for given id.')],
+                  errors: [new GraphQLError('Contribution not found')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('Contribution not found for given id: -1')
+              expect(logger.error).toBeCalledWith('Contribution not found', -1)
             })
           })
 
           describe('admin deletes own user contribution', () => {
+            let ownContribution: any
             beforeAll(async () => {
               await query({
                 query: login,
                 variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
               })
-              result = await mutate({
+              ownContribution = await mutate({
                 mutation: createContribution,
                 variables: {
                   amount: 100.0,
@@ -2143,7 +2348,7 @@ describe('ContributionResolver', () => {
                 mutate({
                   mutation: adminDeleteContribution,
                   variables: {
-                    id: result.data.createContribution.id,
+                    id: ownContribution.data.createContribution.id,
                   },
                 }),
               ).resolves.toEqual(
@@ -2170,11 +2375,12 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('stores the admin  delete contribution event in the database', async () => {
+            it('stores the ADMIN_CONTRIBUTION_DELETE event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
                   userId: admin.id,
+                  amount: expect.decimalEqual(200),
                 }),
               )
             })
@@ -2237,13 +2443,13 @@ describe('ContributionResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Contribution not found to given id.')],
+                  errors: [new GraphQLError('Contribution not found')],
                 }),
               )
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('Contribution not found for given id: -1')
+              expect(logger.error).toBeCalledWith('Contribution not found', -1)
             })
           })
 
@@ -2261,6 +2467,7 @@ describe('ContributionResolver', () => {
             })
 
             it('thows an error', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({
                   mutation: confirmContribution,
@@ -2312,7 +2519,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('stores the contribution confirm event in the database', async () => {
+            it('stores the CONTRIBUTION_CONFIRM event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.CONTRIBUTION_CONFIRM,
@@ -2344,7 +2551,7 @@ describe('ContributionResolver', () => {
               })
             })
 
-            it('stores the send confirmation email event in the database', async () => {
+            it('stores the SEND_CONFIRMATION_EMAIL event in the database', async () => {
               await expect(EventProtocol.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
@@ -2354,6 +2561,7 @@ describe('ContributionResolver', () => {
 
             describe('confirm same contribution again', () => {
               it('throws an error', async () => {
+                jest.clearAllMocks()
                 await expect(
                   mutate({
                     mutation: confirmContribution,
@@ -2363,10 +2571,17 @@ describe('ContributionResolver', () => {
                   }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [new GraphQLError('Contribution already confirmd.')],
+                    errors: [new GraphQLError('Contribution already confirmed')],
                   }),
                 )
               })
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'Contribution already confirmed',
+                expect.any(Number),
+              )
             })
           })
 
@@ -2423,6 +2638,277 @@ describe('ContributionResolver', () => {
               )
             })
           })
+        })
+      })
+    })
+  })
+
+  describe('adminListAllContribution', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          query({
+            query: adminListAllContributions,
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated as user', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(() => {
+        resetToken()
+      })
+
+      it('returns an error', async () => {
+        await expect(
+          query({
+            query: adminListAllContributions,
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated as admin', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(() => {
+        resetToken()
+      })
+
+      it('returns 17 creations in total', async () => {
+        const {
+          data: { adminListAllContributions: contributionListObject },
+        }: { data: { adminListAllContributions: ContributionListResult } } = await query({
+          query: adminListAllContributions,
+        })
+        expect(contributionListObject.contributionList).toHaveLength(17)
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 17,
+          contributionList: expect.arrayContaining([
+            expect.objectContaining({
+              amount: expect.decimalEqual(50),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
+              messagesCount: 0,
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(50),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
+              messagesCount: 0,
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(450),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
+              messagesCount: 0,
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bob',
+              id: expect.any(Number),
+              lastName: 'der Baumeister',
+              memo: 'Confirmed Contribution',
+              messagesCount: 0,
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(400),
+              firstName: 'Peter',
+              id: expect.any(Number),
+              lastName: 'Lustig',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Peter',
+              id: expect.any(Number),
+              lastName: 'Lustig',
+              memo: 'Test env contribution',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(200),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Aktives Grundeinkommen',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(10),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test PENDING contribution update',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(200),
+              firstName: 'Peter',
+              id: expect.any(Number),
+              lastName: 'Lustig',
+              memo: 'Das war leider zu Viel!',
+              messagesCount: 0,
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(166),
+              firstName: 'Räuber',
+              id: expect.any(Number),
+              lastName: 'Hotzenplotz',
+              memo: 'Whatever contribution',
+              messagesCount: 0,
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(166),
+              firstName: 'Räuber',
+              id: expect.any(Number),
+              lastName: 'Hotzenplotz',
+              memo: 'Whatever contribution',
+              messagesCount: 0,
+              state: 'DENIED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(166),
+              firstName: 'Räuber',
+              id: expect.any(Number),
+              lastName: 'Hotzenplotz',
+              memo: 'Whatever contribution',
+              messagesCount: 0,
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test IN_PROGRESS contribution',
+              messagesCount: 0,
+              state: 'IN_PROGRESS',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test contribution to confirm',
+              messagesCount: 0,
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test contribution to deny',
+              messagesCount: 0,
+              state: 'DENIED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test contribution to delete',
+              messagesCount: 0,
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(1000),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              messagesCount: 0,
+              state: 'CONFIRMED',
+            }),
+          ]),
+        })
+      })
+
+      it('returns two pending creations with page size set to 2', async () => {
+        const {
+          data: { adminListAllContributions: contributionListObject },
+        }: { data: { adminListAllContributions: ContributionListResult } } = await query({
+          query: adminListAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 2,
+            order: Order.DESC,
+            statusFilter: ['PENDING'],
+          },
+        })
+        expect(contributionListObject.contributionList).toHaveLength(2)
+        expect(contributionListObject).toMatchObject({
+          contributionCount: 4,
+          contributionList: expect.arrayContaining([
+            expect.objectContaining({
+              amount: '400',
+              firstName: 'Peter',
+              id: expect.any(Number),
+              lastName: 'Lustig',
+              memo: 'Herzlich Willkommen bei Gradido!',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: '100',
+              firstName: 'Peter',
+              id: expect.any(Number),
+              lastName: 'Lustig',
+              memo: 'Test env contribution',
+              messagesCount: 0,
+              state: 'PENDING',
+            }),
+            expect.not.objectContaining({
+              state: 'DENIED',
+            }),
+            expect.not.objectContaining({
+              state: 'DELETED',
+            }),
+            expect.not.objectContaining({
+              state: 'CONFIRMED',
+            }),
+            expect.not.objectContaining({
+              state: 'IN_PROGRESS',
+            }),
+          ]),
         })
       })
     })

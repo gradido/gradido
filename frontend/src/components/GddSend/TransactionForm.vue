@@ -120,10 +120,10 @@
   </div>
 </template>
 <script>
-import { SEND_TYPES } from '@/pages/Send.vue'
-import InputEmail from '@/components/Inputs/InputEmail.vue'
-import InputAmount from '@/components/Inputs/InputAmount.vue'
-import InputTextarea from '@/components/Inputs/InputTextarea.vue'
+import { SEND_TYPES } from '@/pages/Send'
+import InputEmail from '@/components/Inputs/InputEmail'
+import InputAmount from '@/components/Inputs/InputAmount'
+import InputTextarea from '@/components/Inputs/InputTextarea'
 
 export default {
   name: 'TransactionForm',
@@ -179,6 +179,17 @@ export default {
     },
   },
   computed: {
+    disabled() {
+      if (
+        this.form.email.length > 5 &&
+        parseInt(this.form.amount) <= parseInt(this.balance) &&
+        this.form.memo.length > 5 &&
+        this.form.memo.length <= 255
+      ) {
+        return false
+      }
+      return true
+    },
     isBalanceDisabled() {
       return this.balance <= 0 ? 'disabled' : false
     },
