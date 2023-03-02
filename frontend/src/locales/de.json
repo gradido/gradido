@@ -56,6 +56,7 @@
       "openAmountForMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen.",
       "yourContribution": "Dein Beitrag zum Gemeinwohl"
     },
+    "isEdited": "hat den Beitrag bearbeitet",
     "lastContribution": "Letzte Beiträge",
     "noContributions": {
       "allContributions": "Es wurden noch keine Beiträge eingereicht.",
@@ -67,6 +68,7 @@
       "lastMonth": "Für den ausgewählten Monat ist das Schöpfungslimit erreicht.",
       "thisMonth": "Für den aktuellen Monat ist das Schöpfungslimit erreicht."
     },
+    "oldContribution": "Vorherige Version",
     "selectDate": "Wann war dein Beitrag?",
     "submit": "Einreichen",
     "submitted": "Der Beitrag wurde eingereicht.",
@@ -214,7 +216,6 @@
     "factor": "Faktor",
     "formula": "Berechnungsformel",
     "funding": "Zu den Förderbeiträgen",
-    "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) erhalten",
     "gdtKonto": "GDT Konto",
     "no-transactions": "Du hast noch keine Gradido Transform (GDT).",
