@@ -719,11 +719,11 @@ describe('federation', () => {
                     JSON.stringify([
                       {
                         api: '1_0',
-                        url: 'http://localhost:5001/api/',
+                        url: 'http://localhost/api/',
                       },
                       {
                         api: '2_0',
-                        url: 'http://localhost:5002/api/',
+                        url: 'http://localhost/api/',
                       },
                     ]),
                   ),
@@ -747,7 +747,7 @@ describe('federation', () => {
                       foreign: true,
                       publicKey: expect.any(Buffer),
                       apiVersion: '1_0',
-                      endPoint: 'http://localhost:5001/api/',
+                      endPoint: 'http://localhost/api/',
                       lastAnnouncedAt: expect.any(Date),
                       createdAt: expect.any(Date),
                       updatedAt: null,
@@ -764,7 +764,7 @@ describe('federation', () => {
                       foreign: true,
                       publicKey: expect.any(Buffer),
                       apiVersion: '2_0',
-                      endPoint: 'http://localhost:5002/api/',
+                      endPoint: 'http://localhost/api/',
                       lastAnnouncedAt: expect.any(Date),
                       createdAt: expect.any(Date),
                       updatedAt: null,
@@ -786,15 +786,15 @@ describe('federation', () => {
                   JSON.stringify([
                     {
                       api: '1_0',
-                      url: 'http://localhost:5001/api/',
+                      url: 'http://localhost/api/',
                     },
                     {
                       api: '1_1',
-                      url: 'http://localhost:5002/api/',
+                      url: 'http://localhost/api/',
                     },
                     {
                       api: '2_0',
-                      url: 'http://localhost:5003/api/',
+                      url: 'http://localhost/api/',
                     },
                   ]),
                 ),
