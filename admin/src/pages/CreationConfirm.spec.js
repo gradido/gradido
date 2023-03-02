@@ -121,8 +121,12 @@ describe('CreationConfirm', () => {
     confirmContributionMock.mockResolvedValue({ data: { confirmContribution: true } }),
   )
 
+  const propsData = {
+    item: {},
+  }
+
   const Wrapper = () => {
-    return mount(CreationConfirm, { localVue, mocks, apolloProvider })
+    return mount(CreationConfirm, { localVue, mocks, apolloProvider, propsData })
   }
 
   describe('mount', () => {
