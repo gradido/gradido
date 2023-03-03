@@ -38,7 +38,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     'UPDATE `events` LEFT JOIN `contributions` ON events.involved_contribution_id = contributions.id SET affected_user_id=contributions.user_id WHERE type = "ADMIN_CONTRIBUTION_CREATE";',
   )
 
-  // inconsistent data on this type
+  // inconsistent data on this type, since not all data can be reconstructed
   await queryFn(
     'UPDATE `events` LEFT JOIN `contributions` ON events.involved_contribution_id = contributions.id SET acting_user_id=0 WHERE type = "ADMIN_CONTRIBUTION_UPDATE";',
   )
