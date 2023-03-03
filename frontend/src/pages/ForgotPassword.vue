@@ -5,7 +5,7 @@
       <div class="pb-5">{{ $t('site.forgotPassword.heading') }}</div>
       <b-row class="justify-content-center">
         <b-col>
-          <validation-observer ref="observer" v-slot="{ handleSubmit }">
+          <validation-observer ref="observer" v-slot="{ handleSubmit, valid }">
             <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
               <input-email
                 v-model="form.email"
@@ -15,7 +15,7 @@
               ></input-email>
               <b-row>
                 <b-col cols="12" lg="6">
-                <b-button type="submit" variant="gradido" block>
+                <b-button type="submit" :variant="valid ? 'gradido' : 'gradido-disable'" block :disabled="!valid">
                   {{ $t('settings.password.send_now') }}
                 </b-button>
               </b-col>
