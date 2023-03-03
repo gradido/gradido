@@ -37,7 +37,6 @@ export class Event extends BaseEntity {
   @JoinColumn({ name: 'affected_user_id', referencedColumnName: 'id' })
   affectedUser: User
 
-  // TODO potentially save actingRole as well
   @Column({ name: 'acting_user_id', unsigned: true, nullable: false })
   actingUserId: number
 
