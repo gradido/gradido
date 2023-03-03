@@ -65,8 +65,6 @@ export class Event extends BaseEntity {
   @JoinColumn({ name: 'involved_contribution_id', referencedColumnName: 'id' })
   involvedContribution: Contribution | null
 
-  // TEST do we need the Id field definition?
-  // TODO we need proper foreign keys to have things working without the explicit column
   @Column({ name: 'involved_contribution_message_id', type: 'int', unsigned: true, nullable: true })
   involvedContributionMessageId: number | null
 
