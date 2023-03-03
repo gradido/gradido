@@ -81,12 +81,13 @@
             </b-col>
           </b-row>
           <b-row>
-            <b-col cols="12" lg="5">
+            <b-col cols="12" lg="6">
               <b-button
                 block
                 type="submit"
                 :disabled="disabled"
                 :variant="disabled ? 'gradido-disable' : 'gradido'"
+                class="default-class"
               >
                 {{ $t('signup') }}
               </b-button>
@@ -174,3 +175,13 @@ export default {
   },
 }
 </script>
+<style scoped>
+.btn-gradido {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+.btn-gradido-disable {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+</style>

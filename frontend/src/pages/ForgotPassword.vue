@@ -13,11 +13,13 @@
                 :label="$t('form.email')"
                 :placeholder="$t('form.email')"
               ></input-email>
-              <div class="text-center">
-                <b-button type="submit" variant="gradido">
+              <b-row>
+                <b-col cols="12" lg="6">
+                <b-button type="submit" variant="gradido" block>
                   {{ $t('settings.password.send_now') }}
                 </b-button>
-              </div>
+              </b-col>
+            </b-row>
             </b-form>
           </validation-observer>
         </b-col>
@@ -88,3 +90,13 @@ export default {
   },
 }
 </script>
+<style scoped>
+.btn-gradido {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+.btn-gradido-disable {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+</style>
