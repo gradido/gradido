@@ -33,7 +33,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   )
 
   // TODO this is untested
-  // TODO transform back?
+  // Moderator id was saved in former user_id
   await queryFn(
     'UPDATE `events` LEFT JOIN `contributions` ON events.involved_contribution_id = contributions.id SET affected_user_id=contributions.user_id WHERE type = "ADMIN_CONTRIBUTION_CREATE";',
   )
