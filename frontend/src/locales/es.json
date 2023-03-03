@@ -26,6 +26,7 @@
     "moderator": "Moderador",
     "moderators": "Moderadores",
     "myContributions": "Mis contribuciones al bien común",
+    "noOpenContributionLinkText": "Actualmente no hay creaciones automáticas.",
     "openContributionLinks": "Creaciones generadas por enlace",
     "openContributionLinkText": "La comunidad \"{name}\" admite actualmente {count} creaciones generadas por enlaces:",
     "other-communities": "Otras comunidades",
