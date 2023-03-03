@@ -62,10 +62,10 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(
-    'UPDATE `events` involved_user_id=acting_user_id WHERE type = "ADMIN_CONTRIBUTION_DENY";',
+    'UPDATE `events` SET involved_user_id=acting_user_id WHERE type = "ADMIN_CONTRIBUTION_DENY";',
   )
   await queryFn(
-    'UPDATE `events` affected_user_id=acting_user_id WHERE type = "ADMIN_CONTRIBUTION_CREATE";',
+    'UPDATE `events` SET affected_user_id=acting_user_id WHERE type = "ADMIN_CONTRIBUTION_CREATE";',
   )
   await queryFn(
     'ALTER TABLE `events` RENAME COLUMN `involved_contribution_message_id` TO `message_id`;',
