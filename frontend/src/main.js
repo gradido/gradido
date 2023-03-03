@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import DashboardPlugin from './plugins/dashboard-plugin'
-import App from './App.vue'
+import App from './App'
 import i18n from './i18n.js'
 import { loadAllRules } from './validation-rules'
 import { toasters } from './mixins/toaster'

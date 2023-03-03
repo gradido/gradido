@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
-import Overview from './Overview.vue'
-import { listAllContributions } from '../graphql/listAllContributions'
+import Overview from './Overview'
+import { adminListAllContributions } from '../graphql/adminListAllContributions'
 import VueApollo from 'vue-apollo'
 import { createMockClient } from 'mock-apollo-client'
 import { toastErrorSpy } from '../../test/testSetup'
@@ -30,7 +30,7 @@ const mocks = {
 
 const defaultData = () => {
   return {
-    listAllContributions: {
+    adminListAllContributions: {
       contributionCount: 2,
       contributionList: [
         {
@@ -84,11 +84,11 @@ const defaultData = () => {
 
 describe('Overview', () => {
   let wrapper
-  const listAllContributionsMock = jest.fn()
+  const adminListAllContributionsMock = jest.fn()
 
   mockClient.setRequestHandler(
-    listAllContributions,
-    listAllContributionsMock
+    adminListAllContributions,
+    adminListAllContributionsMock
       .mockRejectedValueOnce({ message: 'Ouch!' })
       .mockResolvedValue({ data: defaultData() }),
   )
@@ -109,8 +109,8 @@ describe('Overview', () => {
       })
     })
 
-    it('calls the listAllContributions query', () => {
-      expect(listAllContributionsMock).toBeCalledWith({
+    it('calls the adminListAllContributions query', () => {
+      expect(adminListAllContributionsMock).toBeCalledWith({
         currentPage: 1,
         order: 'DESC',
         pageSize: 25,
