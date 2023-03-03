@@ -441,7 +441,6 @@ export class ContributionResolver {
     await contribution.save()
     const res = await contribution.softRemove()
 
-    // TODO allow to query the user with relation
     await EVENT_ADMIN_CONTRIBUTION_DELETE(
       { id: contribution.userId } as DbUser,
       moderator,
