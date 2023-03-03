@@ -32,10 +32,41 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     'ALTER TABLE `events` RENAME COLUMN `message_id` TO `involved_contribution_message_id`;',
   )
 
-  // TODO insert data based on event type
+  // TODO this is untested
+  // TODO transform back?
+  await queryFn(
+    'UPDATE `events` LEFT JOIN `contributions` ON events.involved_contribution_id = contributions.id SET affected_user_id=contributions.user_id WHERE type = "ADMIN_CONTRIBUTION_CREATE";',
+  )
+
+  // inconsistent data on this type
+  await queryFn(
+    'UPDATE `events` LEFT JOIN `contributions` ON events.involved_contribution_id = contributions.id SET acting_user_id=0 WHERE type = "ADMIN_CONTRIBUTION_UPDATE";',
+  )
+
+  await queryFn(
+    'UPDATE `events` LEFT JOIN `contributions` ON events.involved_contribution_id = contributions.id SET acting_user_id=contributions.deleted_by WHERE type = "ADMIN_CONTRIBUTION_DELETE";',
+  )
+
+  await queryFn(
+    'UPDATE `events` LEFT JOIN `contributions` ON events.involved_contribution_id = contributions.id SET acting_user_id=contributions.confirmed_by WHERE type = "CONTRIBUTION_CONFIRM";',
+  )
+
+  await queryFn(
+    'UPDATE `events` LEFT JOIN `contributions` ON events.involved_contribution_id = contributions.id SET involved_user_id=NULL, acting_user_id=contributions.denied_by WHERE type = "ADMIN_CONTRIBUTION_DENY";',
+  )
+
+  await queryFn(
+    'UPDATE `events` SET acting_user_id=involved_user_id WHERE type = "TRANSACTION_RECEIVE";',
+  )
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+  await queryFn(
+    'UPDATE `events` involved_user_id=acting_user_id WHERE type = "ADMIN_CONTRIBUTION_DENY";',
+  )
+  await queryFn(
+    'UPDATE `events` affected_user_id=acting_user_id WHERE type = "ADMIN_CONTRIBUTION_CREATE";',
+  )
   await queryFn(
     'ALTER TABLE `events` RENAME COLUMN `involved_contribution_message_id` TO `message_id`;',
   )

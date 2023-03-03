@@ -76,8 +76,6 @@ export const EVENT_CONTRIBUTION_UPDATE = async (
     amount,
   ).save()
 
-// TODO what was user_id? affected or moderator user?
-// await EVENT_ADMIN_CONTRIBUTION_CREATE(moderator.id, contribution.id, amount)
 export const EVENT_ADMIN_CONTRIBUTION_CREATE = async (
   user: DbUser,
   moderator: DbUser,
@@ -95,7 +93,6 @@ export const EVENT_ADMIN_CONTRIBUTION_CREATE = async (
     amount,
   ).save()
 
-// TODO await EVENT_ADMIN_CONTRIBUTION_UPDATE(emailContact.user.id, contributionToUpdate.id, amount)
 export const EVENT_ADMIN_CONTRIBUTION_UPDATE = async (
   user: DbUser,
   moderator: DbUser,
@@ -113,7 +110,6 @@ export const EVENT_ADMIN_CONTRIBUTION_UPDATE = async (
     amount,
   ).save()
 
-// TODO await EVENT_ADMIN_CONTRIBUTION_DELETE(contribution.userId, contribution.id, contribution.amount)
 export const EVENT_ADMIN_CONTRIBUTION_DELETE = async (
   user: DbUser,
   moderator: DbUser,
@@ -131,7 +127,6 @@ export const EVENT_ADMIN_CONTRIBUTION_DELETE = async (
     amount,
   ).save()
 
-// TODO await EVENT_CONTRIBUTION_CONFIRM(user.id, contribution.id, contribution.amount)
 export const EVENT_CONTRIBUTION_CONFIRM = async (
   user: DbUser,
   moderator: DbUser,
@@ -149,13 +144,6 @@ export const EVENT_CONTRIBUTION_CONFIRM = async (
     amount,
   ).save()
 
-// TODO await EVENT_ADMIN_CONTRIBUTION_DENY(
-//      contributionToUpdate.userId,
-//      moderator.id,
-//      contributionToUpdate.id,
-//      contributionToUpdate.amount,
-//    )
-// x User = moderator
 export const EVENT_ADMIN_CONTRIBUTION_DENY = async (
   user: DbUser,
   moderator: DbUser,
@@ -190,7 +178,6 @@ export const EVENT_TRANSACTION_SEND = async (
     amount,
   ).save()
 
-// TODO acting user = involved user
 export const EVENT_TRANSACTION_RECEIVE = async (
   user: DbUser,
   involvedUser: DbUser,
