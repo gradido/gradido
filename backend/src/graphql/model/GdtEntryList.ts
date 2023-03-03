@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { GdtEntry } from './GdtEntry'
-import { ObjectType, Field, Int } from 'type-graphql'
+import { ObjectType, Field, Int, Float } from 'type-graphql'
 
 @ObjectType()
 export class GdtEntryList {
@@ -25,7 +25,7 @@ export class GdtEntryList {
   @Field(() => [GdtEntry], { nullable: true })
   gdtEntries: GdtEntry[] | null
 
-  @Field(() => Int)
+  @Field(() => Float)
   gdtSum: number
 
   @Field(() => Int)
