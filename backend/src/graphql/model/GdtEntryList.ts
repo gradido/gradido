@@ -28,6 +28,6 @@ export class GdtEntryList {
   @Field(() => Float)
   gdtSum: number
 
-  @Field(() => Int)
+  @Field(() => Float)
   timeUsed: number
 }
