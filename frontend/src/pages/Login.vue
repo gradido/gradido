@@ -2,7 +2,7 @@
   <div class="login-form">
     <b-container v-if="enterData">
       <div class="pb-5" align="center">{{ $t('gdd_per_link.isFree') }}</div>
-      <validation-observer ref="observer" v-slot="{ handleSubmit }">
+      <validation-observer ref="observer" v-slot="{ handleSubmit, valid }">
         <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
           <b-row>
             <b-col sm="12" md="12" lg="6">
@@ -31,7 +31,14 @@
           </b-row>
           <b-row>
             <b-col cols="12" lg="6">
-              <b-button type="submit" variant="gradido" block>{{ $t('login') }}</b-button>
+              <b-button
+                type="submit"
+                :variant="valid ? 'gradido' : 'gradido-disable'"
+                block
+                :disabled="!valid"
+              >
+                {{ $t('login') }}
+              </b-button>
             </b-col>
           </b-row>
         </b-form>
