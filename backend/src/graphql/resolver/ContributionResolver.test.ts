@@ -825,7 +825,7 @@ describe('ContributionResolver', () => {
           )
         })
 
-        it('calls sendContributionDeniedEmail', async () => {
+        it('calls sendContributionDeniedEmail', () => {
           expect(sendContributionDeniedEmail).toBeCalledWith({
             firstName: 'Bibi',
             lastName: 'Bloxberg',
@@ -2391,7 +2391,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('calls sendContributionDeletedEmail', async () => {
+            it('calls sendContributionDeletedEmail', () => {
               expect(sendContributionDeletedEmail).toBeCalledWith({
                 firstName: 'Peter',
                 lastName: 'Lustig',

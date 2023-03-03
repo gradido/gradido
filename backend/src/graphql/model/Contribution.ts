@@ -56,7 +56,7 @@ export class Contribution {
   @Field(() => Date, { nullable: true })
   deletedAt: Date | null
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   deletedBy: number | null
 
   @Field(() => Date)
