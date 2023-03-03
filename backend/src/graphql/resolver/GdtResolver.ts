@@ -39,7 +39,7 @@ export class GdtResolver {
   }
 
   @Authorized([RIGHTS.GDT_BALANCE])
-  @Query(() => Int, { nullable: true })
+  @Query(() => Float, { nullable: true })
   async gdtBalance(@Ctx() context: Context): Promise<number | null> {
     const user = getUser(context)
     try {
