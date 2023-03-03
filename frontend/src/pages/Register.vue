@@ -87,7 +87,6 @@
                 type="submit"
                 :disabled="disabled"
                 :variant="disabled ? 'gradido-disable' : 'gradido'"
-                class="default-class"
               >
                 {{ $t('signup') }}
               </b-button>
