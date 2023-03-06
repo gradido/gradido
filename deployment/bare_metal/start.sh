@@ -59,7 +59,7 @@ ln -s /etc/nginx/sites-available/update-page.conf /etc/nginx/sites-enabled/
 sudo /etc/init.d/nginx restart
 
 # stop all services
-echo 'Stopping and Delete all Gradido services' >> $UPDATE_HTML
+echo 'Stop and delete all Gradido services' >> $UPDATE_HTML
 pm2 delete all
 pm2 save
 
