@@ -200,9 +200,9 @@ if [ ! -z $FEDERATION_DHT_TOPIC ]; then
   pm2 start --name gradido-dht-node "yarn --cwd $PROJECT_ROOT/dht-node start" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
   pm2 save
 else
-  echo "====================================================================="
-  echo "WARNING: FEDERATION_DHT_TOPIC not configured. DHT-Node not started..."  
-  echo "====================================================================="
+  echo "=====================================================================" >> $UPDATE_HTML
+  echo "WARNING: FEDERATION_DHT_TOPIC not configured. DHT-Node not started..."  >> $UPDATE_HTML
+  echo "=====================================================================" >> $UPDATE_HTML
 fi  
 
 
