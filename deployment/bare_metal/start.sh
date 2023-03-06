@@ -221,7 +221,7 @@ IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
 for api in "${API_ARRAY[@]}"
 do
   export FEDERATION_API=$api
-  echo "FEDERATION_API=$FEDERATION_API"
+  echo "FEDERATION_API=$FEDERATION_API" >> $UPDATE_HTML
   export MODULENAME=gradido-federation-$api
   echo "MODULENAME=$MODULENAME"
   # calculate port by remove '_' and add value of api to baseport
