@@ -59,7 +59,7 @@ ln -s /etc/nginx/sites-available/update-page.conf /etc/nginx/sites-enabled/
 sudo /etc/init.d/nginx restart
 
 # stop all services
-echo 'Stopping and Delete all Gradido services' >> $UPDATE_HTML
+echo 'Stop and delete all Gradido services' >> $UPDATE_HTML
 pm2 delete all
 pm2 save
 
@@ -78,7 +78,7 @@ export BUILD_COMMIT="$(git rev-parse HEAD)"
 # *** set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS and create gradido-federation.conf file
 rm -f $NGINX_CONFIG_DIR/gradido.conf.tmp
 rm -f $NGINX_CONFIG_DIR/gradido-federation.conf
-echo "===================================================================================================="
+echo "====================================================================================================" >> $UPDATE_HTML
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
 for api in "${API_ARRAY[@]}"
 do
@@ -88,12 +88,12 @@ do
   FEDERATION_PORT=${FEDERATION_COMMUNITY_API_PORT:-5000}
   FEDERATION_PORT=$(($FEDERATION_PORT + $port))
   export FEDERATION_PORT
-  echo " create ngingx config: location /api/$FEDERATION_APIVERSION  to  http://127.0.0.1:$FEDERATION_PORT"
+  echo "create ngingx config: location /api/$FEDERATION_APIVERSION  to  http://127.0.0.1:$FEDERATION_PORT" >> $UPDATE_HTML
   envsubst '$FEDERATION_APIVERSION, $FEDERATION_PORT' < $NGINX_CONFIG_DIR/gradido-federation.conf.template >> $NGINX_CONFIG_DIR/gradido-federation.conf
 done
-export FEDERATION_APIVERSION=
-export FEDERATION_PORT=
-echo "===================================================================================================="
+unset FEDERATION_APIVERSION
+unset FEDERATION_PORT
+echo "====================================================================================================" >> $UPDATE_HTML
 
 # *** 2nd read gradido-federation.conf file in env variable to be replaced in 3rd step
 export FEDERATION_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-federation.conf)
@@ -200,9 +200,9 @@ if [ ! -z $FEDERATION_DHT_TOPIC ]; then
   pm2 start --name gradido-dht-node "yarn --cwd $PROJECT_ROOT/dht-node start" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
   pm2 save
 else
-  echo "====================================================================="
-  echo "WARNING: FEDERATION_DHT_TOPIC not configured. DHT-Node not started..."  
-  echo "====================================================================="
+  echo "=====================================================================" >> $UPDATE_HTML
+  echo "WARNING: FEDERATION_DHT_TOPIC not configured. DHT-Node not started..."  >> $UPDATE_HTML
+  echo "=====================================================================" >> $UPDATE_HTML
 fi  
 
 
@@ -221,17 +221,17 @@ IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
 for api in "${API_ARRAY[@]}"
 do
   export FEDERATION_API=$api
-  echo "FEDERATION_API=$FEDERATION_API"
+  echo "FEDERATION_API=$FEDERATION_API" >> $UPDATE_HTML
   export MODULENAME=gradido-federation-$api
-  echo "MODULENAME=$MODULENAME"
+  echo "MODULENAME=$MODULENAME" >> $UPDATE_HTML
   # calculate port by remove '_' and add value of api to baseport
   port=${api//_/}
   FEDERATION_PORT=${FEDERATION_COMMUNITY_API_PORT:-5000}
   FEDERATION_PORT=$(($FEDERATION_PORT + $port))
   export FEDERATION_PORT
-  echo "===================================================="
-  echo " start $MODULENAME listening on port=$FEDERATION_PORT"
-  echo "===================================================="
+  echo "====================================================" >> $UPDATE_HTML
+  echo " start $MODULENAME listening on port=$FEDERATION_PORT" >> $UPDATE_HTML
+  echo "====================================================" >> $UPDATE_HTML
 #  pm2 delete $MODULENAME
   pm2 start --name $MODULENAME "yarn --cwd $PROJECT_ROOT/federation start" -l $GRADIDO_LOG_PATH/pm2.$MODULENAME.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
   pm2 save
