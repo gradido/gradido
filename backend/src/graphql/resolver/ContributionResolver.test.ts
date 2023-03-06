@@ -24,7 +24,11 @@ import {
   listContributions,
   adminListAllContributions,
 } from '@/seeds/graphql/queries'
-import { sendContributionConfirmedEmail } from '@/emails/sendEmailVariants'
+import {
+  sendContributionConfirmedEmail,
+  sendContributionDeletedEmail,
+  sendContributionDeniedEmail,
+} from '@/emails/sendEmailVariants'
 import {
   cleanDB,
   resetToken,
@@ -50,21 +54,7 @@ import { ContributionListResult } from '@model/Contribution'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { Order } from '@enum/Order'
 
-// mock account activation email to avoid console spam
-jest.mock('@/emails/sendEmailVariants', () => {
-  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
-  return {
-    __esModule: true,
-    ...originalModule,
-    // TODO: test the call of …
-    // sendAccountActivationEmail: jest.fn((a) => originalModule.sendAccountActivationEmail(a)),
-    sendContributionConfirmedEmail: jest.fn((a) =>
-      originalModule.sendContributionConfirmedEmail(a),
-    ),
-    // TODO: test the call of …
-    // sendContributionRejectedEmail: jest.fn((a) => originalModule.sendContributionRejectedEmail(a)),
-  }
-})
+jest.mock('@/emails/sendEmailVariants')
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -828,6 +818,18 @@ describe('ContributionResolver', () => {
               amount: expect.decimalEqual(100),
             }),
           )
+        })
+
+        it('calls sendContributionDeniedEmail', async () => {
+          expect(sendContributionDeniedEmail).toBeCalledWith({
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+            email: 'bibi@bloxberg.de',
+            language: 'de',
+            senderFirstName: 'Peter',
+            senderLastName: 'Lustig',
+            contributionMemo: 'Test contribution to deny',
+          })
         })
       })
     })
@@ -2383,6 +2385,18 @@ describe('ContributionResolver', () => {
                 }),
               )
             })
+
+            it('calls sendContributionDeletedEmail', async () => {
+              expect(sendContributionDeletedEmail).toBeCalledWith({
+                firstName: 'Peter',
+                lastName: 'Lustig',
+                email: 'peter@lustig.de',
+                language: 'de',
+                senderFirstName: 'Peter',
+                senderLastName: 'Lustig',
+                contributionMemo: 'Das war leider zu Viel!',
+              })
+            })
           })
 
           describe('creation already confirmed', () => {
@@ -2887,11 +2901,11 @@ describe('ContributionResolver', () => {
               state: 'PENDING',
             }),
             expect.objectContaining({
-              amount: '200',
-              firstName: 'Bibi',
+              amount: '100',
+              firstName: 'Peter',
               id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Aktives Grundeinkommen',
+              lastName: 'Lustig',
+              memo: 'Test env contribution',
               messagesCount: 0,
               state: 'PENDING',
             }),

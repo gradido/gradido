@@ -20,6 +20,7 @@ export const findContributions = async (
     withDeleted: withDeleted,
     order: {
       createdAt: order,
+      id: order,
     },
     relations,
     skip: (currentPage - 1) * pageSize,
