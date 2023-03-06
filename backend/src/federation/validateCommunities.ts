@@ -40,7 +40,7 @@ export async function validateCommunities(): Promise<void> {
         logger.info(
           `Federation: received publicKey=${pubKey} from endpoint=${dbCom.endPoint}/${dbCom.apiVersion}`,
         )
-        if (pubKey && pubKey === dbCom.publicKey.toString('hex')) {
+        if (pubKey && pubKey === dbCom.publicKey.toString()) {
           logger.info(`Federation: matching publicKey:  ${pubKey}`)
           DbCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
           logger.debug(`Federation: updated dbCom:  ${JSON.stringify(dbCom)}`)
