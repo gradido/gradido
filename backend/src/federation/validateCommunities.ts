@@ -40,17 +40,16 @@ export async function validateCommunities(): Promise<void> {
         logger.info(
           `Federation: received publicKey=${pubKey} from endpoint=${dbCom.endPoint}/${dbCom.apiVersion}`,
         )
-        if (pubKey && pubKey === dbCom.publicKey.toString('hex')) {
+        if (pubKey && pubKey === dbCom.publicKey.toString()) {
           logger.info(`Federation: matching publicKey:  ${pubKey}`)
           DbCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
           logger.debug(`Federation: updated dbCom:  ${JSON.stringify(dbCom)}`)
+        } else {
+          logger.warn(
+            `Federation: received not matching publicKey -> received: ${pubKey}, expected: ${dbCom.publicKey} `,
+          )
+          // DbCommunity.delete({ id: dbCom.id })
         }
-        /*
-        else {
-          logger.warn(`Federation: received unknown publicKey -> delete dbCom with id=${dbCom.id} `)
-          DbCommunity.delete({ id: dbCom.id })
-        }
-        */
       } catch (err) {
         if (!isLogError(err)) {
           logger.error(`Error:`, err)
