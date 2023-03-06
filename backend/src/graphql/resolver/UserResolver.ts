@@ -289,7 +289,6 @@ export class UserResolver {
         logger.info('redeemCode found contributionLink=' + contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
-          // TODO this is so wrong
           eventRegisterRedeem.involvedContributionLink = contributionLink
         }
       } else {
@@ -297,7 +296,6 @@ export class UserResolver {
         logger.info('redeemCode found transactionLink=' + transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
-          // TODO this is so wrong
           eventRegisterRedeem.involvedTransactionLink = transactionLink
         }
       }
