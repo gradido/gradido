@@ -4,10 +4,10 @@ import { ContributionMessage as DbContributionMessage } from '@entity/Contributi
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
-import { EventProtocolType } from './EventProtocolType'
+import { EventType } from './EventType'
 
 export const Event = (
-  type: EventProtocolType,
+  type: EventType,
   affectedUser: DbUser,
   actingUser: DbUser,
   involvedUser: DbUser | null = null,
@@ -33,48 +33,21 @@ export const EVENT_CONTRIBUTION_CREATE = async (
   contribution: DbContribution,
   amount: Decimal,
 ): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.CONTRIBUTION_CREATE,
-    user,
-    user,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
+  Event(EventType.CONTRIBUTION_CREATE, user, user, null, null, contribution, null, amount).save()
 
 export const EVENT_CONTRIBUTION_DELETE = async (
   user: DbUser,
   contribution: DbContribution,
   amount: Decimal,
 ): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.CONTRIBUTION_DELETE,
-    user,
-    user,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
+  Event(EventType.CONTRIBUTION_DELETE, user, user, null, null, contribution, null, amount).save()
 
 export const EVENT_CONTRIBUTION_UPDATE = async (
   user: DbUser,
   contribution: DbContribution,
   amount: Decimal,
 ): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.CONTRIBUTION_UPDATE,
-    user,
-    user,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
+  Event(EventType.CONTRIBUTION_UPDATE, user, user, null, null, contribution, null, amount).save()
 
 export const EVENT_ADMIN_CONTRIBUTION_CREATE = async (
   user: DbUser,
@@ -83,7 +56,7 @@ export const EVENT_ADMIN_CONTRIBUTION_CREATE = async (
   amount: Decimal,
 ): Promise<DbEvent> =>
   Event(
-    EventProtocolType.ADMIN_CONTRIBUTION_CREATE,
+    EventType.ADMIN_CONTRIBUTION_CREATE,
     user,
     moderator,
     null,
@@ -100,7 +73,7 @@ export const EVENT_ADMIN_CONTRIBUTION_UPDATE = async (
   amount: Decimal,
 ): Promise<DbEvent> =>
   Event(
-    EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
+    EventType.ADMIN_CONTRIBUTION_UPDATE,
     user,
     moderator,
     null,
@@ -117,7 +90,7 @@ export const EVENT_ADMIN_CONTRIBUTION_DELETE = async (
   amount: Decimal,
 ): Promise<DbEvent> =>
   Event(
-    EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
+    EventType.ADMIN_CONTRIBUTION_DELETE,
     user,
     moderator,
     null,
@@ -134,7 +107,7 @@ export const EVENT_CONTRIBUTION_CONFIRM = async (
   amount: Decimal,
 ): Promise<DbEvent> =>
   Event(
-    EventProtocolType.CONTRIBUTION_CONFIRM,
+    EventType.CONTRIBUTION_CONFIRM,
     user,
     moderator,
     null,
@@ -151,7 +124,7 @@ export const EVENT_ADMIN_CONTRIBUTION_DENY = async (
   amount: Decimal,
 ): Promise<DbEvent> =>
   Event(
-    EventProtocolType.ADMIN_CONTRIBUTION_DENY,
+    EventType.ADMIN_CONTRIBUTION_DENY,
     user,
     moderator,
     null,
@@ -168,7 +141,7 @@ export const EVENT_TRANSACTION_SEND = async (
   amount: Decimal,
 ): Promise<DbEvent> =>
   Event(
-    EventProtocolType.TRANSACTION_SEND,
+    EventType.TRANSACTION_SEND,
     user,
     user,
     involvedUser,
@@ -185,7 +158,7 @@ export const EVENT_TRANSACTION_RECEIVE = async (
   amount: Decimal,
 ): Promise<DbEvent> =>
   Event(
-    EventProtocolType.TRANSACTION_RECEIVE,
+    EventType.TRANSACTION_RECEIVE,
     user,
     involvedUser,
     involvedUser,
@@ -196,22 +169,21 @@ export const EVENT_TRANSACTION_RECEIVE = async (
   ).save()
 
 export const EVENT_LOGIN = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventProtocolType.LOGIN, user, user).save()
+  Event(EventType.LOGIN, user, user).save()
 
 export const EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventProtocolType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL, user, { id: 0 } as DbUser).save()
+  Event(EventType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL, user, { id: 0 } as DbUser).save()
 
 export const EVENT_SEND_CONFIRMATION_EMAIL = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventProtocolType.SEND_CONFIRMATION_EMAIL, user, user).save()
+  Event(EventType.SEND_CONFIRMATION_EMAIL, user, user).save()
 
 export const EVENT_ADMIN_SEND_CONFIRMATION_EMAIL = async (
   user: DbUser,
   moderator: DbUser,
-): Promise<DbEvent> =>
-  Event(EventProtocolType.ADMIN_SEND_CONFIRMATION_EMAIL, user, moderator).save()
+): Promise<DbEvent> => Event(EventType.ADMIN_SEND_CONFIRMATION_EMAIL, user, moderator).save()
 
 export const EVENT_REGISTER = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventProtocolType.REGISTER, user, user).save()
+  Event(EventType.REGISTER, user, user).save()
 
 export const EVENT_ACTIVATE_ACCOUNT = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventProtocolType.ACTIVATE_ACCOUNT, user, user).save()
+  Event(EventType.ACTIVATE_ACCOUNT, user, user).save()

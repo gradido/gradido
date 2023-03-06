@@ -1,4 +1,4 @@
-export enum EventProtocolType {
+export enum EventType {
   // VISIT_GRADIDO = 'VISIT_GRADIDO',
   REGISTER = 'REGISTER',
   REDEEM_REGISTER = 'REDEEM_REGISTER',

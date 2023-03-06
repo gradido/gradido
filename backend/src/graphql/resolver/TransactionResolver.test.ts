@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import Decimal from 'decimal.js-light'
-import { EventProtocolType } from '@/event/EventProtocolType'
+import { EventType } from '@/event/EventType'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
@@ -339,7 +339,7 @@ describe('send coins', () => {
 
         expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventProtocolType.TRANSACTION_SEND,
+            type: EventType.TRANSACTION_SEND,
             affectedUserId: user[1].id,
             actingUserId: user[1].id,
             involvedUserId: user[0].id,
@@ -357,7 +357,7 @@ describe('send coins', () => {
 
         expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventProtocolType.TRANSACTION_RECEIVE,
+            type: EventType.TRANSACTION_RECEIVE,
             affectedUserId: user[0].id,
             actingUserId: user[1].id,
             involvedUserId: user[1].id,
