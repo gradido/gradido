@@ -290,7 +290,7 @@ export class UserResolver {
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
           // TODO this is so wrong
-          eventRegisterRedeem.involvedContribution = { id: contributionLink.id } as DbContribution
+          eventRegisterRedeem.involvedContributionLink = contributionLink
         }
       } else {
         const transactionLink = await DbTransactionLink.findOne({ code: redeemCode })
@@ -298,7 +298,7 @@ export class UserResolver {
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
           // TODO this is so wrong
-          eventRegisterRedeem.involvedTransaction = { id: transactionLink.id } as DbTransaction
+          eventRegisterRedeem.involvedTransactionLink = transactionLink
         }
       }
     }

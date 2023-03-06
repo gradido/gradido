@@ -18,5 +18,7 @@ export const EVENT_ADMIN_CONTRIBUTION_CONFIRM = async (
     null,
     contribution,
     null,
+    null,
+    null,
     amount,
   ).save()

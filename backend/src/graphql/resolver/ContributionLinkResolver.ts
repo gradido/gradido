@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js-light'
-import { Resolver, Args, Arg, Authorized, Mutation, Query, Int } from 'type-graphql'
+import { Resolver, Args, Arg, Authorized, Mutation, Query, Int, Ctx } from 'type-graphql'
 import { MoreThan, IsNull } from '@dbTools/typeorm'
 
 import {
@@ -21,6 +21,12 @@ import Paginated from '@arg/Paginated'
 // TODO: this is a strange construct
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import LogError from '@/server/LogError'
+import { Context, getUser } from '@/server/context'
+import {
+  EVENT_ADMIN_CONTRIBUTION_LINK_CREATE,
+  EVENT_ADMIN_CONTRIBUTION_LINK_DELETE,
+  EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE,
+} from '@/event/Event'
 
 @Resolver()
 export class ContributionLinkResolver {
@@ -38,6 +44,7 @@ export class ContributionLinkResolver {
       maxAmountPerMonth,
       maxPerCycle,
     }: ContributionLinkArgs,
+    @Ctx() context: Context,
   ): Promise<ContributionLink> {
     isStartEndDateValid(validFrom, validTo)
     if (name.length < CONTRIBUTIONLINK_NAME_MIN_CHARS) {
@@ -68,7 +75,8 @@ export class ContributionLinkResolver {
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
-    logger.debug(`createContributionLink successful!`)
+    await EVENT_ADMIN_CONTRIBUTION_LINK_CREATE(getUser(context), dbContributionLink, amount)
+
     return new ContributionLink(dbContributionLink)
   }
 
@@ -92,15 +100,18 @@ export class ContributionLinkResolver {
 
   @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION_LINK])
   @Mutation(() => Date, { nullable: true })
-  async deleteContributionLink(@Arg('id', () => Int) id: number): Promise<Date | null> {
-    const contributionLink = await DbContributionLink.findOne(id)
-    if (!contributionLink) {
+  async deleteContributionLink(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const dbContributionLink = await DbContributionLink.findOne(id)
+    if (!dbContributionLink) {
       throw new LogError('Contribution Link not found', id)
     }
-    await contributionLink.softRemove()
-    logger.debug(`deleteContributionLink successful!`)
-    const newContributionLink = await DbContributionLink.findOne({ id }, { withDeleted: true })
-    return newContributionLink ? newContributionLink.deletedAt : null
+    await dbContributionLink.softRemove()
+    await EVENT_ADMIN_CONTRIBUTION_LINK_DELETE(getUser(context), dbContributionLink)
+
+    return true
   }
 
   @Authorized([RIGHTS.ADMIN_UPDATE_CONTRIBUTION_LINK])
@@ -118,6 +129,7 @@ export class ContributionLinkResolver {
       maxPerCycle,
     }: ContributionLinkArgs,
     @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
   ): Promise<ContributionLink> {
     const dbContributionLink = await DbContributionLink.findOne(id)
     if (!dbContributionLink) {
@@ -133,6 +145,9 @@ export class ContributionLinkResolver {
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
     logger.debug(`updateContributionLink successful!`)
+
+    await EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE(getUser(context), dbContributionLink, amount)
+
     return new ContributionLink(dbContributionLink)
   }
 }
