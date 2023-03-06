@@ -223,7 +223,7 @@ do
   export FEDERATION_API=$api
   echo "FEDERATION_API=$FEDERATION_API" >> $UPDATE_HTML
   export MODULENAME=gradido-federation-$api
-  echo "MODULENAME=$MODULENAME"
+  echo "MODULENAME=$MODULENAME" >> $UPDATE_HTML
   # calculate port by remove '_' and add value of api to baseport
   port=${api//_/}
   FEDERATION_PORT=${FEDERATION_COMMUNITY_API_PORT:-5000}
