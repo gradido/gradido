@@ -32,7 +32,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     'ALTER TABLE `events` RENAME COLUMN `message_id` TO `involved_contribution_message_id`;',
   )
 
-  // TODO this is untested
   // Moderator id was saved in former user_id
   await queryFn(
     'UPDATE `events` LEFT JOIN `contributions` ON events.involved_contribution_id = contributions.id SET affected_user_id=contributions.user_id WHERE `type` = "ADMIN_CONTRIBUTION_CREATE";',
