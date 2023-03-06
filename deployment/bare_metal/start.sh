@@ -93,7 +93,7 @@ do
 done
 unset FEDERATION_APIVERSION
 unset FEDERATION_PORT
-echo "===================================================================================================="
+echo "====================================================================================================" >> $UPDATE_HTML
 
 # *** 2nd read gradido-federation.conf file in env variable to be replaced in 3rd step
 export FEDERATION_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-federation.conf)
