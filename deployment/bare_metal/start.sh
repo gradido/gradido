@@ -91,8 +91,8 @@ do
   echo "create ngingx config: location /api/$FEDERATION_APIVERSION  to  http://127.0.0.1:$FEDERATION_PORT" >> $UPDATE_HTML
   envsubst '$FEDERATION_APIVERSION, $FEDERATION_PORT' < $NGINX_CONFIG_DIR/gradido-federation.conf.template >> $NGINX_CONFIG_DIR/gradido-federation.conf
 done
-export FEDERATION_APIVERSION=
-export FEDERATION_PORT=
+unset FEDERATION_APIVERSION
+unset FEDERATION_PORT
 echo "===================================================================================================="
 
 # *** 2nd read gradido-federation.conf file in env variable to be replaced in 3rd step
