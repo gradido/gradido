@@ -7,12 +7,12 @@ import { GetPublicKeyResult } from '../model/GetPublicKeyResult'
 export class PublicKeyResolver {
   @Query(() => GetPublicKeyResult)
   async getPublicKey(): Promise<GetPublicKeyResult> {
-    logger.info(`getPublicKey()...`)
+    logger.debug(`getPublicKey() via apiVersion=1_0 ...`)
     const homeCom = await DbCommunity.findOneOrFail({
       foreign: false,
       apiVersion: '1_0',
     })
-    logger.info(`getPublicKey()... with publicKey=${homeCom.publicKey}`)
+    logger.info(`getPublicKey()-1_0... return publicKey=${homeCom.publicKey}`)
     return new GetPublicKeyResult(homeCom.publicKey.toString())
   }
 }
