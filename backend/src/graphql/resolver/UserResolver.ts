@@ -16,9 +16,7 @@ import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeor
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
-import { Transaction as DbTransaction } from '@entity/Transaction'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { Contribution as DbContribution } from '@entity/Contribution'
 import { UserRepository } from '@repository/User'
 
 import { User } from '@model/User'
