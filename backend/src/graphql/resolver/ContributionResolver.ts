@@ -41,7 +41,7 @@ import {
   EVENT_ADMIN_CONTRIBUTION_CREATE,
   EVENT_ADMIN_CONTRIBUTION_UPDATE,
   EVENT_ADMIN_CONTRIBUTION_DELETE,
-  EVENT_CONTRIBUTION_CONFIRM,
+  EVENT_ADMIN_CONTRIBUTION_CONFIRM,
   EVENT_ADMIN_CONTRIBUTION_DENY,
 } from '@/event/Event'
 import { calculateDecay } from '@/util/decay'
@@ -559,7 +559,7 @@ export class ContributionResolver {
         await queryRunner.release()
       }
 
-      await EVENT_CONTRIBUTION_CONFIRM(user, moderatorUser, contribution, contribution.amount)
+      await EVENT_ADMIN_CONTRIBUTION_CONFIRM(user, moderatorUser, contribution, contribution.amount)
     } finally {
       releaseLock()
     }

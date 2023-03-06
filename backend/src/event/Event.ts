@@ -4,7 +4,7 @@ import { ContributionMessage as DbContributionMessage } from '@entity/Contributi
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
-import { EventType } from './EventType'
+import { EventType } from './Event'
 
 export const Event = (
   type: EventType,
@@ -28,162 +28,21 @@ export const Event = (
   return event
 }
 
-export const EVENT_CONTRIBUTION_CREATE = async (
-  user: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(EventType.CONTRIBUTION_CREATE, user, user, null, null, contribution, null, amount).save()
+export { EventType } from './EventType'
 
-export const EVENT_CONTRIBUTION_DELETE = async (
-  user: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(EventType.CONTRIBUTION_DELETE, user, user, null, null, contribution, null, amount).save()
-
-export const EVENT_CONTRIBUTION_UPDATE = async (
-  user: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(EventType.CONTRIBUTION_UPDATE, user, user, null, null, contribution, null, amount).save()
-
-export const EVENT_ADMIN_CONTRIBUTION_CREATE = async (
-  user: DbUser,
-  moderator: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventType.ADMIN_CONTRIBUTION_CREATE,
-    user,
-    moderator,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_ADMIN_CONTRIBUTION_UPDATE = async (
-  user: DbUser,
-  moderator: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventType.ADMIN_CONTRIBUTION_UPDATE,
-    user,
-    moderator,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_ADMIN_CONTRIBUTION_DELETE = async (
-  user: DbUser,
-  moderator: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventType.ADMIN_CONTRIBUTION_DELETE,
-    user,
-    moderator,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_CONTRIBUTION_CONFIRM = async (
-  user: DbUser,
-  moderator: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventType.CONTRIBUTION_CONFIRM,
-    user,
-    moderator,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_ADMIN_CONTRIBUTION_DENY = async (
-  user: DbUser,
-  moderator: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventType.ADMIN_CONTRIBUTION_DENY,
-    user,
-    moderator,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_TRANSACTION_SEND = async (
-  user: DbUser,
-  involvedUser: DbUser,
-  transaction: DbTransaction,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventType.TRANSACTION_SEND,
-    user,
-    user,
-    involvedUser,
-    transaction,
-    null,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_TRANSACTION_RECEIVE = async (
-  user: DbUser,
-  involvedUser: DbUser,
-  transaction: DbTransaction,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventType.TRANSACTION_RECEIVE,
-    user,
-    involvedUser,
-    involvedUser,
-    transaction,
-    null,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_LOGIN = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventType.LOGIN, user, user).save()
-
-export const EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL, user, { id: 0 } as DbUser).save()
-
-export const EVENT_SEND_CONFIRMATION_EMAIL = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventType.SEND_CONFIRMATION_EMAIL, user, user).save()
-
-export const EVENT_ADMIN_SEND_CONFIRMATION_EMAIL = async (
-  user: DbUser,
-  moderator: DbUser,
-): Promise<DbEvent> => Event(EventType.ADMIN_SEND_CONFIRMATION_EMAIL, user, moderator).save()
-
-export const EVENT_REGISTER = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventType.REGISTER, user, user).save()
-
-export const EVENT_ACTIVATE_ACCOUNT = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventType.ACTIVATE_ACCOUNT, user, user).save()
+export { EVENT_ACTIVATE_ACCOUNT } from './EVENT_ACTIVATE_ACCOUNT'
+export { EVENT_ADMIN_CONTRIBUTION_CONFIRM } from './EVENT_ADMIN_CONTRIBUTION_CONFIRM'
+export { EVENT_ADMIN_CONTRIBUTION_CREATE } from './EVENT_ADMIN_CONTRIBUTION_CREATE'
+export { EVENT_ADMIN_CONTRIBUTION_DELETE } from './EVENT_ADMIN_CONTRIBUTION_DELETE'
+export { EVENT_ADMIN_CONTRIBUTION_DENY } from './EVENT_ADMIN_CONTRIBUTION_DENY'
+export { EVENT_ADMIN_CONTRIBUTION_UPDATE } from './EVENT_ADMIN_CONTRIBUTION_UPDATE'
+export { EVENT_ADMIN_SEND_CONFIRMATION_EMAIL } from './EVENT_ADMIN_SEND_CONFIRMATION_EMAIL'
+export { EVENT_CONTRIBUTION_CREATE } from './EVENT_CONTRIBUTION_CREATE'
+export { EVENT_CONTRIBUTION_DELETE } from './EVENT_CONTRIBUTION_DELETE'
+export { EVENT_CONTRIBUTION_UPDATE } from './EVENT_CONTRIBUTION_UPDATE'
+export { EVENT_LOGIN } from './EVENT_LOGIN'
+export { EVENT_REGISTER } from './EVENT_REGISTER'
+export { EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL } from './EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL'
+export { EVENT_SEND_CONFIRMATION_EMAIL } from './EVENT_SEND_CONFIRMATION_EMAIL'
+export { EVENT_TRANSACTION_SEND } from './EVENT_TRANSACTION_SEND'
+export { EVENT_TRANSACTION_RECEIVE } from './EVENT_TRANSACTION_RECEIVE'

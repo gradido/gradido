@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import Decimal from 'decimal.js-light'
-import { EventType } from '@/event/EventType'
+import { EventType } from '@/event/Event'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,

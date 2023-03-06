@@ -52,6 +52,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import {
   Event,
+  EventType,
   EVENT_LOGIN,
   EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
   EVENT_SEND_CONFIRMATION_EMAIL,
@@ -65,7 +66,6 @@ import { FULL_CREATION_AVAILABLE } from './const/const'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 import LogError from '@/server/LogError'
-import { EventType } from '@/event/EventType'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
