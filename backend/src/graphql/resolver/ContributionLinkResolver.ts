@@ -24,7 +24,7 @@ import LogError from '@/server/LogError'
 
 @Resolver()
 export class ContributionLinkResolver {
-  @Authorized([RIGHTS.CREATE_CONTRIBUTION_LINK])
+  @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION_LINK])
   @Mutation(() => ContributionLink)
   async createContributionLink(
     @Args()
@@ -90,7 +90,7 @@ export class ContributionLinkResolver {
     }
   }
 
-  @Authorized([RIGHTS.DELETE_CONTRIBUTION_LINK])
+  @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION_LINK])
   @Mutation(() => Date, { nullable: true })
   async deleteContributionLink(@Arg('id', () => Int) id: number): Promise<Date | null> {
     const contributionLink = await DbContributionLink.findOne(id)
@@ -103,7 +103,7 @@ export class ContributionLinkResolver {
     return newContributionLink ? newContributionLink.deletedAt : null
   }
 
-  @Authorized([RIGHTS.UPDATE_CONTRIBUTION_LINK])
+  @Authorized([RIGHTS.ADMIN_UPDATE_CONTRIBUTION_LINK])
   @Mutation(() => ContributionLink)
   async updateContributionLink(
     @Args()

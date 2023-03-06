@@ -640,7 +640,7 @@ export class UserResolver {
     }
   }
 
-  @Authorized([RIGHTS.SEARCH_USERS])
+  @Authorized([RIGHTS.ADMIN_SEARCH_USERS])
   @Query(() => SearchUsersResult)
   async searchUsers(
     @Args()
@@ -706,7 +706,7 @@ export class UserResolver {
     }
   }
 
-  @Authorized([RIGHTS.SET_USER_ROLE])
+  @Authorized([RIGHTS.ADMIN_SET_USER_ROLE])
   @Mutation(() => Date, { nullable: true })
   async setUserRole(
     @Arg('userId', () => Int)
@@ -748,7 +748,7 @@ export class UserResolver {
     return newUser ? newUser.isAdmin : null
   }
 
-  @Authorized([RIGHTS.DELETE_USER])
+  @Authorized([RIGHTS.ADMIN_DELETE_USER])
   @Mutation(() => Date, { nullable: true })
   async deleteUser(
     @Arg('userId', () => Int) userId: number,
@@ -770,7 +770,7 @@ export class UserResolver {
     return newUser ? newUser.deletedAt : null
   }
 
-  @Authorized([RIGHTS.UNDELETE_USER])
+  @Authorized([RIGHTS.ADMIN_UNDELETE_USER])
   @Mutation(() => Date, { nullable: true })
   async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
     const user = await DbUser.findOne({ id: userId }, { withDeleted: true })
@@ -785,7 +785,7 @@ export class UserResolver {
   }
 
   // TODO this is an admin function - needs refactor
-  @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
+  @Authorized([RIGHTS.ADMIN_SEND_ACTIVATION_EMAIL])
   @Mutation(() => Boolean)
   async sendActivationEmail(
     @Arg('email') email: string,

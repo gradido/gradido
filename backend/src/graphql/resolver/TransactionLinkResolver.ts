@@ -336,7 +336,7 @@ export class TransactionLinkResolver {
     )
   }
 
-  @Authorized([RIGHTS.LIST_TRANSACTION_LINKS_ADMIN])
+  @Authorized([RIGHTS.ADMIN_LIST_TRANSACTION_LINKS_ADMIN])
   @Query(() => TransactionLinkResult)
   async listTransactionLinksAdmin(
     @Args()
