@@ -24,7 +24,6 @@ const constants = {
 }
 
 const server = {
-  PORT: process.env.PORT || 5010,
   // JWT_SECRET: process.env.JWT_SECRET || 'secret123',
   // JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '10m',
   GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
@@ -40,21 +39,6 @@ const database = {
   TYPEORM_LOGGING_RELATIVE_PATH:
     process.env.TYPEORM_LOGGING_RELATIVE_PATH || 'typeorm.backend.log',
 }
-/*
-const community = {
-   COMMUNITY_NAME: process.env.COMMUNITY_NAME || 'Gradido Entwicklung',
-   COMMUNITY_URL: process.env.COMMUNITY_URL || 'http://localhost/',
-   COMMUNITY_REGISTER_URL: process.env.COMMUNITY_REGISTER_URL || 'http://localhost/register',
-   COMMUNITY_REDEEM_URL: process.env.COMMUNITY_REDEEM_URL || 'http://localhost/redeem/{code}',
-   COMMUNITY_REDEEM_CONTRIBUTION_URL:
-     process.env.COMMUNITY_REDEEM_CONTRIBUTION_URL || 'http://localhost/redeem/CL-{code}',
-   COMMUNITY_DESCRIPTION:
-     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
-}
-*/
-
-// This is needed by graphql-directive-auth
-// process.env.APP_SECRET = server.JWT_SECRET
 
 // Check config version
 constants.CONFIG_VERSION.CURRENT =
@@ -71,10 +55,6 @@ if (
 }
 
 const federation = {
-  // FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC || null,
-  // FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
-  //  FEDERATION_COMMUNITY_API_PORT:
-  //    process.env.FEDERATION_COMMUNITY_API_PORT || 5000,
   FEDERATION_API: process.env.FEDERATION_API || '1_0',
   FEDERATION_PORT: process.env.FEDERATION_PORT || 5010,
   FEDERATION_COMMUNITY_URL: process.env.FEDERATION_COMMUNITY_URL || null,
