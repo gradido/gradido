@@ -229,9 +229,9 @@ do
   FEDERATION_PORT=${FEDERATION_COMMUNITY_API_PORT:-5000}
   FEDERATION_PORT=$(($FEDERATION_PORT + $port))
   export FEDERATION_PORT
-  echo "===================================================="
-  echo " start $MODULENAME listening on port=$FEDERATION_PORT"
-  echo "===================================================="
+  echo "====================================================" >> $UPDATE_HTML
+  echo " start $MODULENAME listening on port=$FEDERATION_PORT" >> $UPDATE_HTML
+  echo "====================================================" >> $UPDATE_HTML
 #  pm2 delete $MODULENAME
   pm2 start --name $MODULENAME "yarn --cwd $PROJECT_ROOT/federation start" -l $GRADIDO_LOG_PATH/pm2.$MODULENAME.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
   pm2 save
