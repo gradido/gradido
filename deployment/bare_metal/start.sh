@@ -78,7 +78,7 @@ export BUILD_COMMIT="$(git rev-parse HEAD)"
 # *** set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS and create gradido-federation.conf file
 rm -f $NGINX_CONFIG_DIR/gradido.conf.tmp
 rm -f $NGINX_CONFIG_DIR/gradido-federation.conf
-echo "===================================================================================================="
+echo "====================================================================================================" >> $UPDATE_HTML
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
 for api in "${API_ARRAY[@]}"
 do
