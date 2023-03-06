@@ -1,25 +1,19 @@
 <template>
-  <div class="nav-community container">
-    <b-row class="nav-row">
-      <b-col cols="12" lg="4" md="4" class="px-0">
-        <b-btn to="contribute" active-class="btn-active" block variant="link">
-          <b-icon icon="pencil" class="mr-2" />
-          {{ $t('community.submitContribution') }}
-        </b-btn>
-      </b-col>
-      <b-col cols="12" lg="4" md="4" class="px-0">
-        <b-btn to="contributions" active-class="btn-active" block variant="link">
-          <b-icon icon="person" class="mr-2" />
-          {{ $t('community.myContributions') }}
-        </b-btn>
-      </b-col>
-      <b-col cols="12" lg="4" md="4" class="px-0">
-        <b-btn to="community" active-class="btn-active" block variant="link">
-          <b-icon icon="people" class="mr-2" />
-          {{ $t('community.community') }}
-        </b-btn>
-      </b-col>
-    </b-row>
+  <div class="nav-community">
+    <div class="bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow">
+      <b-btn to="contribute" active-class="btn-active svg-icon-active" block variant="link">
+        <b-img src="/img/svg/write.svg" height="20" class="svg-icon" />
+        {{ $t('community.submitContribution') }}
+      </b-btn>
+      <b-btn to="contributions" active-class="btn-active svg-icon-active" block variant="link">
+        <b-img src="/img/svg/my_profil.svg" height="20" class="svg-icon" />
+        {{ $t('community.myContributions') }}
+      </b-btn>
+      <b-btn to="community" active-class="btn-active svg-icon-active" block variant="link">
+        <b-img src="/img/svg/community.svg" height="20" class="svg-icon" />
+        {{ $t('community.community') }}
+      </b-btn>
+    </div>
   </div>
 </template>
 <script>
@@ -28,13 +22,25 @@ export default {
 }
 </script>
 <style scoped>
-.nav-row {
+.btn {
   background-color: rgb(209, 209, 209);
-  border-radius: 26px;
+  color: black;
+  padding-right: 0px;
+  padding-left: 0px;
+}
+.btn-block + .btn-block {
+  margin-top: 0rem;
 }
 
+.svg-icon {
+  filter: brightness(0) invert(0);
+}
 .btn-active {
   background-color: rgb(23 141 129);
   color: white;
+  font-weight: bold;
+}
+.btn-active .svg-icon {
+  filter: brightness(0) invert(1);
 }
 </style>

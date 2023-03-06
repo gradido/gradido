@@ -50,7 +50,7 @@ describe('CommunityTemplate', () => {
         expect(listItems.at(0).find('svg').attributes('aria-label')).toEqual('bell fill')
         expect(listItems.at(0).text()).toBe('contribution.alert.pending')
 
-        expect(listItems.at(1).find('svg').attributes('aria-label')).toEqual('question square')
+        expect(listItems.at(1).find('svg').attributes('aria-label')).toEqual('question')
         expect(listItems.at(1).text()).toBe('contribution.alert.in_progress')
 
         expect(listItems.at(2).find('svg').attributes('aria-label')).toEqual('check')
@@ -80,7 +80,7 @@ describe('CommunityTemplate', () => {
         expect(listItems.at(0).find('svg').attributes('aria-label')).toEqual('bell fill')
         expect(listItems.at(0).text()).toBe('contribution.alert.pending')
 
-        expect(listItems.at(1).find('svg').attributes('aria-label')).toEqual('question square')
+        expect(listItems.at(1).find('svg').attributes('aria-label')).toEqual('question')
         expect(listItems.at(1).text()).toBe('contribution.alert.in_progress')
 
         expect(listItems.at(2).find('svg').attributes('aria-label')).toEqual('check')

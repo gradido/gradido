@@ -1,13 +1,13 @@
 import gql from 'graphql-tag'
 
-export const listAllContributions = gql`
+export const adminListAllContributions = gql`
   query (
     $currentPage: Int = 1
     $pageSize: Int = 25
     $order: Order = DESC
     $statusFilter: [ContributionStatus!]
   ) {
-    listAllContributions(
+    adminListAllContributions(
       currentPage: $currentPage
       pageSize: $pageSize
       order: $order
@@ -28,6 +28,8 @@ export const listAllContributions = gql`
         messagesCount
         deniedAt
         deniedBy
+        deletedAt
+        deletedBy
       }
     }
   }
