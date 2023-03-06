@@ -11,7 +11,7 @@ export const EVENT_ADMIN_CONTRIBUTION_CONFIRM = async (
   amount: Decimal,
 ): Promise<DbEvent> =>
   Event(
-    EventType.CONTRIBUTION_CONFIRM,
+    EventType.ADMIN_CONTRIBUTION_CONFIRM,
     user,
     moderator,
     null,

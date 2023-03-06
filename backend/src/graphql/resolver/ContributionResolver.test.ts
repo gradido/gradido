@@ -2544,7 +2544,7 @@ describe('ContributionResolver', () => {
             it('stores the CONTRIBUTION_CONFIRM event in the database', async () => {
               await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
-                  type: EventType.CONTRIBUTION_CONFIRM,
+                  type: EventType.ADMIN_CONTRIBUTION_CONFIRM,
                 }),
               )
             })
