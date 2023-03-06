@@ -13,8 +13,8 @@ Feature: User Authentication - reset password
     And the user navigates to the forgot password page
     When the user enters the e-mail address "bibi@bloxberg.de"
     And the user submits the e-mail form
-    Then the user receives an e-mail containing the password reset link
-    When the user opens the password reset link in the browser
+    Then the user receives an e-mail containing the "password reset" link
+    When the user opens the "password reset" link in the browser
     And the user enters the password "12345Aa_"
     And the user repeats the password "12345Aa_"
     And the user submits the password form

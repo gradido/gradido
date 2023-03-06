@@ -12,7 +12,6 @@ export class Contribution {
     this.amount = contribution.amount
     this.memo = contribution.memo
     this.createdAt = contribution.createdAt
-    this.deletedAt = contribution.deletedAt
     this.confirmedAt = contribution.confirmedAt
     this.confirmedBy = contribution.confirmedBy
     this.contributionDate = contribution.contributionDate
@@ -20,6 +19,8 @@ export class Contribution {
     this.messagesCount = contribution.messages ? contribution.messages.length : 0
     this.deniedAt = contribution.deniedAt
     this.deniedBy = contribution.deniedBy
+    this.deletedAt = contribution.deletedAt
+    this.deletedBy = contribution.deletedBy
   }
 
   @Field(() => Number)
@@ -41,9 +42,6 @@ export class Contribution {
   createdAt: Date
 
   @Field(() => Date, { nullable: true })
-  deletedAt: Date | null
-
-  @Field(() => Date, { nullable: true })
   confirmedAt: Date | null
 
   @Field(() => Number, { nullable: true })
@@ -54,6 +52,12 @@ export class Contribution {
 
   @Field(() => Number, { nullable: true })
   deniedBy: number | null
+
+  @Field(() => Date, { nullable: true })
+  deletedAt: Date | null
+
+  @Field(() => Number, { nullable: true })
+  deletedBy: number | null
 
   @Field(() => Date)
   contributionDate: Date
