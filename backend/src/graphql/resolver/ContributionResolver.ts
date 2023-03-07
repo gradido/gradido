@@ -551,33 +551,6 @@ export class ContributionResolver {
     return true
   }
 
-  @Authorized([RIGHTS.CREATION_TRANSACTION_LIST])
-  @Query(() => ContributionListResult)
-  async creationTransactionList(
-    @Args()
-    { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
-    @Arg('userId', () => Int) userId: number,
-  ): Promise<ContributionListResult> {
-    const offset = (currentPage - 1) * pageSize
-    const [contributionResult, count] = await getConnection()
-      .createQueryBuilder()
-      .select('c')
-      .from(DbContribution, 'c')
-      .leftJoinAndSelect('c.user', 'u')
-      .where(`user_id = ${userId}`)
-      .withDeleted()
-      .limit(pageSize)
-      .offset(offset)
-      .orderBy('c.created_at', order)
-      .getManyAndCount()
-
-    return new ContributionListResult(
-      count,
-      contributionResult.map((contribution) => new Contribution(contribution, contribution.user)),
-    )
-    // return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
-  }
-
   @Authorized([RIGHTS.OPEN_CREATIONS])
   @Query(() => [OpenCreation])
   async openCreations(
