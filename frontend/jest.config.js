@@ -1,13 +1,17 @@
 module.exports = {
   verbose: true,
   collectCoverageFrom: ['src/**/*.{js,vue}', '!**/node_modules/**', '!**/?(*.)+(spec|test).js?(x)'],
+  coverageThreshold: {
+    global: {
+      lines: 95,
+    },
+  },
   moduleFileExtensions: [
     'js',
     // 'jsx',
     'json',
     'vue',
   ],
-  // coverageReporters: ['lcov', 'text'],
   moduleNameMapper: {
     '\\.(css|less)$': 'identity-obj-proxy',
     '\\.(scss)$': '<rootDir>/src/assets/mocks/styleMock.js',

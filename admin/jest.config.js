@@ -6,6 +6,11 @@ module.exports = {
     '!src/assets/**',
     '!**/?(*.)+(spec|test).js?(x)',
   ],
+  coverageThreshold: {
+    global: {
+      lines: 97,
+    },
+  },
   moduleFileExtensions: [
     'js',
     // 'jsx',
