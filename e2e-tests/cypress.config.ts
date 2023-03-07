@@ -2,7 +2,7 @@ import { defineConfig } from 'cypress'
 import { addCucumberPreprocessorPlugin } from '@badeball/cypress-cucumber-preprocessor'
 import browserify from '@badeball/cypress-cucumber-preprocessor/browserify'
 
-let emailLink: string
+let resetPasswordLink: string
 
 async function setupNodeEvents(
   on: Cypress.PluginEvents,
@@ -18,11 +18,11 @@ async function setupNodeEvents(
   )
 
   on('task', {
-    setEmailLink: (link: string) => {
-      return (emailLink = link)
+    setResetPasswordLink: (val) => {
+      return (resetPasswordLink = val)
     },
-    getEmailLink: () => {
-      return emailLink
+    getResetPasswordLink: () => {
+      return resetPasswordLink
     },
   })
 
@@ -56,7 +56,7 @@ export default defineConfig({
     env: {
       backendURL: 'http://localhost:4000',
       mailserverURL: 'http://localhost:1080',
-      loginQuery: `query ($email: String!, $password: String!, $publisherId: Int) {
+      loginQuery: `mutation ($email: String!, $password: String!, $publisherId: Int) {
         login(email: $email, password: $password, publisherId: $publisherId) {
           email
           firstName
@@ -69,7 +69,8 @@ export default defineConfig({
           hasElopage
           publisherId
           isAdmin
-          creation
+          hideAmountGDD
+          hideAmountGDT
           __typename
         }
       }`,
