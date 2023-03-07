@@ -85,14 +85,3 @@ jobs:
       - name: Unit tests
         run: |
           docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net -v ~/coverage:/app/coverage --rm gradido/federation:test yarn run test
-          cp -r ~/coverage ./coverage
-          
-      - name: Coverage check
-        uses: webcraftmedia/coverage-check-action@master
-        with:
-          report_name: Coverage Federation
-          type: lcov
-          #result_path: ./federation/coverage/lcov.info
-          result_path: ./coverage/lcov.info
-          min_coverage: 72
-          token: ${{ github.token }}

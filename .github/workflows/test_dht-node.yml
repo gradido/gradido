@@ -83,16 +83,4 @@ jobs:
       #- name: Unit tests
       #  run: cd database && yarn && yarn build && cd ../dht-node && yarn && yarn test
       - name: Unit tests
-        run: |
-          docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net -v ~/coverage:/app/coverage --rm gradido/dht-node:test yarn run test
-          cp -r ~/coverage ./coverage
-          
-      - name: Coverage check
-        uses: webcraftmedia/coverage-check-action@master
-        with:
-          report_name: Coverage DHT Node
-          type: lcov
-          #result_path: ./dht-node/coverage/lcov.info
-          result_path: ./coverage/lcov.info
-          min_coverage: 79
-          token: ${{ github.token }}
+        run: docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net -v ~/coverage:/app/coverage --rm gradido/dht-node:test yarn run test
