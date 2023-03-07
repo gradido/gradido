@@ -35,6 +35,12 @@ import LogError from '@/server/LogError'
 
 import { getLastTransaction } from './util/getLastTransaction'
 import transactionLinkList from './util/transactionLinkList'
+import {
+  EVENT_CONTRIBUTION_LINK_REDEEM,
+  EVENT_TRANSACTION_LINK_CREATE,
+  EVENT_TRANSACTION_LINK_DELETE,
+  EVENT_TRANSACTION_LINK_REDEEM,
+} from '@/event/Event'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -89,6 +95,7 @@ export class TransactionLinkResolver {
     await DbTransactionLink.save(transactionLink).catch((e) => {
       throw new LogError('Unable to save transaction link', e)
     })
+    await EVENT_TRANSACTION_LINK_CREATE(user, transactionLink, amount)
 
     return new TransactionLink(transactionLink, new User(user))
   }
@@ -121,6 +128,8 @@ export class TransactionLinkResolver {
     await transactionLink.softRemove().catch((e) => {
       throw new LogError('Transaction link could not be deleted', e)
     })
+
+    await EVENT_TRANSACTION_LINK_DELETE(user, transactionLink)
 
     return true
   }
@@ -272,7 +281,13 @@ export class TransactionLinkResolver {
           await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
           await queryRunner.commitTransaction()
-          logger.info('creation from contribution link commited successfuly.')
+          await EVENT_CONTRIBUTION_LINK_REDEEM(
+            user,
+            transaction,
+            contribution,
+            contributionLink,
+            contributionLink.amount,
+          )
         } catch (e) {
           await queryRunner.rollbackTransaction()
           throw new LogError('Creation from contribution link was not successful', e)
@@ -312,6 +327,12 @@ export class TransactionLinkResolver {
         linkedUser,
         user,
         transactionLink,
+      )
+      await EVENT_TRANSACTION_LINK_REDEEM(
+        user,
+        { id: transactionLink.userId } as DbUser,
+        transactionLink,
+        transactionLink.amount,
       )
 
       return true
