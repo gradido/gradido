@@ -22,7 +22,7 @@ import {
 import {
   listAllContributions,
   listContributions,
-  adminListAllContributions,
+  adminListContributions,
 } from '@/seeds/graphql/queries'
 import {
   sendContributionConfirmedEmail,
@@ -2656,12 +2656,12 @@ describe('ContributionResolver', () => {
     })
   })
 
-  describe('adminListAllContribution', () => {
+  describe('adminListContributions', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
         await expect(
           query({
-            query: adminListAllContributions,
+            query: adminListContributions,
           }),
         ).resolves.toEqual(
           expect.objectContaining({
@@ -2686,7 +2686,7 @@ describe('ContributionResolver', () => {
       it('returns an error', async () => {
         await expect(
           query({
-            query: adminListAllContributions,
+            query: adminListContributions,
           }),
         ).resolves.toEqual(
           expect.objectContaining({
@@ -2710,9 +2710,9 @@ describe('ContributionResolver', () => {
 
       it('returns 17 creations in total', async () => {
         const {
-          data: { adminListAllContributions: contributionListObject },
-        }: { data: { adminListAllContributions: ContributionListResult } } = await query({
-          query: adminListAllContributions,
+          data: { adminListContributions: contributionListObject },
+        }: { data: { adminListContributions: ContributionListResult } } = await query({
+          query: adminListContributions,
         })
         expect(contributionListObject.contributionList).toHaveLength(17)
         expect(contributionListObject).toMatchObject({
@@ -2877,9 +2877,9 @@ describe('ContributionResolver', () => {
 
       it('returns two pending creations with page size set to 2', async () => {
         const {
-          data: { adminListAllContributions: contributionListObject },
-        }: { data: { adminListAllContributions: ContributionListResult } } = await query({
-          query: adminListAllContributions,
+          data: { adminListContributions: contributionListObject },
+        }: { data: { adminListContributions: ContributionListResult } } = await query({
+          query: adminListContributions,
           variables: {
             currentPage: 1,
             pageSize: 2,

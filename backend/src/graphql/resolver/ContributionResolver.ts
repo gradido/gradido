@@ -376,9 +376,9 @@ export class ContributionResolver {
     return result
   }
 
-  @Authorized([RIGHTS.LIST_UNCONFIRMED_CONTRIBUTIONS])
-  @Query(() => ContributionListResult) // [UnconfirmedContribution]
-  async adminListAllContributions(
+  @Authorized([RIGHTS.ADMIN_LIST_CONTRIBUTIONS])
+  @Query(() => ContributionListResult)
+  async adminListContributions(
     @Args()
     { currentPage = 1, pageSize = 3, order = Order.DESC }: Paginated,
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
