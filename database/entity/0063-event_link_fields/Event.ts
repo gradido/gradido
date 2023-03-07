@@ -27,7 +27,7 @@ export class Event extends BaseEntity {
   @CreateDateColumn({
     name: 'created_at',
     type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP()',
+    default: () => 'CURRENT_TIMESTAMP(3)',
     nullable: false,
   })
   createdAt: Date
