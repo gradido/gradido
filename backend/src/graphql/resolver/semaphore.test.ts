@@ -187,4 +187,50 @@ describe('semaphore', () => {
     await expect(confirmBibisContribution).resolves.toMatchObject({ errors: undefined })
     await expect(confirmBobsContribution).resolves.toMatchObject({ errors: undefined })
   })
+
+  describe('redeem transaction link twice', () => {
+    let myCode: string
+
+    beforeAll(async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      const {
+        data: { createTransactionLink: bibisLink },
+      } = await mutate({
+        mutation: createTransactionLink,
+        variables: {
+          amount: 20,
+          memo: 'Bibis Link',
+        },
+      })
+      myCode = bibisLink.code
+      await mutate({
+        mutation: login,
+        variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+      })
+    })
+
+    it('does not throw, but should', async () => {
+      const redeem1 = mutate({
+        mutation: redeemTransactionLink,
+        variables: {
+          code: myCode,
+        },
+      })
+      const redeem2 = mutate({
+        mutation: redeemTransactionLink,
+        variables: {
+          code: myCode,
+        },
+      })
+      await expect(redeem1).resolves.toMatchObject({
+        errors: undefined,
+      })
+      await expect(redeem2).resolves.toMatchObject({
+        errors: undefined,
+      })
+    })
+  })
 })

@@ -17,10 +17,12 @@ import {
   createContribution,
   updateContribution,
   createTransactionLink,
+  confirmContribution,
 } from '@/seeds/graphql/mutations'
 import { listTransactionLinksAdmin } from '@/seeds/graphql/queries'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { User } from '@entity/User'
+import { Transaction } from '@entity/Transaction'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import Decimal from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
@@ -136,6 +138,8 @@ describe('TransactionLinkResolver', () => {
       await cleanDB()
       resetToken()
     })
+
+    let contributionId: number
 
     describe('unauthenticated', () => {
       it('throws an error', async () => {
@@ -331,6 +335,10 @@ describe('TransactionLinkResolver', () => {
             })
           })
 
+          afterAll(async () => {
+            await resetEntity(Transaction)
+          })
+
           it('has a daily contribution link in the database', async () => {
             const cls = await DbContributionLink.find()
             expect(cls).toHaveLength(1)
@@ -372,6 +380,7 @@ describe('TransactionLinkResolver', () => {
                 },
               })
               contribution = result.data.createContribution
+              contributionId = result.data.createContribution.id
             })
 
             it('does not allow the user to redeem the contribution link', async () => {
@@ -533,6 +542,63 @@ describe('TransactionLinkResolver', () => {
               errors: [new GraphQLError('Transaction link not found')],
             })
             expect(logger.error).toBeCalledWith('Transaction link not found', 'not-valid')
+          })
+        })
+
+        describe('link exists', () => {
+          let myCode: string
+
+          beforeAll(async () => {
+            await mutate({
+              mutation: login,
+              variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+            })
+            await mutate({
+              mutation: confirmContribution,
+              variables: { id: contributionId },
+            })
+            await mutate({
+              mutation: login,
+              variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+            })
+            const {
+              data: {
+                createTransactionLink: { code },
+              },
+            } = await mutate({
+              mutation: createTransactionLink,
+              variables: {
+                amount: 200,
+                memo: 'This is a transaction link from bibi',
+              },
+            })
+            myCode = code
+          })
+
+          describe('own link', () => {
+            beforeAll(async () => {
+              await mutate({
+                mutation: login,
+                variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+              })
+            })
+
+            it('throws and logs an error', async () => {
+              await expect(
+                mutate({
+                  mutation: redeemTransactionLink,
+                  variables: {
+                    code: myCode,
+                  },
+                }),
+              ).resolves.toMatchObject({
+                errors: [new GraphQLError('Cannot redeem own transaction link')],
+              })
+              expect(logger.error).toBeCalledWith(
+                'Cannot redeem own transaction link',
+                expect.any(Number),
+              )
+            })
           })
         })
       })
