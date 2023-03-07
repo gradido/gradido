@@ -1,9 +1,11 @@
-import { Field, ObjectType, Query, Resolver } from 'type-graphql'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { Query, Resolver } from 'type-graphql'
 import { federationLogger as logger } from '@/server/logger'
 import { Community as DbCommunity } from '@entity/Community'
 import { GetPublicKeyResult } from '../model/GetPublicKeyResult'
 
 @Resolver()
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class PublicKeyResolver {
   @Query(() => GetPublicKeyResult)
   async getPublicKey(): Promise<GetPublicKeyResult> {
