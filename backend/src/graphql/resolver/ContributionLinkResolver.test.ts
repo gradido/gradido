@@ -247,6 +247,18 @@ describe('Contribution Links', () => {
           )
         })
 
+        it('stores the ADMIN_CONTRIBUTION_LINK_CREATE event in the database', async () => {
+          await expect(DbEvent.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventType.ADMIN_CONTRIBUTION_LINK_CREATE,
+              affectedUserId: 0,
+              actingUserId: expect.any(Number),
+              involvedContributionLinkId: expect.any(Number),
+              amount: expect.decimalEqual(200),
+            }),
+          )
+        })
+
         it('returns an error if missing startDate', async () => {
           jest.clearAllMocks()
           await expect(
@@ -525,6 +537,18 @@ describe('Contribution Links', () => {
                 id: linkId,
                 name: 'Dokumenta 2023',
                 memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
+                amount: expect.decimalEqual(400),
+              }),
+            )
+          })
+
+          it('stores the ADMIN_CONTRIBUTION_LINK_UPDATE event in the database', async () => {
+            await expect(DbEvent.find()).resolves.toContainEqual(
+              expect.objectContaining({
+                type: EventType.ADMIN_CONTRIBUTION_LINK_UPDATE,
+                affectedUserId: 0,
+                actingUserId: expect.any(Number),
+                involvedContributionLinkId: expect.any(Number),
                 amount: expect.decimalEqual(400),
               }),
             )
