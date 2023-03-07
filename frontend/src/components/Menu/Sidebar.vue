@@ -48,7 +48,7 @@
             <b-icon icon="shield-check" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('navigation.admin_area') }}</span>
           </b-nav-item>
-          <b-nav-item class="font-weight-bold" @click="$emit('logout')" active-class="activeRoute">
+          <b-nav-item class="font-weight-bold" @click="$emit('logout')" active-class="activeRoute" data-test="logout-menu">
             <b-img src="/img/svg/logout.svg" height="20" class="svg-icon" />
             <span class="ml-2 text-205">{{ $t('navigation.logout') }}</span>
           </b-nav-item>
