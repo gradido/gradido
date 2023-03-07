@@ -15,6 +15,8 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { userFactory } from '@/seeds/factory/user'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { EventType } from '@/event/Event'
+import { Event as DbEvent } from '@entity/Event'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -562,6 +564,17 @@ describe('Contribution Links', () => {
                 data: {
                   deleteContributionLink: true,
                 },
+              }),
+            )
+          })
+
+          it('stores the ADMIN_CONTRIBUTION_LINK_DELETE event in the database', async () => {
+            await expect(DbEvent.find()).resolves.toContainEqual(
+              expect.objectContaining({
+                type: EventType.ADMIN_CONTRIBUTION_LINK_DELETE,
+                affectedUserId: 0,
+                actingUserId: expect.any(Number),
+                involvedContributionLinkId: linkId,
               }),
             )
           })
