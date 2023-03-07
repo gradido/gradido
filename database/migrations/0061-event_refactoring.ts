@@ -65,7 +65,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(
-    'ALTER TABLE `events` MODIFY COLUMN `created_at` datetime() NOT NULL DEFAULT CURRENT_TIMESTAMP();',
+    'ALTER TABLE `events` MODIFY COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP();',
   )
   await queryFn(
     'UPDATE `events` SET involved_user_id=acting_user_id WHERE `type` = "ADMIN_CONTRIBUTION_DENY";',
