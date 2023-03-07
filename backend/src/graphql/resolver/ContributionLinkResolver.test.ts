@@ -554,7 +554,7 @@ describe('Contribution Links', () => {
             linkId = links.data.listContributionLinks.links[0].id
           })
 
-          it('returns a date string', async () => {
+          it('returns true', async () => {
             await expect(
               mutate({ mutation: deleteContributionLink, variables: { id: linkId } }),
             ).resolves.toEqual(
