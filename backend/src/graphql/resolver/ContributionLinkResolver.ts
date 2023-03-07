@@ -144,8 +144,6 @@ export class ContributionLinkResolver {
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
-    logger.debug(`updateContributionLink successful!`)
-
     await EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE(getUser(context), dbContributionLink, amount)
 
     return new ContributionLink(dbContributionLink)
