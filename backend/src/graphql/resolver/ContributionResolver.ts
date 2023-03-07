@@ -89,7 +89,6 @@ export class ContributionResolver {
 
     logger.trace('contribution to save', contribution)
     await DbContribution.save(contribution)
-
     await EVENT_CONTRIBUTION_CREATE(user, contribution, amount)
 
     return new UnconfirmedContribution(contribution, user, creations)
@@ -117,7 +116,6 @@ export class ContributionResolver {
     contribution.deletedBy = user.id
     contribution.deletedAt = new Date()
     await contribution.save()
-
     await EVENT_CONTRIBUTION_DELETE(user, contribution, contribution.amount)
 
     const res = await contribution.softRemove()
@@ -254,7 +252,6 @@ export class ContributionResolver {
     contributionToUpdate.contributionStatus = ContributionStatus.PENDING
     contributionToUpdate.updatedAt = new Date()
     DbContribution.save(contributionToUpdate)
-
     await EVENT_CONTRIBUTION_UPDATE(user, contributionToUpdate, amount)
 
     return new UnconfirmedContribution(contributionToUpdate, user, creations)
@@ -307,11 +304,8 @@ export class ContributionResolver {
     contribution.moderatorId = moderator.id
     contribution.contributionType = ContributionType.ADMIN
     contribution.contributionStatus = ContributionStatus.PENDING
-
     logger.trace('contribution to save', contribution)
-
     await DbContribution.save(contribution)
-
     await EVENT_ADMIN_CONTRIBUTION_CREATE(emailContact.user, moderator, contribution, amount)
 
     return getUserCreation(emailContact.userId, clientTimezoneOffset)
@@ -377,9 +371,7 @@ export class ContributionResolver {
     result.amount = amount
     result.memo = contributionToUpdate.memo
     result.date = contributionToUpdate.contributionDate
-
     result.creation = await getUserCreation(emailContact.user.id, clientTimezoneOffset)
-
     await EVENT_ADMIN_CONTRIBUTION_UPDATE(
       emailContact.user,
       moderator,
@@ -440,14 +432,12 @@ export class ContributionResolver {
     contribution.deletedBy = moderator.id
     await contribution.save()
     const res = await contribution.softRemove()
-
     await EVENT_ADMIN_CONTRIBUTION_DELETE(
       { id: contribution.userId } as DbUser,
       moderator,
       contribution,
       contribution.amount,
     )
-
     sendContributionDeletedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
@@ -558,7 +548,6 @@ export class ContributionResolver {
       } finally {
         await queryRunner.release()
       }
-
       await EVENT_ADMIN_CONTRIBUTION_CONFIRM(user, moderatorUser, contribution, contribution.amount)
     } finally {
       releaseLock()
@@ -648,14 +637,12 @@ export class ContributionResolver {
     contributionToUpdate.deniedBy = moderator.id
     contributionToUpdate.deniedAt = new Date()
     const res = await contributionToUpdate.save()
-
     await EVENT_ADMIN_CONTRIBUTION_DENY(
       user,
       moderator,
       contributionToUpdate,
       contributionToUpdate.amount,
     )
-
     sendContributionDeniedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
