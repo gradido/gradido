@@ -42,7 +42,7 @@
   </div>
 </template>
 <script>
-import { creationTransactionList } from '../graphql/creationTransactionList'
+import { adminListContributions } from '../graphql/adminListContributions'
 export default {
   name: 'CreationTransactionList',
   props: {
@@ -96,7 +96,7 @@ export default {
     getTransactions() {
       this.$apollo
         .query({
-          query: creationTransactionList,
+          query: adminListContributions,
           variables: {
             currentPage: this.currentPage,
             pageSize: this.perPage,
@@ -105,8 +105,8 @@ export default {
           },
         })
         .then((result) => {
-          this.rows = result.data.creationTransactionList.contributionCount
-          this.items = result.data.creationTransactionList.contributionList
+          this.rows = result.data.adminListContributions.contributionCount
+          this.items = result.data.adminListContributions.contributionList
         })
         .catch((error) => {
           this.toastError(error.message)
