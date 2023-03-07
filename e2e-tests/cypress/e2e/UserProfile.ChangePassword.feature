@@ -12,7 +12,7 @@ Feature: User profile - change password
     Given the user is logged in as "bibi@bloxberg.de" "Aa12345_"
 
   Scenario: Change password successfully
-    Given the user navigates to page "/profile"
+    Given the user navigates to page "/settings"
     And the user opens the change password menu
     When the user fills the password form with:
       | Old password        | Aa12345_ |
