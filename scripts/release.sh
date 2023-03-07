@@ -7,6 +7,8 @@ FRONTEND_DIR="${PROJECT_DIR}/frontend/"
 BACKEND_DIR="${PROJECT_DIR}/backend/"
 DATABASE_DIR="${PROJECT_DIR}/database/"
 ADMIN_DIR="${PROJECT_DIR}/admin/"
+DHTNODE_DIR="${PROJECT_DIR}/dht-node/"
+FEDERATION_DIR="${PROJECT_DIR}/federation/"
 
 # navigate to project directory
 cd ${PROJECT_DIR}
@@ -25,6 +27,10 @@ yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${
 cd ${DATABASE_DIR}
 yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
 cd ${ADMIN_DIR}
+yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
+cd ${DHTNODE_DIR}
+yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
+cd ${FEDERATION_DIR}
 yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
 
 # generate changelog
