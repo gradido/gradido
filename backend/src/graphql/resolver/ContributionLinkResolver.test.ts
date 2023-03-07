@@ -560,7 +560,7 @@ describe('Contribution Links', () => {
             ).resolves.toEqual(
               expect.objectContaining({
                 data: {
-                  deleteContributionLink: expect.any(String),
+                  deleteContributionLink: true,
                 },
               }),
             )

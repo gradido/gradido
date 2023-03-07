@@ -99,7 +99,7 @@ export class ContributionLinkResolver {
   }
 
   @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION_LINK])
-  @Mutation(() => Date, { nullable: true })
+  @Mutation(() => Boolean, { nullable: true })
   async deleteContributionLink(
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
