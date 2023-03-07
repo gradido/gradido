@@ -92,33 +92,26 @@ export default {
       ],
     }
   },
-  methods: {
-    getTransactions() {
-      this.$apollo
-        .query({
-          query: adminListContributions,
-          variables: {
-            currentPage: this.currentPage,
-            pageSize: this.perPage,
-            order: 'DESC',
-            userId: parseInt(this.userId),
-          },
-        })
-        .then((result) => {
-          this.rows = result.data.adminListContributions.contributionCount
-          this.items = result.data.adminListContributions.contributionList
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-        })
-    },
-  },
-  created() {
-    this.getTransactions()
-  },
-  watch: {
-    currentPage() {
-      this.getTransactions()
+  apollo: {
+    AdminListContributions: {
+      query() {
+        return adminListContributions
+      },
+      variables() {
+        return {
+          currentPage: this.currentPage,
+          pageSize: this.perPage,
+          order: 'DESC',
+          userId: parseInt(this.userId),
+        }
+      },
+      update({ adminListContributions }) {
+        this.rows = adminListContributions.contributionCount
+        this.items = adminListContributions.contributionList
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
     },
   },
 }
