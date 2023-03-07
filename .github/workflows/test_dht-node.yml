@@ -83,4 +83,4 @@ jobs:
       #- name: Unit tests
       #  run: cd database && yarn && yarn build && cd ../dht-node && yarn && yarn test
       - name: Unit tests
-        run: docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net -v ~/coverage:/app/coverage --rm gradido/dht-node:test yarn run test
+        run: docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net --rm gradido/dht-node:test yarn run test
