@@ -135,15 +135,15 @@ export class ContributionResolver {
   ): Promise<ContributionListResult> {
     const user = getUser(context)
 
-    const [dbContributions, count] = await findContributions(
+    const [dbContributions, count] = await findContributions({
       order,
       currentPage,
       pageSize,
-      true,
-      ['messages'],
-      user.id,
+      withDeleted: true,
+      relations: ['messages'],
+      userId: user.id,
       statusFilter,
-    )
+    })
     return new ContributionListResult(
       count,
       dbContributions.map((contribution) => new Contribution(contribution, user)),
@@ -158,15 +158,13 @@ export class ContributionResolver {
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
     statusFilter?: ContributionStatus[],
   ): Promise<ContributionListResult> {
-    const [dbContributions, count] = await findContributions(
+    const [dbContributions, count] = await findContributions({
       order,
       currentPage,
       pageSize,
-      false,
-      ['user'],
-      undefined,
+      relations: ['user'],
       statusFilter,
-    )
+    })
 
     return new ContributionListResult(
       count,
@@ -386,15 +384,14 @@ export class ContributionResolver {
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
     statusFilter?: ContributionStatus[],
   ): Promise<ContributionListResult> {
-    const [dbContributions, count] = await findContributions(
+    const [dbContributions, count] = await findContributions({
       order,
       currentPage,
       pageSize,
-      true,
-      ['user'],
-      undefined,
+      withDeleted: true,
+      relations: ['user'],
       statusFilter,
-    )
+    })
 
     return new ContributionListResult(
       count,
