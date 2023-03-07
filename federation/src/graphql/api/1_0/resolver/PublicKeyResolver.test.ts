@@ -42,13 +42,14 @@ describe('PublicKeyResolver', () => {
     })
 
     it('returns homeCommunity-publicKey', async () => {
-      await expect(query({ query: getPublicKeyQuery })).resolves.toEqual(expect.objectContaining({
-        data: {
-          getPublicKey: {
-            publicKey: 'homeCommunity-publicKey',
+      await expect(query({ query: getPublicKeyQuery })).resolves.toContainEqual(
+        expect.objectContaining({
+          data: {
+            getPublicKey: {
+              publicKey: 'homeCommunity-publicKey',
+            },
           },
-        },
-      })
+        })
       )
     })
   })
