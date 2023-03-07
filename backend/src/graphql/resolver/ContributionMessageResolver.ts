@@ -3,7 +3,8 @@ import { getConnection } from '@dbTools/typeorm'
 
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
 import { Contribution as DbContribution } from '@entity/Contribution'
-import { UserContact } from '@entity/UserContact'
+import { UserContact as DbUserContact } from '@entity/UserContact'
+import { User as DbUser } from '@entity/User'
 
 import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
 import ContributionMessageArgs from '@arg/ContributionMessageArgs'
@@ -16,7 +17,10 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser } from '@/server/context'
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 import LogError from '@/server/LogError'
-import { EVENT_CONTRIBUTION_MESSAGE_CREATE } from '@/event/Event'
+import {
+  EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE,
+  EVENT_CONTRIBUTION_MESSAGE_CREATE,
+} from '@/event/Event'
 
 @Resolver()
 export class ContributionMessageResolver {
@@ -121,7 +125,7 @@ export class ContributionMessageResolver {
         throw new LogError('Admin can not answer on his own contribution', contributionId)
       }
       if (!contribution.user.emailContact) {
-        contribution.user.emailContact = await UserContact.findOneOrFail({
+        contribution.user.emailContact = await DbUserContact.findOneOrFail({
           where: { id: contribution.user.emailId },
         })
       }
@@ -152,13 +156,18 @@ export class ContributionMessageResolver {
         contributionMemo: contribution.memo,
       })
       await queryRunner.commitTransaction()
-      await EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE({id: contribution.userId} as DbUser, moderator, contribution, contributionMessage)
+      await EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE(
+        { id: contribution.userId } as DbUser,
+        moderator,
+        contribution,
+        contributionMessage,
+      )
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError(`ContributionMessage was not sent successfully: ${e}`, e)
     } finally {
       await queryRunner.release()
     }
-    return new ContributionMessage(contributionMessage, user)
+    return new ContributionMessage(contributionMessage, moderator)
   }
 }

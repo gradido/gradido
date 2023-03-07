@@ -15,6 +15,8 @@ import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
+import { EventType } from '@/event/Event'
+import { Event as DbEvent } from '@entity/Event'
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
@@ -192,6 +194,18 @@ describe('ContributionMessageResolver', () => {
             contributionMemo: 'Test env contribution',
           })
         })
+
+        it('stores the ADMIN_CONTRIBUTION_MESSAGE_CREATE event in the database', async () => {
+          await expect(DbEvent.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventType.ADMIN_CONTRIBUTION_MESSAGE_CREATE,
+              affectedUserId: expect.any(Number),
+              actingUserId: expect.any(Number),
+              involvedContributionId: result.data.createContribution.id,
+              involvedContributionMessageId: expect.any(Number),
+            }),
+          )
+        })
       })
     })
   })
@@ -314,6 +328,18 @@ describe('ContributionMessageResolver', () => {
                   userLastName: 'Bloxberg',
                 }),
               },
+            }),
+          )
+        })
+
+        it('stores the CONTRIBUTION_MESSAGE_CREATE event in the database', async () => {
+          await expect(DbEvent.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventType.CONTRIBUTION_MESSAGE_CREATE,
+              affectedUserId: expect.any(Number),
+              actingUserId: expect.any(Number),
+              involvedContributionId: result.data.createContribution.id,
+              involvedContributionMessageId: expect.any(Number),
             }),
           )
         })
