@@ -285,11 +285,19 @@ export class TransactionLinkResolver {
       return true
     } else {
       const now = new Date()
-      const transactionLink = await DbTransactionLink.findOneOrFail({ code })
-      const linkedUser = await DbUser.findOneOrFail(
+      const transactionLink = await DbTransactionLink.findOne({ code })
+      if (!transactionLink) {
+        throw new LogError('Transaction link not found', code)
+      }
+
+      const linkedUser = await DbUser.findOne(
         { id: transactionLink.userId },
         { relations: ['emailContact'] },
       )
+
+      if (!linkedUser) {
+        throw new LogError('Linked user not found for given link', transactionLink.userId)
+      }
 
       if (user.id === linkedUser.id) {
         throw new LogError('Cannot redeem own transaction link', user.id)

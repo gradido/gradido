@@ -306,7 +306,6 @@ describe('TransactionLinkResolver', () => {
           })
         })
 
-        // TODO: have this test separated into a transactionLink and a contributionLink part
         describe('redeem daily Contribution Link', () => {
           const now = new Date()
           let contributionLink: DbContributionLink | undefined
@@ -505,6 +504,35 @@ describe('TransactionLinkResolver', () => {
                 )
               })
             })
+          })
+        })
+      })
+
+      describe('transaction link', () => {
+        beforeEach(() => {
+          jest.clearAllMocks()
+        })
+
+        describe('link does not exits', () => {
+          beforeAll(async () => {
+            await mutate({
+              mutation: login,
+              variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+            })
+          })
+
+          it('throws and logs the error', async () => {
+            await expect(
+              mutate({
+                mutation: redeemTransactionLink,
+                variables: {
+                  code: 'not-valid',
+                },
+              }),
+            ).resolves.toMatchObject({
+              errors: [new GraphQLError('Transaction link not found')],
+            })
+            expect(logger.error).toBeCalledWith('Transaction link not found', 'not-valid')
           })
         })
       })
