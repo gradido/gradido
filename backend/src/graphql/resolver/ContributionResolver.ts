@@ -383,12 +383,15 @@ export class ContributionResolver {
     { currentPage = 1, pageSize = 3, order = Order.DESC }: Paginated,
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
     statusFilter?: ContributionStatus[],
+    @Arg('userId', () => Int, { nullable: true })
+    userId?: number,
   ): Promise<ContributionListResult> {
     const [dbContributions, count] = await findContributions({
       order,
       currentPage,
       pageSize,
       withDeleted: true,
+      userId,
       relations: ['user'],
       statusFilter,
     })

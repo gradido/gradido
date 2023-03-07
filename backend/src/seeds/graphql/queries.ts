@@ -210,12 +210,14 @@ export const adminListContributions = gql`
     $pageSize: Int = 25
     $order: Order = DESC
     $statusFilter: [ContributionStatus!]
+    $userId: Int
   ) {
     adminListContributions(
       currentPage: $currentPage
       pageSize: $pageSize
       order: $order
       statusFilter: $statusFilter
+      userId: $userId
     ) {
       contributionCount
       contributionList {
