@@ -24,7 +24,7 @@
             {{ $t('contribution.alert.pending') }}
           </li>
           <li>
-            <b-icon icon="question-square" variant="warning"></b-icon>
+            <b-icon icon="question" variant="205"></b-icon>
             {{ $t('contribution.alert.in_progress') }}
           </li>
           <li>
@@ -54,7 +54,7 @@
             {{ $t('contribution.alert.pending') }}
           </li>
           <li>
-            <b-icon icon="question-square" variant="warning"></b-icon>
+            <b-icon icon="question" variant="205"></b-icon>
             {{ $t('contribution.alert.in_progress') }}
           </li>
           <li>
