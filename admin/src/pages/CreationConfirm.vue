@@ -239,7 +239,7 @@ export default {
         ],
         [
           // denied contributions
-          { key: 'reActive', label: 'reActive' },
+          { key: 'reopen', label: this.$t('reopen') },
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {
@@ -276,7 +276,7 @@ export default {
         ],
         [
           // deleted contributions
-          { key: 'reActive', label: 'reActive' },
+          { key: 'reopen', label: this.$t('reopen') },
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {

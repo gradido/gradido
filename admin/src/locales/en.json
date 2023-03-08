@@ -137,6 +137,7 @@
   },
   "redeemed": "redeemed",
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
+  "reopen": "Reopen",
   "save": "Speichern",
   "statistic": {
     "activeUsers": "Active members",
