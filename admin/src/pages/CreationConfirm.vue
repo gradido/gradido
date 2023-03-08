@@ -180,7 +180,6 @@ export default {
           // open contributions
           { key: 'bookmark', label: this.$t('delete') },
           { key: 'deny', label: this.$t('deny') },
-          { key: 'email', label: this.$t('e_mail') },
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {
