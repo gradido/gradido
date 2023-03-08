@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js-light'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
-import { FindOperator, IsNull, getConnection } from '@dbTools/typeorm'
+import { IsNull, getConnection } from '@dbTools/typeorm'
 
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage } from '@entity/ContributionMessage'
@@ -127,35 +127,26 @@ export class ContributionResolver {
   @Authorized([RIGHTS.LIST_CONTRIBUTIONS])
   @Query(() => ContributionListResult)
   async listContributions(
+    @Ctx() context: Context,
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
-    @Arg('filterConfirmed', () => Boolean)
-    filterConfirmed: boolean | null,
-    @Ctx() context: Context,
+    @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
+    statusFilter?: ContributionStatus[],
   ): Promise<ContributionListResult> {
     const user = getUser(context)
-    const where: {
-      userId: number
-      confirmedBy?: FindOperator<number> | null
-    } = { userId: user.id }
 
-    if (filterConfirmed) where.confirmedBy = IsNull()
-
-    const [contributions, count] = await getConnection()
-      .createQueryBuilder()
-      .select('c')
-      .from(DbContribution, 'c')
-      .leftJoinAndSelect('c.messages', 'm')
-      .where(where)
-      .withDeleted()
-      .orderBy('c.createdAt', order)
-      .limit(pageSize)
-      .offset((currentPage - 1) * pageSize)
-      .getManyAndCount()
-
+    const [dbContributions, count] = await findContributions(
+      order,
+      currentPage,
+      pageSize,
+      true,
+      ['messages'],
+      user.id,
+      statusFilter,
+    )
     return new ContributionListResult(
       count,
-      contributions.map((contribution) => new Contribution(contribution, user)),
+      dbContributions.map((contribution) => new Contribution(contribution, user)),
     )
   }
 
@@ -172,6 +163,8 @@ export class ContributionResolver {
       currentPage,
       pageSize,
       false,
+      ['user'],
+      undefined,
       statusFilter,
     )
 
@@ -398,6 +391,8 @@ export class ContributionResolver {
       currentPage,
       pageSize,
       true,
+      ['user'],
+      undefined,
       statusFilter,
     )
 
