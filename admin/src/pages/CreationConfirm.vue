@@ -199,7 +199,7 @@ export default {
             },
           },
           { key: 'moderator', label: this.$t('moderator') },
-          { key: 'editCreation', label: this.$t('edit') },
+          { key: 'editCreation', label: this.$t('chat') },
           { key: 'confirm', label: this.$t('save') },
         ],
         [
