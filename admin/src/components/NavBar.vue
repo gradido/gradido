@@ -50,6 +50,10 @@ export default {
 }
 </script>
 <style>
+.navbar-brand {
+  margin-top: -7px;
+}
+
 .navbar-brand-img {
   height: 2rem;
   padding-left: 10px;
