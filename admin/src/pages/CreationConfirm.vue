@@ -282,7 +282,7 @@ export default {
               return this.$d(new Date(value), 'short')
             },
           },
-          { key: 'deniedBy', label: this.$t('mod') },
+          { key: 'deniedBy', label: this.$t('moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
@@ -319,7 +319,7 @@ export default {
               return this.$d(new Date(value), 'short')
             },
           },
-          { key: 'deletedBy', label: this.$t('mod') },
+          { key: 'deletedBy', label: this.$t('moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
@@ -356,7 +356,7 @@ export default {
               return this.$d(new Date(value), 'short')
             },
           },
-          { key: 'confirmedBy', label: this.$t('mod') },
+          { key: 'confirmedBy', label: this.$t('moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
       ][this.tabIndex]
