@@ -391,7 +391,7 @@ export class ContributionResolver {
       currentPage,
       pageSize,
       true,
-      ['user'],
+      ['user', 'messages'],
       undefined,
       statusFilter,
     )
