@@ -47,7 +47,6 @@
     "form": "Schöpfungsformular",
     "min_characters": "Mindestens 10 Zeichen eingeben",
     "reset": "Zurücksetzen",
-    "reopen": "Reopen",
     "select_month": "Monat auswählen",
     "select_value": "Betrag auswählen",
     "submit_creation": "Schöpfung einreichen",
@@ -138,6 +137,7 @@
   },
   "redeemed": "eingelöst",
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
+  "reopen": "Reopen",
   "save": "Speichern",
   "state": "Status",
   "statistic": {
