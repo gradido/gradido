@@ -48,10 +48,10 @@
           </b-button>
         </div>
       </template>
-      <template #cell(reActive)>
-        <b-button variant="warning" size="md" class="mr-2">
+      <template #cell(reopen)>
+        <!--b-button variant="warning" size="md" class="mr-2">
           <b-icon icon="arrow-up" variant="light"></b-icon>
-        </b-button>
+        </b-button-->
       </template>
       <template #cell(chatCreation)="row">
         <b-button v-if="row.item.messagesCount > 0" @click="rowToggleDetails(row, 0)">
