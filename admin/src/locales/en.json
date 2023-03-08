@@ -139,6 +139,7 @@
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
   "reopen": "Reopen",
   "save": "Speichern",
+  "state": "State",
   "statistic": {
     "activeUsers": "Active members",
     "count": "Count",

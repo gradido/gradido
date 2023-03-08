@@ -139,6 +139,7 @@
   "redeemed": "eingelöst",
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
   "save": "Speichern",
+  "state": "Status",
   "statistic": {
     "activeUsers": "Aktive Mitglieder",
     "count": "Menge",
