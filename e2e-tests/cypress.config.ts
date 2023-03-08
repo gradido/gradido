@@ -21,6 +21,9 @@ async function setupNodeEvents(
     setEmailLink: (link: string) => {
       return (emailLink = link)
     },
+    getEmailLink: () => {
+      return emailLink
+    },
   })
 
   on('after:run', (results) => {
