@@ -11,7 +11,7 @@ export class SideNavMenu {
   }
 
   logout() {
-    cy.get(this.logoutMenu).click()
+    cy.get('.main-sidebar').find(this.logoutMenu).click()
     return this
   }
 }
