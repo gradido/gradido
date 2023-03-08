@@ -5,25 +5,37 @@
       <b-tabs v-model="tabIndex" content-class="mt-3" fill>
         <b-tab active :title-link-attributes="{ 'data-test': 'open' }">
           <template #title>
+            <b-icon icon="bell-fill" variant="primary"></b-icon>
             {{ $t('contributions.open') }}
             <b-badge v-if="$store.state.openCreations > 0" variant="danger">
               {{ $store.state.openCreations }}
             </b-badge>
           </template>
         </b-tab>
-        <b-tab
-          :title="$t('contributions.confirms')"
-          :title-link-attributes="{ 'data-test': 'confirmed' }"
-        />
-        <b-tab
-          :title="$t('contributions.denied')"
-          :title-link-attributes="{ 'data-test': 'denied' }"
-        />
-        <b-tab
-          :title="$t('contributions.deleted')"
-          :title-link-attributes="{ 'data-test': 'deleted' }"
-        />
-        <b-tab :title="$t('contributions.all')" :title-link-attributes="{ 'data-test': 'all' }" />
+        <b-tab :title-link-attributes="{ 'data-test': 'confirmed' }">
+          <template #title>
+            <b-icon icon="check" variant="success"></b-icon>
+            {{ $t('contributions.confirms') }}
+          </template>
+        </b-tab>
+        <b-tab :title-link-attributes="{ 'data-test': 'denied' }">
+          <template #title>
+            <b-icon icon="x-circle" variant="warning"></b-icon>
+            {{ $t('contributions.denied') }}
+          </template>
+        </b-tab>
+        <b-tab :title-link-attributes="{ 'data-test': 'deleted' }">
+          <template #title>
+            <b-icon icon="trash" variant="danger"></b-icon>
+            {{ $t('contributions.deleted') }}
+          </template>
+        </b-tab>
+        <b-tab :title-link-attributes="{ 'data-test': 'all' }">
+          <template #title>
+            <b-icon icon="list"></b-icon>
+            {{ $t('contributions.all') }}
+          </template>
+        </b-tab>
       </b-tabs>
     </div>
     <open-creations-table
