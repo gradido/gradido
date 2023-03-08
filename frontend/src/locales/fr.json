@@ -27,9 +27,9 @@
     "moderator": "Modérateur",
     "moderators": "Modérateurs",
     "myContributions": "Mes contributions",
-    "noOpenContributionLinkText": "Currently there are no automatic creations.",
-    "openContributionLinks": "liste de liens de contribution publique",
-    "openContributionLinkText": "Les {count} créations automatiques suivantes sont actuellement fournies par la communauté \"{name}\".",
+    "noOpenContributionLinkText": "Actuellement, il n'y a pas de créations générées par lien.",
+    "openContributionLinks": "Créations générées par lien",
+    "openContributionLinkText": "La communauté \"{name}\" soutient actuellement {count} créations générées par lien:",
     "submitContribution": "Contribuer"
   },
   "communityInfo": "Information communauté^^",
