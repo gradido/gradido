@@ -550,7 +550,7 @@ jobs:
         run: |
           cd e2e-tests/
           yarn
-          yarn run cypress run --spec cypress/e2e/User.Authentication.feature,cypress/e2e/User.Authentication.ResetPassword.feature,cypress/e2e/User.Registration.feature
+          yarn run cypress run
       - name: End-to-end tests | if tests failed, upload screenshots
         if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
         uses: actions/upload-artifact@v3
