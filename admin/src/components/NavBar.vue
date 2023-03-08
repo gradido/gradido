@@ -1,8 +1,8 @@
 <template>
   <div class="component-nabvar">
     <b-navbar toggleable="md" type="dark" variant="success">
-      <b-navbar-brand to="/">
-        <img src="img/brand/gradido_logo_w.png" class="navbar-brand-img" alt="..." />
+      <b-navbar-brand class="mb-2" to="/">
+        <img src="img/brand/gradido_logo_w.png" class="navbar-brand-img pl-2" alt="..." />
       </b-navbar-brand>
 
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
@@ -50,12 +50,7 @@ export default {
 }
 </script>
 <style>
-.navbar-brand {
-  margin-top: -7px;
-}
-
 .navbar-brand-img {
   height: 2rem;
-  padding-left: 10px;
 }
 </style>
