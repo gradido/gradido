@@ -10,7 +10,7 @@
       <b-collapse id="nav-collapse" is-nav>
         <b-navbar-nav>
           <b-nav-item to="/user">{{ $t('navbar.user_search') }}</b-nav-item>
-          <b-nav-item class="bg-color-creation p-1" to="/creation-confirm">
+          <b-nav-item class="bg-color-creation" to="/creation-confirm">
             {{ $t('creation') }}
             <b-badge v-show="$store.state.openCreations > 0" variant="danger">
               {{ $store.state.openCreations }}
