@@ -63,6 +63,7 @@ import {
   EVENT_USER_ROLE_SET,
   EVENT_ADMIN_USER_ROLE_SET,
   EVENT_ADMIN_USER_DELETE,
+  EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Event'
 import { getUserCreations } from './util/creations'
 import { isValidPassword } from '@/password/EncryptorUtils'
@@ -767,7 +768,10 @@ export class UserResolver {
 
   @Authorized([RIGHTS.ADMIN_UNDELETE_USER])
   @Mutation(() => Date, { nullable: true })
-  async unDeleteUser(@Arg('userId', () => Int) userId: number, @Ctx() context: Context,): Promise<Date | null> {
+  async unDeleteUser(
+    @Arg('userId', () => Int) userId: number,
+    @Ctx() context: Context,
+  ): Promise<Date | null> {
     const user = await DbUser.findOne({ id: userId }, { withDeleted: true })
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
@@ -810,9 +814,8 @@ export class UserResolver {
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
       logger.info(`Account confirmation link: ${activationLink}`)
-    } else {
-      await EVENT_ADMIN_SEND_CONFIRMATION_EMAIL(user, getUser(context))
     }
+    await EVENT_ADMIN_SEND_CONFIRMATION_EMAIL(user, getUser(context))
 
     return true
   }
