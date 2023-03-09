@@ -2,7 +2,7 @@
   <div>
     <div
       class="contribution-list-item bg-white appBoxShadow gradido-border-radius pt-3 px-3"
-      :class="state === 'IN_PROGRESS' ? 'pulse border border-205' : ''"
+      :class="state === 'IN_PROGRESS' && !allContribution ? 'pulse border border-205' : ''"
     >
       <b-row>
         <b-col cols="3" lg="2" md="2">
@@ -25,7 +25,7 @@
           </div>
           <div class="mt-3 font-weight-bold">{{ $t('contributionText') }}</div>
           <div class="mb-3 text-break word-break">{{ memo }}</div>
-          <div v-if="state === 'IN_PROGRESS'" class="text-205">
+          <div v-if="state === 'IN_PROGRESS' && !allContribution" class="text-205">
             {{ $t('contribution.alert.answerQuestion') }}
           </div>
         </b-col>
@@ -189,14 +189,14 @@ export default {
       if (this.deletedAt) return 'trash'
       if (this.deniedAt) return 'x-circle'
       if (this.confirmedAt) return 'check'
-      if (this.state === 'IN_PROGRESS') return 'question-circle'
+      if (this.state === 'IN_PROGRESS') return 'question'
       return 'bell-fill'
     },
     variant() {
       if (this.deletedAt) return 'danger'
       if (this.deniedAt) return 'warning'
       if (this.confirmedAt) return 'success'
-      if (this.state === 'IN_PROGRESS') return 'f5'
+      if (this.state === 'IN_PROGRESS') return '205'
       return 'primary'
     },
     date() {

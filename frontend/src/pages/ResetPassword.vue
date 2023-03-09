@@ -1,20 +1,24 @@
 <template>
   <div v-if="enterData" class="resetpwd-form">
     <div class="pb-5">{{ $t('site.resetPassword.heading') }}</div>
-    <validation-observer ref="observer" v-slot="{ handleSubmit }">
+    <validation-observer ref="observer" v-slot="{ handleSubmit, valid }">
       <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
         <input-password-confirmation v-model="form" />
-        <div class="text-center">
-          <b-button
-            type="submit"
-            variant="gradido"
-            class="mt-4"
-            data-test="submit-new-password-btn"
-          >
-            <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-            {{ $t(displaySetup.button) }}
-          </b-button>
-        </div>
+        <b-row>
+          <b-col cols="12" lg="6">
+            <b-button
+              block
+              type="submit"
+              :variant="valid ? 'gradido' : 'gradido-disable'"
+              class="mt-4"
+              data-test="submit-new-password-btn"
+              :disabled="!valid"
+            >
+              <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
+              {{ $t(displaySetup.button) }}
+            </b-button>
+          </b-col>
+        </b-row>
       </b-form>
     </validation-observer>
   </div>
@@ -149,3 +153,13 @@ export default {
   },
 }
 </script>
+<style scoped>
+.btn-gradido {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+.btn-gradido-disable {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+</style>
