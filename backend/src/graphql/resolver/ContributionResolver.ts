@@ -132,7 +132,7 @@ export class ContributionResolver {
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
-    statusFilter?: ContributionStatus[],
+    statusFilter?: ContributionStatus[] | null,
   ): Promise<ContributionListResult> {
     const user = getUser(context)
 
