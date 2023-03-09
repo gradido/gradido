@@ -60,6 +60,9 @@ import {
   EVENT_LOGOUT,
   EVENT_EMAIL_FORGOT_PASSWORD,
   EVENT_USER_INFO_UPDATE,
+  EVENT_USER_ROLE_SET,
+  EVENT_ADMIN_USER_ROLE_SET,
+  EVENT_ADMIN_USER_DELETE,
 } from '@/event/Event'
 import { getUserCreations } from './util/creations'
 import { isValidPassword } from '@/password/EncryptorUtils'
@@ -585,7 +588,6 @@ export class UserResolver {
       await queryRunner.release()
     }
     logger.info('updateUserInfos() successfully finished...')
-
     await EVENT_USER_INFO_UPDATE(user)
 
     return true
@@ -713,8 +715,8 @@ export class UserResolver {
       throw new LogError('Could not find user with given ID', userId)
     }
     // administrator user changes own role?
-    const moderatorUser = getUser(context)
-    if (moderatorUser.id === userId) {
+    const moderator = getUser(context)
+    if (moderator.id === userId) {
       throw new LogError('Administrator can not change his own role')
     }
     // change isAdmin
@@ -735,6 +737,7 @@ export class UserResolver {
         break
     }
     await user.save()
+    await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
     const newUser = await DbUser.findOne({ id: userId })
     return newUser ? newUser.isAdmin : null
   }
@@ -751,19 +754,20 @@ export class UserResolver {
       throw new LogError('Could not find user with given ID', userId)
     }
     // moderator user disabled own account?
-    const moderatorUser = getUser(context)
-    if (moderatorUser.id === userId) {
+    const moderator = getUser(context)
+    if (moderator.id === userId) {
       throw new LogError('Moderator can not delete his own account')
     }
     // soft-delete user
     await user.softRemove()
+    await EVENT_ADMIN_USER_DELETE(user, moderator)
     const newUser = await DbUser.findOne({ id: userId }, { withDeleted: true })
     return newUser ? newUser.deletedAt : null
   }
 
   @Authorized([RIGHTS.ADMIN_UNDELETE_USER])
   @Mutation(() => Date, { nullable: true })
-  async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
+  async unDeleteUser(@Arg('userId', () => Int) userId: number, @Ctx() context: Context,): Promise<Date | null> {
     const user = await DbUser.findOne({ id: userId }, { withDeleted: true })
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
@@ -772,6 +776,7 @@ export class UserResolver {
       throw new LogError('User is not deleted')
     }
     await user.recover()
+    await EVENT_ADMIN_USER_UNDELETE(user, getUser(context))
     return null
   }
 
