@@ -63,7 +63,6 @@
   "deleted_user": "Alle gelöschten Nutzer",
   "delete_user": "Nutzer löschen",
   "deny": "Ablehnen",
-  "edit": "Bearbeiten",
   "enabled": "aktiviert",
   "error": "Fehler",
   "expired": "abgelaufen",
@@ -101,7 +100,6 @@
   "message": {
     "request": "Die Anfrage wurde gesendet."
   },
-  "mod": "Mod",
   "moderator": "Moderator",
   "name": "Name",
   "navbar": {
