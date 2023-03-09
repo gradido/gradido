@@ -137,7 +137,6 @@
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
   "reopen": "Reopen",
   "save": "Speichern",
-  "status": "State",
   "statistic": {
     "activeUsers": "Active members",
     "count": "Count",
@@ -149,7 +148,7 @@
     "totalGradidoUnbookedDecayed": "Unbooked GDD decay",
     "totalUsers": "Members"
   },
-  "status": "Status",
+  "status": "State",
   "success": "Success",
   "text": "Text",
   "transactionlink": {
