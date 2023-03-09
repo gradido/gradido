@@ -56,7 +56,7 @@ import {
   EVENT_EMAIL_CONFIRMATION,
   EVENT_USER_REGISTER,
   EVENT_USER_ACTIVATE_ACCOUNT,
-  EVENT_ADMIN_SEND_CONFIRMATION_EMAIL,
+  EVENT_EMAIL_ADMIN_CONFIRMATION,
   EVENT_USER_LOGOUT,
   EVENT_EMAIL_FORGOT_PASSWORD,
   EVENT_USER_INFO_UPDATE,
@@ -813,7 +813,7 @@ export class UserResolver {
     if (!emailSent) {
       logger.info(`Account confirmation link: ${activationLink}`)
     }
-    await EVENT_ADMIN_SEND_CONFIRMATION_EMAIL(user, getUser(context))
+    await EVENT_EMAIL_ADMIN_CONFIRMATION(user, getUser(context))
 
     return true
   }
