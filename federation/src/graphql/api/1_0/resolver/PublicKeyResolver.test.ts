@@ -5,7 +5,6 @@ import createServer from '@/server/createServer'
 import { Community as DbCommunity } from '@entity/Community'
 
 let query: any
-let testEnv: any
 
 // to do: We need a setup for the tests that closes the connection
 let con: any
