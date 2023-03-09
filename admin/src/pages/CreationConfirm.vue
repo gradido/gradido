@@ -251,7 +251,6 @@ export default {
         ],
         [
           // denied contributions
-          { key: 'reopen', label: this.$t('reopen') },
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {
