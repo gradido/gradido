@@ -185,7 +185,7 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.LOGOUT])
-  @Mutation(() => String)
+  @Mutation(() => Boolean)
   async logout(@Ctx() context: Context): Promise<boolean> {
     await EVENT_LOGOUT(getUser(context))
     // remove user from logger context
