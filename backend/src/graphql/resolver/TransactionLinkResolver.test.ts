@@ -26,6 +26,9 @@ import Decimal from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { logger } from '@test/testSetup'
+import { EventType } from '@/event/Event'
+import { Event as DbEvent } from '@entity/Event'
+import { UserContact } from '@entity/UserContact'
 
 // mock semaphore to allow use fake timers
 jest.mock('@/util/TRANSACTIONS_LOCK')
@@ -430,6 +433,24 @@ describe('TransactionLinkResolver', () => {
                 },
                 errors: undefined,
               })
+            })
+
+            it('stores the CONTRIBUTION_LINK_REDEEM event in the database', async () => {
+              const userConatct = await UserContact.findOneOrFail(
+                { email: 'bibi@bloxberg.de' },
+                { relations: ['user'] },
+              )
+              expect(DbEvent.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventType.CONTRIBUTION_LINK_REDEEM,
+                  affectedUserId: userConatct.user.id,
+                  actingUserId: userConatct.user.id,
+                  involvedTransactionId: expect.any(Number),
+                  involvedContributionId: expect.any(Number),
+                  involvedContributionLinkId: contributionLink?.id,
+                  amount: contributionLink?.amount,
+                }),
+              )
             })
 
             it('does not allow the user to redeem the contribution link a second time on the same day', async () => {
