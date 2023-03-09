@@ -246,6 +246,7 @@ export default {
               return this.$d(new Date(value), 'short')
             },
           },
+          { key: 'confirmedBy', label: this.$t('moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
