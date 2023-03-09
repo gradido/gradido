@@ -58,6 +58,8 @@ import {
   EVENT_ACTIVATE_ACCOUNT,
   EVENT_ADMIN_SEND_CONFIRMATION_EMAIL,
   EVENT_LOGOUT,
+  EVENT_EMAIL_FORGOT_PASSWORD,
+  EVENT_USER_INFO_UPDATE,
 } from '@/event/Event'
 import { getUserCreations } from './util/creations'
 import { isValidPassword } from '@/password/EncryptorUtils'
@@ -402,6 +404,7 @@ export class UserResolver {
       )
     }
     logger.info(`forgotPassword(${email}) successful...`)
+    await EVENT_EMAIL_FORGOT_PASSWORD(user)
 
     return true
   }
@@ -464,8 +467,6 @@ export class UserResolver {
 
       await queryRunner.commitTransaction()
       logger.info('User and UserContact data written successfully...')
-
-      await EVENT_ACTIVATE_ACCOUNT(user)
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Error on writing User and User Contact data', e)
@@ -483,13 +484,9 @@ export class UserResolver {
         )
       } catch (e) {
         logger.error('Error subscribing to klicktipp', e)
-        // TODO is this a problem?
-        // eslint-disable-next-line no-console
-        /*  uncomment this, when you need the activation link on the console
-        console.log('Could not subscribe to klicktipp')
-        */
       }
     }
+    await EVENT_ACTIVATE_ACCOUNT(user)
 
     return true
   }
@@ -526,21 +523,21 @@ export class UserResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     logger.info(`updateUserInfos(${firstName}, ${lastName}, ${language}, ***, ***)...`)
-    const userEntity = getUser(context)
+    const user = getUser(context)
 
     if (firstName) {
-      userEntity.firstName = firstName
+      user.firstName = firstName
     }
 
     if (lastName) {
-      userEntity.lastName = lastName
+      user.lastName = lastName
     }
 
     if (language) {
       if (!isLanguage(language)) {
         throw new LogError('Given language is not a valid language', language)
       }
-      userEntity.language = language
+      user.language = language
       i18n.setLocale(language)
     }
 
@@ -552,22 +549,22 @@ export class UserResolver {
         )
       }
 
-      if (!verifyPassword(userEntity, password)) {
+      if (!verifyPassword(user, password)) {
         throw new LogError(`Old password is invalid`)
       }
 
       // Save new password hash and newly encrypted private key
-      userEntity.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      userEntity.password = encryptPassword(userEntity, passwordNew)
+      user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+      user.password = encryptPassword(user, passwordNew)
     }
 
     // Save hideAmountGDD value
     if (hideAmountGDD !== undefined) {
-      userEntity.hideAmountGDD = hideAmountGDD
+      user.hideAmountGDD = hideAmountGDD
     }
     // Save hideAmountGDT value
     if (hideAmountGDT !== undefined) {
-      userEntity.hideAmountGDT = hideAmountGDT
+      user.hideAmountGDT = hideAmountGDT
     }
 
     const queryRunner = getConnection().createQueryRunner()
@@ -575,7 +572,7 @@ export class UserResolver {
     await queryRunner.startTransaction('REPEATABLE READ')
 
     try {
-      await queryRunner.manager.save(userEntity).catch((error) => {
+      await queryRunner.manager.save(user).catch((error) => {
         throw new LogError('Error saving user', error)
       })
 
@@ -588,6 +585,9 @@ export class UserResolver {
       await queryRunner.release()
     }
     logger.info('updateUserInfos() successfully finished...')
+
+    await EVENT_USER_INFO_UPDATE(user)
+
     return true
   }
 
