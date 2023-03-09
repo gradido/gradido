@@ -99,6 +99,7 @@
             <div v-else>
               <contribution-messages-list
                 :contributionId="row.item.id"
+                :contributionState="row.item.state"
                 @update-state="updateState"
                 @update-user-data="updateUserData"
               />
