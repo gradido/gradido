@@ -1,4 +1,5 @@
-import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { Arg, Args, Authorized, Ctx, ID, Mutation, Query, Resolver } from 'type-graphql'
 import { getConnection } from '@dbTools/typeorm'
 
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
@@ -68,7 +69,7 @@ export class ContributionMessageResolver {
   @Authorized([RIGHTS.LIST_ALL_CONTRIBUTION_MESSAGES])
   @Query(() => ContributionMessageListResult)
   async listContributionMessages(
-    @Arg('contributionId') contributionId: number,
+    @Arg('contributionId', () => ID) contributionId: number,
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   ): Promise<ContributionMessageListResult> {

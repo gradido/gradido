@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import Decimal from 'decimal.js-light'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { IsNull, getConnection } from '@dbTools/typeorm'
@@ -156,7 +157,7 @@ export class ContributionResolver {
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
-    statusFilter?: ContributionStatus[],
+    statusFilter?: ContributionStatus[] | null,
   ): Promise<ContributionListResult> {
     const [dbContributions, count] = await findContributions(
       order,
@@ -239,14 +240,14 @@ export class ContributionResolver {
     contributionMessage.isModerator = false
     contributionMessage.userId = user.id
     contributionMessage.type = ContributionMessageType.HISTORY
-    ContributionMessage.save(contributionMessage)
+    await ContributionMessage.save(contributionMessage)
 
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)
     contributionToUpdate.contributionStatus = ContributionStatus.PENDING
     contributionToUpdate.updatedAt = new Date()
-    DbContribution.save(contributionToUpdate)
+    await DbContribution.save(contributionToUpdate)
 
     await EVENT_CONTRIBUTION_UPDATE(user.id, contributionId, amount)
 
@@ -254,7 +255,7 @@ export class ContributionResolver {
   }
 
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION])
-  @Mutation(() => [Number])
+  @Mutation(() => [Decimal])
   async adminCreateContribution(
     @Args() { email, amount, memo, creationDate }: AdminCreateContributionArgs,
     @Ctx() context: Context,
@@ -384,7 +385,7 @@ export class ContributionResolver {
     @Args()
     { currentPage = 1, pageSize = 3, order = Order.DESC }: Paginated,
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
-    statusFilter?: ContributionStatus[],
+    statusFilter?: ContributionStatus[] | null,
   ): Promise<ContributionListResult> {
     const [dbContributions, count] = await findContributions(
       order,
@@ -433,7 +434,7 @@ export class ContributionResolver {
 
     await EVENT_ADMIN_CONTRIBUTION_DELETE(contribution.userId, contribution.id, contribution.amount)
 
-    sendContributionDeletedEmail({
+    void sendContributionDeletedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.emailContact.email,
@@ -527,7 +528,7 @@ export class ContributionResolver {
 
         await queryRunner.commitTransaction()
         logger.info('creation commited successfuly.')
-        sendContributionConfirmedEmail({
+        void sendContributionConfirmedEmail({
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.emailContact.email,
@@ -581,8 +582,8 @@ export class ContributionResolver {
   @Authorized([RIGHTS.OPEN_CREATIONS])
   @Query(() => [OpenCreation])
   async openCreations(
-    @Arg('userId', () => Int, { nullable: true }) userId: number | null,
     @Ctx() context: Context,
+    @Arg('userId', () => Int, { nullable: true }) userId?: number | null,
   ): Promise<OpenCreation[]> {
     const id = userId || getUser(context).id
     const clientTimezoneOffset = getClientTimezoneOffset(context)
@@ -641,7 +642,7 @@ export class ContributionResolver {
       contributionToUpdate.amount,
     )
 
-    sendContributionDeniedEmail({
+    void sendContributionDeniedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.emailContact.email,

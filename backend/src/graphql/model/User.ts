@@ -1,4 +1,4 @@
-import { ObjectType, Field } from 'type-graphql'
+import { ObjectType, Field, ID, Int } from 'type-graphql'
 import { KlickTipp } from './KlickTipp'
 import { User as dbUser } from '@entity/User'
 import { UserContact } from './UserContact'
@@ -28,21 +28,21 @@ export class User {
     this.hideAmountGDT = user.hideAmountGDT
   }
 
-  @Field(() => Number)
+  @Field(() => ID)
   id: number
 
   @Field(() => String)
   gradidoID: string
 
   @Field(() => String, { nullable: true })
-  alias?: string
+  alias: string | null
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => ID, { nullable: true })
   emailId: number | null
 
   // TODO privacy issue here
   @Field(() => String, { nullable: true })
-  email: string
+  email: string | null
 
   @Field(() => UserContact)
   emailContact: UserContact
@@ -72,7 +72,7 @@ export class User {
   hideAmountGDT: boolean
 
   // This is not the users publisherId, but the one of the users who recommend him
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   publisherId: number | null
 
   @Field(() => Date, { nullable: true })

@@ -1,9 +1,9 @@
-import { ArgsType, Field, InputType } from 'type-graphql'
+import { ArgsType, Field, ID, InputType } from 'type-graphql'
 
 @InputType()
 @ArgsType()
 export default class ContributionMessageArgs {
-  @Field(() => Number)
+  @Field(() => ID)
   contributionId: number
 
   @Field(() => String)

@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -337,7 +341,7 @@ describe('send coins', () => {
           memo: 'unrepeatable memo',
         })
 
-        expect(EventProtocol.find()).resolves.toContainEqual(
+        await expect(EventProtocol.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.TRANSACTION_SEND,
             userId: user[1].id,
@@ -354,7 +358,7 @@ describe('send coins', () => {
           memo: 'unrepeatable memo',
         })
 
-        expect(EventProtocol.find()).resolves.toContainEqual(
+        await expect(EventProtocol.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.TRANSACTION_RECEIVE,
             userId: user[0].id,

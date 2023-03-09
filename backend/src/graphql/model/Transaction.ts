@@ -1,4 +1,4 @@
-import { ObjectType, Field } from 'type-graphql'
+import { ObjectType, Field, ID } from 'type-graphql'
 import { Decay } from './Decay'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
@@ -41,19 +41,19 @@ export class Transaction {
     this.memo = transaction.memo
     this.creationDate = transaction.creationDate
     this.linkedUser = linkedUser
-    this.linkedTransactionId = transaction.linkedTransactionId
+    this.linkedTransactionId = transaction.linkedTransactionId || null
     this.linkId = transaction.contribution
       ? transaction.contribution.contributionLinkId
-      : transaction.transactionLinkId
+      : transaction.transactionLinkId || null
   }
 
-  @Field(() => Number)
+  @Field(() => ID)
   id: number
 
   @Field(() => User)
   user: User
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => ID, { nullable: true })
   previous: number | null
 
   @Field(() => TransactionTypeId)
@@ -80,10 +80,10 @@ export class Transaction {
   @Field(() => User, { nullable: true })
   linkedUser: User | null
 
-  @Field(() => Number, { nullable: true })
-  linkedTransactionId?: number | null
+  @Field(() => ID, { nullable: true })
+  linkedTransactionId: number | null
 
   // Links to the TransactionLink/ContributionLink when transaction was created by a link
-  @Field(() => Number, { nullable: true })
-  linkId?: number | null
+  @Field(() => ID, { nullable: true })
+  linkId: number | null
 }

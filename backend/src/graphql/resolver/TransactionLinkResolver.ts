@@ -128,7 +128,7 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
   @Query(() => QueryLinkResult)
   async queryTransactionLink(@Arg('code') code: string): Promise<typeof QueryLinkResult> {
-    if (code.match(/^CL-/)) {
+    if (/^CL-/.exec(code)) {
       const contributionLink = await DbContributionLink.findOneOrFail(
         { code: code.replace('CL-', '') },
         { withDeleted: true },
@@ -154,7 +154,7 @@ export class TransactionLinkResolver {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
     const user = getUser(context)
 
-    if (code.match(/^CL-/)) {
+    if (/^CL-/.exec(code)) {
       // acquire lock
       const releaseLock = await TRANSACTIONS_LOCK.acquire()
       try {
@@ -341,8 +341,9 @@ export class TransactionLinkResolver {
   async listTransactionLinksAdmin(
     @Args()
     paginated: Paginated,
+    // eslint-disable-next-line type-graphql/wrong-decorator-signature
     @Arg('filters', () => TransactionLinkFilters, { nullable: true })
-    filters: TransactionLinkFilters | null,
+    filters: TransactionLinkFilters | null, // eslint-disable-line type-graphql/invalid-nullable-input-type
     @Arg('userId', () => Int)
     userId: number,
   ): Promise<TransactionLinkResult> {

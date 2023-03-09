@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -176,7 +181,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -265,7 +270,7 @@ describe('ContributionResolver', () => {
       })
 
       describe('valid input', () => {
-        it('creates contribution', async () => {
+        it('creates contribution', () => {
           expect(pendingContribution.data.createContribution).toMatchObject({
             id: expect.any(Number),
             amount: '100',
@@ -311,7 +316,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -452,7 +457,7 @@ describe('ContributionResolver', () => {
               id: pendingContribution.data.createContribution.id,
             })
             contribution.contributionStatus = ContributionStatus.DELETED
-            contribution.save()
+            await contribution.save()
             await mutate({
               mutation: login,
               variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -464,7 +469,7 @@ describe('ContributionResolver', () => {
               id: pendingContribution.data.createContribution.id,
             })
             contribution.contributionStatus = ContributionStatus.PENDING
-            contribution.save()
+            await contribution.save()
           })
 
           it('throws an error', async () => {
@@ -636,7 +641,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -856,7 +861,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -1009,7 +1014,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -1140,7 +1145,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -1720,7 +1725,7 @@ describe('ContributionResolver', () => {
           })
         })
 
-        afterAll(async () => {
+        afterAll(() => {
           resetToken()
         })
 
@@ -1798,7 +1803,7 @@ describe('ContributionResolver', () => {
           })
         })
 
-        afterAll(async () => {
+        afterAll(() => {
           resetToken()
         })
 
@@ -1913,7 +1918,7 @@ describe('ContributionResolver', () => {
           })
 
           describe('valid user to create for', () => {
-            beforeAll(async () => {
+            beforeAll(() => {
               variables.email = 'bibi@bloxberg.de'
               variables.creationDate = 'invalid-date'
             })
@@ -2551,7 +2556,7 @@ describe('ContributionResolver', () => {
               expect(transaction[0].typeId).toEqual(1)
             })
 
-            it('calls sendContributionConfirmedEmail', async () => {
+            it('calls sendContributionConfirmedEmail', () => {
               expect(sendContributionConfirmedEmail).toBeCalledWith({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',

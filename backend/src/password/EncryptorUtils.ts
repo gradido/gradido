@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import CONFIG from '@/config'
 import LogError from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
@@ -9,7 +12,7 @@ const sodium = require('sodium-native')
 
 // We will reuse this for changePassword
 export const isValidPassword = (password: string): boolean => {
-  return !!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)
+  return !!/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/.exec(password)
 }
 
 export const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[] => {

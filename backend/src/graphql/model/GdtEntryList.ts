@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { GdtEntry } from './GdtEntry'
-import { ObjectType, Field } from 'type-graphql'
+import { ObjectType, Field, Int } from 'type-graphql'
 
 @ObjectType()
 export class GdtEntryList {
@@ -16,15 +19,15 @@ export class GdtEntryList {
   @Field(() => String)
   state: string
 
-  @Field(() => Number)
+  @Field(() => Int)
   count: number
 
   @Field(() => [GdtEntry], { nullable: true })
-  gdtEntries?: GdtEntry[]
+  gdtEntries: GdtEntry[] | null
 
-  @Field(() => Number)
+  @Field(() => Int)
   gdtSum: number
 
-  @Field(() => Number)
+  @Field(() => Int)
   timeUsed: number
 }

@@ -1,4 +1,4 @@
-import { ObjectType, Field } from 'type-graphql'
+import { ObjectType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 
 @ObjectType()
@@ -19,14 +19,14 @@ export class Balance {
   @Field(() => Decimal)
   balance: Decimal
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   balanceGDT: number | null
 
   // the count of all transactions
-  @Field(() => Number)
+  @Field(() => Int)
   count: number
 
   // the count of transaction links
-  @Field(() => Number)
+  @Field(() => Int)
   linkCount: number
 }

@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /*
@@ -115,7 +119,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
     // Validate inputs
     if (
       email === '' ||
-      !email.match(VALIDATE_EMAIL) ||
+      !VALIDATE_EMAIL.exec(email) ||
       firstName === '' ||
       firstName.match(VALIDATE_NAME) ||
       lastName === '' ||

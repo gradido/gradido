@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import i18n from 'i18n'
 import { v4 as uuidv4 } from 'uuid'
 import {
@@ -166,11 +170,11 @@ export class UserResolver {
 
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
-    logger.info('user.hasElopage=' + user.hasElopage)
+    logger.info('user.hasElopage', user.hasElopage)
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
       dbUser.publisherId = publisherId
-      DbUser.save(dbUser)
+      await DbUser.save(dbUser)
     }
 
     context.setHeaders.push({
@@ -184,8 +188,8 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.LOGOUT])
-  @Mutation(() => String)
-  async logout(): Promise<boolean> {
+  @Mutation(() => Boolean)
+  logout(): boolean {
     // TODO: Event still missing here!!
     // TODO: We dont need this anymore, but might need this in the future in oder to invalidate a valid JWT-Token.
     // Furthermore this hook can be useful for tracking user behaviour (did he logout or not? Warn him if he didn't on next login)
@@ -202,7 +206,7 @@ export class UserResolver {
   @Mutation(() => User)
   async createUser(
     @Args()
-    { email, firstName, lastName, language, publisherId, redeemCode = null }: CreateUserArgs,
+    { email, firstName, lastName, language, publisherId = null, redeemCode = null }: CreateUserArgs,
   ): Promise<User> {
     logger.addContext('user', 'unknown')
     logger.info(
@@ -239,7 +243,7 @@ export class UserResolver {
         user.lastName = lastName
         user.language = language
         user.publisherId = publisherId
-        logger.debug('partly faked user=' + user)
+        logger.debug('partly faked user', user)
 
         const emailSent = await sendAccountMultiRegistrationEmail({
           firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
@@ -272,22 +276,22 @@ export class UserResolver {
     dbUser.firstName = firstName
     dbUser.lastName = lastName
     dbUser.language = language
-    dbUser.publisherId = publisherId
+    dbUser.publisherId = publisherId || 0
     dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
-    logger.debug('new dbUser=' + dbUser)
+    logger.debug('new dbUser', dbUser)
     if (redeemCode) {
-      if (redeemCode.match(/^CL-/)) {
+      if (/^CL-/.exec(redeemCode)) {
         const contributionLink = await DbContributionLink.findOne({
           code: redeemCode.replace('CL-', ''),
         })
-        logger.info('redeemCode found contributionLink=' + contributionLink)
+        logger.info('redeemCode found contributionLink', contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
           eventRegisterRedeem.contributionId = contributionLink.id
         }
       } else {
         const transactionLink = await DbTransactionLink.findOne({ code: redeemCode })
-        logger.info('redeemCode found transactionLink=' + transactionLink)
+        logger.info('redeemCode found transactionLink', transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
           eventRegisterRedeem.transactionId = transactionLink.id
@@ -654,7 +658,7 @@ export class UserResolver {
         return 'user.' + fieldName
       }),
       searchText,
-      filters,
+      filters || null,
       currentPage,
       pageSize,
     )

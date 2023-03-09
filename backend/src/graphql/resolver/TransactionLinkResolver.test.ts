@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -210,7 +215,7 @@ describe('TransactionLinkResolver', () => {
               mutate({
                 mutation: redeemTransactionLink,
                 variables: {
-                  code: 'CL-' + contributionLink.code,
+                  code: `CL-${contributionLink.code}`,
                 },
               }),
             ).resolves.toMatchObject({
@@ -249,7 +254,7 @@ describe('TransactionLinkResolver', () => {
               mutate({
                 mutation: redeemTransactionLink,
                 variables: {
-                  code: 'CL-' + contributionLink.code,
+                  code: `CL-${contributionLink.code}`,
                 },
               }),
             ).resolves.toMatchObject({
@@ -288,7 +293,7 @@ describe('TransactionLinkResolver', () => {
               mutate({
                 mutation: redeemTransactionLink,
                 variables: {
-                  code: 'CL-' + contributionLink.code,
+                  code: `CL-${contributionLink.code}`,
                 },
               }),
             ).resolves.toMatchObject({

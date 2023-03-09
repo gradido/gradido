@@ -1,4 +1,4 @@
-import { ObjectType, Field, Int } from 'type-graphql'
+import { ObjectType, Field, Int, ID } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 import { Contribution } from '@entity/Contribution'
 import { User } from '@entity/User'
@@ -24,12 +24,12 @@ export class UnconfirmedContribution {
   firstName: string
 
   @Field(() => Int)
-  id?: number
+  id: number
 
   @Field(() => String)
   lastName: string
 
-  @Field(() => Number)
+  @Field(() => ID)
   userId: number
 
   @Field(() => String)
@@ -44,7 +44,7 @@ export class UnconfirmedContribution {
   @Field(() => Decimal)
   amount: Decimal
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => ID, { nullable: true })
   moderator: number | null
 
   @Field(() => [Decimal])
@@ -53,6 +53,6 @@ export class UnconfirmedContribution {
   @Field(() => String)
   state: string
 
-  @Field(() => Number)
+  @Field(() => Int)
   messageCount: number
 }

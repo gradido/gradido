@@ -1,4 +1,4 @@
-import { Field, ObjectType } from 'type-graphql'
+import { Field, ID, Int, ObjectType } from 'type-graphql'
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
 import { User } from '@entity/User'
 
@@ -16,7 +16,7 @@ export class ContributionMessage {
     this.isModerator = contributionMessage.isModerator
   }
 
-  @Field(() => Number)
+  @Field(() => ID)
   id: number
 
   @Field(() => String)
@@ -26,7 +26,7 @@ export class ContributionMessage {
   createdAt: Date
 
   @Field(() => Date, { nullable: true })
-  updatedAt?: Date | null
+  updatedAt: Date | null
 
   @Field(() => String)
   type: string
@@ -37,7 +37,7 @@ export class ContributionMessage {
   @Field(() => String, { nullable: true })
   userLastName: string | null
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => ID, { nullable: true })
   userId: number | null
 
   @Field(() => Boolean)
@@ -45,7 +45,7 @@ export class ContributionMessage {
 }
 @ObjectType()
 export class ContributionMessageListResult {
-  @Field(() => Number)
+  @Field(() => Int)
   count: number
 
   @Field(() => [ContributionMessage])
