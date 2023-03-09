@@ -185,7 +185,7 @@ export default {
       this.items.find((obj) => obj.id === id).state = 'IN_PROGRESS'
     },
     formatDateOrDash(value) {
-      return value ? this.$d(new Date(value), 'short') : '-'
+      return value ? this.$d(new Date(value), 'short') : '—'
     },
   },
   computed: {
