@@ -324,7 +324,7 @@ export default {
         ],
         [
           // all contributions
-          { key: 'state', label: this.$t('state') },
+          { key: 'state', label: this.$t('status') },
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {
