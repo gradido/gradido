@@ -137,7 +137,7 @@
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
   "reopen": "Reopen",
   "save": "Speichern",
-  "state": "Status",
+  "status": "Status",
   "statistic": {
     "activeUsers": "Aktive Mitglieder",
     "count": "Menge",
