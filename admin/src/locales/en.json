@@ -37,9 +37,9 @@
     "denied": "Rejected",
     "open": "Open"
   },
-  "created": "Confirmed",
-  "createdAt": "Created",
-  "creation": "Creation",
+  "created": "Created for",
+  "createdAt": "Created at",
+  "creation": "Amount",
   "creationList": "Creation list",
   "creation_form": {
     "creation_for": "Active Basic Income for",
