@@ -128,7 +128,7 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
   @Query(() => QueryLinkResult)
   async queryTransactionLink(@Arg('code') code: string): Promise<typeof QueryLinkResult> {
-    if (/^CL-/.exec(code)) {
+    if (code.match(/^CL-/)) {
       const contributionLink = await DbContributionLink.findOneOrFail(
         { code: code.replace('CL-', '') },
         { withDeleted: true },
@@ -154,7 +154,7 @@ export class TransactionLinkResolver {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
     const user = getUser(context)
 
-    if (/^CL-/.exec(code)) {
+    if (code.match(/^CL-/)) {
       // acquire lock
       const releaseLock = await TRANSACTIONS_LOCK.acquire()
       try {

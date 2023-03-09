@@ -280,7 +280,7 @@ export class UserResolver {
     dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
     logger.debug('new dbUser', dbUser)
     if (redeemCode) {
-      if (/^CL-/.exec(redeemCode)) {
+      if (redeemCode.match(/^CL-/)) {
         const contributionLink = await DbContributionLink.findOne({
           code: redeemCode.replace('CL-', ''),
         })

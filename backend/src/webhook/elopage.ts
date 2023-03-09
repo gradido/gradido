@@ -119,7 +119,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
     // Validate inputs
     if (
       email === '' ||
-      !VALIDATE_EMAIL.exec(email) ||
+      !email.match(VALIDATE_EMAIL) ||
       firstName === '' ||
       firstName.match(VALIDATE_NAME) ||
       lastName === '' ||

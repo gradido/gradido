@@ -12,7 +12,7 @@ const sodium = require('sodium-native')
 
 // We will reuse this for changePassword
 export const isValidPassword = (password: string): boolean => {
-  return !!/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/.exec(password)
+  return !!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)
 }
 
 export const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[] => {
