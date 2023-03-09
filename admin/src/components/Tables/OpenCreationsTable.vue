@@ -13,17 +13,19 @@
         <b-icon :icon="getStatusIcon(row.item.state)"></b-icon>
       </template>
       <template #cell(bookmark)="row">
-        <b-button
-          variant="danger"
-          size="md"
-          @click="$emit('show-overlay', row.item, 'delete')"
-          class="mr-2"
-        >
-          <b-icon icon="trash" variant="light"></b-icon>
-        </b-button>
+        <div v-if="!myself(row.item)">
+          <b-button
+            variant="danger"
+            size="md"
+            @click="$emit('show-overlay', row.item, 'delete')"
+            class="mr-2"
+          >
+            <b-icon icon="trash" variant="light"></b-icon>
+          </b-button>
+        </div>
       </template>
       <template #cell(editCreation)="row">
-        <div v-if="$store.state.moderator.id !== row.item.userId">
+        <div v-if="!myself(row.item)">
           <b-button
             v-if="row.item.moderator"
             variant="info"
@@ -55,7 +57,7 @@
         </b-button>
       </template>
       <template #cell(deny)="row">
-        <div v-if="$store.state.moderator.id !== row.item.userId">
+        <div v-if="!myself(row.item)">
           <b-button
             variant="warning"
             size="md"
@@ -67,7 +69,7 @@
         </div>
       </template>
       <template #cell(confirm)="row">
-        <div v-if="$store.state.moderator.id !== row.item.userId">
+        <div v-if="!myself(row.item)">
           <b-button
             variant="success"
             size="md"
@@ -155,6 +157,12 @@ export default {
     }
   },
   methods: {
+    myself(item) {
+      return (
+        `${item.firstName} ${item.lastName}` ===
+        `${this.$store.state.moderator.firstName} ${this.$store.state.moderator.lastName}`
+      )
+    },
     getStatusIcon(status) {
       return iconMap[status] ? iconMap[status] : 'default-icon'
     },
