@@ -337,7 +337,7 @@ describe('CreationConfirm', () => {
       describe('click tab "confirmed"', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
-          await wrapper.find('a[data-test="confirmed"]').trigger('click')
+          await wrapper.find('[data-test="confirmed"]').trigger('click')
         })
 
         it('refetches contributions with proper filter', () => {
@@ -348,68 +348,68 @@ describe('CreationConfirm', () => {
             statusFilter: ['CONFIRMED'],
           })
         })
+      })
 
-        describe('click tab "open"', () => {
-          beforeEach(async () => {
-            jest.clearAllMocks()
-            await wrapper.find('a[data-test="open"]').trigger('click')
-          })
-
-          it('refetches contributions with proper filter', () => {
-            expect(adminListAllContributionsMock).toBeCalledWith({
-              currentPage: 1,
-              order: 'DESC',
-              pageSize: 25,
-              statusFilter: ['IN_PROGRESS', 'PENDING'],
-            })
-          })
+      describe('click tab "open"', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          await wrapper.find('[data-test="open"]').trigger('click')
         })
 
-        describe('click tab "denied"', () => {
-          beforeEach(async () => {
-            jest.clearAllMocks()
-            await wrapper.find('a[data-test="denied"]').trigger('click')
-          })
-
-          it('refetches contributions with proper filter', () => {
-            expect(adminListAllContributionsMock).toBeCalledWith({
-              currentPage: 1,
-              order: 'DESC',
-              pageSize: 25,
-              statusFilter: ['DENIED'],
-            })
+        it('refetches contributions with proper filter', () => {
+          expect(adminListAllContributionsMock).toBeCalledWith({
+            currentPage: 1,
+            order: 'DESC',
+            pageSize: 25,
+            statusFilter: ['IN_PROGRESS', 'PENDING'],
           })
         })
+      })
 
-        describe('click tab "deleted"', () => {
-          beforeEach(async () => {
-            jest.clearAllMocks()
-            await wrapper.find('a[data-test="deleted"]').trigger('click')
-          })
-
-          it('refetches contributions with proper filter', () => {
-            expect(adminListAllContributionsMock).toBeCalledWith({
-              currentPage: 1,
-              order: 'DESC',
-              pageSize: 25,
-              statusFilter: ['DELETED'],
-            })
-          })
+      describe('click tab "denied"', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          await wrapper.find('[data-test="denied"]').trigger('click')
         })
 
-        describe('click tab "all"', () => {
-          beforeEach(async () => {
-            jest.clearAllMocks()
-            await wrapper.find('a[data-test="all"]').trigger('click')
+        it('refetches contributions with proper filter', () => {
+          expect(adminListAllContributionsMock).toBeCalledWith({
+            currentPage: 1,
+            order: 'DESC',
+            pageSize: 25,
+            statusFilter: ['DENIED'],
           })
+        })
+      })
 
-          it('refetches contributions with proper filter', () => {
-            expect(adminListAllContributionsMock).toBeCalledWith({
-              currentPage: 1,
-              order: 'DESC',
-              pageSize: 25,
-              statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
-            })
+      describe('click tab "deleted"', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          await wrapper.find('[data-test="deleted"]').trigger('click')
+        })
+
+        it('refetches contributions with proper filter', () => {
+          expect(adminListAllContributionsMock).toBeCalledWith({
+            currentPage: 1,
+            order: 'DESC',
+            pageSize: 25,
+            statusFilter: ['DELETED'],
+          })
+        })
+      })
+
+      describe('click tab "all"', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          await wrapper.find('[data-test="all"]').trigger('click')
+        })
+
+        it('refetches contributions with proper filter', () => {
+          expect(adminListAllContributionsMock).toBeCalledWith({
+            currentPage: 1,
+            order: 'DESC',
+            pageSize: 25,
+            statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
           })
         })
       })

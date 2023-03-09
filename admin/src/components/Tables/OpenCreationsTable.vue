@@ -25,7 +25,7 @@
         </div>
       </template>
       <template #cell(editCreation)="row">
-        <div v-if="$store.state.moderator.id !== row.item.userId">
+        <div v-if="!myself(row.item)">
           <b-button
             v-if="row.item.moderator"
             variant="info"
