@@ -2,7 +2,7 @@ import 'reflect-metadata'
 import { createDatabase } from './prepare'
 import CONFIG from './config'
 
-import { createPool, Pool } from 'mysql'
+import { createPool } from 'mysql'
 import { Migration } from 'ts-mysql-migrate'
 import path from 'path'
 
@@ -10,6 +10,7 @@ const run = async (command: string) => {
   // Database actions not supported by our migration library
   await createDatabase()
 
+  // Initialize Migrations
   const pool = createPool({
     host: CONFIG.DB_HOST,
     port: CONFIG.DB_PORT,
