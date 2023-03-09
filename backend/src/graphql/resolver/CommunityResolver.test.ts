@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Community as DbCommunity } from '@entity/Community'
-import { Community } from '../model/Community'
 import { testEnvironment } from '@test/helpers'
 
 // jest.mock('@/config')
