@@ -3,7 +3,9 @@
 
 import { createTestClient } from 'apollo-server-testing'
 import createServer from '@/server/createServer'
-import CONFIG from '@/config'
+import { resetEntity } from '@test/helpers'
+import { Community as DbCommunity } from '@entity/Community'
+import { Community } from '../model/Community'
 
 jest.mock('@/config')
 
@@ -16,6 +18,7 @@ beforeAll(async () => {
   const server = await createServer({})
   con = server.con
   query = createTestClient(server.apollo).query
+  resetEntity(DbCommunity)
 })
 
 afterAll(async () => {
@@ -23,96 +26,93 @@ afterAll(async () => {
 })
 
 describe('CommunityResolver', () => {
-  const getCommunityInfoQuery = `
+  const getCommunities = `
     query {
-      getCommunityInfo {
-        name
-        description
-        url
-        registerUrl
-      }
-    }
-  `
-
-  const communities = `
-    query {
-      communities {
+      getCommunities {
         id
-        name
+        foreign
+        publicKey
         url
-        description
-        registerUrl
+        lastAnnouncedAt
+        verifiedAt
+        lastErrorAt
+        createdAt
+        updatedAt
       }
     }
   `
 
-  describe('getCommunityInfo', () => {
-    it('returns the default values', async () => {
-      await expect(query({ query: getCommunityInfoQuery })).resolves.toMatchObject({
-        data: {
-          getCommunityInfo: {
-            name: 'Gradido Entwicklung',
-            description: 'Die lokale Entwicklungsumgebung von Gradido.',
-            url: 'http://localhost/',
-            registerUrl: 'http://localhost/register',
-          },
-        },
+  describe('getCommunities', () => {
+    describe('with empty list', () => {
+      it('returns no community entry', async () => {
+        const result: Community[] = await query({ query: getCommunities })
+        expect(result.length).decimalEqual(0)
       })
     })
-  })
 
-  describe('communities', () => {
-    describe('PRODUCTION = false', () => {
+    describe('only home-communities entries', () => {
       beforeEach(() => {
-        CONFIG.PRODUCTION = false
+        const homeCom1 = DbCommunity.create()
+        homeCom1.foreign = false
+        homeCom1.publicKey = Buffer.from('publicKey-HomeCommunity')
+        homeCom1.apiVersion = '1_0'
+        homeCom1.endPoint = 'https://localhost'
+        homeCom1.createdAt = new Date()
+        DbCommunity.save(homeCom1)
+
+        const homeCom2 = DbCommunity.create()
+        homeCom2.foreign = false
+        homeCom2.publicKey = Buffer.from('publicKey-HomeCommunity')
+        homeCom2.apiVersion = '1_1'
+        homeCom2.endPoint = 'https://localhost'
+        homeCom2.createdAt = new Date()
+        DbCommunity.save(homeCom2)
+
+        const homeCom3 = DbCommunity.create()
+        homeCom3.foreign = false
+        homeCom3.publicKey = Buffer.from('publicKey-HomeCommunity')
+        homeCom3.apiVersion = '2_0'
+        homeCom3.endPoint = 'https://localhost'
+        homeCom3.createdAt = new Date()
+        DbCommunity.save(homeCom3)
       })
 
-      it('returns three communities', async () => {
-        await expect(query({ query: communities })).resolves.toMatchObject({
+      it('returns three home-community entries', async () => {
+        await expect(query({ query: getCommunities })).resolves.toMatchObject({
           data: {
             communities: [
               {
                 id: 1,
-                name: 'Gradido Entwicklung',
-                description: 'Die lokale Entwicklungsumgebung von Gradido.',
-                url: 'http://localhost/',
-                registerUrl: 'http://localhost/register-community',
+                foreign: false,
+                publicKey: expect.stringMatching(Buffer.from('publicKey-HomeCommunity').toString()),
+                url: 'http://localhost/api/1_0',
+                lastAnnouncedAt: null,
+                verifiedAt: null,
+                lastErrorAt: null,
+                createdAt: expect.any(Date),
+                updatedAt: null,
               },
               {
                 id: 2,
-                name: 'Gradido Staging',
-                description: 'Der Testserver der Gradido-Akademie.',
-                url: 'https://stage1.gradido.net/',
-                registerUrl: 'https://stage1.gradido.net/register-community',
+                foreign: false,
+                publicKey: expect.stringMatching(Buffer.from('publicKey-HomeCommunity').toString()),
+                url: 'http://localhost/api/1_1',
+                lastAnnouncedAt: null,
+                verifiedAt: null,
+                lastErrorAt: null,
+                createdAt: expect.any(Date),
+                updatedAt: null,
               },
               {
                 id: 3,
-                name: 'Gradido-Akademie',
-                description: 'Freies Institut für Wirtschaftsbionik.',
-                url: 'https://gradido.net',
-                registerUrl: 'https://gdd1.gradido.com/register-community',
-              },
-            ],
-          },
-        })
-      })
-    })
-
-    describe('PRODUCTION = true', () => {
-      beforeEach(() => {
-        CONFIG.PRODUCTION = true
-      })
-
-      it('returns one community', async () => {
-        await expect(query({ query: communities })).resolves.toMatchObject({
-          data: {
-            communities: [
-              {
-                id: 3,
-                name: 'Gradido-Akademie',
-                description: 'Freies Institut für Wirtschaftsbionik.',
-                url: 'https://gradido.net',
-                registerUrl: 'https://gdd1.gradido.com/register-community',
+                foreign: false,
+                publicKey: expect.stringMatching(Buffer.from('publicKey-HomeCommunity').toString()),
+                url: 'http://localhost/api/2_0',
+                lastAnnouncedAt: null,
+                verifiedAt: null,
+                lastErrorAt: null,
+                createdAt: expect.any(Date),
+                updatedAt: null,
               },
             ],
           },
