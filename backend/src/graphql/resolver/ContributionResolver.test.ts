@@ -24,7 +24,11 @@ import {
   listContributions,
   adminListAllContributions,
 } from '@/seeds/graphql/queries'
-import { sendContributionConfirmedEmail } from '@/emails/sendEmailVariants'
+import {
+  sendContributionConfirmedEmail,
+  sendContributionDeletedEmail,
+  sendContributionDeniedEmail,
+} from '@/emails/sendEmailVariants'
 import {
   cleanDB,
   resetToken,
@@ -50,21 +54,7 @@ import { ContributionListResult } from '@model/Contribution'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { Order } from '@enum/Order'
 
-// mock account activation email to avoid console spam
-jest.mock('@/emails/sendEmailVariants', () => {
-  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
-  return {
-    __esModule: true,
-    ...originalModule,
-    // TODO: test the call of …
-    // sendAccountActivationEmail: jest.fn((a) => originalModule.sendAccountActivationEmail(a)),
-    sendContributionConfirmedEmail: jest.fn((a) =>
-      originalModule.sendContributionConfirmedEmail(a),
-    ),
-    // TODO: test the call of …
-    // sendContributionRejectedEmail: jest.fn((a) => originalModule.sendContributionRejectedEmail(a)),
-  }
-})
+jest.mock('@/emails/sendEmailVariants')
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -829,6 +819,18 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+
+        it('calls sendContributionDeniedEmail', async () => {
+          expect(sendContributionDeniedEmail).toBeCalledWith({
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+            email: 'bibi@bloxberg.de',
+            language: 'de',
+            senderFirstName: 'Peter',
+            senderLastName: 'Lustig',
+            contributionMemo: 'Test contribution to deny',
+          })
+        })
       })
     })
   })
@@ -993,7 +995,6 @@ describe('ContributionResolver', () => {
             currentPage: 1,
             pageSize: 25,
             order: 'DESC',
-            filterConfirmed: false,
           },
         })
         expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
@@ -1012,7 +1013,7 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-      describe('filter confirmed is false', () => {
+      describe('no status filter', () => {
         it('returns creations', async () => {
           const {
             data: { listContributions: contributionListResult },
@@ -1064,7 +1065,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe('filter confirmed is true', () => {
+      describe('with status filter [PENDING, IN_PROGRESS, DENIED, DELETED]', () => {
         it('returns only unconfirmed creations', async () => {
           const {
             data: { listContributions: contributionListResult },
@@ -1074,7 +1075,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterConfirmed: true,
+              statusFilter: ['PENDING', 'IN_PROGRESS', 'DENIED', 'DELETED'],
             },
           })
           expect(contributionListResult).toMatchObject({
@@ -2383,6 +2384,18 @@ describe('ContributionResolver', () => {
                   amount: expect.decimalEqual(200),
                 }),
               )
+            })
+
+            it('calls sendContributionDeletedEmail', async () => {
+              expect(sendContributionDeletedEmail).toBeCalledWith({
+                firstName: 'Peter',
+                lastName: 'Lustig',
+                email: 'peter@lustig.de',
+                language: 'de',
+                senderFirstName: 'Peter',
+                senderLastName: 'Lustig',
+                contributionMemo: 'Das war leider zu Viel!',
+              })
             })
           })
 
