@@ -3,7 +3,6 @@
 
 import { createTestClient } from 'apollo-server-testing'
 import createServer from '../src/server/createServer'
-import { initialize } from '@dbTools/helpers'
 import { entities } from '@entity/index'
 import { i18n, logger } from './testSetup'
 
@@ -33,7 +32,6 @@ export const testEnvironment = async (testLogger: any = logger, testI18n: any = 
   const testClient = createTestClient(server.apollo)
   const mutate = testClient.mutate
   const query = testClient.query
-  await initialize()
   return { mutate, query, con }
 }
 
