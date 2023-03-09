@@ -410,6 +410,9 @@ export default {
       update({ adminListAllContributions }) {
         this.rows = adminListAllContributions.contributionCount
         this.items = adminListAllContributions.contributionList
+        if (this.statusFilter === FILTER_TAB_MAP[0]) {
+          this.$store.commit('setOpenCreations', adminListAllContributions.contributionCount)
+        }
       },
       error({ message }) {
         this.toastError(message)
