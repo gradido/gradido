@@ -11,7 +11,7 @@ export class CommunityResolver {
   @Query(() => [Community])
   async getCommunities(): Promise<Community[]> {
     const comList: Community[] = []
-    const dbCommunities: DbCommunity[] = await DbCommunity.find()
+    const dbCommunities: DbCommunity[] = await DbCommunity.find({ order: { id: 'ASC' } })
     dbCommunities.forEach(async function (dbCom) {
       const com = new Community(dbCom)
       comList.push(com)
