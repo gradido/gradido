@@ -352,7 +352,6 @@ describe('CreationConfirm', () => {
 
       describe('click tab "open"', () => {
         beforeEach(async () => {
-          jest.clearAllMocks()
           await wrapper.find('[data-test="open"]').trigger('click')
         })
 
