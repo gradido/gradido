@@ -36,14 +36,15 @@
           <b-button v-else @click="rowToggleDetails(row, 0)">
             <b-icon icon="chat-dots"></b-icon>
             <b-icon
-              v-if="row.item.state === 'PENDING' && row.item.messageCount > 0"
+              v-if="row.item.state === 'PENDING' && row.item.messagesCount > 0"
               icon="exclamation-circle-fill"
               variant="warning"
             ></b-icon>
             <b-icon
-              v-if="row.item.state === 'IN_PROGRESS' && row.item.messageCount > 0"
+              v-if="row.item.state === 'IN_PROGRESS' && row.item.messagesCount > 0"
               icon="question-diamond"
-              variant="light"
+              variant="warning"
+              class="pl-1"
             ></b-icon>
           </b-button>
         </div>
@@ -160,7 +161,10 @@ export default {
     rowClass(item, type) {
       if (!item || type !== 'row') return
       if (item.state === 'CONFIRMED') return 'table-success'
-      if (item.state === 'DENIED') return 'table-info'
+      if (item.state === 'DENIED') return 'table-warning'
+      if (item.state === 'DELETED') return 'table-danger'
+      if (item.state === 'IN_PROGRESS') return 'table-primary'
+      if (item.state === 'PENDING') return 'table-primary'
     },
     updateCreationData(data) {
       const row = data.row
