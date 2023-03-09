@@ -348,67 +348,68 @@ describe('CreationConfirm', () => {
             statusFilter: ['CONFIRMED'],
           })
         })
-      })
 
-      describe('click tab "open"', () => {
-        beforeEach(async () => {
-          await wrapper.find('[data-test="open"]').trigger('click')
-        })
+        describe('click tab "open"', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            await wrapper.find('[data-test="open"]').trigger('click')
+          })
 
-        it('refetches contributions with proper filter', () => {
-          expect(adminListAllContributionsMock).toBeCalledWith({
-            currentPage: 1,
-            order: 'DESC',
-            pageSize: 25,
-            statusFilter: ['IN_PROGRESS', 'PENDING'],
+          it('refetches contributions with proper filter', () => {
+            expect(adminListAllContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              statusFilter: ['IN_PROGRESS', 'PENDING'],
+            })
           })
         })
-      })
 
-      describe('click tab "denied"', () => {
-        beforeEach(async () => {
-          jest.clearAllMocks()
-          await wrapper.find('[data-test="denied"]').trigger('click')
-        })
+        describe('click tab "denied"', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            await wrapper.find('[data-test="denied"]').trigger('click')
+          })
 
-        it('refetches contributions with proper filter', () => {
-          expect(adminListAllContributionsMock).toBeCalledWith({
-            currentPage: 1,
-            order: 'DESC',
-            pageSize: 25,
-            statusFilter: ['DENIED'],
+          it('refetches contributions with proper filter', () => {
+            expect(adminListAllContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              statusFilter: ['DENIED'],
+            })
           })
         })
-      })
 
-      describe('click tab "deleted"', () => {
-        beforeEach(async () => {
-          jest.clearAllMocks()
-          await wrapper.find('[data-test="deleted"]').trigger('click')
-        })
+        describe('click tab "deleted"', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            await wrapper.find('[data-test="deleted"]').trigger('click')
+          })
 
-        it('refetches contributions with proper filter', () => {
-          expect(adminListAllContributionsMock).toBeCalledWith({
-            currentPage: 1,
-            order: 'DESC',
-            pageSize: 25,
-            statusFilter: ['DELETED'],
+          it('refetches contributions with proper filter', () => {
+            expect(adminListAllContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              statusFilter: ['DELETED'],
+            })
           })
         })
-      })
 
-      describe('click tab "all"', () => {
-        beforeEach(async () => {
-          jest.clearAllMocks()
-          await wrapper.find('[data-test="all"]').trigger('click')
-        })
+        describe('click tab "all"', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            await wrapper.find('[data-test="all"]').trigger('click')
+          })
 
-        it('refetches contributions with proper filter', () => {
-          expect(adminListAllContributionsMock).toBeCalledWith({
-            currentPage: 1,
-            order: 'DESC',
-            pageSize: 25,
-            statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
+          it('refetches contributions with proper filter', () => {
+            expect(adminListAllContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
+            })
           })
         })
       })
