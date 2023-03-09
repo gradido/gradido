@@ -27,9 +27,10 @@
       <template #cell(editCreation)="row">
         <div v-if="!myself(row.item)">
           <b-button
-            v-if="row.item.moderator"
+            v-if="row.item.moderatorId"
             variant="info"
             size="md"
+            :index="0"
             @click="rowToggleDetails(row, 0)"
             class="mr-2"
           >
