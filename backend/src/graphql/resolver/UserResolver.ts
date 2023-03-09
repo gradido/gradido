@@ -57,6 +57,7 @@ import {
   EVENT_REGISTER,
   EVENT_ACTIVATE_ACCOUNT,
   EVENT_ADMIN_SEND_CONFIRMATION_EMAIL,
+  EVENT_LOGOUT,
 } from '@/event/Event'
 import { getUserCreations } from './util/creations'
 import { isValidPassword } from '@/password/EncryptorUtils'
@@ -185,15 +186,9 @@ export class UserResolver {
 
   @Authorized([RIGHTS.LOGOUT])
   @Mutation(() => String)
-  async logout(): Promise<boolean> {
-    // TODO: Event still missing here!!
-    // TODO: We dont need this anymore, but might need this in the future in oder to invalidate a valid JWT-Token.
-    // Furthermore this hook can be useful for tracking user behaviour (did he logout or not? Warn him if he didn't on next login)
-    // The functionality is fully client side - the client just needs to delete his token with the current implementation.
-    // we could try to force this by sending `token: null` or `token: ''` with this call. But since it bares no real security
-    // we should just return true for now.
-    logger.info('Logout...')
-    // remove user.pubKey from logger-context to ensure a correct filter on log-messages belonging to the same user
+  async logout(@Ctx() context: Context): Promise<boolean> {
+    await EVENT_LOGOUT(getUser(context))
+    // remove user from logger context
     logger.addContext('user', 'unknown')
     return true
   }
