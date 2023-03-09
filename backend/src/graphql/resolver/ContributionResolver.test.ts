@@ -995,7 +995,6 @@ describe('ContributionResolver', () => {
             currentPage: 1,
             pageSize: 25,
             order: 'DESC',
-            filterConfirmed: false,
           },
         })
         expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
@@ -1014,7 +1013,7 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-      describe('filter confirmed is false', () => {
+      describe('no status filter', () => {
         it('returns creations', async () => {
           const {
             data: { listContributions: contributionListResult },
@@ -1066,7 +1065,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe('filter confirmed is true', () => {
+      describe('with status filter [PENDING, IN_PROGRESS, DENIED, DELETED]', () => {
         it('returns only unconfirmed creations', async () => {
           const {
             data: { listContributions: contributionListResult },
@@ -1076,7 +1075,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterConfirmed: true,
+              statusFilter: ['PENDING', 'IN_PROGRESS', 'DENIED', 'DELETED'],
             },
           })
           expect(contributionListResult).toMatchObject({
@@ -2747,15 +2746,6 @@ describe('ContributionResolver', () => {
               state: 'CONFIRMED',
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
-              firstName: 'Bob',
-              id: expect.any(Number),
-              lastName: 'der Baumeister',
-              memo: 'Confirmed Contribution',
-              messagesCount: 0,
-              state: 'CONFIRMED',
-            }),
-            expect.objectContaining({
               amount: expect.decimalEqual(400),
               firstName: 'Peter',
               id: expect.any(Number),
@@ -2763,6 +2753,15 @@ describe('ContributionResolver', () => {
               memo: 'Herzlich Willkommen bei Gradido!',
               messagesCount: 0,
               state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bob',
+              id: expect.any(Number),
+              lastName: 'der Baumeister',
+              memo: 'Confirmed Contribution',
+              messagesCount: 0,
+              state: 'CONFIRMED',
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(100),
@@ -2783,15 +2782,6 @@ describe('ContributionResolver', () => {
               state: 'PENDING',
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(10),
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Test PENDING contribution update',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
               amount: expect.decimalEqual(200),
               firstName: 'Peter',
               id: expect.any(Number),
@@ -2807,15 +2797,6 @@ describe('ContributionResolver', () => {
               lastName: 'Hotzenplotz',
               memo: 'Whatever contribution',
               messagesCount: 0,
-              state: 'DELETED',
-            }),
-            expect.objectContaining({
-              amount: expect.decimalEqual(166),
-              firstName: 'Räuber',
-              id: expect.any(Number),
-              lastName: 'Hotzenplotz',
-              memo: 'Whatever contribution',
-              messagesCount: 0,
               state: 'DENIED',
             }),
             expect.objectContaining({
@@ -2825,6 +2806,15 @@ describe('ContributionResolver', () => {
               lastName: 'Hotzenplotz',
               memo: 'Whatever contribution',
               messagesCount: 0,
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(166),
+              firstName: 'Räuber',
+              id: expect.any(Number),
+              lastName: 'Hotzenplotz',
+              memo: 'Whatever contribution',
+              messagesCount: 0,
               state: 'CONFIRMED',
             }),
             expect.objectContaining({
@@ -2832,18 +2822,9 @@ describe('ContributionResolver', () => {
               firstName: 'Bibi',
               id: expect.any(Number),
               lastName: 'Bloxberg',
-              memo: 'Test IN_PROGRESS contribution',
+              memo: 'Test contribution to delete',
               messagesCount: 0,
-              state: 'IN_PROGRESS',
-            }),
-            expect.objectContaining({
-              amount: expect.decimalEqual(100),
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Test contribution to confirm',
-              messagesCount: 0,
-              state: 'CONFIRMED',
+              state: 'DELETED',
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(100),
@@ -2859,9 +2840,27 @@ describe('ContributionResolver', () => {
               firstName: 'Bibi',
               id: expect.any(Number),
               lastName: 'Bloxberg',
-              memo: 'Test contribution to delete',
+              memo: 'Test contribution to confirm',
               messagesCount: 0,
-              state: 'DELETED',
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test IN_PROGRESS contribution',
+              messagesCount: 1,
+              state: 'IN_PROGRESS',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(10),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test PENDING contribution update',
+              messagesCount: 1,
+              state: 'PENDING',
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(1000),
