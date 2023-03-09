@@ -184,6 +184,9 @@ export default {
       this.items.find((obj) => obj.id === id).messagesCount++
       this.items.find((obj) => obj.id === id).state = 'IN_PROGRESS'
     },
+    formatDateOrDash(value) {
+      return value ? this.$d(new Date(value), 'short') : '-'
+    },
   },
   computed: {
     fields() {
@@ -206,7 +209,7 @@ export default {
             key: 'contributionDate',
             label: this.$t('created'),
             formatter: (value) => {
-              return value ? this.$d(new Date(value), 'short') : '-'
+              return this.formatDateOrDash(value)
             },
           },
           { key: 'moderator', label: this.$t('moderator') },
@@ -229,21 +232,21 @@ export default {
             key: 'contributionDate',
             label: this.$t('created'),
             formatter: (value) => {
-              return value ? this.$d(new Date(value), 'short') : '-'
+              return this.formatDateOrDash(value)
             },
           },
           {
             key: 'createdAt',
             label: this.$t('createdAt'),
             formatter: (value) => {
-              return value ? this.$d(new Date(value), 'short') : '-'
+              return this.formatDateOrDash(value)
             },
           },
           {
             key: 'confirmedAt',
             label: this.$t('contributions.confirms'),
             formatter: (value) => {
-              return value ? this.$d(new Date(value), 'short') : '-'
+              return this.formatDateOrDash(value)
             },
           },
           { key: 'confirmedBy', label: this.$t('moderator') },
@@ -265,21 +268,21 @@ export default {
             key: 'contributionDate',
             label: this.$t('created'),
             formatter: (value) => {
-              return value ? this.$d(new Date(value), 'short') : '-'
+              return this.formatDateOrDash(value)
             },
           },
           {
             key: 'createdAt',
             label: this.$t('createdAt'),
             formatter: (value) => {
-              return value ? this.$d(new Date(value), 'short') : '-'
+              return this.formatDateOrDash(value)
             },
           },
           {
             key: 'deniedAt',
             label: this.$t('contributions.denied'),
             formatter: (value) => {
-              return value ? this.$d(new Date(value), 'short') : '-'
+              return this.formatDateOrDash(value)
             },
           },
           { key: 'deniedBy', label: this.$t('moderator') },
@@ -301,21 +304,21 @@ export default {
             key: 'contributionDate',
             label: this.$t('created'),
             formatter: (value) => {
-              return value ? this.$d(new Date(value), 'short') : '-'
+              return this.formatDateOrDash(value)
             },
           },
           {
             key: 'createdAt',
             label: this.$t('createdAt'),
             formatter: (value) => {
-              return value ? this.$d(new Date(value), 'short') : '-'
+              return this.formatDateOrDash(value)
             },
           },
           {
             key: 'deletedAt',
             label: this.$t('contributions.deleted'),
             formatter: (value) => {
-              return value ? this.$d(new Date(value), 'short') : '-'
+              return this.formatDateOrDash(value)
             },
           },
           { key: 'deletedBy', label: this.$t('moderator') },
@@ -338,21 +341,21 @@ export default {
             key: 'contributionDate',
             label: this.$t('created'),
             formatter: (value) => {
-              return value ? this.$d(new Date(value), 'short') : '-'
+              return this.formatDateOrDash(value)
             },
           },
           {
             key: 'createdAt',
             label: this.$t('createdAt'),
             formatter: (value) => {
-              return value ? this.$d(new Date(value), 'short') : '-'
+              return this.formatDateOrDash(value)
             },
           },
           {
             key: 'confirmedAt',
             label: this.$t('contributions.confirms'),
             formatter: (value) => {
-              return value ? this.$d(new Date(value), 'short') : '-'
+              return this.formatDateOrDash(value)
             },
           },
           { key: 'confirmedBy', label: this.$t('moderator') },
