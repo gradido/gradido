@@ -333,7 +333,7 @@ describe('CreationConfirm', () => {
       describe('click tab "confirmed"', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
-          await wrapper.find('[data-test="confirmed"]').trigger('click')
+          await wrapper.find('a[data-test="confirmed"]').trigger('click')
         })
 
         it('refetches contributions with proper filter', () => {
@@ -348,7 +348,7 @@ describe('CreationConfirm', () => {
         describe('click tab "open"', () => {
           beforeEach(async () => {
             jest.clearAllMocks()
-            await wrapper.find('[data-test="open"]').trigger('click')
+            await wrapper.find('a[data-test="open"]').trigger('click')
           })
 
           it('refetches contributions with proper filter', () => {
@@ -364,7 +364,7 @@ describe('CreationConfirm', () => {
         describe('click tab "denied"', () => {
           beforeEach(async () => {
             jest.clearAllMocks()
-            await wrapper.find('[data-test="denied"]').trigger('click')
+            await wrapper.find('a[data-test="denied"]').trigger('click')
           })
 
           it('refetches contributions with proper filter', () => {
@@ -380,7 +380,7 @@ describe('CreationConfirm', () => {
         describe('click tab "deleted"', () => {
           beforeEach(async () => {
             jest.clearAllMocks()
-            await wrapper.find('[data-test="deleted"]').trigger('click')
+            await wrapper.find('a[data-test="deleted"]').trigger('click')
           })
 
           it('refetches contributions with proper filter', () => {
@@ -396,7 +396,7 @@ describe('CreationConfirm', () => {
         describe('click tab "all"', () => {
           beforeEach(async () => {
             jest.clearAllMocks()
-            await wrapper.find('[data-test="all"]').trigger('click')
+            await wrapper.find('a[data-test="all"]').trigger('click')
           })
 
           it('refetches contributions with proper filter', () => {
