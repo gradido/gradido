@@ -1929,14 +1929,14 @@ describe('UserResolver', () => {
             })
           })
 
-          it('stores the ADMIN_SEND_CONFIRMATION_EMAIL event in the database', async () => {
+          it('stores the EMAIL_ADMIN_CONFIRMATION event in the database', async () => {
             const userConatct = await UserContact.findOneOrFail(
               { email: 'bibi@bloxberg.de' },
               { relations: ['user'] },
             )
             expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
-                type: EventType.ADMIN_SEND_CONFIRMATION_EMAIL,
+                type: EventType.EMAIL_ADMIN_CONFIRMATION,
                 affectedUserId: userConatct.user.id,
                 actingUserId: admin.id,
               }),
