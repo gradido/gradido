@@ -2,7 +2,6 @@ module.exports = {
   root: true,
   env: {
     node: true,
-    // jest: true,
   },
   parser: '@typescript-eslint/parser',
   plugins: ['prettier', '@typescript-eslint', 'type-graphql', 'jest'],
