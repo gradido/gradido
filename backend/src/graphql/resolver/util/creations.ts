@@ -155,10 +155,10 @@ export const isValidDateString = (dateString: string): boolean => {
 }
 
 export const getOpenCreations = async (
-  id: number,
+  userId: number,
   timezoneOffset: number,
 ): Promise<OpenCreation[]> => {
-  const creations = await getUserCreation(id, timezoneOffset)
+  const creations = await getUserCreation(userId, timezoneOffset)
   const creationDates = getCreationDates(timezoneOffset)
   return creationDates.map((date, index) => {
     return {
