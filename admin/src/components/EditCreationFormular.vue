@@ -108,6 +108,7 @@ export default {
   },
   methods: {
     submitCreation() {
+      // console.log('submitCreation', this.selected)
       this.$apollo
         .mutate({
           mutation: adminUpdateContribution,
@@ -119,12 +120,7 @@ export default {
           },
         })
         .then((result) => {
-          this.$emit('update-creation-data', {
-            amount: Number(result.data.adminUpdateContribution.amount),
-            date: result.data.adminUpdateContribution.date,
-            memo: result.data.adminUpdateContribution.memo,
-            row: this.row,
-          })
+          this.$emit('update-creation-data')
           this.toastSuccess(
             this.$t('creation_form.toasted_update', {
               value: this.value,
@@ -151,7 +147,9 @@ export default {
   computed: {
     creationIndex() {
       const month = this.$d(new Date(this.item.contributionDate), 'month')
-      return this.radioOptions.findIndex((obj) => obj.item.short === month)
+      return this.radioOptions.findIndex((obj) => {
+        return obj.item.short === month
+      })
     },
     selectedComputed() {
       return this.radioOptions[this.creationIndex].item

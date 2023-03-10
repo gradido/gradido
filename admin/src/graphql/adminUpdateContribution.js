@@ -6,7 +6,6 @@ export const adminUpdateContribution = gql`
       amount
       date
       memo
-      creation
     }
   }
 `

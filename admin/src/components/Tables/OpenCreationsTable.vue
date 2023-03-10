@@ -96,7 +96,7 @@
                 :item="row.item"
                 :row="row"
                 :creationUserData="creationUserData"
-                @update-creation-data="updateCreationData"
+                @update-creation-data="$emit('update-contributions')"
               />
             </div>
             <div v-else>
@@ -145,16 +145,6 @@ export default {
       required: true,
     },
   },
-  data() {
-    return {
-      creationUserData: {
-        amount: null,
-        date: null,
-        memo: null,
-        moderator: null,
-      },
-    }
-  },
   methods: {
     myself(item) {
       return (
@@ -172,16 +162,6 @@ export default {
       if (item.state === 'DELETED') return 'table-danger'
       if (item.state === 'IN_PROGRESS') return 'table-primary'
       if (item.state === 'PENDING') return 'table-primary'
-    },
-    updateCreationData(data) {
-      const row = data.row
-      this.$emit('update-contributions', data)
-      delete data.row
-      this.creationUserData = { ...this.creationUserData, ...data }
-      row.toggleDetails()
-    },
-    updateUserData(rowItem, newCreation) {
-      rowItem.creation = newCreation
     },
     updateState(id) {
       this.$emit('update-state', id)
