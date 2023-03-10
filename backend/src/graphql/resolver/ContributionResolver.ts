@@ -28,11 +28,11 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import {
-  getCreationDates,
   getUserCreation,
   validateContribution,
   updateCreations,
   isValidDateString,
+  getOpenCreations,
 } from './util/creations'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import {
@@ -581,21 +581,17 @@ export class ContributionResolver {
 
   @Authorized([RIGHTS.OPEN_CREATIONS])
   @Query(() => [OpenCreation])
-  async openCreations(
+  async openCreations(@Ctx() context: Context): Promise<OpenCreation[]> {
+    return getOpenCreations(getUser(context).id, getClientTimezoneOffset(context))
+  }
+
+  @Authorized([RIGHTS.ADMIN_OPEN_CREATIONS])
+  @Query(() => [OpenCreation])
+  async adminOpenCreations(
+    @Arg('userId', () => Int) userId: number,
     @Ctx() context: Context,
-    @Arg('userId', () => Int, { nullable: true }) userId?: number | null,
   ): Promise<OpenCreation[]> {
-    const id = userId || getUser(context).id
-    const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const creationDates = getCreationDates(clientTimezoneOffset)
-    const creations = await getUserCreation(id, clientTimezoneOffset)
-    return creationDates.map((date, index) => {
-      return {
-        month: date.getMonth(),
-        year: date.getFullYear(),
-        amount: creations[index],
-      }
-    })
+    return getOpenCreations(userId, getClientTimezoneOffset(context))
   }
 
   @Authorized([RIGHTS.DENY_CONTRIBUTION])
