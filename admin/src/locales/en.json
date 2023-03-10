@@ -34,12 +34,12 @@
     "all": "All",
     "confirms": "Confirmed",
     "deleted": "Deleted",
-    "denied": "Denied",
+    "denied": "Rejected",
     "open": "Open"
   },
-  "created": "Confirmed",
-  "createdAt": "Created",
-  "creation": "Creation",
+  "created": "Created for",
+  "createdAt": "Created at",
+  "creation": "Amount",
   "creationList": "Creation list",
   "creation_form": {
     "creation_for": "Active Basic Income for",
@@ -53,7 +53,7 @@
     "toasted": "Open creation ({value} GDD) for {email} has been saved and is ready for confirmation.",
     "toasted_created": "Creation has been successfully saved",
     "toasted_delete": "Open creation has been deleted",
-    "toasted_denied": "Open creation has been denied",
+    "toasted_denied": "Open creation has been rejected",
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
   },
@@ -63,7 +63,6 @@
   "deleted_user": "All deleted user",
   "delete_user": "Delete user",
   "deny": "Reject",
-  "edit": "Edit",
   "enabled": "enabled",
   "error": "Error",
   "expired": "expired",
@@ -87,7 +86,7 @@
     "transactionlist": {
       "confirmed": "When was it confirmed by a moderator / admin.",
       "periods": "For what period was it submitted by the member.",
-      "state": "[PENDING = submitted, DELETED = deleted, IN_PROGRESS = in dialogue with moderator, DENIED = denied, CONFIRMED = confirmed]",
+      "state": "[PENDING = submitted, DELETED = deleted, IN_PROGRESS = in dialogue with moderator, DENIED = rejected, CONFIRMED = confirmed]",
       "submitted": "When was it submitted by the member"
     }
   },
@@ -101,7 +100,6 @@
   "message": {
     "request": "Request has been sent."
   },
-  "mod": "Mod",
   "moderator": "Moderator",
   "name": "Name",
   "navbar": {
