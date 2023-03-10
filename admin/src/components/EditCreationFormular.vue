@@ -75,6 +75,7 @@
 </template>
 <script>
 import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
+import { openCreations } from '../graphql/openCreations'
 import { creationMonths } from '../mixins/creationMonths'
 
 export default {
@@ -96,10 +97,6 @@ export default {
       type: Object,
       required: true,
     },
-    creation: {
-      type: Array,
-      required: true,
-    },
   },
   data() {
     return {
@@ -108,6 +105,7 @@ export default {
       rangeMin: 0,
       rangeMax: 1000,
       selected: '',
+      creation: [0, 0, 0],
     }
   },
   methods: {
@@ -149,6 +147,25 @@ export default {
           // Den geschöpften Wert auf o setzen
           this.value = 0
         })
+    },
+  },
+  apollo: {
+    OpenCreations: {
+      query() {
+        return openCreations
+      },
+      fetchPolicy: 'network-only',
+      variables() {
+        return {
+          userId: this.item.userId,
+        }
+      },
+      update({ openCreations }) {
+        this.creation = openCreations.map((c) => c.amount)
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
     },
   },
   created() {

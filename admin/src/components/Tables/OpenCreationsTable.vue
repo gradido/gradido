@@ -93,7 +93,6 @@
             <div v-if="row.item.moderatorId">
               <edit-creation-formular
                 type="singleCreation"
-                :creation="row.item.creation"
                 :item="row.item"
                 :row="row"
                 :creationUserData="creationUserData"
