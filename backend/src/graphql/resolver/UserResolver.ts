@@ -69,9 +69,9 @@ import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 import LogError from '@/server/LogError'
 import { EventProtocolType } from '@/event/EventProtocolType'
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const sodium = require('sodium-native')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const random = require('random-bigint')
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']

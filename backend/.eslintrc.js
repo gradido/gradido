@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-commonjs
 module.exports = {
   root: true,
   env: {
@@ -37,6 +38,9 @@ module.exports = {
     'import/no-deprecated': 'error',
     'import/no-empty-named-blocks': 'error',
     'import/no-mutable-exports': 'error',
+    'import/no-unused-modules': 'error',
+    'import/no-commonjs': 'error',
+    'import/no-import-module-exports': 'error',
   },
   overrides: [
     // only for ts files

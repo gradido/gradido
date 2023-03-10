@@ -7,7 +7,7 @@ import { backendLogger as logger } from '@/server/logger'
 import { User } from '@entity/User'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const sodium = require('sodium-native')
 
 // We will reuse this for changePassword
