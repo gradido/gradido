@@ -31,6 +31,7 @@ export const adminListAllContributions = gql`
         deletedAt
         deletedBy
         moderatorId
+        userId
       }
     }
   }

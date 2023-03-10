@@ -44,7 +44,7 @@
       :fields="fields"
       @show-overlay="showOverlay"
       @update-state="updateStatus"
-      @update-contributions="$apollo.queries.AllContributions.refetch()"
+      @update-contributions="$apollo.queries.ListAllContributions.refetch()"
     />
 
     <b-pagination
