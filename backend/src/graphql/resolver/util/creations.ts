@@ -4,7 +4,7 @@ import LogError from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { getConnection } from '@dbTools/typeorm'
 import { Contribution } from '@entity/Contribution'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 import { FULL_CREATION_AVAILABLE, MAX_CREATION_AMOUNT } from '../const/const'
 
 interface CreationMap {

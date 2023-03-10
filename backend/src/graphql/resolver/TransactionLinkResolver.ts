@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 
 import { getConnection } from '@dbTools/typeorm'
 

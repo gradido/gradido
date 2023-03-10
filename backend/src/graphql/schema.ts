@@ -4,7 +4,7 @@ import path from 'path'
 
 import isAuthorized from './directive/isAuthorized'
 import DecimalScalar from './scalar/Decimal'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 
 const schema = async (): Promise<GraphQLSchema> => {
   return buildSchema({

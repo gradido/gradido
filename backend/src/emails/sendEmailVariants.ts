@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 import CONFIG from '@/config'
 import { decimalSeparatorByLanguage } from '@/util/utilities'
 import { sendEmailTranslated } from './sendEmailTranslated'

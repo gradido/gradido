@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 import { Resolver, Args, Arg, Authorized, Mutation, Query, Int } from 'type-graphql'
 import { MoreThan, IsNull } from '@dbTools/typeorm'
 

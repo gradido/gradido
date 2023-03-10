@@ -4,7 +4,7 @@
 import 'reflect-metadata'
 
 import { ApolloServer } from 'apollo-server-express'
-import express, { Express } from 'express'
+import express, { Express, json, urlencoded } from 'express'
 
 // database
 import connection from '@/typeorm/connection'
@@ -66,9 +66,9 @@ const createServer = async (
   app.use(cors)
 
   // bodyparser json
-  app.use(express.json())
+  app.use(json())
   // bodyparser urlencoded for elopage
-  app.use(express.urlencoded({ extended: true }))
+  app.use(urlencoded({ extended: true }))
 
   // i18n
   app.use(localization.init)

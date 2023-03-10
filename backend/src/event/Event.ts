@@ -1,5 +1,5 @@
 import { EventProtocol as DbEvent } from '@entity/EventProtocol'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 import { EventProtocolType } from './EventProtocolType'
 
 export const Event = (

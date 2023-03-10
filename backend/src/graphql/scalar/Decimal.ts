@@ -1,5 +1,5 @@
 import { GraphQLScalarType, Kind } from 'graphql'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 
 export default new GraphQLScalarType({
   name: 'Decimal',

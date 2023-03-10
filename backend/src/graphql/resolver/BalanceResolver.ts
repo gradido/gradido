@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 import { getCustomRepository } from '@dbTools/typeorm'
 

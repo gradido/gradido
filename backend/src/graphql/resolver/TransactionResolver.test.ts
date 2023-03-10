@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { userFactory } from '@/seeds/factory/user'
 import {

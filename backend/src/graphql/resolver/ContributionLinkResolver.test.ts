@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 import { logger } from '@test/testSetup'
 import { GraphQLError } from 'graphql'
 import {

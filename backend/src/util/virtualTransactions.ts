@@ -5,7 +5,7 @@ import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { calculateDecay } from './decay'
 import { User } from '@model/User'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 
 const defaultModelFunctions = {
   hasId: function (): boolean {

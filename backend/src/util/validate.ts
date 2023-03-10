@@ -1,5 +1,5 @@
 import { calculateDecay } from './decay'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 import { Decay } from '@model/Decay'
 import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
