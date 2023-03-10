@@ -7,10 +7,10 @@ interface FindContributionsOptions {
   order: Order
   currentPage: number
   pageSize: number
-  withDeleted?: boolean
-  relations?: string[]
-  userId?: number
-  statusFilter?: ContributionStatus[]
+  withDeleted?: boolean | null
+  relations?: string[] | null
+  userId?: number | null
+  statusFilter?: ContributionStatus[] | null
 }
 
 export const findContributions = async (
@@ -18,6 +18,7 @@ export const findContributions = async (
 ): Promise<[DbContribution[], number]> => {
   const { order, currentPage, pageSize, withDeleted, relations, userId, statusFilter } = {
     withDeleted: false,
+    relations: [],
     ...options,
   }
   return DbContribution.findAndCount({
@@ -25,7 +26,7 @@ export const findContributions = async (
       ...(statusFilter && statusFilter.length && { contributionStatus: In(statusFilter) }),
       ...(userId && { userId }),
     },
-    withDeleted: withDeleted,
+    withDeleted,
     order: {
       createdAt: order,
       id: order,
