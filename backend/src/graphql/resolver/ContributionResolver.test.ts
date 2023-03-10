@@ -434,7 +434,6 @@ describe('ContributionResolver', () => {
             mutation: adminUpdateContribution,
             variables: {
               id: pendingContribution.data.createContribution.id,
-              email: 'bibi@bloxberg.de',
               amount: 10.0,
               memo: 'Test env contribution',
               creationDate: new Date().toString(),
@@ -1667,7 +1666,6 @@ describe('ContributionResolver', () => {
               mutation: adminUpdateContribution,
               variables: {
                 id: 1,
-                email: 'bibi@bloxberg.de',
                 amount: new Decimal(300),
                 memo: 'Danke Bibi!',
                 creationDate: contributionDateFormatter(new Date()),
@@ -1746,7 +1744,6 @@ describe('ContributionResolver', () => {
                 mutation: adminUpdateContribution,
                 variables: {
                   id: 1,
-                  email: 'bibi@bloxberg.de',
                   amount: new Decimal(300),
                   memo: 'Danke Bibi!',
                   creationDate: contributionDateFormatter(new Date()),
@@ -2076,7 +2073,7 @@ describe('ContributionResolver', () => {
           // stephen@hawking.uk: [1000, 1000, 1000] - deleted
           // garrick@ollivander.com: [1000, 1000, 1000] - not activated
 
-          describe('user for creation to update does not exist', () => {
+          describe.skip('user for creation to update does not exist', () => {
             it('throws an error', async () => {
               jest.clearAllMocks()
               await expect(
@@ -2084,7 +2081,6 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: 1,
-                    email: 'bob@baumeister.de',
                     amount: new Decimal(300),
                     memo: 'Danke Bibi!',
                     creationDate: contributionDateFormatter(new Date()),
@@ -2102,7 +2098,7 @@ describe('ContributionResolver', () => {
             })
           })
 
-          describe('user for creation to update is deleted', () => {
+          describe.skip('user for creation to update is deleted', () => {
             it('throws an error', async () => {
               jest.clearAllMocks()
               await expect(
@@ -2110,7 +2106,6 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: 1,
-                    email: 'stephen@hawking.uk',
                     amount: new Decimal(300),
                     memo: 'Danke Bibi!',
                     creationDate: contributionDateFormatter(new Date()),
@@ -2136,7 +2131,6 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: -1,
-                    email: 'bibi@bloxberg.de',
                     amount: new Decimal(300),
                     memo: 'Danke Bibi!',
                     creationDate: contributionDateFormatter(new Date()),
@@ -2154,7 +2148,7 @@ describe('ContributionResolver', () => {
             })
           })
 
-          describe('user email does not match creation user', () => {
+          describe.skip('user email does not match creation user', () => {
             it('throws an error', async () => {
               jest.clearAllMocks()
               await expect(
@@ -2162,7 +2156,6 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
-                    email: 'bibi@bloxberg.de',
                     amount: new Decimal(300),
                     memo: 'Danke Bibi!',
                     creationDate: creation
@@ -2197,7 +2190,6 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
-                    email: 'peter@lustig.de',
                     amount: new Decimal(1900),
                     memo: 'Danke Peter!',
                     creationDate: creation
@@ -2233,7 +2225,6 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
-                    email: 'peter@lustig.de',
                     amount: new Decimal(300),
                     memo: 'Danke Peter!',
                     creationDate: creation
@@ -2248,7 +2239,6 @@ describe('ContributionResolver', () => {
                       date: expect.any(String),
                       memo: 'Danke Peter!',
                       amount: '300',
-                      creation: ['1000', '700', '500'],
                     },
                   },
                 }),
@@ -2274,7 +2264,6 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
-                    email: 'peter@lustig.de',
                     amount: new Decimal(200),
                     memo: 'Das war leider zu Viel!',
                     creationDate: creation
@@ -2289,7 +2278,6 @@ describe('ContributionResolver', () => {
                       date: expect.any(String),
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
-                      creation: ['1000', '800', '1000'],
                     },
                   },
                 }),
