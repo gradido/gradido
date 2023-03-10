@@ -7,8 +7,8 @@ interface FindContributionsOptions {
   order: Order
   currentPage: number
   pageSize: number
-  withDeleted?: boolean | null
-  relations?: string[] | null
+  withDeleted?: boolean
+  relations?: string[]
   userId?: number | null
   statusFilter?: ContributionStatus[] | null
 }
