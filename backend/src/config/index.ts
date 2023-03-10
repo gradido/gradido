@@ -2,6 +2,7 @@
 
 import dotenv from 'dotenv'
 import { Decimal } from 'decimal.js-light'
+
 dotenv.config()
 
 Decimal.set({

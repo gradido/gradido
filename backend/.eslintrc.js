@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-commonjs
+// eslint-disable-next-line import/no-commonjs, import/unambiguous
 module.exports = {
   root: true,
   env: {
@@ -39,8 +39,26 @@ module.exports = {
     'import/no-empty-named-blocks': 'error',
     'import/no-mutable-exports': 'error',
     'import/no-unused-modules': 'error',
+    'import/no-amd': 'error',
     'import/no-commonjs': 'error',
     'import/no-import-module-exports': 'error',
+    'import/no-nodejs-modules': 'off',
+    'import/unambiguous': 'error',
+    'import/no-absolute-path': 'error',
+    'import/no-cycle': 'error',
+    'import/no-dynamic-require': 'error',
+    'import/no-internal-modules': 'off',
+    'import/no-relative-packages': 'error',
+    'import/no-relative-parent-imports': 'off',
+    'import/no-self-import': 'error',
+    'import/no-useless-path-segments': 'error',
+    'import/no-webpack-loader-syntax': 'error',
+    'import/consistent-type-specifier-style': 'error',
+    'import/exports-last': 'off',
+    'import/extensions': 'error',
+    'import/first': 'error',
+    'import/group-exports': 'off',
+    'import/newline-after-import': 'error',
   },
   overrides: [
     // only for ts files
