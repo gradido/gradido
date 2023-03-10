@@ -10,6 +10,7 @@ describe('ContributionMessagesList', () => {
 
   const propsData = {
     contributionId: 42,
+    contributionState: 'PENDING',
   }
 
   const mocks = {
