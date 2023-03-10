@@ -22,6 +22,7 @@ export class Contribution {
     this.deletedAt = contribution.deletedAt
     this.deletedBy = contribution.deletedBy
     this.moderatorId = contribution.moderatorId
+    this.userId = contribution.userId
   }
 
   @Field(() => Number)
@@ -69,8 +70,11 @@ export class Contribution {
   @Field(() => String)
   state: string
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   moderatorId: number | null
+
+  @Field(() => Int, { nullable: true })
+  userId: number | null
 }
 
 @ObjectType()
