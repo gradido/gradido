@@ -4,9 +4,20 @@ module.exports = {
     node: true,
   },
   parser: '@typescript-eslint/parser',
-  plugins: ['prettier', '@typescript-eslint', 'type-graphql', 'jest'],
-  extends: ['standard', 'eslint:recommended', 'plugin:prettier/recommended'],
-  // add your custom rules here
+  plugins: ['prettier', '@typescript-eslint', 'type-graphql', 'jest', 'import'],
+  extends: [
+    'standard',
+    'eslint:recommended',
+    'plugin:prettier/recommended',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
+  ],
+  settings: {
+    'import/resolver': {
+      typescript: true,
+      node: true,
+    },
+  },
   rules: {
     'no-console': ['error'],
     'no-debugger': 'error',
@@ -22,6 +33,10 @@ module.exports = {
     'jest/no-identical-title': 'error',
     'jest/prefer-to-have-length': 'error',
     'jest/valid-expect': 'error',
+    // import
+    'import/no-deprecated': 'error',
+    'import/no-empty-named-blocks': 'error',
+    'import/no-mutable-exports': 'error',
   },
   overrides: [
     // only for ts files
