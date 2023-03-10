@@ -4,7 +4,7 @@ module.exports = {
     node: true,
   },
   parser: '@typescript-eslint/parser',
-  plugins: ['prettier', '@typescript-eslint', 'type-graphql'],
+  plugins: ['prettier', '@typescript-eslint', 'type-graphql', 'jest'],
   extends: ['standard', 'eslint:recommended', 'plugin:prettier/recommended'],
   // add your custom rules here
   rules: {
@@ -16,6 +16,12 @@ module.exports = {
         htmlWhitespaceSensitivity: 'ignore',
       },
     ],
+    // jest
+    'jest/no-disabled-tests': 'off', // TODO
+    'jest/no-focused-tests': 'error',
+    'jest/no-identical-title': 'error',
+    'jest/prefer-to-have-length': 'warn',
+    'jest/valid-expect': 'error',
   },
   overrides: [
     // only for ts files
