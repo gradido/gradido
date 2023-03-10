@@ -357,8 +357,6 @@ export class ContributionResolver {
     result.memo = contributionToUpdate.memo
     result.date = contributionToUpdate.contributionDate
 
-    result.creation = await getUserCreation(contributionToUpdate.userId, clientTimezoneOffset)
-
     await EVENT_ADMIN_CONTRIBUTION_UPDATE(
       contributionToUpdate.userId,
       contributionToUpdate.id,
