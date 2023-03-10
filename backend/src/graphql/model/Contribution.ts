@@ -23,7 +23,7 @@ export class Contribution {
     this.deletedBy = contribution.deletedBy
   }
 
-  @Field(() => Number)
+  @Field(() => Int)
   id: number
 
   @Field(() => String, { nullable: true })
@@ -44,25 +44,25 @@ export class Contribution {
   @Field(() => Date, { nullable: true })
   confirmedAt: Date | null
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   confirmedBy: number | null
 
   @Field(() => Date, { nullable: true })
   deniedAt: Date | null
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   deniedBy: number | null
 
   @Field(() => Date, { nullable: true })
   deletedAt: Date | null
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   deletedBy: number | null
 
   @Field(() => Date)
   contributionDate: Date
 
-  @Field(() => Number)
+  @Field(() => Int)
   messagesCount: number
 
   @Field(() => String)
