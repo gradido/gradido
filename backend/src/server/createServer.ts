@@ -1,35 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/unbound-method */
-import 'reflect-metadata'
-
 import { ApolloServer } from 'apollo-server-express'
 import express, { Express, json, urlencoded } from 'express'
-
-// database
-import connection from '@/typeorm/connection'
-import { checkDBVersion } from '@/typeorm/DBVersion'
-
-// server
+import { Connection } from '@dbTools/typeorm'
+import { Logger } from 'log4js'
 import cors from './cors'
 import serverContext from './context'
 import plugins from './plugins'
-
-// config
-import CONFIG from '@/config'
-
-// graphql
-import schema from '@/graphql/schema'
-
-// webhooks
-import { elopageWebhook } from '@/webhook/elopage'
-import { Connection } from '@dbTools/typeorm'
-
 import { apolloLogger } from './logger'
-import { Logger } from 'log4js'
-
-// i18n
 import { i18n } from './localization'
+import connection from '@/typeorm/connection'
+import { checkDBVersion } from '@/typeorm/DBVersion'
+import CONFIG from '@/config'
+import schema from '@/graphql/schema'
+import { elopageWebhook } from '@/webhook/elopage'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";

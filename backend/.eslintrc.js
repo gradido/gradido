@@ -65,7 +65,7 @@ module.exports = {
     'import/no-namespace': 'error',
     'import/no-unassigned-import': 'error',
     'import/order': 'error',
-    'import/prefer-default-export': 'off', //TODO
+    'import/prefer-default-export': 'off', // TODO
   },
   overrides: [
     // only for ts files
