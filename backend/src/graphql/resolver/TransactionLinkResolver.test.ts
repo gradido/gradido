@@ -94,7 +94,7 @@ describe('TransactionLinkResolver', () => {
           errors: [new GraphQLError('Amount must be a positive number')],
         })
       })
-      it('logs the error thrown', () => {
+      it('logs the error "Amount must be a positive number" - 0', () => {
         expect(logger.error).toBeCalledWith('Amount must be a positive number', new Decimal(0))
       })
 
@@ -112,7 +112,7 @@ describe('TransactionLinkResolver', () => {
           errors: [new GraphQLError('Amount must be a positive number')],
         })
       })
-      it('logs the error thrown', () => {
+      it('logs the error "Amount must be a positive number" - -10', () => {
         expect(logger.error).toBeCalledWith('Amount must be a positive number', new Decimal(-10))
       })
 
@@ -130,7 +130,7 @@ describe('TransactionLinkResolver', () => {
           errors: [new GraphQLError('User has not enough GDD')],
         })
       })
-      it('logs the error thrown', () => {
+      it('logs the error "User has not enough GDD"', () => {
         expect(logger.error).toBeCalledWith('User has not enough GDD', expect.any(Number))
       })
     })
@@ -180,7 +180,7 @@ describe('TransactionLinkResolver', () => {
             })
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "No contribution link found to given code"', () => {
             expect(logger.error).toBeCalledWith(
               'No contribution link found to given code',
               'CL-123456',
@@ -224,7 +224,7 @@ describe('TransactionLinkResolver', () => {
             await resetEntity(DbContributionLink)
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "Contribution link is not valid yet"', () => {
             expect(logger.error).toBeCalledWith('Contribution link is not valid yet', validFrom)
             expect(logger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
@@ -263,7 +263,7 @@ describe('TransactionLinkResolver', () => {
             await resetEntity(DbContributionLink)
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "Contribution link has unknown cycle"', () => {
             expect(logger.error).toBeCalledWith('Contribution link has unknown cycle', 'INVALID')
             expect(logger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
@@ -302,7 +302,7 @@ describe('TransactionLinkResolver', () => {
             await resetEntity(DbContributionLink)
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "Contribution link is no longer valid"', () => {
             expect(logger.error).toBeCalledWith('Contribution link is no longer valid', validTo)
             expect(logger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
@@ -394,7 +394,7 @@ describe('TransactionLinkResolver', () => {
               })
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "Creation from contribution link was not successful"', () => {
               expect(logger.error).toBeCalledWith(
                 'Creation from contribution link was not successful',
                 new Error(
@@ -451,7 +451,7 @@ describe('TransactionLinkResolver', () => {
               })
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "Creation from contribution link was not successful"', () => {
               expect(logger.error).toBeCalledWith(
                 'Creation from contribution link was not successful',
                 new Error('Contribution link already redeemed today'),
@@ -503,7 +503,7 @@ describe('TransactionLinkResolver', () => {
                 })
               })
 
-              it('logs the error thrown', () => {
+              it('logs the error "Creation from contribution link was not successful"', () => {
                 expect(logger.error).toBeCalledWith(
                   'Creation from contribution link was not successful',
                   new Error('Contribution link already redeemed today'),
@@ -620,7 +620,7 @@ describe('TransactionLinkResolver', () => {
             })
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "Could not find requested User"', () => {
             expect(logger.error).toBeCalledWith('Could not find requested User', -1)
           })
         })
