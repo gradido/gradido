@@ -90,7 +90,7 @@
           @row-toggle-details="rowToggleDetails(row, 0)"
         >
           <template #show-creation>
-            <div v-if="row.item.moderator">
+            <div v-if="row.item.moderatorId">
               <edit-creation-formular
                 type="singleCreation"
                 :creation="row.item.creation"
