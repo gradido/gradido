@@ -6,6 +6,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { User } from '@entity/User'
+import { Decimal } from 'decimal.js-light'
+import { GraphQLError } from 'graphql'
 import { transactionLinkCode } from './TransactionLinkResolver'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
@@ -24,11 +28,7 @@ import {
   createTransactionLink,
 } from '@/seeds/graphql/mutations'
 import { listTransactionLinksAdmin } from '@/seeds/graphql/queries'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { User } from '@entity/User'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { Decimal } from 'decimal.js-light'
-import { GraphQLError } from 'graphql'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { logger } from '@test/testSetup'
 

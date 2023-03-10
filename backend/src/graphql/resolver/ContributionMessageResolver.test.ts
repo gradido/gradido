@@ -6,9 +6,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { GraphQLError } from 'graphql'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
-import { GraphQLError } from 'graphql'
 import {
   adminCreateContributionMessage,
   createContribution,

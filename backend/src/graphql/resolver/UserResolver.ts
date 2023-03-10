@@ -21,6 +21,9 @@ import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
+import { getUserCreations } from './util/creations'
+import { FULL_CREATION_AVAILABLE } from './const/const'
 import { UserRepository } from '@repository/User'
 
 import { User } from '@model/User'
@@ -61,11 +64,8 @@ import {
   EVENT_ACTIVATE_ACCOUNT,
   EVENT_ADMIN_SEND_CONFIRMATION_EMAIL,
 } from '@/event/Event'
-import { getUserCreations } from './util/creations'
 import { isValidPassword } from '@/password/EncryptorUtils'
-import { FULL_CREATION_AVAILABLE } from './const/const'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
-import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 import LogError from '@/server/LogError'
 import { EventProtocolType } from '@/event/EventProtocolType'
 

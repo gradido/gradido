@@ -2,6 +2,7 @@ import { Decimal } from 'decimal.js-light'
 import { Resolver, Args, Arg, Authorized, Mutation, Query, Int } from 'type-graphql'
 import { MoreThan, IsNull } from '@dbTools/typeorm'
 
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import {
   CONTRIBUTIONLINK_NAME_MAX_CHARS,
   CONTRIBUTIONLINK_NAME_MIN_CHARS,
@@ -9,17 +10,16 @@ import {
   MEMO_MIN_CHARS,
 } from './const/const'
 import { isStartEndDateValid } from './util/creations'
+import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import { ContributionLinkList } from '@model/ContributionLinkList'
 import { ContributionLink } from '@model/ContributionLink'
 import ContributionLinkArgs from '@arg/ContributionLinkArgs'
 import { backendLogger as logger } from '@/server/logger'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { Order } from '@enum/Order'
 import Paginated from '@arg/Paginated'
 
 // TODO: this is a strange construct
-import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import LogError from '@/server/LogError'
 
 @Resolver()

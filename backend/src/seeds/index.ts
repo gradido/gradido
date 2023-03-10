@@ -5,11 +5,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { backendLogger as logger } from '@/server/logger'
-import createServer from '../server/createServer'
 import { createTestClient } from 'apollo-server-testing'
-
 import { name, internet, datatype } from 'faker'
+import { entities } from '@entity/index'
+import createServer from '../server/createServer'
 
 import { users } from './users/index'
 import { creations } from './creation/index'
@@ -19,7 +18,7 @@ import { userFactory } from './factory/user'
 import { creationFactory } from './factory/creation'
 import { transactionLinkFactory } from './factory/transactionLink'
 import { contributionLinkFactory } from './factory/contributionLink'
-import { entities } from '@entity/index'
+import { backendLogger as logger } from '@/server/logger'
 import CONFIG from '@/config'
 
 CONFIG.EMAIL = false

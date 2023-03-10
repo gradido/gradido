@@ -5,8 +5,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Decimal } from 'decimal.js-light'
-import { logger } from '@test/testSetup'
 import { GraphQLError } from 'graphql'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { logger } from '@test/testSetup'
 import {
   login,
   createContributionLink,
@@ -18,7 +19,6 @@ import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { userFactory } from '@/seeds/factory/user'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 
 let mutate: any, query: any, con: any
 let testEnv: any

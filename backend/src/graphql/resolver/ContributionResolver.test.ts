@@ -7,6 +7,12 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Decimal } from 'decimal.js-light'
+import { GraphQLError } from 'graphql'
+import { EventProtocol } from '@entity/EventProtocol'
+import { Contribution } from '@entity/Contribution'
+import { Transaction as DbTransaction } from '@entity/Transaction'
+import { User } from '@entity/User'
+import { UserInputError } from 'apollo-server-express'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
@@ -41,18 +47,12 @@ import {
   contributionDateFormatter,
   resetEntity,
 } from '@test/helpers'
-import { GraphQLError } from 'graphql'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { EventProtocol } from '@entity/EventProtocol'
-import { Contribution } from '@entity/Contribution'
-import { Transaction as DbTransaction } from '@entity/Transaction'
-import { User } from '@entity/User'
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { logger, i18n as localization } from '@test/testSetup'
-import { UserInputError } from 'apollo-server-express'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { ContributionListResult } from '@model/Contribution'

@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { readFileSync } from 'fs'
 import { configure, getLogger } from 'log4js'
 import CONFIG from '@/config'
-
-import { readFileSync } from 'fs'
 
 const options = JSON.parse(readFileSync(CONFIG.LOG4JS_CONFIG, 'utf-8'))
 

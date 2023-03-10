@@ -59,6 +59,13 @@ module.exports = {
     'import/first': 'error',
     'import/group-exports': 'off',
     'import/newline-after-import': 'error',
+    'import/no-anonymous-default-export': 'error',
+    'import/no-default-export': 'off',
+    'import/no-named-default': 'error',
+    'import/no-namespace': 'error',
+    'import/no-unassigned-import': 'error',
+    'import/order': 'error',
+    'import/prefer-default-export': 'off', //TODO
   },
   overrides: [
     // only for ts files

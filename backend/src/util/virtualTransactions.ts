@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Transaction } from '@model/Transaction'
 import { SaveOptions, RemoveOptions } from '@dbTools/typeorm'
 import { Transaction as dbTransaction } from '@entity/Transaction'
-import { TransactionTypeId } from '@enum/TransactionTypeId'
-import { calculateDecay } from './decay'
-import { User } from '@model/User'
 import { Decimal } from 'decimal.js-light'
+import { calculateDecay } from './decay'
+import { Transaction } from '@model/Transaction'
+import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { User } from '@model/User'
 
 const defaultModelFunctions = {
   hasId: function (): boolean {

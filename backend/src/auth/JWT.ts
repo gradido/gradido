@@ -1,6 +1,6 @@
 import { verify, sign } from 'jsonwebtoken'
-import CONFIG from '@/config/'
 import { CustomJwtPayload } from './CustomJwtPayload'
+import CONFIG from '@/config/'
 import LogError from '@/server/LogError'
 
 export const decode = (token: string): CustomJwtPayload | null => {
