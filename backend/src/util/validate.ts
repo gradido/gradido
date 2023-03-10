@@ -1,8 +1,8 @@
 import { Decimal } from 'decimal.js-light'
 import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import { getLastTransaction } from '../graphql/resolver/util/getLastTransaction'
 import { calculateDecay } from './decay'
+import { getLastTransaction } from '@/graphql/resolver/util/getLastTransaction'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
 import { Decay } from '@model/Decay'
 
