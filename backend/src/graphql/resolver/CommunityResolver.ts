@@ -9,7 +9,7 @@ import CONFIG from '@/config'
 export class CommunityResolver {
   @Authorized([RIGHTS.GET_COMMUNITY_INFO])
   @Query(() => Community)
-  async getCommunityInfo(): Promise<Community> {
+  getCommunityInfo(): Community {
     return new Community({
       name: CONFIG.COMMUNITY_NAME,
       description: CONFIG.COMMUNITY_DESCRIPTION,
@@ -20,7 +20,7 @@ export class CommunityResolver {
 
   @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => [Community])
-  async communities(): Promise<Community[]> {
+  communities(): Community[] {
     if (CONFIG.PRODUCTION)
       return [
         new Community({

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import Decimal from 'decimal.js-light'
 import { Resolver, Query, Authorized, FieldResolver } from 'type-graphql'
 import { getConnection } from '@dbTools/typeorm'
@@ -15,7 +17,7 @@ import { calculateDecay } from '@/util/decay'
 export class StatisticsResolver {
   @Authorized([RIGHTS.COMMUNITY_STATISTICS])
   @Query(() => CommunityStatistics)
-  async communityStatistics(): Promise<CommunityStatistics> {
+  communityStatistics(): CommunityStatistics {
     return new CommunityStatistics()
   }
 

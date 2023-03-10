@@ -1,9 +1,9 @@
-import { ObjectType, Field } from 'type-graphql'
+import { ObjectType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 
 @ObjectType()
 export class DynamicStatisticsFields {
-  @Field(() => Number)
+  @Field(() => Int)
   activeUsers: number
 
   @Field(() => Decimal)
@@ -15,13 +15,13 @@ export class DynamicStatisticsFields {
 
 @ObjectType()
 export class CommunityStatistics {
-  @Field(() => Number)
+  @Field(() => Int)
   allUsers: number
 
-  @Field(() => Number)
+  @Field(() => Int)
   totalUsers: number
 
-  @Field(() => Number)
+  @Field(() => Int)
   deletedUsers: number
 
   @Field(() => Decimal)

@@ -349,8 +349,9 @@ export class TransactionLinkResolver {
   async listTransactionLinksAdmin(
     @Args()
     paginated: Paginated,
+    // eslint-disable-next-line type-graphql/wrong-decorator-signature
     @Arg('filters', () => TransactionLinkFilters, { nullable: true })
-    filters: TransactionLinkFilters | null,
+    filters: TransactionLinkFilters | null, // eslint-disable-line type-graphql/invalid-nullable-input-type
     @Arg('userId', () => Int)
     userId: number,
   ): Promise<TransactionLinkResult> {
