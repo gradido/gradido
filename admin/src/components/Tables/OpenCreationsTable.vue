@@ -147,10 +147,7 @@ export default {
   },
   methods: {
     myself(item) {
-      return (
-        `${item.firstName} ${item.lastName}` ===
-        `${this.$store.state.moderator.firstName} ${this.$store.state.moderator.lastName}`
-      )
+      return item.userId === this.$store.state.moderator.id
     },
     getStatusIcon(status) {
       return iconMap[status] ? iconMap[status] : 'default-icon'

@@ -82,7 +82,7 @@ const mocks = {
   $store: {
     state: {
       moderator: {
-        id: 0,
+        id: 1,
         name: 'test moderator',
       },
     },
