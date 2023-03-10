@@ -133,14 +133,13 @@ export default {
       // do we want to reset the memo everytime the month changes?
       this.text = this.$t('creation_form.creation_for') + ' ' + name.short + ' ' + name.year
       this.rangeMin = 0
-      this.rangeMax = name.creation
+      this.rangeMax = Number(name.creation)
     },
     submitCreation() {
       this.$apollo
         .mutate({
           mutation: adminCreateContribution,
           variables: {
-            email: this.item.email,
             creationDate: this.selected.date,
             amount: Number(this.value),
             memo: this.text,
