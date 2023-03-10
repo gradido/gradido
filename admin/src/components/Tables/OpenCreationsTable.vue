@@ -95,7 +95,6 @@
                 type="singleCreation"
                 :item="row.item"
                 :row="row"
-                :creation="getOpenCreations(row.item.userId)"
                 :creationUserData="creationUserData"
                 @update-creation-data="updateCreationData"
               />
@@ -119,7 +118,6 @@ import { toggleRowDetails } from '../../mixins/toggleRowDetails'
 import RowDetails from '../RowDetails'
 import EditCreationFormular from '../EditCreationFormular'
 import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList'
-import { openCreations } from '../../graphql/openCreations'
 
 const iconMap = {
   IN_PROGRESS: 'question-square',
@@ -187,22 +185,6 @@ export default {
     },
     updateState(id) {
       this.$emit('update-state', id)
-    },
-    getOpenCreations(userId) {
-      this.$apollo
-        .query({
-          query: openCreations,
-          variables: {
-            userId,
-          },
-        })
-        .then(({ data: { openCreations } }) => {
-          console.log(openCreations.map((obj) => obj.amount))
-          return openCreations.map((obj) => obj.amount)
-        })
-        .catch((error) => {
-          console.log(error)
-        })
     },
   },
 }

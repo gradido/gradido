@@ -75,7 +75,6 @@
 </template>
 <script>
 import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
-import { openCreations } from '../graphql/openCreations'
 import { creationMonths } from '../mixins/creationMonths'
 
 export default {
@@ -97,16 +96,14 @@ export default {
       type: Object,
       required: true,
     },
-    creation: {
-      type: Array,
-      default: () => [1000, 1000, 1000],
-    },
   },
   data() {
     return {
       text: !this.creationUserData.memo ? '' : this.creationUserData.memo,
       value: !this.creationUserData.amount ? 0 : Number(this.creationUserData.amount),
       rangeMin: 0,
+      selected: this.selectedComputed,
+      userId: this.item.userId,
     }
   },
   methods: {
@@ -146,6 +143,9 @@ export default {
           // Den geschöpften Wert auf o setzen
           this.value = 0
         })
+        .finally(() => {
+          this.$apollo.queries.OpenCreations.refetch()
+        })
     },
   },
   computed: {
@@ -153,17 +153,16 @@ export default {
       const month = this.$d(new Date(this.item.contributionDate), 'month')
       return this.radioOptions.findIndex((obj) => obj.item.short === month)
     },
-    selected() {
+    selectedComputed() {
       return this.radioOptions[this.creationIndex].item
     },
     rangeMax() {
-      console.log('index', this.creationIndex, this.creation[this.creationIndex])
       return Number(this.creation[this.creationIndex]) + Number(this.item.amount)
     },
   },
   watch: {
-    creation() {
-      console.log('watch', this.creation)
+    selectedComputed() {
+      this.selected = this.selectedComputed
     },
   },
 }

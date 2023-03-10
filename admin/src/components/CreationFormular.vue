@@ -117,10 +117,6 @@ export default {
         return {}
       },
     },
-    creation: {
-      type: Array,
-      required: true,
-    },
   },
   data() {
     return {
@@ -129,6 +125,7 @@ export default {
       rangeMin: 0,
       rangeMax: 1000,
       selected: '',
+      userId: this.item.userId,
     }
   },
   methods: {
@@ -166,6 +163,10 @@ export default {
           this.toastError(error.message)
           this.$refs.creationForm.reset()
           this.value = 0
+        })
+        .finally(() => {
+          this.$apollo.queries.OpenCreations.refetch()
+          this.selected = ''
         })
     },
   },
