@@ -26,6 +26,7 @@ export const klicktippNewsletterStateMiddleware: MiddlewareFn = async (
   { root, args, context, info },
   next,
 ) => {
+  // eslint-disable-next-line n/callback-return
   const result = await next()
   let klickTipp = new KlickTipp({ status: 'Unsubscribed' })
   if (CONFIG.KLICKTIPP) {

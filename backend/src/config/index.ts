@@ -1,5 +1,6 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 
+/* eslint-disable n/no-process-env */
 import dotenv from 'dotenv'
 import { Decimal } from 'decimal.js-light'
 
