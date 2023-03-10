@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { gql } from 'graphql-request'
 import { backendLogger as logger } from '@/server/logger'
 import { Community as DbCommunity } from '@entity/Community'

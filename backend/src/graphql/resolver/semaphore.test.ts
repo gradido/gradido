@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import Decimal from 'decimal.js-light'
@@ -79,7 +83,7 @@ describe('semaphore', () => {
         maxPerCycle: 1,
       },
     })
-    contributionLinkCode = 'CL-' + contributionLink.code
+    contributionLinkCode = `CL-${contributionLink.code}`
     await mutate({
       mutation: login,
       variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
