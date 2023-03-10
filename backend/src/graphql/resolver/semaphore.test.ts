@@ -5,8 +5,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import Decimal from 'decimal.js-light'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { logger } from '@test/testSetup'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'

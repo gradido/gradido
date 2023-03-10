@@ -2,6 +2,7 @@ module.exports = {
   root: true,
   env: {
     node: true,
+    // jest: true,
   },
   parser: '@typescript-eslint/parser',
   plugins: ['prettier', '@typescript-eslint', 'type-graphql', 'jest'],
@@ -26,7 +27,7 @@ module.exports = {
   overrides: [
     // only for ts files
     {
-      files: ['*.ts'],
+      files: ['*.ts', '*.tsx'],
       extends: [
         'plugin:@typescript-eslint/recommended',
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
