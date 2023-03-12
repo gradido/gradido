@@ -789,6 +789,7 @@ describe('UserResolver', () => {
       })
     })
 
+    // eslint-disable-next-line jest/no-disabled-tests
     describe.skip('user is in database but password is not set', () => {
       beforeAll(async () => {
         jest.clearAllMocks()

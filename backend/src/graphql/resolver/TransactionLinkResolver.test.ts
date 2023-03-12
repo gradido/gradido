@@ -759,6 +759,7 @@ describe('TransactionLinkResolver', () => {
         })
 
         // TODO: works not as expected, because 'redeemedAt' and 'redeemedBy' have to be added to the transaktion link factory
+        // eslint-disable-next-line jest/no-disabled-tests
         describe.skip('filter by redeemed', () => {
           it('finds 6 open transaction links, 1 deleted, and no redeemed', async () => {
             await expect(

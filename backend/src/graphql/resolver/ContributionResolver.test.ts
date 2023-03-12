@@ -2225,6 +2225,7 @@ describe('ContributionResolver', () => {
             })
           })
 
+          // eslint-disable-next-line jest/no-disabled-tests
           describe.skip('creation update is successful changing month', () => {
             // skipped as changing the month is currently disable
             it('returns update creation object', async () => {
