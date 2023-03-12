@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { MiddlewareFn } from 'type-graphql'
 import { /* klicktippSignIn, */ getKlickTippUser } from '@/apis/KlicktippController'
 import { KlickTipp } from '@model/KlickTipp'

@@ -17,7 +17,7 @@ export const findContributions = async (
       ...(statusFilter && statusFilter.length && { contributionStatus: In(statusFilter) }),
       ...(userId && { userId }),
     },
-    withDeleted: withDeleted,
+    withDeleted,
     order: {
       createdAt: order,
       id: order,

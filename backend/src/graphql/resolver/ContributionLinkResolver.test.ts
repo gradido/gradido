@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'

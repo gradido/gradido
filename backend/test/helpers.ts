@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 import { createTestClient } from 'apollo-server-testing'
 import { initialize } from '@dbTools/helpers'

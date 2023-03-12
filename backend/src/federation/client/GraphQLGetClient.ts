@@ -2,6 +2,7 @@ import { GraphQLClient } from 'graphql-request'
 import { PatchedRequestInit } from 'graphql-request/dist/types'
 
 export class GraphQLGetClient extends GraphQLClient {
+  // eslint-disable-next-line no-use-before-define
   private static instance: GraphQLGetClient
 
   /**

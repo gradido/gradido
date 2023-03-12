@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { User } from '@entity/User'
 import { Decimal } from 'decimal.js-light'

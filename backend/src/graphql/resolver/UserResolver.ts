@@ -93,6 +93,7 @@ const newEmailContact = (email: string, userId: number): DbUserContact => {
   return emailContact
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export const activationLink = (verificationCode: BigInt): string => {
   logger.debug(`activationLink(${verificationCode})...`)
   return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, verificationCode.toString())
@@ -815,7 +816,7 @@ export class UserResolver {
 
 export async function findUserByEmail(email: string): Promise<DbUser> {
   const dbUserContact = await DbUserContact.findOneOrFail(
-    { email: email },
+    { email },
     { withDeleted: true, relations: ['user'] },
   ).catch(() => {
     throw new LogError('No user with this credentials', email)
@@ -826,7 +827,7 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
 }
 
 async function checkEmailExists(email: string): Promise<boolean> {
-  const userContact = await DbUserContact.findOne({ email: email }, { withDeleted: true })
+  const userContact = await DbUserContact.findOne({ email }, { withDeleted: true })
   if (userContact) {
     return true
   }

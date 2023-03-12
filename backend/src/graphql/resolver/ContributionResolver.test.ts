@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { EventProtocol } from '@entity/EventProtocol'

@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Decimal } from 'decimal.js-light'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'

@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Decimal } from 'decimal.js-light'
 import { EventProtocol } from '@entity/EventProtocol'
 import { Transaction } from '@entity/Transaction'
