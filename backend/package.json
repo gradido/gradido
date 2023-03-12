@@ -12,7 +12,7 @@
     "clean": "tsc --build --clean",
     "start": "cross-env TZ=UTC TS_NODE_BASEURL=./build node -r tsconfig-paths/register build/src/index.js",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts --exec ts-node -r tsconfig-paths/register src/index.ts",
-    "lint": "eslint --max-warnings=0 --ext .js,.ts .",
+    "lint": "eslint --max-warnings=0 .",
     "test": "cross-env TZ=UTC NODE_ENV=development jest --runInBand --coverage --forceExit --detectOpenHandles",
     "seed": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/index.ts",
     "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/klicktipp.ts",
