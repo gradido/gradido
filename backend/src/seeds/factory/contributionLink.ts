@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/unbound-method */
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { login, createContributionLink } from '@/seeds/graphql/mutations'
 import { ContributionLink } from '@model/ContributionLink'

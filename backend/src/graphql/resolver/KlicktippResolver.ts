@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Resolver, Query, Authorized, Arg, Mutation, Args } from 'type-graphql'
 
 import SubscribeNewsletterArgs from '@arg/SubscribeNewsletterArgs'
