@@ -10,7 +10,7 @@ export const findContributions = async (
   withDeleted: boolean,
   relations: string[],
   userId?: number,
-  statusFilter?: ContributionStatus[],
+  statusFilter?: ContributionStatus[] | null,
 ): Promise<[DbContribution[], number]> =>
   DbContribution.findAndCount({
     where: {

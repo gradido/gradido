@@ -1,4 +1,4 @@
-import { ObjectType, Field } from 'type-graphql'
+import { ObjectType, Field, Int } from 'type-graphql'
 import { Community as DbCommunity } from '@entity/Community'
 
 @ObjectType()
@@ -18,7 +18,7 @@ export class Community {
     this.updatedAt = dbCom.updatedAt
   }
 
-  @Field(() => Number)
+  @Field(() => Int)
   id: number
 
   @Field(() => Boolean)
