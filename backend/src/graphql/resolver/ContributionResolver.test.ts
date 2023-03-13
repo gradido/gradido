@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -176,7 +181,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -265,7 +270,7 @@ describe('ContributionResolver', () => {
       })
 
       describe('valid input', () => {
-        it('creates contribution', async () => {
+        it('creates contribution', () => {
           expect(pendingContribution.data.createContribution).toMatchObject({
             id: expect.any(Number),
             amount: '100',
@@ -311,7 +316,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -452,7 +457,7 @@ describe('ContributionResolver', () => {
               id: pendingContribution.data.createContribution.id,
             })
             contribution.contributionStatus = ContributionStatus.DELETED
-            contribution.save()
+            await contribution.save()
             await mutate({
               mutation: login,
               variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -464,7 +469,7 @@ describe('ContributionResolver', () => {
               id: pendingContribution.data.createContribution.id,
             })
             contribution.contributionStatus = ContributionStatus.PENDING
-            contribution.save()
+            await contribution.save()
           })
 
           it('throws an error', async () => {
@@ -636,7 +641,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -820,7 +825,7 @@ describe('ContributionResolver', () => {
           )
         })
 
-        it('calls sendContributionDeniedEmail', async () => {
+        it('calls sendContributionDeniedEmail', () => {
           expect(sendContributionDeniedEmail).toBeCalledWith({
             firstName: 'Bibi',
             lastName: 'Bloxberg',
@@ -856,7 +861,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -1009,7 +1014,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -1140,7 +1145,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -1720,7 +1725,7 @@ describe('ContributionResolver', () => {
           })
         })
 
-        afterAll(async () => {
+        afterAll(() => {
           resetToken()
         })
 
@@ -1798,7 +1803,7 @@ describe('ContributionResolver', () => {
           })
         })
 
-        afterAll(async () => {
+        afterAll(() => {
           resetToken()
         })
 
@@ -1913,7 +1918,7 @@ describe('ContributionResolver', () => {
           })
 
           describe('valid user to create for', () => {
-            beforeAll(async () => {
+            beforeAll(() => {
               variables.email = 'bibi@bloxberg.de'
               variables.creationDate = 'invalid-date'
             })
@@ -2019,7 +2024,7 @@ describe('ContributionResolver', () => {
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      adminCreateContribution: [1000, 1000, 590],
+                      adminCreateContribution: ['1000', '1000', '590'],
                     },
                   }),
                 )
@@ -2386,7 +2391,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('calls sendContributionDeletedEmail', async () => {
+            it('calls sendContributionDeletedEmail', () => {
               expect(sendContributionDeletedEmail).toBeCalledWith({
                 firstName: 'Peter',
                 lastName: 'Lustig',
@@ -2551,7 +2556,7 @@ describe('ContributionResolver', () => {
               expect(transaction[0].typeId).toEqual(1)
             })
 
-            it('calls sendContributionConfirmedEmail', async () => {
+            it('calls sendContributionConfirmedEmail', () => {
               expect(sendContributionConfirmedEmail).toBeCalledWith({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -2746,15 +2751,6 @@ describe('ContributionResolver', () => {
               state: 'CONFIRMED',
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
-              firstName: 'Bob',
-              id: expect.any(Number),
-              lastName: 'der Baumeister',
-              memo: 'Confirmed Contribution',
-              messagesCount: 0,
-              state: 'CONFIRMED',
-            }),
-            expect.objectContaining({
               amount: expect.decimalEqual(400),
               firstName: 'Peter',
               id: expect.any(Number),
@@ -2762,6 +2758,15 @@ describe('ContributionResolver', () => {
               memo: 'Herzlich Willkommen bei Gradido!',
               messagesCount: 0,
               state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bob',
+              id: expect.any(Number),
+              lastName: 'der Baumeister',
+              memo: 'Confirmed Contribution',
+              messagesCount: 0,
+              state: 'CONFIRMED',
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(100),
@@ -2782,15 +2787,6 @@ describe('ContributionResolver', () => {
               state: 'PENDING',
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(10),
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Test PENDING contribution update',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
               amount: expect.decimalEqual(200),
               firstName: 'Peter',
               id: expect.any(Number),
@@ -2806,15 +2802,6 @@ describe('ContributionResolver', () => {
               lastName: 'Hotzenplotz',
               memo: 'Whatever contribution',
               messagesCount: 0,
-              state: 'DELETED',
-            }),
-            expect.objectContaining({
-              amount: expect.decimalEqual(166),
-              firstName: 'Räuber',
-              id: expect.any(Number),
-              lastName: 'Hotzenplotz',
-              memo: 'Whatever contribution',
-              messagesCount: 0,
               state: 'DENIED',
             }),
             expect.objectContaining({
@@ -2824,6 +2811,15 @@ describe('ContributionResolver', () => {
               lastName: 'Hotzenplotz',
               memo: 'Whatever contribution',
               messagesCount: 0,
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(166),
+              firstName: 'Räuber',
+              id: expect.any(Number),
+              lastName: 'Hotzenplotz',
+              memo: 'Whatever contribution',
+              messagesCount: 0,
               state: 'CONFIRMED',
             }),
             expect.objectContaining({
@@ -2831,18 +2827,9 @@ describe('ContributionResolver', () => {
               firstName: 'Bibi',
               id: expect.any(Number),
               lastName: 'Bloxberg',
-              memo: 'Test IN_PROGRESS contribution',
+              memo: 'Test contribution to delete',
               messagesCount: 0,
-              state: 'IN_PROGRESS',
-            }),
-            expect.objectContaining({
-              amount: expect.decimalEqual(100),
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Test contribution to confirm',
-              messagesCount: 0,
-              state: 'CONFIRMED',
+              state: 'DELETED',
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(100),
@@ -2858,9 +2845,27 @@ describe('ContributionResolver', () => {
               firstName: 'Bibi',
               id: expect.any(Number),
               lastName: 'Bloxberg',
-              memo: 'Test contribution to delete',
+              memo: 'Test contribution to confirm',
               messagesCount: 0,
-              state: 'DELETED',
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test IN_PROGRESS contribution',
+              messagesCount: 1,
+              state: 'IN_PROGRESS',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(10),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test PENDING contribution update',
+              messagesCount: 1,
+              state: 'PENDING',
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(1000),
