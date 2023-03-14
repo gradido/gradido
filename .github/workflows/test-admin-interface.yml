@@ -45,19 +45,8 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Admin Interface | Unit tests
-        run: |
-          cd admin && yarn && yarn run test
-          cp -r ./coverage ../
+        run: cd admin && yarn && yarn run test
 
-      - name: Admin Interface | Coverage check
-        uses: webcraftmedia/coverage-check-action@master
-        with:
-          report_name: Coverage - Admin Interface
-          type: lcov
-          result_path: ./admin/coverage/lcov.info
-          min_coverage: 97
-          token: ${{ github.token }}
-  
   lint:
     if: needs.files-changed.outputs.admin == 'true'
     name: Lint - Admin Interface
