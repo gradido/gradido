@@ -1,6 +1,6 @@
 {
   "name": "gradido-backend",
-  "version": "1.18.2",
+  "version": "1.19.1",
   "description": "Gradido unified backend providing an API-Service for Gradido Transactions",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/backend",
@@ -65,6 +65,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-promise": "^5.1.0",
+    "eslint-plugin-type-graphql": "^1.0.0",
     "faker": "^5.5.3",
     "jest": "^27.2.4",
     "nodemon": "^2.0.7",

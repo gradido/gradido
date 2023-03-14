@@ -35,7 +35,7 @@ export class ContributionLinkResolver {
       cycle,
       validFrom,
       validTo,
-      maxAmountPerMonth,
+      maxAmountPerMonth = null,
       maxPerCycle,
     }: ContributionLinkArgs,
   ): Promise<ContributionLink> {
@@ -114,7 +114,7 @@ export class ContributionLinkResolver {
       cycle,
       validFrom,
       validTo,
-      maxAmountPerMonth,
+      maxAmountPerMonth = null,
       maxPerCycle,
     }: ContributionLinkArgs,
     @Arg('id', () => Int) id: number,

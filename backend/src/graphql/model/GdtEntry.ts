@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { ObjectType, Field } from 'type-graphql'
+import { ObjectType, Field, Float, Int } from 'type-graphql'
 import { GdtEntryType } from '@enum/GdtEntryType'
 
 @ObjectType()
@@ -19,10 +21,10 @@ export class GdtEntry {
     this.gdt = json.gdt
   }
 
-  @Field(() => Number)
+  @Field(() => Int)
   id: number
 
-  @Field(() => Number)
+  @Field(() => Float)
   amount: number
 
   @Field(() => String)
@@ -40,15 +42,15 @@ export class GdtEntry {
   @Field(() => GdtEntryType)
   gdtEntryType: GdtEntryType
 
-  @Field(() => Number)
+  @Field(() => Float)
   factor: number
 
-  @Field(() => Number)
+  @Field(() => Float)
   amount2: number
 
-  @Field(() => Number)
+  @Field(() => Float)
   factor2: number
 
-  @Field(() => Number)
+  @Field(() => Float)
   gdt: number
 }
