@@ -65,7 +65,7 @@
                           <b-col>{{ $t('form.recipient') }}</b-col>
                         </b-row>
                         <b-row>
-                          <b-col>{{ gradidoID }}</b-col>
+                          <b-col class="font-weight-bold">{{ userName }}</b-col>
                         </b-row>
                       </div>
                     </b-col>
@@ -129,6 +129,7 @@ import { SEND_TYPES } from '@/pages/Send'
 import InputEmail from '@/components/Inputs/InputEmail'
 import InputAmount from '@/components/Inputs/InputAmount'
 import InputTextarea from '@/components/Inputs/InputTextarea'
+import { user as userQuery } from '@/graphql/queries'
 
 export default {
   name: 'TransactionForm',
@@ -153,6 +154,7 @@ export default {
         memo: this.memo,
       },
       radioSelected: this.selected,
+      userName: '',
     }
   },
   methods: {
@@ -173,9 +175,30 @@ export default {
       this.form.amount = ''
       this.form.memo = ''
       this.$refs.formValidator.validate()
+      if (this.$route.query && !this.$route.query === {}) this.$router.replace({ query: undefined })
     },
     setNewRecipientEmail() {
       this.form.email = this.recipientEmail ? this.recipientEmail : this.form.email
+    },
+  },
+  apollo: {
+    UserName: {
+      query() {
+        return userQuery
+      },
+      fetchPolicy: 'network-only',
+      variables() {
+        return { identifier: this.gradidoID }
+      },
+      skip() {
+        return !this.gradidoID
+      },
+      update({ user }) {
+        this.userName = `${user.firstName} ${user.lastName}`
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
     },
   },
   watch: {

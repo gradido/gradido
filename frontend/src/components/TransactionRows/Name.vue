@@ -36,8 +36,8 @@ export default {
   methods: {
     tunnelEmail() {
       this.$emit('set-tunneled-email', this.linkedUser.email)
-      if (this.$router.history.current.fullPath !== '/send')
-        this.$router.push({ path: '/send', query: { gradidoID: this.linkedUser.gradidoID } })
+      if (this.$router.history.current.fullPath !== '/send') this.$router.push({ path: '/send' })
+      this.$router.push({ query: { gradidoID: this.linkedUser.gradidoID } })
     },
   },
   computed: {
