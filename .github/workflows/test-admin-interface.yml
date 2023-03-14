@@ -1,0 +1,84 @@
+name: Gradido Admin Interface Test CI
+
+on: push
+
+jobs:
+  # only (but most important) job from this workflow required for pull requests
+  # check results serve as run conditions for all other jobs here 
+  files-changed:
+    name: Detect File Changes - Admin Interface
+    runs-on: ubuntu-latest
+    outputs:
+      admin: ${{ steps.changes.outputs.admin }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - name: Check for admin interface file changes
+        uses: dorny/paths-filter@v2.11.1
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: .github/file-filters.yml
+          list-files: shell
+
+  
+  build_test:
+    if: needs.files-changed.outputs.admin == 'true'
+    name: Docker Build Test - Admin Interface
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Admin Interface | Build 'test' image
+        run: docker build --target test -t "gradido/admin:test" admin/ --build-arg NODE_ENV="test"
+
+  unit_test:
+    if: needs.files-changed.outputs.admin == 'true'
+    name: Unit Tests - Admin Interface
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Admin Interface | Unit tests
+        run: cd admin && yarn && yarn run test
+
+  lint:
+    if: needs.files-changed.outputs.admin == 'true'
+    name: Lint - Admin Interface
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Admin Interface | Lint
+        run: cd admin && yarn && yarn run lint
+
+  stylelint:
+    if: needs.files-changed.outputs.admin == 'true'
+    name: Stylelint - Admin Interface
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Admin Interface | Stylelint
+        run: cd admin && yarn && yarn run stylelint
+
+  locales:
+    if: needs.files-changed.outputs.admin == 'true'
+    name: Locales - Admin Interface
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Admin Interface | Locales
+        run: cd admin && yarn && yarn run locales
