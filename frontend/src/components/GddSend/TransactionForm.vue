@@ -145,7 +145,6 @@ export default {
     memo: { type: String, default: '' },
     selected: { type: String, default: 'send' },
   },
-  inject: ['getTunneledEmail'],
   data() {
     return {
       form: {
@@ -177,9 +176,6 @@ export default {
       this.$refs.formValidator.validate()
       if (this.$route.query && !this.$route.query === {}) this.$router.replace({ query: undefined })
     },
-    setNewRecipientEmail() {
-      this.form.email = this.recipientEmail ? this.recipientEmail : this.form.email
-    },
   },
   apollo: {
     UserName: {
@@ -201,11 +197,6 @@ export default {
       },
     },
   },
-  watch: {
-    recipientEmail() {
-      this.setNewRecipientEmail()
-    },
-  },
   computed: {
     disabled() {
       if (
@@ -224,15 +215,9 @@ export default {
     sendTypes() {
       return SEND_TYPES
     },
-    recipientEmail() {
-      return this.getTunneledEmail()
-    },
     gradidoID() {
       return this.$route.query && this.$route.query.gradidoID
     },
-  },
-  created() {
-    this.setNewRecipientEmail()
   },
   mounted() {
     if (this.form.email !== '') this.$refs.formValidator.validate()
