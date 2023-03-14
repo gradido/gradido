@@ -26,11 +26,10 @@ export class GraphQLGetClient extends GraphQLClient {
    * just one instance of each subclass around.
    */
   public static getInstance(url: string): GraphQLGetClient {
-    GraphQLGetClient.instanceArray.forEach(function (instance) {
-      if (instance.url === url) {
-        return instance.client
-      }
-    })
+    const instance = GraphQLGetClient.instanceArray.find((instance) => instance.url === url)
+    if (instance) {
+      return instance.client
+    }
     const client = new GraphQLGetClient(url, {
       method: 'GET',
       jsonSerializer: {
