@@ -3,8 +3,8 @@ import { Field, InputType } from 'type-graphql'
 @InputType()
 export default class SearchUsersFilters {
   @Field(() => Boolean, { nullable: true, defaultValue: null })
-  byActivated: boolean
+  byActivated?: boolean | null
 
   @Field(() => Boolean, { nullable: true, defaultValue: null })
-  byDeleted: boolean
+  byDeleted?: boolean | null
 }

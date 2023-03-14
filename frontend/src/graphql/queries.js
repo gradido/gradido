@@ -165,13 +165,13 @@ export const listContributions = gql`
     $currentPage: Int = 1
     $pageSize: Int = 25
     $order: Order = DESC
-    $filterConfirmed: Boolean = false
+    $statusFilter: [ContributionStatus!]
   ) {
     listContributions(
       currentPage: $currentPage
       pageSize: $pageSize
       order: $order
-      filterConfirmed: $filterConfirmed
+      statusFilter: $statusFilter
     ) {
       contributionCount
       contributionList {

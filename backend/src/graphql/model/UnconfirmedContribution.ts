@@ -24,12 +24,12 @@ export class UnconfirmedContribution {
   firstName: string
 
   @Field(() => Int)
-  id?: number
+  id: number
 
   @Field(() => String)
   lastName: string
 
-  @Field(() => Number)
+  @Field(() => Int)
   userId: number
 
   @Field(() => String)
@@ -44,7 +44,7 @@ export class UnconfirmedContribution {
   @Field(() => Decimal)
   amount: Decimal
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   moderator: number | null
 
   @Field(() => [Decimal])
@@ -53,6 +53,6 @@ export class UnconfirmedContribution {
   @Field(() => String)
   state: string
 
-  @Field(() => Number)
+  @Field(() => Int)
   messageCount: number
 }

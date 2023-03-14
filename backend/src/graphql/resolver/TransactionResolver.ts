@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -305,7 +306,7 @@ export class TransactionResolver {
   }
 
   @Authorized([RIGHTS.SEND_COINS])
-  @Mutation(() => String)
+  @Mutation(() => Boolean)
   async sendCoins(
     @Args() { email, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,

@@ -17,7 +17,7 @@ export class UserAdmin {
     this.isAdmin = user.isAdmin
   }
 
-  @Field(() => Number)
+  @Field(() => Int)
   userId: number
 
   @Field(() => String)
@@ -39,10 +39,10 @@ export class UserAdmin {
   hasElopage: boolean
 
   @Field(() => Date, { nullable: true })
-  deletedAt?: Date | null
+  deletedAt: Date | null
 
   @Field(() => String, { nullable: true })
-  emailConfirmationSend?: string
+  emailConfirmationSend: string | null
 
   @Field(() => Date, { nullable: true })
   isAdmin: Date | null
