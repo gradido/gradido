@@ -46,7 +46,7 @@ import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { EventProtocol } from '@entity/EventProtocol'
+import { Event as DbEvent } from '@entity/Event'
 import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
@@ -279,12 +279,13 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the CONTRIBUTION_CREATE event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_CREATE,
+              affectedUserId: bibi.id,
+              actingUserId: bibi.id,
+              involvedContributionId: pendingContribution.data.createContribution.id,
               amount: expect.decimalEqual(100),
-              contributionId: pendingContribution.data.createContribution.id,
-              userId: bibi.id,
             }),
           )
         })
@@ -584,12 +585,13 @@ describe('ContributionResolver', () => {
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
 
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_UPDATE,
+              affectedUserId: bibi.id,
+              actingUserId: bibi.id,
+              involvedContributionId: pendingContribution.data.createContribution.id,
               amount: expect.decimalEqual(10),
-              contributionId: pendingContribution.data.createContribution.id,
-              userId: bibi.id,
             }),
           )
         })
@@ -814,12 +816,12 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the ADMIN_CONTRIBUTION_DENY event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.ADMIN_CONTRIBUTION_DENY,
-              userId: bibi.id,
-              xUserId: admin.id,
-              contributionId: contributionToDeny.data.createContribution.id,
+              affectedUserId: bibi.id,
+              actingUserId: admin.id,
+              involvedContributionId: contributionToDeny.data.createContribution.id,
               amount: expect.decimalEqual(100),
             }),
           )
@@ -942,12 +944,13 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the CONTRIBUTION_DELETE event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_DELETE,
-              contributionId: contributionToDelete.data.createContribution.id,
+              affectedUserId: bibi.id,
+              actingUserId: bibi.id,
+              involvedContributionId: contributionToDelete.data.createContribution.id,
               amount: expect.decimalEqual(100),
-              userId: bibi.id,
             }),
           )
         })
@@ -2031,10 +2034,11 @@ describe('ContributionResolver', () => {
               })
 
               it('stores the ADMIN_CONTRIBUTION_CREATE event in the database', async () => {
-                await expect(EventProtocol.find()).resolves.toContainEqual(
+                await expect(DbEvent.find()).resolves.toContainEqual(
                   expect.objectContaining({
                     type: EventProtocolType.ADMIN_CONTRIBUTION_CREATE,
-                    userId: admin.id,
+                    affectedUserId: bibi.id,
+                    actingUserId: admin.id,
                     amount: expect.decimalEqual(200),
                   }),
                 )
@@ -2232,7 +2236,7 @@ describe('ContributionResolver', () => {
                 mutate({
                   mutation: adminUpdateContribution,
                   variables: {
-                    id: creation ? creation.id : -1,
+                    id: creation?.id,
                     email: 'peter@lustig.de',
                     amount: new Decimal(300),
                     memo: 'Danke Peter!',
@@ -2256,10 +2260,11 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
-                  userId: admin.id,
+                  affectedUserId: creation?.userId,
+                  actingUserId: admin.id,
                   amount: 300,
                 }),
               )
@@ -2273,7 +2278,7 @@ describe('ContributionResolver', () => {
                 mutate({
                   mutation: adminUpdateContribution,
                   variables: {
-                    id: creation ? creation.id : -1,
+                    id: creation?.id,
                     email: 'peter@lustig.de',
                     amount: new Decimal(200),
                     memo: 'Das war leider zu Viel!',
@@ -2297,10 +2302,11 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
-                  userId: admin.id,
+                  affectedUserId: creation?.userId,
+                  actingUserId: admin.id,
                   amount: expect.decimalEqual(200),
                 }),
               )
@@ -2371,7 +2377,7 @@ describe('ContributionResolver', () => {
                 mutate({
                   mutation: adminDeleteContribution,
                   variables: {
-                    id: creation ? creation.id : -1,
+                    id: creation?.id,
                   },
                 }),
               ).resolves.toEqual(
@@ -2382,10 +2388,12 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the ADMIN_CONTRIBUTION_DELETE event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
-                  userId: admin.id,
+                  affectedUserId: creation?.userId,
+                  actingUserId: admin.id,
+                  involvedContributionId: creation?.id,
                   amount: expect.decimalEqual(200),
                 }),
               )
@@ -2538,7 +2546,7 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the CONTRIBUTION_CONFIRM event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.CONTRIBUTION_CONFIRM,
                 }),
@@ -2570,7 +2578,7 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the SEND_CONFIRMATION_EMAIL event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
                 }),
