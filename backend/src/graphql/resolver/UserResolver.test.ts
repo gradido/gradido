@@ -2228,8 +2228,8 @@ describe('UserResolver', () => {
         })
       })
 
-      describe('identifier is no gradido ID', () => {
-        it('throws and logs "No valid gradido ID" error', async () => {
+      describe('identifier is no gradido ID and no email', () => {
+        it('throws and logs "Unknown identifier type" error', async () => {
           await expect(
             query({
               query: userQuery,
@@ -2239,10 +2239,10 @@ describe('UserResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('No valid gradido ID')],
+              errors: [new GraphQLError('Unknown identifier type')],
             }),
           )
-          expect(logger.error).toBeCalledWith('No valid gradido ID', 'identifier')
+          expect(logger.error).toBeCalledWith('Unknown identifier type', 'identifier')
         })
       })
 
@@ -2267,7 +2267,30 @@ describe('UserResolver', () => {
         })
       })
 
-      describe('identifier is found', () => {
+      describe('identifier is found via email', () => {
+        it('returns user', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: 'bibi@bloxberg.de',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                user: {
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                },
+              },
+              errors: undefined,
+            }),
+          )
+        })
+      })
+
+      describe('identifier is found via gradidoID', () => {
         it('returns user', async () => {
           await expect(
             query({

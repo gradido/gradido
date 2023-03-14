@@ -68,6 +68,7 @@ import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 import LogError from '@/server/LogError'
 import { EventProtocolType } from '@/event/EventProtocolType'
+import { findUserByIdentifier } from './util/findUserByIdentifier'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -815,16 +816,8 @@ export class UserResolver {
   @Authorized([RIGHTS.USER])
   @Query(() => User, { nullable: true })
   async user(@Arg('identifier') identifier: string): Promise<User | null> {
-    const isGradidoID =
-      /^[0-9a-f]{8,8}-[0-9a-f]{4,4}-[0-9a-f]{4,4}-[0-9a-f]{4,4}-[0-9a-f]{12,12}$/.exec(identifier)
-    if (!isGradidoID) {
-      throw new LogError('No valid gradido ID', identifier)
-    }
-    const user = await DbUser.findOne({ where: { gradidoID: identifier } })
-    if (!user) {
-      throw new LogError('No user found to given identifier', identifier)
-    }
-    return new User(user)
+    const user = await findUserByIdentifier(identifier)
+    return user ? new User(user) : null
   }
 }
 

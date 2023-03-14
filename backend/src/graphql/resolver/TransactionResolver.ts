@@ -34,7 +34,7 @@ import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Event
 
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
-import { findUserByEmail } from './UserResolver'
+import { findUserByIdentifier } from './util/findUserByIdentifier'
 
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import LogError from '@/server/LogError'
@@ -307,10 +307,9 @@ export class TransactionResolver {
   @Authorized([RIGHTS.SEND_COINS])
   @Mutation(() => Boolean)
   async sendCoins(
-    @Args() { email, amount, memo }: TransactionSendArgs,
+    @Args() { identifier, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.info(`sendCoins(email=${email}, amount=${amount}, memo=${memo})`)
     if (amount.lte(0)) {
       throw new LogError('Amount to send must be positive', amount)
     }
@@ -319,13 +318,9 @@ export class TransactionResolver {
     const senderUser = getUser(context)
 
     // validate recipient user
-    const recipientUser = await findUserByEmail(email)
-    if (recipientUser.deletedAt) {
-      throw new LogError('The recipient account was deleted', recipientUser)
-    }
-    const emailContact = recipientUser.emailContact
-    if (!emailContact.emailChecked) {
-      throw new LogError('The recipient account is not activated', recipientUser)
+    const recipientUser = await findUserByIdentifier(identifier)
+    if (!recipientUser) {
+      throw new LogError('The recipient user was not found', recipientUser)
     }
 
     await executeTransaction(amount, memo, senderUser, recipientUser)
