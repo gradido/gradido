@@ -341,7 +341,7 @@ describe('send coins', () => {
           memo: 'unrepeatable memo',
         })
 
-        expect(DbEvent.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.TRANSACTION_SEND,
             affectedUserId: user[1].id,
@@ -359,7 +359,7 @@ describe('send coins', () => {
           memo: 'unrepeatable memo',
         })
 
-        expect(DbEvent.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.TRANSACTION_RECEIVE,
             affectedUserId: user[0].id,

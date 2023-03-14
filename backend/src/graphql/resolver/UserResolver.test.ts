@@ -216,7 +216,7 @@ describe('UserResolver', () => {
         })
       })
 
-      it('stores the SEND_CONFIRMATION_EMAIL event in the database', () => {
+      it('stores the SEND_CONFIRMATION_EMAIL event in the database', async () => {
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
@@ -363,7 +363,7 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the ACTIVATE_ACCOUNT event in the database', () => {
+        it('stores the ACTIVATE_ACCOUNT event in the database', async () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.ACTIVATE_ACCOUNT,
@@ -373,7 +373,7 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the REDEEM_REGISTER event in the database', () => {
+        it('stores the REDEEM_REGISTER event in the database', async () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.REDEEM_REGISTER,
@@ -940,7 +940,7 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the LOGIN event in the database', () => {
+        it('stores the LOGIN event in the database', async () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.LOGIN,
@@ -1861,7 +1861,6 @@ describe('UserResolver', () => {
               { email: 'bibi@bloxberg.de' },
               { relations: ['user'] },
             )
-            
             await expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
                 type: EventProtocolType.ADMIN_SEND_CONFIRMATION_EMAIL,
