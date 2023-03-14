@@ -105,7 +105,7 @@ case "$NGINX_SSL" in
     *) TEMPLATE_FILE="gradido.conf.template" ;;
 esac
 envsubst '$FEDERATION_NGINX_CONF' < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf.tmp
-export FEDERATION_NGINX_CONF=
+unset FEDERATION_NGINX_CONF
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/gradido.conf.tmp > $NGINX_CONFIG_DIR/gradido.conf
 rm $NGINX_CONFIG_DIR/gradido.conf.tmp
 rm $NGINX_CONFIG_DIR/gradido-federation.conf.locations
@@ -237,7 +237,6 @@ done
 
 
 # let nginx showing gradido
-cd $SCRIPT_DIR
 echo 'Configuring nginx to serve gradido again' >> $UPDATE_HTML
 ln -s /etc/nginx/sites-available/gradido.conf /etc/nginx/sites-enabled/
 rm /etc/nginx/sites-enabled/update-page.conf

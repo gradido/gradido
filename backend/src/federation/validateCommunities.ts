@@ -48,7 +48,9 @@ export async function validateCommunities(): Promise<void> {
           logger.debug(`Federation: updated dbCom:  ${JSON.stringify(dbCom)}`)
         } else {
           logger.warn(
-            `Federation: received not matching publicKey -> received: ${pubKey}, expected: ${dbCom.publicKey} `,
+            `Federation: received not matching publicKey -> received: ${
+              pubKey || 'null'
+            }, expected: ${dbCom.publicKey.toString()} `,
           )
           // DbCommunity.delete({ id: dbCom.id })
         }
