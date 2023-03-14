@@ -811,6 +811,21 @@ export class UserResolver {
 
     return true
   }
+
+  @Authorized([RIGHTS.USER])
+  @Query(() => User, { nullable: true })
+  async user(@Arg('identifier') identifier: string): Promise<User | null> {
+    const isGradidoID =
+      /^[0-9a-f]{8,8}-[0-9a-f]{4,4}-[0-9a-f]{4,4}-[0-9a-f]{4,4}-[0-9a-f]{12,12}$/.exec(identifier)
+    if (!isGradidoID) {
+      throw new LogError('No valid gradido ID', identifier)
+    }
+    const user = await DbUser.findOne({ where: { gradidoID: identifier } })
+    if (!user) {
+      throw new LogError('No user found to given identifier', identifier)
+    }
+    return new User(user)
+  }
 }
 
 export async function findUserByEmail(email: string): Promise<DbUser> {

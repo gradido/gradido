@@ -26,7 +26,13 @@ import {
   unDeleteUser,
   sendActivationEmail,
 } from '@/seeds/graphql/mutations'
-import { verifyLogin, queryOptIn, searchAdminUsers, searchUsers } from '@/seeds/graphql/queries'
+import {
+  verifyLogin,
+  queryOptIn,
+  searchAdminUsers,
+  searchUsers,
+  user as userQuery,
+} from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
@@ -2185,6 +2191,102 @@ describe('UserResolver', () => {
               }),
             )
           })
+        })
+      })
+    })
+  })
+
+  describe('user', () => {
+    beforeEach(() => {
+      jest.clearAllMocks()
+    })
+
+    describe('unauthenticated', () => {
+      it('throws and logs "401 Unauthorized" error', async () => {
+        await expect(
+          query({
+            query: userQuery,
+            variables: {
+              identifier: 'identifier',
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+        expect(logger.error).toBeCalledWith('401 Unauthorized')
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        user = await userFactory(testEnv, bibiBloxberg)
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      describe('identifier is no gradido ID', () => {
+        it('throws and logs "No valid gradido ID" error', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: 'identifier',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('No valid gradido ID')],
+            }),
+          )
+          expect(logger.error).toBeCalledWith('No valid gradido ID', 'identifier')
+        })
+      })
+
+      describe('identifier is not found', () => {
+        it('throws and logs "No user found to given identifier" error', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: '00000000-0000-0000-0000-000000000000',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('No user found to given identifier')],
+            }),
+          )
+          expect(logger.error).toBeCalledWith(
+            'No user found to given identifier',
+            '00000000-0000-0000-0000-000000000000',
+          )
+        })
+      })
+
+      describe('identifier is found', () => {
+        it('returns user', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: user.gradidoID,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                user: {
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                },
+              },
+              errors: undefined,
+            }),
+          )
         })
       })
     })
