@@ -7,7 +7,7 @@ export class UserRepository extends Repository<DbUser> {
   async findBySearchCriteriaPagedFiltered(
     select: string[],
     searchCriteria: string,
-    filters: SearchUsersFilters,
+    filters: SearchUsersFilters | null,
     currentPage: number,
     pageSize: number,
   ): Promise<[DbUser[], number]> {
