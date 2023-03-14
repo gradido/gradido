@@ -142,8 +142,7 @@ export const executeTransaction = async (
         sender,
         recipient,
         transactionSend,
-        // TODO why mul -1?
-        transactionSend.amount.mul(-1),
+        transactionSend.amount,
       )
 
       await EVENT_TRANSACTION_RECEIVE(
