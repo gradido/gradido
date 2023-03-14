@@ -38,6 +38,7 @@ export const transactionsQuery = gql`
         linkedUser {
           firstName
           lastName
+          gradidoID
           email
         }
         decay {

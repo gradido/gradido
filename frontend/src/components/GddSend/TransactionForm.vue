@@ -50,7 +50,7 @@
                 <b-col>
                   <b-row>
                     <b-col cols="12">
-                      <div v-if="radioSelected === sendTypes.send">
+                      <div v-if="radioSelected === sendTypes.send && !gradidoID">
                         <input-email
                           :name="$t('form.recipient')"
                           :label="$t('form.recipient')"
@@ -59,6 +59,14 @@
                           :disabled="isBalanceDisabled"
                           @onValidation="onValidation"
                         />
+                      </div>
+                      <div v-else-if="gradidoID" class="mb-4">
+                        <b-row>
+                          <b-col>{{ $t('form.recipient') }}</b-col>
+                        </b-row>
+                        <b-row>
+                          <b-col>{{ gradidoID }}</b-col>
+                        </b-row>
                       </div>
                     </b-col>
                     <b-col cols="12" lg="6">
@@ -195,6 +203,9 @@ export default {
     },
     recipientEmail() {
       return this.getTunneledEmail()
+    },
+    gradidoID() {
+      return this.$route.query && this.$route.query.gradidoID
     },
   },
   created() {

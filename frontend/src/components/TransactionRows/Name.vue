@@ -1,7 +1,7 @@
 <template>
   <div class="name">
     <div class="gdd-transaction-list-item-name">
-      <div v-if="linkedUser && linkedUser.email">
+      <div v-if="linkedUser && linkedUser.gradidoID">
         <b-link @click.stop="tunnelEmail" :class="fontColor">
           {{ itemText }}
         </b-link>
@@ -36,7 +36,8 @@ export default {
   methods: {
     tunnelEmail() {
       this.$emit('set-tunneled-email', this.linkedUser.email)
-      if (this.$router.history.current.fullPath !== '/send') this.$router.push({ path: '/send' })
+      if (this.$router.history.current.fullPath !== '/send')
+        this.$router.push({ path: '/send', query: { gradidoID: this.linkedUser.gradidoID } })
     },
   },
   computed: {
