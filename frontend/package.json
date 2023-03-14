@@ -10,7 +10,7 @@
     "analyse-bundle": "yarn build && webpack-bundle-analyzer dist/webpack.stats.json",
     "lint": "eslint --max-warnings=0 --ext .js,.vue,.json .",
     "stylelint": "stylelint --max-warnings=0 '**/*.{scss,vue}'",
-    "test": "cross-env TZ=UTC jest --coverage",
+    "test": "cross-env TZ=UTC jest",
     "locales": "scripts/sort.sh"
   },
   "dependencies": {

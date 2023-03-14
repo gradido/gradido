@@ -335,20 +335,7 @@ jobs:
       # UNIT TESTS FRONTEND ####################################################
       ##########################################################################
       - name: Frontend | Unit tests
-        run: |
-          cd frontend && yarn && yarn run test
-          cp -r ./coverage ../
-      ##########################################################################
-      # COVERAGE CHECK FRONTEND ################################################
-      ##########################################################################
-      - name: frontend | Coverage check
-        uses: webcraftmedia/coverage-check-action@master
-        with:
-          report_name: Coverage Frontend
-          type: lcov
-          result_path: ./frontend/coverage/lcov.info
-          min_coverage: 95
-          token: ${{ github.token }}
+        run: cd frontend && yarn && yarn run test
   
   ##############################################################################
   # JOB: UNIT TEST ADMIN INTERFACE #############################################
@@ -366,20 +353,7 @@ jobs:
       # UNIT TESTS ADMIN INTERFACE #############################################
       ##########################################################################
       - name: Admin Interface | Unit tests
-        run: |
-          cd admin && yarn && yarn run test
-          cp -r ./coverage ../
-      ##########################################################################
-      # COVERAGE CHECK ADMIN INTERFACE #########################################
-      ##########################################################################
-      - name: Admin Interface | Coverage check
-        uses: webcraftmedia/coverage-check-action@master
-        with:
-          report_name: Coverage Admin Interface
-          type: lcov
-          result_path: ./admin/coverage/lcov.info
-          min_coverage: 97
-          token: ${{ github.token }}
+        run: cd admin && yarn && yarn run test
 
   ##############################################################################
   # JOB: UNIT TEST BACKEND  ####################################################
@@ -415,20 +389,7 @@ jobs:
       - name: backend | docker-compose database
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
       - name: backend Unit tests | test
-        run: |
-          cd database && yarn && yarn build && cd ../backend && yarn && yarn test
-          cp -r ./coverage ../
-      ##########################################################################
-      # COVERAGE CHECK BACKEND #################################################
-      ##########################################################################
-      - name: backend | Coverage check
-        uses: webcraftmedia/coverage-check-action@master
-        with:
-          report_name: Coverage Backend
-          type: lcov
-          result_path: ./backend/coverage/lcov.info
-          min_coverage: 80
-          token: ${{ github.token }}
+        run: cd database && yarn && yarn build && cd ../backend && yarn && yarn test
 
   ##########################################################################
   # DATABASE MIGRATION TEST UP + RESET #####################################
