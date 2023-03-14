@@ -1,7 +1,7 @@
 import gql from 'graphql-tag'
 
 export const adminCreateContributionMessage = gql`
-  mutation ($contributionId: Float!, $message: String!) {
+  mutation ($contributionId: Int!, $message: String!) {
     adminCreateContributionMessage(contributionId: $contributionId, message: $message) {
       id
       message
