@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -13,7 +18,6 @@ import {
   denyContribution,
   confirmContribution,
   adminCreateContribution,
-  adminCreateContributions,
   adminUpdateContribution,
   adminDeleteContribution,
   login,
@@ -25,7 +29,11 @@ import {
   listContributions,
   adminListAllContributions,
 } from '@/seeds/graphql/queries'
-import { sendContributionConfirmedEmail } from '@/emails/sendEmailVariants'
+import {
+  sendContributionConfirmedEmail,
+  sendContributionDeletedEmail,
+  sendContributionDeniedEmail,
+} from '@/emails/sendEmailVariants'
 import {
   cleanDB,
   resetToken,
@@ -51,21 +59,7 @@ import { ContributionListResult } from '@model/Contribution'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { Order } from '@enum/Order'
 
-// mock account activation email to avoid console spam
-jest.mock('@/emails/sendEmailVariants', () => {
-  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
-  return {
-    __esModule: true,
-    ...originalModule,
-    // TODO: test the call of …
-    // sendAccountActivationEmail: jest.fn((a) => originalModule.sendAccountActivationEmail(a)),
-    sendContributionConfirmedEmail: jest.fn((a) =>
-      originalModule.sendContributionConfirmedEmail(a),
-    ),
-    // TODO: test the call of …
-    // sendContributionRejectedEmail: jest.fn((a) => originalModule.sendContributionRejectedEmail(a)),
-  }
-})
+jest.mock('@/emails/sendEmailVariants')
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -187,7 +181,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -276,7 +270,7 @@ describe('ContributionResolver', () => {
       })
 
       describe('valid input', () => {
-        it('creates contribution', async () => {
+        it('creates contribution', () => {
           expect(pendingContribution.data.createContribution).toMatchObject({
             id: expect.any(Number),
             amount: '100',
@@ -322,7 +316,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -463,7 +457,7 @@ describe('ContributionResolver', () => {
               id: pendingContribution.data.createContribution.id,
             })
             contribution.contributionStatus = ContributionStatus.DELETED
-            contribution.save()
+            await contribution.save()
             await mutate({
               mutation: login,
               variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -475,7 +469,7 @@ describe('ContributionResolver', () => {
               id: pendingContribution.data.createContribution.id,
             })
             contribution.contributionStatus = ContributionStatus.PENDING
-            contribution.save()
+            await contribution.save()
           })
 
           it('throws an error', async () => {
@@ -647,7 +641,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -830,6 +824,18 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+
+        it('calls sendContributionDeniedEmail', () => {
+          expect(sendContributionDeniedEmail).toBeCalledWith({
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+            email: 'bibi@bloxberg.de',
+            language: 'de',
+            senderFirstName: 'Peter',
+            senderLastName: 'Lustig',
+            contributionMemo: 'Test contribution to deny',
+          })
+        })
       })
     })
   })
@@ -855,7 +861,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -994,7 +1000,6 @@ describe('ContributionResolver', () => {
             currentPage: 1,
             pageSize: 25,
             order: 'DESC',
-            filterConfirmed: false,
           },
         })
         expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
@@ -1009,11 +1014,11 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
-      describe('filter confirmed is false', () => {
+      describe('no status filter', () => {
         it('returns creations', async () => {
           const {
             data: { listContributions: contributionListResult },
@@ -1065,7 +1070,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe('filter confirmed is true', () => {
+      describe('with status filter [PENDING, IN_PROGRESS, DENIED, DELETED]', () => {
         it('returns only unconfirmed creations', async () => {
           const {
             data: { listContributions: contributionListResult },
@@ -1075,7 +1080,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterConfirmed: true,
+              statusFilter: ['PENDING', 'IN_PROGRESS', 'DENIED', 'DELETED'],
             },
           })
           expect(contributionListResult).toMatchObject({
@@ -1140,7 +1145,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -1655,21 +1660,6 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe('adminCreateContributions', () => {
-        it('returns an error', async () => {
-          await expect(
-            mutate({
-              mutation: adminCreateContributions,
-              variables: { pendingCreations: [variables] },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('401 Unauthorized')],
-            }),
-          )
-        })
-      })
-
       describe('adminUpdateContribution', () => {
         it('returns an error', async () => {
           await expect(
@@ -1735,28 +1725,13 @@ describe('ContributionResolver', () => {
           })
         })
 
-        afterAll(async () => {
+        afterAll(() => {
           resetToken()
         })
 
         describe('adminCreateContribution', () => {
           it('returns an error', async () => {
             await expect(mutate({ mutation: adminCreateContribution, variables })).resolves.toEqual(
-              expect.objectContaining({
-                errors: [new GraphQLError('401 Unauthorized')],
-              }),
-            )
-          })
-        })
-
-        describe('adminCreateContributions', () => {
-          it('returns an error', async () => {
-            await expect(
-              mutate({
-                mutation: adminCreateContributions,
-                variables: { pendingCreations: [variables] },
-              }),
-            ).resolves.toEqual(
               expect.objectContaining({
                 errors: [new GraphQLError('401 Unauthorized')],
               }),
@@ -1828,7 +1803,7 @@ describe('ContributionResolver', () => {
           })
         })
 
-        afterAll(async () => {
+        afterAll(() => {
           resetToken()
         })
 
@@ -1943,7 +1918,7 @@ describe('ContributionResolver', () => {
           })
 
           describe('valid user to create for', () => {
-            beforeAll(async () => {
+            beforeAll(() => {
               variables.email = 'bibi@bloxberg.de'
               variables.creationDate = 'invalid-date'
             })
@@ -2049,7 +2024,7 @@ describe('ContributionResolver', () => {
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      adminCreateContribution: [1000, 1000, 590],
+                      adminCreateContribution: ['1000', '1000', '590'],
                     },
                   }),
                 )
@@ -2094,56 +2069,10 @@ describe('ContributionResolver', () => {
           })
         })
 
-        describe('adminCreateContributions', () => {
+        describe('adminUpdateContribution', () => {
           // at this point we have this data in DB:
           // bibi@bloxberg.de: [1000, 1000, 800]
           // peter@lustig.de: [1000, 600, 1000]
-          // stephen@hawking.uk: [1000, 1000, 1000] - deleted
-          // garrick@ollivander.com: [1000, 1000, 1000] - not activated
-
-          const massCreationVariables = [
-            'bibi@bloxberg.de',
-            'peter@lustig.de',
-            'stephen@hawking.uk',
-            'garrick@ollivander.com',
-            'bob@baumeister.de',
-          ].map((email) => {
-            return {
-              email,
-              amount: new Decimal(500),
-              memo: 'Grundeinkommen',
-              creationDate: contributionDateFormatter(new Date()),
-            }
-          })
-
-          it('returns success, two successful creation and three failed creations', async () => {
-            await expect(
-              mutate({
-                mutation: adminCreateContributions,
-                variables: { pendingCreations: massCreationVariables },
-              }),
-            ).resolves.toEqual(
-              expect.objectContaining({
-                data: {
-                  adminCreateContributions: {
-                    success: true,
-                    successfulContribution: ['bibi@bloxberg.de', 'peter@lustig.de'],
-                    failedContribution: [
-                      'stephen@hawking.uk',
-                      'garrick@ollivander.com',
-                      'bob@baumeister.de',
-                    ],
-                  },
-                },
-              }),
-            )
-          })
-        })
-
-        describe('adminUpdateContribution', () => {
-          // at this I expect to have this data in DB:
-          // bibi@bloxberg.de: [1000, 1000, 300]
-          // peter@lustig.de: [1000, 600, 500]
           // stephen@hawking.uk: [1000, 1000, 1000] - deleted
           // garrick@ollivander.com: [1000, 1000, 1000] - not activated
 
@@ -2360,7 +2289,7 @@ describe('ContributionResolver', () => {
                       date: expect.any(String),
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
-                      creation: ['1000', '800', '500'],
+                      creation: ['1000', '800', '1000'],
                     },
                   },
                 }),
@@ -2460,6 +2389,18 @@ describe('ContributionResolver', () => {
                   amount: expect.decimalEqual(200),
                 }),
               )
+            })
+
+            it('calls sendContributionDeletedEmail', () => {
+              expect(sendContributionDeletedEmail).toBeCalledWith({
+                firstName: 'Peter',
+                lastName: 'Lustig',
+                email: 'peter@lustig.de',
+                language: 'de',
+                senderFirstName: 'Peter',
+                senderLastName: 'Lustig',
+                contributionMemo: 'Das war leider zu Viel!',
+              })
             })
           })
 
@@ -2615,7 +2556,7 @@ describe('ContributionResolver', () => {
               expect(transaction[0].typeId).toEqual(1)
             })
 
-            it('calls sendContributionConfirmedEmail', async () => {
+            it('calls sendContributionConfirmedEmail', () => {
               expect(sendContributionConfirmedEmail).toBeCalledWith({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -2772,15 +2713,15 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-      it('returns 19 creations in total', async () => {
+      it('returns 17 creations in total', async () => {
         const {
           data: { adminListAllContributions: contributionListObject },
         }: { data: { adminListAllContributions: ContributionListResult } } = await query({
           query: adminListAllContributions,
         })
-        expect(contributionListObject.contributionList).toHaveLength(19)
+        expect(contributionListObject.contributionList).toHaveLength(17)
         expect(contributionListObject).toMatchObject({
-          contributionCount: 19,
+          contributionCount: 17,
           contributionList: expect.arrayContaining([
             expect.objectContaining({
               amount: expect.decimalEqual(50),
@@ -2810,15 +2751,6 @@ describe('ContributionResolver', () => {
               state: 'CONFIRMED',
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
-              firstName: 'Bob',
-              id: expect.any(Number),
-              lastName: 'der Baumeister',
-              memo: 'Confirmed Contribution',
-              messagesCount: 0,
-              state: 'CONFIRMED',
-            }),
-            expect.objectContaining({
               amount: expect.decimalEqual(400),
               firstName: 'Peter',
               id: expect.any(Number),
@@ -2826,6 +2758,15 @@ describe('ContributionResolver', () => {
               memo: 'Herzlich Willkommen bei Gradido!',
               messagesCount: 0,
               state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bob',
+              id: expect.any(Number),
+              lastName: 'der Baumeister',
+              memo: 'Confirmed Contribution',
+              messagesCount: 0,
+              state: 'CONFIRMED',
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(100),
@@ -2846,33 +2787,6 @@ describe('ContributionResolver', () => {
               state: 'PENDING',
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(500),
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Grundeinkommen',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: expect.decimalEqual(500),
-              firstName: 'Peter',
-              id: expect.any(Number),
-              lastName: 'Lustig',
-              memo: 'Grundeinkommen',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: expect.decimalEqual(10),
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Test PENDING contribution update',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
               amount: expect.decimalEqual(200),
               firstName: 'Peter',
               id: expect.any(Number),
@@ -2888,15 +2802,6 @@ describe('ContributionResolver', () => {
               lastName: 'Hotzenplotz',
               memo: 'Whatever contribution',
               messagesCount: 0,
-              state: 'DELETED',
-            }),
-            expect.objectContaining({
-              amount: expect.decimalEqual(166),
-              firstName: 'Räuber',
-              id: expect.any(Number),
-              lastName: 'Hotzenplotz',
-              memo: 'Whatever contribution',
-              messagesCount: 0,
               state: 'DENIED',
             }),
             expect.objectContaining({
@@ -2906,6 +2811,15 @@ describe('ContributionResolver', () => {
               lastName: 'Hotzenplotz',
               memo: 'Whatever contribution',
               messagesCount: 0,
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(166),
+              firstName: 'Räuber',
+              id: expect.any(Number),
+              lastName: 'Hotzenplotz',
+              memo: 'Whatever contribution',
+              messagesCount: 0,
               state: 'CONFIRMED',
             }),
             expect.objectContaining({
@@ -2913,18 +2827,9 @@ describe('ContributionResolver', () => {
               firstName: 'Bibi',
               id: expect.any(Number),
               lastName: 'Bloxberg',
-              memo: 'Test IN_PROGRESS contribution',
+              memo: 'Test contribution to delete',
               messagesCount: 0,
-              state: 'IN_PROGRESS',
-            }),
-            expect.objectContaining({
-              amount: expect.decimalEqual(100),
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Test contribution to confirm',
-              messagesCount: 0,
-              state: 'CONFIRMED',
+              state: 'DELETED',
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(100),
@@ -2940,9 +2845,27 @@ describe('ContributionResolver', () => {
               firstName: 'Bibi',
               id: expect.any(Number),
               lastName: 'Bloxberg',
-              memo: 'Test contribution to delete',
+              memo: 'Test contribution to confirm',
               messagesCount: 0,
-              state: 'DELETED',
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test IN_PROGRESS contribution',
+              messagesCount: 1,
+              state: 'IN_PROGRESS',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(10),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test PENDING contribution update',
+              messagesCount: 1,
+              state: 'PENDING',
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(1000),
@@ -2957,21 +2880,21 @@ describe('ContributionResolver', () => {
         })
       })
 
-      it('returns five pending creations with page size set to 5', async () => {
+      it('returns two pending creations with page size set to 2', async () => {
         const {
           data: { adminListAllContributions: contributionListObject },
         }: { data: { adminListAllContributions: ContributionListResult } } = await query({
           query: adminListAllContributions,
           variables: {
             currentPage: 1,
-            pageSize: 5,
+            pageSize: 2,
             order: Order.DESC,
             statusFilter: ['PENDING'],
           },
         })
-        expect(contributionListObject.contributionList).toHaveLength(5)
+        expect(contributionListObject.contributionList).toHaveLength(2)
         expect(contributionListObject).toMatchObject({
-          contributionCount: 6,
+          contributionCount: 4,
           contributionList: expect.arrayContaining([
             expect.objectContaining({
               amount: '400',
@@ -2979,33 +2902,6 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               lastName: 'Lustig',
               memo: 'Herzlich Willkommen bei Gradido!',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: '200',
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Aktives Grundeinkommen',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: '500',
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Grundeinkommen',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: '500',
-              firstName: 'Peter',
-              id: expect.any(Number),
-              lastName: 'Lustig',
-              memo: 'Grundeinkommen',
               messagesCount: 0,
               state: 'PENDING',
             }),

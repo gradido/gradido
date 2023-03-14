@@ -1,3 +1,4 @@
+/* eslint-disable type-graphql/invalid-nullable-input-type */
 import { ArgsType, Field, Int } from 'type-graphql'
 import { Order } from '@enum/Order'
 

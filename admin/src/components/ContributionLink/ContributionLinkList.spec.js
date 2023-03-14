@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ContributionLinkList from './ContributionLinkList.vue'
+import ContributionLinkList from './ContributionLinkList'
 import { toastSuccessSpy, toastErrorSpy } from '../../../test/testSetup'
 // import { deleteContributionLink } from '../graphql/deleteContributionLink'
 

@@ -17,7 +17,7 @@
     "addedContributionMessage": {
       "commonGoodContributionMessage": "you have received a message from {senderFirstName} {senderLastName} regarding your common good contribution “{contributionMemo}”.",
       "subject": "Gradido: Message about your common good contribution",
-      "toSeeAndAnswerMessage": "To view and reply to the message, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!"
+      "toSeeAndAnswerMessage": "To view and reply to the message, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab!"
     },
     "contributionConfirmed": {
       "commonGoodContributionConfirmed": "Your public good contribution “{contributionMemo}” has just been confirmed by {senderFirstName} {senderLastName} and credited to your Gradido account.",
@@ -26,12 +26,12 @@
     "contributionDeleted": {
       "commonGoodContributionDeleted": "Your public good contribution “{contributionMemo}” was deleted by {senderFirstName} {senderLastName}.",
       "subject": "Gradido: Your common good contribution was deleted",
-      "toSeeContributionsAndMessages": "To see your common good contributions and related messages, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!"
+      "toSeeContributionsAndMessages": "To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab!"
     },
     "contributionDenied": {
       "commonGoodContributionDenied": "Your public good contribution “{contributionMemo}” was rejected by {senderFirstName} {senderLastName}.",
       "subject": "Gradido: Your common good contribution was rejected",
-      "toSeeContributionsAndMessages": "To see your common good contributions and related messages, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!"
+      "toSeeContributionsAndMessages": "To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab!"
     },
     "general": {
       "amountGDD": "Amount: {amountGDD} GDD",

@@ -1,6 +1,23 @@
 <template>
   <div class="contribution-messages-list-item">
-    <div v-if="isNotModerator" class="text-right pr-4 pr-lg-0 is-not-moderator">
+    <div v-if="message.type === 'HISTORY'">
+      <b-row class="mb-3 border border-197 p-1">
+        <b-col cols="10">
+          <small>{{ $d(new Date(message.createdAt), 'short') }}</small>
+          <div class="font-weight-bold" data-test="username">
+            {{ storeName.username }} {{ $t('contribution.isEdited') }}
+          </div>
+          <div class="small">
+            {{ $t('contribution.oldContribution') }}
+          </div>
+          <parse-message v-bind="message" data-test="message" class="p-2"></parse-message>
+        </b-col>
+        <b-col cols="2">
+          <avatar :username="storeName.username" :initials="storeName.initials"></avatar>
+        </b-col>
+      </b-row>
+    </div>
+    <div v-else-if="isNotModerator" class="text-right pr-4 pr-lg-0 is-not-moderator">
       <b-row class="mb-3">
         <b-col cols="10">
           <div class="font-weight-bold" data-test="username">{{ storeName.username }}</div>
@@ -35,7 +52,7 @@
 
 <script>
 import Avatar from 'vue-avatar'
-import ParseMessage from '@/components/ContributionMessages/ParseMessage.vue'
+import ParseMessage from '@/components/ContributionMessages/ParseMessage'
 
 export default {
   name: 'ContributionMessagesListItem',

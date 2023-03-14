@@ -23,8 +23,8 @@
   </div>
 </template>
 <script>
-import GddTransactionList from '@/components/GddTransactionList.vue'
-import GdtTransactionList from '@/components/GdtTransactionList.vue'
+import GddTransactionList from '@/components/GddTransactionList'
+import GdtTransactionList from '@/components/GdtTransactionList'
 import { listGDTEntriesQuery } from '@/graphql/queries'
 
 export default {

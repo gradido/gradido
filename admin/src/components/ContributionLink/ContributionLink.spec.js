@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ContributionLink from './ContributionLink.vue'
+import ContributionLink from './ContributionLink'
 
 const localVue = global.localVue
 

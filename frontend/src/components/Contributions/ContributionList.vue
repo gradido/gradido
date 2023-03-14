@@ -38,7 +38,7 @@
   </div>
 </template>
 <script>
-import ContributionListItem from '@/components/Contributions/ContributionListItem.vue'
+import ContributionListItem from '@/components/Contributions/ContributionListItem'
 
 export default {
   name: 'ContributionList',

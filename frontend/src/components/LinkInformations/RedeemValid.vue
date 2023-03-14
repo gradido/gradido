@@ -11,7 +11,7 @@
   </div>
 </template>
 <script>
-import RedeemInformation from '@/components/LinkInformations/RedeemInformation.vue'
+import RedeemInformation from '@/components/LinkInformations/RedeemInformation'
 
 export default {
   name: 'RedeemValid',

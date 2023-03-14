@@ -1,14 +1,22 @@
 <template>
   <div>
-    <b-sidebar id="sidebar-mobile" :backdrop="true" bg-variant="transparent">
-      <div class="px-3 py-2">
+    <b-sidebar
+      id="sidebar-mobile"
+      sidebar-class="sidebar-radius"
+      width="220px"
+      :backdrop="true"
+      bg-variant="white"
+      no-header-close
+    >
+      <b-img src="img/svg/lines.png" />
+      <div class="py-2">
         <sidebar @admin="$emit('admin')" @logout="$emit('logout')" :shadow="false" />
       </div>
     </b-sidebar>
   </div>
 </template>
 <script>
-import Sidebar from '@/components/Menu/Sidebar.vue'
+import Sidebar from '@/components/Menu/Sidebar'
 
 export default {
   name: 'MobileSidebar',
@@ -17,3 +25,9 @@ export default {
   },
 }
 </script>
+<style>
+.sidebar-radius {
+  border-bottom-right-radius: 26px;
+  border-top-right-radius: 26px;
+}
+</style>

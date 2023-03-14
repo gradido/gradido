@@ -31,8 +31,8 @@ export const startDHT = async (topic: string): Promise<void> => {
     logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
 
-    const ownApiVersions = writeHomeCommunityEnries(keyPair.publicKey)
-    logger.debug(`ApiList: ${JSON.stringify(ownApiVersions)}`)
+    const ownApiVersions = await writeHomeCommunityEnries(keyPair.publicKey)
+    logger.info(`ApiList: ${JSON.stringify(ownApiVersions)}`)
 
     const node = new DHT({ keyPair })
 

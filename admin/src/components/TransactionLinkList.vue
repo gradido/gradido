@@ -42,8 +42,8 @@ export default {
           },
         })
         .then((result) => {
-          this.rows = result.data.listTransactionLinksAdmin.linkCount
-          this.items = result.data.listTransactionLinksAdmin.linkList
+          this.rows = result.data.listTransactionLinksAdmin.count
+          this.items = result.data.listTransactionLinksAdmin.links
         })
         .catch((error) => {
           this.toastError(error.message)
