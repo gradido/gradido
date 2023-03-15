@@ -105,10 +105,7 @@
                 </b-col>
                 <b-col cols="12" md="6" lg="6" class="text-lg-right">
                   <b-button block type="submit" variant="gradido">
-                    <span v-if="radioSelected === sendTypes.send">{{ $t('form.check_now') }}</span>
-                    <span v-if="radioSelected === sendTypes.link">
-                      {{ $t('form.generate_now') }}
-                    </span>
+                    {{ $t('form.check_now') }}
                   </b-button>
                 </b-col>
               </b-row>
@@ -120,10 +117,10 @@
   </div>
 </template>
 <script>
-import { SEND_TYPES } from '@/pages/Send.vue'
-import InputEmail from '@/components/Inputs/InputEmail.vue'
-import InputAmount from '@/components/Inputs/InputAmount.vue'
-import InputTextarea from '@/components/Inputs/InputTextarea.vue'
+import { SEND_TYPES } from '@/pages/Send'
+import InputEmail from '@/components/Inputs/InputEmail'
+import InputAmount from '@/components/Inputs/InputAmount'
+import InputTextarea from '@/components/Inputs/InputTextarea'
 
 export default {
   name: 'TransactionForm',

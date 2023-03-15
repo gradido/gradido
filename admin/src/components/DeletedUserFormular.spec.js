@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import DeletedUserFormular from './DeletedUserFormular.vue'
+import DeletedUserFormular from './DeletedUserFormular'
 import { deleteUser } from '../graphql/deleteUser'
 import { unDeleteUser } from '../graphql/unDeleteUser'
 import { toastErrorSpy } from '../../test/testSetup'

@@ -5,7 +5,7 @@
 </template>
 <script>
 import { communityStatistics } from '@/graphql/communityStatistics.js'
-import StatisticTable from '../components/Tables/StatisticTable.vue'
+import StatisticTable from '../components/Tables/StatisticTable'
 
 export default {
   name: 'CommunityStatistic',

@@ -31,8 +31,8 @@ export const startDHT = async (topic: string): Promise<void> => {
     logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
 
-    const ownApiVersions = writeHomeCommunityEnries(keyPair.publicKey)
-    logger.debug(`ApiList: ${JSON.stringify(ownApiVersions)}`)
+    const ownApiVersions = await writeHomeCommunityEnries(keyPair.publicKey)
+    logger.info(`ApiList: ${JSON.stringify(ownApiVersions)}`)
 
     const node = new DHT({ keyPair })
 
@@ -181,11 +181,9 @@ export const startDHT = async (topic: string): Promise<void> => {
 
 async function writeHomeCommunityEnries(pubKey: any): Promise<CommunityApi[]> {
   const homeApiVersions: CommunityApi[] = Object.values(ApiVersionType).map(function (apiEnum) {
-    const port =
-      Number.parseInt(CONFIG.FEDERATION_COMMUNITY_API_PORT) + Number(apiEnum.replace('_', ''))
     const comApi: CommunityApi = {
       api: apiEnum,
-      url: CONFIG.FEDERATION_COMMUNITY_URL + ':' + port.toString() + '/api/',
+      url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
     }
     return comApi
   })

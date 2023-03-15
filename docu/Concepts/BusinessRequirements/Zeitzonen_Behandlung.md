@@ -123,10 +123,6 @@ Zusätzlich wird als Parameter ein *creationDate* vom User mitgeliefert, das dem
 
 nothing to do
 
-#### + adminCreateContributions
-
-Hier wird eine Liste von übergebenen Contributions über den internen Aufruf von *adminCreateContribution()* verarbeitet. Da dort eine Berücksichtigung des User-TimeOffsets notwendig ist, muss hier die UserTime entsprechen im Context weitergereicht werden.
-
 #### - adminDeleteContribution
 
 nothing to do

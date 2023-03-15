@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ContributionMessagesList from './ContributionMessagesList.vue'
+import ContributionMessagesList from './ContributionMessagesList'
 
 const localVue = global.localVue
 
@@ -10,6 +10,7 @@ describe('ContributionMessagesList', () => {
 
   const propsData = {
     contributionId: 42,
+    contributionState: 'PENDING',
   }
 
   const mocks = {

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import CONFIG from '@/config'
 import { backendLogger as logger } from '@/server/logger'
 import { i18n } from '@/server/localization'

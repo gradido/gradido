@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ContributionLinkForm from './ContributionLinkForm.vue'
+import ContributionLinkForm from './ContributionLinkForm'
 import { toastErrorSpy, toastSuccessSpy } from '../../../test/testSetup'
 import { createContributionLink } from '@/graphql/createContributionLink.js'
 

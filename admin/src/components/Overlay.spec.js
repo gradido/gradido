@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import Overlay from './Overlay.vue'
+import Overlay from './Overlay'
 
 const localVue = global.localVue
 

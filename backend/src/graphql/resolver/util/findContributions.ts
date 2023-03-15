@@ -8,17 +8,21 @@ export const findContributions = async (
   currentPage: number,
   pageSize: number,
   withDeleted: boolean,
-  statusFilter?: ContributionStatus[],
+  relations: string[],
+  userId?: number,
+  statusFilter?: ContributionStatus[] | null,
 ): Promise<[DbContribution[], number]> =>
   DbContribution.findAndCount({
     where: {
       ...(statusFilter && statusFilter.length && { contributionStatus: In(statusFilter) }),
+      ...(userId && { userId }),
     },
     withDeleted: withDeleted,
     order: {
       createdAt: order,
+      id: order,
     },
-    relations: ['user'],
+    relations,
     skip: (currentPage - 1) * pageSize,
     take: pageSize,
   })

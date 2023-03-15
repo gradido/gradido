@@ -8,8 +8,8 @@
 </template>
 
 <script>
-import DashboardLayout from '@/layouts/DashboardLayout.vue'
-import AuthLayout from '@/layouts/AuthLayout.vue'
+import DashboardLayout from '@/layouts/DashboardLayout'
+import AuthLayout from '@/layouts/AuthLayout'
 
 export default {
   name: 'App',

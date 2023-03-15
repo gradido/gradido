@@ -153,13 +153,13 @@ export const listContributions = gql`
     $currentPage: Int = 1
     $pageSize: Int = 5
     $order: Order
-    $filterConfirmed: Boolean = false
+    $statusFilter: [ContributionStatus!]
   ) {
     listContributions(
       currentPage: $currentPage
       pageSize: $pageSize
       order: $order
-      filterConfirmed: $filterConfirmed
+      statusFilter: $statusFilter
     ) {
       contributionCount
       contributionList {
@@ -250,8 +250,8 @@ export const listTransactionLinksAdmin = gql`
       currentPage: $currentPage
       pageSize: $pageSize
     ) {
-      linkCount
-      linkList {
+      count
+      links {
         id
         amount
         holdAvailableAmount
@@ -301,7 +301,7 @@ export const searchAdminUsers = gql`
 `
 
 export const listContributionMessages = gql`
-  query ($contributionId: Float!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
+  query ($contributionId: Int!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
     listContributionMessages(
       contributionId: $contributionId
       pageSize: $pageSize

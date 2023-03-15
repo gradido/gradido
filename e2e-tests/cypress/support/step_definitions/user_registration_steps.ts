@@ -18,7 +18,7 @@ And('the user agrees to the privacy policy', () => {
 })
 
 And('the user submits the registration form', () => {
-  registrationPage.submitRegistrationPage()
+  registrationPage.submitRegistrationForm()
   cy.get(registrationPage.RegistrationThanxHeadline).should('be.visible')
   cy.get(registrationPage.RegistrationThanxText).should('be.visible')
 })

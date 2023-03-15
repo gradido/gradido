@@ -11,11 +11,11 @@
   </div>
 </template>
 <script>
-import UserCard from '@/components/UserSettings/UserCard.vue'
-import UserData from '@/components/UserSettings/UserData.vue'
-import UserPassword from '@/components/UserSettings/UserPassword.vue'
-import UserLanguage from '@/components/UserSettings/UserLanguage.vue'
-import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
+import UserCard from '@/components/UserSettings/UserCard'
+import UserData from '@/components/UserSettings/UserData'
+import UserPassword from '@/components/UserSettings/UserPassword'
+import UserLanguage from '@/components/UserSettings/UserLanguage'
+import UserNewsletter from '@/components/UserSettings/UserNewsletter'
 
 export default {
   name: 'Profile',

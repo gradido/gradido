@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import TransactionLinkList from './TransactionLinkList.vue'
+import TransactionLinkList from './TransactionLinkList'
 import { listTransactionLinksAdmin } from '../graphql/listTransactionLinksAdmin.js'
 import { toastErrorSpy } from '../../test/testSetup'
 
@@ -9,8 +9,8 @@ const apolloQueryMock = jest.fn()
 apolloQueryMock.mockResolvedValue({
   data: {
     listTransactionLinksAdmin: {
-      linkCount: 8,
-      linkList: [
+      count: 8,
+      links: [
         {
           amount: '19.99',
           code: '62ef8236ace7217fbd066c5a',

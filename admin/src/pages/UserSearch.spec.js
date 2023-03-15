@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import UserSearch from './UserSearch.vue'
+import UserSearch from './UserSearch'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue

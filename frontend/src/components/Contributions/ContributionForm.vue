@@ -88,9 +88,9 @@
   </div>
 </template>
 <script>
-import InputHour from '@/components/Inputs/InputHour.vue'
-import InputAmount from '@/components/Inputs/InputAmount.vue'
-import InputTextarea from '@/components/Inputs/InputTextarea.vue'
+import InputHour from '@/components/Inputs/InputHour'
+import InputAmount from '@/components/Inputs/InputAmount'
+import InputTextarea from '@/components/Inputs/InputTextarea'
 
 export default {
   name: 'ContributionForm',

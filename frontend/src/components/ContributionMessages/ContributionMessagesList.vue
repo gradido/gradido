@@ -23,8 +23,8 @@
   </div>
 </template>
 <script>
-import ContributionMessagesListItem from '@/components/ContributionMessages/ContributionMessagesListItem.vue'
-import ContributionMessagesFormular from '@/components/ContributionMessages/ContributionMessagesFormular.vue'
+import ContributionMessagesListItem from '@/components/ContributionMessages/ContributionMessagesListItem'
+import ContributionMessagesFormular from '@/components/ContributionMessages/ContributionMessagesFormular'
 
 export default {
   name: 'ContributionMessagesList',

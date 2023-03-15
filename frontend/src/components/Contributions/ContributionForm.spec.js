@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ContributionForm from './ContributionForm.vue'
+import ContributionForm from './ContributionForm'
 
 const localVue = global.localVue
 
