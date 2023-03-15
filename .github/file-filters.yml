@@ -30,5 +30,11 @@
 admin: &admin
   - 'admin/**/*'
 
-frontend: &admin
+dht_node: &dht_node
+  - 'dht-node/**/*'
+
+federation: &federation
+  - 'federation/**/*'
+
+frontend: &frontend
   - 'frontend/**/*'

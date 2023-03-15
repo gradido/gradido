@@ -3,11 +3,31 @@ name: Gradido Federation Test CI
 on: push
 
 jobs:
+  # only (but most important) job from this workflow required for pull requests
+  # check results serve as run conditions for all other jobs here 
+  files-changed:
+    name: Detect File Changes - Federation
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.changes.outputs.federation }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - name: Check for frontend file changes
+        uses: dorny/paths-filter@v2.11.1
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: .github/file-filters.yml
+          list-files: shell
+  
   ##############################################################################
   # JOB: DOCKER BUILD TEST #####################################################
   ##############################################################################
   build:
     name: Docker Build Test - Federation
+    if: needs.files-changed.outputs.federation == 'true'
+    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -29,6 +49,8 @@ jobs:
   ##############################################################################
   lint:
     name: Lint - Federation
+    if: needs.files-changed.outputs.federation == 'true'
+    needs: files-changed
     runs-on: ubuntu-latest
     needs: [build]
     steps:
@@ -51,6 +73,8 @@ jobs:
   ##############################################################################
   unit_test:
     name: Unit Tests - Federation
+    if: needs.files-changed.outputs.federation == 'true'
+    needs: files-changed
     runs-on: ubuntu-latest
     needs: [build]
     steps:
