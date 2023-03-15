@@ -1,13 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { getCommunities } from '@/seeds/graphql/queries'
 import { Community as DbCommunity } from '@entity/Community'
 import { testEnvironment } from '@test/helpers'
-
-// jest.mock('@/config')
 
 let query: any
 
@@ -27,22 +27,6 @@ afterAll(async () => {
 })
 
 describe('CommunityResolver', () => {
-  const getCommunities = `
-    query {
-      getCommunities {
-        id
-        foreign
-        publicKey
-        url
-        lastAnnouncedAt
-        verifiedAt
-        lastErrorAt
-        createdAt
-        updatedAt
-      }
-    }
-  `
-
   describe('getCommunities', () => {
     let homeCom1: DbCommunity
     let homeCom2: DbCommunity

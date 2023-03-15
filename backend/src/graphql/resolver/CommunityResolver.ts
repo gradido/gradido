@@ -10,12 +10,9 @@ export class CommunityResolver {
   @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => [Community])
   async getCommunities(): Promise<Community[]> {
-    const comList: Community[] = []
-    const dbCommunities: DbCommunity[] = await DbCommunity.find({ order: { id: 'ASC' } })
-    dbCommunities.forEach(async function (dbCom) {
-      const com = new Community(dbCom)
-      comList.push(com)
+    const dbCommunities: DbCommunity[] = await DbCommunity.find({
+      order: { foreign: 'ASC', publicKey: 'ASC', apiVersion: 'ASC' },
     })
-    return comList
+    return dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
   }
 }
