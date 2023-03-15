@@ -29,3 +29,6 @@
 
 admin: &admin
   - 'admin/**/*'
+
+frontend: &admin
+  - 'frontend/**/*'
