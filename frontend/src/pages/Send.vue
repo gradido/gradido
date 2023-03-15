@@ -62,7 +62,7 @@ import TransactionResultLink from '@/components/GddSend/TransactionResultLink'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 
 const EMPTY_TRANSACTION_DATA = {
-  email: '',
+  identifier: '',
   amount: 0,
   memo: '',
 }

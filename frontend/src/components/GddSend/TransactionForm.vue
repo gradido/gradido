@@ -140,7 +140,7 @@ export default {
   },
   props: {
     balance: { type: Number, default: 0 },
-    email: { type: String, default: '' },
+    identifier: { type: String, default: '' },
     amount: { type: Number, default: 0 },
     memo: { type: String, default: '' },
     selected: { type: String, default: 'send' },
@@ -148,7 +148,7 @@ export default {
   data() {
     return {
       form: {
-        email: this.email,
+        email: this.identifier,
         amount: this.amount ? String(this.amount) : '',
         memo: this.memo,
       },
@@ -163,7 +163,7 @@ export default {
     onSubmit() {
       this.$emit('set-transaction', {
         selected: this.radioSelected,
-        email: this.form.email,
+        identifier: this.form.email,
         amount: Number(this.form.amount.replace(',', '.')),
         memo: this.form.memo,
       })
