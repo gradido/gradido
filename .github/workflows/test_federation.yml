@@ -9,7 +9,7 @@ jobs:
     name: Detect File Changes - Federation
     runs-on: ubuntu-latest
     outputs:
-      frontend: ${{ steps.changes.outputs.federation }}
+      federation: ${{ steps.changes.outputs.federation }}
     steps:
       - uses: actions/checkout@v3.3.0
 
