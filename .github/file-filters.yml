@@ -33,6 +33,9 @@ admin: &admin
 dht_node: &dht_node
   - 'dht-node/**/*'
 
+docker: &docker
+  - 'docker-compose.*'
+
 federation: &federation
   - 'federation/**/*'
 
