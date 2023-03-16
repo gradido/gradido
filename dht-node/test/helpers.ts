@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-// TESTING
-
 import CONFIG from '@/config'
 import connection from '@/typeorm/connection'
 import { checkDBVersion } from '@/typeorm/DBVersion'
