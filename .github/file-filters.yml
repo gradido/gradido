@@ -36,5 +36,8 @@ backend: &backend
   - 'mariadb/**/*'
   - 'nginx/**/*'
 
+docker: &docker
+  - 'docker-compose.*'
+
 frontend: &admin
   - 'frontend/**/*'
