@@ -30,5 +30,11 @@
 admin: &admin
   - 'admin/**/*'
 
+backend: &backend
+  - 'backend/**/*'
+  - 'database/**/*'
+  - 'mariadb/**/*'
+  - 'nginx/**/*'
+
 frontend: &admin
   - 'frontend/**/*'
