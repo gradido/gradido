@@ -9,6 +9,7 @@ jobs:
     name: Detect File Changes - Federation
     runs-on: ubuntu-latest
     outputs:
+      docker: ${{ steps.changes.outputs.docker }}
       federation: ${{ steps.changes.outputs.federation }}
     steps:
       - uses: actions/checkout@v3.3.0
@@ -26,14 +27,14 @@ jobs:
   ##############################################################################
   build:
     name: Docker Build Test - Federation
-    if: needs.files-changed.outputs.federation == 'true'
+    if: needs.files-changed.outputs.docker == 'true' || needs.files-changed.outputs.federation == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
       
-      - name: Build `test` image
+      - name: Build 'test' image
         run: |
           docker build --target test -t "gradido/federation:test" -f federation/Dockerfile .
           docker save "gradido/federation:test" > /tmp/federation.tar
@@ -56,14 +57,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Download Docker Image
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-federation-test
-          path: /tmp
-      - name: Load Docker Image
-        run: docker load < /tmp/federation.tar
       
       - name: Lint
         run: docker run --rm gradido/federation:test yarn run lint
