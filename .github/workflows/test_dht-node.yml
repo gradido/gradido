@@ -66,9 +66,8 @@ jobs:
   unit_test:
     name: Unit Tests - DHT Node
     if: needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker == 'true'
-    needs: files-changed
+    needs: [files-changed, build]
     runs-on: ubuntu-latest
-    needs: [build]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
