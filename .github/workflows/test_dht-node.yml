@@ -9,7 +9,7 @@ jobs:
     name: Detect File Changes - DHT Node
     runs-on: ubuntu-latest
     outputs:
-      frontend: ${{ steps.changes.outputs.dht_node }}
+      dht_node: ${{ steps.changes.outputs.dht_node }}
     steps:
       - uses: actions/checkout@v3.3.0
 
