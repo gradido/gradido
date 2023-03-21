@@ -3,8 +3,26 @@ name:
 on: push
 
 jobs:
+  files-changed:
+    name: Detect File Changes - Frontend
+    runs-on: ubuntu-latest
+    outputs:
+      nginx: ${{ steps.changes.outputs.nginx }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - name: Check for nginx file changes
+        uses: dorny/paths-filter@v2.11.1
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: .github/file-filters.yml
+          list-files: shell
+
   build_test_nginx:
     name: Docker Build Test - Nginx
+    if: needs.files-changed.outputs.nginx == 'true'
+    needs: files-changed
     runs-on: ubuntu-latest
     steps:
         uses: actions/checkout@v3
