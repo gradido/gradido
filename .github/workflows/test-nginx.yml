@@ -4,7 +4,7 @@ on: push
 
 jobs:
   files-changed:
-    name: Detect File Changes - Frontend
+    name: Detect File Changes - Nginx
     runs-on: ubuntu-latest
     outputs:
       nginx: ${{ steps.changes.outputs.nginx }}
@@ -25,6 +25,7 @@ jobs:
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: nginx | Build 'test' image
