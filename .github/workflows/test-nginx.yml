@@ -1,0 +1,13 @@
+name: 
+
+on: push
+
+jobs:
+  build_test_nginx:
+    name: Docker Build Test - Nginx
+    runs-on: ubuntu-latest
+    steps:
+        uses: actions/checkout@v3
+
+      - name: nginx | Build 'test' image
+        run: docker build -t "gradido/nginx:test" nginx/
