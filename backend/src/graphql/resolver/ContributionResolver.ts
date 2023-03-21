@@ -322,7 +322,8 @@ export class ContributionResolver {
     const moderator = getUser(context)
 
     const contributionToUpdate = await DbContribution.findOne({
-      where: { id, confirmedAt: IsNull(), deniedAt: IsNull(), relations: ['user'] },
+      where: { id, confirmedAt: IsNull(), deniedAt: IsNull() },
+      relations: ['user'],
     })
 
     if (!contributionToUpdate) {
