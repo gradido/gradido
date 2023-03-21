@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/unbound-method */
 import { createTransport } from 'nodemailer'
 import { logger, i18n } from '@test/testSetup'
 import CONFIG from '@/config'
@@ -8,6 +10,7 @@ CONFIG.EMAIL_SMTP_URL = 'EMAIL_SMTP_URL'
 CONFIG.EMAIL_SMTP_PORT = '1234'
 CONFIG.EMAIL_USERNAME = 'user'
 CONFIG.EMAIL_PASSWORD = 'pwd'
+CONFIG.EMAIL_TLS = true
 
 jest.mock('nodemailer', () => {
   return {

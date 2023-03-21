@@ -4,7 +4,7 @@ export class RegistrationPage {
   // selectors
   firstnameInput = '#registerFirstname'
   lastnameInput = '#registerLastname'
-  emailInput = '#Email-input-field'
+  emailInput = 'input[type=email]'
   checkbox = '#registerCheckbox'
   submitBtn = '[type=submit]'
 
@@ -35,7 +35,7 @@ export class RegistrationPage {
     cy.get(this.checkbox).click({ force: true })
   }
 
-  submitRegistrationPage() {
+  submitRegistrationForm() {
     cy.get(this.submitBtn).should('be.enabled')
     cy.get(this.submitBtn).click()
   }

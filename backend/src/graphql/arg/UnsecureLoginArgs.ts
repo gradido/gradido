@@ -9,5 +9,5 @@ export default class UnsecureLoginArgs {
   password: string
 
   @Field(() => Int, { nullable: true })
-  publisherId: number
+  publisherId?: number | null
 }

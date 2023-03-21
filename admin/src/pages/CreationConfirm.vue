@@ -5,25 +5,37 @@
       <b-tabs v-model="tabIndex" content-class="mt-3" fill>
         <b-tab active :title-link-attributes="{ 'data-test': 'open' }">
           <template #title>
+            <b-icon icon="bell-fill" variant="primary"></b-icon>
             {{ $t('contributions.open') }}
             <b-badge v-if="$store.state.openCreations > 0" variant="danger">
               {{ $store.state.openCreations }}
             </b-badge>
           </template>
         </b-tab>
-        <b-tab
-          :title="$t('contributions.confirms')"
-          :title-link-attributes="{ 'data-test': 'confirmed' }"
-        />
-        <b-tab
-          :title="$t('contributions.denied')"
-          :title-link-attributes="{ 'data-test': 'denied' }"
-        />
-        <b-tab
-          :title="$t('contributions.deleted')"
-          :title-link-attributes="{ 'data-test': 'deleted' }"
-        />
-        <b-tab :title="$t('contributions.all')" :title-link-attributes="{ 'data-test': 'all' }" />
+        <b-tab :title-link-attributes="{ 'data-test': 'confirmed' }">
+          <template #title>
+            <b-icon icon="check" variant="success"></b-icon>
+            {{ $t('contributions.confirms') }}
+          </template>
+        </b-tab>
+        <b-tab :title-link-attributes="{ 'data-test': 'denied' }">
+          <template #title>
+            <b-icon icon="x-circle" variant="warning"></b-icon>
+            {{ $t('contributions.denied') }}
+          </template>
+        </b-tab>
+        <b-tab :title-link-attributes="{ 'data-test': 'deleted' }">
+          <template #title>
+            <b-icon icon="trash" variant="danger"></b-icon>
+            {{ $t('contributions.deleted') }}
+          </template>
+        </b-tab>
+        <b-tab :title-link-attributes="{ 'data-test': 'all' }">
+          <template #title>
+            <b-icon icon="list"></b-icon>
+            {{ $t('contributions.all') }}
+          </template>
+        </b-tab>
       </b-tabs>
     </div>
     <open-creations-table
@@ -73,7 +85,7 @@
 <script>
 import Overlay from '../components/Overlay'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable'
-import { listAllContributions } from '../graphql/listAllContributions'
+import { adminListAllContributions } from '../graphql/adminListAllContributions'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
@@ -172,19 +184,17 @@ export default {
       this.items.find((obj) => obj.id === id).messagesCount++
       this.items.find((obj) => obj.id === id).state = 'IN_PROGRESS'
     },
-  },
-  watch: {
-    statusFilter() {
-      this.$apollo.queries.ListAllContributions.refetch()
+    formatDateOrDash(value) {
+      return value ? this.$d(new Date(value), 'short') : '—'
     },
   },
   computed: {
     fields() {
       return [
         [
+          // open contributions
           { key: 'bookmark', label: this.$t('delete') },
           { key: 'deny', label: this.$t('deny') },
-          { key: 'email', label: this.$t('e_mail') },
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {
@@ -199,14 +209,15 @@ export default {
             key: 'contributionDate',
             label: this.$t('created'),
             formatter: (value) => {
-              return this.$d(new Date(value), 'short')
+              return this.formatDateOrDash(value)
             },
           },
           { key: 'moderator', label: this.$t('moderator') },
-          { key: 'editCreation', label: this.$t('edit') },
+          { key: 'editCreation', label: this.$t('chat') },
           { key: 'confirm', label: this.$t('save') },
         ],
         [
+          // confirmed contributions
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {
@@ -221,27 +232,28 @@ export default {
             key: 'contributionDate',
             label: this.$t('created'),
             formatter: (value) => {
-              return this.$d(new Date(value), 'short')
+              return this.formatDateOrDash(value)
             },
           },
           {
             key: 'createdAt',
             label: this.$t('createdAt'),
             formatter: (value) => {
-              return this.$d(new Date(value), 'short')
+              return this.formatDateOrDash(value)
             },
           },
           {
             key: 'confirmedAt',
             label: this.$t('contributions.confirms'),
             formatter: (value) => {
-              return this.$d(new Date(value), 'short')
+              return this.formatDateOrDash(value)
             },
           },
+          { key: 'confirmedBy', label: this.$t('moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
-          { key: 'reActive', label: 'reActive' },
+          // denied contributions
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {
@@ -256,29 +268,28 @@ export default {
             key: 'contributionDate',
             label: this.$t('created'),
             formatter: (value) => {
-              return this.$d(new Date(value), 'short')
+              return this.formatDateOrDash(value)
             },
           },
           {
             key: 'createdAt',
             label: this.$t('createdAt'),
             formatter: (value) => {
-              return this.$d(new Date(value), 'short')
+              return this.formatDateOrDash(value)
             },
           },
           {
             key: 'deniedAt',
             label: this.$t('contributions.denied'),
             formatter: (value) => {
-              return this.$d(new Date(value), 'short')
+              return this.formatDateOrDash(value)
             },
           },
-          { key: 'deniedBy', label: this.$t('mod') },
+          { key: 'deniedBy', label: this.$t('moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
-        [],
         [
-          { key: 'state', label: 'state' },
+          // deleted contributions
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {
@@ -293,24 +304,61 @@ export default {
             key: 'contributionDate',
             label: this.$t('created'),
             formatter: (value) => {
-              return this.$d(new Date(value), 'short')
+              return this.formatDateOrDash(value)
             },
           },
           {
             key: 'createdAt',
             label: this.$t('createdAt'),
             formatter: (value) => {
-              return this.$d(new Date(value), 'short')
+              return this.formatDateOrDash(value)
+            },
+          },
+          {
+            key: 'deletedAt',
+            label: this.$t('contributions.deleted'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
+            },
+          },
+          { key: 'deletedBy', label: this.$t('moderator') },
+          { key: 'chatCreation', label: this.$t('chat') },
+        ],
+        [
+          // all contributions
+          { key: 'state', label: this.$t('status') },
+          { key: 'firstName', label: this.$t('firstname') },
+          { key: 'lastName', label: this.$t('lastname') },
+          {
+            key: 'amount',
+            label: this.$t('creation'),
+            formatter: (value) => {
+              return value + ' GDD'
+            },
+          },
+          { key: 'memo', label: this.$t('text'), class: 'text-break' },
+          {
+            key: 'contributionDate',
+            label: this.$t('created'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
+            },
+          },
+          {
+            key: 'createdAt',
+            label: this.$t('createdAt'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
             },
           },
           {
             key: 'confirmedAt',
             label: this.$t('contributions.confirms'),
             formatter: (value) => {
-              return this.$d(new Date(value), 'short')
+              return this.formatDateOrDash(value)
             },
           },
-          { key: 'confirmedBy', label: this.$t('mod') },
+          { key: 'confirmedBy', label: this.$t('moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
       ][this.tabIndex]
@@ -349,19 +397,22 @@ export default {
   apollo: {
     ListAllContributions: {
       query() {
-        return listAllContributions
+        return adminListAllContributions
       },
       variables() {
-        // may be at some point we need a pagination here
         return {
           currentPage: this.currentPage,
           pageSize: this.pageSize,
           statusFilter: this.statusFilter,
         }
       },
-      update({ listAllContributions }) {
-        this.rows = listAllContributions.contributionCount
-        this.items = listAllContributions.contributionList
+      fetchPolicy: 'no-cache',
+      update({ adminListAllContributions }) {
+        this.rows = adminListAllContributions.contributionCount
+        this.items = adminListAllContributions.contributionList
+        if (this.statusFilter === FILTER_TAB_MAP[0]) {
+          this.$store.commit('setOpenCreations', adminListAllContributions.contributionCount)
+        }
       },
       error({ message }) {
         this.toastError(message)

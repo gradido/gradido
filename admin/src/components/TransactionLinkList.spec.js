@@ -9,8 +9,8 @@ const apolloQueryMock = jest.fn()
 apolloQueryMock.mockResolvedValue({
   data: {
     listTransactionLinksAdmin: {
-      linkCount: 8,
-      linkList: [
+      count: 8,
+      links: [
         {
           amount: '19.99',
           code: '62ef8236ace7217fbd066c5a',

@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -24,7 +29,11 @@ import {
   listContributions,
   adminListAllContributions,
 } from '@/seeds/graphql/queries'
-import { sendContributionConfirmedEmail } from '@/emails/sendEmailVariants'
+import {
+  sendContributionConfirmedEmail,
+  sendContributionDeletedEmail,
+  sendContributionDeniedEmail,
+} from '@/emails/sendEmailVariants'
 import {
   cleanDB,
   resetToken,
@@ -37,7 +46,7 @@ import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { EventProtocol } from '@entity/EventProtocol'
+import { Event as DbEvent } from '@entity/Event'
 import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
@@ -50,21 +59,7 @@ import { ContributionListResult } from '@model/Contribution'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { Order } from '@enum/Order'
 
-// mock account activation email to avoid console spam
-jest.mock('@/emails/sendEmailVariants', () => {
-  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
-  return {
-    __esModule: true,
-    ...originalModule,
-    // TODO: test the call of …
-    // sendAccountActivationEmail: jest.fn((a) => originalModule.sendAccountActivationEmail(a)),
-    sendContributionConfirmedEmail: jest.fn((a) =>
-      originalModule.sendContributionConfirmedEmail(a),
-    ),
-    // TODO: test the call of …
-    // sendContributionRejectedEmail: jest.fn((a) => originalModule.sendContributionRejectedEmail(a)),
-  }
-})
+jest.mock('@/emails/sendEmailVariants')
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -186,7 +181,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -275,7 +270,7 @@ describe('ContributionResolver', () => {
       })
 
       describe('valid input', () => {
-        it('creates contribution', async () => {
+        it('creates contribution', () => {
           expect(pendingContribution.data.createContribution).toMatchObject({
             id: expect.any(Number),
             amount: '100',
@@ -284,12 +279,13 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the CONTRIBUTION_CREATE event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_CREATE,
+              affectedUserId: bibi.id,
+              actingUserId: bibi.id,
+              involvedContributionId: pendingContribution.data.createContribution.id,
               amount: expect.decimalEqual(100),
-              contributionId: pendingContribution.data.createContribution.id,
-              userId: bibi.id,
             }),
           )
         })
@@ -321,7 +317,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -462,7 +458,7 @@ describe('ContributionResolver', () => {
               id: pendingContribution.data.createContribution.id,
             })
             contribution.contributionStatus = ContributionStatus.DELETED
-            contribution.save()
+            await contribution.save()
             await mutate({
               mutation: login,
               variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -474,7 +470,7 @@ describe('ContributionResolver', () => {
               id: pendingContribution.data.createContribution.id,
             })
             contribution.contributionStatus = ContributionStatus.PENDING
-            contribution.save()
+            await contribution.save()
           })
 
           it('throws an error', async () => {
@@ -589,12 +585,13 @@ describe('ContributionResolver', () => {
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
 
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_UPDATE,
+              affectedUserId: bibi.id,
+              actingUserId: bibi.id,
+              involvedContributionId: pendingContribution.data.createContribution.id,
               amount: expect.decimalEqual(10),
-              contributionId: pendingContribution.data.createContribution.id,
-              userId: bibi.id,
             }),
           )
         })
@@ -646,7 +643,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -819,15 +816,27 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the ADMIN_CONTRIBUTION_DENY event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.ADMIN_CONTRIBUTION_DENY,
-              userId: bibi.id,
-              xUserId: admin.id,
-              contributionId: contributionToDeny.data.createContribution.id,
+              affectedUserId: bibi.id,
+              actingUserId: admin.id,
+              involvedContributionId: contributionToDeny.data.createContribution.id,
               amount: expect.decimalEqual(100),
             }),
           )
+        })
+
+        it('calls sendContributionDeniedEmail', () => {
+          expect(sendContributionDeniedEmail).toBeCalledWith({
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+            email: 'bibi@bloxberg.de',
+            language: 'de',
+            senderFirstName: 'Peter',
+            senderLastName: 'Lustig',
+            contributionMemo: 'Test contribution to deny',
+          })
         })
       })
     })
@@ -854,7 +863,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -935,12 +944,13 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the CONTRIBUTION_DELETE event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_DELETE,
-              contributionId: contributionToDelete.data.createContribution.id,
+              affectedUserId: bibi.id,
+              actingUserId: bibi.id,
+              involvedContributionId: contributionToDelete.data.createContribution.id,
               amount: expect.decimalEqual(100),
-              userId: bibi.id,
             }),
           )
         })
@@ -993,7 +1003,6 @@ describe('ContributionResolver', () => {
             currentPage: 1,
             pageSize: 25,
             order: 'DESC',
-            filterConfirmed: false,
           },
         })
         expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
@@ -1008,11 +1017,11 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
-      describe('filter confirmed is false', () => {
+      describe('no status filter', () => {
         it('returns creations', async () => {
           const {
             data: { listContributions: contributionListResult },
@@ -1064,7 +1073,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe('filter confirmed is true', () => {
+      describe('with status filter [PENDING, IN_PROGRESS, DENIED, DELETED]', () => {
         it('returns only unconfirmed creations', async () => {
           const {
             data: { listContributions: contributionListResult },
@@ -1074,7 +1083,7 @@ describe('ContributionResolver', () => {
               currentPage: 1,
               pageSize: 25,
               order: 'DESC',
-              filterConfirmed: true,
+              statusFilter: ['PENDING', 'IN_PROGRESS', 'DENIED', 'DELETED'],
             },
           })
           expect(contributionListResult).toMatchObject({
@@ -1139,7 +1148,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -1719,7 +1728,7 @@ describe('ContributionResolver', () => {
           })
         })
 
-        afterAll(async () => {
+        afterAll(() => {
           resetToken()
         })
 
@@ -1797,7 +1806,7 @@ describe('ContributionResolver', () => {
           })
         })
 
-        afterAll(async () => {
+        afterAll(() => {
           resetToken()
         })
 
@@ -1912,7 +1921,7 @@ describe('ContributionResolver', () => {
           })
 
           describe('valid user to create for', () => {
-            beforeAll(async () => {
+            beforeAll(() => {
               variables.email = 'bibi@bloxberg.de'
               variables.creationDate = 'invalid-date'
             })
@@ -2018,17 +2027,18 @@ describe('ContributionResolver', () => {
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      adminCreateContribution: [1000, 1000, 590],
+                      adminCreateContribution: ['1000', '1000', '590'],
                     },
                   }),
                 )
               })
 
               it('stores the ADMIN_CONTRIBUTION_CREATE event in the database', async () => {
-                await expect(EventProtocol.find()).resolves.toContainEqual(
+                await expect(DbEvent.find()).resolves.toContainEqual(
                   expect.objectContaining({
                     type: EventProtocolType.ADMIN_CONTRIBUTION_CREATE,
-                    userId: admin.id,
+                    affectedUserId: bibi.id,
+                    actingUserId: admin.id,
                     amount: expect.decimalEqual(200),
                   }),
                 )
@@ -2226,7 +2236,7 @@ describe('ContributionResolver', () => {
                 mutate({
                   mutation: adminUpdateContribution,
                   variables: {
-                    id: creation ? creation.id : -1,
+                    id: creation?.id,
                     email: 'peter@lustig.de',
                     amount: new Decimal(300),
                     memo: 'Danke Peter!',
@@ -2250,10 +2260,11 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
-                  userId: admin.id,
+                  affectedUserId: creation?.userId,
+                  actingUserId: admin.id,
                   amount: 300,
                 }),
               )
@@ -2267,7 +2278,7 @@ describe('ContributionResolver', () => {
                 mutate({
                   mutation: adminUpdateContribution,
                   variables: {
-                    id: creation ? creation.id : -1,
+                    id: creation?.id,
                     email: 'peter@lustig.de',
                     amount: new Decimal(200),
                     memo: 'Das war leider zu Viel!',
@@ -2291,10 +2302,11 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
-                  userId: admin.id,
+                  affectedUserId: creation?.userId,
+                  actingUserId: admin.id,
                   amount: expect.decimalEqual(200),
                 }),
               )
@@ -2365,7 +2377,7 @@ describe('ContributionResolver', () => {
                 mutate({
                   mutation: adminDeleteContribution,
                   variables: {
-                    id: creation ? creation.id : -1,
+                    id: creation?.id,
                   },
                 }),
               ).resolves.toEqual(
@@ -2376,13 +2388,27 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the ADMIN_CONTRIBUTION_DELETE event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
-                  userId: admin.id,
+                  affectedUserId: creation?.userId,
+                  actingUserId: admin.id,
+                  involvedContributionId: creation?.id,
                   amount: expect.decimalEqual(200),
                 }),
               )
+            })
+
+            it('calls sendContributionDeletedEmail', () => {
+              expect(sendContributionDeletedEmail).toBeCalledWith({
+                firstName: 'Peter',
+                lastName: 'Lustig',
+                email: 'peter@lustig.de',
+                language: 'de',
+                senderFirstName: 'Peter',
+                senderLastName: 'Lustig',
+                contributionMemo: 'Das war leider zu Viel!',
+              })
             })
           })
 
@@ -2520,7 +2546,7 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the CONTRIBUTION_CONFIRM event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.CONTRIBUTION_CONFIRM,
                 }),
@@ -2538,7 +2564,7 @@ describe('ContributionResolver', () => {
               expect(transaction[0].typeId).toEqual(1)
             })
 
-            it('calls sendContributionConfirmedEmail', async () => {
+            it('calls sendContributionConfirmedEmail', () => {
               expect(sendContributionConfirmedEmail).toBeCalledWith({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -2552,7 +2578,7 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the SEND_CONFIRMATION_EMAIL event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
                 }),
@@ -2733,15 +2759,6 @@ describe('ContributionResolver', () => {
               state: 'CONFIRMED',
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
-              firstName: 'Bob',
-              id: expect.any(Number),
-              lastName: 'der Baumeister',
-              memo: 'Confirmed Contribution',
-              messagesCount: 0,
-              state: 'CONFIRMED',
-            }),
-            expect.objectContaining({
               amount: expect.decimalEqual(400),
               firstName: 'Peter',
               id: expect.any(Number),
@@ -2749,6 +2766,15 @@ describe('ContributionResolver', () => {
               memo: 'Herzlich Willkommen bei Gradido!',
               messagesCount: 0,
               state: 'PENDING',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bob',
+              id: expect.any(Number),
+              lastName: 'der Baumeister',
+              memo: 'Confirmed Contribution',
+              messagesCount: 0,
+              state: 'CONFIRMED',
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(100),
@@ -2769,15 +2795,6 @@ describe('ContributionResolver', () => {
               state: 'PENDING',
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(10),
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Test PENDING contribution update',
-              messagesCount: 0,
-              state: 'PENDING',
-            }),
-            expect.objectContaining({
               amount: expect.decimalEqual(200),
               firstName: 'Peter',
               id: expect.any(Number),
@@ -2793,15 +2810,6 @@ describe('ContributionResolver', () => {
               lastName: 'Hotzenplotz',
               memo: 'Whatever contribution',
               messagesCount: 0,
-              state: 'DELETED',
-            }),
-            expect.objectContaining({
-              amount: expect.decimalEqual(166),
-              firstName: 'Räuber',
-              id: expect.any(Number),
-              lastName: 'Hotzenplotz',
-              memo: 'Whatever contribution',
-              messagesCount: 0,
               state: 'DENIED',
             }),
             expect.objectContaining({
@@ -2811,6 +2819,15 @@ describe('ContributionResolver', () => {
               lastName: 'Hotzenplotz',
               memo: 'Whatever contribution',
               messagesCount: 0,
+              state: 'DELETED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(166),
+              firstName: 'Räuber',
+              id: expect.any(Number),
+              lastName: 'Hotzenplotz',
+              memo: 'Whatever contribution',
+              messagesCount: 0,
               state: 'CONFIRMED',
             }),
             expect.objectContaining({
@@ -2818,18 +2835,9 @@ describe('ContributionResolver', () => {
               firstName: 'Bibi',
               id: expect.any(Number),
               lastName: 'Bloxberg',
-              memo: 'Test IN_PROGRESS contribution',
+              memo: 'Test contribution to delete',
               messagesCount: 0,
-              state: 'IN_PROGRESS',
-            }),
-            expect.objectContaining({
-              amount: expect.decimalEqual(100),
-              firstName: 'Bibi',
-              id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Test contribution to confirm',
-              messagesCount: 0,
-              state: 'CONFIRMED',
+              state: 'DELETED',
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(100),
@@ -2845,9 +2853,27 @@ describe('ContributionResolver', () => {
               firstName: 'Bibi',
               id: expect.any(Number),
               lastName: 'Bloxberg',
-              memo: 'Test contribution to delete',
+              memo: 'Test contribution to confirm',
               messagesCount: 0,
-              state: 'DELETED',
+              state: 'CONFIRMED',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test IN_PROGRESS contribution',
+              messagesCount: 1,
+              state: 'IN_PROGRESS',
+            }),
+            expect.objectContaining({
+              amount: expect.decimalEqual(10),
+              firstName: 'Bibi',
+              id: expect.any(Number),
+              lastName: 'Bloxberg',
+              memo: 'Test PENDING contribution update',
+              messagesCount: 1,
+              state: 'PENDING',
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(1000),
@@ -2888,11 +2914,11 @@ describe('ContributionResolver', () => {
               state: 'PENDING',
             }),
             expect.objectContaining({
-              amount: '200',
-              firstName: 'Bibi',
+              amount: '100',
+              firstName: 'Peter',
               id: expect.any(Number),
-              lastName: 'Bloxberg',
-              memo: 'Aktives Grundeinkommen',
+              lastName: 'Lustig',
+              memo: 'Test env contribution',
               messagesCount: 0,
               state: 'PENDING',
             }),

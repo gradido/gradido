@@ -8,8 +8,8 @@ export const listTransactionLinksAdmin = gql`
       userId: $userId
       filters: { withRedeemed: true, withExpired: true, withDeleted: true }
     ) {
-      linkCount
-      linkList {
+      count
+      links {
         id
         amount
         holdAvailableAmount

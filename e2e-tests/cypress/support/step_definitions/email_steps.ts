@@ -5,41 +5,55 @@ import { UserEMailSite } from '../../e2e/models/UserEMailSite'
 const userEMailSite = new UserEMailSite()
 const resetPasswordPage = new ResetPasswordPage()
 
-Then('the user receives an e-mail containing the password reset link', () => {
+Then('the user receives an e-mail containing the {string} link', (linkName: string) => {
+  let emailSubject: string
+  let linkPattern: RegExp
+
+  switch (linkName) {
+    case 'activation':
+      emailSubject = 'Email Verification'
+      linkPattern = /\/checkEmail\/[0-9]+\d/
+      break
+    case 'password reset':
+      emailSubject = 'asswor'
+      linkPattern = /\/reset-password\/[0-9]+\d/
+      break
+    default:
+      throw new Error(`Error in "Then the user receives an e-mail containing the {string} link" step: incorrect linkname string "${linkName}"`)
+  }
+  
   cy.origin(
     Cypress.env('mailserverURL'),
-    { args: userEMailSite },
-    (userEMailSite) => {
-      const linkPattern = /\/reset-password\/[0-9]+\d/
-
-      cy.visit('/') // navigate to user's e-maile site (on fake mail server)
+    { args: { emailSubject, linkPattern, userEMailSite } },
+    ({ emailSubject, linkPattern, userEMailSite }) => {      
+      cy.visit('/') // navigate to user's e-mail site (on fake mail server)
       cy.get(userEMailSite.emailInbox).should('be.visible')
 
       cy.get(userEMailSite.emailList)
         .find('.email-item')
-        .filter(':contains(asswor)')
+        .filter(`:contains(${emailSubject})`)
         .first()
         .click()
 
       cy.get(userEMailSite.emailMeta)
         .find(userEMailSite.emailSubject)
-        .contains('asswor')
+        .contains(emailSubject)
 
-      cy.get('.email-content')
+      cy.get('.email-content', { timeout: 2000})
         .find('.plain-text')
         .contains(linkPattern)
         .invoke('text')
         .then((text) => {
-          const resetPasswordLink = text.match(linkPattern)[0]
-          cy.task('setResetPasswordLink', resetPasswordLink)
+          const emailLink = text.match(linkPattern)[0]
+          cy.task('setEmailLink', emailLink)
         })
     }
   )
 })
 
-When('the user opens the password reset link in the browser', () => {
-  cy.task('getResetPasswordLink').then((passwordResetLink) => {
-    cy.visit(passwordResetLink)
+When('the user opens the {string} link in the browser', (linkName: string) => {
+  cy.task('getEmailLink').then((emailLink) => {
+    cy.visit(emailLink)
   })
-  cy.get(resetPasswordPage.newPasswordRepeatBlock).should('be.visible')
+  cy.get(resetPasswordPage.newPasswordInput).should('be.visible')
 })

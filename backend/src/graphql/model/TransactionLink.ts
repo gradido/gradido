@@ -21,7 +21,7 @@ export class TransactionLink {
     this.link = CONFIG.COMMUNITY_REDEEM_URL.replace(/{code}/g, this.code)
   }
 
-  @Field(() => Number)
+  @Field(() => Int)
   id: number
 
   @Field(() => User)
@@ -61,8 +61,8 @@ export class TransactionLink {
 @ObjectType()
 export class TransactionLinkResult {
   @Field(() => Int)
-  linkCount: number
+  count: number
 
   @Field(() => [TransactionLink])
-  linkList: TransactionLink[]
+  links: TransactionLink[]
 }
