@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ContributionMessagesFormular from './ContributionMessagesFormular.vue'
+import ContributionMessagesFormular from './ContributionMessagesFormular'
 import { toastErrorSpy, toastSuccessSpy } from '../../../test/testSetup'
 
 const localVue = global.localVue

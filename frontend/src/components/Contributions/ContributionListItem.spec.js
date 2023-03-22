@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ContributionListItem from './ContributionListItem.vue'
+import ContributionListItem from './ContributionListItem'
 
 const localVue = global.localVue
 
@@ -74,7 +74,7 @@ describe('ContributionListItem', () => {
 
       it('is warning at when state is IN_PROGRESS', async () => {
         await wrapper.setProps({ state: 'IN_PROGRESS' })
-        expect(wrapper.vm.variant).toBe('f5')
+        expect(wrapper.vm.variant).toBe('205')
       })
     })
 

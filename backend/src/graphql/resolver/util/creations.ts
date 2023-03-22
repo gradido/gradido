@@ -1,8 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import LogError from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { getConnection } from '@dbTools/typeorm'
 import { Contribution } from '@entity/Contribution'
 import Decimal from 'decimal.js-light'
 import { FULL_CREATION_AVAILABLE, MAX_CREATION_AMOUNT } from '../const/const'
+import { OpenCreation } from '@model/OpenCreation'
 
 interface CreationMap {
   id: number
@@ -19,19 +23,14 @@ export const validateContribution = (
   const index = getCreationIndex(creationDate.getMonth(), timezoneOffset)
 
   if (index < 0) {
-    logger.error(
-      'No information for available creations with the given creationDate=',
-      creationDate.toString(),
-    )
-    throw new Error('No information for available creations for the given date')
+    throw new LogError('No information for available creations for the given date', creationDate)
   }
 
   if (amount.greaterThan(creations[index].toString())) {
-    logger.error(
-      `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
-    )
-    throw new Error(
-      `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
+    throw new LogError(
+      'The amount to be created exceeds the amount still available for this month',
+      amount,
+      creations[index],
     )
   }
 }
@@ -104,7 +103,7 @@ const getCreationMonths = (timezoneOffset: number): number[] => {
   return getCreationDates(timezoneOffset).map((date) => date.getMonth() + 1)
 }
 
-export const getCreationDates = (timezoneOffset: number): Date[] => {
+const getCreationDates = (timezoneOffset: number): Date[] => {
   const clientNow = new Date()
   clientNow.setTime(clientNow.getTime() - timezoneOffset * 60 * 1000)
   logger.info(
@@ -126,19 +125,16 @@ export const isStartEndDateValid = (
   endDate: string | null | undefined,
 ): void => {
   if (!startDate) {
-    logger.error('Start-Date is not initialized. A Start-Date must be set!')
-    throw new Error('Start-Date is not initialized. A Start-Date must be set!')
+    throw new LogError('A Start-Date must be set')
   }
 
   if (!endDate) {
-    logger.error('End-Date is not initialized. An End-Date must be set!')
-    throw new Error('End-Date is not initialized. An End-Date must be set!')
+    throw new LogError('An End-Date must be set')
   }
 
   // check if endDate is before startDate
   if (new Date(endDate).getTime() - new Date(startDate).getTime() < 0) {
-    logger.error(`The value of validFrom must before or equals the validTo!`)
-    throw new Error(`The value of validFrom must before or equals the validTo!`)
+    throw new LogError(`The value of validFrom must before or equals the validTo`)
   }
 }
 
@@ -150,7 +146,7 @@ export const updateCreations = (
   const index = getCreationIndex(contribution.contributionDate.getMonth(), timezoneOffset)
 
   if (index < 0) {
-    throw new Error('You cannot create GDD for a month older than the last three months.')
+    throw new LogError('You cannot create GDD for a month older than the last three months')
   }
   creations[index] = creations[index].plus(contribution.amount.toString())
   return creations
@@ -158,4 +154,19 @@ export const updateCreations = (
 
 export const isValidDateString = (dateString: string): boolean => {
   return new Date(dateString).toString() !== 'Invalid Date'
+}
+
+export const getOpenCreations = async (
+  userId: number,
+  timezoneOffset: number,
+): Promise<OpenCreation[]> => {
+  const creations = await getUserCreation(userId, timezoneOffset)
+  const creationDates = getCreationDates(timezoneOffset)
+  return creationDates.map((date, index) => {
+    return {
+      month: date.getMonth(),
+      year: date.getFullYear(),
+      amount: creations[index],
+    }
+  })
 }

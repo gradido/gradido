@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto'
 import Decimal from 'decimal.js-light'
 
-import { getConnection, MoreThan, FindOperator } from '@dbTools/typeorm'
+import { getConnection } from '@dbTools/typeorm'
 
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
@@ -13,7 +13,6 @@ import { User } from '@model/User'
 import { ContributionLink } from '@model/ContributionLink'
 import { Decay } from '@model/Decay'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
-import { Order } from '@enum/Order'
 import { ContributionType } from '@enum/ContributionType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
@@ -35,6 +34,7 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import LogError from '@/server/LogError'
 
 import { getLastTransaction } from './util/getLastTransaction'
+import transactionLinkList from './util/transactionLinkList'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -86,8 +86,8 @@ export class TransactionLinkResolver {
     transactionLink.code = transactionLinkCode(createdDate)
     transactionLink.createdAt = createdDate
     transactionLink.validUntil = validUntil
-    await DbTransactionLink.save(transactionLink).catch(() => {
-      throw new Error('Unable to save transaction link')
+    await DbTransactionLink.save(transactionLink).catch((e) => {
+      throw new LogError('Unable to save transaction link', e)
     })
 
     return new TransactionLink(transactionLink, new User(user))
@@ -103,19 +103,23 @@ export class TransactionLinkResolver {
 
     const transactionLink = await DbTransactionLink.findOne({ id })
     if (!transactionLink) {
-      throw new Error('Transaction Link not found!')
+      throw new LogError('Transaction link not found', id)
     }
 
     if (transactionLink.userId !== user.id) {
-      throw new Error('Transaction Link cannot be deleted!')
+      throw new LogError(
+        'Transaction link cannot be deleted by another user',
+        transactionLink.userId,
+        user.id,
+      )
     }
 
     if (transactionLink.redeemedBy) {
-      throw new Error('Transaction Link already redeemed!')
+      throw new LogError('Transaction link already redeemed', transactionLink.redeemedBy)
     }
 
-    await transactionLink.softRemove().catch(() => {
-      throw new Error('Transaction Link could not be deleted!')
+    await transactionLink.softRemove().catch((e) => {
+      throw new LogError('Transaction link could not be deleted', e)
     })
 
     return true
@@ -139,30 +143,6 @@ export class TransactionLinkResolver {
       }
       return new TransactionLink(transactionLink, new User(user), redeemedBy)
     }
-  }
-
-  @Authorized([RIGHTS.LIST_TRANSACTION_LINKS])
-  @Query(() => [TransactionLink])
-  async listTransactionLinks(
-    @Args()
-    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
-    @Ctx() context: Context,
-  ): Promise<TransactionLink[]> {
-    const user = getUser(context)
-    // const now = new Date()
-    const transactionLinks = await DbTransactionLink.find({
-      where: {
-        userId: user.id,
-        redeemedBy: null,
-        // validUntil: MoreThan(now),
-      },
-      order: {
-        createdAt: order,
-      },
-      skip: (currentPage - 1) * pageSize,
-      take: pageSize,
-    })
-    return transactionLinks.map((tl) => new TransactionLink(tl, new User(user)))
   }
 
   @Authorized([RIGHTS.REDEEM_TRANSACTION_LINK])
@@ -305,25 +285,33 @@ export class TransactionLinkResolver {
       return true
     } else {
       const now = new Date()
-      const transactionLink = await DbTransactionLink.findOneOrFail({ code })
-      const linkedUser = await DbUser.findOneOrFail(
+      const transactionLink = await DbTransactionLink.findOne({ code })
+      if (!transactionLink) {
+        throw new LogError('Transaction link not found', code)
+      }
+
+      const linkedUser = await DbUser.findOne(
         { id: transactionLink.userId },
         { relations: ['emailContact'] },
       )
 
+      if (!linkedUser) {
+        throw new LogError('Linked user not found for given link', transactionLink.userId)
+      }
+
       if (user.id === linkedUser.id) {
-        throw new Error('Cannot redeem own transaction link.')
+        throw new LogError('Cannot redeem own transaction link', user.id)
       }
 
       // TODO: The now check should be done within the semaphore lock,
       // since the program might wait a while till it is ready to proceed
       // writing the transaction.
       if (transactionLink.validUntil.getTime() < now.getTime()) {
-        throw new Error('Transaction Link is not valid anymore.')
+        throw new LogError('Transaction link is not valid anymore', transactionLink.validUntil)
       }
 
       if (transactionLink.redeemedBy) {
-        throw new Error('Transaction Link already redeemed.')
+        throw new LogError('Transaction link already redeemed', transactionLink.redeemedBy)
       }
 
       await executeTransaction(
@@ -338,43 +326,39 @@ export class TransactionLinkResolver {
     }
   }
 
+  @Authorized([RIGHTS.LIST_TRANSACTION_LINKS])
+  @Query(() => TransactionLinkResult)
+  async listTransactionLinks(
+    @Args()
+    paginated: Paginated,
+    @Ctx() context: Context,
+  ): Promise<TransactionLinkResult> {
+    return transactionLinkList(
+      paginated,
+      {
+        withDeleted: false,
+        withExpired: true,
+        withRedeemed: false,
+      },
+      getUser(context),
+    )
+  }
+
   @Authorized([RIGHTS.LIST_TRANSACTION_LINKS_ADMIN])
   @Query(() => TransactionLinkResult)
   async listTransactionLinksAdmin(
     @Args()
-    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    paginated: Paginated,
+    // eslint-disable-next-line type-graphql/wrong-decorator-signature
     @Arg('filters', () => TransactionLinkFilters, { nullable: true })
-    filters: TransactionLinkFilters,
+    filters: TransactionLinkFilters | null, // eslint-disable-line type-graphql/invalid-nullable-input-type
     @Arg('userId', () => Int)
     userId: number,
   ): Promise<TransactionLinkResult> {
-    const user = await DbUser.findOneOrFail({ id: userId })
-    const where: {
-      userId: number
-      redeemedBy?: number | null
-      validUntil?: FindOperator<Date> | null
-    } = {
-      userId,
-      redeemedBy: null,
-      validUntil: MoreThan(new Date()),
+    const user = await DbUser.findOne({ id: userId })
+    if (!user) {
+      throw new LogError('Could not find requested User', userId)
     }
-    if (filters) {
-      if (filters.withRedeemed) delete where.redeemedBy
-      if (filters.withExpired) delete where.validUntil
-    }
-    const [transactionLinks, count] = await DbTransactionLink.findAndCount({
-      where,
-      withDeleted: filters ? filters.withDeleted : false,
-      order: {
-        createdAt: order,
-      },
-      skip: (currentPage - 1) * pageSize,
-      take: pageSize,
-    })
-
-    return {
-      linkCount: count,
-      linkList: transactionLinks.map((tl) => new TransactionLink(tl, new User(user))),
-    }
+    return transactionLinkList(paginated, filters, user)
   }
 }

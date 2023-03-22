@@ -10,7 +10,7 @@ export default {
   name: 'RightSide',
   computed: {
     name() {
-      switch (this.$route.path.replace(/^\//, '')) {
+      switch (this.$route.path.replace(/^\/(.+?)(\/.+)?$/, '$1')) {
         case 'settings':
           return 'empty'
         case 'community':

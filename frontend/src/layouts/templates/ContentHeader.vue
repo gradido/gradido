@@ -9,7 +9,7 @@ export default {
   name: 'ContentHeader',
   computed: {
     path() {
-      return this.$route.path.replace(/^\//, '')
+      return this.$route.path.replace(/^\/(.+?)(\/.+)?$/, '$1')
     },
   },
 }

@@ -1,4 +1,5 @@
-import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { getConnection } from '@dbTools/typeorm'
 
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
@@ -33,10 +34,14 @@ export class ContributionMessageResolver {
     try {
       const contribution = await DbContribution.findOne({ id: contributionId })
       if (!contribution) {
-        throw new Error('Contribution not found')
+        throw new LogError('Contribution not found', contributionId)
       }
       if (contribution.userId !== user.id) {
-        throw new Error('Can not send message to contribution of another user')
+        throw new LogError(
+          'Can not send message to contribution of another user',
+          contribution.userId,
+          user.id,
+        )
       }
 
       contributionMessage.contributionId = contributionId
@@ -64,7 +69,7 @@ export class ContributionMessageResolver {
   @Authorized([RIGHTS.LIST_ALL_CONTRIBUTION_MESSAGES])
   @Query(() => ContributionMessageListResult)
   async listContributionMessages(
-    @Arg('contributionId') contributionId: number,
+    @Arg('contributionId', () => Int) contributionId: number,
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   ): Promise<ContributionMessageListResult> {

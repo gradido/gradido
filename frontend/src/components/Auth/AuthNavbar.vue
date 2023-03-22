@@ -3,16 +3,16 @@
     <b-navbar :toggleable="false" class="pr-4">
       <b-navbar-brand class="d-none d-lg-block">
         <b-img
-          class="imgLogo position-absolute ml--3 mt-lg--2 mt-3 p-2 zindex1000"
+          class="position-absolute ml--3 mt-lg--2 mt-3 p-2 zindex1000"
           :src="logo"
           width="200"
-          alt="..."
+          alt="Logo"
         />
         <b-img
-          class="imgLogoBack mt--3 ml--3"
-          src="/img/template/gradido_background_header.png"
+          class="mt--3 ml--3"
+          :src="background_header"
           width="230"
-          alt="start background image"
+          alt="Background Image"
         ></b-img>
       </b-navbar-brand>
       <b-img class="sheet-img position-absolute d-block d-lg-none zindex1000" :src="sheet"></b-img>
@@ -35,7 +35,8 @@ export default {
   mixins: [authLinks],
   data() {
     return {
-      logo: '/img/brand/green.png',
+      background_header: '/img/template/gradido_background_header.png',
+      logo: '/img/brand/gradido-logo.png',
       sheet: '/img/template/Blaetter.png',
     }
   },

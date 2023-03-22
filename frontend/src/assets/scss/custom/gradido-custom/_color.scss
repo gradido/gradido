@@ -17,6 +17,7 @@ $gradido-248: rgb(248 248 248) !default;
 $gradido-140: rgb(140 66 5) !default;
 $gradido-205: rgb(205 86 86) !default;
 $gradido-197: rgb(197 141 56) !default;
+$gradido-209: rgb(209 209 209) !default;
 $gradido-4: rgb(4 112 6) !default;
 $black: #000 !default;
 $grays: () !default;
@@ -36,6 +37,7 @@ $grays: map.merge(
     "140": $gradido-140,
     "205": $gradido-205,
     "197": $gradido-197,
+    "209": $gradido-209,
     "4": $gradido-4
   ),
   $grays
@@ -75,6 +77,7 @@ $colors: map.merge(
     "140": $gradido-140,
     "205": $gradido-205,
     "197": $gradido-197,
+    "209": $gradido-209,
     "4": $gradido-4
   ),
   $colors
@@ -118,6 +121,7 @@ $theme-colors: map.merge(
     "140":          $gradido-140,
     "205":          $gradido-205,
     "197":          $gradido-197,
+    "209":          $gradido-209,
     "4":            $gradido-4
   ),
   $theme-colors

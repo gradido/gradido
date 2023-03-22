@@ -2,7 +2,7 @@
   <div class="login-form">
     <b-container v-if="enterData">
       <div class="pb-5" align="center">{{ $t('gdd_per_link.isFree') }}</div>
-      <validation-observer ref="observer" v-slot="{ handleSubmit }">
+      <validation-observer ref="observer" v-slot="{ handleSubmit, valid }">
         <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
           <b-row>
             <b-col sm="12" md="12" lg="6">
@@ -24,14 +24,21 @@
           </b-row>
           <b-row>
             <b-col class="d-flex justify-content-end mb-4 mb-lg-0">
-              <router-link to="/forgot-password">
+              <router-link to="/forgot-password" data-test="forgot-password-link">
                 {{ $t('settings.password.forgot_pwd') }}
               </router-link>
             </b-col>
           </b-row>
           <b-row>
-            <b-col cols="12" lg="4">
-              <b-button type="submit" variant="gradido" block>{{ $t('login') }}</b-button>
+            <b-col cols="12" lg="6">
+              <b-button
+                type="submit"
+                :variant="valid ? 'gradido' : 'gradido-disable'"
+                block
+                :disabled="!valid"
+              >
+                {{ $t('login') }}
+              </b-button>
             </b-col>
           </b-row>
         </b-form>
@@ -127,3 +134,13 @@ export default {
   },
 }
 </script>
+<style scoped>
+.btn-gradido {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+.btn-gradido-disable {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+</style>

@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import NavBar from './NavBar.vue'
+import NavBar from './NavBar'
 
 const localVue = global.localVue
 
@@ -68,13 +68,20 @@ describe('NavBar', () => {
   })
 
   describe('wallet', () => {
-    const assignLocationSpy = jest.fn()
+    const windowLocation = window.location
     beforeEach(async () => {
-      await wrapper.findAll('.nav-item').at(5).find('a').trigger('click')
+      delete window.location
+      window.location = ''
+      await wrapper.findAll('.nav-item').at(4).find('a').trigger('click')
     })
 
-    it.skip('changes window location to wallet', () => {
-      expect(assignLocationSpy).toBeCalledWith('valid-token')
+    afterEach(() => {
+      delete window.location
+      window.location = windowLocation
+    })
+
+    it('changes window location to wallet', () => {
+      expect(window.location).toBe('http://localhost/authenticate?token=valid-token')
     })
 
     it('dispatches logout to store', () => {
@@ -84,12 +91,18 @@ describe('NavBar', () => {
 
   describe('logout', () => {
     const windowLocationMock = jest.fn()
+    const windowLocation = window.location
     beforeEach(async () => {
       delete window.location
       window.location = {
         assign: windowLocationMock,
       }
       await wrapper.findAll('.nav-item').at(5).find('a').trigger('click')
+    })
+
+    afterEach(() => {
+      delete window.location
+      window.location = windowLocation
     })
 
     it('redirects to /logout', () => {

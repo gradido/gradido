@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
-import CreationConfirm from './CreationConfirm.vue'
+import CreationConfirm from './CreationConfirm'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { denyContribution } from '../graphql/denyContribution'
-import { listUnconfirmedContributions } from '../graphql/listUnconfirmedContributions'
+import { adminListAllContributions } from '../graphql/adminListAllContributions'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 import VueApollo from 'vue-apollo'
@@ -38,50 +38,68 @@ const mocks = {
 
 const defaultData = () => {
   return {
-    listUnconfirmedContributions: [
-      {
-        id: 1,
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        userId: 99,
-        email: 'bibi@bloxberg.de',
-        amount: 500,
-        memo: 'Danke für alles',
-        date: new Date(),
-        moderator: 1,
-        state: 'PENDING',
-        creation: [500, 500, 500],
-        messageCount: 0,
-      },
-      {
-        id: 2,
-        firstName: 'Räuber',
-        lastName: 'Hotzenplotz',
-        userId: 100,
-        email: 'raeuber@hotzenplotz.de',
-        amount: 1000000,
-        memo: 'Gut Ergattert',
-        date: new Date(),
-        moderator: 1,
-        state: 'PENDING',
-        creation: [500, 500, 500],
-        messageCount: 0,
-      },
-    ],
+    adminListAllContributions: {
+      contributionCount: 2,
+      contributionList: [
+        {
+          id: 1,
+          firstName: 'Bibi',
+          lastName: 'Bloxberg',
+          userId: 99,
+          email: 'bibi@bloxberg.de',
+          amount: 500,
+          memo: 'Danke für alles',
+          date: new Date(),
+          moderator: 1,
+          state: 'PENDING',
+          creation: [500, 500, 500],
+          messagesCount: 0,
+          deniedBy: null,
+          deniedAt: null,
+          confirmedBy: null,
+          confirmedAt: null,
+          contributionDate: new Date(),
+          deletedBy: null,
+          deletedAt: null,
+          createdAt: new Date(),
+        },
+        {
+          id: 2,
+          firstName: 'Räuber',
+          lastName: 'Hotzenplotz',
+          userId: 100,
+          email: 'raeuber@hotzenplotz.de',
+          amount: 1000000,
+          memo: 'Gut Ergattert',
+          date: new Date(),
+          moderator: 1,
+          state: 'PENDING',
+          creation: [500, 500, 500],
+          messagesCount: 0,
+          deniedBy: null,
+          deniedAt: null,
+          confirmedBy: null,
+          confirmedAt: null,
+          contributionDate: new Date(),
+          deletedBy: null,
+          deletedAt: null,
+          createdAt: new Date(),
+        },
+      ],
+    },
   }
 }
 
 describe('CreationConfirm', () => {
   let wrapper
-
-  const listUnconfirmedContributionsMock = jest.fn()
+  const adminListAllContributionsMock = jest.fn()
   const adminDeleteContributionMock = jest.fn()
   const adminDenyContributionMock = jest.fn()
   const confirmContributionMock = jest.fn()
 
   mockClient.setRequestHandler(
-    listUnconfirmedContributions,
-    listUnconfirmedContributionsMock
+    adminListAllContributions,
+    adminListAllContributionsMock
       .mockRejectedValueOnce({ message: 'Ouch!' })
       .mockResolvedValue({ data: defaultData() }),
   )
@@ -117,6 +135,10 @@ describe('CreationConfirm', () => {
       it('toast an error message', () => {
         expect(toastErrorSpy).toBeCalledWith('Ouch!')
       })
+
+      it('has statusFilter ["IN_PROGRESS", "PENDING"]', () => {
+        expect(wrapper.vm.statusFilter).toEqual(['IN_PROGRESS', 'PENDING'])
+      })
     })
 
     describe('server response is succes', () => {
@@ -125,17 +147,7 @@ describe('CreationConfirm', () => {
       })
 
       it('has two pending creations', () => {
-        expect(wrapper.vm.pendingCreations).toHaveLength(2)
-      })
-    })
-
-    describe('store', () => {
-      it('commits resetOpenCreations to store', () => {
-        expect(storeCommitMock).toBeCalledWith('resetOpenCreations')
-      })
-
-      it('commits setOpenCreations to store', () => {
-        expect(storeCommitMock).toBeCalledWith('setOpenCreations', 2)
+        expect(wrapper.find('tbody').findAll('tr')).toHaveLength(2)
       })
     })
 
@@ -314,6 +326,109 @@ describe('CreationConfirm', () => {
             expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
           })
         })
+      })
+    })
+
+    describe('filter tabs', () => {
+      describe('click tab "confirmed"', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          await wrapper.find('a[data-test="confirmed"]').trigger('click')
+        })
+
+        it('refetches contributions with proper filter', () => {
+          expect(adminListAllContributionsMock).toBeCalledWith({
+            currentPage: 1,
+            order: 'DESC',
+            pageSize: 25,
+            statusFilter: ['CONFIRMED'],
+          })
+        })
+
+        describe('click tab "open"', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            await wrapper.find('a[data-test="open"]').trigger('click')
+          })
+
+          it('refetches contributions with proper filter', () => {
+            expect(adminListAllContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              statusFilter: ['IN_PROGRESS', 'PENDING'],
+            })
+          })
+        })
+
+        describe('click tab "denied"', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            await wrapper.find('a[data-test="denied"]').trigger('click')
+          })
+
+          it('refetches contributions with proper filter', () => {
+            expect(adminListAllContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              statusFilter: ['DENIED'],
+            })
+          })
+        })
+
+        describe('click tab "deleted"', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            await wrapper.find('a[data-test="deleted"]').trigger('click')
+          })
+
+          it('refetches contributions with proper filter', () => {
+            expect(adminListAllContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              statusFilter: ['DELETED'],
+            })
+          })
+        })
+
+        describe('click tab "all"', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            await wrapper.find('a[data-test="all"]').trigger('click')
+          })
+
+          it('refetches contributions with proper filter', () => {
+            expect(adminListAllContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
+            })
+          })
+        })
+      })
+    })
+
+    describe('update status', () => {
+      beforeEach(async () => {
+        await wrapper.findComponent({ name: 'OpenCreationsTable' }).vm.$emit('update-state', 2)
+      })
+
+      it('updates the status', () => {
+        expect(wrapper.vm.items.find((obj) => obj.id === 2).messagesCount).toBe(1)
+        expect(wrapper.vm.items.find((obj) => obj.id === 2).state).toBe('IN_PROGRESS')
+      })
+    })
+
+    describe('unknown variant', () => {
+      beforeEach(async () => {
+        await wrapper.setData({ variant: 'unknown' })
+      })
+
+      it('has overlay icon "info"', () => {
+        expect(wrapper.vm.overlayIcon).toBe('info')
       })
     })
   })

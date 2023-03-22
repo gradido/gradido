@@ -85,6 +85,29 @@ services:
       - ./database:/database
 
   ########################################################
+  # FEDERATION ###########################################
+  ########################################################
+  federation:
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/federation:local-development
+    build:
+      target: development
+    networks:
+      - external-net
+      - internal-net
+    environment:
+      - NODE_ENV="development"
+    volumes:
+      # This makes sure the docker container has its own node modules.
+      # Therefore it is possible to have a different node version on the host machine
+      - federation_node_modules:/app/node_modules
+      - federation_database_node_modules:/database/node_modules
+      - federation_database_build:/database/build
+      # bind the local folder to the docker to allow live reload
+      - ./federation:/app
+      - ./database:/database
+
+  ########################################################
   # DATABASE ##############################################
   ########################################################
   database:
@@ -155,5 +178,8 @@ volumes:
   dht_node_modules:
   dht_database_node_modules:
   dht_database_build:
+  federation_node_modules:
+  federation_database_node_modules:
+  federation_database_build:
   database_node_modules:
   database_build:

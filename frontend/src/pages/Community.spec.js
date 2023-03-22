@@ -215,7 +215,9 @@ describe('Community', () => {
       push: routerPushMock,
     },
     $route: {
-      hash: '#edit',
+      params: {
+        tab: 'contribute',
+      },
     },
   }
 
@@ -260,21 +262,15 @@ describe('Community', () => {
       })
 
       it('check for correct tabIndex if state is "IN_PROGRESS" or not', () => {
-        expect(routerPushMock).toBeCalledWith({ path: '/community#my' })
+        expect(routerPushMock).toBeCalledWith({ params: { tab: 'contributions' } })
+      })
+
+      it('sets tab index to 1', () => {
+        expect(wrapper.vm.tabIndex).toBe(1)
       })
 
       it('toasts an info', () => {
         expect(toastInfoSpy).toBeCalledWith('contribution.alert.answerQuestionToast')
-      })
-    })
-
-    describe('API calls after creation', () => {
-      it('has a DIV .community-page', () => {
-        expect(wrapper.find('div.community-page').exists()).toBe(true)
-      })
-
-      it('emits update transactions', () => {
-        expect(wrapper.emitted('update-transactions')).toEqual([[0]])
       })
     })
 
@@ -490,6 +486,10 @@ describe('Community', () => {
 
       it('sets tab index back to 0', () => {
         expect(wrapper.vm.tabIndex).toBe(0)
+      })
+
+      it('pushes contribute parameter to router', () => {
+        expect(routerPushMock).toBeCalledWith({ params: { tab: 'contribute' } })
       })
     })
 

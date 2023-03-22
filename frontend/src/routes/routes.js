@@ -1,4 +1,4 @@
-import NotFound from '@/pages/NotFoundPage.vue'
+import NotFound from '@/pages/NotFoundPage'
 
 const routes = [
   {
@@ -12,7 +12,7 @@ const routes = [
   },
   {
     path: '/overview',
-    component: () => import('@/pages/Overview.vue'),
+    component: () => import('@/pages/Overview'),
     meta: {
       requiresAuth: true,
       pageTitle: 'overview',
@@ -20,7 +20,7 @@ const routes = [
   },
   {
     path: '/send',
-    component: () => import('@/pages/Send.vue'),
+    component: () => import('@/pages/Send'),
     meta: {
       requiresAuth: true,
       pageTitle: 'send',
@@ -28,14 +28,14 @@ const routes = [
   },
   // {
   //   path: '/profile',
-  //   component: () => import('@/pages/Profile.vue'),
+  //   component: () => import('@/pages/Profile'),
   //   meta: {
   //     requiresAuth: true,
   //   },
   // },
   {
     path: '/transactions',
-    component: () => import('@/pages/Transactions.vue'),
+    component: () => import('@/pages/Transactions'),
     props: { gdt: false },
     meta: {
       requiresAuth: true,
@@ -44,7 +44,7 @@ const routes = [
   },
   {
     path: '/gdt',
-    component: () => import('@/pages/Transactions.vue'),
+    component: () => import('@/pages/Transactions'),
     props: { gdt: true },
     meta: {
       requiresAuth: true,
@@ -53,6 +53,17 @@ const routes = [
   },
   {
     path: '/community',
+    component: () => import('@/pages/Community'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'community',
+    },
+    redirect: (to) => {
+      return { path: '/community/contribute' }
+    },
+  },
+  {
+    path: '/community/:tab',
     component: () => import('@/pages/Community.vue'),
     meta: {
       requiresAuth: true,
@@ -61,7 +72,7 @@ const routes = [
   },
   {
     path: '/information',
-    component: () => import('@/pages/InfoStatistic.vue'),
+    component: () => import('@/pages/InfoStatistic'),
     meta: {
       requiresAuth: true,
       pageTitle: 'information',
@@ -69,21 +80,21 @@ const routes = [
   },
   // {
   //   path: '/storys',
-  //   component: () => import('@/pages/TopStorys.vue'),
+  //   component: () => import('@/pages/TopStorys'),
   //   meta: {
   //     requiresAuth: true,
   //   },
   // },
   // {
   //   path: '/addresses',
-  //   component: () => import('@/pages/Addresses.vue'),
+  //   component: () => import('@/pages/Addresses'),
   //   meta: {
   //     requiresAuth: true,
   //   },
   // },
   {
     path: '/settings',
-    component: () => import('@/pages/Settings.vue'),
+    component: () => import('@/pages/Settings'),
     meta: {
       requiresAuth: true,
       pageTitle: 'settings',
@@ -91,39 +102,39 @@ const routes = [
   },
   {
     path: '/login/:code?',
-    component: () => import('@/pages/Login.vue'),
+    component: () => import('@/pages/Login'),
   },
   {
     path: '/register/:code?',
-    component: () => import('@/pages/Register.vue'),
+    component: () => import('@/pages/Register'),
   },
   {
     path: '/forgot-password',
-    component: () => import('@/pages/ForgotPassword.vue'),
+    component: () => import('@/pages/ForgotPassword'),
   },
   {
     path: '/forgot-password/:comingFrom',
-    component: () => import('@/pages/ForgotPassword.vue'),
+    component: () => import('@/pages/ForgotPassword'),
   },
   {
     path: '/register-community',
-    component: () => import('@/pages/RegisterCommunity.vue'),
+    component: () => import('@/pages/RegisterCommunity'),
   },
   // {
   //   path: '/select-community',
-  //   component: () => import('@/pages/SelectCommunity.vue'),
+  //   component: () => import('@/pages/SelectCommunity'),
   // },
   {
     path: '/reset-password/:optin',
-    component: () => import('@/pages/ResetPassword.vue'),
+    component: () => import('@/pages/ResetPassword'),
   },
   {
     path: '/checkEmail/:optin/:code?',
-    component: () => import('@/pages/ResetPassword.vue'),
+    component: () => import('@/pages/ResetPassword'),
   },
   {
     path: '/redeem/:code',
-    component: () => import('@/pages/TransactionLink.vue'),
+    component: () => import('@/pages/TransactionLink'),
   },
   { path: '*', component: NotFound },
 ]

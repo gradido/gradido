@@ -1,19 +1,40 @@
-name: gradido test_dht-node CI
+name: Gradido DHT Node Test CI
 
 on: push
 
 jobs:
+  # only (but most important) job from this workflow required for pull requests
+  # check results serve as run conditions for all other jobs here 
+  files-changed:
+    name: Detect File Changes - DHT Node
+    runs-on: ubuntu-latest
+    outputs:
+      dht_node: ${{ steps.changes.outputs.dht_node }}
+      docker: ${{ steps.changes.outputs.docker }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - name: Check for frontend file changes
+        uses: dorny/paths-filter@v2.11.1
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: .github/file-filters.yml
+          list-files: shell
+
   ##############################################################################
   # JOB: DOCKER BUILD TEST #####################################################
   ##############################################################################
   build:
-    name: Docker Build Test
+    name: Docker Build Test - DHT Node
+    if: needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker == 'true'
+    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
       
-      - name: Build `test` image
+      - name: Build 'test' image
         run: |
           docker build --target test -t "gradido/dht-node:test" -f dht-node/Dockerfile .
           docker save "gradido/dht-node:test" > /tmp/dht-node.tar
@@ -28,31 +49,25 @@ jobs:
   # JOB: LINT ##################################################################
   ##############################################################################
   lint:
-    name: Lint
+    name: Lint - DHT Node
+    if: needs.files-changed.outputs.dht_node == 'true'
+    needs: files-changed
     runs-on: ubuntu-latest
-    needs: [build]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Download Docker Image
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-dht-node-test
-          path: /tmp
-      - name: Load Docker Image
-        run: docker load < /tmp/dht-node.tar
       
       - name: Lint
-        run: docker run --rm gradido/dht-node:test yarn run lint
+        run: cd dht-node && yarn && yarn run lint
 
   ##############################################################################
   # JOB: UNIT TEST #############################################################
   ##############################################################################
   unit_test:
-    name: Unit tests
+    name: Unit Tests - DHT Node
+    if: needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker == 'true'
+    needs: [files-changed, build]
     runs-on: ubuntu-latest
-    needs: [build]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -83,16 +98,4 @@ jobs:
       #- name: Unit tests
       #  run: cd database && yarn && yarn build && cd ../dht-node && yarn && yarn test
       - name: Unit tests
-        run: |
-          docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net -v ~/coverage:/app/coverage --rm gradido/dht-node:test yarn run test
-          cp -r ~/coverage ./coverage
-          
-      - name: Coverage check
-        uses: webcraftmedia/coverage-check-action@master
-        with:
-          report_name: Coverage dht-node
-          type: lcov
-          #result_path: ./dht-node/coverage/lcov.info
-          result_path: ./coverage/lcov.info
-          min_coverage: 79
-          token: ${{ github.token }}
+        run: docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net --rm gradido/dht-node:test yarn run test

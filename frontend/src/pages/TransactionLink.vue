@@ -45,7 +45,6 @@ export default {
   },
   data() {
     return {
-      img: '/img/brand/green.png',
       linkData: {
         __typename: 'TransactionLink',
         amount: '123.45',

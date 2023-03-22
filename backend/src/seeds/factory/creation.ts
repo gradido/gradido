@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -16,7 +20,7 @@ export const nMonthsBefore = (date: Date, months = 1): string => {
 export const creationFactory = async (
   client: ApolloServerTestClient,
   creation: CreationInterface,
-): Promise<Contribution | void> => {
+): Promise<Contribution> => {
   const { mutate } = client
   await mutate({ mutation: login, variables: { email: creation.email, password: 'Aa12345_' } })
 
@@ -51,6 +55,7 @@ export const creationFactory = async (
         await confirmedContribution.save()
       }
     }
+    return confirmedContribution
   } else {
     return contribution
   }

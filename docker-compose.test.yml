@@ -37,6 +37,21 @@ services:
       - DB_HOST=mariadb
 
   ########################################################
+  # FEDERATION ###########################################
+  ########################################################
+  federation:
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/federation:test
+    build:
+      target: test
+    networks:
+      - external-net
+      - internal-net
+    environment:
+      - NODE_ENV="test"
+      - DB_HOST=mariadb
+
+  ########################################################
   # DATABASE #############################################
   ########################################################
   database:
