@@ -26,7 +26,7 @@ At first the following diagramm gives an overview of the three stages and shows 
 
 ### Technical Architecture
 
-The previous described handshake will be done by several technical moduls of the gradido system. The following picture gives an overview about the moduls and how the communicate with each other.
+The previous described handshake will be done by several technical modules of the gradido system. The following picture gives an overview about the modules and how the communicate with each other.
 
 ![img](./image/TechnicalOverview_V1-19.svg)
 
@@ -34,9 +34,9 @@ As soon as a Gradido Community is up and running the DHT-Modul first write the h
 
 The up and running Backend-Modul contains a validation logic to verify the community entries from the own DHT-Modul. For each announced but unverified community-entry the GraphQL-Client is used to invoke a getPublicKey-Request. Depending on the containing api-version the matching GraphQL-Client is used and the getPublicKey-Request will be send to the given URL.
 
-As soon as the FederationModul of the assoziated community received the getPublicKey-request the own publicKey is read from database and send back in the response.
+As soon as the FederationModul of the associated community received the getPublicKey-request the own publicKey is read from database and send back in the response.
 
-The GraphQL-Client will read from the returned response data the publicKey of the other community and compare it with the data of the community-entry, which cause the getPublicKey-Request. If they match the community-entry will be updated be inserting the current timestamp in the verifiedAt-field of this community-entry.
+The GraphQL-Client will read the publicKey of the other community from the returned response data and compare it with the data of the community-entry, which caused the getPublicKey-Request. If they match the community-entry will be updated be inserting the current timestamp in the verifiedAt-field of this community-entry.
 
 This federation and verification logic will work the whole time and can be monitored by observing the communities-table changes. The Admin-UI will contain a Page to have a look on the current state of the communities table content.
 
@@ -228,7 +228,6 @@ For the first federation release the *DHT-Node* will be part of the *apollo serv
            | communityApiVersion.apiversion            | keep existing value         |
            | communityApiVersion.validFrom             | exchangedData.API.validFrom |
            | communityApiVersion.verifiedAt            | keep existing value         |
-         * 
    3. After all received data is stored successfully, the *DHT-Node* starts the *stage2 - Authentication* of the federation handshake
 
 ### Stage2 - Authentication
@@ -277,8 +276,6 @@ As soon the *openConnection* request is invoked:
 3. check if the decrypted `parameter.signedAndEncryptedURL` is equals the selected url from the previous selected CommunityFederationEntry
    1. if not then break the further processing of this request by only writing an error-log event. There will be no answer to the invoker community, because this community will only go on with a `openConnectionRedirect`-request from this community.
    2. if yes then verify the signature of `parameter.signedAndEncryptedURL` with the `cf.pubKey` read in step 2 before
-   3. 
-4. 
 
 ### Stage3 - Autorized Business Communication
 
