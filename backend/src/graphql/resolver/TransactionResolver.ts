@@ -157,7 +157,6 @@ export const executeTransaction = async (
     } finally {
       await queryRunner.release()
     }
-    logger.debug(`prepare Email for transaction received...`)
     await sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,

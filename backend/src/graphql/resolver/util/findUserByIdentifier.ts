@@ -7,7 +7,7 @@ export const findUserByIdentifier = async (identifier: string): Promise<DbUser |
   if (
     /^[0-9a-f]{8,8}-[0-9a-f]{4,4}-[0-9a-f]{4,4}-[0-9a-f]{4,4}-[0-9a-f]{12,12}$/.exec(identifier)
   ) {
-    user = await DbUser.findOne({ where: { gradidoID: identifier } })
+    user = await DbUser.findOne({ where: { gradidoID: identifier }, relations: ['emailContact'] })
     if (!user) {
       throw new LogError('No user found to given identifier', identifier)
     }
