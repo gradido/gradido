@@ -56,6 +56,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import {
   Event,
+  EventType,
   EVENT_LOGIN,
   EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
   EVENT_SEND_CONFIRMATION_EMAIL,
@@ -69,7 +70,6 @@ import { FULL_CREATION_AVAILABLE } from './const/const'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 import LogError from '@/server/LogError'
-import { EventProtocolType } from '@/event/EventProtocolType'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -273,7 +273,7 @@ export class UserResolver {
     const gradidoID = await newGradidoID()
 
     const eventRegisterRedeem = Event(
-      EventProtocolType.REDEEM_REGISTER,
+      EventType.REDEEM_REGISTER,
       { id: 0 } as DbUser,
       { id: 0 } as DbUser,
     )

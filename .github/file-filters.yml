@@ -41,3 +41,6 @@ federation: &federation
 
 frontend: &frontend
   - 'frontend/**/*'
+
+nginx: &nginx
+  - 'nginx/**/*'
