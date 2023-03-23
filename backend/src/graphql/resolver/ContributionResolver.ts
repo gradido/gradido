@@ -390,7 +390,7 @@ export class ContributionResolver {
     return result
   }
 
-  @Authorized([RIGHTS.ADMIN_LIST_UNCONFIRMED_CONTRIBUTIONS])
+  @Authorized([RIGHTS.LIST_UNCONFIRMED_CONTRIBUTIONS])
   @Query(() => ContributionListResult) // [UnconfirmedContribution]
   async adminListAllContributions(
     @Args()
@@ -461,7 +461,7 @@ export class ContributionResolver {
     return !!res
   }
 
-  @Authorized([RIGHTS.ADMIN_CONFIRM_CONTRIBUTION])
+  @Authorized([RIGHTS.CONFIRM_CONTRIBUTION])
   @Mutation(() => Boolean)
   async confirmContribution(
     @Arg('id', () => Int) id: number,
@@ -566,7 +566,7 @@ export class ContributionResolver {
     return true
   }
 
-  @Authorized([RIGHTS.ADMIN_CREATION_TRANSACTION_LIST])
+  @Authorized([RIGHTS.CREATION_TRANSACTION_LIST])
   @Query(() => ContributionListResult)
   async creationTransactionList(
     @Args()
@@ -612,7 +612,7 @@ export class ContributionResolver {
     })
   }
 
-  @Authorized([RIGHTS.ADMIN_DENY_CONTRIBUTION])
+  @Authorized([RIGHTS.DENY_CONTRIBUTION])
   @Mutation(() => Boolean)
   async denyContribution(
     @Arg('id', () => Int) id: number,
