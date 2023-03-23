@@ -4,19 +4,36 @@
       {{ $t('removeNotSelf') }}
     </div>
     <div v-else class="mt-5">
-      <b-form-checkbox switch size="lg" v-model="checked">
-        <div>{{ item.deletedAt ? $t('undelete_user') : $t('delete_user') }}</div>
-      </b-form-checkbox>
-
       <div class="mt-3 mb-5">
-        <b-button v-if="checked && item.deletedAt === null" variant="danger" @click="deleteUser">
+        <b-button
+          v-if="item.deletedAt === null"
+          variant="danger"
+          v-b-modal.delete-user-modal
+          @click="showModal('deleteUser')"
+        >
           {{ $t('delete_user') }}
         </b-button>
-        <b-button v-if="checked && item.deletedAt !== null" variant="success" @click="unDeleteUser">
+        <b-button
+          v-if="item.deletedAt !== null"
+          variant="success"
+          v-b-modal.delete-user-modal
+          @click="showModal('undeleteUser')"
+        >
           {{ $t('undelete_user') }}
         </b-button>
       </div>
     </div>
+    <b-modal
+      id="delete-user-modal"
+      hide-header-close
+      :title="modalTitle"
+      :cancel-title="$t('overlay.cancel')"
+      :ok-title="modalOkTitle"
+      :ok-variant="variant"
+      @ok="modalEvent"
+    >
+      <p class="my-4">{{ modalQuestion }}</p>
+    </b-modal>
   </div>
 </template>
 <script>
@@ -34,9 +51,34 @@ export default {
   data() {
     return {
       checked: false,
+      modalTitle: '',
+      modalQuestion: '',
+      modalOkTitle: '',
+      modalEvent: null,
+      username: '',
+      variant: 'danger',
     }
   },
   methods: {
+    showModal(type) {
+      this.username = `${this.item.firstName} ${this.item.lastName}`
+
+      if (type === 'deleteUser') {
+        this.variant = 'danger'
+        this.modalTitle = this.$t('overlay.deleteUser.title')
+        this.modalQuestion = this.$t('overlay.deleteUser.question', { username: this.username })
+        this.modalOkTitle = this.$t('overlay.deleteUser.yes')
+        this.modalEvent = this.deleteUser
+      }
+
+      if (type === 'undeleteUser') {
+        this.variant = 'success'
+        this.modalTitle = this.$t('overlay.undeleteUser.title')
+        this.modalQuestion = this.$t('overlay.undeleteUser.question', { username: this.username })
+        this.modalOkTitle = this.$t('overlay.undeleteUser.yes')
+        this.modalEvent = this.unDeleteUser
+      }
+    },
     deleteUser() {
       this.$apollo
         .mutate({
