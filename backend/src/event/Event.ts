@@ -1,19 +1,23 @@
 import { Event as DbEvent } from '@entity/Event'
 import { User as DbUser } from '@entity/User'
-import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
-import { Contribution as DbContribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
+import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
+import { Contribution as DbContribution } from '@entity/Contribution'
+import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import Decimal from 'decimal.js-light'
-import { EventProtocolType } from './EventProtocolType'
+import { EventType } from './Event'
 
 export const Event = (
-  type: EventProtocolType,
+  type: EventType,
   affectedUser: DbUser,
   actingUser: DbUser,
   involvedUser: DbUser | null = null,
   involvedTransaction: DbTransaction | null = null,
   involvedContribution: DbContribution | null = null,
   involvedContributionMessage: DbContributionMessage | null = null,
+  involvedTransactionLink: DbTransactionLink | null = null,
+  involvedContributionLink: DbContributionLink | null = null,
   amount: Decimal | null = null,
 ): DbEvent => {
   const event = new DbEvent()
@@ -24,194 +28,30 @@ export const Event = (
   event.involvedTransaction = involvedTransaction
   event.involvedContribution = involvedContribution
   event.involvedContributionMessage = involvedContributionMessage
+  event.involvedTransactionLink = involvedTransactionLink
+  event.involvedContributionLink = involvedContributionLink
   event.amount = amount
   return event
 }
 
-export const EVENT_CONTRIBUTION_CREATE = async (
-  user: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.CONTRIBUTION_CREATE,
-    user,
-    user,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
+export { EventType } from './EventType'
 
-export const EVENT_CONTRIBUTION_DELETE = async (
-  user: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.CONTRIBUTION_DELETE,
-    user,
-    user,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_CONTRIBUTION_UPDATE = async (
-  user: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.CONTRIBUTION_UPDATE,
-    user,
-    user,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_ADMIN_CONTRIBUTION_CREATE = async (
-  user: DbUser,
-  moderator: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.ADMIN_CONTRIBUTION_CREATE,
-    user,
-    moderator,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_ADMIN_CONTRIBUTION_UPDATE = async (
-  user: DbUser,
-  moderator: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
-    user,
-    moderator,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_ADMIN_CONTRIBUTION_DELETE = async (
-  user: DbUser,
-  moderator: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
-    user,
-    moderator,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_CONTRIBUTION_CONFIRM = async (
-  user: DbUser,
-  moderator: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.CONTRIBUTION_CONFIRM,
-    user,
-    moderator,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_ADMIN_CONTRIBUTION_DENY = async (
-  user: DbUser,
-  moderator: DbUser,
-  contribution: DbContribution,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.ADMIN_CONTRIBUTION_DENY,
-    user,
-    moderator,
-    null,
-    null,
-    contribution,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_TRANSACTION_SEND = async (
-  user: DbUser,
-  involvedUser: DbUser,
-  transaction: DbTransaction,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.TRANSACTION_SEND,
-    user,
-    user,
-    involvedUser,
-    transaction,
-    null,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_TRANSACTION_RECEIVE = async (
-  user: DbUser,
-  involvedUser: DbUser,
-  transaction: DbTransaction,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.TRANSACTION_RECEIVE,
-    user,
-    involvedUser,
-    involvedUser,
-    transaction,
-    null,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_LOGIN = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventProtocolType.LOGIN, user, user).save()
-
-export const EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventProtocolType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL, user, { id: 0 } as DbUser).save()
-
-export const EVENT_SEND_CONFIRMATION_EMAIL = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventProtocolType.SEND_CONFIRMATION_EMAIL, user, user).save()
-
-export const EVENT_ADMIN_SEND_CONFIRMATION_EMAIL = async (
-  user: DbUser,
-  moderator: DbUser,
-): Promise<DbEvent> =>
-  Event(EventProtocolType.ADMIN_SEND_CONFIRMATION_EMAIL, user, moderator).save()
-
-export const EVENT_REGISTER = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventProtocolType.REGISTER, user, user).save()
-
-export const EVENT_ACTIVATE_ACCOUNT = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventProtocolType.ACTIVATE_ACCOUNT, user, user).save()
+export { EVENT_ACTIVATE_ACCOUNT } from './EVENT_ACTIVATE_ACCOUNT'
+export { EVENT_ADMIN_CONTRIBUTION_CONFIRM } from './EVENT_ADMIN_CONTRIBUTION_CONFIRM'
+export { EVENT_ADMIN_CONTRIBUTION_CREATE } from './EVENT_ADMIN_CONTRIBUTION_CREATE'
+export { EVENT_ADMIN_CONTRIBUTION_DELETE } from './EVENT_ADMIN_CONTRIBUTION_DELETE'
+export { EVENT_ADMIN_CONTRIBUTION_DENY } from './EVENT_ADMIN_CONTRIBUTION_DENY'
+export { EVENT_ADMIN_CONTRIBUTION_UPDATE } from './EVENT_ADMIN_CONTRIBUTION_UPDATE'
+export { EVENT_ADMIN_CONTRIBUTION_LINK_CREATE } from './EVENT_ADMIN_CONTRIBUTION_LINK_CREATE'
+export { EVENT_ADMIN_CONTRIBUTION_LINK_DELETE } from './EVENT_ADMIN_CONTRIBUTION_LINK_DELETE'
+export { EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE } from './EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE'
+export { EVENT_ADMIN_SEND_CONFIRMATION_EMAIL } from './EVENT_ADMIN_SEND_CONFIRMATION_EMAIL'
+export { EVENT_CONTRIBUTION_CREATE } from './EVENT_CONTRIBUTION_CREATE'
+export { EVENT_CONTRIBUTION_DELETE } from './EVENT_CONTRIBUTION_DELETE'
+export { EVENT_CONTRIBUTION_UPDATE } from './EVENT_CONTRIBUTION_UPDATE'
+export { EVENT_LOGIN } from './EVENT_LOGIN'
+export { EVENT_REGISTER } from './EVENT_REGISTER'
+export { EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL } from './EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL'
+export { EVENT_SEND_CONFIRMATION_EMAIL } from './EVENT_SEND_CONFIRMATION_EMAIL'
+export { EVENT_TRANSACTION_SEND } from './EVENT_TRANSACTION_SEND'
+export { EVENT_TRANSACTION_RECEIVE } from './EVENT_TRANSACTION_RECEIVE'

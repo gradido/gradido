@@ -20,9 +20,7 @@ import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeor
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
-import { Transaction as DbTransaction } from '@entity/Transaction'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { Contribution as DbContribution } from '@entity/Contribution'
 import { UserRepository } from '@repository/User'
 
 import { User } from '@model/User'
@@ -56,6 +54,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import {
   Event,
+  EventType,
   EVENT_LOGIN,
   EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
   EVENT_SEND_CONFIRMATION_EMAIL,
@@ -69,7 +68,6 @@ import { FULL_CREATION_AVAILABLE } from './const/const'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 import LogError from '@/server/LogError'
-import { EventProtocolType } from '@/event/EventProtocolType'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -273,7 +271,7 @@ export class UserResolver {
     const gradidoID = await newGradidoID()
 
     const eventRegisterRedeem = Event(
-      EventProtocolType.REDEEM_REGISTER,
+      EventType.REDEEM_REGISTER,
       { id: 0 } as DbUser,
       { id: 0 } as DbUser,
     )
@@ -293,16 +291,14 @@ export class UserResolver {
         logger.info('redeemCode found contributionLink', contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
-          // TODO this is so wrong
-          eventRegisterRedeem.involvedContribution = { id: contributionLink.id } as DbContribution
+          eventRegisterRedeem.involvedContributionLink = contributionLink
         }
       } else {
         const transactionLink = await DbTransactionLink.findOne({ code: redeemCode })
         logger.info('redeemCode found transactionLink', transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
-          // TODO this is so wrong
-          eventRegisterRedeem.involvedTransaction = { id: transactionLink.id } as DbTransaction
+          eventRegisterRedeem.involvedTransactionLink = transactionLink
         }
       }
     }
