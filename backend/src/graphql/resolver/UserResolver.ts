@@ -20,9 +20,7 @@ import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeor
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
-import { Transaction as DbTransaction } from '@entity/Transaction'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { Contribution as DbContribution } from '@entity/Contribution'
 import { UserRepository } from '@repository/User'
 
 import { User } from '@model/User'
@@ -293,16 +291,14 @@ export class UserResolver {
         logger.info('redeemCode found contributionLink', contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
-          // TODO this is so wrong
-          eventRegisterRedeem.involvedContribution = { id: contributionLink.id } as DbContribution
+          eventRegisterRedeem.involvedContributionLink = contributionLink
         }
       } else {
         const transactionLink = await DbTransactionLink.findOne({ code: redeemCode })
         logger.info('redeemCode found transactionLink', transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
-          // TODO this is so wrong
-          eventRegisterRedeem.involvedTransaction = { id: transactionLink.id } as DbTransaction
+          eventRegisterRedeem.involvedTransactionLink = transactionLink
         }
       }
     }

@@ -18,5 +18,7 @@ export const EVENT_TRANSACTION_SEND = async (
     transaction,
     null,
     null,
+    null,
+    null,
     amount,
   ).save()
