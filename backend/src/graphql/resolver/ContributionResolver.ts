@@ -136,15 +136,15 @@ export class ContributionResolver {
   ): Promise<ContributionListResult> {
     const user = getUser(context)
 
-    const [dbContributions, count] = await findContributions(
+    const [dbContributions, count] = await findContributions({
       order,
       currentPage,
       pageSize,
-      true,
-      ['messages'],
-      user.id,
+      withDeleted: true,
+      relations: ['messages'],
+      userId: user.id,
       statusFilter,
-    )
+    })
     return new ContributionListResult(
       count,
       dbContributions.map((contribution) => new Contribution(contribution, user)),
@@ -159,15 +159,13 @@ export class ContributionResolver {
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
     statusFilter?: ContributionStatus[] | null,
   ): Promise<ContributionListResult> {
-    const [dbContributions, count] = await findContributions(
+    const [dbContributions, count] = await findContributions({
       order,
       currentPage,
       pageSize,
-      false,
-      ['user'],
-      undefined,
+      relations: ['user'],
       statusFilter,
-    )
+    })
 
     return new ContributionListResult(
       count,
@@ -384,23 +382,25 @@ export class ContributionResolver {
     return result
   }
 
-  @Authorized([RIGHTS.LIST_UNCONFIRMED_CONTRIBUTIONS])
-  @Query(() => ContributionListResult) // [UnconfirmedContribution]
-  async adminListAllContributions(
+  @Authorized([RIGHTS.ADMIN_LIST_CONTRIBUTIONS])
+  @Query(() => ContributionListResult)
+  async adminListContributions(
     @Args()
     { currentPage = 1, pageSize = 3, order = Order.DESC }: Paginated,
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
     statusFilter?: ContributionStatus[] | null,
+    @Arg('userId', () => Int, { nullable: true })
+    userId?: number | null,
   ): Promise<ContributionListResult> {
-    const [dbContributions, count] = await findContributions(
+    const [dbContributions, count] = await findContributions({
       order,
       currentPage,
       pageSize,
-      true,
-      ['user', 'messages'],
-      undefined,
+      withDeleted: true,
+      userId,
+      relations: ['user', 'messages'],
       statusFilter,
-    )
+    })
 
     return new ContributionListResult(
       count,
@@ -560,33 +560,6 @@ export class ContributionResolver {
       releaseLock()
     }
     return true
-  }
-
-  @Authorized([RIGHTS.CREATION_TRANSACTION_LIST])
-  @Query(() => ContributionListResult)
-  async creationTransactionList(
-    @Args()
-    { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
-    @Arg('userId', () => Int) userId: number,
-  ): Promise<ContributionListResult> {
-    const offset = (currentPage - 1) * pageSize
-    const [contributionResult, count] = await getConnection()
-      .createQueryBuilder()
-      .select('c')
-      .from(DbContribution, 'c')
-      .leftJoinAndSelect('c.user', 'u')
-      .where(`user_id = ${userId}`)
-      .withDeleted()
-      .limit(pageSize)
-      .offset(offset)
-      .orderBy('c.created_at', order)
-      .getManyAndCount()
-
-    return new ContributionListResult(
-      count,
-      contributionResult.map((contribution) => new Contribution(contribution, contribution.user)),
-    )
-    // return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
   }
 
   @Authorized([RIGHTS.OPEN_CREATIONS])
