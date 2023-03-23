@@ -11,9 +11,7 @@
       <template #transactionConfirmationSend>
         <transaction-confirmation-send
           :balance="balance"
-          :email="transactionData.email"
-          :amount="transactionData.amount"
-          :memo="transactionData.memo"
+          v-bind="transactionData"
           @send-transaction="sendTransaction"
           @on-back="onBack"
         ></transaction-confirmation-send>
@@ -21,7 +19,7 @@
       <template #transactionConfirmationLink>
         <transaction-confirmation-link
           :balance="balance"
-          :email="transactionData.email"
+          :email="transactionData.identifier"
           :amount="transactionData.amount"
           :memo="transactionData.memo"
           :loading="loading"

@@ -55,7 +55,7 @@
                           :name="$t('form.recipient')"
                           :label="$t('form.recipient')"
                           :placeholder="$t('form.email')"
-                          v-model="form.email"
+                          v-model="form.identifier"
                           :disabled="isBalanceDisabled"
                           @onValidation="onValidation"
                         />
@@ -148,7 +148,7 @@ export default {
   data() {
     return {
       form: {
-        email: this.identifier,
+        identifier: this.identifier,
         amount: this.amount ? String(this.amount) : '',
         memo: this.memo,
       },
@@ -161,16 +161,18 @@ export default {
       this.$refs.formValidator.validate()
     },
     onSubmit() {
+      if (this.gradidoID) this.form.identifier = this.gradidoID
       this.$emit('set-transaction', {
         selected: this.radioSelected,
-        identifier: this.form.email,
+        identifier: this.form.identifier,
         amount: Number(this.form.amount.replace(',', '.')),
         memo: this.form.memo,
+        userName: this.userName,
       })
     },
     onReset(event) {
       event.preventDefault()
-      this.form.email = ''
+      this.form.identifier = ''
       this.form.amount = ''
       this.form.memo = ''
       this.$refs.formValidator.validate()
@@ -200,7 +202,7 @@ export default {
   computed: {
     disabled() {
       if (
-        this.form.email.length > 5 &&
+        this.form.identifier.length > 5 &&
         parseInt(this.form.amount) <= parseInt(this.balance) &&
         this.form.memo.length > 5 &&
         this.form.memo.length <= 255
@@ -220,7 +222,7 @@ export default {
     },
   },
   mounted() {
-    if (this.form.email !== '') this.$refs.formValidator.validate()
+    if (this.form.identifier !== '') this.$refs.formValidator.validate()
   },
 }
 </script>
