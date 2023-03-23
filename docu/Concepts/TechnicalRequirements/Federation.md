@@ -50,6 +50,10 @@ Before starting in describing the details of the federation handshake, some prer
 
 With the federation additional data tables/entities have to be created.
 
+The following diagramm shows the first draft of a possible database-model base on the migration 0063-event_link_fields.ts
+
+![img](./image/classdiagramm_communities-communities_federation.png)
+
 ##### Community-Entity
 
 Create the new *Community* table to store attributes of the own community. This table is used more like a frame for own community data in the future like the list of federated foreign communities, own users, own futher accounts like AUF- and  Welfare-account and the profile data of the own community:
