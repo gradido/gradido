@@ -133,6 +133,22 @@ export const communities = gql`
   }
 `
 
+export const getCommunities = gql`
+  query {
+    getCommunities {
+      id
+      foreign
+      publicKey
+      url
+      lastAnnouncedAt
+      verifiedAt
+      lastErrorAt
+      createdAt
+      updatedAt
+    }
+  }
+`
+
 export const queryTransactionLink = gql`
   query ($code: String!) {
     queryTransactionLink(code: $code) {
