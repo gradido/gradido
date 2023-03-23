@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -324,7 +328,7 @@ describe('send coins', () => {
         ).toEqual(
           expect.objectContaining({
             data: {
-              sendCoins: 'true',
+              sendCoins: true,
             },
           }),
         )
@@ -337,7 +341,7 @@ describe('send coins', () => {
           memo: 'unrepeatable memo',
         })
 
-        expect(DbEvent.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.TRANSACTION_SEND,
             affectedUserId: user[1].id,
@@ -355,7 +359,7 @@ describe('send coins', () => {
           memo: 'unrepeatable memo',
         })
 
-        expect(DbEvent.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.TRANSACTION_RECEIVE,
             affectedUserId: user[0].id,
@@ -381,7 +385,7 @@ describe('send coins', () => {
         ).resolves.toEqual(
           expect.objectContaining({
             data: {
-              sendCoins: 'true',
+              sendCoins: true,
             },
           }),
         )
@@ -397,7 +401,7 @@ describe('send coins', () => {
         ).resolves.toEqual(
           expect.objectContaining({
             data: {
-              sendCoins: 'true',
+              sendCoins: true,
             },
           }),
         )
@@ -413,7 +417,7 @@ describe('send coins', () => {
         ).resolves.toEqual(
           expect.objectContaining({
             data: {
-              sendCoins: 'true',
+              sendCoins: true,
             },
           }),
         )
@@ -429,7 +433,7 @@ describe('send coins', () => {
         ).resolves.toEqual(
           expect.objectContaining({
             data: {
-              sendCoins: 'true',
+              sendCoins: true,
             },
           }),
         )

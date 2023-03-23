@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -150,7 +154,8 @@ describe('validate Communities', () => {
       })
       it('logs unsupported api for community with api 2_0 ', () => {
         expect(logger.warn).toBeCalledWith(
-          `Federation: dbCom: ${dbCom.id} with unsupported apiVersion=2_0; supported versions=1_0,1_1`,
+          `Federation: dbCom: ${dbCom.id} with unsupported apiVersion=2_0; supported versions`,
+          ['1_0', '1_1'],
         )
       })
     })
