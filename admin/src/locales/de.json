@@ -2,6 +2,7 @@
   "all_emails": "Alle Nutzer",
   "back": "zurück",
   "chat": "Chat",
+  "change_user_role": "Nutzerrolle ändern",
   "contributionLink": {
     "amount": "Betrag",
     "changeSaved": "Änderungen gespeichert",
@@ -141,6 +142,11 @@
       "question": "Willst du wirklich {username} wiederherstellen?",
       "title": "Nutzer wiederherstellen",
       "yes": "Ja, Nutzer wiederherstellen"
+    },
+    "changeUserRole": {
+      "question": "Willst du die Rolle von {username} wirklich zu {newRole} ändern?",
+      "title": "Nutzerrolle ändern",
+      "yes": "Ja, Nutzerrolle ändern"
     }
   },
   "redeemed": "eingelöst",

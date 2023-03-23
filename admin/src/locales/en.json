@@ -2,6 +2,7 @@
   "all_emails": "All users",
   "back": "back",
   "chat": "Chat",
+  "change_user_role": "Change user role",
   "contributionLink": {
     "amount": "Amount",
     "changeSaved": "Changes saved",
@@ -141,6 +142,11 @@
       "question": "Do you really want to undelete {username}",
       "title": "Undelete user",
       "yes": "Yes,undelete user"
+    },
+    "changeUserRole": {
+      "question": "Do you really want to change {username}'s role to {newRole}?",
+      "title": "Change user role",
+      "yes": "Yes, change user role"
     }
   },
   "redeemed": "redeemed",
