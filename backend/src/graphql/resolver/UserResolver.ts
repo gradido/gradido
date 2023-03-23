@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import i18n from 'i18n'
 import { v4 as uuidv4 } from 'uuid'
 import {
@@ -168,11 +172,11 @@ export class UserResolver {
 
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
-    logger.info('user.hasElopage=' + user.hasElopage)
+    logger.info('user.hasElopage', user.hasElopage)
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
       dbUser.publisherId = publisherId
-      DbUser.save(dbUser)
+      await DbUser.save(dbUser)
     }
 
     context.setHeaders.push({
@@ -186,8 +190,8 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.LOGOUT])
-  @Mutation(() => String)
-  async logout(): Promise<boolean> {
+  @Mutation(() => Boolean)
+  logout(): boolean {
     // TODO: Event still missing here!!
     // TODO: We dont need this anymore, but might need this in the future in oder to invalidate a valid JWT-Token.
     // Furthermore this hook can be useful for tracking user behaviour (did he logout or not? Warn him if he didn't on next login)
@@ -204,7 +208,7 @@ export class UserResolver {
   @Mutation(() => User)
   async createUser(
     @Args()
-    { email, firstName, lastName, language, publisherId, redeemCode = null }: CreateUserArgs,
+    { email, firstName, lastName, language, publisherId = null, redeemCode = null }: CreateUserArgs,
   ): Promise<User> {
     logger.addContext('user', 'unknown')
     logger.info(
@@ -241,7 +245,7 @@ export class UserResolver {
         user.lastName = lastName
         user.language = language
         user.publisherId = publisherId
-        logger.debug('partly faked user=' + user)
+        logger.debug('partly faked user', user)
 
         const emailSent = await sendAccountMultiRegistrationEmail({
           firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
@@ -278,15 +282,15 @@ export class UserResolver {
     dbUser.firstName = firstName
     dbUser.lastName = lastName
     dbUser.language = language
-    dbUser.publisherId = publisherId
+    dbUser.publisherId = publisherId || 0
     dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
-    logger.debug('new dbUser=' + dbUser)
+    logger.debug('new dbUser', dbUser)
     if (redeemCode) {
       if (redeemCode.match(/^CL-/)) {
         const contributionLink = await DbContributionLink.findOne({
           code: redeemCode.replace('CL-', ''),
         })
-        logger.info('redeemCode found contributionLink=' + contributionLink)
+        logger.info('redeemCode found contributionLink', contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
           // TODO this is so wrong
@@ -294,7 +298,7 @@ export class UserResolver {
         }
       } else {
         const transactionLink = await DbTransactionLink.findOne({ code: redeemCode })
-        logger.info('redeemCode found transactionLink=' + transactionLink)
+        logger.info('redeemCode found transactionLink', transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
           // TODO this is so wrong
@@ -640,7 +644,7 @@ export class UserResolver {
     }
   }
 
-  @Authorized([RIGHTS.ADMIN_SEARCH_USERS])
+  @Authorized([RIGHTS.SEARCH_USERS])
   @Query(() => SearchUsersResult)
   async searchUsers(
     @Args()
@@ -663,7 +667,7 @@ export class UserResolver {
         return 'user.' + fieldName
       }),
       searchText,
-      filters,
+      filters || null,
       currentPage,
       pageSize,
     )
@@ -706,7 +710,7 @@ export class UserResolver {
     }
   }
 
-  @Authorized([RIGHTS.ADMIN_SET_USER_ROLE])
+  @Authorized([RIGHTS.SET_USER_ROLE])
   @Mutation(() => Date, { nullable: true })
   async setUserRole(
     @Arg('userId', () => Int)
@@ -748,7 +752,7 @@ export class UserResolver {
     return newUser ? newUser.isAdmin : null
   }
 
-  @Authorized([RIGHTS.ADMIN_DELETE_USER])
+  @Authorized([RIGHTS.DELETE_USER])
   @Mutation(() => Date, { nullable: true })
   async deleteUser(
     @Arg('userId', () => Int) userId: number,
@@ -770,7 +774,7 @@ export class UserResolver {
     return newUser ? newUser.deletedAt : null
   }
 
-  @Authorized([RIGHTS.ADMIN_UNDELETE_USER])
+  @Authorized([RIGHTS.UNDELETE_USER])
   @Mutation(() => Date, { nullable: true })
   async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
     const user = await DbUser.findOne({ id: userId }, { withDeleted: true })
@@ -785,7 +789,7 @@ export class UserResolver {
   }
 
   // TODO this is an admin function - needs refactor
-  @Authorized([RIGHTS.ADMIN_SEND_ACTIVATION_EMAIL])
+  @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
   @Mutation(() => Boolean)
   async sendActivationEmail(
     @Arg('email') email: string,
