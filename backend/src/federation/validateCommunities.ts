@@ -8,14 +8,14 @@ import { backendLogger as logger } from '@/server/logger'
 import { ApiVersionType } from './enum/apiVersionType'
 import LogError from '@/server/LogError'
 
-export async function startValidateCommunities(timerInterval: number): Promise<void> {
+export function startValidateCommunities(timerInterval: number): void {
   logger.info(
     `Federation: startValidateCommunities loop with an interval of ${timerInterval} ms...`,
   )
   // TODO: replace the timer-loop by an event-based communication to verify announced foreign communities
   // better to use setTimeout twice than setInterval once -> see https://javascript.info/settimeout-setinterval
   setTimeout(function run() {
-    validateCommunities()
+    void validateCommunities()
     setTimeout(run, timerInterval)
   }, timerInterval)
 }
@@ -27,8 +27,8 @@ export async function validateCommunities(): Promise<void> {
     .getMany()
 
   logger.debug(`Federation: found ${dbCommunities.length} dbCommunities`)
-  dbCommunities.forEach(async function (dbCom) {
-    logger.debug(`Federation: dbCom: ${JSON.stringify(dbCom)}`)
+  for (const dbCom of dbCommunities) {
+    logger.debug('Federation: dbCom', dbCom)
     const apiValueStrings: string[] = Object.values(ApiVersionType)
     logger.debug(`suppported ApiVersions=`, apiValueStrings)
     if (apiValueStrings.includes(dbCom.apiVersion)) {
@@ -38,19 +38,22 @@ export async function validateCommunities(): Promise<void> {
       try {
         const pubKey = await invokeVersionedRequestGetPublicKey(dbCom)
         logger.info(
-          `Federation: received publicKey=${pubKey} from endpoint=${dbCom.endPoint}/${dbCom.apiVersion}`,
+          'Federation: received publicKey from endpoint',
+          pubKey,
+          `${dbCom.endPoint}/${dbCom.apiVersion}`,
         )
-        if (pubKey && pubKey === dbCom.publicKey.toString('hex')) {
+        if (pubKey && pubKey === dbCom.publicKey.toString()) {
           logger.info(`Federation: matching publicKey:  ${pubKey}`)
-          DbCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
+          await DbCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
           logger.debug(`Federation: updated dbCom:  ${JSON.stringify(dbCom)}`)
+        } else {
+          logger.warn(
+            `Federation: received not matching publicKey -> received: ${
+              pubKey || 'null'
+            }, expected: ${dbCom.publicKey.toString()} `,
+          )
+          // DbCommunity.delete({ id: dbCom.id })
         }
-        /*
-        else {
-          logger.warn(`Federation: received unknown publicKey -> delete dbCom with id=${dbCom.id} `)
-          DbCommunity.delete({ id: dbCom.id })
-        }
-        */
       } catch (err) {
         if (!isLogError(err)) {
           logger.error(`Error:`, err)
@@ -58,10 +61,11 @@ export async function validateCommunities(): Promise<void> {
       }
     } else {
       logger.warn(
-        `Federation: dbCom: ${dbCom.id} with unsupported apiVersion=${dbCom.apiVersion}; supported versions=${apiValueStrings}`,
+        `Federation: dbCom: ${dbCom.id} with unsupported apiVersion=${dbCom.apiVersion}; supported versions`,
+        apiValueStrings,
       )
     }
-  })
+  }
 }
 
 function isLogError(err: unknown) {
