@@ -321,7 +321,6 @@ export class ContributionResolver {
 
     const contributionToUpdate = await DbContribution.findOne({
       where: { id, confirmedAt: IsNull(), deniedAt: IsNull() },
-      relations: ['user'],
     })
 
     if (!contributionToUpdate) {
@@ -358,7 +357,7 @@ export class ContributionResolver {
     result.date = contributionToUpdate.contributionDate
 
     await EVENT_ADMIN_CONTRIBUTION_UPDATE(
-      contributionToUpdate.user,
+      { id: contributionToUpdate.userId } as DbUser,
       moderator,
       contributionToUpdate,
       amount,

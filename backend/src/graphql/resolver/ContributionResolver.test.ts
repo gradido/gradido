@@ -2152,39 +2152,6 @@ describe('ContributionResolver', () => {
             })
           })
 
-          describe.skip('user email does not match creation user', () => {
-            it('throws an error', async () => {
-              jest.clearAllMocks()
-              await expect(
-                mutate({
-                  mutation: adminUpdateContribution,
-                  variables: {
-                    id: creation ? creation.id : -1,
-                    amount: new Decimal(300),
-                    memo: 'Danke Bibi!',
-                    creationDate: creation
-                      ? contributionDateFormatter(creation.contributionDate)
-                      : contributionDateFormatter(new Date()),
-                  },
-                }),
-              ).resolves.toEqual(
-                expect.objectContaining({
-                  errors: [
-                    new GraphQLError(
-                      'User of the pending contribution and send user does not correspond',
-                    ),
-                  ],
-                }),
-              )
-            })
-
-            it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith(
-                'User of the pending contribution and send user does not correspond',
-              )
-            })
-          })
-
           describe('creation update is not valid', () => {
             // as this test has not clearly defined that date, it is a false positive
             it('throws an error', async () => {

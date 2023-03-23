@@ -108,7 +108,6 @@ export default {
   },
   methods: {
     submitCreation() {
-      // console.log('submitCreation', this.selected)
       this.$apollo
         .mutate({
           mutation: adminUpdateContribution,
