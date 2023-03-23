@@ -26,4 +26,4 @@ export async function retrieveNotRegisteredEmails(): Promise<string[]> {
   return notRegisteredUser
 }
 
-retrieveNotRegisteredEmails()
+void retrieveNotRegisteredEmails()
