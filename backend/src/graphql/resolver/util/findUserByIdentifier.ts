@@ -1,12 +1,11 @@
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import LogError from '@/server/LogError'
+import { validate, version } from 'uuid'
 
 export const findUserByIdentifier = async (identifier: string): Promise<DbUser | null> => {
   let user: DbUser | undefined
-  if (
-    /^[0-9a-f]{8,8}-[0-9a-f]{4,4}-[0-9a-f]{4,4}-[0-9a-f]{4,4}-[0-9a-f]{12,12}$/.exec(identifier)
-  ) {
+  if (validate(identifier) && version(identifier) === 4) {
     user = await DbUser.findOne({ where: { gradidoID: identifier }, relations: ['emailContact'] })
     if (!user) {
       throw new LogError('No user found to given identifier', identifier)

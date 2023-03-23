@@ -6,6 +6,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 import { objectValuesToArray } from '@/util/utilities'
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
@@ -47,7 +48,6 @@ import { ContributionLink } from '@model/ContributionLink'
 import { TransactionLink } from '@entity/TransactionLink'
 import { EventType } from '@/event/Event'
 import { Event as DbEvent } from '@entity/Event'
-import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { UserContact } from '@entity/UserContact'
 import { OptInType } from '../enum/OptInType'
@@ -2230,6 +2230,8 @@ describe('UserResolver', () => {
     })
 
     describe('authenticated', () => {
+      const uuid = uuidv4()
+
       beforeAll(async () => {
         user = await userFactory(testEnv, bibiBloxberg)
         await mutate({
@@ -2262,7 +2264,7 @@ describe('UserResolver', () => {
             query({
               query: userQuery,
               variables: {
-                identifier: '00000000-0000-0000-0000-000000000000',
+                identifier: uuid,
               },
             }),
           ).resolves.toEqual(
@@ -2270,10 +2272,7 @@ describe('UserResolver', () => {
               errors: [new GraphQLError('No user found to given identifier')],
             }),
           )
-          expect(logger.error).toBeCalledWith(
-            'No user found to given identifier',
-            '00000000-0000-0000-0000-000000000000',
-          )
+          expect(logger.error).toBeCalledWith('No user found to given identifier', uuid)
         })
       })
 
