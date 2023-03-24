@@ -33,11 +33,8 @@ export class KlicktippResolver {
 
   @Authorized([RIGHTS.SUBSCRIBE_NEWSLETTER])
   @Mutation(() => Boolean)
-  async subscribeNewsletter(
-    @Arg('language') language: string,
-    @Ctx() context: Context,
-  ): Promise<boolean> {
+  async subscribeNewsletter(@Ctx() context: Context): Promise<boolean> {
     const user = getUser(context)
-    return await klicktippSignIn(user.emailContact.email, language)
+    return await klicktippSignIn(user.emailContact.email, user.language)
   }
 }
