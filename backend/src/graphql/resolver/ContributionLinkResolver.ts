@@ -29,7 +29,7 @@ import {
 
 @Resolver()
 export class ContributionLinkResolver {
-  @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION_LINK])
+  @Authorized([RIGHTS.CREATE_CONTRIBUTION_LINK])
   @Mutation(() => ContributionLink)
   async createContributionLink(
     @Args()
@@ -40,7 +40,7 @@ export class ContributionLinkResolver {
       cycle,
       validFrom,
       validTo,
-      maxAmountPerMonth,
+      maxAmountPerMonth = null,
       maxPerCycle,
     }: ContributionLinkArgs,
     @Ctx() context: Context,
@@ -97,8 +97,8 @@ export class ContributionLinkResolver {
     }
   }
 
-  @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION_LINK])
-  @Mutation(() => Boolean, { nullable: true })
+  @Authorized([RIGHTS.DELETE_CONTRIBUTION_LINK])
+  @Mutation(() => Boolean)
   async deleteContributionLink(
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
@@ -113,7 +113,7 @@ export class ContributionLinkResolver {
     return true
   }
 
-  @Authorized([RIGHTS.ADMIN_UPDATE_CONTRIBUTION_LINK])
+  @Authorized([RIGHTS.UPDATE_CONTRIBUTION_LINK])
   @Mutation(() => ContributionLink)
   async updateContributionLink(
     @Args()
@@ -124,7 +124,7 @@ export class ContributionLinkResolver {
       cycle,
       validFrom,
       validTo,
-      maxAmountPerMonth,
+      maxAmountPerMonth = null,
       maxPerCycle,
     }: ContributionLinkArgs,
     @Arg('id', () => Int) id: number,

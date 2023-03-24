@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -17,10 +22,12 @@ import {
   createContribution,
   updateContribution,
   createTransactionLink,
+  confirmContribution,
 } from '@/seeds/graphql/mutations'
 import { listTransactionLinksAdmin } from '@/seeds/graphql/queries'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { User } from '@entity/User'
+import { Transaction } from '@entity/Transaction'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import Decimal from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
@@ -140,6 +147,8 @@ describe('TransactionLinkResolver', () => {
       resetToken()
     })
 
+    let contributionId: number
+
     describe('unauthenticated', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
@@ -213,7 +222,7 @@ describe('TransactionLinkResolver', () => {
               mutate({
                 mutation: redeemTransactionLink,
                 variables: {
-                  code: 'CL-' + contributionLink.code,
+                  code: `CL-${contributionLink.code}`,
                 },
               }),
             ).resolves.toMatchObject({
@@ -252,7 +261,7 @@ describe('TransactionLinkResolver', () => {
               mutate({
                 mutation: redeemTransactionLink,
                 variables: {
-                  code: 'CL-' + contributionLink.code,
+                  code: `CL-${contributionLink.code}`,
                 },
               }),
             ).resolves.toMatchObject({
@@ -291,7 +300,7 @@ describe('TransactionLinkResolver', () => {
               mutate({
                 mutation: redeemTransactionLink,
                 variables: {
-                  code: 'CL-' + contributionLink.code,
+                  code: `CL-${contributionLink.code}`,
                 },
               }),
             ).resolves.toMatchObject({
@@ -309,7 +318,6 @@ describe('TransactionLinkResolver', () => {
           })
         })
 
-        // TODO: have this test separated into a transactionLink and a contributionLink part
         describe('redeem daily Contribution Link', () => {
           const now = new Date()
           let contributionLink: DbContributionLink | undefined
@@ -333,6 +341,10 @@ describe('TransactionLinkResolver', () => {
                 maxPerCycle: 1,
               },
             })
+          })
+
+          afterAll(async () => {
+            await resetEntity(Transaction)
           })
 
           it('has a daily contribution link in the database', async () => {
@@ -376,6 +388,7 @@ describe('TransactionLinkResolver', () => {
                 },
               })
               contribution = result.data.createContribution
+              contributionId = result.data.createContribution.id
             })
 
             it('does not allow the user to redeem the contribution link', async () => {
@@ -525,6 +538,92 @@ describe('TransactionLinkResolver', () => {
                   new Error('Contribution link already redeemed today'),
                 )
               })
+            })
+          })
+        })
+      })
+
+      describe('transaction link', () => {
+        beforeEach(() => {
+          jest.clearAllMocks()
+        })
+
+        describe('link does not exits', () => {
+          beforeAll(async () => {
+            await mutate({
+              mutation: login,
+              variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+            })
+          })
+
+          it('throws and logs the error', async () => {
+            await expect(
+              mutate({
+                mutation: redeemTransactionLink,
+                variables: {
+                  code: 'not-valid',
+                },
+              }),
+            ).resolves.toMatchObject({
+              errors: [new GraphQLError('Transaction link not found')],
+            })
+            expect(logger.error).toBeCalledWith('Transaction link not found', 'not-valid')
+          })
+        })
+
+        describe('link exists', () => {
+          let myCode: string
+
+          beforeAll(async () => {
+            await mutate({
+              mutation: login,
+              variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+            })
+            await mutate({
+              mutation: confirmContribution,
+              variables: { id: contributionId },
+            })
+            await mutate({
+              mutation: login,
+              variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+            })
+            const {
+              data: {
+                createTransactionLink: { code },
+              },
+            } = await mutate({
+              mutation: createTransactionLink,
+              variables: {
+                amount: 200,
+                memo: 'This is a transaction link from bibi',
+              },
+            })
+            myCode = code
+          })
+
+          describe('own link', () => {
+            beforeAll(async () => {
+              await mutate({
+                mutation: login,
+                variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+              })
+            })
+
+            it('throws and logs an error', async () => {
+              await expect(
+                mutate({
+                  mutation: redeemTransactionLink,
+                  variables: {
+                    code: myCode,
+                  },
+                }),
+              ).resolves.toMatchObject({
+                errors: [new GraphQLError('Cannot redeem own transaction link')],
+              })
+              expect(logger.error).toBeCalledWith(
+                'Cannot redeem own transaction link',
+                expect.any(Number),
+              )
             })
           })
         })

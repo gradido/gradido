@@ -89,6 +89,12 @@ export const createTransactionLink = gql`
   }
 `
 
+export const deleteTransactionLink = gql`
+  mutation ($id: Int!) {
+    deleteTransactionLink(id: $id)
+  }
+`
+
 // from admin interface
 
 export const adminCreateContribution = gql`
@@ -269,7 +275,7 @@ export const denyContribution = gql`
 `
 
 export const createContributionMessage = gql`
-  mutation ($contributionId: Float!, $message: String!) {
+  mutation ($contributionId: Int!, $message: String!) {
     createContributionMessage(contributionId: $contributionId, message: $message) {
       id
       message
@@ -283,7 +289,7 @@ export const createContributionMessage = gql`
 `
 
 export const adminCreateContributionMessage = gql`
-  mutation ($contributionId: Float!, $message: String!) {
+  mutation ($contributionId: Int!, $message: String!) {
     adminCreateContributionMessage(contributionId: $contributionId, message: $message) {
       id
       message

@@ -42,7 +42,7 @@
   </div>
 </template>
 <script>
-import { creationTransactionList } from '../graphql/creationTransactionList'
+import { adminListContributions } from '../graphql/adminListContributions'
 export default {
   name: 'CreationTransactionList',
   props: {
@@ -92,33 +92,26 @@ export default {
       ],
     }
   },
-  methods: {
-    getTransactions() {
-      this.$apollo
-        .query({
-          query: creationTransactionList,
-          variables: {
-            currentPage: this.currentPage,
-            pageSize: this.perPage,
-            order: 'DESC',
-            userId: parseInt(this.userId),
-          },
-        })
-        .then((result) => {
-          this.rows = result.data.creationTransactionList.contributionCount
-          this.items = result.data.creationTransactionList.contributionList
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-        })
-    },
-  },
-  created() {
-    this.getTransactions()
-  },
-  watch: {
-    currentPage() {
-      this.getTransactions()
+  apollo: {
+    AdminListContributions: {
+      query() {
+        return adminListContributions
+      },
+      variables() {
+        return {
+          currentPage: this.currentPage,
+          pageSize: this.perPage,
+          order: 'DESC',
+          userId: parseInt(this.userId),
+        }
+      },
+      update({ adminListContributions }) {
+        this.rows = adminListContributions.contributionCount
+        this.items = adminListContributions.contributionList
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
     },
   },
 }

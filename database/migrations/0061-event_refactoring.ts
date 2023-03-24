@@ -58,6 +58,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     'UPDATE `events` SET acting_user_id=involved_user_id WHERE `type` = "TRANSACTION_RECEIVE";',
   )
 
+  await queryFn('UPDATE `events` SET amount = amount * -1 WHERE `type` = "TRANSACTION_SEND";')
+
   await queryFn(
     'ALTER TABLE `events` MODIFY COLUMN `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);',
   )
@@ -67,6 +69,9 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn(
     'ALTER TABLE `events` MODIFY COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP();',
   )
+
+  await queryFn('UPDATE `events` SET amount = amount * -1 WHERE `type` = "TRANSACTION_SEND";')
+
   await queryFn(
     'UPDATE `events` SET involved_user_id=acting_user_id WHERE `type` = "ADMIN_CONTRIBUTION_DENY";',
   )

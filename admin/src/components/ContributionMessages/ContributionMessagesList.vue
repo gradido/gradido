@@ -1,17 +1,18 @@
 <template>
   <div class="contribution-messages-list">
     <b-container>
-      {{ messages.lenght }}
       <div v-for="message in messages" v-bind:key="message.id">
         <contribution-messages-list-item :message="message" />
       </div>
     </b-container>
 
-    <contribution-messages-formular
-      :contributionId="contributionId"
-      @get-list-contribution-messages="getListContributionMessages"
-      @update-state="updateState"
-    />
+    <div v-if="contributionState === 'PENDING' || contributionState === 'IN_PROGRESS'">
+      <contribution-messages-formular
+        :contributionId="contributionId"
+        @get-list-contribution-messages="getListContributionMessages"
+        @update-state="updateState"
+      />
+    </div>
   </div>
 </template>
 <script>
@@ -28,6 +29,10 @@ export default {
   props: {
     contributionId: {
       type: Number,
+      required: true,
+    },
+    contributionState: {
+      type: String,
       required: true,
     },
   },
