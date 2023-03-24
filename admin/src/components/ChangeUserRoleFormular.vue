@@ -27,7 +27,7 @@
       :title="modalTitle"
       :cancel-title="$t('overlay.cancel')"
       :ok-title="modalOkTitle"
-      @ok="modalEvent"
+      @ok="setUserRole(roleSelected, currentRole)"
     >
       <p class="my-4">{{ modalQuestion }}</p>
     </b-modal>
@@ -60,16 +60,8 @@ export default {
       modalTitle: '',
       modalQuestion: '',
       modalOkTitle: '',
-      modalEvent: null,
       username: '',
     }
-  },
-  watch: {
-    // roleSelected(newRole, oldRole) {
-    //   if (newRole !== oldRole) {
-    //     // this.setUserRole(newRole, oldRole)
-    //   }
-    // },
   },
   methods: {
     showModal() {
@@ -80,7 +72,6 @@ export default {
         newRole: this.roleSelected, // TODO get the text:Administrator instead of admin
       })
       this.modalOkTitle = this.$t('overlay.changeUserRole.yes')
-      this.modalEvent = this.setUserRole(this.roleSelected, this.currentRole)
     },
     setUserRole(newRole, oldRole) {
       this.$apollo
