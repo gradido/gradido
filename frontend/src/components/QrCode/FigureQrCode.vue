@@ -1,7 +1,10 @@
 <template>
   <div class="figure-qr-code">
     <div class="qrbox">
-      <q-r-canvas :options="options" class="canvas" />
+      <q-r-canvas :options="options" class="canvas mb-4" id="qrcanvas" />
+      <a id="download" download="GradidoLinkQRCode.png" href="" @click="downloadImg(this)">
+        {{ $t('download') }}
+      </a>
     </div>
   </div>
 </template>
@@ -36,6 +39,13 @@ export default {
         },
       }
     }
+  },
+  methods: {
+    downloadImg() {
+      const canvas = document.getElementById('qrcanvas')
+      const image = canvas.toDataURL('image/png')
+      document.getElementById('download').href = image
+    },
   },
 }
 </script>
