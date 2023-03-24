@@ -60,9 +60,6 @@ describe('UserCard_Newsletter', () => {
       it('calls the unsubscribe mutation', () => {
         expect(mockAPIcall).toBeCalledWith({
           mutation: unsubscribeNewsletter,
-          variables: {
-            language: undefined,
-          },
         })
       })
 
@@ -89,9 +86,6 @@ describe('UserCard_Newsletter', () => {
       it('calls the subscribe mutation', () => {
         expect(mockAPIcall).toBeCalledWith({
           mutation: subscribeNewsletter,
-          variables: {
-            language: 'de',
-          },
         })
       })
 
