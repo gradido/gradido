@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -137,13 +138,7 @@ export const executeTransaction = async (
       await queryRunner.commitTransaction()
       logger.info(`commit Transaction successful...`)
 
-      await EVENT_TRANSACTION_SEND(
-        sender,
-        recipient,
-        transactionSend,
-        // TODO why mul -1?
-        transactionSend.amount.mul(-1),
-      )
+      await EVENT_TRANSACTION_SEND(sender, recipient, transactionSend, transactionSend.amount)
 
       await EVENT_TRANSACTION_RECEIVE(
         recipient,
@@ -305,7 +300,7 @@ export class TransactionResolver {
   }
 
   @Authorized([RIGHTS.SEND_COINS])
-  @Mutation(() => String)
+  @Mutation(() => Boolean)
   async sendCoins(
     @Args() { email, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,

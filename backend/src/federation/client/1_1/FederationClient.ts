@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { gql } from 'graphql-request'
 import { backendLogger as logger } from '@/server/logger'
 import { Community as DbCommunity } from '@entity/Community'
@@ -18,9 +21,13 @@ export async function requestGetPublicKey(dbCom: DbCommunity): Promise<string | 
       }
     }
   `
+  const variables = {}
 
   try {
-    const { data, errors, extensions, headers, status } = await graphQLClient.rawRequest(query)
+    const { data, errors, extensions, headers, status } = await graphQLClient.rawRequest(
+      query,
+      variables,
+    )
     logger.debug(`Response-Data:`, data, errors, extensions, headers, status)
     if (data) {
       logger.debug(`Response-PublicKey:`, data.getPublicKey.publicKey)
