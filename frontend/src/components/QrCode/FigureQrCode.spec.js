@@ -6,12 +6,15 @@ const localVue = global.localVue
 const propsData = {
   link: '',
 }
+const mocks = {
+  $t: jest.fn((t) => t),
+}
 
 describe('FigureQrCode', () => {
   let wrapper
 
   const Wrapper = () => {
-    return mount(FigureQrCode, { localVue, propsData })
+    return mount(FigureQrCode, { localVue, mocks, propsData })
   }
 
   describe('mount', () => {
