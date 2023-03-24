@@ -42,7 +42,6 @@ export default {
         .mutate({
           mutation: this.newsletterState ? subscribeNewsletter : unsubscribeNewsletter,
           variables: {
-            email: this.$store.state.email,
             language: this.newsletterState ? this.$store.state.language : undefined,
           },
         })
