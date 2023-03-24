@@ -50,7 +50,24 @@ Before starting in describing the details of the federation handshake, some prer
 
 With the federation additional data tables/entities have to be created.
 
-The following diagramm shows the first draft of a possible database-model base on the migration 0063-event_link_fields.ts
+The following diagramms shows the first draft of the possible database-model base on the migration 0063-event_link_fields.ts with 3 steps of migration to reach the required entities. All three diagramms are not exhaustive and are still a base for discussions:
+
+![img](./image/classdiagramm_x-community-readyness_step1.svg)
+
+In the first step the current communities table will be renamed to communities_federation. A new table communities is created. Because of the dynamic in the communities_federation data during dht-federation the relation between both entities will be on the collumn communities.communities_federation_public_key. This relation will allow to read a community-entry including its relation to the multi federation entries per api-version with the public key as identifier.
+
+
+![img](./image/classdiagramm_x-community-readyness_step2.svg)
+
+The 2nd step is an introduction of the entity accounts between the users and the transactions table. This will cause a separation of the transactions from the users, to avoid possible conflicts or dependencies between local users of the community and remote users of foreign users, who will be part of x-communitiy-transactions.
+
+
+![img](./image/classdiagramm_x-community-readyness_step3.svg)
+
+The 3rd step will introduce an additional foreign-users and a users_favorites table. A foreign_user could be stored in the existing users-table, but he will not need all the attributes of a home-user, especially he will never gets an AGE-account in this community. The user_favorites entity is designed to buildup the relations between users and foreign_users or in general between all users. This is simply a first idea for a future discussion.
+
+
+
 
 ![img](./image/classdiagramm_communities-communities_federation.png)
 
