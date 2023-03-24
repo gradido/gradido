@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { Resolver, Query, Authorized, Arg, Mutation, Args } from 'type-graphql'
-
-import SubscribeNewsletterArgs from '@arg/SubscribeNewsletterArgs'
+import { Resolver, Query, Authorized, Arg, Mutation, Args, Ctx } from 'type-graphql'
 
 import {
   getKlickTippUser,
@@ -10,6 +8,7 @@ import {
   klicktippSignIn,
 } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
+import { Context, getUser } from '@/server/context'
 
 @Resolver()
 export class KlicktippResolver {
@@ -27,15 +26,18 @@ export class KlicktippResolver {
 
   @Authorized([RIGHTS.UNSUBSCRIBE_NEWSLETTER])
   @Mutation(() => Boolean)
-  async unsubscribeNewsletter(@Arg('email') email: string): Promise<boolean> {
-    return await unsubscribe(email)
+  async unsubscribeNewsletter(@Ctx() context: Context): Promise<boolean> {
+    const user = getUser(context)
+    return await unsubscribe(user.emailContact.email)
   }
 
   @Authorized([RIGHTS.SUBSCRIBE_NEWSLETTER])
   @Mutation(() => Boolean)
   async subscribeNewsletter(
-    @Args() { email, language }: SubscribeNewsletterArgs,
+    @Arg('language') language: string,
+    @Ctx() context: Context,
   ): Promise<boolean> {
-    return await klicktippSignIn(email, language)
+    const user = getUser(context)
+    return await klicktippSignIn(user.emailContact.email, language)
   }
 }
