@@ -9,7 +9,7 @@ jobs:
     name: Detect File Changes - Federation
     runs-on: ubuntu-latest
     outputs:
-      docker: ${{ steps.changes.outputs.docker }}
+      docker-compose: ${{ steps.changes.outputs.docker-compose }}
       federation: ${{ steps.changes.outputs.federation }}
     steps:
       - uses: actions/checkout@v3.3.0
@@ -27,7 +27,7 @@ jobs:
   ##############################################################################
   build:
     name: Docker Build Test - Federation
-    if: needs.files-changed.outputs.docker == 'true' || needs.files-changed.outputs.federation == 'true'
+    if: needs.files-changed.outputs.federation == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
@@ -65,7 +65,7 @@ jobs:
   ##############################################################################
   unit_test:
     name: Unit Tests - Federation
-    if: needs.files-changed.outputs.docker == 'true' || needs.files-changed.outputs.federation == 'true'
+    if: needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.federation == 'true'
     needs: [files-changed, build]
     runs-on: ubuntu-latest
     steps:

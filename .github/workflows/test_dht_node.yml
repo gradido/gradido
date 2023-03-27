@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       dht_node: ${{ steps.changes.outputs.dht_node }}
-      docker: ${{ steps.changes.outputs.docker }}
+      docker-compose: ${{ steps.changes.outputs.docker-compose }}
     steps:
       - uses: actions/checkout@v3.3.0
 
@@ -27,7 +27,7 @@ jobs:
   ##############################################################################
   build:
     name: Docker Build Test - DHT Node
-    if: needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker == 'true'
+    if: needs.files-changed.outputs.dht_node == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
@@ -65,7 +65,7 @@ jobs:
   ##############################################################################
   unit_test:
     name: Unit Tests - DHT Node
-    if: needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker == 'true'
+    if: needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
     needs: [files-changed, build]
     runs-on: ubuntu-latest
     steps:
