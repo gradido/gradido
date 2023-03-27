@@ -29,8 +29,6 @@ import {
   confirmContribution,
 } from '@/seeds/graphql/mutations'
 import { listTransactionLinksAdmin } from '@/seeds/graphql/queries'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { User } from '@entity/User'
 import { Transaction } from '@entity/Transaction'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'

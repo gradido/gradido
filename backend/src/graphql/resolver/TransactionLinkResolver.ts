@@ -33,8 +33,6 @@ import { calculateDecay } from '@/util/decay'
 import QueryLinkResult from '@union/QueryLinkResult'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import LogError from '@/server/LogError'
-import { getLastTransaction } from './util/getLastTransaction'
-import transactionLinkList from './util/transactionLinkList'
 import {
   EVENT_CONTRIBUTION_LINK_REDEEM,
   EVENT_TRANSACTION_LINK_CREATE,
