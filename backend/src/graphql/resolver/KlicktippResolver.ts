@@ -28,7 +28,7 @@ export class KlicktippResolver {
   @Mutation(() => Boolean)
   async unsubscribeNewsletter(@Ctx() context: Context): Promise<boolean> {
     const user = getUser(context)
-    return await unsubscribe(user.emailContact.email)
+    return unsubscribe(user.emailContact.email)
   }
 
   @Authorized([RIGHTS.SUBSCRIBE_NEWSLETTER])
