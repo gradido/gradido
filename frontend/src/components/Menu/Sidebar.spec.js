@@ -49,15 +49,15 @@ describe('Sidebar', () => {
         expect(wrapper.findAll('.nav-item').at(2).text()).toEqual('navigation.transactions')
       })
 
-      it('has nav-item "gdt.gdt" in navbar', () => {
+      it('has nav-item "creation" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(3).text()).toEqual('creation')
       })
 
-      it('has nav-item "creation" in navbar', () => {
+      it('has nav-item "GDT" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(4).text()).toContain('GDT')
       })
 
-      it('has nav-item "Information" in navbar', () => {
+      it('has nav-item "navigation.info" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(5).text()).toContain('navigation.info')
       })
     })
@@ -68,13 +68,13 @@ describe('Sidebar', () => {
           expect(wrapper.findAll('ul').at(1).findAll('.nav-item')).toHaveLength(2)
         })
 
-        it('has nav-item "navigation.info" in navbar', () => {
+        it('has nav-item "navigation.settings" in navbar', () => {
           expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(0).text()).toEqual(
             'navigation.settings',
           )
         })
 
-        it('has nav-item "navigation.settings" in navbar', () => {
+        it('has nav-item "navigation.logout" in navbar', () => {
           expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(1).text()).toEqual(
             'navigation.logout',
           )
