@@ -35,6 +35,6 @@ export class KlicktippResolver {
   @Mutation(() => Boolean)
   async subscribeNewsletter(@Ctx() context: Context): Promise<boolean> {
     const user = getUser(context)
-    return await klicktippSignIn(user.emailContact.email, user.language)
+    return klicktippSignIn(user.emailContact.email, user.language)
   }
 }
