@@ -115,7 +115,7 @@ describe('ContributionMessageResolver', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "ContributionMessage was not sent successfully: Error: Contribution not found"', () => {
           expect(logger.error).toBeCalledWith(
             'ContributionMessage was not sent successfully: Error: Contribution not found',
             new Error('Contribution not found'),
@@ -155,7 +155,7 @@ describe('ContributionMessageResolver', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "ContributionMessage was not sent successfully: Error: Admin can not answer on his own contribution"', () => {
           expect(logger.error).toBeCalledWith(
             'ContributionMessage was not sent successfully: Error: Admin can not answer on his own contribution',
             new Error('Admin can not answer on his own contribution'),
@@ -265,7 +265,7 @@ describe('ContributionMessageResolver', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "ContributionMessage was not sent successfully: Error: Contribution not found"', () => {
           expect(logger.error).toBeCalledWith(
             'ContributionMessage was not sent successfully: Error: Contribution not found',
             new Error('Contribution not found'),
@@ -297,7 +297,7 @@ describe('ContributionMessageResolver', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "ContributionMessage was not sent successfully: Error: Can not send message to contribution of another user"', () => {
           expect(logger.error).toBeCalledWith(
             'ContributionMessage was not sent successfully: Error: Can not send message to contribution of another user',
             new Error('Can not send message to contribution of another user'),
