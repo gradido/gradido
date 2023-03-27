@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import CONFIG from '@/config'
 import { backendLogger as logger } from '@/server/logger'
 import path from 'path'

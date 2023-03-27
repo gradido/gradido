@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/unbound-method */
 import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { User } from '@entity/User'
 import { UserInterface } from '@/seeds/users/UserInterface'
