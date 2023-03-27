@@ -280,7 +280,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "A Start-Date must be set"', () => {
           expect(logger.error).toBeCalledWith('A Start-Date must be set')
         })
 
@@ -301,7 +301,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "An End-Date must be set"', () => {
           expect(logger.error).toBeCalledWith('An End-Date must be set')
         })
 
@@ -325,7 +325,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The value of validFrom must before or equals the validTo"', () => {
           expect(logger.error).toBeCalledWith(
             `The value of validFrom must before or equals the validTo`,
           )
@@ -348,7 +348,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The value of name is too short"', () => {
           expect(logger.error).toBeCalledWith('The value of name is too short', 3)
         })
 
@@ -369,7 +369,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The value of name is too long"', () => {
           expect(logger.error).toBeCalledWith('The value of name is too long', 101)
         })
 
@@ -390,7 +390,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The value of memo is too short"', () => {
           expect(logger.error).toBeCalledWith('The value of memo is too short', 3)
         })
 
@@ -411,7 +411,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The value of memo is too long"', () => {
           expect(logger.error).toBeCalledWith('The value of memo is too long', 256)
         })
 
@@ -432,7 +432,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The amount must be a positiv value"', () => {
           expect(logger.error).toBeCalledWith('The amount must be a positiv value', new Decimal(0))
         })
       })
@@ -490,7 +490,7 @@ describe('Contribution Links', () => {
           })
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "Contribution Link not found"', () => {
           expect(logger.error).toBeCalledWith('Contribution Link not found', -1)
         })
 
@@ -572,7 +572,7 @@ describe('Contribution Links', () => {
             )
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "Contribution Link not found"', () => {
             expect(logger.error).toBeCalledWith('Contribution Link not found', -1)
           })
         })
