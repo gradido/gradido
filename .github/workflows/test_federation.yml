@@ -3,8 +3,6 @@ name: Gradido Federation Test CI
 on: push
 
 jobs:
-  # only (but most important) job from this workflow required for pull requests
-  # check results serve as run conditions for all other jobs here 
   files-changed:
     name: Detect File Changes - Federation
     runs-on: ubuntu-latest
@@ -22,9 +20,6 @@ jobs:
           filters: .github/file-filters.yml
           list-files: shell
   
-  ##############################################################################
-  # JOB: DOCKER BUILD TEST #####################################################
-  ##############################################################################
   build:
     name: Docker Build Test - Federation
     if: needs.files-changed.outputs.federation == 'true'
@@ -45,9 +40,6 @@ jobs:
           name: docker-federation-test
           path: /tmp/federation.tar
 
-  ##############################################################################
-  # JOB: LINT ##################################################################
-  ##############################################################################
   lint:
     name: Lint - Federation
     if: needs.files-changed.outputs.federation == 'true'
@@ -60,9 +52,6 @@ jobs:
       - name: Lint
         run: cd federation && yarn && yarn run lint
 
-  ##############################################################################
-  # JOB: UNIT TEST #############################################################
-  ##############################################################################
   unit_test:
     name: Unit Tests - Federation
     if: needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.federation == 'true'
