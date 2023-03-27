@@ -453,7 +453,7 @@ describe('TransactionLinkResolver', () => {
                 { email: 'bibi@bloxberg.de' },
                 { relations: ['user'] },
               )
-              expect(DbEvent.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventType.CONTRIBUTION_LINK_REDEEM,
                   affectedUserId: userConatct.user.id,
