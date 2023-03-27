@@ -873,7 +873,7 @@ describe('UserResolver', () => {
           { email: 'bibi@bloxberg.de' },
           { relations: ['user'] },
         )
-        expect(DbEvent.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.LOGOUT,
             affectedUserId: userConatct.user.id,
@@ -1042,7 +1042,7 @@ describe('UserResolver', () => {
             { email: 'bibi@bloxberg.de' },
             { relations: ['user'] },
           )
-          expect(DbEvent.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.EMAIL_FORGOT_PASSWORD,
               affectedUserId: userConatct.user.id,
@@ -1180,7 +1180,7 @@ describe('UserResolver', () => {
             { email: 'bibi@bloxberg.de' },
             { relations: ['user'] },
           )
-          expect(DbEvent.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.USER_INFO_UPDATE,
               affectedUserId: userConatct.user.id,
@@ -1568,7 +1568,7 @@ describe('UserResolver', () => {
                   { email: 'peter@lustig.de' },
                   { relations: ['user'] },
                 )
-                expect(DbEvent.find()).resolves.toContainEqual(
+                await expect(DbEvent.find()).resolves.toContainEqual(
                   expect.objectContaining({
                     type: EventType.ADMIN_USER_ROLE_SET,
                     affectedUserId: userConatct.user.id,
@@ -1770,7 +1770,7 @@ describe('UserResolver', () => {
               { email: 'peter@lustig.de' },
               { relations: ['user'] },
             )
-            expect(DbEvent.find()).resolves.toContainEqual(
+            await expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
                 type: EventType.ADMIN_USER_DELETE,
                 affectedUserId: userConatct.user.id,
@@ -2064,7 +2064,7 @@ describe('UserResolver', () => {
                 { email: 'peter@lustig.de' },
                 { relations: ['user'] },
               )
-              expect(DbEvent.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventType.ADMIN_USER_UNDELETE,
                   affectedUserId: userConatct.user.id,
