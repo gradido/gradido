@@ -7,6 +7,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { GraphQLError } from 'graphql'
+import { Event as DbEvent } from '@entity/Event'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 import {
@@ -21,7 +22,6 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Event'
-import { Event as DbEvent } from '@entity/Event'
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')

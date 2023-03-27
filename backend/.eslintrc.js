@@ -94,6 +94,8 @@ module.exports = {
         'no-void': ['error', { allowAsStatement: true }],
         // ignore prefer-regexp-exec rule to allow string.match(regex)
         '@typescript-eslint/prefer-regexp-exec': 'off',
+        // this should not run on ts files: https://github.com/import-js/eslint-plugin-import/issues/2215#issuecomment-911245486
+        'import/unambiguous': 'off',
       },
       parserOptions: {
         tsconfigRootDir: './',

@@ -2,6 +2,7 @@ import { User as DbUser } from '@entity/User'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
 import { Event as DbEvent } from '@entity/Event'
+/* eslint-disable-next-line import/no-cycle */
 import { Event, EventType } from './Event'
 
 export const EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE = async (

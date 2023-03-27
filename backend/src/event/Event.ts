@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import { Event as DbEvent } from '@entity/Event'
 import { User as DbUser } from '@entity/User'
 import { Transaction as DbTransaction } from '@entity/Transaction'
@@ -5,8 +6,8 @@ import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import Decimal from 'decimal.js-light'
-import { EventType } from './Event'
+import { Decimal } from 'decimal.js-light'
+import { EventType } from './EventType'
 
 export const Event = (
   type: EventType,
@@ -34,7 +35,7 @@ export const Event = (
   return event
 }
 
-export { EventType } from './EventType'
+export { EventType }
 
 export { EVENT_ACTIVATE_ACCOUNT } from './EVENT_ACTIVATE_ACCOUNT'
 export { EVENT_ADMIN_CONTRIBUTION_CONFIRM } from './EVENT_ADMIN_CONTRIBUTION_CONFIRM'

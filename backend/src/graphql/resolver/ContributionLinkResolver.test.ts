@@ -7,6 +7,7 @@
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { Event as DbEvent } from '@entity/Event'
 import { logger } from '@test/testSetup'
 import {
   login,
@@ -20,7 +21,6 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { userFactory } from '@/seeds/factory/user'
 import { EventType } from '@/event/Event'
-import { Event as DbEvent } from '@entity/Event'
 
 let mutate: any, query: any, con: any
 let testEnv: any
