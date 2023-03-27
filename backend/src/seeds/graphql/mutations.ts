@@ -89,6 +89,12 @@ export const createTransactionLink = gql`
   }
 `
 
+export const deleteTransactionLink = gql`
+  mutation ($id: Int!) {
+    deleteTransactionLink(id: $id)
+  }
+`
+
 // from admin interface
 
 export const adminCreateContribution = gql`

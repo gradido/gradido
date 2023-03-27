@@ -25,7 +25,6 @@ import { ContributionCycleType } from '@enum/ContributionCycleType'
 import TransactionLinkArgs from '@arg/TransactionLinkArgs'
 import Paginated from '@arg/Paginated'
 import TransactionLinkFilters from '@arg/TransactionLinkFilters'
-
 import { backendLogger as logger } from '@/server/logger'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { calculateBalance } from '@/util/validate'
@@ -34,6 +33,14 @@ import { calculateDecay } from '@/util/decay'
 import QueryLinkResult from '@union/QueryLinkResult'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import LogError from '@/server/LogError'
+import { getLastTransaction } from './util/getLastTransaction'
+import transactionLinkList from './util/transactionLinkList'
+import {
+  EVENT_CONTRIBUTION_LINK_REDEEM,
+  EVENT_TRANSACTION_LINK_CREATE,
+  EVENT_TRANSACTION_LINK_DELETE,
+  EVENT_TRANSACTION_LINK_REDEEM,
+} from '@/event/Event'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -88,6 +95,7 @@ export class TransactionLinkResolver {
     await DbTransactionLink.save(transactionLink).catch((e) => {
       throw new LogError('Unable to save transaction link', e)
     })
+    await EVENT_TRANSACTION_LINK_CREATE(user, transactionLink, amount)
 
     return new TransactionLink(transactionLink, new User(user))
   }
@@ -120,6 +128,8 @@ export class TransactionLinkResolver {
     await transactionLink.softRemove().catch((e) => {
       throw new LogError('Transaction link could not be deleted', e)
     })
+
+    await EVENT_TRANSACTION_LINK_DELETE(user, transactionLink)
 
     return true
   }
@@ -271,7 +281,13 @@ export class TransactionLinkResolver {
           await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
           await queryRunner.commitTransaction()
-          logger.info('creation from contribution link commited successfuly.')
+          await EVENT_CONTRIBUTION_LINK_REDEEM(
+            user,
+            transaction,
+            contribution,
+            contributionLink,
+            contributionLink.amount,
+          )
         } catch (e) {
           await queryRunner.rollbackTransaction()
           throw new LogError('Creation from contribution link was not successful', e)
@@ -284,11 +300,19 @@ export class TransactionLinkResolver {
       return true
     } else {
       const now = new Date()
-      const transactionLink = await DbTransactionLink.findOneOrFail({ code })
-      const linkedUser = await DbUser.findOneOrFail(
+      const transactionLink = await DbTransactionLink.findOne({ code })
+      if (!transactionLink) {
+        throw new LogError('Transaction link not found', code)
+      }
+
+      const linkedUser = await DbUser.findOne(
         { id: transactionLink.userId },
         { relations: ['emailContact'] },
       )
+
+      if (!linkedUser) {
+        throw new LogError('Linked user not found for given link', transactionLink.userId)
+      }
 
       if (user.id === linkedUser.id) {
         throw new LogError('Cannot redeem own transaction link', user.id)
@@ -311,6 +335,12 @@ export class TransactionLinkResolver {
         linkedUser,
         user,
         transactionLink,
+      )
+      await EVENT_TRANSACTION_LINK_REDEEM(
+        user,
+        { id: transactionLink.userId } as DbUser,
+        transactionLink,
+        transactionLink.amount,
       )
 
       return true

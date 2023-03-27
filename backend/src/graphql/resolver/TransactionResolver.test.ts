@@ -6,12 +6,11 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Decimal } from 'decimal.js-light'
-import { EventProtocol } from '@entity/EventProtocol'
 import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { GraphQLError } from 'graphql'
 import { findUserByEmail } from './UserResolver'
-import { EventProtocolType } from '@/event/EventProtocolType'
+import { EventType } from '@/event/Event'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
@@ -23,6 +22,7 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
+import { Event as DbEvent } from '@entity/Event'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
@@ -341,12 +341,13 @@ describe('send coins', () => {
           memo: 'unrepeatable memo',
         })
 
-        await expect(EventProtocol.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventProtocolType.TRANSACTION_SEND,
-            userId: user[1].id,
-            transactionId: transaction[0].id,
-            xUserId: user[0].id,
+            type: EventType.TRANSACTION_SEND,
+            affectedUserId: user[1].id,
+            actingUserId: user[1].id,
+            involvedUserId: user[0].id,
+            involvedTransactionId: transaction[0].id,
           }),
         )
       })
@@ -358,12 +359,13 @@ describe('send coins', () => {
           memo: 'unrepeatable memo',
         })
 
-        await expect(EventProtocol.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventProtocolType.TRANSACTION_RECEIVE,
-            userId: user[0].id,
-            transactionId: transaction[0].id,
-            xUserId: user[1].id,
+            type: EventType.TRANSACTION_RECEIVE,
+            affectedUserId: user[0].id,
+            actingUserId: user[1].id,
+            involvedUserId: user[1].id,
+            involvedTransactionId: transaction[0].id,
           }),
         )
       })

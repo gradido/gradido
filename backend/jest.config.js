@@ -5,6 +5,11 @@ module.exports = {
   preset: 'ts-jest',
   collectCoverage: true,
   collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**', '!build/**'],
+  coverageThreshold: {
+    global: {
+      lines: 85,
+    },
+  },
   setupFiles: ['<rootDir>/test/testSetup.ts'],
   setupFilesAfterEnv: ['<rootDir>/test/extensions.ts'],
   modulePathIgnorePatterns: ['<rootDir>/build/'],

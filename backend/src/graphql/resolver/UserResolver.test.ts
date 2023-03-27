@@ -9,7 +9,6 @@
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 import { TransactionLink } from '@entity/TransactionLink'
-import { EventProtocol } from '@entity/EventProtocol'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { UserContact } from '@entity/UserContact'
 import { OptInType } from '@enum/OptInType'
@@ -45,7 +44,10 @@ import {
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { ContributionLink } from '@model/ContributionLink'
-import { EventProtocolType } from '@/event/EventProtocolType'
+import { TransactionLink } from '@entity/TransactionLink'
+import { EventType } from '@/event/Event'
+import { Event as DbEvent } from '@entity/Event'
+import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
@@ -187,10 +189,11 @@ describe('UserResolver', () => {
           { email: 'peter@lustig.de' },
           { relations: ['user'] },
         )
-        await expect(EventProtocol.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventProtocolType.REGISTER,
-            userId: userConatct.user.id,
+            type: EventType.REGISTER,
+            affectedUserId: userConatct.user.id,
+            actingUserId: userConatct.user.id,
           }),
         )
       })
@@ -216,10 +219,11 @@ describe('UserResolver', () => {
       })
 
       it('stores the SEND_CONFIRMATION_EMAIL event in the database', async () => {
-        await expect(EventProtocol.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
-            userId: user[0].id,
+            type: EventType.SEND_CONFIRMATION_EMAIL,
+            affectedUserId: user[0].id,
+            actingUserId: user[0].id,
           }),
         )
       })
@@ -261,10 +265,11 @@ describe('UserResolver', () => {
           { email: 'peter@lustig.de' },
           { relations: ['user'] },
         )
-        await expect(EventProtocol.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventProtocolType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
-            userId: userConatct.user.id,
+            type: EventType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
+            affectedUserId: userConatct.user.id,
+            actingUserId: 0,
           }),
         )
       })
@@ -361,20 +366,22 @@ describe('UserResolver', () => {
         })
 
         it('stores the ACTIVATE_ACCOUNT event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventProtocolType.ACTIVATE_ACCOUNT,
-              userId: user[0].id,
+              type: EventType.ACTIVATE_ACCOUNT,
+              affectedUserId: user[0].id,
+              actingUserId: user[0].id,
             }),
           )
         })
 
         it('stores the REDEEM_REGISTER event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventProtocolType.REDEEM_REGISTER,
-              userId: result.data.createUser.id,
-              contributionId: link.id,
+              type: EventType.REDEEM_REGISTER,
+              affectedUserId: result.data.createUser.id,
+              actingUserId: result.data.createUser.id,
+              involvedContributionLinkId: link.id,
             }),
           )
         })
@@ -454,10 +461,12 @@ describe('UserResolver', () => {
         })
 
         it('stores the REDEEM_REGISTER event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventProtocolType.REDEEM_REGISTER,
-              userId: newUser.data.createUser.id,
+              type: EventType.REDEEM_REGISTER,
+              affectedUserId: newUser.data.createUser.id,
+              actingUserId: newUser.data.createUser.id,
+              involvedTransactionLinkId: transactionLink.id,
             }),
           )
         })
@@ -685,10 +694,11 @@ describe('UserResolver', () => {
           { email: 'bibi@bloxberg.de' },
           { relations: ['user'] },
         )
-        await expect(EventProtocol.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventProtocolType.LOGIN,
-            userId: userConatct.user.id,
+            type: EventType.LOGIN,
+            affectedUserId: userConatct.user.id,
+            actingUserId: userConatct.user.id,
           }),
         )
       })
@@ -934,10 +944,11 @@ describe('UserResolver', () => {
         })
 
         it('stores the LOGIN event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventProtocolType.LOGIN,
-              userId: user[0].id,
+              type: EventType.LOGIN,
+              affectedUserId: user[0].id,
+              actingUserId: user[0].id,
             }),
           )
         })
@@ -1853,10 +1864,11 @@ describe('UserResolver', () => {
               { email: 'bibi@bloxberg.de' },
               { relations: ['user'] },
             )
-            await expect(EventProtocol.find()).resolves.toContainEqual(
+            await expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
-                type: EventProtocolType.ADMIN_SEND_CONFIRMATION_EMAIL,
-                userId: userConatct.user.id,
+                type: EventType.ADMIN_SEND_CONFIRMATION_EMAIL,
+                affectedUserId: userConatct.user.id,
+                actingUserId: admin.id,
               }),
             )
           })
