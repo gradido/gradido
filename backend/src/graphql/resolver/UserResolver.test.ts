@@ -385,7 +385,7 @@ describe('UserResolver', () => {
               type: EventType.REDEEM_REGISTER,
               affectedUserId: result.data.createUser.id,
               actingUserId: result.data.createUser.id,
-              involvedContributionId: link.id,
+              involvedContributionLinkId: link.id,
             }),
           )
         })
@@ -470,7 +470,7 @@ describe('UserResolver', () => {
               type: EventType.REDEEM_REGISTER,
               affectedUserId: newUser.data.createUser.id,
               actingUserId: newUser.data.createUser.id,
-              involvedTransactionId: transactionLink.id,
+              involvedTransactionLinkId: transactionLink.id,
             }),
           )
         })
@@ -803,6 +803,7 @@ describe('UserResolver', () => {
       })
     })
 
+    // eslint-disable-next-line jest/no-disabled-tests
     describe.skip('user is in database but password is not set', () => {
       beforeAll(async () => {
         jest.clearAllMocks()

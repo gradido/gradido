@@ -33,6 +33,9 @@ import Decimal from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { logger } from '@test/testSetup'
+import { EventType } from '@/event/Event'
+import { Event as DbEvent } from '@entity/Event'
+import { UserContact } from '@entity/UserContact'
 
 // mock semaphore to allow use fake timers
 jest.mock('@/util/TRANSACTIONS_LOCK')
@@ -96,7 +99,7 @@ describe('TransactionLinkResolver', () => {
           errors: [new GraphQLError('Amount must be a positive number')],
         })
       })
-      it('logs the error thrown', () => {
+      it('logs the error "Amount must be a positive number" - 0', () => {
         expect(logger.error).toBeCalledWith('Amount must be a positive number', new Decimal(0))
       })
 
@@ -114,7 +117,7 @@ describe('TransactionLinkResolver', () => {
           errors: [new GraphQLError('Amount must be a positive number')],
         })
       })
-      it('logs the error thrown', () => {
+      it('logs the error "Amount must be a positive number" - -10', () => {
         expect(logger.error).toBeCalledWith('Amount must be a positive number', new Decimal(-10))
       })
 
@@ -132,7 +135,7 @@ describe('TransactionLinkResolver', () => {
           errors: [new GraphQLError('User has not enough GDD')],
         })
       })
-      it('logs the error thrown', () => {
+      it('logs the error "User has not enough GDD"', () => {
         expect(logger.error).toBeCalledWith('User has not enough GDD', expect.any(Number))
       })
     })
@@ -184,7 +187,7 @@ describe('TransactionLinkResolver', () => {
             })
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "No contribution link found to given code"', () => {
             expect(logger.error).toBeCalledWith(
               'No contribution link found to given code',
               'CL-123456',
@@ -228,7 +231,7 @@ describe('TransactionLinkResolver', () => {
             await resetEntity(DbContributionLink)
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "Contribution link is not valid yet"', () => {
             expect(logger.error).toBeCalledWith('Contribution link is not valid yet', validFrom)
             expect(logger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
@@ -267,7 +270,7 @@ describe('TransactionLinkResolver', () => {
             await resetEntity(DbContributionLink)
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "Contribution link has unknown cycle"', () => {
             expect(logger.error).toBeCalledWith('Contribution link has unknown cycle', 'INVALID')
             expect(logger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
@@ -306,7 +309,7 @@ describe('TransactionLinkResolver', () => {
             await resetEntity(DbContributionLink)
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "Contribution link is no longer valid"', () => {
             expect(logger.error).toBeCalledWith('Contribution link is no longer valid', validTo)
             expect(logger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
@@ -402,7 +405,7 @@ describe('TransactionLinkResolver', () => {
               })
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "Creation from contribution link was not successful"', () => {
               expect(logger.error).toBeCalledWith(
                 'Creation from contribution link was not successful',
                 new Error(
@@ -445,6 +448,24 @@ describe('TransactionLinkResolver', () => {
               })
             })
 
+            it('stores the CONTRIBUTION_LINK_REDEEM event in the database', async () => {
+              const userConatct = await UserContact.findOneOrFail(
+                { email: 'bibi@bloxberg.de' },
+                { relations: ['user'] },
+              )
+              await expect(DbEvent.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventType.CONTRIBUTION_LINK_REDEEM,
+                  affectedUserId: userConatct.user.id,
+                  actingUserId: userConatct.user.id,
+                  involvedTransactionId: expect.any(Number),
+                  involvedContributionId: expect.any(Number),
+                  involvedContributionLinkId: contributionLink?.id,
+                  amount: contributionLink?.amount,
+                }),
+              )
+            })
+
             it('does not allow the user to redeem the contribution link a second time on the same day', async () => {
               jest.clearAllMocks()
               await expect(
@@ -459,7 +480,7 @@ describe('TransactionLinkResolver', () => {
               })
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "Creation from contribution link was not successful"', () => {
               expect(logger.error).toBeCalledWith(
                 'Creation from contribution link was not successful',
                 new Error('Contribution link already redeemed today'),
@@ -511,7 +532,7 @@ describe('TransactionLinkResolver', () => {
                 })
               })
 
-              it('logs the error thrown', () => {
+              it('logs the error "Creation from contribution link was not successful"', () => {
                 expect(logger.error).toBeCalledWith(
                   'Creation from contribution link was not successful',
                   new Error('Contribution link already redeemed today'),
@@ -714,7 +735,7 @@ describe('TransactionLinkResolver', () => {
             })
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "Could not find requested User"', () => {
             expect(logger.error).toBeCalledWith('Could not find requested User', -1)
           })
         })
@@ -853,6 +874,7 @@ describe('TransactionLinkResolver', () => {
         })
 
         // TODO: works not as expected, because 'redeemedAt' and 'redeemedBy' have to be added to the transaktion link factory
+        // eslint-disable-next-line jest/no-disabled-tests
         describe.skip('filter by redeemed', () => {
           it('finds 6 open transaction links, 1 deleted, and no redeemed', async () => {
             await expect(

@@ -9,4 +9,15 @@ export const EVENT_CONTRIBUTION_UPDATE = async (
   contribution: DbContribution,
   amount: Decimal,
 ): Promise<DbEvent> =>
-  Event(EventType.CONTRIBUTION_UPDATE, user, user, null, null, contribution, null, amount).save()
+  Event(
+    EventType.CONTRIBUTION_UPDATE,
+    user,
+    user,
+    null,
+    null,
+    contribution,
+    null,
+    null,
+    null,
+    amount,
+  ).save()
