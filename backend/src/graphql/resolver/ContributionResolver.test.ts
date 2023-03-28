@@ -2077,56 +2077,6 @@ describe('ContributionResolver', () => {
           // stephen@hawking.uk: [1000, 1000, 1000] - deleted
           // garrick@ollivander.com: [1000, 1000, 1000] - not activated
 
-          describe.skip('user for creation to update does not exist', () => {
-            it('throws an error', async () => {
-              jest.clearAllMocks()
-              await expect(
-                mutate({
-                  mutation: adminUpdateContribution,
-                  variables: {
-                    id: 1,
-                    amount: new Decimal(300),
-                    memo: 'Danke Bibi!',
-                    creationDate: contributionDateFormatter(new Date()),
-                  },
-                }),
-              ).resolves.toEqual(
-                expect.objectContaining({
-                  errors: [new GraphQLError('Could not find User')],
-                }),
-              )
-            })
-
-            it('logs the error "Could not find User"', () => {
-              expect(logger.error).toBeCalledWith('Could not find User', 'bob@baumeister.de')
-            })
-          })
-
-          describe.skip('user for creation to update is deleted', () => {
-            it('throws an error', async () => {
-              jest.clearAllMocks()
-              await expect(
-                mutate({
-                  mutation: adminUpdateContribution,
-                  variables: {
-                    id: 1,
-                    amount: new Decimal(300),
-                    memo: 'Danke Bibi!',
-                    creationDate: contributionDateFormatter(new Date()),
-                  },
-                }),
-              ).resolves.toEqual(
-                expect.objectContaining({
-                  errors: [new GraphQLError('User was deleted')],
-                }),
-              )
-            })
-
-            it('logs the error "User was deleted"', () => {
-              expect(logger.error).toBeCalledWith('User was deleted', 'stephen@hawking.uk')
-            })
-          })
-
           describe('creation does not exist', () => {
             it('throws an error', async () => {
               jest.clearAllMocks()
