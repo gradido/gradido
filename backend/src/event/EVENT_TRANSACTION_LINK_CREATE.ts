@@ -1,23 +1,23 @@
 import Decimal from 'decimal.js-light'
 import { User as DbUser } from '@entity/User'
-import { Contribution as DbContribution } from '@entity/Contribution'
+import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { Event as DbEvent } from '@entity/Event'
 import { Event, EventType } from './Event'
 
-export const EVENT_CONTRIBUTION_CREATE = async (
+export const EVENT_TRANSACTION_LINK_CREATE = async (
   user: DbUser,
-  contribution: DbContribution,
+  transactionLink: DbTransactionLink,
   amount: Decimal,
 ): Promise<DbEvent> =>
   Event(
-    EventType.CONTRIBUTION_CREATE,
+    EventType.TRANSACTION_LINK_CREATE,
     user,
     user,
     null,
     null,
-    contribution,
     null,
     null,
+    transactionLink,
     null,
     amount,
   ).save()
