@@ -145,6 +145,7 @@ describe('CreationFormular', () => {
 
             it('sends ... to apollo', () => {
               expect(adminCreateContributionMock).toBeCalledWith({
+                email: 'benjamin@bluemchen.de',
                 creationDate: getCreationDate(2),
                 amount: 90,
                 memo: 'Test create coins',

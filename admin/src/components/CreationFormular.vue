@@ -140,6 +140,7 @@ export default {
         .mutate({
           mutation: adminCreateContribution,
           variables: {
+            email: this.item.email,
             creationDate: this.selected.date,
             amount: Number(this.value),
             memo: this.text,
