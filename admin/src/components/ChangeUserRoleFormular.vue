@@ -12,25 +12,13 @@
             variant="danger"
             v-b-modal.user-role-modal
             :disabled="currentRole === roleSelected"
-            @click="showModal('changeUserRole')"
+            @click="showModal()"
           >
             {{ $t('change_user_role') }}
           </b-button>
         </div>
       </div>
     </div>
-
-    <b-modal
-      id="user-role-modal"
-      hide-header-close
-      ok-variant="danger"
-      :title="modalTitle"
-      :cancel-title="$t('overlay.cancel')"
-      :ok-title="modalOkTitle"
-      @ok="setUserRole(roleSelected, currentRole)"
-    >
-      <p class="my-4">{{ modalQuestion }}</p>
-    </b-modal>
   </div>
 </template>
 <script>
@@ -57,21 +45,36 @@ export default {
         { value: rolesValues.user, text: this.$t('userRole.selectRoles.user') },
         { value: rolesValues.admin, text: this.$t('userRole.selectRoles.admin') },
       ],
-      modalTitle: '',
-      modalQuestion: '',
-      modalOkTitle: '',
-      username: '',
     }
   },
   methods: {
     showModal() {
-      this.username = `${this.item.firstName} ${this.item.lastName}`
-      this.modalTitle = this.$t('overlay.changeUserRole.title')
-      this.modalQuestion = this.$t('overlay.changeUserRole.question', {
-        username: this.username,
-        newRole: this.roleSelected, // TODO get the text:Administrator instead of admin
-      })
-      this.modalOkTitle = this.$t('overlay.changeUserRole.yes')
+      this.$bvModal
+        .msgBoxConfirm(
+          this.$t('overlay.changeUserRole.question', {
+            username: `${this.item.firstName} ${this.item.lastName}`,
+            newRole:
+              this.roleSelected === 'admin'
+                ? this.$t('userRole.selectRoles.admin')
+                : this.$t('userRole.selectRoles.user'),
+          }),
+          {
+            cancelTitle: this.$t('overlay.cancel'),
+            centered: true,
+            hideHeaderClose: true,
+            title: this.$t('overlay.changeUserRole.title'),
+            okTitle: this.$t('overlay.changeUserRole.yes'),
+            okVariant: 'danger',
+          },
+        )
+        .then((okClicked) => {
+          if (okClicked) {
+            this.setUserRole(this.roleSelected, this.currentRole)
+          }
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+        })
     },
     setUserRole(newRole, oldRole) {
       this.$apollo
