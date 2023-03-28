@@ -41,10 +41,6 @@ export default {
       this.$apollo
         .mutate({
           mutation: this.newsletterState ? subscribeNewsletter : unsubscribeNewsletter,
-          variables: {
-            email: this.$store.state.email,
-            language: this.newsletterState ? this.$store.state.language : undefined,
-          },
         })
         .then(() => {
           this.$store.commit('newsletterState', this.newsletterState)
