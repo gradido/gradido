@@ -56,20 +56,32 @@ The following diagramms shows the first draft of the possible database-model bas
 
 In the first step the current communities table will be renamed to communities_federation. A new table communities is created. Because of the dynamic in the communities_federation data during dht-federation the relation between both entities will be on the collumn communities.communities_federation_public_key. This relation will allow to read a community-entry including its relation to the multi federation entries per api-version with the public key as identifier.
 
-
 ![img](./image/classdiagramm_x-community-readyness_step2.svg)
 
 The 2nd step is an introduction of the entity accounts between the users and the transactions table. This will cause a separation of the transactions from the users, to avoid possible conflicts or dependencies between local users of the community and remote users of foreign users, who will be part of x-communitiy-transactions.
-
 
 ![img](./image/classdiagramm_x-community-readyness_step3.svg)
 
 The 3rd step will introduce an additional foreign-users and a users_favorites table. A foreign_user could be stored in the existing users-table, but he will not need all the attributes of a home-user, especially he will never gets an AGE-account in this community. The user_favorites entity is designed to buildup the relations between users and foreign_users or in general between all users. This is simply a first idea for a future discussion.
 
 
+After team discussion in architecture meeting a second vision draft for database migration is shown in the following picture. Only the concerned tables of the database migration are presented. The three elliptical surroundings shows the different steps, which should be done in separate issues. The model, table namings and columns are not exhaustive and are still a base for further discussions.
 
 
-![img](./image/classdiagramm_communities-communities_federation.png)
+![img](./image/class-diagramm_vision-draft2.svg)
+
+**The first step** with renaming the current `communities` table in `communities_federation` and creating a new `communities` table is not changed. More details about motivation and arguments are described above.
+
+**The second step** is changed to migrate the `users `table by creating a new `users_settings` table and shift the most existing attributes from `users `table to it. The criterium for shifting a column to `user_settings` is to keep only those columns in the `users `table, which will be used for "home-users" and "foreign-users". A foreign-user at this point of time is a user of an other community, who is involved in a x-community-transaction as `linked_user`. He will not have the possibility to login to the home-community, because after a x-community-tx only the attributes of the `users `table will be exchanged during the handshake of transaction processing of both communities. Even the `transactions `table will be ready for x-community-tx with this `users `and `user_settings` migration, because it contains a reference to both participants of the transaction. For easier displaying and because of historical reasons it will be a good idea to add the columns `linked_user `and `user `(not shown in diagramm) to the `transactions `table with type varchar(512) to store the valid firstname and lastname of the participants at transaction-date. If one of the participants will change his names, there will be no migration of the transaction data necessary and a transaction-list will present always the currect names even over a long distance.
+
+**The third step** contains a migration for handling accounts and user_correlations. With the new table `gdd_accounts `a new entity will be introduced to support the different types of gradido accounts AGE, GMW and AUF. The second new table `user_correlations `is to buildup the different correlations a user will have:
+
+* user to user correlation like favorites, trustee, etc
+* user to account correlation for cashier of a GMW and AUF community account, trustee of children or seniors, etc.
+
+The previous idea to replace the `user_id `with an `account_id` in the `transactions `table will be not necessary with this draft, because it will not cause a benefit and saves a lot refactoring efforts.
+
+
 
 ##### Community-Entity
 
