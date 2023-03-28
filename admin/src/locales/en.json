@@ -1,8 +1,8 @@
 {
   "all_emails": "All users",
   "back": "back",
-  "chat": "Chat",
   "change_user_role": "Change user role",
+  "chat": "Chat",
   "contributionLink": {
     "amount": "Amount",
     "changeSaved": "Changes saved",
@@ -115,6 +115,11 @@
   "open_creations": "Open creations",
   "overlay": {
     "cancel": "Cancel",
+    "changeUserRole": {
+      "question": "Do you really want to change {username}'s role to {newRole}?",
+      "title": "Change user role",
+      "yes": "Yes, change user role"
+    },
     "confirm": {
       "question": "Do you really want to carry out and finally save this pre-stored creation?",
       "text": "After saving, the record can no longer be changed. Please check carefully that everything is correct.",
@@ -142,11 +147,6 @@
       "question": "Do you really want to undelete {username}",
       "title": "Undelete user",
       "yes": "Yes,undelete user"
-    },
-    "changeUserRole": {
-      "question": "Do you really want to change {username}'s role to {newRole}?",
-      "title": "Change user role",
-      "yes": "Yes, change user role"
     }
   },
   "redeemed": "redeemed",
