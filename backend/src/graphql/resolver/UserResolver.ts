@@ -823,10 +823,9 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.USER])
-  @Query(() => User, { nullable: true })
-  async user(@Arg('identifier') identifier: string): Promise<User | null> {
-    const user = await findUserByIdentifier(identifier)
-    return user ? new User(user) : null
+  @Query(() => User)
+  async user(@Arg('identifier') identifier: string): Promise<User> {
+    return new User(await findUserByIdentifier(identifier))
   }
 }
 

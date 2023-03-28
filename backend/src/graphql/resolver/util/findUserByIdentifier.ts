@@ -3,7 +3,7 @@ import { UserContact as DbUserContact } from '@entity/UserContact'
 import LogError from '@/server/LogError'
 import { validate, version } from 'uuid'
 
-export const findUserByIdentifier = async (identifier: string): Promise<DbUser | null> => {
+export const findUserByIdentifier = async (identifier: string): Promise<DbUser> => {
   let user: DbUser | undefined
   if (validate(identifier) && version(identifier) === 4) {
     user = await DbUser.findOne({ where: { gradidoID: identifier }, relations: ['emailContact'] })
