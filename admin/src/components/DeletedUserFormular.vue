@@ -9,7 +9,7 @@
           v-if="item.deletedAt === null"
           variant="danger"
           v-b-modal.delete-user-modal
-          @click="showModal('deleteUser')"
+          @click="showDeleteModal()"
         >
           {{ $t('delete_user') }}
         </b-button>
@@ -17,23 +17,12 @@
           v-if="item.deletedAt !== null"
           variant="success"
           v-b-modal.delete-user-modal
-          @click="showModal('undeleteUser')"
+          @click="showUndeleteModal()"
         >
           {{ $t('undelete_user') }}
         </b-button>
       </div>
     </div>
-    <b-modal
-      id="delete-user-modal"
-      hide-header-close
-      :title="modalTitle"
-      :cancel-title="$t('overlay.cancel')"
-      :ok-title="modalOkTitle"
-      :ok-variant="variant"
-      @ok="modalEvent"
-    >
-      <p class="my-4">{{ modalQuestion }}</p>
-    </b-modal>
   </div>
 </template>
 <script>
@@ -51,33 +40,56 @@ export default {
   data() {
     return {
       checked: false,
-      modalTitle: '',
-      modalQuestion: '',
-      modalOkTitle: '',
-      modalEvent: null,
-      username: '',
-      variant: 'danger',
     }
   },
   methods: {
-    showModal(type) {
-      this.username = `${this.item.firstName} ${this.item.lastName}`
-
-      if (type === 'deleteUser') {
-        this.variant = 'danger'
-        this.modalTitle = this.$t('overlay.deleteUser.title')
-        this.modalQuestion = this.$t('overlay.deleteUser.question', { username: this.username })
-        this.modalOkTitle = this.$t('overlay.deleteUser.yes')
-        this.modalEvent = this.deleteUser
-      }
-
-      if (type === 'undeleteUser') {
-        this.variant = 'success'
-        this.modalTitle = this.$t('overlay.undeleteUser.title')
-        this.modalQuestion = this.$t('overlay.undeleteUser.question', { username: this.username })
-        this.modalOkTitle = this.$t('overlay.undeleteUser.yes')
-        this.modalEvent = this.unDeleteUser
-      }
+    showDeleteModal() {
+      this.$bvModal
+        .msgBoxConfirm(
+          this.$t('overlay.deleteUser.question', {
+            username: `${this.item.firstName} ${this.item.lastName}`,
+          }),
+          {
+            cancelTitle: this.$t('overlay.cancel'),
+            centered: true,
+            hideHeaderClose: true,
+            title: this.$t('overlay.deleteUser.title'),
+            okTitle: this.$t('overlay.deleteUser.yes'),
+            okVariant: 'danger',
+          },
+        )
+        .then((okClicked) => {
+          if (okClicked) {
+            this.deleteUser()
+          }
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+        })
+    },
+    showUndeleteModal() {
+      this.$bvModal
+        .msgBoxConfirm(
+          this.$t('overlay.undeleteUser.question', {
+            username: `${this.item.firstName} ${this.item.lastName}`,
+          }),
+          {
+            cancelTitle: this.$t('overlay.cancel'),
+            centered: true,
+            hideHeaderClose: true,
+            title: this.$t('overlay.undeleteUser.title'),
+            okTitle: this.$t('overlay.undeleteUser.yes'),
+            okVariant: 'success',
+          },
+        )
+        .then((okClicked) => {
+          if (okClicked) {
+            this.unDeleteUser()
+          }
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+        })
     },
     deleteUser() {
       this.$apollo
