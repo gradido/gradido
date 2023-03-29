@@ -76,6 +76,13 @@
     },
     "short_hash": "({shortHash})"
   },
+  "federation": {
+    "gradidoInstances":"Gradido Instanzen",
+    "verified":"Verifiziert",
+    "url":"Url",
+    "lastAnnouncedAt":"letzte Bekanntgabe",
+    "createdAt":"Erstellt am"
+  },
   "form": {
     "cancel": "Abbrechen",
     "submit": "Senden"
@@ -104,6 +111,7 @@
   "name": "Name",
   "navbar": {
     "automaticContributions": "Automatische Beiträge",
+    "instances":"Instanzen",
     "logout": "Abmelden",
     "my-account": "Mein Konto",
     "statistic": "Statistik",
