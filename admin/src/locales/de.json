@@ -67,6 +67,13 @@
   "error": "Fehler",
   "expired": "abgelaufen",
   "e_mail": "E-Mail",
+  "federation": {
+    "createdAt": "Erstellt am",
+    "gradidoInstances": "Gradido Instanzen",
+    "lastAnnouncedAt": "letzte Bekanntgabe",
+    "url": "Url",
+    "verified": "Verifiziert"
+  },
   "firstname": "Vorname",
   "footer": {
     "app_version": "App version {version}",
@@ -75,13 +82,6 @@
       "year": "© {year}"
     },
     "short_hash": "({shortHash})"
-  },
-  "federation": {
-    "gradidoInstances":"Gradido Instanzen",
-    "verified":"Verifiziert",
-    "url":"Url",
-    "lastAnnouncedAt":"letzte Bekanntgabe",
-    "createdAt":"Erstellt am"
   },
   "form": {
     "cancel": "Abbrechen",
@@ -111,7 +111,7 @@
   "name": "Name",
   "navbar": {
     "automaticContributions": "Automatische Beiträge",
-    "instances":"Instanzen",
+    "instances": "Instanzen",
     "logout": "Abmelden",
     "my-account": "Mein Konto",
     "statistic": "Statistik",
