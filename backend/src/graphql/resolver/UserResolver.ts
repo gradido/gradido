@@ -55,13 +55,13 @@ import { hasElopageBuys } from '@/util/hasElopageBuys'
 import {
   Event,
   EventType,
-  EVENT_LOGIN,
-  EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
-  EVENT_SEND_CONFIRMATION_EMAIL,
-  EVENT_REGISTER,
-  EVENT_ACTIVATE_ACCOUNT,
-  EVENT_ADMIN_SEND_CONFIRMATION_EMAIL,
-  EVENT_LOGOUT,
+  EVENT_USER_LOGIN,
+  EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION,
+  EVENT_EMAIL_CONFIRMATION,
+  EVENT_USER_REGISTER,
+  EVENT_USER_ACTIVATE_ACCOUNT,
+  EVENT_EMAIL_ADMIN_CONFIRMATION,
+  EVENT_USER_LOGOUT,
   EVENT_EMAIL_FORGOT_PASSWORD,
   EVENT_USER_INFO_UPDATE,
   EVENT_ADMIN_USER_ROLE_SET,
@@ -188,7 +188,7 @@ export class UserResolver {
       value: encode(dbUser.gradidoID),
     })
 
-    await EVENT_LOGIN(dbUser)
+    await EVENT_USER_LOGIN(dbUser)
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
     return user
   }
@@ -196,7 +196,7 @@ export class UserResolver {
   @Authorized([RIGHTS.LOGOUT])
   @Mutation(() => Boolean)
   async logout(@Ctx() context: Context): Promise<boolean> {
-    await EVENT_LOGOUT(getUser(context))
+    await EVENT_USER_LOGOUT(getUser(context))
     // remove user from logger context
     logger.addContext('user', 'unknown')
     return true
@@ -251,8 +251,7 @@ export class UserResolver {
           email,
           language: foundUser.language, // use language of the emails owner for sending
         })
-
-        await EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL(foundUser)
+        await EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION(foundUser)
 
         logger.info(
           `sendAccountMultiRegistrationEmail by ${firstName} ${lastName} to ${foundUser.firstName} ${foundUser.lastName} <${email}>`,
@@ -271,7 +270,7 @@ export class UserResolver {
     const gradidoID = await newGradidoID()
 
     const eventRegisterRedeem = Event(
-      EventType.REDEEM_REGISTER,
+      EventType.USER_REGISTER_REDEEM,
       { id: 0 } as DbUser,
       { id: 0 } as DbUser,
     )
@@ -337,7 +336,7 @@ export class UserResolver {
       })
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
 
-      await EVENT_SEND_CONFIRMATION_EMAIL(dbUser)
+      await EVENT_EMAIL_CONFIRMATION(dbUser)
 
       if (!emailSent) {
         logger.debug(`Account confirmation link: ${activationLink}`)
@@ -358,7 +357,7 @@ export class UserResolver {
       eventRegisterRedeem.actingUser = dbUser
       await eventRegisterRedeem.save()
     } else {
-      await EVENT_REGISTER(dbUser)
+      await EVENT_USER_REGISTER(dbUser)
     }
 
     return new User(dbUser)
@@ -493,7 +492,7 @@ export class UserResolver {
         logger.error('Error subscribing to klicktipp', e)
       }
     }
-    await EVENT_ACTIVATE_ACCOUNT(user)
+    await EVENT_USER_ACTIVATE_ACCOUNT(user)
 
     return true
   }
@@ -818,7 +817,7 @@ export class UserResolver {
     if (!emailSent) {
       logger.info(`Account confirmation link: ${activationLink}`)
     }
-    await EVENT_ADMIN_SEND_CONFIRMATION_EMAIL(user, getUser(context))
+    await EVENT_EMAIL_ADMIN_CONFIRMATION(user, getUser(context))
 
     return true
   }

@@ -182,14 +182,14 @@ describe('UserResolver', () => {
         })
       })
 
-      it('stores the REGISTER event in the database', async () => {
+      it('stores the USER_REGISTER event in the database', async () => {
         const userConatct = await UserContact.findOneOrFail(
           { email: 'peter@lustig.de' },
           { relations: ['user'] },
         )
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventType.REGISTER,
+            type: EventType.USER_REGISTER,
             affectedUserId: userConatct.user.id,
             actingUserId: userConatct.user.id,
           }),
@@ -216,10 +216,10 @@ describe('UserResolver', () => {
         })
       })
 
-      it('stores the SEND_CONFIRMATION_EMAIL event in the database', async () => {
+      it('stores the EMAIL_CONFIRMATION event in the database', async () => {
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventType.SEND_CONFIRMATION_EMAIL,
+            type: EventType.EMAIL_CONFIRMATION,
             affectedUserId: user[0].id,
             actingUserId: user[0].id,
           }),
@@ -258,14 +258,14 @@ describe('UserResolver', () => {
         )
       })
 
-      it('stores the SEND_ACCOUNT_MULTIREGISTRATION_EMAIL event in the database', async () => {
+      it('stores the EMAIL_ACCOUNT_MULTIREGISTRATION event in the database', async () => {
         const userConatct = await UserContact.findOneOrFail(
           { email: 'peter@lustig.de' },
           { relations: ['user'] },
         )
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
+            type: EventType.EMAIL_ACCOUNT_MULTIREGISTRATION,
             affectedUserId: userConatct.user.id,
             actingUserId: 0,
           }),
@@ -363,20 +363,20 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the ACTIVATE_ACCOUNT event in the database', async () => {
+        it('stores the USER_ACTIVATE_ACCOUNT event in the database', async () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventType.ACTIVATE_ACCOUNT,
+              type: EventType.USER_ACTIVATE_ACCOUNT,
               affectedUserId: user[0].id,
               actingUserId: user[0].id,
             }),
           )
         })
 
-        it('stores the REDEEM_REGISTER event in the database', async () => {
+        it('stores the USER_REGISTER_REDEEM event in the database', async () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventType.REDEEM_REGISTER,
+              type: EventType.USER_REGISTER_REDEEM,
               affectedUserId: result.data.createUser.id,
               actingUserId: result.data.createUser.id,
               involvedContributionLinkId: link.id,
@@ -458,10 +458,10 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the REDEEM_REGISTER event in the database', async () => {
+        it('stores the USER_REGISTER_REDEEM event in the database', async () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventType.REDEEM_REGISTER,
+              type: EventType.USER_REGISTER_REDEEM,
               affectedUserId: newUser.data.createUser.id,
               actingUserId: newUser.data.createUser.id,
               involvedTransactionLinkId: transactionLink.id,
@@ -687,14 +687,14 @@ describe('UserResolver', () => {
         expect(headerPushMock).toBeCalledWith({ key: 'token', value: expect.any(String) })
       })
 
-      it('stores the LOGIN event in the database', async () => {
+      it('stores the USER_LOGIN event in the database', async () => {
         const userConatct = await UserContact.findOneOrFail(
           { email: 'bibi@bloxberg.de' },
           { relations: ['user'] },
         )
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventType.LOGIN,
+            type: EventType.USER_LOGIN,
             affectedUserId: userConatct.user.id,
             actingUserId: userConatct.user.id,
           }),
@@ -869,14 +869,14 @@ describe('UserResolver', () => {
         )
       })
 
-      it('stores the LOGOUT event in the database', async () => {
+      it('stores the USER_LOGOUT event in the database', async () => {
         const userConatct = await UserContact.findOneOrFail(
           { email: 'bibi@bloxberg.de' },
           { relations: ['user'] },
         )
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventType.LOGOUT,
+            type: EventType.USER_LOGOUT,
             affectedUserId: userConatct.user.id,
             actingUserId: userConatct.user.id,
           }),
@@ -955,10 +955,10 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the LOGIN event in the database', async () => {
+        it('stores the USER_LOGIN event in the database', async () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventType.LOGIN,
+              type: EventType.USER_LOGIN,
               affectedUserId: user[0].id,
               actingUserId: user[0].id,
             }),
@@ -1935,14 +1935,14 @@ describe('UserResolver', () => {
             })
           })
 
-          it('stores the ADMIN_SEND_CONFIRMATION_EMAIL event in the database', async () => {
+          it('stores the EMAIL_ADMIN_CONFIRMATION event in the database', async () => {
             const userConatct = await UserContact.findOneOrFail(
               { email: 'bibi@bloxberg.de' },
               { relations: ['user'] },
             )
             await expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
-                type: EventType.ADMIN_SEND_CONFIRMATION_EMAIL,
+                type: EventType.EMAIL_ADMIN_CONFIRMATION,
                 affectedUserId: userConatct.user.id,
                 actingUserId: admin.id,
               }),
