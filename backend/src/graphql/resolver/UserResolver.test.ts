@@ -868,6 +868,20 @@ describe('UserResolver', () => {
           }),
         )
       })
+
+      it('stores the LOGOUT event in the database', async () => {
+        const userConatct = await UserContact.findOneOrFail(
+          { email: 'bibi@bloxberg.de' },
+          { relations: ['user'] },
+        )
+        await expect(DbEvent.find()).resolves.toContainEqual(
+          expect.objectContaining({
+            type: EventType.LOGOUT,
+            affectedUserId: userConatct.user.id,
+            actingUserId: userConatct.user.id,
+          }),
+        )
+      })
     })
   })
 
@@ -1023,6 +1037,20 @@ describe('UserResolver', () => {
             }),
           })
         })
+
+        it('stores the EMAIL_FORGOT_PASSWORD event in the database', async () => {
+          const userConatct = await UserContact.findOneOrFail(
+            { email: 'bibi@bloxberg.de' },
+            { relations: ['user'] },
+          )
+          await expect(DbEvent.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventType.EMAIL_FORGOT_PASSWORD,
+              affectedUserId: userConatct.user.id,
+              actingUserId: 0,
+            }),
+          )
+        })
       })
 
       describe('request reset password again', () => {
@@ -1144,6 +1172,20 @@ describe('UserResolver', () => {
               firstName: 'Benjamin',
               lastName: 'Blümchen',
               language: 'en',
+            }),
+          )
+        })
+
+        it('stores the USER_INFO_UPDATE event in the database', async () => {
+          const userConatct = await UserContact.findOneOrFail(
+            { email: 'bibi@bloxberg.de' },
+            { relations: ['user'] },
+          )
+          await expect(DbEvent.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventType.USER_INFO_UPDATE,
+              affectedUserId: userConatct.user.id,
+              actingUserId: userConatct.user.id,
             }),
           )
         })
@@ -1517,6 +1559,24 @@ describe('UserResolver', () => {
                 )
                 expect(new Date(result.data.setUserRole)).toEqual(expect.any(Date))
               })
+
+              it('stores the ADMIN_USER_ROLE_SET event in the database', async () => {
+                const userConatct = await UserContact.findOneOrFail(
+                  { email: 'bibi@bloxberg.de' },
+                  { relations: ['user'] },
+                )
+                const adminConatct = await UserContact.findOneOrFail(
+                  { email: 'peter@lustig.de' },
+                  { relations: ['user'] },
+                )
+                await expect(DbEvent.find()).resolves.toContainEqual(
+                  expect.objectContaining({
+                    type: EventType.ADMIN_USER_ROLE_SET,
+                    affectedUserId: userConatct.user.id,
+                    actingUserId: adminConatct.user.id,
+                  }),
+                )
+              })
             })
 
             describe('to usual user', () => {
@@ -1700,6 +1760,24 @@ describe('UserResolver', () => {
               }),
             )
             expect(new Date(result.data.deleteUser)).toEqual(expect.any(Date))
+          })
+
+          it('stores the ADMIN_USER_DELETE event in the database', async () => {
+            const userConatct = await UserContact.findOneOrFail(
+              { email: 'bibi@bloxberg.de' },
+              { relations: ['user'], withDeleted: true },
+            )
+            const adminConatct = await UserContact.findOneOrFail(
+              { email: 'peter@lustig.de' },
+              { relations: ['user'] },
+            )
+            await expect(DbEvent.find()).resolves.toContainEqual(
+              expect.objectContaining({
+                type: EventType.ADMIN_USER_DELETE,
+                affectedUserId: userConatct.user.id,
+                actingUserId: adminConatct.user.id,
+              }),
+            )
           })
 
           describe('delete deleted user', () => {
@@ -1974,6 +2052,24 @@ describe('UserResolver', () => {
               ).resolves.toEqual(
                 expect.objectContaining({
                   data: { unDeleteUser: null },
+                }),
+              )
+            })
+
+            it('stores the ADMIN_USER_UNDELETE event in the database', async () => {
+              const userConatct = await UserContact.findOneOrFail(
+                { email: 'bibi@bloxberg.de' },
+                { relations: ['user'] },
+              )
+              const adminConatct = await UserContact.findOneOrFail(
+                { email: 'peter@lustig.de' },
+                { relations: ['user'] },
+              )
+              await expect(DbEvent.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventType.ADMIN_USER_UNDELETE,
+                  affectedUserId: userConatct.user.id,
+                  actingUserId: adminConatct.user.id,
                 }),
               )
             })
