@@ -2578,10 +2578,10 @@ describe('ContributionResolver', () => {
               })
             })
 
-            it('stores the SEND_CONFIRMATION_EMAIL event in the database', async () => {
+            it('stores the EMAIL_CONFIRMATION event in the database', async () => {
               await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
-                  type: EventType.SEND_CONFIRMATION_EMAIL,
+                  type: EventType.EMAIL_CONFIRMATION,
                 }),
               )
             })

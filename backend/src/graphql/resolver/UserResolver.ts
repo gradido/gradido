@@ -58,12 +58,18 @@ import { hasElopageBuys } from '@/util/hasElopageBuys'
 import {
   Event,
   EventType,
-  EVENT_LOGIN,
-  EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
-  EVENT_SEND_CONFIRMATION_EMAIL,
-  EVENT_REGISTER,
-  EVENT_ACTIVATE_ACCOUNT,
-  EVENT_ADMIN_SEND_CONFIRMATION_EMAIL,
+  EVENT_USER_LOGIN,
+  EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION,
+  EVENT_EMAIL_CONFIRMATION,
+  EVENT_USER_REGISTER,
+  EVENT_USER_ACTIVATE_ACCOUNT,
+  EVENT_EMAIL_ADMIN_CONFIRMATION,
+  EVENT_USER_LOGOUT,
+  EVENT_EMAIL_FORGOT_PASSWORD,
+  EVENT_USER_INFO_UPDATE,
+  EVENT_ADMIN_USER_ROLE_SET,
+  EVENT_ADMIN_USER_DELETE,
+  EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Event'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
@@ -182,22 +188,16 @@ export class UserResolver {
       value: encode(dbUser.gradidoID),
     })
 
-    await EVENT_LOGIN(dbUser)
+    await EVENT_USER_LOGIN(dbUser)
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
     return user
   }
 
   @Authorized([RIGHTS.LOGOUT])
   @Mutation(() => Boolean)
-  logout(): boolean {
-    // TODO: Event still missing here!!
-    // TODO: We dont need this anymore, but might need this in the future in oder to invalidate a valid JWT-Token.
-    // Furthermore this hook can be useful for tracking user behaviour (did he logout or not? Warn him if he didn't on next login)
-    // The functionality is fully client side - the client just needs to delete his token with the current implementation.
-    // we could try to force this by sending `token: null` or `token: ''` with this call. But since it bares no real security
-    // we should just return true for now.
-    logger.info('Logout...')
-    // remove user.pubKey from logger-context to ensure a correct filter on log-messages belonging to the same user
+  async logout(@Ctx() context: Context): Promise<boolean> {
+    await EVENT_USER_LOGOUT(getUser(context))
+    // remove user from logger context
     logger.addContext('user', 'unknown')
     return true
   }
@@ -251,8 +251,7 @@ export class UserResolver {
           email,
           language: foundUser.language, // use language of the emails owner for sending
         })
-
-        await EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL(foundUser)
+        await EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION(foundUser)
 
         logger.info(
           `sendAccountMultiRegistrationEmail by ${firstName} ${lastName} to ${foundUser.firstName} ${foundUser.lastName} <${email}>`,
@@ -271,7 +270,7 @@ export class UserResolver {
     const gradidoID = await newGradidoID()
 
     const eventRegisterRedeem = Event(
-      EventType.REDEEM_REGISTER,
+      EventType.USER_REGISTER_REDEEM,
       { id: 0 } as DbUser,
       { id: 0 } as DbUser,
     )
@@ -337,7 +336,7 @@ export class UserResolver {
       })
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
 
-      await EVENT_SEND_CONFIRMATION_EMAIL(dbUser)
+      await EVENT_EMAIL_CONFIRMATION(dbUser)
 
       if (!emailSent) {
         logger.debug(`Account confirmation link: ${activationLink}`)
@@ -358,7 +357,7 @@ export class UserResolver {
       eventRegisterRedeem.actingUser = dbUser
       await eventRegisterRedeem.save()
     } else {
-      await EVENT_REGISTER(dbUser)
+      await EVENT_USER_REGISTER(dbUser)
     }
 
     return new User(dbUser)
@@ -411,6 +410,7 @@ export class UserResolver {
       )
     }
     logger.info(`forgotPassword(${email}) successful...`)
+    await EVENT_EMAIL_FORGOT_PASSWORD(user)
 
     return true
   }
@@ -473,8 +473,6 @@ export class UserResolver {
 
       await queryRunner.commitTransaction()
       logger.info('User and UserContact data written successfully...')
-
-      await EVENT_ACTIVATE_ACCOUNT(user)
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Error on writing User and User Contact data', e)
@@ -492,13 +490,9 @@ export class UserResolver {
         )
       } catch (e) {
         logger.error('Error subscribing to klicktipp', e)
-        // TODO is this a problem?
-        // eslint-disable-next-line no-console
-        /*  uncomment this, when you need the activation link on the console
-        console.log('Could not subscribe to klicktipp')
-        */
       }
     }
+    await EVENT_USER_ACTIVATE_ACCOUNT(user)
 
     return true
   }
@@ -535,21 +529,21 @@ export class UserResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     logger.info(`updateUserInfos(${firstName}, ${lastName}, ${language}, ***, ***)...`)
-    const userEntity = getUser(context)
+    const user = getUser(context)
 
     if (firstName) {
-      userEntity.firstName = firstName
+      user.firstName = firstName
     }
 
     if (lastName) {
-      userEntity.lastName = lastName
+      user.lastName = lastName
     }
 
     if (language) {
       if (!isLanguage(language)) {
         throw new LogError('Given language is not a valid language', language)
       }
-      userEntity.language = language
+      user.language = language
       i18n.setLocale(language)
     }
 
@@ -561,22 +555,22 @@ export class UserResolver {
         )
       }
 
-      if (!verifyPassword(userEntity, password)) {
+      if (!verifyPassword(user, password)) {
         throw new LogError(`Old password is invalid`)
       }
 
       // Save new password hash and newly encrypted private key
-      userEntity.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      userEntity.password = encryptPassword(userEntity, passwordNew)
+      user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+      user.password = encryptPassword(user, passwordNew)
     }
 
     // Save hideAmountGDD value
     if (hideAmountGDD !== undefined) {
-      userEntity.hideAmountGDD = hideAmountGDD
+      user.hideAmountGDD = hideAmountGDD
     }
     // Save hideAmountGDT value
     if (hideAmountGDT !== undefined) {
-      userEntity.hideAmountGDT = hideAmountGDT
+      user.hideAmountGDT = hideAmountGDT
     }
 
     const queryRunner = getConnection().createQueryRunner()
@@ -584,7 +578,7 @@ export class UserResolver {
     await queryRunner.startTransaction('REPEATABLE READ')
 
     try {
-      await queryRunner.manager.save(userEntity).catch((error) => {
+      await queryRunner.manager.save(user).catch((error) => {
         throw new LogError('Error saving user', error)
       })
 
@@ -597,6 +591,8 @@ export class UserResolver {
       await queryRunner.release()
     }
     logger.info('updateUserInfos() successfully finished...')
+    await EVENT_USER_INFO_UPDATE(user)
+
     return true
   }
 
@@ -722,8 +718,8 @@ export class UserResolver {
       throw new LogError('Could not find user with given ID', userId)
     }
     // administrator user changes own role?
-    const moderatorUser = getUser(context)
-    if (moderatorUser.id === userId) {
+    const moderator = getUser(context)
+    if (moderator.id === userId) {
       throw new LogError('Administrator can not change his own role')
     }
     // change isAdmin
@@ -744,6 +740,7 @@ export class UserResolver {
         break
     }
     await user.save()
+    await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
     const newUser = await DbUser.findOne({ id: userId })
     return newUser ? newUser.isAdmin : null
   }
@@ -760,19 +757,23 @@ export class UserResolver {
       throw new LogError('Could not find user with given ID', userId)
     }
     // moderator user disabled own account?
-    const moderatorUser = getUser(context)
-    if (moderatorUser.id === userId) {
+    const moderator = getUser(context)
+    if (moderator.id === userId) {
       throw new LogError('Moderator can not delete his own account')
     }
     // soft-delete user
     await user.softRemove()
+    await EVENT_ADMIN_USER_DELETE(user, moderator)
     const newUser = await DbUser.findOne({ id: userId }, { withDeleted: true })
     return newUser ? newUser.deletedAt : null
   }
 
   @Authorized([RIGHTS.UNDELETE_USER])
   @Mutation(() => Date, { nullable: true })
-  async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
+  async unDeleteUser(
+    @Arg('userId', () => Int) userId: number,
+    @Ctx() context: Context,
+  ): Promise<Date | null> {
     const user = await DbUser.findOne({ id: userId }, { withDeleted: true })
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
@@ -781,6 +782,7 @@ export class UserResolver {
       throw new LogError('User is not deleted')
     }
     await user.recover()
+    await EVENT_ADMIN_USER_UNDELETE(user, getUser(context))
     return null
   }
 
@@ -814,9 +816,8 @@ export class UserResolver {
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
       logger.info(`Account confirmation link: ${activationLink}`)
-    } else {
-      await EVENT_ADMIN_SEND_CONFIRMATION_EMAIL(user, getUser(context))
     }
+    await EVENT_EMAIL_ADMIN_CONFIRMATION(user, getUser(context))
 
     return true
   }

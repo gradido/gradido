@@ -3,5 +3,5 @@ import { Event as DbEvent } from '@entity/Event'
 /* eslint-disable-next-line import/no-cycle */
 import { Event, EventType } from './Event'
 
-export const EVENT_ACTIVATE_ACCOUNT = async (user: DbUser): Promise<DbEvent> =>
-  Event(EventType.ACTIVATE_ACCOUNT, user, user).save()
+export const EVENT_USER_INFO_UPDATE = async (user: DbUser): Promise<DbEvent> =>
+  Event(EventType.USER_INFO_UPDATE, user, user).save()
