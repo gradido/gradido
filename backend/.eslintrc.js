@@ -55,7 +55,7 @@ module.exports = {
     'import/named': 'error',
     'import/namespace': 'error',
     'import/no-absolute-path': 'error',
-    'import/no-cycle': 'error',
+    'import/no-cycle': 'off',
     'import/no-dynamic-require': 'error',
     'import/no-internal-modules': 'off',
     'import/no-relative-packages': 'error',

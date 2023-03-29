@@ -4,7 +4,6 @@ import { Transaction as DbTransaction } from '@entity/Transaction'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { Event as DbEvent } from '@entity/Event'
-/* eslint-disable-next-line import/no-cycle */
 import { Event, EventType } from './Event'
 
 export const EVENT_CONTRIBUTION_LINK_REDEEM = async (

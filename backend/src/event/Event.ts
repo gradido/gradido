@@ -1,4 +1,3 @@
-/* eslint-disable import/no-cycle */
 import { Event as DbEvent } from '@entity/Event'
 import { User as DbUser } from '@entity/User'
 import { Transaction as DbTransaction } from '@entity/Transaction'
