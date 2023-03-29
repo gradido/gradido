@@ -119,7 +119,7 @@ esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/update-page.conf
 
 # Clean tmp folder - remove yarn files
-find /tmp -name "yarn--*" -exec rm -r {} 
+find /tmp -name "yarn--*" -exec rm -r {} \;
 
 # Remove node_modules folders
 # we had problems with corrupted node_modules folder
