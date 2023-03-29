@@ -116,6 +116,11 @@ export default {
       pageSize: 25,
     }
   },
+  watch: {
+    tabIndex() {
+      this.currentPage = 1
+    },
+  },
   methods: {
     deleteCreation() {
       this.$apollo
@@ -361,7 +366,7 @@ export default {
           { key: 'confirmedBy', label: this.$t('moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
-      ][this.tabIndex]
+      ]
     },
     statusFilter() {
       return FILTER_TAB_MAP[this.tabIndex]
