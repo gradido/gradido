@@ -216,7 +216,7 @@ describe('UserResolver', () => {
         })
       })
 
-      it('stores the EMAIL_CONFIRMATION event in the database', () => {
+      it('stores the EMAIL_CONFIRMATION event in the database', async () => {
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.EMAIL_CONFIRMATION,
@@ -363,7 +363,7 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the USER_ACTIVATE_ACCOUNT event in the database', () => {
+        it('stores the USER_ACTIVATE_ACCOUNT event in the database', async () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.USER_ACTIVATE_ACCOUNT,
@@ -373,7 +373,7 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the USER_REGISTER_REDEEM event in the database', () => {
+        it('stores the USER_REGISTER_REDEEM event in the database', async () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.USER_REGISTER_REDEEM,
@@ -955,7 +955,7 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the USER_LOGIN event in the database', () => {
+        it('stores the USER_LOGIN event in the database', async () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.USER_LOGIN,
