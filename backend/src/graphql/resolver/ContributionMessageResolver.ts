@@ -21,7 +21,7 @@ import LogError from '@/server/LogError'
 import {
   EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE,
   EVENT_CONTRIBUTION_MESSAGE_CREATE,
-} from '@/event/Event'
+} from '@/event/Events'
 
 @Resolver()
 export class ContributionMessageResolver {

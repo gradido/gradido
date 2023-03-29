@@ -38,7 +38,7 @@ import {
   EVENT_TRANSACTION_LINK_CREATE,
   EVENT_TRANSACTION_LINK_DELETE,
   EVENT_TRANSACTION_LINK_REDEEM,
-} from '@/event/Event'
+} from '@/event/Events'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {

@@ -21,7 +21,7 @@ import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
-import { EventType } from '@/event/Event'
+import { EventType } from '@/event/Events'
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')

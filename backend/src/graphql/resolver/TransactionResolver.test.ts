@@ -11,7 +11,7 @@ import { User } from '@entity/User'
 import { GraphQLError } from 'graphql'
 import { Event as DbEvent } from '@entity/Event'
 import { findUserByEmail } from './UserResolver'
-import { EventType } from '@/event/Event'
+import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,

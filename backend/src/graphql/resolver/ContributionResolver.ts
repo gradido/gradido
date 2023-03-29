@@ -46,7 +46,7 @@ import {
   EVENT_ADMIN_CONTRIBUTION_DELETE,
   EVENT_ADMIN_CONTRIBUTION_CONFIRM,
   EVENT_ADMIN_CONTRIBUTION_DENY,
-} from '@/event/Event'
+} from '@/event/Events'
 import { calculateDecay } from '@/util/decay'
 import {
   sendContributionConfirmedEmail,

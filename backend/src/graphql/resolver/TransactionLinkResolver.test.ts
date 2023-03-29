@@ -35,7 +35,7 @@ import { listTransactionLinksAdmin } from '@/seeds/graphql/queries'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { logger } from '@test/testSetup'
-import { EventType } from '@/event/Event'
+import { EventType } from '@/event/Events'
 
 // mock semaphore to allow use fake timers
 jest.mock('@/util/TRANSACTIONS_LOCK')

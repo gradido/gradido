@@ -34,7 +34,7 @@ import {
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
 } from '@/emails/sendEmailVariants'
-import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Event'
+import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import LogError from '@/server/LogError'

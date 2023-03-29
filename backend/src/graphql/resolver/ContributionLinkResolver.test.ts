@@ -20,7 +20,7 @@ import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { userFactory } from '@/seeds/factory/user'
-import { EventType } from '@/event/Event'
+import { EventType } from '@/event/Events'
 
 let mutate: any, query: any, con: any
 let testEnv: any
