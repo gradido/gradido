@@ -16,6 +16,7 @@ describe('utils/decay', () => {
       expect(decayFormula(amount, seconds).toString()).toBe('1.000000021964959992727444')
     })
     // we get pretty close, but not exact here, skipping
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('has correct forward calculation', () => {
       const amount = new Decimal(1.0).div(
         new Decimal('0.99999997803504048973201202316767079413460520837376'),

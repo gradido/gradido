@@ -31,17 +31,14 @@ export class KlicktippResolver {
   async unsubscribeNewsletter(@Ctx() context: Context): Promise<boolean> {
     const user = getUser(context)
     await EVENT_UNSUBSCRIBE_NEWSLETTER(user)
-    return await unsubscribe(user.emailContact.email)
+    return unsubscribe(user.emailContact.email)
   }
 
   @Authorized([RIGHTS.SUBSCRIBE_NEWSLETTER])
   @Mutation(() => Boolean)
-  async subscribeNewsletter(
-    @Arg('language') language: string,
-    @Ctx() context: Context,
-  ): Promise<boolean> {
+  async subscribeNewsletter(@Ctx() context: Context): Promise<boolean> {
     const user = getUser(context)
     await EVENT_SUBSCRIBE_NEWSLETTER(user)
-    return await klicktippSignIn(user.emailContact.email, language)
+    return klicktippSignIn(user.emailContact.email, user.language)
   }
 }
