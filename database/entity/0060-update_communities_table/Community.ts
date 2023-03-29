@@ -25,13 +25,13 @@ export class Community extends BaseEntity {
   endPoint: string
 
   @Column({ name: 'last_announced_at', type: 'datetime', nullable: true })
-  lastAnnouncedAt: Date
+  lastAnnouncedAt: Date | null
 
   @Column({ name: 'verified_at', type: 'datetime', nullable: true })
-  verifiedAt: Date
+  verifiedAt: Date | null
 
   @Column({ name: 'last_error_at', type: 'datetime', nullable: true })
-  lastErrorAt: Date
+  lastErrorAt: Date | null
 
   @CreateDateColumn({
     name: 'created_at',

@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -182,7 +187,7 @@ describe('UserResolver', () => {
           { email: 'peter@lustig.de' },
           { relations: ['user'] },
         )
-        expect(DbEvent.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.USER_REGISTER,
             affectedUserId: userConatct.user.id,
@@ -212,7 +217,7 @@ describe('UserResolver', () => {
       })
 
       it('stores the EMAIL_CONFIRMATION event in the database', () => {
-        expect(DbEvent.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.EMAIL_CONFIRMATION,
             affectedUserId: user[0].id,
@@ -228,7 +233,7 @@ describe('UserResolver', () => {
         mutation = await mutate({ mutation: createUser, variables })
       })
 
-      it('logs an info', async () => {
+      it('logs an info', () => {
         expect(logger.info).toBeCalledWith('User already exists with this email=peter@lustig.de')
       })
 
@@ -241,7 +246,7 @@ describe('UserResolver', () => {
         })
       })
 
-      it('results with partly faked user with random "id"', async () => {
+      it('results with partly faked user with random "id"', () => {
         expect(mutation).toEqual(
           expect.objectContaining({
             data: {
@@ -258,7 +263,7 @@ describe('UserResolver', () => {
           { email: 'peter@lustig.de' },
           { relations: ['user'] },
         )
-        expect(DbEvent.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.EMAIL_ACCOUNT_MULTIREGISTRATION,
             affectedUserId: userConatct.user.id,
@@ -286,7 +291,7 @@ describe('UserResolver', () => {
     })
 
     describe('no publisher id', () => {
-      it('sets publisher id to null', async () => {
+      it('sets publisher id to 0', async () => {
         await mutate({
           mutation: createUser,
           variables: { ...variables, email: 'raeuber@hotzenplotz.de', publisherId: undefined },
@@ -297,7 +302,7 @@ describe('UserResolver', () => {
               emailContact: expect.objectContaining({
                 email: 'raeuber@hotzenplotz.de',
               }),
-              publisherId: null,
+              publisherId: 0,
             }),
           ]),
         )
@@ -359,7 +364,7 @@ describe('UserResolver', () => {
         })
 
         it('stores the USER_ACTIVATE_ACCOUNT event in the database', () => {
-          expect(DbEvent.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.USER_ACTIVATE_ACCOUNT,
               affectedUserId: user[0].id,
@@ -369,7 +374,7 @@ describe('UserResolver', () => {
         })
 
         it('stores the USER_REGISTER_REDEEM event in the database', () => {
-          expect(DbEvent.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.USER_REGISTER_REDEEM,
               affectedUserId: result.data.createUser.id,
@@ -687,7 +692,7 @@ describe('UserResolver', () => {
           { email: 'bibi@bloxberg.de' },
           { relations: ['user'] },
         )
-        expect(DbEvent.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.USER_LOGIN,
             affectedUserId: userConatct.user.id,
@@ -792,6 +797,7 @@ describe('UserResolver', () => {
       })
     })
 
+    // eslint-disable-next-line jest/no-disabled-tests
     describe.skip('user is in database but password is not set', () => {
       beforeAll(async () => {
         jest.clearAllMocks()
@@ -868,7 +874,7 @@ describe('UserResolver', () => {
           { email: 'bibi@bloxberg.de' },
           { relations: ['user'] },
         )
-        expect(DbEvent.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.USER_LOGOUT,
             affectedUserId: userConatct.user.id,
@@ -950,7 +956,7 @@ describe('UserResolver', () => {
         })
 
         it('stores the USER_LOGIN event in the database', () => {
-          expect(DbEvent.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.USER_LOGIN,
               affectedUserId: user[0].id,
@@ -1037,7 +1043,7 @@ describe('UserResolver', () => {
             { email: 'bibi@bloxberg.de' },
             { relations: ['user'] },
           )
-          expect(DbEvent.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.EMAIL_FORGOT_PASSWORD,
               affectedUserId: userConatct.user.id,
@@ -1175,7 +1181,7 @@ describe('UserResolver', () => {
             { email: 'bibi@bloxberg.de' },
             { relations: ['user'] },
           )
-          expect(DbEvent.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.USER_INFO_UPDATE,
               affectedUserId: userConatct.user.id,
@@ -1563,7 +1569,7 @@ describe('UserResolver', () => {
                   { email: 'peter@lustig.de' },
                   { relations: ['user'] },
                 )
-                expect(DbEvent.find()).resolves.toContainEqual(
+                await expect(DbEvent.find()).resolves.toContainEqual(
                   expect.objectContaining({
                     type: EventType.ADMIN_USER_ROLE_SET,
                     affectedUserId: userConatct.user.id,
@@ -1765,7 +1771,7 @@ describe('UserResolver', () => {
               { email: 'peter@lustig.de' },
               { relations: ['user'] },
             )
-            expect(DbEvent.find()).resolves.toContainEqual(
+            await expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
                 type: EventType.ADMIN_USER_DELETE,
                 affectedUserId: userConatct.user.id,
@@ -1934,7 +1940,7 @@ describe('UserResolver', () => {
               { email: 'bibi@bloxberg.de' },
               { relations: ['user'] },
             )
-            expect(DbEvent.find()).resolves.toContainEqual(
+            await expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
                 type: EventType.EMAIL_ADMIN_CONFIRMATION,
                 affectedUserId: userConatct.user.id,
@@ -2059,7 +2065,7 @@ describe('UserResolver', () => {
                 { email: 'peter@lustig.de' },
                 { relations: ['user'] },
               )
-              expect(DbEvent.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventType.ADMIN_USER_UNDELETE,
                   affectedUserId: userConatct.user.id,
