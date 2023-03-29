@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/unbound-method */
 import 'reflect-metadata'
 
 import { ApolloServer } from 'apollo-server-express'
@@ -71,6 +74,7 @@ const createServer = async (
   app.use(localization.init)
 
   // Elopage Webhook
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
 
   // Apollo Server

@@ -85,7 +85,7 @@
 <script>
 import Overlay from '../components/Overlay'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable'
-import { adminListAllContributions } from '../graphql/adminListAllContributions'
+import { adminListContributions } from '../graphql/adminListContributions'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
@@ -397,7 +397,7 @@ export default {
   apollo: {
     ListAllContributions: {
       query() {
-        return adminListAllContributions
+        return adminListContributions
       },
       variables() {
         return {
@@ -407,9 +407,12 @@ export default {
         }
       },
       fetchPolicy: 'no-cache',
-      update({ adminListAllContributions }) {
-        this.rows = adminListAllContributions.contributionCount
-        this.items = adminListAllContributions.contributionList
+      update({ adminListContributions }) {
+        this.rows = adminListContributions.contributionCount
+        this.items = adminListContributions.contributionList
+        if (this.statusFilter === FILTER_TAB_MAP[0]) {
+          this.$store.commit('setOpenCreations', adminListContributions.contributionCount)
+        }
       },
       error({ message }) {
         this.toastError(message)

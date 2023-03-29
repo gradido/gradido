@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -22,7 +27,7 @@ import {
 import {
   listAllContributions,
   listContributions,
-  adminListAllContributions,
+  adminListContributions,
 } from '@/seeds/graphql/queries'
 import {
   sendContributionConfirmedEmail,
@@ -41,11 +46,11 @@ import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { EventProtocol } from '@entity/EventProtocol'
+import { Event as DbEvent } from '@entity/Event'
 import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
-import { EventProtocolType } from '@/event/EventProtocolType'
+import { EventType } from '@/event/Event'
 import { logger, i18n as localization } from '@test/testSetup'
 import { UserInputError } from 'apollo-server-express'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
@@ -176,7 +181,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -196,7 +201,7 @@ describe('ContributionResolver', () => {
           expect(errorObjects).toEqual([new GraphQLError('Memo text is too short')])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "Memo text is too short"', () => {
           expect(logger.error).toBeCalledWith('Memo text is too short', 4)
         })
 
@@ -214,7 +219,7 @@ describe('ContributionResolver', () => {
           expect(errorObjects).toEqual([new GraphQLError('Memo text is too long')])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "Memo text is too long"', () => {
           expect(logger.error).toBeCalledWith('Memo text is too long', 259)
         })
 
@@ -233,7 +238,7 @@ describe('ContributionResolver', () => {
           ])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "No information for available creations for the given date"', () => {
           expect(logger.error).toBeCalledWith(
             'No information for available creations for the given date',
             expect.any(Date),
@@ -256,7 +261,7 @@ describe('ContributionResolver', () => {
           ])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "No information for available creations for the given date" again', () => {
           expect(logger.error).toBeCalledWith(
             'No information for available creations for the given date',
             expect.any(Date),
@@ -265,7 +270,7 @@ describe('ContributionResolver', () => {
       })
 
       describe('valid input', () => {
-        it('creates contribution', async () => {
+        it('creates contribution', () => {
           expect(pendingContribution.data.createContribution).toMatchObject({
             id: expect.any(Number),
             amount: '100',
@@ -274,12 +279,13 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the CONTRIBUTION_CREATE event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventProtocolType.CONTRIBUTION_CREATE,
+              type: EventType.CONTRIBUTION_CREATE,
+              affectedUserId: bibi.id,
+              actingUserId: bibi.id,
+              involvedContributionId: pendingContribution.data.createContribution.id,
               amount: expect.decimalEqual(100),
-              contributionId: pendingContribution.data.createContribution.id,
-              userId: bibi.id,
             }),
           )
         })
@@ -311,7 +317,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -331,7 +337,7 @@ describe('ContributionResolver', () => {
           expect(errorObjects).toEqual([new GraphQLError('Memo text is too short')])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "Memo text is too short"', () => {
           expect(logger.error).toBeCalledWith('Memo text is too short', 4)
         })
       })
@@ -352,7 +358,7 @@ describe('ContributionResolver', () => {
           expect(errorObjects).toEqual([new GraphQLError('Memo text is too long')])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "Memo text is too long"', () => {
           expect(logger.error).toBeCalledWith('Memo text is too long', 259)
         })
       })
@@ -377,7 +383,7 @@ describe('ContributionResolver', () => {
           )
         })
 
-        it('logs the error found', () => {
+        it('logs the error "Contribution not found"', () => {
           expect(logger.error).toBeCalledWith('Contribution not found', -1)
         })
       })
@@ -406,7 +412,7 @@ describe('ContributionResolver', () => {
           ])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "Can not update contribution of another user"', () => {
           expect(logger.error).toBeCalledWith(
             'Can not update contribution of another user',
             expect.any(Object),
@@ -440,7 +446,7 @@ describe('ContributionResolver', () => {
           ])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "An admin is not allowed to update an user contribution"', () => {
           expect(logger.error).toBeCalledWith(
             'An admin is not allowed to update an user contribution',
           )
@@ -452,7 +458,7 @@ describe('ContributionResolver', () => {
               id: pendingContribution.data.createContribution.id,
             })
             contribution.contributionStatus = ContributionStatus.DELETED
-            contribution.save()
+            await contribution.save()
             await mutate({
               mutation: login,
               variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -464,7 +470,7 @@ describe('ContributionResolver', () => {
               id: pendingContribution.data.createContribution.id,
             })
             contribution.contributionStatus = ContributionStatus.PENDING
-            contribution.save()
+            await contribution.save()
           })
 
           it('throws an error', async () => {
@@ -486,7 +492,7 @@ describe('ContributionResolver', () => {
             )
           })
 
-          it('logs the error found', () => {
+          it('logs the error "Contribution can not be updated due to status"', () => {
             expect(logger.error).toBeCalledWith(
               'Contribution can not be updated due to status',
               ContributionStatus.DELETED,
@@ -521,7 +527,7 @@ describe('ContributionResolver', () => {
           ])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
           expect(logger.error).toBeCalledWith(
             'The amount to be created exceeds the amount still available for this month',
             new Decimal(1019),
@@ -548,7 +554,7 @@ describe('ContributionResolver', () => {
           ])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "Month of contribution can not be changed"', () => {
           expect(logger.error).toBeCalledWith('Month of contribution can not be changed')
         })
       })
@@ -579,12 +585,13 @@ describe('ContributionResolver', () => {
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
 
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventProtocolType.CONTRIBUTION_UPDATE,
+              type: EventType.CONTRIBUTION_UPDATE,
+              affectedUserId: bibi.id,
+              actingUserId: bibi.id,
+              involvedContributionId: pendingContribution.data.createContribution.id,
               amount: expect.decimalEqual(10),
-              contributionId: pendingContribution.data.createContribution.id,
-              userId: bibi.id,
             }),
           )
         })
@@ -636,7 +643,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -652,7 +659,7 @@ describe('ContributionResolver', () => {
           expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "Contribution not found"', () => {
           expect(logger.error).toBeCalledWith('Contribution not found', -1)
         })
       })
@@ -696,7 +703,7 @@ describe('ContributionResolver', () => {
           expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "Contribution not found"', () => {
           expect(logger.error).toBeCalledWith('Contribution not found', expect.any(Number))
         })
       })
@@ -741,7 +748,7 @@ describe('ContributionResolver', () => {
           expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "Contribution not found"', () => {
           expect(logger.error).toBeCalledWith(`Contribution not found`, expect.any(Number))
         })
       })
@@ -786,7 +793,7 @@ describe('ContributionResolver', () => {
           expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "Contribution not found"', () => {
           expect(logger.error).toBeCalledWith(`Contribution not found`, expect.any(Number))
         })
       })
@@ -809,18 +816,18 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the ADMIN_CONTRIBUTION_DENY event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventProtocolType.ADMIN_CONTRIBUTION_DENY,
-              userId: bibi.id,
-              xUserId: admin.id,
-              contributionId: contributionToDeny.data.createContribution.id,
+              type: EventType.ADMIN_CONTRIBUTION_DENY,
+              affectedUserId: bibi.id,
+              actingUserId: admin.id,
+              involvedContributionId: contributionToDeny.data.createContribution.id,
               amount: expect.decimalEqual(100),
             }),
           )
         })
 
-        it('calls sendContributionDeniedEmail', async () => {
+        it('calls sendContributionDeniedEmail', () => {
           expect(sendContributionDeniedEmail).toBeCalledWith({
             firstName: 'Bibi',
             lastName: 'Bloxberg',
@@ -856,7 +863,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -872,7 +879,7 @@ describe('ContributionResolver', () => {
           expect(errorObjects).toEqual([new GraphQLError('Contribution not found')])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "Contribution not found"', () => {
           expect(logger.error).toBeCalledWith('Contribution not found', expect.any(Number))
         })
       })
@@ -902,7 +909,7 @@ describe('ContributionResolver', () => {
           ])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "Can not delete contribution of another user"', () => {
           expect(logger.error).toBeCalledWith(
             'Can not delete contribution of another user',
             expect.any(Contribution),
@@ -937,12 +944,13 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the CONTRIBUTION_DELETE event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventProtocolType.CONTRIBUTION_DELETE,
-              contributionId: contributionToDelete.data.createContribution.id,
+              type: EventType.CONTRIBUTION_DELETE,
+              affectedUserId: bibi.id,
+              actingUserId: bibi.id,
+              involvedContributionId: contributionToDelete.data.createContribution.id,
               amount: expect.decimalEqual(100),
-              userId: bibi.id,
             }),
           )
         })
@@ -976,7 +984,7 @@ describe('ContributionResolver', () => {
           ])
         })
 
-        it('logs the error found', () => {
+        it('logs the error "A confirmed contribution can not be deleted"', () => {
           expect(logger.error).toBeCalledWith(
             'A confirmed contribution can not be deleted',
             expect.objectContaining({ contributionStatus: 'CONFIRMED' }),
@@ -1009,7 +1017,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -1140,7 +1148,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
+      afterAll(() => {
         resetToken()
       })
 
@@ -1720,7 +1728,7 @@ describe('ContributionResolver', () => {
           })
         })
 
-        afterAll(async () => {
+        afterAll(() => {
           resetToken()
         })
 
@@ -1798,7 +1806,7 @@ describe('ContributionResolver', () => {
           })
         })
 
-        afterAll(async () => {
+        afterAll(() => {
           resetToken()
         })
 
@@ -1841,7 +1849,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "Could not find user"', () => {
               expect(logger.error).toBeCalledWith('Could not find user', 'some@fake.email')
             })
           })
@@ -1868,7 +1876,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "Cannot create contribution since the user was deleted"', () => {
               expect(logger.error).toBeCalledWith(
                 'Cannot create contribution since the user was deleted',
                 expect.objectContaining({
@@ -1904,7 +1912,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "Cannot create contribution since the users email is not activated"', () => {
               expect(logger.error).toBeCalledWith(
                 'Cannot create contribution since the users email is not activated',
                 expect.objectContaining({ emailChecked: false }),
@@ -1913,7 +1921,7 @@ describe('ContributionResolver', () => {
           })
 
           describe('valid user to create for', () => {
-            beforeAll(async () => {
+            beforeAll(() => {
               variables.email = 'bibi@bloxberg.de'
               variables.creationDate = 'invalid-date'
             })
@@ -1930,7 +1938,7 @@ describe('ContributionResolver', () => {
                 )
               })
 
-              it('logs the error thrown', () => {
+              it('logs the error "CreationDate is invalid"', () => {
                 expect(logger.error).toBeCalledWith('CreationDate is invalid', 'invalid-date')
               })
             })
@@ -1952,7 +1960,7 @@ describe('ContributionResolver', () => {
                 )
               })
 
-              it('logs the error thrown', () => {
+              it('logs the error "No information for available creations for the given date"', () => {
                 expect(logger.error).toBeCalledWith(
                   'No information for available creations for the given date',
                   new Date(variables.creationDate),
@@ -1977,7 +1985,7 @@ describe('ContributionResolver', () => {
                 )
               })
 
-              it('logs the error thrown', () => {
+              it('logs the error "No information for available creations for the given date"', () => {
                 expect(logger.error).toBeCalledWith(
                   'No information for available creations for the given date',
                   new Date(variables.creationDate),
@@ -2002,7 +2010,7 @@ describe('ContributionResolver', () => {
                 )
               })
 
-              it('logs the error thrown', () => {
+              it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
                 expect(logger.error).toBeCalledWith(
                   'The amount to be created exceeds the amount still available for this month',
                   new Decimal(2000),
@@ -2019,17 +2027,18 @@ describe('ContributionResolver', () => {
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      adminCreateContribution: [1000, 1000, 590],
+                      adminCreateContribution: ['1000', '1000', '590'],
                     },
                   }),
                 )
               })
 
               it('stores the ADMIN_CONTRIBUTION_CREATE event in the database', async () => {
-                await expect(EventProtocol.find()).resolves.toContainEqual(
+                await expect(DbEvent.find()).resolves.toContainEqual(
                   expect.objectContaining({
-                    type: EventProtocolType.ADMIN_CONTRIBUTION_CREATE,
-                    userId: admin.id,
+                    type: EventType.ADMIN_CONTRIBUTION_CREATE,
+                    affectedUserId: bibi.id,
+                    actingUserId: admin.id,
                     amount: expect.decimalEqual(200),
                   }),
                 )
@@ -2053,7 +2062,7 @@ describe('ContributionResolver', () => {
                 )
               })
 
-              it('logs the error thrown', () => {
+              it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
                 expect(logger.error).toBeCalledWith(
                   'The amount to be created exceeds the amount still available for this month',
                   new Decimal(1000),
@@ -2092,7 +2101,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "Could not find User"', () => {
               expect(logger.error).toBeCalledWith('Could not find User', 'bob@baumeister.de')
             })
           })
@@ -2118,7 +2127,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "User was deleted"', () => {
               expect(logger.error).toBeCalledWith('User was deleted', 'stephen@hawking.uk')
             })
           })
@@ -2144,7 +2153,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "Contribution not found"', () => {
               expect(logger.error).toBeCalledWith('Contribution not found', -1)
             })
           })
@@ -2176,7 +2185,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "User of the pending contribution and send user does not correspond"', () => {
               expect(logger.error).toBeCalledWith(
                 'User of the pending contribution and send user does not correspond',
               )
@@ -2211,7 +2220,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
               expect(logger.error).toBeCalledWith(
                 'The amount to be created exceeds the amount still available for this month',
                 new Decimal(1900),
@@ -2220,6 +2229,7 @@ describe('ContributionResolver', () => {
             })
           })
 
+          // eslint-disable-next-line jest/no-disabled-tests
           describe.skip('creation update is successful changing month', () => {
             // skipped as changing the month is currently disable
             it('returns update creation object', async () => {
@@ -2227,7 +2237,7 @@ describe('ContributionResolver', () => {
                 mutate({
                   mutation: adminUpdateContribution,
                   variables: {
-                    id: creation ? creation.id : -1,
+                    id: creation?.id,
                     email: 'peter@lustig.de',
                     amount: new Decimal(300),
                     memo: 'Danke Peter!',
@@ -2251,10 +2261,11 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
-                  type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
-                  userId: admin.id,
+                  type: EventType.ADMIN_CONTRIBUTION_UPDATE,
+                  affectedUserId: creation?.userId,
+                  actingUserId: admin.id,
                   amount: 300,
                 }),
               )
@@ -2268,7 +2279,7 @@ describe('ContributionResolver', () => {
                 mutate({
                   mutation: adminUpdateContribution,
                   variables: {
-                    id: creation ? creation.id : -1,
+                    id: creation?.id,
                     email: 'peter@lustig.de',
                     amount: new Decimal(200),
                     memo: 'Das war leider zu Viel!',
@@ -2292,10 +2303,11 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
-                  type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
-                  userId: admin.id,
+                  type: EventType.ADMIN_CONTRIBUTION_UPDATE,
+                  affectedUserId: creation?.userId,
+                  actingUserId: admin.id,
                   amount: expect.decimalEqual(200),
                 }),
               )
@@ -2321,7 +2333,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "Contribution not found"', () => {
               expect(logger.error).toBeCalledWith('Contribution not found', -1)
             })
           })
@@ -2366,7 +2378,7 @@ describe('ContributionResolver', () => {
                 mutate({
                   mutation: adminDeleteContribution,
                   variables: {
-                    id: creation ? creation.id : -1,
+                    id: creation?.id,
                   },
                 }),
               ).resolves.toEqual(
@@ -2377,16 +2389,18 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the ADMIN_CONTRIBUTION_DELETE event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
-                  type: EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
-                  userId: admin.id,
+                  type: EventType.ADMIN_CONTRIBUTION_DELETE,
+                  affectedUserId: creation?.userId,
+                  actingUserId: admin.id,
+                  involvedContributionId: creation?.id,
                   amount: expect.decimalEqual(200),
                 }),
               )
             })
 
-            it('calls sendContributionDeletedEmail', async () => {
+            it('calls sendContributionDeletedEmail', () => {
               expect(sendContributionDeletedEmail).toBeCalledWith({
                 firstName: 'Peter',
                 lastName: 'Lustig',
@@ -2461,7 +2475,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "Contribution not found"', () => {
               expect(logger.error).toBeCalledWith('Contribution not found', -1)
             })
           })
@@ -2495,7 +2509,7 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "Moderator can not confirm own contribution"', () => {
               expect(logger.error).toBeCalledWith('Moderator can not confirm own contribution')
             })
           })
@@ -2532,10 +2546,10 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('stores the CONTRIBUTION_CONFIRM event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+            it('stores the ADMIN_CONTRIBUTION_CONFIRM event in the database', async () => {
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
-                  type: EventProtocolType.CONTRIBUTION_CONFIRM,
+                  type: EventType.ADMIN_CONTRIBUTION_CONFIRM,
                 }),
               )
             })
@@ -2551,7 +2565,7 @@ describe('ContributionResolver', () => {
               expect(transaction[0].typeId).toEqual(1)
             })
 
-            it('calls sendContributionConfirmedEmail', async () => {
+            it('calls sendContributionConfirmedEmail', () => {
               expect(sendContributionConfirmedEmail).toBeCalledWith({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -2564,10 +2578,10 @@ describe('ContributionResolver', () => {
               })
             })
 
-            it('stores the SEND_CONFIRMATION_EMAIL event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+            it('stores the EMAIL_CONFIRMATION event in the database', async () => {
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
-                  type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
+                  type: EventType.EMAIL_CONFIRMATION,
                 }),
               )
             })
@@ -2590,7 +2604,7 @@ describe('ContributionResolver', () => {
               })
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "Contribution already confirmed"', () => {
               expect(logger.error).toBeCalledWith(
                 'Contribution already confirmed',
                 expect.any(Number),
@@ -2656,12 +2670,12 @@ describe('ContributionResolver', () => {
     })
   })
 
-  describe('adminListAllContribution', () => {
+  describe('adminListContributions', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
         await expect(
           query({
-            query: adminListAllContributions,
+            query: adminListContributions,
           }),
         ).resolves.toEqual(
           expect.objectContaining({
@@ -2686,7 +2700,7 @@ describe('ContributionResolver', () => {
       it('returns an error', async () => {
         await expect(
           query({
-            query: adminListAllContributions,
+            query: adminListContributions,
           }),
         ).resolves.toEqual(
           expect.objectContaining({
@@ -2710,9 +2724,9 @@ describe('ContributionResolver', () => {
 
       it('returns 17 creations in total', async () => {
         const {
-          data: { adminListAllContributions: contributionListObject },
-        }: { data: { adminListAllContributions: ContributionListResult } } = await query({
-          query: adminListAllContributions,
+          data: { adminListContributions: contributionListObject },
+        }: { data: { adminListContributions: ContributionListResult } } = await query({
+          query: adminListContributions,
         })
         expect(contributionListObject.contributionList).toHaveLength(17)
         expect(contributionListObject).toMatchObject({
@@ -2877,9 +2891,9 @@ describe('ContributionResolver', () => {
 
       it('returns two pending creations with page size set to 2', async () => {
         const {
-          data: { adminListAllContributions: contributionListObject },
-        }: { data: { adminListAllContributions: ContributionListResult } } = await query({
-          query: adminListAllContributions,
+          data: { adminListContributions: contributionListObject },
+        }: { data: { adminListContributions: ContributionListResult } } = await query({
+          query: adminListContributions,
           variables: {
             currentPage: 1,
             pageSize: 2,

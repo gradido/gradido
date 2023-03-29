@@ -1,4 +1,4 @@
-import { ObjectType, Field } from 'type-graphql'
+import { ObjectType, Field, Int } from 'type-graphql'
 import { ContributionLink } from '@model/ContributionLink'
 
 @ObjectType()
@@ -6,6 +6,6 @@ export class ContributionLinkList {
   @Field(() => [ContributionLink])
   links: ContributionLink[]
 
-  @Field(() => Number)
+  @Field(() => Int)
   count: number
 }

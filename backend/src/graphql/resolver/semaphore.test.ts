@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import Decimal from 'decimal.js-light'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { logger } from '@test/testSetup'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -79,7 +81,7 @@ describe('semaphore', () => {
         maxPerCycle: 1,
       },
     })
-    contributionLinkCode = 'CL-' + contributionLink.code
+    contributionLinkCode = `CL-${contributionLink.code}`
     await mutate({
       mutation: login,
       variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
@@ -186,5 +188,51 @@ describe('semaphore', () => {
     await expect(bobsTransaction).resolves.toMatchObject({ errors: undefined })
     await expect(confirmBibisContribution).resolves.toMatchObject({ errors: undefined })
     await expect(confirmBobsContribution).resolves.toMatchObject({ errors: undefined })
+  })
+
+  describe('redeem transaction link twice', () => {
+    let myCode: string
+
+    beforeAll(async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      const {
+        data: { createTransactionLink: bibisLink },
+      } = await mutate({
+        mutation: createTransactionLink,
+        variables: {
+          amount: 20,
+          memo: 'Bibis Link',
+        },
+      })
+      myCode = bibisLink.code
+      await mutate({
+        mutation: login,
+        variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+      })
+    })
+
+    it('does not throw, but should', async () => {
+      const redeem1 = mutate({
+        mutation: redeemTransactionLink,
+        variables: {
+          code: myCode,
+        },
+      })
+      const redeem2 = mutate({
+        mutation: redeemTransactionLink,
+        variables: {
+          code: myCode,
+        },
+      })
+      await expect(redeem1).resolves.toMatchObject({
+        errors: undefined,
+      })
+      await expect(redeem2).resolves.toMatchObject({
+        errors: undefined,
+      })
+    })
   })
 })

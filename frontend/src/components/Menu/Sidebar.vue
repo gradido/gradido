@@ -13,7 +13,7 @@
             <span class="ml-2">{{ $t('navigation.overview') }}</span>
           </b-nav-item>
           <b-nav-item to="/send" class="mb-3" active-class="activeRoute">
-            <b-img src="/img/svg/send.svg" height="20" class="svg-icon" />
+            <b-icon icon="cash" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('navigation.send') }}</span>
           </b-nav-item>
           <b-nav-item to="/transactions" class="mb-3" active-class="activeRoute">
@@ -48,7 +48,12 @@
             <b-icon icon="shield-check" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('navigation.admin_area') }}</span>
           </b-nav-item>
-          <b-nav-item class="font-weight-bold" @click="$emit('logout')" active-class="activeRoute">
+          <b-nav-item
+            class="font-weight-bold"
+            @click="$emit('logout')"
+            active-class="activeRoute"
+            data-test="logout-menu"
+          >
             <b-img src="/img/svg/logout.svg" height="20" class="svg-icon" />
             <span class="ml-2 text-205">{{ $t('navigation.logout') }}</span>
           </b-nav-item>

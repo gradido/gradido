@@ -133,6 +133,22 @@ export const communities = gql`
   }
 `
 
+export const getCommunities = gql`
+  query {
+    getCommunities {
+      id
+      foreign
+      publicKey
+      url
+      lastAnnouncedAt
+      verifiedAt
+      lastErrorAt
+      createdAt
+      updatedAt
+    }
+  }
+`
+
 export const queryTransactionLink = gql`
   query ($code: String!) {
     queryTransactionLink(code: $code) {
@@ -204,18 +220,20 @@ query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC, $statusF
 `
 // from admin interface
 
-export const adminListAllContributions = gql`
+export const adminListContributions = gql`
   query (
     $currentPage: Int = 1
     $pageSize: Int = 25
     $order: Order = DESC
     $statusFilter: [ContributionStatus!]
+    $userId: Int
   ) {
-    adminListAllContributions(
+    adminListContributions(
       currentPage: $currentPage
       pageSize: $pageSize
       order: $order
       statusFilter: $statusFilter
+      userId: $userId
     ) {
       contributionCount
       contributionList {
@@ -301,7 +319,7 @@ export const searchAdminUsers = gql`
 `
 
 export const listContributionMessages = gql`
-  query ($contributionId: Float!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
+  query ($contributionId: Int!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
     listContributionMessages(
       contributionId: $contributionId
       pageSize: $pageSize

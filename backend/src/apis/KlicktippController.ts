@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { KlicktippConnector } from './klicktippConnector'
+import KlicktippConnector from 'klicktipp-api'
 import CONFIG from '@/config'
 
 const klicktippConnector = new KlicktippConnector()

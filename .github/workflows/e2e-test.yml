@@ -1,0 +1,58 @@
+name: Gradido End-to-End Test CI
+
+on: push
+
+jobs:
+  end-to-end-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Boot up test system | docker-compose mariadb
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb
+
+      - name: Boot up test system | docker-compose database
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
+
+      - name: Boot up test system | docker-compose backend
+        run: |
+          cd backend
+          cp .env.test_e2e .env
+          cd ..
+          docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend 
+
+      - name: Sleep for 10 seconds
+        run: sleep 10s
+
+      - name: Boot up test system | seed backend
+        run: |
+          sudo chown runner:docker -R *
+          cd database
+          yarn && yarn dev_reset
+          cd ../backend
+          yarn && yarn seed
+          cd ..
+
+      - name: Boot up test system | docker-compose frontends
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps frontend admin nginx
+
+      - name: Boot up test system | docker-compose mailserver
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mailserver
+
+      - name: Sleep for 15 seconds
+        run: sleep 15s
+
+      - name: End-to-end tests | run tests
+        id: e2e-tests
+        run: |
+          cd e2e-tests/
+          yarn
+          yarn run cypress run
+      - name: End-to-end tests | if tests failed, upload screenshots
+        if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress-screenshots
+          path: /home/runner/work/gradido/gradido/e2e-tests/cypress/screenshots/

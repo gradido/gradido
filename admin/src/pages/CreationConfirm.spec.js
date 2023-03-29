@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { denyContribution } from '../graphql/denyContribution'
-import { adminListAllContributions } from '../graphql/adminListAllContributions'
+import { adminListContributions } from '../graphql/adminListContributions'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 import VueApollo from 'vue-apollo'
@@ -38,7 +38,7 @@ const mocks = {
 
 const defaultData = () => {
   return {
-    adminListAllContributions: {
+    adminListContributions: {
       contributionCount: 2,
       contributionList: [
         {
@@ -92,14 +92,14 @@ const defaultData = () => {
 
 describe('CreationConfirm', () => {
   let wrapper
-  const adminListAllContributionsMock = jest.fn()
+  const adminListContributionsMock = jest.fn()
   const adminDeleteContributionMock = jest.fn()
   const adminDenyContributionMock = jest.fn()
   const confirmContributionMock = jest.fn()
 
   mockClient.setRequestHandler(
-    adminListAllContributions,
-    adminListAllContributionsMock
+    adminListContributions,
+    adminListContributionsMock
       .mockRejectedValueOnce({ message: 'Ouch!' })
       .mockResolvedValue({ data: defaultData() }),
   )
@@ -337,7 +337,7 @@ describe('CreationConfirm', () => {
         })
 
         it('refetches contributions with proper filter', () => {
-          expect(adminListAllContributionsMock).toBeCalledWith({
+          expect(adminListContributionsMock).toBeCalledWith({
             currentPage: 1,
             order: 'DESC',
             pageSize: 25,
@@ -352,7 +352,7 @@ describe('CreationConfirm', () => {
           })
 
           it('refetches contributions with proper filter', () => {
-            expect(adminListAllContributionsMock).toBeCalledWith({
+            expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
               order: 'DESC',
               pageSize: 25,
@@ -368,7 +368,7 @@ describe('CreationConfirm', () => {
           })
 
           it('refetches contributions with proper filter', () => {
-            expect(adminListAllContributionsMock).toBeCalledWith({
+            expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
               order: 'DESC',
               pageSize: 25,
@@ -384,7 +384,7 @@ describe('CreationConfirm', () => {
           })
 
           it('refetches contributions with proper filter', () => {
-            expect(adminListAllContributionsMock).toBeCalledWith({
+            expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
               order: 'DESC',
               pageSize: 25,
@@ -400,7 +400,7 @@ describe('CreationConfirm', () => {
           })
 
           it('refetches contributions with proper filter', () => {
-            expect(adminListAllContributionsMock).toBeCalledWith({
+            expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
               order: 'DESC',
               pageSize: 25,
