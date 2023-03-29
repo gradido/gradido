@@ -123,12 +123,12 @@ rm -R /tmp/yarn--*
 
 # Remove node_modules folders
 # we had problems with corrupted node_modules folder
-rm -R $PROJECT_ROOT/database/node_modules
-rm -R $PROJECT_ROOT/backend/node_modules
-rm -R $PROJECT_ROOT/frontend/node_modules
-rm -R $PROJECT_ROOT/admin/node_modules
-rm -R $PROJECT_ROOT/dht-node/node_modules
-rm -R $PROJECT_ROOT/federation/node_modules
+rm -Rf $PROJECT_ROOT/database/node_modules
+rm -Rf $PROJECT_ROOT/backend/node_modules
+rm -Rf $PROJECT_ROOT/frontend/node_modules
+rm -Rf $PROJECT_ROOT/admin/node_modules
+rm -Rf $PROJECT_ROOT/dht-node/node_modules
+rm -Rf $PROJECT_ROOT/federation/node_modules
 
 # Regenerate .env files
 cp -f $PROJECT_ROOT/database/.env $PROJECT_ROOT/database/.env.bak
