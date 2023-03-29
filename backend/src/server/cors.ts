@@ -1,4 +1,4 @@
-import { default as corsLib } from 'cors'
+import corsLib from 'cors'
 
 const corsOptions = {
   origin: '*',

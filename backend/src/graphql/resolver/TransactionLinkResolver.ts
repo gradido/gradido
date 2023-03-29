@@ -27,6 +27,7 @@ import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { calculateBalance } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { calculateDecay } from '@/util/decay'
+import { QueryLinkResult } from '@union/QueryLinkResult'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { LogError } from '@/server/LogError'
 import {
@@ -39,7 +40,6 @@ import {
 import { executeTransaction } from './TransactionResolver'
 import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
-import QueryLinkResult from '../union/QueryLinkResult'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
