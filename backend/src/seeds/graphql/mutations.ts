@@ -1,14 +1,14 @@
 import gql from 'graphql-tag'
 
 export const subscribeNewsletter = gql`
-  mutation ($email: String!, $language: String!) {
-    subscribeNewsletter(email: $email, language: $language)
+  mutation {
+    subscribeNewsletter
   }
 `
 
 export const unsubscribeNewsletter = gql`
-  mutation ($email: String!) {
-    unsubscribeNewsletter(email: $email)
+  mutation {
+    unsubscribeNewsletter
   }
 `
 
