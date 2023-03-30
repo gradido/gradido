@@ -6,17 +6,36 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Decimal } from 'decimal.js-light'
-import { GraphQLError } from 'graphql'
 import { Contribution } from '@entity/Contribution'
+import { Event as DbEvent } from '@entity/Event'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { UserInputError } from 'apollo-server-express'
-import { Event as DbEvent } from '@entity/Event'
-import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { bobBaumeister } from '@/seeds/users/bob-baumeister'
-import { stephenHawking } from '@/seeds/users/stephen-hawking'
-import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
+import { Decimal } from 'decimal.js-light'
+import { GraphQLError } from 'graphql'
+
+import { ContributionStatus } from '@enum/ContributionStatus'
+import { Order } from '@enum/Order'
+import { ContributionListResult } from '@model/Contribution'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import {
+  cleanDB,
+  resetToken,
+  testEnvironment,
+  contributionDateFormatter,
+  resetEntity,
+} from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
+
+import {
+  sendContributionConfirmedEmail,
+  sendContributionDeletedEmail,
+  sendContributionDeniedEmail,
+} from '@/emails/sendEmailVariants'
+import { EventType } from '@/event/Event'
+import { creations } from '@/seeds/creation/index'
+import { creationFactory } from '@/seeds/factory/creation'
+import { userFactory } from '@/seeds/factory/user'
 import {
   createContribution,
   updateContribution,
@@ -35,29 +54,12 @@ import {
   listContributions,
   adminListContributions,
 } from '@/seeds/graphql/queries'
-import {
-  sendContributionConfirmedEmail,
-  sendContributionDeletedEmail,
-  sendContributionDeniedEmail,
-} from '@/emails/sendEmailVariants'
-import {
-  cleanDB,
-  resetToken,
-  testEnvironment,
-  contributionDateFormatter,
-  resetEntity,
-} from '@test/helpers'
-import { userFactory } from '@/seeds/factory/user'
-import { creationFactory } from '@/seeds/factory/creation'
-import { creations } from '@/seeds/creation/index'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
+import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { EventType } from '@/event/Event'
-import { logger, i18n as localization } from '@test/testSetup'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { ContributionListResult } from '@model/Contribution'
-import { ContributionStatus } from '@enum/ContributionStatus'
-import { Order } from '@enum/Order'
+import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
 jest.mock('@/emails/sendEmailVariants')
 
