@@ -11,13 +11,7 @@ import { TransactionLink } from '@entity/TransactionLink'
 import { User } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
 import { GraphQLError } from 'graphql'
-import {
-  v4 as uuidv4,
-  validate as validateUUID,
-  version as versionUUID,
-  validate as validateUUID,
-  version as versionUUID,
-} from 'uuid'
+import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
