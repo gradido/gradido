@@ -37,11 +37,6 @@ export default {
       required: true,
     },
   },
-  data() {
-    return {
-      checked: false,
-    }
-  },
   methods: {
     showDeleteModal() {
       this.$bvModal
@@ -56,6 +51,7 @@ export default {
             title: this.$t('overlay.deleteUser.title'),
             okTitle: this.$t('overlay.deleteUser.yes'),
             okVariant: 'danger',
+            static: true,
           },
         )
         .then((okClicked) => {
@@ -104,7 +100,6 @@ export default {
             userId: this.item.userId,
             deletedAt: result.data.deleteUser,
           })
-          this.checked = false
         })
         .catch((error) => {
           this.toastError(error.message)
@@ -123,7 +118,6 @@ export default {
             userId: this.item.userId,
             deletedAt: result.data.unDeleteUser,
           })
-          this.checked = false
         })
         .catch((error) => {
           this.toastError(error.message)
