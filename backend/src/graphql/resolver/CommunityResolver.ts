@@ -1,8 +1,9 @@
 import { Community as DbCommunity } from '@entity/Community'
 import { Resolver, Query, Authorized } from 'type-graphql'
 
-import { RIGHTS } from '@/auth/RIGHTS'
 import { Community } from '@model/Community'
+
+import { RIGHTS } from '@/auth/RIGHTS'
 
 @Resolver()
 export class CommunityResolver {

@@ -2,9 +2,10 @@ import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { Decimal } from 'decimal.js-light'
 
-import { getLastTransaction } from '@/graphql/resolver/util/getLastTransaction'
 import { Decay } from '@model/Decay'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
+
+import { getLastTransaction } from '@/graphql/resolver/util/getLastTransaction'
 
 import { calculateDecay } from './decay'
 

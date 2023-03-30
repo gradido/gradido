@@ -6,6 +6,13 @@ import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 
+import ContributionMessageArgs from '@arg/ContributionMessageArgs'
+import Paginated from '@arg/Paginated'
+import { ContributionStatus } from '@enum/ContributionStatus'
+import { ContributionMessageType } from '@enum/MessageType'
+import { Order } from '@enum/Order'
+import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
+
 import { RIGHTS } from '@/auth/RIGHTS'
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 import {
@@ -14,12 +21,6 @@ import {
 } from '@/event/Event'
 import { Context, getUser } from '@/server/context'
 import LogError from '@/server/LogError'
-import ContributionMessageArgs from '@arg/ContributionMessageArgs'
-import Paginated from '@arg/Paginated'
-import { ContributionStatus } from '@enum/ContributionStatus'
-import { ContributionMessageType } from '@enum/MessageType'
-import { Order } from '@enum/Order'
-import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
 
 @Resolver()
 export class ContributionMessageResolver {

@@ -6,6 +6,8 @@
 
 import { Decimal } from 'decimal.js-light'
 
+import { cleanDB, testEnvironment, contributionDateFormatter } from '@test/helpers'
+
 import { creationFactory, nMonthsBefore } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
@@ -20,7 +22,6 @@ import {
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { cleanDB, testEnvironment, contributionDateFormatter } from '@test/helpers'
 
 let mutate: any, con: any
 let testEnv: any

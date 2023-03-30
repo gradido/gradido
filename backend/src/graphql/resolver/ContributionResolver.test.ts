@@ -14,6 +14,19 @@ import { UserInputError } from 'apollo-server-express'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 
+import { ContributionStatus } from '@enum/ContributionStatus'
+import { Order } from '@enum/Order'
+import { ContributionListResult } from '@model/Contribution'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import {
+  cleanDB,
+  resetToken,
+  testEnvironment,
+  contributionDateFormatter,
+  resetEntity,
+} from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
+
 import {
   sendContributionConfirmedEmail,
   sendContributionDeletedEmail,
@@ -47,18 +60,6 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
-import { ContributionStatus } from '@enum/ContributionStatus'
-import { Order } from '@enum/Order'
-import { ContributionListResult } from '@model/Contribution'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import {
-  cleanDB,
-  resetToken,
-  testEnvironment,
-  contributionDateFormatter,
-  resetEntity,
-} from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
 
 jest.mock('@/emails/sendEmailVariants')
 

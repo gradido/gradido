@@ -4,10 +4,11 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { MiddlewareFn } from 'type-graphql'
 
+import { KlickTipp } from '@model/KlickTipp'
+
 import { /* klicktippSignIn, */ getKlickTippUser } from '@/apis/KlicktippController'
 import CONFIG from '@/config'
 import { klickTippLogger as logger } from '@/server/logger'
-import { KlickTipp } from '@model/KlickTipp'
 
 // export const klicktippRegistrationMiddleware: MiddlewareFn = async (
 //   // Only for demo

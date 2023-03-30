@@ -13,6 +13,13 @@ import { UserContact } from '@entity/UserContact'
 import { GraphQLError } from 'graphql'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 
+import { OptInType } from '@enum/OptInType'
+import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
+import { UserContactType } from '@enum/UserContactType'
+import { ContributionLink } from '@model/ContributionLink'
+import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
+
 import CONFIG from '@/config'
 import {
   sendAccountActivationEmail,
@@ -47,12 +54,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
-import { OptInType } from '@enum/OptInType'
-import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
-import { UserContactType } from '@enum/UserContactType'
-import { ContributionLink } from '@model/ContributionLink'
-import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 

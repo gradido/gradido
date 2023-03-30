@@ -14,6 +14,10 @@ import { UserContact } from '@entity/UserContact'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import { cleanDB, testEnvironment, resetToken, resetEntity } from '@test/helpers'
+import { logger } from '@test/testSetup'
+
 import { EventType } from '@/event/Event'
 import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
@@ -34,9 +38,6 @@ import { transactionLinks } from '@/seeds/transactionLink/index'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { cleanDB, testEnvironment, resetToken, resetEntity } from '@test/helpers'
-import { logger } from '@test/testSetup'
 
 import { transactionLinkCode } from './TransactionLinkResolver'
 

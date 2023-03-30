@@ -5,12 +5,13 @@ import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { Decimal } from 'decimal.js-light'
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 
+import { Balance } from '@model/Balance'
+import { TransactionLinkRepository } from '@repository/TransactionLink'
+
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'
-import { Balance } from '@model/Balance'
-import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 import { GdtResolver } from './GdtResolver'
 import { getLastTransaction } from './util/getLastTransaction'

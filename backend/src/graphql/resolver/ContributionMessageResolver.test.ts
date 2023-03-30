@@ -9,6 +9,9 @@
 import { Event as DbEvent } from '@entity/Event'
 import { GraphQLError } from 'graphql'
 
+import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
+
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Event'
 import { userFactory } from '@/seeds/factory/user'
@@ -21,8 +24,6 @@ import {
 import { listContributionMessages } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
