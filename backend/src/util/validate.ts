@@ -2,9 +2,9 @@ import { Decimal } from 'decimal.js-light'
 import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { calculateDecay } from './decay'
+import { getLastTransaction } from '@/graphql/resolver/util/getLastTransaction'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
 import { Decay } from '@model/Decay'
-import { getLastTransaction } from '@/graphql/resolver/util/getLastTransaction'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()

@@ -9,7 +9,6 @@ import { GraphQLError } from 'graphql'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { Event as DbEvent } from '@entity/Event'
 import { logger } from '@test/testSetup'
-import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
 import {
   login,
   createContributionLink,
@@ -17,6 +16,7 @@ import {
   updateContributionLink,
 } from '@/seeds/graphql/mutations'
 import { listContributionLinks } from '@/seeds/graphql/queries'
+import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { userFactory } from '@/seeds/factory/user'

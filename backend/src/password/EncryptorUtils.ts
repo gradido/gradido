@@ -2,10 +2,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { User } from '@entity/User'
-import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import CONFIG from '@/config'
 import LogError from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
+import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const sodium = require('sodium-native')

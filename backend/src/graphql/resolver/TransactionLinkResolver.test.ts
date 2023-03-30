@@ -14,11 +14,9 @@ import { Transaction } from '@entity/Transaction'
 import { Event as DbEvent } from '@entity/Event'
 import { UserContact } from '@entity/UserContact'
 import { transactionLinkCode } from './TransactionLinkResolver'
-import { cleanDB, testEnvironment, resetToken, resetEntity } from '@test/helpers'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { logger } from '@test/testSetup'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { cleanDB, testEnvironment, resetToken, resetEntity } from '@test/helpers'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
 import { userFactory } from '@/seeds/factory/user'
@@ -35,7 +33,9 @@ import {
   confirmContribution,
 } from '@/seeds/graphql/mutations'
 import { listTransactionLinksAdmin } from '@/seeds/graphql/queries'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { logger } from '@test/testSetup'
 import { EventType } from '@/event/Event'
 
 // mock semaphore to allow use fake timers

@@ -9,6 +9,9 @@ import { UserContact } from '@entity/UserContact'
 import { User as DbUser } from '@entity/User'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 
+import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
+import { getLastTransaction } from './util/getLastTransaction'
+import { findContributions } from './util/findContributions'
 import {
   getUserCreation,
   validateContribution,
@@ -16,9 +19,6 @@ import {
   isValidDateString,
   getOpenCreations,
 } from './util/creations'
-import { findContributions } from './util/findContributions'
-import { getLastTransaction } from './util/getLastTransaction'
-import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { Contribution, ContributionListResult } from '@model/Contribution'
 import { Decay } from '@model/Decay'
@@ -200,9 +200,6 @@ export class ContributionResolver {
         contributionToUpdate,
         user.id,
       )
-    }
-    if (contributionToUpdate.moderatorId) {
-      throw new LogError('Cannot update contribution of moderator', contributionToUpdate, user.id)
     }
     if (
       contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&

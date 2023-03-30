@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { ContributionLink } from '@model/ContributionLink'
 import { login, createContributionLink } from '@/seeds/graphql/mutations'
+import { ContributionLink } from '@model/ContributionLink'
 import { ContributionLinkInterface } from '@/seeds/contributionLink/ContributionLinkInterface'
 
 export const contributionLinkFactory = async (
