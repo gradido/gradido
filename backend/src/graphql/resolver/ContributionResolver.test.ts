@@ -2042,6 +2042,50 @@ describe('ContributionResolver', () => {
                   }),
                 )
               })
+
+              describe('user tries to update admin contribution', () => {
+                beforeAll(async () => {
+                  await mutate({
+                    mutation: login,
+                    variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+                  })
+                })
+
+                afterAll(async () => {
+                  await mutate({
+                    mutation: login,
+                    variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+                  })
+                })
+
+                it('logs and throws "Cannot update contribution of moderator" error', async () => {
+                  jest.clearAllMocks()
+                  const adminContribution = await Contribution.findOne({
+                    where: {
+                      moderatorId: admin.id,
+                      userId: bibi.id,
+                    },
+                  })
+                  await expect(
+                    mutate({
+                      mutation: updateContribution,
+                      variables: {
+                        contributionId: (adminContribution && adminContribution.id) || -1,
+                        amount: 100.0,
+                        memo: 'Test Test Test',
+                        creationDate: new Date().toString(),
+                      },
+                    }),
+                  ).resolves.toMatchObject({
+                    errors: [new GraphQLError('Cannot update contribution of moderator')],
+                  })
+                  expect(logger.error).toBeCalledWith(
+                    'Cannot update contribution of moderator',
+                    expect.any(Object),
+                    bibi.id,
+                  )
+                })
+              })
             })
 
             describe('second creation surpasses the available amount ', () => {

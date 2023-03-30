@@ -201,6 +201,9 @@ export class ContributionResolver {
         user.id,
       )
     }
+    if (contributionToUpdate.moderatorId) {
+      throw new LogError('Cannot update contribution of moderator', contributionToUpdate, user.id)
+    }
     if (
       contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
       contributionToUpdate.contributionStatus !== ContributionStatus.PENDING
