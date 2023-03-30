@@ -1,4 +1,5 @@
 import { User } from '@entity/User'
+
 // import { logger } from '@test/testSetup' getting error "jest is not defined"
 import { getUserCryptographicSalt, SecretKeyCryptographyCreateKey } from './EncryptorUtils'
 

@@ -1,4 +1,5 @@
 import { Decimal } from 'decimal.js-light'
+
 import { decayFormula, calculateDecay } from './decay'
 
 describe('utils/decay', () => {
