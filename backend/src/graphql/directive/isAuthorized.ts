@@ -4,11 +4,11 @@
 
 import { AuthChecker } from 'type-graphql'
 
+import { User } from '@entity/User'
 import { decode, encode } from '@/auth/JWT'
 import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN } from '@/auth/ROLES'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
-import { User } from '@entity/User'
 import LogError from '@/server/LogError'
 
 const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {

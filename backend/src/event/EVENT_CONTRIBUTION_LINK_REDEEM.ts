@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 import { User as DbUser } from '@entity/User'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { Contribution as DbContribution } from '@entity/Contribution'

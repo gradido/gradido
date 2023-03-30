@@ -3,8 +3,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { GdtEntry } from './GdtEntry'
 import { ObjectType, Field, Int, Float } from 'type-graphql'
+import { GdtEntry } from './GdtEntry'
 
 @ObjectType()
 export class GdtEntryList {

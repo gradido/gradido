@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 import { Resolver, Query, Authorized, FieldResolver } from 'type-graphql'
 import { getConnection } from '@dbTools/typeorm'
 

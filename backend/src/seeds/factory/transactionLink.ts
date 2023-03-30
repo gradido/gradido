@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { TransactionLink } from '@entity/TransactionLink'
 import { login, createTransactionLink } from '@/seeds/graphql/mutations'
 import { TransactionLinkInterface } from '@/seeds/transactionLink/TransactionLinkInterface'
 import { transactionLinkExpireDate } from '@/graphql/resolver/TransactionLinkResolver'
-import { TransactionLink } from '@entity/TransactionLink'
 
 export const transactionLinkFactory = async (
   client: ApolloServerTestClient,
