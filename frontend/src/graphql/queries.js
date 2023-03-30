@@ -188,6 +188,7 @@ export const listContributions = gql`
         messagesCount
         deniedAt
         deniedBy
+        moderatorId
       }
     }
   }
@@ -237,7 +238,7 @@ export const searchAdminUsers = gql`
 `
 
 export const listContributionMessages = gql`
-  query($contributionId: Float!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
+  query($contributionId: Int!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
     listContributionMessages(
       contributionId: $contributionId
       pageSize: $pageSize

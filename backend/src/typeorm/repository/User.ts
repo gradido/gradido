@@ -1,6 +1,7 @@
-import SearchUsersFilters from '@/graphql/arg/SearchUsersFilters'
 import { Brackets, EntityRepository, IsNull, Not, Repository } from '@dbTools/typeorm'
 import { User as DbUser } from '@entity/User'
+
+import SearchUsersFilters from '@/graphql/arg/SearchUsersFilters'
 
 @EntityRepository(DbUser)
 export class UserRepository extends Repository<DbUser> {

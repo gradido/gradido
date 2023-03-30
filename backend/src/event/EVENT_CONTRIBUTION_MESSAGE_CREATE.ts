@@ -1,7 +1,8 @@
-import { User as DbUser } from '@entity/User'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
 import { Event as DbEvent } from '@entity/Event'
+import { User as DbUser } from '@entity/User'
+
 import { Event, EventType } from './Event'
 
 export const EVENT_CONTRIBUTION_MESSAGE_CREATE = async (

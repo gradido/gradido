@@ -1,21 +1,19 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import Decimal from 'decimal.js-light'
-import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 import { getCustomRepository } from '@dbTools/typeorm'
-
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-
-import { TransactionLinkRepository } from '@repository/TransactionLink'
+import { Decimal } from 'decimal.js-light'
+import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 
 import { Balance } from '@model/Balance'
+import { TransactionLinkRepository } from '@repository/TransactionLink'
 
-import { backendLogger as logger } from '@/server/logger'
-import { Context, getUser } from '@/server/context'
-import { calculateDecay } from '@/util/decay'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { GdtResolver } from './GdtResolver'
+import { Context, getUser } from '@/server/context'
+import { backendLogger as logger } from '@/server/logger'
+import { calculateDecay } from '@/util/decay'
 
+import { GdtResolver } from './GdtResolver'
 import { getLastTransaction } from './util/getLastTransaction'
 
 @Resolver()
