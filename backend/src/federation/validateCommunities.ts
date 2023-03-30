@@ -4,8 +4,8 @@ import { IsNull } from '@dbTools/typeorm'
 import { requestGetPublicKey as v1_0_requestGetPublicKey } from './client/1_0/FederationClient'
 // eslint-disable-next-line camelcase
 import { requestGetPublicKey as v1_1_requestGetPublicKey } from './client/1_1/FederationClient'
-import { backendLogger as logger } from '@/server/logger'
 import { ApiVersionType } from './enum/apiVersionType'
+import { backendLogger as logger } from '@/server/logger'
 import LogError from '@/server/LogError'
 
 export function startValidateCommunities(timerInterval: number): void {

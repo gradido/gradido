@@ -1,5 +1,4 @@
-import Decimal from 'decimal.js-light'
-import 'reflect-metadata' // This might be wise to load in a test setup file
+import { Decimal } from 'decimal.js-light'
 import { decayFormula, calculateDecay } from './decay'
 
 describe('utils/decay', () => {

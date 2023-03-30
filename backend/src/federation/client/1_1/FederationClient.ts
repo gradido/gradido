@@ -2,9 +2,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { gql } from 'graphql-request'
-import { backendLogger as logger } from '@/server/logger'
 import { Community as DbCommunity } from '@entity/Community'
-import { GraphQLGetClient } from '../GraphQLGetClient'
+import { GraphQLGetClient } from '@/federation/client/GraphQLGetClient'
+import { backendLogger as logger } from '@/server/logger'
 import LogError from '@/server/LogError'
 
 export async function requestGetPublicKey(dbCom: DbCommunity): Promise<string | undefined> {
