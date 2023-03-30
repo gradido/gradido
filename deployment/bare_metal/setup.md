@@ -196,42 +196,6 @@ Use it as pattern to do all steps manually in your terminal shell.
 
 Follow the commands in `./install.sh` as installation pattern.
 
-## Define Cronjob To Compensate Yarn Output In `/tmp`
-
-`yarn` creates output in `/tmp` directory, which must be deleted regularly and will be done per Cron-Job.
-
-### On `stage1`
-
-An hourly job is necessary on `stage1` by setting the following job in the `crontab` for the `gradido` user.
-
-Run:
-
-```bash
-crontab -e
-```
-
-This opens the crontab in edit-mode and insert the following entry:
-
-```bash
-0 * * * * find /tmp -name "yarn--*" -cmin +60 -exec rm -r {} \; > /dev/null
-```
-
-### On `stage2`
-
-A daily job is necessary on `stage2` by setting the following job in the `crontab` for the `gradido` user.
-
-Run:
-
-```bash
-crontab -e
-```
-
-This opens the `crontab` in edit-mode and insert the following entry:
-
-```bash
-0 4 * * * find /tmp -name "yarn--*" -ctime +1 -exec rm -r {} \; > /dev/null
-```
-
 ## Define Cronjob To start backup script automatically
 
 At least at production stage we need a daily backup of our database. This can be done by adding a cronjob
