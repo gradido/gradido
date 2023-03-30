@@ -2,8 +2,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
+import { User as DbUser } from '@entity/User'
+import { UserContact as DbUserContact } from '@entity/UserContact'
 import i18n from 'i18n'
-import { v4 as uuidv4 } from 'uuid'
 import {
   Resolver,
   Query,
@@ -15,46 +19,31 @@ import {
   Mutation,
   Int,
 } from 'type-graphql'
-import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
+import { v4 as uuidv4 } from 'uuid'
 
-import { User as DbUser } from '@entity/User'
-import { UserContact as DbUserContact } from '@entity/UserContact'
-import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { getUserCreations } from './util/creations'
-import { FULL_CREATION_AVAILABLE } from './const/const'
-import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
-import { UserRepository } from '@repository/User'
-
-import { User } from '@model/User'
-import { SearchAdminUsersResult } from '@model/AdminUser'
-import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
+import CreateUserArgs from '@arg/CreateUserArgs'
+import Paginated from '@arg/Paginated'
+import SearchUsersArgs from '@arg/SearchUsersArgs'
+import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
+import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
+import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserContactType } from '@enum/UserContactType'
+import { SearchAdminUsersResult } from '@model/AdminUser'
+import { User } from '@model/User'
+import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
+import { UserRepository } from '@repository/User'
 
+import { klicktippSignIn } from '@/apis/KlicktippController'
+import { encode } from '@/auth/JWT'
+import { RIGHTS } from '@/auth/RIGHTS'
+import CONFIG from '@/config'
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
   sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
-
-import { getTimeDurationObject, printTimeDuration } from '@/util/time'
-import CreateUserArgs from '@arg/CreateUserArgs'
-import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
-import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
-import Paginated from '@arg/Paginated'
-import SearchUsersArgs from '@arg/SearchUsersArgs'
-
-import { backendLogger as logger } from '@/server/logger'
-import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
-import CONFIG from '@/config'
-import { communityDbUser } from '@/util/communityUser'
-import { encode } from '@/auth/JWT'
-import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
-import { klicktippSignIn } from '@/apis/KlicktippController'
-import { RIGHTS } from '@/auth/RIGHTS'
-import { hasElopageBuys } from '@/util/hasElopageBuys'
 import {
   Event,
   EventType,
@@ -71,14 +60,23 @@ import {
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Event'
+import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
+import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import LogError from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
+import { communityDbUser } from '@/util/communityUser'
+import { hasElopageBuys } from '@/util/hasElopageBuys'
+import { getTimeDurationObject, printTimeDuration } from '@/util/time'
+
+import { FULL_CREATION_AVAILABLE } from './const/const'
+import { getUserCreations } from './util/creations'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
-const sodium = require('sodium-native')
-// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const random = require('random-bigint')
+// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
+const sodium = require('sodium-native')
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
