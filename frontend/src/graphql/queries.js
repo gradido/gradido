@@ -187,6 +187,7 @@ export const listContributions = gql`
         messagesCount
         deniedAt
         deniedBy
+        moderatorId
       }
     }
   }
