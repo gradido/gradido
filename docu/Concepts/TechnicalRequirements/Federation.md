@@ -50,6 +50,8 @@ Before starting in describing the details of the federation handshake, some prer
 
 With the federation additional data tables/entities have to be created.
 
+##### 1st Draft
+
 The following diagramms shows the first draft of the possible database-model base on the migration 0063-event_link_fields.ts with 3 steps of migration to reach the required entities. All three diagramms are not exhaustive and are still a base for discussions:
 
 ![img](./image/classdiagramm_x-community-readyness_step1.svg)
@@ -64,9 +66,9 @@ The 2nd step is an introduction of the entity accounts between the users and the
 
 The 3rd step will introduce an additional foreign-users and a users_favorites table. A foreign_user could be stored in the existing users-table, but he will not need all the attributes of a home-user, especially he will never gets an AGE-account in this community. The user_favorites entity is designed to buildup the relations between users and foreign_users or in general between all users. This is simply a first idea for a future discussion.
 
+##### 2nd Draft
 
 After team discussion in architecture meeting a second vision draft for database migration is shown in the following picture. Only the concerned tables of the database migration are presented. The three elliptical surroundings shows the different steps, which should be done in separate issues. The model, table namings and columns are not exhaustive and are still a base for further discussions.
-
 
 ![img](./image/class-diagramm_vision-draft2.svg)
 
@@ -81,6 +83,17 @@ After team discussion in architecture meeting a second vision draft for database
 
 The previous idea to replace the `user_id `with an `account_id` in the `transactions `table will be not necessary with this draft, because it will not cause a benefit and saves a lot refactoring efforts.
 
+##### 3rd Draft
+
+After further discussions about the database-model and the necessary migration steps the team decided to integrate an additional migration step for X-Community-Transaction. The decision base on keeping the goal focus on implementation of the x-community sendCoins feature as soon as possible.
+
+![img](./image/class-diagramm_vision-draft3.svg)
+
+The additional migration step 2 will simply concentrated on the `transactions `table by adding all necessary columns to handle a *x-community-tx* without a previous migration of the `users `table, shown as step 3 in the picture above.
+
+In concequence of these additional columns in the `transactions `table the database-model will be denormalized by containing redundanten columns. But this migration step will reduce the necessary efforts to reach the *x-community sendCoins* feature as soon as possible. On the other side it offers more possibilities to ensure data consitency, because of internal data checks in conjunction with the redundant columns.
+
+The feature *x-community-tx* per *sendCoins* will create several challenges, because there is no technical transaction bracket, which will ensure consistent data in both community databases after all write access are finished. The most favorite concept about handling a x-community-transaction and the upcoming handshake to ensure valid send- and receive-transaction entries in both databases is to follow the two-phase-commit protocol. To avoid blocking the transactions table or user dependent transactions-entries during the two-phase-commit processing the idea of pending_transactions is born. This additional pending_transactions table contains the same columns than the transactions table plus one column named `x_transactions_state`.
 
 
 ##### Community-Entity
