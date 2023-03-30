@@ -6,7 +6,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
+import { GraphQLError } from 'graphql'
+import { Contribution } from '@entity/Contribution'
+import { Transaction as DbTransaction } from '@entity/Transaction'
+import { User } from '@entity/User'
+import { UserInputError } from 'apollo-server-express'
+import { Event as DbEvent } from '@entity/Event'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
@@ -41,18 +47,12 @@ import {
   contributionDateFormatter,
   resetEntity,
 } from '@test/helpers'
-import { GraphQLError } from 'graphql'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { Event as DbEvent } from '@entity/Event'
-import { Contribution } from '@entity/Contribution'
-import { Transaction as DbTransaction } from '@entity/Transaction'
-import { User } from '@entity/User'
 import { EventType } from '@/event/Event'
 import { logger, i18n as localization } from '@test/testSetup'
-import { UserInputError } from 'apollo-server-express'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { ContributionListResult } from '@model/Contribution'
@@ -2578,10 +2578,10 @@ describe('ContributionResolver', () => {
               })
             })
 
-            it('stores the SEND_CONFIRMATION_EMAIL event in the database', async () => {
+            it('stores the EMAIL_CONFIRMATION event in the database', async () => {
               await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
-                  type: EventType.SEND_CONFIRMATION_EMAIL,
+                  type: EventType.EMAIL_CONFIRMATION,
                 }),
               )
             })

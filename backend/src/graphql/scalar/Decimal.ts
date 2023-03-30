@@ -1,7 +1,7 @@
 import { GraphQLScalarType, Kind } from 'graphql'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 
-export default new GraphQLScalarType({
+const DecimalType = new GraphQLScalarType({
   name: 'Decimal',
   description: 'The `Decimal` scalar type to represent currency values',
 
@@ -21,3 +21,5 @@ export default new GraphQLScalarType({
     return new Decimal(ast.value)
   },
 })
+
+export default DecimalType

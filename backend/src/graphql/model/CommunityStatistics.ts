@@ -1,5 +1,5 @@
 import { ObjectType, Field, Int } from 'type-graphql'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 
 @ObjectType()
 export class DynamicStatisticsFields {

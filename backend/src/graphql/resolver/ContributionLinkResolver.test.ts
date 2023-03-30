@@ -4,9 +4,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import Decimal from 'decimal.js-light'
-import { logger } from '@test/testSetup'
+import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { Event as DbEvent } from '@entity/Event'
+import { logger } from '@test/testSetup'
 import {
   login,
   createContributionLink,
@@ -18,9 +20,7 @@ import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { userFactory } from '@/seeds/factory/user'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { EventType } from '@/event/Event'
-import { Event as DbEvent } from '@entity/Event'
 
 let mutate: any, query: any, con: any
 let testEnv: any

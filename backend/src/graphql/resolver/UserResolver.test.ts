@@ -6,6 +6,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { GraphQLError } from 'graphql'
+import { User } from '@entity/User'
+import { TransactionLink } from '@entity/TransactionLink'
+import { validate as validateUUID, version as versionUUID } from 'uuid'
+import { UserContact } from '@entity/UserContact'
+import { Event as DbEvent } from '@entity/Event'
+import { OptInType } from '@enum/OptInType'
+import { UserContactType } from '@enum/UserContactType'
+import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { objectValuesToArray } from '@/util/utilities'
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
@@ -27,8 +36,6 @@ import {
   sendActivationEmail,
 } from '@/seeds/graphql/mutations'
 import { verifyLogin, queryOptIn, searchAdminUsers, searchUsers } from '@/seeds/graphql/queries'
-import { GraphQLError } from 'graphql'
-import { User } from '@entity/User'
 import CONFIG from '@/config'
 import {
   sendAccountActivationEmail,
@@ -38,19 +45,12 @@ import {
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { ContributionLink } from '@model/ContributionLink'
-import { TransactionLink } from '@entity/TransactionLink'
 import { EventType } from '@/event/Event'
-import { Event as DbEvent } from '@entity/Event'
-import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { UserContact } from '@entity/UserContact'
-import { OptInType } from '../enum/OptInType'
-import { UserContactType } from '../enum/UserContactType'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { encryptPassword } from '@/password/PasswordEncryptor'
-import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
@@ -182,14 +182,14 @@ describe('UserResolver', () => {
         })
       })
 
-      it('stores the REGISTER event in the database', async () => {
+      it('stores the USER_REGISTER event in the database', async () => {
         const userConatct = await UserContact.findOneOrFail(
           { email: 'peter@lustig.de' },
           { relations: ['user'] },
         )
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventType.REGISTER,
+            type: EventType.USER_REGISTER,
             affectedUserId: userConatct.user.id,
             actingUserId: userConatct.user.id,
           }),
@@ -216,10 +216,10 @@ describe('UserResolver', () => {
         })
       })
 
-      it('stores the SEND_CONFIRMATION_EMAIL event in the database', async () => {
+      it('stores the EMAIL_CONFIRMATION event in the database', async () => {
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventType.SEND_CONFIRMATION_EMAIL,
+            type: EventType.EMAIL_CONFIRMATION,
             affectedUserId: user[0].id,
             actingUserId: user[0].id,
           }),
@@ -258,14 +258,14 @@ describe('UserResolver', () => {
         )
       })
 
-      it('stores the SEND_ACCOUNT_MULTIREGISTRATION_EMAIL event in the database', async () => {
+      it('stores the EMAIL_ACCOUNT_MULTIREGISTRATION event in the database', async () => {
         const userConatct = await UserContact.findOneOrFail(
           { email: 'peter@lustig.de' },
           { relations: ['user'] },
         )
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL,
+            type: EventType.EMAIL_ACCOUNT_MULTIREGISTRATION,
             affectedUserId: userConatct.user.id,
             actingUserId: 0,
           }),
@@ -363,20 +363,20 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the ACTIVATE_ACCOUNT event in the database', async () => {
+        it('stores the USER_ACTIVATE_ACCOUNT event in the database', async () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventType.ACTIVATE_ACCOUNT,
+              type: EventType.USER_ACTIVATE_ACCOUNT,
               affectedUserId: user[0].id,
               actingUserId: user[0].id,
             }),
           )
         })
 
-        it('stores the REDEEM_REGISTER event in the database', async () => {
+        it('stores the USER_REGISTER_REDEEM event in the database', async () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventType.REDEEM_REGISTER,
+              type: EventType.USER_REGISTER_REDEEM,
               affectedUserId: result.data.createUser.id,
               actingUserId: result.data.createUser.id,
               involvedContributionLinkId: link.id,
@@ -458,10 +458,10 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the REDEEM_REGISTER event in the database', async () => {
+        it('stores the USER_REGISTER_REDEEM event in the database', async () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventType.REDEEM_REGISTER,
+              type: EventType.USER_REGISTER_REDEEM,
               affectedUserId: newUser.data.createUser.id,
               actingUserId: newUser.data.createUser.id,
               involvedTransactionLinkId: transactionLink.id,
@@ -687,14 +687,14 @@ describe('UserResolver', () => {
         expect(headerPushMock).toBeCalledWith({ key: 'token', value: expect.any(String) })
       })
 
-      it('stores the LOGIN event in the database', async () => {
+      it('stores the USER_LOGIN event in the database', async () => {
         const userConatct = await UserContact.findOneOrFail(
           { email: 'bibi@bloxberg.de' },
           { relations: ['user'] },
         )
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventType.LOGIN,
+            type: EventType.USER_LOGIN,
             affectedUserId: userConatct.user.id,
             actingUserId: userConatct.user.id,
           }),
@@ -869,14 +869,14 @@ describe('UserResolver', () => {
         )
       })
 
-      it('stores the LOGOUT event in the database', async () => {
+      it('stores the USER_LOGOUT event in the database', async () => {
         const userConatct = await UserContact.findOneOrFail(
           { email: 'bibi@bloxberg.de' },
           { relations: ['user'] },
         )
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventType.LOGOUT,
+            type: EventType.USER_LOGOUT,
             affectedUserId: userConatct.user.id,
             actingUserId: userConatct.user.id,
           }),
@@ -955,10 +955,10 @@ describe('UserResolver', () => {
           )
         })
 
-        it('stores the LOGIN event in the database', async () => {
+        it('stores the USER_LOGIN event in the database', async () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventType.LOGIN,
+              type: EventType.USER_LOGIN,
               affectedUserId: user[0].id,
               actingUserId: user[0].id,
             }),
@@ -1935,14 +1935,14 @@ describe('UserResolver', () => {
             })
           })
 
-          it('stores the ADMIN_SEND_CONFIRMATION_EMAIL event in the database', async () => {
+          it('stores the EMAIL_ADMIN_CONFIRMATION event in the database', async () => {
             const userConatct = await UserContact.findOneOrFail(
               { email: 'bibi@bloxberg.de' },
               { relations: ['user'] },
             )
             await expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
-                type: EventType.ADMIN_SEND_CONFIRMATION_EMAIL,
+                type: EventType.EMAIL_ADMIN_CONFIRMATION,
                 affectedUserId: userConatct.user.id,
                 actingUserId: admin.id,
               }),

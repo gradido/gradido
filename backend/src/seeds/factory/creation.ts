@@ -5,11 +5,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { login, createContribution, confirmContribution } from '@/seeds/graphql/mutations'
-import { CreationInterface } from '@/seeds/creation/CreationInterface'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Transaction } from '@entity/Transaction'
 import { Contribution } from '@entity/Contribution'
+import { CreationInterface } from '@/seeds/creation/CreationInterface'
+import { login, createContribution, confirmContribution } from '@/seeds/graphql/mutations'
 import { findUserByEmail } from '@/graphql/resolver/UserResolver'
 // import CONFIG from '@/config/index'
 
