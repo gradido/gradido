@@ -13,6 +13,18 @@ import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { UserInputError } from 'apollo-server-express'
 import { Event as DbEvent } from '@entity/Event'
+import {
+  cleanDB,
+  resetToken,
+  testEnvironment,
+  contributionDateFormatter,
+  resetEntity,
+} from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import { ContributionListResult } from '@model/Contribution'
+import { ContributionStatus } from '@enum/ContributionStatus'
+import { Order } from '@enum/Order'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
@@ -40,24 +52,12 @@ import {
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
 } from '@/emails/sendEmailVariants'
-import {
-  cleanDB,
-  resetToken,
-  testEnvironment,
-  contributionDateFormatter,
-  resetEntity,
-} from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { EventType } from '@/event/Event'
-import { logger, i18n as localization } from '@test/testSetup'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { ContributionListResult } from '@model/Contribution'
-import { ContributionStatus } from '@enum/ContributionStatus'
-import { Order } from '@enum/Order'
 
 jest.mock('@/emails/sendEmailVariants')
 
@@ -2039,6 +2039,50 @@ describe('ContributionResolver', () => {
                     amount: expect.decimalEqual(200),
                   }),
                 )
+              })
+
+              describe('user tries to update admin contribution', () => {
+                beforeAll(async () => {
+                  await mutate({
+                    mutation: login,
+                    variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+                  })
+                })
+
+                afterAll(async () => {
+                  await mutate({
+                    mutation: login,
+                    variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+                  })
+                })
+
+                it('logs and throws "Cannot update contribution of moderator" error', async () => {
+                  jest.clearAllMocks()
+                  const adminContribution = await Contribution.findOne({
+                    where: {
+                      moderatorId: admin.id,
+                      userId: bibi.id,
+                    },
+                  })
+                  await expect(
+                    mutate({
+                      mutation: updateContribution,
+                      variables: {
+                        contributionId: (adminContribution && adminContribution.id) || -1,
+                        amount: 100.0,
+                        memo: 'Test Test Test',
+                        creationDate: new Date().toString(),
+                      },
+                    }),
+                  ).resolves.toMatchObject({
+                    errors: [new GraphQLError('Cannot update contribution of moderator')],
+                  })
+                  expect(logger.error).toBeCalledWith(
+                    'Cannot update contribution of moderator',
+                    expect.any(Object),
+                    bibi.id,
+                  )
+                })
               })
             })
 

@@ -11,6 +11,8 @@ import { User } from '@entity/User'
 import { GraphQLError } from 'graphql'
 import { Event as DbEvent } from '@entity/Event'
 import { findUserByEmail } from './UserResolver'
+import { cleanDB, testEnvironment } from '@test/helpers'
+import { logger } from '@test/testSetup'
 import { EventType } from '@/event/Event'
 import { userFactory } from '@/seeds/factory/user'
 import {
@@ -23,8 +25,6 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
-import { cleanDB, testEnvironment } from '@test/helpers'
-import { logger } from '@test/testSetup'
 
 let mutate: any, query: any, con: any
 let testEnv: any

@@ -5,12 +5,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Decimal } from 'decimal.js-light'
+import { cleanDB, testEnvironment, contributionDateFormatter } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { creationFactory, nMonthsBefore } from '@/seeds/factory/creation'
-import { cleanDB, testEnvironment, contributionDateFormatter } from '@test/helpers'
 import {
   confirmContribution,
   createContribution,

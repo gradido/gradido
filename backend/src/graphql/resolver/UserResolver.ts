@@ -21,8 +21,8 @@ import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { getUserCreations } from './util/creations'
 import { FULL_CREATION_AVAILABLE } from './const/const'
+import { getUserCreations } from './util/creations'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserRepository } from '@repository/User'
 
@@ -33,18 +33,17 @@ import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { UserContactType } from '@enum/UserContactType'
 
-import {
-  sendAccountActivationEmail,
-  sendAccountMultiRegistrationEmail,
-  sendResetPasswordEmail,
-} from '@/emails/sendEmailVariants'
-
-import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 import CreateUserArgs from '@arg/CreateUserArgs'
 import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
 import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
 import Paginated from '@arg/Paginated'
 import SearchUsersArgs from '@arg/SearchUsersArgs'
+import { getTimeDurationObject, printTimeDuration } from '@/util/time'
+import {
+  sendAccountActivationEmail,
+  sendAccountMultiRegistrationEmail,
+  sendResetPasswordEmail,
+} from '@/emails/sendEmailVariants'
 
 import { backendLogger as logger } from '@/server/logger'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
