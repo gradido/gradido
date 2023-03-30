@@ -8,6 +8,7 @@ import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { Event as DbEvent } from '@entity/Event'
+
 import { logger } from '@test/testSetup'
 import {
   login,

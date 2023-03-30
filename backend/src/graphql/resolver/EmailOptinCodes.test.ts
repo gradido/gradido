@@ -6,6 +6,7 @@
 
 import { User as DbUser } from '@entity/User'
 import { GraphQLError } from 'graphql'
+
 import { testEnvironment, cleanDB } from '@test/helpers'
 import { createUser, setPassword, forgotPassword } from '@/seeds/graphql/mutations'
 import { queryOptIn } from '@/seeds/graphql/queries'

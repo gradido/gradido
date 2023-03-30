@@ -8,6 +8,7 @@
 import { createTestClient } from 'apollo-server-testing'
 import { name, internet, datatype } from 'faker'
 import { entities } from '@entity/index'
+
 import createServer from '@/server/createServer'
 import { backendLogger as logger } from '@/server/logger'
 import CONFIG from '@/config'

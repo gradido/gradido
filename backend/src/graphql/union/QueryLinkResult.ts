@@ -1,4 +1,5 @@
 import { createUnionType } from 'type-graphql'
+
 import { TransactionLink } from '@model/TransactionLink'
 import { ContributionLink } from '@model/ContributionLink'
 

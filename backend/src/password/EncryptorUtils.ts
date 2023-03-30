@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { User } from '@entity/User'
+
 import CONFIG from '@/config'
 import LogError from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'

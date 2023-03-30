@@ -10,6 +10,7 @@ import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { GraphQLError } from 'graphql'
 import { Event as DbEvent } from '@entity/Event'
+
 import { EventType } from '@/event/Event'
 import { userFactory } from '@/seeds/factory/user'
 import {

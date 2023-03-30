@@ -20,6 +20,7 @@ import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserRepository } from '@repository/User'
 import { User } from '@model/User'

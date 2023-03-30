@@ -2,6 +2,7 @@ import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { Decimal } from 'decimal.js-light'
 import { ExpressContext } from 'apollo-server-express'
+
 import { Role } from '@/auth/Role'
 
 import LogError from './LogError'

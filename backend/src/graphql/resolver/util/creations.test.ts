@@ -6,6 +6,7 @@
 
 import { User } from '@entity/User'
 import { Contribution } from '@entity/Contribution'
+
 import { testEnvironment, cleanDB, contributionDateFormatter } from '@test/helpers'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'

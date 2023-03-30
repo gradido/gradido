@@ -1,4 +1,5 @@
 import { User } from '@entity/User'
+
 import connection from '@/typeorm/connection'
 import { getKlickTippUser } from '@/apis/KlicktippController'
 import LogError from '@/server/LogError'

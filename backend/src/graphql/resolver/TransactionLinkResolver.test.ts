@@ -13,6 +13,7 @@ import { GraphQLError } from 'graphql'
 import { Transaction } from '@entity/Transaction'
 import { Event as DbEvent } from '@entity/Event'
 import { UserContact } from '@entity/UserContact'
+
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { cleanDB, testEnvironment, resetToken, resetEntity } from '@test/helpers'

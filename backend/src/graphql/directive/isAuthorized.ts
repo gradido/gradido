@@ -4,6 +4,7 @@
 
 import { AuthChecker } from 'type-graphql'
 import { User } from '@entity/User'
+
 import { decode, encode } from '@/auth/JWT'
 import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN } from '@/auth/ROLES'
 import { RIGHTS } from '@/auth/RIGHTS'

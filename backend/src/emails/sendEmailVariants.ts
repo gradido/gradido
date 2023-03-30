@@ -1,4 +1,5 @@
 import { Decimal } from 'decimal.js-light'
+
 import CONFIG from '@/config'
 import { decimalSeparatorByLanguage } from '@/util/utilities'
 

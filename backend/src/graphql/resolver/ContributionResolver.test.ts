@@ -13,6 +13,7 @@ import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { UserInputError } from 'apollo-server-express'
 import { Event as DbEvent } from '@entity/Event'
+
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'

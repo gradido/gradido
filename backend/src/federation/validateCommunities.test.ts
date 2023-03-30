@@ -6,6 +6,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Community as DbCommunity } from '@entity/Community'
+
 import { logger } from '@test/testSetup'
 import { testEnvironment, cleanDB } from '@test/helpers'
 

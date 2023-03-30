@@ -1,4 +1,5 @@
 import { Decimal } from 'decimal.js-light'
+
 import CONFIG from '@/config'
 import { Decay } from '@model/Decay'
 import LogError from '@/server/LogError'

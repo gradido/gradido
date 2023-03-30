@@ -1,4 +1,5 @@
 import { verify, sign } from 'jsonwebtoken'
+
 import CONFIG from '@/config/'
 import LogError from '@/server/LogError'
 

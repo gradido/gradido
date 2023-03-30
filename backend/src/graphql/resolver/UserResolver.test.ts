@@ -12,6 +12,7 @@ import { TransactionLink } from '@entity/TransactionLink'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { UserContact } from '@entity/UserContact'
 import { Event as DbEvent } from '@entity/Event'
+
 import { OptInType } from '@enum/OptInType'
 import { UserContactType } from '@enum/UserContactType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'

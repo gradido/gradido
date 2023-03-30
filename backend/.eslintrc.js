@@ -88,7 +88,7 @@ module.exports = {
             position: 'after',
           },
         ],
-        distinctGroup: false,
+        distinctGroup: true,
       },
     ],
     'import/prefer-default-export': 'off', // TODO

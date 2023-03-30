@@ -1,5 +1,6 @@
 import { Community as DbCommunity } from '@entity/Community'
 import { IsNull } from '@dbTools/typeorm'
+
 import { backendLogger as logger } from '@/server/logger'
 import LogError from '@/server/LogError'
 

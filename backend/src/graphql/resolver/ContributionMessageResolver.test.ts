@@ -8,6 +8,7 @@
 
 import { GraphQLError } from 'graphql'
 import { Event as DbEvent } from '@entity/Event'
+
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 import {
