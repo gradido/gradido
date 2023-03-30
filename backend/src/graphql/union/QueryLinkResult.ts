@@ -1,7 +1,7 @@
 import { createUnionType } from 'type-graphql'
 
-import { TransactionLink } from '@model/TransactionLink'
 import { ContributionLink } from '@model/ContributionLink'
+import { TransactionLink } from '@model/TransactionLink'
 
 export default createUnionType({
   name: 'QueryLinkResult', // the name of the GraphQL union

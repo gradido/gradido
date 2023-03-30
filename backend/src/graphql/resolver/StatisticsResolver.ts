@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { Decimal } from 'decimal.js-light'
-import { Resolver, Query, Authorized, FieldResolver } from 'type-graphql'
 import { getConnection } from '@dbTools/typeorm'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User as DbUser } from '@entity/User'
+import { Decimal } from 'decimal.js-light'
+import { Resolver, Query, Authorized, FieldResolver } from 'type-graphql'
 
-import { CommunityStatistics, DynamicStatisticsFields } from '@model/CommunityStatistics'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { calculateDecay } from '@/util/decay'
+import { CommunityStatistics, DynamicStatisticsFields } from '@model/CommunityStatistics'
 
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 @Resolver((of) => CommunityStatistics)

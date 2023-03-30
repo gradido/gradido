@@ -5,9 +5,9 @@
 import { MiddlewareFn } from 'type-graphql'
 
 import { /* klicktippSignIn, */ getKlickTippUser } from '@/apis/KlicktippController'
-import { KlickTipp } from '@model/KlickTipp'
 import CONFIG from '@/config'
 import { klickTippLogger as logger } from '@/server/logger'
+import { KlickTipp } from '@model/KlickTipp'
 
 // export const klicktippRegistrationMiddleware: MiddlewareFn = async (
 //   // Only for demo

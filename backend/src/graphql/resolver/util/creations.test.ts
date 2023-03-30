@@ -4,14 +4,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { User } from '@entity/User'
 import { Contribution } from '@entity/Contribution'
+import { User } from '@entity/User'
 
-import { testEnvironment, cleanDB, contributionDateFormatter } from '@test/helpers'
-import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { peterLustig } from '@/seeds/users/peter-lustig'
 import { userFactory } from '@/seeds/factory/user'
 import { login, createContribution, adminCreateContribution } from '@/seeds/graphql/mutations'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { peterLustig } from '@/seeds/users/peter-lustig'
+import { testEnvironment, cleanDB, contributionDateFormatter } from '@test/helpers'
 
 import { getUserCreation } from './creations'
 

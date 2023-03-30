@@ -1,8 +1,8 @@
-import { Resolver, Query, Authorized } from 'type-graphql'
 import { Community as DbCommunity } from '@entity/Community'
+import { Resolver, Query, Authorized } from 'type-graphql'
 
-import { Community } from '@model/Community'
 import { RIGHTS } from '@/auth/RIGHTS'
+import { Community } from '@model/Community'
 
 @Resolver()
 export class CommunityResolver {

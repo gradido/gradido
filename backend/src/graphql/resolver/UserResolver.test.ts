@@ -6,22 +6,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { GraphQLError } from 'graphql'
-import { User } from '@entity/User'
-import { TransactionLink } from '@entity/TransactionLink'
-import { validate as validateUUID, version as versionUUID } from 'uuid'
-import { UserContact } from '@entity/UserContact'
 import { Event as DbEvent } from '@entity/Event'
+import { TransactionLink } from '@entity/TransactionLink'
+import { User } from '@entity/User'
+import { UserContact } from '@entity/UserContact'
+import { GraphQLError } from 'graphql'
+import { validate as validateUUID, version as versionUUID } from 'uuid'
 
-import { OptInType } from '@enum/OptInType'
-import { UserContactType } from '@enum/UserContactType'
-import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
-import { objectValuesToArray } from '@/util/utilities'
-import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
-import { printTimeDuration } from '@/util/time'
+import CONFIG from '@/config'
+import {
+  sendAccountActivationEmail,
+  sendAccountMultiRegistrationEmail,
+  sendResetPasswordEmail,
+} from '@/emails/sendEmailVariants'
+import { EventType } from '@/event/Event'
+import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
+import { encryptPassword } from '@/password/PasswordEncryptor'
+import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
+import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { userFactory } from '@/seeds/factory/user'
-import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import {
   login,
   logout,
@@ -37,22 +40,19 @@ import {
   sendActivationEmail,
 } from '@/seeds/graphql/mutations'
 import { verifyLogin, queryOptIn, searchAdminUsers, searchUsers } from '@/seeds/graphql/queries'
-import CONFIG from '@/config'
-import {
-  sendAccountActivationEmail,
-  sendAccountMultiRegistrationEmail,
-  sendResetPasswordEmail,
-} from '@/emails/sendEmailVariants'
-import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
-import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
-import { ContributionLink } from '@model/ContributionLink'
-import { EventType } from '@/event/Event'
-import { peterLustig } from '@/seeds/users/peter-lustig'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
-import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
-import { encryptPassword } from '@/password/PasswordEncryptor'
-import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
+import { peterLustig } from '@/seeds/users/peter-lustig'
+import { stephenHawking } from '@/seeds/users/stephen-hawking'
+import { printTimeDuration } from '@/util/time'
+import { objectValuesToArray } from '@/util/utilities'
+import { OptInType } from '@enum/OptInType'
+import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
+import { UserContactType } from '@enum/UserContactType'
+import { ContributionLink } from '@model/ContributionLink'
+import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 

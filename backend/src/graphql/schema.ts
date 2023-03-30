@@ -1,8 +1,8 @@
 import path from 'path'
 
+import { Decimal } from 'decimal.js-light'
 import { GraphQLSchema } from 'graphql'
 import { buildSchema } from 'type-graphql'
-import { Decimal } from 'decimal.js-light'
 
 import isAuthorized from './directive/isAuthorized'
 import DecimalScalar from './scalar/Decimal'

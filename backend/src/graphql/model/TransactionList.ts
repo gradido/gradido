@@ -1,7 +1,7 @@
 import { ObjectType, Field } from 'type-graphql'
 
-import { Transaction } from './Transaction'
 import { Balance } from './Balance'
+import { Transaction } from './Transaction'
 
 @ObjectType()
 export class TransactionList {

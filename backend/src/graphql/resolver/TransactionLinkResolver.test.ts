@@ -7,21 +7,18 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { Event as DbEvent } from '@entity/Event'
+import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
+import { UserContact } from '@entity/UserContact'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
-import { Transaction } from '@entity/Transaction'
-import { Event as DbEvent } from '@entity/Event'
-import { UserContact } from '@entity/UserContact'
 
-import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { peterLustig } from '@/seeds/users/peter-lustig'
-import { cleanDB, testEnvironment, resetToken, resetEntity } from '@test/helpers'
-import { creationFactory } from '@/seeds/factory/creation'
+import { EventType } from '@/event/Event'
 import { creations } from '@/seeds/creation/index'
-import { userFactory } from '@/seeds/factory/user'
+import { creationFactory } from '@/seeds/factory/creation'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
-import { transactionLinks } from '@/seeds/transactionLink/index'
+import { userFactory } from '@/seeds/factory/user'
 import {
   login,
   createContributionLink,
@@ -33,10 +30,13 @@ import {
   confirmContribution,
 } from '@/seeds/graphql/mutations'
 import { listTransactionLinksAdmin } from '@/seeds/graphql/queries'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import { transactionLinks } from '@/seeds/transactionLink/index'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { peterLustig } from '@/seeds/users/peter-lustig'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import { cleanDB, testEnvironment, resetToken, resetEntity } from '@test/helpers'
 import { logger } from '@test/testSetup'
-import { EventType } from '@/event/Event'
 
 import { transactionLinkCode } from './TransactionLinkResolver'
 

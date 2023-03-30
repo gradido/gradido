@@ -3,14 +3,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Resolver, Query, Args, Ctx, Authorized, Arg, Int, Float } from 'type-graphql'
 
-import { GdtEntryList } from '@model/GdtEntryList'
-import { Order } from '@enum/Order'
-import Paginated from '@arg/Paginated'
-import { Context, getUser } from '@/server/context'
-import CONFIG from '@/config'
 import { apiGet, apiPost } from '@/apis/HttpRequest'
 import { RIGHTS } from '@/auth/RIGHTS'
+import CONFIG from '@/config'
+import { Context, getUser } from '@/server/context'
 import LogError from '@/server/LogError'
+import Paginated from '@arg/Paginated'
+import { Order } from '@enum/Order'
+import { GdtEntryList } from '@model/GdtEntryList'
 
 @Resolver()
 export class GdtResolver {

@@ -88,6 +88,10 @@ module.exports = {
             position: 'after',
           },
         ],
+        alphabetize: {
+          order: 'asc' /* sort in ascending order. Options: ['ignore', 'asc', 'desc'] */,
+          caseInsensitive: true /* ignore case. Options: [true, false] */,
+        },
         distinctGroup: true,
       },
     ],

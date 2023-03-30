@@ -5,11 +5,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Decimal } from 'decimal.js-light'
+import { Event as DbEvent } from '@entity/Event'
 import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
+import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
-import { Event as DbEvent } from '@entity/Event'
 
 import { EventType } from '@/event/Event'
 import { userFactory } from '@/seeds/factory/user'

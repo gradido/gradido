@@ -7,10 +7,10 @@
 import { User as DbUser } from '@entity/User'
 import { GraphQLError } from 'graphql'
 
-import { testEnvironment, cleanDB } from '@test/helpers'
+import CONFIG from '@/config'
 import { createUser, setPassword, forgotPassword } from '@/seeds/graphql/mutations'
 import { queryOptIn } from '@/seeds/graphql/queries'
-import CONFIG from '@/config'
+import { testEnvironment, cleanDB } from '@test/helpers'
 
 let mutate: any, query: any, con: any
 let testEnv: any

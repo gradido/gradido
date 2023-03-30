@@ -6,12 +6,8 @@
 
 import { Decimal } from 'decimal.js-light'
 
-import { userFactory } from '@/seeds/factory/user'
-import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { bobBaumeister } from '@/seeds/users/bob-baumeister'
-import { peterLustig } from '@/seeds/users/peter-lustig'
 import { creationFactory, nMonthsBefore } from '@/seeds/factory/creation'
-import { cleanDB, testEnvironment, contributionDateFormatter } from '@test/helpers'
+import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
   createContribution,
@@ -21,6 +17,10 @@ import {
   createContributionLink,
   sendCoins,
 } from '@/seeds/graphql/mutations'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
+import { peterLustig } from '@/seeds/users/peter-lustig'
+import { cleanDB, testEnvironment, contributionDateFormatter } from '@test/helpers'
 
 let mutate: any, con: any
 let testEnv: any

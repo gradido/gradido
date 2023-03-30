@@ -3,8 +3,8 @@ import { SaveOptions, RemoveOptions } from '@dbTools/typeorm'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { Decimal } from 'decimal.js-light'
 
-import { Transaction } from '@model/Transaction'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { Transaction } from '@model/Transaction'
 import { User } from '@model/User'
 
 import { calculateDecay } from './decay'
