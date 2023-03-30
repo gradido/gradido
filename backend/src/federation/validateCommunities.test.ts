@@ -5,10 +5,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { logger } from '@test/testSetup'
 import { Community as DbCommunity } from '@entity/Community'
-import { testEnvironment, cleanDB } from '@test/helpers'
 import { validateCommunities } from './validateCommunities'
+import { logger } from '@test/testSetup'
+import { testEnvironment, cleanDB } from '@test/helpers'
 
 let con: any
 let testEnv: any

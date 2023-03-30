@@ -21,6 +21,9 @@ import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { getUserCreations } from './util/creations'
+import { FULL_CREATION_AVAILABLE } from './const/const'
+import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserRepository } from '@repository/User'
 
 import { User } from '@model/User'
@@ -68,16 +71,13 @@ import {
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Event'
-import { getUserCreations } from './util/creations'
 import { isValidPassword } from '@/password/EncryptorUtils'
-import { FULL_CREATION_AVAILABLE } from './const/const'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
-import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 import LogError from '@/server/LogError'
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const sodium = require('sodium-native')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const random = require('random-bigint')
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']

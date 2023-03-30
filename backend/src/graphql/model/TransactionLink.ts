@@ -1,5 +1,5 @@
 import { ObjectType, Field, Int } from 'type-graphql'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User } from './User'
 import CONFIG from '@/config'

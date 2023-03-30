@@ -6,6 +6,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { GraphQLError } from 'graphql'
+import { User } from '@entity/User'
+import { TransactionLink } from '@entity/TransactionLink'
+import { validate as validateUUID, version as versionUUID } from 'uuid'
+import { UserContact } from '@entity/UserContact'
+import { Event as DbEvent } from '@entity/Event'
+import { OptInType } from '@enum/OptInType'
+import { UserContactType } from '@enum/UserContactType'
+import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { objectValuesToArray } from '@/util/utilities'
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
@@ -27,8 +36,6 @@ import {
   sendActivationEmail,
 } from '@/seeds/graphql/mutations'
 import { verifyLogin, queryOptIn, searchAdminUsers, searchUsers } from '@/seeds/graphql/queries'
-import { GraphQLError } from 'graphql'
-import { User } from '@entity/User'
 import CONFIG from '@/config'
 import {
   sendAccountActivationEmail,
@@ -38,19 +45,12 @@ import {
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { ContributionLink } from '@model/ContributionLink'
-import { TransactionLink } from '@entity/TransactionLink'
 import { EventType } from '@/event/Event'
-import { Event as DbEvent } from '@entity/Event'
-import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { UserContact } from '@entity/UserContact'
-import { OptInType } from '../enum/OptInType'
-import { UserContactType } from '../enum/UserContactType'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { encryptPassword } from '@/password/PasswordEncryptor'
-import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
