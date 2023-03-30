@@ -201,6 +201,9 @@ export class ContributionResolver {
         user.id,
       )
     }
+    if (contributionToUpdate.moderatorId) {
+      throw new LogError('Cannot update contribution of moderator', contributionToUpdate, user.id)
+    }
     if (
       contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
       contributionToUpdate.contributionStatus !== ContributionStatus.PENDING
@@ -306,33 +309,19 @@ export class ContributionResolver {
   @Authorized([RIGHTS.ADMIN_UPDATE_CONTRIBUTION])
   @Mutation(() => AdminUpdateContribution)
   async adminUpdateContribution(
-    @Args() { id, email, amount, memo, creationDate }: AdminUpdateContributionArgs,
+    @Args() { id, amount, memo, creationDate }: AdminUpdateContributionArgs,
     @Ctx() context: Context,
   ): Promise<AdminUpdateContribution> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const emailContact = await UserContact.findOne({
-      where: { email },
-      withDeleted: true,
-      relations: ['user'],
-    })
-    if (!emailContact || !emailContact.user) {
-      throw new LogError('Could not find User', email)
-    }
-    if (emailContact.deletedAt || emailContact.user.deletedAt) {
-      throw new LogError('User was deleted', email)
-    }
 
     const moderator = getUser(context)
 
     const contributionToUpdate = await DbContribution.findOne({
       where: { id, confirmedAt: IsNull(), deniedAt: IsNull() },
     })
+
     if (!contributionToUpdate) {
       throw new LogError('Contribution not found', id)
-    }
-
-    if (contributionToUpdate.userId !== emailContact.user.id) {
-      throw new LogError('User of the pending contribution and send user does not correspond')
     }
 
     if (contributionToUpdate.moderatorId === null) {
@@ -340,7 +329,7 @@ export class ContributionResolver {
     }
 
     const creationDateObj = new Date(creationDate)
-    let creations = await getUserCreation(emailContact.user.id, clientTimezoneOffset)
+    let creations = await getUserCreation(contributionToUpdate.userId, clientTimezoneOffset)
 
     // TODO: remove this restriction
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
@@ -363,9 +352,9 @@ export class ContributionResolver {
     result.amount = amount
     result.memo = contributionToUpdate.memo
     result.date = contributionToUpdate.contributionDate
-    result.creation = await getUserCreation(emailContact.user.id, clientTimezoneOffset)
+
     await EVENT_ADMIN_CONTRIBUTION_UPDATE(
-      emailContact.user,
+      { id: contributionToUpdate.userId } as DbUser,
       moderator,
       contributionToUpdate,
       amount,

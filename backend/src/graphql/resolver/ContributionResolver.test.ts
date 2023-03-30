@@ -437,7 +437,6 @@ describe('ContributionResolver', () => {
             mutation: adminUpdateContribution,
             variables: {
               id: pendingContribution.data.createContribution.id,
-              email: 'bibi@bloxberg.de',
               amount: 10.0,
               memo: 'Test env contribution',
               creationDate: new Date().toString(),
@@ -1672,7 +1671,6 @@ describe('ContributionResolver', () => {
               mutation: adminUpdateContribution,
               variables: {
                 id: 1,
-                email: 'bibi@bloxberg.de',
                 amount: new Decimal(300),
                 memo: 'Danke Bibi!',
                 creationDate: contributionDateFormatter(new Date()),
@@ -1751,7 +1749,6 @@ describe('ContributionResolver', () => {
                 mutation: adminUpdateContribution,
                 variables: {
                   id: 1,
-                  email: 'bibi@bloxberg.de',
                   amount: new Decimal(300),
                   memo: 'Danke Bibi!',
                   creationDate: contributionDateFormatter(new Date()),
@@ -2045,6 +2042,50 @@ describe('ContributionResolver', () => {
                   }),
                 )
               })
+
+              describe('user tries to update admin contribution', () => {
+                beforeAll(async () => {
+                  await mutate({
+                    mutation: login,
+                    variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+                  })
+                })
+
+                afterAll(async () => {
+                  await mutate({
+                    mutation: login,
+                    variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+                  })
+                })
+
+                it('logs and throws "Cannot update contribution of moderator" error', async () => {
+                  jest.clearAllMocks()
+                  const adminContribution = await Contribution.findOne({
+                    where: {
+                      moderatorId: admin.id,
+                      userId: bibi.id,
+                    },
+                  })
+                  await expect(
+                    mutate({
+                      mutation: updateContribution,
+                      variables: {
+                        contributionId: (adminContribution && adminContribution.id) || -1,
+                        amount: 100.0,
+                        memo: 'Test Test Test',
+                        creationDate: new Date().toString(),
+                      },
+                    }),
+                  ).resolves.toMatchObject({
+                    errors: [new GraphQLError('Cannot update contribution of moderator')],
+                  })
+                  expect(logger.error).toBeCalledWith(
+                    'Cannot update contribution of moderator',
+                    expect.any(Object),
+                    bibi.id,
+                  )
+                })
+              })
             })
 
             describe('second creation surpasses the available amount ', () => {
@@ -2082,58 +2123,6 @@ describe('ContributionResolver', () => {
           // stephen@hawking.uk: [1000, 1000, 1000] - deleted
           // garrick@ollivander.com: [1000, 1000, 1000] - not activated
 
-          describe('user for creation to update does not exist', () => {
-            it('throws an error', async () => {
-              jest.clearAllMocks()
-              await expect(
-                mutate({
-                  mutation: adminUpdateContribution,
-                  variables: {
-                    id: 1,
-                    email: 'bob@baumeister.de',
-                    amount: new Decimal(300),
-                    memo: 'Danke Bibi!',
-                    creationDate: contributionDateFormatter(new Date()),
-                  },
-                }),
-              ).resolves.toEqual(
-                expect.objectContaining({
-                  errors: [new GraphQLError('Could not find User')],
-                }),
-              )
-            })
-
-            it('logs the error "Could not find User"', () => {
-              expect(logger.error).toBeCalledWith('Could not find User', 'bob@baumeister.de')
-            })
-          })
-
-          describe('user for creation to update is deleted', () => {
-            it('throws an error', async () => {
-              jest.clearAllMocks()
-              await expect(
-                mutate({
-                  mutation: adminUpdateContribution,
-                  variables: {
-                    id: 1,
-                    email: 'stephen@hawking.uk',
-                    amount: new Decimal(300),
-                    memo: 'Danke Bibi!',
-                    creationDate: contributionDateFormatter(new Date()),
-                  },
-                }),
-              ).resolves.toEqual(
-                expect.objectContaining({
-                  errors: [new GraphQLError('User was deleted')],
-                }),
-              )
-            })
-
-            it('logs the error "User was deleted"', () => {
-              expect(logger.error).toBeCalledWith('User was deleted', 'stephen@hawking.uk')
-            })
-          })
-
           describe('creation does not exist', () => {
             it('throws an error', async () => {
               jest.clearAllMocks()
@@ -2142,7 +2131,6 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: -1,
-                    email: 'bibi@bloxberg.de',
                     amount: new Decimal(300),
                     memo: 'Danke Bibi!',
                     creationDate: contributionDateFormatter(new Date()),
@@ -2160,40 +2148,6 @@ describe('ContributionResolver', () => {
             })
           })
 
-          describe('user email does not match creation user', () => {
-            it('throws an error', async () => {
-              jest.clearAllMocks()
-              await expect(
-                mutate({
-                  mutation: adminUpdateContribution,
-                  variables: {
-                    id: creation ? creation.id : -1,
-                    email: 'bibi@bloxberg.de',
-                    amount: new Decimal(300),
-                    memo: 'Danke Bibi!',
-                    creationDate: creation
-                      ? contributionDateFormatter(creation.contributionDate)
-                      : contributionDateFormatter(new Date()),
-                  },
-                }),
-              ).resolves.toEqual(
-                expect.objectContaining({
-                  errors: [
-                    new GraphQLError(
-                      'User of the pending contribution and send user does not correspond',
-                    ),
-                  ],
-                }),
-              )
-            })
-
-            it('logs the error "User of the pending contribution and send user does not correspond"', () => {
-              expect(logger.error).toBeCalledWith(
-                'User of the pending contribution and send user does not correspond',
-              )
-            })
-          })
-
           describe('creation update is not valid', () => {
             // as this test has not clearly defined that date, it is a false positive
             it('throws an error', async () => {
@@ -2203,7 +2157,6 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
-                    email: 'peter@lustig.de',
                     amount: new Decimal(1900),
                     memo: 'Danke Peter!',
                     creationDate: creation
@@ -2240,7 +2193,6 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation?.id,
-                    email: 'peter@lustig.de',
                     amount: new Decimal(300),
                     memo: 'Danke Peter!',
                     creationDate: creation
@@ -2255,7 +2207,6 @@ describe('ContributionResolver', () => {
                       date: expect.any(String),
                       memo: 'Danke Peter!',
                       amount: '300',
-                      creation: ['1000', '700', '500'],
                     },
                   },
                 }),
@@ -2282,7 +2233,6 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation?.id,
-                    email: 'peter@lustig.de',
                     amount: new Decimal(200),
                     memo: 'Das war leider zu Viel!',
                     creationDate: creation
@@ -2297,7 +2247,6 @@ describe('ContributionResolver', () => {
                       date: expect.any(String),
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
-                      creation: ['1000', '800', '1000'],
                     },
                   },
                 }),
