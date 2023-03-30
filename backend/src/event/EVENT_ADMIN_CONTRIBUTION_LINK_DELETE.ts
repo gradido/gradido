@@ -1,6 +1,7 @@
 import { User as DbUser } from '@entity/User'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { Event as DbEvent } from '@entity/Event'
+
 import { Event, EventType } from './Event'
 
 export const EVENT_ADMIN_CONTRIBUTION_LINK_DELETE = async (

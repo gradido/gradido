@@ -6,9 +6,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Community as DbCommunity } from '@entity/Community'
-import { validateCommunities } from './validateCommunities'
 import { logger } from '@test/testSetup'
 import { testEnvironment, cleanDB } from '@test/helpers'
+
+import { validateCommunities } from './validateCommunities'
 
 let con: any
 let testEnv: any

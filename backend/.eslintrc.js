@@ -76,7 +76,21 @@ module.exports = {
     'import/no-named-default': 'error',
     'import/no-namespace': 'error',
     'import/no-unassigned-import': 'error',
-    'import/order': 'error',
+    'import/order': [
+      'error',
+      {
+        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type'],
+        'newlines-between': 'always',
+        pathGroups: [
+          {
+            pattern: '@*/**',
+            group: 'external',
+            position: 'after',
+          },
+        ],
+        distinctGroup: false,
+      },
+    ],
     'import/prefer-default-export': 'off', // TODO
   },
   overrides: [

@@ -6,6 +6,7 @@ import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { Decimal } from 'decimal.js-light'
+
 import { EventType } from './EventType'
 
 export const Event = (

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import axios from 'axios'
-
 import { backendLogger as logger } from '@/server/logger'
 import LogError from '@/server/LogError'
 

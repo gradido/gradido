@@ -5,16 +5,17 @@ import { ApolloServer } from 'apollo-server-express'
 import express, { Express, json, urlencoded } from 'express'
 import { Connection } from '@dbTools/typeorm'
 import { Logger } from 'log4js'
-import cors from './cors'
-import serverContext from './context'
-import plugins from './plugins'
-import { apolloLogger } from './logger'
-import { i18n } from './localization'
 import connection from '@/typeorm/connection'
 import { checkDBVersion } from '@/typeorm/DBVersion'
 import CONFIG from '@/config'
 import schema from '@/graphql/schema'
 import { elopageWebhook } from '@/webhook/elopage'
+
+import cors from './cors'
+import serverContext from './context'
+import plugins from './plugins'
+import { apolloLogger } from './logger'
+import { i18n } from './localization'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";

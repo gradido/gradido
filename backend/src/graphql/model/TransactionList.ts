@@ -1,4 +1,5 @@
 import { ObjectType, Field } from 'type-graphql'
+
 import { Transaction } from './Transaction'
 import { Balance } from './Balance'
 

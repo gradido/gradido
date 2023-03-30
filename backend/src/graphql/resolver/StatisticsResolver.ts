@@ -3,12 +3,9 @@
 import { Decimal } from 'decimal.js-light'
 import { Resolver, Query, Authorized, FieldResolver } from 'type-graphql'
 import { getConnection } from '@dbTools/typeorm'
-
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User as DbUser } from '@entity/User'
-
 import { CommunityStatistics, DynamicStatisticsFields } from '@model/CommunityStatistics'
-
 import { RIGHTS } from '@/auth/RIGHTS'
 import { calculateDecay } from '@/util/decay'
 

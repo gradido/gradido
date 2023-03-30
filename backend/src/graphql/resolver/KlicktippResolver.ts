@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Resolver, Query, Authorized, Arg, Mutation, Ctx } from 'type-graphql'
-
 import {
   getKlickTippUser,
   getKlicktippTagMap,

@@ -1,19 +1,16 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { getConnection } from '@dbTools/typeorm'
-
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { User as DbUser } from '@entity/User'
-
 import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
 import ContributionMessageArgs from '@arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { Order } from '@enum/Order'
 import Paginated from '@arg/Paginated'
-
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser } from '@/server/context'
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'

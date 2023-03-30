@@ -16,36 +16,29 @@ import {
   Int,
 } from 'type-graphql'
 import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
-
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { getUserCreations } from './util/creations'
-import { FULL_CREATION_AVAILABLE } from './const/const'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserRepository } from '@repository/User'
-
 import { User } from '@model/User'
 import { SearchAdminUsersResult } from '@model/AdminUser'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { UserContactType } from '@enum/UserContactType'
-
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
   sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
-
 import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 import CreateUserArgs from '@arg/CreateUserArgs'
 import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
 import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
 import Paginated from '@arg/Paginated'
 import SearchUsersArgs from '@arg/SearchUsersArgs'
-
 import { backendLogger as logger } from '@/server/logger'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import CONFIG from '@/config'
@@ -74,6 +67,9 @@ import {
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import LogError from '@/server/LogError'
+
+import { FULL_CREATION_AVAILABLE } from './const/const'
+import { getUserCreations } from './util/creations'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const sodium = require('sodium-native')
