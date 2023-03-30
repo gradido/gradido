@@ -212,7 +212,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'moderator', label: this.$t('moderator') },
+          { key: 'moderatorId', label: this.$t('moderator') },
           { key: 'editCreation', label: this.$t('chat') },
           { key: 'confirm', label: this.$t('save') },
         ],
