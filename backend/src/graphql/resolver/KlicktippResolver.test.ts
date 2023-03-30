@@ -1,11 +1,11 @@
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { userFactory } from '@/seeds/factory/user'
 import { logger, i18n as localization } from '@test/testSetup'
-import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { login, subscribeNewsletter, unsubscribeNewsletter } from '@/seeds/graphql/mutations'
 import { GraphQLError } from 'graphql'
 import { UserContact } from '@entity/UserContact'
 import { Event as DbEvent } from '@entity/Event'
+import { login, subscribeNewsletter, unsubscribeNewsletter } from '@/seeds/graphql/mutations'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { userFactory } from '@/seeds/factory/user'
 import { EventType } from '@/event/Event'
 
 let testEnv: any, mutate: any, query: any, con: any

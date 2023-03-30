@@ -13,6 +13,18 @@ import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { UserInputError } from 'apollo-server-express'
 import { Event as DbEvent } from '@entity/Event'
+import {
+  cleanDB,
+  resetToken,
+  testEnvironment,
+  contributionDateFormatter,
+  resetEntity,
+} from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import { ContributionListResult } from '@model/Contribution'
+import { ContributionStatus } from '@enum/ContributionStatus'
+import { Order } from '@enum/Order'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
@@ -40,24 +52,12 @@ import {
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
 } from '@/emails/sendEmailVariants'
-import {
-  cleanDB,
-  resetToken,
-  testEnvironment,
-  contributionDateFormatter,
-  resetEntity,
-} from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { EventType } from '@/event/Event'
-import { logger, i18n as localization } from '@test/testSetup'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { ContributionListResult } from '@model/Contribution'
-import { ContributionStatus } from '@enum/ContributionStatus'
-import { Order } from '@enum/Order'
 
 jest.mock('@/emails/sendEmailVariants')
 

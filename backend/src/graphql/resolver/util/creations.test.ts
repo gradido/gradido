@@ -6,8 +6,8 @@
 
 import { User } from '@entity/User'
 import { Contribution } from '@entity/Contribution'
-import { getUserCreation } from './creations'
 import { testEnvironment, cleanDB, contributionDateFormatter } from '@test/helpers'
+import { getUserCreation } from './creations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { userFactory } from '@/seeds/factory/user'
