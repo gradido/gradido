@@ -21,6 +21,8 @@ export class Contribution {
     this.deniedBy = contribution.deniedBy
     this.deletedAt = contribution.deletedAt
     this.deletedBy = contribution.deletedBy
+    this.moderatorId = contribution.moderatorId
+    this.userId = contribution.userId
   }
 
   @Field(() => Int)
@@ -67,6 +69,12 @@ export class Contribution {
 
   @Field(() => String)
   state: string
+
+  @Field(() => Int, { nullable: true })
+  moderatorId: number | null
+
+  @Field(() => Int, { nullable: true })
+  userId: number | null
 }
 
 @ObjectType()
