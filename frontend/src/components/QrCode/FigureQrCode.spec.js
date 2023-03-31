@@ -45,12 +45,7 @@ describe('FigureQrCode', () => {
     it('renders the Canvas Element "#qrcanvas"', () => {
       const canvas = wrapper.find('#qrcanvas')
 
-      // console.log(canvas.html())
       expect(canvas.exists()).toBe(true)
-
-      // Hier können Sie weitere Tests für das Canvas-Element durchführen
-      // z.B. überprüfen Sie die Breite und Höhe des Canvas-Elements oder den Canvas-Kontext
-
       const canvasEl = canvas.element
       const canvasWidth = canvasEl.width
       const canvasHeight = canvasEl.height
@@ -58,7 +53,7 @@ describe('FigureQrCode', () => {
       expect(canvasWidth).toBeGreaterThan(0)
       expect(canvasHeight).toBeGreaterThan(0)
 
-      const canvasContext = canvasEl.getContext('2d')
+      const canvasContext = canvasEl.toDataURL('image/png')
       expect(canvasContext).not.toBeNull()
     })
 
@@ -71,12 +66,10 @@ describe('FigureQrCode', () => {
       beforeEach(() => {
         const downloadLink = wrapper.find('#download')
         downloadLink.trigger('click')
-        // await wrapper.vm.$nextTick()
       })
 
       it('click the A Element "#download" set an href', () => {
-        // expect(toDataURLStub).toHaveBeenCalledWith('image/png')
-        expect(wrapper.find('#download').attributes('href')).toEqual('')
+        expect(wrapper.find('#download').attributes('href')).toEqual('data:image/png;base64,00')
       })
     })
   })
