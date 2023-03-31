@@ -3,11 +3,6 @@ import { Resolver, Args, Arg, Authorized, Mutation, Query, Int, Ctx } from 'type
 import { MoreThan, IsNull } from '@dbTools/typeorm'
 
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { ContributionLinkList } from '@model/ContributionLinkList'
-import { ContributionLink } from '@model/ContributionLink'
-import ContributionLinkArgs from '@arg/ContributionLinkArgs'
-import { Order } from '@enum/Order'
-import Paginated from '@arg/Paginated'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import { isStartEndDateValid } from './util/creations'
 import {
@@ -16,6 +11,11 @@ import {
   MEMO_MAX_CHARS,
   MEMO_MIN_CHARS,
 } from './const/const'
+import { ContributionLinkList } from '@model/ContributionLinkList'
+import { ContributionLink } from '@model/ContributionLink'
+import ContributionLinkArgs from '@arg/ContributionLinkArgs'
+import { Order } from '@enum/Order'
+import Paginated from '@arg/Paginated'
 import { RIGHTS } from '@/auth/RIGHTS'
 
 // TODO: this is a strange construct

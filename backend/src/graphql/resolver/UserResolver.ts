@@ -21,6 +21,8 @@ import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { FULL_CREATION_AVAILABLE } from './const/const'
+import { getUserCreations } from './util/creations'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserRepository } from '@repository/User'
 
@@ -36,8 +38,6 @@ import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
 import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
 import Paginated from '@arg/Paginated'
 import SearchUsersArgs from '@arg/SearchUsersArgs'
-import { FULL_CREATION_AVAILABLE } from './const/const'
-import { getUserCreations } from './util/creations'
 import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 import {
   sendAccountActivationEmail,
