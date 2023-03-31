@@ -4,15 +4,12 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import Decimal from 'decimal.js-light'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { logger } from '@test/testSetup'
-import { userFactory } from '@/seeds/factory/user'
-import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { bobBaumeister } from '@/seeds/users/bob-baumeister'
-import { peterLustig } from '@/seeds/users/peter-lustig'
-import { creationFactory, nMonthsBefore } from '@/seeds/factory/creation'
+import { Decimal } from 'decimal.js-light'
+
 import { cleanDB, testEnvironment, contributionDateFormatter } from '@test/helpers'
+
+import { creationFactory, nMonthsBefore } from '@/seeds/factory/creation'
+import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
   createContribution,
@@ -22,6 +19,9 @@ import {
   createContributionLink,
   sendCoins,
 } from '@/seeds/graphql/mutations'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
+import { peterLustig } from '@/seeds/users/peter-lustig'
 
 let mutate: any, con: any
 let testEnv: any

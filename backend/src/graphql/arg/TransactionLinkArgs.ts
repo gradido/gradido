@@ -1,5 +1,5 @@
+import { Decimal } from 'decimal.js-light'
 import { ArgsType, Field } from 'type-graphql'
-import Decimal from 'decimal.js-light'
 
 @ArgsType()
 export default class TransactionLinkArgs {

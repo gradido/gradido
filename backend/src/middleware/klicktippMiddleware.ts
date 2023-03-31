@@ -3,9 +3,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { MiddlewareFn } from 'type-graphql'
-import { /* klicktippSignIn, */ getKlickTippUser } from '@/apis/KlicktippController'
+
 import { KlickTipp } from '@model/KlickTipp'
-import CONFIG from '@/config'
+
+import { getKlickTippUser } from '@/apis/KlicktippController'
 import { klickTippLogger as logger } from '@/server/logger'
 
 // export const klicktippRegistrationMiddleware: MiddlewareFn = async (
@@ -28,15 +29,13 @@ export const klicktippNewsletterStateMiddleware: MiddlewareFn = async (
 ) => {
   const result = await next()
   let klickTipp = new KlickTipp({ status: 'Unsubscribed' })
-  if (CONFIG.KLICKTIPP) {
-    try {
-      const klickTippUser = await getKlickTippUser(result.email)
-      if (klickTippUser) {
-        klickTipp = new KlickTipp(klickTippUser)
-      }
-    } catch (err) {
-      logger.error(`There is no user for (email='${result.email}') ${err}`)
+  try {
+    const klickTippUser = await getKlickTippUser(result.email)
+    if (klickTippUser) {
+      klickTipp = new KlickTipp(klickTippUser)
     }
+  } catch (err) {
+    logger.error(`There is no user for (email='${result.email}') ${err}`)
   }
   result.klickTipp = klickTipp
   return result

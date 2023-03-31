@@ -27,9 +27,10 @@
       <template #cell(editCreation)="row">
         <div v-if="!myself(row.item)">
           <b-button
-            v-if="row.item.moderator"
+            v-if="row.item.moderatorId"
             variant="info"
             size="md"
+            :index="0"
             @click="rowToggleDetails(row, 0)"
             class="mr-2"
           >
@@ -89,14 +90,13 @@
           @row-toggle-details="rowToggleDetails(row, 0)"
         >
           <template #show-creation>
-            <div v-if="row.item.moderator">
+            <div v-if="row.item.moderatorId">
               <edit-creation-formular
                 type="singleCreation"
-                :creation="row.item.creation"
                 :item="row.item"
                 :row="row"
                 :creationUserData="creationUserData"
-                @update-creation-data="updateCreationData"
+                @update-creation-data="$emit('update-contributions')"
               />
             </div>
             <div v-else>
@@ -104,7 +104,6 @@
                 :contributionId="row.item.id"
                 :contributionState="row.item.state"
                 @update-state="updateState"
-                @update-user-data="updateUserData"
               />
             </div>
           </template>
@@ -146,22 +145,9 @@ export default {
       required: true,
     },
   },
-  data() {
-    return {
-      creationUserData: {
-        amount: null,
-        date: null,
-        memo: null,
-        moderator: null,
-      },
-    }
-  },
   methods: {
     myself(item) {
-      return (
-        `${item.firstName} ${item.lastName}` ===
-        `${this.$store.state.moderator.firstName} ${this.$store.state.moderator.lastName}`
-      )
+      return item.userId === this.$store.state.moderator.id
     },
     getStatusIcon(status) {
       return iconMap[status] ? iconMap[status] : 'default-icon'
@@ -173,16 +159,6 @@ export default {
       if (item.state === 'DELETED') return 'table-danger'
       if (item.state === 'IN_PROGRESS') return 'table-primary'
       if (item.state === 'PENDING') return 'table-primary'
-    },
-    updateCreationData(data) {
-      const row = data.row
-      this.$emit('update-contributions', data)
-      delete data.row
-      this.creationUserData = { ...this.creationUserData, ...data }
-      row.toggleDetails()
-    },
-    updateUserData(rowItem, newCreation) {
-      rowItem.creation = newCreation
     },
     updateState(id) {
       this.$emit('update-state', id)

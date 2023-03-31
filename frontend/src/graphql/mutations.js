@@ -1,8 +1,8 @@
 import gql from 'graphql-tag'
 
 export const subscribeNewsletter = gql`
-  mutation($language: String!) {
-    subscribeNewsletter(language: $language)
+  mutation {
+    subscribeNewsletter
   }
 `
 
