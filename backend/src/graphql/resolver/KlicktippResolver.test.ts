@@ -1,19 +1,22 @@
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { GraphQLError } from 'graphql'
 import { UserContact } from '@entity/UserContact'
 import { Event as DbEvent } from '@entity/Event'
+import { logger, i18n as localization } from '@test/testSetup'
+import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { login, subscribeNewsletter, unsubscribeNewsletter } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { userFactory } from '@/seeds/factory/user'
 import { EventType } from '@/event/Event'
 
-let testEnv: any, mutate: any, query: any, con: any
+let testEnv: any, mutate: any, con: any
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger, localization)
   mutate = testEnv.mutate
-  query = testEnv.query
   con = testEnv.con
   await cleanDB()
 })
@@ -24,10 +27,8 @@ afterAll(async () => {
 })
 
 describe('KlicktippResolver', () => {
-  let bibi
-
   beforeAll(async () => {
-    bibi = await userFactory(testEnv, bibiBloxberg)
+    await userFactory(testEnv, bibiBloxberg)
   })
 
   afterAll(async () => {
