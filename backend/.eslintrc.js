@@ -124,7 +124,7 @@ module.exports = {
     'n/shebang': 'error',
     'n/callback-return': 'error',
     'n/exports-style': 'error',
-    'n/file-extension-in-import': ['error', 'never'],
+    'n/file-extension-in-import': 'off',
     'n/global-require': 'error',
     'n/no-mixed-requires': 'error',
     'n/no-process-env': 'error',
