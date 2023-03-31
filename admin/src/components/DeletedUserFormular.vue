@@ -14,7 +14,7 @@
           {{ $t('delete_user') }}
         </b-button>
         <b-button
-          v-if="item.deletedAt !== null"
+          v-else
           variant="success"
           v-b-modal.delete-user-modal
           @click="showUndeleteModal()"
