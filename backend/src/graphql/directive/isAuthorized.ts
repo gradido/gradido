@@ -9,9 +9,9 @@ import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { decode, encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN } from '@/auth/ROLES'
-import LogError from '@/server/LogError'
+import { LogError } from '@/server/LogError'
 
-const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
+export const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
 
   // is rights an inalienable right?
@@ -55,5 +55,3 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   context.setHeaders.push({ key: 'token', value: encode(decoded.gradidoID) })
   return true
 }
-
-export default isAuthorized

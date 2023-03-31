@@ -9,8 +9,6 @@ import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
 import { name, internet, datatype } from 'faker'
 
-import CONFIG from '@/config'
-import createServer from '@/server/createServer'
 import { backendLogger as logger } from '@/server/logger'
 
 import { contributionLinks } from './contributionLink/index'
@@ -21,6 +19,8 @@ import { transactionLinkFactory } from './factory/transactionLink'
 import { userFactory } from './factory/user'
 import { transactionLinks } from './transactionLink/index'
 import { users } from './users/index'
+import { createServer } from '@/server/createServer'
+import { CONFIG } from '@/config'
 
 CONFIG.EMAIL = false
 

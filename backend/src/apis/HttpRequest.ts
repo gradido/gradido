@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import axios from 'axios'
 
-import LogError from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
+import { LogError } from '@/server/LogError'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const apiPost = async (url: string, payload: unknown): Promise<any> => {

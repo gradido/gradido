@@ -60,7 +60,5 @@ ${JSON.stringify(requestContext.response.errors, null, 2)}`)
   },
 }
 
-const plugins =
+export const plugins =
   process.env.NODE_ENV === 'development' ? [setHeadersPlugin] : [setHeadersPlugin, logPlugin]
-
-export default plugins

@@ -1,8 +1,8 @@
-import cors from 'cors'
+import { default as corsLib } from 'cors'
 
 const corsOptions = {
   origin: '*',
   exposedHeaders: ['token'],
 }
 
-export default cors(corsOptions)
+export const cors = corsLib(corsOptions)

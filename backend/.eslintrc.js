@@ -71,7 +71,7 @@ module.exports = {
     'import/group-exports': 'off',
     'import/newline-after-import': 'error',
     'import/no-anonymous-default-export': 'error',
-    'import/no-default-export': 'off',
+    'import/no-default-export': 'error',
     'import/no-duplicates': 'error',
     'import/no-named-default': 'error',
     'import/no-namespace': 'error',
@@ -100,7 +100,7 @@ module.exports = {
         distinctGroup: true,
       },
     ],
-    'import/prefer-default-export': 'off', // TODO
+    'import/prefer-default-export': 'off',
   },
   overrides: [
     // only for ts files

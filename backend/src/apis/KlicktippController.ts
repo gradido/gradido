@@ -4,10 +4,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import CONFIG from '@/config'
 
 // eslint-disable-next-line import/no-relative-parent-imports
 import KlicktippConnector from 'klicktipp-api'
+
+import { CONFIG } from '@/config'
 
 const klicktippConnector = new KlicktippConnector()
 

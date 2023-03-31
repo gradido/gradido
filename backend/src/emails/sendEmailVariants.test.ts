@@ -5,12 +5,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Decimal } from 'decimal.js-light'
 
-import { testEnvironment } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
-
-import CONFIG from '@/config'
-
-import { sendEmailTranslated } from './sendEmailTranslated'
 import {
   sendAddedContributionMessageEmail,
   sendAccountActivationEmail,
@@ -22,6 +16,11 @@ import {
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
 } from './sendEmailVariants'
+
+import { sendEmailTranslated } from './sendEmailTranslated'
+import { testEnvironment } from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
+import { CONFIG } from '@/config'
 
 let con: any
 let testEnv: any
