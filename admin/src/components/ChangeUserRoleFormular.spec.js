@@ -2,7 +2,6 @@ import { mount } from '@vue/test-utils'
 import ChangeUserRoleFormular from './ChangeUserRoleFormular'
 import { setUserRole } from '../graphql/setUserRole'
 import { toastSuccessSpy, toastErrorSpy } from '../../test/testSetup'
-import { BIconFileEarmarkSpreadsheet } from 'bootstrap-vue'
 
 const localVue = global.localVue
 
@@ -157,7 +156,9 @@ describe('ChangeUserRoleFormular', () => {
 
             it('has "change_user_role" button enabled', () => {
               expect(wrapper.find('button.btn.btn-danger').exists()).toBe(true)
-              expect(wrapper.find('button.btn.btn-danger[disabled="disabled"]').exists()).toBe(false)
+              expect(wrapper.find('button.btn.btn-danger[disabled="disabled"]').exists()).toBe(
+                false,
+              )
             })
 
             describe('clicking the "change_user_role" button', () => {
@@ -261,7 +262,9 @@ describe('ChangeUserRoleFormular', () => {
 
             it('has "change_user_role" button enabled', () => {
               expect(wrapper.find('button.btn.btn-danger').exists()).toBe(true)
-              expect(wrapper.find('button.btn.btn-danger[disabled="disabled"]').exists()).toBe(false)
+              expect(wrapper.find('button.btn.btn-danger[disabled="disabled"]').exists()).toBe(
+                false,
+              )
             })
 
             describe('clicking the "change_user_role" button', () => {
