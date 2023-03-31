@@ -25,12 +25,14 @@ import {
   contributionDateFormatter,
   resetEntity,
 } from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
 
 import {
   sendContributionConfirmedEmail,
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
 } from '@/emails/sendEmailVariants'
+import { EventType } from '@/event/Events'
 import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
@@ -56,8 +58,6 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { EventType } from '@/event/Events'
-import { logger, i18n as localization } from '@test/testSetup'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 

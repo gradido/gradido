@@ -25,12 +25,11 @@ import {
   sendTransactionReceivedEmail,
 } from '@/emails/sendEmailVariants'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
-
-import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { Context, getUser } from '@/server/context'
 import LogError from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { communityUser } from '@/util/communityUser'
+import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
