@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import ChangeUserRoleFormular from './ChangeUserRoleFormular'
 import { setUserRole } from '../graphql/setUserRole'
 import { toastSuccessSpy, toastErrorSpy } from '../../test/testSetup'
+import { BIconFileEarmarkSpreadsheet } from 'bootstrap-vue'
 
 const localVue = global.localVue
 
@@ -28,6 +29,7 @@ const mocks = {
 
 let propsData
 let wrapper
+let spy
 
 describe('ChangeUserRoleFormular', () => {
   const Wrapper = () => {
@@ -70,12 +72,16 @@ describe('ChangeUserRoleFormular', () => {
         expect(wrapper.text()).toContain('userRole.notChangeYourSelf')
       })
 
-      it('has role select disabled', () => {
-        expect(wrapper.find('select[disabled="disabled"]').exists()).toBe(true)
+      it('has no role select', () => {
+        expect(wrapper.find('select.role-select').exists()).toBe(false)
+      })
+
+      it('has no button', () => {
+        expect(wrapper.find('button.btn.btn-dange').exists()).toBe(false)
       })
     })
 
-    describe('change others role', () => {
+    describe("change other user's role", () => {
       let rolesToSelect
 
       describe('general', () => {
@@ -106,19 +112,12 @@ describe('ChangeUserRoleFormular', () => {
           expect(wrapper.find('select.role-select[disabled="disabled"]').exists()).toBe(false)
         })
 
-        describe('on API error', () => {
-          beforeEach(() => {
-            apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
-            rolesToSelect.at(1).setSelected()
-          })
-
-          it('toasts an error message', () => {
-            expect(toastErrorSpy).toBeCalledWith('Oh no!')
-          })
+        it('has "change_user_role" button', () => {
+          expect(wrapper.find('button.btn.btn-danger').text()).toBe('change_user_role')
         })
       })
 
-      describe('user is usual user', () => {
+      describe('user has role "usual user"', () => {
         beforeEach(() => {
           apolloMutateMock.mockResolvedValue({
             data: {
@@ -141,6 +140,10 @@ describe('ChangeUserRoleFormular', () => {
 
         describe('change select to', () => {
           describe('same role', () => {
+            it('has "change_user_role" button disabled', () => {
+              expect(wrapper.find('button.btn.btn-danger[disabled="disabled"]').exists()).toBe(true)
+            })
+
             it('does not call the API', () => {
               rolesToSelect.at(0).setSelected()
               expect(apolloMutateMock).not.toHaveBeenCalled()
@@ -152,39 +155,73 @@ describe('ChangeUserRoleFormular', () => {
               rolesToSelect.at(1).setSelected()
             })
 
-            it('calls the API', () => {
-              expect(apolloMutateMock).toBeCalledWith(
-                expect.objectContaining({
-                  mutation: setUserRole,
-                  variables: {
-                    userId: 1,
-                    isAdmin: true,
-                  },
-                }),
-              )
+            it('has "change_user_role" button enabled', () => {
+              expect(wrapper.find('button.btn.btn-danger').exists()).toBe(true)
+              expect(wrapper.find('button.btn.btn-danger[disabled="disabled"]').exists()).toBe(false)
             })
 
-            it('emits "updateIsAdmin"', () => {
-              expect(wrapper.emitted('updateIsAdmin')).toEqual(
-                expect.arrayContaining([
-                  expect.arrayContaining([
-                    {
-                      userId: 1,
-                      isAdmin: expect.any(Date),
-                    },
-                  ]),
-                ]),
-              )
-            })
+            describe('clicking the "change_user_role" button', () => {
+              beforeEach(async () => {
+                spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                spy.mockImplementation(() => Promise.resolve(true))
+                await wrapper.find('button').trigger('click')
+                await wrapper.vm.$nextTick()
+              })
 
-            it('toasts success message', () => {
-              expect(toastSuccessSpy).toBeCalledWith('userRole.successfullyChangedTo')
+              it('calls the modal', () => {
+                expect(wrapper.emitted('showModal'))
+                expect(spy).toHaveBeenCalled()
+              })
+
+              describe('confirm role change with success', () => {
+                it('calls the API', () => {
+                  expect(apolloMutateMock).toBeCalledWith(
+                    expect.objectContaining({
+                      mutation: setUserRole,
+                      variables: {
+                        userId: 1,
+                        isAdmin: true,
+                      },
+                    }),
+                  )
+                })
+
+                it('emits "updateIsAdmin"', () => {
+                  expect(wrapper.emitted('updateIsAdmin')).toEqual(
+                    expect.arrayContaining([
+                      expect.arrayContaining([
+                        {
+                          userId: 1,
+                          isAdmin: expect.any(Date),
+                        },
+                      ]),
+                    ]),
+                  )
+                })
+
+                it('toasts success message', () => {
+                  expect(toastSuccessSpy).toBeCalledWith('userRole.successfullyChangedTo')
+                })
+              })
+
+              describe('confirm role change with error', () => {
+                beforeEach(async () => {
+                  spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                  apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
+                  await wrapper.find('button').trigger('click')
+                  await wrapper.vm.$nextTick()
+                })
+
+                it('toasts an error message', () => {
+                  expect(toastErrorSpy).toBeCalledWith('Oh no!')
+                })
+              })
             })
           })
         })
       })
 
-      describe('user is admin', () => {
+      describe('user has role "admin"', () => {
         beforeEach(() => {
           apolloMutateMock.mockResolvedValue({
             data: {
@@ -207,6 +244,10 @@ describe('ChangeUserRoleFormular', () => {
 
         describe('change select to', () => {
           describe('same role', () => {
+            it('has "change_user_role" button disabled', () => {
+              expect(wrapper.find('button.btn.btn-danger[disabled="disabled"]').exists()).toBe(true)
+            })
+
             it('does not call the API', () => {
               rolesToSelect.at(1).setSelected()
               expect(apolloMutateMock).not.toHaveBeenCalled()
@@ -218,33 +259,67 @@ describe('ChangeUserRoleFormular', () => {
               rolesToSelect.at(0).setSelected()
             })
 
-            it('calls the API', () => {
-              expect(apolloMutateMock).toBeCalledWith(
-                expect.objectContaining({
-                  mutation: setUserRole,
-                  variables: {
-                    userId: 1,
-                    isAdmin: false,
-                  },
-                }),
-              )
+            it('has "change_user_role" button enabled', () => {
+              expect(wrapper.find('button.btn.btn-danger').exists()).toBe(true)
+              expect(wrapper.find('button.btn.btn-danger[disabled="disabled"]').exists()).toBe(false)
             })
 
-            it('emits "updateIsAdmin"', () => {
-              expect(wrapper.emitted('updateIsAdmin')).toEqual(
-                expect.arrayContaining([
-                  expect.arrayContaining([
-                    {
-                      userId: 1,
-                      isAdmin: null,
-                    },
-                  ]),
-                ]),
-              )
-            })
+            describe('clicking the "change_user_role" button', () => {
+              beforeEach(async () => {
+                spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                spy.mockImplementation(() => Promise.resolve(true))
+                await wrapper.find('button').trigger('click')
+                await wrapper.vm.$nextTick()
+              })
 
-            it('toasts success message', () => {
-              expect(toastSuccessSpy).toBeCalledWith('userRole.successfullyChangedTo')
+              it('calls the modal', () => {
+                expect(wrapper.emitted('showModal'))
+                expect(spy).toHaveBeenCalled()
+              })
+
+              describe('confirm role change with success', () => {
+                it('calls the API', () => {
+                  expect(apolloMutateMock).toBeCalledWith(
+                    expect.objectContaining({
+                      mutation: setUserRole,
+                      variables: {
+                        userId: 1,
+                        isAdmin: false,
+                      },
+                    }),
+                  )
+                })
+
+                it('emits "updateIsAdmin"', () => {
+                  expect(wrapper.emitted('updateIsAdmin')).toEqual(
+                    expect.arrayContaining([
+                      expect.arrayContaining([
+                        {
+                          userId: 1,
+                          isAdmin: null,
+                        },
+                      ]),
+                    ]),
+                  )
+                })
+
+                it('toasts success message', () => {
+                  expect(toastSuccessSpy).toBeCalledWith('userRole.successfullyChangedTo')
+                })
+              })
+
+              describe('confirm role change with error', () => {
+                beforeEach(async () => {
+                  spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                  apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
+                  await wrapper.find('button').trigger('click')
+                  await wrapper.vm.$nextTick()
+                })
+
+                it('toasts an error message', () => {
+                  expect(toastErrorSpy).toBeCalledWith('Oh no!')
+                })
+              })
             })
           })
         })
