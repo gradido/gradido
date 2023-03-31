@@ -6,7 +6,7 @@
     <div v-else class="mt-5">
       <div class="mt-3 mb-5">
         <b-button
-          v-if="item.deletedAt === null"
+          v-if="!item.deletedAt"
           variant="danger"
           v-b-modal.delete-user-modal
           @click="showDeleteModal()"
