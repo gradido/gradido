@@ -3,10 +3,9 @@ import { User as dbUser } from '@entity/User'
 import { ExpressContext } from 'apollo-server-express'
 import { Decimal } from 'decimal.js-light'
 
-import { LogError } from './LogError'
-
 import { Role } from '@/auth/Role'
 
+import { LogError } from './LogError'
 
 export interface Context {
   token: string | null

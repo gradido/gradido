@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { User } from '@entity/User'
+
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 
 import { CONFIG } from '@/config'

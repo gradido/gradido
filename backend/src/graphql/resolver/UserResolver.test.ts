@@ -20,6 +20,7 @@ import { ContributionLink } from '@model/ContributionLink'
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
+import { CONFIG } from '@/config'
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
@@ -47,10 +48,9 @@ import {
 } from '@/seeds/graphql/mutations'
 import { verifyLogin, queryOptIn, searchAdminUsers, searchUsers } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { CONFIG } from '@/config'
-import { peterLustig } from '@/seeds/users/peter-lustig'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
+import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'

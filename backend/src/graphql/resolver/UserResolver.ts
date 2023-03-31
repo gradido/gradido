@@ -21,6 +21,11 @@ import {
 } from 'type-graphql'
 import { v4 as uuidv4 } from 'uuid'
 
+import { CreateUserArgs } from '@arg/CreateUserArgs'
+import { Paginated } from '@arg/Paginated'
+import { SearchUsersArgs } from '@arg/SearchUsersArgs'
+import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
+import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
@@ -33,25 +38,12 @@ import { UserRepository } from '@repository/User'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
+import { CONFIG } from '@/config'
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
   sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
-
-import { getTimeDurationObject, printTimeDuration } from '@/util/time'
-import { CreateUserArgs } from '@arg/CreateUserArgs'
-import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
-import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
-import { Paginated } from '@arg/Paginated'
-import { SearchUsersArgs } from '@arg/SearchUsersArgs'
-
-import { backendLogger as logger } from '@/server/logger'
-import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
-import { CONFIG } from '@/config'
-import { communityDbUser } from '@/util/communityUser'
-import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
-import { hasElopageBuys } from '@/util/hasElopageBuys'
 import {
   Event,
   EventType,
@@ -68,12 +60,18 @@ import {
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Events'
+import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
+import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
+import { LogError } from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
+import { communityDbUser } from '@/util/communityUser'
+import { hasElopageBuys } from '@/util/hasElopageBuys'
+import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getUserCreations } from './util/creations'
-import { LogError } from '@/server/LogError'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const random = require('random-bigint')
