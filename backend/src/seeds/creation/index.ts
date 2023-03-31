@@ -1,5 +1,6 @@
+import { nMonthsBefore } from '@/seeds/factory/creation'
+
 import { CreationInterface } from './CreationInterface'
-import { nMonthsBefore } from '../factory/creation'
 
 const bobsSendings = [
   {

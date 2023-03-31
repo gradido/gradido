@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 
 expect.extend({
   decimalEqual(received, value) {

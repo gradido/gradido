@@ -1,7 +1,8 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 
+import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
-import Decimal from 'decimal.js-light'
+
 dotenv.config()
 
 Decimal.set({

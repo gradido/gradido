@@ -47,7 +47,7 @@
           <div v-else class="font-weight-bold">{{ amount | GDD }}</div>
         </b-col>
         <b-col cols="12" md="1" lg="1" class="text-right align-items-center">
-          <div v-if="messagesCount > 0" @click="visible = !visible">
+          <div v-if="messagesCount > 0 && !moderatorId" @click="visible = !visible">
             <collapse-icon class="text-right" :visible="visible" />
           </div>
         </b-col>
@@ -58,7 +58,7 @@
       >
         <b-col cols="3" class="mr-auto text-center">
           <div
-            v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
+            v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution && !moderatorId"
             class="test-delete-contribution pointer mr-3"
             @click="deleteContribution({ id })"
           >
@@ -69,7 +69,7 @@
         </b-col>
         <b-col cols="3" class="text-center">
           <div
-            v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
+            v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution && !moderatorId"
             class="test-edit-contribution pointer mr-3"
             @click="
               $emit('update-contribution-form', {
@@ -84,9 +84,8 @@
             <div>{{ $t('edit') }}</div>
           </div>
         </b-col>
-
         <b-col cols="6" class="text-center">
-          <div v-if="messagesCount > 0" class="pointer" @click="visible = !visible">
+          <div v-if="messagesCount > 0 && !moderatorId" class="pointer" @click="visible = !visible">
             <b-icon icon="chat-dots"></b-icon>
             <div>{{ $t('moderatorChat') }}</div>
           </div>
@@ -179,6 +178,11 @@ export default {
       type: Boolean,
       required: false,
       default: false,
+    },
+    moderatorId: {
+      type: Number,
+      required: false,
+      default: 0,
     },
   },
   data() {

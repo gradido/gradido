@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 import i18n from 'i18n'
 
 export const objectValuesToArray = (obj: { [x: string]: string }): Array<string> => {

@@ -44,7 +44,7 @@
       :fields="fields"
       @show-overlay="showOverlay"
       @update-state="updateStatus"
-      @update-contributions="$apollo.queries.AllContributions.refetch()"
+      @update-contributions="$apollo.queries.ListAllContributions.refetch()"
     />
 
     <b-pagination
@@ -217,7 +217,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'moderator', label: this.$t('moderator') },
+          { key: 'moderatorId', label: this.$t('moderator') },
           { key: 'editCreation', label: this.$t('chat') },
           { key: 'confirm', label: this.$t('save') },
         ],

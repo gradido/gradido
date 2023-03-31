@@ -1,9 +1,11 @@
+import { adminOpenCreations } from '../graphql/adminOpenCreations'
+
 export const creationMonths = {
-  props: {
-    creation: {
-      type: Array,
-      default: () => [1000, 1000, 1000],
-    },
+  data() {
+    return {
+      creation: [1000, 1000, 1000],
+      userId: 0,
+    }
   },
   computed: {
     creationDates() {
@@ -36,6 +38,25 @@ export const creationMonths = {
     },
     creationLabel() {
       return this.creationDates.map((date) => this.$d(date, 'monthShort')).join(' | ')
+    },
+  },
+  apollo: {
+    OpenCreations: {
+      query() {
+        return adminOpenCreations
+      },
+      variables() {
+        return {
+          userId: this.userId,
+        }
+      },
+      fetchPolicy: 'no-cache',
+      update({ adminOpenCreations }) {
+        this.creation = adminOpenCreations.map((obj) => obj.amount)
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
     },
   },
 }
