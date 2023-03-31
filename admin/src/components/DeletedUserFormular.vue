@@ -13,12 +13,7 @@
         >
           {{ $t('delete_user') }}
         </b-button>
-        <b-button
-          v-else
-          variant="success"
-          v-b-modal.delete-user-modal
-          @click="showUndeleteModal()"
-        >
+        <b-button v-else variant="success" v-b-modal.delete-user-modal @click="showUndeleteModal()">
           {{ $t('undelete_user') }}
         </b-button>
       </div>
