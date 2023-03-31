@@ -1,4 +1,5 @@
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
+// eslint-disable-next-line import/no-commonjs, import/unambiguous
 module.exports = {
   verbose: true,
   preset: 'ts-jest',
@@ -6,7 +7,7 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**', '!build/**'],
   coverageThreshold: {
     global: {
-      lines: 81,
+      lines: 85,
     },
   },
   setupFiles: ['<rootDir>/test/testSetup.ts'],

@@ -1,6 +1,7 @@
-import { ObjectType, Field, Int } from 'type-graphql'
-import { KlickTipp } from './KlickTipp'
 import { User as dbUser } from '@entity/User'
+import { ObjectType, Field, Int } from 'type-graphql'
+
+import { KlickTipp } from './KlickTipp'
 import { UserContact } from './UserContact'
 
 @ObjectType()

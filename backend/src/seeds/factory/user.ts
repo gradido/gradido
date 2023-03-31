@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { User } from '@entity/User'
-import { UserInterface } from '@/seeds/users/UserInterface'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+
+import { createUser, setPassword } from '@/seeds/graphql/mutations'
+import { UserInterface } from '@/seeds/users/UserInterface'
 
 export const userFactory = async (
   client: ApolloServerTestClient,

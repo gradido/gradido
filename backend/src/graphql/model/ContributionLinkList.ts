@@ -1,4 +1,5 @@
 import { ObjectType, Field, Int } from 'type-graphql'
+
 import { ContributionLink } from '@model/ContributionLink'
 
 @ObjectType()

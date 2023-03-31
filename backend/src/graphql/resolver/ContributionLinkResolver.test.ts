@@ -4,9 +4,16 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import Decimal from 'decimal.js-light'
-import { logger } from '@test/testSetup'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { Event as DbEvent } from '@entity/Event'
+import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+
+import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
+import { logger } from '@test/testSetup'
+
+import { EventType } from '@/event/Event'
+import { userFactory } from '@/seeds/factory/user'
 import {
   login,
   createContributionLink,
@@ -14,13 +21,8 @@ import {
   updateContributionLink,
 } from '@/seeds/graphql/mutations'
 import { listContributionLinks } from '@/seeds/graphql/queries'
-import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { userFactory } from '@/seeds/factory/user'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { EventType } from '@/event/Event'
-import { Event as DbEvent } from '@entity/Event'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -280,7 +282,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "A Start-Date must be set"', () => {
           expect(logger.error).toBeCalledWith('A Start-Date must be set')
         })
 
@@ -301,7 +303,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "An End-Date must be set"', () => {
           expect(logger.error).toBeCalledWith('An End-Date must be set')
         })
 
@@ -325,7 +327,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The value of validFrom must before or equals the validTo"', () => {
           expect(logger.error).toBeCalledWith(
             `The value of validFrom must before or equals the validTo`,
           )
@@ -348,7 +350,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The value of name is too short"', () => {
           expect(logger.error).toBeCalledWith('The value of name is too short', 3)
         })
 
@@ -369,7 +371,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The value of name is too long"', () => {
           expect(logger.error).toBeCalledWith('The value of name is too long', 101)
         })
 
@@ -390,7 +392,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The value of memo is too short"', () => {
           expect(logger.error).toBeCalledWith('The value of memo is too short', 3)
         })
 
@@ -411,7 +413,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The value of memo is too long"', () => {
           expect(logger.error).toBeCalledWith('The value of memo is too long', 256)
         })
 
@@ -432,7 +434,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The amount must be a positiv value"', () => {
           expect(logger.error).toBeCalledWith('The amount must be a positiv value', new Decimal(0))
         })
       })
@@ -490,7 +492,7 @@ describe('Contribution Links', () => {
           })
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "Contribution Link not found"', () => {
           expect(logger.error).toBeCalledWith('Contribution Link not found', -1)
         })
 
@@ -572,7 +574,7 @@ describe('Contribution Links', () => {
             )
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "Contribution Link not found"', () => {
             expect(logger.error).toBeCalledWith('Contribution Link not found', -1)
           })
         })
