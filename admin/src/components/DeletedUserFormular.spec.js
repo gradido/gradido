@@ -35,6 +35,7 @@ const propsData = {
 
 describe('DeletedUserFormular', () => {
   let wrapper
+  let spy
 
   const Wrapper = () => {
     return mount(DeletedUserFormular, { localVue, mocks, propsData })
@@ -62,6 +63,10 @@ describe('DeletedUserFormular', () => {
       it('shows a text that you cannot delete yourself', () => {
         expect(wrapper.text()).toBe('removeNotSelf')
       })
+
+      it('has no "delete_user" button', () => {
+        expect(wrapper.find('button').exists()).toBe(false)
+      })
     })
 
     describe('delete other user', () => {
@@ -71,35 +76,32 @@ describe('DeletedUserFormular', () => {
             userId: 1,
             deletedAt: null,
           },
+          static: true,
         })
-      })
-
-      it('has a checkbox', () => {
-        expect(wrapper.find('input[type="checkbox"]').exists()).toBe(true)
       })
 
       it('shows the text "delete_user"', () => {
         expect(wrapper.text()).toBe('delete_user')
       })
 
-      describe('click on checkbox', () => {
+      it('has a "delete_user" button', () => {
+        expect(wrapper.find('button').text()).toBe('delete_user')
+      })
+
+      describe('click on "delete_user" button', () => {
         beforeEach(async () => {
-          await wrapper.find('input[type="checkbox"]').setChecked()
+          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy.mockImplementation(() => Promise.resolve(true))
+          await wrapper.find('button').trigger('click')
+          await wrapper.vm.$nextTick()
         })
 
-        it('has a confirmation button', () => {
-          expect(wrapper.find('button').exists()).toBe(true)
-        })
-
-        it('has the button text "delete_user"', () => {
-          expect(wrapper.find('button').text()).toBe('delete_user')
+        it('calls the modal', () => {
+          expect(wrapper.emitted('showDeleteModal'))
+          expect(spy).toHaveBeenCalled()
         })
 
         describe('confirm delete with success', () => {
-          beforeEach(async () => {
-            await wrapper.find('button').trigger('click')
-          })
-
           it('calls the API', () => {
             expect(apolloMutateMock).toBeCalledWith(
               expect.objectContaining({
@@ -123,30 +125,18 @@ describe('DeletedUserFormular', () => {
               ]),
             )
           })
-
-          it('unchecks the checkbox', () => {
-            expect(wrapper.find('input').attributes('checked')).toBe(undefined)
-          })
         })
 
         describe('confirm delete with error', () => {
           beforeEach(async () => {
+            spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
             apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
             await wrapper.find('button').trigger('click')
+            await wrapper.vm.$nextTick()
           })
 
           it('toasts an error message', () => {
             expect(toastErrorSpy).toBeCalledWith('Oh no!')
-          })
-        })
-
-        describe('click on checkbox again', () => {
-          beforeEach(async () => {
-            await wrapper.find('input[type="checkbox"]').setChecked(false)
-          })
-
-          it('has no confirmation button anymore', () => {
-            expect(wrapper.find('button').exists()).toBe(false)
           })
         })
       })
@@ -162,37 +152,33 @@ describe('DeletedUserFormular', () => {
         })
       })
 
-      it('has a checkbox', () => {
-        expect(wrapper.find('input[type="checkbox"]').exists()).toBe(true)
-      })
-
       it('shows the text "undelete_user"', () => {
         expect(wrapper.text()).toBe('undelete_user')
       })
 
-      describe('click on checkbox', () => {
+      it('has a "undelete_user" button', () => {
+        expect(wrapper.find('button').text()).toBe('undelete_user')
+      })
+
+      describe('click on "undelete_user" button', () => {
         beforeEach(async () => {
           apolloMutateMock.mockResolvedValue({
             data: {
               unDeleteUser: null,
             },
           })
-          await wrapper.find('input[type="checkbox"]').setChecked()
+          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy.mockImplementation(() => Promise.resolve(true))
+          await wrapper.find('button').trigger('click')
+          await wrapper.vm.$nextTick()
         })
 
-        it('has a confirmation button', () => {
-          expect(wrapper.find('button').exists()).toBe(true)
-        })
-
-        it('has the button text "undelete_user"', () => {
-          expect(wrapper.find('button').text()).toBe('undelete_user')
+        it('calls the modal', () => {
+          expect(wrapper.emitted('showUndeleteModal'))
+          expect(spy).toHaveBeenCalled()
         })
 
         describe('confirm recover with success', () => {
-          beforeEach(async () => {
-            await wrapper.find('button').trigger('click')
-          })
-
           it('calls the API', () => {
             expect(apolloMutateMock).toBeCalledWith(
               expect.objectContaining({
@@ -205,7 +191,7 @@ describe('DeletedUserFormular', () => {
           })
 
           it('emits update deleted At', () => {
-            expect(wrapper.emitted('updateDeletedAt')).toEqual(
+            expect(wrapper.emitted('updateDeletedAt')).toMatchObject(
               expect.arrayContaining([
                 expect.arrayContaining([
                   {
@@ -215,10 +201,6 @@ describe('DeletedUserFormular', () => {
                 ]),
               ]),
             )
-          })
-
-          it('unchecks the checkbox', () => {
-            expect(wrapper.find('input').attributes('checked')).toBe(undefined)
           })
         })
 
@@ -230,16 +212,6 @@ describe('DeletedUserFormular', () => {
 
           it('toasts an error message', () => {
             expect(toastErrorSpy).toBeCalledWith('Oh no!')
-          })
-        })
-
-        describe('click on checkbox again', () => {
-          beforeEach(async () => {
-            await wrapper.find('input[type="checkbox"]').setChecked(false)
-          })
-
-          it('has no confirmation button anymore', () => {
-            expect(wrapper.find('button').exists()).toBe(false)
           })
         })
       })
