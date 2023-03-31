@@ -6,6 +6,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Community as DbCommunity } from '@entity/Community'
+
 import { testEnvironment } from '@test/helpers'
 import { getCommunities } from '@/seeds/graphql/queries'
 

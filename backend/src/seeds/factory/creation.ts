@@ -5,12 +5,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Transaction } from '@entity/Transaction'
 import { Contribution } from '@entity/Contribution'
+import { Transaction } from '@entity/Transaction'
+import { ApolloServerTestClient } from 'apollo-server-testing'
+
+import { findUserByEmail } from '@/graphql/resolver/UserResolver'
 import { CreationInterface } from '@/seeds/creation/CreationInterface'
 import { login, createContribution, confirmContribution } from '@/seeds/graphql/mutations'
-import { findUserByEmail } from '@/graphql/resolver/UserResolver'
 // import CONFIG from '@/config/index'
 
 export const nMonthsBefore = (date: Date, months = 1): string => {

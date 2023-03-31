@@ -3,8 +3,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { MiddlewareFn } from 'type-graphql'
+
 import { KlickTipp } from '@model/KlickTipp'
-import { getKlickTippUser } from '@/apis/KlicktippController'
+
+import { /* klicktippSignIn, */ getKlickTippUser } from '@/apis/KlicktippController'
+import CONFIG from '@/config'
 import { klickTippLogger as logger } from '@/server/logger'
 
 // export const klicktippRegistrationMiddleware: MiddlewareFn = async (
