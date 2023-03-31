@@ -1,9 +1,7 @@
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { Event as DbEvent } from '@entity/Event'
-
 import { User as DbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
-
 
 import { Event } from './Event'
 import { EventType } from './EventType'
