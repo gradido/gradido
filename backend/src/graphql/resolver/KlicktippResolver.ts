@@ -1,8 +1,8 @@
 import { Resolver, Authorized, Mutation, Ctx } from 'type-graphql'
 
 import { unsubscribe, klicktippSignIn } from '@/apis/KlicktippController'
-import { EVENT_UNSUBSCRIBE_NEWSLETTER, EVENT_SUBSCRIBE_NEWSLETTER } from '@/event/Event'
 import { RIGHTS } from '@/auth/RIGHTS'
+import { EVENT_UNSUBSCRIBE_NEWSLETTER, EVENT_SUBSCRIBE_NEWSLETTER } from '@/event/Event'
 import { Context, getUser } from '@/server/context'
 
 @Resolver()

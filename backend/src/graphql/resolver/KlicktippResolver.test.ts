@@ -2,15 +2,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { GraphQLError } from 'graphql'
-import { UserContact } from '@entity/UserContact'
 import { Event as DbEvent } from '@entity/Event'
-import { logger, i18n as localization } from '@test/testSetup'
+import { UserContact } from '@entity/UserContact'
+import { GraphQLError } from 'graphql'
+
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
+
+import { EventType } from '@/event/Event'
+import { userFactory } from '@/seeds/factory/user'
 import { login, subscribeNewsletter, unsubscribeNewsletter } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { userFactory } from '@/seeds/factory/user'
-import { EventType } from '@/event/Event'
 
 let testEnv: any, mutate: any, con: any
 
