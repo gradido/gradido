@@ -1,7 +1,9 @@
 <template>
   <div class="figure-qr-code">
     <div class="qrbox">
-      <q-r-canvas :options="options" class="canvas mb-4" id="qrcanvas" />
+      <div>
+        <q-r-canvas :options="options" class="canvas mb-3" id="qrcanvas" />
+      </div>
       <a id="download" download="GradidoLinkQRCode.png" href="" @click="downloadImg(this)">
         {{ $t('download') }}
       </a>
