@@ -1,12 +1,14 @@
-import { Community as DbCommunity } from '@entity/Community'
 import { IsNull } from '@dbTools/typeorm'
+import { Community as DbCommunity } from '@entity/Community'
+
+import LogError from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
+
 // eslint-disable-next-line camelcase
 import { requestGetPublicKey as v1_0_requestGetPublicKey } from './client/1_0/FederationClient'
 // eslint-disable-next-line camelcase
 import { requestGetPublicKey as v1_1_requestGetPublicKey } from './client/1_1/FederationClient'
 import { ApiVersionType } from './enum/apiVersionType'
-import { backendLogger as logger } from '@/server/logger'
-import LogError from '@/server/LogError'
 
 export function startValidateCommunities(timerInterval: number): void {
   logger.info(
@@ -42,17 +44,18 @@ export async function validateCommunities(): Promise<void> {
           pubKey,
           `${dbCom.endPoint}/${dbCom.apiVersion}`,
         )
-        if (pubKey && pubKey === dbCom.publicKey.toString('hex')) {
+        if (pubKey && pubKey === dbCom.publicKey.toString()) {
           logger.info(`Federation: matching publicKey:  ${pubKey}`)
           await DbCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
           logger.debug(`Federation: updated dbCom:  ${JSON.stringify(dbCom)}`)
+        } else {
+          logger.warn(
+            `Federation: received not matching publicKey -> received: ${
+              pubKey || 'null'
+            }, expected: ${dbCom.publicKey.toString()} `,
+          )
+          // DbCommunity.delete({ id: dbCom.id })
         }
-        /*
-        else {
-          logger.warn(`Federation: received unknown publicKey -> delete dbCom with id=${dbCom.id} `)
-          DbCommunity.delete({ id: dbCom.id })
-        }
-        */
       } catch (err) {
         if (!isLogError(err)) {
           logger.error(`Error:`, err)

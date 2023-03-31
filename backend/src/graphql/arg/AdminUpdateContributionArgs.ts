@@ -1,13 +1,10 @@
-import { ArgsType, Field, Int } from 'type-graphql'
 import { Decimal } from 'decimal.js-light'
+import { ArgsType, Field, Int } from 'type-graphql'
 
 @ArgsType()
 export default class AdminUpdateContributionArgs {
   @Field(() => Int)
   id: number
-
-  @Field(() => String)
-  email: string
 
   @Field(() => Decimal)
   amount: Decimal

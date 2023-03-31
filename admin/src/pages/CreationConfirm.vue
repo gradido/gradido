@@ -44,7 +44,7 @@
       :fields="fields"
       @show-overlay="showOverlay"
       @update-state="updateStatus"
-      @update-contributions="$apollo.queries.AllContributions.refetch()"
+      @update-contributions="$apollo.queries.ListAllContributions.refetch()"
     />
 
     <b-pagination
@@ -85,7 +85,7 @@
 <script>
 import Overlay from '../components/Overlay'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable'
-import { adminListAllContributions } from '../graphql/adminListAllContributions'
+import { adminListContributions } from '../graphql/adminListContributions'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
@@ -212,7 +212,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'moderator', label: this.$t('moderator') },
+          { key: 'moderatorId', label: this.$t('moderator') },
           { key: 'editCreation', label: this.$t('chat') },
           { key: 'confirm', label: this.$t('save') },
         ],
@@ -397,7 +397,7 @@ export default {
   apollo: {
     ListAllContributions: {
       query() {
-        return adminListAllContributions
+        return adminListContributions
       },
       variables() {
         return {
@@ -407,11 +407,11 @@ export default {
         }
       },
       fetchPolicy: 'no-cache',
-      update({ adminListAllContributions }) {
-        this.rows = adminListAllContributions.contributionCount
-        this.items = adminListAllContributions.contributionList
+      update({ adminListContributions }) {
+        this.rows = adminListContributions.contributionCount
+        this.items = adminListContributions.contributionList
         if (this.statusFilter === FILTER_TAB_MAP[0]) {
-          this.$store.commit('setOpenCreations', adminListAllContributions.contributionCount)
+          this.$store.commit('setOpenCreations', adminListContributions.contributionCount)
         }
       },
       error({ message }) {

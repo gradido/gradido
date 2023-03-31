@@ -9,6 +9,11 @@ module.exports = {
     '!src/seeds/**',
     '!build/**',
   ],
+  coverageThreshold: {
+    global: {
+      lines: 72,
+    },
+  },
   setupFiles: ['<rootDir>/test/testSetup.ts'],
   setupFilesAfterEnv: [],
   modulePathIgnorePatterns: ['<rootDir>/build/'],
