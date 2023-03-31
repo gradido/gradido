@@ -1,5 +1,5 @@
-import { ObjectType, Field, Int } from 'type-graphql'
 import { UserContact as dbUserContact } from '@entity/UserContact'
+import { ObjectType, Field, Int } from 'type-graphql'
 
 @ObjectType()
 export class UserContact {
