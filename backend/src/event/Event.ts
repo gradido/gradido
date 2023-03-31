@@ -1,11 +1,12 @@
+import { Contribution as DbContribution } from '@entity/Contribution'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
 import { Event as DbEvent } from '@entity/Event'
-import { User as DbUser } from '@entity/User'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
-import { Contribution as DbContribution } from '@entity/Contribution'
-import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { User as DbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
+
 import { EventType } from './EventType'
 
 export const Event = (

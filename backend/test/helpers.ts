@@ -6,11 +6,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createTestClient } from 'apollo-server-testing'
 import { initialize } from '@dbTools/helpers'
 import { entities } from '@entity/index'
-import { i18n, logger } from './testSetup'
+import { createTestClient } from 'apollo-server-testing'
+
 import createServer from '@/server/createServer'
+
+import { i18n, logger } from './testSetup'
 
 export const headerPushMock = jest.fn((t) => {
   context.token = t.value

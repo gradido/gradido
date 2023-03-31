@@ -4,11 +4,16 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Decimal } from 'decimal.js-light'
-import { GraphQLError } from 'graphql'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { Event as DbEvent } from '@entity/Event'
+import { Decimal } from 'decimal.js-light'
+import { GraphQLError } from 'graphql'
+
+import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
 import { logger } from '@test/testSetup'
+
+import { EventType } from '@/event/Event'
+import { userFactory } from '@/seeds/factory/user'
 import {
   login,
   createContributionLink,
@@ -16,11 +21,8 @@ import {
   updateContributionLink,
 } from '@/seeds/graphql/mutations'
 import { listContributionLinks } from '@/seeds/graphql/queries'
-import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { userFactory } from '@/seeds/factory/user'
-import { EventType } from '@/event/Events'
 
 let mutate: any, query: any, con: any
 let testEnv: any
