@@ -9,7 +9,12 @@ import { User } from './User'
 
 @ObjectType()
 export class Transaction {
-  constructor(transaction: dbTransaction, user: User, linkedUser: User | null = null) {
+  constructor(
+    transaction: dbTransaction,
+    user: User,
+    linkedUser: User | null = null,
+    previuosBalance: Decimal = new Decimal(0),
+  ) {
     this.id = transaction.id
     this.user = user
     this.previous = transaction.previous
@@ -47,6 +52,7 @@ export class Transaction {
     this.linkId = transaction.contribution
       ? transaction.contribution.contributionLinkId
       : transaction.transactionLinkId || null
+    this.previousBalance = previuosBalance
   }
 
   @Field(() => Int)
@@ -69,6 +75,9 @@ export class Transaction {
 
   @Field(() => Date)
   balanceDate: Date
+
+  @Field(() => Decimal)
+  previousBalance: Decimal
 
   @Field(() => Decay)
   decay: Decay
