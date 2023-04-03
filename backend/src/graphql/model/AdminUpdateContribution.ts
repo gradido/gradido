@@ -1,5 +1,5 @@
+import { Decimal } from 'decimal.js-light'
 import { ObjectType, Field } from 'type-graphql'
-import Decimal from 'decimal.js-light'
 
 @ObjectType()
 export class AdminUpdateContribution {

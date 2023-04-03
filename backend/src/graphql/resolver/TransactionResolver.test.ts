@@ -5,7 +5,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import Decimal from 'decimal.js-light'
+import { Event as DbEvent } from '@entity/Event'
+import { Transaction } from '@entity/Transaction'
+import { User } from '@entity/User'
+import { Decimal } from 'decimal.js-light'
+import { GraphQLError } from 'graphql'
+
+import { cleanDB, testEnvironment } from '@test/helpers'
+import { logger } from '@test/testSetup'
+
 import { EventType } from '@/event/Event'
 import { userFactory } from '@/seeds/factory/user'
 import {
@@ -18,12 +26,7 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
-import { Event as DbEvent } from '@entity/Event'
-import { Transaction } from '@entity/Transaction'
-import { User } from '@entity/User'
-import { cleanDB, testEnvironment } from '@test/helpers'
-import { logger } from '@test/testSetup'
-import { GraphQLError } from 'graphql'
+
 import { findUserByEmail } from './UserResolver'
 
 let mutate: any, query: any, con: any

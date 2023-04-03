@@ -4,19 +4,23 @@
       <div v-if="item.userId === $store.state.moderator.id" class="m-3 mb-4">
         {{ $t('userRole.notChangeYourSelf') }}
       </div>
-      <div class="m-3">
+      <div v-else class="m-3">
         <label for="role" class="mr-3">{{ $t('userRole.selectLabel') }}</label>
-        <b-form-select
-          class="role-select"
-          v-model="roleSelected"
-          :options="roles"
-          :disabled="item.userId === $store.state.moderator.id"
-        />
+        <b-form-select class="role-select" v-model="roleSelected" :options="roles" />
+        <div class="mt-3 mb-5">
+          <b-button
+            variant="danger"
+            v-b-modal.user-role-modal
+            :disabled="currentRole === roleSelected"
+            @click="showModal()"
+          >
+            {{ $t('change_user_role') }}
+          </b-button>
+        </div>
       </div>
     </div>
   </div>
 </template>
-
 <script>
 import { setUserRole } from '../graphql/setUserRole'
 
@@ -35,6 +39,7 @@ export default {
   },
   data() {
     return {
+      currentRole: this.item.isAdmin ? rolesValues.admin : rolesValues.user,
       roleSelected: this.item.isAdmin ? rolesValues.admin : rolesValues.user,
       roles: [
         { value: rolesValues.user, text: this.$t('userRole.selectRoles.user') },
@@ -42,14 +47,35 @@ export default {
       ],
     }
   },
-  watch: {
-    roleSelected(newRole, oldRole) {
-      if (newRole !== oldRole) {
-        this.setUserRole(newRole, oldRole)
-      }
-    },
-  },
   methods: {
+    showModal() {
+      this.$bvModal
+        .msgBoxConfirm(
+          this.$t('overlay.changeUserRole.question', {
+            username: `${this.item.firstName} ${this.item.lastName}`,
+            newRole:
+              this.roleSelected === 'admin'
+                ? this.$t('userRole.selectRoles.admin')
+                : this.$t('userRole.selectRoles.user'),
+          }),
+          {
+            cancelTitle: this.$t('overlay.cancel'),
+            centered: true,
+            hideHeaderClose: true,
+            title: this.$t('overlay.changeUserRole.title'),
+            okTitle: this.$t('overlay.changeUserRole.yes'),
+            okVariant: 'danger',
+          },
+        )
+        .then((okClicked) => {
+          if (okClicked) {
+            this.setUserRole(this.roleSelected, this.currentRole)
+          }
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+        })
+    },
     setUserRole(newRole, oldRole) {
       this.$apollo
         .mutate({

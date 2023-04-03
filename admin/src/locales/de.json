@@ -1,6 +1,7 @@
 {
   "all_emails": "Alle Nutzer",
   "back": "zurück",
+  "change_user_role": "Nutzerrolle ändern",
   "chat": "Chat",
   "contributionLink": {
     "amount": "Betrag",
@@ -114,6 +115,11 @@
   "open_creations": "Offene Schöpfungen",
   "overlay": {
     "cancel": "Abbrechen",
+    "changeUserRole": {
+      "question": "Willst du die Rolle von {username} wirklich zu {newRole} ändern?",
+      "title": "Nutzerrolle ändern",
+      "yes": "Ja, Nutzerrolle ändern"
+    },
     "confirm": {
       "question": "Willst du diesen Gemeinwohl-Beitrag wirklich bestätigen und gutschreiben?",
       "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar. Bitte überprüfe genau, dass alles stimmt.",
@@ -126,11 +132,21 @@
       "title": "Gemeinwohl-Beitrag löschen!",
       "yes": "Ja, Beitrag löschen!"
     },
+    "deleteUser": {
+      "question": "Willst du {username} wirklich löschen?",
+      "title": "Nutzer löschen",
+      "yes": "Ja, Nutzer löschen"
+    },
     "deny": {
       "question": "Willst du diesen Gemeinwohl-Beitrag  wirklich ablehnen?",
       "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
       "title": "Gemeinwohl-Beitrag ablehnen!",
       "yes": "Ja, Beitrag ablehnen und speichern!"
+    },
+    "undeleteUser": {
+      "question": "Willst du wirklich {username} wiederherstellen?",
+      "title": "Nutzer wiederherstellen",
+      "yes": "Ja, Nutzer wiederherstellen"
     }
   },
   "redeemed": "eingelöst",
