@@ -52,7 +52,7 @@ export class Transaction {
     this.linkId = transaction.contribution
       ? transaction.contribution.contributionLinkId
       : transaction.transactionLinkId || null
-    this.previousBalance = previuosBalance
+    this.previousBalance = previuosBalance.toDecimalPlaces(2, Decimal.ROUND_DOWN)
   }
 
   @Field(() => Int)

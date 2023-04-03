@@ -288,7 +288,8 @@ export class TransactionResolver {
         userTransaction.typeId === TransactionTypeId.CREATION
           ? communityUser
           : involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
-      const previousBalance = idx ? userTransactions[idx - 1].balance : new Decimal(0)
+      const previousBalance =
+        idx < userTransactions.length - 1 ? userTransactions[idx + 1].balance : new Decimal(0)
       transactions.push(new Transaction(userTransaction, self, linkedUser, previousBalance))
     })
     logger.debug(`TransactionTypeId.CREATION: transactions=${transactions}`)
