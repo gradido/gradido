@@ -38,6 +38,7 @@ const virtualLinkTransaction = (
   createdAt: Date,
   validUntil: Date,
   user: User,
+  previousBalance: Decimal,
 ): Transaction => {
   const linkDbTransaction: dbTransaction = {
     id: -2,
@@ -54,7 +55,12 @@ const virtualLinkTransaction = (
     contribution: null,
     ...defaultModelFunctions,
   }
-  return new Transaction(linkDbTransaction, user)
+  return new Transaction(
+    linkDbTransaction,
+    user,
+    null,
+    previousBalance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
+  )
 }
 
 const virtualDecayTransaction = (

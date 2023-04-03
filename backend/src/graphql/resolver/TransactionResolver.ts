@@ -276,6 +276,7 @@ export class TransactionResolver {
             firstDate || now,
             lastDate || now,
             self,
+            (userTransactions.length && userTransactions[0].balance) || new Decimal(0),
           ),
         )
         logger.debug(`transactions=${transactions}`)
