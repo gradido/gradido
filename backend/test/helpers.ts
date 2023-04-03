@@ -6,7 +6,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { initialize } from '@dbTools/helpers'
 import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
 
@@ -40,7 +39,6 @@ export const testEnvironment = async (testLogger: any = logger, testI18n: any = 
   const testClient = createTestClient(server.apollo)
   const mutate = testClient.mutate
   const query = testClient.query
-  await initialize()
   return { mutate, query, con }
 }
 
