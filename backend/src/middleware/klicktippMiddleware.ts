@@ -4,8 +4,10 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { MiddlewareFn } from 'type-graphql'
-import { /* klicktippSignIn, */ getKlickTippUser } from '@/apis/KlicktippController'
+
 import { KlickTipp } from '@model/KlickTipp'
+
+import { /* klicktippSignIn, */ getKlickTippUser } from '@/apis/KlicktippController'
 import CONFIG from '@/config'
 import { klickTippLogger as logger } from '@/server/logger'
 

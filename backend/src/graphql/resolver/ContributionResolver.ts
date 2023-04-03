@@ -1,42 +1,34 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { Decimal } from 'decimal.js-light'
-import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { IsNull, getConnection } from '@dbTools/typeorm'
-
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage } from '@entity/ContributionMessage'
-import { UserContact } from '@entity/UserContact'
-import { User as DbUser } from '@entity/User'
 import { Transaction as DbTransaction } from '@entity/Transaction'
+import { User as DbUser } from '@entity/User'
+import { UserContact } from '@entity/UserContact'
+import { Decimal } from 'decimal.js-light'
+import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 
-import {
-  getCreationDates,
-  getUserCreation,
-  validateContribution,
-  updateCreations,
-  isValidDateString,
-} from './util/creations'
-import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
-import { getLastTransaction } from './util/getLastTransaction'
-import { findContributions } from './util/findContributions'
+import AdminCreateContributionArgs from '@arg/AdminCreateContributionArgs'
+import AdminUpdateContributionArgs from '@arg/AdminUpdateContributionArgs'
+import ContributionArgs from '@arg/ContributionArgs'
+import Paginated from '@arg/Paginated'
+import { ContributionStatus } from '@enum/ContributionStatus'
+import { ContributionType } from '@enum/ContributionType'
+import { ContributionMessageType } from '@enum/MessageType'
+import { Order } from '@enum/Order'
+import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { Contribution, ContributionListResult } from '@model/Contribution'
 import { Decay } from '@model/Decay'
 import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { TransactionTypeId } from '@enum/TransactionTypeId'
-import { Order } from '@enum/Order'
-import { ContributionType } from '@enum/ContributionType'
-import { ContributionStatus } from '@enum/ContributionStatus'
-import { ContributionMessageType } from '@enum/MessageType'
-import ContributionArgs from '@arg/ContributionArgs'
-import Paginated from '@arg/Paginated'
-import AdminCreateContributionArgs from '@arg/AdminCreateContributionArgs'
-import AdminUpdateContributionArgs from '@arg/AdminUpdateContributionArgs'
 
 import { RIGHTS } from '@/auth/RIGHTS'
-import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
-import { backendLogger as logger } from '@/server/logger'
+import {
+  sendContributionConfirmedEmail,
+  sendContributionDeletedEmail,
+  sendContributionDeniedEmail,
+} from '@/emails/sendEmailVariants'
 import {
   EVENT_CONTRIBUTION_CREATE,
   EVENT_CONTRIBUTION_DELETE,
@@ -44,17 +36,25 @@ import {
   EVENT_ADMIN_CONTRIBUTION_CREATE,
   EVENT_ADMIN_CONTRIBUTION_UPDATE,
   EVENT_ADMIN_CONTRIBUTION_DELETE,
-  EVENT_CONTRIBUTION_CONFIRM,
+  EVENT_ADMIN_CONTRIBUTION_CONFIRM,
   EVENT_ADMIN_CONTRIBUTION_DENY,
 } from '@/event/Event'
-import { calculateDecay } from '@/util/decay'
-import {
-  sendContributionConfirmedEmail,
-  sendContributionDeletedEmail,
-  sendContributionDeniedEmail,
-} from '@/emails/sendEmailVariants'
-import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import LogError from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
+import { calculateDecay } from '@/util/decay'
+import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+
+import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
+import {
+  getUserCreation,
+  validateContribution,
+  updateCreations,
+  isValidDateString,
+  getOpenCreations,
+} from './util/creations'
+import { findContributions } from './util/findContributions'
+import { getLastTransaction } from './util/getLastTransaction'
 
 @Resolver()
 export class ContributionResolver {
@@ -89,8 +89,7 @@ export class ContributionResolver {
 
     logger.trace('contribution to save', contribution)
     await DbContribution.save(contribution)
-
-    await EVENT_CONTRIBUTION_CREATE(user.id, contribution.id, amount)
+    await EVENT_CONTRIBUTION_CREATE(user, contribution, amount)
 
     return new UnconfirmedContribution(contribution, user, creations)
   }
@@ -117,8 +116,7 @@ export class ContributionResolver {
     contribution.deletedBy = user.id
     contribution.deletedAt = new Date()
     await contribution.save()
-
-    await EVENT_CONTRIBUTION_DELETE(user.id, contribution.id, contribution.amount)
+    await EVENT_CONTRIBUTION_DELETE(user, contribution, contribution.amount)
 
     const res = await contribution.softRemove()
     return !!res
@@ -135,15 +133,15 @@ export class ContributionResolver {
   ): Promise<ContributionListResult> {
     const user = getUser(context)
 
-    const [dbContributions, count] = await findContributions(
+    const [dbContributions, count] = await findContributions({
       order,
       currentPage,
       pageSize,
-      true,
-      ['messages'],
-      user.id,
+      withDeleted: true,
+      relations: ['messages'],
+      userId: user.id,
       statusFilter,
-    )
+    })
     return new ContributionListResult(
       count,
       dbContributions.map((contribution) => new Contribution(contribution, user)),
@@ -158,15 +156,13 @@ export class ContributionResolver {
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
     statusFilter?: ContributionStatus[] | null,
   ): Promise<ContributionListResult> {
-    const [dbContributions, count] = await findContributions(
+    const [dbContributions, count] = await findContributions({
       order,
       currentPage,
       pageSize,
-      false,
-      ['user'],
-      undefined,
+      relations: ['user'],
       statusFilter,
-    )
+    })
 
     return new ContributionListResult(
       count,
@@ -204,6 +200,9 @@ export class ContributionResolver {
         contributionToUpdate,
         user.id,
       )
+    }
+    if (contributionToUpdate.moderatorId) {
+      throw new LogError('Cannot update contribution of moderator', contributionToUpdate, user.id)
     }
     if (
       contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
@@ -248,7 +247,7 @@ export class ContributionResolver {
     contributionToUpdate.updatedAt = new Date()
     await DbContribution.save(contributionToUpdate)
 
-    await EVENT_CONTRIBUTION_UPDATE(user.id, contributionId, amount)
+    await EVENT_CONTRIBUTION_UPDATE(user, contributionToUpdate, amount)
 
     return new UnconfirmedContribution(contributionToUpdate, user, creations)
   }
@@ -300,12 +299,9 @@ export class ContributionResolver {
     contribution.moderatorId = moderator.id
     contribution.contributionType = ContributionType.ADMIN
     contribution.contributionStatus = ContributionStatus.PENDING
-
     logger.trace('contribution to save', contribution)
-
     await DbContribution.save(contribution)
-
-    await EVENT_ADMIN_CONTRIBUTION_CREATE(moderator.id, contribution.id, amount)
+    await EVENT_ADMIN_CONTRIBUTION_CREATE(emailContact.user, moderator, contribution, amount)
 
     return getUserCreation(emailContact.userId, clientTimezoneOffset)
   }
@@ -313,33 +309,19 @@ export class ContributionResolver {
   @Authorized([RIGHTS.ADMIN_UPDATE_CONTRIBUTION])
   @Mutation(() => AdminUpdateContribution)
   async adminUpdateContribution(
-    @Args() { id, email, amount, memo, creationDate }: AdminUpdateContributionArgs,
+    @Args() { id, amount, memo, creationDate }: AdminUpdateContributionArgs,
     @Ctx() context: Context,
   ): Promise<AdminUpdateContribution> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const emailContact = await UserContact.findOne({
-      where: { email },
-      withDeleted: true,
-      relations: ['user'],
-    })
-    if (!emailContact || !emailContact.user) {
-      throw new LogError('Could not find User', email)
-    }
-    if (emailContact.deletedAt || emailContact.user.deletedAt) {
-      throw new LogError('User was deleted', email)
-    }
 
     const moderator = getUser(context)
 
     const contributionToUpdate = await DbContribution.findOne({
       where: { id, confirmedAt: IsNull(), deniedAt: IsNull() },
     })
+
     if (!contributionToUpdate) {
       throw new LogError('Contribution not found', id)
-    }
-
-    if (contributionToUpdate.userId !== emailContact.user.id) {
-      throw new LogError('User of the pending contribution and send user does not correspond')
     }
 
     if (contributionToUpdate.moderatorId === null) {
@@ -347,7 +329,7 @@ export class ContributionResolver {
     }
 
     const creationDateObj = new Date(creationDate)
-    let creations = await getUserCreation(emailContact.user.id, clientTimezoneOffset)
+    let creations = await getUserCreation(contributionToUpdate.userId, clientTimezoneOffset)
 
     // TODO: remove this restriction
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
@@ -371,30 +353,35 @@ export class ContributionResolver {
     result.memo = contributionToUpdate.memo
     result.date = contributionToUpdate.contributionDate
 
-    result.creation = await getUserCreation(emailContact.user.id, clientTimezoneOffset)
-
-    await EVENT_ADMIN_CONTRIBUTION_UPDATE(emailContact.user.id, contributionToUpdate.id, amount)
+    await EVENT_ADMIN_CONTRIBUTION_UPDATE(
+      { id: contributionToUpdate.userId } as DbUser,
+      moderator,
+      contributionToUpdate,
+      amount,
+    )
 
     return result
   }
 
-  @Authorized([RIGHTS.LIST_UNCONFIRMED_CONTRIBUTIONS])
-  @Query(() => ContributionListResult) // [UnconfirmedContribution]
-  async adminListAllContributions(
+  @Authorized([RIGHTS.ADMIN_LIST_CONTRIBUTIONS])
+  @Query(() => ContributionListResult)
+  async adminListContributions(
     @Args()
     { currentPage = 1, pageSize = 3, order = Order.DESC }: Paginated,
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
     statusFilter?: ContributionStatus[] | null,
+    @Arg('userId', () => Int, { nullable: true })
+    userId?: number | null,
   ): Promise<ContributionListResult> {
-    const [dbContributions, count] = await findContributions(
+    const [dbContributions, count] = await findContributions({
       order,
       currentPage,
       pageSize,
-      true,
-      ['user', 'messages'],
-      undefined,
+      withDeleted: true,
+      userId,
+      relations: ['user', 'messages'],
       statusFilter,
-    )
+    })
 
     return new ContributionListResult(
       count,
@@ -430,8 +417,12 @@ export class ContributionResolver {
     contribution.deletedBy = moderator.id
     await contribution.save()
     const res = await contribution.softRemove()
-
-    await EVENT_ADMIN_CONTRIBUTION_DELETE(contribution.userId, contribution.id, contribution.amount)
+    await EVENT_ADMIN_CONTRIBUTION_DELETE(
+      { id: contribution.userId } as DbUser,
+      moderator,
+      contribution,
+      contribution.amount,
+    )
 
     void sendContributionDeletedEmail({
       firstName: user.firstName,
@@ -543,58 +534,26 @@ export class ContributionResolver {
       } finally {
         await queryRunner.release()
       }
-
-      await EVENT_CONTRIBUTION_CONFIRM(user.id, contribution.id, contribution.amount)
+      await EVENT_ADMIN_CONTRIBUTION_CONFIRM(user, moderatorUser, contribution, contribution.amount)
     } finally {
       releaseLock()
     }
     return true
   }
 
-  @Authorized([RIGHTS.CREATION_TRANSACTION_LIST])
-  @Query(() => ContributionListResult)
-  async creationTransactionList(
-    @Args()
-    { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
-    @Arg('userId', () => Int) userId: number,
-  ): Promise<ContributionListResult> {
-    const offset = (currentPage - 1) * pageSize
-    const [contributionResult, count] = await getConnection()
-      .createQueryBuilder()
-      .select('c')
-      .from(DbContribution, 'c')
-      .leftJoinAndSelect('c.user', 'u')
-      .where(`user_id = ${userId}`)
-      .withDeleted()
-      .limit(pageSize)
-      .offset(offset)
-      .orderBy('c.created_at', order)
-      .getManyAndCount()
-
-    return new ContributionListResult(
-      count,
-      contributionResult.map((contribution) => new Contribution(contribution, contribution.user)),
-    )
-    // return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
-  }
-
   @Authorized([RIGHTS.OPEN_CREATIONS])
   @Query(() => [OpenCreation])
-  async openCreations(
+  async openCreations(@Ctx() context: Context): Promise<OpenCreation[]> {
+    return getOpenCreations(getUser(context).id, getClientTimezoneOffset(context))
+  }
+
+  @Authorized([RIGHTS.ADMIN_OPEN_CREATIONS])
+  @Query(() => [OpenCreation])
+  async adminOpenCreations(
+    @Arg('userId', () => Int) userId: number,
     @Ctx() context: Context,
-    @Arg('userId', () => Int, { nullable: true }) userId?: number | null,
   ): Promise<OpenCreation[]> {
-    const id = userId || getUser(context).id
-    const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const creationDates = getCreationDates(clientTimezoneOffset)
-    const creations = await getUserCreation(id, clientTimezoneOffset)
-    return creationDates.map((date, index) => {
-      return {
-        month: date.getMonth(),
-        year: date.getFullYear(),
-        amount: creations[index],
-      }
-    })
+    return getOpenCreations(userId, getClientTimezoneOffset(context))
   }
 
   @Authorized([RIGHTS.DENY_CONTRIBUTION])
@@ -633,11 +592,10 @@ export class ContributionResolver {
     contributionToUpdate.deniedBy = moderator.id
     contributionToUpdate.deniedAt = new Date()
     const res = await contributionToUpdate.save()
-
     await EVENT_ADMIN_CONTRIBUTION_DENY(
-      contributionToUpdate.userId,
-      moderator.id,
-      contributionToUpdate.id,
+      user,
+      moderator,
+      contributionToUpdate,
       contributionToUpdate.amount,
     )
 

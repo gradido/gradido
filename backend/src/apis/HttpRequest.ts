@@ -3,8 +3,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import axios from 'axios'
 
-import { backendLogger as logger } from '@/server/logger'
 import LogError from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const apiPost = async (url: string, payload: unknown): Promise<any> => {

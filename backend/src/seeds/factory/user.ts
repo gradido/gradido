@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { User } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+
 import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { UserInterface } from '@/seeds/users/UserInterface'
 
