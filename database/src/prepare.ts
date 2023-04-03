@@ -2,7 +2,7 @@ import { createConnection } from 'mysql2/promise'
 
 import CONFIG from './config'
 
-const createDatabase = async (): Promise<void> => {
+export const createDatabase = async (): Promise<void> => {
   const con = await createConnection({
     host: CONFIG.DB_HOST,
     port: CONFIG.DB_PORT,
@@ -36,5 +36,3 @@ const createDatabase = async (): Promise<void> => {
 
   await con.end()
 }
-
-export { createDatabase }
