@@ -19,10 +19,7 @@
           class="pointer bg-white appBoxShadow gradido-border-radius px-4 pt-2 test-list-group-item"
         >
           <template #DECAY>
-            <transaction-decay
-              v-bind="transactions[index]"
-              :previousBookedBalance="previousBookedBalance(index)"
-            />
+            <transaction-decay v-bind="transactions[index]" />
           </template>
         </transaction-list-item>
       </div>
@@ -34,27 +31,15 @@
             class="pointer mb-3 bg-white appBoxShadow gradido-border-radius p-3 test-list-group-item"
           >
             <template #SEND>
-              <transaction-send
-                v-bind="transactions[index]"
-                :previousBookedBalance="previousBookedBalance(index)"
-                v-on="$listeners"
-              />
+              <transaction-send v-bind="transactions[index]" v-on="$listeners" />
             </template>
 
             <template #RECEIVE>
-              <transaction-receive
-                v-bind="transactions[index]"
-                :previousBookedBalance="previousBookedBalance(index)"
-                v-on="$listeners"
-              />
+              <transaction-receive v-bind="transactions[index]" v-on="$listeners" />
             </template>
 
             <template #CREATION>
-              <transaction-creation
-                v-bind="transactions[index]"
-                :previousBookedBalance="previousBookedBalance(index)"
-                v-on="$listeners"
-              />
+              <transaction-creation v-bind="transactions[index]" v-on="$listeners" />
             </template>
 
             <template #LINK_SUMMARY>
@@ -126,10 +111,6 @@ export default {
         pageSize: this.pageSize,
       })
       window.scrollTo(0, 0)
-    },
-    previousBookedBalance(idx) {
-      if (this.transactions[idx + 1]) return this.transactions[idx + 1].balance
-      return '0'
     },
   },
   computed: {

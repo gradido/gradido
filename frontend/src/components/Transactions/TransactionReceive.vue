@@ -43,7 +43,14 @@
       </b-col>
     </b-row>
     <b-collapse class="pb-4 pt-lg-3" v-model="visible">
-      <decay-information :typeId="typeId" :decay="decay" :amount="amount" :memo="memo" />
+      <decay-information
+        :typeId="typeId"
+        :decay="decay"
+        :amount="amount"
+        :memo="memo"
+        :balance="balance"
+        :previousBalance="previousBalance"
+      />
     </b-collapse>
   </div>
 </template>
@@ -85,7 +92,11 @@ export default {
     typeId: {
       type: String,
     },
-    previousBookedBalance: {
+    balance: {
+      type: String,
+      required: true,
+    },
+    previousBalance: {
       type: String,
       required: true,
     },
