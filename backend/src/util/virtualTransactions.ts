@@ -55,12 +55,7 @@ const virtualLinkTransaction = (
     contribution: null,
     ...defaultModelFunctions,
   }
-  return new Transaction(
-    linkDbTransaction,
-    user,
-    null,
-    previousBalance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
-  )
+  return new Transaction(linkDbTransaction, user)
 }
 
 const virtualDecayTransaction = (

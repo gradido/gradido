@@ -9,12 +9,7 @@ import { User } from './User'
 
 @ObjectType()
 export class Transaction {
-  constructor(
-    transaction: dbTransaction,
-    user: User,
-    linkedUser: User | null = null,
-    previuosBalance: Decimal = new Decimal(0),
-  ) {
+  constructor(transaction: dbTransaction, user: User, linkedUser: User | null = null) {
     this.id = transaction.id
     this.user = user
     this.previous = transaction.previous
@@ -52,7 +47,10 @@ export class Transaction {
     this.linkId = transaction.contribution
       ? transaction.contribution.contributionLinkId
       : transaction.transactionLinkId || null
-    this.previousBalance = previuosBalance.toDecimalPlaces(2, Decimal.ROUND_DOWN)
+    this.previousBalance =
+      (transaction.previousTransaction &&
+        transaction.previousTransaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN)) ||
+      new Decimal(0)
   }
 
   @Field(() => Int)

@@ -286,14 +286,12 @@ export class TransactionResolver {
     }
 
     // transactions
-    userTransactions.forEach((userTransaction, idx) => {
+    userTransactions.forEach((userTransaction) => {
       const linkedUser =
         userTransaction.typeId === TransactionTypeId.CREATION
           ? communityUser
           : involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
-      const previousBalance =
-        idx < userTransactions.length - 1 ? userTransactions[idx + 1].balance : new Decimal(0)
-      transactions.push(new Transaction(userTransaction, self, linkedUser, previousBalance))
+      transactions.push(new Transaction(userTransaction, self, linkedUser))
     })
     logger.debug(`TransactionTypeId.CREATION: transactions=${transactions}`)
 
