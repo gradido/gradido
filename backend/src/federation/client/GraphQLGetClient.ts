@@ -8,7 +8,6 @@ type ClientInstance = {
 }
 
 export class GraphQLGetClient extends GraphQLClient {
-  // eslint-disable-next-line no-use-before-define
   private static instanceArray: ClientInstance[] = []
 
   /**

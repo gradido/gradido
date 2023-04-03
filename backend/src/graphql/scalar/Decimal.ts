@@ -1,4 +1,4 @@
-/* eslint-disable! @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Decimal } from 'decimal.js-light'
 import { GraphQLScalarType, Kind } from 'graphql'
 
