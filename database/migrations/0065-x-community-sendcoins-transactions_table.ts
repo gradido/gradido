@@ -62,6 +62,20 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     'ALTER TABLE `transactions` MODIFY COLUMN `linked_transaction_id` int(10) DEFAULT NULL NULL AFTER `linked_user_name`;',
   )
 
+  await queryFn(
+    `UPDATE transactions t, users u SET t.user_gradido_id = u.gradido_id, t.user_name = concat(u.first_name, ' ', u.last_name) WHERE t.user_id = u.id and t.user_gradido_id is null;`,
+  )
+  await queryFn(
+    'ALTER TABLE `transactions` MODIFY COLUMN `user_gradido_id` char(36) NOT NULL AFTER `user_id`;',
+  )
+  await queryFn(
+    'ALTER TABLE `transactions` MODIFY COLUMN `user_name` varchar(512) COLLATE utf8mb4_unicode_ci NOT NULL AFTER `user_community_uuid`;',
+  )
+
+  await queryFn(
+    `UPDATE transactions t, users u SET t.linked_user_gradido_id = u.gradido_id, t.linked_user_name = concat(u.first_name, ' ', u.last_name) WHERE t.linked_user_id = u.id and t.linked_user_id is null and t.linked_user_gradido_id is null;`,
+  )
+
   await queryFn(`
       CREATE TABLE IF NOT EXISTS \`pending_transactions\` (
         \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -91,34 +105,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         PRIMARY KEY (\`id\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
 
-  /*
-  const userIds = await queryFn(`
-    SELECT user_id FROM transactions
-    WHERE NOT EXISTS (SELECT id FROM users WHERE id = user_id) GROUP BY user_id;`)
-
-  for (let i = 0; i < missingUserIds.length; i++) {
-    let gradidoId = ''
-    let countIds: any[] = []
-    do {
-      gradidoId = uuidv4()
-      countIds = await queryFn(
-        `SELECT COUNT(*) FROM \`users\` WHERE \`gradido_id\` = "${gradidoId}"`,
-      )
-    } while (countIds[0] > 0)
-
-    const userContact = (await queryFn(`
-      INSERT INTO user_contacts
-      (type, user_id, email, email_checked, created_at, deleted_at)
-      VALUES
-      ('EMAIL', ${missingUserIds[i].user_id}, 'deleted.user${missingUserIds[i].user_id}@gradido.net', 0, NOW(), NOW());`)) as unknown as OkPacket
-
-    await queryFn(`
-      INSERT INTO users
-      (id, gradido_id, email_id, first_name, last_name, deleted_at, password_encryption_type, created_at, language)
-      VALUES
-      (${missingUserIds[i].user_id}, '${gradidoId}', ${userContact.insertId}, 'DELETED', 'USER', NOW(), 0, NOW(), 'de');`)
-  }
-  */
 }
 
 /* eslint-disable @typescript-eslint/no-empty-function */
