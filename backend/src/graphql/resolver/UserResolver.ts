@@ -72,6 +72,7 @@ import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getUserCreations } from './util/creations'
+import { findUserByIdentifier } from './util/findUserByIdentifier'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const random = require('random-bigint')
@@ -819,6 +820,12 @@ export class UserResolver {
     await EVENT_EMAIL_ADMIN_CONFIRMATION(user, getUser(context))
 
     return true
+  }
+
+  @Authorized([RIGHTS.USER])
+  @Query(() => User)
+  async user(@Arg('identifier') identifier: string): Promise<User> {
+    return new User(await findUserByIdentifier(identifier))
   }
 }
 

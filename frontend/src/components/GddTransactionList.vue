@@ -37,7 +37,6 @@
               <transaction-send
                 v-bind="transactions[index]"
                 :previousBookedBalance="previousBookedBalance(index)"
-                v-on="$listeners"
               />
             </template>
 
@@ -45,7 +44,6 @@
               <transaction-receive
                 v-bind="transactions[index]"
                 :previousBookedBalance="previousBookedBalance(index)"
-                v-on="$listeners"
               />
             </template>
 
@@ -53,7 +51,6 @@
               <transaction-creation
                 v-bind="transactions[index]"
                 :previousBookedBalance="previousBookedBalance(index)"
-                v-on="$listeners"
               />
             </template>
 

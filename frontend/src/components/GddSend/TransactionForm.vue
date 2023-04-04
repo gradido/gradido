@@ -50,15 +50,23 @@
                 <b-col>
                   <b-row>
                     <b-col cols="12">
-                      <div v-if="radioSelected === sendTypes.send">
+                      <div v-if="radioSelected === sendTypes.send && !gradidoID">
                         <input-email
                           :name="$t('form.recipient')"
                           :label="$t('form.recipient')"
                           :placeholder="$t('form.email')"
-                          v-model="form.email"
+                          v-model="form.identifier"
                           :disabled="isBalanceDisabled"
                           @onValidation="onValidation"
                         />
+                      </div>
+                      <div v-else-if="gradidoID" class="mb-4">
+                        <b-row>
+                          <b-col>{{ $t('form.recipient') }}</b-col>
+                        </b-row>
+                        <b-row>
+                          <b-col class="font-weight-bold">{{ userName }}</b-col>
+                        </b-row>
                       </div>
                     </b-col>
                     <b-col cols="12" lg="6">
@@ -121,6 +129,7 @@ import { SEND_TYPES } from '@/pages/Send'
 import InputEmail from '@/components/Inputs/InputEmail'
 import InputAmount from '@/components/Inputs/InputAmount'
 import InputTextarea from '@/components/Inputs/InputTextarea'
+import { user as userQuery } from '@/graphql/queries'
 
 export default {
   name: 'TransactionForm',
@@ -131,20 +140,20 @@ export default {
   },
   props: {
     balance: { type: Number, default: 0 },
-    email: { type: String, default: '' },
+    identifier: { type: String, default: '' },
     amount: { type: Number, default: 0 },
     memo: { type: String, default: '' },
     selected: { type: String, default: 'send' },
   },
-  inject: ['getTunneledEmail'],
   data() {
     return {
       form: {
-        email: this.email,
+        identifier: this.identifier,
         amount: this.amount ? String(this.amount) : '',
         memo: this.memo,
       },
       radioSelected: this.selected,
+      userName: '',
     }
   },
   methods: {
@@ -152,33 +161,48 @@ export default {
       this.$refs.formValidator.validate()
     },
     onSubmit() {
+      if (this.gradidoID) this.form.identifier = this.gradidoID
       this.$emit('set-transaction', {
         selected: this.radioSelected,
-        email: this.form.email,
+        identifier: this.form.identifier,
         amount: Number(this.form.amount.replace(',', '.')),
         memo: this.form.memo,
+        userName: this.userName,
       })
     },
     onReset(event) {
       event.preventDefault()
-      this.form.email = ''
+      this.form.identifier = ''
       this.form.amount = ''
       this.form.memo = ''
       this.$refs.formValidator.validate()
-    },
-    setNewRecipientEmail() {
-      this.form.email = this.recipientEmail ? this.recipientEmail : this.form.email
+      if (this.$route.query && !this.$route.query === {}) this.$router.replace({ query: undefined })
     },
   },
-  watch: {
-    recipientEmail() {
-      this.setNewRecipientEmail()
+  apollo: {
+    UserName: {
+      query() {
+        return userQuery
+      },
+      fetchPolicy: 'network-only',
+      variables() {
+        return { identifier: this.gradidoID }
+      },
+      skip() {
+        return !this.gradidoID
+      },
+      update({ user }) {
+        this.userName = `${user.firstName} ${user.lastName}`
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
     },
   },
   computed: {
     disabled() {
       if (
-        this.form.email.length > 5 &&
+        this.form.identifier.length > 5 &&
         parseInt(this.form.amount) <= parseInt(this.balance) &&
         this.form.memo.length > 5 &&
         this.form.memo.length <= 255
@@ -193,15 +217,12 @@ export default {
     sendTypes() {
       return SEND_TYPES
     },
-    recipientEmail() {
-      return this.getTunneledEmail()
+    gradidoID() {
+      return this.$route.query && this.$route.query.gradidoID
     },
   },
-  created() {
-    this.setNewRecipientEmail()
-  },
   mounted() {
-    if (this.form.email !== '') this.$refs.formValidator.validate()
+    if (this.form.identifier !== '') this.$refs.formValidator.validate()
   },
 }
 </script>
