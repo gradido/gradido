@@ -40,25 +40,25 @@ const virtualLinkTransaction = (
   user: User,
 ): Transaction => {
   const linkDbTransaction: dbTransaction = {
-      id: -2,
-      userId: -1,
-      previous: -1,
-      typeId: TransactionTypeId.LINK_SUMMARY,
-      amount: amount.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
-      balance: balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
-      balanceDate: validUntil,
-      decayStart: createdAt,
-      decay: decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
-      memo: '',
-      creationDate: null,
-      contribution: null,
-      ...defaultModelFunctions,
-      userGradidoID: '',
-      userCommunityUuid: '',
-      userName: '',
-      linkedUserGradidoID: '',
-      linkedUserCommunityUuid: '',
-      linkedUserName: ''
+    id: -2,
+    userId: -1,
+    previous: -1,
+    typeId: TransactionTypeId.LINK_SUMMARY,
+    amount: amount.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
+    balance: balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
+    balanceDate: validUntil,
+    decayStart: createdAt,
+    decay: decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
+    memo: '',
+    creationDate: null,
+    contribution: null,
+    ...defaultModelFunctions,
+    userGradidoID: '',
+    userCommunityUuid: '',
+    userName: '',
+    linkedUserGradidoID: '',
+    linkedUserCommunityUuid: '',
+    linkedUserName: '',
   }
   return new Transaction(linkDbTransaction, user)
 }
@@ -73,28 +73,28 @@ const virtualDecayTransaction = (
   const decay = calculateDecay(balance, balanceDate, time)
   // const balance = decay.balance.minus(lastTransaction.balance)
   const decayDbTransaction: dbTransaction = {
-      id: -1,
-      userId: -1,
-      previous: -1,
-      typeId: TransactionTypeId.DECAY,
-      amount: decay.decay ? decay.roundedDecay : new Decimal(0),
-      balance: decay.balance
-          .toDecimalPlaces(2, Decimal.ROUND_DOWN)
-          .minus(holdAvailabeAmount.toString())
-          .toDecimalPlaces(2, Decimal.ROUND_DOWN),
-      balanceDate: time,
-      decay: decay.decay ? decay.roundedDecay : new Decimal(0),
-      decayStart: decay.start,
-      memo: '',
-      creationDate: null,
-      contribution: null,
-      ...defaultModelFunctions,
-      userGradidoID: '',
-      userCommunityUuid: '',
-      userName: '',
-      linkedUserGradidoID: '',
-      linkedUserCommunityUuid: '',
-      linkedUserName: ''
+    id: -1,
+    userId: -1,
+    previous: -1,
+    typeId: TransactionTypeId.DECAY,
+    amount: decay.decay ? decay.roundedDecay : new Decimal(0),
+    balance: decay.balance
+      .toDecimalPlaces(2, Decimal.ROUND_DOWN)
+      .minus(holdAvailabeAmount.toString())
+      .toDecimalPlaces(2, Decimal.ROUND_DOWN),
+    balanceDate: time,
+    decay: decay.decay ? decay.roundedDecay : new Decimal(0),
+    decayStart: decay.start,
+    memo: '',
+    creationDate: null,
+    contribution: null,
+    ...defaultModelFunctions,
+    userGradidoID: '',
+    userCommunityUuid: '',
+    userName: '',
+    linkedUserGradidoID: '',
+    linkedUserCommunityUuid: '',
+    linkedUserName: '',
   }
   return new Transaction(decayDbTransaction, user)
 }
