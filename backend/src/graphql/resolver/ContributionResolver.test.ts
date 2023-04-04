@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Contribution } from '@entity/Contribution'
 import { Event as DbEvent } from '@entity/Event'
 import { Transaction as DbTransaction } from '@entity/Transaction'
