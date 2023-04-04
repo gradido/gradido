@@ -97,15 +97,11 @@ export const addFieldsToSubscriber = async (
   newemail = '',
   newsmsnumber = '',
 ) => {
-  return callKlickTippAPI(
-    async ({ email, fields, newemail, newsmsnumber }) => {
-      const isLogin = await loginKlicktippUser()
-      if (isLogin) {
-        const subscriberId = await klicktippConnector.subscriberSearch(email)
-        return klicktippConnector.subscriberUpdate(subscriberId, fields, newemail, newsmsnumber)
-      }
-      throw new LogError(`Could not add fields (${fields}) to subscriber ${email}`)
-    },
-    { email, fields, newemail, newsmsnumber },
-  )
+  if (!CONFIG.KLICKTIPP) return true
+  const isLogin = await loginKlicktippUser()
+  if (isLogin) {
+    const subscriberId = await klicktippConnector.subscriberSearch(email)
+    return klicktippConnector.subscriberUpdate(subscriberId, fields, newemail, newsmsnumber)
+  }
+  return false
 }
