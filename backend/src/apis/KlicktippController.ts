@@ -4,137 +4,91 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import CONFIG from '@/config'
-import LogError from '@/server/LogError'
 
 // eslint-disable-next-line import/no-relative-parent-imports
 import KlicktippConnector from 'klicktipp-api'
 
 const klicktippConnector = new KlicktippConnector()
 
-const callKlickTippAPI = (callback: (arg0: any) => any, args: any) => {
-  if (!CONFIG.KLICKTIPP) {
-    return true
-  }
-  return callback(args)
-}
-
-export const klicktippSignIn = (
+export const klicktippSignIn = async (
   email: string,
   language: string,
   firstName?: string,
   lastName?: string,
 ): Promise<boolean> => {
-  return callKlickTippAPI(
-    ({ fieldFirstName, fieldLastName, language, email }) => {
-      const fields = {
-        fieldFirstName,
-        fieldLastName,
-      }
-      const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
-      return klicktippConnector.signin(apiKey, email, fields)
-    },
-    {
-      fieldFirstName: firstName,
-      fieldLastName: lastName,
-      language,
-      email,
-    },
-  )
+  if (!CONFIG.KLICKTIPP) return true
+  const fields = {
+    fieldFirstName: firstName,
+    fieldLastName: lastName,
+  }
+  const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
+  const result = await klicktippConnector.signin(apiKey, email, fields)
+  return result
 }
 
-export const signout = (email: string, language: string): Promise<boolean> => {
-  return callKlickTippAPI(
-    async ({ language, email }) => {
-      const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
-      const result = await klicktippConnector.signoff(apiKey, email)
-      return result
-    },
-    {
-      email,
-      language,
-    },
-  )
+export const signout = async (email: string, language: string): Promise<boolean> => {
+  if (!CONFIG.KLICKTIPP) return true
+  const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
+  const result = await klicktippConnector.signoff(apiKey, email)
+  return result
 }
 
-export const unsubscribe = (email: string): Promise<boolean> => {
-  return callKlickTippAPI(
-    async ({ email }) => {
-      const isLogin = await loginKlicktippUser()
-      if (isLogin) {
-        return klicktippConnector.unsubscribe(email)
-      }
-      throw new LogError(`Could not unsubscribe ${email}`)
-    },
-    {
-      email,
-    },
-  )
+export const unsubscribe = async (email: string): Promise<boolean> => {
+  if (!CONFIG.KLICKTIPP) return true
+  const isLogin = await loginKlicktippUser()
+  if (isLogin) {
+    return await klicktippConnector.unsubscribe(email)
+  }
+  throw new Error(`Could not unsubscribe ${email}`)
 }
 
-export const getKlickTippUser = (email: string): Promise<any> => {
-  return callKlickTippAPI(
-    async ({ email }) => {
-      const isLogin = await loginKlicktippUser()
-      if (isLogin) {
-        const subscriberId = await klicktippConnector.subscriberSearch(email)
-        return klicktippConnector.subscriberGet(subscriberId)
-      }
-      throw new LogError(`Could not get subscriber ${email}`)
-    },
-    {
-      email,
-    },
-  )
+export const getKlickTippUser = async (email: string): Promise<any> => {
+  if (!CONFIG.KLICKTIPP) return true
+  const isLogin = await loginKlicktippUser()
+  if (isLogin) {
+    const subscriberId = await klicktippConnector.subscriberSearch(email)
+    const result = await klicktippConnector.subscriberGet(subscriberId)
+    return result
+  }
+  return false
 }
 
-export const loginKlicktippUser = (): Promise<boolean> => {
-  return callKlickTippAPI(() => {
-    return klicktippConnector.login(CONFIG.KLICKTIPP_USER, CONFIG.KLICKTIPP_PASSWORD)
-  }, {})
+export const loginKlicktippUser = async (): Promise<boolean> => {
+  if (!CONFIG.KLICKTIPP) return true
+  return await klicktippConnector.login(CONFIG.KLICKTIPP_USER, CONFIG.KLICKTIPP_PASSWORD)
 }
 
-export const logoutKlicktippUser = (): Promise<boolean> => {
-  return callKlickTippAPI(() => {
-    return klicktippConnector.logout()
-  }, {})
+export const logoutKlicktippUser = async (): Promise<boolean> => {
+  if (!CONFIG.KLICKTIPP) return true
+  return await klicktippConnector.logout()
 }
 
-export const untagUser = (email: string, tagId: string): Promise<boolean> => {
-  return callKlickTippAPI(
-    async ({ email, tagId }) => {
-      const isLogin = await loginKlicktippUser()
-      if (isLogin) {
-        return await klicktippConnector.untag(email, tagId)
-      }
-      throw new LogError(`Could not untag ${email}`)
-    },
-    { email, tagId },
-  )
+export const untagUser = async (email: string, tagId: string): Promise<boolean> => {
+  if (!CONFIG.KLICKTIPP) return true
+  const isLogin = await loginKlicktippUser()
+  if (isLogin) {
+    return await klicktippConnector.untag(email, tagId)
+  }
+  return false
 }
 
-export const tagUser = (email: string, tagIds: string): Promise<boolean> => {
-  return callKlickTippAPI(
-    async ({ email, tagIds }) => {
-      const isLogin = await loginKlicktippUser()
-      if (isLogin) {
-        return klicktippConnector.tag(email, tagIds)
-      }
-      throw new LogError(`Could not tag ${email}`)
-    },
-    { email, tagIds },
-  )
+export const tagUser = async (email: string, tagIds: string): Promise<boolean> => {
+  if (!CONFIG.KLICKTIPP) return true
+  const isLogin = await loginKlicktippUser()
+  if (isLogin) {
+    return await klicktippConnector.tag(email, tagIds)
+  }
+  return false
 }
 
-export const getKlicktippTagMap = (): Promise<any> => {
-  return callKlickTippAPI(async () => {
-    const isLogin = await loginKlicktippUser()
-    if (isLogin) {
-      return klicktippConnector.tagIndex()
-    }
-    throw new LogError(`Could not get tagIndexes`)
-  }, {})
+export const getKlicktippTagMap = async () => {
+  if (!CONFIG.KLICKTIPP) return true
+  const isLogin = await loginKlicktippUser()
+  if (isLogin) {
+    return await klicktippConnector.tagIndex()
+  }
+  return ''
 }
 
 export const addFieldsToSubscriber = async (
