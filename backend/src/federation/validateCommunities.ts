@@ -1,12 +1,14 @@
-import { Community as DbCommunity } from '@entity/Community'
 import { IsNull } from '@dbTools/typeorm'
+import { Community as DbCommunity } from '@entity/Community'
+
+import LogError from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
+
 // eslint-disable-next-line camelcase
 import { requestGetPublicKey as v1_0_requestGetPublicKey } from './client/1_0/FederationClient'
 // eslint-disable-next-line camelcase
 import { requestGetPublicKey as v1_1_requestGetPublicKey } from './client/1_1/FederationClient'
-import { backendLogger as logger } from '@/server/logger'
 import { ApiVersionType } from './enum/apiVersionType'
-import LogError from '@/server/LogError'
 
 export function startValidateCommunities(timerInterval: number): void {
   logger.info(

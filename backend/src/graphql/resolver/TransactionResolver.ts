@@ -2,43 +2,40 @@
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import Decimal from 'decimal.js-light'
-import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection, In } from '@dbTools/typeorm'
-
-import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { User as dbUser } from '@entity/User'
+import { Decimal } from 'decimal.js-light'
+import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
+
+import Paginated from '@arg/Paginated'
+import TransactionSendArgs from '@arg/TransactionSendArgs'
+import { Order } from '@enum/Order'
+import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { Transaction } from '@model/Transaction'
+import { TransactionList } from '@model/TransactionList'
+import { User } from '@model/User'
 import { TransactionRepository } from '@repository/Transaction'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
 
-import { User } from '@model/User'
-import { Transaction } from '@model/Transaction'
-import { TransactionList } from '@model/TransactionList'
-import { Order } from '@enum/Order'
-import { TransactionTypeId } from '@enum/TransactionTypeId'
-import { calculateBalance } from '@/util/validate'
-import TransactionSendArgs from '@arg/TransactionSendArgs'
-import Paginated from '@arg/Paginated'
-
-import { backendLogger as logger } from '@/server/logger'
-import { Context, getUser } from '@/server/context'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { communityUser } from '@/util/communityUser'
-import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 import {
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
 } from '@/emails/sendEmailVariants'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Event'
+import { Context, getUser } from '@/server/context'
+import LogError from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
+import { communityUser } from '@/util/communityUser'
+import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { calculateBalance } from '@/util/validate'
+import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
-import { findUserByEmail } from './UserResolver'
-
-import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
-import LogError from '@/server/LogError'
-
+import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 
 export const executeTransaction = async (
@@ -152,7 +149,6 @@ export const executeTransaction = async (
     } finally {
       await queryRunner.release()
     }
-    logger.debug(`prepare Email for transaction received...`)
     await sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,
@@ -302,10 +298,10 @@ export class TransactionResolver {
   @Authorized([RIGHTS.SEND_COINS])
   @Mutation(() => Boolean)
   async sendCoins(
-    @Args() { email, amount, memo }: TransactionSendArgs,
+    @Args() { identifier, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.info(`sendCoins(email=${email}, amount=${amount}, memo=${memo})`)
+    logger.info(`sendCoins(identifier=${identifier}, amount=${amount}, memo=${memo})`)
     if (amount.lte(0)) {
       throw new LogError('Amount to send must be positive', amount)
     }
@@ -314,13 +310,9 @@ export class TransactionResolver {
     const senderUser = getUser(context)
 
     // validate recipient user
-    const recipientUser = await findUserByEmail(email)
-    if (recipientUser.deletedAt) {
-      throw new LogError('The recipient account was deleted', recipientUser)
-    }
-    const emailContact = recipientUser.emailContact
-    if (!emailContact.emailChecked) {
-      throw new LogError('The recipient account is not activated', recipientUser)
+    const recipientUser = await findUserByIdentifier(identifier)
+    if (!recipientUser) {
+      throw new LogError('The recipient user was not found', recipientUser)
     }
 
     await executeTransaction(amount, memo, senderUser, recipientUser)

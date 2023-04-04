@@ -1,20 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import log4js from 'log4js'
-import CONFIG from '@/config'
-
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { readFileSync } from 'fs'
+
+import { configure, getLogger } from 'log4js'
+
+import CONFIG from '@/config'
 
 const options = JSON.parse(readFileSync(CONFIG.LOG4JS_CONFIG, 'utf-8'))
 
 options.categories.backend.level = CONFIG.LOG_LEVEL
 options.categories.apollo.level = CONFIG.LOG_LEVEL
 
-log4js.configure(options)
+configure(options)
 
-const apolloLogger = log4js.getLogger('apollo')
-const backendLogger = log4js.getLogger('backend')
-const klickTippLogger = log4js.getLogger('klicktipp')
+const apolloLogger = getLogger('apollo')
+const backendLogger = getLogger('backend')
+const klickTippLogger = getLogger('klicktipp')
 
 backendLogger.addContext('user', 'unknown')
 
