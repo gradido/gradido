@@ -266,6 +266,8 @@ export class TransactionLinkResolver {
           transaction.typeId = TransactionTypeId.CREATION
           transaction.memo = contribution.memo
           transaction.userId = contribution.userId
+          transaction.userGradidoID = user.gradidoID
+          transaction.userName = user.firstName + ' ' + user.lastName
           transaction.previous = lastTransaction ? lastTransaction.id : null
           transaction.amount = contribution.amount
           transaction.creationDate = contribution.contributionDate
