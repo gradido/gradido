@@ -11,7 +11,7 @@ import { TransactionLink } from '@entity/TransactionLink'
 import { User } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
 import { GraphQLError } from 'graphql'
-import { validate as validateUUID, version as versionUUID } from 'uuid'
+import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
@@ -46,7 +46,13 @@ import {
   unDeleteUser,
   sendActivationEmail,
 } from '@/seeds/graphql/mutations'
-import { verifyLogin, queryOptIn, searchAdminUsers, searchUsers } from '@/seeds/graphql/queries'
+import {
+  verifyLogin,
+  queryOptIn,
+  searchAdminUsers,
+  searchUsers,
+  user as userQuery,
+} from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
@@ -2294,6 +2300,124 @@ describe('UserResolver', () => {
               }),
             )
           })
+        })
+      })
+    })
+  })
+
+  describe('user', () => {
+    beforeEach(() => {
+      jest.clearAllMocks()
+    })
+
+    describe('unauthenticated', () => {
+      it('throws and logs "401 Unauthorized" error', async () => {
+        await expect(
+          query({
+            query: userQuery,
+            variables: {
+              identifier: 'identifier',
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+        expect(logger.error).toBeCalledWith('401 Unauthorized')
+      })
+    })
+
+    describe('authenticated', () => {
+      const uuid = uuidv4()
+
+      beforeAll(async () => {
+        user = await userFactory(testEnv, bibiBloxberg)
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      describe('identifier is no gradido ID and no email', () => {
+        it('throws and logs "Unknown identifier type" error', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: 'identifier',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Unknown identifier type')],
+            }),
+          )
+          expect(logger.error).toBeCalledWith('Unknown identifier type', 'identifier')
+        })
+      })
+
+      describe('identifier is not found', () => {
+        it('throws and logs "No user found to given identifier" error', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: uuid,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('No user found to given identifier')],
+            }),
+          )
+          expect(logger.error).toBeCalledWith('No user found to given identifier', uuid)
+        })
+      })
+
+      describe('identifier is found via email', () => {
+        it('returns user', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: 'bibi@bloxberg.de',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                user: {
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                },
+              },
+              errors: undefined,
+            }),
+          )
+        })
+      })
+
+      describe('identifier is found via gradidoID', () => {
+        it('returns user', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: user.gradidoID,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                user: {
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                },
+              },
+              errors: undefined,
+            }),
+          )
         })
       })
     })

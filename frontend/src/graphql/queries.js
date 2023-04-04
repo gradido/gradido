@@ -38,6 +38,7 @@ export const transactionsQuery = gql`
         linkedUser {
           firstName
           lastName
+          gradidoID
           email
         }
         decay {
@@ -265,6 +266,15 @@ export const openCreations = gql`
       year
       month
       amount
+    }
+  }
+`
+
+export const user = gql`
+  query($identifier: String!) {
+    user(identifier: $identifier) {
+      firstName
+      lastName
     }
   }
 `
