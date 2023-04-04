@@ -31,15 +31,15 @@
             class="pointer mb-3 bg-white appBoxShadow gradido-border-radius p-3 test-list-group-item"
           >
             <template #SEND>
-              <transaction-send v-bind="transactions[index]" v-on="$listeners" />
+              <transaction-send v-bind="transactions[index]" />
             </template>
 
             <template #RECEIVE>
-              <transaction-receive v-bind="transactions[index]" v-on="$listeners" />
+              <transaction-receive v-bind="transactions[index]" />
             </template>
 
             <template #CREATION>
-              <transaction-creation v-bind="transactions[index]" v-on="$listeners" />
+              <transaction-creation v-bind="transactions[index]" />
             </template>
 
             <template #LINK_SUMMARY>

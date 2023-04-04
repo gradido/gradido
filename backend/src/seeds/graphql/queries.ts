@@ -340,3 +340,12 @@ export const listContributionMessages = gql`
     }
   }
 `
+
+export const user = gql`
+  query ($identifier: String!) {
+    user(identifier: $identifier) {
+      firstName
+      lastName
+    }
+  }
+`

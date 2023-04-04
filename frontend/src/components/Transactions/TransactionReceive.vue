@@ -14,7 +14,6 @@
         <div>
           <name
             class="font-weight-bold"
-            v-on="$listeners"
             :amount="amount"
             :linkedUser="linkedUser"
             :linkId="linkId"
