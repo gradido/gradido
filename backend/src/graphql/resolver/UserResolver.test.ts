@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Event as DbEvent } from '@entity/Event'
 import { TransactionLink } from '@entity/TransactionLink'
 import { User } from '@entity/User'
@@ -1426,7 +1426,7 @@ describe('UserResolver', () => {
       })
 
       it('changes to gradidoID on login', async () => {
-        await mutate({ mutation: login, variables: variables })
+        await mutate({ mutation: login, variables })
 
         const usercontact = await UserContact.findOneOrFail(
           { email: 'bibi@bloxberg.de' },
@@ -1447,7 +1447,7 @@ describe('UserResolver', () => {
 
       it('can login after password change', async () => {
         resetToken()
-        expect(await mutate({ mutation: login, variables: variables })).toEqual(
+        expect(await mutate({ mutation: login, variables })).toEqual(
           expect.objectContaining({
             data: {
               login: {
