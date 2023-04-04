@@ -7,7 +7,7 @@ import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as dbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
-import { Resolver, Query, Args, Authorized, Ctx, Mutation, UseMiddleware } from 'type-graphql'
+import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 
 import Paginated from '@arg/Paginated'
 import TransactionSendArgs from '@arg/TransactionSendArgs'
@@ -25,7 +25,6 @@ import {
   sendTransactionReceivedEmail,
 } from '@/emails/sendEmailVariants'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Event'
-import { fixDecayCalculation } from '@/middleware/fixDecayCalculation'
 import { Context, getUser } from '@/server/context'
 import LogError from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
@@ -184,7 +183,6 @@ export const executeTransaction = async (
 export class TransactionResolver {
   @Authorized([RIGHTS.TRANSACTION_LIST])
   @Query(() => TransactionList)
-  @UseMiddleware(fixDecayCalculation)
   async transactionList(
     @Args()
     { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
@@ -293,6 +291,15 @@ export class TransactionResolver {
       transactions.push(new Transaction(userTransaction, self, linkedUser))
     })
     logger.debug(`TransactionTypeId.CREATION: transactions=${transactions}`)
+
+    transactions.forEach((transaction: Transaction) => {
+      if (transaction.typeId !== TransactionTypeId.DECAY) {
+        const { balance, previousBalance, amount } = transaction
+        transaction.decay.decay = new Decimal(
+          Number(balance) - Number(amount) - Number(previousBalance),
+        ).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
+      }
+    })
 
     // Construct Result
     return new TransactionList(await balanceResolver.balance(context), transactions)
