@@ -1,17 +1,19 @@
 import gql from 'graphql-tag'
 
-export const adminListAllContributions = gql`
+export const adminListContributions = gql`
   query (
     $currentPage: Int = 1
     $pageSize: Int = 25
     $order: Order = DESC
     $statusFilter: [ContributionStatus!]
+    $userId: Int
   ) {
-    adminListAllContributions(
+    adminListContributions(
       currentPage: $currentPage
       pageSize: $pageSize
       order: $order
       statusFilter: $statusFilter
+      userId: $userId
     ) {
       contributionCount
       contributionList {
@@ -30,6 +32,8 @@ export const adminListAllContributions = gql`
         deniedBy
         deletedAt
         deletedBy
+        moderatorId
+        userId
       }
     }
   }

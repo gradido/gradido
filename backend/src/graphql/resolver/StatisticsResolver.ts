@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Decimal } from 'decimal.js-light'
-import { Resolver, Query, Authorized, FieldResolver } from 'type-graphql'
 import { getConnection } from '@dbTools/typeorm'
-
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User as DbUser } from '@entity/User'
+import { Decimal } from 'decimal.js-light'
+import { Resolver, Query, Authorized, FieldResolver } from 'type-graphql'
 
 import { CommunityStatistics, DynamicStatisticsFields } from '@model/CommunityStatistics'
 

@@ -6,17 +6,36 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Decimal } from 'decimal.js-light'
-import { GraphQLError } from 'graphql'
-import { EventProtocol } from '@entity/EventProtocol'
 import { Contribution } from '@entity/Contribution'
+import { Event as DbEvent } from '@entity/Event'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { UserInputError } from 'apollo-server-express'
-import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { bobBaumeister } from '@/seeds/users/bob-baumeister'
-import { stephenHawking } from '@/seeds/users/stephen-hawking'
-import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
+import { Decimal } from 'decimal.js-light'
+import { GraphQLError } from 'graphql'
+
+import { ContributionStatus } from '@enum/ContributionStatus'
+import { Order } from '@enum/Order'
+import { ContributionListResult } from '@model/Contribution'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import {
+  cleanDB,
+  resetToken,
+  testEnvironment,
+  contributionDateFormatter,
+  resetEntity,
+} from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
+
+import {
+  sendContributionConfirmedEmail,
+  sendContributionDeletedEmail,
+  sendContributionDeniedEmail,
+} from '@/emails/sendEmailVariants'
+import { EventType } from '@/event/Event'
+import { creations } from '@/seeds/creation/index'
+import { creationFactory } from '@/seeds/factory/creation'
+import { userFactory } from '@/seeds/factory/user'
 import {
   createContribution,
   updateContribution,
@@ -33,31 +52,14 @@ import {
 import {
   listAllContributions,
   listContributions,
-  adminListAllContributions,
+  adminListContributions,
 } from '@/seeds/graphql/queries'
-import {
-  sendContributionConfirmedEmail,
-  sendContributionDeletedEmail,
-  sendContributionDeniedEmail,
-} from '@/emails/sendEmailVariants'
-import {
-  cleanDB,
-  resetToken,
-  testEnvironment,
-  contributionDateFormatter,
-  resetEntity,
-} from '@test/helpers'
-import { userFactory } from '@/seeds/factory/user'
-import { creationFactory } from '@/seeds/factory/creation'
-import { creations } from '@/seeds/creation/index'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
+import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { EventProtocolType } from '@/event/EventProtocolType'
-import { logger, i18n as localization } from '@test/testSetup'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { ContributionListResult } from '@model/Contribution'
-import { ContributionStatus } from '@enum/ContributionStatus'
-import { Order } from '@enum/Order'
+import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
 jest.mock('@/emails/sendEmailVariants')
 
@@ -279,12 +281,13 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the CONTRIBUTION_CREATE event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventProtocolType.CONTRIBUTION_CREATE,
+              type: EventType.CONTRIBUTION_CREATE,
+              affectedUserId: bibi.id,
+              actingUserId: bibi.id,
+              involvedContributionId: pendingContribution.data.createContribution.id,
               amount: expect.decimalEqual(100),
-              contributionId: pendingContribution.data.createContribution.id,
-              userId: bibi.id,
             }),
           )
         })
@@ -434,7 +437,6 @@ describe('ContributionResolver', () => {
             mutation: adminUpdateContribution,
             variables: {
               id: pendingContribution.data.createContribution.id,
-              email: 'bibi@bloxberg.de',
               amount: 10.0,
               memo: 'Test env contribution',
               creationDate: new Date().toString(),
@@ -584,12 +586,13 @@ describe('ContributionResolver', () => {
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
 
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventProtocolType.CONTRIBUTION_UPDATE,
+              type: EventType.CONTRIBUTION_UPDATE,
+              affectedUserId: bibi.id,
+              actingUserId: bibi.id,
+              involvedContributionId: pendingContribution.data.createContribution.id,
               amount: expect.decimalEqual(10),
-              contributionId: pendingContribution.data.createContribution.id,
-              userId: bibi.id,
             }),
           )
         })
@@ -814,12 +817,12 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the ADMIN_CONTRIBUTION_DENY event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventProtocolType.ADMIN_CONTRIBUTION_DENY,
-              userId: bibi.id,
-              xUserId: admin.id,
-              contributionId: contributionToDeny.data.createContribution.id,
+              type: EventType.ADMIN_CONTRIBUTION_DENY,
+              affectedUserId: bibi.id,
+              actingUserId: admin.id,
+              involvedContributionId: contributionToDeny.data.createContribution.id,
               amount: expect.decimalEqual(100),
             }),
           )
@@ -942,12 +945,13 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the CONTRIBUTION_DELETE event in the database', async () => {
-          await expect(EventProtocol.find()).resolves.toContainEqual(
+          await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventProtocolType.CONTRIBUTION_DELETE,
-              contributionId: contributionToDelete.data.createContribution.id,
+              type: EventType.CONTRIBUTION_DELETE,
+              affectedUserId: bibi.id,
+              actingUserId: bibi.id,
+              involvedContributionId: contributionToDelete.data.createContribution.id,
               amount: expect.decimalEqual(100),
-              userId: bibi.id,
             }),
           )
         })
@@ -1667,7 +1671,6 @@ describe('ContributionResolver', () => {
               mutation: adminUpdateContribution,
               variables: {
                 id: 1,
-                email: 'bibi@bloxberg.de',
                 amount: new Decimal(300),
                 memo: 'Danke Bibi!',
                 creationDate: contributionDateFormatter(new Date()),
@@ -1746,7 +1749,6 @@ describe('ContributionResolver', () => {
                 mutation: adminUpdateContribution,
                 variables: {
                   id: 1,
-                  email: 'bibi@bloxberg.de',
                   amount: new Decimal(300),
                   memo: 'Danke Bibi!',
                   creationDate: contributionDateFormatter(new Date()),
@@ -2031,13 +2033,58 @@ describe('ContributionResolver', () => {
               })
 
               it('stores the ADMIN_CONTRIBUTION_CREATE event in the database', async () => {
-                await expect(EventProtocol.find()).resolves.toContainEqual(
+                await expect(DbEvent.find()).resolves.toContainEqual(
                   expect.objectContaining({
-                    type: EventProtocolType.ADMIN_CONTRIBUTION_CREATE,
-                    userId: admin.id,
+                    type: EventType.ADMIN_CONTRIBUTION_CREATE,
+                    affectedUserId: bibi.id,
+                    actingUserId: admin.id,
                     amount: expect.decimalEqual(200),
                   }),
                 )
+              })
+
+              describe('user tries to update admin contribution', () => {
+                beforeAll(async () => {
+                  await mutate({
+                    mutation: login,
+                    variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+                  })
+                })
+
+                afterAll(async () => {
+                  await mutate({
+                    mutation: login,
+                    variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+                  })
+                })
+
+                it('logs and throws "Cannot update contribution of moderator" error', async () => {
+                  jest.clearAllMocks()
+                  const adminContribution = await Contribution.findOne({
+                    where: {
+                      moderatorId: admin.id,
+                      userId: bibi.id,
+                    },
+                  })
+                  await expect(
+                    mutate({
+                      mutation: updateContribution,
+                      variables: {
+                        contributionId: (adminContribution && adminContribution.id) || -1,
+                        amount: 100.0,
+                        memo: 'Test Test Test',
+                        creationDate: new Date().toString(),
+                      },
+                    }),
+                  ).resolves.toMatchObject({
+                    errors: [new GraphQLError('Cannot update contribution of moderator')],
+                  })
+                  expect(logger.error).toBeCalledWith(
+                    'Cannot update contribution of moderator',
+                    expect.any(Object),
+                    bibi.id,
+                  )
+                })
               })
             })
 
@@ -2076,58 +2123,6 @@ describe('ContributionResolver', () => {
           // stephen@hawking.uk: [1000, 1000, 1000] - deleted
           // garrick@ollivander.com: [1000, 1000, 1000] - not activated
 
-          describe('user for creation to update does not exist', () => {
-            it('throws an error', async () => {
-              jest.clearAllMocks()
-              await expect(
-                mutate({
-                  mutation: adminUpdateContribution,
-                  variables: {
-                    id: 1,
-                    email: 'bob@baumeister.de',
-                    amount: new Decimal(300),
-                    memo: 'Danke Bibi!',
-                    creationDate: contributionDateFormatter(new Date()),
-                  },
-                }),
-              ).resolves.toEqual(
-                expect.objectContaining({
-                  errors: [new GraphQLError('Could not find User')],
-                }),
-              )
-            })
-
-            it('logs the error "Could not find User"', () => {
-              expect(logger.error).toBeCalledWith('Could not find User', 'bob@baumeister.de')
-            })
-          })
-
-          describe('user for creation to update is deleted', () => {
-            it('throws an error', async () => {
-              jest.clearAllMocks()
-              await expect(
-                mutate({
-                  mutation: adminUpdateContribution,
-                  variables: {
-                    id: 1,
-                    email: 'stephen@hawking.uk',
-                    amount: new Decimal(300),
-                    memo: 'Danke Bibi!',
-                    creationDate: contributionDateFormatter(new Date()),
-                  },
-                }),
-              ).resolves.toEqual(
-                expect.objectContaining({
-                  errors: [new GraphQLError('User was deleted')],
-                }),
-              )
-            })
-
-            it('logs the error "User was deleted"', () => {
-              expect(logger.error).toBeCalledWith('User was deleted', 'stephen@hawking.uk')
-            })
-          })
-
           describe('creation does not exist', () => {
             it('throws an error', async () => {
               jest.clearAllMocks()
@@ -2136,7 +2131,6 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: -1,
-                    email: 'bibi@bloxberg.de',
                     amount: new Decimal(300),
                     memo: 'Danke Bibi!',
                     creationDate: contributionDateFormatter(new Date()),
@@ -2154,40 +2148,6 @@ describe('ContributionResolver', () => {
             })
           })
 
-          describe('user email does not match creation user', () => {
-            it('throws an error', async () => {
-              jest.clearAllMocks()
-              await expect(
-                mutate({
-                  mutation: adminUpdateContribution,
-                  variables: {
-                    id: creation ? creation.id : -1,
-                    email: 'bibi@bloxberg.de',
-                    amount: new Decimal(300),
-                    memo: 'Danke Bibi!',
-                    creationDate: creation
-                      ? contributionDateFormatter(creation.contributionDate)
-                      : contributionDateFormatter(new Date()),
-                  },
-                }),
-              ).resolves.toEqual(
-                expect.objectContaining({
-                  errors: [
-                    new GraphQLError(
-                      'User of the pending contribution and send user does not correspond',
-                    ),
-                  ],
-                }),
-              )
-            })
-
-            it('logs the error "User of the pending contribution and send user does not correspond"', () => {
-              expect(logger.error).toBeCalledWith(
-                'User of the pending contribution and send user does not correspond',
-              )
-            })
-          })
-
           describe('creation update is not valid', () => {
             // as this test has not clearly defined that date, it is a false positive
             it('throws an error', async () => {
@@ -2197,7 +2157,6 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
-                    email: 'peter@lustig.de',
                     amount: new Decimal(1900),
                     memo: 'Danke Peter!',
                     creationDate: creation
@@ -2233,8 +2192,7 @@ describe('ContributionResolver', () => {
                 mutate({
                   mutation: adminUpdateContribution,
                   variables: {
-                    id: creation ? creation.id : -1,
-                    email: 'peter@lustig.de',
+                    id: creation?.id,
                     amount: new Decimal(300),
                     memo: 'Danke Peter!',
                     creationDate: creation
@@ -2249,7 +2207,6 @@ describe('ContributionResolver', () => {
                       date: expect.any(String),
                       memo: 'Danke Peter!',
                       amount: '300',
-                      creation: ['1000', '700', '500'],
                     },
                   },
                 }),
@@ -2257,10 +2214,11 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
-                  type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
-                  userId: admin.id,
+                  type: EventType.ADMIN_CONTRIBUTION_UPDATE,
+                  affectedUserId: creation?.userId,
+                  actingUserId: admin.id,
                   amount: 300,
                 }),
               )
@@ -2274,8 +2232,7 @@ describe('ContributionResolver', () => {
                 mutate({
                   mutation: adminUpdateContribution,
                   variables: {
-                    id: creation ? creation.id : -1,
-                    email: 'peter@lustig.de',
+                    id: creation?.id,
                     amount: new Decimal(200),
                     memo: 'Das war leider zu Viel!',
                     creationDate: creation
@@ -2290,7 +2247,6 @@ describe('ContributionResolver', () => {
                       date: expect.any(String),
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
-                      creation: ['1000', '800', '1000'],
                     },
                   },
                 }),
@@ -2298,10 +2254,11 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the ADMIN_CONTRIBUTION_UPDATE event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
-                  type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
-                  userId: admin.id,
+                  type: EventType.ADMIN_CONTRIBUTION_UPDATE,
+                  affectedUserId: creation?.userId,
+                  actingUserId: admin.id,
                   amount: expect.decimalEqual(200),
                 }),
               )
@@ -2372,7 +2329,7 @@ describe('ContributionResolver', () => {
                 mutate({
                   mutation: adminDeleteContribution,
                   variables: {
-                    id: creation ? creation.id : -1,
+                    id: creation?.id,
                   },
                 }),
               ).resolves.toEqual(
@@ -2383,10 +2340,12 @@ describe('ContributionResolver', () => {
             })
 
             it('stores the ADMIN_CONTRIBUTION_DELETE event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
-                  type: EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
-                  userId: admin.id,
+                  type: EventType.ADMIN_CONTRIBUTION_DELETE,
+                  affectedUserId: creation?.userId,
+                  actingUserId: admin.id,
+                  involvedContributionId: creation?.id,
                   amount: expect.decimalEqual(200),
                 }),
               )
@@ -2538,10 +2497,10 @@ describe('ContributionResolver', () => {
               )
             })
 
-            it('stores the CONTRIBUTION_CONFIRM event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+            it('stores the ADMIN_CONTRIBUTION_CONFIRM event in the database', async () => {
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
-                  type: EventProtocolType.CONTRIBUTION_CONFIRM,
+                  type: EventType.ADMIN_CONTRIBUTION_CONFIRM,
                 }),
               )
             })
@@ -2570,10 +2529,10 @@ describe('ContributionResolver', () => {
               })
             })
 
-            it('stores the SEND_CONFIRMATION_EMAIL event in the database', async () => {
-              await expect(EventProtocol.find()).resolves.toContainEqual(
+            it('stores the EMAIL_CONFIRMATION event in the database', async () => {
+              await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
-                  type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
+                  type: EventType.EMAIL_CONFIRMATION,
                 }),
               )
             })
@@ -2662,12 +2621,12 @@ describe('ContributionResolver', () => {
     })
   })
 
-  describe('adminListAllContribution', () => {
+  describe('adminListContributions', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
         await expect(
           query({
-            query: adminListAllContributions,
+            query: adminListContributions,
           }),
         ).resolves.toEqual(
           expect.objectContaining({
@@ -2692,7 +2651,7 @@ describe('ContributionResolver', () => {
       it('returns an error', async () => {
         await expect(
           query({
-            query: adminListAllContributions,
+            query: adminListContributions,
           }),
         ).resolves.toEqual(
           expect.objectContaining({
@@ -2716,9 +2675,9 @@ describe('ContributionResolver', () => {
 
       it('returns 17 creations in total', async () => {
         const {
-          data: { adminListAllContributions: contributionListObject },
-        }: { data: { adminListAllContributions: ContributionListResult } } = await query({
-          query: adminListAllContributions,
+          data: { adminListContributions: contributionListObject },
+        }: { data: { adminListContributions: ContributionListResult } } = await query({
+          query: adminListContributions,
         })
         expect(contributionListObject.contributionList).toHaveLength(17)
         expect(contributionListObject).toMatchObject({
@@ -2883,9 +2842,9 @@ describe('ContributionResolver', () => {
 
       it('returns two pending creations with page size set to 2', async () => {
         const {
-          data: { adminListAllContributions: contributionListObject },
-        }: { data: { adminListAllContributions: ContributionListResult } } = await query({
-          query: adminListAllContributions,
+          data: { adminListContributions: contributionListObject },
+        }: { data: { adminListContributions: ContributionListResult } } = await query({
+          query: adminListContributions,
           variables: {
             currentPage: 1,
             pageSize: 2,

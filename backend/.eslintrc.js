@@ -55,7 +55,7 @@ module.exports = {
     'import/named': 'error',
     'import/namespace': 'error',
     'import/no-absolute-path': 'error',
-    'import/no-cycle': 'error',
+    'import/no-cycle': 'off',
     'import/no-dynamic-require': 'error',
     'import/no-internal-modules': 'off',
     'import/no-relative-packages': 'error',
@@ -76,7 +76,30 @@ module.exports = {
     'import/no-named-default': 'error',
     'import/no-namespace': 'error',
     'import/no-unassigned-import': 'error',
-    'import/order': 'error',
+    'import/order': [
+      'error',
+      {
+        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type'],
+        'newlines-between': 'always',
+        pathGroups: [
+          {
+            pattern: '@?*/**',
+            group: 'external',
+            position: 'after',
+          },
+          {
+            pattern: '@/**',
+            group: 'external',
+            position: 'after',
+          },
+        ],
+        alphabetize: {
+          order: 'asc' /* sort in ascending order. Options: ['ignore', 'asc', 'desc'] */,
+          caseInsensitive: true /* ignore case. Options: [true, false] */,
+        },
+        distinctGroup: true,
+      },
+    ],
     'import/prefer-default-export': 'off', // TODO
     // n
     'n/handle-callback-err': 'error',
@@ -101,7 +124,7 @@ module.exports = {
     'n/shebang': 'error',
     'n/callback-return': 'error',
     'n/exports-style': 'error',
-    'n/file-extension-in-import': ['error', 'never'],
+    'n/file-extension-in-import': 'off',
     'n/global-require': 'error',
     'n/no-mixed-requires': 'error',
     'n/no-process-env': 'error',
@@ -148,6 +171,8 @@ module.exports = {
         'no-void': ['error', { allowAsStatement: true }],
         // ignore prefer-regexp-exec rule to allow string.match(regex)
         '@typescript-eslint/prefer-regexp-exec': 'off',
+        // this should not run on ts files: https://github.com/import-js/eslint-plugin-import/issues/2215#issuecomment-911245486
+        'import/unambiguous': 'off',
       },
       parserOptions: {
         tsconfigRootDir: './',

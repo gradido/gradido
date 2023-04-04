@@ -4,10 +4,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { Event as DbEvent } from '@entity/Event'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+
+import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
 import { logger } from '@test/testSetup'
+
+import { EventType } from '@/event/Event'
+import { userFactory } from '@/seeds/factory/user'
 import {
   login,
   createContributionLink,
@@ -15,10 +22,8 @@ import {
   updateContributionLink,
 } from '@/seeds/graphql/mutations'
 import { listContributionLinks } from '@/seeds/graphql/queries'
-import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { userFactory } from '@/seeds/factory/user'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -245,6 +250,18 @@ describe('Contribution Links', () => {
               linkEnabled: true,
               amount: expect.decimalEqual(200),
               maxAmountPerMonth: expect.decimalEqual(200),
+            }),
+          )
+        })
+
+        it('stores the ADMIN_CONTRIBUTION_LINK_CREATE event in the database', async () => {
+          await expect(DbEvent.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventType.ADMIN_CONTRIBUTION_LINK_CREATE,
+              affectedUserId: 0,
+              actingUserId: expect.any(Number),
+              involvedContributionLinkId: expect.any(Number),
+              amount: expect.decimalEqual(200),
             }),
           )
         })
@@ -531,6 +548,18 @@ describe('Contribution Links', () => {
               }),
             )
           })
+
+          it('stores the ADMIN_CONTRIBUTION_LINK_UPDATE event in the database', async () => {
+            await expect(DbEvent.find()).resolves.toContainEqual(
+              expect.objectContaining({
+                type: EventType.ADMIN_CONTRIBUTION_LINK_UPDATE,
+                affectedUserId: 0,
+                actingUserId: expect.any(Number),
+                involvedContributionLinkId: expect.any(Number),
+                amount: expect.decimalEqual(400),
+              }),
+            )
+          })
         })
       })
 
@@ -558,14 +587,25 @@ describe('Contribution Links', () => {
             linkId = links.data.listContributionLinks.links[0].id
           })
 
-          it('returns a date string', async () => {
+          it('returns true', async () => {
             await expect(
               mutate({ mutation: deleteContributionLink, variables: { id: linkId } }),
             ).resolves.toEqual(
               expect.objectContaining({
                 data: {
-                  deleteContributionLink: expect.any(String),
+                  deleteContributionLink: true,
                 },
+              }),
+            )
+          })
+
+          it('stores the ADMIN_CONTRIBUTION_LINK_DELETE event in the database', async () => {
+            await expect(DbEvent.find()).resolves.toContainEqual(
+              expect.objectContaining({
+                type: EventType.ADMIN_CONTRIBUTION_LINK_DELETE,
+                affectedUserId: 0,
+                actingUserId: expect.any(Number),
+                involvedContributionLinkId: linkId,
               }),
             )
           })
