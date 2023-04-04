@@ -97,7 +97,9 @@ export const addFieldsToSubscriber = async (
   newemail = '',
   newsmsnumber = '',
 ) => {
+  // eslint-disable-next-line no-console
   console.log('email', email)
+  // eslint-disable-next-line no-console
   console.log('fields', fields)
   if (!CONFIG.KLICKTIPP) return true
   const isLogin = await loginKlicktippUser()

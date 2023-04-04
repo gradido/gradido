@@ -1,12 +1,11 @@
- // eslint-disable @typescript-eslint/no-explicit-any
+// eslint-disable @typescript-eslint/no-explicit-any
 import { User } from '@entity/User'
 
 import { getKlickTippUser, addFieldsToSubscriber } from '@/apis/KlicktippController'
+import { EventType } from '@/event/EventType'
+import { lastDateTimeEvents } from '@/graphql/resolver/util/eventList'
 import LogError from '@/server/LogError'
 import connection from '@/typeorm/connection'
-import { lastDateTimeEvents } from '@/graphql/resolver/util/eventList'
-import { EventType } from '@/event/EventType'
-import { Event as DbEvent } from '@/event/Event'
 
 export async function retrieveNotRegisteredEmails(): Promise<string[]> {
   const con = await connection()
@@ -31,9 +30,12 @@ export async function retrieveNotRegisteredEmails(): Promise<string[]> {
   return notRegisteredUser
 }
 
-function klickTippSendFieldToUser(events: any, value: string): void {
-  for(const event of events) {
-    addFieldsToSubscriber(event.email, { [value]: event.value })
+async function klickTippSendFieldToUser(
+  events: { email: string; value: Date }[],
+  value: string,
+): Promise<void> {
+  for (const event of events) {
+    await addFieldsToSubscriber(event.email, { [value]: event.value })
   }
 }
 
@@ -44,22 +46,22 @@ export async function exportEventDataToKlickTipp(): Promise<void> {
   }
 
   const lastLoginEvents = await lastDateTimeEvents(EventType.USER_LOGIN)
-  klickTippSendFieldToUser(lastLoginEvents, 'GDD last login')
+  void klickTippSendFieldToUser(lastLoginEvents, 'GDD last login')
 
   const registeredEvents = await lastDateTimeEvents(EventType.USER_ACTIVATE_ACCOUNT)
-  klickTippSendFieldToUser(registeredEvents, 'GDD date of registration')
+  void klickTippSendFieldToUser(registeredEvents, 'GDD date of registration')
 
   const receiveTransactionEvents = await lastDateTimeEvents(EventType.TRANSACTION_RECEIVE)
-  klickTippSendFieldToUser(receiveTransactionEvents, 'GDD last received')
-  
+  void klickTippSendFieldToUser(receiveTransactionEvents, 'GDD last received')
+
   const contributionCreateEvents = await lastDateTimeEvents(EventType.TRANSACTION_SEND)
-  klickTippSendFieldToUser(contributionCreateEvents, 'GDD last sent')
-  
+  void klickTippSendFieldToUser(contributionCreateEvents, 'GDD last sent')
+
   const linkRedeemedEvents = await lastDateTimeEvents(EventType.TRANSACTION_LINK_REDEEM)
-  klickTippSendFieldToUser(linkRedeemedEvents, 'GDD last invited')
-  
+  void klickTippSendFieldToUser(linkRedeemedEvents, 'GDD last invited')
+
   const confirmContributionEvents = await lastDateTimeEvents(EventType.ADMIN_CONTRIBUTION_CONFIRM)
-  klickTippSendFieldToUser(confirmContributionEvents, 'GDD last created')
+  void klickTippSendFieldToUser(confirmContributionEvents, 'GDD last created')
 }
 void exportEventDataToKlickTipp()
 // void retrieveNotRegisteredEmails()
