@@ -2,7 +2,7 @@ import { Resolver, Authorized, Mutation, Ctx } from 'type-graphql'
 
 import { unsubscribe, klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { EVENT_UNSUBSCRIBE_NEWSLETTER, EVENT_SUBSCRIBE_NEWSLETTER } from '@/event/Event'
+import { EVENT_NEWSLETTER_SUBSCRIBE, EVENT_NEWSLETTER_UNSUBSCRIBE } from '@/event/Event'
 import { Context, getUser } from '@/server/context'
 
 @Resolver()
@@ -11,7 +11,7 @@ export class KlicktippResolver {
   @Mutation(() => Boolean)
   async unsubscribeNewsletter(@Ctx() context: Context): Promise<boolean> {
     const user = getUser(context)
-    await EVENT_UNSUBSCRIBE_NEWSLETTER(user)
+    await EVENT_NEWSLETTER_UNSUBSCRIBE(user)
     return unsubscribe(user.emailContact.email)
   }
 
@@ -19,7 +19,7 @@ export class KlicktippResolver {
   @Mutation(() => Boolean)
   async subscribeNewsletter(@Ctx() context: Context): Promise<boolean> {
     const user = getUser(context)
-    await EVENT_SUBSCRIBE_NEWSLETTER(user)
+    await EVENT_NEWSLETTER_SUBSCRIBE(user)
     return klicktippSignIn(user.emailContact.email, user.language)
   }
 }
