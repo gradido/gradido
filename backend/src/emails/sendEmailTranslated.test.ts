@@ -31,11 +31,11 @@ jest.mock('nodemailer', () => {
 })
 
 describe('sendEmailTranslated', () => {
-  let result: Record<string, unknown> | null
+  let result: boolean | null
 
   describe('config email is false', () => {
-    beforeEach(async () => {
-      result = await sendEmailTranslated({
+    beforeEach(() => {
+      result = sendEmailTranslated({
         receiver: {
           to: 'receiver@mail.org',
           cc: 'support@gradido.net',
@@ -57,9 +57,9 @@ describe('sendEmailTranslated', () => {
   })
 
   describe('config email is true', () => {
-    beforeEach(async () => {
+    beforeEach(() => {
       CONFIG.EMAIL = true
-      result = await sendEmailTranslated({
+      result = sendEmailTranslated({
         receiver: {
           to: 'receiver@mail.org',
           cc: 'support@gradido.net',
@@ -117,11 +117,11 @@ describe('sendEmailTranslated', () => {
   })
 
   describe('with email EMAIL_TEST_MODUS true', () => {
-    beforeEach(async () => {
+    beforeEach(() => {
       jest.clearAllMocks()
       CONFIG.EMAIL = true
       CONFIG.EMAIL_TEST_MODUS = true
-      result = await sendEmailTranslated({
+      result = sendEmailTranslated({
         receiver: {
           to: 'receiver@mail.org',
           cc: 'support@gradido.net',

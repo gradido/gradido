@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import path from 'path'
 
 import Email from 'email-templates'
@@ -6,17 +5,20 @@ import i18n from 'i18n'
 import { createTransport } from 'nodemailer'
 
 import CONFIG from '@/config'
-import LogError from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
-export const sendEmailTranslated = async (params: {
+export const sendEmailTranslated = ({
+  receiver,
+  template,
+  locals,
+}: {
   receiver: {
     to: string
     cc?: string
   }
   template: string
   locals: Record<string, unknown>
-}): Promise<Boolean | null> => {
+}): boolean | null => {
   // TODO: test the calling order of 'i18n.setLocale' for example: language of logging 'en', language of email receiver 'es', reset language of current user 'de'
 
   if (!CONFIG.EMAIL) {
@@ -29,16 +31,16 @@ export const sendEmailTranslated = async (params: {
 
   i18n.setLocale('en') // for logging
   logger.info(
-    `send Email: language=${params.locals.locale} to=${params.receiver.to}` +
-      (params.receiver.cc ? `, cc=${params.receiver.cc}` : '') +
-      `, subject=${i18n.__('emails.' + params.template + '.subject')}`,
+    `send Email: language=${locals.locale as string} to=${receiver.to}` +
+      (receiver.cc ? `, cc=${receiver.cc}` : '') +
+      `, subject=${i18n.__('emails.' + template + '.subject')}`,
   )
 
   if (CONFIG.EMAIL_TEST_MODUS) {
     logger.info(
-      `Testmodus=ON: change receiver from ${params.receiver.to} to ${CONFIG.EMAIL_TEST_RECEIVER}`,
+      `Testmodus=ON: change receiver from ${receiver.to} to ${CONFIG.EMAIL_TEST_RECEIVER}`,
     )
-    params.receiver.to = CONFIG.EMAIL_TEST_RECEIVER
+    receiver.to = CONFIG.EMAIL_TEST_RECEIVER
   }
   const transport = createTransport({
     host: CONFIG.EMAIL_SMTP_URL,
@@ -51,7 +53,7 @@ export const sendEmailTranslated = async (params: {
     },
   })
 
-  i18n.setLocale(params.locals.locale as string) // for email
+  i18n.setLocale(locals.locale as string) // for email
 
   // TESTING: see 'README.md'
   const email = new Email({
@@ -65,14 +67,14 @@ export const sendEmailTranslated = async (params: {
 
   void email
     .send({
-      template: path.join(__dirname, 'templates', params.template),
-      message: params.receiver,
-      locals: params.locals, // the 'locale' in here seems not to be used by 'email-template', because it doesn't work if the language isn't set before by 'i18n.setLocale'
+      template: path.join(__dirname, 'templates', template),
+      message: receiver,
+      locals, // the 'locale' in here seems not to be used by 'email-template', because it doesn't work if the language isn't set before by 'i18n.setLocale'
     })
     .catch((error: unknown) => {
-      new LogError('Error sending notification email', error)
-      return false;
+      logger.error('Error sending notification email', error)
+      return false
     })
 
-  return true;
+  return true
 }

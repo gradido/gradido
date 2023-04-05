@@ -384,7 +384,7 @@ export class UserResolver {
     })
 
     logger.info(`optInCode for ${email}=${user.emailContact}`)
-    
+
     void sendResetPasswordEmail({
       firstName: user.firstName,
       lastName: user.lastName,
