@@ -96,8 +96,8 @@ export default {
       openCreations: [],
     }
   },
-  async mounted() {
-    await this.updateTabIndex()
+  mounted() {
+    this.updateTabIndex()
   },
   apollo: {
     OpenCreations: {
