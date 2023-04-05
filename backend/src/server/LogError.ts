@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { backendLogger as logger } from './logger'
 
 export default class LogError extends Error {

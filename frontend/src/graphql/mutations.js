@@ -69,8 +69,8 @@ export const createUser = gql`
 `
 
 export const sendCoins = gql`
-  mutation($email: String!, $amount: Decimal!, $memo: String!) {
-    sendCoins(email: $email, amount: $amount, memo: $memo)
+  mutation($identifier: String!, $amount: Decimal!, $memo: String!) {
+    sendCoins(identifier: $identifier, amount: $amount, memo: $memo)
   }
 `
 
@@ -144,6 +144,7 @@ export const createContributionMessage = gql`
 export const login = gql`
   mutation($email: String!, $password: String!, $publisherId: Int) {
     login(email: $email, password: $password, publisherId: $publisherId) {
+      gradidoID
       email
       firstName
       lastName

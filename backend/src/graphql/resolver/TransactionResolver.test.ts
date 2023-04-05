@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Event as DbEvent } from '@entity/Event'
 import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
@@ -26,8 +26,6 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
-
-import { findUserByEmail } from './UserResolver'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -84,7 +82,7 @@ describe('send coins', () => {
         await mutate({
           mutation: sendCoins,
           variables: {
-            email: 'wrong@email.com',
+            identifier: 'wrong@email.com',
             amount: 100,
             memo: 'test',
           },
@@ -112,22 +110,20 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'stephen@hawking.uk',
+              identifier: 'stephen@hawking.uk',
               amount: 100,
               memo: 'test',
             },
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('The recipient account was deleted')],
+            errors: [new GraphQLError('No user to given contact')],
           }),
         )
       })
 
-      it('logs the error thrown', async () => {
-        // find peter to check the log
-        const user = await findUserByEmail('stephen@hawking.uk')
-        expect(logger.error).toBeCalledWith('The recipient account was deleted', user)
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith('No user to given contact', 'stephen@hawking.uk')
       })
     })
 
@@ -143,22 +139,23 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'garrick@ollivander.com',
+              identifier: 'garrick@ollivander.com',
               amount: 100,
               memo: 'test',
             },
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('The recipient account is not activated')],
+            errors: [new GraphQLError('No user with this credentials')],
           }),
         )
       })
 
-      it('logs the error thrown', async () => {
-        // find peter to check the log
-        const user = await findUserByEmail('garrick@ollivander.com')
-        expect(logger.error).toBeCalledWith('The recipient account is not activated', user)
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith(
+          'No user with this credentials',
+          'garrick@ollivander.com',
+        )
       })
     })
   })
@@ -178,7 +175,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'bob@baumeister.de',
+              identifier: 'bob@baumeister.de',
               amount: 100,
               memo: 'test',
             },
@@ -202,7 +199,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 100,
               memo: 'test',
             },
@@ -226,7 +223,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 100,
               memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test t',
             },
@@ -250,7 +247,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 100,
               memo: 'testing',
             },
@@ -300,7 +297,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: -50,
               memo: 'testing negative',
             },
@@ -323,7 +320,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 50,
               memo: 'unrepeatable memo',
             },
@@ -380,7 +377,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 10,
               memo: 'first transaction',
             },
@@ -396,7 +393,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 20,
               memo: 'second transaction',
             },
@@ -412,7 +409,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 30,
               memo: 'third transaction',
             },
@@ -428,7 +425,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 40,
               memo: 'fourth transaction',
             },

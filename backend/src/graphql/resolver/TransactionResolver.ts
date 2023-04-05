@@ -35,7 +35,7 @@ import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualT
 
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
-import { findUserByEmail } from './UserResolver'
+import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 
 export const executeTransaction = async (
@@ -149,7 +149,6 @@ export const executeTransaction = async (
     } finally {
       await queryRunner.release()
     }
-    logger.debug(`prepare Email for transaction received...`)
     await sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,
@@ -276,6 +275,7 @@ export class TransactionResolver {
             firstDate || now,
             lastDate || now,
             self,
+            (userTransactions.length && userTransactions[0].balance) || new Decimal(0),
           ),
         )
         logger.debug(`transactions=${transactions}`)
@@ -292,6 +292,15 @@ export class TransactionResolver {
     })
     logger.debug(`TransactionTypeId.CREATION: transactions=${transactions}`)
 
+    transactions.forEach((transaction: Transaction) => {
+      if (transaction.typeId !== TransactionTypeId.DECAY) {
+        const { balance, previousBalance, amount } = transaction
+        transaction.decay.decay = new Decimal(
+          Number(balance) - Number(amount) - Number(previousBalance),
+        ).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
+      }
+    })
+
     // Construct Result
     return new TransactionList(await balanceResolver.balance(context), transactions)
   }
@@ -299,10 +308,10 @@ export class TransactionResolver {
   @Authorized([RIGHTS.SEND_COINS])
   @Mutation(() => Boolean)
   async sendCoins(
-    @Args() { email, amount, memo }: TransactionSendArgs,
+    @Args() { identifier, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.info(`sendCoins(email=${email}, amount=${amount}, memo=${memo})`)
+    logger.info(`sendCoins(identifier=${identifier}, amount=${amount}, memo=${memo})`)
     if (amount.lte(0)) {
       throw new LogError('Amount to send must be positive', amount)
     }
@@ -311,13 +320,9 @@ export class TransactionResolver {
     const senderUser = getUser(context)
 
     // validate recipient user
-    const recipientUser = await findUserByEmail(email)
-    if (recipientUser.deletedAt) {
-      throw new LogError('The recipient account was deleted', recipientUser)
-    }
-    const emailContact = recipientUser.emailContact
-    if (!emailContact.emailChecked) {
-      throw new LogError('The recipient account is not activated', recipientUser)
+    const recipientUser = await findUserByIdentifier(identifier)
+    if (!recipientUser) {
+      throw new LogError('The recipient user was not found', recipientUser)
     }
 
     await executeTransaction(amount, memo, senderUser, recipientUser)
