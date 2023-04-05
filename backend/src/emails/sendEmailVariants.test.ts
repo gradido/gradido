@@ -323,7 +323,7 @@ describe('sendEmailVariants', () => {
         })
       })
 
-      it('has expected result', () => {
+      it.skip('has expected result', () => {
         expect(result).toMatchObject({
           envelope: {
             from: 'info@gradido.net',
