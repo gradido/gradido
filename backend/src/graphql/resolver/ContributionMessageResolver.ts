@@ -87,7 +87,7 @@ export class ContributionMessageResolver {
       .select('cm')
       .from(DbContributionMessage, 'cm')
       .leftJoinAndSelect('cm.user', 'u')
-      .where({ contributionId: contributionId })
+      .where({ contributionId })
       .orderBy('cm.createdAt', order)
       .limit(pageSize)
       .offset((currentPage - 1) * pageSize)
