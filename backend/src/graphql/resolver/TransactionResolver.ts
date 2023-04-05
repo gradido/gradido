@@ -16,7 +16,6 @@ import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
-import { TransactionRepository } from '@repository/Transaction'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -37,6 +36,7 @@ import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
+import { getTransactionList } from './util/getTransactionList'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -209,8 +209,7 @@ export class TransactionResolver {
     // find transactions
     // first page can contain 26 due to virtual decay transaction
     const offset = (currentPage - 1) * pageSize
-    const transactionRepository = getCustomRepository(TransactionRepository)
-    const [userTransactions, userTransactionsCount] = await transactionRepository.findByUserPaged(
+    const [userTransactions, userTransactionsCount] = await getTransactionList(
       user.id,
       pageSize,
       offset,
@@ -283,7 +282,7 @@ export class TransactionResolver {
     }
 
     // transactions
-    userTransactions.forEach((userTransaction) => {
+    userTransactions.forEach((userTransaction: dbTransaction) => {
       const linkedUser =
         userTransaction.typeId === TransactionTypeId.CREATION
           ? communityUser
