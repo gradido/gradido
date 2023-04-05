@@ -33,6 +33,7 @@ export const transactionsQuery = gql`
         typeId
         amount
         balance
+        previousBalance
         balanceDate
         memo
         linkedUser {

@@ -12,7 +12,7 @@
           </b-col>
           <b-col offset="1" offset-md="0" offset-lg="0">
             <div>
-              {{ previousBookedBalance | GDD }}
+              {{ previousBalance | GDD }}
               {{ decay === '0' ? $t('math.minus') : '' }}
               {{ decay | GDD }} {{ $t('math.equal') }}
               <b>{{ balance | GDD }}</b>
@@ -35,7 +35,7 @@ export default {
       type: String,
       required: true,
     },
-    previousBookedBalance: {
+    previousBalance: {
       type: String,
       required: true,
     },
