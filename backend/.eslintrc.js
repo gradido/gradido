@@ -160,8 +160,8 @@ module.exports = {
         'import/unambiguous': 'off',
       },
       parserOptions: {
-        tsconfigRootDir: './',
-        project: ['./tsconfig.json'],
+        tsconfigRootDir: '**/',
+        project: ['**/tsconfig.json'],
         // this is to properly reference the referenced project database without requirement of compiling it
         EXPERIMENTAL_useSourceOfProjectReferenceRedirect: true,
       },
