@@ -7,7 +7,15 @@
       :decay="decay"
       :typeId="typeId"
     />
-    <decay-information-long v-else :amount="amount" :decay="decay" :typeId="typeId" :memo="memo" />
+    <decay-information-long
+      v-else
+      :amount="amount"
+      :decay="decay"
+      :typeId="typeId"
+      :memo="memo"
+      :balance="balance"
+      :previousBalance="previousBalance"
+    />
   </div>
 </template>
 <script>
@@ -36,6 +44,14 @@ export default {
       required: true,
     },
     typeId: {
+      type: String,
+      required: true,
+    },
+    balance: {
+      type: String,
+      required: true,
+    },
+    previousBalance: {
       type: String,
       required: true,
     },

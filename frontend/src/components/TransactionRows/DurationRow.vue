@@ -4,7 +4,7 @@
       <b-col cols="12" lg="4" md="4">
         <div>{{ $t('decay.past_time') }}</div>
       </b-col>
-      <b-col offset="1" offset-md="0" offset-lg="0">
+      <b-col offset="1" offset-md="0" offset-lg="0" class="text-right mr-5">
         <span v-if="duration">{{ durationText }}</span>
       </b-col>
     </b-row>
