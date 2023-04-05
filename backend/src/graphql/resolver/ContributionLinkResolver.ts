@@ -15,7 +15,7 @@ import {
   EVENT_ADMIN_CONTRIBUTION_LINK_CREATE,
   EVENT_ADMIN_CONTRIBUTION_LINK_DELETE,
   EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE,
-} from '@/event/Event'
+} from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import LogError from '@/server/LogError'
 

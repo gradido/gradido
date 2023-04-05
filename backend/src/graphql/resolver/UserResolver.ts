@@ -59,7 +59,7 @@ import {
   EVENT_ADMIN_USER_ROLE_SET,
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_UNDELETE,
-} from '@/event/Event'
+} from '@/event/Events'
 import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'

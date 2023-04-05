@@ -23,7 +23,7 @@ import {
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
 } from '@/emails/sendEmailVariants'
-import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Event'
+import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import LogError from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
