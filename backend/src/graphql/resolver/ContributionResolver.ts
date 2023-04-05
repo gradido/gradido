@@ -38,7 +38,7 @@ import {
   EVENT_ADMIN_CONTRIBUTION_DELETE,
   EVENT_ADMIN_CONTRIBUTION_CONFIRM,
   EVENT_ADMIN_CONTRIBUTION_DENY,
-} from '@/event/Event'
+} from '@/event/Events'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import LogError from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'

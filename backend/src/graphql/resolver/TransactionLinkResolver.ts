@@ -28,7 +28,7 @@ import {
   EVENT_TRANSACTION_LINK_CREATE,
   EVENT_TRANSACTION_LINK_DELETE,
   EVENT_TRANSACTION_LINK_REDEEM,
-} from '@/event/Event'
+} from '@/event/Events'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import LogError from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
