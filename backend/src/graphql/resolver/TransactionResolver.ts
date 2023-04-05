@@ -275,6 +275,7 @@ export class TransactionResolver {
             firstDate || now,
             lastDate || now,
             self,
+            (userTransactions.length && userTransactions[0].balance) || new Decimal(0),
           ),
         )
         logger.debug(`transactions=${transactions}`)
@@ -290,6 +291,15 @@ export class TransactionResolver {
       transactions.push(new Transaction(userTransaction, self, linkedUser))
     })
     logger.debug(`TransactionTypeId.CREATION: transactions=${transactions}`)
+
+    transactions.forEach((transaction: Transaction) => {
+      if (transaction.typeId !== TransactionTypeId.DECAY) {
+        const { balance, previousBalance, amount } = transaction
+        transaction.decay.decay = new Decimal(
+          Number(balance) - Number(amount) - Number(previousBalance),
+        ).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
+      }
+    })
 
     // Construct Result
     return new TransactionList(await balanceResolver.balance(context), transactions)

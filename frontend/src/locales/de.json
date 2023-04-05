@@ -89,6 +89,8 @@
     "decay_introduced": "Die Vergänglichkeit wurde eingeführt am:",
     "decay_since_last_transaction": "Vergänglichkeit seit der letzten Transaktion",
     "last_transaction": "Letzte Transaktion",
+    "new_balance": "Neuer Kontostand",
+    "old_balance": "Vorheriger Kontostand",
     "past_time": "Vergangene Zeit",
     "Starting_block_decay": "Startblock Vergänglichkeit",
     "total": "Gesamt",
