@@ -146,7 +146,7 @@ export class ContributionMessageResolver {
         await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)
       }
 
-      void sendAddedContributionMessageEmail({
+      sendAddedContributionMessageEmail({
         firstName: contribution.user.firstName,
         lastName: contribution.user.lastName,
         email: contribution.user.emailContact.email,

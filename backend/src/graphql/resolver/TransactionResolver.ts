@@ -149,7 +149,7 @@ export const executeTransaction = async (
     } finally {
       await queryRunner.release()
     }
-    void sendTransactionReceivedEmail({
+    sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,
       email: recipient.emailContact.email,
@@ -160,7 +160,7 @@ export const executeTransaction = async (
       transactionAmount: amount,
     })
     if (transactionLink) {
-      void sendTransactionLinkRedeemedEmail({
+      sendTransactionLinkRedeemedEmail({
         firstName: sender.firstName,
         lastName: sender.lastName,
         email: sender.emailContact.email,

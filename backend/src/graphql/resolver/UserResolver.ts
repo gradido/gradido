@@ -245,7 +245,7 @@ export class UserResolver {
         user.publisherId = publisherId
         logger.debug('partly faked user', user)
 
-        void sendAccountMultiRegistrationEmail({
+        sendAccountMultiRegistrationEmail({
           firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
           lastName: foundUser.lastName, // this is the real name of the email owner, but just "lastName" would be the name of the new registrant which shall not be passed to the outside
           email,
@@ -322,7 +322,7 @@ export class UserResolver {
         emailContact.emailVerificationCode.toString(),
       ).replace(/{code}/g, redeemCode ? '/' + redeemCode : '')
 
-      void sendAccountActivationEmail({
+      sendAccountActivationEmail({
         firstName,
         lastName,
         email,
@@ -385,7 +385,7 @@ export class UserResolver {
 
     logger.info(`optInCode for ${email}=${user.emailContact}`)
 
-    void sendResetPasswordEmail({
+    sendResetPasswordEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,
@@ -789,7 +789,7 @@ export class UserResolver {
     await user.emailContact.save()
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const emailSent = await sendAccountActivationEmail({
+    sendAccountActivationEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,
@@ -798,10 +798,6 @@ export class UserResolver {
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
-    // In case EMails are disabled log the activation link for the user
-    if (!emailSent) {
-      logger.info(`Account confirmation link: ${activationLink}`)
-    }
     await EVENT_EMAIL_ADMIN_CONFIRMATION(user, getUser(context))
 
     return true
