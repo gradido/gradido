@@ -72,7 +72,7 @@ describe('Community', () => {
                 messagesCount: 0,
                 deniedAt: null,
                 deniedBy: null,
-                moderatorId: 69,
+                moderatorId: null,
               },
               {
                 id: 1550,
@@ -89,7 +89,7 @@ describe('Community', () => {
                 messagesCount: 0,
                 deniedAt: null,
                 deniedBy: null,
-                moderatorId: 69,
+                moderatorId: null,
               },
             ],
             contributionCount: 1,
