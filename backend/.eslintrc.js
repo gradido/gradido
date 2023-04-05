@@ -5,7 +5,7 @@ module.exports = {
     node: true,
   },
   parser: '@typescript-eslint/parser',
-  plugins: ['prettier', '@typescript-eslint', 'type-graphql', 'jest', 'import', 'n'],
+  plugins: ['prettier', '@typescript-eslint', 'type-graphql', 'import', 'n'],
   extends: [
     'standard',
     'eslint:recommended',
@@ -33,12 +33,6 @@ module.exports = {
         htmlWhitespaceSensitivity: 'ignore',
       },
     ],
-    // jest
-    'jest/no-disabled-tests': 'error',
-    'jest/no-focused-tests': 'error',
-    'jest/no-identical-title': 'error',
-    'jest/prefer-to-have-length': 'error',
-    'jest/valid-expect': 'error',
     // import
     'import/export': 'error',
     'import/no-deprecated': 'error',
@@ -166,6 +160,19 @@ module.exports = {
         project: ['**/tsconfig.json'],
         // this is to properly reference the referenced project database without requirement of compiling it
         EXPERIMENTAL_useSourceOfProjectReferenceRedirect: true,
+      },
+    },
+    {
+      files: ['*.test.ts'],
+      plugins: ['jest'],
+      rules: {
+        'jest/no-disabled-tests': 'error',
+        'jest/no-focused-tests': 'error',
+        'jest/no-identical-title': 'error',
+        'jest/prefer-to-have-length': 'error',
+        'jest/valid-expect': 'error',
+        '@typescript-eslint/unbound-method': 'off',
+        'jest/unbound-method': 'error',
       },
     },
   ],
