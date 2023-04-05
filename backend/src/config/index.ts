@@ -76,7 +76,7 @@ const email = {
   EMAIL_SENDER: process.env.EMAIL_SENDER || 'info@gradido.net',
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || '',
   EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'mailserver',
-  EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '1025',
+  EMAIL_SMTP_PORT: Number(process.env.EMAIL_SMTP_PORT) || 1025,
   // eslint-disable-next-line no-unneeded-ternary
   EMAIL_TLS: process.env.EMAIL_TLS === 'false' ? false : true,
   EMAIL_LINK_VERIFICATION:
