@@ -5,9 +5,7 @@
       <b-row class="mt-5">
         <b-col cols="2"></b-col>
         <b-col>
-          <div class="h4">
-            {{ email }}
-          </div>
+          <div class="h4">{{ userName ? userName : identifier }}</div>
           <div class="mt-3 h5">{{ $t('form.memo') }}</div>
           <div>{{ memo }}</div>
         </b-col>
@@ -64,9 +62,10 @@ export default {
   name: 'TransactionConfirmationSend',
   props: {
     balance: { type: Number, required: true },
-    email: { type: String, required: false, default: '' },
+    identifier: { type: String, required: false, default: '' },
     amount: { type: Number, required: true },
     memo: { type: String, required: true },
+    userName: { type: String, default: '' },
   },
   data() {
     return {

@@ -26,18 +26,51 @@ Dies ist ein rein technischer Key und wird nur **innerhalb** der Anwendung zur I
 
 Die GradidoID ist zwar auch ein rein technischer Key, doch wird dieser als eine UUID der Version 4 erstellt. Dies basiert auf einer (pseudo)zufällig generierten Zahl aus 16 Bytes mit einer theoretischen Konfliktfreiheit von ![2^{{122}}\approx 5{,}3169\cdot 10^{{36}}](https://wikimedia.org/api/rest_v1/media/math/render/svg/1924927d783e2d3969734633e134f643b6f9a8cd) in hexadezimaler Notation nach einem Pattern von fünf Gruppen durch Bindestrich getrennt - z.B. `550e8400-e29b-41d4-a716-446655440000`
 
-Somit kann die GradidoID auch System übergreifend zwischen Communities ausgetauscht werden und bietet dennoch eine weitestgehende eindeutige theoretisch konfliktfreie Identifikation des Users. System intern ist die Eindeutigkeit bei der Erstellung eines neuen Users auf jedenfall sichergestellt. Sollte ein User den Wechsel von einer Community in eine andere gradido-Community wünschen, so soll falls möglich die GradidoID für den User erhalten bleiben und übernommen werden können. Dies muss beim Umzug in der Ziel-Community geprüft werden. Falls diese GradidoID aus der Quell-Community wider erwarten existieren sollte, dann muss doch einen neue GradidoID für den User erzeugt werden.
+Somit kann die GradidoID auch System übergreifend zwischen Communities ausgetauscht werden und bietet dennoch eine weitestgehende eindeutige theoretisch konfliktfreie Identifikation des Users. System intern ist die Eindeutigkeit bei der Erstellung eines neuen Users auf jedenfall sichergestellt. Sollte ein User den Wechsel von einer Community in eine andere gradido-Community wünschen, so soll falls möglich die GradidoID für den User erhalten bleiben und übernommen werden können. Dies muss beim Umzug in der Ziel-Community geprüft werden. Falls diese GradidoID aus der Quell-Community wider erwarten existieren sollte, dann muss doch einen neue GradidoID für den User in der Ziel-Community erzeugt werden.
 
 #### Alias
 
 Der Alias eines Users ist als rein fachlicher Key ausgelegt, der frei vom User definiert werden kann. Bei der Definition dieses frei definierbaren und menschenlesbaren Schlüsselwertes stellt die Gradido-Anwendung sicher, dass der vom User eingegebene Wert nicht schon von einem anderen User dieser Community verwendet wird. Für die Anlage eines Alias gelten folgende Konventionen:
 
-- mindestens 5 Zeichen
-  * alphanumerisch
-  * keine Umlaute
-  * nach folgender Regel erlaubt (RegEx: [a-zA-Z0-9]-|_[a-zA-Z0-9])
-- Blacklist für Schlüsselworte, die frei definiert werden können
-- vordefinierte/reservierte System relevante Namen dürfen maximal aus 4 Zeichen bestehen
+* alpha-nummerisch
+* 2 <= Länge des alias <=20
+* beginnt mit einem Buchstaben
+* keine Umlaute
+* keine Sonderzeichen ausser dem Bindestrich "-" und dem Unterstrich "_"
+* nicht mehr als 2 Wiederholungen des gleichen Zeichens direkt hintereinander
+* kein Unterscheidung von Groß-Kleinschreibung, es findet eine Konvertierung auf Kleinschreibung statt
+
+Blackliste für nicht vom User verwendbare alias-Definitionen:
+
+Notation: das %-Zeichen dient als Platzhalter für 0 oder beliebig viele der erlaubten Zeichen
+
+* %gradido%		(= die Sequenz gradido darf nicht enthalten sein)
+* %community%	(= die Sequenz community darf nicht enthalten sein)
+* %communities%	(= die Sequenz communities darf nicht enthalten sein)
+* %admin%		(= die Sequenz admin darf nicht enthalten sein)
+* %gast%			(= die Sequenz gast darf nicht enthalten sein)
+* %guest%			(= die Sequenz guest darf nicht enthalten sein)
+* support%		(= darf nicht mit der Sequenz support beginnen)
+* user%			(= darf nicht mit der Sequenz user beginnen)
+* usr%			(= darf nicht mit der Sequenz usr beginnen)
+* home%			(= darf nicht mit der Sequenz home beginnen)
+* chief%			(= darf nicht mit der Sequenz chief beginnen)
+* chef%			(= darf nicht mit der Sequenz chef beginnen)
+* master%			(= darf nicht mit der Sequenz master beginnen)
+* email%			(= darf nicht mit der Sequenz email beginnen)
+* mail%			(= darf nicht mit der Sequenz mail beginnen)
+* root%			(= darf nicht mit der Sequenz root beginnen)
+* tmp%			(= darf nicht mit der Sequenz tmp beginnen)
+* temp%			(= darf nicht mit der Sequenz temp beginnen)
+* gdd%			(= darf nicht mit der Sequenz gdd beginnen)
+* gdt%			(= darf nicht mit der Sequenz gdt beginnen)
+* gdb%			(= darf nicht mit der Sequenz gdb beginnen)
+* age				(= darf nicht age lauten)
+* gmw			(= darf nicht gmw lauten)
+* auf				(= darf nicht auf lauten)
+* ...
+
+Um für die Zukunft für eine Community im Rahmen der Dreifachen-Geldschöpfung und deren Verwaltung bestimmte Alias-Werte nicht an allgemeine User zu verlieren, werden in der Blackliste jetzt schon solche Belegungen reserviert. Damit können diese ggf. später wieder für system relevante User der Community wieder freigegeben werden.
 
 #### Email
 
@@ -49,7 +82,7 @@ Die Email wird weiterhin als Kommunikationskanal ausserhalb der Gradido-Anwendun
 
 Die Erfassung des Alias erfolgt als zusätzliche Eingabe direkt bei der Registrierung eines neuen Users oder als weiterer Schritt direkt nach dem Login.
 
-Dieser UseCase ist in die **Ausbaustufe-1** und **Ausbaustufe-x** unterteilt. 
+Dieser UseCase ist in die **Ausbaustufe-1** und **Ausbaustufe-x** unterteilt.
 
 Alle beschriebenen Anforderungen der **Ausbaustufe-1** können mit Produktivsetzung des Issues #1798 - [GradidoID 1: adapt and migrate database schema](https://github.com/gradido/gradido/issues/1798) und dem [PR #2058 - GradidoID 1: adapt and migrate database schema](https://github.com/gradido/gradido/pull/2058) umgesetzt werden.
 
@@ -63,7 +96,7 @@ In der Eingabemaske der Registrierung wird nun zusätzlich das Feld *Alias* ange
 
 ![img](./image/RegisterWithAlias.png)
 
-Mit dem (optionalen ?) Button "Eindeutigkeit prüfen" wird dem User die Möglichkeit gegeben vorab die Eindeutigkeit seiner *Alias*-Eingabe zu verifizieren ohne den Dialog über den "Registrieren"-Button zu verlassen. Denn es muss sichergestellt sein, dass noch kein existierender User der Community genau diesen *Alias* evtl. schon verwendet. 
+Mit dem (optionalen ?) Button "Eindeutigkeit prüfen" wird dem User die Möglichkeit gegeben vorab die Eindeutigkeit seiner *Alias*-Eingabe zu verifizieren ohne den Dialog über den "Registrieren"-Button zu verlassen. Denn es muss sichergestellt sein, dass noch kein existierender User der Community genau diesen *Alias* evtl. schon verwendet.
 
 Wird diese Prüfung vom User nicht ausgeführt bevor er den Dialog mit dem "Registrieren"-Button abschließt, so erfolgt die *Alias*-Eindeutigkeitsprüfung als erster Schritt bevor die anderen Eingaben als neuer User geprüft und angelegt werden.
 
@@ -93,20 +126,8 @@ Der Sprung nach der Login-Seite nach erfolgreichem Login auf die Profil-Seite ö
 Im Eingabe-Modus der Alias-Gruppe hat das Eingabefeld den Fokus und darin wird:
 
 * wenn noch kein Alias für den User in der Datenbank vorhanden ist, vom System ein Vorschlag unterbreitet. Der Vorschlag basiert auf dem Vornamen des Users und wird durch folgende Logik ermittelt:
-  * es wird mit dem Vorname des Users eine Datenbankabfrage durchgeführt, die zählt, wieviele User-Aliase es schon mit diesem Vornamen gibt und falls notwendig direkt mit einer nachfolgenden Nummer als Postfix versehen sind.
-  * Aufgrund der Konvention, dass ein Alias mindestens 5 Zeichen lang sein muss, sind ggf. führende Nullen mitzuberücksichten.
-    * **Beispiel-1**: *Max* als Vorname
-      * in der Datenbank gibt es schon mehrer User mit den Aliasen: *Maximilian*, *Max01*, *Max_M*, *Max-M*, *MaxMu* und *Max02*.
-      * Dann  schlägt das System den Alias *Max03* vor, da *Max* nur 3 Zeichen lang ist und es schon zwei Aliase *Max* gefolgt mit einer Nummer gibt (*Max01* und *Max02*)
-      * Die Aliase *Maximilian*, *Max_M*, *Max-M* und *MaxMu* werden nicht mitgezählt, das diese nach *Max* keine direkt folgende Ziffern haben
-    * **Beispiel-2**: *August* als Vorname
-      * in der Datenbank gibt es schon mehrer User mit den Aliasen: *Augusta*, *Augustus*, *Augustinus*
-      * Dann schlägt das System den Alias *August* vor, da *August* schon 6 Zeichen lang ist und es noch keinen anderen User mit Alias *August* gibt
-      * die Aliase *Augusta*, *Augustus* und *Augustinus* werden nicht mit gezählt, da diese länger als 5 Zeichen sind und sich von *August* unterscheiden
-    * **Beispiel-3**: *Nick* als Vorname
-      * in der Datenbank gibt es schon mehrer User mit den Aliasen: *Nicko*, *Nickodemus*
-      * Dann schlägt das System den Alias *Nick1* vor, da *Nick* kürzer als 5 Zeichen ist und es noch keinen anderen User mit dem Alias *Nick1* gibt
-      * die Aliase *Nicko* und *Nickodemus* werden nicht mit gezählt, da diese länger als 5 Zeichen sind und sich von *Nick* unterscheiden
+  * es wird mit dem Vorname des Users eine Datenbankabfrage durchgeführt, die zählt, wieviele User-Aliase es schon mit diesem Vornamen gibt und falls notwendig direkt mit einer nachfolgenden Nummer als Postfix versehen.
+  * Aufgrund der Konvention für eine Alias-Definition könnte ein Vorname ggf. gegen die Alias-Regeln verstossen oder aber auch evtl. zu kurz oder lang sein. Auch ein mögliches Blockieren durch die Blacklist könnte den Vornamen des Users als alias verhindern. Dann muss der User selbst manuell seinen alias vollständig erfassen ohne, dass das System einen Vorschlag unterbreiten könnte.
 * wenn schon ein Alias für den User in der Datenbank vorhanden ist, dann wird dieser unverändert aus der Datenbank und ohne Systemvorschlag einfach angezeigt.
 
 Der User kann nun den im Eingabefeld angezeigten Alias verändern, wobei die Alias-Konventionen, wie oben im ersten Kapitel beschrieben einzuhalten und zu validieren sind.
