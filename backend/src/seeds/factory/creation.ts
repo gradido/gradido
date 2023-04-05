@@ -2,9 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import { Contribution } from '@entity/Contribution'
 import { Transaction } from '@entity/Transaction'
 import { ApolloServerTestClient } from 'apollo-server-testing'
@@ -12,7 +9,6 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { findUserByEmail } from '@/graphql/resolver/UserResolver'
 import { CreationInterface } from '@/seeds/creation/CreationInterface'
 import { login, createContribution, confirmContribution } from '@/seeds/graphql/mutations'
-// import CONFIG from '@/config/index'
 
 export const nMonthsBefore = (date: Date, months = 1): string => {
   return new Date(date.getFullYear(), date.getMonth() - months, 1).toISOString()
