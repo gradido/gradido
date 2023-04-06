@@ -86,18 +86,18 @@ export class Transaction extends BaseEntity {
   @Column({
     name: 'user_community_uuid',
     length: 36,
-    nullable: false,
+    nullable: true,
     collation: 'utf8mb4_unicode_ci',
   })
-  userCommunityUuid: string
+  userCommunityUuid: string | null
 
   @Column({
     name: 'user_name',
     length: 512,
-    nullable: false,
+    nullable: true,
     collation: 'utf8mb4_unicode_ci',
   })
-  userName: string
+  userName: string | null
 
   @Column({
     name: 'linked_user_id',
@@ -111,26 +111,26 @@ export class Transaction extends BaseEntity {
   @Column({
     name: 'linked_user_gradido_id',
     length: 36,
-    nullable: false,
+    nullable: true,
     collation: 'utf8mb4_unicode_ci',
   })
-  linkedUserGradidoID: string
+  linkedUserGradidoID: string | null
 
   @Column({
     name: 'linked_user_community_uuid',
     length: 36,
-    nullable: false,
+    nullable: true,
     collation: 'utf8mb4_unicode_ci',
   })
-  linkedUserCommunityUuid: string
+  linkedUserCommunityUuid: string | null
 
   @Column({
     name: 'linked_user_name',
     length: 512,
-    nullable: false,
+    nullable: true,
     collation: 'utf8mb4_unicode_ci',
   })
-  linkedUserName: string
+  linkedUserName: string | null
 
   @Column({
     name: 'linked_transaction_id',

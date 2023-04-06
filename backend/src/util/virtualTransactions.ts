@@ -55,11 +55,11 @@ const virtualLinkTransaction = (
     contribution: null,
     ...defaultModelFunctions,
     userGradidoID: '',
-    userCommunityUuid: '',
-    userName: '',
-    linkedUserGradidoID: '',
-    linkedUserCommunityUuid: '',
-    linkedUserName: '',
+    userCommunityUuid: null,
+    userName: null,
+    linkedUserGradidoID: null,
+    linkedUserCommunityUuid: null,
+    linkedUserName: null,
   }
   return new Transaction(linkDbTransaction, user)
 }
@@ -91,11 +91,11 @@ const virtualDecayTransaction = (
     contribution: null,
     ...defaultModelFunctions,
     userGradidoID: '',
-    userCommunityUuid: '',
-    userName: '',
-    linkedUserGradidoID: '',
-    linkedUserCommunityUuid: '',
-    linkedUserName: '',
+    userCommunityUuid: null,
+    userName: null,
+    linkedUserGradidoID: null,
+    linkedUserCommunityUuid: null,
+    linkedUserName: null,
   }
   return new Transaction(decayDbTransaction, user)
 }

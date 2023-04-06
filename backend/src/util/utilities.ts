@@ -14,3 +14,22 @@ export const decimalSeparatorByLanguage = (a: Decimal, language: string): string
   i18n.setLocale(rememberLocaleToRestore)
   return result
 }
+
+export const fullName = (firstName: string, lastName: string): string => {
+   return [firstName, lastName].filter(Boolean).join(' ')
+}
+
+export const userName = (f?: string, l?: string): string | null => {
+  let name: string | null
+  if(f && l) {
+    name = f + ' ' + l
+  } else if (f && !l) {
+    name = f
+  } else if (!f && l) {
+    name = l
+  } else {
+    name = null
+  }
+  
+  return name
+}

@@ -37,6 +37,7 @@ import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
+import { fullName } from '@/util/utilities'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -88,10 +89,10 @@ export const executeTransaction = async (
       transactionSend.memo = memo
       transactionSend.userId = sender.id
       transactionSend.userGradidoID = sender.gradidoID
-      transactionSend.userName = sender.firstName + ' ' + sender.lastName
+      transactionSend.userName = fullName(sender.firstName, sender.lastName)
       transactionSend.linkedUserId = recipient.id
       transactionSend.linkedUserGradidoID = recipient.gradidoID
-      transactionSend.linkedUserName = recipient.firstName + ' ' + recipient.lastName
+      transactionSend.linkedUserName = fullName(recipient.firstName, recipient.lastName)
       transactionSend.amount = amount.mul(-1)
       transactionSend.balance = sendBalance.balance
       transactionSend.balanceDate = receivedCallDate
@@ -108,10 +109,10 @@ export const executeTransaction = async (
       transactionReceive.memo = memo
       transactionReceive.userId = recipient.id
       transactionReceive.userGradidoID = recipient.gradidoID
-      transactionReceive.userName = recipient.firstName + ' ' + recipient.lastName
+      transactionReceive.userName = fullName(recipient.firstName, recipient.lastName)
       transactionReceive.linkedUserId = sender.id
       transactionReceive.linkedUserGradidoID = sender.gradidoID
-      transactionReceive.linkedUserName = sender.firstName + ' ' + sender.lastName
+      transactionReceive.linkedUserName = fullName(sender.firstName, sender.lastName)
       transactionReceive.amount = amount
       const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
       transactionReceive.balance = receiveBalance ? receiveBalance.balance : amount

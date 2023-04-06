@@ -55,6 +55,7 @@ import {
 } from './util/creations'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
+import { fullName } from '@/util/utilities'
 
 @Resolver()
 export class ContributionResolver {
@@ -502,7 +503,7 @@ export class ContributionResolver {
         transaction.memo = contribution.memo
         transaction.userId = contribution.userId
         transaction.userGradidoID = user.gradidoID
-        transaction.userName = user.firstName + ' ' + user.lastName
+        transaction.userName = fullName(user.firstName, user.lastName)
         transaction.previous = lastTransaction ? lastTransaction.id : null
         transaction.amount = contribution.amount
         transaction.creationDate = contribution.contributionDate

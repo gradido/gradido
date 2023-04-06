@@ -40,6 +40,7 @@ import { executeTransaction } from './TransactionResolver'
 import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
 import transactionLinkList from './util/transactionLinkList'
+import { fullName } from '@/util/utilities'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -267,7 +268,7 @@ export class TransactionLinkResolver {
           transaction.memo = contribution.memo
           transaction.userId = contribution.userId
           transaction.userGradidoID = user.gradidoID
-          transaction.userName = user.firstName + ' ' + user.lastName
+          transaction.userName = fullName(user.firstName, user.lastName)
           transaction.previous = lastTransaction ? lastTransaction.id : null
           transaction.amount = contribution.amount
           transaction.creationDate = contribution.contributionDate
