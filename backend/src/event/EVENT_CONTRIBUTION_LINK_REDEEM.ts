@@ -5,7 +5,8 @@ import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User as DbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
 
-import { Event, EventType } from './Event'
+import { Event } from './Event'
+import { EventType } from './EventType'
 
 export const EVENT_CONTRIBUTION_LINK_REDEEM = async (
   user: DbUser,

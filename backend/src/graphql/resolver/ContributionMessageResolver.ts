@@ -6,8 +6,8 @@ import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 
-import ContributionMessageArgs from '@arg/ContributionMessageArgs'
-import Paginated from '@arg/Paginated'
+import { ContributionMessageArgs } from '@arg/ContributionMessageArgs'
+import { Paginated } from '@arg/Paginated'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { ContributionMessageType } from '@enum/MessageType'
 import { Order } from '@enum/Order'
@@ -18,9 +18,9 @@ import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 import {
   EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE,
   EVENT_CONTRIBUTION_MESSAGE_CREATE,
-} from '@/event/Event'
+} from '@/event/Events'
 import { Context, getUser } from '@/server/context'
-import LogError from '@/server/LogError'
+import { LogError } from '@/server/LogError'
 
 @Resolver()
 export class ContributionMessageResolver {
@@ -87,7 +87,7 @@ export class ContributionMessageResolver {
       .select('cm')
       .from(DbContributionMessage, 'cm')
       .leftJoinAndSelect('cm.user', 'u')
-      .where({ contributionId: contributionId })
+      .where({ contributionId })
       .orderBy('cm.createdAt', order)
       .limit(pageSize)
       .offset((currentPage - 1) * pageSize)

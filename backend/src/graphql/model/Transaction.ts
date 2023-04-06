@@ -47,6 +47,10 @@ export class Transaction {
     this.linkId = transaction.contribution
       ? transaction.contribution.contributionLinkId
       : transaction.transactionLinkId || null
+    this.previousBalance =
+      (transaction.previousTransaction &&
+        transaction.previousTransaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN)) ||
+      new Decimal(0)
   }
 
   @Field(() => Int)
@@ -69,6 +73,9 @@ export class Transaction {
 
   @Field(() => Date)
   balanceDate: Date
+
+  @Field(() => Decimal)
+  previousBalance: Decimal
 
   @Field(() => Decay)
   decay: Decay
