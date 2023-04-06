@@ -2,7 +2,7 @@ import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { validate, version } from 'uuid'
 
-import LogError from '@/server/LogError'
+import { LogError } from '@/server/LogError'
 
 export const findUserByIdentifier = async (identifier: string): Promise<DbUser> => {
   let user: DbUser | undefined
