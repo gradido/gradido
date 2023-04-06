@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
@@ -19,7 +20,7 @@ export const apiPost = async (url: string, payload: unknown): Promise<any> => {
       throw new LogError(result.data.msg)
     }
     return { success: true, data: result.data }
-  } catch (error: unknown) {
+  } catch (error: any) {
     return { success: false, data: error.message }
   }
 }
@@ -37,7 +38,7 @@ export const apiGet = async (url: string): Promise<any> => {
       throw new LogError(result.data.msg)
     }
     return { success: true, data: result.data }
-  } catch (error: unknown) {
+  } catch (error: any) {
     return { success: false, data: error.message }
   }
 }
