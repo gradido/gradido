@@ -33,11 +33,13 @@ export const transactionsQuery = gql`
         typeId
         amount
         balance
+        previousBalance
         balanceDate
         memo
         linkedUser {
           firstName
           lastName
+          gradidoID
           email
         }
         decay {
@@ -265,6 +267,15 @@ export const openCreations = gql`
       year
       month
       amount
+    }
+  }
+`
+
+export const user = gql`
+  query($identifier: String!) {
+    user(identifier: $identifier) {
+      firstName
+      lastName
     }
   }
 `

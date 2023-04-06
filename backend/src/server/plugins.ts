@@ -61,4 +61,5 @@ ${JSON.stringify(requestContext.response.errors, null, 2)}`)
 }
 
 export const plugins =
+  // eslint-disable-next-line n/no-process-env
   process.env.NODE_ENV === 'development' ? [setHeadersPlugin] : [setHeadersPlugin, logPlugin]
