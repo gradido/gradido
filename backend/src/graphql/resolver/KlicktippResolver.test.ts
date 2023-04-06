@@ -77,7 +77,7 @@ describe('KlicktippResolver', () => {
         )
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventType.SUBSCRIBE_NEWSLETTER,
+            type: EventType.NEWSLETTER_SUBSCRIBE,
             affectedUserId: userConatct.user.id,
             actingUserId: userConatct.user.id,
           }),
