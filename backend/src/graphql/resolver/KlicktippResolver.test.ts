@@ -70,7 +70,7 @@ describe('KlicktippResolver', () => {
         expect(isSubscribed).toEqual(true)
       })
 
-      it('stores the SUBSCRIBE_NEWSLETTER event in the database', async () => {
+      it('stores the NEWSLETTER_SUBSCRIBE event in the database', async () => {
         const userConatct = await UserContact.findOneOrFail(
           { email: 'bibi@bloxberg.de' },
           { relations: ['user'] },
