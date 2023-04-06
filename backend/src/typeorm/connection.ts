@@ -3,9 +3,9 @@
 import { Connection, createConnection, FileLogger } from '@dbTools/typeorm'
 import { entities } from '@entity/index'
 
-import CONFIG from '@/config'
+import { CONFIG } from '@/config'
 
-const connection = async (): Promise<Connection | null> => {
+export const connection = async (): Promise<Connection | null> => {
   try {
     return createConnection({
       name: 'default',
@@ -31,5 +31,3 @@ const connection = async (): Promise<Connection | null> => {
     return null
   }
 }
-
-export default connection

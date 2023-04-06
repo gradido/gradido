@@ -5,7 +5,7 @@ import { readFileSync } from 'fs'
 
 import { configure, getLogger } from 'log4js'
 
-import CONFIG from '@/config'
+import { CONFIG } from '@/config'
 
 const options = JSON.parse(readFileSync(CONFIG.LOG4JS_CONFIG, 'utf-8'))
 
