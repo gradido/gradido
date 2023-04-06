@@ -1,5 +1,6 @@
-import { GraphQLScalarType, Kind } from 'graphql'
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Decimal } from 'decimal.js-light'
+import { GraphQLScalarType, Kind } from 'graphql'
 
 const DecimalType = new GraphQLScalarType({
   name: 'Decimal',

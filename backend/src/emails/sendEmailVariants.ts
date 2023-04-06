@@ -1,7 +1,9 @@
 import { Decimal } from 'decimal.js-light'
-import { sendEmailTranslated } from './sendEmailTranslated'
+
 import CONFIG from '@/config'
 import { decimalSeparatorByLanguage } from '@/util/utilities'
+
+import { sendEmailTranslated } from './sendEmailTranslated'
 
 export const sendAddedContributionMessageEmail = (data: {
   firstName: string

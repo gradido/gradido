@@ -1,8 +1,10 @@
-import { Decimal } from 'decimal.js-light'
-import { User as DbUser } from '@entity/User'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { Event as DbEvent } from '@entity/Event'
-import { Event, EventType } from './Event'
+import { User as DbUser } from '@entity/User'
+import { Decimal } from 'decimal.js-light'
+
+import { Event } from './Event'
+import { EventType } from './EventType'
 
 export const EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE = async (
   moderator: DbUser,

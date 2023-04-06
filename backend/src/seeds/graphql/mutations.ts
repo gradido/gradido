@@ -75,8 +75,8 @@ export const sendActivationEmail = gql`
 `
 
 export const sendCoins = gql`
-  mutation ($email: String!, $amount: Decimal!, $memo: String!) {
-    sendCoins(email: $email, amount: $amount, memo: $memo)
+  mutation ($identifier: String!, $amount: Decimal!, $memo: String!) {
+    sendCoins(identifier: $identifier, amount: $amount, memo: $memo)
   }
 `
 
@@ -133,18 +133,11 @@ export const unDeleteUser = gql`
 `
 
 export const adminUpdateContribution = gql`
-  mutation ($id: Int!, $email: String!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
-    adminUpdateContribution(
-      id: $id
-      email: $email
-      amount: $amount
-      memo: $memo
-      creationDate: $creationDate
-    ) {
+  mutation ($id: Int!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
+    adminUpdateContribution(id: $id, amount: $amount, memo: $memo, creationDate: $creationDate) {
       amount
       date
       memo
-      creation
     }
   }
 `
