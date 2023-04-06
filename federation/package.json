@@ -11,7 +11,7 @@
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "start": "cross-env TZ=UTC TS_NODE_BASEURL=./build node -r tsconfig-paths/register build/src/index.js",
-    "test": "cross-env TZ=UTC NODE_ENV=development jest --runInBand --coverage --forceExit --detectOpenHandles",
+    "test": "cross-env TZ=UTC NODE_ENV=development jest --runInBand --forceExit --detectOpenHandles",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts --exec ts-node -r dotenv/config -r tsconfig-paths/register src/index.ts",
     "lint": "eslint --max-warnings=0 --ext .js,.ts ."
   },

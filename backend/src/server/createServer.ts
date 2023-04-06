@@ -1,27 +1,29 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/unbound-method */
+import { Connection } from '@dbTools/typeorm'
 import { ApolloServer } from 'apollo-server-express'
 import express, { Express, json, urlencoded } from 'express'
-import { Connection } from '@dbTools/typeorm'
 import { Logger } from 'log4js'
-import cors from './cors'
-import serverContext from './context'
-import plugins from './plugins'
-import { apolloLogger } from './logger'
-import { i18n } from './localization'
-import connection from '@/typeorm/connection'
+
+import { CONFIG } from '@/config'
+import { schema } from '@/graphql/schema'
+import { connection } from '@/typeorm/connection'
 import { checkDBVersion } from '@/typeorm/DBVersion'
-import CONFIG from '@/config'
-import schema from '@/graphql/schema'
 import { elopageWebhook } from '@/webhook/elopage'
+
+import { context as serverContext } from './context'
+import { cors } from './cors'
+import { i18n } from './localization'
+import { apolloLogger } from './logger'
+import { plugins } from './plugins'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
 
-const createServer = async (
+export const createServer = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context: any = serverContext,
   logger: Logger = apolloLogger,
@@ -79,5 +81,3 @@ const createServer = async (
 
   return { apollo, app, con }
 }
-
-export default createServer

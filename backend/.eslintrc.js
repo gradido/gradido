@@ -18,7 +18,9 @@ module.exports = {
       '@typescript-eslint/parser': ['.ts', '.tsx'],
     },
     'import/resolver': {
-      typescript: true,
+      typescript: {
+        project: ['./tsconfig.json', '**/tsconfig.json'],
+      },
       node: true,
     },
   },
@@ -71,13 +73,36 @@ module.exports = {
     'import/group-exports': 'off',
     'import/newline-after-import': 'error',
     'import/no-anonymous-default-export': 'error',
-    'import/no-default-export': 'off',
+    'import/no-default-export': 'error',
     'import/no-duplicates': 'error',
     'import/no-named-default': 'error',
     'import/no-namespace': 'error',
     'import/no-unassigned-import': 'error',
-    'import/order': 'error',
-    'import/prefer-default-export': 'off', // TODO
+    'import/order': [
+      'error',
+      {
+        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type'],
+        'newlines-between': 'always',
+        pathGroups: [
+          {
+            pattern: '@?*/**',
+            group: 'external',
+            position: 'after',
+          },
+          {
+            pattern: '@/**',
+            group: 'external',
+            position: 'after',
+          },
+        ],
+        alphabetize: {
+          order: 'asc' /* sort in ascending order. Options: ['ignore', 'asc', 'desc'] */,
+          caseInsensitive: true /* ignore case. Options: [true, false] */,
+        },
+        distinctGroup: true,
+      },
+    ],
+    'import/prefer-default-export': 'off',
     // n
     'n/handle-callback-err': 'error',
     'n/no-callback-literal': 'error',
@@ -101,7 +126,7 @@ module.exports = {
     'n/shebang': 'error',
     'n/callback-return': 'error',
     'n/exports-style': 'error',
-    'n/file-extension-in-import': ['error', 'never'],
+    'n/file-extension-in-import': 'off',
     'n/global-require': 'error',
     'n/no-mixed-requires': 'error',
     'n/no-process-env': 'error',
@@ -133,10 +158,12 @@ module.exports = {
         'no-void': ['error', { allowAsStatement: true }],
         // ignore prefer-regexp-exec rule to allow string.match(regex)
         '@typescript-eslint/prefer-regexp-exec': 'off',
+        // this should not run on ts files: https://github.com/import-js/eslint-plugin-import/issues/2215#issuecomment-911245486
+        'import/unambiguous': 'off',
       },
       parserOptions: {
-        tsconfigRootDir: './',
-        project: ['./tsconfig.json'],
+        tsconfigRootDir: __dirname,
+        project: ['./tsconfig.json', '**/tsconfig.json'],
         // this is to properly reference the referenced project database without requirement of compiling it
         EXPERIMENTAL_useSourceOfProjectReferenceRedirect: true,
       },

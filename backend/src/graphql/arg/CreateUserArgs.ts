@@ -1,7 +1,7 @@
 import { ArgsType, Field, Int } from 'type-graphql'
 
 @ArgsType()
-export default class CreateUserArgs {
+export class CreateUserArgs {
   @Field(() => String)
   email: string
 

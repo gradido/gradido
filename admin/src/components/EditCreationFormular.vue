@@ -96,18 +96,14 @@ export default {
       type: Object,
       required: true,
     },
-    creation: {
-      type: Array,
-      required: true,
-    },
   },
   data() {
     return {
       text: !this.creationUserData.memo ? '' : this.creationUserData.memo,
       value: !this.creationUserData.amount ? 0 : Number(this.creationUserData.amount),
       rangeMin: 0,
-      rangeMax: 1000,
-      selected: '',
+      selected: this.selectedComputed,
+      userId: this.item.userId,
     }
   },
   methods: {
@@ -117,20 +113,13 @@ export default {
           mutation: adminUpdateContribution,
           variables: {
             id: this.item.id,
-            email: this.item.email,
             creationDate: this.selected.date,
             amount: Number(this.value),
             memo: this.text,
           },
         })
         .then((result) => {
-          this.$emit('update-user-data', this.item, result.data.adminUpdateContribution.creation)
-          this.$emit('update-creation-data', {
-            amount: Number(result.data.adminUpdateContribution.amount),
-            date: result.data.adminUpdateContribution.date,
-            memo: result.data.adminUpdateContribution.memo,
-            row: this.row,
-          })
+          this.$emit('update-creation-data')
           this.toastSuccess(
             this.$t('creation_form.toasted_update', {
               value: this.value,
@@ -149,15 +138,29 @@ export default {
           // Den geschöpften Wert auf o setzen
           this.value = 0
         })
+        .finally(() => {
+          this.$apollo.queries.OpenCreations.refetch()
+        })
     },
   },
-  created() {
-    if (this.creationUserData.date) {
-      const month = this.$d(new Date(this.creationUserData.date), 'month')
-      const index = this.radioOptions.findIndex((obj) => obj.item.short === month)
-      this.selected = this.radioOptions[index].item
-      this.rangeMax = Number(this.creation[index]) + Number(this.creationUserData.amount)
-    }
+  computed: {
+    creationIndex() {
+      const month = this.$d(new Date(this.item.contributionDate), 'month')
+      return this.radioOptions.findIndex((obj) => {
+        return obj.item.short === month
+      })
+    },
+    selectedComputed() {
+      return this.radioOptions[this.creationIndex].item
+    },
+    rangeMax() {
+      return Number(this.creation[this.creationIndex]) + Number(this.item.amount)
+    },
+  },
+  watch: {
+    selectedComputed() {
+      this.selected = this.selectedComputed
+    },
   },
 }
 </script>
