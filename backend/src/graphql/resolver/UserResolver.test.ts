@@ -26,7 +26,7 @@ import {
   sendAccountMultiRegistrationEmail,
   sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
-import { EventType } from '@/event/Event'
+import { EventType } from '@/event/Events'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'

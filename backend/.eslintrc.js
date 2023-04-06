@@ -18,7 +18,9 @@ module.exports = {
       '@typescript-eslint/parser': ['.ts', '.tsx'],
     },
     'import/resolver': {
-      typescript: true,
+      typescript: {
+        project: ['./tsconfig.json', '**/tsconfig.json'],
+      },
       node: true,
     },
   },
@@ -55,7 +57,7 @@ module.exports = {
     'import/named': 'error',
     'import/namespace': 'error',
     'import/no-absolute-path': 'error',
-    'import/no-cycle': 'off',
+    'import/no-cycle': 'error',
     'import/no-dynamic-require': 'error',
     'import/no-internal-modules': 'off',
     'import/no-relative-packages': 'error',
@@ -175,8 +177,8 @@ module.exports = {
         'import/unambiguous': 'off',
       },
       parserOptions: {
-        tsconfigRootDir: './',
-        project: ['./tsconfig.json'],
+        tsconfigRootDir: __dirname,
+        project: ['./tsconfig.json', '**/tsconfig.json'],
         // this is to properly reference the referenced project database without requirement of compiling it
         EXPERIMENTAL_useSourceOfProjectReferenceRedirect: true,
       },
