@@ -4,7 +4,6 @@
 import CONFIG from '@/config'
 import connection from '@/typeorm/connection'
 import { checkDBVersion } from '@/typeorm/DBVersion'
-import { initialize } from '@dbTools/helpers'
 import { entities } from '@entity/index'
 import { logger } from './testSetup'
 
@@ -42,7 +41,6 @@ export const testEnvironment = async () => {
     logger.fatal('Fatal: Database Version incorrect')
     throw new Error('Fatal: Database Version incorrect')
   }
-  await initialize()
   return { con }
 }
 

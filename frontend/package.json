@@ -10,7 +10,7 @@
     "analyse-bundle": "yarn build && webpack-bundle-analyzer dist/webpack.stats.json",
     "lint": "eslint --max-warnings=0 --ext .js,.vue,.json .",
     "stylelint": "stylelint --max-warnings=0 '**/*.{scss,vue}'",
-    "test": "cross-env TZ=UTC jest --coverage",
+    "test": "cross-env TZ=UTC jest",
     "locales": "scripts/sort.sh"
   },
   "dependencies": {
@@ -26,6 +26,7 @@
     "bootstrap": "^4.5.3",
     "bootstrap-vue": "^2.21.2",
     "clipboard-polyfill": "^4.0.0-rc1",
+    "date-fns": "^2.29.3",
     "es6-promise": "^4.1.1",
     "eslint": "^7.25.0",
     "eslint-config-prettier": "^8.1.0",
@@ -58,7 +59,6 @@
     "vue-i18n": "^8.22.4",
     "vue-jest": "^3.0.7",
     "vue-loading-overlay": "^3.4.2",
-    "vue-moment": "^4.1.0",
     "vue-router": "^3.0.6",
     "vue-timers": "^2.0.4",
     "vue2-transitions": "^0.2.3",

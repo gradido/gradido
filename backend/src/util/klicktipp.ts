@@ -1,7 +1,8 @@
 import { User } from '@entity/User'
-import connection from '@/typeorm/connection'
+
 import { getKlickTippUser } from '@/apis/KlicktippController'
-import LogError from '@/server/LogError'
+import { LogError } from '@/server/LogError'
+import { connection } from '@/typeorm/connection'
 
 export async function retrieveNotRegisteredEmails(): Promise<string[]> {
   const con = await connection()

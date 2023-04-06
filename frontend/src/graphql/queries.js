@@ -33,11 +33,13 @@ export const transactionsQuery = gql`
         typeId
         amount
         balance
+        previousBalance
         balanceDate
         memo
         linkedUser {
           firstName
           lastName
+          gradidoID
           email
         }
         decay {
@@ -187,6 +189,7 @@ export const listContributions = gql`
         messagesCount
         deniedAt
         deniedBy
+        moderatorId
       }
     }
   }
@@ -236,7 +239,7 @@ export const searchAdminUsers = gql`
 `
 
 export const listContributionMessages = gql`
-  query($contributionId: Float!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
+  query($contributionId: Int!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
     listContributionMessages(
       contributionId: $contributionId
       pageSize: $pageSize
@@ -264,6 +267,15 @@ export const openCreations = gql`
       year
       month
       amount
+    }
+  }
+`
+
+export const user = gql`
+  query($identifier: String!) {
+    user(identifier: $identifier) {
+      firstName
+      lastName
     }
   }
 `

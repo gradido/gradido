@@ -1,9 +1,11 @@
-import { ObjectType, Field, Int } from 'type-graphql'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { Decimal } from 'decimal.js-light'
+import { ObjectType, Field, Int } from 'type-graphql'
+
+import { TransactionTypeId } from '@enum/TransactionTypeId'
+
 import { Decay } from './Decay'
 import { User } from './User'
-import { TransactionTypeId } from '@enum/TransactionTypeId'
 
 @ObjectType()
 export class Transaction {
@@ -45,6 +47,10 @@ export class Transaction {
     this.linkId = transaction.contribution
       ? transaction.contribution.contributionLinkId
       : transaction.transactionLinkId || null
+    this.previousBalance =
+      (transaction.previousTransaction &&
+        transaction.previousTransaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN)) ||
+      new Decimal(0)
   }
 
   @Field(() => Int)
@@ -67,6 +73,9 @@ export class Transaction {
 
   @Field(() => Date)
   balanceDate: Date
+
+  @Field(() => Decimal)
+  previousBalance: Decimal
 
   @Field(() => Decay)
   decay: Decay

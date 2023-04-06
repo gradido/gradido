@@ -5,21 +5,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
 import { name, internet, datatype } from 'faker'
-import { entities } from '@entity/index'
 
-import { users } from './users/index'
-import { creations } from './creation/index'
-import { transactionLinks } from './transactionLink/index'
+import { CONFIG } from '@/config'
+import { createServer } from '@/server/createServer'
+import { backendLogger as logger } from '@/server/logger'
+
 import { contributionLinks } from './contributionLink/index'
-import { userFactory } from './factory/user'
+import { creations } from './creation/index'
+import { contributionLinkFactory } from './factory/contributionLink'
 import { creationFactory } from './factory/creation'
 import { transactionLinkFactory } from './factory/transactionLink'
-import { contributionLinkFactory } from './factory/contributionLink'
-import createServer from '@/server/createServer'
-import { backendLogger as logger } from '@/server/logger'
-import CONFIG from '@/config'
+import { userFactory } from './factory/user'
+import { transactionLinks } from './transactionLink/index'
+import { users } from './users/index'
 
 CONFIG.EMAIL = false
 

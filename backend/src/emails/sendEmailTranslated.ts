@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import path from 'path'
-import { createTransport } from 'nodemailer'
+
 import Email from 'email-templates'
 import i18n from 'i18n'
+import { createTransport } from 'nodemailer'
+
+import { CONFIG } from '@/config'
+import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
-import CONFIG from '@/config'
-import LogError from '@/server/LogError'
 
 export const sendEmailTranslated = async (params: {
   receiver: {

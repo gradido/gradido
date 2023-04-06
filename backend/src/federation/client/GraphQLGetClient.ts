@@ -1,9 +1,14 @@
 import { GraphQLClient } from 'graphql-request'
 import { PatchedRequestInit } from 'graphql-request/dist/types'
 
-export class GraphQLGetClient extends GraphQLClient {
+type ClientInstance = {
+  url: string
   // eslint-disable-next-line no-use-before-define
-  private static instance: GraphQLGetClient
+  client: GraphQLGetClient
+}
+
+export class GraphQLGetClient extends GraphQLClient {
+  private static instanceArray: ClientInstance[] = []
 
   /**
    * The Singleton's constructor should always be private to prevent direct
@@ -21,16 +26,18 @@ export class GraphQLGetClient extends GraphQLClient {
    * just one instance of each subclass around.
    */
   public static getInstance(url: string): GraphQLGetClient {
-    if (!GraphQLGetClient.instance) {
-      GraphQLGetClient.instance = new GraphQLGetClient(url, {
-        method: 'GET',
-        jsonSerializer: {
-          parse: JSON.parse,
-          stringify: JSON.stringify,
-        },
-      })
+    const instance = GraphQLGetClient.instanceArray.find((instance) => instance.url === url)
+    if (instance) {
+      return instance.client
     }
-
-    return GraphQLGetClient.instance
+    const client = new GraphQLGetClient(url, {
+      method: 'GET',
+      jsonSerializer: {
+        parse: JSON.parse,
+        stringify: JSON.stringify,
+      },
+    })
+    GraphQLGetClient.instanceArray.push({ url, client } as ClientInstance)
+    return client
   }
 }

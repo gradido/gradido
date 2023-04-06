@@ -93,8 +93,9 @@ describe('GddTransactionList', () => {
             {
               id: -1,
               typeId: 'DECAY',
-              amount: '-0.16778637075575395772595',
-              balance: '31.59320453982945549519405',
+              amount: '-0.16',
+              balance: '31.59',
+              previousBalance: '31.75',
               balanceDate: '2022-03-03T08:54:54',
               memo: '',
               linkedUser: null,
@@ -110,6 +111,7 @@ describe('GddTransactionList', () => {
               typeId: 'SEND',
               amount: '1',
               balance: '31.76099091058520945292',
+              previousBalance: '30.76',
               balanceDate: '2022-02-28T13:55:47',
               memo:
                 'Um den Kessel schlingt den Reihn, Werft die Eingeweid‘ hinein. Kröte du, die Nacht und Tag Unterm kalten Steine lag,',
@@ -129,6 +131,7 @@ describe('GddTransactionList', () => {
               typeId: 'RECEIVE',
               amount: '10',
               balance: '10',
+              previousBalance: '31.75',
               balanceDate: '2022-02-23T10:55:30',
               memo:
                 'Monatlanges Gift sog ein, In den Topf zuerst hinein… (William Shakespeare, Die Hexen aus Macbeth)',
@@ -148,6 +151,7 @@ describe('GddTransactionList', () => {
               typeId: 'CREATION',
               amount: '1000',
               balance: '32.96482231613347376132',
+              previousBalance: '31.75',
               balanceDate: '2022-02-25T07:29:26',
               memo: 'Jammern hilft nichts, sondern ich kann selber meinen Teil dazu beitragen.',
               linkedUser: {
@@ -414,6 +418,7 @@ describe('GddTransactionList', () => {
         return {
           amount: '3.14',
           balanceDate: '2021-04-29T17:26:40+00:00',
+          previousBalance: '31.75',
           decay: {
             decay: '-477.01',
             start: '2021-05-13T17:46:31.000Z',

@@ -1,7 +1,7 @@
 import { ArgsType, Field, Int } from 'type-graphql'
 
 @ArgsType()
-export default class UnsecureLoginArgs {
+export class UnsecureLoginArgs {
   @Field(() => String)
   email: string
 
