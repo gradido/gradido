@@ -19,13 +19,13 @@ import { ContributionLink } from '@model/ContributionLink'
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
-import CONFIG from '@/config'
+import { CONFIG } from '@/config'
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
   sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
-import { EventType } from '@/event/Event'
+import { EventType } from '@/event/Events'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'

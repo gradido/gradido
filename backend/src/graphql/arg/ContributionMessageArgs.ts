@@ -2,7 +2,7 @@ import { ArgsType, Field, Int, InputType } from 'type-graphql'
 
 @InputType()
 @ArgsType()
-export default class ContributionMessageArgs {
+export class ContributionMessageArgs {
   @Field(() => Int)
   contributionId: number
 

@@ -17,7 +17,7 @@ import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { cleanDB, testEnvironment, resetToken, resetEntity } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
-import { EventType } from '@/event/Event'
+import { EventType } from '@/event/Events'
 import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'

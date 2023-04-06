@@ -14,7 +14,7 @@
       <decay-information-decay
         :balance="balance"
         :decay="decay.decay"
-        :previousBookedBalance="previousBookedBalance"
+        :previousBalance="previousBalance"
       />
     </b-collapse>
   </div>
@@ -44,9 +44,10 @@ export default {
       type: Object,
       required: true,
     },
-    previousBookedBalance: {
-      type: String,
-      required: true,
+  },
+  computed: {
+    previousBalance() {
+      return String(Number(this.balance) - Number(this.decay.decay))
     },
   },
   data() {

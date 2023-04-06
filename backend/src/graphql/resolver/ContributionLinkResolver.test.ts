@@ -12,7 +12,7 @@ import { GraphQLError } from 'graphql'
 import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
-import { EventType } from '@/event/Event'
+import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
 import {
   login,

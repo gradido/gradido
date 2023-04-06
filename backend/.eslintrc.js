@@ -19,7 +19,7 @@ module.exports = {
     },
     'import/resolver': {
       typescript: {
-        project: ['**/tsconfig.json'],
+        project: ['./tsconfig.json', '**/tsconfig.json'],
       },
       node: true,
     },
@@ -51,7 +51,7 @@ module.exports = {
     'import/named': 'error',
     'import/namespace': 'error',
     'import/no-absolute-path': 'error',
-    'import/no-cycle': 'off',
+    'import/no-cycle': 'error',
     'import/no-dynamic-require': 'error',
     'import/no-internal-modules': 'off',
     'import/no-relative-packages': 'error',
@@ -67,7 +67,7 @@ module.exports = {
     'import/group-exports': 'off',
     'import/newline-after-import': 'error',
     'import/no-anonymous-default-export': 'error',
-    'import/no-default-export': 'off',
+    'import/no-default-export': 'error',
     'import/no-duplicates': 'error',
     'import/no-named-default': 'error',
     'import/no-namespace': 'error',
@@ -96,7 +96,7 @@ module.exports = {
         distinctGroup: true,
       },
     ],
-    'import/prefer-default-export': 'off', // TODO
+    'import/prefer-default-export': 'off',
     // n
     'n/handle-callback-err': 'error',
     'n/no-callback-literal': 'error',
@@ -156,8 +156,8 @@ module.exports = {
         'import/unambiguous': 'off',
       },
       parserOptions: {
-        tsconfigRootDir: './',
-        project: ['**/tsconfig.json'],
+        tsconfigRootDir: __dirname,
+        project: ['./tsconfig.json', '**/tsconfig.json'],
         // this is to properly reference the referenced project database without requirement of compiling it
         EXPERIMENTAL_useSourceOfProjectReferenceRedirect: true,
       },

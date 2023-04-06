@@ -96,4 +96,8 @@ export class Transaction extends BaseEntity {
   @OneToOne(() => Contribution, (contribution) => contribution.transaction)
   @JoinColumn({ name: 'id', referencedColumnName: 'transactionId' })
   contribution?: Contribution | null
+
+  @OneToOne(() => Transaction)
+  @JoinColumn({ name: 'previous' })
+  previousTransaction?: Transaction | null
 }
