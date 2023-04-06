@@ -59,7 +59,7 @@ import {
   EVENT_ADMIN_USER_ROLE_SET,
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_UNDELETE,
-} from '@/event/Event'
+} from '@/event/Events'
 import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
@@ -72,6 +72,7 @@ import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getUserCreations } from './util/creations'
+import { findUserByIdentifier } from './util/findUserByIdentifier'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const random = require('random-bigint')
@@ -97,6 +98,7 @@ const newEmailContact = (email: string, userId: number): DbUserContact => {
   return emailContact
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export const activationLink = (verificationCode: BigInt): string => {
   logger.debug(`activationLink(${verificationCode})...`)
   return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, verificationCode.toString())
@@ -819,11 +821,17 @@ export class UserResolver {
 
     return true
   }
+
+  @Authorized([RIGHTS.USER])
+  @Query(() => User)
+  async user(@Arg('identifier') identifier: string): Promise<User> {
+    return new User(await findUserByIdentifier(identifier))
+  }
 }
 
 export async function findUserByEmail(email: string): Promise<DbUser> {
   const dbUserContact = await DbUserContact.findOneOrFail(
-    { email: email },
+    { email },
     { withDeleted: true, relations: ['user'] },
   ).catch(() => {
     throw new LogError('No user with this credentials', email)
@@ -834,7 +842,7 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
 }
 
 async function checkEmailExists(email: string): Promise<boolean> {
-  const userContact = await DbUserContact.findOne({ email: email }, { withDeleted: true })
+  const userContact = await DbUserContact.findOne({ email }, { withDeleted: true })
   if (userContact) {
     return true
   }

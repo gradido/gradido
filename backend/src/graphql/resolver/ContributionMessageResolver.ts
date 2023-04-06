@@ -18,7 +18,7 @@ import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 import {
   EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE,
   EVENT_CONTRIBUTION_MESSAGE_CREATE,
-} from '@/event/Event'
+} from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import LogError from '@/server/LogError'
 
@@ -87,7 +87,7 @@ export class ContributionMessageResolver {
       .select('cm')
       .from(DbContributionMessage, 'cm')
       .leftJoinAndSelect('cm.user', 'u')
-      .where({ contributionId: contributionId })
+      .where({ contributionId })
       .orderBy('cm.createdAt', order)
       .limit(pageSize)
       .offset((currentPage - 1) * pageSize)

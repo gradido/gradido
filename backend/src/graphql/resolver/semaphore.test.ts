@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Decimal } from 'decimal.js-light'
 
 import { cleanDB, testEnvironment, contributionDateFormatter } from '@test/helpers'
@@ -152,7 +152,7 @@ describe('semaphore', () => {
     })
     const bibisTransaction = mutate({
       mutation: sendCoins,
-      variables: { email: 'bob@baumeister.de', amount: '50', memo: 'Das ist für dich, Bob' },
+      variables: { identifier: 'bob@baumeister.de', amount: '50', memo: 'Das ist für dich, Bob' },
     })
     await mutate({
       mutation: login,
@@ -168,7 +168,7 @@ describe('semaphore', () => {
     })
     const bobsTransaction = mutate({
       mutation: sendCoins,
-      variables: { email: 'bibi@bloxberg.de', amount: '50', memo: 'Das ist für dich, Bibi' },
+      variables: { identifier: 'bibi@bloxberg.de', amount: '50', memo: 'Das ist für dich, Bibi' },
     })
     await mutate({
       mutation: login,

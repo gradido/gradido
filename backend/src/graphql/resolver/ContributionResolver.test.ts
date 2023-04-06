@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Contribution } from '@entity/Contribution'
 import { Event as DbEvent } from '@entity/Event'
 import { Transaction as DbTransaction } from '@entity/Transaction'
@@ -32,7 +32,7 @@ import {
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
 } from '@/emails/sendEmailVariants'
-import { EventType } from '@/event/Event'
+import { EventType } from '@/event/Events'
 import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
