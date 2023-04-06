@@ -127,7 +127,6 @@
                     :transactions="transactions"
                     :transactionCount="transactionCount"
                     :transactionLinkCount="transactionLinkCount"
-                    @set-tunneled-email="setTunneledEmail"
                   />
                 </template>
                 <template #community>
@@ -149,7 +148,6 @@
                     :transactionLinkCount="transactionLinkCount"
                     :pending="pending"
                     @update-transactions="updateTransactions"
-                    @set-tunneled-email="setTunneledEmail"
                   ></router-view>
                 </fade-transition>
               </div>
@@ -164,7 +162,6 @@
                 :transactions="transactions"
                 :transactionCount="transactionCount"
                 :transactionLinkCount="transactionLinkCount"
-                @set-tunneled-email="setTunneledEmail"
               />
             </template>
             <template #empty />
@@ -234,16 +231,10 @@ export default {
       transactionLinkCount: 0,
       pending: true,
       visible: false,
-      tunneledEmail: null,
       hamburger: true,
       darkMode: false,
       skeleton: true,
       totalUsers: null,
-    }
-  },
-  provide() {
-    return {
-      getTunneledEmail: () => this.tunneledEmail,
     }
   },
   created() {
@@ -318,9 +309,6 @@ export default {
     },
     setVisible(bool) {
       this.visible = bool
-    },
-    setTunneledEmail(email) {
-      this.tunneledEmail = email
     },
   },
 }

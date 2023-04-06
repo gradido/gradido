@@ -5,16 +5,24 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { Event as DbEvent } from '@entity/Event'
+import { Transaction } from '@entity/Transaction'
+import { User } from '@entity/User'
+import { UserContact } from '@entity/UserContact'
+import { Decimal } from 'decimal.js-light'
+import { GraphQLError } from 'graphql'
 
-import { transactionLinkCode } from './TransactionLinkResolver'
-import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { peterLustig } from '@/seeds/users/peter-lustig'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { cleanDB, testEnvironment, resetToken, resetEntity } from '@test/helpers'
-import { creationFactory } from '@/seeds/factory/creation'
+import { logger } from '@test/testSetup'
+
+import { EventType } from '@/event/Events'
 import { creations } from '@/seeds/creation/index'
-import { userFactory } from '@/seeds/factory/user'
+import { creationFactory } from '@/seeds/factory/creation'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
-import { transactionLinks } from '@/seeds/transactionLink/index'
+import { userFactory } from '@/seeds/factory/user'
 import {
   login,
   createContributionLink,
@@ -22,20 +30,16 @@ import {
   createContribution,
   updateContribution,
   createTransactionLink,
+  deleteTransactionLink,
   confirmContribution,
 } from '@/seeds/graphql/mutations'
 import { listTransactionLinksAdmin } from '@/seeds/graphql/queries'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { User } from '@entity/User'
-import { Transaction } from '@entity/Transaction'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import Decimal from 'decimal.js-light'
-import { GraphQLError } from 'graphql'
+import { transactionLinks } from '@/seeds/transactionLink/index'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { peterLustig } from '@/seeds/users/peter-lustig'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
-import { logger } from '@test/testSetup'
-import { EventType } from '@/event/Event'
-import { Event as DbEvent } from '@entity/Event'
-import { UserContact } from '@entity/UserContact'
+
+import { transactionLinkCode } from './TransactionLinkResolver'
 
 // mock semaphore to allow use fake timers
 jest.mock('@/util/TRANSACTIONS_LOCK')
@@ -573,6 +577,7 @@ describe('TransactionLinkResolver', () => {
 
         describe('link exists', () => {
           let myCode: string
+          let myId: number
 
           beforeAll(async () => {
             await mutate({
@@ -589,7 +594,7 @@ describe('TransactionLinkResolver', () => {
             })
             const {
               data: {
-                createTransactionLink: { code },
+                createTransactionLink: { id, code },
               },
             } = await mutate({
               mutation: createTransactionLink,
@@ -599,6 +604,23 @@ describe('TransactionLinkResolver', () => {
               },
             })
             myCode = code
+            myId = id
+          })
+
+          it('stores the TRANSACTION_LINK_CREATE event in the database', async () => {
+            const userConatct = await UserContact.findOneOrFail(
+              { email: 'bibi@bloxberg.de' },
+              { relations: ['user'] },
+            )
+            await expect(DbEvent.find()).resolves.toContainEqual(
+              expect.objectContaining({
+                type: EventType.TRANSACTION_LINK_CREATE,
+                affectedUserId: userConatct.user.id,
+                actingUserId: userConatct.user.id,
+                involvedTransactionLinkId: myId,
+                amount: expect.decimalEqual(200),
+              }),
+            )
           })
 
           describe('own link', () => {
@@ -623,6 +645,94 @@ describe('TransactionLinkResolver', () => {
               expect(logger.error).toBeCalledWith(
                 'Cannot redeem own transaction link',
                 expect.any(Number),
+              )
+            })
+            it('delete own link', async () => {
+              await expect(
+                mutate({
+                  mutation: deleteTransactionLink,
+                  variables: {
+                    id: myId,
+                  },
+                }),
+              ).resolves.toMatchObject({
+                data: { deleteTransactionLink: true },
+              })
+            })
+
+            it('stores the TRANSACTION_LINK_DELETE event in the database', async () => {
+              const userConatct = await UserContact.findOneOrFail(
+                { email: 'bibi@bloxberg.de' },
+                { relations: ['user'] },
+              )
+              await expect(DbEvent.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventType.TRANSACTION_LINK_DELETE,
+                  affectedUserId: userConatct.user.id,
+                  actingUserId: userConatct.user.id,
+                  involvedTransactionLinkId: myId,
+                }),
+              )
+            })
+          })
+
+          describe('other link', () => {
+            beforeAll(async () => {
+              await mutate({
+                mutation: login,
+                variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+              })
+              const {
+                data: {
+                  createTransactionLink: { id, code },
+                },
+              } = await mutate({
+                mutation: createTransactionLink,
+                variables: {
+                  amount: 200,
+                  memo: 'This is a transaction link from bibi',
+                },
+              })
+              myCode = code
+              myId = id
+              await mutate({
+                mutation: login,
+                variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+              })
+            })
+
+            it('successfully redeems link', async () => {
+              await expect(
+                mutate({
+                  mutation: redeemTransactionLink,
+                  variables: {
+                    code: myCode,
+                  },
+                }),
+              ).resolves.toMatchObject({
+                data: { redeemTransactionLink: true },
+                errors: undefined,
+              })
+            })
+
+            it('stores the TRANSACTION_LINK_REDEEM event in the database', async () => {
+              const creator = await UserContact.findOneOrFail(
+                { email: 'bibi@bloxberg.de' },
+                { relations: ['user'] },
+              )
+              const redeemer = await UserContact.findOneOrFail(
+                { email: 'peter@lustig.de' },
+                { relations: ['user'] },
+              )
+              await expect(DbEvent.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventType.TRANSACTION_LINK_REDEEM,
+                  affectedUserId: redeemer.user.id,
+                  actingUserId: redeemer.user.id,
+                  involvedUserId: creator.user.id,
+                  involvedTransactionLinkId: myId,
+                  amount: expect.decimalEqual(200),
+                }),
               )
             })
           })

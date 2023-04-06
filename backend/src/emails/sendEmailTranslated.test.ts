@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { createTransport } from 'nodemailer'
+
 import { logger, i18n } from '@test/testSetup'
-import CONFIG from '@/config'
+
+import { CONFIG } from '@/config'
+
 import { sendEmailTranslated } from './sendEmailTranslated'
 
 CONFIG.EMAIL = false

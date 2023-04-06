@@ -1,7 +1,9 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
+/* eslint-disable n/no-process-env */
 
+import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
-import Decimal from 'decimal.js-light'
+
 dotenv.config()
 
 Decimal.set({
@@ -119,7 +121,7 @@ const federation = {
     Number(process.env.FEDERATION_VALIDATE_COMMUNITY_TIMER) || 60000,
 }
 
-const CONFIG = {
+export const CONFIG = {
   ...constants,
   ...server,
   ...database,
@@ -130,5 +132,3 @@ const CONFIG = {
   ...webhook,
   ...federation,
 }
-
-export default CONFIG

@@ -1,4 +1,5 @@
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
+// eslint-disable-next-line import/no-commonjs, import/unambiguous
 module.exports = {
   verbose: true,
   preset: 'ts-jest',
@@ -21,10 +22,12 @@ module.exports = {
     '@repository/(.*)': '<rootDir>/src/typeorm/repository/$1',
     '@test/(.*)': '<rootDir>/test/$1',
     '@entity/(.*)':
+      // eslint-disable-next-line n/no-process-env
       process.env.NODE_ENV === 'development'
         ? '<rootDir>/../database/entity/$1'
         : '<rootDir>/../database/build/entity/$1',
     '@dbTools/(.*)':
+      // eslint-disable-next-line n/no-process-env
       process.env.NODE_ENV === 'development'
         ? '<rootDir>/../database/src/$1'
         : '<rootDir>/../database/build/src/$1',
