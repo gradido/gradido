@@ -27,8 +27,6 @@ import {
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import { isStartEndDateValid } from './util/creations'
 
-// TODO: this is a strange construct
-
 @Resolver()
 export class ContributionLinkResolver {
   @Authorized([RIGHTS.CREATE_CONTRIBUTION_LINK])
