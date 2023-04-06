@@ -4,7 +4,8 @@
       "duration": "The link has a validity of {hours} hours and {minutes} minutes. If the validity of the link has already expired, you can have a new link sent to you here:",
       "emailRegistered": "Your email address has just been registered with Gradido.",
       "pleaseClickLink": "Please click on this link to complete the registration and activate your Gradido account:",
-      "subject": "Gradido: Email Verification"
+      "subject": "Gradido: Email Verification",
+      "title": "Email Verification"
     },
     "accountMultiRegistration": {
       "emailExists": "However, an account already exists for your email address.",
@@ -61,9 +62,13 @@
     }
   },
   "general": {
+    "contactOurSupport": "If you have any further questions, please contact our support.",
     "decimalSeparator": ".",
-    "imprint": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+    "imprint": "Impressum",
+    "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
     "imprintImageAlt": "Gradido-Akademie Logo",
-    "imprintImageURL": "https://gdd.gradido.net/img/brand/green.png"
+    "imprintImageURL": "https://gdd.gradido.net/img/brand/green.png",
+    "privacyPolicy": "Privacy Policy",
+    "supportEmail": "support@gradido.com"
   }
 }
