@@ -13,7 +13,7 @@ import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
-import { EventType } from '@/event/Event'
+import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
 import {
   adminCreateContributionMessage,
