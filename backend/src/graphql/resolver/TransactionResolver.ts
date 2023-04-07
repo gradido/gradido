@@ -324,7 +324,9 @@ export class TransactionResolver {
 
     await executeTransaction(amount, memo, senderUser, recipientUser)
     logger.info(
-      `successful executeTransaction(amount=${amount}, memo=${memo}, senderUser=${senderUser}, recipientUser=${recipientUser})`,
+      `successful executeTransaction(amount=${amount}, memo=${memo})`,
+      senderUser,
+      recipientUser,
     )
     return true
   }

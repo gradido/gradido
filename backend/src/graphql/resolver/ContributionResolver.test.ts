@@ -65,7 +65,7 @@ jest.mock('@/emails/sendEmailVariants')
 
 let mutate: any, query: any, con: any
 let testEnv: any
-let creation: Contribution | void
+let creation: Contribution | null
 let admin: User
 let pendingContribution: any
 let inProgressContribution: any

@@ -814,10 +814,9 @@ describe('TransactionLinkResolver', () => {
           const bibisTransaktionLinks = transactionLinks.filter(
             (transactionLink) => transactionLink.email === 'bibi@bloxberg.de',
           )
-          for (let i = 0; i < bibisTransaktionLinks.length; i++) {
-            await transactionLinkFactory(testEnv, bibisTransaktionLinks[i])
+          for (const link of bibisTransaktionLinks) {
+            await transactionLinkFactory(testEnv, link)
           }
-
           // admin: only now log in
           await mutate({
             mutation: login,

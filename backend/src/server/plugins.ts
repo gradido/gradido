@@ -13,7 +13,7 @@ const setHeadersPlugin = {
     return {
       willSendResponse(requestContext: any) {
         const { setHeaders = [] } = requestContext.context
-        setHeaders.forEach(({ key, value }: { [key: string]: string }) => {
+        setHeaders.forEach(({ key, value }: Record<string, string>) => {
           if (requestContext.response.http.headers.get(key)) {
             requestContext.response.http.headers.set(key, value)
           } else {
@@ -28,8 +28,8 @@ const setHeadersPlugin = {
 
 const filterVariables = (variables: any) => {
   const vars = clonedeep(variables)
-  if (vars && vars.password) vars.password = '***'
-  if (vars && vars.passwordNew) vars.passwordNew = '***'
+  if (vars?.password) vars.password = '***'
+  if (vars?.passwordNew) vars.passwordNew = '***'
   return vars
 }
 
