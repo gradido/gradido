@@ -24,7 +24,6 @@ export default {
   },
   data() {
     return {
-      oldPublicKey: '',
       formatDistanceToNow,
       locale: this.$i18n.locale,
     }
