@@ -92,43 +92,90 @@ describe('FederationVisualizeItem', () => {
         })
       })
 
-      // zwei Varianten: '' bei null und 
-      describe('with different locales (de, en, fr, es, nl)', () => {
-        it('computes the lastAnnouncedAt time', () => {
-          // expect(wrapper.find('.row > div:nth-child(3)').text()).toBe('3 days ago')
+      // describe('with different locales (de, en, fr, es, nl)', () => {
+      describe('lastAnnouncedAt', () => {
+        it('computes the time string for different locales (de, en, fr, es, nl)', () => {
           wrapper.vm.$i18n.locale = 'de'
           wrapper = Wrapper()
-          expect(wrapper.vm.lastAnnouncedAt).toContain('vor 3 Tagen')
+          expect(wrapper.vm.lastAnnouncedAt).toBe('vor 3 Tagen')
 
           wrapper.vm.$i18n.locale = 'fr'
           wrapper = Wrapper()
-          expect(wrapper.vm.lastAnnouncedAt).toContain('il y a 3 jours')
+          expect(wrapper.vm.lastAnnouncedAt).toBe('il y a 3 jours')
 
           wrapper.vm.$i18n.locale = 'es'
           wrapper = Wrapper()
-          expect(wrapper.vm.lastAnnouncedAt).toContain('hace 3 días')
+          expect(wrapper.vm.lastAnnouncedAt).toBe('hace 3 días')
 
           wrapper.vm.$i18n.locale = 'nl'
           wrapper = Wrapper()
-          expect(wrapper.vm.lastAnnouncedAt).toContain('3 dagen geleden')
+          expect(wrapper.vm.lastAnnouncedAt).toBe('3 dagen geleden')
         })
 
-        it('computes the createdAt time', () => {
+        describe('lastAnnouncedAt == null', () => {
+          beforeEach(() => {
+            propsData = {
+              item: {
+                id: 7590,
+                foreign: false,
+                publicKey: 'eaf6a426b24fd54f8fbae11c17700fc595080ca25159579c63d38dbc64284ba7',
+                url: 'http://localhost/api/api/2_0',
+                lastAnnouncedAt: null,
+                verifiedAt: null,
+                lastErrorAt: null,
+                createdAt: createdDate,
+                updatedAt: null,
+              },
+            }
+            wrapper = Wrapper()
+          })
+
+          it('computes empty string', async () => {
+            expect(wrapper.vm.lastAnnouncedAt).toBe('')
+          })
+        })
+      })
+
+      describe('createdAt', () => {
+        it('computes the time string for different locales (de, en, fr, es, nl)', () => {
           wrapper.vm.$i18n.locale = 'de'
           wrapper = Wrapper()
-          expect(wrapper.vm.createdAt).toContain('vor 3 Tagen')
+          expect(wrapper.vm.createdAt).toBe('vor 3 Tagen')
 
           wrapper.vm.$i18n.locale = 'fr'
           wrapper = Wrapper()
-          expect(wrapper.vm.createdAt).toContain('il y a 3 jours')
+          expect(wrapper.vm.createdAt).toBe('il y a 3 jours')
 
           wrapper.vm.$i18n.locale = 'es'
           wrapper = Wrapper()
-          expect(wrapper.vm.createdAt).toContain('hace 3 días')
+          expect(wrapper.vm.createdAt).toBe('hace 3 días')
 
           wrapper.vm.$i18n.locale = 'nl'
           wrapper = Wrapper()
-          expect(wrapper.vm.createdAt).toContain('3 dagen geleden')
+          expect(wrapper.vm.createdAt).toBe('3 dagen geleden')
+        })
+
+        describe('createdAt == null', () => {
+          beforeEach(() => {
+            propsData = {
+              item: {
+                id: 7590,
+                foreign: false,
+                publicKey: 'eaf6a426b24fd54f8fbae11c17700fc595080ca25159579c63d38dbc64284ba7',
+                url: 'http://localhost/api/api/2_0',
+                lastAnnouncedAt: createdDate,
+                verifiedAt: null,
+                lastErrorAt: null,
+                createdAt: null,
+                updatedAt: null,
+              },
+            }
+            wrapper = Wrapper()
+          })
+
+          it('computes empty string', async () => {
+            expect(wrapper.vm.createdAt).toBe('')
+          })
         })
       })
     })
