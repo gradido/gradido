@@ -36,6 +36,7 @@ describe('CommunityResolver', () => {
     let foreignCom1: DbCommunity
     let foreignCom2: DbCommunity
     let foreignCom3: DbCommunity
+
     describe('with empty list', () => {
       it('returns no community entry', async () => {
         // const result: Community[] = await query({ query: getCommunities })
@@ -77,19 +78,19 @@ describe('CommunityResolver', () => {
         await DbCommunity.insert(homeCom3)
       })
 
-      it('returns three home-community entries', async () => {
+      it('returns 3 home-community entries', async () => {
         await expect(query({ query: getCommunities })).resolves.toMatchObject({
           data: {
             getCommunities: [
               {
-                id: 1,
-                foreign: homeCom1.foreign,
+                id: 3,
+                foreign: homeCom3.foreign,
                 publicKey: expect.stringMatching('publicKey-HomeCommunity'),
-                url: expect.stringMatching('http://localhost/api/1_0'),
+                url: expect.stringMatching('http://localhost/api/2_0'),
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
-                createdAt: homeCom1.createdAt.toISOString(),
+                createdAt: homeCom3.createdAt.toISOString(),
                 updatedAt: null,
               },
               {
@@ -104,14 +105,14 @@ describe('CommunityResolver', () => {
                 updatedAt: null,
               },
               {
-                id: 3,
-                foreign: homeCom3.foreign,
+                id: 1,
+                foreign: homeCom1.foreign,
                 publicKey: expect.stringMatching('publicKey-HomeCommunity'),
-                url: expect.stringMatching('http://localhost/api/2_0'),
+                url: expect.stringMatching('http://localhost/api/1_0'),
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
-                createdAt: homeCom3.createdAt.toISOString(),
+                createdAt: homeCom1.createdAt.toISOString(),
                 updatedAt: null,
               },
             ],
@@ -149,19 +150,19 @@ describe('CommunityResolver', () => {
         await DbCommunity.insert(foreignCom3)
       })
 
-      it('returns 3x home and 3x foreign-community entries', async () => {
+      it('returns 3 home community and 3 foreign community entries', async () => {
         await expect(query({ query: getCommunities })).resolves.toMatchObject({
           data: {
             getCommunities: [
               {
-                id: 1,
-                foreign: homeCom1.foreign,
+                id: 3,
+                foreign: homeCom3.foreign,
                 publicKey: expect.stringMatching('publicKey-HomeCommunity'),
-                url: expect.stringMatching('http://localhost/api/1_0'),
+                url: expect.stringMatching('http://localhost/api/2_0'),
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
-                createdAt: homeCom1.createdAt.toISOString(),
+                createdAt: homeCom3.createdAt.toISOString(),
                 updatedAt: null,
               },
               {
@@ -176,25 +177,25 @@ describe('CommunityResolver', () => {
                 updatedAt: null,
               },
               {
-                id: 3,
-                foreign: homeCom3.foreign,
+                id: 1,
+                foreign: homeCom1.foreign,
                 publicKey: expect.stringMatching('publicKey-HomeCommunity'),
-                url: expect.stringMatching('http://localhost/api/2_0'),
+                url: expect.stringMatching('http://localhost/api/1_0'),
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
-                createdAt: homeCom3.createdAt.toISOString(),
+                createdAt: homeCom1.createdAt.toISOString(),
                 updatedAt: null,
               },
               {
-                id: 4,
-                foreign: foreignCom1.foreign,
+                id: 6,
+                foreign: foreignCom3.foreign,
                 publicKey: expect.stringMatching('publicKey-ForeignCommunity'),
-                url: expect.stringMatching('http://remotehost/api/1_0'),
+                url: expect.stringMatching('http://remotehost/api/1_2'),
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
-                createdAt: foreignCom1.createdAt.toISOString(),
+                createdAt: foreignCom3.createdAt.toISOString(),
                 updatedAt: null,
               },
               {
@@ -209,14 +210,14 @@ describe('CommunityResolver', () => {
                 updatedAt: null,
               },
               {
-                id: 6,
-                foreign: foreignCom3.foreign,
+                id: 4,
+                foreign: foreignCom1.foreign,
                 publicKey: expect.stringMatching('publicKey-ForeignCommunity'),
-                url: expect.stringMatching('http://remotehost/api/1_2'),
+                url: expect.stringMatching('http://remotehost/api/1_0'),
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
-                createdAt: foreignCom3.createdAt.toISOString(),
+                createdAt: foreignCom1.createdAt.toISOString(),
                 updatedAt: null,
               },
             ],
