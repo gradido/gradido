@@ -44,24 +44,24 @@ export default {
       oldPublicKey: '',
       communities: [],
       icon: '',
-      animation: '',
     }
+  },
+  computed: {
+    animation() {
+      return this.$apollo.queries.GetCommunities.loading ? 'spin' : ''
+    },
   },
   apollo: {
     GetCommunities: {
       fetchPolicy: 'network-only',
       query() {
-        this.animation = 'spin'
-
         return getCommunities
       },
       update({ getCommunities }) {
         this.communities = getCommunities
-        this.animation = ''
       },
       error({ message }) {
         this.toastError(message)
-        this.animation = ''
       },
     },
   },
