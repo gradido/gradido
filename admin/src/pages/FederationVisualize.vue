@@ -8,6 +8,7 @@
           font-scale="2"
           :animation="animation"
           @click="$apollo.queries.GetCommunities.refresh()"
+          data-test="federation-communities-refresh-btn"
         ></b-icon>
       </b-button>
     </div>
