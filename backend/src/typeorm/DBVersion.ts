@@ -14,7 +14,7 @@ const getDBVersion = async (): Promise<string | null> => {
 
 const checkDBVersion = async (DB_VERSION: string): Promise<boolean> => {
   const dbVersion = await getDBVersion()
-  if (!dbVersion || dbVersion.indexOf(DB_VERSION) === -1) {
+  if (!dbVersion?.includes(DB_VERSION)) {
     logger.error(
       `Wrong database version detected - the backend requires '${DB_VERSION}' but found '${
         dbVersion || 'None'

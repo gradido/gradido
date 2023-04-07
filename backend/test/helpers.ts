@@ -29,8 +29,8 @@ const context = {
 
 export const cleanDB = async () => {
   // this only works as lond we do not have foreign key constraints
-  for (let i = 0; i < entities.length; i++) {
-    await resetEntity(entities[i])
+  for (const entity of entities) {
+    await resetEntity(entity)
   }
 }
 

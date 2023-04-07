@@ -48,9 +48,7 @@ export const executeTransaction = async (
   // acquire lock
   const releaseLock = await TRANSACTIONS_LOCK.acquire()
   try {
-    logger.info(
-      `executeTransaction(amount=${amount}, memo=${memo}, sender=${sender}, recipient=${recipient})...`,
-    )
+    logger.info('executeTransaction', amount, memo, sender, recipient)
 
     if (sender.id === recipient.id) {
       throw new LogError('Sender and Recipient are the same', sender.id)
@@ -119,10 +117,10 @@ export const executeTransaction = async (
       // Save linked transaction id for send
       transactionSend.linkedTransactionId = transactionReceive.id
       await queryRunner.manager.update(dbTransaction, { id: transactionSend.id }, transactionSend)
-      logger.debug(`send Transaction updated: ${transactionSend}`)
+      logger.debug('send Transaction updated', transactionSend)
 
       if (transactionLink) {
-        logger.info(`transactionLink: ${transactionLink}`)
+        logger.info('transactionLink', transactionLink)
         transactionLink.redeemedAt = receivedCallDate
         transactionLink.redeemedBy = recipient.id
         await queryRunner.manager.update(
@@ -242,9 +240,9 @@ export class TransactionResolver {
     const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate, transactionLinkcount } =
       await transactionLinkRepository.summary(user.id, now)
     context.linkCount = transactionLinkcount
-    logger.debug(`transactionLinkcount=${transactionLinkcount}`)
+    logger.debug('transactionLinkcount', transactionLinkcount)
     context.sumHoldAvailableAmount = sumHoldAvailableAmount
-    logger.debug(`sumHoldAvailableAmount=${sumHoldAvailableAmount}`)
+    logger.debug('sumHoldAvailableAmount', sumHoldAvailableAmount)
 
     // decay & link transactions
     if (currentPage === 1 && order === Order.DESC) {
