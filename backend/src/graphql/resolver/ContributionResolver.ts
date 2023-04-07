@@ -270,7 +270,7 @@ export class ContributionResolver {
       withDeleted: true,
       relations: ['user'],
     })
-    if (!emailContact || !emailContact.user) {
+    if (!emailContact?.user) {
       throw new LogError('Could not find user', email)
     }
     if (emailContact.deletedAt || emailContact.user.deletedAt) {
@@ -324,7 +324,7 @@ export class ContributionResolver {
       throw new LogError('Contribution not found', id)
     }
 
-    if (contributionToUpdate.moderatorId === null) {
+    if (!contributionToUpdate.moderatorId) {
       throw new LogError('An admin is not allowed to update an user contribution')
     }
 

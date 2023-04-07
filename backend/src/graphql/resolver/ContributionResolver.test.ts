@@ -2070,7 +2070,7 @@ describe('ContributionResolver', () => {
                     mutate({
                       mutation: updateContribution,
                       variables: {
-                        contributionId: (adminContribution && adminContribution.id) || -1,
+                        contributionId: adminContribution?.id || -1,
                         amount: 100.0,
                         memo: 'Test Test Test',
                         creationDate: new Date().toString(),
@@ -2564,8 +2564,8 @@ describe('ContributionResolver', () => {
           })
 
           describe('confirm two creations one after the other quickly', () => {
-            let c1: Contribution | void
-            let c2: Contribution | void
+            let c1: Contribution | null
+            let c2: Contribution | null
 
             beforeAll(async () => {
               const now = new Date()

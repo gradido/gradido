@@ -55,7 +55,7 @@ export class Contribution extends BaseEntity {
   confirmedBy: number
 
   @Column({ nullable: true, name: 'confirmed_at' })
-  confirmedAt: Date
+  confirmedAt: Date | null
 
   @Column({ unsigned: true, nullable: true, name: 'denied_by' })
   deniedBy: number
@@ -83,7 +83,7 @@ export class Contribution extends BaseEntity {
   transactionId: number
 
   @Column({ nullable: true, name: 'updated_at' })
-  updatedAt: Date
+  updatedAt: Date | null
 
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date | null
