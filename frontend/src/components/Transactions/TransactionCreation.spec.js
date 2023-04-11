@@ -13,7 +13,8 @@ const mocks = {
 
 const propsData = {
   amount: '12.45',
-  balance: '31.76099091058521',
+  balance: '31.76',
+  previousBalance: '19.31',
   balanceDate: '2022-02-28T13:55:47.000Z',
   decay: {
     decay: '-0.2038314055482643084',

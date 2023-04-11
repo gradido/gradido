@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { logger } from '@test/testSetup'
 
-import LogError from './LogError'
+import { LogError } from './LogError'
 
 describe('LogError', () => {
   it('logs an Error when created', () => {

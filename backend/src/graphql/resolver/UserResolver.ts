@@ -21,11 +21,11 @@ import {
 } from 'type-graphql'
 import { v4 as uuidv4 } from 'uuid'
 
-import CreateUserArgs from '@arg/CreateUserArgs'
-import Paginated from '@arg/Paginated'
-import SearchUsersArgs from '@arg/SearchUsersArgs'
-import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
-import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
+import { CreateUserArgs } from '@arg/CreateUserArgs'
+import { Paginated } from '@arg/Paginated'
+import { SearchUsersArgs } from '@arg/SearchUsersArgs'
+import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
+import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
@@ -38,7 +38,7 @@ import { UserRepository } from '@repository/User'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
-import CONFIG from '@/config'
+import { CONFIG } from '@/config'
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
@@ -59,12 +59,12 @@ import {
   EVENT_ADMIN_USER_ROLE_SET,
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_UNDELETE,
-} from '@/event/Event'
+} from '@/event/Events'
 import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
-import LogError from '@/server/LogError'
+import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'

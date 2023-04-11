@@ -62,8 +62,12 @@ describe('NavBar', () => {
       )
     })
 
+    it('has a link to /federation', () => {
+      expect(wrapper.findAll('.nav-item').at(3).find('a').attributes('href')).toBe('/federation')
+    })
+
     it('has a link to /statistic', () => {
-      expect(wrapper.findAll('.nav-item').at(3).find('a').attributes('href')).toBe('/statistic')
+      expect(wrapper.findAll('.nav-item').at(4).find('a').attributes('href')).toBe('/statistic')
     })
   })
 
@@ -72,7 +76,7 @@ describe('NavBar', () => {
     beforeEach(async () => {
       delete window.location
       window.location = ''
-      await wrapper.findAll('.nav-item').at(4).find('a').trigger('click')
+      await wrapper.findAll('.nav-item').at(5).find('a').trigger('click')
     })
 
     afterEach(() => {
@@ -97,7 +101,7 @@ describe('NavBar', () => {
       window.location = {
         assign: windowLocationMock,
       }
-      await wrapper.findAll('.nav-item').at(5).find('a').trigger('click')
+      await wrapper.findAll('.nav-item').at(6).find('a').trigger('click')
     })
 
     afterEach(() => {

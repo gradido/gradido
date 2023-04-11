@@ -121,7 +121,7 @@ const federation = {
     Number(process.env.FEDERATION_VALIDATE_COMMUNITY_TIMER) || 60000,
 }
 
-const CONFIG = {
+export const CONFIG = {
   ...constants,
   ...server,
   ...database,
@@ -132,5 +132,3 @@ const CONFIG = {
   ...webhook,
   ...federation,
 }
-
-export default CONFIG

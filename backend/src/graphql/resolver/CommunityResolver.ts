@@ -11,7 +11,11 @@ export class CommunityResolver {
   @Query(() => [Community])
   async getCommunities(): Promise<Community[]> {
     const dbCommunities: DbCommunity[] = await DbCommunity.find({
-      order: { foreign: 'ASC', publicKey: 'ASC', apiVersion: 'ASC' },
+      order: {
+        foreign: 'ASC',
+        createdAt: 'DESC',
+        lastAnnouncedAt: 'DESC',
+      },
     })
     return dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
   }
