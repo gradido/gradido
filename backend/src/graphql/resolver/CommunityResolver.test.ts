@@ -36,6 +36,7 @@ describe('CommunityResolver', () => {
     let foreignCom1: DbCommunity
     let foreignCom2: DbCommunity
     let foreignCom3: DbCommunity
+
     describe('with empty list', () => {
       it('returns no community entry', async () => {
         // const result: Community[] = await query({ query: getCommunities })
@@ -77,7 +78,7 @@ describe('CommunityResolver', () => {
         await DbCommunity.insert(homeCom3)
       })
 
-      it('returns three home-community entries', async () => {
+      it('returns 3 home-community entries', async () => {
         await expect(query({ query: getCommunities })).resolves.toMatchObject({
           data: {
             getCommunities: [
@@ -149,7 +150,7 @@ describe('CommunityResolver', () => {
         await DbCommunity.insert(foreignCom3)
       })
 
-      it('returns 3x home and 3x foreign-community entries', async () => {
+      it('returns 3 home community and 3 foreign community entries', async () => {
         await expect(query({ query: getCommunities })).resolves.toMatchObject({
           data: {
             getCommunities: [

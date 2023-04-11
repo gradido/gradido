@@ -15,6 +15,8 @@
 import { formatDistanceToNow } from 'date-fns'
 import { de, en, fr, es, nl } from 'date-fns/locale'
 
+const locales = { en, de, es, fr, nl }
+
 export default {
   name: 'FederationVisualizeItem',
   props: {
@@ -22,7 +24,6 @@ export default {
   },
   data() {
     return {
-      oldPublicKey: '',
       formatDistanceToNow,
       locale: this.$i18n.locale,
     }
@@ -37,26 +38,12 @@ export default {
     variant() {
       return this.verified ? 'success' : 'danger'
     },
-    fnsLocale() {
-      switch (this.locale) {
-        case 'de':
-          return de
-        case 'es':
-          return es
-        case 'fr':
-          return fr
-        case 'nl':
-          return nl
-        default:
-          return en
-      }
-    },
     lastAnnouncedAt() {
       if (this.item.lastAnnouncedAt) {
         return formatDistanceToNow(new Date(this.item.lastAnnouncedAt), {
           includeSecond: true,
           addSuffix: true,
-          locale: this.fnsLocale,
+          locale: locales[this.locale],
         })
       }
       return ''
@@ -66,7 +53,7 @@ export default {
         return formatDistanceToNow(new Date(this.item.createdAt), {
           includeSecond: true,
           addSuffix: true,
-          locale: this.fnsLocale,
+          locale: locales[this.locale],
         })
       }
       return ''
