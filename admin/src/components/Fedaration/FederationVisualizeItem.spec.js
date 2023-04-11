@@ -11,7 +11,7 @@ let propsData = {
     id: 7590,
     foreign: false,
     publicKey: 'eaf6a426b24fd54f8fbae11c17700fc595080ca25159579c63d38dbc64284ba7',
-    url: 'http://localhost/api/api/2_0',
+    url: 'http://localhost/api/2_0',
     lastAnnouncedAt: createdDate,
     verifiedAt: today,
     lastErrorAt: null,
@@ -45,7 +45,7 @@ describe('FederationVisualizeItem', () => {
     describe('rendering item properties', () => {
       it('has the url', () => {
         expect(wrapper.find('.row > div:nth-child(2) > div').text()).toBe(
-          'http://localhost/api/api/2_0',
+          'http://localhost/api/2_0',
         )
       })
 
@@ -72,7 +72,7 @@ describe('FederationVisualizeItem', () => {
               id: 7590,
               foreign: false,
               publicKey: 'eaf6a426b24fd54f8fbae11c17700fc595080ca25159579c63d38dbc64284ba7',
-              url: 'http://localhost/api/api/2_0',
+              url: 'http://localhost/api/2_0',
               lastAnnouncedAt: createdDate,
               verifiedAt: null,
               lastErrorAt: null,
@@ -119,7 +119,7 @@ describe('FederationVisualizeItem', () => {
                 id: 7590,
                 foreign: false,
                 publicKey: 'eaf6a426b24fd54f8fbae11c17700fc595080ca25159579c63d38dbc64284ba7',
-                url: 'http://localhost/api/api/2_0',
+                url: 'http://localhost/api/2_0',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -162,7 +162,7 @@ describe('FederationVisualizeItem', () => {
                 id: 7590,
                 foreign: false,
                 publicKey: 'eaf6a426b24fd54f8fbae11c17700fc595080ca25159579c63d38dbc64284ba7',
-                url: 'http://localhost/api/api/2_0',
+                url: 'http://localhost/api/2_0',
                 lastAnnouncedAt: createdDate,
                 verifiedAt: null,
                 lastErrorAt: null,
