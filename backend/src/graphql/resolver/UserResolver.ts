@@ -245,7 +245,7 @@ export class UserResolver {
         user.publisherId = publisherId
         logger.debug('partly faked user', user)
 
-        sendAccountMultiRegistrationEmail({
+        void sendAccountMultiRegistrationEmail({
           firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
           lastName: foundUser.lastName, // this is the real name of the email owner, but just "lastName" would be the name of the new registrant which shall not be passed to the outside
           email,
@@ -322,7 +322,7 @@ export class UserResolver {
         emailContact.emailVerificationCode.toString(),
       ).replace(/{code}/g, redeemCode ? '/' + redeemCode : '')
 
-      sendAccountActivationEmail({
+      void sendAccountActivationEmail({
         firstName,
         lastName,
         email,
@@ -385,7 +385,7 @@ export class UserResolver {
 
     logger.info(`optInCode for ${email}=${user.emailContact}`)
 
-    sendResetPasswordEmail({
+    void sendResetPasswordEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,
@@ -789,7 +789,7 @@ export class UserResolver {
     await user.emailContact.save()
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    sendAccountActivationEmail({
+    void sendAccountActivationEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,

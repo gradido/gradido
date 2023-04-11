@@ -424,7 +424,7 @@ export class ContributionResolver {
       contribution.amount,
     )
 
-    sendContributionDeletedEmail({
+    void sendContributionDeletedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.emailContact.email,
@@ -518,7 +518,7 @@ export class ContributionResolver {
 
         await queryRunner.commitTransaction()
         logger.info('creation commited successfuly.')
-        sendContributionConfirmedEmail({
+        void sendContributionConfirmedEmail({
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.emailContact.email,
@@ -599,7 +599,7 @@ export class ContributionResolver {
       contributionToUpdate.amount,
     )
 
-    sendContributionDeniedEmail({
+    void sendContributionDeniedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.emailContact.email,

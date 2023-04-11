@@ -31,11 +31,11 @@ jest.mock('nodemailer', () => {
 })
 
 describe('sendEmailTranslated', () => {
-  let result: boolean | null
+  let result: Record<string, unknown> | boolean | null
 
   describe('config email is false', () => {
-    beforeEach(() => {
-      result = sendEmailTranslated({
+    beforeEach(async () => {
+      result = await sendEmailTranslated({
         receiver: {
           to: 'receiver@mail.org',
           cc: 'support@gradido.net',
@@ -57,9 +57,9 @@ describe('sendEmailTranslated', () => {
   })
 
   describe('config email is true', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       CONFIG.EMAIL = true
-      result = sendEmailTranslated({
+      result = await sendEmailTranslated({
         receiver: {
           to: 'receiver@mail.org',
           cc: 'support@gradido.net',
@@ -85,7 +85,7 @@ describe('sendEmailTranslated', () => {
     })
 
     describe('call of "sendEmailTranslated"', () => {
-      it.skip('has expected result', () => {
+      it('has expected result', () => {
         expect(result).toMatchObject({
           envelope: {
             from: 'info@gradido.net',
@@ -117,11 +117,11 @@ describe('sendEmailTranslated', () => {
   })
 
   describe('with email EMAIL_TEST_MODUS true', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       jest.clearAllMocks()
       CONFIG.EMAIL = true
       CONFIG.EMAIL_TEST_MODUS = true
-      result = sendEmailTranslated({
+      result = await sendEmailTranslated({
         receiver: {
           to: 'receiver@mail.org',
           cc: 'support@gradido.net',
@@ -133,7 +133,7 @@ describe('sendEmailTranslated', () => {
       })
     })
 
-    it.skip('call of "sendEmailTranslated" with faked "to"', () => {
+    it('call of "sendEmailTranslated" with faked "to"', () => {
       expect(result).toMatchObject({
         envelope: {
           from: CONFIG.EMAIL_SENDER,
