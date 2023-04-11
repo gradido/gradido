@@ -50,8 +50,8 @@ describe('sendEmailVariants', () => {
   let result: any
 
   describe('sendAddedContributionMessageEmail', () => {
-    beforeAll(() => {
-      result = sendAddedContributionMessageEmail({
+    beforeAll(async () => {
+      result = await sendAddedContributionMessageEmail({
         firstName: 'Peter',
         lastName: 'Lustig',
         email: 'peter@lustig.de',
@@ -128,8 +128,8 @@ describe('sendEmailVariants', () => {
   })
 
   describe('sendAccountActivationEmail', () => {
-    beforeAll(() => {
-      result = sendAccountActivationEmail({
+    beforeAll(async () => {
+      result = await sendAccountActivationEmail({
         firstName: 'Peter',
         lastName: 'Lustig',
         email: 'peter@lustig.de',
@@ -208,8 +208,8 @@ describe('sendEmailVariants', () => {
   })
 
   describe('sendAccountMultiRegistrationEmail', () => {
-    beforeAll(() => {
-      result = sendAccountMultiRegistrationEmail({
+    beforeAll(async () => {
+      result = await sendAccountMultiRegistrationEmail({
         firstName: 'Peter',
         lastName: 'Lustig',
         email: 'peter@lustig.de',
@@ -288,8 +288,8 @@ describe('sendEmailVariants', () => {
   })
 
   describe('sendContributionConfirmedEmail', () => {
-    beforeAll(() => {
-      result = sendContributionConfirmedEmail({
+    beforeAll(async () => {
+      result = await sendContributionConfirmedEmail({
         firstName: 'Peter',
         lastName: 'Lustig',
         email: 'peter@lustig.de',
@@ -368,8 +368,8 @@ describe('sendEmailVariants', () => {
   })
 
   describe('sendContributionDeniedEmail', () => {
-    beforeAll(() => {
-      result = sendContributionDeniedEmail({
+    beforeAll(async () => {
+      result = await sendContributionDeniedEmail({
         firstName: 'Peter',
         lastName: 'Lustig',
         email: 'peter@lustig.de',
@@ -446,8 +446,8 @@ describe('sendEmailVariants', () => {
   })
 
   describe('sendContributionDeletedEmail', () => {
-    beforeAll(() => {
-      result = sendContributionDeletedEmail({
+    beforeAll(async () => {
+      result = await sendContributionDeletedEmail({
         firstName: 'Peter',
         lastName: 'Lustig',
         email: 'peter@lustig.de',
@@ -524,8 +524,8 @@ describe('sendEmailVariants', () => {
   })
 
   describe('sendResetPasswordEmail', () => {
-    beforeAll(() => {
-      result = sendResetPasswordEmail({
+    beforeAll(async () => {
+      result = await sendResetPasswordEmail({
         firstName: 'Peter',
         lastName: 'Lustig',
         email: 'peter@lustig.de',
@@ -602,8 +602,8 @@ describe('sendEmailVariants', () => {
   })
 
   describe('sendTransactionLinkRedeemedEmail', () => {
-    beforeAll(() => {
-      result = sendTransactionLinkRedeemedEmail({
+    beforeAll(async () => {
+      result = await sendTransactionLinkRedeemedEmail({
         firstName: 'Peter',
         lastName: 'Lustig',
         email: 'peter@lustig.de',
@@ -683,8 +683,8 @@ describe('sendEmailVariants', () => {
   })
 
   describe('sendTransactionReceivedEmail', () => {
-    beforeAll(() => {
-      result = sendTransactionReceivedEmail({
+    beforeAll(async () => {
+      result = await sendTransactionReceivedEmail({
         firstName: 'Peter',
         lastName: 'Lustig',
         email: 'peter@lustig.de',
