@@ -49,8 +49,8 @@
               <b-row>
                 <b-col>
                   <b-row>
-                    <b-col cols="12">
-                      <div v-if="radioSelected === sendTypes.send && !gradidoID">
+                    <b-col cols="12" v-if="radioSelected === sendTypes.send">
+                      <div v-if="!gradidoID">
                         <input-email
                           :name="$t('form.recipient')"
                           :label="$t('form.recipient')"
@@ -60,7 +60,7 @@
                           @onValidation="onValidation"
                         />
                       </div>
-                      <div v-else-if="gradidoID" class="mb-4">
+                      <div v-else class="mb-4">
                         <b-row>
                           <b-col>{{ $t('form.recipient') }}</b-col>
                         </b-row>
