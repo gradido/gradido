@@ -427,21 +427,21 @@ describe('CreationConfirm', () => {
                   statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
                 })
               })
-            })
-          })
 
-          describe('click tab "open" again', () => {
-            beforeEach(async () => {
-              jest.clearAllMocks()
-              await wrapper.find('a[data-test="open"]').trigger('click')
-            })
+              describe('click tab "open" again', () => {
+                beforeEach(async () => {
+                  jest.clearAllMocks()
+                  await wrapper.find('a[data-test="open"]').trigger('click')
+                })
 
-            it('refetches contributions with proper filter and current page = 1', () => {
-              expect(adminListContributionsMock).toBeCalledWith({
-                currentPage: 1,
-                order: 'DESC',
-                pageSize: 25,
-                statusFilter: ['IN_PROGRESS', 'PENDING'],
+                it('refetches contributions with proper filter and current page = 1', () => {
+                  expect(adminListContributionsMock).toBeCalledWith({
+                    currentPage: 1,
+                    order: 'DESC',
+                    pageSize: 25,
+                    statusFilter: ['IN_PROGRESS', 'PENDING'],
+                  })
+                })
               })
             })
           })
