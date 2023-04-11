@@ -31,6 +31,10 @@ const routes = [
     path: '*',
     component: () => import('@/components/NotFoundPage.vue'),
   },
+  {
+    path: '/federation',
+    component: () => import('@/pages/FederationVisualize.vue'),
+  },
 ]
 
 export default routes
