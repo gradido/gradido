@@ -9,7 +9,7 @@ import { GraphQLError } from 'graphql'
 
 import { testEnvironment, cleanDB } from '@test/helpers'
 
-import CONFIG from '@/config'
+import { CONFIG } from '@/config'
 import { createUser, setPassword, forgotPassword } from '@/seeds/graphql/mutations'
 import { queryOptIn } from '@/seeds/graphql/queries'
 
