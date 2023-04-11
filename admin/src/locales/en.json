@@ -68,6 +68,13 @@
   "error": "Error",
   "expired": "expired",
   "e_mail": "E-mail",
+  "federation": {
+    "createdAt": "Created At ",
+    "gradidoInstances": "Gradido Instances",
+    "lastAnnouncedAt": "Last Announced",
+    "url": "Url",
+    "verified": "Verified"
+  },
   "firstname": "Firstname",
   "footer": {
     "app_version": "App version {version}",
@@ -105,6 +112,7 @@
   "name": "Name",
   "navbar": {
     "automaticContributions": "Automatic Contributions",
+    "instances": "Instances",
     "logout": "Logout",
     "my-account": "My Account",
     "statistic": "Statistic",
