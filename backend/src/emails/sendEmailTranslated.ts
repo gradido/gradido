@@ -7,7 +7,7 @@ import { createTransport } from 'nodemailer'
 import CONFIG from '@/config'
 import { backendLogger as logger } from '@/server/logger'
 
-export const sendEmailTranslated = ({
+export const sendEmailTranslated = async ({
   receiver,
   template,
   locals,
@@ -18,7 +18,7 @@ export const sendEmailTranslated = ({
   }
   template: string
   locals: Record<string, unknown>
-}): boolean | null => {
+}): Promise<Record<string, unknown> | boolean | null> => {
   // TODO: test the calling order of 'i18n.setLocale' for example: language of logging 'en', language of email receiver 'es', reset language of current user 'de'
 
   if (!CONFIG.EMAIL) {
@@ -65,7 +65,7 @@ export const sendEmailTranslated = ({
     // i18n, // is only needed if you don't install i18n
   })
 
-  void email
+  const resultSend = await email
     .send({
       template: path.join(__dirname, 'templates', template),
       message: receiver,
@@ -76,5 +76,5 @@ export const sendEmailTranslated = ({
       return false
     })
 
-  return true
+  return resultSend
 }

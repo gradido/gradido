@@ -83,7 +83,7 @@ describe('sendEmailVariants', () => {
         })
       })
 
-      it.skip('has expected result', () => {
+      it('has expected result', () => {
         expect(result).toMatchObject({
           envelope: {
             from: 'info@gradido.net',
@@ -159,7 +159,7 @@ describe('sendEmailVariants', () => {
         })
       })
 
-      it.skip('has expected result', () => {
+      it('has expected result', () => {
         expect(result).toMatchObject({
           envelope: {
             from: 'info@gradido.net',
@@ -235,7 +235,7 @@ describe('sendEmailVariants', () => {
         })
       })
 
-      it.skip('has expected result', () => {
+      it('has expected result', () => {
         expect(result).toMatchObject({
           envelope: {
             from: 'info@gradido.net',
@@ -323,7 +323,7 @@ describe('sendEmailVariants', () => {
         })
       })
 
-      it.skip('has expected result', () => {
+      it('has expected result', () => {
         expect(result).toMatchObject({
           envelope: {
             from: 'info@gradido.net',
@@ -401,7 +401,7 @@ describe('sendEmailVariants', () => {
         })
       })
 
-      it.skip('has expected result', () => {
+      it('has expected result', () => {
         expect(result).toMatchObject({
           envelope: {
             from: 'info@gradido.net',
@@ -479,7 +479,7 @@ describe('sendEmailVariants', () => {
         })
       })
 
-      it.skip('has expected result', () => {
+      it('has expected result', () => {
         expect(result).toMatchObject({
           envelope: {
             from: 'info@gradido.net',
@@ -555,7 +555,7 @@ describe('sendEmailVariants', () => {
         })
       })
 
-      it.skip('has expected result', () => {
+      it('has expected result', () => {
         expect(result).toMatchObject({
           envelope: {
             from: 'info@gradido.net',
@@ -639,7 +639,7 @@ describe('sendEmailVariants', () => {
         })
       })
 
-      it.skip('has expected result', () => {
+      it('has expected result', () => {
         expect(result).toMatchObject({
           envelope: {
             from: 'info@gradido.net',
@@ -718,7 +718,7 @@ describe('sendEmailVariants', () => {
         })
       })
 
-      it.skip('has expected result', () => {
+      it('has expected result', () => {
         expect(result).toMatchObject({
           envelope: {
             from: 'info@gradido.net',
