@@ -152,35 +152,6 @@ describe('CreationConfirm', () => {
     })
 
     describe('actions in overlay', () => {
-      describe('change pagination', () => {
-        it('has pagination buttons', () => {
-          expect(wrapper.findComponent({ name: 'BPagination' }).exists()).toBe(true)
-        })
-
-        describe('next page', () => {
-          beforeAll(async () => {
-            jest.clearAllMocks()
-          })
-
-          beforeEach(() => {
-            wrapper.vm.currentPage = 2
-          })
-
-          it('has currentPage set to 2', () => {
-            expect(wrapper.vm.currentPage).toBe(2)
-          })
-
-          it('calls the API again', () => {
-            expect(adminListContributionsMock).toBeCalledWith({
-              currentPage: 2,
-              order: 'DESC',
-              pageSize: 25,
-              statusFilter: ['IN_PROGRESS', 'PENDING'],
-            })
-          })
-        })
-      })
-
       describe('delete creation', () => {
         beforeEach(async () => {
           await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
@@ -396,10 +367,6 @@ describe('CreationConfirm', () => {
             await wrapper.find('a[data-test="denied"]').trigger('click')
           })
 
-          it('refresh the currentPage to 1', () => {
-            expect(wrapper.vm.currentPage).toBe(1)
-          })
-
           it('refetches contributions with proper filter', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
@@ -414,10 +381,6 @@ describe('CreationConfirm', () => {
           beforeEach(async () => {
             jest.clearAllMocks()
             await wrapper.find('a[data-test="deleted"]').trigger('click')
-          })
-
-          it('refresh the currentPage to 1', () => {
-            expect(wrapper.vm.currentPage).toBe(1)
           })
 
           it('refetches contributions with proper filter', () => {
@@ -436,16 +399,50 @@ describe('CreationConfirm', () => {
             await wrapper.find('a[data-test="all"]').trigger('click')
           })
 
-          it('refresh the currentPage to 1', () => {
-            expect(wrapper.vm.currentPage).toBe(1)
-          })
-
           it('refetches contributions with proper filter', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
               order: 'DESC',
               pageSize: 25,
               statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
+            })
+          })
+
+          describe('change pagination', () => {
+            it('has pagination buttons', () => {
+              expect(wrapper.findComponent({ name: 'BPagination' }).exists()).toBe(true)
+            })
+
+            describe('next page', () => {
+              beforeEach(() => {
+                jest.clearAllMocks()
+                wrapper.findComponent({ name: 'BPagination' }).vm.$emit('input', 2)
+              })
+
+              it('calls the API again', () => {
+                expect(adminListContributionsMock).toBeCalledWith({
+                  currentPage: 2,
+                  order: 'DESC',
+                  pageSize: 25,
+                  statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
+                })
+              })
+            })
+          })
+
+          describe('click tab "open" again', () => {
+            beforeEach(async () => {
+              jest.clearAllMocks()
+              await wrapper.find('a[data-test="open"]').trigger('click')
+            })
+
+            it('refetches contributions with proper filter and current page = 1', () => {
+              expect(adminListContributionsMock).toBeCalledWith({
+                currentPage: 1,
+                order: 'DESC',
+                pageSize: 25,
+                statusFilter: ['IN_PROGRESS', 'PENDING'],
+              })
             })
           })
         })
