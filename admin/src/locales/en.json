@@ -1,6 +1,7 @@
 {
   "all_emails": "All users",
   "back": "back",
+  "change_user_role": "Change user role",
   "chat": "Chat",
   "contributionLink": {
     "amount": "Amount",
@@ -67,6 +68,13 @@
   "error": "Error",
   "expired": "expired",
   "e_mail": "E-mail",
+  "federation": {
+    "createdAt": "Created At ",
+    "gradidoInstances": "Gradido Instances",
+    "lastAnnouncedAt": "Last Announced",
+    "url": "Url",
+    "verified": "Verified"
+  },
   "firstname": "Firstname",
   "footer": {
     "app_version": "App version {version}",
@@ -104,6 +112,7 @@
   "name": "Name",
   "navbar": {
     "automaticContributions": "Automatic Contributions",
+    "instances": "Instances",
     "logout": "Logout",
     "my-account": "My Account",
     "statistic": "Statistic",
@@ -114,6 +123,11 @@
   "open_creations": "Open creations",
   "overlay": {
     "cancel": "Cancel",
+    "changeUserRole": {
+      "question": "Do you really want to change {username}'s role to {newRole}?",
+      "title": "Change user role",
+      "yes": "Yes, change user role"
+    },
     "confirm": {
       "question": "Do you really want to carry out and finally save this pre-stored creation?",
       "text": "After saving, the record can no longer be changed. Please check carefully that everything is correct.",
@@ -126,11 +140,21 @@
       "title": "Delete creation!",
       "yes": "Yes, delete and save creation!"
     },
+    "deleteUser": {
+      "question": "Do you really want to delete {username}?",
+      "title": "Delete user",
+      "yes": "Yes, delete user"
+    },
     "deny": {
       "question": "Do you really want to carry out and finally save this pre-stored creation?",
       "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
       "title": "Reject creation!",
       "yes": "Yes, reject and save creation!"
+    },
+    "undeleteUser": {
+      "question": "Do you really want to undelete {username}",
+      "title": "Undelete user",
+      "yes": "Yes,undelete user"
     }
   },
   "redeemed": "redeemed",

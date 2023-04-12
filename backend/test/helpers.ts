@@ -5,12 +5,12 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 
-import { initialize } from '@dbTools/helpers'
 import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
 
-import createServer from '@/server/createServer'
+import { createServer } from '@/server/createServer'
 
 import { i18n, logger } from './testSetup'
 
@@ -40,7 +40,6 @@ export const testEnvironment = async (testLogger: any = logger, testI18n: any = 
   const testClient = createTestClient(server.apollo)
   const mutate = testClient.mutate
   const query = testClient.query
-  await initialize()
   return { mutate, query, con }
 }
 
