@@ -1,6 +1,6 @@
 <template>
   <div class="component-nabvar">
-    <b-navbar toggleable="md" type="dark" variant="success">
+    <b-navbar toggleable="lg" type="dark" class="bg-dark">
       <b-navbar-brand class="mb-2" to="/">
         <img src="img/brand/gradido_logo_w.png" class="navbar-brand-img pl-2" alt="..." />
       </b-navbar-brand>
@@ -18,6 +18,9 @@
           </b-nav-item>
           <b-nav-item to="/contribution-links">
             {{ $t('navbar.automaticContributions') }}
+          </b-nav-item>
+          <b-nav-item to="/federation">
+            {{ $t('navbar.instances') }}
           </b-nav-item>
           <b-nav-item to="/statistic">{{ $t('navbar.statistic') }}</b-nav-item>
           <b-nav-item @click="wallet">{{ $t('navbar.my-account') }}</b-nav-item>
