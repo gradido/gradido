@@ -11,8 +11,6 @@ import '@/assets/scss/gradido.scss'
 import FlatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
 
-import VueMoment from 'vue-moment'
-
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/vue-loading.css'
 
@@ -26,7 +24,6 @@ export default {
     Vue.use(GlobalDirectives)
     Vue.use(BootstrapVue)
     Vue.use(IconsPlugin)
-    Vue.use(VueMoment)
     Vue.use(PortalVue)
     Vue.use(FlatPickr)
     Vue.use(Loading)

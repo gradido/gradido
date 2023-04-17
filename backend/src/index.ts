@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-import createServer from './server/createServer'
-
-// config
-import CONFIG from './config'
+import { CONFIG } from './config'
 import { startValidateCommunities } from './federation/validateCommunities'
+import { createServer } from './server/createServer'
 
 async function main() {
   const { app } = await createServer()
@@ -23,5 +20,5 @@ async function main() {
 main().catch((e) => {
   // eslint-disable-next-line no-console
   console.error(e)
-  process.exit(1)
+  throw e
 })

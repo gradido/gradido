@@ -1,42 +1,29 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/unbound-method */
-import 'reflect-metadata'
-
-import { ApolloServer } from 'apollo-server-express'
-import express, { Express } from 'express'
-
-// database
-import connection from '@/typeorm/connection'
-import { checkDBVersion } from '@/typeorm/DBVersion'
-
-// server
-import cors from './cors'
-import serverContext from './context'
-import plugins from './plugins'
-
-// config
-import CONFIG from '@/config'
-
-// graphql
-import schema from '@/graphql/schema'
-
-// webhooks
-import { elopageWebhook } from '@/webhook/elopage'
 import { Connection } from '@dbTools/typeorm'
-
-import { apolloLogger } from './logger'
+import { ApolloServer } from 'apollo-server-express'
+import express, { Express, json, urlencoded } from 'express'
 import { Logger } from 'log4js'
 
-// i18n
+import { CONFIG } from '@/config'
+import { schema } from '@/graphql/schema'
+import { connection } from '@/typeorm/connection'
+import { checkDBVersion } from '@/typeorm/DBVersion'
+import { elopageWebhook } from '@/webhook/elopage'
+
+import { context as serverContext } from './context'
+import { cors } from './cors'
 import { i18n } from './localization'
+import { apolloLogger } from './logger'
+import { plugins } from './plugins'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
 
-const createServer = async (
+export const createServer = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context: any = serverContext,
   logger: Logger = apolloLogger,
@@ -66,9 +53,9 @@ const createServer = async (
   app.use(cors)
 
   // bodyparser json
-  app.use(express.json())
+  app.use(json())
   // bodyparser urlencoded for elopage
-  app.use(express.urlencoded({ extended: true }))
+  app.use(urlencoded({ extended: true }))
 
   // i18n
   app.use(localization.init)
@@ -94,5 +81,3 @@ const createServer = async (
 
   return { apollo, app, con }
 }
-
-export default createServer

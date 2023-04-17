@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 
 export const MAX_CREATION_AMOUNT = new Decimal(1000)
 export const FULL_CREATION_AVAILABLE = [

@@ -32,6 +32,8 @@ export const adminListContributions = gql`
         deniedBy
         deletedAt
         deletedBy
+        moderatorId
+        userId
       }
     }
   }

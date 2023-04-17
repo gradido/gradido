@@ -1,9 +1,10 @@
 /* eslint-disable type-graphql/invalid-nullable-input-type */
 import { ArgsType, Field, Int } from 'type-graphql'
+
 import { Order } from '@enum/Order'
 
 @ArgsType()
-export default class Paginated {
+export class Paginated {
   @Field(() => Int, { nullable: true })
   currentPage?: number
 
