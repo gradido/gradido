@@ -34,13 +34,13 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 
 import { executeTransaction } from './TransactionResolver'
 import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
 import { transactionLinkList } from './util/transactionLinkList'
-import { fullName } from '@/util/utilities'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {

@@ -29,6 +29,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { communityUser } from '@/util/communityUser'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
@@ -37,7 +38,6 @@ import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
-import { fullName } from '@/util/utilities'
 
 export const executeTransaction = async (
   amount: Decimal,

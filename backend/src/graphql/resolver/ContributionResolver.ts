@@ -44,6 +44,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { fullName } from '@/util/utilities'
 
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import {
@@ -55,7 +56,6 @@ import {
 } from './util/creations'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
-import { fullName } from '@/util/utilities'
 
 @Resolver()
 export class ContributionResolver {
