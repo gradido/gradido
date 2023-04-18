@@ -105,7 +105,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`deleted_at\` datetime(3) NULL DEFAULT NULL,
         PRIMARY KEY (\`id\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
-
 }
 
 /* eslint-disable @typescript-eslint/no-empty-function */
