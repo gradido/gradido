@@ -22,7 +22,7 @@ i18n.locale = 'blubb'
 
 const {
   language,
-  email,
+  gradidoID,
   token,
   firstName,
   lastName,
@@ -53,11 +53,11 @@ describe('Vuex store', () => {
       })
     })
 
-    describe('email', () => {
-      it('sets the state of email', () => {
-        const state = { email: 'nobody@knows.tv' }
-        email(state, 'someone@there.is')
-        expect(state.email).toEqual('someone@there.is')
+    describe('gradidoID', () => {
+      it('sets the state of gradidoID', () => {
+        const state = { gradidoID: 'old-id' }
+        gradidoID(state, 'new-id')
+        expect(state.gradidoID).toEqual('new-id')
       })
     })
 
@@ -164,7 +164,7 @@ describe('Vuex store', () => {
       const commit = jest.fn()
       const state = {}
       const commitedData = {
-        email: 'user@example.org',
+        gradidoID: 'my-gradido-id',
         language: 'de',
         firstName: 'Peter',
         lastName: 'Lustig',
@@ -183,9 +183,9 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenCalledTimes(10)
       })
 
-      it('commits email', () => {
+      it('commits gradidoID', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(1, 'email', 'user@example.org')
+        expect(commit).toHaveBeenNthCalledWith(1, 'gradidoID', 'my-gradido-id')
       })
 
       it('commits language', () => {
@@ -248,9 +248,9 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(1, 'token', null)
       })
 
-      it('commits email', () => {
+      it('commits gradidoID', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(2, 'email', null)
+        expect(commit).toHaveBeenNthCalledWith(2, 'gradidoID', null)
       })
 
       it('commits firstName', () => {
