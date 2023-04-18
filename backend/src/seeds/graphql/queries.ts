@@ -3,7 +3,6 @@ import { gql } from 'graphql-tag'
 export const verifyLogin = gql`
   query {
     verifyLogin {
-      email
       firstName
       lastName
       language
