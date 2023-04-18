@@ -3,6 +3,7 @@ import gql from 'graphql-tag'
 export const verifyLogin = gql`
   query {
     verifyLogin {
+      gradidoID
       firstName
       lastName
       language
