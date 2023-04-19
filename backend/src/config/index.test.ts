@@ -1,4 +1,4 @@
-import CONFIG from './index'
+import { CONFIG } from './index'
 
 describe('config/index', () => {
   describe('decay start block', () => {

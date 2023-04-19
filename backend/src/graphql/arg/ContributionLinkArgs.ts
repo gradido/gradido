@@ -1,8 +1,8 @@
+import { Decimal } from 'decimal.js-light'
 import { ArgsType, Field, Int } from 'type-graphql'
-import Decimal from 'decimal.js-light'
 
 @ArgsType()
-export default class ContributionLinkArgs {
+export class ContributionLinkArgs {
   @Field(() => Decimal)
   amount: Decimal
 

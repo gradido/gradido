@@ -1,40 +1,45 @@
 import { randomBytes } from 'crypto'
-import Decimal from 'decimal.js-light'
 
 import { getConnection } from '@dbTools/typeorm'
-
-import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
-import { User as DbUser } from '@entity/User'
-import { Transaction as DbTransaction } from '@entity/Transaction'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { Transaction as DbTransaction } from '@entity/Transaction'
+import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
+import { User as DbUser } from '@entity/User'
+import { Decimal } from 'decimal.js-light'
+import { Resolver, Args, Arg, Authorized, Ctx, Mutation, Query, Int } from 'type-graphql'
 
-import { User } from '@model/User'
+import { Paginated } from '@arg/Paginated'
+import { TransactionLinkArgs } from '@arg/TransactionLinkArgs'
+import { TransactionLinkFilters } from '@arg/TransactionLinkFilters'
+import { ContributionCycleType } from '@enum/ContributionCycleType'
+import { ContributionStatus } from '@enum/ContributionStatus'
+import { ContributionType } from '@enum/ContributionType'
+import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { ContributionLink } from '@model/ContributionLink'
 import { Decay } from '@model/Decay'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
-import { ContributionType } from '@enum/ContributionType'
-import { ContributionStatus } from '@enum/ContributionStatus'
-import { TransactionTypeId } from '@enum/TransactionTypeId'
-import { ContributionCycleType } from '@enum/ContributionCycleType'
-import TransactionLinkArgs from '@arg/TransactionLinkArgs'
-import Paginated from '@arg/Paginated'
-import TransactionLinkFilters from '@arg/TransactionLinkFilters'
+import { User } from '@model/User'
+import { QueryLinkResult } from '@union/QueryLinkResult'
 
-import { backendLogger as logger } from '@/server/logger'
-import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
-import { Resolver, Args, Arg, Authorized, Ctx, Mutation, Query, Int } from 'type-graphql'
-import { calculateBalance } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
+import {
+  EVENT_CONTRIBUTION_LINK_REDEEM,
+  EVENT_TRANSACTION_LINK_CREATE,
+  EVENT_TRANSACTION_LINK_DELETE,
+  EVENT_TRANSACTION_LINK_REDEEM,
+} from '@/event/Events'
+import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
+import { LogError } from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'
-import { getUserCreation, validateContribution } from './util/creations'
-import { executeTransaction } from './TransactionResolver'
-import QueryLinkResult from '@union/QueryLinkResult'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
-import LogError from '@/server/LogError'
+import { calculateBalance } from '@/util/validate'
 
+import { executeTransaction } from './TransactionResolver'
+import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
-import transactionLinkList from './util/transactionLinkList'
+import { transactionLinkList } from './util/transactionLinkList'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -89,6 +94,7 @@ export class TransactionLinkResolver {
     await DbTransactionLink.save(transactionLink).catch((e) => {
       throw new LogError('Unable to save transaction link', e)
     })
+    await EVENT_TRANSACTION_LINK_CREATE(user, transactionLink, amount)
 
     return new TransactionLink(transactionLink, new User(user))
   }
@@ -121,6 +127,8 @@ export class TransactionLinkResolver {
     await transactionLink.softRemove().catch((e) => {
       throw new LogError('Transaction link could not be deleted', e)
     })
+
+    await EVENT_TRANSACTION_LINK_DELETE(user, transactionLink)
 
     return true
   }
@@ -272,7 +280,13 @@ export class TransactionLinkResolver {
           await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
           await queryRunner.commitTransaction()
-          logger.info('creation from contribution link commited successfuly.')
+          await EVENT_CONTRIBUTION_LINK_REDEEM(
+            user,
+            transaction,
+            contribution,
+            contributionLink,
+            contributionLink.amount,
+          )
         } catch (e) {
           await queryRunner.rollbackTransaction()
           throw new LogError('Creation from contribution link was not successful', e)
@@ -320,6 +334,12 @@ export class TransactionLinkResolver {
         linkedUser,
         user,
         transactionLink,
+      )
+      await EVENT_TRANSACTION_LINK_REDEEM(
+        user,
+        { id: transactionLink.userId } as DbUser,
+        transactionLink,
+        transactionLink.amount,
       )
 
       return true

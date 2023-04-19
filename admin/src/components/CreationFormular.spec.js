@@ -2,14 +2,18 @@ import { mount } from '@vue/test-utils'
 import CreationFormular from './CreationFormular'
 import { adminCreateContribution } from '../graphql/adminCreateContribution'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
+import VueApollo from 'vue-apollo'
+import { createMockClient } from 'mock-apollo-client'
+import { adminOpenCreations } from '../graphql/adminOpenCreations'
+
+const mockClient = createMockClient()
+const apolloProvider = new VueApollo({
+  defaultClient: mockClient,
+})
 
 const localVue = global.localVue
+localVue.use(VueApollo)
 
-const apolloMutateMock = jest.fn().mockResolvedValue({
-  data: {
-    adminCreateContribution: [0, 0, 0],
-  },
-})
 const stateCommitMock = jest.fn()
 
 const mocks = {
@@ -18,9 +22,6 @@ const mocks = {
     const date = new Date(d)
     return date.toISOString().split('T')[0]
   }),
-  $apollo: {
-    mutate: apolloMutateMock,
-  },
   $store: {
     commit: stateCommitMock,
   },
@@ -31,7 +32,8 @@ const propsData = {
   creation: [],
 }
 
-const now = new Date(Date.now())
+const now = new Date()
+
 const getCreationDate = (sub) => {
   const date = sub === 0 ? now : new Date(now.getFullYear(), now.getMonth() - sub, 1, 0)
   return date.toISOString().split('T')[0]
@@ -40,8 +42,43 @@ const getCreationDate = (sub) => {
 describe('CreationFormular', () => {
   let wrapper
 
+  const adminOpenCreationsMock = jest.fn()
+  const adminCreateContributionMock = jest.fn()
+  mockClient.setRequestHandler(
+    adminOpenCreations,
+    adminOpenCreationsMock.mockResolvedValue({
+      data: {
+        adminOpenCreations: [
+          {
+            month: new Date(now.getFullYear(), now.getMonth() - 2).getMonth(),
+            year: new Date(now.getFullYear(), now.getMonth() - 2).getFullYear(),
+            amount: '200',
+          },
+          {
+            month: new Date(now.getFullYear(), now.getMonth() - 1).getMonth(),
+            year: new Date(now.getFullYear(), now.getMonth() - 1).getFullYear(),
+            amount: '400',
+          },
+          {
+            month: now.getMonth(),
+            year: now.getFullYear(),
+            amount: '600',
+          },
+        ],
+      },
+    }),
+  )
+  mockClient.setRequestHandler(
+    adminCreateContribution,
+    adminCreateContributionMock.mockResolvedValue({
+      data: {
+        adminCreateContribution: [0, 0, 0],
+      },
+    }),
+  )
+
   const Wrapper = () => {
-    return mount(CreationFormular, { localVue, mocks, propsData })
+    return mount(CreationFormular, { localVue, mocks, propsData, apolloProvider })
   }
 
   describe('mount', () => {
@@ -107,17 +144,12 @@ describe('CreationFormular', () => {
             })
 
             it('sends ... to apollo', () => {
-              expect(apolloMutateMock).toBeCalledWith(
-                expect.objectContaining({
-                  mutation: adminCreateContribution,
-                  variables: {
-                    email: 'benjamin@bluemchen.de',
-                    creationDate: getCreationDate(2),
-                    amount: 90,
-                    memo: 'Test create coins',
-                  },
-                }),
-              )
+              expect(adminCreateContributionMock).toBeCalledWith({
+                email: 'benjamin@bluemchen.de',
+                creationDate: getCreationDate(2),
+                amount: 90,
+                memo: 'Test create coins',
+              })
             })
 
             it('emits update-user-data', () => {
@@ -144,7 +176,7 @@ describe('CreationFormular', () => {
 
           describe('sendForm with server error', () => {
             beforeEach(async () => {
-              apolloMutateMock.mockRejectedValueOnce({ message: 'Ouch!' })
+              adminCreateContributionMock.mockRejectedValueOnce({ message: 'Ouch!' })
               await wrapper.find('.test-submit').trigger('click')
             })
 
@@ -212,7 +244,7 @@ describe('CreationFormular', () => {
             })
 
             it('sends ... to apollo', () => {
-              expect(apolloMutateMock).toBeCalled()
+              expect(adminCreateContributionMock).toBeCalled()
             })
           })
 
@@ -275,7 +307,7 @@ describe('CreationFormular', () => {
             })
 
             it('sends mutation to apollo', () => {
-              expect(apolloMutateMock).toBeCalled()
+              expect(adminCreateContributionMock).toBeCalled()
             })
 
             it('toast success message', () => {

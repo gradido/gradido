@@ -3,14 +3,14 @@ import Name from './Name'
 
 const localVue = global.localVue
 
+const routerPushMock = jest.fn()
+
 const mocks = {
   $router: {
-    push: jest.fn(),
-    history: {
-      current: {
-        fullPath: '/transactions',
-      },
-    },
+    push: routerPushMock,
+  },
+  $route: {
+    path: '/transactions',
   },
 }
 
@@ -47,7 +47,7 @@ describe('Name', () => {
     describe('with linked user', () => {
       beforeEach(async () => {
         await wrapper.setProps({
-          linkedUser: { firstName: 'Bibi', lastName: 'Bloxberg', email: 'bibi@bloxberg.de' },
+          linkedUser: { firstName: 'Bibi', lastName: 'Bloxberg', gradidoID: 'gradido-ID' },
         })
       })
 
@@ -64,13 +64,17 @@ describe('Name', () => {
           await wrapper.find('div.gdd-transaction-list-item-name').find('a').trigger('click')
         })
 
-        it('emits  set tunneled email', () => {
-          expect(wrapper.emitted('set-tunneled-email')).toEqual([['bibi@bloxberg.de']])
+        it('pushes router to send', () => {
+          expect(routerPushMock).toBeCalledWith({
+            path: '/send',
+          })
         })
 
-        it('pushes the route with query for email', () => {
-          expect(mocks.$router.push).toBeCalledWith({
-            path: '/send',
+        it('pushes query for gradidoID', () => {
+          expect(routerPushMock).toBeCalledWith({
+            query: {
+              gradidoID: 'gradido-ID',
+            },
           })
         })
       })

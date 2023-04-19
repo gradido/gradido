@@ -1,4 +1,4 @@
-import gql from 'graphql-tag'
+import { gql } from 'graphql-tag'
 
 export const verifyLogin = gql`
   query {
@@ -337,6 +337,15 @@ export const listContributionMessages = gql`
         userLastName
         userId
       }
+    }
+  }
+`
+
+export const user = gql`
+  query ($identifier: String!) {
+    user(identifier: $identifier) {
+      firstName
+      lastName
     }
   }
 `

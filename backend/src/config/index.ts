@@ -1,7 +1,9 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
+/* eslint-disable n/no-process-env */
 
+import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
-import Decimal from 'decimal.js-light'
+
 dotenv.config()
 
 Decimal.set({
@@ -10,7 +12,7 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0063-event_link_fields',
+  DB_VERSION: '0064-event_rename',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
@@ -74,7 +76,7 @@ const email = {
   EMAIL_SENDER: process.env.EMAIL_SENDER || 'info@gradido.net',
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || '',
   EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'mailserver',
-  EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '1025',
+  EMAIL_SMTP_PORT: Number(process.env.EMAIL_SMTP_PORT) || 1025,
   // eslint-disable-next-line no-unneeded-ternary
   EMAIL_TLS: process.env.EMAIL_TLS === 'false' ? false : true,
   EMAIL_LINK_VERIFICATION:
@@ -119,7 +121,7 @@ const federation = {
     Number(process.env.FEDERATION_VALIDATE_COMMUNITY_TIMER) || 60000,
 }
 
-const CONFIG = {
+export const CONFIG = {
   ...constants,
   ...server,
   ...database,
@@ -130,5 +132,3 @@ const CONFIG = {
   ...webhook,
   ...federation,
 }
-
-export default CONFIG

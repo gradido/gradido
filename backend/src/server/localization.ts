@@ -1,6 +1,8 @@
 import path from 'path'
-import { backendLogger } from './logger'
+
 import i18n from 'i18n'
+
+import { backendLogger } from './logger'
 
 i18n.configure({
   locales: ['en', 'de'],

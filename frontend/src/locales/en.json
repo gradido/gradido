@@ -89,6 +89,8 @@
     "decay_introduced": "Decay was introduced on:",
     "decay_since_last_transaction": "Decay since the last transaction",
     "last_transaction": "Last transaction:",
+    "new_balance": "New balance",
+    "old_balance": "Previous balance",
     "past_time": "Time passed",
     "Starting_block_decay": "Starting Block Decay",
     "total": "Total",
@@ -100,6 +102,7 @@
     }
   },
   "delete": "Delete",
+  "download": "Download",
   "edit": "edit",
   "em-dash": "—",
   "error": {

@@ -1,5 +1,5 @@
-import { ObjectType, Field, Int } from 'type-graphql'
 import { Community as DbCommunity } from '@entity/Community'
+import { ObjectType, Field, Int } from 'type-graphql'
 
 @ObjectType()
 export class Community {
@@ -8,9 +8,7 @@ export class Community {
     this.foreign = dbCom.foreign
     this.publicKey = dbCom.publicKey.toString()
     this.url =
-      (dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/') +
-      'api/' +
-      dbCom.apiVersion
+      (dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/') + dbCom.apiVersion
     this.lastAnnouncedAt = dbCom.lastAnnouncedAt
     this.verifiedAt = dbCom.verifiedAt
     this.lastErrorAt = dbCom.lastErrorAt

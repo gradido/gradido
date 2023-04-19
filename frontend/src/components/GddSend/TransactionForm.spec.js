@@ -2,9 +2,17 @@ import { mount } from '@vue/test-utils'
 import TransactionForm from './TransactionForm'
 import flushPromises from 'flush-promises'
 import { SEND_TYPES } from '@/pages/Send'
-import DashboardLayout from '@/layouts/DashboardLayout'
+import { createMockClient } from 'mock-apollo-client'
+import VueApollo from 'vue-apollo'
+import { user as userQuery } from '@/graphql/queries'
+
+const mockClient = createMockClient()
+const apolloProvider = new VueApollo({
+  defaultClient: mockClient,
+})
 
 const localVue = global.localVue
+localVue.use(VueApollo)
 
 describe('TransactionForm', () => {
   let wrapper
@@ -22,6 +30,7 @@ describe('TransactionForm', () => {
     },
     $route: {
       params: {},
+      query: {},
     },
   }
 
@@ -34,9 +43,23 @@ describe('TransactionForm', () => {
       localVue,
       mocks,
       propsData,
-      provide: DashboardLayout.provide,
+      apolloProvider,
     })
   }
+
+  const userQueryMock = jest.fn()
+
+  mockClient.setRequestHandler(
+    userQuery,
+    userQueryMock.mockRejectedValueOnce({ message: 'Query user name fails!' }).mockResolvedValue({
+      data: {
+        user: {
+          firstName: 'Bibi',
+          lastName: 'Bloxberg',
+        },
+      },
+    }),
+  )
 
   describe('mount', () => {
     beforeEach(() => {
@@ -139,7 +162,7 @@ describe('TransactionForm', () => {
               .setValue('  valid@email.com  ')
             await wrapper.find('div[data-test="input-email"]').find('input').trigger('blur')
             await flushPromises()
-            expect(wrapper.vm.form.email).toBe('valid@email.com')
+            expect(wrapper.vm.form.identifier).toBe('valid@email.com')
           })
         })
 
@@ -290,12 +313,12 @@ Die ganze Welt bezwingen.“`)
               .find('textarea')
               .setValue('Long enough')
             await flushPromises()
-            expect(wrapper.vm.form.email).toBe('someone@watches.tv')
+            expect(wrapper.vm.form.identifier).toBe('someone@watches.tv')
             expect(wrapper.vm.form.amount).toBe('87.23')
             expect(wrapper.vm.form.memo).toBe('Long enough')
             await wrapper.find('button[type="reset"]').trigger('click')
             await flushPromises()
-            expect(wrapper.vm.form.email).toBe('')
+            expect(wrapper.vm.form.identifier).toBe('')
             expect(wrapper.vm.form.amount).toBe('')
             expect(wrapper.vm.form.memo).toBe('')
           })
@@ -321,10 +344,11 @@ Die ganze Welt bezwingen.“`)
             expect(wrapper.emitted('set-transaction')).toEqual([
               [
                 {
-                  email: 'someone@watches.tv',
+                  identifier: 'someone@watches.tv',
                   amount: 87.23,
                   memo: 'Long enough',
                   selected: 'send',
+                  userName: '',
                 },
               ],
             ])
@@ -343,6 +367,27 @@ Die ganze Welt bezwingen.“`)
 
         it('has no input field of id input-group-1', () => {
           expect(wrapper.find('#input-group-1').exists()).toBe(false)
+        })
+      })
+    })
+
+    describe('with gradido ID', () => {
+      beforeEach(async () => {
+        jest.clearAllMocks()
+        mocks.$route.query.gradidoID = 'gradido-ID'
+        wrapper = Wrapper()
+        await wrapper.vm.$nextTick()
+      })
+
+      describe('query for username with success', () => {
+        it('has no email input field', () => {
+          expect(wrapper.find('div[data-test="input-email"]').exists()).toBe(false)
+        })
+
+        it('queries the username', () => {
+          expect(userQueryMock).toBeCalledWith({
+            identifier: 'gradido-ID',
+          })
         })
       })
     })
