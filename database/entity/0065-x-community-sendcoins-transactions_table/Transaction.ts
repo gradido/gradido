@@ -77,6 +77,7 @@ export class Transaction extends BaseEntity {
 
   @Column({
     name: 'user_gradido_id',
+    type: 'varchar',
     length: 36,
     nullable: false,
     collation: 'utf8mb4_unicode_ci',
@@ -85,6 +86,7 @@ export class Transaction extends BaseEntity {
 
   @Column({
     name: 'user_community_uuid',
+    type: 'varchar',
     length: 36,
     nullable: true,
     collation: 'utf8mb4_unicode_ci',
@@ -93,6 +95,7 @@ export class Transaction extends BaseEntity {
 
   @Column({
     name: 'user_name',
+    type: 'varchar',
     length: 512,
     nullable: true,
     collation: 'utf8mb4_unicode_ci',
@@ -110,6 +113,7 @@ export class Transaction extends BaseEntity {
 
   @Column({
     name: 'linked_user_gradido_id',
+    type: 'varchar',
     length: 36,
     nullable: true,
     collation: 'utf8mb4_unicode_ci',
@@ -118,6 +122,7 @@ export class Transaction extends BaseEntity {
 
   @Column({
     name: 'linked_user_community_uuid',
+    type: 'varchar',
     length: 36,
     nullable: true,
     collation: 'utf8mb4_unicode_ci',
@@ -126,6 +131,7 @@ export class Transaction extends BaseEntity {
 
   @Column({
     name: 'linked_user_name',
+    type: 'varchar',
     length: 512,
     nullable: true,
     collation: 'utf8mb4_unicode_ci',
