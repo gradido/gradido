@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Query, Resolver } from 'type-graphql'
 import { federationLogger as logger } from '@/server/logger'
-import { Community as DbCommunity } from '@entity/Community'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { GetPublicKeyResult } from '../model/GetPublicKeyResult'
 
 @Resolver()
@@ -10,7 +10,7 @@ export class PublicKeyResolver {
   @Query(() => GetPublicKeyResult)
   async getPublicKey(): Promise<GetPublicKeyResult> {
     logger.debug(`getPublicKey() via apiVersion=1_0 ...`)
-    const homeCom = await DbCommunity.findOneOrFail({
+    const homeCom = await DbFederatedCommunity.findOneOrFail({
       foreign: false,
       apiVersion: '1_0',
     })
