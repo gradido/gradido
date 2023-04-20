@@ -5,11 +5,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import CONFIG from '@/config'
+import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line import/no-relative-parent-imports
 import KlicktippConnector from 'klicktipp-api'
 
 const klicktippConnector = new KlicktippConnector()
+
+export const fieldIndex = async () => {
+  const isLogin = await loginKlicktippUser()
+  if (isLogin) {
+    const result = await klicktippConnector.fieldIndex()
+    return result
+  }
+  return false
+}
 
 export const klicktippSignIn = async (
   email: string,
@@ -47,9 +57,14 @@ export const getKlickTippUser = async (email: string): Promise<any> => {
   if (!CONFIG.KLICKTIPP) return true
   const isLogin = await loginKlicktippUser()
   if (isLogin) {
-    const subscriberId = await klicktippConnector.subscriberSearch(email)
-    const result = await klicktippConnector.subscriberGet(subscriberId)
-    return result
+    try {
+      const subscriberId = await klicktippConnector.subscriberSearch(email)
+      return klicktippConnector.subscriberGet(subscriberId)
+    } catch (e) {
+      logger.error(`Could not find subscriber ${email}`)
+      return false
+    }
+    
   }
   return false
 }
@@ -97,15 +112,17 @@ export const addFieldsToSubscriber = async (
   newemail = '',
   newsmsnumber = '',
 ) => {
-  // eslint-disable-next-line no-console
-  console.log('email', email)
-  // eslint-disable-next-line no-console
-  console.log('fields', fields)
   if (!CONFIG.KLICKTIPP) return true
   const isLogin = await loginKlicktippUser()
   if (isLogin) {
-    const subscriberId = await klicktippConnector.subscriberSearch(email)
-    return klicktippConnector.subscriberUpdate(subscriberId, fields, newemail, newsmsnumber)
+    try {
+      const subscriberId = await klicktippConnector.subscriberSearch(email)
+      const result = await klicktippConnector.subscriberUpdate(subscriberId, fields, newemail, newsmsnumber)
+      return result
+    } catch (e) {
+      logger.error(`Could not update subscriber ${email}, ${JSON.stringify(fields)}, ${e}`)
+      return false
+    }
   }
   return false
 }
