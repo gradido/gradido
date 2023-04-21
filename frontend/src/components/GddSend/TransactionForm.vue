@@ -49,8 +49,8 @@
               <b-row>
                 <b-col>
                   <b-row>
-                    <b-col cols="12">
-                      <div v-if="radioSelected === sendTypes.send && !gradidoID">
+                    <b-col cols="12" v-if="radioSelected === sendTypes.send">
+                      <div v-if="!gradidoID">
                         <input-email
                           :name="$t('form.recipient')"
                           :label="$t('form.recipient')"
@@ -60,7 +60,7 @@
                           @onValidation="onValidation"
                         />
                       </div>
-                      <div v-else-if="gradidoID" class="mb-4">
+                      <div v-else class="mb-4">
                         <b-row>
                           <b-col>{{ $t('form.recipient') }}</b-col>
                         </b-row>
@@ -130,6 +130,7 @@ import InputEmail from '@/components/Inputs/InputEmail'
 import InputAmount from '@/components/Inputs/InputAmount'
 import InputTextarea from '@/components/Inputs/InputTextarea'
 import { user as userQuery } from '@/graphql/queries'
+import { isEmpty } from 'lodash'
 
 export default {
   name: 'TransactionForm',
@@ -176,7 +177,8 @@ export default {
       this.form.amount = ''
       this.form.memo = ''
       this.$refs.formValidator.validate()
-      if (this.$route.query && !this.$route.query === {}) this.$router.replace({ query: undefined })
+      if (this.$route.query && !isEmpty(this.$route.query))
+        this.$router.replace({ query: undefined })
     },
   },
   apollo: {
