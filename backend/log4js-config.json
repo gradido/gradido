@@ -47,7 +47,7 @@
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] - %m"
       },
       "keepFileExt" : true,
       "fileNameSep" : "_",
@@ -60,7 +60,7 @@
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m %s"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] - %m %s"
       },
       "keepFileExt" : true,
       "fileNameSep" : "_",
@@ -77,7 +77,7 @@
       "type": "stdout",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m %s"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] - %m"
       }
     },
     "apolloOut": 
@@ -85,7 +85,7 @@
       "type": "stdout",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m %s"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] - %m"
       }
     }    
   },
