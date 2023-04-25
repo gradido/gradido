@@ -4,10 +4,19 @@ import DHT from '@hyperswarm/dht'
 import { logger } from '@/server/logger'
 import CONFIG from '@/config'
 import { Community as DbCommunity } from '@entity/Community'
+import DEVOP from '@/config/devop'
+import { setDevOpEnvValue } from '@/config/tools'
 
 const KEY_SECRET_SEEDBYTES = 32
-const getSeed = (): Buffer | null =>
-  CONFIG.FEDERATION_DHT_SEED ? Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED) : null
+const getSeed = (): Buffer | null => {
+  let dhtseed = DEVOP.FEDERATION_DHT_SEED
+  logger.debug('dhtseed set by DEVOP.FEDERATION_DHT_SEED={}', DEVOP.FEDERATION_DHT_SEED)
+  if (!dhtseed) {
+    dhtseed = CONFIG.FEDERATION_DHT_SEED
+    logger.debug('dhtseed overwritten by CONFIG.FEDERATION_DHT_SEED={}', CONFIG.FEDERATION_DHT_SEED)
+  }
+  return dhtseed ? Buffer.alloc(KEY_SECRET_SEEDBYTES, dhtseed) : null
+}
 
 const POLLTIME = 20000
 const SUCCESSTIME = 120000
@@ -30,6 +39,9 @@ export const startDHT = async (topic: string): Promise<void> => {
     const keyPair = DHT.keyPair(getSeed())
     logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
+    // insert or update keyPair in .env.devop file
+    setDevOpEnvValue('HOME_COMMUNITY_PUBLICKEY', keyPair.publicKey.toString('hex'))
+    setDevOpEnvValue('HOME_COMMUNITY_PRIVATEKEY', keyPair.secretKey.toString('hex'))
 
     const ownApiVersions = await writeHomeCommunityEnries(keyPair.publicKey)
     logger.info(`ApiList: ${JSON.stringify(ownApiVersions)}`)
