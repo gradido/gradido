@@ -4,8 +4,10 @@ import DHT from '@hyperswarm/dht'
 import { logger } from '@/server/logger'
 import CONFIG from '@/config'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { Community as DbCommunity } from '@entity/Community'
 import DEVOP from '@/config/devop'
 import { setDevOpEnvValue } from '@/config/tools'
+import { v4 as uuidv4 } from 'uuid'
 
 const KEY_SECRET_SEEDBYTES = 32
 const getSeed = (): Buffer | null => {
@@ -42,8 +44,9 @@ export const startDHT = async (topic: string): Promise<void> => {
     // insert or update keyPair in .env.devop file
     setDevOpEnvValue('HOME_COMMUNITY_PUBLICKEY', keyPair.publicKey.toString('hex'))
     setDevOpEnvValue('HOME_COMMUNITY_PRIVATEKEY', keyPair.secretKey.toString('hex'))
+    await writeHomeCommunityEntry(keyPair.publicKey)
 
-    const ownApiVersions = await writeFederatedHomeCommunityEnries(keyPair.publicKey)
+    const ownApiVersions = await writeFederatedHomeCommunityEntries(keyPair.publicKey)
     logger.info(`ApiList: ${JSON.stringify(ownApiVersions)}`)
 
     const node = new DHT({ keyPair })
@@ -191,7 +194,7 @@ export const startDHT = async (topic: string): Promise<void> => {
   }
 }
 
-async function writeFederatedHomeCommunityEnries(pubKey: any): Promise<CommunityApi[]> {
+async function writeFederatedHomeCommunityEntries(pubKey: any): Promise<CommunityApi[]> {
   const homeApiVersions: CommunityApi[] = Object.values(ApiVersionType).map(function (apiEnum) {
     const comApi: CommunityApi = {
       api: apiEnum,
@@ -215,7 +218,56 @@ async function writeFederatedHomeCommunityEnries(pubKey: any): Promise<Community
       logger.info(`federation home-community inserted successfully: ${JSON.stringify(homeCom)}`)
     })
   } catch (err) {
-    throw new Error(`Federation: Error writing HomeCommunity-Entries: ${err}`)
+    throw new Error(`Federation: Error writing federated HomeCommunity-Entries: ${err}`)
   }
   return homeApiVersions
+}
+
+async function writeHomeCommunityEntry(pubKey: any): Promise<void> {
+  try {
+    // check for existing homeCommunity entry
+    let homeCom = await DbCommunity.findOne({ foreign: false, publicKey: pubKey })
+    if (!homeCom) {
+      // check if a homecommunity with a different publicKey still exists
+      homeCom = await DbCommunity.findOne({ foreign: false })
+    }
+    if (homeCom) {
+      // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
+      homeCom.publicKey = pubKey.toString('hex')
+      homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL
+      homeCom.name = CONFIG.COMMUNITY_NAME
+      homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
+      // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
+      await DbCommunity.save(homeCom)
+      logger.info(`home-community updated successfully: ${JSON.stringify(homeCom)}`)
+    } else {
+      // insert a new homecommunity entry including a new ID and UUID
+      homeCom = new DbCommunity()
+      homeCom.foreign = false
+      homeCom.publicKey = pubKey.toString('hex')
+      homeCom.communityUuid = await newCommunityUuid()
+      homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL
+      homeCom.name = CONFIG.COMMUNITY_NAME
+      homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
+      homeCom.creationDate = new Date()
+      // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
+      await DbCommunity.insert(homeCom)
+      logger.info(`home-community inserted successfully: ${JSON.stringify(homeCom)}`)
+    }
+  } catch (err) {
+    throw new Error(`Federation: Error writing HomeCommunity-Entry: ${err}`)
+  }
+}
+
+const newCommunityUuid = async (): Promise<string> => {
+  let uuid: string
+  let countIds: number
+  do {
+    uuid = uuidv4()
+    countIds = await DbCommunity.count({ where: { communityUuid: uuid } })
+    if (countIds > 0) {
+      logger.info('CommunityUuid creation conflict...')
+    }
+  } while (countIds > 0)
+  return uuid
 }

@@ -9,7 +9,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v2.2023-02-07',
+    EXPECTED: 'v3.2023-04-26',
     CURRENT: '',
   },
 }
@@ -26,6 +26,12 @@ const database = {
   DB_DATABASE: process.env.DB_DATABASE || 'gradido_community',
   TYPEORM_LOGGING_RELATIVE_PATH:
     process.env.TYPEORM_LOGGING_RELATIVE_PATH || 'typeorm.dht-node.log',
+}
+
+const community = {
+  COMMUNITY_NAME: process.env.COMMUNITY_NAME || 'Gradido Entwicklung',
+  COMMUNITY_DESCRIPTION:
+    process.env.COMMUNITY_DESCRIPTION || 'Gradido-Community einer lokalen Entwicklungsumgebung.',
 }
 
 const federation = {
@@ -51,6 +57,7 @@ const CONFIG = {
   ...constants,
   ...server,
   ...database,
+  ...community,
   ...federation,
 }
 
