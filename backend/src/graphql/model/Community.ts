@@ -30,7 +30,7 @@ export class Community {
   url: string
 
   @Field(() => Date, { nullable: true })
-  creationDate: Date |  null
+  creationDate: Date | null
 
   @Field(() => String, { nullable: true })
   uuid: string | null
