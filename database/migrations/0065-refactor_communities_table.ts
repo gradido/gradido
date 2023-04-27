@@ -33,5 +33,4 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   // write downgrade logic as parameter of queryFn
   await queryFn(`DROP TABLE communities;`)
   await queryFn(`RENAME TABLE federated_communities TO communities;`)
-
 }
