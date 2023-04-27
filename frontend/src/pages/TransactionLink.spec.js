@@ -374,12 +374,12 @@ describe('TransactionLink', () => {
 
     describe('error on transaction link query', () => {
       beforeEach(() => {
-        apolloQueryMock.mockRejectedValue({ message: 'Ouchh!' })
+        apolloQueryMock.mockRejectedValue({ message: 'gdd_per_link.redeemlink-error' })
         wrapper = Wrapper()
       })
 
       it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('Ouchh!')
+        expect(toastErrorSpy).toBeCalledWith('gdd_per_link.redeemlink-error')
       })
     })
   })
