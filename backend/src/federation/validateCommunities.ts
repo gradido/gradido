@@ -1,17 +1,15 @@
-/** eslint-disable @typescript-eslint/no-unsafe-assignment */
 /** eslint-disable @typescript-eslint/no-unsafe-call */
+/** eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { IsNull } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line camelcase
-import { FederationClientImpl as V1_0_FederationClientImpl } from './client/1_0/FederationClientImpl'
+import { requestGetPublicKey as v1_0_requestGetPublicKey } from './client/1_0/FederationClient'
 // eslint-disable-next-line camelcase
-import { FederationClientImpl as V1_1_FederationClientImpl } from './client/1_1/FederationClientImpl'
-import { FederationClient, PublicInfo } from './client/FederationClient'
+import { requestGetPublicKey as v1_1_requestGetPublicKey } from './client/1_1/FederationClient'
 import { ApiVersionType } from './enum/apiVersionType'
 
 export function startValidateCommunities(timerInterval: number): void {
@@ -43,10 +41,7 @@ export async function validateCommunities(): Promise<void> {
         `Federation: validate publicKey for dbCom: ${dbCom.id} with apiVersion=${dbCom.apiVersion}`,
       )
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const pubKey = await getVersionedFederationClient(dbCom.apiVersion).requestGetPublicKey(
-          dbCom,
-        )
+        const pubKey = await invokeVersionedRequestGetPublicKey(dbCom)
         logger.info(
           'Federation: received publicKey from endpoint',
           pubKey,
@@ -56,17 +51,6 @@ export async function validateCommunities(): Promise<void> {
           logger.info(`Federation: matching publicKey:  ${pubKey}`)
           await DbFederatedCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
           logger.debug(`Federation: updated dbCom:  ${JSON.stringify(dbCom)}`)
-
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          const pubInfo = await getVersionedFederationClient(dbCom.apiVersion).requestGetPublicInfo(
-            dbCom,
-          )
-          logger.debug(`Federation: getPublicInfo pubInfo:  ${JSON.stringify(pubInfo)}`)
-          if (pubInfo) {
-            logger.info(`Federation: write foreign community...`)
-            await writeForeignCommunity(dbCom, pubInfo)
-            logger.info(`Federation: write foreign community... successfully`)
-          }
         } else {
           logger.warn(
             `Federation: received not matching publicKey -> received: ${
@@ -89,36 +73,19 @@ export async function validateCommunities(): Promise<void> {
   }
 }
 
-async function writeForeignCommunity(
-  dbCom: DbFederatedCommunity,
-  pubInfo: PublicInfo,
-): Promise<void> {
-  if (dbCom && pubInfo) {
-    const foreignCom = DbCommunity.create()
-    foreignCom.foreign = true
-    foreignCom.publicKey = dbCom.publicKey
-    foreignCom.url = dbCom.endPoint
-    foreignCom.name = pubInfo.name
-    foreignCom.description = pubInfo.description
-    foreignCom.creationDate = pubInfo.createdAt
-    await DbCommunity.save(foreignCom)
-  }
-}
-
 function isLogError(err: unknown) {
   return err instanceof LogError
 }
 
-function getVersionedFederationClient(apiVersion: string): FederationClient {
-  switch (apiVersion) {
+async function invokeVersionedRequestGetPublicKey(
+  dbCom: DbFederatedCommunity,
+): Promise<string | undefined> {
+  switch (dbCom.apiVersion) {
     case ApiVersionType.V1_0:
-      // eslint-disable-next-line camelcase
-      return new V1_0_FederationClientImpl()
+      return v1_0_requestGetPublicKey(dbCom)
     case ApiVersionType.V1_1:
-      // eslint-disable-next-line camelcase
-      return new V1_1_FederationClientImpl()
+      return v1_1_requestGetPublicKey(dbCom)
     default:
-      // eslint-disable-next-line camelcase
-      return new V1_0_FederationClientImpl()
+      return undefined
   }
 }
