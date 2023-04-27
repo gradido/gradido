@@ -1,10 +1,9 @@
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
-import { Community } from '@model/Community'
 import { Resolver, Query, Authorized } from 'type-graphql'
 
+import { Community } from '@model/Community'
 import { FederatedCommunity } from '@model/FederatedCommunity'
-
 
 import { RIGHTS } from '@/auth/RIGHTS'
 
