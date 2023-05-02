@@ -42,5 +42,8 @@ federation: &federation
 frontend: &frontend
   - 'frontend/**/*'
 
+mariadb: &mariadb
+  - 'mariadb/**/*'
+
 nginx: &nginx
   - 'nginx/**/*'

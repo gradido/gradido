@@ -56,32 +56,6 @@ jobs:
           path: /tmp/database_up.tar
 
   ##############################################################################
-  # JOB: DOCKER BUILD TEST MARIADB #############################################
-  ##############################################################################
-  build_test_mariadb:
-    name: Docker Build Test - MariaDB
-    runs-on: ubuntu-latest
-    #needs: [nothing]
-    steps:
-      ##########################################################################
-      # CHECKOUT CODE ##########################################################
-      ##########################################################################
-      - name: Checkout code
-        uses: actions/checkout@v3
-      ##########################################################################
-      # BUILD MARIADB DOCKER IMAGE #############################################
-      ##########################################################################
-      - name: mariadb | Build `test` image
-        run: |
-          docker build --target mariadb_server -t "gradido/mariadb:test" -f ./mariadb/Dockerfile ./
-          docker save "gradido/mariadb:test" > /tmp/mariadb.tar
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: docker-mariadb-test
-          path: /tmp/mariadb.tar
-
-  ##############################################################################
   # JOB: LINT BACKEND ##########################################################
   ##############################################################################
   lint_backend:
