@@ -9,7 +9,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line import/no-relative-parent-imports
-import { FederationClient, PublicInfo } from '../FederationClient'
+import { FederationClient, PublicCommunityInfo } from '../FederationClient'
 
 export class FederationClientImpl implements FederationClient {
   async requestGetPublicKey(dbCom: DbFederatedCommunity): Promise<string | undefined> {
@@ -45,16 +45,18 @@ export class FederationClientImpl implements FederationClient {
     }
   }
 
-  async requestGetPublicInfo(dbCom: DbFederatedCommunity): Promise<PublicInfo | undefined> {
+  async requestGetPublicCommunityInfo(
+    dbCom: DbFederatedCommunity,
+  ): Promise<PublicCommunityInfo | undefined> {
     let endpoint = dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'
     endpoint = `${endpoint}${dbCom.apiVersion}/`
-    logger.info(`requestGetPublicInfo with endpoint='${endpoint}'...`)
+    logger.info(`requestGetPublicCommunityInfo with endpoint='${endpoint}'...`)
 
     const graphQLClient = GraphQLGetClient.getInstance(endpoint)
     logger.debug(`graphQLClient=${JSON.stringify(graphQLClient)}`)
     const query = gql`
       query {
-        getPublicInfo {
+        getPublicCommunityInfo {
           name
           description
           createdAt
@@ -71,9 +73,12 @@ export class FederationClientImpl implements FederationClient {
       )
       logger.debug(`Response-Data:`, data, errors, extensions, headers, status)
       if (data) {
-        logger.debug(`Response-PublicInfo:`, data.getPublicInfo.publicInfo)
+        logger.debug(
+          `Response-PublicCommunityInfo:`,
+          data.getPublicCommunityInfo.publicCommunityInfo,
+        )
         logger.info(`requestGetPublicInfo processed successfully`)
-        return data.getPublicInfo.publicInfo
+        return data.getPublicCommunityInfo.publicCommunityInfo
       }
       logger.warn(`requestGetPublicInfo processed without response data`)
     } catch (err) {

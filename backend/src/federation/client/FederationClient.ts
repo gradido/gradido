@@ -1,6 +1,6 @@
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 
-export type PublicInfo = {
+export type PublicCommunityInfo = {
   name: string
   description: string
   createdAt: Date
@@ -9,5 +9,7 @@ export type PublicInfo = {
 
 export interface FederationClient {
   requestGetPublicKey(dbCom: DbFederatedCommunity): Promise<string | undefined>
-  requestGetPublicInfo(dbCom: DbFederatedCommunity): Promise<PublicInfo | undefined>
+  requestGetPublicCommunityInfo(
+    dbCom: DbFederatedCommunity,
+  ): Promise<PublicCommunityInfo | undefined>
 }

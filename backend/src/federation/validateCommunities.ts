@@ -11,7 +11,7 @@ import { backendLogger as logger } from '@/server/logger'
 import { FederationClientImpl as V1_0_FederationClientImpl } from './client/1_0/FederationClientImpl'
 // eslint-disable-next-line camelcase
 import { FederationClientImpl as V1_1_FederationClientImpl } from './client/1_1/FederationClientImpl'
-import { FederationClient, PublicInfo } from './client/FederationClient'
+import { FederationClient, PublicCommunityInfo } from './client/FederationClient'
 import { ApiVersionType } from './enum/apiVersionType'
 
 export function startValidateCommunities(timerInterval: number): void {
@@ -58,9 +58,9 @@ export async function validateCommunities(): Promise<void> {
           logger.debug(`Federation: updated dbCom:  ${JSON.stringify(dbCom)}`)
 
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          const pubInfo = await getVersionedFederationClient(dbCom.apiVersion).requestGetPublicInfo(
-            dbCom,
-          )
+          const pubInfo = await getVersionedFederationClient(
+            dbCom.apiVersion,
+          ).requestGetPublicCommunityInfo(dbCom)
           logger.debug(`Federation: getPublicInfo pubInfo:  ${JSON.stringify(pubInfo)}`)
           if (pubInfo) {
             logger.info(`Federation: write foreign community...`)
@@ -91,7 +91,7 @@ export async function validateCommunities(): Promise<void> {
 
 async function writeForeignCommunity(
   dbCom: DbFederatedCommunity,
-  pubInfo: PublicInfo,
+  pubInfo: PublicCommunityInfo,
 ): Promise<void> {
   if (dbCom && pubInfo) {
     const foreignCom = DbCommunity.create()

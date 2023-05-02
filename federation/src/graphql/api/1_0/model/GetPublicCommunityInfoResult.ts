@@ -4,7 +4,7 @@ import { Field, ObjectType } from 'type-graphql'
 
 @ObjectType()
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export class GetPublicInfoResult {
+export class GetPublicCommunityInfoResult {
   constructor(dbCom: DbCommunity) {
     this.publicKey = dbCom.publicKey.toString('hex')
     this.name = dbCom.name
