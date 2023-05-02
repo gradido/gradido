@@ -6,8 +6,8 @@ import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 
-import ContributionMessageArgs from '@arg/ContributionMessageArgs'
-import Paginated from '@arg/Paginated'
+import { ContributionMessageArgs } from '@arg/ContributionMessageArgs'
+import { Paginated } from '@arg/Paginated'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { ContributionMessageType } from '@enum/MessageType'
 import { Order } from '@enum/Order'
@@ -20,7 +20,7 @@ import {
   EVENT_CONTRIBUTION_MESSAGE_CREATE,
 } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
-import LogError from '@/server/LogError'
+import { LogError } from '@/server/LogError'
 
 @Resolver()
 export class ContributionMessageResolver {
@@ -146,7 +146,7 @@ export class ContributionMessageResolver {
         await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)
       }
 
-      await sendAddedContributionMessageEmail({
+      void sendAddedContributionMessageEmail({
         firstName: contribution.user.firstName,
         lastName: contribution.user.lastName,
         email: contribution.user.emailContact.email,

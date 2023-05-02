@@ -45,7 +45,7 @@ describe('router', () => {
 
     describe('routes', () => {
       it('has nine routes defined', () => {
-        expect(routes).toHaveLength(8)
+        expect(routes).toHaveLength(9)
       })
 
       it('has "/overview" as default', async () => {
@@ -85,6 +85,13 @@ describe('router', () => {
         it('loads the "CommunityStatistic" page', async () => {
           const component = await routes.find((r) => r.path === '/statistic').component()
           expect(component.default.name).toBe('CommunityStatistic')
+        })
+      })
+
+      describe('federation', () => {
+        it('loads the "FederationVisualize" page', async () => {
+          const component = await routes.find((r) => r.path === '/federation').component()
+          expect(component.default.name).toBe('FederationVisualize')
         })
       })
 

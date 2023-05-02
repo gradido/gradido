@@ -3,9 +3,8 @@ import { ContributionLink as DbContributionLink } from '@entity/ContributionLink
 import { Decimal } from 'decimal.js-light'
 import { Resolver, Args, Arg, Authorized, Mutation, Query, Int, Ctx } from 'type-graphql'
 
-// TODO: this is a strange construct
-import ContributionLinkArgs from '@arg/ContributionLinkArgs'
-import Paginated from '@arg/Paginated'
+import { ContributionLinkArgs } from '@arg/ContributionLinkArgs'
+import { Paginated } from '@arg/Paginated'
 import { Order } from '@enum/Order'
 import { ContributionLink } from '@model/ContributionLink'
 import { ContributionLinkList } from '@model/ContributionLinkList'
@@ -17,7 +16,7 @@ import {
   EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE,
 } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
-import LogError from '@/server/LogError'
+import { LogError } from '@/server/LogError'
 
 import {
   CONTRIBUTIONLINK_NAME_MAX_CHARS,
