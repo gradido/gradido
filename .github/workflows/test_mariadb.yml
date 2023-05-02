@@ -27,6 +27,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
       - name: MariaDB | Build 'test' image
         run: |
           docker build --target mariadb_server -t "gradido/mariadb:test" -f ./mariadb/Dockerfile ./
