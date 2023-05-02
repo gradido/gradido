@@ -196,6 +196,27 @@ Use it as pattern to do all steps manually in your terminal shell.
 
 Follow the commands in `./install.sh` as installation pattern.
 
+## Define Cronjob To Compensate Yarn Output In `/tmp`
+
+`yarn` creates output in `/tmp` directory. This output is generated whenever `yarn start` is called. THis is especially problematic on staging systems where instable versions are automatically deployed which can lead to a ever resatrting service, hence generating alot of yarn output.
+
+To solve this you can install the following hourly cron using `crontab` as `gradido` user.he `gradido` user.
+
+Run:
+
+```bash
+crontab -e
+```
+
+This opens the crontab in edit-mode and insert the following entry:
+
+```bash
+0 * * * * find /tmp -name "yarn--*" -exec rm -r {} \; > /dev/null
+
+```
+
+For production systems this is not need by default since the yarn output is deleted when `start.sh` is executed. If the service runs stable and does not restart frequently the yarn output to the tmp folder scales with the amount of services running.
+
 ## Define Cronjob To start backup script automatically
 
 At least at production stage we need a daily backup of our database. This can be done by adding a cronjob
