@@ -52,7 +52,7 @@ jobs:
       - name: Lint
         run: cd dht-node && yarn && yarn run lint
 
- unit_test:
+  unit_test:
     name: Unit Tests - DHT Node
     if: needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
     needs: [files-changed, build]
