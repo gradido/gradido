@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
     Elopage Webhook
 
@@ -32,8 +33,9 @@
 */
 
 import { LoginElopageBuys } from '@entity/LoginElopageBuys'
-import { UserResolver } from '@/graphql/resolver/UserResolver'
 import { UserContact as dbUserContact } from '@entity/UserContact'
+
+import { UserResolver } from '@/graphql/resolver/UserResolver'
 
 export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   // eslint-disable-next-line no-console
