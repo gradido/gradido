@@ -30,6 +30,9 @@
 admin: &admin
   - 'admin/**/*'
 
+backend: &backend
+  - 'backend/**/*'
+
 dht_node: &dht_node
   - 'dht-node/**/*'
 
