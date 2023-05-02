@@ -3,14 +3,12 @@ name: Gradido DHT Node Test CI
 on: push
 
 jobs:
-  # only (but most important) job from this workflow required for pull requests
-  # check results serve as run conditions for all other jobs here 
   files-changed:
     name: Detect File Changes - DHT Node
     runs-on: ubuntu-latest
     outputs:
       dht_node: ${{ steps.changes.outputs.dht_node }}
-      docker: ${{ steps.changes.outputs.docker }}
+      docker-compose: ${{ steps.changes.outputs.docker-compose }}
     steps:
       - uses: actions/checkout@v3.3.0
 
@@ -22,12 +20,9 @@ jobs:
           filters: .github/file-filters.yml
           list-files: shell
 
-  ##############################################################################
-  # JOB: DOCKER BUILD TEST #####################################################
-  ##############################################################################
   build:
     name: Docker Build Test - DHT Node
-    if: needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker == 'true'
+    if: needs.files-changed.outputs.dht_node == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
@@ -45,9 +40,6 @@ jobs:
           name: docker-dht-node-test
           path: /tmp/dht-node.tar
 
-  ##############################################################################
-  # JOB: LINT ##################################################################
-  ##############################################################################
   lint:
     name: Lint - DHT Node
     if: needs.files-changed.outputs.dht_node == 'true'
@@ -60,12 +52,9 @@ jobs:
       - name: Lint
         run: cd dht-node && yarn && yarn run lint
 
-  ##############################################################################
-  # JOB: UNIT TEST #############################################################
-  ##############################################################################
   unit_test:
     name: Unit Tests - DHT Node
-    if: needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker == 'true'
+    if: needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
     needs: [files-changed, build]
     runs-on: ubuntu-latest
     steps:
