@@ -1,9 +1,9 @@
 import { ArgsType, Field, Int } from 'type-graphql'
 
-import SearchUsersFilters from '@arg/SearchUsersFilters'
+import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 
 @ArgsType()
-export default class SearchUsersArgs {
+export class SearchUsersArgs {
   @Field(() => String)
   searchText: string
 

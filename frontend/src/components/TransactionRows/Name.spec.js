@@ -8,11 +8,9 @@ const routerPushMock = jest.fn()
 const mocks = {
   $router: {
     push: routerPushMock,
-    history: {
-      current: {
-        fullPath: '/transactions',
-      },
-    },
+  },
+  $route: {
+    path: '/transactions',
   },
 }
 
