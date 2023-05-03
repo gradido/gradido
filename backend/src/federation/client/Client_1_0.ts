@@ -1,6 +1,7 @@
 import { Community as DbCommunity } from '@entity/Community'
-import { GraphQLClient, gql } from 'graphql-request'
+import { GraphQLClient } from 'graphql-request'
 
+import { getPublicKey } from '@/federation/query/getPublicKey'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
@@ -27,19 +28,14 @@ export class Client_1_0 {
   getPublicKey = async (): Promise<string | undefined> => {
     logger.info(`requestGetPublicKey with endpoint='${this.endpoint}'...`)
 
-    const query = gql`
-      query {
-        getPublicKey {
-          publicKey
-        }
-      }
-    `
-
     const variables = {}
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const { data, errors, headers, status } = await this.client.rawRequest(query, variables)
+      const { data, errors, headers, status } = await this.client.rawRequest(
+        getPublicKey,
+        variables,
+      )
       logger.debug(`Response-Data:`, data, errors, headers, status)
       if (data) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
