@@ -35,7 +35,8 @@ async function klickTippSendFieldToUser(
   value: string,
 ): Promise<void> {
   for (const event of events) {
-    await addFieldsToSubscriber(event.email, { [value]: event.value })
+    const time = event.value.setSeconds(0)
+    await addFieldsToSubscriber(event.email, { [value]: Math.trunc(time / 1000) })
   }
 }
 
