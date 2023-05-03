@@ -1,0 +1,64 @@
+name: Gradido Database Test CI
+
+on: push
+
+jobs:
+  files-changed:
+    name: Detect File Changes - Database
+    runs-on: ubuntu-latest
+    outputs:
+      database: ${{ steps.changes.outputs.database }}
+      docker-compose: ${{ steps.changes.outputs.docker-compose }}
+      mariadb: ${{ steps.changes.outputs.mariadb }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - name: Check for frontend file changes
+        uses: dorny/paths-filter@v2.11.1
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: .github/file-filters.yml
+          list-files: shell
+
+  build:
+    if: needs.files-changed.outputs.database == 'true'
+    name: Docker Build Test - Database up
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Database | Build 'test_up' image
+        run: docker build --target test_up -t "gradido/database:test_up" database/
+
+  database_migration_test:
+    if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true'  || needs.files-changed.outputs.mariadb == 'true'
+    name: Database Migration Test - Up + Reset
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Database | docker-compose
+        run: docker-compose -f docker-compose.yml up --detach mariadb
+      
+      - name: Database | up
+        run: docker-compose -f docker-compose.yml run -T database yarn up
+      
+      - name: Database | reset
+        run: docker-compose -f docker-compose.yml run -T database yarn reset
+        
+  lint:
+    if: needs.files-changed.outputs.database == 'true'
+    name: Lint - Database Up
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Database | Lint
+        run: cd database && yarn && yarn run lint
