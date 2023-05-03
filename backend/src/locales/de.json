@@ -13,25 +13,30 @@
       "ifYouAreNotTheOne": "Wenn du nicht derjenige bist, der versucht hat sich erneut zu registrieren, wende dich bitte an unseren Support:",
       "onForgottenPasswordClickLink": "Klicke bitte auf den folgenden Link, falls du dein Passwort vergessen haben solltest:",
       "onForgottenPasswordCopyLink": "oder kopiere den obigen Link in dein Browserfenster.",
-      "subject": "Gradido: Erneuter Registrierungsversuch mit deiner E-Mail"
+      "subject": "Gradido: Erneuter Registrierungsversuch mit deiner E-Mail",
+      "title": "Erneuter Registrierungsversuch mit deiner E-Mail"
     },
     "addedContributionMessage": {
       "commonGoodContributionMessage": "du hast zu deinem Gemeinwohl-Beitrag „{contributionMemo}“ eine Nachricht von {senderFirstName} {senderLastName} erhalten.",
       "subject": "Gradido: Nachricht zu deinem Gemeinwohl-Beitrag",
+      "title": "Nachricht zu deinem Gemeinwohl-Beitrag",
       "toSeeAndAnswerMessage": "Um die Nachricht zu sehen und darauf zu antworten, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“!"
     },
     "contributionConfirmed": {
       "commonGoodContributionConfirmed": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde soeben von {senderFirstName} {senderLastName} bestätigt und in deinem Gradido-Konto gutgeschrieben.",
-      "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde bestätigt"
+      "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde bestätigt",
+      "title": "Dein Gemeinwohl-Beitrag wurde bestätigt"
     },
     "contributionDeleted": {
       "commonGoodContributionDeleted": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} gelöscht.",
       "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde gelöscht",
+      "title": "Dein Gemeinwohl-Beitrag wurde gelöscht",
       "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“!"
     },
     "contributionDenied": {
       "commonGoodContributionDenied": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} abgelehnt.",
       "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde abgelehnt",
+      "title": "Dein Gemeinwohl-Beitrag wurde abgelehnt",
       "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“!"
     },
     "general": {
@@ -49,16 +54,19 @@
       "duration": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten. Sollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen:",
       "pleaseClickLink": "Wenn du es warst, klicke bitte auf den Link:",
       "subject": "Gradido: Passwort zurücksetzen",
+      "title": "Passwort zurücksetzen",
       "youOrSomeoneResetPassword": "du, oder jemand anderes, hast für dieses Konto ein Zurücksetzen des Passworts angefordert."
     },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) hat soeben deinen Link eingelöst.",
       "memo": "Nachricht: {transactionMemo}",
-      "subject": "Gradido: {senderFirstName} {senderLastName} hat deinen Gradido-Link eingelöst"
+      "subject": "Gradido: {senderFirstName} {senderLastName} hat deinen Gradido-Link eingelöst",
+      "title": "{senderFirstName} {senderLastName} hat deinen Gradido-Link eingelöst"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "du hast soeben {transactionAmount} GDD von {senderFirstName} {senderLastName} ({senderEmail}) erhalten.",
-      "subject": "Gradido: {senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet"
+      "subject": "Gradido: {senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet",
+      "title": "{senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet"
     }
   },
   "general": {
