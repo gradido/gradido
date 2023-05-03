@@ -196,7 +196,9 @@ export default {
   methods: {
     updateTabIndex() {
       const index = COMMUNITY_TABS.indexOf(this.$route.params.tab)
-      this.tabIndex = index > -1 ? index : 0
+      this.$nextTick(() => {
+        this.tabIndex = index > -1 ? index : 0
+      })
       this.closeAllOpenCollapse()
     },
     closeAllOpenCollapse() {

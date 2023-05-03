@@ -116,6 +116,11 @@ export default {
       pageSize: 25,
     }
   },
+  watch: {
+    tabIndex() {
+      this.currentPage = 1
+    },
+  },
   methods: {
     deleteCreation() {
       this.$apollo

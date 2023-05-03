@@ -38,6 +38,7 @@ const virtualLinkTransaction = (
   createdAt: Date,
   validUntil: Date,
   user: User,
+  previousBalance: Decimal,
 ): Transaction => {
   const linkDbTransaction: dbTransaction = {
     id: -2,

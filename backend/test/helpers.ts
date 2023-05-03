@@ -3,7 +3,7 @@ import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
 
 import { Context } from '@/server/context'
-import createServer from '@/server/createServer'
+import { createServer } from '@/server/createServer'
 
 import { i18n, logger } from './testSetup'
 

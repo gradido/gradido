@@ -6,7 +6,7 @@ import { decode, encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN } from '@/auth/ROLES'
 import { Context } from '@/server/context'
-import LogError from '@/server/LogError'
+import { LogError } from '@/server/LogError'
 
 const isAuthorized: AuthChecker<Context> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
@@ -52,5 +52,3 @@ const isAuthorized: AuthChecker<Context> = async ({ context }, rights) => {
   context.setHeaders.push({ key: 'token', value: encode(decoded.gradidoID) })
   return true
 }
-
-export default isAuthorized

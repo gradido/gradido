@@ -1,0 +1,32 @@
+name: Gradido MariaDB Test CI
+
+on: push
+
+jobs:
+  files-changed:
+    name: Detect File Changes - MariaDB
+    runs-on: ubuntu-latest
+    outputs:
+      mariadb: ${{ steps.changes.outputs.mariadb }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - name: Check for frontend file changes
+        uses: dorny/paths-filter@v2.11.1
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: .github/file-filters.yml
+          list-files: shell
+
+  build_test:
+    if: needs.files-changed.outputs.mariadb == 'true'
+    name: Docker Build Test - MariaDB
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: MariaDB | Build 'test' image
+        run: docker build --target mariadb_server -t "gradido/mariadb:test" -f ./mariadb/Dockerfile ./

@@ -2,7 +2,7 @@
 import { Field, InputType } from 'type-graphql'
 
 @InputType()
-export default class TransactionLinkFilters {
+export class TransactionLinkFilters {
   @Field(() => Boolean, { nullable: true })
   withDeleted?: boolean
 
