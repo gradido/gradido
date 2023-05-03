@@ -215,7 +215,7 @@ This opens the crontab in edit-mode and insert the following entry:
 
 ```
 
-For production systems this is not need by default since the yarn output is deleted when `start.sh` is executed. If the service runs stable and does not restart frequently the yarn output to the tmp folder scales with the amount of services running.
+For production systems this is not needed by default since the yarn output is deleted when `start.sh` is executed. If the service runs stable and does not restart frequently, the yarn output to the tmp folder scales with the amount of services running.
 
 ## Define Cronjob To start backup script automatically
 
