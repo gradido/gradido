@@ -27,14 +27,10 @@ export class Client_1_0 {
 
   getPublicKey = async (): Promise<string | undefined> => {
     logger.info(`requestGetPublicKey with endpoint='${this.endpoint}'...`)
-
-    const variables = {}
-
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { data, errors, headers, status } = await this.client.rawRequest(
-        getPublicKey,
-        variables,
+        getPublicKey
       )
       logger.debug(`Response-Data:`, data, errors, headers, status)
       if (data) {
