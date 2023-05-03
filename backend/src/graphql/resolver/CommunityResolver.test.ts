@@ -1,21 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
+import { Connection } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { testEnvironment } from '@test/helpers'
 
 import { getCommunities } from '@/seeds/graphql/queries'
 
-let query: any
-
 // to do: We need a setup for the tests that closes the connection
-let con: any
-let testEnv: any
+let query: ApolloServerTestClient['query'], con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
