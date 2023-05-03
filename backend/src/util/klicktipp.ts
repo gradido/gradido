@@ -4,8 +4,8 @@ import { User } from '@entity/User'
 import { getKlickTippUser, addFieldsToSubscriber, fieldIndex } from '@/apis/KlicktippController'
 import { EventType } from '@/event/EventType'
 import { lastDateTimeEvents } from '@/graphql/resolver/util/eventList'
-import LogError from '@/server/LogError'
-import connection from '@/typeorm/connection'
+import { LogError } from '@/server/LogError'
+import { connection } from '@/typeorm/connection'
 
 export async function retrieveNotRegisteredEmails(): Promise<string[]> {
   const con = await connection()

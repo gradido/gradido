@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import CONFIG from '@/config'
+import { CONFIG } from '@/config'
 import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line import/no-relative-parent-imports
@@ -64,7 +65,6 @@ export const getKlickTippUser = async (email: string): Promise<any> => {
       logger.error(`Could not find subscriber ${email}`)
       return false
     }
-    
   }
   return false
 }
@@ -117,7 +117,12 @@ export const addFieldsToSubscriber = async (
   if (isLogin) {
     try {
       const subscriberId = await klicktippConnector.subscriberSearch(email)
-      const result = await klicktippConnector.subscriberUpdate(subscriberId, fields, newemail, newsmsnumber)
+      const result = await klicktippConnector.subscriberUpdate(
+        subscriberId,
+        fields,
+        newemail,
+        newsmsnumber,
+      )
       logger.info(`Update of subscriber (${email}) has been successful, ${result}`)
       return result
     } catch (e) {
