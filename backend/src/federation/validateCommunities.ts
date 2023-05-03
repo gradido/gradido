@@ -54,7 +54,7 @@ export async function validateCommunities(): Promise<void> {
           // DbCommunity.delete({ id: dbCom.id })
         }
       } catch (err) {
-        if (!isLogError(err)) {
+        if (!(err instanceof LogError)) {
           logger.error(`Error:`, err)
         }
       }
@@ -65,8 +65,4 @@ export async function validateCommunities(): Promise<void> {
       )
     }
   }
-}
-
-function isLogError(err: unknown) {
-  return err instanceof LogError
 }
