@@ -4,10 +4,7 @@ import { Community as DbCommunity } from '@entity/Community'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
-// eslint-disable-next-line camelcase
-import { requestGetPublicKey as v1_0_requestGetPublicKey } from './client/1_0/FederationClient'
-// eslint-disable-next-line camelcase
-import { requestGetPublicKey as v1_1_requestGetPublicKey } from './client/1_1/FederationClient'
+import { Client } from './client/Client'
 import { ApiVersionType } from './enum/apiVersionType'
 
 export function startValidateCommunities(timerInterval: number): void {
@@ -38,7 +35,7 @@ export async function validateCommunities(): Promise<void> {
         `Federation: validate publicKey for dbCom: ${dbCom.id} with apiVersion=${dbCom.apiVersion}`,
       )
       try {
-        const pubKey = await invokeVersionedRequestGetPublicKey(dbCom)
+        const pubKey = await Client.getInstance(dbCom)?.requestGetPublicKey()
         logger.info(
           'Federation: received publicKey from endpoint',
           pubKey,
@@ -72,15 +69,4 @@ export async function validateCommunities(): Promise<void> {
 
 function isLogError(err: unknown) {
   return err instanceof LogError
-}
-
-async function invokeVersionedRequestGetPublicKey(dbCom: DbCommunity): Promise<string | undefined> {
-  switch (dbCom.apiVersion) {
-    case ApiVersionType.V1_0:
-      return v1_0_requestGetPublicKey(dbCom)
-    case ApiVersionType.V1_1:
-      return v1_1_requestGetPublicKey(dbCom)
-    default:
-      return undefined
-  }
 }
