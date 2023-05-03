@@ -3,9 +3,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { Connection } from '@dbTools/typeorm'
 import { Event as DbEvent } from '@entity/Event'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
@@ -35,8 +35,12 @@ jest.mock('@/emails/sendEmailVariants', () => {
   }
 })
 
-let mutate: any, con: any
-let testEnv: any
+let mutate: ApolloServerTestClient['mutate'], con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 let result: any
 
 beforeAll(async () => {
