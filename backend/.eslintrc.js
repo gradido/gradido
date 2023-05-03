@@ -5,7 +5,7 @@ module.exports = {
     node: true,
   },
   parser: '@typescript-eslint/parser',
-  plugins: ['prettier', '@typescript-eslint', 'type-graphql', 'import', 'n'],
+  plugins: ['prettier', '@typescript-eslint', 'type-graphql', 'import', 'n', 'promise'],
   extends: [
     'standard',
     'eslint:recommended',
@@ -136,6 +136,21 @@ module.exports = {
     'n/prefer-global/url-search-params': 'error',
     'n/prefer-promises/dns': 'error',
     'n/prefer-promises/fs': 'error',
+    // promise
+    'promise/catch-or-return': 'error',
+    'promise/no-return-wrap': 'error',
+    'promise/param-names': 'error',
+    'promise/always-return': 'error',
+    'promise/no-native': 'off',
+    'promise/no-nesting': 'warn',
+    'promise/no-promise-in-callback': 'warn',
+    'promise/no-callback-in-promise': 'warn',
+    'promise/avoid-new': 'warn',
+    'promise/no-new-statics': 'error',
+    'promise/no-return-in-finally': 'warn',
+    'promise/valid-params': 'warn',
+    'promise/prefer-await-to-callbacks': 'error',
+    'promise/no-multiple-resolved': 'error',
   },
   overrides: [
     // only for ts files

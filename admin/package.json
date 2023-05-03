@@ -3,7 +3,7 @@
   "description": "Administraion Interface for Gradido",
   "main": "index.js",
   "author": "Moriz Wahl",
-  "version": "1.19.1",
+  "version": "1.20.0",
   "license": "Apache-2.0",
   "private": false,
   "scripts": {
@@ -33,6 +33,7 @@
     "bootstrap": "4.3.1",
     "bootstrap-vue": "^2.21.2",
     "core-js": "^3.6.5",
+    "date-fns": "^2.29.3",
     "dotenv-webpack": "^7.0.3",
     "express": "^4.17.1",
     "graphql": "^15.6.1",
