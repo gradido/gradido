@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { IsNull, getConnection } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage } from '@entity/ContributionMessage'
@@ -229,11 +228,11 @@ export class ContributionResolver {
     contributionMessage.createdAt = contributionToUpdate.updatedAt
       ? contributionToUpdate.updatedAt
       : contributionToUpdate.createdAt
-    const changeMessage = `${contributionToUpdate.contributionDate}
+    const changeMessage = `${contributionToUpdate.contributionDate.toString()}
     ---
     ${contributionToUpdate.memo}
     ---
-    ${contributionToUpdate.amount}`
+    ${contributionToUpdate.amount.toString()}`
     contributionMessage.message = changeMessage
     contributionMessage.isModerator = false
     contributionMessage.userId = user.id
@@ -259,7 +258,7 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<Decimal[]> {
     logger.info(
-      `adminCreateContribution(email=${email}, amount=${amount}, memo=${memo}, creationDate=${creationDate})`,
+      `adminCreateContribution(email=${email}, amount=${amount.toString()}, memo=${memo}, creationDate=${creationDate})`,
     )
     const clientTimezoneOffset = getClientTimezoneOffset(context)
     if (!isValidDateString(creationDate)) {

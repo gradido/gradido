@@ -5,15 +5,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { Connection } from '@dbTools/typeorm'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { testEnvironment, cleanDB } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
 import { validateCommunities } from './validateCommunities'
 
-let con: any
-let testEnv: any
+let con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger)

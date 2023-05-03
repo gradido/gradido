@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { CONFIG } from '@/config'
 import { i18n } from '@/server/localization'
 import { backendLogger as logger } from '@/server/logger'
@@ -10,7 +8,7 @@ CONFIG.EMAIL_TEST_MODUS = false
 jest.setTimeout(1000000)
 
 jest.mock('@/server/logger', () => {
-  const originalModule = jest.requireActual('@/server/logger')
+  const originalModule = jest.requireActual<typeof logger>('@/server/logger')
   return {
     __esModule: true,
     ...originalModule,
@@ -27,7 +25,7 @@ jest.mock('@/server/logger', () => {
 })
 
 jest.mock('@/server/localization', () => {
-  const originalModule = jest.requireActual('@/server/localization')
+  const originalModule = jest.requireActual<typeof i18n>('@/server/localization')
   return {
     __esModule: true,
     ...originalModule,

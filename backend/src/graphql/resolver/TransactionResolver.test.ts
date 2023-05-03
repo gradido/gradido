@@ -1,13 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { Connection } from '@dbTools/typeorm'
 import { Event as DbEvent } from '@entity/Event'
 import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 
@@ -27,13 +25,16 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
-let mutate: any, query: any, con: any
-let testEnv: any
+let mutate: ApolloServerTestClient['mutate'], con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
-  query = testEnv.query
   con = testEnv.con
   await cleanDB()
 })
@@ -274,7 +275,7 @@ describe('send coins', () => {
       })
 
       // login as admin
-      await query({ mutation: login, variables: peterData })
+      await mutate({ mutation: login, variables: peterData })
 
       // confirm the contribution
       await mutate({
@@ -283,7 +284,7 @@ describe('send coins', () => {
       })
 
       // login as bob again
-      await query({ mutation: login, variables: bobData })
+      await mutate({ mutation: login, variables: bobData })
     })
 
     afterAll(async () => {
