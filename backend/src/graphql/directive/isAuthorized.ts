@@ -8,7 +8,7 @@ import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN } from '@/auth/ROLES'
 import { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
-const isAuthorized: AuthChecker<Context> = async ({ context }, rights) => {
+export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
 
   // is rights an inalienable right?
