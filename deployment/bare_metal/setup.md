@@ -200,7 +200,7 @@ Follow the commands in `./install.sh` as installation pattern.
 
 `yarn` creates output in `/tmp` directory. This output is generated whenever `yarn start` is called. This is especially problematic on staging systems where instable versions are automatically deployed which can lead to an ever restarting, hence generating a lot of yarn output.
 
-To solve this you can install the following hourly cron using `crontab` as `gradido` user.he `gradido` user.
+To solve this you can install the following hourly cron using `crontab` as `gradido` user.
 
 Run:
 
