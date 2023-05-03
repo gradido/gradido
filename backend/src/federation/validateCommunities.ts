@@ -35,7 +35,7 @@ export async function validateCommunities(): Promise<void> {
         `Federation: validate publicKey for dbCom: ${dbCom.id} with apiVersion=${dbCom.apiVersion}`,
       )
       try {
-        const pubKey = await Client.getInstance(dbCom)?.requestGetPublicKey()
+        const pubKey = await Client.getInstance(dbCom)?.getPublicKey()
         logger.info(
           'Federation: received publicKey from endpoint',
           pubKey,

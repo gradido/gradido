@@ -24,7 +24,7 @@ export class Client_1_0 {
     })
   }
 
-  requestGetPublicKey = async (): Promise<string | undefined> => {
+  getPublicKey = async (): Promise<string | undefined> => {
     logger.info(`requestGetPublicKey with endpoint='${this.endpoint}'...`)
 
     const query = gql`
