@@ -11,7 +11,7 @@ import { Client_1_1 } from './Client_1_1'
 type FederationClient = Client_1_0 | Client_1_1
 
 type ClientInstance = {
-  dbCom: DbCommunity
+  id: number
   // eslint-disable-next-line no-use-before-define
   client: FederationClient
 }
@@ -44,13 +44,13 @@ export class Client {
    * just one instance of each subclass around.
    */
   public static getInstance(dbCom: DbCommunity): FederationClient | null {
-    const instance = Client.instanceArray.find((instance) => instance.dbCom === dbCom)
+    const instance = Client.instanceArray.find((instance) => instance.id === dbCom.id)
     if (instance) {
       return instance.client
     }
     const client = Client.createFederationClient(dbCom)
     if (client) {
-      Client.instanceArray.push({ dbCom, client } as ClientInstance)
+      Client.instanceArray.push({ id: dbCom.id, client } as ClientInstance)
     }
     return client
   }
