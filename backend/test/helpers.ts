@@ -2,12 +2,12 @@
 import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
 
-import { Context } from '@/server/context'
 import { createServer } from '@/server/createServer'
 
 import { i18n, logger } from './testSetup'
 
-export const headerPushMock = jest.fn(([t]: Context['setHeaders']) => {
+export const headerPushMock = jest.fn((t) => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
   context.token = t.value
 })
 
