@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/unbound-method */
 import { createTransport } from 'nodemailer'
 
 import { logger, i18n } from '@test/testSetup'
@@ -10,7 +9,7 @@ import { sendEmailTranslated } from './sendEmailTranslated'
 
 CONFIG.EMAIL = false
 CONFIG.EMAIL_SMTP_URL = 'EMAIL_SMTP_URL'
-CONFIG.EMAIL_SMTP_PORT = '1234'
+CONFIG.EMAIL_SMTP_PORT = 1234
 CONFIG.EMAIL_USERNAME = 'user'
 CONFIG.EMAIL_PASSWORD = 'pwd'
 CONFIG.EMAIL_TLS = true
@@ -31,7 +30,7 @@ jest.mock('nodemailer', () => {
 })
 
 describe('sendEmailTranslated', () => {
-  let result: Record<string, unknown> | null
+  let result: Record<string, unknown> | boolean | null
 
   describe('config email is false', () => {
     beforeEach(async () => {

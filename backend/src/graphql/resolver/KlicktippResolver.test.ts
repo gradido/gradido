@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -9,7 +10,7 @@ import { GraphQLError } from 'graphql'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
-import { EventType } from '@/event/Event'
+import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
 import { login, subscribeNewsletter, unsubscribeNewsletter } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -70,14 +71,14 @@ describe('KlicktippResolver', () => {
         expect(isSubscribed).toEqual(true)
       })
 
-      it('stores the SUBSCRIBE_NEWSLETTER event in the database', async () => {
+      it('stores the NEWSLETTER_SUBSCRIBE event in the database', async () => {
         const userConatct = await UserContact.findOneOrFail(
           { email: 'bibi@bloxberg.de' },
           { relations: ['user'] },
         )
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventType.SUBSCRIBE_NEWSLETTER,
+            type: EventType.NEWSLETTER_SUBSCRIBE,
             affectedUserId: userConatct.user.id,
             actingUserId: userConatct.user.id,
           }),
@@ -119,14 +120,14 @@ describe('KlicktippResolver', () => {
         expect(isUnsubscribed).toEqual(true)
       })
 
-      it('stores the UNSUBSCRIBE_NEWSLETTER event in the database', async () => {
+      it('stores the NEWSLETTER_UNSUBSCRIBE event in the database', async () => {
         const userConatct = await UserContact.findOneOrFail(
           { email: 'bibi@bloxberg.de' },
           { relations: ['user'] },
         )
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventType.UNSUBSCRIBE_NEWSLETTER,
+            type: EventType.NEWSLETTER_UNSUBSCRIBE,
             affectedUserId: userConatct.user.id,
             actingUserId: userConatct.user.id,
           }),
