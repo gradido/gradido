@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import CONFIG from './config'
+import { CONFIG } from './config'
 import { startValidateCommunities } from './federation/validateCommunities'
-import createServer from './server/createServer'
+import { createServer } from './server/createServer'
 
 async function main() {
   const { app } = await createServer()

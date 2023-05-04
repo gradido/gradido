@@ -1,23 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
+import { Connection } from '@dbTools/typeorm'
 import { Contribution } from '@entity/Contribution'
 import { Event as DbEvent } from '@entity/Event'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { UserInputError } from 'apollo-server-express'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { Order } from '@enum/Order'
-import { ContributionListResult } from '@model/Contribution'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import {
   cleanDB,
   resetToken,
@@ -32,7 +27,7 @@ import {
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
 } from '@/emails/sendEmailVariants'
-import { EventType } from '@/event/Event'
+import { EventType } from '@/event/Events'
 import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
@@ -63,8 +58,14 @@ import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
 jest.mock('@/emails/sendEmailVariants')
 
-let mutate: any, query: any, con: any
-let testEnv: any
+let mutate: ApolloServerTestClient['mutate'],
+  query: ApolloServerTestClient['query'],
+  con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 let creation: Contribution | void
 let admin: User
 let pendingContribution: any
@@ -166,7 +167,7 @@ describe('ContributionResolver', () => {
   describe('createContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+        const { errors: errorObjects } = await mutate({
           mutation: createContribution,
           variables: { amount: 100.0, memo: 'Test Contribution', creationDate: 'not-valid' },
         })
@@ -191,7 +192,7 @@ describe('ContributionResolver', () => {
         it('throws error when memo length smaller than 5 chars', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
               amount: 100.0,
@@ -210,7 +211,7 @@ describe('ContributionResolver', () => {
         it('throws error when memo length greater than 255 chars', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
               amount: 100.0,
@@ -227,7 +228,7 @@ describe('ContributionResolver', () => {
 
         it('throws error when creationDate not-valid', async () => {
           jest.clearAllMocks()
-          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
               amount: 100.0,
@@ -250,7 +251,7 @@ describe('ContributionResolver', () => {
         it('throws error when creationDate 3 month behind', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
               amount: 100.0,
@@ -298,7 +299,7 @@ describe('ContributionResolver', () => {
   describe('updateContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+        const { errors: errorObjects } = await mutate({
           mutation: updateContribution,
           variables: {
             contributionId: 1,
@@ -327,7 +328,7 @@ describe('ContributionResolver', () => {
         it('throws error', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
@@ -348,7 +349,7 @@ describe('ContributionResolver', () => {
         it('throws error', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
@@ -400,7 +401,7 @@ describe('ContributionResolver', () => {
 
         it('throws an error', async () => {
           jest.clearAllMocks()
-          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
@@ -433,7 +434,7 @@ describe('ContributionResolver', () => {
 
         it('throws an error', async () => {
           jest.clearAllMocks()
-          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: adminUpdateContribution,
             variables: {
               id: pendingContribution.data.createContribution.id,
@@ -512,7 +513,7 @@ describe('ContributionResolver', () => {
 
         it('throws an error', async () => {
           jest.clearAllMocks()
-          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
@@ -541,7 +542,7 @@ describe('ContributionResolver', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
           const date = new Date()
-          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
@@ -564,7 +565,7 @@ describe('ContributionResolver', () => {
         it('updates contribution', async () => {
           const {
             data: { updateContribution: contribution },
-          }: { data: { updateContribution: UnconfirmedContribution } } = await mutate({
+          } = await mutate({
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
@@ -603,7 +604,7 @@ describe('ContributionResolver', () => {
   describe('denyContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+        const { errors: errorObjects } = await mutate({
           mutation: denyContribution,
           variables: {
             id: 1,
@@ -626,7 +627,7 @@ describe('ContributionResolver', () => {
       })
 
       it('returns an error', async () => {
-        const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+        const { errors: errorObjects } = await mutate({
           mutation: denyContribution,
           variables: {
             id: 1,
@@ -651,7 +652,7 @@ describe('ContributionResolver', () => {
       describe('wrong contribution id', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
-          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: denyContribution,
             variables: {
               id: -1,
@@ -695,7 +696,7 @@ describe('ContributionResolver', () => {
             },
           })
 
-          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: denyContribution,
             variables: {
               id: contribution.data.createContribution.id,
@@ -740,7 +741,7 @@ describe('ContributionResolver', () => {
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
 
-          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: denyContribution,
             variables: {
               id: contribution.data.createContribution.id,
@@ -785,7 +786,7 @@ describe('ContributionResolver', () => {
             },
           })
 
-          const { errors: errorObjects }: { errors: GraphQLError[] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: denyContribution,
             variables: {
               id: contribution.data.createContribution.id,
@@ -807,7 +808,7 @@ describe('ContributionResolver', () => {
           })
           const {
             data: { denyContribution: isDenied },
-          }: { data: { denyContribution: boolean } } = await mutate({
+          } = await mutate({
             mutation: denyContribution,
             variables: {
               id: contributionToDeny.data.createContribution.id,
@@ -846,8 +847,8 @@ describe('ContributionResolver', () => {
   describe('deleteContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
-          query: deleteContribution,
+        const { errors: errorObjects } = await mutate({
+          mutation: deleteContribution,
           variables: {
             id: -1,
           },
@@ -871,7 +872,7 @@ describe('ContributionResolver', () => {
       describe('wrong contribution id', () => {
         it('returns an error', async () => {
           jest.clearAllMocks()
-          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: deleteContribution,
             variables: {
               id: -1,
@@ -899,7 +900,7 @@ describe('ContributionResolver', () => {
         })
 
         it('returns an error', async () => {
-          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: deleteContribution,
             variables: {
               id: contributionToDelete.data.createContribution.id,
@@ -935,7 +936,7 @@ describe('ContributionResolver', () => {
         it('deletes successfully', async () => {
           const {
             data: { deleteContribution: isDenied },
-          }: { data: { deleteContribution: boolean } } = await mutate({
+          } = await mutate({
             mutation: deleteContribution,
             variables: {
               id: contributionToDelete.data.createContribution.id,
@@ -974,7 +975,7 @@ describe('ContributionResolver', () => {
             mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
-          const { errors: errorObjects }: { errors: [GraphQLError] } = await mutate({
+          const { errors: errorObjects } = await mutate({
             mutation: deleteContribution,
             variables: {
               id: contributionToConfirm.data.createContribution.id,
@@ -998,7 +999,7 @@ describe('ContributionResolver', () => {
   describe('listContributions', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        const { errors: errorObjects }: { errors: [GraphQLError] } = await query({
+        const { errors: errorObjects } = await query({
           query: listContributions,
           variables: {
             currentPage: 1,
@@ -1026,7 +1027,7 @@ describe('ContributionResolver', () => {
         it('returns creations', async () => {
           const {
             data: { listContributions: contributionListResult },
-          }: { data: { listContributions: ContributionListResult } } = await query({
+          } = await query({
             query: listContributions,
             variables: {
               currentPage: 1,
@@ -1078,7 +1079,7 @@ describe('ContributionResolver', () => {
         it('returns only unconfirmed creations', async () => {
           const {
             data: { listContributions: contributionListResult },
-          }: { data: { listContributions: ContributionListResult } } = await query({
+          } = await query({
             query: listContributions,
             variables: {
               currentPage: 1,
@@ -1128,7 +1129,7 @@ describe('ContributionResolver', () => {
   describe('listAllContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
-        const { errors: errorObjects }: { errors: [GraphQLError] } = await query({
+        const { errors: errorObjects } = await query({
           query: listAllContributions,
           variables: {
             currentPage: 1,
@@ -1154,7 +1155,7 @@ describe('ContributionResolver', () => {
       })
 
       it('throws an error with "NOT_VALID" in statusFilter', async () => {
-        const { errors: errorObjects }: { errors: [GraphQLError | UserInputError] } = await query({
+        const { errors: errorObjects } = await query({
           query: listAllContributions,
           variables: {
             currentPage: 1,
@@ -1171,7 +1172,7 @@ describe('ContributionResolver', () => {
       })
 
       it('throws an error with a null in statusFilter', async () => {
-        const { errors: errorObjects }: { errors: [Error] } = await query({
+        const { errors: errorObjects } = await query({
           query: listAllContributions,
           variables: {
             currentPage: 1,
@@ -1188,7 +1189,7 @@ describe('ContributionResolver', () => {
       })
 
       it('throws an error with null and "NOT_VALID" in statusFilter', async () => {
-        const { errors: errorObjects }: { errors: [Error] } = await query({
+        const { errors: errorObjects } = await query({
           query: listAllContributions,
           variables: {
             currentPage: 1,
@@ -1210,7 +1211,7 @@ describe('ContributionResolver', () => {
       it('returns all contributions without statusFilter', async () => {
         const {
           data: { listAllContributions: contributionListObject },
-        }: { data: { listAllContributions: ContributionListResult } } = await query({
+        } = await query({
           query: listAllContributions,
           variables: {
             currentPage: 1,
@@ -1274,7 +1275,7 @@ describe('ContributionResolver', () => {
       it('returns all contributions for statusFilter = null', async () => {
         const {
           data: { listAllContributions: contributionListObject },
-        }: { data: { listAllContributions: ContributionListResult } } = await query({
+        } = await query({
           query: listAllContributions,
           variables: {
             currentPage: 1,
@@ -1339,7 +1340,7 @@ describe('ContributionResolver', () => {
       it('returns all contributions for statusFilter = []', async () => {
         const {
           data: { listAllContributions: contributionListObject },
-        }: { data: { listAllContributions: ContributionListResult } } = await query({
+        } = await query({
           query: listAllContributions,
           variables: {
             currentPage: 1,
@@ -1404,7 +1405,7 @@ describe('ContributionResolver', () => {
       it('returns all CONFIRMED contributions', async () => {
         const {
           data: { listAllContributions: contributionListObject },
-        }: { data: { listAllContributions: ContributionListResult } } = await query({
+        } = await query({
           query: listAllContributions,
           variables: {
             currentPage: 1,
@@ -1454,7 +1455,7 @@ describe('ContributionResolver', () => {
       it('returns all PENDING contributions', async () => {
         const {
           data: { listAllContributions: contributionListObject },
-        }: { data: { listAllContributions: ContributionListResult } } = await query({
+        } = await query({
           query: listAllContributions,
           variables: {
             currentPage: 1,
@@ -1492,7 +1493,7 @@ describe('ContributionResolver', () => {
       it('returns all IN_PROGRESS Creation', async () => {
         const {
           data: { listAllContributions: contributionListObject },
-        }: { data: { listAllContributions: ContributionListResult } } = await query({
+        } = await query({
           query: listAllContributions,
           variables: {
             currentPage: 1,
@@ -1530,7 +1531,7 @@ describe('ContributionResolver', () => {
       it('returns all DENIED Creation', async () => {
         const {
           data: { listAllContributions: contributionListObject },
-        }: { data: { listAllContributions: ContributionListResult } } = await query({
+        } = await query({
           query: listAllContributions,
           variables: {
             currentPage: 1,
@@ -1574,7 +1575,7 @@ describe('ContributionResolver', () => {
       it('does not return any DELETED Creation', async () => {
         const {
           data: { listAllContributions: contributionListObject },
-        }: { data: { listAllContributions: ContributionListResult } } = await query({
+        } = await query({
           query: listAllContributions,
           variables: {
             currentPage: 1,
@@ -1593,7 +1594,7 @@ describe('ContributionResolver', () => {
       it('returns all CONFIRMED and PENDING Creation', async () => {
         const {
           data: { listAllContributions: contributionListObject },
-        }: { data: { listAllContributions: ContributionListResult } } = await query({
+        } = await query({
           query: listAllContributions,
           variables: {
             currentPage: 1,
@@ -2676,7 +2677,7 @@ describe('ContributionResolver', () => {
       it('returns 17 creations in total', async () => {
         const {
           data: { adminListContributions: contributionListObject },
-        }: { data: { adminListContributions: ContributionListResult } } = await query({
+        } = await query({
           query: adminListContributions,
         })
         expect(contributionListObject.contributionList).toHaveLength(17)
@@ -2843,7 +2844,7 @@ describe('ContributionResolver', () => {
       it('returns two pending creations with page size set to 2', async () => {
         const {
           data: { adminListContributions: contributionListObject },
-        }: { data: { adminListContributions: ContributionListResult } } = await query({
+        } = await query({
           query: adminListContributions,
           variables: {
             currentPage: 1,

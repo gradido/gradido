@@ -9,14 +9,13 @@ import { User as dbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 
-import Paginated from '@arg/Paginated'
-import TransactionSendArgs from '@arg/TransactionSendArgs'
+import { Paginated } from '@arg/Paginated'
+import { TransactionSendArgs } from '@arg/TransactionSendArgs'
 import { Order } from '@enum/Order'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
-import { TransactionRepository } from '@repository/Transaction'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -24,9 +23,9 @@ import {
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
 } from '@/emails/sendEmailVariants'
-import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Event'
+import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
-import LogError from '@/server/LogError'
+import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { communityUser } from '@/util/communityUser'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
@@ -35,8 +34,9 @@ import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualT
 
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
-import { findUserByEmail } from './UserResolver'
+import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
+import { getTransactionList } from './util/getTransactionList'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -149,8 +149,7 @@ export const executeTransaction = async (
     } finally {
       await queryRunner.release()
     }
-    logger.debug(`prepare Email for transaction received...`)
-    await sendTransactionReceivedEmail({
+    void sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,
       email: recipient.emailContact.email,
@@ -161,7 +160,7 @@ export const executeTransaction = async (
       transactionAmount: amount,
     })
     if (transactionLink) {
-      await sendTransactionLinkRedeemedEmail({
+      void sendTransactionLinkRedeemedEmail({
         firstName: sender.firstName,
         lastName: sender.lastName,
         email: sender.emailContact.email,
@@ -210,8 +209,7 @@ export class TransactionResolver {
     // find transactions
     // first page can contain 26 due to virtual decay transaction
     const offset = (currentPage - 1) * pageSize
-    const transactionRepository = getCustomRepository(TransactionRepository)
-    const [userTransactions, userTransactionsCount] = await transactionRepository.findByUserPaged(
+    const [userTransactions, userTransactionsCount] = await getTransactionList(
       user.id,
       pageSize,
       offset,
@@ -276,6 +274,7 @@ export class TransactionResolver {
             firstDate || now,
             lastDate || now,
             self,
+            (userTransactions.length && userTransactions[0].balance) || new Decimal(0),
           ),
         )
         logger.debug(`transactions=${transactions}`)
@@ -283,7 +282,7 @@ export class TransactionResolver {
     }
 
     // transactions
-    userTransactions.forEach((userTransaction) => {
+    userTransactions.forEach((userTransaction: dbTransaction) => {
       const linkedUser =
         userTransaction.typeId === TransactionTypeId.CREATION
           ? communityUser
@@ -292,6 +291,15 @@ export class TransactionResolver {
     })
     logger.debug(`TransactionTypeId.CREATION: transactions=${transactions}`)
 
+    transactions.forEach((transaction: Transaction) => {
+      if (transaction.typeId !== TransactionTypeId.DECAY) {
+        const { balance, previousBalance, amount } = transaction
+        transaction.decay.decay = new Decimal(
+          Number(balance) - Number(amount) - Number(previousBalance),
+        ).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
+      }
+    })
+
     // Construct Result
     return new TransactionList(await balanceResolver.balance(context), transactions)
   }
@@ -299,10 +307,10 @@ export class TransactionResolver {
   @Authorized([RIGHTS.SEND_COINS])
   @Mutation(() => Boolean)
   async sendCoins(
-    @Args() { email, amount, memo }: TransactionSendArgs,
+    @Args() { identifier, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.info(`sendCoins(email=${email}, amount=${amount}, memo=${memo})`)
+    logger.info(`sendCoins(identifier=${identifier}, amount=${amount}, memo=${memo})`)
     if (amount.lte(0)) {
       throw new LogError('Amount to send must be positive', amount)
     }
@@ -311,13 +319,9 @@ export class TransactionResolver {
     const senderUser = getUser(context)
 
     // validate recipient user
-    const recipientUser = await findUserByEmail(email)
-    if (recipientUser.deletedAt) {
-      throw new LogError('The recipient account was deleted', recipientUser)
-    }
-    const emailContact = recipientUser.emailContact
-    if (!emailContact.emailChecked) {
-      throw new LogError('The recipient account is not activated', recipientUser)
+    const recipientUser = await findUserByIdentifier(identifier)
+    if (!recipientUser) {
+      throw new LogError('The recipient user was not found', recipientUser)
     }
 
     await executeTransaction(amount, memo, senderUser, recipientUser)

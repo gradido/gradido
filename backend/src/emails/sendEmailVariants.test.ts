@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { Connection } from '@dbTools/typeorm'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
 
 import { testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
-import CONFIG from '@/config'
+import { CONFIG } from '@/config'
 
 import { sendEmailTranslated } from './sendEmailTranslated'
 import {
@@ -23,8 +24,12 @@ import {
   sendTransactionReceivedEmail,
 } from './sendEmailVariants'
 
-let con: any
-let testEnv: any
+let con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger, localization)

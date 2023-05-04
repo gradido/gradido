@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { User } from '@entity/User'
 import { AuthChecker } from 'type-graphql'
 
@@ -9,9 +5,10 @@ import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { decode, encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN } from '@/auth/ROLES'
-import LogError from '@/server/LogError'
+import { Context } from '@/server/context'
+import { LogError } from '@/server/LogError'
 
-const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
+export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
 
   // is rights an inalienable right?
@@ -46,7 +43,7 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   }
 
   // check for correct rights
-  const missingRights = (<RIGHTS[]>rights).filter((right) => !context.role.hasRight(right))
+  const missingRights = (<RIGHTS[]>rights).filter((right) => !context.role?.hasRight(right))
   if (missingRights.length !== 0) {
     throw new LogError('401 Unauthorized')
   }
@@ -55,5 +52,3 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   context.setHeaders.push({ key: 'token', value: encode(decoded.gradidoID) })
   return true
 }
-
-export default isAuthorized

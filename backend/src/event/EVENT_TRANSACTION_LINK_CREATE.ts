@@ -3,7 +3,8 @@ import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
 
-import { Event, EventType } from './Event'
+import { Event } from './Event'
+import { EventType } from './EventType'
 
 export const EVENT_TRANSACTION_LINK_CREATE = async (
   user: DbUser,

@@ -21,11 +21,11 @@ import {
 } from 'type-graphql'
 import { v4 as uuidv4 } from 'uuid'
 
-import CreateUserArgs from '@arg/CreateUserArgs'
-import Paginated from '@arg/Paginated'
-import SearchUsersArgs from '@arg/SearchUsersArgs'
-import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
-import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
+import { CreateUserArgs } from '@arg/CreateUserArgs'
+import { Paginated } from '@arg/Paginated'
+import { SearchUsersArgs } from '@arg/SearchUsersArgs'
+import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
+import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
@@ -38,7 +38,7 @@ import { UserRepository } from '@repository/User'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
-import CONFIG from '@/config'
+import { CONFIG } from '@/config'
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
@@ -59,12 +59,12 @@ import {
   EVENT_ADMIN_USER_ROLE_SET,
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_UNDELETE,
-} from '@/event/Event'
+} from '@/event/Events'
 import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
-import LogError from '@/server/LogError'
+import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
@@ -72,6 +72,7 @@ import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getUserCreations } from './util/creations'
+import { findUserByIdentifier } from './util/findUserByIdentifier'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const random = require('random-bigint')
@@ -97,6 +98,7 @@ const newEmailContact = (email: string, userId: number): DbUserContact => {
   return emailContact
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export const activationLink = (verificationCode: BigInt): string => {
   logger.debug(`activationLink(${verificationCode})...`)
   return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, verificationCode.toString())
@@ -243,7 +245,7 @@ export class UserResolver {
         user.publisherId = publisherId
         logger.debug('partly faked user', user)
 
-        const emailSent = await sendAccountMultiRegistrationEmail({
+        void sendAccountMultiRegistrationEmail({
           firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
           lastName: foundUser.lastName, // this is the real name of the email owner, but just "lastName" would be the name of the new registrant which shall not be passed to the outside
           email,
@@ -256,9 +258,6 @@ export class UserResolver {
         )
         /* uncomment this, when you need the activation link on the console */
         // In case EMails are disabled log the activation link for the user
-        if (!emailSent) {
-          logger.debug(`Email not send!`)
-        }
         logger.info('createUser() faked and send multi registration mail...')
 
         return user
@@ -323,8 +322,7 @@ export class UserResolver {
         emailContact.emailVerificationCode.toString(),
       ).replace(/{code}/g, redeemCode ? '/' + redeemCode : '')
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const emailSent = await sendAccountActivationEmail({
+      void sendAccountActivationEmail({
         firstName,
         lastName,
         email,
@@ -335,10 +333,6 @@ export class UserResolver {
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
 
       await EVENT_EMAIL_CONFIRMATION(dbUser)
-
-      if (!emailSent) {
-        logger.debug(`Account confirmation link: ${activationLink}`)
-      }
 
       await queryRunner.commitTransaction()
       logger.addContext('user', dbUser.id)
@@ -390,8 +384,8 @@ export class UserResolver {
     })
 
     logger.info(`optInCode for ${email}=${user.emailContact}`)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const emailSent = await sendResetPasswordEmail({
+
+    void sendResetPasswordEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,
@@ -400,13 +394,6 @@ export class UserResolver {
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
-    /*  uncomment this, when you need the activation link on the console */
-    // In case EMails are disabled log the activation link for the user
-    if (!emailSent) {
-      logger.debug(
-        `Reset password link: ${activationLink(user.emailContact.emailVerificationCode)}`,
-      )
-    }
     logger.info(`forgotPassword(${email}) successful...`)
     await EVENT_EMAIL_FORGOT_PASSWORD(user)
 
@@ -802,7 +789,7 @@ export class UserResolver {
     await user.emailContact.save()
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const emailSent = await sendAccountActivationEmail({
+    void sendAccountActivationEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,
@@ -811,19 +798,21 @@ export class UserResolver {
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
-    // In case EMails are disabled log the activation link for the user
-    if (!emailSent) {
-      logger.info(`Account confirmation link: ${activationLink}`)
-    }
     await EVENT_EMAIL_ADMIN_CONFIRMATION(user, getUser(context))
 
     return true
+  }
+
+  @Authorized([RIGHTS.USER])
+  @Query(() => User)
+  async user(@Arg('identifier') identifier: string): Promise<User> {
+    return new User(await findUserByIdentifier(identifier))
   }
 }
 
 export async function findUserByEmail(email: string): Promise<DbUser> {
   const dbUserContact = await DbUserContact.findOneOrFail(
-    { email: email },
+    { email },
     { withDeleted: true, relations: ['user'] },
   ).catch(() => {
     throw new LogError('No user with this credentials', email)
@@ -834,7 +823,7 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
 }
 
 async function checkEmailExists(email: string): Promise<boolean> {
-  const userContact = await DbUserContact.findOne({ email: email }, { withDeleted: true })
+  const userContact = await DbUserContact.findOne({ email }, { withDeleted: true })
   if (userContact) {
     return true
   }

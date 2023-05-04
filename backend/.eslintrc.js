@@ -5,7 +5,7 @@ module.exports = {
     node: true,
   },
   parser: '@typescript-eslint/parser',
-  plugins: ['prettier', '@typescript-eslint', 'type-graphql', 'jest', 'import', 'n'],
+  plugins: ['prettier', '@typescript-eslint', 'type-graphql', 'import', 'n', 'promise'],
   extends: [
     'standard',
     'eslint:recommended',
@@ -18,7 +18,9 @@ module.exports = {
       '@typescript-eslint/parser': ['.ts', '.tsx'],
     },
     'import/resolver': {
-      typescript: true,
+      typescript: {
+        project: ['./tsconfig.json', '**/tsconfig.json'],
+      },
       node: true,
     },
   },
@@ -31,12 +33,6 @@ module.exports = {
         htmlWhitespaceSensitivity: 'ignore',
       },
     ],
-    // jest
-    'jest/no-disabled-tests': 'error',
-    'jest/no-focused-tests': 'error',
-    'jest/no-identical-title': 'error',
-    'jest/prefer-to-have-length': 'error',
-    'jest/valid-expect': 'error',
     // import
     'import/export': 'error',
     'import/no-deprecated': 'error',
@@ -55,7 +51,7 @@ module.exports = {
     'import/named': 'error',
     'import/namespace': 'error',
     'import/no-absolute-path': 'error',
-    'import/no-cycle': 'off',
+    'import/no-cycle': 'error',
     'import/no-dynamic-require': 'error',
     'import/no-internal-modules': 'off',
     'import/no-relative-packages': 'error',
@@ -71,7 +67,7 @@ module.exports = {
     'import/group-exports': 'off',
     'import/newline-after-import': 'error',
     'import/no-anonymous-default-export': 'error',
-    'import/no-default-export': 'off',
+    'import/no-default-export': 'error',
     'import/no-duplicates': 'error',
     'import/no-named-default': 'error',
     'import/no-namespace': 'error',
@@ -100,7 +96,7 @@ module.exports = {
         distinctGroup: true,
       },
     ],
-    'import/prefer-default-export': 'off', // TODO
+    'import/prefer-default-export': 'off',
     // n
     'n/handle-callback-err': 'error',
     'n/no-callback-literal': 'error',
@@ -140,6 +136,21 @@ module.exports = {
     'n/prefer-global/url-search-params': 'error',
     'n/prefer-promises/dns': 'error',
     'n/prefer-promises/fs': 'error',
+    // promise
+    'promise/catch-or-return': 'error',
+    'promise/no-return-wrap': 'error',
+    'promise/param-names': 'error',
+    'promise/always-return': 'error',
+    'promise/no-native': 'off',
+    'promise/no-nesting': 'warn',
+    'promise/no-promise-in-callback': 'warn',
+    'promise/no-callback-in-promise': 'warn',
+    'promise/avoid-new': 'warn',
+    'promise/no-new-statics': 'error',
+    'promise/no-return-in-finally': 'warn',
+    'promise/valid-params': 'warn',
+    'promise/prefer-await-to-callbacks': 'error',
+    'promise/no-multiple-resolved': 'error',
   },
   overrides: [
     // only for ts files
@@ -160,10 +171,23 @@ module.exports = {
         'import/unambiguous': 'off',
       },
       parserOptions: {
-        tsconfigRootDir: './',
-        project: ['./tsconfig.json'],
+        tsconfigRootDir: __dirname,
+        project: ['./tsconfig.json', '**/tsconfig.json'],
         // this is to properly reference the referenced project database without requirement of compiling it
         EXPERIMENTAL_useSourceOfProjectReferenceRedirect: true,
+      },
+    },
+    {
+      files: ['*.test.ts'],
+      plugins: ['jest'],
+      rules: {
+        'jest/no-disabled-tests': 'error',
+        'jest/no-focused-tests': 'error',
+        'jest/no-identical-title': 'error',
+        'jest/prefer-to-have-length': 'error',
+        'jest/valid-expect': 'error',
+        '@typescript-eslint/unbound-method': 'off',
+        'jest/unbound-method': 'error',
       },
     },
   ],

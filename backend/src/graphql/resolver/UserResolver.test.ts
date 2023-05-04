@@ -2,16 +2,16 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { Connection } from '@dbTools/typeorm'
 import { Event as DbEvent } from '@entity/Event'
 import { TransactionLink } from '@entity/TransactionLink'
 import { User } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
-import { validate as validateUUID, version as versionUUID } from 'uuid'
+import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
@@ -20,13 +20,13 @@ import { ContributionLink } from '@model/ContributionLink'
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
-import CONFIG from '@/config'
+import { CONFIG } from '@/config'
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
   sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
-import { EventType } from '@/event/Event'
+import { EventType } from '@/event/Events'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
@@ -46,7 +46,13 @@ import {
   unDeleteUser,
   sendActivationEmail,
 } from '@/seeds/graphql/mutations'
-import { verifyLogin, queryOptIn, searchAdminUsers, searchUsers } from '@/seeds/graphql/queries'
+import {
+  verifyLogin,
+  queryOptIn,
+  searchAdminUsers,
+  searchUsers,
+  user as userQuery,
+} from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
@@ -82,8 +88,14 @@ jest.mock('@/apis/KlicktippController', () => {
 
 let admin: User
 let user: User
-let mutate: any, query: any, con: any
-let testEnv: any
+let mutate: ApolloServerTestClient['mutate'],
+  query: ApolloServerTestClient['query'],
+  con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger, localization)
@@ -230,7 +242,7 @@ describe('UserResolver', () => {
     })
 
     describe('user already exists', () => {
-      let mutation: User
+      let mutation: any
       beforeAll(async () => {
         mutation = await mutate({ mutation: createUser, variables })
       })
@@ -632,7 +644,7 @@ describe('UserResolver', () => {
       publisherId: 1234,
     }
 
-    let result: User
+    let result: any
 
     afterAll(async () => {
       await cleanDB()
@@ -1420,7 +1432,7 @@ describe('UserResolver', () => {
       })
 
       it('changes to gradidoID on login', async () => {
-        await mutate({ mutation: login, variables: variables })
+        await mutate({ mutation: login, variables })
 
         const usercontact = await UserContact.findOneOrFail(
           { email: 'bibi@bloxberg.de' },
@@ -1441,7 +1453,7 @@ describe('UserResolver', () => {
 
       it('can login after password change', async () => {
         resetToken()
-        expect(await mutate({ mutation: login, variables: variables })).toEqual(
+        expect(await mutate({ mutation: login, variables })).toEqual(
           expect.objectContaining({
             data: {
               login: {
@@ -2294,6 +2306,124 @@ describe('UserResolver', () => {
               }),
             )
           })
+        })
+      })
+    })
+  })
+
+  describe('user', () => {
+    beforeEach(() => {
+      jest.clearAllMocks()
+    })
+
+    describe('unauthenticated', () => {
+      it('throws and logs "401 Unauthorized" error', async () => {
+        await expect(
+          query({
+            query: userQuery,
+            variables: {
+              identifier: 'identifier',
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+        expect(logger.error).toBeCalledWith('401 Unauthorized')
+      })
+    })
+
+    describe('authenticated', () => {
+      const uuid = uuidv4()
+
+      beforeAll(async () => {
+        user = await userFactory(testEnv, bibiBloxberg)
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      describe('identifier is no gradido ID and no email', () => {
+        it('throws and logs "Unknown identifier type" error', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: 'identifier',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Unknown identifier type')],
+            }),
+          )
+          expect(logger.error).toBeCalledWith('Unknown identifier type', 'identifier')
+        })
+      })
+
+      describe('identifier is not found', () => {
+        it('throws and logs "No user found to given identifier" error', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: uuid,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('No user found to given identifier')],
+            }),
+          )
+          expect(logger.error).toBeCalledWith('No user found to given identifier', uuid)
+        })
+      })
+
+      describe('identifier is found via email', () => {
+        it('returns user', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: 'bibi@bloxberg.de',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                user: {
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                },
+              },
+              errors: undefined,
+            }),
+          )
+        })
+      })
+
+      describe('identifier is found via gradidoID', () => {
+        it('returns user', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: user.gradidoID,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                user: {
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                },
+              },
+              errors: undefined,
+            }),
+          )
         })
       })
     })

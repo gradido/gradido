@@ -1,7 +1,7 @@
 import { IsNull } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 
-import LogError from '@/server/LogError'
+import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line camelcase

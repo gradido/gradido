@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { IsNull, getConnection } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage } from '@entity/ContributionMessage'
@@ -8,10 +7,10 @@ import { UserContact } from '@entity/UserContact'
 import { Decimal } from 'decimal.js-light'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 
-import AdminCreateContributionArgs from '@arg/AdminCreateContributionArgs'
-import AdminUpdateContributionArgs from '@arg/AdminUpdateContributionArgs'
-import ContributionArgs from '@arg/ContributionArgs'
-import Paginated from '@arg/Paginated'
+import { AdminCreateContributionArgs } from '@arg/AdminCreateContributionArgs'
+import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
+import { ContributionArgs } from '@arg/ContributionArgs'
+import { Paginated } from '@arg/Paginated'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { ContributionType } from '@enum/ContributionType'
 import { ContributionMessageType } from '@enum/MessageType'
@@ -38,9 +37,9 @@ import {
   EVENT_ADMIN_CONTRIBUTION_DELETE,
   EVENT_ADMIN_CONTRIBUTION_CONFIRM,
   EVENT_ADMIN_CONTRIBUTION_DENY,
-} from '@/event/Event'
+} from '@/event/Events'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
-import LogError from '@/server/LogError'
+import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
@@ -229,11 +228,11 @@ export class ContributionResolver {
     contributionMessage.createdAt = contributionToUpdate.updatedAt
       ? contributionToUpdate.updatedAt
       : contributionToUpdate.createdAt
-    const changeMessage = `${contributionToUpdate.contributionDate}
+    const changeMessage = `${contributionToUpdate.contributionDate.toString()}
     ---
     ${contributionToUpdate.memo}
     ---
-    ${contributionToUpdate.amount}`
+    ${contributionToUpdate.amount.toString()}`
     contributionMessage.message = changeMessage
     contributionMessage.isModerator = false
     contributionMessage.userId = user.id
@@ -259,7 +258,7 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<Decimal[]> {
     logger.info(
-      `adminCreateContribution(email=${email}, amount=${amount}, memo=${memo}, creationDate=${creationDate})`,
+      `adminCreateContribution(email=${email}, amount=${amount.toString()}, memo=${memo}, creationDate=${creationDate})`,
     )
     const clientTimezoneOffset = getClientTimezoneOffset(context)
     if (!isValidDateString(creationDate)) {

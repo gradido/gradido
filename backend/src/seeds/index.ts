@@ -1,16 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
 import { name, internet, datatype } from 'faker'
 
-import CONFIG from '@/config'
-import createServer from '@/server/createServer'
+import { CONFIG } from '@/config'
+import { createServer } from '@/server/createServer'
 import { backendLogger as logger } from '@/server/logger'
 
 import { contributionLinks } from './contributionLink/index'
@@ -43,10 +36,12 @@ export const cleanDB = async () => {
   }
 }
 
-const resetEntity = async (entity: any) => {
+const [entityTypes] = entities
+
+const resetEntity = async (entity: typeof entityTypes) => {
   const items = await entity.find({ withDeleted: true })
   if (items.length > 0) {
-    const ids = items.map((i: any) => i.id)
+    const ids = items.map((i) => i.id)
     await entity.delete(ids)
   }
 }
