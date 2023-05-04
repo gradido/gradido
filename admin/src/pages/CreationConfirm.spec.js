@@ -39,7 +39,7 @@ const mocks = {
 const defaultData = () => {
   return {
     adminListContributions: {
-      contributionCount: 2,
+      contributionCount: 30,
       contributionList: [
         {
           id: 1,
@@ -405,6 +405,44 @@ describe('CreationConfirm', () => {
               order: 'DESC',
               pageSize: 25,
               statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
+            })
+          })
+
+          describe('change pagination', () => {
+            it('has pagination buttons', () => {
+              expect(wrapper.findComponent({ name: 'BPagination' }).exists()).toBe(true)
+            })
+
+            describe('next page', () => {
+              beforeEach(() => {
+                jest.clearAllMocks()
+                wrapper.findComponent({ name: 'BPagination' }).vm.$emit('input', 2)
+              })
+
+              it('calls the API again', () => {
+                expect(adminListContributionsMock).toBeCalledWith({
+                  currentPage: 2,
+                  order: 'DESC',
+                  pageSize: 25,
+                  statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
+                })
+              })
+
+              describe('click tab "open" again', () => {
+                beforeEach(async () => {
+                  jest.clearAllMocks()
+                  await wrapper.find('a[data-test="open"]').trigger('click')
+                })
+
+                it('refetches contributions with proper filter and current page = 1', () => {
+                  expect(adminListContributionsMock).toBeCalledWith({
+                    currentPage: 1,
+                    order: 'DESC',
+                    pageSize: 25,
+                    statusFilter: ['IN_PROGRESS', 'PENDING'],
+                  })
+                })
+              })
             })
           })
         })
