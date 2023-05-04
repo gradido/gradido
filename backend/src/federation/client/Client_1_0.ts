@@ -29,9 +29,7 @@ export class Client_1_0 {
     logger.info(`requestGetPublicKey with endpoint='${this.endpoint}'...`)
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const { data, errors, headers, status } = await this.client.rawRequest(
-        getPublicKey
-      )
+      const { data, errors, headers, status } = await this.client.rawRequest(getPublicKey)
       logger.debug(`Response-Data:`, data, errors, headers, status)
       if (data) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
