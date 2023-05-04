@@ -73,9 +73,9 @@ export class FederationClientImpl implements FederationClient {
       )
       logger.debug(`Response-Data:`, data, errors, extensions, headers, status)
       if (data) {
-        logger.debug(`Response-PublicCommunityInfo:`, data.getPublicInfo.publicInfo)
+        logger.debug(`Response-PublicCommunityInfo:`, data.getPublicCommunityInfo)
         logger.info(`requestGetPublicCommunityInfo processed successfully`)
-        return data.getPublicInfo.publicInfo
+        return data.getPublicCommunityInfo
       }
       logger.warn(`requestGetPublicInfo processed without response data`)
     } catch (err) {
