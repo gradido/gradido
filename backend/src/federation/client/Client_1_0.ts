@@ -26,21 +26,25 @@ export class Client_1_0 {
   }
 
   getPublicKey = async (): Promise<string | undefined> => {
-    logger.info(`requestGetPublicKey with endpoint='${this.endpoint}'...`)
+    logger.info('Federation: getPublicKey from endpoint', this.endpoint)
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const { data, errors, headers, status } = await this.client.rawRequest(getPublicKey, {})
-      logger.debug(`Response-Data:`, data, errors, headers, status)
-      if (data) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        logger.debug(`Response-PublicKey:`, data.getPublicKey.publicKey)
-        logger.info(`requestGetPublicKey processed successfully`)
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-        return data.getPublicKey.publicKey
+      const { data } = await this.client.rawRequest(getPublicKey, {})
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (!data?.getPublicKey?.publicKey) {
+        logger.warn('Federation: getPublicKey without response data from endpoint', this.endpoint)
+        return
       }
-      logger.warn(`requestGetPublicKey processed without response data`)
+      logger.info(
+        'Federation: getPublicKey successfull from endpoint',
+        this.endpoint,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        data.getPublicKey.publicKey,
+      )
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+      return data.getPublicKey.publicKey
     } catch (err) {
-      throw new LogError(`Request-Error:`, err)
+      logger.warn('Federation: getPublicKey failed for endpoint', this.endpoint)
     }
   }
 }
