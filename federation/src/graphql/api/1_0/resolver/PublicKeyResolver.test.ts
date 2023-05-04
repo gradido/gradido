@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { createTestClient } from 'apollo-server-testing'
 import createServer from '@/server/createServer'
-import { Community as DbCommunity } from '@entity/Community'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 
 let query: any
 
@@ -13,7 +13,7 @@ beforeAll(async () => {
   const server = await createServer()
   con = server.con
   query = createTestClient(server.apollo).query
-  DbCommunity.clear()
+  DbFederatedCommunity.clear()
 })
 
 afterAll(async () => {
@@ -32,12 +32,12 @@ describe('PublicKeyResolver', () => {
 
   describe('getPublicKey', () => {
     beforeEach(async () => {
-      const homeCom = new DbCommunity()
+      const homeCom = new DbFederatedCommunity()
       homeCom.foreign = false
       homeCom.apiVersion = '1_0'
       homeCom.endPoint = 'endpoint-url'
       homeCom.publicKey = Buffer.from('homeCommunity-publicKey')
-      await DbCommunity.insert(homeCom)
+      await DbFederatedCommunity.insert(homeCom)
     })
 
     it('returns homeCommunity-publicKey', async () => {
