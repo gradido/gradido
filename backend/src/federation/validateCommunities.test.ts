@@ -144,7 +144,7 @@ describe('validate Communities', () => {
           .execute()
 
         // reset verified state
-        await DbCommunity.update({}, { verifiedAt: null })
+        await DbFederatedCommunity.update({}, { verifiedAt: null })
 
         jest.clearAllMocks()
         await validateCommunities()
@@ -192,7 +192,7 @@ describe('validate Communities', () => {
           where: { publicKey: variables3.publicKey, apiVersion: variables3.apiVersion },
         })
         // reset verified state
-        await DbCommunity.update({}, { verifiedAt: null })
+        await DbFederatedCommunity.update({}, { verifiedAt: null })
 
         jest.clearAllMocks()
         await validateCommunities()
