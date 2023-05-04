@@ -1,7 +1,7 @@
 // eslint-disable @typescript-eslint/no-explicit-any
 import { User } from '@entity/User'
 
-import { getKlickTippUser, addFieldsToSubscriber, fieldIndex } from '@/apis/KlicktippController'
+import { getKlickTippUser, addFieldsToSubscriber } from '@/apis/KlicktippController'
 import { EventType } from '@/event/EventType'
 import { lastDateTimeEvents } from '@/graphql/resolver/util/eventList'
 import { LogError } from '@/server/LogError'
