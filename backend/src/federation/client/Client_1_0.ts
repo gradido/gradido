@@ -1,4 +1,4 @@
-import { Community as DbCommunity } from '@entity/Community'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { GraphQLClient } from 'graphql-request'
 
 import { getPublicKey } from '@/federation/query/getPublicKey'
@@ -7,11 +7,11 @@ import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line camelcase
 export class Client_1_0 {
-  dbCom: DbCommunity
+  dbCom: DbFederatedCommunity
   endpoint: string
   client: GraphQLClient
 
-  constructor(dbCom: DbCommunity) {
+  constructor(dbCom: DbFederatedCommunity) {
     this.dbCom = dbCom
     this.endpoint = `${dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'}${
       dbCom.apiVersion

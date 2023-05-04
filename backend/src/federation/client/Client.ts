@@ -1,4 +1,4 @@
-import { Community as DbCommunity } from '@entity/Community'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 
 import { ApiVersionType } from '@/federation/enum/apiVersionType'
 
@@ -26,7 +26,7 @@ export class Client {
   // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-empty-function
   private constructor() {}
 
-  private static createFederationClient = (dbCom: DbCommunity) => {
+  private static createFederationClient = (dbCom: DbFederatedCommunity) => {
     switch (dbCom.apiVersion) {
       case ApiVersionType.V1_0:
         return new Client_1_0(dbCom)
@@ -43,7 +43,7 @@ export class Client {
    * This implementation let you subclass the Singleton class while keeping
    * just one instance of each subclass around.
    */
-  public static getInstance(dbCom: DbCommunity): FederationClient | null {
+  public static getInstance(dbCom: DbFederatedCommunity): FederationClient | null {
     const instance = Client.instanceArray.find((instance) => instance.id === dbCom.id)
     if (instance) {
       return instance.client

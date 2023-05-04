@@ -69,16 +69,3 @@ export async function validateCommunities(): Promise<void> {
     }
   }
 }
-
-async function invokeVersionedRequestGetPublicKey(
-  dbCom: DbFederatedCommunity,
-): Promise<string | undefined> {
-  switch (dbCom.apiVersion) {
-    case ApiVersionType.V1_0:
-      return v1_0_requestGetPublicKey(dbCom)
-    case ApiVersionType.V1_1:
-      return v1_1_requestGetPublicKey(dbCom)
-    default:
-      return undefined
-  }
-}
