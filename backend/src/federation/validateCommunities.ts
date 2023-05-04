@@ -60,9 +60,7 @@ export async function validateCommunities(): Promise<void> {
           // DbCommunity.delete({ id: dbCom.id })
         }
       } catch (err) {
-        if (!isLogError(err)) {
-          logger.error(`Error:`, err)
-        }
+        logger.error(`Error:`, err)
       }
     } else {
       logger.warn(
@@ -71,10 +69,6 @@ export async function validateCommunities(): Promise<void> {
       )
     }
   }
-}
-
-function isLogError(err: unknown) {
-  return err instanceof LogError
 }
 
 async function invokeVersionedRequestGetPublicKey(

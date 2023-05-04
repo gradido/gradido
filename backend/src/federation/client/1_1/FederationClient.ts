@@ -2,10 +2,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { GraphQLError } from 'graphql'
 import { gql } from 'graphql-request'
 
 import { GraphQLGetClient } from '@/federation/client/GraphQLGetClient'
-import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 export async function requestGetPublicKey(
@@ -25,7 +25,6 @@ export async function requestGetPublicKey(
     }
   `
   const variables = {}
-
   try {
     const { data, errors, extensions, headers, status } = await graphQLClient.rawRequest(
       query,
@@ -39,6 +38,9 @@ export async function requestGetPublicKey(
     }
     logger.warn(`requestGetPublicKey processed without response data`)
   } catch (err) {
-    throw new LogError(`Request-Error:`, err)
+    if (err instanceof GraphQLError) {
+      logger.error(`RawRequest-Error on {} with message {}`, endpoint, err.message)
+    }
+    throw new Error(`Request-Error in requestGetPublicKey`) // :${err}`)
   }
 }
