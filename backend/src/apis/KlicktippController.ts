@@ -13,15 +13,6 @@ import KlicktippConnector from 'klicktipp-api'
 
 const klicktippConnector = new KlicktippConnector()
 
-export const fieldIndex = async () => {
-  const isLogin = await loginKlicktippUser()
-  if (isLogin) {
-    const result = await klicktippConnector.fieldIndex()
-    return result
-  }
-  return false
-}
-
 export const klicktippSignIn = async (
   email: string,
   language: string,
