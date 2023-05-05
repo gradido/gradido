@@ -50,6 +50,52 @@ Before starting in describing the details of the federation handshake, some prer
 
 With the federation additional data tables/entities have to be created.
 
+##### 1st Draft
+
+The following diagramms shows the first draft of the possible database-model base on the migration 0063-event_link_fields.ts with 3 steps of migration to reach the required entities. All three diagramms are not exhaustive and are still a base for discussions:
+
+![img](./image/classdiagramm_x-community-readyness_step1.svg)
+
+In the first step the current communities table will be renamed to communities_federation. A new table communities is created. Because of the dynamic in the communities_federation data during dht-federation the relation between both entities will be on the collumn communities.communities_federation_public_key. This relation will allow to read a community-entry including its relation to the multi federation entries per api-version with the public key as identifier.
+
+![img](./image/classdiagramm_x-community-readyness_step2.svg)
+
+The 2nd step is an introduction of the entity accounts between the users and the transactions table. This will cause a separation of the transactions from the users, to avoid possible conflicts or dependencies between local users of the community and remote users of foreign users, who will be part of x-communitiy-transactions.
+
+![img](./image/classdiagramm_x-community-readyness_step3.svg)
+
+The 3rd step will introduce an additional foreign-users and a users_favorites table. A foreign_user could be stored in the existing users-table, but he will not need all the attributes of a home-user, especially he will never gets an AGE-account in this community. The user_favorites entity is designed to buildup the relations between users and foreign_users or in general between all users. This is simply a first idea for a future discussion.
+
+##### 2nd Draft
+
+After team discussion in architecture meeting a second vision draft for database migration is shown in the following picture. Only the concerned tables of the database migration are presented. The three elliptical surroundings shows the different steps, which should be done in separate issues. The model, table namings and columns are not exhaustive and are still a base for further discussions.
+
+![img](./image/class-diagramm_vision-draft2.svg)
+
+**The first step** with renaming the current `communities` table in `communities_federation` and creating a new `communities` table is not changed. More details about motivation and arguments are described above.
+
+**The second step** is changed to migrate the `users `table by creating a new `users_settings` table and shift the most existing attributes from `users `table to it. The criterium for shifting a column to `user_settings` is to keep only those columns in the `users `table, which will be used for "home-users" and "foreign-users". A foreign-user at this point of time is a user of an other community, who is involved in a x-community-transaction as `linked_user`. He will not have the possibility to login to the home-community, because after a x-community-tx only the attributes of the `users `table will be exchanged during the handshake of transaction processing of both communities. Even the `transactions `table will be ready for x-community-tx with this `users `and `user_settings` migration, because it contains a reference to both participants of the transaction. For easier displaying and because of historical reasons it will be a good idea to add the columns `linked_user `and `user `(not shown in diagramm) to the `transactions `table with type varchar(512) to store the valid firstname and lastname of the participants at transaction-date. If one of the participants will change his names, there will be no migration of the transaction data necessary and a transaction-list will present always the currect names even over a long distance.
+
+**The third step** contains a migration for handling accounts and user_correlations. With the new table `gdd_accounts `a new entity will be introduced to support the different types of gradido accounts AGE, GMW and AUF. The second new table `user_correlations `is to buildup the different correlations a user will have:
+
+* user to user correlation like favorites, trustee, etc
+* user to account correlation for cashier of a GMW and AUF community account, trustee of children or seniors, etc.
+
+The previous idea to replace the `user_id `with an `account_id` in the `transactions `table will be not necessary with this draft, because it will not cause a benefit and saves a lot refactoring efforts.
+
+##### 3rd Draft
+
+After further discussions about the database-model and the necessary migration steps the team decided to integrate an additional migration step for X-Community-Transaction. The decision base on keeping the goal focus on implementation of the x-community sendCoins feature as soon as possible.
+
+![img](./image/class-diagramm_vision-draft3.svg)
+
+The additional migration step 2 will simply concentrated on the `transactions `table by adding all necessary columns to handle a *x-community-tx* without a previous migration of the `users `table, shown as step 3 in the picture above.
+
+In concequence of these additional columns in the `transactions `table the database-model will be denormalized by containing redundanten columns. But this migration step will reduce the necessary efforts to reach the *x-community sendCoins* feature as soon as possible. On the other side it offers more possibilities to ensure data consitency, because of internal data checks in conjunction with the redundant columns.
+
+The feature *x-community-tx* per *sendCoins* will create several challenges, because there is no technical transaction bracket, which will ensure consistent data in both community databases after all write access are finished. The most favorite concept about handling a x-community-transaction and the upcoming handshake to ensure valid send- and receive-transaction entries in both databases is to follow the two-phase-commit protocol. To avoid blocking the transactions table or user dependent transactions-entries during the two-phase-commit processing the idea of pending_transactions is born. This additional pending_transactions table contains the same columns than the transactions table plus one column named `x_transactions_state`.
+
+
 ##### Community-Entity
 
 Create the new *Community* table to store attributes of the own community. This table is used more like a frame for own community data in the future like the list of federated foreign communities, own users, own futher accounts like AUF- and  Welfare-account and the profile data of the own community:
