@@ -1,5 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { Connection } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { testEnvironment, cleanDB } from '@test/helpers'
@@ -58,9 +65,9 @@ describe('validate Communities', () => {
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
         }
-        await DbCommunity.createQueryBuilder()
+        await DbFederatedCommunity.createQueryBuilder()
           .insert()
-          .into(DbCommunity)
+          .into(DbFederatedCommunity)
           .values(variables1)
           .orUpdate({
             conflict_target: ['id', 'publicKey', 'apiVersion'],
@@ -89,9 +96,9 @@ describe('validate Communities', () => {
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
         }
-        await DbCommunity.createQueryBuilder()
+        await DbFederatedCommunity.createQueryBuilder()
           .insert()
-          .into(DbCommunity)
+          .into(DbFederatedCommunity)
           .values(variables2)
           .orUpdate({
             conflict_target: ['id', 'publicKey', 'apiVersion'],
@@ -117,7 +124,7 @@ describe('validate Communities', () => {
       })
     })
     describe('with three Communities of api 1_0, 1_1 and 2_0', () => {
-      let dbCom: DbCommunity
+      let dbCom: DbFederatedCommunity
       beforeEach(async () => {
         const variables3 = {
           publicKey: Buffer.from('11111111111111111111111111111111'),
@@ -125,16 +132,16 @@ describe('validate Communities', () => {
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
         }
-        await DbCommunity.createQueryBuilder()
+        await DbFederatedCommunity.createQueryBuilder()
           .insert()
-          .into(DbCommunity)
+          .into(DbFederatedCommunity)
           .values(variables3)
           .orUpdate({
             conflict_target: ['id', 'publicKey', 'apiVersion'],
             overwrite: ['end_point', 'last_announced_at'],
           })
           .execute()
-        dbCom = await DbCommunity.findOneOrFail({
+        dbCom = await DbFederatedCommunity.findOneOrFail({
           where: { publicKey: variables3.publicKey, apiVersion: variables3.apiVersion },
         })
         jest.clearAllMocks()
