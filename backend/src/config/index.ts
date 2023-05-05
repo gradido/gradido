@@ -1,6 +1,7 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 /* eslint-disable n/no-process-env */
 
+import { createKeyPair } from '@/util/createKeyPair'
 import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
 
@@ -119,7 +120,13 @@ if (
 const federation = {
   FEDERATION_VALIDATE_COMMUNITY_TIMER:
     Number(process.env.FEDERATION_VALIDATE_COMMUNITY_TIMER) || 60000,
+  FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
+  FEDERATION_KEYPAIR: process.env.FEDERATION_DHT_SEED
+    ? createKeyPair(process.env.FEDERATION_DHT_SEED)
+    : null,
 }
+
+// CONFIG.FEDERATION_DHT_SEED ? Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED) : null
 
 export const CONFIG = {
   ...constants,
