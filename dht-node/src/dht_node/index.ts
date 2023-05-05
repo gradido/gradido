@@ -15,7 +15,7 @@ const getSeed = (): Buffer | null => {
   logger.debug('dhtseed set by DEVOP.FEDERATION_DHT_SEED={}', DEVOP.FEDERATION_DHT_SEED)
   if (!dhtseed) {
     dhtseed = CONFIG.FEDERATION_DHT_SEED
-    logger.debug('dhtseed overwritten by CONFIG.FEDERATION_DHT_SEED={}', CONFIG.FEDERATION_DHT_SEED)
+    logger.debug(`dhtseed overwritten by CONFIG.FEDERATION_DHT_SEED=${CONFIG.FEDERATION_DHT_SEED}`)
   }
   return dhtseed ? Buffer.alloc(KEY_SECRET_SEEDBYTES, dhtseed) : null
 }

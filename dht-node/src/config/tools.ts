@@ -1,8 +1,8 @@
 /** eslint-disable n/no-sync */
 import { logger } from '@/server/logger'
-import fs = require('fs')
-import os = require('os')
-import path = require('path')
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
 
 const envFilePath = path.resolve(__dirname, './../../.env.devop')
 

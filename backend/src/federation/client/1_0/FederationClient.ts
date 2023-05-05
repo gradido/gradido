@@ -39,7 +39,7 @@ export async function requestGetPublicKey(
     logger.warn(`requestGetPublicKey processed without response data`)
   } catch (err) {
     if (err instanceof GraphQLError) {
-      logger.error(`RawRequest-Error on {} with message {}`, endpoint, err.message)
+      logger.error(`RawRequest-Error on ${endpoint} with message ${err.message}`)
     }
     throw new Error(`Request-Error in requestGetPublicKey.`)
   }
