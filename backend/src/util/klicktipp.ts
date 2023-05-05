@@ -41,9 +41,6 @@ async function klickTippSendFieldToUser(
 }
 
 export async function exportEventDataToKlickTipp(): Promise<void> {
-  // const fields = await fieldIndex()
-  // console.log('fields', fields)
-  // return
   const connectionInstance = await connection()
   if (!connectionInstance) {
     throw new LogError('No connection to database')
