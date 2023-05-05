@@ -1,9 +1,10 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 /* eslint-disable n/no-process-env */
 
-import { createKeyPair } from '@/util/createKeyPair'
 import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
+
+import { createKeyPair } from '@/util/createKeyPair'
 
 dotenv.config()
 
