@@ -8,6 +8,8 @@ import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import i18n from 'i18n'
+// eslint-disable-next-line camelcase
+import { randombytes_random } from 'sodium-native'
 import {
   Resolver,
   Query,
@@ -76,8 +78,6 @@ import { findUserByIdentifier } from './util/findUserByIdentifier'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const random = require('random-bigint')
-// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
-const sodium = require('sodium-native')
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -236,7 +236,7 @@ export class UserResolver {
         // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
 
         const user = new User(communityDbUser)
-        user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
+        user.id = randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
         user.gradidoID = uuidv4()
         user.email = email
         user.firstName = firstName
