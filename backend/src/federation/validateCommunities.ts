@@ -4,7 +4,6 @@ import { IsNull } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 
-import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line camelcase
@@ -76,9 +75,7 @@ export async function validateCommunities(): Promise<void> {
           // DbCommunity.delete({ id: dbCom.id })
         }
       } catch (err) {
-        if (!isLogError(err)) {
-          logger.error(`Error:`, err)
-        }
+        logger.error(`Error:`, err)
       }
     } else {
       logger.warn(
@@ -93,20 +90,24 @@ async function writeForeignCommunity(
   dbCom: DbFederatedCommunity,
   pubInfo: PublicCommunityInfo,
 ): Promise<void> {
-  if (dbCom && pubInfo) {
-    const foreignCom = DbCommunity.create()
-    foreignCom.foreign = true
-    foreignCom.publicKey = dbCom.publicKey
-    foreignCom.url = dbCom.endPoint
-    foreignCom.name = pubInfo.name
-    foreignCom.description = pubInfo.description
-    foreignCom.creationDate = pubInfo.createdAt
-    await DbCommunity.save(foreignCom)
+  const variables = {
+    public_key: pubInfo.publicKey,
+    url: dbCom.endPoint,
+    name: pubInfo.name,
+    description: pubInfo.description,
+    creation_date: pubInfo.createdAt,
   }
-}
-
-function isLogError(err: unknown) {
-  return err instanceof LogError
+  if (dbCom && pubInfo) {
+    await DbCommunity.createQueryBuilder()
+      .insert()
+      .into(DbCommunity)
+      .values(variables)
+      .orUpdate({
+        conflict_target: ['id', 'public_key'],
+        overwrite: ['url', 'name', 'description', 'creation_date'],
+      })
+      .execute()
+  }
 }
 
 function getVersionedFederationClient(apiVersion: string): FederationClient {

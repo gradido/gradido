@@ -2,10 +2,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { GraphQLError } from 'graphql/error/GraphQLError'
 import { gql } from 'graphql-request'
 
 import { GraphQLGetClient } from '@/federation/client/GraphQLGetClient'
-import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line import/no-relative-parent-imports
@@ -41,7 +41,10 @@ export class FederationClientImpl implements FederationClient {
       }
       logger.warn(`requestGetPublicKey processed without response data`)
     } catch (err) {
-      throw new LogError(`Request-Error:`, err)
+      if (err instanceof GraphQLError) {
+        logger.error(`RawRequest-Error on {} with message {}`, endpoint, err.message)
+      }
+      throw new Error(`Request-Error in requestGetPublicKey.`)
     }
   }
 
@@ -82,7 +85,10 @@ export class FederationClientImpl implements FederationClient {
       }
       logger.warn(`requestGetPublicInfo processed without response data`)
     } catch (err) {
-      throw new LogError(`Request-Error:`, err)
+      if (err instanceof GraphQLError) {
+        logger.error(`RawRequest-Error on {} with message {}`, endpoint, err.message)
+      }
+      throw new Error(`Request-Error in requestGetPublicCommunityInfo.`)
     }
   }
 }
