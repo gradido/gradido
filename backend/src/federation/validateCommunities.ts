@@ -3,7 +3,6 @@
 import { IsNull } from '@dbTools/typeorm'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 
-import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line camelcase
