@@ -61,7 +61,7 @@ import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
 
-// import { klicktippSignIn } from '@/apis/KlicktippController'
+// import { subscribe } from '@/apis/KlicktippController'
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
@@ -81,7 +81,7 @@ jest.mock('@/emails/sendEmailVariants', () => {
 jest.mock('@/apis/KlicktippController', () => {
   return {
     __esModule: true,
-    klicktippSignIn: jest.fn(),
+    subscribe: jest.fn(),
   }
 })
 */
@@ -558,7 +558,7 @@ describe('UserResolver', () => {
 
       /*
       it('calls the klicktipp API', () => {
-        expect(klicktippSignIn).toBeCalledWith(
+        expect(subscribe).toBeCalledWith(
           user[0].email,
           user[0].language,
           user[0].firstName,

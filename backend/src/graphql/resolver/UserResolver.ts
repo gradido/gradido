@@ -35,7 +35,7 @@ import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 import { UserRepository } from '@repository/User'
 
-import { klicktippSignIn } from '@/apis/KlicktippController'
+import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
@@ -469,9 +469,9 @@ export class UserResolver {
     // TODO do we always signUp the user? How to handle things with old users?
     if (userContact.emailOptInTypeId === OptInType.EMAIL_OPT_IN_REGISTER) {
       try {
-        await klicktippSignIn(userContact.email, user.language, user.firstName, user.lastName)
+        await subscribe(userContact.email, user.language, user.firstName, user.lastName)
         logger.debug(
-          `klicktippSignIn(${userContact.email}, ${user.language}, ${user.firstName}, ${user.lastName})`,
+          `subscribe(${userContact.email}, ${user.language}, ${user.firstName}, ${user.lastName})`,
         )
       } catch (e) {
         logger.error('Error subscribing to klicktipp', e)

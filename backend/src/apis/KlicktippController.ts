@@ -12,7 +12,7 @@ import KlicktippConnector from 'klicktipp-api'
 
 const klicktippConnector = new KlicktippConnector()
 
-export const klicktippSignIn = async (
+export const subscribe = async (
   email: string,
   language: string,
   firstName?: string,

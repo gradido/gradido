@@ -19,7 +19,7 @@ import { klickTippLogger as logger } from '@/server/logger'
 //   // Do Something here before resolver is called
 //   const result = await next()
 //   // Do Something here after resolver is completed
-//   await klicktippSignIn(result.email, result.language, result.firstName, result.lastName)
+//   await subscribe(result.email, result.language, result.firstName, result.lastName)
 //   return result
 // }
 
