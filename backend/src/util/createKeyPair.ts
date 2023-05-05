@@ -5,6 +5,7 @@ import {
   crypto_sign_SECRETKEYBYTES,
   crypto_sign_SEEDBYTES,
 } from 'sodium-native'
+/* eslint-enable camelcase */
 
 export const createKeyPair = (seed: string) => {
   const publicKey = Buffer.allocUnsafe(crypto_sign_PUBLICKEYBYTES)
