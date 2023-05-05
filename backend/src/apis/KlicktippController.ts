@@ -28,13 +28,6 @@ export const subscribe = async (
   return result
 }
 
-export const signout = async (email: string, language: string): Promise<boolean> => {
-  if (!CONFIG.KLICKTIPP) return true
-  const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
-  const result = await klicktippConnector.signoff(apiKey, email)
-  return result
-}
-
 export const unsubscribe = async (email: string): Promise<boolean> => {
   if (!CONFIG.KLICKTIPP) return true
   const isLogin = await loginKlicktippUser()
