@@ -21,7 +21,7 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
   }
 
   // Decode the token
-  const decoded = decode(context.token)
+  const decoded = await decode(context.token)
   if (!decoded) {
     throw new LogError('403.13 - Client certificate revoked')
   }
@@ -49,6 +49,6 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
   }
 
   // set new header token
-  context.setHeaders.push({ key: 'token', value: encode(decoded.gradidoID) })
+  context.setHeaders.push({ key: 'token', value: await encode(decoded.gradidoID) })
   return true
 }
