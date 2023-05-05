@@ -53,38 +53,6 @@ export const loginKlicktippUser = async (): Promise<boolean> => {
   return await klicktippConnector.login(CONFIG.KLICKTIPP_USER, CONFIG.KLICKTIPP_PASSWORD)
 }
 
-export const logoutKlicktippUser = async (): Promise<boolean> => {
-  if (!CONFIG.KLICKTIPP) return true
-  return await klicktippConnector.logout()
-}
-
-export const untagUser = async (email: string, tagId: string): Promise<boolean> => {
-  if (!CONFIG.KLICKTIPP) return true
-  const isLogin = await loginKlicktippUser()
-  if (isLogin) {
-    return await klicktippConnector.untag(email, tagId)
-  }
-  return false
-}
-
-export const tagUser = async (email: string, tagIds: string): Promise<boolean> => {
-  if (!CONFIG.KLICKTIPP) return true
-  const isLogin = await loginKlicktippUser()
-  if (isLogin) {
-    return await klicktippConnector.tag(email, tagIds)
-  }
-  return false
-}
-
-export const getKlicktippTagMap = async () => {
-  if (!CONFIG.KLICKTIPP) return true
-  const isLogin = await loginKlicktippUser()
-  if (isLogin) {
-    return await klicktippConnector.tagIndex()
-  }
-  return ''
-}
-
 export const addFieldsToSubscriber = async (
   email: string,
   fields: any = {},
