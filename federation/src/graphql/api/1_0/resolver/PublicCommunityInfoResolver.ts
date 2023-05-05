@@ -12,7 +12,11 @@ export class PublicCommunityInfoResolver {
     logger.debug(`getPublicCommunityInfo() via apiVersion=1_0 ...`)
     const homeCom = await DbCommunity.findOneOrFail({ foreign: false })
     const result = new GetPublicCommunityInfoResult(homeCom)
-    logger.info(`getPublicCommunityInfo()-1_0... return publicInfo=${result}`)
+    logger.info(
+      `getPublicCommunityInfo()-1_0... return publicInfo=${JSON.stringify(
+        result
+      )}`
+    )
     return result
   }
 }

@@ -90,23 +90,24 @@ async function writeForeignCommunity(
   dbCom: DbFederatedCommunity,
   pubInfo: PublicCommunityInfo,
 ): Promise<void> {
-  const variables = {
-    public_key: pubInfo.publicKey,
-    url: dbCom.endPoint,
-    name: pubInfo.name,
-    description: pubInfo.description,
-    creation_date: pubInfo.createdAt,
-  }
-  if (dbCom && pubInfo) {
-    await DbCommunity.createQueryBuilder()
-      .insert()
-      .into(DbCommunity)
-      .values(variables)
-      .orUpdate({
-        conflict_target: ['id', 'public_key'],
-        overwrite: ['url', 'name', 'description', 'creation_date'],
-      })
-      .execute()
+  if (!dbCom || !pubInfo || !(dbCom.publicKey.toString('hex') === pubInfo.publicKey)) {
+    logger.error(
+      `Error in writeForeignCommunity: missmatching parameters or publicKey. pubInfo:${JSON.stringify(
+        pubInfo,
+      )}`,
+    )
+  } else {
+    let com = await DbCommunity.findOne({ publicKey: dbCom.publicKey })
+    if (!com) {
+      com = DbCommunity.create()
+    }
+    com.creationDate = pubInfo.createdAt
+    com.description = pubInfo.description
+    com.foreign = true
+    com.name = pubInfo.name
+    com.publicKey = dbCom.publicKey
+    com.url = dbCom.endPoint
+    await DbCommunity.save(com)
   }
 }
 
