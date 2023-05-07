@@ -1,20 +1,18 @@
-doctype html
-html(lang=locale)
-  head
-    title= t('emails.resetPassword.subject')
-  body
-    h1(style='margin-bottom: 24px;')= t('emails.resetPassword.subject')
-    #container.col
-      include ../hello.pug
-      p= t('emails.resetPassword.youOrSomeoneResetPassword')
-      p
-        = t('emails.resetPassword.pleaseClickLink')
-        br
-        a(href=resetLink) #{resetLink}
-        br
-        = t('emails.general.orCopyLink')
-      p
-        = t('emails.resetPassword.duration', { hours: timeDurationObject.hours, minutes: timeDurationObject.minutes })
-        br
-        a(href=resendLink) #{resendLink}
-      include ../greatingFormularImprint.pug
+extends ../layout.pug
+
+block content
+  .wrapper.wf-section
+    .w-container(class="wrapper_head")
+      h1.headline.h1= t('emails.resetPassword.title')
+      .text-block
+        include ../includes/salutation.pug
+        p= t('emails.resetPassword.youOrSomeoneResetPassword')
+    .content.w-container
+      h2.heading= t('emails.resetPassword.title')
+      div(class="p_content")= t('emails.resetPassword.pleaseClickLink')
+      a.button-3.w-button(href=resetLink) #{t('emails.general.reset')}
+      //- div(class="p_content")= t('emails.general.orCopyLink')
+      h2.heading-2 Neuen gültigen Link anfordern
+      div(class="p_content")= t('emails.resetPassword.duration', { hours: timeDurationObject.hours, minutes: timeDurationObject.minutes })
+      br
+      a.button-4.w-button(href=resendLink) #{t('emails.general.newLink')}
