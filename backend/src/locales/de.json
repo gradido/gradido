@@ -20,12 +20,16 @@
     },
     "addedContributionMessage": {
       "commonGoodContributionMessage": "du hast zu deinem Gemeinwohl-Beitrag „{contributionMemo}“ eine Nachricht von {senderFirstName} {senderLastName} erhalten.",
+      "readMessage": "Nachricht lesen und beantworten",
       "subject": "Gradido: Nachricht zu deinem Gemeinwohl-Beitrag",
       "title": "Nachricht zu deinem Gemeinwohl-Beitrag",
-      "toSeeAndAnswerMessage": "Um die Nachricht zu sehen und darauf zu antworten, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“!"
+      "toSeeAndAnswerMessage": "Um die Nachricht zu sehen und darauf zu antworten, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“."
+    },
+    "contribution": {
+      "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“."
     },
     "contributionConfirmed": {
-      "commonGoodContributionConfirmed": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde soeben von {senderFirstName} {senderLastName} bestätigt und in deinem Gradido-Konto gutgeschrieben.",
+      "commonGoodContributionConfirmed": "dein Gemeinwohl-Beitrag wurde soeben von {senderFirstName} {senderLastName} bestätigt und in deinem Gradido-Konto gutgeschrieben.",
       "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde bestätigt",
       "title": "Dein Gemeinwohl-Beitrag wurde bestätigt"
     },
@@ -33,13 +37,11 @@
       "commonGoodContributionDeleted": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} gelöscht.",
       "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde gelöscht",
       "title": "Dein Gemeinwohl-Beitrag wurde gelöscht",
-      "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“!"
     },
     "contributionDenied": {
       "commonGoodContributionDenied": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} abgelehnt.",
       "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde abgelehnt",
       "title": "Dein Gemeinwohl-Beitrag wurde abgelehnt",
-      "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“!"
     },
     "footer": {
       "contactOurSupport": "Bei weiteren fragen kontaktiere bitte unseren Support.",
@@ -51,6 +53,8 @@
     },
     "general": {
       "amountGDD": "Betrag: {amountGDD} GDD",
+      "contribution": "Gemeinwohl-Beitrag: {contributionMemo}",
+      "contributionDetails": "Beitragsdetails",
       "detailsYouFindOnLinkToYourAccount": "Details zur Transaktion findest du in deinem Gradido-Konto:",
       "helloName": "Hallo {firstName} {lastName},",
       "linkToYourAccount": "Link zu deinem Konto:",
@@ -59,6 +63,7 @@
       "pleaseDoNotReply": "Bitte antworte nicht auf diese E-Mail!",
       "reset": "zurücksetzen",
       "sincerelyYours": "Liebe Grüße",
+      "toAccount": "Zum Konto",
       "yourGradidoTeam": "dein Gradido-Team"
     },
     "resetPassword": {
@@ -66,7 +71,6 @@
       "pleaseClickLink": "Wenn du es warst, klicke bitte auf den Link:",
       "subject": "Gradido: Passwort zurücksetzen",
       "title": "Passwort zurücksetzen",
-      "toAccount": "Zum Konto",
       "youOrSomeoneResetPassword": "du oder jemand anderes, hast für dieses Konto ein Zurücksetzen des Passworts angefordert."
     },
     "transactionLinkRedeemed": {

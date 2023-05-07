@@ -1,16 +1,18 @@
-doctype html
-html(lang=locale)
-  head
-    title= t('emails.contributionConfirmed.subject')
-  body
-    h1(style='margin-bottom: 24px;')= t('emails.contributionConfirmed.subject')
-    #container.col
-      include ../hello.pug
-      p= t('emails.contributionConfirmed.commonGoodContributionConfirmed', { senderFirstName, senderLastName, contributionMemo })
-      p= t('emails.general.amountGDD', { amountGDD: contributionAmount })
-      p
-        = t('emails.general.linkToYourAccount')
-        = " "
-        a(href=overviewURL) #{overviewURL}
-      p= t('emails.general.pleaseDoNotReply')
-      include ../greatingFormularImprint.pug
+extend ../layout.pug
+
+block content
+  .wrapper.wf-section
+    .w-container(class="wrapper_head")
+      h1.headline.h1= t('emails.contributionConfirmed.title')
+      .text-block
+        include ../includes/salutation.pug
+        p= t('emails.contributionConfirmed.commonGoodContributionConfirmed', { senderFirstName, senderLastName })
+    .content.w-container
+      h2.heading= t('emails.general.contributionDetails')
+      div(class="p_content")
+        = t('emails.general.amountGDD')
+        br
+        = t('emails.general.contribution')
+      a.button-3.w-button(href="https://gdd.gradido.net/community/contributions") #{t('emails.general.toAccount')}
+
+      include ../includes/doNotReply.pug
