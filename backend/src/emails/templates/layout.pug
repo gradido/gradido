@@ -30,15 +30,10 @@ html.w-mod-js.wf-worksans-n4-active.wf-worksans-n6-active.wf-worksans-n1-active.
       include includes/webflow.css
   
   body
-    include includes/header.pug
+    //- include includes/header.pug
 
     block content
 
-    //- final formula
-    .text-block
-      p
-        = t('emails.general.sincerelyYours')
-        br
-        = t('emails.general.yourGradidoTeam')
+    include includes/greeting.pug
 
     include includes/footer.pug
