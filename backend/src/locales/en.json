@@ -1,6 +1,7 @@
 {
   "emails": {
     "accountActivation": {
+      "activateAccount": "Activate account",
       "duration": "The link has a validity of {hours} hours and {minutes} minutes. If the validity of the link has already expired, you can have a new link sent to you here:",
       "emailRegistered": "Your email address has just been registered with Gradido.",
       "pleaseClickLink": "Please click on this link to complete the registration and activate your Gradido account:",
@@ -8,6 +9,7 @@
       "title": "Email Verification"
     },
     "accountMultiRegistration": {
+      "contactSupport": "Contact support",
       "emailExists": "However, an account already exists for your email address.",
       "emailReused": "Your email address has just been used again to register an account with Gradido.",
       "ifYouAreNotTheOne": "If you are not the one who tried to register again, please contact our support:",
@@ -39,14 +41,23 @@
       "title": "Your common good contribution was rejected",
       "toSeeContributionsAndMessages": "To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab!"
     },
+    "footer": {
+      "contactOurSupport": "If you have any further questions, please contact our support.",
+      "imprint": "Impressum",
+      "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+      "imprintImageAlt": "Gradido-Akademie Logo",
+      "privacyPolicy": "Privacy Policy",
+      "supportEmail": "support@gradido.com"
+    },
     "general": {
       "amountGDD": "Amount: {amountGDD} GDD",
       "detailsYouFindOnLinkToYourAccount": "You can find transaction details in your Gradido account:",
-      "doNotAnswer": "do not answer",
       "helloName": "Hello {firstName} {lastName}",
       "linkToYourAccount": "Link to your account:",
+      "newLink": "new link",
       "orCopyLink": "or copy the link above into your browser window.",
       "pleaseDoNotReply": "Please do not reply to this email!",
+      "reset": "reset",
       "sincerelyYours": "Kind regards,",
       "yourGradidoTeam": "your Gradido team"
     },
@@ -70,13 +81,6 @@
     }
   },
   "general": {
-    "contactOurSupport": "If you have any further questions, please contact our support.",
-    "decimalSeparator": ".",
-    "imprint": "Impressum",
-    "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
-    "imprintImageAlt": "Gradido-Akademie Logo",
-    "imprintImageURL": "https://gdd.gradido.net/img/brand/green.png",
-    "privacyPolicy": "Privacy Policy",
-    "supportEmail": "support@gradido.com"
+    "decimalSeparator": "."
   }
 }

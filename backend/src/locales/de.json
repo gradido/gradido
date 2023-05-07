@@ -1,6 +1,7 @@
 {
   "emails": {
     "accountActivation": {
+      "activateAccount": "Konto aktivieren",
       "duration": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten. Sollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen:",
       "emailRegistered": "deine E-Mail-Adresse wurde soeben bei Gradido registriert.",
       "pleaseClickLink": "Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:",
@@ -8,6 +9,7 @@
       "title": "E-Mail Überprüfung"
     },
     "accountMultiRegistration": {
+      "contactSupport": "Support kontaktieren",
       "emailExists": "Es existiert jedoch zu deiner E-Mail-Adresse schon ein Konto.",
       "emailReused": "deine E-Mail-Adresse wurde soeben erneut benutzt, um bei Gradido ein Konto zu registrieren.",
       "ifYouAreNotTheOne": "Wenn du nicht derjenige bist, der versucht hat sich erneut zu registrieren, wende dich bitte an unseren Support:",
@@ -39,14 +41,23 @@
       "title": "Dein Gemeinwohl-Beitrag wurde abgelehnt",
       "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“!"
     },
+    "footer": {
+      "contactOurSupport": "Bei weiteren fragen kontaktiere bitte unseren Support.",
+      "imprint": "Impressum",
+      "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+      "imprintImageAlt": "Gradido-Akademie Logo",
+      "privacyPolicy": "Datenschutzerklärung",
+      "supportEmail": "support@gradido.com"
+    },
     "general": {
       "amountGDD": "Betrag: {amountGDD} GDD",
       "detailsYouFindOnLinkToYourAccount": "Details zur Transaktion findest du in deinem Gradido-Konto:",
-      "doNotAnswer": "nicht antworten",
       "helloName": "Hallo {firstName} {lastName},",
       "linkToYourAccount": "Link zu deinem Konto:",
+      "newLink": "neuer Link",
       "orCopyLink": "oder kopiere den obigen Link in dein Browserfenster.",
       "pleaseDoNotReply": "Bitte antworte nicht auf diese E-Mail!",
+      "reset": "zurücksetzen",
       "sincerelyYours": "Liebe Grüße",
       "yourGradidoTeam": "dein Gradido-Team"
     },
@@ -55,7 +66,8 @@
       "pleaseClickLink": "Wenn du es warst, klicke bitte auf den Link:",
       "subject": "Gradido: Passwort zurücksetzen",
       "title": "Passwort zurücksetzen",
-      "youOrSomeoneResetPassword": "du, oder jemand anderes, hast für dieses Konto ein Zurücksetzen des Passworts angefordert."
+      "toAccount": "Zum Konto",
+      "youOrSomeoneResetPassword": "du oder jemand anderes, hast für dieses Konto ein Zurücksetzen des Passworts angefordert."
     },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) hat soeben deinen Link eingelöst.",
@@ -70,13 +82,6 @@
     }
   },
   "general": {
-    "contactOurSupport": "Bei weiteren fragen kontaktiere bitte unseren Support.",
-    "decimalSeparator": ",",
-    "imprint": "Impressum",
-    "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
-    "imprintImageAlt": "Gradido-Akademie Logo",
-    "imprintImageURL": "https://gdd.gradido.net/img/brand/green.png",
-    "privacyPolicy": "Datenschutzerklärung",
-    "supportEmail": "support@gradido.com"
+    "decimalSeparator": ","
   }
 }
