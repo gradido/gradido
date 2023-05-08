@@ -58,7 +58,7 @@ export default defineConfig({
       mailserverURL: 'http://localhost:1080',
       loginQuery: `mutation ($email: String!, $password: String!, $publisherId: Int) {
         login(email: $email, password: $password, publisherId: $publisherId) {
-          email
+          id
           firstName
           lastName
           language
