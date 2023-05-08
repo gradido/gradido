@@ -36,12 +36,12 @@
     "contributionDeleted": {
       "commonGoodContributionDeleted": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} gelöscht.",
       "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde gelöscht",
-      "title": "Dein Gemeinwohl-Beitrag wurde gelöscht",
+      "title": "Dein Gemeinwohl-Beitrag wurde gelöscht"
     },
     "contributionDenied": {
       "commonGoodContributionDenied": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} abgelehnt.",
       "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde abgelehnt",
-      "title": "Dein Gemeinwohl-Beitrag wurde abgelehnt",
+      "title": "Dein Gemeinwohl-Beitrag wurde abgelehnt"
     },
     "footer": {
       "contactOurSupport": "Bei weiteren fragen kontaktiere bitte unseren Support.",
@@ -64,6 +64,7 @@
       "reset": "zurücksetzen",
       "sincerelyYours": "Liebe Grüße",
       "toAccount": "Zum Konto",
+      "transactionDetails": "Transaktionsdetails",
       "yourGradidoTeam": "dein Gradido-Team"
     },
     "resetPassword": {

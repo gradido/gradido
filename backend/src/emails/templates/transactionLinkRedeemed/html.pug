@@ -1,19 +1,20 @@
-doctype html
-html(lang=locale)
-  head
-    title= t('emails.transactionLinkRedeemed.subject', { senderFirstName, senderLastName })
-  body
-    h1(style='margin-bottom: 24px;')= t('emails.transactionLinkRedeemed.subject', { senderFirstName, senderLastName })
-    #container.col
-      include ../hello.pug
-      p= t('emails.transactionLinkRedeemed.hasRedeemedYourLink', { senderFirstName, senderLastName, senderEmail })
-      p
+extend ../layout.pug
+
+block content
+  .wrapper.wf-section
+    .w-container(class="wrapper_head")
+      h1.headline.h1=  t('emails.transactionLinkRedeemed.hasRedeemedYourLink', { senderFirstName, senderLastName, senderEmail })
+      .text-block
+        include ../includes/salutation.pug
+        p= t('emails.transactionLinkRedeemed.hasRedeemedYourLink', { senderFirstName, senderLastName, senderEmail })
+    .content.w-container
+      h2.heading= t('emails.general.transactionDetails')
+      div(class="p_content")
         = t('emails.general.amountGDD', { amountGDD: transactionAmount })
         br
         = t('emails.transactionLinkRedeemed.memo', { transactionMemo })
-      p
+        br
         = t('emails.general.detailsYouFindOnLinkToYourAccount')
-        = " "
-        a(href=overviewURL) #{overviewURL}
-      p= t('emails.general.pleaseDoNotReply')
-      include ../greatingFormularImprint.pug
+      a.button-3.w-button(href="https://gdd.gradido.net/transactions") #{t('emails.toAccount.toAccount')}
+
+      include ../includes/doNotReply.pug
