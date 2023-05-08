@@ -1,13 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { Connection } from '@dbTools/typeorm'
 import { Event as DbEvent } from '@entity/Event'
 import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 
@@ -22,13 +20,20 @@ import {
   login,
   sendCoins,
 } from '@/seeds/graphql/mutations'
+import { transactionsQuery } from '@/seeds/graphql/queries'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
-let mutate: any, query: any, con: any
-let testEnv: any
+let mutate: ApolloServerTestClient['mutate'], con: Connection
+let query: ApolloServerTestClient['query']
+
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger)
@@ -274,7 +279,7 @@ describe('send coins', () => {
       })
 
       // login as admin
-      await query({ mutation: login, variables: peterData })
+      await mutate({ mutation: login, variables: peterData })
 
       // confirm the contribution
       await mutate({
@@ -283,7 +288,7 @@ describe('send coins', () => {
       })
 
       // login as bob again
-      await query({ mutation: login, variables: bobData })
+      await mutate({ mutation: login, variables: bobData })
     })
 
     afterAll(async () => {
@@ -437,6 +442,45 @@ describe('send coins', () => {
             },
           }),
         )
+      })
+    })
+  })
+})
+
+describe('transactionList', () => {
+  describe('unauthenticated', () => {
+    it('throws an error', async () => {
+      await expect(query({ query: transactionsQuery })).resolves.toMatchObject({
+        errors: [new GraphQLError('401 Unauthorized')],
+      })
+    })
+  })
+
+  describe('authenticated', () => {
+    describe('no transactions', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bobBaumeister)
+        await mutate({
+          mutation: login,
+          variables: {
+            email: 'bob@baumeister.de',
+            password: 'Aa12345_',
+          },
+        })
+      })
+
+      it('has no transactions and balance 0', async () => {
+        await expect(query({ query: transactionsQuery })).resolves.toMatchObject({
+          data: {
+            transactionList: {
+              balance: expect.objectContaining({
+                balance: expect.decimalEqual(0),
+              }),
+              transactions: [],
+            },
+          },
+          errors: undefined,
+        })
       })
     })
   })

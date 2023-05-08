@@ -1,14 +1,14 @@
 import { gql } from 'graphql-tag'
 
 export const subscribeNewsletter = gql`
-  mutation ($email: String!, $language: String!) {
-    subscribeNewsletter(email: $email, language: $language)
+  mutation {
+    subscribeNewsletter
   }
 `
 
 export const unsubscribeNewsletter = gql`
-  mutation ($email: String!) {
-    unsubscribeNewsletter(email: $email)
+  mutation {
+    unsubscribeNewsletter
   }
 `
 
@@ -305,7 +305,6 @@ export const login = gql`
   mutation ($email: String!, $password: String!, $publisherId: Int) {
     login(email: $email, password: $password, publisherId: $publisherId) {
       id
-      email
       firstName
       lastName
       language

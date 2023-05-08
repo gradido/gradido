@@ -6,14 +6,12 @@ export class Community {
   constructor(dbCom: DbCommunity) {
     this.id = dbCom.id
     this.foreign = dbCom.foreign
-    this.publicKey = dbCom.publicKey.toString()
-    this.url =
-      (dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/') + dbCom.apiVersion
-    this.lastAnnouncedAt = dbCom.lastAnnouncedAt
-    this.verifiedAt = dbCom.verifiedAt
-    this.lastErrorAt = dbCom.lastErrorAt
-    this.createdAt = dbCom.createdAt
-    this.updatedAt = dbCom.updatedAt
+    this.name = dbCom.name
+    this.description = dbCom.description
+    this.url = dbCom.url
+    this.creationDate = dbCom.creationDate
+    this.uuid = dbCom.communityUuid
+    this.authenticatedAt = dbCom.authenticatedAt
   }
 
   @Field(() => Int)
@@ -22,24 +20,21 @@ export class Community {
   @Field(() => Boolean)
   foreign: boolean
 
-  @Field(() => String)
-  publicKey: string
+  @Field(() => String, { nullable: true })
+  name: string | null
+
+  @Field(() => String, { nullable: true })
+  description: string | null
 
   @Field(() => String)
   url: string
 
   @Field(() => Date, { nullable: true })
-  lastAnnouncedAt: Date | null
+  creationDate: Date | null
+
+  @Field(() => String, { nullable: true })
+  uuid: string | null
 
   @Field(() => Date, { nullable: true })
-  verifiedAt: Date | null
-
-  @Field(() => Date, { nullable: true })
-  lastErrorAt: Date | null
-
-  @Field(() => Date, { nullable: true })
-  createdAt: Date | null
-
-  @Field(() => Date, { nullable: true })
-  updatedAt: Date | null
+  authenticatedAt: Date | null
 }
