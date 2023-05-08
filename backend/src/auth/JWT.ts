@@ -11,8 +11,8 @@ export const decode = async (token: string): Promise<CustomJwtPayload | null> =>
   try {
     const secret = new TextEncoder().encode(CONFIG.JWT_SECRET)
     const { payload } = await jwtVerify(token, secret, {
-      issuer: 'urn:example:issuer', // TODO urn
-      audience: 'urn:example:audience', // TODO urn
+      issuer: 'urn:gradido:issuer',
+      audience: 'urn:gradido:audience',
     })
     return payload as CustomJwtPayload
   } catch (err) {
@@ -22,11 +22,11 @@ export const decode = async (token: string): Promise<CustomJwtPayload | null> =>
 
 export const encode = async (gradidoID: string): Promise<string> => {
   const secret = new TextEncoder().encode(CONFIG.JWT_SECRET)
-  const token = await new SignJWT({ gradidoID, 'urn:example:claim': true }) // TODO urn
+  const token = await new SignJWT({ gradidoID, 'urn:gradido:claim': true })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setIssuer('urn:example:issuer') // TODO urn
-    .setAudience('urn:example:audience') // TODO urn
+    .setIssuer('urn:gradido:issuer')
+    .setAudience('urn:gradido:audience')
     .setExpirationTime(CONFIG.JWT_EXPIRES_IN)
     .sign(secret)
   return token
