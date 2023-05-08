@@ -20,12 +20,15 @@ import {
   login,
   sendCoins,
 } from '@/seeds/graphql/mutations'
+import { transactionsQuery } from '@/seeds/graphql/queries'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
 let mutate: ApolloServerTestClient['mutate'], con: Connection
+let query: ApolloServerTestClient['query']
+
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
@@ -35,6 +38,7 @@ let testEnv: {
 beforeAll(async () => {
   testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
+  query = testEnv.query
   con = testEnv.con
   await cleanDB()
 })
@@ -438,6 +442,45 @@ describe('send coins', () => {
             },
           }),
         )
+      })
+    })
+  })
+})
+
+describe('transactionList', () => {
+  describe('unauthenticated', () => {
+    it('throws an error', async () => {
+      await expect(query({ query: transactionsQuery })).resolves.toMatchObject({
+        errors: [new GraphQLError('401 Unauthorized')],
+      })
+    })
+  })
+
+  describe('authenticated', () => {
+    describe('no transactions', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bobBaumeister)
+        await mutate({
+          mutation: login,
+          variables: {
+            email: 'bob@baumeister.de',
+            password: 'Aa12345_',
+          },
+        })
+      })
+
+      it('has no transactions and balance 0', async () => {
+        await expect(query({ query: transactionsQuery })).resolves.toMatchObject({
+          data: {
+            transactionList: {
+              balance: expect.objectContaining({
+                balance: expect.decimalEqual(0),
+              }),
+              transactions: [],
+            },
+          },
+          errors: undefined,
+        })
       })
     })
   })
