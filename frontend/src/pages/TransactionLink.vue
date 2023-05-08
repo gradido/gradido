@@ -139,7 +139,7 @@ export default {
         if (this.tokenExpiresInSeconds < 5) return `LOGGED_OUT`
 
         // logged in, nicht berechtigt einzulösen, eigener link
-        if (this.linkData.user && this.$store.state.email === this.linkData.user.email) {
+        if (this.linkData.user && this.$store.state.gradidoID === this.linkData.user.gradidoID) {
           return `SELF_CREATOR`
         }
 
