@@ -9,8 +9,8 @@ block content
         p= t('emails.transactionReceived.haveReceivedAmountGDDFrom', { transactionAmount, senderFirstName, senderLastName, senderEmail })
     .content.w-container
       h2.heading= t('emails.general.transactionDetails')
-      div(class="p_content") = t('emails.general.detailsYouFindOnLinkToYourAccount')
-      a.button-3.w-button(href="https://gdd.gradido.net/transactions") #{t('emails.toAccount.toAccount')}
+      div(class="p_content")= t('emails.general.detailsYouFindOnLinkToYourAccount')
+      a.button-3.w-button(href="https://gdd.gradido.net/transactions") #{t('emails.general.toAccount')}
 
       include ../includes/doNotReply.pug
 

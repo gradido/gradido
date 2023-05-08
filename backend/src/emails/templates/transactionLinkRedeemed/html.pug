@@ -9,12 +9,11 @@ block content
         p= t('emails.transactionLinkRedeemed.hasRedeemedYourLink', { senderFirstName, senderLastName, senderEmail })
     .content.w-container
       h2.heading= t('emails.general.transactionDetails')
-      div(class="p_content")
-        = t('emails.general.amountGDD', { amountGDD: transactionAmount })
+      div(class="p_content")= t('emails.general.amountGDD', { amountGDD: transactionAmount })
         br
         = t('emails.transactionLinkRedeemed.memo', { transactionMemo })
         br
         = t('emails.general.detailsYouFindOnLinkToYourAccount')
-      a.button-3.w-button(href="https://gdd.gradido.net/transactions") #{t('emails.toAccount.toAccount')}
+      a.button-3.w-button(href="https://gdd.gradido.net/transactions") #{t('emails.general.toAccount')}
 
       include ../includes/doNotReply.pug
