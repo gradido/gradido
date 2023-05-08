@@ -88,5 +88,4 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn('ALTER TABLE `transactions` DROP COLUMN `linked_user_gradido_id`;')
   await queryFn('ALTER TABLE `transactions` DROP COLUMN `linked_user_community_uuid`;')
   await queryFn('ALTER TABLE `transactions` DROP COLUMN `linked_user_name`;')
-  await queryFn(`DROP TABLE IF EXISTS pending_transactions;`)
 }
