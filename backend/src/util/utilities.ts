@@ -19,14 +19,14 @@ export const fullName = (firstName: string, lastName: string): string => {
   return [firstName, lastName].filter(Boolean).join(' ')
 }
 
-export const userName = (f?: string, l?: string): string | null => {
+export const userName = (firstName?: string, lastName?: string): string | null => {
   let name: string | null
-  if (f && l) {
-    name = f + ' ' + l
-  } else if (f && !l) {
-    name = f
-  } else if (!f && l) {
-    name = l
+  if (firstName && lastName) {
+    name = firstName + ' ' + lastName
+  } else if (firstName && !lastName) {
+    name = firstName
+  } else if (!firstName && lastName) {
+    name = lastName
   } else {
     name = null
   }
