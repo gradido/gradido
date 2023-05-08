@@ -13,8 +13,8 @@ export const mutations = {
     localeChanged(language)
     state.language = language
   },
-  email: (state, email) => {
-    state.email = email
+  gradidoID: (state, gradidoID) => {
+    state.gradidoID = gradidoID
   },
   // username: (state, username) => {
   //   state.username = username
@@ -57,7 +57,7 @@ export const mutations = {
 
 export const actions = {
   login: ({ dispatch, commit }, data) => {
-    commit('email', data.email)
+    commit('gradidoID', data.gradidoID)
     commit('language', data.language)
     // commit('username', data.username)
     commit('firstName', data.firstName)
@@ -71,8 +71,8 @@ export const actions = {
   },
   logout: ({ commit, state }) => {
     commit('token', null)
-    commit('email', null)
     // commit('username', '')
+    commit('gradidoID', null)
     commit('firstName', '')
     commit('lastName', '')
     commit('newsletterState', null)
@@ -96,8 +96,8 @@ try {
       }),
     ],
     state: {
-      email: '',
       language: null,
+      gradidoID: null,
       firstName: '',
       lastName: '',
       // username: '',

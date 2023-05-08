@@ -130,7 +130,7 @@ export class UserResolver {
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
 
-    logger.debug(`verifyLogin... successful: ${user.firstName}.${user.lastName}, ${user.email}`)
+    logger.debug(`verifyLogin... successful: ${user.firstName}.${user.lastName}`)
     return user
   }
 
@@ -238,7 +238,6 @@ export class UserResolver {
         const user = new User(communityDbUser)
         user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
         user.gradidoID = uuidv4()
-        user.email = email
         user.firstName = firstName
         user.lastName = lastName
         user.language = language

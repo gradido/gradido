@@ -59,7 +59,7 @@ export default {
     async saveLocale(locale) {
       if (this.$i18n.locale === locale) return
       this.setLocale(locale)
-      if (this.$store.state.email) {
+      if (this.$store.state.gradidoID) {
         this.$apollo
           .mutate({
             mutation: updateUserInfos,
