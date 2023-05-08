@@ -1,8 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-import Decimal from 'decimal.js-light'
-import { logger } from '@test/testSetup'
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { Connection } from '@dbTools/typeorm'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { Event as DbEvent } from '@entity/Event'
+import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+
+import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
+import { logger } from '@test/testSetup'
+
+import { EventType } from '@/event/Events'
+import { userFactory } from '@/seeds/factory/user'
 import {
   login,
   createContributionLink,
@@ -10,14 +19,17 @@ import {
   updateContributionLink,
 } from '@/seeds/graphql/mutations'
 import { listContributionLinks } from '@/seeds/graphql/queries'
-import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { userFactory } from '@/seeds/factory/user'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 
-let mutate: any, query: any, con: any
-let testEnv: any
+let mutate: ApolloServerTestClient['mutate'],
+  query: ApolloServerTestClient['query'],
+  con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
@@ -245,6 +257,18 @@ describe('Contribution Links', () => {
           )
         })
 
+        it('stores the ADMIN_CONTRIBUTION_LINK_CREATE event in the database', async () => {
+          await expect(DbEvent.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventType.ADMIN_CONTRIBUTION_LINK_CREATE,
+              affectedUserId: 0,
+              actingUserId: expect.any(Number),
+              involvedContributionLinkId: expect.any(Number),
+              amount: expect.decimalEqual(200),
+            }),
+          )
+        })
+
         it('returns an error if missing startDate', async () => {
           jest.clearAllMocks()
           await expect(
@@ -262,7 +286,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "A Start-Date must be set"', () => {
           expect(logger.error).toBeCalledWith('A Start-Date must be set')
         })
 
@@ -283,7 +307,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "An End-Date must be set"', () => {
           expect(logger.error).toBeCalledWith('An End-Date must be set')
         })
 
@@ -307,7 +331,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The value of validFrom must before or equals the validTo"', () => {
           expect(logger.error).toBeCalledWith(
             `The value of validFrom must before or equals the validTo`,
           )
@@ -330,7 +354,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The value of name is too short"', () => {
           expect(logger.error).toBeCalledWith('The value of name is too short', 3)
         })
 
@@ -351,7 +375,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The value of name is too long"', () => {
           expect(logger.error).toBeCalledWith('The value of name is too long', 101)
         })
 
@@ -372,7 +396,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The value of memo is too short"', () => {
           expect(logger.error).toBeCalledWith('The value of memo is too short', 3)
         })
 
@@ -393,7 +417,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The value of memo is too long"', () => {
           expect(logger.error).toBeCalledWith('The value of memo is too long', 256)
         })
 
@@ -414,7 +438,7 @@ describe('Contribution Links', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "The amount must be a positiv value"', () => {
           expect(logger.error).toBeCalledWith('The amount must be a positiv value', new Decimal(0))
         })
       })
@@ -472,7 +496,7 @@ describe('Contribution Links', () => {
           })
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "Contribution Link not found"', () => {
           expect(logger.error).toBeCalledWith('Contribution Link not found', -1)
         })
 
@@ -527,6 +551,18 @@ describe('Contribution Links', () => {
               }),
             )
           })
+
+          it('stores the ADMIN_CONTRIBUTION_LINK_UPDATE event in the database', async () => {
+            await expect(DbEvent.find()).resolves.toContainEqual(
+              expect.objectContaining({
+                type: EventType.ADMIN_CONTRIBUTION_LINK_UPDATE,
+                affectedUserId: 0,
+                actingUserId: expect.any(Number),
+                involvedContributionLinkId: expect.any(Number),
+                amount: expect.decimalEqual(400),
+              }),
+            )
+          })
         })
       })
 
@@ -542,7 +578,7 @@ describe('Contribution Links', () => {
             )
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "Contribution Link not found"', () => {
             expect(logger.error).toBeCalledWith('Contribution Link not found', -1)
           })
         })
@@ -554,14 +590,25 @@ describe('Contribution Links', () => {
             linkId = links.data.listContributionLinks.links[0].id
           })
 
-          it('returns a date string', async () => {
+          it('returns true', async () => {
             await expect(
               mutate({ mutation: deleteContributionLink, variables: { id: linkId } }),
             ).resolves.toEqual(
               expect.objectContaining({
                 data: {
-                  deleteContributionLink: expect.any(String),
+                  deleteContributionLink: true,
                 },
+              }),
+            )
+          })
+
+          it('stores the ADMIN_CONTRIBUTION_LINK_DELETE event in the database', async () => {
+            await expect(DbEvent.find()).resolves.toContainEqual(
+              expect.objectContaining({
+                type: EventType.ADMIN_CONTRIBUTION_LINK_DELETE,
+                affectedUserId: 0,
+                actingUserId: expect.any(Number),
+                involvedContributionLinkId: linkId,
               }),
             )
           })

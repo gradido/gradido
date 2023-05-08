@@ -1,9 +1,19 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { Connection } from '@dbTools/typeorm'
+import { Event as DbEvent } from '@entity/Event'
+import { ApolloServerTestClient } from 'apollo-server-testing'
+import { GraphQLError } from 'graphql'
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
-import { GraphQLError } from 'graphql'
+
+import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
+import { EventType } from '@/event/Events'
+import { userFactory } from '@/seeds/factory/user'
 import {
   adminCreateContributionMessage,
   createContribution,
@@ -11,10 +21,8 @@ import {
   login,
 } from '@/seeds/graphql/mutations'
 import { listContributionMessages } from '@/seeds/graphql/queries'
-import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
@@ -27,8 +35,12 @@ jest.mock('@/emails/sendEmailVariants', () => {
   }
 })
 
-let mutate: any, con: any
-let testEnv: any
+let mutate: ApolloServerTestClient['mutate'], con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 let result: any
 
 beforeAll(async () => {
@@ -108,7 +120,7 @@ describe('ContributionMessageResolver', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "ContributionMessage was not sent successfully: Error: Contribution not found"', () => {
           expect(logger.error).toBeCalledWith(
             'ContributionMessage was not sent successfully: Error: Contribution not found',
             new Error('Contribution not found'),
@@ -148,7 +160,7 @@ describe('ContributionMessageResolver', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "ContributionMessage was not sent successfully: Error: Admin can not answer on his own contribution"', () => {
           expect(logger.error).toBeCalledWith(
             'ContributionMessage was not sent successfully: Error: Admin can not answer on his own contribution',
             new Error('Admin can not answer on his own contribution'),
@@ -181,7 +193,7 @@ describe('ContributionMessageResolver', () => {
           )
         })
 
-        it('calls sendAddedContributionMessageEmail', async () => {
+        it('calls sendAddedContributionMessageEmail', () => {
           expect(sendAddedContributionMessageEmail).toBeCalledWith({
             firstName: 'Bibi',
             lastName: 'Bloxberg',
@@ -191,6 +203,18 @@ describe('ContributionMessageResolver', () => {
             senderLastName: 'Lustig',
             contributionMemo: 'Test env contribution',
           })
+        })
+
+        it('stores the ADMIN_CONTRIBUTION_MESSAGE_CREATE event in the database', async () => {
+          await expect(DbEvent.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventType.ADMIN_CONTRIBUTION_MESSAGE_CREATE,
+              affectedUserId: expect.any(Number),
+              actingUserId: expect.any(Number),
+              involvedContributionId: result.data.createContribution.id,
+              involvedContributionMessageId: expect.any(Number),
+            }),
+          )
         })
       })
     })
@@ -246,7 +270,7 @@ describe('ContributionMessageResolver', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "ContributionMessage was not sent successfully: Error: Contribution not found"', () => {
           expect(logger.error).toBeCalledWith(
             'ContributionMessage was not sent successfully: Error: Contribution not found',
             new Error('Contribution not found'),
@@ -278,7 +302,7 @@ describe('ContributionMessageResolver', () => {
           )
         })
 
-        it('logs the error thrown', () => {
+        it('logs the error "ContributionMessage was not sent successfully: Error: Can not send message to contribution of another user"', () => {
           expect(logger.error).toBeCalledWith(
             'ContributionMessage was not sent successfully: Error: Can not send message to contribution of another user',
             new Error('Can not send message to contribution of another user'),
@@ -314,6 +338,18 @@ describe('ContributionMessageResolver', () => {
                   userLastName: 'Bloxberg',
                 }),
               },
+            }),
+          )
+        })
+
+        it('stores the CONTRIBUTION_MESSAGE_CREATE event in the database', async () => {
+          await expect(DbEvent.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventType.CONTRIBUTION_MESSAGE_CREATE,
+              affectedUserId: expect.any(Number),
+              actingUserId: expect.any(Number),
+              involvedContributionId: result.data.createContribution.id,
+              involvedContributionMessageId: expect.any(Number),
             }),
           )
         })

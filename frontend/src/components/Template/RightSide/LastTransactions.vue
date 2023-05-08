@@ -32,11 +32,7 @@
           <b-row>
             <b-col>
               <div class="font-weight-bold">
-                <name
-                  :linkedUser="transaction.linkedUser"
-                  v-on="$listeners"
-                  fontColor="text-dark"
-                />
+                <name :linkedUser="transaction.linkedUser" fontColor="text-dark" />
               </div>
               <div class="d-flex mt-3">
                 <div class="small">
@@ -55,7 +51,7 @@
 </template>
 <script>
 import Avatar from 'vue-avatar'
-import Name from '@/components/TransactionRows/Name.vue'
+import Name from '@/components/TransactionRows/Name'
 
 export default {
   name: 'LastTransactions',

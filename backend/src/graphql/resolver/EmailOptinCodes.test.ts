@@ -1,15 +1,24 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
-import { testEnvironment, cleanDB } from '@test/helpers'
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { Connection } from '@dbTools/typeorm'
 import { User as DbUser } from '@entity/User'
-import { createUser, setPassword, forgotPassword } from '@/seeds/graphql/mutations'
-import { queryOptIn } from '@/seeds/graphql/queries'
-import CONFIG from '@/config'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 
-let mutate: any, query: any, con: any
-let testEnv: any
+import { testEnvironment, cleanDB } from '@test/helpers'
+
+import { CONFIG } from '@/config'
+import { createUser, setPassword, forgotPassword } from '@/seeds/graphql/mutations'
+import { queryOptIn } from '@/seeds/graphql/queries'
+
+let mutate: ApolloServerTestClient['mutate'],
+  query: ApolloServerTestClient['query'],
+  con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 
 CONFIG.EMAIL_CODE_VALID_TIME = 1440
 CONFIG.EMAIL_CODE_REQUEST_TIME = 10

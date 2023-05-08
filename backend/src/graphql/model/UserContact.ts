@@ -1,5 +1,5 @@
-import { ObjectType, Field } from 'type-graphql'
 import { UserContact as dbUserContact } from '@entity/UserContact'
+import { ObjectType, Field, Int } from 'type-graphql'
 
 @ObjectType()
 export class UserContact {
@@ -18,13 +18,13 @@ export class UserContact {
     this.deletedAt = userContact.deletedAt
   }
 
-  @Field(() => Number)
+  @Field(() => Int)
   id: number
 
   @Field(() => String)
   type: string
 
-  @Field(() => Number)
+  @Field(() => Int)
   userId: number
 
   @Field(() => String)
@@ -33,10 +33,10 @@ export class UserContact {
   // @Field(() => BigInt, { nullable: true })
   // emailVerificationCode: BigInt | null
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   emailOptInTypeId: number | null
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   emailResendCount: number | null
 
   @Field(() => Boolean)

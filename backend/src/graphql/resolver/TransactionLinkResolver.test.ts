@@ -1,15 +1,25 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { Connection } from '@dbTools/typeorm'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { Event as DbEvent } from '@entity/Event'
+import { Transaction } from '@entity/Transaction'
+import { User } from '@entity/User'
+import { UserContact } from '@entity/UserContact'
+import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Decimal } from 'decimal.js-light'
+import { GraphQLError } from 'graphql'
 
-import { transactionLinkCode } from './TransactionLinkResolver'
-import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { peterLustig } from '@/seeds/users/peter-lustig'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { cleanDB, testEnvironment, resetToken, resetEntity } from '@test/helpers'
-import { creationFactory } from '@/seeds/factory/creation'
+import { logger } from '@test/testSetup'
+
+import { EventType } from '@/event/Events'
 import { creations } from '@/seeds/creation/index'
-import { userFactory } from '@/seeds/factory/user'
+import { creationFactory } from '@/seeds/factory/creation'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
-import { transactionLinks } from '@/seeds/transactionLink/index'
+import { userFactory } from '@/seeds/factory/user'
 import {
   login,
   createContributionLink,
@@ -17,22 +27,29 @@ import {
   createContribution,
   updateContribution,
   createTransactionLink,
+  deleteTransactionLink,
+  confirmContribution,
 } from '@/seeds/graphql/mutations'
 import { listTransactionLinksAdmin } from '@/seeds/graphql/queries'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { User } from '@entity/User'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import Decimal from 'decimal.js-light'
-import { GraphQLError } from 'graphql'
+import { transactionLinks } from '@/seeds/transactionLink/index'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { peterLustig } from '@/seeds/users/peter-lustig'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
-import { logger } from '@test/testSetup'
+
+import { transactionLinkCode } from './TransactionLinkResolver'
 
 // mock semaphore to allow use fake timers
 jest.mock('@/util/TRANSACTIONS_LOCK')
 TRANSACTIONS_LOCK.acquire = jest.fn().mockResolvedValue(jest.fn())
 
-let mutate: any, query: any, con: any
-let testEnv: any
+let mutate: ApolloServerTestClient['mutate'],
+  query: ApolloServerTestClient['query'],
+  con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 
 let user: User
 
@@ -89,7 +106,7 @@ describe('TransactionLinkResolver', () => {
           errors: [new GraphQLError('Amount must be a positive number')],
         })
       })
-      it('logs the error thrown', () => {
+      it('logs the error "Amount must be a positive number" - 0', () => {
         expect(logger.error).toBeCalledWith('Amount must be a positive number', new Decimal(0))
       })
 
@@ -107,7 +124,7 @@ describe('TransactionLinkResolver', () => {
           errors: [new GraphQLError('Amount must be a positive number')],
         })
       })
-      it('logs the error thrown', () => {
+      it('logs the error "Amount must be a positive number" - -10', () => {
         expect(logger.error).toBeCalledWith('Amount must be a positive number', new Decimal(-10))
       })
 
@@ -125,7 +142,7 @@ describe('TransactionLinkResolver', () => {
           errors: [new GraphQLError('User has not enough GDD')],
         })
       })
-      it('logs the error thrown', () => {
+      it('logs the error "User has not enough GDD"', () => {
         expect(logger.error).toBeCalledWith('User has not enough GDD', expect.any(Number))
       })
     })
@@ -136,6 +153,8 @@ describe('TransactionLinkResolver', () => {
       await cleanDB()
       resetToken()
     })
+
+    let contributionId: number
 
     describe('unauthenticated', () => {
       it('throws an error', async () => {
@@ -175,7 +194,7 @@ describe('TransactionLinkResolver', () => {
             })
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "No contribution link found to given code"', () => {
             expect(logger.error).toBeCalledWith(
               'No contribution link found to given code',
               'CL-123456',
@@ -210,7 +229,7 @@ describe('TransactionLinkResolver', () => {
               mutate({
                 mutation: redeemTransactionLink,
                 variables: {
-                  code: 'CL-' + contributionLink.code,
+                  code: `CL-${contributionLink.code}`,
                 },
               }),
             ).resolves.toMatchObject({
@@ -219,7 +238,7 @@ describe('TransactionLinkResolver', () => {
             await resetEntity(DbContributionLink)
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "Contribution link is not valid yet"', () => {
             expect(logger.error).toBeCalledWith('Contribution link is not valid yet', validFrom)
             expect(logger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
@@ -249,7 +268,7 @@ describe('TransactionLinkResolver', () => {
               mutate({
                 mutation: redeemTransactionLink,
                 variables: {
-                  code: 'CL-' + contributionLink.code,
+                  code: `CL-${contributionLink.code}`,
                 },
               }),
             ).resolves.toMatchObject({
@@ -258,7 +277,7 @@ describe('TransactionLinkResolver', () => {
             await resetEntity(DbContributionLink)
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "Contribution link has unknown cycle"', () => {
             expect(logger.error).toBeCalledWith('Contribution link has unknown cycle', 'INVALID')
             expect(logger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
@@ -288,7 +307,7 @@ describe('TransactionLinkResolver', () => {
               mutate({
                 mutation: redeemTransactionLink,
                 variables: {
-                  code: 'CL-' + contributionLink.code,
+                  code: `CL-${contributionLink.code}`,
                 },
               }),
             ).resolves.toMatchObject({
@@ -297,7 +316,7 @@ describe('TransactionLinkResolver', () => {
             await resetEntity(DbContributionLink)
           })
 
-          it('logs the error thrown', () => {
+          it('logs the error "Contribution link is no longer valid"', () => {
             expect(logger.error).toBeCalledWith('Contribution link is no longer valid', validTo)
             expect(logger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
@@ -306,7 +325,6 @@ describe('TransactionLinkResolver', () => {
           })
         })
 
-        // TODO: have this test separated into a transactionLink and a contributionLink part
         describe('redeem daily Contribution Link', () => {
           const now = new Date()
           let contributionLink: DbContributionLink | undefined
@@ -330,6 +348,10 @@ describe('TransactionLinkResolver', () => {
                 maxPerCycle: 1,
               },
             })
+          })
+
+          afterAll(async () => {
+            await resetEntity(Transaction)
           })
 
           it('has a daily contribution link in the database', async () => {
@@ -373,6 +395,7 @@ describe('TransactionLinkResolver', () => {
                 },
               })
               contribution = result.data.createContribution
+              contributionId = result.data.createContribution.id
             })
 
             it('does not allow the user to redeem the contribution link', async () => {
@@ -389,7 +412,7 @@ describe('TransactionLinkResolver', () => {
               })
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "Creation from contribution link was not successful"', () => {
               expect(logger.error).toBeCalledWith(
                 'Creation from contribution link was not successful',
                 new Error(
@@ -432,6 +455,24 @@ describe('TransactionLinkResolver', () => {
               })
             })
 
+            it('stores the CONTRIBUTION_LINK_REDEEM event in the database', async () => {
+              const userConatct = await UserContact.findOneOrFail(
+                { email: 'bibi@bloxberg.de' },
+                { relations: ['user'] },
+              )
+              await expect(DbEvent.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventType.CONTRIBUTION_LINK_REDEEM,
+                  affectedUserId: userConatct.user.id,
+                  actingUserId: userConatct.user.id,
+                  involvedTransactionId: expect.any(Number),
+                  involvedContributionId: expect.any(Number),
+                  involvedContributionLinkId: contributionLink?.id,
+                  amount: contributionLink?.amount,
+                }),
+              )
+            })
+
             it('does not allow the user to redeem the contribution link a second time on the same day', async () => {
               jest.clearAllMocks()
               await expect(
@@ -446,7 +487,7 @@ describe('TransactionLinkResolver', () => {
               })
             })
 
-            it('logs the error thrown', () => {
+            it('logs the error "Creation from contribution link was not successful"', () => {
               expect(logger.error).toBeCalledWith(
                 'Creation from contribution link was not successful',
                 new Error('Contribution link already redeemed today'),
@@ -498,12 +539,204 @@ describe('TransactionLinkResolver', () => {
                 })
               })
 
-              it('logs the error thrown', () => {
+              it('logs the error "Creation from contribution link was not successful"', () => {
                 expect(logger.error).toBeCalledWith(
                   'Creation from contribution link was not successful',
                   new Error('Contribution link already redeemed today'),
                 )
               })
+            })
+          })
+        })
+      })
+
+      describe('transaction link', () => {
+        beforeEach(() => {
+          jest.clearAllMocks()
+        })
+
+        describe('link does not exits', () => {
+          beforeAll(async () => {
+            await mutate({
+              mutation: login,
+              variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+            })
+          })
+
+          it('throws and logs the error', async () => {
+            await expect(
+              mutate({
+                mutation: redeemTransactionLink,
+                variables: {
+                  code: 'not-valid',
+                },
+              }),
+            ).resolves.toMatchObject({
+              errors: [new GraphQLError('Transaction link not found')],
+            })
+            expect(logger.error).toBeCalledWith('Transaction link not found', 'not-valid')
+          })
+        })
+
+        describe('link exists', () => {
+          let myCode: string
+          let myId: number
+
+          beforeAll(async () => {
+            await mutate({
+              mutation: login,
+              variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+            })
+            await mutate({
+              mutation: confirmContribution,
+              variables: { id: contributionId },
+            })
+            await mutate({
+              mutation: login,
+              variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+            })
+            const {
+              data: {
+                createTransactionLink: { id, code },
+              },
+            } = await mutate({
+              mutation: createTransactionLink,
+              variables: {
+                amount: 200,
+                memo: 'This is a transaction link from bibi',
+              },
+            })
+            myCode = code
+            myId = id
+          })
+
+          it('stores the TRANSACTION_LINK_CREATE event in the database', async () => {
+            const userConatct = await UserContact.findOneOrFail(
+              { email: 'bibi@bloxberg.de' },
+              { relations: ['user'] },
+            )
+            await expect(DbEvent.find()).resolves.toContainEqual(
+              expect.objectContaining({
+                type: EventType.TRANSACTION_LINK_CREATE,
+                affectedUserId: userConatct.user.id,
+                actingUserId: userConatct.user.id,
+                involvedTransactionLinkId: myId,
+                amount: expect.decimalEqual(200),
+              }),
+            )
+          })
+
+          describe('own link', () => {
+            beforeAll(async () => {
+              await mutate({
+                mutation: login,
+                variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+              })
+            })
+
+            it('throws and logs an error', async () => {
+              await expect(
+                mutate({
+                  mutation: redeemTransactionLink,
+                  variables: {
+                    code: myCode,
+                  },
+                }),
+              ).resolves.toMatchObject({
+                errors: [new GraphQLError('Cannot redeem own transaction link')],
+              })
+              expect(logger.error).toBeCalledWith(
+                'Cannot redeem own transaction link',
+                expect.any(Number),
+              )
+            })
+            it('delete own link', async () => {
+              await expect(
+                mutate({
+                  mutation: deleteTransactionLink,
+                  variables: {
+                    id: myId,
+                  },
+                }),
+              ).resolves.toMatchObject({
+                data: { deleteTransactionLink: true },
+              })
+            })
+
+            it('stores the TRANSACTION_LINK_DELETE event in the database', async () => {
+              const userConatct = await UserContact.findOneOrFail(
+                { email: 'bibi@bloxberg.de' },
+                { relations: ['user'] },
+              )
+              await expect(DbEvent.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventType.TRANSACTION_LINK_DELETE,
+                  affectedUserId: userConatct.user.id,
+                  actingUserId: userConatct.user.id,
+                  involvedTransactionLinkId: myId,
+                }),
+              )
+            })
+          })
+
+          describe('other link', () => {
+            beforeAll(async () => {
+              await mutate({
+                mutation: login,
+                variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+              })
+              const {
+                data: {
+                  createTransactionLink: { id, code },
+                },
+              } = await mutate({
+                mutation: createTransactionLink,
+                variables: {
+                  amount: 200,
+                  memo: 'This is a transaction link from bibi',
+                },
+              })
+              myCode = code
+              myId = id
+              await mutate({
+                mutation: login,
+                variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+              })
+            })
+
+            it('successfully redeems link', async () => {
+              await expect(
+                mutate({
+                  mutation: redeemTransactionLink,
+                  variables: {
+                    code: myCode,
+                  },
+                }),
+              ).resolves.toMatchObject({
+                data: { redeemTransactionLink: true },
+                errors: undefined,
+              })
+            })
+
+            it('stores the TRANSACTION_LINK_REDEEM event in the database', async () => {
+              const creator = await UserContact.findOneOrFail(
+                { email: 'bibi@bloxberg.de' },
+                { relations: ['user'] },
+              )
+              const redeemer = await UserContact.findOneOrFail(
+                { email: 'peter@lustig.de' },
+                { relations: ['user'] },
+              )
+              await expect(DbEvent.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventType.TRANSACTION_LINK_REDEEM,
+                  affectedUserId: redeemer.user.id,
+                  actingUserId: redeemer.user.id,
+                  involvedUserId: creator.user.id,
+                  involvedTransactionLinkId: myId,
+                  amount: expect.decimalEqual(200),
+                }),
+              )
             })
           })
         })
@@ -600,6 +833,26 @@ describe('TransactionLinkResolver', () => {
           resetToken()
         })
 
+        describe('', () => {
+          it('throws error when user does not exists', async () => {
+            jest.clearAllMocks()
+            await expect(
+              mutate({
+                mutation: listTransactionLinksAdmin,
+                variables: {
+                  userId: -1,
+                },
+              }),
+            ).resolves.toMatchObject({
+              errors: [new GraphQLError('Could not find requested User')],
+            })
+          })
+
+          it('logs the error "Could not find requested User"', () => {
+            expect(logger.error).toBeCalledWith('Could not find requested User', -1)
+          })
+        })
+
         describe('without any filters', () => {
           it('finds 6 open transaction links and no deleted or redeemed', async () => {
             await expect(
@@ -611,8 +864,8 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 6,
-                    linkList: expect.not.arrayContaining([
+                    count: 6,
+                    links: expect.not.arrayContaining([
                       expect.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
                         createdAt: expect.any(String),
@@ -647,8 +900,8 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 6,
-                    linkList: expect.not.arrayContaining([
+                    count: 6,
+                    links: expect.not.arrayContaining([
                       expect.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
                         createdAt: expect.any(String),
@@ -681,8 +934,8 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 7,
-                    linkList: expect.arrayContaining([
+                    count: 7,
+                    links: expect.arrayContaining([
                       expect.not.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
                         createdAt: expect.any(String),
@@ -715,8 +968,8 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 7,
-                    linkList: expect.arrayContaining([
+                    count: 7,
+                    links: expect.arrayContaining([
                       expect.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
                         createdAt: expect.any(String),
@@ -734,6 +987,7 @@ describe('TransactionLinkResolver', () => {
         })
 
         // TODO: works not as expected, because 'redeemedAt' and 'redeemedBy' have to be added to the transaktion link factory
+        // eslint-disable-next-line jest/no-disabled-tests
         describe.skip('filter by redeemed', () => {
           it('finds 6 open transaction links, 1 deleted, and no redeemed', async () => {
             await expect(
@@ -752,8 +1006,8 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 6,
-                    linkList: expect.arrayContaining([
+                    count: 6,
+                    links: expect.arrayContaining([
                       expect.not.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
                         createdAt: expect.any(String),

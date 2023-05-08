@@ -5,7 +5,7 @@ import { startDHT } from './index'
 import DHT from '@hyperswarm/dht'
 import CONFIG from '@/config'
 import { logger } from '@test/testSetup'
-import { Community as DbCommunity } from '@entity/Community'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { testEnvironment, cleanDB } from '@test/helpers'
 
 CONFIG.FEDERATION_DHT_SEED = '64ebcb0e3ad547848fef4197c6e2332f'
@@ -261,7 +261,7 @@ describe('federation', () => {
 
             describe('with receiving wrong but tolerated property data', () => {
               let jsonArray: any[]
-              let result: DbCommunity[] = []
+              let result: DbFederatedCommunity[] = []
               beforeAll(async () => {
                 jest.clearAllMocks()
                 jsonArray = [
@@ -277,7 +277,7 @@ describe('federation', () => {
                   },
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
-                result = await DbCommunity.find({ foreign: true })
+                result = await DbFederatedCommunity.find({ foreign: true })
               })
 
               afterAll(async () => {
@@ -523,7 +523,7 @@ describe('federation', () => {
 
             describe('with receiving data of exact max allowed properties length', () => {
               let jsonArray: any[]
-              let result: DbCommunity[] = []
+              let result: DbFederatedCommunity[] = []
               beforeAll(async () => {
                 jest.clearAllMocks()
                 jsonArray = [
@@ -538,7 +538,7 @@ describe('federation', () => {
                   { api: 'toolong api', url: 'some valid url' },
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
-                result = await DbCommunity.find({ foreign: true })
+                result = await DbFederatedCommunity.find({ foreign: true })
               })
 
               afterAll(async () => {
@@ -570,7 +570,7 @@ describe('federation', () => {
 
             describe('with receiving data of exact max allowed buffer length', () => {
               let jsonArray: any[]
-              let result: DbCommunity[] = []
+              let result: DbFederatedCommunity[] = []
               beforeAll(async () => {
                 jest.clearAllMocks()
                 jsonArray = [
@@ -592,7 +592,7 @@ describe('federation', () => {
                   },
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
-                result = await DbCommunity.find({ foreign: true })
+                result = await DbFederatedCommunity.find({ foreign: true })
               })
 
               afterAll(async () => {
@@ -711,7 +711,7 @@ describe('federation', () => {
             })
 
             describe('with proper data', () => {
-              let result: DbCommunity[] = []
+              let result: DbFederatedCommunity[] = []
               beforeAll(async () => {
                 jest.clearAllMocks()
                 await socketEventMocks.data(
@@ -719,16 +719,16 @@ describe('federation', () => {
                     JSON.stringify([
                       {
                         api: '1_0',
-                        url: 'http://localhost:5001/api/',
+                        url: 'http://localhost/api/',
                       },
                       {
                         api: '2_0',
-                        url: 'http://localhost:5002/api/',
+                        url: 'http://localhost/api/',
                       },
                     ]),
                   ),
                 )
-                result = await DbCommunity.find({ foreign: true })
+                result = await DbFederatedCommunity.find({ foreign: true })
               })
 
               afterAll(async () => {
@@ -747,7 +747,7 @@ describe('federation', () => {
                       foreign: true,
                       publicKey: expect.any(Buffer),
                       apiVersion: '1_0',
-                      endPoint: 'http://localhost:5001/api/',
+                      endPoint: 'http://localhost/api/',
                       lastAnnouncedAt: expect.any(Date),
                       createdAt: expect.any(Date),
                       updatedAt: null,
@@ -764,7 +764,7 @@ describe('federation', () => {
                       foreign: true,
                       publicKey: expect.any(Buffer),
                       apiVersion: '2_0',
-                      endPoint: 'http://localhost:5002/api/',
+                      endPoint: 'http://localhost/api/',
                       lastAnnouncedAt: expect.any(Date),
                       createdAt: expect.any(Date),
                       updatedAt: null,
@@ -786,15 +786,15 @@ describe('federation', () => {
                   JSON.stringify([
                     {
                       api: '1_0',
-                      url: 'http://localhost:5001/api/',
+                      url: 'http://localhost/api/',
                     },
                     {
                       api: '1_1',
-                      url: 'http://localhost:5002/api/',
+                      url: 'http://localhost/api/',
                     },
                     {
                       api: '2_0',
-                      url: 'http://localhost:5003/api/',
+                      url: 'http://localhost/api/',
                     },
                   ]),
                 ),

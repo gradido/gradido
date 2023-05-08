@@ -1,13 +1,14 @@
+/* eslint-disable type-graphql/invalid-nullable-input-type */
 import { Field, InputType } from 'type-graphql'
 
 @InputType()
-export default class TransactionLinkFilters {
+export class TransactionLinkFilters {
   @Field(() => Boolean, { nullable: true })
-  withDeleted: boolean
+  withDeleted?: boolean
 
   @Field(() => Boolean, { nullable: true })
-  withExpired: boolean
+  withExpired?: boolean
 
   @Field(() => Boolean, { nullable: true })
-  withRedeemed: boolean
+  withRedeemed?: boolean
 }

@@ -137,6 +137,9 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env
 # Configure admin
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
 
+# Configure dht-node
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env.template > $PROJECT_ROOT/dht-node/.env
+
 # create cronjob to delete yarn output in /tmp
 # crontab -e
 # hourly job: 0 * * * * find /tmp -name "yarn--*" -cmin +60 -exec rm -r {} \; > /dev/null

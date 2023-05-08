@@ -3,7 +3,7 @@
 import DHT from '@hyperswarm/dht'
 import { logger } from '@/server/logger'
 import CONFIG from '@/config'
-import { Community as DbCommunity } from '@entity/Community'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 
 const KEY_SECRET_SEEDBYTES = 32
 const getSeed = (): Buffer | null =>
@@ -31,8 +31,8 @@ export const startDHT = async (topic: string): Promise<void> => {
     logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
 
-    const ownApiVersions = writeHomeCommunityEnries(keyPair.publicKey)
-    logger.debug(`ApiList: ${JSON.stringify(ownApiVersions)}`)
+    const ownApiVersions = await writeFederatedHomeCommunityEnries(keyPair.publicKey)
+    logger.info(`ApiList: ${JSON.stringify(ownApiVersions)}`)
 
     const node = new DHT({ keyPair })
 
@@ -92,9 +92,9 @@ export const startDHT = async (topic: string): Promise<void> => {
             }
             logger.debug(`upsert with variables=${JSON.stringify(variables)}`)
             // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
-            await DbCommunity.createQueryBuilder()
+            await DbFederatedCommunity.createQueryBuilder()
               .insert()
-              .into(DbCommunity)
+              .into(DbFederatedCommunity)
               .values(variables)
               .orUpdate({
                 conflict_target: ['id', 'publicKey', 'apiVersion'],
@@ -179,29 +179,27 @@ export const startDHT = async (topic: string): Promise<void> => {
   }
 }
 
-async function writeHomeCommunityEnries(pubKey: any): Promise<CommunityApi[]> {
+async function writeFederatedHomeCommunityEnries(pubKey: any): Promise<CommunityApi[]> {
   const homeApiVersions: CommunityApi[] = Object.values(ApiVersionType).map(function (apiEnum) {
-    const port =
-      Number.parseInt(CONFIG.FEDERATION_COMMUNITY_API_PORT) + Number(apiEnum.replace('_', ''))
     const comApi: CommunityApi = {
       api: apiEnum,
-      url: CONFIG.FEDERATION_COMMUNITY_URL + ':' + port.toString() + '/api/',
+      url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
     }
     return comApi
   })
   try {
     // first remove privious existing homeCommunity entries
-    DbCommunity.createQueryBuilder().delete().where({ foreign: false }).execute()
+    DbFederatedCommunity.createQueryBuilder().delete().where({ foreign: false }).execute()
 
     homeApiVersions.forEach(async function (homeApi) {
-      const homeCom = new DbCommunity()
+      const homeCom = new DbFederatedCommunity()
       homeCom.foreign = false
       homeCom.apiVersion = homeApi.api
       homeCom.endPoint = homeApi.url
       homeCom.publicKey = pubKey.toString('hex')
 
       // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
-      await DbCommunity.insert(homeCom)
+      await DbFederatedCommunity.insert(homeCom)
       logger.info(`federation home-community inserted successfully: ${JSON.stringify(homeCom)}`)
     })
   } catch (err) {

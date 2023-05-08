@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Repository, EntityRepository } from '@dbTools/typeorm'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 
 @EntityRepository(dbTransactionLink)
 export class TransactionLinkRepository extends Repository<dbTransactionLink> {

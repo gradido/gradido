@@ -1,21 +1,31 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createTestClient } from 'apollo-server-testing'
-import createServer from '@/server/createServer'
-import CONFIG from '@/config'
+import { Connection } from '@dbTools/typeorm'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 
-jest.mock('@/config')
+import { testEnvironment } from '@test/helpers'
 
-let query: any
+import { getCommunities } from '@/seeds/graphql/queries'
 
 // to do: We need a setup for the tests that closes the connection
-let con: any
+let query: ApolloServerTestClient['query'], con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 
 beforeAll(async () => {
-  const server = await createServer({})
-  con = server.con
-  query = createTestClient(server.apollo).query
+  testEnv = await testEnvironment()
+  query = testEnv.query
+  con = testEnv.con
+  await DbFederatedCommunity.clear()
 })
 
 afterAll(async () => {
@@ -23,74 +33,91 @@ afterAll(async () => {
 })
 
 describe('CommunityResolver', () => {
-  const getCommunityInfoQuery = `
-    query {
-      getCommunityInfo {
-        name
-        description
-        url
-        registerUrl
-      }
-    }
-  `
+  describe('getCommunities', () => {
+    let homeCom1: DbFederatedCommunity
+    let homeCom2: DbFederatedCommunity
+    let homeCom3: DbFederatedCommunity
+    let foreignCom1: DbFederatedCommunity
+    let foreignCom2: DbFederatedCommunity
+    let foreignCom3: DbFederatedCommunity
 
-  const communities = `
-    query {
-      communities {
-        id
-        name
-        url
-        description
-        registerUrl
-      }
-    }
-  `
-
-  describe('getCommunityInfo', () => {
-    it('returns the default values', async () => {
-      await expect(query({ query: getCommunityInfoQuery })).resolves.toMatchObject({
-        data: {
-          getCommunityInfo: {
-            name: 'Gradido Entwicklung',
-            description: 'Die lokale Entwicklungsumgebung von Gradido.',
-            url: 'http://localhost/',
-            registerUrl: 'http://localhost/register',
+    describe('with empty list', () => {
+      it('returns no community entry', async () => {
+        // const result: Community[] = await query({ query: getCommunities })
+        // expect(result.length).toEqual(0)
+        await expect(query({ query: getCommunities })).resolves.toMatchObject({
+          data: {
+            getCommunities: [],
           },
-        },
+        })
       })
     })
-  })
 
-  describe('communities', () => {
-    describe('PRODUCTION = false', () => {
-      beforeEach(() => {
-        CONFIG.PRODUCTION = false
+    describe('only home-communities entries', () => {
+      beforeEach(async () => {
+        jest.clearAllMocks()
+
+        homeCom1 = DbFederatedCommunity.create()
+        homeCom1.foreign = false
+        homeCom1.publicKey = Buffer.from('publicKey-HomeCommunity')
+        homeCom1.apiVersion = '1_0'
+        homeCom1.endPoint = 'http://localhost/api'
+        homeCom1.createdAt = new Date()
+        await DbFederatedCommunity.insert(homeCom1)
+
+        homeCom2 = DbFederatedCommunity.create()
+        homeCom2.foreign = false
+        homeCom2.publicKey = Buffer.from('publicKey-HomeCommunity')
+        homeCom2.apiVersion = '1_1'
+        homeCom2.endPoint = 'http://localhost/api'
+        homeCom2.createdAt = new Date()
+        await DbFederatedCommunity.insert(homeCom2)
+
+        homeCom3 = DbFederatedCommunity.create()
+        homeCom3.foreign = false
+        homeCom3.publicKey = Buffer.from('publicKey-HomeCommunity')
+        homeCom3.apiVersion = '2_0'
+        homeCom3.endPoint = 'http://localhost/api'
+        homeCom3.createdAt = new Date()
+        await DbFederatedCommunity.insert(homeCom3)
       })
 
-      it('returns three communities', async () => {
-        await expect(query({ query: communities })).resolves.toMatchObject({
+      it('returns 3 home-community entries', async () => {
+        await expect(query({ query: getCommunities })).resolves.toMatchObject({
           data: {
-            communities: [
+            getCommunities: [
               {
-                id: 1,
-                name: 'Gradido Entwicklung',
-                description: 'Die lokale Entwicklungsumgebung von Gradido.',
-                url: 'http://localhost/',
-                registerUrl: 'http://localhost/register-community',
+                id: 3,
+                foreign: homeCom3.foreign,
+                publicKey: expect.stringMatching('publicKey-HomeCommunity'),
+                url: expect.stringMatching('http://localhost/api/2_0'),
+                lastAnnouncedAt: null,
+                verifiedAt: null,
+                lastErrorAt: null,
+                createdAt: homeCom3.createdAt.toISOString(),
+                updatedAt: null,
               },
               {
                 id: 2,
-                name: 'Gradido Staging',
-                description: 'Der Testserver der Gradido-Akademie.',
-                url: 'https://stage1.gradido.net/',
-                registerUrl: 'https://stage1.gradido.net/register-community',
+                foreign: homeCom2.foreign,
+                publicKey: expect.stringMatching('publicKey-HomeCommunity'),
+                url: expect.stringMatching('http://localhost/api/1_1'),
+                lastAnnouncedAt: null,
+                verifiedAt: null,
+                lastErrorAt: null,
+                createdAt: homeCom2.createdAt.toISOString(),
+                updatedAt: null,
               },
               {
-                id: 3,
-                name: 'Gradido-Akademie',
-                description: 'Freies Institut für Wirtschaftsbionik.',
-                url: 'https://gradido.net',
-                registerUrl: 'https://gdd1.gradido.com/register-community',
+                id: 1,
+                foreign: homeCom1.foreign,
+                publicKey: expect.stringMatching('publicKey-HomeCommunity'),
+                url: expect.stringMatching('http://localhost/api/1_0'),
+                lastAnnouncedAt: null,
+                verifiedAt: null,
+                lastErrorAt: null,
+                createdAt: homeCom1.createdAt.toISOString(),
+                updatedAt: null,
               },
             ],
           },
@@ -98,21 +125,104 @@ describe('CommunityResolver', () => {
       })
     })
 
-    describe('PRODUCTION = true', () => {
-      beforeEach(() => {
-        CONFIG.PRODUCTION = true
+    describe('plus foreign-communities entries', () => {
+      beforeEach(async () => {
+        jest.clearAllMocks()
+
+        foreignCom1 = DbFederatedCommunity.create()
+        foreignCom1.foreign = true
+        foreignCom1.publicKey = Buffer.from('publicKey-ForeignCommunity')
+        foreignCom1.apiVersion = '1_0'
+        foreignCom1.endPoint = 'http://remotehost/api'
+        foreignCom1.createdAt = new Date()
+        await DbFederatedCommunity.insert(foreignCom1)
+
+        foreignCom2 = DbFederatedCommunity.create()
+        foreignCom2.foreign = true
+        foreignCom2.publicKey = Buffer.from('publicKey-ForeignCommunity')
+        foreignCom2.apiVersion = '1_1'
+        foreignCom2.endPoint = 'http://remotehost/api'
+        foreignCom2.createdAt = new Date()
+        await DbFederatedCommunity.insert(foreignCom2)
+
+        foreignCom3 = DbFederatedCommunity.create()
+        foreignCom3.foreign = true
+        foreignCom3.publicKey = Buffer.from('publicKey-ForeignCommunity')
+        foreignCom3.apiVersion = '1_2'
+        foreignCom3.endPoint = 'http://remotehost/api'
+        foreignCom3.createdAt = new Date()
+        await DbFederatedCommunity.insert(foreignCom3)
       })
 
-      it('returns one community', async () => {
-        await expect(query({ query: communities })).resolves.toMatchObject({
+      it('returns 3 home community and 3 foreign community entries', async () => {
+        await expect(query({ query: getCommunities })).resolves.toMatchObject({
           data: {
-            communities: [
+            getCommunities: [
               {
                 id: 3,
-                name: 'Gradido-Akademie',
-                description: 'Freies Institut für Wirtschaftsbionik.',
-                url: 'https://gradido.net',
-                registerUrl: 'https://gdd1.gradido.com/register-community',
+                foreign: homeCom3.foreign,
+                publicKey: expect.stringMatching('publicKey-HomeCommunity'),
+                url: expect.stringMatching('http://localhost/api/2_0'),
+                lastAnnouncedAt: null,
+                verifiedAt: null,
+                lastErrorAt: null,
+                createdAt: homeCom3.createdAt.toISOString(),
+                updatedAt: null,
+              },
+              {
+                id: 2,
+                foreign: homeCom2.foreign,
+                publicKey: expect.stringMatching('publicKey-HomeCommunity'),
+                url: expect.stringMatching('http://localhost/api/1_1'),
+                lastAnnouncedAt: null,
+                verifiedAt: null,
+                lastErrorAt: null,
+                createdAt: homeCom2.createdAt.toISOString(),
+                updatedAt: null,
+              },
+              {
+                id: 1,
+                foreign: homeCom1.foreign,
+                publicKey: expect.stringMatching('publicKey-HomeCommunity'),
+                url: expect.stringMatching('http://localhost/api/1_0'),
+                lastAnnouncedAt: null,
+                verifiedAt: null,
+                lastErrorAt: null,
+                createdAt: homeCom1.createdAt.toISOString(),
+                updatedAt: null,
+              },
+              {
+                id: 6,
+                foreign: foreignCom3.foreign,
+                publicKey: expect.stringMatching('publicKey-ForeignCommunity'),
+                url: expect.stringMatching('http://remotehost/api/1_2'),
+                lastAnnouncedAt: null,
+                verifiedAt: null,
+                lastErrorAt: null,
+                createdAt: foreignCom3.createdAt.toISOString(),
+                updatedAt: null,
+              },
+              {
+                id: 5,
+                foreign: foreignCom2.foreign,
+                publicKey: expect.stringMatching('publicKey-ForeignCommunity'),
+                url: expect.stringMatching('http://remotehost/api/1_1'),
+                lastAnnouncedAt: null,
+                verifiedAt: null,
+                lastErrorAt: null,
+                createdAt: foreignCom2.createdAt.toISOString(),
+                updatedAt: null,
+              },
+              {
+                id: 4,
+                foreign: foreignCom1.foreign,
+                publicKey: expect.stringMatching('publicKey-ForeignCommunity'),
+                url: expect.stringMatching('http://remotehost/api/1_0'),
+                lastAnnouncedAt: null,
+                verifiedAt: null,
+                lastErrorAt: null,
+                createdAt: foreignCom1.createdAt.toISOString(),
+                updatedAt: null,
               },
             ],
           },

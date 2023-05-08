@@ -1,6 +1,22 @@
-import Decimal from 'decimal.js-light'
-import { Resolver, Args, Arg, Authorized, Mutation, Query, Int } from 'type-graphql'
 import { MoreThan, IsNull } from '@dbTools/typeorm'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { Decimal } from 'decimal.js-light'
+import { Resolver, Args, Arg, Authorized, Mutation, Query, Int, Ctx } from 'type-graphql'
+
+import { ContributionLinkArgs } from '@arg/ContributionLinkArgs'
+import { Paginated } from '@arg/Paginated'
+import { Order } from '@enum/Order'
+import { ContributionLink } from '@model/ContributionLink'
+import { ContributionLinkList } from '@model/ContributionLinkList'
+
+import { RIGHTS } from '@/auth/RIGHTS'
+import {
+  EVENT_ADMIN_CONTRIBUTION_LINK_CREATE,
+  EVENT_ADMIN_CONTRIBUTION_LINK_DELETE,
+  EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE,
+} from '@/event/Events'
+import { Context, getUser } from '@/server/context'
+import { LogError } from '@/server/LogError'
 
 import {
   CONTRIBUTIONLINK_NAME_MAX_CHARS,
@@ -8,19 +24,8 @@ import {
   MEMO_MAX_CHARS,
   MEMO_MIN_CHARS,
 } from './const/const'
-import { isStartEndDateValid } from './util/creations'
-import { ContributionLinkList } from '@model/ContributionLinkList'
-import { ContributionLink } from '@model/ContributionLink'
-import ContributionLinkArgs from '@arg/ContributionLinkArgs'
-import { backendLogger as logger } from '@/server/logger'
-import { RIGHTS } from '@/auth/RIGHTS'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { Order } from '@enum/Order'
-import Paginated from '@arg/Paginated'
-
-// TODO: this is a strange construct
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
-import LogError from '@/server/LogError'
+import { isStartEndDateValid } from './util/creations'
 
 @Resolver()
 export class ContributionLinkResolver {
@@ -35,9 +40,10 @@ export class ContributionLinkResolver {
       cycle,
       validFrom,
       validTo,
-      maxAmountPerMonth,
+      maxAmountPerMonth = null,
       maxPerCycle,
     }: ContributionLinkArgs,
+    @Ctx() context: Context,
   ): Promise<ContributionLink> {
     isStartEndDateValid(validFrom, validTo)
     if (name.length < CONTRIBUTIONLINK_NAME_MIN_CHARS) {
@@ -68,7 +74,8 @@ export class ContributionLinkResolver {
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
-    logger.debug(`createContributionLink successful!`)
+    await EVENT_ADMIN_CONTRIBUTION_LINK_CREATE(getUser(context), dbContributionLink, amount)
+
     return new ContributionLink(dbContributionLink)
   }
 
@@ -91,16 +98,19 @@ export class ContributionLinkResolver {
   }
 
   @Authorized([RIGHTS.DELETE_CONTRIBUTION_LINK])
-  @Mutation(() => Date, { nullable: true })
-  async deleteContributionLink(@Arg('id', () => Int) id: number): Promise<Date | null> {
-    const contributionLink = await DbContributionLink.findOne(id)
-    if (!contributionLink) {
+  @Mutation(() => Boolean)
+  async deleteContributionLink(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const dbContributionLink = await DbContributionLink.findOne(id)
+    if (!dbContributionLink) {
       throw new LogError('Contribution Link not found', id)
     }
-    await contributionLink.softRemove()
-    logger.debug(`deleteContributionLink successful!`)
-    const newContributionLink = await DbContributionLink.findOne({ id }, { withDeleted: true })
-    return newContributionLink ? newContributionLink.deletedAt : null
+    await dbContributionLink.softRemove()
+    await EVENT_ADMIN_CONTRIBUTION_LINK_DELETE(getUser(context), dbContributionLink)
+
+    return true
   }
 
   @Authorized([RIGHTS.UPDATE_CONTRIBUTION_LINK])
@@ -114,10 +124,11 @@ export class ContributionLinkResolver {
       cycle,
       validFrom,
       validTo,
-      maxAmountPerMonth,
+      maxAmountPerMonth = null,
       maxPerCycle,
     }: ContributionLinkArgs,
     @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
   ): Promise<ContributionLink> {
     const dbContributionLink = await DbContributionLink.findOne(id)
     if (!dbContributionLink) {
@@ -132,7 +143,8 @@ export class ContributionLinkResolver {
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
-    logger.debug(`updateContributionLink successful!`)
+    await EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE(getUser(context), dbContributionLink, amount)
+
     return new ContributionLink(dbContributionLink)
   }
 }

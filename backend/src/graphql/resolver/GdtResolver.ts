@@ -1,14 +1,18 @@
-import { Resolver, Query, Args, Ctx, Authorized, Arg } from 'type-graphql'
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { Resolver, Query, Args, Ctx, Authorized, Arg, Int, Float } from 'type-graphql'
 
-import { GdtEntryList } from '@model/GdtEntryList'
+import { Paginated } from '@arg/Paginated'
 import { Order } from '@enum/Order'
-import Paginated from '@arg/Paginated'
+import { GdtEntryList } from '@model/GdtEntryList'
 
-import { Context, getUser } from '@/server/context'
-import CONFIG from '@/config'
 import { apiGet, apiPost } from '@/apis/HttpRequest'
 import { RIGHTS } from '@/auth/RIGHTS'
-import LogError from '@/server/LogError'
+import { CONFIG } from '@/config'
+import { Context, getUser } from '@/server/context'
+import { LogError } from '@/server/LogError'
 
 @Resolver()
 export class GdtResolver {
@@ -23,6 +27,7 @@ export class GdtResolver {
 
     try {
       const resultGDT = await apiGet(
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.emailContact.email}/${currentPage}/${pageSize}/${order}`,
       )
       if (!resultGDT.success) {
@@ -35,7 +40,7 @@ export class GdtResolver {
   }
 
   @Authorized([RIGHTS.GDT_BALANCE])
-  @Query(() => Number)
+  @Query(() => Float, { nullable: true })
   async gdtBalance(@Ctx() context: Context): Promise<number | null> {
     const user = getUser(context)
     try {
@@ -54,9 +59,9 @@ export class GdtResolver {
   }
 
   @Authorized([RIGHTS.EXIST_PID])
-  @Query(() => Number)
+  @Query(() => Int)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async existPid(@Arg('pid') pid: number): Promise<number> {
+  async existPid(@Arg('pid', () => Int) pid: number): Promise<number> {
     // load user
     const resultPID = await apiGet(`${CONFIG.GDT_API_URL}/publishers/checkPidApi/${pid}`)
     if (!resultPID.success) {

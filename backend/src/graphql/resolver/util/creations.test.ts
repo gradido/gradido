@@ -1,17 +1,23 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { Connection } from '@dbTools/typeorm'
+import { Contribution } from '@entity/Contribution'
+import { User } from '@entity/User'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { testEnvironment, cleanDB, contributionDateFormatter } from '@test/helpers'
-import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { peterLustig } from '@/seeds/users/peter-lustig'
-import { User } from '@entity/User'
-import { Contribution } from '@entity/Contribution'
+
 import { userFactory } from '@/seeds/factory/user'
 import { login, createContribution, adminCreateContribution } from '@/seeds/graphql/mutations'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { peterLustig } from '@/seeds/users/peter-lustig'
+
 import { getUserCreation } from './creations'
 
-let mutate: any, con: any
-let testEnv: any
+let mutate: ApolloServerTestClient['mutate'], con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 
 beforeAll(async () => {
   testEnv = await testEnvironment()

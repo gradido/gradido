@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import clonedeep from 'lodash.clonedeep'
 
 const setHeadersPlugin = {
@@ -55,7 +59,6 @@ ${JSON.stringify(requestContext.response.errors, null, 2)}`)
   },
 }
 
-const plugins =
+export const plugins =
+  // eslint-disable-next-line n/no-process-env
   process.env.NODE_ENV === 'development' ? [setHeadersPlugin] : [setHeadersPlugin, logPlugin]
-
-export default plugins

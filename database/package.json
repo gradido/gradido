@@ -1,6 +1,6 @@
 {
   "name": "gradido-database",
-  "version": "1.18.2",
+  "version": "1.20.0",
   "description": "Gradido Database Tool to execute database migrations",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/database",
@@ -16,9 +16,7 @@
     "dev_up": "cross-env TZ=UTC ts-node src/index.ts up",
     "dev_down": "cross-env TZ=UTC ts-node src/index.ts down",
     "dev_reset": "cross-env TZ=UTC ts-node src/index.ts reset",
-    "lint": "eslint --max-warnings=0 --ext .js,.ts .",
-    "seed:config": "ts-node ./node_modules/typeorm-seeding/dist/cli.js config",
-    "seed": "cross-env TZ=UTC ts-node src/index.ts seed"
+    "lint": "eslint --max-warnings=0 --ext .js,.ts ."
   },
   "devDependencies": {
     "@types/faker": "^5.5.9",

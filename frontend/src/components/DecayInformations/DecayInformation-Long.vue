@@ -14,7 +14,7 @@
           <b-col cols="12" lg="4" md="4">
             <div>{{ $t('decay.last_transaction') }}</div>
           </b-col>
-          <b-col offset="1" offset-md="0" offset-lg="0">
+          <b-col offset="1" offset-md="0" offset-lg="0" class="text-right mr-5">
             <div>
               <span>
                 {{ $d(new Date(decay.start), 'long') }}
@@ -24,30 +24,44 @@
         </b-row>
         <duration-row :decayStart="decay.start" :decayEnd="decay.end" />
 
+        <!-- Previous Balance -->
+        <b-row class="mt-2">
+          <b-col cols="12" lg="6" md="3">
+            <div>{{ $t('decay.old_balance') }}</div>
+          </b-col>
+          <b-col offset="1" offset-md="0" offset-lg="0" class="text-right mr-5">
+            {{ previousBalance | GDD }}
+          </b-col>
+        </b-row>
+
         <!-- Decay-->
-        <b-row>
-          <b-col cols="12" lg="4" md="4">
+        <b-row class="mt-0">
+          <b-col cols="12" lg="3" md="3">
             <div>{{ $t('decay.decay') }}</div>
           </b-col>
-          <b-col offset="1" offset-md="0" offset-lg="0">{{ decay.decay | GDD }}</b-col>
+          <b-col offset="1" offset-md="0" offset-lg="0" class="text-right mr-5">
+            {{ decay.decay | GDD }}
+          </b-col>
         </b-row>
       </b-col>
     </b-row>
     <!-- Type-->
     <b-row>
       <b-col>
-        <b-row>
+        <b-row class="mb-2">
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-          <b-col cols="12" lg="4" md="4">{{ $t(`decay.types.${typeId.toLowerCase()}`) }}</b-col>
-          <b-col offset="1" offset-md="0" offset-lg="0">{{ amount | GDD }}</b-col>
+          <b-col cols="12" lg="3" md="3">{{ $t(`decay.types.${typeId.toLowerCase()}`) }}</b-col>
+          <b-col offset="1" offset-md="0" offset-lg="0" class="text-right mr-5">
+            {{ amount | GDD }}
+          </b-col>
         </b-row>
         <!-- Total-->
-        <b-row>
-          <b-col cols="12" lg="4" md="4">
-            <div>{{ $t('decay.total') }}</div>
+        <b-row class="border-top pt-2">
+          <b-col cols="12" lg="3" md="3">
+            <div>{{ $t('decay.new_balance') }}</div>
           </b-col>
-          <b-col offset="1" offset-md="0" offset-lg="0">
-            <b>{{ (Number(amount) + Number(decay.decay)) | GDD }}</b>
+          <b-col offset="1" offset-md="0" offset-lg="0" class="text-right mr-5">
+            <b>{{ balance | GDD }}</b>
           </b-col>
         </b-row>
       </b-col>
@@ -55,7 +69,7 @@
   </div>
 </template>
 <script>
-import DurationRow from '@/components/TransactionRows/DurationRow.vue'
+import DurationRow from '@/components/TransactionRows/DurationRow'
 
 export default {
   name: 'DecayInformation-Long',
@@ -63,6 +77,8 @@ export default {
     DurationRow,
   },
   props: {
+    balance: { type: String, default: '0' },
+    previousBalance: { type: String, default: '0' },
     amount: { type: String, default: '0' },
     typeId: { type: String, default: '' },
     memo: { type: String, default: '' },

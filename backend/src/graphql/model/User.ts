@@ -1,7 +1,7 @@
-import { ObjectType, Field } from 'type-graphql'
-import { KlickTipp } from './KlickTipp'
 import { User as dbUser } from '@entity/User'
-import { UserContact } from './UserContact'
+import { ObjectType, Field, Int } from 'type-graphql'
+
+import { KlickTipp } from './KlickTipp'
 
 @ObjectType()
 export class User {
@@ -9,10 +9,7 @@ export class User {
     this.id = user.id
     this.gradidoID = user.gradidoID
     this.alias = user.alias
-    this.emailId = user.emailId
     if (user.emailContact) {
-      this.email = user.emailContact.email
-      this.emailContact = new UserContact(user.emailContact)
       this.emailChecked = user.emailContact.emailChecked
     }
     this.firstName = user.firstName
@@ -28,24 +25,14 @@ export class User {
     this.hideAmountGDT = user.hideAmountGDT
   }
 
-  @Field(() => Number)
+  @Field(() => Int)
   id: number
 
   @Field(() => String)
   gradidoID: string
 
   @Field(() => String, { nullable: true })
-  alias?: string
-
-  @Field(() => Number, { nullable: true })
-  emailId: number | null
-
-  // TODO privacy issue here
-  @Field(() => String, { nullable: true })
-  email: string
-
-  @Field(() => UserContact)
-  emailContact: UserContact
+  alias: string | null
 
   @Field(() => String, { nullable: true })
   firstName: string | null
@@ -72,7 +59,7 @@ export class User {
   hideAmountGDT: boolean
 
   // This is not the users publisherId, but the one of the users who recommend him
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   publisherId: number | null
 
   @Field(() => Date, { nullable: true })

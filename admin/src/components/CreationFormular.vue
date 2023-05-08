@@ -86,16 +86,11 @@
 </template>
 <script>
 import { adminCreateContribution } from '../graphql/adminCreateContribution'
-import { adminCreateContributions } from '../graphql/adminCreateContributions'
 import { creationMonths } from '../mixins/creationMonths'
 export default {
   name: 'CreationFormular',
   mixins: [creationMonths],
   props: {
-    type: {
-      type: String,
-      required: false,
-    },
     pagetype: {
       type: String,
       required: false,
@@ -122,10 +117,6 @@ export default {
         return {}
       },
     },
-    creation: {
-      type: Array,
-      required: true,
-    },
   },
   data() {
     return {
@@ -134,84 +125,49 @@ export default {
       rangeMin: 0,
       rangeMax: 1000,
       selected: '',
+      userId: this.item.userId,
     }
   },
   methods: {
     updateRadioSelected(name) {
       // do we want to reset the memo everytime the month changes?
       this.text = this.$t('creation_form.creation_for') + ' ' + name.short + ' ' + name.year
-      if (this.type === 'singleCreation') {
-        this.rangeMin = 0
-        this.rangeMax = name.creation
-      }
+      this.rangeMin = 0
+      this.rangeMax = Number(name.creation)
     },
     submitCreation() {
-      let submitObj = []
-      if (this.type === 'massCreation') {
-        this.items.forEach((item) => {
-          submitObj.push({
-            email: item.email,
+      this.$apollo
+        .mutate({
+          mutation: adminCreateContribution,
+          variables: {
+            email: this.item.email,
             creationDate: this.selected.date,
             amount: Number(this.value),
             memo: this.text,
-          })
+          },
         })
-        this.$apollo
-          .mutate({
-            mutation: adminCreateContributions,
-            variables: {
-              pendingCreations: submitObj,
-            },
-            fetchPolicy: 'no-cache',
-          })
-          .then((result) => {
-            const failedContributions = []
-            this.$store.commit(
-              'openCreationsPlus',
-              result.data.adminCreateContributions.successfulContribution.length,
-            )
-            if (result.data.adminCreateContributions.failedContribution.length > 0) {
-              result.data.adminCreateContributions.failedContribution.forEach((email) => {
-                failedContributions.push(email)
-              })
-            }
-            this.$emit('remove-all-bookmark')
-            this.$emit('toast-failed-creations', failedContributions)
-          })
-          .catch((error) => {
-            this.toastError(error.message)
-          })
-      } else if (this.type === 'singleCreation') {
-        submitObj = {
-          email: this.item.email,
-          creationDate: this.selected.date,
-          amount: Number(this.value),
-          memo: this.text,
-        }
-        this.$apollo
-          .mutate({
-            mutation: adminCreateContribution,
-            variables: submitObj,
-          })
-          .then((result) => {
-            this.$emit('update-user-data', this.item, result.data.adminCreateContribution)
-            this.$store.commit('openCreationsPlus', 1)
-            this.toastSuccess(
-              this.$t('creation_form.toasted', {
-                value: this.value,
-                email: this.item.email,
-              }),
-            )
-            // what is this? Tests says that this.text is not reseted
-            this.$refs.creationForm.reset()
-            this.value = 0
-          })
-          .catch((error) => {
-            this.toastError(error.message)
-            this.$refs.creationForm.reset()
-            this.value = 0
-          })
-      }
+        .then((result) => {
+          this.$emit('update-user-data', this.item, result.data.adminCreateContribution)
+          this.$store.commit('openCreationsPlus', 1)
+          this.toastSuccess(
+            this.$t('creation_form.toasted', {
+              value: this.value,
+              email: this.item.email,
+            }),
+          )
+          // what is this? Tests says that this.text is not reseted
+          this.$refs.creationForm.reset()
+          this.value = 0
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+          this.$refs.creationForm.reset()
+          this.value = 0
+        })
+        .finally(() => {
+          this.$apollo.queries.OpenCreations.refetch()
+          this.selected = ''
+        })
     },
   },
   watch: {

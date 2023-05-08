@@ -1,6 +1,7 @@
 {
   "all_emails": "All users",
   "back": "back",
+  "change_user_role": "Change user role",
   "chat": "Chat",
   "contributionLink": {
     "amount": "Amount",
@@ -34,11 +35,11 @@
     "all": "All",
     "confirms": "Confirmed",
     "deleted": "Deleted",
-    "denied": "Denied",
+    "denied": "Rejected",
     "open": "Open"
   },
-  "created": "Confirmed",
-  "createdAt": "Created",
+  "created": "Created for",
+  "createdAt": "Created at",
   "creation": "Creation",
   "creationList": "Creation list",
   "creation_form": {
@@ -53,7 +54,7 @@
     "toasted": "Open creation ({value} GDD) for {email} has been saved and is ready for confirmation.",
     "toasted_created": "Creation has been successfully saved",
     "toasted_delete": "Open creation has been deleted",
-    "toasted_denied": "Open creation has been denied",
+    "toasted_denied": "Open creation has been rejected",
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
   },
@@ -63,11 +64,17 @@
   "deleted_user": "All deleted user",
   "delete_user": "Delete user",
   "deny": "Reject",
-  "edit": "Edit",
   "enabled": "enabled",
   "error": "Error",
   "expired": "expired",
   "e_mail": "E-mail",
+  "federation": {
+    "createdAt": "Created At ",
+    "gradidoInstances": "Gradido Instances",
+    "lastAnnouncedAt": "Last Announced",
+    "url": "Url",
+    "verified": "Verified"
+  },
   "firstname": "Firstname",
   "footer": {
     "app_version": "App version {version}",
@@ -87,7 +94,7 @@
     "transactionlist": {
       "confirmed": "When was it confirmed by a moderator / admin.",
       "periods": "For what period was it submitted by the member.",
-      "state": "[PENDING = submitted, DELETED = deleted, IN_PROGRESS = in dialogue with moderator, DENIED = denied, CONFIRMED = confirmed]",
+      "state": "[PENDING = submitted, DELETED = deleted, IN_PROGRESS = in dialogue with moderator, DENIED = rejected, CONFIRMED = confirmed]",
       "submitted": "When was it submitted by the member"
     }
   },
@@ -101,11 +108,11 @@
   "message": {
     "request": "Request has been sent."
   },
-  "mod": "Mod",
   "moderator": "Moderator",
   "name": "Name",
   "navbar": {
     "automaticContributions": "Automatic Contributions",
+    "instances": "Instances",
     "logout": "Logout",
     "my-account": "My Account",
     "statistic": "Statistic",
@@ -116,6 +123,11 @@
   "open_creations": "Open creations",
   "overlay": {
     "cancel": "Cancel",
+    "changeUserRole": {
+      "question": "Do you really want to change {username}'s role to {newRole}?",
+      "title": "Change user role",
+      "yes": "Yes, change user role"
+    },
     "confirm": {
       "question": "Do you really want to carry out and finally save this pre-stored creation?",
       "text": "After saving, the record can no longer be changed. Please check carefully that everything is correct.",
@@ -128,11 +140,21 @@
       "title": "Delete creation!",
       "yes": "Yes, delete and save creation!"
     },
+    "deleteUser": {
+      "question": "Do you really want to delete {username}?",
+      "title": "Delete user",
+      "yes": "Yes, delete user"
+    },
     "deny": {
       "question": "Do you really want to carry out and finally save this pre-stored creation?",
       "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
       "title": "Reject creation!",
       "yes": "Yes, reject and save creation!"
+    },
+    "undeleteUser": {
+      "question": "Do you really want to undelete {username}",
+      "title": "Undelete user",
+      "yes": "Yes,undelete user"
     }
   },
   "redeemed": "redeemed",

@@ -1,9 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { Connection } from '@dbTools/typeorm'
+import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Decimal } from 'decimal.js-light'
 
-import Decimal from 'decimal.js-light'
 import { testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
-import CONFIG from '@/config'
+
+import { CONFIG } from '@/config'
+
+import { sendEmailTranslated } from './sendEmailTranslated'
 import {
   sendAddedContributionMessageEmail,
   sendAccountActivationEmail,
@@ -15,10 +23,13 @@ import {
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
 } from './sendEmailVariants'
-import { sendEmailTranslated } from './sendEmailTranslated'
 
-let con: any
-let testEnv: any
+let con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger, localization)
@@ -106,7 +117,7 @@ describe('sendEmailVariants', () => {
           'you have received a message from Bibi Bloxberg regarding your common good contribution “My contribution.”.',
         )
         expect(result.originalMessage.html).toContain(
-          'To view and reply to the message, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!',
+          'To view and reply to the message, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab!',
         )
         expect(result.originalMessage.html).toContain(
           `Link to your account: <a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
@@ -424,7 +435,7 @@ describe('sendEmailVariants', () => {
           'Your public good contribution “My contribution.” was rejected by Bibi Bloxberg.',
         )
         expect(result.originalMessage.html).toContain(
-          'To see your common good contributions and related messages, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!',
+          'To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab!',
         )
         expect(result.originalMessage.html).toContain(
           `Link to your account: <a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
@@ -502,7 +513,7 @@ describe('sendEmailVariants', () => {
           'Your public good contribution “My contribution.” was deleted by Bibi Bloxberg.',
         )
         expect(result.originalMessage.html).toContain(
-          'To see your common good contributions and related messages, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!',
+          'To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab!',
         )
         expect(result.originalMessage.html).toContain(
           `Link to your account: <a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,

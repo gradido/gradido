@@ -1,16 +1,19 @@
 import { mount } from '@vue/test-utils'
-import CreationFormular from './CreationFormular.vue'
+import CreationFormular from './CreationFormular'
 import { adminCreateContribution } from '../graphql/adminCreateContribution'
-import { adminCreateContributions } from '../graphql/adminCreateContributions'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
+import VueApollo from 'vue-apollo'
+import { createMockClient } from 'mock-apollo-client'
+import { adminOpenCreations } from '../graphql/adminOpenCreations'
+
+const mockClient = createMockClient()
+const apolloProvider = new VueApollo({
+  defaultClient: mockClient,
+})
 
 const localVue = global.localVue
+localVue.use(VueApollo)
 
-const apolloMutateMock = jest.fn().mockResolvedValue({
-  data: {
-    adminCreateContribution: [0, 0, 0],
-  },
-})
 const stateCommitMock = jest.fn()
 
 const mocks = {
@@ -19,9 +22,6 @@ const mocks = {
     const date = new Date(d)
     return date.toISOString().split('T')[0]
   }),
-  $apollo: {
-    mutate: apolloMutateMock,
-  },
   $store: {
     commit: stateCommitMock,
   },
@@ -32,7 +32,8 @@ const propsData = {
   creation: [],
 }
 
-const now = new Date(Date.now())
+const now = new Date()
+
 const getCreationDate = (sub) => {
   const date = sub === 0 ? now : new Date(now.getFullYear(), now.getMonth() - sub, 1, 0)
   return date.toISOString().split('T')[0]
@@ -41,8 +42,43 @@ const getCreationDate = (sub) => {
 describe('CreationFormular', () => {
   let wrapper
 
+  const adminOpenCreationsMock = jest.fn()
+  const adminCreateContributionMock = jest.fn()
+  mockClient.setRequestHandler(
+    adminOpenCreations,
+    adminOpenCreationsMock.mockResolvedValue({
+      data: {
+        adminOpenCreations: [
+          {
+            month: new Date(now.getFullYear(), now.getMonth() - 2).getMonth(),
+            year: new Date(now.getFullYear(), now.getMonth() - 2).getFullYear(),
+            amount: '200',
+          },
+          {
+            month: new Date(now.getFullYear(), now.getMonth() - 1).getMonth(),
+            year: new Date(now.getFullYear(), now.getMonth() - 1).getFullYear(),
+            amount: '400',
+          },
+          {
+            month: now.getMonth(),
+            year: now.getFullYear(),
+            amount: '600',
+          },
+        ],
+      },
+    }),
+  )
+  mockClient.setRequestHandler(
+    adminCreateContribution,
+    adminCreateContributionMock.mockResolvedValue({
+      data: {
+        adminCreateContribution: [0, 0, 0],
+      },
+    }),
+  )
+
   const Wrapper = () => {
-    return mount(CreationFormular, { localVue, mocks, propsData })
+    return mount(CreationFormular, { localVue, mocks, propsData, apolloProvider })
   }
 
   describe('mount', () => {
@@ -108,17 +144,12 @@ describe('CreationFormular', () => {
             })
 
             it('sends ... to apollo', () => {
-              expect(apolloMutateMock).toBeCalledWith(
-                expect.objectContaining({
-                  mutation: adminCreateContribution,
-                  variables: {
-                    email: 'benjamin@bluemchen.de',
-                    creationDate: getCreationDate(2),
-                    amount: 90,
-                    memo: 'Test create coins',
-                  },
-                }),
-              )
+              expect(adminCreateContributionMock).toBeCalledWith({
+                email: 'benjamin@bluemchen.de',
+                creationDate: getCreationDate(2),
+                amount: 90,
+                memo: 'Test create coins',
+              })
             })
 
             it('emits update-user-data', () => {
@@ -145,7 +176,7 @@ describe('CreationFormular', () => {
 
           describe('sendForm with server error', () => {
             beforeEach(async () => {
-              apolloMutateMock.mockRejectedValueOnce({ message: 'Ouch!' })
+              adminCreateContributionMock.mockRejectedValueOnce({ message: 'Ouch!' })
               await wrapper.find('.test-submit').trigger('click')
             })
 
@@ -213,7 +244,7 @@ describe('CreationFormular', () => {
             })
 
             it('sends ... to apollo', () => {
-              expect(apolloMutateMock).toBeCalled()
+              expect(adminCreateContributionMock).toBeCalled()
             })
           })
 
@@ -276,7 +307,7 @@ describe('CreationFormular', () => {
             })
 
             it('sends mutation to apollo', () => {
-              expect(apolloMutateMock).toBeCalled()
+              expect(adminCreateContributionMock).toBeCalled()
             })
 
             it('toast success message', () => {
@@ -326,122 +357,6 @@ describe('CreationFormular', () => {
               expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
             })
           })
-        })
-      })
-
-      describe('mass creation with success', () => {
-        beforeEach(async () => {
-          jest.clearAllMocks()
-          apolloMutateMock.mockResolvedValue({
-            data: {
-              adminCreateContributions: {
-                success: true,
-                successfulContribution: ['bob@baumeister.de', 'bibi@bloxberg.de'],
-                failedContribution: [],
-              },
-            },
-          })
-          await wrapper.setProps({
-            type: 'massCreation',
-            creation: [200, 400, 600],
-            items: [{ email: 'bob@baumeister.de' }, { email: 'bibi@bloxberg.de' }],
-          })
-          await wrapper.findAll('input[type="radio"]').at(1).setChecked()
-          await wrapper.find('textarea').setValue('Test mass create coins')
-          await wrapper.find('input[type="number"]').setValue(200)
-          await wrapper.find('.test-submit').trigger('click')
-        })
-
-        it('calls the API', () => {
-          expect(apolloMutateMock).toBeCalledWith(
-            expect.objectContaining({
-              mutation: adminCreateContributions,
-              variables: {
-                pendingCreations: [
-                  {
-                    email: 'bob@baumeister.de',
-                    creationDate: getCreationDate(1),
-                    amount: 200,
-                    memo: 'Test mass create coins',
-                  },
-                  {
-                    email: 'bibi@bloxberg.de',
-                    creationDate: getCreationDate(1),
-                    amount: 200,
-                    memo: 'Test mass create coins',
-                  },
-                ],
-              },
-            }),
-          )
-        })
-
-        it('updates open creations in store', () => {
-          expect(stateCommitMock).toBeCalledWith('openCreationsPlus', 2)
-        })
-
-        it('emits remove-all-bookmark', () => {
-          expect(wrapper.emitted('remove-all-bookmark')).toBeTruthy()
-        })
-      })
-
-      describe('mass creation with success but all failed', () => {
-        beforeEach(async () => {
-          jest.clearAllMocks()
-          apolloMutateMock.mockResolvedValue({
-            data: {
-              adminCreateContributions: {
-                success: true,
-                successfulContribution: [],
-                failedContribution: ['bob@baumeister.de', 'bibi@bloxberg.de'],
-              },
-            },
-          })
-          await wrapper.setProps({
-            type: 'massCreation',
-            creation: [200, 400, 600],
-            items: [{ email: 'bob@baumeister.de' }, { email: 'bibi@bloxberg.de' }],
-          })
-          await wrapper.findAll('input[type="radio"]').at(1).setChecked()
-          await wrapper.find('textarea').setValue('Test mass create coins')
-          await wrapper.find('input[type="number"]').setValue(200)
-          await wrapper.find('.test-submit').trigger('click')
-        })
-
-        it('updates open creations in store', () => {
-          expect(stateCommitMock).toBeCalledWith('openCreationsPlus', 0)
-        })
-
-        it('emits remove all bookmarks', () => {
-          expect(wrapper.emitted('remove-all-bookmark')).toBeTruthy()
-        })
-
-        it('emits toast failed creations with two emails', () => {
-          expect(wrapper.emitted('toast-failed-creations')).toEqual([
-            [['bob@baumeister.de', 'bibi@bloxberg.de']],
-          ])
-        })
-      })
-
-      describe('mass creation with error', () => {
-        beforeEach(async () => {
-          jest.clearAllMocks()
-          apolloMutateMock.mockRejectedValue({
-            message: 'Oh no!',
-          })
-          await wrapper.setProps({
-            type: 'massCreation',
-            creation: [200, 400, 600],
-            items: [{ email: 'bob@baumeister.de' }, { email: 'bibi@bloxberg.de' }],
-          })
-          await wrapper.findAll('input[type="radio"]').at(1).setChecked()
-          await wrapper.find('textarea').setValue('Test mass create coins')
-          await wrapper.find('input[type="number"]').setValue(200)
-          await wrapper.find('.test-submit').trigger('click')
-        })
-
-        it('toasts an error message', () => {
-          expect(toastErrorSpy).toBeCalledWith('Oh no!')
         })
       })
     })

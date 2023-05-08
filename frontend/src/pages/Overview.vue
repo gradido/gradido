@@ -4,7 +4,7 @@
   </div>
 </template>
 <script>
-import CommunityNews from '@/components/Overview/CommunityNews.vue'
+import CommunityNews from '@/components/Overview/CommunityNews'
 
 export default {
   name: 'Overview',

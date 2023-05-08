@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { logger } from '@test/testSetup'
 
-import LogError from './LogError'
+import { LogError } from './LogError'
 
 describe('LogError', () => {
   it('logs an Error when created', () => {

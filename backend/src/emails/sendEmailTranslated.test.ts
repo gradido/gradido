@@ -1,13 +1,18 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { createTransport } from 'nodemailer'
+
 import { logger, i18n } from '@test/testSetup'
-import CONFIG from '@/config'
+
+import { CONFIG } from '@/config'
+
 import { sendEmailTranslated } from './sendEmailTranslated'
 
 CONFIG.EMAIL = false
 CONFIG.EMAIL_SMTP_URL = 'EMAIL_SMTP_URL'
-CONFIG.EMAIL_SMTP_PORT = '1234'
+CONFIG.EMAIL_SMTP_PORT = 1234
 CONFIG.EMAIL_USERNAME = 'user'
 CONFIG.EMAIL_PASSWORD = 'pwd'
+CONFIG.EMAIL_TLS = true
 
 jest.mock('nodemailer', () => {
   return {
@@ -25,7 +30,7 @@ jest.mock('nodemailer', () => {
 })
 
 describe('sendEmailTranslated', () => {
-  let result: Record<string, unknown> | null
+  let result: Record<string, unknown> | boolean | null
 
   describe('config email is false', () => {
     beforeEach(async () => {
@@ -99,10 +104,12 @@ describe('sendEmailTranslated', () => {
       })
     })
 
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('calls "i18n.setLocale" with "en"', () => {
       expect(i18n.setLocale).toBeCalledWith('en')
     })
 
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('calls "i18n.__" for translation', () => {
       expect(i18n.__).toBeCalled()
     })

@@ -1,212 +1,36 @@
-import { EventProtocol as DbEvent } from '@entity/EventProtocol'
-import Decimal from 'decimal.js-light'
-import { EventProtocolType } from './EventProtocolType'
+import { Contribution as DbContribution } from '@entity/Contribution'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
+import { Event as DbEvent } from '@entity/Event'
+import { Transaction as DbTransaction } from '@entity/Transaction'
+import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
+import { User as DbUser } from '@entity/User'
+import { Decimal } from 'decimal.js-light'
+
+import { EventType } from './EventType'
 
 export const Event = (
-  type: EventProtocolType,
-  userId: number,
-  xUserId: number | null = null,
-  xCommunityId: number | null = null,
-  transactionId: number | null = null,
-  contributionId: number | null = null,
+  type: EventType,
+  affectedUser: DbUser,
+  actingUser: DbUser,
+  involvedUser: DbUser | null = null,
+  involvedTransaction: DbTransaction | null = null,
+  involvedContribution: DbContribution | null = null,
+  involvedContributionMessage: DbContributionMessage | null = null,
+  involvedTransactionLink: DbTransactionLink | null = null,
+  involvedContributionLink: DbContributionLink | null = null,
   amount: Decimal | null = null,
-  messageId: number | null = null,
 ): DbEvent => {
   const event = new DbEvent()
   event.type = type
-  event.userId = userId
-  event.xUserId = xUserId
-  event.xCommunityId = xCommunityId
-  event.transactionId = transactionId
-  event.contributionId = contributionId
+  event.affectedUser = affectedUser
+  event.actingUser = actingUser
+  event.involvedUser = involvedUser
+  event.involvedTransaction = involvedTransaction
+  event.involvedContribution = involvedContribution
+  event.involvedContributionMessage = involvedContributionMessage
+  event.involvedTransactionLink = involvedTransactionLink
+  event.involvedContributionLink = involvedContributionLink
   event.amount = amount
-  event.messageId = messageId
   return event
 }
-
-export const EVENT_CONTRIBUTION_CREATE = async (
-  userId: number,
-  contributionId: number,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.CONTRIBUTION_CREATE,
-    userId,
-    null,
-    null,
-    null,
-    contributionId,
-    amount,
-  ).save()
-
-export const EVENT_CONTRIBUTION_DELETE = async (
-  userId: number,
-  contributionId: number,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.CONTRIBUTION_DELETE,
-    userId,
-    null,
-    null,
-    null,
-    contributionId,
-    amount,
-  ).save()
-
-export const EVENT_CONTRIBUTION_UPDATE = async (
-  userId: number,
-  contributionId: number,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.CONTRIBUTION_UPDATE,
-    userId,
-    null,
-    null,
-    null,
-    contributionId,
-    amount,
-  ).save()
-
-export const EVENT_ADMIN_CONTRIBUTION_CREATE = async (
-  userId: number,
-  contributionId: number,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.ADMIN_CONTRIBUTION_CREATE,
-    userId,
-    null,
-    null,
-    null,
-    contributionId,
-    amount,
-  ).save()
-
-export const EVENT_ADMIN_CONTRIBUTION_UPDATE = async (
-  userId: number,
-  contributionId: number,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
-    userId,
-    null,
-    null,
-    null,
-    contributionId,
-    amount,
-  ).save()
-
-export const EVENT_ADMIN_CONTRIBUTION_DELETE = async (
-  userId: number,
-  contributionId: number,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
-    userId,
-    null,
-    null,
-    null,
-    contributionId,
-    amount,
-  ).save()
-
-export const EVENT_CONTRIBUTION_CONFIRM = async (
-  userId: number,
-  contributionId: number,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.CONTRIBUTION_CONFIRM,
-    userId,
-    null,
-    null,
-    null,
-    contributionId,
-    amount,
-  ).save()
-
-export const EVENT_ADMIN_CONTRIBUTION_DENY = async (
-  userId: number,
-  xUserId: number,
-  contributionId: number,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.ADMIN_CONTRIBUTION_DENY,
-    userId,
-    xUserId,
-    null,
-    null,
-    contributionId,
-    amount,
-  ).save()
-
-export const EVENT_TRANSACTION_SEND = async (
-  userId: number,
-  xUserId: number,
-  transactionId: number,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.TRANSACTION_SEND,
-    userId,
-    xUserId,
-    null,
-    transactionId,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_TRANSACTION_RECEIVE = async (
-  userId: number,
-  xUserId: number,
-  transactionId: number,
-  amount: Decimal,
-): Promise<DbEvent> =>
-  Event(
-    EventProtocolType.TRANSACTION_RECEIVE,
-    userId,
-    xUserId,
-    null,
-    transactionId,
-    null,
-    amount,
-  ).save()
-
-export const EVENT_LOGIN = async (userId: number): Promise<DbEvent> =>
-  Event(EventProtocolType.LOGIN, userId, null, null, null, null, null, null).save()
-
-export const EVENT_SEND_ACCOUNT_MULTIREGISTRATION_EMAIL = async (
-  userId: number,
-): Promise<DbEvent> => Event(EventProtocolType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL, userId).save()
-
-export const EVENT_SEND_CONFIRMATION_EMAIL = async (userId: number): Promise<DbEvent> =>
-  Event(EventProtocolType.SEND_CONFIRMATION_EMAIL, userId).save()
-
-export const EVENT_ADMIN_SEND_CONFIRMATION_EMAIL = async (userId: number): Promise<DbEvent> =>
-  Event(EventProtocolType.ADMIN_SEND_CONFIRMATION_EMAIL, userId).save()
-
-/* export const EVENT_REDEEM_REGISTER = async (
-  userId: number,
-  transactionId: number | null = null,
-  contributionId: number | null = null,
-): Promise<Event> =>
-  Event(
-    EventProtocolType.REDEEM_REGISTER,
-    userId,
-    null,
-    null,
-    transactionId,
-    contributionId,
-  ).save()
-*/
-
-export const EVENT_REGISTER = async (userId: number): Promise<DbEvent> =>
-  Event(EventProtocolType.REGISTER, userId).save()
-
-export const EVENT_ACTIVATE_ACCOUNT = async (userId: number): Promise<DbEvent> =>
-  Event(EventProtocolType.ACTIVATE_ACCOUNT, userId).save()

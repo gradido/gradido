@@ -16,7 +16,7 @@
   </div>
 </template>
 <script>
-import ParseMessage from '@/components/ContributionMessages/ParseMessage.vue'
+import ParseMessage from '@/components/ContributionMessages/ParseMessage'
 
 export default {
   name: 'ContributionMessagesListItem',

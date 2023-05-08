@@ -1,22 +1,19 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
-import { backendLogger as logger } from '@/server/logger'
-import createServer from '../server/createServer'
+import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
-
 import { name, internet, datatype } from 'faker'
 
-import { users } from './users/index'
-import { creations } from './creation/index'
-import { transactionLinks } from './transactionLink/index'
+import { CONFIG } from '@/config'
+import { createServer } from '@/server/createServer'
+import { backendLogger as logger } from '@/server/logger'
+
 import { contributionLinks } from './contributionLink/index'
-import { userFactory } from './factory/user'
+import { creations } from './creation/index'
+import { contributionLinkFactory } from './factory/contributionLink'
 import { creationFactory } from './factory/creation'
 import { transactionLinkFactory } from './factory/transactionLink'
-import { contributionLinkFactory } from './factory/contributionLink'
-import { entities } from '@entity/index'
-import CONFIG from '@/config'
+import { userFactory } from './factory/user'
+import { transactionLinks } from './transactionLink/index'
+import { users } from './users/index'
 
 CONFIG.EMAIL = false
 
@@ -39,10 +36,12 @@ export const cleanDB = async () => {
   }
 }
 
-const resetEntity = async (entity: any) => {
+const [entityTypes] = entities
+
+const resetEntity = async (entity: typeof entityTypes) => {
   const items = await entity.find({ withDeleted: true })
   if (items.length > 0) {
-    const ids = items.map((i: any) => i.id)
+    const ids = items.map((i) => i.id)
     await entity.delete(ids)
   }
 }
@@ -94,4 +93,4 @@ const run = async () => {
   await con.close()
 }
 
-run()
+void run()

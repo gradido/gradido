@@ -1,8 +1,8 @@
+import { Decimal } from 'decimal.js-light'
 import { ArgsType, Field, Int } from 'type-graphql'
-import Decimal from 'decimal.js-light'
 
 @ArgsType()
-export default class ContributionLinkArgs {
+export class ContributionLinkArgs {
   @Field(() => Decimal)
   amount: Decimal
 
@@ -22,7 +22,7 @@ export default class ContributionLinkArgs {
   validTo?: string | null
 
   @Field(() => Decimal, { nullable: true })
-  maxAmountPerMonth: Decimal | null
+  maxAmountPerMonth?: Decimal | null
 
   @Field(() => Int)
   maxPerCycle: number

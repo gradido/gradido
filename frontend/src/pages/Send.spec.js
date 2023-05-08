@@ -1,15 +1,16 @@
 import { mount } from '@vue/test-utils'
 import Send, { SEND_TYPES } from './Send'
 import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
-import { TRANSACTION_STEPS } from '@/components/GddSend.vue'
+import { TRANSACTION_STEPS } from '@/components/GddSend'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
-import DashboardLayout from '@/layouts/DashboardLayout.vue'
+import DashboardLayout from '@/layouts/DashboardLayout'
 import flushPromises from 'flush-promises'
 
 const apolloMutationMock = jest.fn()
 apolloMutationMock.mockResolvedValue('success')
 
 const navigatorClipboardMock = jest.fn()
+const routerPushMock = jest.fn()
 
 const localVue = global.localVue
 
@@ -37,6 +38,9 @@ describe('Send', () => {
     },
     $route: {
       query: {},
+    },
+    $router: {
+      push: routerPushMock,
     },
   }
 
@@ -85,8 +89,8 @@ describe('Send', () => {
           it('shows the transaction formular again', () => {
             expect(wrapper.findComponent({ name: 'TransactionForm' }).exists()).toBe(true)
           })
-          // TODO:SKIPED at this point, a check must be made in the components ?
-          it.skip('restores the previous data in the formular', () => {
+
+          it('restores the previous data in the formular', () => {
             expect(wrapper.find("input[type='email']").vm.$el.value).toBe('user@example.org')
             expect(wrapper.find("input[type='text']").vm.$el.value).toBe('23.45')
             expect(wrapper.find('textarea').vm.$el.value).toBe('Make the best of it!')
@@ -107,10 +111,11 @@ describe('Send', () => {
               expect.objectContaining({
                 mutation: sendCoins,
                 variables: {
-                  email: 'user@example.org',
+                  identifier: 'user@example.org',
                   amount: 23.45,
                   memo: 'Make the best of it!',
                   selected: SEND_TYPES.send,
+                  userName: '',
                 },
               }),
             )
@@ -157,6 +162,67 @@ describe('Send', () => {
             expect(wrapper.find('.test-receiver-not-found').text()).toContain(
               'transaction.receiverNotFound',
             )
+          })
+        })
+      })
+    })
+
+    describe('with gradidoID query', () => {
+      beforeEach(() => {
+        mocks.$route.query.gradidoID = 'gradido-ID'
+        wrapper = Wrapper()
+      })
+
+      it('has no email input field', () => {
+        expect(
+          wrapper.findComponent({ name: 'TransactionForm' }).find('input[type="email"]').exists(),
+        ).toBe(false)
+      })
+
+      describe('submit form', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          const transactionForm = wrapper.findComponent({ name: 'TransactionForm' })
+          await transactionForm.find('input[type="text"]').setValue('34.56')
+          await transactionForm.find('textarea').setValue('Make the best of it!')
+          await transactionForm.find('form').trigger('submit')
+          await flushPromises()
+        })
+
+        it('steps forward in the dialog', () => {
+          expect(wrapper.findComponent({ name: 'TransactionConfirmationSend' }).exists()).toBe(true)
+        })
+
+        describe('confirm transaction', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            await wrapper
+              .findComponent({ name: 'TransactionConfirmationSend' })
+              .find('button.btn-gradido')
+              .trigger('click')
+          })
+
+          it('calls the API', async () => {
+            expect(apolloMutationMock).toBeCalledWith(
+              expect.objectContaining({
+                mutation: sendCoins,
+                variables: {
+                  identifier: 'gradido-ID',
+                  amount: 34.56,
+                  memo: 'Make the best of it!',
+                  selected: SEND_TYPES.send,
+                  userName: '',
+                },
+              }),
+            )
+          })
+
+          it('resets the gradido ID query in route', () => {
+            expect(routerPushMock).toBeCalledWith({
+              query: {
+                gradidoID: undefined,
+              },
+            })
           })
         })
       })

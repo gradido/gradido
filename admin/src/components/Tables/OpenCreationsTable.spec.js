@@ -1,11 +1,10 @@
 import { mount } from '@vue/test-utils'
-import OpenCreationsTable from './OpenCreationsTable.vue'
+import OpenCreationsTable from './OpenCreationsTable'
 
 const localVue = global.localVue
 
 const apolloMutateMock = jest.fn().mockResolvedValue({})
 const apolloQueryMock = jest.fn().mockResolvedValue({})
-const toggleDetailsMock = jest.fn()
 
 const propsData = {
   items: [
@@ -17,7 +16,7 @@ const propsData = {
       amount: 300,
       memo: 'Aktives Grundeinkommen für Januar 2022',
       date: '2022-01-01T00:00:00.000Z',
-      moderator: 1,
+      moderatorId: 1,
       creation: [700, 1000, 1000],
       __typename: 'PendingCreation',
     },
@@ -29,7 +28,7 @@ const propsData = {
       amount: 210,
       memo: 'Aktives Grundeinkommen für Januar 2022',
       date: '2022-01-01T00:00:00.000Z',
-      moderator: null,
+      moderatorId: null,
       creation: [790, 1000, 1000],
       __typename: 'PendingCreation',
     },
@@ -41,7 +40,7 @@ const propsData = {
       amount: 330,
       memo: 'Aktives Grundeinkommen für Januar 2022',
       date: '2022-01-01T00:00:00.000Z',
-      moderator: 1,
+      moderatorId: 1,
       creation: [670, 1000, 1000],
       __typename: 'PendingCreation',
     },
@@ -83,7 +82,7 @@ const mocks = {
   $store: {
     state: {
       moderator: {
-        id: 0,
+        id: 1,
         name: 'test moderator',
       },
     },
@@ -132,14 +131,6 @@ describe('OpenCreationsTable', () => {
       })
     })
 
-    describe('call updateUserData', () => {
-      it('user creations has updated data', async () => {
-        wrapper.vm.updateUserData(propsData.items[0], [444, 555, 666])
-        await wrapper.vm.$nextTick()
-        expect(wrapper.vm.items[0].creation).toEqual([444, 555, 666])
-      })
-    })
-
     describe('call updateState', () => {
       beforeEach(() => {
         wrapper.vm.updateState(4)
@@ -147,41 +138,6 @@ describe('OpenCreationsTable', () => {
 
       it('emits update-state', () => {
         expect(wrapper.vm.$root.$emit('update-state', 4)).toBeTruthy()
-      })
-    })
-
-    describe('call updateCreationData', () => {
-      const date = new Date()
-      beforeEach(() => {
-        wrapper.vm.updateCreationData({
-          amount: Number(80.0),
-          date: date,
-          memo: 'Test memo',
-          row: {
-            item: {},
-            detailsShowing: false,
-            toggleDetails: toggleDetailsMock,
-          },
-        })
-      })
-
-      it('emits update-state', () => {
-        expect(
-          wrapper.vm.$emit('update-contributions', {
-            amount: Number(80.0),
-            date: date,
-            memo: 'Test memo',
-            row: {
-              item: {},
-              detailsShowing: false,
-              toggleDetails: toggleDetailsMock,
-            },
-          }),
-        ).toBeTruthy()
-      })
-
-      it('calls toggleDetails', () => {
-        expect(toggleDetailsMock).toBeCalled()
       })
     })
   })

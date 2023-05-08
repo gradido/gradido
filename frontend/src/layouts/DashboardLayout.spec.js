@@ -43,7 +43,6 @@ const mocks = {
   $store: {
     dispatch: storeDispatchMock,
     state: {
-      email: 'user@example.org',
       publisherId: 123,
       firstName: 'User',
       lastName: 'Example',
@@ -174,15 +173,6 @@ describe('DashboardLayout', () => {
         })
       })
 
-      describe('set tunneled email', () => {
-        it('updates tunneled email', async () => {
-          await wrapper
-            .findComponent({ ref: 'router-view' })
-            .vm.$emit('set-tunneled-email', 'bibi@bloxberg.de')
-          expect(wrapper.vm.tunneledEmail).toBe('bibi@bloxberg.de')
-        })
-      })
-
       it('has a component Navbar', () => {
         expect(wrapper.findComponent({ name: 'Navbar' }).exists()).toBe(true)
       })
@@ -266,34 +256,6 @@ describe('DashboardLayout', () => {
 
         it('sets visible to true', () => {
           expect(wrapper.vm.visible).toBe(true)
-        })
-      })
-
-      describe.skip('elopage URI', () => {
-        describe('user has no publisher ID and no elopage', () => {
-          beforeEach(() => {
-            mocks.$store.state.publisherId = null
-            mocks.$store.state.hasElopage = false
-            wrapper = Wrapper()
-          })
-
-          it('links to basic-de', () => {
-            expect(wrapper.vm.elopageUri).toBe(
-              'https://elopage.com/s/gradido/basic-de/payment?locale=en&prid=111&pid=2896&firstName=User&lastName=Example&email=user@example.org',
-            )
-          })
-        })
-
-        describe('user has elopage', () => {
-          beforeEach(() => {
-            mocks.$store.state.publisherId = '123'
-            mocks.$store.state.hasElopage = true
-            wrapper = Wrapper()
-          })
-
-          it('links to sign in for elopage', () => {
-            expect(wrapper.vm.elopageUri).toBe('https://elopage.com/s/gradido/sign_in?locale=en')
-          })
         })
       })
 

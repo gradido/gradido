@@ -1,8 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { Connection } from '@dbTools/typeorm'
+import { Event as DbEvent } from '@entity/Event'
+import { Transaction } from '@entity/Transaction'
+import { User } from '@entity/User'
+import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Decimal } from 'decimal.js-light'
+import { GraphQLError } from 'graphql'
 
-import Decimal from 'decimal.js-light'
-import { EventProtocolType } from '@/event/EventProtocolType'
+import { cleanDB, testEnvironment } from '@test/helpers'
+import { logger } from '@test/testSetup'
+
+import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
@@ -10,20 +20,20 @@ import {
   login,
   sendCoins,
 } from '@/seeds/graphql/mutations'
+import { transactionsQuery } from '@/seeds/graphql/queries'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
-import { EventProtocol } from '@entity/EventProtocol'
-import { Transaction } from '@entity/Transaction'
-import { User } from '@entity/User'
-import { cleanDB, testEnvironment } from '@test/helpers'
-import { logger } from '@test/testSetup'
-import { GraphQLError } from 'graphql'
-import { findUserByEmail } from './UserResolver'
 
-let mutate: any, query: any, con: any
-let testEnv: any
+let mutate: ApolloServerTestClient['mutate'], con: Connection
+let query: ApolloServerTestClient['query']
+
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger)
@@ -77,7 +87,7 @@ describe('send coins', () => {
         await mutate({
           mutation: sendCoins,
           variables: {
-            email: 'wrong@email.com',
+            identifier: 'wrong@email.com',
             amount: 100,
             memo: 'test',
           },
@@ -105,22 +115,20 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'stephen@hawking.uk',
+              identifier: 'stephen@hawking.uk',
               amount: 100,
               memo: 'test',
             },
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('The recipient account was deleted')],
+            errors: [new GraphQLError('No user to given contact')],
           }),
         )
       })
 
-      it('logs the error thrown', async () => {
-        // find peter to check the log
-        const user = await findUserByEmail('stephen@hawking.uk')
-        expect(logger.error).toBeCalledWith('The recipient account was deleted', user)
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith('No user to given contact', 'stephen@hawking.uk')
       })
     })
 
@@ -136,22 +144,23 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'garrick@ollivander.com',
+              identifier: 'garrick@ollivander.com',
               amount: 100,
               memo: 'test',
             },
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('The recipient account is not activated')],
+            errors: [new GraphQLError('No user with this credentials')],
           }),
         )
       })
 
-      it('logs the error thrown', async () => {
-        // find peter to check the log
-        const user = await findUserByEmail('garrick@ollivander.com')
-        expect(logger.error).toBeCalledWith('The recipient account is not activated', user)
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith(
+          'No user with this credentials',
+          'garrick@ollivander.com',
+        )
       })
     })
   })
@@ -171,7 +180,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'bob@baumeister.de',
+              identifier: 'bob@baumeister.de',
               amount: 100,
               memo: 'test',
             },
@@ -195,7 +204,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 100,
               memo: 'test',
             },
@@ -219,7 +228,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 100,
               memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test t',
             },
@@ -243,7 +252,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 100,
               memo: 'testing',
             },
@@ -270,7 +279,7 @@ describe('send coins', () => {
       })
 
       // login as admin
-      await query({ mutation: login, variables: peterData })
+      await mutate({ mutation: login, variables: peterData })
 
       // confirm the contribution
       await mutate({
@@ -279,7 +288,7 @@ describe('send coins', () => {
       })
 
       // login as bob again
-      await query({ mutation: login, variables: bobData })
+      await mutate({ mutation: login, variables: bobData })
     })
 
     afterAll(async () => {
@@ -293,7 +302,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: -50,
               memo: 'testing negative',
             },
@@ -316,7 +325,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 50,
               memo: 'unrepeatable memo',
             },
@@ -324,7 +333,7 @@ describe('send coins', () => {
         ).toEqual(
           expect.objectContaining({
             data: {
-              sendCoins: 'true',
+              sendCoins: true,
             },
           }),
         )
@@ -337,12 +346,13 @@ describe('send coins', () => {
           memo: 'unrepeatable memo',
         })
 
-        expect(EventProtocol.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventProtocolType.TRANSACTION_SEND,
-            userId: user[1].id,
-            transactionId: transaction[0].id,
-            xUserId: user[0].id,
+            type: EventType.TRANSACTION_SEND,
+            affectedUserId: user[1].id,
+            actingUserId: user[1].id,
+            involvedUserId: user[0].id,
+            involvedTransactionId: transaction[0].id,
           }),
         )
       })
@@ -354,12 +364,13 @@ describe('send coins', () => {
           memo: 'unrepeatable memo',
         })
 
-        expect(EventProtocol.find()).resolves.toContainEqual(
+        await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventProtocolType.TRANSACTION_RECEIVE,
-            userId: user[0].id,
-            transactionId: transaction[0].id,
-            xUserId: user[1].id,
+            type: EventType.TRANSACTION_RECEIVE,
+            affectedUserId: user[0].id,
+            actingUserId: user[1].id,
+            involvedUserId: user[1].id,
+            involvedTransactionId: transaction[0].id,
           }),
         )
       })
@@ -371,7 +382,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 10,
               memo: 'first transaction',
             },
@@ -379,7 +390,7 @@ describe('send coins', () => {
         ).resolves.toEqual(
           expect.objectContaining({
             data: {
-              sendCoins: 'true',
+              sendCoins: true,
             },
           }),
         )
@@ -387,7 +398,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 20,
               memo: 'second transaction',
             },
@@ -395,7 +406,7 @@ describe('send coins', () => {
         ).resolves.toEqual(
           expect.objectContaining({
             data: {
-              sendCoins: 'true',
+              sendCoins: true,
             },
           }),
         )
@@ -403,7 +414,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 30,
               memo: 'third transaction',
             },
@@ -411,7 +422,7 @@ describe('send coins', () => {
         ).resolves.toEqual(
           expect.objectContaining({
             data: {
-              sendCoins: 'true',
+              sendCoins: true,
             },
           }),
         )
@@ -419,7 +430,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
-              email: 'peter@lustig.de',
+              identifier: 'peter@lustig.de',
               amount: 40,
               memo: 'fourth transaction',
             },
@@ -427,10 +438,49 @@ describe('send coins', () => {
         ).resolves.toEqual(
           expect.objectContaining({
             data: {
-              sendCoins: 'true',
+              sendCoins: true,
             },
           }),
         )
+      })
+    })
+  })
+})
+
+describe('transactionList', () => {
+  describe('unauthenticated', () => {
+    it('throws an error', async () => {
+      await expect(query({ query: transactionsQuery })).resolves.toMatchObject({
+        errors: [new GraphQLError('401 Unauthorized')],
+      })
+    })
+  })
+
+  describe('authenticated', () => {
+    describe('no transactions', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bobBaumeister)
+        await mutate({
+          mutation: login,
+          variables: {
+            email: 'bob@baumeister.de',
+            password: 'Aa12345_',
+          },
+        })
+      })
+
+      it('has no transactions and balance 0', async () => {
+        await expect(query({ query: transactionsQuery })).resolves.toMatchObject({
+          data: {
+            transactionList: {
+              balance: expect.objectContaining({
+                balance: expect.decimalEqual(0),
+              }),
+              transactions: [],
+            },
+          },
+          errors: undefined,
+        })
       })
     })
   })

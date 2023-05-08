@@ -1,9 +1,11 @@
-import { Role } from '@/auth/Role'
-import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
-import Decimal from 'decimal.js-light'
+import { User as dbUser } from '@entity/User'
 import { ExpressContext } from 'apollo-server-express'
-import LogError from './LogError'
+import { Decimal } from 'decimal.js-light'
+
+import { Role } from '@/auth/Role'
+
+import { LogError } from './LogError'
 
 export interface Context {
   token: string | null
@@ -11,6 +13,7 @@ export interface Context {
   role?: Role
   user?: dbUser
   clientTimezoneOffset?: number
+  gradidoID?: string
   // hack to use less DB calls for Balance Resolver
   lastTransaction?: dbTransaction
   transactionCount?: number
@@ -18,7 +21,7 @@ export interface Context {
   sumHoldAvailableAmount?: Decimal
 }
 
-const context = (args: ExpressContext): Context => {
+export const context = (args: ExpressContext): Context => {
   const authorization = args.req.headers.authorization
   const clientTimezoneOffset = args.req.headers.clienttimezoneoffset
   const context: Context = {
@@ -48,5 +51,3 @@ export const getClientTimezoneOffset = (context: Context): number => {
   }
   throw new LogError('No valid client time zone offset in context')
 }
-
-export default context

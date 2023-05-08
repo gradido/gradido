@@ -1,7 +1,7 @@
 import { ArgsType, Field, Int } from 'type-graphql'
 
 @ArgsType()
-export default class CreateUserArgs {
+export class CreateUserArgs {
   @Field(() => String)
   email: string
 
@@ -11,11 +11,11 @@ export default class CreateUserArgs {
   @Field(() => String)
   lastName: string
 
-  @Field(() => String)
-  language?: string // Will default to DEFAULT_LANGUAGE
+  @Field(() => String, { nullable: true })
+  language?: string | null
 
   @Field(() => Int, { nullable: true })
-  publisherId: number
+  publisherId?: number | null
 
   @Field(() => String, { nullable: true })
   redeemCode?: string | null

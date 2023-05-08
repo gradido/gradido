@@ -1,21 +1,26 @@
-import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { getConnection } from '@dbTools/typeorm'
-
-import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
 import { Contribution as DbContribution } from '@entity/Contribution'
-import { UserContact } from '@entity/UserContact'
+import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
+import { User as DbUser } from '@entity/User'
+import { UserContact as DbUserContact } from '@entity/UserContact'
+import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 
-import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
-import ContributionMessageArgs from '@arg/ContributionMessageArgs'
-import { ContributionMessageType } from '@enum/MessageType'
+import { ContributionMessageArgs } from '@arg/ContributionMessageArgs'
+import { Paginated } from '@arg/Paginated'
 import { ContributionStatus } from '@enum/ContributionStatus'
+import { ContributionMessageType } from '@enum/MessageType'
 import { Order } from '@enum/Order'
-import Paginated from '@arg/Paginated'
+import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
 
 import { RIGHTS } from '@/auth/RIGHTS'
-import { Context, getUser } from '@/server/context'
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
-import LogError from '@/server/LogError'
+import {
+  EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE,
+  EVENT_CONTRIBUTION_MESSAGE_CREATE,
+} from '@/event/Events'
+import { Context, getUser } from '@/server/context'
+import { LogError } from '@/server/LogError'
 
 @Resolver()
 export class ContributionMessageResolver {
@@ -56,6 +61,11 @@ export class ContributionMessageResolver {
         await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)
       }
       await queryRunner.commitTransaction()
+      await EVENT_CONTRIBUTION_MESSAGE_CREATE(
+        user,
+        { id: contributionMessage.contributionId } as DbContribution,
+        contributionMessage,
+      )
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError(`ContributionMessage was not sent successfully: ${e}`, e)
@@ -68,7 +78,7 @@ export class ContributionMessageResolver {
   @Authorized([RIGHTS.LIST_ALL_CONTRIBUTION_MESSAGES])
   @Query(() => ContributionMessageListResult)
   async listContributionMessages(
-    @Arg('contributionId') contributionId: number,
+    @Arg('contributionId', () => Int) contributionId: number,
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   ): Promise<ContributionMessageListResult> {
@@ -77,7 +87,7 @@ export class ContributionMessageResolver {
       .select('cm')
       .from(DbContributionMessage, 'cm')
       .leftJoinAndSelect('cm.user', 'u')
-      .where({ contributionId: contributionId })
+      .where({ contributionId })
       .orderBy('cm.createdAt', order)
       .limit(pageSize)
       .offset((currentPage - 1) * pageSize)
@@ -97,7 +107,7 @@ export class ContributionMessageResolver {
     @Args() { contributionId, message }: ContributionMessageArgs,
     @Ctx() context: Context,
   ): Promise<ContributionMessage> {
-    const user = getUser(context)
+    const moderator = getUser(context)
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
@@ -111,18 +121,18 @@ export class ContributionMessageResolver {
       if (!contribution) {
         throw new LogError('Contribution not found', contributionId)
       }
-      if (contribution.userId === user.id) {
+      if (contribution.userId === moderator.id) {
         throw new LogError('Admin can not answer on his own contribution', contributionId)
       }
       if (!contribution.user.emailContact) {
-        contribution.user.emailContact = await UserContact.findOneOrFail({
+        contribution.user.emailContact = await DbUserContact.findOneOrFail({
           where: { id: contribution.user.emailId },
         })
       }
       contributionMessage.contributionId = contributionId
       contributionMessage.createdAt = new Date()
       contributionMessage.message = message
-      contributionMessage.userId = user.id
+      contributionMessage.userId = moderator.id
       contributionMessage.type = ContributionMessageType.DIALOG
       contributionMessage.isModerator = true
       await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
@@ -136,22 +146,28 @@ export class ContributionMessageResolver {
         await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)
       }
 
-      await sendAddedContributionMessageEmail({
+      void sendAddedContributionMessageEmail({
         firstName: contribution.user.firstName,
         lastName: contribution.user.lastName,
         email: contribution.user.emailContact.email,
         language: contribution.user.language,
-        senderFirstName: user.firstName,
-        senderLastName: user.lastName,
+        senderFirstName: moderator.firstName,
+        senderLastName: moderator.lastName,
         contributionMemo: contribution.memo,
       })
       await queryRunner.commitTransaction()
+      await EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE(
+        { id: contribution.userId } as DbUser,
+        moderator,
+        contribution,
+        contributionMessage,
+      )
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError(`ContributionMessage was not sent successfully: ${e}`, e)
     } finally {
       await queryRunner.release()
     }
-    return new ContributionMessage(contributionMessage, user)
+    return new ContributionMessage(contributionMessage, moderator)
   }
 }

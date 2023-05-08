@@ -47,7 +47,7 @@
 </template>
 <script>
 import CollapseIcon from './TransactionRows/CollapseIcon'
-import TransactionCollapse from './TransactionCollapse.vue'
+import TransactionCollapse from './TransactionCollapse'
 import { GdtEntryType } from '../graphql/enums'
 
 export default {

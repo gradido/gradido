@@ -3,7 +3,7 @@ import gql from 'graphql-tag'
 export const verifyLogin = gql`
   query {
     verifyLogin {
-      email
+      gradidoID
       firstName
       lastName
       language
@@ -33,12 +33,13 @@ export const transactionsQuery = gql`
         typeId
         amount
         balance
+        previousBalance
         balanceDate
         memo
         linkedUser {
           firstName
           lastName
-          email
+          gradidoID
         }
         decay {
           decay
@@ -100,9 +101,9 @@ export const queryTransactionLink = gql`
         redeemedAt
         deletedAt
         user {
+          gradidoID
           firstName
           publisherId
-          email
         }
       }
       ... on ContributionLink {
@@ -126,14 +127,16 @@ export const queryTransactionLink = gql`
 export const listTransactionLinks = gql`
   query($currentPage: Int = 1, $pageSize: Int = 5) {
     listTransactionLinks(currentPage: $currentPage, pageSize: $pageSize) {
-      id
-      amount
-      holdAvailableAmount
-      memo
-      link
-      createdAt
-      validUntil
-      redeemedAt
+      links {
+        id
+        amount
+        holdAvailableAmount
+        memo
+        link
+        createdAt
+        validUntil
+        redeemedAt
+      }
     }
   }
 `
@@ -163,13 +166,13 @@ export const listContributions = gql`
     $currentPage: Int = 1
     $pageSize: Int = 25
     $order: Order = DESC
-    $filterConfirmed: Boolean = false
+    $statusFilter: [ContributionStatus!]
   ) {
     listContributions(
       currentPage: $currentPage
       pageSize: $pageSize
       order: $order
-      filterConfirmed: $filterConfirmed
+      statusFilter: $statusFilter
     ) {
       contributionCount
       contributionList {
@@ -185,6 +188,7 @@ export const listContributions = gql`
         messagesCount
         deniedAt
         deniedBy
+        moderatorId
       }
     }
   }
@@ -234,7 +238,7 @@ export const searchAdminUsers = gql`
 `
 
 export const listContributionMessages = gql`
-  query($contributionId: Float!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
+  query($contributionId: Int!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
     listContributionMessages(
       contributionId: $contributionId
       pageSize: $pageSize
@@ -262,6 +266,15 @@ export const openCreations = gql`
       year
       month
       amount
+    }
+  }
+`
+
+export const user = gql`
+  query($identifier: String!) {
+    user(identifier: $identifier) {
+      firstName
+      lastName
     }
   }
 `

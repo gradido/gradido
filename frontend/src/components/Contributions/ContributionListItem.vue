@@ -2,7 +2,7 @@
   <div>
     <div
       class="contribution-list-item bg-white appBoxShadow gradido-border-radius pt-3 px-3"
-      :class="state === 'IN_PROGRESS' ? 'pulse border border-205' : ''"
+      :class="state === 'IN_PROGRESS' && !allContribution ? 'pulse border border-205' : ''"
     >
       <b-row>
         <b-col cols="3" lg="2" md="2">
@@ -25,7 +25,11 @@
           </div>
           <div class="mt-3 font-weight-bold">{{ $t('contributionText') }}</div>
           <div class="mb-3 text-break word-break">{{ memo }}</div>
-          <div v-if="state === 'IN_PROGRESS'" class="text-205">
+          <div
+            v-if="state === 'IN_PROGRESS'"
+            class="text-205 pointer hover-font-bold"
+            @click="visible = !visible"
+          >
             {{ $t('contribution.alert.answerQuestion') }}
           </div>
         </b-col>
@@ -43,7 +47,7 @@
           <div v-else class="font-weight-bold">{{ amount | GDD }}</div>
         </b-col>
         <b-col cols="12" md="1" lg="1" class="text-right align-items-center">
-          <div v-if="messagesCount > 0" @click="visible = !visible">
+          <div v-if="messagesCount > 0 && !moderatorId" @click="visible = !visible">
             <collapse-icon class="text-right" :visible="visible" />
           </div>
         </b-col>
@@ -54,7 +58,7 @@
       >
         <b-col cols="3" class="mr-auto text-center">
           <div
-            v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
+            v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution && !moderatorId"
             class="test-delete-contribution pointer mr-3"
             @click="deleteContribution({ id })"
           >
@@ -65,7 +69,7 @@
         </b-col>
         <b-col cols="3" class="text-center">
           <div
-            v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
+            v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution && !moderatorId"
             class="test-edit-contribution pointer mr-3"
             @click="
               $emit('update-contribution-form', {
@@ -80,9 +84,8 @@
             <div>{{ $t('edit') }}</div>
           </div>
         </b-col>
-
         <b-col cols="6" class="text-center">
-          <div v-if="messagesCount > 0" class="pointer" @click="visible = !visible">
+          <div v-if="messagesCount > 0 && !moderatorId" class="pointer" @click="visible = !visible">
             <b-icon icon="chat-dots"></b-icon>
             <div>{{ $t('moderatorChat') }}</div>
           </div>
@@ -104,7 +107,7 @@
 <script>
 import Avatar from 'vue-avatar'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
-import ContributionMessagesList from '@/components/ContributionMessages/ContributionMessagesList.vue'
+import ContributionMessagesList from '@/components/ContributionMessages/ContributionMessagesList'
 import { listContributionMessages } from '../../graphql/queries.js'
 
 export default {
@@ -176,6 +179,11 @@ export default {
       required: false,
       default: false,
     },
+    moderatorId: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
   },
   data() {
     return {
@@ -189,14 +197,14 @@ export default {
       if (this.deletedAt) return 'trash'
       if (this.deniedAt) return 'x-circle'
       if (this.confirmedAt) return 'check'
-      if (this.state === 'IN_PROGRESS') return 'question-circle'
+      if (this.state === 'IN_PROGRESS') return 'question'
       return 'bell-fill'
     },
     variant() {
       if (this.deletedAt) return 'danger'
       if (this.deniedAt) return 'warning'
       if (this.confirmedAt) return 'success'
-      if (this.state === 'IN_PROGRESS') return 'f5'
+      if (this.state === 'IN_PROGRESS') return '205'
       return 'primary'
     },
     date() {

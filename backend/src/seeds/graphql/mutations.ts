@@ -1,14 +1,14 @@
-import gql from 'graphql-tag'
+import { gql } from 'graphql-tag'
 
 export const subscribeNewsletter = gql`
-  mutation ($email: String!, $language: String!) {
-    subscribeNewsletter(email: $email, language: $language)
+  mutation {
+    subscribeNewsletter
   }
 `
 
 export const unsubscribeNewsletter = gql`
-  mutation ($email: String!) {
-    unsubscribeNewsletter(email: $email)
+  mutation {
+    unsubscribeNewsletter
   }
 `
 
@@ -77,8 +77,8 @@ export const sendActivationEmail = gql`
 `
 
 export const sendCoins = gql`
-  mutation ($email: String!, $amount: Decimal!, $memo: String!) {
-    sendCoins(email: $email, amount: $amount, memo: $memo)
+  mutation ($identifier: String!, $amount: Decimal!, $memo: String!) {
+    sendCoins(identifier: $identifier, amount: $amount, memo: $memo)
   }
 `
 
@@ -88,6 +88,12 @@ export const createTransactionLink = gql`
       id
       code
     }
+  }
+`
+
+export const deleteTransactionLink = gql`
+  mutation ($id: Int!) {
+    deleteTransactionLink(id: $id)
   }
 `
 
@@ -128,29 +134,12 @@ export const unDeleteUser = gql`
   }
 `
 
-export const adminCreateContributions = gql`
-  mutation ($pendingCreations: [AdminCreateContributionArgs!]!) {
-    adminCreateContributions(pendingCreations: $pendingCreations) {
-      success
-      successfulContribution
-      failedContribution
-    }
-  }
-`
-
 export const adminUpdateContribution = gql`
-  mutation ($id: Int!, $email: String!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
-    adminUpdateContribution(
-      id: $id
-      email: $email
-      amount: $amount
-      memo: $memo
-      creationDate: $creationDate
-    ) {
+  mutation ($id: Int!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
+    adminUpdateContribution(id: $id, amount: $amount, memo: $memo, creationDate: $creationDate) {
       amount
       date
       memo
-      creation
     }
   }
 `
@@ -281,7 +270,7 @@ export const denyContribution = gql`
 `
 
 export const createContributionMessage = gql`
-  mutation ($contributionId: Float!, $message: String!) {
+  mutation ($contributionId: Int!, $message: String!) {
     createContributionMessage(contributionId: $contributionId, message: $message) {
       id
       message
@@ -295,7 +284,7 @@ export const createContributionMessage = gql`
 `
 
 export const adminCreateContributionMessage = gql`
-  mutation ($contributionId: Float!, $message: String!) {
+  mutation ($contributionId: Int!, $message: String!) {
     adminCreateContributionMessage(contributionId: $contributionId, message: $message) {
       id
       message
@@ -318,7 +307,6 @@ export const login = gql`
   mutation ($email: String!, $password: String!, $publisherId: Int) {
     login(email: $email, password: $password, publisherId: $publisherId) {
       id
-      email
       firstName
       lastName
       language

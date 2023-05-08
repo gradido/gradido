@@ -1,31 +1,40 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { ObjectType, Field } from 'type-graphql'
+import { Community as DbCommunity } from '@entity/Community'
+import { ObjectType, Field, Int } from 'type-graphql'
 
 @ObjectType()
 export class Community {
-  constructor(json?: any) {
-    if (json) {
-      this.id = Number(json.id)
-      this.name = json.name
-      this.url = json.url
-      this.description = json.description
-      this.registerUrl = json.registerUrl
-    }
+  constructor(dbCom: DbCommunity) {
+    this.id = dbCom.id
+    this.foreign = dbCom.foreign
+    this.name = dbCom.name
+    this.description = dbCom.description
+    this.url = dbCom.url
+    this.creationDate = dbCom.creationDate
+    this.uuid = dbCom.communityUuid
+    this.authenticatedAt = dbCom.authenticatedAt
   }
 
-  @Field(() => Number)
+  @Field(() => Int)
   id: number
 
-  @Field(() => String)
-  name: string
+  @Field(() => Boolean)
+  foreign: boolean
+
+  @Field(() => String, { nullable: true })
+  name: string | null
+
+  @Field(() => String, { nullable: true })
+  description: string | null
 
   @Field(() => String)
   url: string
 
-  @Field(() => String)
-  description: string
+  @Field(() => Date, { nullable: true })
+  creationDate: Date | null
 
-  @Field(() => String)
-  registerUrl: string
+  @Field(() => String, { nullable: true })
+  uuid: string | null
+
+  @Field(() => Date, { nullable: true })
+  authenticatedAt: Date | null
 }

@@ -1,9 +1,8 @@
-import gql from 'graphql-tag'
+import { gql } from 'graphql-tag'
 
 export const verifyLogin = gql`
   query {
     verifyLogin {
-      email
       firstName
       lastName
       language
@@ -24,31 +23,26 @@ export const queryOptIn = gql`
 `
 
 export const transactionsQuery = gql`
-  query (
-    $currentPage: Int = 1
-    $pageSize: Int = 25
-    $order: Order = DESC
-    $onlyCreations: Boolean = false
-  ) {
-    transactionList(
-      currentPage: $currentPage
-      pageSize: $pageSize
-      order: $order
-      onlyCreations: $onlyCreations
-    ) {
-      balanceGDT
-      count
-      balance
+  query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+    transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+      balance {
+        balance
+        balanceGDT
+        count
+        linkCount
+      }
       transactions {
         id
         typeId
         amount
         balance
+        previousBalance
         balanceDate
         memo
         linkedUser {
           firstName
           lastName
+          gradidoID
         }
         decay {
           decay
@@ -56,6 +50,7 @@ export const transactionsQuery = gql`
           end
           duration
         }
+        linkId
       }
     }
   }
@@ -133,6 +128,22 @@ export const communities = gql`
   }
 `
 
+export const getCommunities = gql`
+  query {
+    getCommunities {
+      id
+      foreign
+      publicKey
+      url
+      lastAnnouncedAt
+      verifiedAt
+      lastErrorAt
+      createdAt
+      updatedAt
+    }
+  }
+`
+
 export const queryTransactionLink = gql`
   query ($code: String!) {
     queryTransactionLink(code: $code) {
@@ -153,13 +164,13 @@ export const listContributions = gql`
     $currentPage: Int = 1
     $pageSize: Int = 5
     $order: Order
-    $filterConfirmed: Boolean = false
+    $statusFilter: [ContributionStatus!]
   ) {
     listContributions(
       currentPage: $currentPage
       pageSize: $pageSize
       order: $order
-      filterConfirmed: $filterConfirmed
+      statusFilter: $statusFilter
     ) {
       contributionCount
       contributionList {
@@ -204,18 +215,20 @@ query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC, $statusF
 `
 // from admin interface
 
-export const adminListAllContributions = gql`
+export const adminListContributions = gql`
   query (
     $currentPage: Int = 1
     $pageSize: Int = 25
     $order: Order = DESC
     $statusFilter: [ContributionStatus!]
+    $userId: Int
   ) {
-    adminListAllContributions(
+    adminListContributions(
       currentPage: $currentPage
       pageSize: $pageSize
       order: $order
       statusFilter: $statusFilter
+      userId: $userId
     ) {
       contributionCount
       contributionList {
@@ -250,8 +263,8 @@ export const listTransactionLinksAdmin = gql`
       currentPage: $currentPage
       pageSize: $pageSize
     ) {
-      linkCount
-      linkList {
+      count
+      links {
         id
         amount
         holdAvailableAmount
@@ -301,7 +314,7 @@ export const searchAdminUsers = gql`
 `
 
 export const listContributionMessages = gql`
-  query ($contributionId: Float!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
+  query ($contributionId: Int!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
     listContributionMessages(
       contributionId: $contributionId
       pageSize: $pageSize
@@ -319,6 +332,15 @@ export const listContributionMessages = gql`
         userLastName
         userId
       }
+    }
+  }
+`
+
+export const user = gql`
+  query ($identifier: String!) {
+    user(identifier: $identifier) {
+      firstName
+      lastName
     }
   }
 `

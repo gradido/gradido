@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import NavBar from './NavBar.vue'
+import NavBar from './NavBar'
 
 const localVue = global.localVue
 
@@ -62,19 +62,20 @@ describe('NavBar', () => {
       )
     })
 
+    it('has a link to /federation', () => {
+      expect(wrapper.findAll('.nav-item').at(3).find('a').attributes('href')).toBe('/federation')
+    })
+
     it('has a link to /statistic', () => {
-      expect(wrapper.findAll('.nav-item').at(3).find('a').attributes('href')).toBe('/statistic')
+      expect(wrapper.findAll('.nav-item').at(4).find('a').attributes('href')).toBe('/statistic')
     })
   })
 
   describe('wallet', () => {
-    const windowLocationMock = jest.fn()
     const windowLocation = window.location
     beforeEach(async () => {
       delete window.location
-      window.location = {
-        assign: windowLocationMock,
-      }
+      window.location = ''
       await wrapper.findAll('.nav-item').at(5).find('a').trigger('click')
     })
 
@@ -83,8 +84,8 @@ describe('NavBar', () => {
       window.location = windowLocation
     })
 
-    it.skip('changes window location to wallet', () => {
-      expect(windowLocationMock()).toBe('valid-token')
+    it('changes window location to wallet', () => {
+      expect(window.location).toBe('http://localhost/authenticate?token=valid-token')
     })
 
     it('dispatches logout to store', () => {
@@ -100,7 +101,7 @@ describe('NavBar', () => {
       window.location = {
         assign: windowLocationMock,
       }
-      await wrapper.findAll('.nav-item').at(5).find('a').trigger('click')
+      await wrapper.findAll('.nav-item').at(6).find('a').trigger('click')
     })
 
     afterEach(() => {

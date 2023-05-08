@@ -9,7 +9,7 @@
 </template>
 <script>
 import { listContributionLinks } from '@/graphql/listContributionLinks.js'
-import ContributionLink from '../components/ContributionLink/ContributionLink.vue'
+import ContributionLink from '../components/ContributionLink/ContributionLink'
 
 export default {
   name: 'ContributionLinks',

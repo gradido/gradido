@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
-import CreationConfirm from './CreationConfirm.vue'
+import CreationConfirm from './CreationConfirm'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { denyContribution } from '../graphql/denyContribution'
-import { listAllContributions } from '../graphql/listAllContributions'
+import { adminListContributions } from '../graphql/adminListContributions'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 import VueApollo from 'vue-apollo'
@@ -38,8 +38,8 @@ const mocks = {
 
 const defaultData = () => {
   return {
-    listAllContributions: {
-      contributionCount: 2,
+    adminListContributions: {
+      contributionCount: 30,
       contributionList: [
         {
           id: 1,
@@ -92,14 +92,14 @@ const defaultData = () => {
 
 describe('CreationConfirm', () => {
   let wrapper
+  const adminListContributionsMock = jest.fn()
   const adminDeleteContributionMock = jest.fn()
   const adminDenyContributionMock = jest.fn()
   const confirmContributionMock = jest.fn()
 
   mockClient.setRequestHandler(
-    listAllContributions,
-    jest
-      .fn()
+    adminListContributions,
+    adminListContributionsMock
       .mockRejectedValueOnce({ message: 'Ouch!' })
       .mockResolvedValue({ data: defaultData() }),
   )
@@ -331,77 +331,119 @@ describe('CreationConfirm', () => {
 
     describe('filter tabs', () => {
       describe('click tab "confirmed"', () => {
-        let refetchSpy
-
         beforeEach(async () => {
           jest.clearAllMocks()
-          refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
           await wrapper.find('a[data-test="confirmed"]').trigger('click')
         })
 
-        it('has statusFilter set to ["CONFIRMED"]', () => {
-          expect(
-            wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
-          ).toMatchObject({ statusFilter: ['CONFIRMED'] })
-        })
-
-        it('refetches contributions', () => {
-          expect(refetchSpy).toBeCalled()
+        it('refetches contributions with proper filter', () => {
+          expect(adminListContributionsMock).toBeCalledWith({
+            currentPage: 1,
+            order: 'DESC',
+            pageSize: 25,
+            statusFilter: ['CONFIRMED'],
+          })
         })
 
         describe('click tab "open"', () => {
           beforeEach(async () => {
             jest.clearAllMocks()
-            refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
             await wrapper.find('a[data-test="open"]').trigger('click')
           })
 
-          it('has statusFilter set to ["IN_PROGRESS", "PENDING"]', () => {
-            expect(
-              wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
-            ).toMatchObject({ statusFilter: ['IN_PROGRESS', 'PENDING'] })
-          })
-
-          it('refetches contributions', () => {
-            expect(refetchSpy).toBeCalled()
+          it('refetches contributions with proper filter', () => {
+            expect(adminListContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              statusFilter: ['IN_PROGRESS', 'PENDING'],
+            })
           })
         })
 
         describe('click tab "denied"', () => {
           beforeEach(async () => {
             jest.clearAllMocks()
-            refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
             await wrapper.find('a[data-test="denied"]').trigger('click')
           })
 
-          it('has statusFilter set to ["DENIED"]', () => {
-            expect(
-              wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
-            ).toMatchObject({ statusFilter: ['DENIED'] })
+          it('refetches contributions with proper filter', () => {
+            expect(adminListContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              statusFilter: ['DENIED'],
+            })
+          })
+        })
+
+        describe('click tab "deleted"', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            await wrapper.find('a[data-test="deleted"]').trigger('click')
           })
 
-          it('refetches contributions', () => {
-            expect(refetchSpy).toBeCalled()
+          it('refetches contributions with proper filter', () => {
+            expect(adminListContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              statusFilter: ['DELETED'],
+            })
           })
         })
 
         describe('click tab "all"', () => {
           beforeEach(async () => {
             jest.clearAllMocks()
-            refetchSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListAllContributions, 'refetch')
             await wrapper.find('a[data-test="all"]').trigger('click')
           })
 
-          it('has statusFilter set to ["IN_PROGRESS", "PENDING", "CONFIRMED", "DENIED", "DELETED"]', () => {
-            expect(
-              wrapper.vm.$apollo.queries.ListAllContributions.observer.options.variables,
-            ).toMatchObject({
+          it('refetches contributions with proper filter', () => {
+            expect(adminListContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
               statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
             })
           })
 
-          it('refetches contributions', () => {
-            expect(refetchSpy).toBeCalled()
+          describe('change pagination', () => {
+            it('has pagination buttons', () => {
+              expect(wrapper.findComponent({ name: 'BPagination' }).exists()).toBe(true)
+            })
+
+            describe('next page', () => {
+              beforeEach(() => {
+                jest.clearAllMocks()
+                wrapper.findComponent({ name: 'BPagination' }).vm.$emit('input', 2)
+              })
+
+              it('calls the API again', () => {
+                expect(adminListContributionsMock).toBeCalledWith({
+                  currentPage: 2,
+                  order: 'DESC',
+                  pageSize: 25,
+                  statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
+                })
+              })
+
+              describe('click tab "open" again', () => {
+                beforeEach(async () => {
+                  jest.clearAllMocks()
+                  await wrapper.find('a[data-test="open"]').trigger('click')
+                })
+
+                it('refetches contributions with proper filter and current page = 1', () => {
+                  expect(adminListContributionsMock).toBeCalledWith({
+                    currentPage: 1,
+                    order: 'DESC',
+                    pageSize: 25,
+                    statusFilter: ['IN_PROGRESS', 'PENDING'],
+                  })
+                })
+              })
+            })
           })
         })
       })
@@ -412,9 +454,19 @@ describe('CreationConfirm', () => {
         await wrapper.findComponent({ name: 'OpenCreationsTable' }).vm.$emit('update-state', 2)
       })
 
-      it.skip('updates the status', () => {
+      it('updates the status', () => {
         expect(wrapper.vm.items.find((obj) => obj.id === 2).messagesCount).toBe(1)
         expect(wrapper.vm.items.find((obj) => obj.id === 2).state).toBe('IN_PROGRESS')
+      })
+    })
+
+    describe('unknown variant', () => {
+      beforeEach(async () => {
+        await wrapper.setData({ variant: 'unknown' })
+      })
+
+      it('has overlay icon "info"', () => {
+        expect(wrapper.vm.overlayIcon).toBe('info')
       })
     })
   })

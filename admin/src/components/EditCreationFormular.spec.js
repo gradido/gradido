@@ -1,19 +1,18 @@
 import { mount } from '@vue/test-utils'
-import EditCreationFormular from './EditCreationFormular.vue'
+import EditCreationFormular from './EditCreationFormular'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
+import VueApollo from 'vue-apollo'
+import { createMockClient } from 'mock-apollo-client'
+import { adminOpenCreations } from '../graphql/adminOpenCreations'
+import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
+
+const mockClient = createMockClient()
+const apolloProvider = new VueApollo({
+  defaultClient: mockClient,
+})
 
 const localVue = global.localVue
-
-const apolloMutateMock = jest.fn().mockResolvedValue({
-  data: {
-    adminUpdateContribution: {
-      creation: [0, 0, 0],
-      amount: 500,
-      date: new Date(),
-      memo: 'Test Schöpfung 2',
-    },
-  },
-})
+localVue.use(VueApollo)
 
 const stateCommitMock = jest.fn()
 
@@ -23,22 +22,18 @@ const mocks = {
     const date = new Date(d)
     return date.toISOString().split('T')[0]
   }),
-  $apollo: {
-    mutate: apolloMutateMock,
-  },
   $store: {
     commit: stateCommitMock,
   },
 }
 
-const now = new Date(Date.now())
+const now = new Date()
 const getCreationDate = (sub) => {
   const date = sub === 0 ? now : new Date(now.getFullYear(), now.getMonth() - sub, 1, 0)
   return date.toISOString().split('T')[0]
 }
 
 const propsData = {
-  creation: [200, 400, 600],
   creationUserData: {
     memo: 'Test schöpfung 1',
     amount: 100,
@@ -46,20 +41,65 @@ const propsData = {
   },
   item: {
     id: 0,
-    email: 'bob@baumeister.de',
+    amount: '300',
+    contributionDate: `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`,
   },
+}
+
+const data = () => {
+  return { creation: ['1000', '1000', '400'] }
 }
 
 describe('EditCreationFormular', () => {
   let wrapper
 
+  const adminUpdateContributionMock = jest.fn()
+  const adminOpenCreationsMock = jest.fn()
+  mockClient.setRequestHandler(
+    adminOpenCreations,
+    adminOpenCreationsMock.mockResolvedValue({
+      data: {
+        adminOpenCreations: [
+          {
+            month: new Date(now.getFullYear(), now.getMonth() - 2).getMonth(),
+            year: new Date(now.getFullYear(), now.getMonth() - 2).getFullYear(),
+            amount: '1000',
+          },
+          {
+            month: new Date(now.getFullYear(), now.getMonth() - 1).getMonth(),
+            year: new Date(now.getFullYear(), now.getMonth() - 1).getFullYear(),
+            amount: '1000',
+          },
+          {
+            month: now.getMonth(),
+            year: now.getFullYear(),
+            amount: '400',
+          },
+        ],
+      },
+    }),
+  )
+  mockClient.setRequestHandler(
+    adminUpdateContribution,
+    adminUpdateContributionMock.mockResolvedValue({
+      data: {
+        adminUpdateContribution: {
+          amount: '600',
+          date: new Date(),
+          memo: 'This is my memo',
+        },
+      },
+    }),
+  )
+
   const Wrapper = () => {
-    return mount(EditCreationFormular, { localVue, mocks, propsData })
+    return mount(EditCreationFormular, { localVue, mocks, propsData, data, apolloProvider })
   }
 
   describe('mount', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       wrapper = Wrapper()
+      await wrapper.vm.$nextTick()
     })
 
     it('has a DIV element with the class.component-edit-creation-formular', () => {
@@ -89,42 +129,16 @@ describe('EditCreationFormular', () => {
         })
 
         it('calls the API', () => {
-          expect(apolloMutateMock).toBeCalledWith(
-            expect.objectContaining({
-              variables: {
-                id: 0,
-                email: 'bob@baumeister.de',
-                creationDate: getCreationDate(0),
-                amount: 500,
-                memo: 'Test Schöpfung 2',
-              },
-            }),
-          )
-        })
-
-        it('emits update-user-data', () => {
-          expect(wrapper.emitted('update-user-data')).toEqual([
-            [
-              {
-                id: 0,
-                email: 'bob@baumeister.de',
-              },
-              [0, 0, 0],
-            ],
-          ])
+          expect(adminUpdateContributionMock).toBeCalledWith({
+            id: 0,
+            creationDate: getCreationDate(0),
+            amount: 500,
+            memo: 'Test Schöpfung 2',
+          })
         })
 
         it('emits update-creation-data', () => {
-          expect(wrapper.emitted('update-creation-data')).toEqual([
-            [
-              {
-                amount: 500,
-                date: expect.any(Date),
-                memo: 'Test Schöpfung 2',
-                row: expect.any(Object),
-              },
-            ],
-          ])
+          expect(wrapper.emitted('update-creation-data')).toBeTruthy()
         })
 
         it('toasts a success message', () => {
@@ -134,7 +148,7 @@ describe('EditCreationFormular', () => {
 
       describe('change and save memo and value with error', () => {
         beforeEach(async () => {
-          apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
+          adminUpdateContributionMock.mockRejectedValue({ message: 'Oh no!' })
           await wrapper.find('input[type="number"]').setValue(500)
           await wrapper.find('textarea').setValue('Test Schöpfung 2')
           await wrapper.find('.test-submit').trigger('click')

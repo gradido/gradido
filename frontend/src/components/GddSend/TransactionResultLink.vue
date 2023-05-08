@@ -19,8 +19,8 @@
   </div>
 </template>
 <script>
-import ClipboardCopy from '../ClipboardCopy.vue'
-import FigureQrCode from '../QrCode/FigureQrCode.vue'
+import ClipboardCopy from '../ClipboardCopy'
+import FigureQrCode from '../QrCode/FigureQrCode'
 
 export default {
   name: 'TransactionResultLink',

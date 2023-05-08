@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-empty-interface */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 
 expect.extend({
   decimalEqual(received, value) {

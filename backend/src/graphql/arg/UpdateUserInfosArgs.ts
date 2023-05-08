@@ -1,7 +1,7 @@
-import { ArgsType, Field } from 'type-graphql'
+import { ArgsType, Field, Int } from 'type-graphql'
 
 @ArgsType()
-export default class UpdateUserInfosArgs {
+export class UpdateUserInfosArgs {
   @Field({ nullable: true })
   firstName?: string
 
@@ -14,8 +14,8 @@ export default class UpdateUserInfosArgs {
   @Field({ nullable: true })
   language?: string
 
-  @Field({ nullable: true })
-  publisherId?: number
+  @Field(() => Int, { nullable: true })
+  publisherId?: number | null
 
   @Field({ nullable: true })
   password?: string
