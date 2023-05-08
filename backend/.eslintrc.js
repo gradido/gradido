@@ -5,16 +5,7 @@ module.exports = {
     node: true,
   },
   parser: '@typescript-eslint/parser',
-  plugins: [
-    'prettier',
-    'pug',
-    '@typescript-eslint',
-    'type-graphql',
-    'jest',
-    'import',
-    'n',
-    'promise',
-  ],
+  plugins: ['prettier', '@typescript-eslint', 'type-graphql', 'jest', 'import', 'n', 'promise'],
   extends: [
     'standard',
     'eslint:recommended',
