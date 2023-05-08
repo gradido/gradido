@@ -6,9 +6,9 @@ import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCom
 import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line camelcase
-import { requestGetPublicKey as v1_0_requestGetPublicKey } from './client/1_0/FederationClient'
+import { FederationClient as FederationClient_V1_0 } from './client/1_0/FederationClient'
 // eslint-disable-next-line camelcase
-import { requestGetPublicKey as v1_1_requestGetPublicKey } from './client/1_1/FederationClient'
+import { FederationClient as FederationClient_V1_1 } from './client/1_1/FederationClient'
 import { ApiVersionType } from './enum/apiVersionType'
 
 export function startValidateCommunities(timerInterval: number): void {
@@ -75,9 +75,9 @@ async function invokeVersionedRequestGetPublicKey(
 ): Promise<string | undefined> {
   switch (dbCom.apiVersion) {
     case ApiVersionType.V1_0:
-      return v1_0_requestGetPublicKey(dbCom)
+      return new FederationClient_V1_0().requestGetPublicKey(dbCom)
     case ApiVersionType.V1_1:
-      return v1_1_requestGetPublicKey(dbCom)
+      return new FederationClient_V1_1().requestGetPublicKey(dbCom)
     default:
       return undefined
   }
