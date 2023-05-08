@@ -18,4 +18,3 @@ export const decimalSeparatorByLanguage = (a: Decimal, language: string): string
 export const fullName = (firstName: string, lastName: string): string => {
   return [firstName, lastName].filter(Boolean).join(' ')
 }
-
