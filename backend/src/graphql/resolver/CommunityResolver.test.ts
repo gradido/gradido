@@ -5,23 +5,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Community as DbCommunity } from '@entity/Community'
+import { Connection } from '@dbTools/typeorm'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { testEnvironment } from '@test/helpers'
 
 import { getCommunities } from '@/seeds/graphql/queries'
 
-let query: any
-
 // to do: We need a setup for the tests that closes the connection
-let con: any
-let testEnv: any
+let query: ApolloServerTestClient['query'], con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
   query = testEnv.query
   con = testEnv.con
-  await DbCommunity.clear()
+  await DbFederatedCommunity.clear()
 })
 
 afterAll(async () => {
@@ -30,12 +34,12 @@ afterAll(async () => {
 
 describe('CommunityResolver', () => {
   describe('getCommunities', () => {
-    let homeCom1: DbCommunity
-    let homeCom2: DbCommunity
-    let homeCom3: DbCommunity
-    let foreignCom1: DbCommunity
-    let foreignCom2: DbCommunity
-    let foreignCom3: DbCommunity
+    let homeCom1: DbFederatedCommunity
+    let homeCom2: DbFederatedCommunity
+    let homeCom3: DbFederatedCommunity
+    let foreignCom1: DbFederatedCommunity
+    let foreignCom2: DbFederatedCommunity
+    let foreignCom3: DbFederatedCommunity
 
     describe('with empty list', () => {
       it('returns no community entry', async () => {
@@ -53,29 +57,29 @@ describe('CommunityResolver', () => {
       beforeEach(async () => {
         jest.clearAllMocks()
 
-        homeCom1 = DbCommunity.create()
+        homeCom1 = DbFederatedCommunity.create()
         homeCom1.foreign = false
         homeCom1.publicKey = Buffer.from('publicKey-HomeCommunity')
         homeCom1.apiVersion = '1_0'
         homeCom1.endPoint = 'http://localhost/api'
         homeCom1.createdAt = new Date()
-        await DbCommunity.insert(homeCom1)
+        await DbFederatedCommunity.insert(homeCom1)
 
-        homeCom2 = DbCommunity.create()
+        homeCom2 = DbFederatedCommunity.create()
         homeCom2.foreign = false
         homeCom2.publicKey = Buffer.from('publicKey-HomeCommunity')
         homeCom2.apiVersion = '1_1'
         homeCom2.endPoint = 'http://localhost/api'
         homeCom2.createdAt = new Date()
-        await DbCommunity.insert(homeCom2)
+        await DbFederatedCommunity.insert(homeCom2)
 
-        homeCom3 = DbCommunity.create()
+        homeCom3 = DbFederatedCommunity.create()
         homeCom3.foreign = false
         homeCom3.publicKey = Buffer.from('publicKey-HomeCommunity')
         homeCom3.apiVersion = '2_0'
         homeCom3.endPoint = 'http://localhost/api'
         homeCom3.createdAt = new Date()
-        await DbCommunity.insert(homeCom3)
+        await DbFederatedCommunity.insert(homeCom3)
       })
 
       it('returns 3 home-community entries', async () => {
@@ -125,29 +129,29 @@ describe('CommunityResolver', () => {
       beforeEach(async () => {
         jest.clearAllMocks()
 
-        foreignCom1 = DbCommunity.create()
+        foreignCom1 = DbFederatedCommunity.create()
         foreignCom1.foreign = true
         foreignCom1.publicKey = Buffer.from('publicKey-ForeignCommunity')
         foreignCom1.apiVersion = '1_0'
         foreignCom1.endPoint = 'http://remotehost/api'
         foreignCom1.createdAt = new Date()
-        await DbCommunity.insert(foreignCom1)
+        await DbFederatedCommunity.insert(foreignCom1)
 
-        foreignCom2 = DbCommunity.create()
+        foreignCom2 = DbFederatedCommunity.create()
         foreignCom2.foreign = true
         foreignCom2.publicKey = Buffer.from('publicKey-ForeignCommunity')
         foreignCom2.apiVersion = '1_1'
         foreignCom2.endPoint = 'http://remotehost/api'
         foreignCom2.createdAt = new Date()
-        await DbCommunity.insert(foreignCom2)
+        await DbFederatedCommunity.insert(foreignCom2)
 
-        foreignCom3 = DbCommunity.create()
+        foreignCom3 = DbFederatedCommunity.create()
         foreignCom3.foreign = true
         foreignCom3.publicKey = Buffer.from('publicKey-ForeignCommunity')
         foreignCom3.apiVersion = '1_2'
         foreignCom3.endPoint = 'http://remotehost/api'
         foreignCom3.createdAt = new Date()
-        await DbCommunity.insert(foreignCom3)
+        await DbFederatedCommunity.insert(foreignCom3)
       })
 
       it('returns 3 home community and 3 foreign community entries', async () => {
