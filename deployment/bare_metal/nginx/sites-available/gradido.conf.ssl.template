@@ -117,7 +117,7 @@ server {
 
     # TODO this could be a performance optimization
     #location /vue {
-    #    alias /var/www/html/gradido/frontend/dist;
+    #    alias /var/www/html/gradido/frontend/build;
     #    index index.html;
     #
     #    location ~* \.(png)$ {
