@@ -1,0 +1,81 @@
+name: Gradido Backend Test CI
+
+on: push
+
+jobs:
+  files-changed:
+    name: Detect File Changes - Backend
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.changes.outputs.backend }}
+      database: ${{ steps.changes.outputs.database }}
+      docker-compose: ${{ steps.changes.outputs.docker-compose }}
+      mariadb: ${{ steps.changes.outputs.mariadb }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - name: Check for frontend file changes
+        uses: dorny/paths-filter@v2.11.1
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: .github/file-filters.yml
+          list-files: shell
+
+  build_test:
+    if: needs.files-changed.outputs.backend == 'true'
+    name: Docker Build Test - Backend
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Backend | Build 'test' image
+        run: docker build -f ./backend/Dockerfile --target test -t "gradido/backend:test" .
+
+  unit_test:
+    if: needs.files-changed.outputs.backend == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true'
+    name: Unit tests - Backend
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Backend | docker-compose mariadb
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
+
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
+
+      - name: Backend | docker-compose database
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
+
+      - name:  Backend | Unit tests
+        run: cd database && yarn && yarn build && cd ../backend && yarn && yarn test
+
+  lint:
+    if: needs.files-changed.outputs.backend == 'true'
+    name: Lint - Backend
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Backend | Lint
+        run: cd database && yarn && cd ../backend && yarn && yarn run lint
+
+  locales:
+    if: needs.files-changed.outputs.backend == 'true'
+    name: Locales - Backend
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Backend | Locales
+        run: cd backend && yarn && yarn locales

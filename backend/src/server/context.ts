@@ -13,6 +13,7 @@ export interface Context {
   role?: Role
   user?: dbUser
   clientTimezoneOffset?: number
+  gradidoID?: string
   // hack to use less DB calls for Balance Resolver
   lastTransaction?: dbTransaction
   transactionCount?: number

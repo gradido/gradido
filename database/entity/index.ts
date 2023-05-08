@@ -10,6 +10,7 @@ import { Contribution } from './Contribution'
 import { Event } from './Event'
 import { ContributionMessage } from './ContributionMessage'
 import { Community } from './Community'
+import { FederatedCommunity } from './FederatedCommunity'
 
 export const entities = [
   Community,
@@ -17,6 +18,7 @@ export const entities = [
   ContributionLink,
   ContributionMessage,
   Event,
+  FederatedCommunity,
   LoginElopageBuys,
   LoginEmailOptIn,
   Migration,

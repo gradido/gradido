@@ -2,14 +2,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { Connection } from '@dbTools/typeorm'
 import { Event as DbEvent } from '@entity/Event'
 import { TransactionLink } from '@entity/TransactionLink'
 import { User } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 
@@ -88,8 +88,14 @@ jest.mock('@/apis/KlicktippController', () => {
 
 let admin: User
 let user: User
-let mutate: any, query: any, con: any
-let testEnv: any
+let mutate: ApolloServerTestClient['mutate'],
+  query: ApolloServerTestClient['query'],
+  con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger, localization)
@@ -236,7 +242,7 @@ describe('UserResolver', () => {
     })
 
     describe('user already exists', () => {
-      let mutation: User
+      let mutation: any
       beforeAll(async () => {
         mutation = await mutate({ mutation: createUser, variables })
       })
@@ -638,7 +644,7 @@ describe('UserResolver', () => {
       publisherId: 1234,
     }
 
-    let result: User
+    let result: any
 
     afterAll(async () => {
       await cleanDB()
