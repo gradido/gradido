@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { startDHT } from './index'
+import {
+  CommunityApi,
+  startDHT,
+  writeFederatedHomeCommunityEntries,
+  writeHomeCommunityEntry,
+} from './index'
 import DHT from '@hyperswarm/dht'
 import CONFIG from '@/config'
 import { logger } from '@test/testSetup'
+import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { testEnvironment, cleanDB } from '@test/helpers'
+import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 CONFIG.FEDERATION_DHT_SEED = '64ebcb0e3ad547848fef4197c6e2332f'
 
@@ -101,7 +108,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  await cleanDB()
+  // await cleanDB()
   await con.close()
 })
 
@@ -152,6 +159,135 @@ describe('federation', () => {
 
         it('looks up on topic', () => {
           expect(nodeLookupMock).toBeCalledWith(Buffer.from(TEST_TOPIC))
+        })
+      })
+
+      describe('home community', () => {
+        it('one in communities', async () => {
+          const result = await DbCommunity.find({ foreign: false })
+          expect(result).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                id: expect.any(Number),
+                foreign: false,
+                url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
+                publicKey: expect.any(Buffer),
+                communityUuid: expect.any(String),
+                authenticatedAt: null,
+                name: CONFIG.COMMUNITY_NAME,
+                description: CONFIG.COMMUNITY_DESCRIPTION,
+                creationDate: expect.any(Date),
+                createdAt: expect.any(Date),
+                updatedAt: null,
+              }),
+            ]),
+          )
+          const valUUID = validateUUID(
+            result[0].communityUuid != null ? result[0].communityUuid : '',
+          )
+          const verUUID = versionUUID(
+            result[0].communityUuid != null ? result[0].communityUuid : '',
+          )
+          expect(valUUID).toEqual(true)
+          expect(verUUID).toEqual(4)
+        })
+        it('update the one in communities', async () => {
+          const resultBefore = await DbCommunity.find({ foreign: false })
+          expect(resultBefore).toHaveLength(1)
+          const modifiedCom = DbCommunity.create()
+          modifiedCom.communityUuid = resultBefore[0].communityUuid
+          modifiedCom.creationDate = resultBefore[0].creationDate
+          modifiedCom.description = 'updated description'
+          modifiedCom.foreign = resultBefore[0].foreign
+          modifiedCom.id = resultBefore[0].id
+          modifiedCom.name = 'update name'
+          modifiedCom.publicKey = Buffer.from(
+            '1234567891abcdef7892abcdef7893abcdef7894abcdef7895abcdef7896abcd1234567891abcdef7892abcdef7893abcdef7894abcdef7895abcdef7896abcd',
+            'hex',
+          )
+          modifiedCom.url = 'updated url'
+          await DbCommunity.update(modifiedCom, { id: resultBefore[0].id })
+
+          await writeHomeCommunityEntry(modifiedCom.publicKey.toString('hex'))
+          const resultAfter = await DbCommunity.find({ foreign: false })
+          expect(resultAfter).toHaveLength(1)
+          expect(resultAfter).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                id: resultBefore[0].id,
+                foreign: false,
+                url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
+                publicKey: modifiedCom.publicKey,
+                communityUuid: resultBefore[0].communityUuid,
+                authenticatedAt: null,
+                name: CONFIG.COMMUNITY_NAME,
+                description: CONFIG.COMMUNITY_DESCRIPTION,
+                creationDate: expect.any(Date),
+                createdAt: expect.any(Date),
+                updatedAt: expect.any(Date),
+              }),
+            ]),
+          )
+        })
+      })
+
+      describe('federated home community', () => {
+        it('three in federated_communities', async () => {
+          const homeApiVersions: CommunityApi[] = await writeFederatedHomeCommunityEntries(
+            keyPairMock.publicKey.toString('hex'),
+          )
+          expect(homeApiVersions).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                api: '1_0',
+                url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
+              }),
+              expect.objectContaining({
+                api: '1_1',
+                url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
+              }),
+              expect.objectContaining({
+                api: '2_0',
+                url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
+              }),
+            ]),
+          )
+          const result = await DbFederatedCommunity.find({ foreign: false })
+          expect(result).toHaveLength(3)
+          expect(result).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                id: expect.any(Number),
+                foreign: false,
+                publicKey: expect.any(Buffer),
+                apiVersion: '1_0',
+                endPoint: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
+                lastAnnouncedAt: null,
+                createdAt: expect.any(Date),
+                updatedAt: null,
+              }),
+              expect.objectContaining({
+                id: expect.any(Number),
+                foreign: false,
+                publicKey: expect.any(Buffer),
+                apiVersion: '1_1',
+                endPoint: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
+                lastAnnouncedAt: null,
+                createdAt: expect.any(Date),
+                updatedAt: null,
+              }),
+              expect.objectContaining({
+                id: expect.any(Number),
+                foreign: false,
+                publicKey: expect.any(Buffer),
+                apiVersion: '2_0',
+                endPoint: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
+                lastAnnouncedAt: null,
+                createdAt: expect.any(Date),
+                updatedAt: null,
+              }),
+            ]),
+          )
         })
       })
 

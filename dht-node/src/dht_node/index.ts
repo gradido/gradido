@@ -8,6 +8,7 @@ import { Community as DbCommunity } from '@entity/Community'
 import DEVOP from '@/config/devop'
 import { setDevOpEnvValue } from '@/config/tools'
 import { v4 as uuidv4 } from 'uuid'
+import { InsertResult } from '@dbTools/typeorm'
 
 const KEY_SECRET_SEEDBYTES = 32
 const getSeed = (): Buffer | null => {
@@ -30,7 +31,7 @@ enum ApiVersionType {
   V1_1 = '1_1',
   V2_0 = '2_0',
 }
-type CommunityApi = {
+export type CommunityApi = {
   api: string
   url: string
 }
@@ -44,7 +45,7 @@ export const startDHT = async (topic: string): Promise<void> => {
     // insert or update keyPair in .env.devop file
     setDevOpEnvValue('HOME_COMMUNITY_PUBLICKEY', keyPair.publicKey.toString('hex'))
     setDevOpEnvValue('HOME_COMMUNITY_PRIVATEKEY', keyPair.secretKey.toString('hex'))
-    await writeHomeCommunityEntry(keyPair.publicKey)
+    await writeHomeCommunityEntry(keyPair.publicKey.toString('hex'))
 
     const ownApiVersions = await writeFederatedHomeCommunityEntries(keyPair.publicKey)
     logger.info(`ApiList: ${JSON.stringify(ownApiVersions)}`)
@@ -194,7 +195,7 @@ export const startDHT = async (topic: string): Promise<void> => {
   }
 }
 
-async function writeFederatedHomeCommunityEntries(pubKey: any): Promise<CommunityApi[]> {
+export async function writeFederatedHomeCommunityEntries(pubKey: any): Promise<CommunityApi[]> {
   const homeApiVersions: CommunityApi[] = Object.values(ApiVersionType).map(function (apiEnum) {
     const comApi: CommunityApi = {
       api: apiEnum,
@@ -205,48 +206,69 @@ async function writeFederatedHomeCommunityEntries(pubKey: any): Promise<Communit
   try {
     // first remove privious existing homeCommunity entries
     DbFederatedCommunity.createQueryBuilder().delete().where({ foreign: false }).execute()
-
-    homeApiVersions.forEach(async function (homeApi) {
-      const homeCom = new DbFederatedCommunity()
-      homeCom.foreign = false
-      homeCom.apiVersion = homeApi.api
-      homeCom.endPoint = homeApi.url
-      homeCom.publicKey = pubKey.toString('hex')
-
-      // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
-      await DbFederatedCommunity.insert(homeCom)
-      logger.info(`federation home-community inserted successfully: ${JSON.stringify(homeCom)}`)
-    })
+    // homeApiVersions.forEach(async function (homeApi) {
+    for (let i = 0; i < homeApiVersions.length; i++) {
+      const result = await createFederatedCommunityEntity(homeApiVersions[i], pubKey)
+      console.log(`ApiVersion:${JSON.stringify(homeApiVersions[i])}`, JSON.stringify(result))
+      logger.info(
+        `federation home-community inserted successfully: ${JSON.stringify(homeApiVersions[i])}`,
+      )
+    }
   } catch (err) {
+    console.log('Error1:', err)
     throw new Error(`Federation: Error writing federated HomeCommunity-Entries: ${err}`)
   }
   return homeApiVersions
 }
 
-async function writeHomeCommunityEntry(pubKey: any): Promise<void> {
+async function createFederatedCommunityEntity(
+  homeApi: CommunityApi,
+  pubKey: string,
+): Promise<boolean> {
+  let result: InsertResult
+  try {
+    const homeCom = DbFederatedCommunity.create()
+    homeCom.foreign = false
+    homeCom.apiVersion = homeApi.api
+    homeCom.endPoint = homeApi.url
+    homeCom.publicKey = Buffer.from(pubKey, 'hex')
+
+    // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
+    result = await DbFederatedCommunity.insert(homeCom)
+    logger.info(`federation home-community inserted successfully: ${JSON.stringify(homeCom)}`)
+    console.log(`result: ${JSON.stringify(result)}`)
+  } catch (err) {
+    console.log('Error2:', err)
+    return false
+  }
+  return true
+}
+
+export async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
+  console.log(`pubKey = `, pubKey)
   try {
     // check for existing homeCommunity entry
-    let homeCom = await DbCommunity.findOne({ foreign: false, publicKey: pubKey })
+    let homeCom = await DbCommunity.findOne({ foreign: false, publicKey: Buffer.from(pubKey) })
     if (!homeCom) {
       // check if a homecommunity with a different publicKey still exists
       homeCom = await DbCommunity.findOne({ foreign: false })
     }
     if (homeCom) {
       // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
-      homeCom.publicKey = pubKey.toString('hex')
-      homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL
+      homeCom.publicKey = Buffer.from(pubKey, 'hex') // pubKey.toString('hex')
+      homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL + '/api/'
       homeCom.name = CONFIG.COMMUNITY_NAME
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
       // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
       await DbCommunity.save(homeCom)
       logger.info(`home-community updated successfully: ${JSON.stringify(homeCom)}`)
     } else {
-      // insert a new homecommunity entry including a new ID and UUID
+      // insert a new homecommunity entry including a new ID and a new but ensured unique UUID
       homeCom = new DbCommunity()
       homeCom.foreign = false
-      homeCom.publicKey = pubKey.toString('hex')
+      homeCom.publicKey = Buffer.from(pubKey, 'hex') // pubKey.toString('hex')
       homeCom.communityUuid = await newCommunityUuid()
-      homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL
+      homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL + '/api/'
       homeCom.name = CONFIG.COMMUNITY_NAME
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
       homeCom.creationDate = new Date()
