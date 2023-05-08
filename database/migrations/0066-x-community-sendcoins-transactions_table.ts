@@ -77,34 +77,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     `UPDATE transactions t, users u SET t.linked_user_gradido_id = u.gradido_id, t.linked_user_name = concat(u.first_name, ' ', u.last_name) WHERE t.linked_user_id = u.id and t.linked_user_id is null and t.linked_user_gradido_id is null;`,
   )
 
-  await queryFn(`
-      CREATE TABLE IF NOT EXISTS \`pending_transactions\` (
-        \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,
-        \`previous\` int(10) unsigned DEFAULT NULL NULL,
-        \`type_id\` int(10) DEFAULT NULL NULL,
-        \`transaction_link_id\` int(10) unsigned DEFAULT NULL NULL,
-        \`amount\` decimal(40,20) DEFAULT NULL NULL,
-        \`balance\` decimal(40,20) DEFAULT NULL NULL,
-        \`balance_date\` datetime(3) DEFAULT current_timestamp(3) NOT NULL,
-        \`decay\` decimal(40,20) DEFAULT NULL NULL,
-        \`decay_start\` datetime(3) DEFAULT NULL NULL,
-        \`memo\` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-        \`creation_date\` datetime(3) DEFAULT NULL NULL,
-        \`user_id\` int(10) unsigned NOT NULL,
-        \`user_gradido_id\` char(36) NOT NULL,
-        \`user_community_uuid\` char(36) NOT NULL,
-        \`user_name\` varchar(512) COLLATE utf8mb4_unicode_ci NOT NULL,
-        \`linked_user_id\` int(10) unsigned DEFAULT NULL NULL,
-        \`linked_user_gradido_id\` char(36) NOT NULL,
-        \`linked_user_community_uuid\` char(36) NOT NULL,
-        \`linked_user_name\` varchar(512) NULL,
-        \`linked_transaction_id\` int(10) DEFAULT NULL NULL,
-        \`x_transaction_state\` varchar(100) NOT NULL COMMENT 'States to handle 2-Phase-Commit handshake',
-        \`created_at\` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-        \`updated_at\` datetime(3) NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP(3),
-        \`deleted_at\` datetime(3) NULL DEFAULT NULL,
-        PRIMARY KEY (\`id\`)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
 }
 
 /* eslint-disable @typescript-eslint/no-empty-function */
