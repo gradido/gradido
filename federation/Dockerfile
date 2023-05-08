@@ -86,7 +86,7 @@ RUN cd ../database && yarn run build
 FROM build as test
 
 # Run command
-CMD /bin/sh -c "yarn run start"
+CMD /bin/sh -c "yarn run dev"
 
 ##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
