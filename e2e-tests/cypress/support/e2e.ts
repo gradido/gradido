@@ -35,6 +35,6 @@ Cypress.Commands.add('login', (email, password) => {
     }
 
     cy.visit('/')
-    window.localStorage.setItem('vuex', JSON.stringify(vuexToken))
+    window.localStorage.setItem('gradido-frontend', JSON.stringify(vuexToken))
   })
 })
