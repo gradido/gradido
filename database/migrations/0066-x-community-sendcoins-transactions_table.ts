@@ -68,11 +68,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(
     'ALTER TABLE `transactions` MODIFY COLUMN `user_gradido_id` char(36) NOT NULL AFTER `user_id`;',
   )
-  /*
-  await queryFn(
-    'ALTER TABLE `transactions` MODIFY COLUMN `user_name` varchar(512) COLLATE utf8mb4_unicode_ci NOT NULL AFTER `user_community_uuid`;',
-  )
-  */
   await queryFn(
     `UPDATE transactions t, users u SET t.linked_user_gradido_id = u.gradido_id, t.linked_user_name = concat(u.first_name, ' ', u.last_name) WHERE t.linked_user_id = u.id and t.linked_user_gradido_id is null;`,
   )
