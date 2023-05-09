@@ -12,10 +12,11 @@ block content
           = t('emails.accountMultiRegistration.emailExists')
     .content.w-container
       h2.heading= t('emails.resetPassword.title')
-      div(class="p_content")= t('emails.accountMultiRegistration.emailExists')
+      div(class="p_content")= t('emails.accountMultiRegistration.onForgottenPasswordClickLink')      
       a.button-3.w-button(href=resendLink) #{t('emails.general.reset')}
-      //- div(class="p_content")= t('emails.accountMultiRegistration.onForgottenPasswordCopyLink')
-      h2.heading-2 Support kontaktieren
+      div(class="p_content")= t('emails.general.orCopyLink')
+      a(href=resendLink) #{resendLink}
+
+      h2.heading-2= t('emails.accountMultiRegistration.contactSupport')
       div(class="p_content")= t('emails.accountMultiRegistration.ifYouAreNotTheOne')
-      br
       a(href='mailto:' + supportEmail)= supportEmail
