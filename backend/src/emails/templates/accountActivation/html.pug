@@ -8,12 +8,10 @@ block content
         include ../includes/salutation.pug
         p= t('emails.accountActivation.emailRegistered')
     .content.w-container
-      h2.heading= t('emails.accountActivation.title')
+      h2.heading= t('emails.general.completeRegistration')
       div(class="p_content")= t('emails.accountActivation.pleaseClickLink')
       a.button-3.w-button(href=activationLink) #{t('emails.accountActivation.activateAccount')}
-      //- div(class="p_content")= t('emails.general.orCopyLink')
-      // TODO make this a reusable block (block new-link)
-      h2.heading-2 Neuen gültigen Link anfordern
-      div(class="p_content")= t('emails.accountActivation.duration', { hours: timeDurationObject.hours, minutes: timeDurationObject.minutes })
-      br
-      a.button-4.w-button(href=resendLink) #{t('emails.general.newLink')}
+      div(class="p_content")= t('emails.general.orCopyLink')
+      a(href=activationLink) #{activationLink}
+
+      include ../includes/requestNewLink.pug

@@ -2,9 +2,8 @@
   "emails": {
     "accountActivation": {
       "activateAccount": "Activate account",
-      "duration": "The link has a validity of {hours} hours and {minutes} minutes. If the validity of the link has already expired, you can have a new link sent to you here:",
       "emailRegistered": "Your email address has just been registered with Gradido.",
-      "pleaseClickLink": "Please click on this link to complete the registration and activate your Gradido account:",
+      "pleaseClickLink": "Please click here to complete the registration and activate your Gradido account.",
       "subject": "Gradido: Email Verification",
       "title": "Email Verification"
     },
@@ -12,9 +11,8 @@
       "contactSupport": "Contact support",
       "emailExists": "However, an account already exists for your email address.",
       "emailReused": "Your email address has just been used again to register an account with Gradido.",
-      "ifYouAreNotTheOne": "If you are not the one who tried to register again, please contact our support:",
-      "onForgottenPasswordClickLink": "Please click on the following link if you have forgotten your password:",
-      "onForgottenPasswordCopyLink": "or copy the link above into your browser window.",
+      "ifYouAreNotTheOne": "If you did not try to register again, please contact our support:",
+      "onForgottenPasswordClickLink": "If you have forgotten your password, please click here.",
       "subject": "Gradido: Try To Register Again With Your Email",
       "title": "Try To Register Again With Your Email"
     },
@@ -53,13 +51,16 @@
     },
     "general": {
       "amountGDD": "Amount: {amountGDD} GDD",
+      "completeRegistration": "Complete registration",
       "contribution": "Contribution: : {contributionMemo}",
       "contributionDetails": "Contribution details",
       "detailsYouFindOnLinkToYourAccount": "You can find transaction details in your Gradido account:",
       "helloName": "Hello {firstName} {lastName}",
+      "linkValidity": "The link has a validity of {hours} hours.\nIf the validity of the link has already expired, you can have a new link sent to you here:",
+      "linkValidityWithMinutes": "The link has a validity of {hours} hours and {minutes} minutes.\nIf the validity of the link has already expired, you can have a new link sent to you here:",
       "linkToYourAccount": "Link to your account:",
-      "newLink": "new link",
-      "orCopyLink": "or copy the link above into your browser window.",
+      "newLink": "New link",
+      "orCopyLink": "or copy the link into your browser window.",
       "pleaseDoNotReply": "Please do not reply to this email!",
       "reset": "reset",
       "sincerelyYours": "Kind regards,",
@@ -68,7 +69,6 @@
       "yourGradidoTeam": "your Gradido team"
     },
     "resetPassword": {
-      "duration": "The link has a validity of {hours} hours and {minutes} minutes. If the validity of the link has already expired, you can have a new link sent to you here:",
       "pleaseClickLink": "If it was you, please click on the link:",
       "subject": "Gradido: Reset password",
       "title": "Reset password",

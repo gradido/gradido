@@ -2,9 +2,8 @@
   "emails": {
     "accountActivation": {
       "activateAccount": "Konto aktivieren",
-      "duration": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten. Sollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen:",
       "emailRegistered": "deine E-Mail-Adresse wurde soeben bei Gradido registriert.",
-      "pleaseClickLink": "Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:",
+      "pleaseClickLink": "Klicke bitte hier, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren.",
       "subject": "Gradido: E-Mail Überprüfung",
       "title": "E-Mail Überprüfung"
     },
@@ -12,9 +11,8 @@
       "contactSupport": "Support kontaktieren",
       "emailExists": "Es existiert jedoch zu deiner E-Mail-Adresse schon ein Konto.",
       "emailReused": "deine E-Mail-Adresse wurde soeben erneut benutzt, um bei Gradido ein Konto zu registrieren.",
-      "ifYouAreNotTheOne": "Wenn du nicht derjenige bist, der versucht hat sich erneut zu registrieren, wende dich bitte an unseren Support:",
-      "onForgottenPasswordClickLink": "Klicke bitte auf den folgenden Link, falls du dein Passwort vergessen haben solltest:",
-      "onForgottenPasswordCopyLink": "oder kopiere den obigen Link in dein Browserfenster.",
+      "ifYouAreNotTheOne": "Wenn du nicht versucht hast, dich erneut zu registrieren, wende dich bitte an unseren Support:",
+      "onForgottenPasswordClickLink": "Solltest du dein Passwort vergessen haben, klicke bitte hier.",
       "subject": "Gradido: Erneuter Registrierungsversuch mit deiner E-Mail",
       "title": "Erneuter Registrierungsversuch mit deiner E-Mail"
     },
@@ -53,13 +51,17 @@
     },
     "general": {
       "amountGDD": "Betrag: {amountGDD} GDD",
+      "completeRegistration": "Registrierung abschließen",
       "contribution": "Gemeinwohl-Beitrag: {contributionMemo}",
       "contributionDetails": "Beitragsdetails",
       "detailsYouFindOnLinkToYourAccount": "Details zur Transaktion findest du in deinem Gradido-Konto:",
       "helloName": "Hallo {firstName} {lastName},",
+      "linkValidity": "Der Link hat eine Gültigkeit von {hours} Stunden.\nSollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen:",
+      "linkValidityWithMinutes": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten.\nSollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen:",
+
       "linkToYourAccount": "Link zu deinem Konto:",
-      "newLink": "neuer Link",
-      "orCopyLink": "oder kopiere den obigen Link in dein Browserfenster.",
+      "newLink": "Neuer Link",
+      "orCopyLink": "Oder kopiere den Link in dein Browserfenster.",
       "pleaseDoNotReply": "Bitte antworte nicht auf diese E-Mail!",
       "reset": "zurücksetzen",
       "sincerelyYours": "Liebe Grüße",
@@ -68,7 +70,6 @@
       "yourGradidoTeam": "dein Gradido-Team"
     },
     "resetPassword": {
-      "duration": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten. Sollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen:",
       "pleaseClickLink": "Wenn du es warst, klicke bitte auf den Link:",
       "subject": "Gradido: Passwort zurücksetzen",
       "title": "Passwort zurücksetzen",
