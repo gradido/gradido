@@ -21,7 +21,11 @@ import { plugins } from './plugins'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
-type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
+interface ServerDef {
+  apollo: ApolloServer
+  app: Express
+  con: Connection
+}
 
 export const createServer = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,7 +38,7 @@ export const createServer = async (
 
   // open mysql connection
   const con = await connection()
-  if (!con || !con.isConnected) {
+  if (!con?.isConnected) {
     logger.fatal(`Couldn't open connection to database!`)
     throw new Error(`Fatal: Couldn't open connection to database`)
   }
