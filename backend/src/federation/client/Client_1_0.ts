@@ -33,7 +33,7 @@ export class Client_1_0 {
       logger.debug('Response-Data:', data, errors, headers, status)
       if (data) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        logger.debug(`Response-PublicKey:`, data.getPublicKey.publicKey)
+        logger.debug('Response-PublicKey:', data.getPublicKey.publicKey)
         logger.info(`requestGetPublicKey processed successfully`)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
         return data.getPublicKey.publicKey
