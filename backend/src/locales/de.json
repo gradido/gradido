@@ -27,7 +27,7 @@
       "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“."
     },
     "contributionConfirmed": {
-      "commonGoodContributionConfirmed": "dein Gemeinwohl-Beitrag wurde soeben von {senderFirstName} {senderLastName} bestätigt und in deinem Gradido-Konto gutgeschrieben.",
+      "commonGoodContributionConfirmed": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde soeben von {senderFirstName} {senderLastName} bestätigt. Es wurden deinem Gradido-Konto {amountGDD} GDD gutgeschrieben.",
       "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde bestätigt",
       "title": "Dein Gemeinwohl-Beitrag wurde bestätigt"
     },
@@ -54,7 +54,7 @@
       "completeRegistration": "Registrierung abschließen",
       "contribution": "Gemeinwohl-Beitrag: {contributionMemo}",
       "contributionDetails": "Beitragsdetails",
-      "detailsYouFindOnLinkToYourAccount": "Details zur Transaktion findest du in deinem Gradido-Konto:",
+      "detailsYouFindOnLinkToYourAccount": "Details zur Transaktion findest du in deinem Gradido-Konto.",
       "helloName": "Hallo {firstName} {lastName},",
       "linkValidity": "Der Link hat eine Gültigkeit von {hours} Stunden.\nSollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen:",
       "linkValidityWithMinutes": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten.\nSollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen:",

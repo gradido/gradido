@@ -27,7 +27,7 @@
       "toSeeContributionsAndMessages": "To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab."
     },
     "contributionConfirmed": {
-      "commonGoodContributionConfirmed": "Your common good contribution has just been confirmed by {senderFirstName} {senderLastName} and credited to your Gradido account.",
+      "commonGoodContributionConfirmed": "Your common good contribution "{contributionMemo}" has just been approved by {senderFirstName} {senderLastName}. Your Gradido account has been credited with {amountGDD} GDD.",
       "subject": "Gradido: Your contribution to the common good was confirmed",
       "title": "Your contribution to the common good was confirmed"
     },
@@ -54,7 +54,7 @@
       "completeRegistration": "Complete registration",
       "contribution": "Contribution: : {contributionMemo}",
       "contributionDetails": "Contribution details",
-      "detailsYouFindOnLinkToYourAccount": "You can find transaction details in your Gradido account:",
+      "detailsYouFindOnLinkToYourAccount": "You can find transaction details in your Gradido account.",
       "helloName": "Hello {firstName} {lastName}",
       "linkValidity": "The link has a validity of {hours} hours.\nIf the validity of the link has already expired, you can have a new link sent to you here:",
       "linkValidityWithMinutes": "The link has a validity of {hours} hours and {minutes} minutes.\nIf the validity of the link has already expired, you can have a new link sent to you here:",

@@ -6,13 +6,7 @@ block content
       h1.headline.h1= t('emails.contributionConfirmed.title')
       .text-block
         include ../includes/salutation.pug
-        p= t('emails.contributionConfirmed.commonGoodContributionConfirmed', { senderFirstName, senderLastName })
+        p= t('emails.contributionConfirmed.commonGoodContributionConfirmed', { contributionMemo, senderFirstName, senderLastName, amountGDD: contributionAmount })
     .content.w-container
-      h2.heading= t('emails.general.contributionDetails')
-      div(class="p_content")
-        = t('emails.general.amountGDD')
-        br
-        = t('emails.general.contribution')
-      a.button-3.w-button(href="https://gdd.gradido.net/community/contributions") #{t('emails.general.toAccount')}
-
+      include ../includes/contributionDetailsCTA.pug
       include ../includes/doNotReply.pug

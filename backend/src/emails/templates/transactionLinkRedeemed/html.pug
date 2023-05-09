@@ -3,7 +3,7 @@ extend ../layout.pug
 block content
   .wrapper.wf-section
     .w-container(class="wrapper_head")
-      h1.headline.h1=  t('emails.transactionLinkRedeemed.hasRedeemedYourLink', { senderFirstName, senderLastName, senderEmail })
+      h1.headline.h1=  t('emails.transactionLinkRedeemed.title', { senderFirstName, senderLastName })
       .text-block
         include ../includes/salutation.pug
         p= t('emails.transactionLinkRedeemed.hasRedeemedYourLink', { senderFirstName, senderLastName, senderEmail })
