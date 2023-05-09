@@ -680,7 +680,6 @@ describe('UserResolver', () => {
           expect.objectContaining({
             data: {
               login: {
-                email: 'bibi@bloxberg.de',
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
@@ -953,7 +952,6 @@ describe('UserResolver', () => {
             expect.objectContaining({
               data: {
                 verifyLogin: {
-                  email: 'bibi@bloxberg.de',
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   language: 'de',
@@ -1310,7 +1308,7 @@ describe('UserResolver', () => {
               expect.objectContaining({
                 data: {
                   login: expect.objectContaining({
-                    email: 'bibi@bloxberg.de',
+                    firstName: 'Benjamin',
                   }),
                 },
               }),
@@ -1457,7 +1455,6 @@ describe('UserResolver', () => {
           expect.objectContaining({
             data: {
               login: {
-                email: 'bibi@bloxberg.de',
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),

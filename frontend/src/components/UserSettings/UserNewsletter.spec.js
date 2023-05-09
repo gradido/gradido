@@ -18,7 +18,6 @@ describe('UserCard_Newsletter', () => {
     $store: {
       state: {
         language: 'de',
-        email: 'peter@lustig.de',
         newsletterState: true,
       },
       commit: storeCommitMock,
