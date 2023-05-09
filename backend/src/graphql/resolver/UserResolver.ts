@@ -538,7 +538,7 @@ export class UserResolver {
       if (aliasInUse.length !== 0) {
         throw new LogError('Alias already in use', alias)
       }
-      userEntity.alias = alias
+      user.alias = alias
     }
 
     if (language) {
