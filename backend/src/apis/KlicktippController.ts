@@ -91,3 +91,18 @@ export const getKlicktippTagMap = async () => {
   }
   return ''
 }
+
+export const addFieldsToSubscriber = async (
+  email: string,
+  fields: any = {},
+  newemail = '',
+  newsmsnumber = '',
+) => {
+  if (!CONFIG.KLICKTIPP) return true
+  const isLogin = await loginKlicktippUser()
+  if (isLogin) {
+    const subscriberId = await klicktippConnector.subscriberSearch(email)
+    return klicktippConnector.subscriberUpdate(subscriberId, fields, newemail, newsmsnumber)
+  }
+  return false
+}
