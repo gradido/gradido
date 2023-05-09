@@ -20,6 +20,7 @@ import { ContributionLink } from '@model/ContributionLink'
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
+import { subscribe } from '@/apis/KlicktippController'
 import { CONFIG } from '@/config'
 import {
   sendAccountActivationEmail,
@@ -60,8 +61,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
-
-// import { subscribe } from '@/apis/KlicktippController'
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
@@ -556,16 +555,14 @@ describe('UserResolver', () => {
         expect(newUser.password.toString()).toEqual(encryptedPass.toString())
       })
 
-      /*
       it('calls the klicktipp API', () => {
         expect(subscribe).toBeCalledWith(
-          user[0].email,
-          user[0].language,
-          user[0].firstName,
-          user[0].lastName,
+          newUser.emailContact.email,
+          newUser.language,
+          newUser.firstName,
+          newUser.lastName,
         )
       })
-      */
 
       it('returns true', () => {
         expect(result).toBeTruthy()
