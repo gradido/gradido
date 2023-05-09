@@ -76,7 +76,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(
     `UPDATE transactions t, users u SET t.linked_user_gradido_id = u.gradido_id, t.linked_user_name = concat(u.first_name, ' ', u.last_name) WHERE t.linked_user_id = u.id and t.linked_user_id is null and t.linked_user_gradido_id is null;`,
   )
-
 }
 
 /* eslint-disable @typescript-eslint/no-empty-function */
