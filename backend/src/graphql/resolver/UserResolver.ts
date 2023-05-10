@@ -94,7 +94,7 @@ const newEmailContact = (email: string, userId: number): DbUserContact => {
   emailContact.emailChecked = false
   emailContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
   emailContact.emailVerificationCode = random(64)
-  logger.debug(`newEmailContact...successful: ${emailContact}`)
+  logger.debug('newEmailContact...successful', emailContact)
   return emailContact
 }
 
@@ -225,7 +225,7 @@ export class UserResolver {
     email = email.trim().toLowerCase()
     if (await checkEmailExists(email)) {
       const foundUser = await findUserByEmail(email)
-      logger.info(`DbUser.findOne(email=${email}) = ${foundUser}`)
+      logger.info('DbUser.findOne', email, foundUser)
 
       if (foundUser) {
         // ATTENTION: this logger-message will be exactly expected during tests, next line
@@ -275,7 +275,7 @@ export class UserResolver {
     dbUser.firstName = firstName
     dbUser.lastName = lastName
     dbUser.language = language
-    dbUser.publisherId = publisherId || 0
+    dbUser.publisherId = publisherId ?? 0
     dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
     logger.debug('new dbUser', dbUser)
     if (redeemCode) {
@@ -382,7 +382,7 @@ export class UserResolver {
       throw new LogError('Unable to save email verification code', user.emailContact)
     })
 
-    logger.info(`optInCode for ${email}=${user.emailContact}`)
+    logger.info('optInCode for', email, user.emailContact)
 
     void sendResetPasswordEmail({
       firstName: user.firstName,
@@ -486,7 +486,7 @@ export class UserResolver {
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
     logger.info(`queryOptIn(${optIn})...`)
     const userContact = await DbUserContact.findOneOrFail({ emailVerificationCode: optIn })
-    logger.debug(`found optInCode=${userContact}`)
+    logger.debug('found optInCode', userContact)
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     if (!isEmailVerificationCodeValid(userContact.updatedAt || userContact.createdAt)) {
       throw new LogError(
@@ -586,7 +586,7 @@ export class UserResolver {
     logger.info(`hasElopage()...`)
     const userEntity = getUser(context)
     const elopageBuys = hasElopageBuys(userEntity.emailContact.email)
-    logger.debug(`has ElopageBuys = ${elopageBuys}`)
+    logger.debug('has ElopageBuys', elopageBuys)
     return elopageBuys
   }
 
@@ -643,7 +643,7 @@ export class UserResolver {
         return 'user.' + fieldName
       }),
       searchText,
-      filters || null,
+      filters ?? null,
       currentPage,
       pageSize,
     )
@@ -709,14 +709,14 @@ export class UserResolver {
     // change isAdmin
     switch (user.isAdmin) {
       case null:
-        if (isAdmin === true) {
+        if (isAdmin) {
           user.isAdmin = new Date()
         } else {
           throw new LogError('User is already an usual user')
         }
         break
       default:
-        if (isAdmin === false) {
+        if (!isAdmin) {
           user.isAdmin = null
         } else {
           throw new LogError('User is already admin')

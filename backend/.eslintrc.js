@@ -159,6 +159,7 @@ module.exports = {
       extends: [
         'plugin:@typescript-eslint/recommended',
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
+        'plugin:@typescript-eslint/strict',
         'plugin:type-graphql/recommended',
       ],
       rules: {
@@ -169,6 +170,8 @@ module.exports = {
         '@typescript-eslint/prefer-regexp-exec': 'off',
         // this should not run on ts files: https://github.com/import-js/eslint-plugin-import/issues/2215#issuecomment-911245486
         'import/unambiguous': 'off',
+        // this is not compatible with typeorm, due to joined tables can be null, but are not defined as nullable
+        '@typescript-eslint/no-unnecessary-condition': 'off',
       },
       parserOptions: {
         tsconfigRootDir: __dirname,
