@@ -117,8 +117,8 @@ describe('validate alias', () => {
     })
 
     describe('valid alias', () => {
-      it('resolves to void', async () => {
-        await expect(validateAlias('bibi')).resolves.toEqual(undefined)
+      it('resolves to true', async () => {
+        await expect(validateAlias('bibi')).resolves.toEqual(true)
       })
     })
   })

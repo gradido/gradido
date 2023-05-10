@@ -525,7 +525,7 @@ export class UserResolver {
       user.lastName = lastName
     }
 
-    if (alias && await validateAlias(alias)) {
+    if (alias && (await validateAlias(alias))) {
       user.alias = alias
     }
 
