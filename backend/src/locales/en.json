@@ -56,9 +56,8 @@
       "contributionDetails": "Contribution details",
       "detailsYouFindOnLinkToYourAccount": "You can find transaction details in your Gradido account.",
       "helloName": "Hello {firstName} {lastName}",
-      "linkToYourAccount": "Link to your account:",
-      "linkValidity": "The link has a validity of {hours} hours.\nIf the validity of the link has already expired, you can have a new link sent to you here:",
-      "linkValidityWithMinutes": "The link has a validity of {hours} hours and {minutes} minutes.\nIf the validity of the link has already expired, you can have a new link sent to you here:",
+      "linkValidity": "The link has a validity of {hours} hours.\nIf the validity of the link has already expired, you can have a new link sent to you here.",
+      "linkValidityWithMinutes": "The link has a validity of {hours} hours and {minutes} minutes.\nIf the validity of the link has already expired, you can have a new link sent to you here.",
       "newLink": "New link",
       "orCopyLink": "or copy the link into your browser window.",
       "pleaseDoNotReply": "Please do not reply to this email!",
@@ -69,7 +68,7 @@
       "yourGradidoTeam": "your Gradido team"
     },
     "resetPassword": {
-      "pleaseClickLink": "If it was you, please click on the link:",
+      "pleaseClickLink": "If it was you, please click here.",
       "subject": "Gradido: Reset password",
       "title": "Reset password",
       "youOrSomeoneResetPassword": "You, or someone else, requested a password reset for this account."
