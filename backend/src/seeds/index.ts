@@ -54,9 +54,8 @@ const run = async () => {
   logger.info('##seed## clean database successful...')
 
   // seed the standard users
-  for (let i = 0; i < users.length; i++) {
-    const dbUser = await userFactory(seedClient, users[i])
-    logger.info(`##seed## seed standard users[ ${i} ]= ${JSON.stringify(dbUser, null, 2)}`)
+  for (const user of users) {
+    await userFactory(seedClient, user)
   }
   logger.info('##seed## seeding all standard users successful...')
 
