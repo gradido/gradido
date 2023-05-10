@@ -56,10 +56,9 @@
       "contributionDetails": "Beitragsdetails",
       "detailsYouFindOnLinkToYourAccount": "Details zur Transaktion findest du in deinem Gradido-Konto.",
       "helloName": "Hallo {firstName} {lastName},",
+      "linkToYourAccount": "Link zu deinem Konto:",
       "linkValidity": "Der Link hat eine Gültigkeit von {hours} Stunden.\nSollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen:",
       "linkValidityWithMinutes": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten.\nSollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen:",
-
-      "linkToYourAccount": "Link zu deinem Konto:",
       "newLink": "Neuer Link",
       "orCopyLink": "Oder kopiere den Link in dein Browserfenster.",
       "pleaseDoNotReply": "Bitte antworte nicht auf diese E-Mail!",
