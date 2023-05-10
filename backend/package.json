@@ -46,6 +46,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "^3.2.1",
     "@types/email-templates": "^10.0.1",
     "@types/express": "^4.17.12",
     "@types/faker": "^5.5.9",

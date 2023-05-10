@@ -13,6 +13,7 @@ module.exports = {
     'plugin:import/recommended',
     'plugin:import/typescript',
     'plugin:security/recommended',
+    'plugin:@eslint-community/eslint-comments/recommended',
   ],
   settings: {
     'import/parsers': {
@@ -152,6 +153,8 @@ module.exports = {
     'promise/valid-params': 'warn',
     'promise/prefer-await-to-callbacks': 'error',
     'promise/no-multiple-resolved': 'error',
+    // eslint comments
+    '@eslint-community/eslint-comments/disable-enable-pair': ['error', { allowWholeFile: true }],
   },
   overrides: [
     // only for ts files
