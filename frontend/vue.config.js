@@ -64,5 +64,5 @@ module.exports = {
     // Enable CSS source maps.
     sourceMap: CONFIG.NODE_ENV !== 'production',
   },
-  outputDir: path.resolve(__dirname, './dist'),
+  outputDir: path.resolve(__dirname, './build'),
 }
