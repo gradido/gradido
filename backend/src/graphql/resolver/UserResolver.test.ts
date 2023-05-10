@@ -75,15 +75,13 @@ jest.mock('@/emails/sendEmailVariants', () => {
   }
 })
 
-/*
-
 jest.mock('@/apis/KlicktippController', () => {
   return {
     __esModule: true,
     subscribe: jest.fn(),
+    getKlickTippUser: jest.fn(),
   }
 })
-*/
 
 let admin: User
 let user: User
