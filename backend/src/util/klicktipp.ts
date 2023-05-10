@@ -14,8 +14,7 @@ export async function retrieveNotRegisteredEmails(): Promise<string[]> {
   }
   const users = await User.find({ relations: ['emailContact'] })
   const notRegisteredUser = []
-  for (let i = 0; i < users.length; i++) {
-    const user = users[i]
+  for (const user of users) {
     try {
       await getKlickTippUser(user.emailContact.email)
     } catch (err) {
