@@ -146,7 +146,7 @@ export class TransactionLinkResolver {
       const transactionLink = await DbTransactionLink.findOneOrFail({ code }, { withDeleted: true })
       const user = await DbUser.findOneOrFail({ id: transactionLink.userId })
       let redeemedBy: User | null = null
-      if (transactionLink && transactionLink.redeemedBy) {
+      if (transactionLink?.redeemedBy) {
         redeemedBy = new User(await DbUser.findOneOrFail({ id: transactionLink.redeemedBy }))
       }
       return new TransactionLink(transactionLink, new User(user), redeemedBy)

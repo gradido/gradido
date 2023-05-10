@@ -146,7 +146,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
         email,
         firstName,
         lastName,
-        publisherId: loginElopageBuy.publisherId || 0, // This seemed to be the default value if not set
+        publisherId: loginElopageBuy.publisherId ?? 0, // This seemed to be the default value if not set
       })
     } catch (error) {
       // eslint-disable-next-line no-console

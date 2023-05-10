@@ -1,7 +1,7 @@
 import { Decimal } from 'decimal.js-light'
 import i18n from 'i18n'
 
-export const objectValuesToArray = (obj: { [x: string]: string }): Array<string> => {
+export const objectValuesToArray = (obj: Record<string, string>): string[] => {
   return Object.keys(obj).map(function (key) {
     return obj[key]
   })
