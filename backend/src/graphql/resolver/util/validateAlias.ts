@@ -21,7 +21,7 @@ const reservedAlias = [
   'var',
 ]
 
-export const validateAlias = async (alias: string): Promise<void> => {
+export const validateAlias = async (alias: string): Promise<boolean> => {
   if (alias.length < 3) throw new LogError('Given alias is too short', alias)
   if (alias.length > 20) throw new LogError('Given alias is too long', alias)
   /* eslint-disable-next-line security/detect-unsafe-regex */
@@ -34,4 +34,5 @@ export const validateAlias = async (alias: string): Promise<void> => {
   if (aliasInUse.length !== 0) {
     throw new LogError('Alias already in use', alias)
   }
+  return true
 }
