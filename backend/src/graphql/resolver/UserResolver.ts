@@ -73,6 +73,7 @@ import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
+import { validateAlias } from './util/validateAlias'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const random = require('random-bigint')
@@ -525,19 +526,7 @@ export class UserResolver {
     }
 
     if (alias) {
-      if (alias.length < 5) {
-        throw new LogError('Given alias is too short', alias)
-      }
-      if (alias.length > 20) {
-        throw new LogError('Given alias is too long', alias)
-      }
-      if (!alias.match(/^[0-9A-Za-z]([_-]?[A-Za-z0-9])+$/)) {
-        throw new LogError('Invalid characters in alias', alias)
-      }
-      const aliasInUse = await DbUser.find({ alias })
-      if (aliasInUse.length !== 0) {
-        throw new LogError('Alias already in use', alias)
-      }
+      await validateAlias(alias)
       user.alias = alias
     }
 
