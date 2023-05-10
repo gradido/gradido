@@ -14,7 +14,7 @@ export async function transactionLinkList(
   filters: TransactionLinkFilters | null,
   user: DbUser,
 ): Promise<TransactionLinkResult> {
-  const { withDeleted, withExpired, withRedeemed } = filters || {
+  const { withDeleted, withExpired, withRedeemed } = filters ?? {
     withDeleted: false,
     withExpired: false,
     withRedeemed: false,

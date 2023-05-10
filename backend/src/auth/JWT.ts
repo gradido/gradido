@@ -8,7 +8,7 @@ import { CustomJwtPayload } from './CustomJwtPayload'
 export const decode = (token: string): CustomJwtPayload | null => {
   if (!token) throw new LogError('401 Unauthorized')
   try {
-    return <CustomJwtPayload>verify(token, CONFIG.JWT_SECRET)
+    return verify(token, CONFIG.JWT_SECRET) as CustomJwtPayload
   } catch (err) {
     return null
   }

@@ -1,7 +1,7 @@
 import { GraphQLClient } from 'graphql-request'
 import { PatchedRequestInit } from 'graphql-request/dist/types'
 
-type ClientInstance = {
+interface ClientInstance {
   url: string
   // eslint-disable-next-line no-use-before-define
   client: GraphQLGetClient
