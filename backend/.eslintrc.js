@@ -155,6 +155,9 @@ module.exports = {
     'promise/no-multiple-resolved': 'error',
     // eslint comments
     '@eslint-community/eslint-comments/disable-enable-pair': ['error', { allowWholeFile: true }],
+    '@eslint-community/eslint-comments/no-restricted-disable': 'error',
+    '@eslint-community/eslint-comments/no-use': 'off',
+    '@eslint-community/eslint-comments/require-description': 'off',
   },
   overrides: [
     // only for ts files
