@@ -29,6 +29,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { communityUser } from '@/util/communityUser'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
@@ -85,7 +86,11 @@ export const executeTransaction = async (
       transactionSend.typeId = TransactionTypeId.SEND
       transactionSend.memo = memo
       transactionSend.userId = sender.id
+      transactionSend.userGradidoID = sender.gradidoID
+      transactionSend.userName = fullName(sender.firstName, sender.lastName)
       transactionSend.linkedUserId = recipient.id
+      transactionSend.linkedUserGradidoID = recipient.gradidoID
+      transactionSend.linkedUserName = fullName(recipient.firstName, recipient.lastName)
       transactionSend.amount = amount.mul(-1)
       transactionSend.balance = sendBalance.balance
       transactionSend.balanceDate = receivedCallDate
@@ -101,7 +106,11 @@ export const executeTransaction = async (
       transactionReceive.typeId = TransactionTypeId.RECEIVE
       transactionReceive.memo = memo
       transactionReceive.userId = recipient.id
+      transactionReceive.userGradidoID = recipient.gradidoID
+      transactionReceive.userName = fullName(recipient.firstName, recipient.lastName)
       transactionReceive.linkedUserId = sender.id
+      transactionReceive.linkedUserGradidoID = sender.gradidoID
+      transactionReceive.linkedUserName = fullName(sender.firstName, sender.lastName)
       transactionReceive.amount = amount
       const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
       transactionReceive.balance = receiveBalance ? receiveBalance.balance : amount
