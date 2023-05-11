@@ -84,7 +84,7 @@ CMD /bin/sh -c "yarn run dev"
 FROM base as production
 
 # Copy "binary"-files from build image
-COPY --from=build ${DOCKER_WORKDIR}/dist ./dist
+COPY --from=build ${DOCKER_WORKDIR}/build ./build
 # We also copy the node_modules express and serve-static for the run script
 COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
 # Copy static files

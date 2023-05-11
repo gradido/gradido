@@ -53,7 +53,7 @@ export async function validateCommunities(): Promise<void> {
         } else {
           logger.warn(
             `Federation: received not matching publicKey -> received: ${
-              pubKey || 'null'
+              pubKey ?? 'null'
             }, expected: ${dbCom.publicKey.toString()} `,
           )
           // DbCommunity.delete({ id: dbCom.id })

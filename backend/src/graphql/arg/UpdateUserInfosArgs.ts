@@ -9,6 +9,9 @@ export class UpdateUserInfosArgs {
   lastName?: string
 
   @Field({ nullable: true })
+  alias?: string
+
+  @Field({ nullable: true })
   language?: string
 
   @Field(() => Int, { nullable: true })
