@@ -166,6 +166,7 @@
     "thx": "Danke",
     "to": "bis",
     "to1": "an",
+    "username": "Nutzername",
     "validation": {
       "gddCreationTime": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens einer Nachkommastelle sein",
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
@@ -319,7 +320,11 @@
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
     },
     "showAmountGDD": "Dein GDD Betrag ist sichtbar.",
-    "showAmountGDT": "Dein GDT Betrag ist sichtbar."
+    "showAmountGDT": "Dein GDT Betrag ist sichtbar.",
+    "username": {
+      "change-username": "Nutzername ändern",
+      "change-success": "Dein Nutzername wurde erfolgreich geändert."
+    }
   },
   "signin": "Anmelden",
   "signup": "Registrieren",

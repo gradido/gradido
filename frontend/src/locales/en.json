@@ -166,6 +166,7 @@
     "thx": "Thank you",
     "to": "to",
     "to1": "to",
+    "username": "Username",
     "validation": {
       "gddCreationTime": "The field {_field_} must be a number between {min} and {max} with at most one decimal place.",
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point",
@@ -319,7 +320,11 @@
       "subtitle": "If you have forgotten your password, you can reset it here."
     },
     "showAmountGDD": "Your GDD amount is visible.",
-    "showAmountGDT": "Your GDT amount is visible."
+    "showAmountGDT": "Your GDT amount is visible.",
+    "username": {
+      "change-username": "Change username",
+      "change-success": "Your username has been successfully changed."
+    }
   },
   "signin": "Sign in",
   "signup": "Sign up",

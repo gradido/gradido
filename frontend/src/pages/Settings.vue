@@ -3,6 +3,8 @@
     <user-card :balance="balance" :transactionCount="transactionCount"></user-card>
     <user-data />
     <hr />
+    <user-name />
+    <hr />
     <user-password />
     <hr />
     <user-language />
@@ -13,6 +15,7 @@
 <script>
 import UserCard from '@/components/UserSettings/UserCard'
 import UserData from '@/components/UserSettings/UserData'
+import UserName from '@/components/UserSettings/UserName'
 import UserPassword from '@/components/UserSettings/UserPassword'
 import UserLanguage from '@/components/UserSettings/UserLanguage'
 import UserNewsletter from '@/components/UserSettings/UserNewsletter'
@@ -22,6 +25,7 @@ export default {
   components: {
     UserCard,
     UserData,
+    UserName,
     UserPassword,
     UserLanguage,
     UserNewsletter,
