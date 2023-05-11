@@ -201,11 +201,13 @@ describe('federation', () => {
           modifiedCom.foreign = resultBefore[0].foreign
           modifiedCom.id = resultBefore[0].id
           modifiedCom.name = 'update name'
-          modifiedCom.publicKey = keyPairMock.publicKey // Buffer.from('1234567891abcdef7892abcdef7893ab')
+          modifiedCom.publicKey = Buffer.from(
+            '1234567891abcdef7892abcdef7893abcdef7894abcdef7895abcdef7896abcd',
+          )
           modifiedCom.url = 'updated url'
           await DbCommunity.update(modifiedCom, { id: resultBefore[0].id })
 
-          await writeHomeCommunityEntry(modifiedCom.publicKey.toString('hex'))
+          await writeHomeCommunityEntry(modifiedCom.publicKey.toString())
           const resultAfter = await DbCommunity.find({ foreign: false })
           expect(resultAfter).toHaveLength(1)
           expect(resultAfter).toEqual(
