@@ -43,13 +43,12 @@ export class Transaction {
     this.memo = transaction.memo
     this.creationDate = transaction.creationDate
     this.linkedUser = linkedUser
-    this.linkedTransactionId = transaction.linkedTransactionId || null
+    this.linkedTransactionId = transaction.linkedTransactionId ?? null
     this.linkId = transaction.contribution
       ? transaction.contribution.contributionLinkId
-      : transaction.transactionLinkId || null
+      : transaction.transactionLinkId ?? null
     this.previousBalance =
-      (transaction.previousTransaction &&
-        transaction.previousTransaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN)) ||
+      transaction.previousTransaction?.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN) ??
       new Decimal(0)
   }
 

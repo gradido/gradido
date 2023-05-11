@@ -49,9 +49,7 @@ export const executeTransaction = async (
   // acquire lock
   const releaseLock = await TRANSACTIONS_LOCK.acquire()
   try {
-    logger.info(
-      `executeTransaction(amount=${amount}, memo=${memo}, sender=${sender}, recipient=${recipient})...`,
-    )
+    logger.info('executeTransaction', amount, memo, sender, recipient)
 
     if (sender.id === recipient.id) {
       throw new LogError('Sender and Recipient are the same', sender.id)
@@ -128,10 +126,10 @@ export const executeTransaction = async (
       // Save linked transaction id for send
       transactionSend.linkedTransactionId = transactionReceive.id
       await queryRunner.manager.update(dbTransaction, { id: transactionSend.id }, transactionSend)
-      logger.debug(`send Transaction updated: ${transactionSend}`)
+      logger.debug('send Transaction updated', transactionSend)
 
       if (transactionLink) {
-        logger.info(`transactionLink: ${transactionLink}`)
+        logger.info('transactionLink', transactionLink)
         transactionLink.redeemedAt = receivedCallDate
         transactionLink.redeemedBy = recipient.id
         await queryRunner.manager.update(
@@ -280,8 +278,8 @@ export class TransactionResolver {
             sumAmount.mul(-1),
             sumHoldAvailableAmount.mul(-1),
             sumHoldAvailableAmount.minus(sumAmount.toString()).mul(-1),
-            firstDate || now,
-            lastDate || now,
+            firstDate ?? now,
+            lastDate ?? now,
             self,
             (userTransactions.length && userTransactions[0].balance) || new Decimal(0),
           ),
@@ -334,9 +332,7 @@ export class TransactionResolver {
     }
 
     await executeTransaction(amount, memo, senderUser, recipientUser)
-    logger.info(
-      `successful executeTransaction(amount=${amount}, memo=${memo}, senderUser=${senderUser}, recipientUser=${recipientUser})`,
-    )
+    logger.info('successful executeTransaction', amount, memo, senderUser, recipientUser)
     return true
   }
 }

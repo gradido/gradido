@@ -270,7 +270,7 @@ export class ContributionResolver {
       withDeleted: true,
       relations: ['user'],
     })
-    if (!emailContact || !emailContact.user) {
+    if (!emailContact?.user) {
       throw new LogError('Could not find user', email)
     }
     if (emailContact.deletedAt || emailContact.user.deletedAt) {
