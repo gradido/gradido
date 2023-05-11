@@ -1198,6 +1198,28 @@ describe('UserResolver', () => {
         })
       })
 
+      describe('alias', () => {
+        beforeEach(() => {
+          jest.clearAllMocks()
+        })
+
+        describe('valid alias', () => {
+          it('updates the user in DB', async () => {
+            await mutate({
+              mutation: updateUserInfos,
+              variables: {
+                alias: 'bibi_Bloxberg',
+              },
+            })
+            await expect(User.findOne()).resolves.toEqual(
+              expect.objectContaining({
+                alias: 'bibi_Bloxberg',
+              }),
+            )
+          })
+        })
+      })
+
       describe('language is not valid', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
