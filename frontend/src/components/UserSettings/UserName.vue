@@ -24,7 +24,12 @@
             </small>
           </b-col>
           <b-col v-if="showUserData" class="col-12">
-            {{ username }}
+            <span v-if="username">
+              {{ username }}
+            </span>
+            <div v-else class="alert">
+              {{ $t('settings.username.no-username') }}
+            </div>
           </b-col>
           <b-col v-else class="col-12">
             <b-input type="text" v-model="username"></b-input>
@@ -97,5 +102,8 @@ export default {
 <style>
 .cursor-pointer {
   cursor: pointer;
+}
+div.alert {
+  color: red;
 }
 </style>
