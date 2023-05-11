@@ -70,7 +70,10 @@ export class BalanceResolver {
       now,
     )
     logger.info(
-      `calculatedDecay(balance=${lastTransaction.balance}, balanceDate=${lastTransaction.balanceDate})=${calculatedDecay}`,
+      'calculatedDecay',
+      lastTransaction.balance,
+      lastTransaction.balanceDate,
+      calculatedDecay,
     )
 
     // The final balance is reduced by the link amount withheld
@@ -96,9 +99,7 @@ export class BalanceResolver {
       count,
       linkCount,
     })
-    logger.info(
-      `new Balance(balance=${balance}, balanceGDT=${balanceGDT}, count=${count}, linkCount=${linkCount}) = ${newBalance}`,
-    )
+    logger.info('new Balance', balance, balanceGDT, count, linkCount, newBalance)
 
     return newBalance
   }
