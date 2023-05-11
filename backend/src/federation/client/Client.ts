@@ -10,12 +10,13 @@ import { Client_1_1 } from './Client_1_1'
 // eslint-disable-next-line camelcase
 type FederationClient = Client_1_0 | Client_1_1
 
-type ClientInstance = {
+interface ClientInstance {
   id: number
   // eslint-disable-next-line no-use-before-define
   client: FederationClient
 }
 
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class Client {
   private static instanceArray: ClientInstance[] = []
 
