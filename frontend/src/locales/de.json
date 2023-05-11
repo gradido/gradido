@@ -322,8 +322,8 @@
     "showAmountGDD": "Dein GDD Betrag ist sichtbar.",
     "showAmountGDT": "Dein GDT Betrag ist sichtbar.",
     "username": {
-      "change-username": "Nutzername ändern",
       "change-success": "Dein Nutzername wurde erfolgreich geändert.",
+      "change-username": "Nutzername ändern",
       "no-username": "Bitte gebe einen Nutzernamen ein. Damit hilfst du anderen Benutzern dich zu finden, ohne ihnen deine Email geben zu müsen."
     }
   },
