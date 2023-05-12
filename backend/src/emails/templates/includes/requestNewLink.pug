@@ -7,5 +7,4 @@ requestNewLink
   else
     div(class="p_content")= t('emails.general.linkValidityWithMinutes', { hours: timeDurationObject.hours, minutes: timeDurationObject.minutes })
 
-  br
   a.button-4.w-button(href=resendLink) #{t('emails.general.newLink')}
