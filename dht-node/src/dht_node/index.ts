@@ -5,19 +5,13 @@ import { logger } from '@/server/logger'
 import CONFIG from '@/config'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { Community as DbCommunity } from '@entity/Community'
-import DEVOP from '@/config/devop'
-import { setDevOpEnvValue } from '@/config/tools'
 import { v4 as uuidv4 } from 'uuid'
 
 const KEY_SECRET_SEEDBYTES = 32
 const getSeed = (): Buffer | null => {
-  let dhtseed = DEVOP.FEDERATION_DHT_SEED
-  logger.debug('dhtseed set by DEVOP.FEDERATION_DHT_SEED={}', DEVOP.FEDERATION_DHT_SEED)
-  if (!dhtseed) {
-    dhtseed = CONFIG.FEDERATION_DHT_SEED
-    logger.debug(`dhtseed overwritten by CONFIG.FEDERATION_DHT_SEED=${CONFIG.FEDERATION_DHT_SEED}`)
-  }
-  return dhtseed ? Buffer.alloc(KEY_SECRET_SEEDBYTES, dhtseed) : null
+  return CONFIG.FEDERATION_DHT_SEED
+    ? Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED)
+    : null
 }
 
 const POLLTIME = 20000
@@ -41,9 +35,6 @@ export const startDHT = async (topic: string): Promise<void> => {
     const keyPair = DHT.keyPair(getSeed())
     logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
-    // insert or update keyPair in .env.devop file
-    setDevOpEnvValue('HOME_COMMUNITY_PUBLICKEY', keyPair.publicKey.toString('hex'))
-    setDevOpEnvValue('HOME_COMMUNITY_PRIVATEKEY', keyPair.secretKey.toString('hex'))
     await writeHomeCommunityEntry(keyPair.publicKey.toString('hex'))
 
     const ownApiVersions = await writeFederatedHomeCommunityEntries(
@@ -207,16 +198,13 @@ export async function writeFederatedHomeCommunityEntries(pubKey: string): Promis
   try {
     // first remove privious existing homeCommunity entries
     DbFederatedCommunity.createQueryBuilder().delete().where({ foreign: false }).execute()
-    // homeApiVersions.forEach(async function (homeApi) {
     for (let i = 0; i < homeApiVersions.length; i++) {
       await createFederatedCommunityEntity(homeApiVersions[i], pubKey)
-      // console.log(`ApiVersion:${JSON.stringify(homeApiVersions[i])}`, JSON.stringify(result))
       logger.info(
         `federation home-community inserted successfully: ${JSON.stringify(homeApiVersions[i])}`,
       )
     }
   } catch (err) {
-    // console.log('Error1:', err)
     throw new Error(`Federation: Error writing federated HomeCommunity-Entries: ${err}`)
   }
   return homeApiVersions
@@ -226,7 +214,6 @@ async function createFederatedCommunityEntity(
   homeApi: CommunityApi,
   pubKey: string,
 ): Promise<boolean> {
-  // let result: InsertResult
   try {
     const homeCom = DbFederatedCommunity.create()
     homeCom.foreign = false
@@ -236,17 +223,14 @@ async function createFederatedCommunityEntity(
 
     // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
     await DbFederatedCommunity.insert(homeCom)
-    logger.info(`federation home-community inserted successfully: ${JSON.stringify(homeCom)}`)
-    // console.log(`result: ${JSON.stringify(result)}`)
+    logger.debug(`federation home-community inserted successfully: ${JSON.stringify(homeCom)}`)
   } catch (err) {
-    // console.log('Error2:', err)
     return false
   }
   return true
 }
 
 export async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
-  // console.log(`pubKey = `, pubKey)
   try {
     // check for existing homeCommunity entry
     let homeCom = await DbCommunity.findOne({
