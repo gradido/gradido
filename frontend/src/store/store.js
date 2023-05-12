@@ -91,6 +91,7 @@ try {
   store = new Vuex.Store({
     plugins: [
       createPersistedState({
+        key: 'gradido-frontend',
         storage: window.localStorage,
       }),
     ],
