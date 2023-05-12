@@ -20,6 +20,7 @@ import { ContributionLink } from '@model/ContributionLink'
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
+import { subscribe } from '@/apis/KlicktippController'
 import { CONFIG } from '@/config'
 import {
   sendAccountActivationEmail,
@@ -61,8 +62,6 @@ import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
 
-// import { klicktippSignIn } from '@/apis/KlicktippController'
-
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
   return {
@@ -76,15 +75,13 @@ jest.mock('@/emails/sendEmailVariants', () => {
   }
 })
 
-/*
-
 jest.mock('@/apis/KlicktippController', () => {
   return {
     __esModule: true,
-    klicktippSignIn: jest.fn(),
+    subscribe: jest.fn(),
+    getKlickTippUser: jest.fn(),
   }
 })
-*/
 
 let admin: User
 let user: User
@@ -556,16 +553,14 @@ describe('UserResolver', () => {
         expect(newUser.password.toString()).toEqual(encryptedPass.toString())
       })
 
-      /*
       it('calls the klicktipp API', () => {
-        expect(klicktippSignIn).toBeCalledWith(
-          user[0].email,
-          user[0].language,
-          user[0].firstName,
-          user[0].lastName,
+        expect(subscribe).toBeCalledWith(
+          newUser.emailContact.email,
+          newUser.language,
+          newUser.firstName,
+          newUser.lastName,
         )
       })
-      */
 
       it('returns true', () => {
         expect(result).toBeTruthy()
@@ -680,7 +675,6 @@ describe('UserResolver', () => {
           expect.objectContaining({
             data: {
               login: {
-                email: 'bibi@bloxberg.de',
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
@@ -953,7 +947,6 @@ describe('UserResolver', () => {
             expect.objectContaining({
               data: {
                 verifyLogin: {
-                  email: 'bibi@bloxberg.de',
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   language: 'de',
@@ -1205,6 +1198,28 @@ describe('UserResolver', () => {
         })
       })
 
+      describe('alias', () => {
+        beforeEach(() => {
+          jest.clearAllMocks()
+        })
+
+        describe('valid alias', () => {
+          it('updates the user in DB', async () => {
+            await mutate({
+              mutation: updateUserInfos,
+              variables: {
+                alias: 'bibi_Bloxberg',
+              },
+            })
+            await expect(User.findOne()).resolves.toEqual(
+              expect.objectContaining({
+                alias: 'bibi_Bloxberg',
+              }),
+            )
+          })
+        })
+      })
+
       describe('language is not valid', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
@@ -1310,7 +1325,7 @@ describe('UserResolver', () => {
               expect.objectContaining({
                 data: {
                   login: expect.objectContaining({
-                    email: 'bibi@bloxberg.de',
+                    firstName: 'Benjamin',
                   }),
                 },
               }),
@@ -1457,7 +1472,6 @@ describe('UserResolver', () => {
           expect.objectContaining({
             data: {
               login: {
-                email: 'bibi@bloxberg.de',
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),

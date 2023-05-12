@@ -24,7 +24,7 @@ export const findContributions = async (
   }
   return DbContribution.findAndCount({
     where: {
-      ...(statusFilter && statusFilter.length && { contributionStatus: In(statusFilter) }),
+      ...(statusFilter?.length && { contributionStatus: In(statusFilter) }),
       ...(userId && { userId }),
     },
     withDeleted,
