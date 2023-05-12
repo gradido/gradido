@@ -12,3 +12,6 @@ export const decimalSeparatorByLanguage = (a: Decimal, language: string): string
   i18n.setLocale(rememberLocaleToRestore)
   return result
 }
+
+export const fullName = (firstName: string, lastName: string): string =>
+  [firstName, lastName].filter(Boolean).join(' ')
