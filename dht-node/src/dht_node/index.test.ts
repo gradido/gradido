@@ -108,7 +108,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  // await cleanDB()
+  await cleanDB()
   await con.close()
 })
 
