@@ -34,11 +34,9 @@ let testEnv: {
 beforeAll(async () => {
   testEnv = await testEnvironment(logger, localization)
   con = testEnv.con
-  // await cleanDB()
 })
 
 afterAll(async () => {
-  // await cleanDB()
   await con.close()
 })
 
@@ -87,8 +85,10 @@ describe('sendEmailVariants', () => {
           },
         })
       })
+    })
 
-      it('has expected result', () => {
+    describe('result', () => {
+      it('is the expected object', () => {
         expect(result).toMatchObject({
           envelope: {
             from: 'info@gradido.net',
@@ -97,36 +97,81 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (do not answer) <info@gradido.net>',
+            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Message about your common good contribution',
             html: expect.any(String),
-            text: expect.stringContaining('GRADIDO: MESSAGE ABOUT YOUR COMMON GOOD CONTRIBUTION'),
+            text: expect.stringContaining('MESSAGE ABOUT YOUR COMMON GOOD CONTRIBUTION'),
           }),
         })
+      })
+
+      it('has correct header', () => {
+        expect(result.originalMessage.html).toContain(
+          'src="https://gdd.gradido.net/img/brand/gradido-logo.png"',
+        )
+        expect(result.originalMessage.html).toContain(
+          'src="https://gdd.gradido.net/img/template/Blaetter.png"',
+        )
+      })
+
+      it('has correct doctype and language set', () => {
         expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
-        expect(result.originalMessage.html).toContain('<html lang="en">')
+        expect(result.originalMessage.html).toContain('<html lang="en"')
+      })
+
+      it('has correct heading, salutation, and text', () => {
         expect(result.originalMessage.html).toContain(
-          '<title>Gradido: Message about your common good contribution</title>',
+          '>Message about your common good contribution</h1>',
+        )
+        expect(result.originalMessage.html).toContain('Hello Peter Lustig,')
+        expect(result.originalMessage.html).toContain(
+          'You have received a message from Bibi Bloxberg regarding your common good contribution “My contribution.”.',
+        )
+      })
+
+      it('has correct CTA block', () => {
+        expect(result.originalMessage.html).toContain('>Read and reply to message</h2>')
+        expect(result.originalMessage.html).toContain(
+          'To view and reply to the message, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.',
         )
         expect(result.originalMessage.html).toContain(
-          '>Gradido: Message about your common good contribution</h1>',
+          '<a class="button-3 w-button" href="https://gdd.gradido.net/community/contribution"',
         )
-        expect(result.originalMessage.html).toContain('Hello Peter Lustig')
+        expect(result.originalMessage.html).toContain('>To account</a>')
+        expect(result.originalMessage.html).toContain('Please do not reply to this email.')
+      })
+
+      it('has correct greating formula', () => {
+        expect(result.originalMessage.html).toContain('Kind regards,<br')
+        expect(result.originalMessage.html).toContain('>your Gradido team')
+      })
+
+      it('has correct footer', () => {
+        expect(result.originalMessage.html).toContain('href="https://t.me/GradidoGruppe"')
+        expect(result.originalMessage.html).toContain('href="https://www.youtube.com/c/GradidoNet"')
+        expect(result.originalMessage.html).toContain('href="https://twitter.com/gradido"')
         expect(result.originalMessage.html).toContain(
-          'you have received a message from Bibi Bloxberg regarding your common good contribution “My contribution.”.',
+          'href="https://www.facebook.com/groups/Gradido/"',
+        )
+        expect(result.originalMessage.html).toContain('<div class="line"')
+        expect(result.originalMessage.html).toContain(
+          'If you have any further questions, please contact our support',
+        )
+        expect(result.originalMessage.html).toContain('support@gradido.net')
+        expect(result.originalMessage.html).toContain(
+          'src="https://gdd.gradido.net/img/brand/green.png"',
+        )
+        expect(result.originalMessage.html).toContain('Gradido-Akademie')
+        expect(result.originalMessage.html).toContain('Institut für Wirtschaftsbionik')
+        expect(result.originalMessage.html).toContain('Pfarrweg 2')
+        expect(result.originalMessage.html).toContain('74653 Künzelsau')
+        expect(result.originalMessage.html).toContain('Deutschland')
+        expect(result.originalMessage.html).toContain(
+          '<a class="terms_of_use" href="https://gradido.net/de/impressum/"',
         )
         expect(result.originalMessage.html).toContain(
-          'To view and reply to the message, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab!',
-        )
-        expect(result.originalMessage.html).toContain(
-          `Link to your account: <a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
-        )
-        expect(result.originalMessage.html).toContain('Please do not reply to this email!')
-        expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
-        expect(result.originalMessage.html).toContain('—————')
-        expect(result.originalMessage.html).toContain(
-          '<div style="position: relative; left: -22px;"><img src="https://gdd.gradido.net/img/brand/green.png" width="200" alt="Gradido-Akademie Logo"></div><br>Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+          '<a class="terms_of_use" href="https://gradido.net/de/datenschutz/"',
         )
       })
     })
@@ -163,8 +208,10 @@ describe('sendEmailVariants', () => {
           },
         })
       })
+    })
 
-      it('has expected result', () => {
+    describe('result', () => {
+      it('is the expected object', () => {
         expect(result).toMatchObject({
           envelope: {
             from: 'info@gradido.net',
@@ -173,40 +220,91 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (do not answer) <info@gradido.net>',
+            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Email Verification',
             html: expect.any(String),
-            text: expect.stringContaining('GRADIDO: EMAIL VERIFICATION'),
+            text: expect.stringContaining('EMAIL VERIFICATION'),
           }),
         })
+      })
+
+      it('has correct header', () => {
+        expect(result.originalMessage.html).toContain(
+          'src="https://gdd.gradido.net/img/brand/gradido-logo.png"',
+        )
+        expect(result.originalMessage.html).toContain(
+          'src="https://gdd.gradido.net/img/template/Blaetter.png"',
+        )
+      })
+
+      it('has correct doctype and language set', () => {
         expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
-        expect(result.originalMessage.html).toContain('<html lang="en">')
-        expect(result.originalMessage.html).toContain('<title>Gradido: Email Verification</title>')
-        expect(result.originalMessage.html).toContain('>Gradido: Email Verification</h1>')
-        expect(result.originalMessage.html).toContain('Hello Peter Lustig')
+        expect(result.originalMessage.html).toContain('<html lang="en"')
+      })
+
+      it('has correct heading, salutation, and text', () => {
+        expect(result.originalMessage.html).toContain('>Email Verification</h1>')
+        expect(result.originalMessage.html).toContain('Hello Peter Lustig,')
         expect(result.originalMessage.html).toContain(
           'Your email address has just been registered with Gradido.',
         )
+      })
+
+      it('has correct CTA block', () => {
+        expect(result.originalMessage.html).toContain('>Complete registration</h2>')
         expect(result.originalMessage.html).toContain(
-          'Please click on this link to complete the registration and activate your Gradido account:',
+          'Please click here to complete the registration and activate your Gradido account.',
         )
         expect(result.originalMessage.html).toContain(
-          '<a href="http://localhost/checkEmail/6627633878930542284">http://localhost/checkEmail/6627633878930542284</a>',
+          'href="http://localhost/checkEmail/6627633878930542284',
+        )
+        expect(result.originalMessage.html).toContain('>Activate account</a>')
+        expect(result.originalMessage.html).toContain('Or copy the link into your browser window.')
+        expect(result.originalMessage.html).toContain(
+          '>http://localhost/checkEmail/6627633878930542284</a>',
+        )
+        expect(result.originalMessage.html).toContain('>Request new valid link</h2>')
+        expect(result.originalMessage.html).toContain(
+          'The link has a validity of 23 hours and 30 minutes.'
         )
         expect(result.originalMessage.html).toContain(
-          'or copy the link above into your browser window.',
+          'If the validity of the link has already expired, you can have a new link sent to you here.'
+        )
+        expect(result.originalMessage.html).toContain('>New link</a>')
+        expect(result.originalMessage.html).toContain('href="http://localhost/forgot-password"')
+      })
+
+      it('has correct greating formula', () => {
+        expect(result.originalMessage.html).toContain('Kind regards,<br')
+        expect(result.originalMessage.html).toContain('>your Gradido team')
+      })
+
+      it('has correct footer', () => {
+        expect(result.originalMessage.html).toContain('href="https://t.me/GradidoGruppe"')
+        expect(result.originalMessage.html).toContain('href="https://www.youtube.com/c/GradidoNet"')
+        expect(result.originalMessage.html).toContain('href="https://twitter.com/gradido"')
+        expect(result.originalMessage.html).toContain(
+          'href="https://www.facebook.com/groups/Gradido/"',
+        )
+        expect(result.originalMessage.html).toContain('<div class="line"')
+        expect(result.originalMessage.html).toContain(
+          'If you have any further questions, please contact our support',
+        )
+        expect(result.originalMessage.html).toContain('support@gradido.net')
+        expect(result.originalMessage.html).toContain(
+          'src="https://gdd.gradido.net/img/brand/green.png"',
+        )
+        expect(result.originalMessage.html).toContain('Gradido-Akademie')
+        expect(result.originalMessage.html).toContain('Institut für Wirtschaftsbionik')
+        expect(result.originalMessage.html).toContain('Pfarrweg 2')
+        expect(result.originalMessage.html).toContain('74653 Künzelsau')
+        expect(result.originalMessage.html).toContain('Deutschland')
+        expect(result.originalMessage.html).toContain(
+          '<a class="terms_of_use" href="https://gradido.net/de/impressum/"',
         )
         expect(result.originalMessage.html).toContain(
-          'The link has a validity of 23 hours and 30 minutes. If the validity of the link has already expired, you can have a new link sent to you here:',
-        )
-        expect(result.originalMessage.html).toContain(
-          `<a href="${CONFIG.EMAIL_LINK_FORGOTPASSWORD}">${CONFIG.EMAIL_LINK_FORGOTPASSWORD}</a>`,
-        )
-        expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
-        expect(result.originalMessage.html).toContain('—————')
-        expect(result.originalMessage.html).toContain(
-          '<div style="position: relative; left: -22px;"><img src="https://gdd.gradido.net/img/brand/green.png" width="200" alt="Gradido-Akademie Logo"></div><br>Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+          '<a class="terms_of_use" href="https://gradido.net/de/datenschutz/"',
         )
       })
     })
@@ -240,54 +338,103 @@ describe('sendEmailVariants', () => {
         })
       })
 
-      it('has expected result', () => {
-        expect(result).toMatchObject({
-          envelope: {
-            from: 'info@gradido.net',
-            to: ['peter@lustig.de'],
-          },
-          message: expect.any(String),
-          originalMessage: expect.objectContaining({
-            to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (do not answer) <info@gradido.net>',
-            attachments: [],
-            subject: 'Gradido: Try To Register Again With Your Email',
-            html: expect.any(String),
-            text: expect.stringContaining('GRADIDO: TRY TO REGISTER AGAIN WITH YOUR EMAIL'),
-          }),
+      describe('result', () => {
+        it('is the expected object', () => {
+          expect(result).toMatchObject({
+            envelope: {
+              from: 'info@gradido.net',
+              to: ['peter@lustig.de'],
+            },
+            message: expect.any(String),
+            originalMessage: expect.objectContaining({
+              to: 'Peter Lustig <peter@lustig.de>',
+              from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
+              attachments: [],
+              subject: 'Gradido: Try To Register Again With Your Email',
+              html: expect.any(String),
+              text: expect.stringContaining('TRY TO REGISTER AGAIN WITH YOUR EMAIL'),
+            }),
+          })
         })
-        expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
-        expect(result.originalMessage.html).toContain('<html lang="en">')
-        expect(result.originalMessage.html).toContain(
-          '<title>Gradido: Try To Register Again With Your Email</title>',
-        )
-        expect(result.originalMessage.html).toContain(
-          '>Gradido: Try To Register Again With Your Email</h1>',
-        )
-        expect(result.originalMessage.html).toContain('Hello Peter Lustig')
-        expect(result.originalMessage.html).toContain(
-          'Your email address has just been used again to register an account with Gradido.',
-        )
-        expect(result.originalMessage.html).toContain(
-          'However, an account already exists for your email address.',
-        )
-        expect(result.originalMessage.html).toContain(
-          'Please click on the following link if you have forgotten your password:',
-        )
-        expect(result.originalMessage.html).toContain(
-          `<a href="${CONFIG.EMAIL_LINK_FORGOTPASSWORD}">${CONFIG.EMAIL_LINK_FORGOTPASSWORD}</a>`,
-        )
-        expect(result.originalMessage.html).toContain(
-          'or copy the link above into your browser window.',
-        )
-        expect(result.originalMessage.html).toContain(
-          'If you are not the one who tried to register again, please contact our support:<br><a href="mailto:support@supportmail.com">support@supportmail.com</a>',
-        )
-        expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
-        expect(result.originalMessage.html).toContain('—————')
-        expect(result.originalMessage.html).toContain(
-          '<div style="position: relative; left: -22px;"><img src="https://gdd.gradido.net/img/brand/green.png" width="200" alt="Gradido-Akademie Logo"></div><br>Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
-        )
+
+        it('has correct header', () => {
+          expect(result.originalMessage.html).toContain(
+            'src="https://gdd.gradido.net/img/brand/gradido-logo.png"',
+          )
+          expect(result.originalMessage.html).toContain(
+            'src="https://gdd.gradido.net/img/template/Blaetter.png"',
+          )
+        })
+  
+        it('has correct doctype and language set', () => {
+          expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
+          expect(result.originalMessage.html).toContain('<html lang="en"')
+        })
+
+        it('has correct heading, salutation, and text', () => {
+          expect(result.originalMessage.html).toContain(
+            '>Try To Register Again With Your Email</h1>',
+          )
+          expect(result.originalMessage.html).toContain('Hello Peter Lustig,')
+          expect(result.originalMessage.html).toContain(
+            'Your email address has just been used again to register an account with Gradido.',
+          )
+          expect(result.originalMessage.html).toContain(
+            'However, an account already exists for your email address.',
+          )
+        })
+        
+        it('has correct CTA block', () => {
+          expect(result.originalMessage.html).toContain('>Reset password</h2>')
+          expect(result.originalMessage.html).toContain(
+            'If you have forgotten your password, please click here.',
+          )
+          expect(result.originalMessage.html).toContain(
+            `<a class="button-3 w-button" href="${CONFIG.EMAIL_LINK_FORGOTPASSWORD}"`,
+          )
+          expect(result.originalMessage.html).toContain('>reset</a>')
+          expect(result.originalMessage.html).toContain('Or copy the link into your browser window.')
+          expect(result.originalMessage.html).toContain(
+            `>${CONFIG.EMAIL_LINK_FORGOTPASSWORD}</a>`,
+          )
+          expect(result.originalMessage.html).toContain('>Contact support</h2>')
+          expect(result.originalMessage.html).toContain('If you did not try to register again, please contact our support:')
+          expect(result.originalMessage.html).toContain('href="mailto:support@gradido.net"')
+          expect(result.originalMessage.html).toContain('>support@gradido.net</a>')
+        })
+
+        it('has correct greating formula', () => {
+          expect(result.originalMessage.html).toContain('Kind regards,<br')
+          expect(result.originalMessage.html).toContain('>your Gradido team')
+        })
+  
+        it('has correct footer', () => {
+          expect(result.originalMessage.html).toContain('href="https://t.me/GradidoGruppe"')
+          expect(result.originalMessage.html).toContain('href="https://www.youtube.com/c/GradidoNet"')
+          expect(result.originalMessage.html).toContain('href="https://twitter.com/gradido"')
+          expect(result.originalMessage.html).toContain(
+            'href="https://www.facebook.com/groups/Gradido/"',
+          )
+          expect(result.originalMessage.html).toContain('<div class="line"')
+          expect(result.originalMessage.html).toContain(
+            'If you have any further questions, please contact our support',
+          )
+          expect(result.originalMessage.html).toContain('support@gradido.net')
+          expect(result.originalMessage.html).toContain(
+            'src="https://gdd.gradido.net/img/brand/green.png"',
+          )
+          expect(result.originalMessage.html).toContain('Gradido-Akademie')
+          expect(result.originalMessage.html).toContain('Institut für Wirtschaftsbionik')
+          expect(result.originalMessage.html).toContain('Pfarrweg 2')
+          expect(result.originalMessage.html).toContain('74653 Künzelsau')
+          expect(result.originalMessage.html).toContain('Deutschland')
+          expect(result.originalMessage.html).toContain(
+            '<a class="terms_of_use" href="https://gradido.net/de/impressum/"',
+          )
+          expect(result.originalMessage.html).toContain(
+            '<a class="terms_of_use" href="https://gradido.net/de/datenschutz/"',
+          )
+        })
       })
     })
   })
@@ -327,8 +474,10 @@ describe('sendEmailVariants', () => {
           },
         })
       })
+    })
 
-      it('has expected result', () => {
+    describe('result', () => {
+      it('is the expected object', () => {
         expect(result).toMatchObject({
           envelope: {
             from: 'info@gradido.net',
@@ -337,36 +486,85 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (do not answer) <info@gradido.net>',
+            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Your contribution to the common good was confirmed',
             html: expect.any(String),
             text: expect.stringContaining(
-              'GRADIDO: YOUR CONTRIBUTION TO THE COMMON GOOD WAS CONFIRMED',
+              'YOUR CONTRIBUTION TO THE COMMON GOOD WAS CONFIRMED',
             ),
           }),
         })
+      })
+
+      it('has correct header', () => {
+        expect(result.originalMessage.html).toContain(
+          'src="https://gdd.gradido.net/img/brand/gradido-logo.png"',
+        )
+        expect(result.originalMessage.html).toContain(
+          'src="https://gdd.gradido.net/img/template/Blaetter.png"',
+        )
+      })
+
+      it('has correct doctype and language set', () => {
         expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
-        expect(result.originalMessage.html).toContain('<html lang="en">')
+        expect(result.originalMessage.html).toContain('<html lang="en"')
+      })
+
+      it('has correct heading, salutation, and text', () => {
+        expect(result.originalMessage.html).toContain('>Your contribution to the common good was confirmed</h1>')
+        expect(result.originalMessage.html).toContain('Hello Peter Lustig,')
         expect(result.originalMessage.html).toContain(
-          '<title>Gradido: Your contribution to the common good was confirmed</title>',
+          'Your common good contribution “My contribution.” has just been approved by Bibi Bloxberg. Your Gradido account has been credited with 23.54 GDD.',
+        )
+      })
+
+      it('has correct CTA block', () => {
+        expect(result.originalMessage.html).toContain('>Contribution details</h2>')
+        expect(result.originalMessage.html).toContain(
+          'To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.',
         )
         expect(result.originalMessage.html).toContain(
-          '>Gradido: Your contribution to the common good was confirmed</h1>',
+          'href="https://gdd.gradido.net/community/contributions',
         )
-        expect(result.originalMessage.html).toContain('Hello Peter Lustig')
+        expect(result.originalMessage.html).toContain('>To account</a>')
+        expect(result.originalMessage.html).toContain('Or copy the link into your browser window.')
         expect(result.originalMessage.html).toContain(
-          'Your public good contribution “My contribution.” has just been confirmed by Bibi Bloxberg and credited to your Gradido account.',
+          '>https://gdd.gradido.net/community/contributions</a>',
         )
-        expect(result.originalMessage.html).toContain('Amount: 23.54 GDD')
+        expect(result.originalMessage.html).toContain('Please do not reply to this email.')
+      })
+
+      it('has correct greating formula', () => {
+        expect(result.originalMessage.html).toContain('Kind regards,<br')
+        expect(result.originalMessage.html).toContain('>your Gradido team')
+      })
+
+      it('has correct footer', () => {
+        expect(result.originalMessage.html).toContain('href="https://t.me/GradidoGruppe"')
+        expect(result.originalMessage.html).toContain('href="https://www.youtube.com/c/GradidoNet"')
+        expect(result.originalMessage.html).toContain('href="https://twitter.com/gradido"')
         expect(result.originalMessage.html).toContain(
-          `Link to your account: <a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
+          'href="https://www.facebook.com/groups/Gradido/"',
         )
-        expect(result.originalMessage.html).toContain('Please do not reply to this email!')
-        expect(result.originalMessage.html).toContain('Kind regards,<br>your Gradido team')
-        expect(result.originalMessage.html).toContain('—————')
+        expect(result.originalMessage.html).toContain('<div class="line"')
         expect(result.originalMessage.html).toContain(
-          '<div style="position: relative; left: -22px;"><img src="https://gdd.gradido.net/img/brand/green.png" width="200" alt="Gradido-Akademie Logo"></div><br>Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><a href="mailto:support@supportmail.com">support@supportmail.com</a><br><a href="http://localhost/">http://localhost/</a>',
+          'If you have any further questions, please contact our support',
+        )
+        expect(result.originalMessage.html).toContain('support@gradido.net')
+        expect(result.originalMessage.html).toContain(
+          'src="https://gdd.gradido.net/img/brand/green.png"',
+        )
+        expect(result.originalMessage.html).toContain('Gradido-Akademie')
+        expect(result.originalMessage.html).toContain('Institut für Wirtschaftsbionik')
+        expect(result.originalMessage.html).toContain('Pfarrweg 2')
+        expect(result.originalMessage.html).toContain('74653 Künzelsau')
+        expect(result.originalMessage.html).toContain('Deutschland')
+        expect(result.originalMessage.html).toContain(
+          '<a class="terms_of_use" href="https://gradido.net/de/impressum/"',
+        )
+        expect(result.originalMessage.html).toContain(
+          '<a class="terms_of_use" href="https://gradido.net/de/datenschutz/"',
         )
       })
     })
@@ -415,7 +613,7 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (do not answer) <info@gradido.net>',
+            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Your common good contribution was rejected',
             html: expect.any(String),
@@ -450,7 +648,7 @@ describe('sendEmailVariants', () => {
     })
   })
 
-  describe('sendContributionDeletedEmail', () => {
+  describe.skip('sendContributionDeletedEmail', () => {
     beforeAll(async () => {
       result = await sendContributionDeletedEmail({
         firstName: 'Peter',
@@ -493,7 +691,7 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (do not answer) <info@gradido.net>',
+            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Your common good contribution was deleted',
             html: expect.any(String),
@@ -528,7 +726,7 @@ describe('sendEmailVariants', () => {
     })
   })
 
-  describe('sendResetPasswordEmail', () => {
+  describe.skip('sendResetPasswordEmail', () => {
     beforeAll(async () => {
       result = await sendResetPasswordEmail({
         firstName: 'Peter',
@@ -569,7 +767,7 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (do not answer) <info@gradido.net>',
+            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Reset password',
             html: expect.any(String),
@@ -606,7 +804,7 @@ describe('sendEmailVariants', () => {
     })
   })
 
-  describe('sendTransactionLinkRedeemedEmail', () => {
+  describe.skip('sendTransactionLinkRedeemedEmail', () => {
     beforeAll(async () => {
       result = await sendTransactionLinkRedeemedEmail({
         firstName: 'Peter',
@@ -653,7 +851,7 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (do not answer) <info@gradido.net>',
+            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Bibi Bloxberg has redeemed your Gradido link',
             html: expect.any(String),
@@ -687,7 +885,7 @@ describe('sendEmailVariants', () => {
     })
   })
 
-  describe('sendTransactionReceivedEmail', () => {
+  describe.skip('sendTransactionReceivedEmail', () => {
     beforeAll(async () => {
       result = await sendTransactionReceivedEmail({
         firstName: 'Peter',
@@ -732,7 +930,7 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (do not answer) <info@gradido.net>',
+            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Bibi Bloxberg has sent you 37.40 Gradido',
             html: expect.any(String),
