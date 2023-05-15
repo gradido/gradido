@@ -17,7 +17,7 @@
       "title": "Try To Register Again With Your Email"
     },
     "addedContributionMessage": {
-      "commonGoodContributionMessage": "you have received a message from {senderFirstName} {senderLastName} regarding your common good contribution “{contributionMemo}”.",
+      "commonGoodContributionMessage": "You have received a message from {senderFirstName} {senderLastName} regarding your common good contribution “{contributionMemo}”.",
       "readMessage": "Read and reply to message",
       "subject": "Gradido: Message about your common good contribution",
       "title": "Message about your common good contribution",
@@ -47,7 +47,7 @@
       "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
       "imprintImageAlt": "Gradido-Akademie Logo",
       "privacyPolicy": "Privacy Policy",
-      "supportEmail": "support@gradido.com"
+      "supportEmail": "support@gradido.net"
     },
     "general": {
       "amountGDD": "Amount: {amountGDD} GDD",
@@ -55,12 +55,13 @@
       "contribution": "Contribution: : {contributionMemo}",
       "contributionDetails": "Contribution details",
       "detailsYouFindOnLinkToYourAccount": "You can find transaction details in your Gradido account.",
-      "helloName": "Hello {firstName} {lastName}",
+      "helloName": "Hello {firstName} {lastName},",
       "linkValidity": "The link has a validity of {hours} hours.\nIf the validity of the link has already expired, you can have a new link sent to you here.",
       "linkValidityWithMinutes": "The link has a validity of {hours} hours and {minutes} minutes.\nIf the validity of the link has already expired, you can have a new link sent to you here.",
       "newLink": "New link",
       "orCopyLink": "or copy the link into your browser window.",
       "pleaseDoNotReply": "Please do not reply to this email!",
+      "requestNewLink": "Request new valid link",
       "reset": "reset",
       "sincerelyYours": "Kind regards,",
       "toAccount": "To account",

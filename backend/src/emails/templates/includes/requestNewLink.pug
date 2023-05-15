@@ -1,6 +1,6 @@
 //- 
 requestNewLink
-  h2.heading-2 Neuen gültigen Link anfordern
+  h2.heading-2= t('emails.general.requestNewLink')
 
   if timeDurationObject.minutes == 0
     div(class="p_content")= t('emails.general.linkValidity', { hours: timeDurationObject.hours })

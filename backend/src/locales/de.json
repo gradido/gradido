@@ -42,12 +42,12 @@
       "title": "Dein Gemeinwohl-Beitrag wurde abgelehnt"
     },
     "footer": {
-      "contactOurSupport": "Bei weiteren fragen kontaktiere bitte unseren Support.",
+      "contactOurSupport": "Bei weiteren Fragen kontaktiere bitte unseren Support.",
       "imprint": "Impressum",
       "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
       "imprintImageAlt": "Gradido-Akademie Logo",
       "privacyPolicy": "Datenschutzerklärung",
-      "supportEmail": "support@gradido.com"
+      "supportEmail": "support@gradido.net"
     },
     "general": {
       "amountGDD": "Betrag: {amountGDD} GDD",
@@ -61,6 +61,7 @@
       "newLink": "Neuer Link",
       "orCopyLink": "Oder kopiere den Link in dein Browserfenster.",
       "pleaseDoNotReply": "Bitte antworte nicht auf diese E-Mail!",
+      "requestNewLink": "Neuen gültigen Link anfordern",
       "reset": "zurücksetzen",
       "sincerelyYours": "Liebe Grüße",
       "toAccount": "Zum Konto",
