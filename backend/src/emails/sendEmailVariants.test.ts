@@ -159,7 +159,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain(
           'If you have any further questions, please contact our support',
         )
-        expect(result.originalMessage.html).toContain('support@gradido.net')
+        expect(result.originalMessage.html).toContain('support@supportmail.com')
         expect(result.originalMessage.html).toContain(
           'src="https://gdd.gradido.net/img/brand/green.png"',
         )
@@ -287,7 +287,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain(
           'If you have any further questions, please contact our support',
         )
-        expect(result.originalMessage.html).toContain('support@gradido.net')
+        expect(result.originalMessage.html).toContain('support@supportmail.com')
         expect(result.originalMessage.html).toContain(
           'src="https://gdd.gradido.net/img/brand/green.png"',
         )
@@ -414,7 +414,7 @@ describe('sendEmailVariants', () => {
           expect(result.originalMessage.html).toContain(
             'If you have any further questions, please contact our support',
           )
-          expect(result.originalMessage.html).toContain('support@gradido.net')
+          expect(result.originalMessage.html).toContain('support@supportmail.com')
           expect(result.originalMessage.html).toContain(
             'src="https://gdd.gradido.net/img/brand/green.png"',
           )
@@ -541,7 +541,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain(
           'If you have any further questions, please contact our support',
         )
-        expect(result.originalMessage.html).toContain('support@gradido.net')
+        expect(result.originalMessage.html).toContain('support@supportmail.com')
         expect(result.originalMessage.html).toContain(
           'src="https://gdd.gradido.net/img/brand/green.png"',
         )
@@ -661,7 +661,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain(
           'If you have any further questions, please contact our support',
         )
-        expect(result.originalMessage.html).toContain('support@gradido.net')
+        expect(result.originalMessage.html).toContain('support@supportmail.com')
         expect(result.originalMessage.html).toContain(
           'src="https://gdd.gradido.net/img/brand/green.png"',
         )
@@ -785,7 +785,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain(
           'If you have any further questions, please contact our support',
         )
-        expect(result.originalMessage.html).toContain('support@gradido.net')
+        expect(result.originalMessage.html).toContain('support@supportmail.com')
         expect(result.originalMessage.html).toContain(
           'src="https://gdd.gradido.net/img/brand/green.png"',
         )
@@ -911,7 +911,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain(
           'If you have any further questions, please contact our support',
         )
-        expect(result.originalMessage.html).toContain('support@gradido.net')
+        expect(result.originalMessage.html).toContain('support@supportmail.com')
         expect(result.originalMessage.html).toContain(
           'src="https://gdd.gradido.net/img/brand/green.png"',
         )
@@ -1037,7 +1037,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain(
           'If you have any further questions, please contact our support',
         )
-        expect(result.originalMessage.html).toContain('support@gradido.net')
+        expect(result.originalMessage.html).toContain('support@supportmail.com')
         expect(result.originalMessage.html).toContain(
           'src="https://gdd.gradido.net/img/brand/green.png"',
         )
@@ -1159,7 +1159,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain(
           'If you have any further questions, please contact our support',
         )
-        expect(result.originalMessage.html).toContain('support@gradido.net')
+        expect(result.originalMessage.html).toContain('support@supportmail.com')
         expect(result.originalMessage.html).toContain(
           'src="https://gdd.gradido.net/img/brand/green.png"',
         )
