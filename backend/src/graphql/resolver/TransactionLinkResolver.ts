@@ -34,6 +34,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 
 import { executeTransaction } from './TransactionResolver'
@@ -146,7 +147,7 @@ export class TransactionLinkResolver {
       const transactionLink = await DbTransactionLink.findOneOrFail({ code }, { withDeleted: true })
       const user = await DbUser.findOneOrFail({ id: transactionLink.userId })
       let redeemedBy: User | null = null
-      if (transactionLink && transactionLink.redeemedBy) {
+      if (transactionLink?.redeemedBy) {
         redeemedBy = new User(await DbUser.findOneOrFail({ id: transactionLink.redeemedBy }))
       }
       return new TransactionLink(transactionLink, new User(user), redeemedBy)
@@ -266,6 +267,8 @@ export class TransactionLinkResolver {
           transaction.typeId = TransactionTypeId.CREATION
           transaction.memo = contribution.memo
           transaction.userId = contribution.userId
+          transaction.userGradidoID = user.gradidoID
+          transaction.userName = fullName(user.firstName, user.lastName)
           transaction.previous = lastTransaction ? lastTransaction.id : null
           transaction.amount = contribution.amount
           transaction.creationDate = contribution.contributionDate

@@ -2,7 +2,6 @@ import { User as dbUser } from '@entity/User'
 import { ObjectType, Field, Int } from 'type-graphql'
 
 import { KlickTipp } from './KlickTipp'
-import { UserContact } from './UserContact'
 
 @ObjectType()
 export class User {
@@ -10,10 +9,7 @@ export class User {
     this.id = user.id
     this.gradidoID = user.gradidoID
     this.alias = user.alias
-    this.emailId = user.emailId
     if (user.emailContact) {
-      this.email = user.emailContact.email
-      this.emailContact = new UserContact(user.emailContact)
       this.emailChecked = user.emailContact.emailChecked
     }
     this.firstName = user.firstName
@@ -37,16 +33,6 @@ export class User {
 
   @Field(() => String, { nullable: true })
   alias: string | null
-
-  @Field(() => Int, { nullable: true })
-  emailId: number | null
-
-  // TODO privacy issue here
-  @Field(() => String, { nullable: true })
-  email: string | null
-
-  @Field(() => UserContact)
-  emailContact: UserContact
 
   @Field(() => String, { nullable: true })
   firstName: string | null

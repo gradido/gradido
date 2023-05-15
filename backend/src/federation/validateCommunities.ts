@@ -41,6 +41,7 @@ export async function validateCommunities(): Promise<void> {
       const pubKey = await client?.getPublicKey()
       if (pubKey && pubKey === dbCom.publicKey.toString()) {
         await DbFederatedCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
+        logger.info('Federation: verified community', dbCom)
       } else {
         logger.warn(
           'Federation: received not matching publicKey:',

@@ -10,7 +10,7 @@ export class Balance {
     linkCount: number
   }) {
     this.balance = data.balance
-    this.balanceGDT = data.balanceGDT || null
+    this.balanceGDT = data.balanceGDT ?? null
     this.count = data.count
     this.linkCount = data.linkCount
   }

@@ -28,6 +28,7 @@ export const updateUserInfos = gql`
   mutation (
     $firstName: String
     $lastName: String
+    $alias: String
     $password: String
     $passwordNew: String
     $locale: String
@@ -37,6 +38,7 @@ export const updateUserInfos = gql`
     updateUserInfos(
       firstName: $firstName
       lastName: $lastName
+      alias: $alias
       password: $password
       passwordNew: $passwordNew
       language: $locale
@@ -305,7 +307,6 @@ export const login = gql`
   mutation ($email: String!, $password: String!, $publisherId: Int) {
     login(email: $email, password: $password, publisherId: $publisherId) {
       id
-      email
       firstName
       lastName
       language

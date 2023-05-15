@@ -12,7 +12,7 @@ import KlicktippConnector from 'klicktipp-api'
 
 const klicktippConnector = new KlicktippConnector()
 
-export const klicktippSignIn = async (
+export const subscribe = async (
   email: string,
   language: string,
   firstName?: string,
@@ -25,13 +25,6 @@ export const klicktippSignIn = async (
   }
   const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
   const result = await klicktippConnector.signin(apiKey, email, fields)
-  return result
-}
-
-export const signout = async (email: string, language: string): Promise<boolean> => {
-  if (!CONFIG.KLICKTIPP) return true
-  const apiKey = language === 'de' ? CONFIG.KLICKTIPP_APIKEY_DE : CONFIG.KLICKTIPP_APIKEY_EN
-  const result = await klicktippConnector.signoff(apiKey, email)
   return result
 }
 
@@ -60,34 +53,17 @@ export const loginKlicktippUser = async (): Promise<boolean> => {
   return await klicktippConnector.login(CONFIG.KLICKTIPP_USER, CONFIG.KLICKTIPP_PASSWORD)
 }
 
-export const logoutKlicktippUser = async (): Promise<boolean> => {
-  if (!CONFIG.KLICKTIPP) return true
-  return await klicktippConnector.logout()
-}
-
-export const untagUser = async (email: string, tagId: string): Promise<boolean> => {
+export const addFieldsToSubscriber = async (
+  email: string,
+  fields: any = {},
+  newemail = '',
+  newsmsnumber = '',
+) => {
   if (!CONFIG.KLICKTIPP) return true
   const isLogin = await loginKlicktippUser()
   if (isLogin) {
-    return await klicktippConnector.untag(email, tagId)
+    const subscriberId = await klicktippConnector.subscriberSearch(email)
+    return klicktippConnector.subscriberUpdate(subscriberId, fields, newemail, newsmsnumber)
   }
   return false
-}
-
-export const tagUser = async (email: string, tagIds: string): Promise<boolean> => {
-  if (!CONFIG.KLICKTIPP) return true
-  const isLogin = await loginKlicktippUser()
-  if (isLogin) {
-    return await klicktippConnector.tag(email, tagIds)
-  }
-  return false
-}
-
-export const getKlicktippTagMap = async () => {
-  if (!CONFIG.KLICKTIPP) return true
-  const isLogin = await loginKlicktippUser()
-  if (isLogin) {
-    return await klicktippConnector.tagIndex()
-  }
-  return ''
 }

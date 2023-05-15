@@ -130,6 +130,15 @@ rm -Rf $PROJECT_ROOT/admin/node_modules
 rm -Rf $PROJECT_ROOT/dht-node/node_modules
 rm -Rf $PROJECT_ROOT/federation/node_modules
 
+# Remove build folders
+# we had problems with corrupted incremtal builds
+rm -Rf $PROJECT_ROOT/database/build
+rm -Rf $PROJECT_ROOT/backend/build
+rm -Rf $PROJECT_ROOT/frontend/build
+rm -Rf $PROJECT_ROOT/admin/build
+rm -Rf $PROJECT_ROOT/dht-node/build
+rm -Rf $PROJECT_ROOT/federation/build
+
 # Regenerate .env files
 cp -f $PROJECT_ROOT/database/.env $PROJECT_ROOT/database/.env.bak
 cp -f $PROJECT_ROOT/backend/.env $PROJECT_ROOT/backend/.env.bak
