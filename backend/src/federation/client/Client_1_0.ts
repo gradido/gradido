@@ -35,7 +35,7 @@ export class Client_1_0 {
         return
       }
       logger.info(
-        'Federation: getPublicKey successfull from endpoint',
+        'Federation: getPublicKey successful from endpoint',
         this.endpoint,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         data.getPublicKey.publicKey,
