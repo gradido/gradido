@@ -16,67 +16,65 @@
     </div>
 
     <div>
-      <b-form @keyup.prevent="loadSubmitButton">
-        <b-row class="mb-3">
-          <b-col class="col-12">
-            <small>
-              <b>{{ $t('form.username') }}</b>
-            </small>
-          </b-col>
-          <b-col v-if="showUserData" class="col-12">
-            <span v-if="username">
-              {{ username }}
-            </span>
-            <div v-else class="alert">
-              {{ $t('settings.username.no-username') }}
-            </div>
-          </b-col>
-          <b-col v-else class="col-12">
-            <b-input type="text" v-model="username"></b-input>
-          </b-col>
-        </b-row>
-        <b-row class="text-right" v-if="!showUserData">
-          <b-col>
-            <div class="text-right" ref="submitButton">
-              <b-button
-                :variant="loading ? 'light' : 'success'"
-                @click="onSubmit"
-                type="submit"
-                class="mt-4"
-                :disabled="loading"
-              >
-                {{ $t('form.save') }}
-              </b-button>
-            </div>
-          </b-col>
-        </b-row>
-      </b-form>
+      <validation-observer ref="observer" v-slot="{ handleSubmit, invalid }">
+        <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
+          <b-row class="mb-3">
+            <b-col class="col-12">
+              <small>
+                <b>{{ $t('form.username') }}</b>
+              </small>
+            </b-col>
+            <b-col v-if="showUserData" class="col-12">
+              <span v-if="username">
+                {{ username }}
+              </span>
+              <div v-else class="alert">
+                {{ $t('settings.username.no-username') }}
+              </div>
+            </b-col>
+            <b-col v-else class="col-12">
+              <input-username v-model="username" />
+            </b-col>
+          </b-row>
+          <b-row class="text-right" v-if="!showUserData">
+            <b-col>
+              <div class="text-right" ref="submitButton">
+                <b-button
+                  :variant="disabled(invalid) ? 'light' : 'success'"
+                  @click="onSubmit"
+                  type="submit"
+                  class="mt-4"
+                  :disabled="disabled(invalid)"
+                >
+                  {{ $t('form.save') }}
+                </b-button>
+              </div>
+            </b-col>
+          </b-row>
+        </b-form>
+      </validation-observer>
     </div>
   </b-card>
 </template>
 <script>
 import { updateUserInfos } from '@/graphql/mutations'
+import InputUsername from '@/components/Inputs/InputUsername'
 
 export default {
   name: 'UserName',
+  components: {
+    InputUsername,
+  },
   data() {
     return {
       showUserData: true,
-      username: this.$store.state.username,
-      loading: true,
+      username: this.$store.state.username || '',
     }
   },
   methods: {
     cancelEdit() {
       this.username = this.$store.state.username
       this.showUserData = true
-    },
-    loadSubmitButton() {
-      if (this.username !== this.$store.state.username) {
-        this.loading = false
-      } else {
-        this.loading = true
-      }
     },
     async onSubmit(event) {
       event.preventDefault()
@@ -95,6 +93,14 @@ export default {
         .catch((error) => {
           this.toastError(error.message)
         })
+    },
+    disabled(invalid) {
+      return !this.newUsername || invalid
+    },
+  },
+  computed: {
+    newUsername() {
+      return this.username !== this.$store.state.username
     },
   },
 }
