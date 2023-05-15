@@ -27,9 +27,10 @@
 
    .head-logo {
      position: absolute;
-     width: 130px;
-     margin-top: 36px;
-     max-width: 33%;
+     /* width: 130px; */
+     /* margin-top: 36px; */
+     max-width: 680px;
+     /* top: -11px; */
    }
    
    .head-image {
@@ -97,9 +98,10 @@
    }
    
    .content {
-     display: flex;
+     display: inherit;
      max-width: 680px;
      margin-top: 40px;
+     padding-top: 2px;
      flex-direction: column;
      justify-content: center;
      align-items: center;
@@ -250,7 +252,7 @@
    }
    
    .div-block {
-     display: flex;
+     display: inherit;
      margin-top: 20px;
      margin-bottom: 40px;
      flex-direction: row;
@@ -306,7 +308,7 @@
      }
    
      .content {
-       /* max-height: 520px; */
+       max-height: none;
        max-width: 540px;
        margin-top: 40px;
        border-radius: 24px;
