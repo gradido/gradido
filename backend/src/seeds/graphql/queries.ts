@@ -22,6 +22,12 @@ export const queryOptIn = gql`
   }
 `
 
+export const checkUsername = gql`
+  query ($username: String!) {
+    checkUsername(username: $username)
+  }
+`
+
 export const transactionsQuery = gql`
   query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
