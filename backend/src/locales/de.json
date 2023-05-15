@@ -60,7 +60,7 @@
       "linkValidityWithMinutes": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten.\nSollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen.",
       "newLink": "Neuer Link",
       "orCopyLink": "Oder kopiere den Link in dein Browserfenster.",
-      "pleaseDoNotReply": "Bitte antworte nicht auf diese E-Mail!",
+      "pleaseDoNotReply": "Bitte antworte nicht auf diese E-Mail.",
       "requestNewLink": "Neuen gültigen Link anfordern",
       "reset": "zurücksetzen",
       "sincerelyYours": "Liebe Grüße",
