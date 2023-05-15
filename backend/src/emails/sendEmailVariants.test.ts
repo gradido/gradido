@@ -34,7 +34,8 @@ let testEnv: {
 // TODO
 // when https://gdd.gradido.net/img/gradido-email-header.jpg is on production,
 // replace this URL by https://gdd.gradido.net/img/brand/gradido-email-header.png
-const headerImageURL = 'https://cdn.discordapp.com/attachments/913740067208564736/1107629904306110595/Kopf-Grafik.png'
+const headerImageURL =
+  'https://cdn.discordapp.com/attachments/913740067208564736/1107629904306110595/Kopf-Grafik.png'
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger, localization)
@@ -85,7 +86,7 @@ describe('sendEmailVariants', () => {
             senderLastName: 'Bloxberg',
             contributionMemo: 'My contribution.',
             overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
-            supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+            supportEmail: 'support@gradido.net',
             communityURL: CONFIG.COMMUNITY_URL,
           },
         })
@@ -112,9 +113,7 @@ describe('sendEmailVariants', () => {
       })
 
       it('has correct header', () => {
-        expect(result.originalMessage.html).toContain(
-          `src="${headerImageURL}"`,
-        )
+        expect(result.originalMessage.html).toContain(`src="${headerImageURL}"`)
       })
 
       it('has correct doctype and language set', () => {
@@ -232,9 +231,7 @@ describe('sendEmailVariants', () => {
       })
 
       it('has correct header', () => {
-        expect(result.originalMessage.html).toContain(
-          `src="${headerImageURL}"`,
-        )
+        expect(result.originalMessage.html).toContain(`src="${headerImageURL}"`)
       })
 
       it('has correct doctype and language set', () => {
@@ -265,10 +262,10 @@ describe('sendEmailVariants', () => {
         )
         expect(result.originalMessage.html).toContain('>Request new valid link</h2>')
         expect(result.originalMessage.html).toContain(
-          'The link has a validity of 23 hours and 30 minutes.'
+          'The link has a validity of 23 hours and 30 minutes.',
         )
         expect(result.originalMessage.html).toContain(
-          'If the validity of the link has already expired, you can have a new link sent to you here.'
+          'If the validity of the link has already expired, you can have a new link sent to you here.',
         )
         expect(result.originalMessage.html).toContain('>New link</a>')
         expect(result.originalMessage.html).toContain(`href="${CONFIG.EMAIL_LINK_FORGOTPASSWORD}"`)
@@ -357,11 +354,9 @@ describe('sendEmailVariants', () => {
         })
 
         it('has correct header', () => {
-          expect(result.originalMessage.html).toContain(
-            `src="${headerImageURL}"`,
-          )
+          expect(result.originalMessage.html).toContain(`src="${headerImageURL}"`)
         })
-  
+
         it('has correct doctype and language set', () => {
           expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
           expect(result.originalMessage.html).toContain('<html lang="en"')
@@ -379,7 +374,7 @@ describe('sendEmailVariants', () => {
             'However, an account already exists for your email address.',
           )
         })
-        
+
         it('has correct CTA block', () => {
           expect(result.originalMessage.html).toContain('>Reset password</h2>')
           expect(result.originalMessage.html).toContain(
@@ -389,12 +384,14 @@ describe('sendEmailVariants', () => {
             `<a class="button-3 w-button" href="${CONFIG.EMAIL_LINK_FORGOTPASSWORD}"`,
           )
           expect(result.originalMessage.html).toContain('>reset</a>')
-          expect(result.originalMessage.html).toContain('Or copy the link into your browser window.')
           expect(result.originalMessage.html).toContain(
-            `>${CONFIG.EMAIL_LINK_FORGOTPASSWORD}</a>`,
+            'Or copy the link into your browser window.',
           )
+          expect(result.originalMessage.html).toContain(`>${CONFIG.EMAIL_LINK_FORGOTPASSWORD}</a>`)
           expect(result.originalMessage.html).toContain('>Contact support</h2>')
-          expect(result.originalMessage.html).toContain('If you did not try to register again, please contact our support:')
+          expect(result.originalMessage.html).toContain(
+            'If you did not try to register again, please contact our support:',
+          )
           expect(result.originalMessage.html).toContain('href="mailto:support@gradido.net"')
           expect(result.originalMessage.html).toContain('>support@gradido.net</a>')
         })
@@ -403,10 +400,12 @@ describe('sendEmailVariants', () => {
           expect(result.originalMessage.html).toContain('Kind regards,<br')
           expect(result.originalMessage.html).toContain('>your Gradido team')
         })
-  
+
         it('has correct footer', () => {
           expect(result.originalMessage.html).toContain('href="https://t.me/GradidoGruppe"')
-          expect(result.originalMessage.html).toContain('href="https://www.youtube.com/c/GradidoNet"')
+          expect(result.originalMessage.html).toContain(
+            'href="https://www.youtube.com/c/GradidoNet"',
+          )
           expect(result.originalMessage.html).toContain('href="https://twitter.com/gradido"')
           expect(result.originalMessage.html).toContain(
             'href="https://www.facebook.com/groups/Gradido/"',
@@ -486,17 +485,13 @@ describe('sendEmailVariants', () => {
             attachments: [],
             subject: 'Gradido: Your contribution to the common good was confirmed',
             html: expect.any(String),
-            text: expect.stringContaining(
-              'YOUR CONTRIBUTION TO THE COMMON GOOD WAS CONFIRMED',
-            ),
+            text: expect.stringContaining('YOUR CONTRIBUTION TO THE COMMON GOOD WAS CONFIRMED'),
           }),
         })
       })
 
       it('has correct header', () => {
-        expect(result.originalMessage.html).toContain(
-          `src="${headerImageURL}"`,
-        )
+        expect(result.originalMessage.html).toContain(`src="${headerImageURL}"`)
       })
 
       it('has correct doctype and language set', () => {
@@ -505,7 +500,9 @@ describe('sendEmailVariants', () => {
       })
 
       it('has correct heading, salutation, and text', () => {
-        expect(result.originalMessage.html).toContain('>Your contribution to the common good was confirmed</h1>')
+        expect(result.originalMessage.html).toContain(
+          '>Your contribution to the common good was confirmed</h1>',
+        )
         expect(result.originalMessage.html).toContain('Hello Peter Lustig,')
         expect(result.originalMessage.html).toContain(
           'Your common good contribution “My contribution.” has just been approved by Bibi Bloxberg. Your Gradido account has been credited with 23.54 GDD.',
@@ -616,11 +613,9 @@ describe('sendEmailVariants', () => {
           }),
         })
       })
-      
+
       it('has correct header', () => {
-        expect(result.originalMessage.html).toContain(
-          `src="${headerImageURL}"`,
-        )
+        expect(result.originalMessage.html).toContain(`src="${headerImageURL}"`)
       })
 
       it('has correct doctype and language set', () => {
@@ -719,7 +714,7 @@ describe('sendEmailVariants', () => {
         })
       })
     })
-    
+
     describe('result', () => {
       it('is the expected object', () => {
         expect(result).toMatchObject({
@@ -740,9 +735,7 @@ describe('sendEmailVariants', () => {
       })
 
       it('has correct header', () => {
-        expect(result.originalMessage.html).toContain(
-          `src="${headerImageURL}"`,
-        )
+        expect(result.originalMessage.html).toContain(`src="${headerImageURL}"`)
       })
 
       it('has correct doctype and language set', () => {
@@ -759,7 +752,7 @@ describe('sendEmailVariants', () => {
           'Your common good contribution “My contribution.” was deleted by Bibi Bloxberg.',
         )
       })
-      
+
       it('has correct CTA block', () => {
         expect(result.originalMessage.html).toContain('>Contribution details</h2>')
         expect(result.originalMessage.html).toContain(
@@ -775,7 +768,7 @@ describe('sendEmailVariants', () => {
         )
         expect(result.originalMessage.html).toContain('Please do not reply to this email.')
       })
-      
+
       it('has correct greating formula', () => {
         expect(result.originalMessage.html).toContain('Kind regards,<br')
         expect(result.originalMessage.html).toContain('>your Gradido team')
@@ -808,7 +801,6 @@ describe('sendEmailVariants', () => {
           '<a class="terms_of_use" href="https://gradido.net/de/datenschutz/"',
         )
       })
-
     })
   })
 
@@ -865,9 +857,7 @@ describe('sendEmailVariants', () => {
       })
 
       it('has correct header', () => {
-        expect(result.originalMessage.html).toContain(
-          `src="${headerImageURL}"`,
-        )
+        expect(result.originalMessage.html).toContain(`src="${headerImageURL}"`)
       })
 
       it('has correct doctype and language set', () => {
@@ -882,12 +872,10 @@ describe('sendEmailVariants', () => {
           'You, or someone else, requested a password reset for this account.',
         )
       })
-      
+
       it('has correct CTA block', () => {
         expect(result.originalMessage.html).toContain('>Reset password</h2>')
-        expect(result.originalMessage.html).toContain(
-          'If it was you, please click here.',
-        )
+        expect(result.originalMessage.html).toContain('If it was you, please click here.')
         expect(result.originalMessage.html).toContain(
           '<a class="button-3 w-button" href="http://localhost/reset-password/3762660021544901417"',
         )
@@ -898,10 +886,10 @@ describe('sendEmailVariants', () => {
         )
         expect(result.originalMessage.html).toContain('>Request new valid link</h2>')
         expect(result.originalMessage.html).toContain(
-          'The link has a validity of 23 hours and 30 minutes.'
+          'The link has a validity of 23 hours and 30 minutes.',
         )
         expect(result.originalMessage.html).toContain(
-          'If the validity of the link has already expired, you can have a new link sent to you here.'
+          'If the validity of the link has already expired, you can have a new link sent to you here.',
         )
         expect(result.originalMessage.html).toContain('>New link</a>')
         expect(result.originalMessage.html).toContain(`href="${CONFIG.EMAIL_LINK_FORGOTPASSWORD}"`)
@@ -1001,9 +989,7 @@ describe('sendEmailVariants', () => {
       })
 
       it('has correct header', () => {
-        expect(result.originalMessage.html).toContain(
-          `src="${headerImageURL}"`,
-        )
+        expect(result.originalMessage.html).toContain(`src="${headerImageURL}"`)
       })
 
       it('has correct doctype and language set', () => {
@@ -1127,9 +1113,7 @@ describe('sendEmailVariants', () => {
       })
 
       it('has correct header', () => {
-        expect(result.originalMessage.html).toContain(
-          `src="${headerImageURL}"`,
-        )
+        expect(result.originalMessage.html).toContain(`src="${headerImageURL}"`)
       })
 
       it('has correct doctype and language set', () => {
@@ -1138,13 +1122,15 @@ describe('sendEmailVariants', () => {
       })
 
       it('has correct heading, salutation, and text', () => {
-        expect(result.originalMessage.html).toContain('>Bibi Bloxberg has sent you 37.40 Gradido</h1>')
+        expect(result.originalMessage.html).toContain(
+          '>Bibi Bloxberg has sent you 37.40 Gradido</h1>',
+        )
         expect(result.originalMessage.html).toContain('Hello Peter Lustig,')
         expect(result.originalMessage.html).toContain(
           'You have just received 37.40 GDD from Bibi Bloxberg (bibi@bloxberg.de).',
         )
       })
-      
+
       it('has correct CTA block', () => {
         expect(result.originalMessage.html).toContain('>Transaction details</h2>')
         expect(result.originalMessage.html).toContain(
