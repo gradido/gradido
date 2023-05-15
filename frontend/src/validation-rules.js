@@ -123,4 +123,18 @@ export const loadAllRules = (i18nCallback) => {
     },
     message: (_, values) => i18nCallback.t('site.signup.dont_match', values),
   })
+
+  extend('usernameAllowedChars', {
+    validate(value) {
+      return !!value.match(/^[a-zA-Z0-9_-]+$/)
+    },
+    message: (_, values) => i18nCallback.t('form.validation.usernmae-allowed-chars', values),
+  })
+
+  extend('usernameHyphens', {
+    validate(value) {
+      return !!value.match(/^[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9])*$/)
+    },
+    message: (_, values) => i18nCallback.t('form.validation.usernmae-hyphens', values),
+  })
 }

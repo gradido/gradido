@@ -35,7 +35,7 @@
 </template>
 <script>
 export default {
-  name: 'InputPassword',
+  name: 'InputUsername',
   props: {
     rules: {
       default: () => {
@@ -43,6 +43,8 @@ export default {
           required: true,
           min: 3,
           max: 20,
+          usernameAllowedChars: true,
+          usernameHyphens: true,
         }
       },
     },

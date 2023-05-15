@@ -37,6 +37,7 @@
                 v-model="username"
                 :name="$t('form.username')"
                 :placeholder="$t('form.username-placeholder')"
+                :showAllErrors="true"
               />
             </b-col>
           </b-row>
