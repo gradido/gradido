@@ -26,9 +26,8 @@
    }
 
    .head-logo {
-     position: absolute;
-     width:600px;
-     max-width:100%
+     width: 100%;
+     height: auto;
    }
    
    .wrapper_head {
