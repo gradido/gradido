@@ -1,8 +1,9 @@
 import { configure, extend } from 'vee-validate'
 // eslint-disable-next-line camelcase
 import { required, email, min, max, is_not } from 'vee-validate/dist/rules'
+import { checkUsername } from '@/graphql/queries'
 
-export const loadAllRules = (i18nCallback) => {
+export const loadAllRules = (i18nCallback, apollo) => {
   configure({
     defaultMessage: (field, values) => {
       // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
@@ -96,7 +97,7 @@ export const loadAllRules = (i18nCallback) => {
     message: (_, values) => i18nCallback.t('site.signup.one_number', values),
   })
 
-  extend('atLeastEightCharactera', {
+  extend('atLeastEightCharacters', {
     validate(value) {
       return !!value.match(/.{8,}/)
     },
@@ -128,13 +129,33 @@ export const loadAllRules = (i18nCallback) => {
     validate(value) {
       return !!value.match(/^[a-zA-Z0-9_-]+$/)
     },
-    message: (_, values) => i18nCallback.t('form.validation.usernmae-allowed-chars', values),
+    message: (_, values) => i18nCallback.t('form.validation.username-allowed-chars', values),
   })
 
   extend('usernameHyphens', {
     validate(value) {
       return !!value.match(/^[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9])*$/)
     },
-    message: (_, values) => i18nCallback.t('form.validation.usernmae-hyphens', values),
+    message: (_, values) => i18nCallback.t('form.validation.username-hyphens', values),
+  })
+
+  extend('usernameUnique', {
+    validate(value) {
+      if (value.match(/^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9])*$/)) {
+        return apollo
+          .query({
+            query: checkUsername,
+            variables: { username: value },
+          })
+          .then(({ data }) => {
+            return {
+              valid: data.checkUsername,
+            }
+          })
+      } else {
+        return false
+      }
+    },
+    message: (_, values) => i18nCallback.t('form.validation.username-unique', values),
   })
 }

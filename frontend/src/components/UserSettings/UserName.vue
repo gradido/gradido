@@ -16,7 +16,7 @@
     </div>
 
     <div>
-      <validation-observer ref="observer" v-slot="{ handleSubmit, invalid }">
+      <validation-observer ref="usernameObserver" v-slot="{ handleSubmit, invalid }">
         <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
           <b-row class="mb-3">
             <b-col class="col-12">
@@ -38,6 +38,8 @@
                 :name="$t('form.username')"
                 :placeholder="$t('form.username-placeholder')"
                 :showAllErrors="true"
+                :unique="true"
+                :rules="rules"
               />
             </b-col>
           </b-row>
@@ -48,7 +50,6 @@
                   :variant="disabled(invalid) ? 'light' : 'success'"
                   @click="onSubmit"
                   type="submit"
-                  class="mt-4"
                   :disabled="disabled(invalid)"
                 >
                   {{ $t('form.save') }}
@@ -74,11 +75,20 @@ export default {
     return {
       showUserData: true,
       username: this.$store.state.username || '',
+      usernameUnique: false,
+      rules: {
+        required: true,
+        min: 3,
+        max: 20,
+        usernameAllowedChars: true,
+        usernameHyphens: true,
+        usernameUnique: true,
+      },
     }
   },
   methods: {
     cancelEdit() {
-      this.username = this.$store.state.username
+      this.username = this.$store.state.username || ''
       this.showUserData = true
     },
     async onSubmit(event) {

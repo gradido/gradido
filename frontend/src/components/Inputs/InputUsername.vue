@@ -5,6 +5,7 @@
     :name="name"
     :bails="!showAllErrors"
     :immediate="immediate"
+    vid="username"
     v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
   >
     <b-form-group :label-for="labelFor">
@@ -41,10 +42,6 @@ export default {
       default: () => {
         return {
           required: true,
-          min: 3,
-          max: 20,
-          usernameAllowedChars: true,
-          usernameHyphens: true,
         }
       },
     },
@@ -54,6 +51,7 @@ export default {
     value: { required: true, type: String },
     showAllErrors: { type: Boolean, default: false },
     immediate: { type: Boolean, default: false },
+    unique: { type: Boolean, required: true },
   },
   data() {
     return {

@@ -89,6 +89,12 @@ export const queryOptIn = gql`
   }
 `
 
+export const checkUsername = gql`
+  query($username: String!) {
+    checkUsername(username: $username)
+  }
+`
+
 export const queryTransactionLink = gql`
   query($code: String!) {
     queryTransactionLink(code: $code) {
