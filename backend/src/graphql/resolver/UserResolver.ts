@@ -498,6 +498,17 @@ export class UserResolver {
     return true
   }
 
+  @Authorized([RIGHTS.CHECK_USERNAME])
+  @Query(() => Boolean)
+  async checkUsername(@Arg('username') username: string): Promise<boolean> {
+    try {
+      await validateAlias(username)
+      return true
+    } catch {
+      return false
+    }
+  }
+
   @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
   async updateUserInfos(
