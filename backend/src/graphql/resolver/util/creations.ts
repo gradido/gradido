@@ -29,10 +29,12 @@ export const validateContribution = (
     throw new LogError('No information for available creations for the given date', creationDate)
   }
 
+  // eslint-disable-next-line security/detect-object-injection
   if (amount.greaterThan(creations[index].toString())) {
     throw new LogError(
       'The amount to be created exceeds the amount still available for this month',
       amount,
+      // eslint-disable-next-line security/detect-object-injection
       creations[index],
     )
   }
@@ -151,6 +153,7 @@ export const updateCreations = (
   if (index < 0) {
     throw new LogError('You cannot create GDD for a month older than the last three months')
   }
+  // eslint-disable-next-line security/detect-object-injection
   creations[index] = creations[index].plus(contribution.amount.toString())
   return creations
 }
@@ -169,6 +172,7 @@ export const getOpenCreations = async (
     return {
       month: date.getMonth(),
       year: date.getFullYear(),
+      // eslint-disable-next-line security/detect-object-injection
       amount: creations[index],
     }
   })

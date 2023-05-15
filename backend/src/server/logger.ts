@@ -7,6 +7,7 @@ import { configure, getLogger } from 'log4js'
 
 import { CONFIG } from '@/config'
 
+// eslint-disable-next-line security/detect-non-literal-fs-filename
 const options = JSON.parse(readFileSync(CONFIG.LOG4JS_CONFIG, 'utf-8'))
 
 options.categories.backend.level = CONFIG.LOG_LEVEL

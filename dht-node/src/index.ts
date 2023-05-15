@@ -3,7 +3,6 @@ import { startDHT } from '@/dht_node/index'
 
 // config
 import CONFIG from './config'
-import DEVOP from './config/devop'
 import { logger } from './server/logger'
 import connection from './typeorm/connection'
 import { checkDBVersion } from './typeorm/DBVersion'
@@ -22,24 +21,13 @@ async function main() {
     logger.fatal('Fatal: Database Version incorrect')
     throw new Error('Fatal: Database Version incorrect')
   }
-  // first read from .env.devop if exist
-  let dhttopic = DEVOP.FEDERATION_DHT_TOPIC
-  logger.debug('dhttopic set by DEVOP.FEDERATION_DHT_TOPIC={}', DEVOP.FEDERATION_DHT_TOPIC)
-  if (!dhttopic) {
-    dhttopic = CONFIG.FEDERATION_DHT_TOPIC
-    logger.debug(
-      'dhttopic overwritten by CONFIG.FEDERATION_DHT_TOPIC={}',
-      CONFIG.FEDERATION_DHT_TOPIC,
-    )
-  }
-  let dhtseed = DEVOP.FEDERATION_DHT_SEED
-  logger.debug('dhtseed set by DEVOP.FEDERATION_DHT_SEED={}', DEVOP.FEDERATION_DHT_SEED)
-  if (!dhtseed) {
-    dhtseed = CONFIG.FEDERATION_DHT_SEED
-    logger.debug('dhtseed overwritten by CONFIG.FEDERATION_DHT_SEED={}', CONFIG.FEDERATION_DHT_SEED)
-  }
-  logger.info(`starting Federation on ${dhttopic} ${dhtseed ? 'with seed...' : 'without seed...'}`)
-  await startDHT(dhttopic)
+  logger.debug(`dhtseed set by CONFIG.FEDERATION_DHT_SEED=${CONFIG.FEDERATION_DHT_SEED}`)
+  logger.info(
+    `starting Federation on ${CONFIG.FEDERATION_DHT_TOPIC} ${
+      CONFIG.FEDERATION_DHT_SEED ? 'with seed...' : 'without seed...'
+    }`,
+  )
+  await startDHT(CONFIG.FEDERATION_DHT_TOPIC)
 }
 
 main().catch((e) => {

@@ -6,11 +6,8 @@ import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCom
 
 import { backendLogger as logger } from '@/server/logger'
 
-// eslint-disable-next-line camelcase
-import { FederationClientImpl as V1_0_FederationClientImpl } from './client/1_0/FederationClientImpl'
-// eslint-disable-next-line camelcase
-import { FederationClientImpl as V1_1_FederationClientImpl } from './client/1_1/FederationClientImpl'
-import { FederationClient, PublicCommunityInfo } from './client/FederationClient'
+import { Client } from './client/Client'
+import { PublicCommunityInfo } from './client/Client_1_1'
 import { ApiVersionType } from './enum/apiVersionType'
 
 export function startValidateCommunities(timerInterval: number): void {
@@ -37,51 +34,30 @@ export async function validateCommunities(): Promise<void> {
     logger.debug('Federation: dbCom', dbCom)
     const apiValueStrings: string[] = Object.values(ApiVersionType)
     logger.debug(`suppported ApiVersions=`, apiValueStrings)
-    if (apiValueStrings.includes(dbCom.apiVersion)) {
-      logger.debug(
-        `Federation: validate publicKey for dbCom: ${dbCom.id} with apiVersion=${dbCom.apiVersion}`,
-      )
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const pubKey = await getVersionedFederationClient(dbCom.apiVersion).requestGetPublicKey(
-          dbCom,
-        )
-        logger.info(
-          'Federation: received publicKey from endpoint',
-          pubKey,
-          `${dbCom.endPoint}/${dbCom.apiVersion}`,
-        )
-        if (pubKey && pubKey === dbCom.publicKey.toString()) {
-          logger.info(`Federation: matching publicKey:  ${pubKey}`)
-          await DbFederatedCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
-          logger.debug(`Federation: updated dbCom:  ${JSON.stringify(dbCom)}`)
-
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          const pubInfo = await getVersionedFederationClient(
-            dbCom.apiVersion,
-          ).requestGetPublicCommunityInfo(dbCom)
-          logger.debug(`Federation: getPublicInfo pubInfo:  ${JSON.stringify(pubInfo)}`)
-          if (pubInfo) {
-            logger.info(`Federation: write foreign community...`)
-            await writeForeignCommunity(dbCom, pubInfo)
-            logger.info(`Federation: write foreign community... successfully`)
-          }
-        } else {
-          logger.warn(
-            `Federation: received not matching publicKey -> received: ${
-              pubKey || 'null'
-            }, expected: ${dbCom.publicKey.toString()} `,
-          )
-          // DbCommunity.delete({ id: dbCom.id })
+    if (!apiValueStrings.includes(dbCom.apiVersion)) {
+      logger.warn('Federation: dbCom with unsupported apiVersion', dbCom.endPoint, dbCom.apiVersion)
+      continue
+    }
+    try {
+      const client = Client.getInstance(dbCom)
+      const pubKey = await client?.getPublicKey()
+      if (pubKey && pubKey === dbCom.publicKey.toString()) {
+        await DbFederatedCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
+        logger.info('Federation: verified community', dbCom)
+        const pubComInfo = await client?.getPublicCommunityInfo()
+        if (pubComInfo) {
+          await writeForeignCommunity(dbCom, pubComInfo)
+          logger.info(`Federation: write foreign community... successfully`)
         }
-      } catch (err) {
-        logger.error(`Error:`, err)
+      } else {
+        logger.warn(
+          'Federation: received not matching publicKey:',
+          pubKey,
+          dbCom.publicKey.toString(),
+        )
       }
-    } else {
-      logger.warn(
-        `Federation: dbCom: ${dbCom.id} with unsupported apiVersion=${dbCom.apiVersion}; supported versions`,
-        apiValueStrings,
-      )
+    } catch (err) {
+      logger.error(`Error:`, err)
     }
   }
 }
@@ -108,19 +84,5 @@ async function writeForeignCommunity(
     com.publicKey = dbCom.publicKey
     com.url = dbCom.endPoint
     await DbCommunity.save(com)
-  }
-}
-
-function getVersionedFederationClient(apiVersion: string): FederationClient {
-  switch (apiVersion) {
-    case ApiVersionType.V1_0:
-      // eslint-disable-next-line camelcase
-      return new V1_0_FederationClientImpl()
-    case ApiVersionType.V1_1:
-      // eslint-disable-next-line camelcase
-      return new V1_1_FederationClientImpl()
-    default:
-      // eslint-disable-next-line camelcase
-      return new V1_0_FederationClientImpl()
   }
 }

@@ -1,6 +1,5 @@
 /node_modules/
 /.env
-/.env.devop
 /.env.bak
 /build/
 package-json.lock
