@@ -84,7 +84,8 @@ describe('validate Communities', () => {
       })
       it('logs requestGetPublicKey for community api 1_0 ', () => {
         expect(logger.info).toBeCalledWith(
-          `requestGetPublicKey with endpoint='http//localhost:5001/api/1_0/'...`,
+          'Federation: getPublicKey from endpoint',
+          'http//localhost:5001/api/1_0/',
         )
       })
     })
@@ -114,12 +115,14 @@ describe('validate Communities', () => {
       })
       it('logs requestGetPublicKey for community api 1_0 ', () => {
         expect(logger.info).toBeCalledWith(
-          `requestGetPublicKey with endpoint='http//localhost:5001/api/1_0/'...`,
+          'Federation: getPublicKey from endpoint',
+          'http//localhost:5001/api/1_0/',
         )
       })
       it('logs requestGetPublicKey for community api 1_1 ', () => {
         expect(logger.info).toBeCalledWith(
-          `requestGetPublicKey with endpoint='http//localhost:5001/api/1_1/'...`,
+          'Federation: getPublicKey from endpoint',
+          'http//localhost:5001/api/1_1/',
         )
       })
     })
@@ -152,18 +155,21 @@ describe('validate Communities', () => {
       })
       it('logs requestGetPublicKey for community api 1_0 ', () => {
         expect(logger.info).toBeCalledWith(
-          `requestGetPublicKey with endpoint='http//localhost:5001/api/1_0/'...`,
+          'Federation: getPublicKey from endpoint',
+          'http//localhost:5001/api/1_0/',
         )
       })
       it('logs requestGetPublicKey for community api 1_1 ', () => {
         expect(logger.info).toBeCalledWith(
-          `requestGetPublicKey with endpoint='http//localhost:5001/api/1_1/'...`,
+          'Federation: getPublicKey from endpoint',
+          'http//localhost:5001/api/1_1/',
         )
       })
       it('logs unsupported api for community with api 2_0 ', () => {
         expect(logger.warn).toBeCalledWith(
-          `Federation: dbCom: ${dbCom.id} with unsupported apiVersion=2_0; supported versions`,
-          ['1_0', '1_1'],
+          'Federation: dbCom with unsupported apiVersion',
+          dbCom.endPoint,
+          '2_0',
         )
       })
     })
