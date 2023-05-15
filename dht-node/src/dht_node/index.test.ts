@@ -163,7 +163,7 @@ describe('federation', () => {
       })
 
       describe('home community', () => {
-        it('one in communities', async () => {
+        it('one in table communities', async () => {
           const result = await DbCommunity.find({ foreign: false })
           expect(result).toEqual(
             expect.arrayContaining([
@@ -191,7 +191,7 @@ describe('federation', () => {
           expect(valUUID).toEqual(true)
           expect(verUUID).toEqual(4)
         })
-        it('update the one in communities', async () => {
+        it('update the one in table communities', async () => {
           const resultBefore = await DbCommunity.find({ foreign: false })
           expect(resultBefore).toHaveLength(1)
           const modifiedCom = DbCommunity.create()
@@ -230,8 +230,9 @@ describe('federation', () => {
         })
       })
 
+      // skipped because ot timing problems in testframework
       describe.skip('federated home community', () => {
-        it('three in federated_communities', async () => {
+        it('three in table federated_communities', async () => {
           const homeApiVersions: CommunityApi[] = await writeFederatedHomeCommunityEntries(
             keyPairMock.publicKey.toString('hex'),
           )
