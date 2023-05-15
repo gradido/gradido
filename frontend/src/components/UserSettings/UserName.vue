@@ -33,7 +33,11 @@
               </div>
             </b-col>
             <b-col v-else class="col-12">
-              <input-username v-model="username" />
+              <input-username
+                v-model="username"
+                :name="$t('form.username')"
+                :placeholder="$t('form.username-placeholder')"
+              />
             </b-col>
           </b-row>
           <b-row class="text-right" v-if="!showUserData">

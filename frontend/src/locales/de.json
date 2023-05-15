@@ -167,6 +167,7 @@
     "to": "bis",
     "to1": "an",
     "username": "Nutzername",
+    "username-placeholder": "Gebe einen eindeutigen Nutzernamen ein",
     "validation": {
       "gddCreationTime": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens einer Nachkommastelle sein",
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",

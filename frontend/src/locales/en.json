@@ -167,6 +167,7 @@
     "to": "to",
     "to1": "to",
     "username": "Username",
+    "username-placeholder": "Enter a unique username",
     "validation": {
       "gddCreationTime": "The field {_field_} must be a number between {min} and {max} with at most one decimal place.",
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point",
