@@ -86,7 +86,7 @@ describe('sendEmailVariants', () => {
             senderLastName: 'Bloxberg',
             contributionMemo: 'My contribution.',
             overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
-            supportEmail: 'support@gradido.net',
+            supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
             communityURL: CONFIG.COMMUNITY_URL,
           },
         })
@@ -392,8 +392,8 @@ describe('sendEmailVariants', () => {
           expect(result.originalMessage.html).toContain(
             'If you did not try to register again, please contact our support:',
           )
-          expect(result.originalMessage.html).toContain('href="mailto:support@gradido.net"')
-          expect(result.originalMessage.html).toContain('>support@gradido.net</a>')
+          expect(result.originalMessage.html).toContain('href="mailto:support@supportmail.com"')
+          expect(result.originalMessage.html).toContain('>support@supportmail.com</a>')
         })
 
         it('has correct greating formula', () => {
