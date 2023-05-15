@@ -27,18 +27,8 @@
 
    .head-logo {
      position: absolute;
-     /* width: 130px; */
-     /* margin-top: 36px; */
-     max-width: 680px;
-     /* top: -11px; */
-   }
-   
-   .head-image {
-     position: absolute;
-     /* top: -11px; */
-     left: 40%;
-     width: 400 px;
-     max-width: 64%;
+     width:600px;
+     max-width:100%
    }
    
    .wrapper_head {
