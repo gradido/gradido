@@ -5,11 +5,10 @@
     :name="name"
     v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
   >
-    <b-form-group :label="label" :label-for="labelFor" data-test="input-email">
+    <b-form-group :label="label" :label-for="labelFor" data-test="input-identifier">
       <b-form-input
         v-model="currentValue"
         v-bind="ariaInput"
-        data-test="input-identifier"
         :id="labelFor"
         :name="name"
         :placeholder="placeholder"
