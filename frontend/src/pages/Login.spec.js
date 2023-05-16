@@ -29,6 +29,7 @@ describe('Login', () => {
       commit: mockStoreCommit,
       state: {
         publisherId: 12345,
+        username: 'present',
       },
     },
     $loading: {

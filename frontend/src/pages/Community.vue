@@ -287,9 +287,6 @@ export default {
       this.tabIndex = 0
       this.$router.push({ params: { tab: 'contribute' } })
     },
-    updateTransactions(pagination) {
-      this.$emit('update-transactions', pagination)
-    },
     updateState(id) {
       this.items.find((item) => item.id === id).state = 'PENDING'
     },
