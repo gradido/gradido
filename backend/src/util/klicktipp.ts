@@ -1,14 +1,9 @@
 // eslint-disable @typescript-eslint/no-explicit-any
-import { Connection } from '@dbTools/typeorm'
-import { Event as DbEvent } from '@entity/Event'
 import { User } from '@entity/User'
-import { UserContact } from '@entity/UserContact'
 
 import { getKlickTippUser, addFieldsToSubscriber } from '@/apis/KlicktippController'
 import { EventType } from '@/event/EventType'
 import { lastDateTimeEvents } from '@/graphql/resolver/util/eventList'
-import { LogError } from '@/server/LogError'
-import { getConnection } from '@/typeorm/connection'
 
 export async function retrieveNotRegisteredEmails(): Promise<string[]> {
   const users = await User.find({ relations: ['emailContact'] })

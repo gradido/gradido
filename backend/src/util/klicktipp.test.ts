@@ -4,7 +4,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Connection } from '@dbTools/typeorm'
 import { Event as DbEvent } from '@entity/Event'
-import { User as DbUser } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { testEnvironment, cleanDB, resetToken } from '@test/helpers'
@@ -19,32 +18,9 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 
 import { exportEventDataToKlickTipp } from './klicktipp'
 
-/*
-jest.mock('@/apis/KlicktippController', () => {
-  const originalModule = jest.requireActual('@/apis/KlicktippController')
-  return {
-    __esModule: true,
-    ...originalModule,
-    getKlickTippUser: jest.fn((email) => originalModule.getKlickTippUser(email)),
-    addFieldsToSubscriber: jest.fn((email, a) => originalModule.addFieldsToSubscriber(email, a)),
-  }
-})
-*/
-
 jest.mock('@/apis/KlicktippController')
 
-// jest.mock('@/typeorm/connection', () => {
-//   const originalModule = jest.requireActual('@/typeorm/connection')
-//   return {
-//     __esModule: true,
-//     ...originalModule,
-//     connection: jest.fn(() => Promise.resolve(con)),
-//   }
-// })
-
-let mutate: ApolloServerTestClient['mutate'],
-  query: ApolloServerTestClient['query'],
-  con: Connection
+let mutate: ApolloServerTestClient['mutate'], con: Connection
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
@@ -54,7 +30,6 @@ let testEnv: {
 beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
-  query = testEnv.query
   con = testEnv.con
   await DbEvent.clear()
 })
