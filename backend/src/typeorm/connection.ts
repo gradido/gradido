@@ -5,7 +5,15 @@ import { entities } from '@entity/index'
 
 import { CONFIG } from '@/config'
 
-export const connection = async (): Promise<Connection | null> => {
+let connection: Connection | null
+
+export const getConnection = async (): Promise<Connection | null> => {
+  if (connection) return connection
+  connection = await createMyConnection()
+  return connection
+}
+
+const createMyConnection = async (): Promise<Connection | null> => {
   try {
     return createConnection({
       name: 'default',

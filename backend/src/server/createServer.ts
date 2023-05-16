@@ -8,7 +8,7 @@ import { Logger } from 'log4js'
 
 import { CONFIG } from '@/config'
 import { schema } from '@/graphql/schema'
-import { connection } from '@/typeorm/connection'
+import { getConnection } from '@/typeorm/connection'
 import { checkDBVersion } from '@/typeorm/DBVersion'
 import { elopageWebhook } from '@/webhook/elopage'
 
@@ -37,7 +37,7 @@ export const createServer = async (
   logger.debug('createServer...')
 
   // open mysql connection
-  const con = await connection()
+  const con = await getConnection()
   if (!con?.isConnected) {
     logger.fatal(`Couldn't open connection to database!`)
     throw new Error(`Fatal: Couldn't open connection to database`)

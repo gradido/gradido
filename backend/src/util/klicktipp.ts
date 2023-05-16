@@ -5,10 +5,10 @@ import { getKlickTippUser, addFieldsToSubscriber } from '@/apis/KlicktippControl
 import { EventType } from '@/event/EventType'
 import { lastDateTimeEvents } from '@/graphql/resolver/util/eventList'
 import { LogError } from '@/server/LogError'
-import { connection } from '@/typeorm/connection'
+import { getConnection } from '@/typeorm/connection'
 
 export async function retrieveNotRegisteredEmails(): Promise<string[]> {
-  const con = await connection()
+  const con = await getConnection()
   if (!con) {
     throw new LogError('No connection to database')
   }
@@ -40,7 +40,7 @@ async function klickTippSendFieldToUser(
 }
 
 export async function exportEventDataToKlickTipp(): Promise<void> {
-  const connectionInstance = await connection()
+  const connectionInstance = await getConnection()
   if (!connectionInstance) {
     throw new LogError('No connection to database')
   }
