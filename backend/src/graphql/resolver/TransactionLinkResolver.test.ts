@@ -1040,6 +1040,7 @@ describe('TransactionLinkResolver', () => {
     })
 
     it('returns a string that ends with the hex value of date', () => {
+      // eslint-disable-next-line security/detect-non-literal-regexp
       const regexp = new RegExp(date.getTime().toString(16) + '$')
       expect(transactionLinkCode(date)).toEqual(expect.stringMatching(regexp))
     })

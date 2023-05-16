@@ -115,6 +115,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   ) {
     const email = loginElopageBuy.payerEmail
 
+    // eslint-disable-next-line security/detect-unsafe-regex
     const VALIDATE_EMAIL = /^[a-zA-Z0-9.!#$%&?*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
     const VALIDATE_NAME = /^<>&;]{2,}$/
 

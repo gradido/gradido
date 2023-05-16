@@ -73,6 +73,7 @@ import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
+import { validateAlias } from './util/validateAlias'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const random = require('random-bigint')
@@ -504,6 +505,7 @@ export class UserResolver {
     {
       firstName,
       lastName,
+      alias,
       language,
       password,
       passwordNew,
@@ -521,6 +523,10 @@ export class UserResolver {
 
     if (lastName) {
       user.lastName = lastName
+    }
+
+    if (alias && (await validateAlias(alias))) {
+      user.alias = alias
     }
 
     if (language) {

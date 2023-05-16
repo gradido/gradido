@@ -34,6 +34,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 
 import { executeTransaction } from './TransactionResolver'
@@ -266,6 +267,8 @@ export class TransactionLinkResolver {
           transaction.typeId = TransactionTypeId.CREATION
           transaction.memo = contribution.memo
           transaction.userId = contribution.userId
+          transaction.userGradidoID = user.gradidoID
+          transaction.userName = fullName(user.firstName, user.lastName)
           transaction.previous = lastTransaction ? lastTransaction.id : null
           transaction.amount = contribution.amount
           transaction.creationDate = contribution.contributionDate
