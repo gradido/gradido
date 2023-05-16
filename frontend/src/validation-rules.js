@@ -141,7 +141,7 @@ export const loadAllRules = (i18nCallback, apollo) => {
 
   extend('usernameUnique', {
     validate(value) {
-      if (value.match(/^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9])*$/)) {
+      if (value.match(/^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/)) {
         return apollo
           .query({
             query: checkUsername,

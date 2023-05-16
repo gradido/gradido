@@ -3,7 +3,8 @@ import { User as DbUser } from '@entity/User'
 
 import { LogError } from '@/server/LogError'
 
-export const validAliasRegex = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9])*$/
+// eslint-disable-next-line security/detect-unsafe-regex
+export const validAliasRegex = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/
 
 const reservedAlias = [
   'admin',
