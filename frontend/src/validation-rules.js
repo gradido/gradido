@@ -5,9 +5,10 @@ import { checkUsername } from '@/graphql/queries'
 import { validate as validateUuid, version as versionUuid } from 'uuid'
 
 // taken from vee-validate
+// eslint-disable-next-line no-useless-escape
 const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 
-const usernameRegex = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9])*$/
+const usernameRegex = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/
 
 export const loadAllRules = (i18nCallback, apollo) => {
   configure({
@@ -147,7 +148,7 @@ export const loadAllRules = (i18nCallback, apollo) => {
 
   extend('usernameUnique', {
     validate(value) {
-      if (value.match(/^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/)) {
+      if (value.match(usernameRegex)) {
         return apollo
           .query({
             query: checkUsername,
@@ -169,8 +170,8 @@ export const loadAllRules = (i18nCallback, apollo) => {
     validate(value) {
       const isEmail = !!value.match(emailRegex)
       const isUsername = !!value.match(usernameRegex)
-      // const isGradidoId = validateUuid(value) && versionUuid(value) === 4
-      return isEmail || isUsername // || isGradidoId
+      const isGradidoId = validateUuid(value) && versionUuid(value) === 4
+      return isEmail || isUsername || isGradidoId
     },
     message: (_, values) => i18nCallback.t('form.validation.valid-identifier', values),
   })
