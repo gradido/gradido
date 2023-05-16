@@ -153,6 +153,7 @@
     "password_new_repeat": "Repeat new password",
     "password_old": "Old password",
     "recipient": "Recipient",
+    "recipientCommunity": "Community of the recipient",
     "reply": "Reply",
     "reset": "Reset",
     "save": "Save",
