@@ -1,4 +1,5 @@
 // eslint-disable @typescript-eslint/no-explicit-any
+import { Connection } from '@dbTools/typeorm'
 import { User } from '@entity/User'
 
 import { getKlickTippUser, addFieldsToSubscriber } from '@/apis/KlicktippController'
@@ -39,6 +40,10 @@ async function klickTippSendFieldToUser(
   }
 }
 
+function getMyConnection(): Promise<Connection | null> {
+  return connection()
+}
+
 export async function exportEventDataToKlickTipp(): Promise<void> {
   const connectionInstance = await getConnection()
   if (!connectionInstance) {
@@ -46,22 +51,24 @@ export async function exportEventDataToKlickTipp(): Promise<void> {
   }
 
   const lastLoginEvents = await lastDateTimeEvents(EventType.USER_LOGIN)
-  void klickTippSendFieldToUser(lastLoginEvents, 'field186060')
+  await klickTippSendFieldToUser(lastLoginEvents, 'field186060')
 
   const registeredEvents = await lastDateTimeEvents(EventType.USER_ACTIVATE_ACCOUNT)
-  void klickTippSendFieldToUser(registeredEvents, 'field186061')
+  await klickTippSendFieldToUser(registeredEvents, 'field186061')
 
   const receiveTransactionEvents = await lastDateTimeEvents(EventType.TRANSACTION_RECEIVE)
-  void klickTippSendFieldToUser(receiveTransactionEvents, 'field185674')
+  await klickTippSendFieldToUser(receiveTransactionEvents, 'field185674')
 
   const contributionCreateEvents = await lastDateTimeEvents(EventType.TRANSACTION_SEND)
-  void klickTippSendFieldToUser(contributionCreateEvents, 'field185673')
+  await klickTippSendFieldToUser(contributionCreateEvents, 'field185673')
 
   const linkRedeemedEvents = await lastDateTimeEvents(EventType.TRANSACTION_LINK_REDEEM)
-  void klickTippSendFieldToUser(linkRedeemedEvents, 'field185676')
+  await klickTippSendFieldToUser(linkRedeemedEvents, 'field185676')
 
   const confirmContributionEvents = await lastDateTimeEvents(EventType.ADMIN_CONTRIBUTION_CONFIRM)
-  void klickTippSendFieldToUser(confirmContributionEvents, 'field185675')
+  await klickTippSendFieldToUser(confirmContributionEvents, 'field185675')
+
+  await connectionInstance.close()
 }
 void exportEventDataToKlickTipp()
 // void retrieveNotRegisteredEmails()
