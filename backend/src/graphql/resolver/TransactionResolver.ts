@@ -323,6 +323,7 @@ export class TransactionResolver {
     }
 
     // TODO this is subject to replay attacks
+    // --- WHY?
     const senderUser = getUser(context)
 
     // validate recipient user

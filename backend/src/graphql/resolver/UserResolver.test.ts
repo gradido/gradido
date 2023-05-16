@@ -2358,15 +2358,21 @@ describe('UserResolver', () => {
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
+        await mutate({
+          mutation: updateUserInfos,
+          variables: {
+            alias: 'bibi',
+          },
+        })
       })
 
-      describe('identifier is no gradido ID and no email', () => {
+      describe('identifier is no gradido ID, no email and no alias', () => {
         it('throws and logs "Unknown identifier type" error', async () => {
           await expect(
             query({
               query: userQuery,
               variables: {
-                identifier: 'identifier',
+                identifier: 'identifier_is_no_valid_alias!',
               },
             }),
           ).resolves.toEqual(
@@ -2374,7 +2380,10 @@ describe('UserResolver', () => {
               errors: [new GraphQLError('Unknown identifier type')],
             }),
           )
-          expect(logger.error).toBeCalledWith('Unknown identifier type', 'identifier')
+          expect(logger.error).toBeCalledWith(
+            'Unknown identifier type',
+            'identifier_is_no_valid_alias!',
+          )
         })
       })
 
@@ -2426,6 +2435,29 @@ describe('UserResolver', () => {
               query: userQuery,
               variables: {
                 identifier: user.gradidoID,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                user: {
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                },
+              },
+              errors: undefined,
+            }),
+          )
+        })
+      })
+
+      describe('identifier is found via alias', () => {
+        it('returns user', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: 'bibi',
               },
             }),
           ).resolves.toEqual(
