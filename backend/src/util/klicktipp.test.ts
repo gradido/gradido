@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Connection } from '@dbTools/typeorm'
 import { Event as DbEvent } from '@entity/Event'
+import { User as DbUser } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { testEnvironment, cleanDB, resetToken } from '@test/helpers'
@@ -15,10 +16,10 @@ import { userFactory } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { connection } from '@/typeorm/connection'
 
 import { exportEventDataToKlickTipp } from './klicktipp'
 
+/*
 jest.mock('@/apis/KlicktippController', () => {
   const originalModule = jest.requireActual('@/apis/KlicktippController')
   return {
@@ -28,6 +29,9 @@ jest.mock('@/apis/KlicktippController', () => {
     addFieldsToSubscriber: jest.fn((email, a) => originalModule.addFieldsToSubscriber(email, a)),
   }
 })
+*/
+
+jest.mock('@/apis/KlicktippController')
 
 // jest.mock('@/typeorm/connection', () => {
 //   const originalModule = jest.requireActual('@/typeorm/connection')
@@ -71,8 +75,7 @@ describe('klicktipp', () => {
       mutation: login,
       variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
     })
-    await con.close()
-    void exportEventDataToKlickTipp()
+    // await con.close()
   })
 
   afterAll(() => {
@@ -80,7 +83,10 @@ describe('klicktipp', () => {
   })
 
   describe('exportEventDataToKlickTipp', () => {
-    it('calls the KlicktippController', () => {
+    it('calls the KlicktippController', async () => {
+      // console.log(await lastDateTimeEvents('USER_LOGIN'))
+      // console.log(con)
+      await exportEventDataToKlickTipp()
       expect(addFieldsToSubscriber).toBeCalled()
     })
   })

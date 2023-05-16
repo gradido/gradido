@@ -1,6 +1,8 @@
 // eslint-disable @typescript-eslint/no-explicit-any
 import { Connection } from '@dbTools/typeorm'
+import { Event as DbEvent } from '@entity/Event'
 import { User } from '@entity/User'
+import { UserContact } from '@entity/UserContact'
 
 import { getKlickTippUser, addFieldsToSubscriber } from '@/apis/KlicktippController'
 import { EventType } from '@/event/EventType'
@@ -9,10 +11,6 @@ import { LogError } from '@/server/LogError'
 import { getConnection } from '@/typeorm/connection'
 
 export async function retrieveNotRegisteredEmails(): Promise<string[]> {
-  const con = await getConnection()
-  if (!con) {
-    throw new LogError('No connection to database')
-  }
   const users = await User.find({ relations: ['emailContact'] })
   const notRegisteredUser = []
   for (const user of users) {
@@ -24,7 +22,6 @@ export async function retrieveNotRegisteredEmails(): Promise<string[]> {
       console.log(`${user.emailContact.email}`)
     }
   }
-  await con.close()
   // eslint-disable-next-line no-console
   console.log('User die nicht bei KlickTipp vorhanden sind: ', notRegisteredUser)
   return notRegisteredUser
@@ -40,16 +37,7 @@ async function klickTippSendFieldToUser(
   }
 }
 
-function getMyConnection(): Promise<Connection | null> {
-  return connection()
-}
-
-export async function exportEventDataToKlickTipp(): Promise<void> {
-  const connectionInstance = await getConnection()
-  if (!connectionInstance) {
-    throw new LogError('No connection to database')
-  }
-
+export async function exportEventDataToKlickTipp(): Promise<boolean> {
   const lastLoginEvents = await lastDateTimeEvents(EventType.USER_LOGIN)
   await klickTippSendFieldToUser(lastLoginEvents, 'field186060')
 
@@ -68,7 +56,8 @@ export async function exportEventDataToKlickTipp(): Promise<void> {
   const confirmContributionEvents = await lastDateTimeEvents(EventType.ADMIN_CONTRIBUTION_CONFIRM)
   await klickTippSendFieldToUser(confirmContributionEvents, 'field185675')
 
-  await connectionInstance.close()
+  return true
 }
-void exportEventDataToKlickTipp()
+
+// void exportEventDataToKlickTipp()
 // void retrieveNotRegisteredEmails()

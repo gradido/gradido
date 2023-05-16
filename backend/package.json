@@ -15,7 +15,7 @@
     "lint": "eslint --max-warnings=0 .",
     "test": "cross-env TZ=UTC NODE_ENV=development jest --runInBand --forceExit --detectOpenHandles",
     "seed": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/index.ts",
-    "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/klicktipp.ts",
+    "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/executeKlicktipp.ts",
     "locales": "scripts/sort.sh"
   },
   "dependencies": {
