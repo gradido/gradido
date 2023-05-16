@@ -51,10 +51,10 @@
                   <b-row>
                     <b-col cols="12" v-if="radioSelected === sendTypes.send">
                       <div v-if="!gradidoID">
-                        <input-email
+                        <input-identifier
                           :name="$t('form.recipient')"
                           :label="$t('form.recipient')"
-                          :placeholder="$t('form.email')"
+                          :placeholder="$t('form.identifier')"
                           v-model="form.identifier"
                           :disabled="isBalanceDisabled"
                           @onValidation="onValidation"
@@ -125,108 +125,108 @@
   </div>
 </template>
 <script>
-import { SEND_TYPES } from '@/pages/Send'
-import InputEmail from '@/components/Inputs/InputEmail'
-import InputAmount from '@/components/Inputs/InputAmount'
-import InputTextarea from '@/components/Inputs/InputTextarea'
-import { user as userQuery } from '@/graphql/queries'
-import { isEmpty } from 'lodash'
+ import { SEND_TYPES } from '@/pages/Send'
+ import InputIdentifier from '@/components/Inputs/InputIdentifier'
+ import InputAmount from '@/components/Inputs/InputAmount'
+ import InputTextarea from '@/components/Inputs/InputTextarea'
+ import { user as userQuery } from '@/graphql/queries'
+ import { isEmpty } from 'lodash'
 
-export default {
-  name: 'TransactionForm',
-  components: {
-    InputEmail,
-    InputAmount,
-    InputTextarea,
-  },
-  props: {
-    balance: { type: Number, default: 0 },
-    identifier: { type: String, default: '' },
-    amount: { type: Number, default: 0 },
-    memo: { type: String, default: '' },
-    selected: { type: String, default: 'send' },
-  },
-  data() {
-    return {
-      form: {
-        identifier: this.identifier,
-        amount: this.amount ? String(this.amount) : '',
-        memo: this.memo,
-      },
-      radioSelected: this.selected,
-      userName: '',
-    }
-  },
-  methods: {
-    onValidation() {
-      this.$refs.formValidator.validate()
-    },
-    onSubmit() {
-      if (this.gradidoID) this.form.identifier = this.gradidoID
-      this.$emit('set-transaction', {
-        selected: this.radioSelected,
-        identifier: this.form.identifier,
-        amount: Number(this.form.amount.replace(',', '.')),
-        memo: this.form.memo,
-        userName: this.userName,
-      })
-    },
-    onReset(event) {
-      event.preventDefault()
-      this.form.identifier = ''
-      this.form.amount = ''
-      this.form.memo = ''
-      this.$refs.formValidator.validate()
-      if (this.$route.query && !isEmpty(this.$route.query))
-        this.$router.replace({ query: undefined })
-    },
-  },
-  apollo: {
-    UserName: {
-      query() {
-        return userQuery
-      },
-      fetchPolicy: 'network-only',
-      variables() {
-        return { identifier: this.gradidoID }
-      },
-      skip() {
-        return !this.gradidoID
-      },
-      update({ user }) {
-        this.userName = `${user.firstName} ${user.lastName}`
-      },
-      error({ message }) {
-        this.toastError(message)
-      },
-    },
-  },
-  computed: {
-    disabled() {
-      if (
-        this.form.identifier.length > 5 &&
-        parseInt(this.form.amount) <= parseInt(this.balance) &&
-        this.form.memo.length > 5 &&
-        this.form.memo.length <= 255
-      ) {
-        return false
-      }
-      return true
-    },
-    isBalanceDisabled() {
-      return this.balance <= 0 ? 'disabled' : false
-    },
-    sendTypes() {
-      return SEND_TYPES
-    },
-    gradidoID() {
-      return this.$route.query && this.$route.query.gradidoID
-    },
-  },
-  mounted() {
-    if (this.form.identifier !== '') this.$refs.formValidator.validate()
-  },
-}
+ export default {
+   name: 'TransactionForm',
+   components: {
+     InputIdentifier,
+     InputAmount,
+     InputTextarea,
+   },
+   props: {
+     balance: { type: Number, default: 0 },
+     identifier: { type: String, default: '' },
+     amount: { type: Number, default: 0 },
+     memo: { type: String, default: '' },
+     selected: { type: String, default: 'send' },
+   },
+   data() {
+     return {
+       form: {
+         identifier: this.identifier,
+         amount: this.amount ? String(this.amount) : '',
+         memo: this.memo,
+       },
+       radioSelected: this.selected,
+       userName: '',
+     }
+   },
+   methods: {
+     onValidation() {
+       this.$refs.formValidator.validate()
+     },
+     onSubmit() {
+       if (this.gradidoID) this.form.identifier = this.gradidoID
+       this.$emit('set-transaction', {
+         selected: this.radioSelected,
+         identifier: this.form.identifier,
+         amount: Number(this.form.amount.replace(',', '.')),
+         memo: this.form.memo,
+         userName: this.userName,
+       })
+     },
+     onReset(event) {
+       event.preventDefault()
+       this.form.identifier = ''
+       this.form.amount = ''
+       this.form.memo = ''
+       this.$refs.formValidator.validate()
+       if (this.$route.query && !isEmpty(this.$route.query))
+         this.$router.replace({ query: undefined })
+     },
+   },
+   apollo: {
+     UserName: {
+       query() {
+         return userQuery
+       },
+       fetchPolicy: 'network-only',
+       variables() {
+         return { identifier: this.gradidoID }
+       },
+       skip() {
+         return !this.gradidoID
+       },
+       update({ user }) {
+         this.userName = `${user.firstName} ${user.lastName}`
+       },
+       error({ message }) {
+         this.toastError(message)
+       },
+     },
+   },
+   computed: {
+     disabled() {
+       if (
+         this.form.identifier.length > 5 &&
+         parseInt(this.form.amount) <= parseInt(this.balance) &&
+         this.form.memo.length > 5 &&
+         this.form.memo.length <= 255
+       ) {
+         return false
+       }
+       return true
+     },
+     isBalanceDisabled() {
+       return this.balance <= 0 ? 'disabled' : false
+     },
+     sendTypes() {
+       return SEND_TYPES
+     },
+     gradidoID() {
+       return this.$route.query && this.$route.query.gradidoID
+     },
+   },
+   mounted() {
+     if (this.form.identifier !== '') this.$refs.formValidator.validate()
+   },
+ }
 </script>
 <style>
 span.errors {

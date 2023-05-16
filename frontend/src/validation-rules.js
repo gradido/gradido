@@ -2,6 +2,12 @@ import { configure, extend } from 'vee-validate'
 // eslint-disable-next-line camelcase
 import { required, email, min, max, is_not } from 'vee-validate/dist/rules'
 import { checkUsername } from '@/graphql/queries'
+import { validate as validateUuid, version as versionUuid } from 'uuid'
+
+// taken from vee-validate
+const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+
+const usernameRegex = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9])*$/
 
 export const loadAllRules = (i18nCallback, apollo) => {
   configure({
@@ -157,5 +163,15 @@ export const loadAllRules = (i18nCallback, apollo) => {
       }
     },
     message: (_, values) => i18nCallback.t('form.validation.username-unique', values),
+  })
+
+  extend('validIdentifier', {
+    validate(value) {
+      const isEmail = !!value.match(emailRegex)
+      const isUsername = !!value.match(usernameRegex)
+      // const isGradidoId = validateUuid(value) && versionUuid(value) === 4
+      return isEmail || isUsername // || isGradidoId
+    },
+    message: (_, values) => i18nCallback.t('form.validation.valid-identifier', values),
   })
 }
