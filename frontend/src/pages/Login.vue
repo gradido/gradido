@@ -104,7 +104,9 @@ export default {
           if (this.$route.params.code) {
             this.$router.push(`/redeem/${this.$route.params.code}`)
           } else {
-            this.$router.push('/overview')
+            this.$store.state.username
+              ? this.$router.push('/overview')
+              : this.$router.push('/settings')
           }
         })
         .catch((error) => {

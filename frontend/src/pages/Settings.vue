@@ -3,7 +3,7 @@
     <user-card :balance="balance" :transactionCount="transactionCount"></user-card>
     <user-data />
     <hr />
-    <user-name />
+    <user-name ref="usernameForm" />
     <hr />
     <user-password />
     <hr />
@@ -34,13 +34,26 @@ export default {
     balance: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
   },
+  data() {
+    return {
+      scrollToUsername: false,
+    }
+  },
   methods: {
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
     },
   },
+  mounted() {
+    if (this.scrollToUsername) {
+      this.$refs.usernameForm.$el.scrollIntoView()
+    }
+  },
   created() {
     this.updateTransactions(0)
+  },
+  beforeRouteEnter(_, from, next) {
+    next((vm) => (vm.scrollToUsername = from.path === '/login'))
   },
 }
 </script>

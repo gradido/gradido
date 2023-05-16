@@ -20,7 +20,7 @@ const mocks = {
     state: {
       firstName: 'Testy',
       lastName: 'User',
-      gradidoID: 'current-user-id',
+      username: 'te_u',
     },
   },
 }
@@ -51,24 +51,17 @@ describe('AuthNavbar', () => {
       })
 
       it("has the user's initials", () => {
-        expect(wrapper.find('.vue-avatar--wrapper').text()).toBe(
-          `${wrapper.vm.$store.state.firstName[0]}${wrapper.vm.$store.state.lastName[0]}`,
-        )
+        expect(wrapper.find('.vue-avatar--wrapper').text()).toBe('TU')
       })
     })
 
     describe('user info', () => {
       it('has the full name', () => {
-        expect(wrapper.find('div[data-test="navbar-item-username"]').text()).toBe(
-          `${wrapper.vm.$store.state.firstName} ${wrapper.vm.$store.state.lastName}`,
-        )
+        expect(wrapper.find('div[data-test="navbar-item-fullName"]').text()).toBe('Testy User')
       })
 
-      // I think this should be username
-      it.skip('has the email address', () => {
-        expect(wrapper.find('div[data-test="navbar-item-email"]').text()).toBe(
-          wrapper.vm.$store.state.email,
-        )
+      it('has the username', () => {
+        expect(wrapper.find('div[data-test="navbar-item-username"]').text()).toBe('te_u')
       })
     })
   })
