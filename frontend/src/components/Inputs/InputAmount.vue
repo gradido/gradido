@@ -7,8 +7,9 @@
       :name="name"
       v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
     >
-      <b-form-group :label="label" :label-for="labelFor" data-test="input-amount">
+      <b-form-group :label="label" :label-for="labelFor">
         <b-form-input
+          data-test="input-amount"
           v-model="currentValue"
           v-bind="ariaInput"
           :id="labelFor"

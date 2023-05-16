@@ -168,7 +168,7 @@ export const loadAllRules = (i18nCallback, apollo) => {
 
   extend('validIdentifier', {
     validate(value) {
-      const isEmail = !!value.match(emailRegex)
+      const isEmail = !!emailRegex.test(value)
       const isUsername = !!value.match(usernameRegex)
       const isGradidoId = validateUuid(value) && versionUuid(value) === 4
       return isEmail || isUsername || isGradidoId

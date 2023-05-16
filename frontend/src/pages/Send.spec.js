@@ -66,8 +66,8 @@ describe('Send', () => {
       beforeEach(async () => {
         const transactionForm = wrapper.findComponent({ name: 'TransactionForm' })
         await transactionForm.findAll('input[type="radio"]').at(0).setChecked()
-        await transactionForm.find('input[type="email"]').setValue('user@example.org')
-        await transactionForm.find('input[type="text"]').setValue('23.45')
+        await transactionForm.find('[data-test="input-identifier"]').setValue('user@example.org')
+        await transactionForm.find('[data-test="input-amount"]').setValue('23.45')
         await transactionForm.find('textarea').setValue('Make the best of it!')
         await transactionForm.find('form').trigger('submit')
         await flushPromises()
@@ -91,8 +91,10 @@ describe('Send', () => {
           })
 
           it('restores the previous data in the formular', () => {
-            expect(wrapper.find("input[type='email']").vm.$el.value).toBe('user@example.org')
-            expect(wrapper.find("input[type='text']").vm.$el.value).toBe('23.45')
+            expect(wrapper.find('[data-test="input-identifier"]').vm.$el.value).toBe(
+              'user@example.org',
+            )
+            expect(wrapper.find('[data-test="input-amount"]').vm.$el.value).toBe('23.45')
             expect(wrapper.find('textarea').vm.$el.value).toBe('Make the best of it!')
           })
         })
@@ -175,7 +177,10 @@ describe('Send', () => {
 
       it('has no email input field', () => {
         expect(
-          wrapper.findComponent({ name: 'TransactionForm' }).find('input[type="email"]').exists(),
+          wrapper
+            .findComponent({ name: 'TransactionForm' })
+            .find('[data-test="input-identifier"]')
+            .exists(),
         ).toBe(false)
       })
 
@@ -183,7 +188,7 @@ describe('Send', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
           const transactionForm = wrapper.findComponent({ name: 'TransactionForm' })
-          await transactionForm.find('input[type="text"]').setValue('34.56')
+          await transactionForm.find('[data-test="input-amount"]').setValue('34.56')
           await transactionForm.find('textarea').setValue('Make the best of it!')
           await transactionForm.find('form').trigger('submit')
           await flushPromises()
@@ -243,7 +248,7 @@ describe('Send', () => {
         })
         const transactionForm = wrapper.findComponent({ name: 'TransactionForm' })
         await transactionForm.findAll('input[type="radio"]').at(1).setChecked()
-        await transactionForm.find('input[type="text"]').setValue('56.78')
+        await transactionForm.find('[data-test="input-amount"]').setValue('56.78')
         await transactionForm.find('textarea').setValue('Make the best of the link!')
         await transactionForm.find('form').trigger('submit')
         await flushPromises()
