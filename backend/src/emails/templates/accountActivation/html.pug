@@ -1,16 +1,19 @@
 extend ../layout.pug
 
 block content
-  .w-container(class="wrapper_head")
-    h1.headline.h1= t('emails.accountActivation.title')
-    .text-block
-      include ../includes/salutation.pug
-      p= t('emails.accountActivation.emailRegistered')
-  .content.w-container
-    h2.heading= t('emails.general.completeRegistration')
+  h2= t('emails.accountActivation.title')
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.accountActivation.emailRegistered')
+  .content
+    h2= t('emails.general.completeRegistration')
     div(class="p_content")= t('emails.accountActivation.pleaseClickLink')
-    a.button-3.w-button(href=activationLink) #{t('emails.accountActivation.activateAccount')}
+    a.button-3(href=activationLink) #{t('emails.accountActivation.activateAccount')}
     div(class="p_content")= t('emails.general.orCopyLink')
-    a(href=activationLink) #{activationLink}
+
+    a.clink(href=activationLink) #{activationLink}
+    br
+    br
+    br
 
     include ../includes/requestNewLink.pug

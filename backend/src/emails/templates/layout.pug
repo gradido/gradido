@@ -16,10 +16,11 @@ html(lang=locale)
       include includes/webflow.css
   
   body
-    include includes/header.pug
+    div.container
+      include includes/header.pug
 
-    .wrapper.wf-section
-      block content
-      include includes/greeting.pug
+      .wrapper
+        block content
+        include includes/greeting.pug
 
-    include includes/footer.pug
+      include includes/footer.pug

@@ -1,21 +1,22 @@
 extend ../layout.pug
 
 block content
-  .w-container(class="wrapper_head")
-    h1.headline.h1= t('emails.accountMultiRegistration.title')
-    .text-block
-      include ../includes/salutation.pug
-      p
-        = t('emails.accountMultiRegistration.emailReused')
-        br
-        = t('emails.accountMultiRegistration.emailExists')
-  .content.w-container
-    h2.heading= t('emails.resetPassword.title')
+  h2= t('emails.accountMultiRegistration.title')
+  .text-block
+    include ../includes/salutation.pug
+    p
+      = t('emails.accountMultiRegistration.emailReused')
+      br
+      = t('emails.accountMultiRegistration.emailExists')
+  .content
+    h2= t('emails.resetPassword.title')
     div(class="p_content")= t('emails.accountMultiRegistration.onForgottenPasswordClickLink')      
-    a.button-3.w-button(href=resendLink) #{t('emails.general.reset')}
+    a.button-3(href=resendLink) #{t('emails.general.reset')}
     div(class="p_content")= t('emails.general.orCopyLink')
-    a(href=resendLink) #{resendLink}
 
-    h2.heading-2= t('emails.accountMultiRegistration.contactSupport')
+    a.clink(href=resendLink) #{resendLink}
+
+    h2(style="color: red")= t('emails.accountMultiRegistration.contactSupport')
     div(class="p_content")= t('emails.accountMultiRegistration.ifYouAreNotTheOne')
-    a(href='mailto:' + supportEmail)= supportEmail
+
+    a.clink(href='mailto:' + supportEmail)= supportEmail

@@ -1,16 +1,19 @@
 extends ../layout.pug
 
 block content
-  .w-container(class="wrapper_head")
-    h1.headline.h1= t('emails.resetPassword.title')
-    .text-block
-      include ../includes/salutation.pug
-      p= t('emails.resetPassword.youOrSomeoneResetPassword')
-  .content.w-container
-    h2.heading= t('emails.resetPassword.title')
+  h2= t('emails.resetPassword.title')
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.resetPassword.youOrSomeoneResetPassword')
+  .content
+    h2= t('emails.resetPassword.title')
     div(class="p_content")= t('emails.resetPassword.pleaseClickLink')
-    a.button-3.w-button(href=resetLink) #{t('emails.general.reset')}
+    a.button-3(href=resetLink) #{t('emails.general.reset')}
     div(class="p_content")= t('emails.general.orCopyLink')
-    a(href=resetLink) #{resetLink}
+    
+    a.clink(href=resetLink) #{resetLink}
+    br
+    br
+    br
 
     include ../includes/requestNewLink.pug

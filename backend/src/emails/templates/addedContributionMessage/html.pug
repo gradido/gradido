@@ -1,14 +1,17 @@
 extend ../layout.pug
 
 block content
-  .w-container(class="wrapper_head")
-    h1.headline.h1= t('emails.addedContributionMessage.title')
-    .text-block
-      include ../includes/salutation.pug
-      p= t('emails.addedContributionMessage.commonGoodContributionMessage', { senderFirstName, senderLastName, contributionMemo })
-  .content.w-container
-    h2.heading= t('emails.addedContributionMessage.readMessage')
+  h2= t('emails.addedContributionMessage.title')
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.addedContributionMessage.commonGoodContributionMessage', { senderFirstName, senderLastName, contributionMemo })
+  .content
+    h2= t('emails.addedContributionMessage.readMessage')
     div(class="p_content")= t('emails.addedContributionMessage.toSeeAndAnswerMessage')
-    a.button-3.w-button(href="https://gdd.gradido.net/community/contribution") #{t('emails.general.toAccount')}
-    
+
+    a.clink(href="https://gdd.gradido.net/community/contribution") #{t('emails.general.toAccount')}
+    br
+    br
+    br
+
     include ../includes/doNotReply.pug
