@@ -326,7 +326,7 @@
     "username": {
       "change-success": "Dein Nutzername wurde erfolgreich geändert.",
       "change-username": "Nutzername ändern",
-      "no-username": "Bitte gebe einen Nutzernamen ein. Damit hilfst du anderen Benutzern dich zu finden, ohne ihnen deine Email geben zu müsen."
+      "no-username": "Bitte gebe einen Nutzernamen ein. Damit hilfst du anderen Benutzern dich zu finden, ohne deine Email preisgeben zu müssen."
     }
   },
   "signin": "Anmelden",
