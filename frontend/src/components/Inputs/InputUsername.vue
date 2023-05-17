@@ -17,6 +17,7 @@
         :placeholder="placeholder"
         type="text"
         :state="validated ? valid : false"
+        autocomplete="off"
       ></b-form-input>
       <b-form-invalid-feedback v-bind="ariaMsg">
         <div v-if="showAllErrors">
