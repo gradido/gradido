@@ -53,6 +53,7 @@ import {
   searchAdminUsers,
   searchUsers,
   user as userQuery,
+  checkUsername,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -2438,6 +2439,34 @@ describe('UserResolver', () => {
               errors: undefined,
             }),
           )
+        })
+      })
+    })
+  })
+
+  describe('check username', () => {
+    describe('reserved alias', () => {
+      it('returns false', async () => {
+        await expect(
+          query({ query: checkUsername, variables: { username: 'root' } }),
+        ).resolves.toMatchObject({
+          data: {
+            checkUsername: false,
+          },
+          errors: undefined,
+        })
+      })
+    })
+
+    describe('valid alias', () => {
+      it('returns true', async () => {
+        await expect(
+          query({ query: checkUsername, variables: { username: 'valid' } }),
+        ).resolves.toMatchObject({
+          data: {
+            checkUsername: true,
+          },
+          errors: undefined,
         })
       })
     })
