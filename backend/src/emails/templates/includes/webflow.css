@@ -1,5 +1,5 @@
 body{
-  display: table;
+  display: block;
   font-family: "Work Sans", sans-serif;
   text-align: center;
   text-align: -webkit-center;
@@ -16,7 +16,7 @@ h2 {
 .container {
   max-width: 680px;
   margin: 0 auto;
-  display: table;
+  display: block;
 }
 
 .head-logo {
