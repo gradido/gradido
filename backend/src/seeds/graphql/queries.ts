@@ -3,7 +3,6 @@ import { gql } from 'graphql-tag'
 export const verifyLogin = gql`
   query {
     verifyLogin {
-      email
       firstName
       lastName
       language
@@ -23,32 +22,33 @@ export const queryOptIn = gql`
   }
 `
 
+export const checkUsername = gql`
+  query ($username: String!) {
+    checkUsername(username: $username)
+  }
+`
+
 export const transactionsQuery = gql`
-  query (
-    $currentPage: Int = 1
-    $pageSize: Int = 25
-    $order: Order = DESC
-    $onlyCreations: Boolean = false
-  ) {
-    transactionList(
-      currentPage: $currentPage
-      pageSize: $pageSize
-      order: $order
-      onlyCreations: $onlyCreations
-    ) {
-      balanceGDT
-      count
-      balance
+  query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+    transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+      balance {
+        balance
+        balanceGDT
+        count
+        linkCount
+      }
       transactions {
         id
         typeId
         amount
         balance
+        previousBalance
         balanceDate
         memo
         linkedUser {
           firstName
           lastName
+          gradidoID
         }
         decay {
           decay
@@ -56,6 +56,7 @@ export const transactionsQuery = gql`
           end
           duration
         }
+        linkId
       }
     }
   }

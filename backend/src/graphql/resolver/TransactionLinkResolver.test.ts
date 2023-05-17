@@ -817,8 +817,8 @@ describe('TransactionLinkResolver', () => {
           const bibisTransaktionLinks = transactionLinks.filter(
             (transactionLink) => transactionLink.email === 'bibi@bloxberg.de',
           )
-          for (let i = 0; i < bibisTransaktionLinks.length; i++) {
-            await transactionLinkFactory(testEnv, bibisTransaktionLinks[i])
+          for (const bibisTransaktionLink of bibisTransaktionLinks) {
+            await transactionLinkFactory(testEnv, bibisTransaktionLink)
           }
 
           // admin: only now log in
@@ -1040,6 +1040,7 @@ describe('TransactionLinkResolver', () => {
     })
 
     it('returns a string that ends with the hex value of date', () => {
+      // eslint-disable-next-line security/detect-non-literal-regexp
       const regexp = new RegExp(date.getTime().toString(16) + '$')
       expect(transactionLinkCode(date)).toEqual(expect.stringMatching(regexp))
     })

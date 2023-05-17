@@ -43,6 +43,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { fullName } from '@/util/utilities'
 
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import {
@@ -269,7 +270,7 @@ export class ContributionResolver {
       withDeleted: true,
       relations: ['user'],
     })
-    if (!emailContact || !emailContact.user) {
+    if (!emailContact?.user) {
       throw new LogError('Could not find user', email)
     }
     if (emailContact.deletedAt || emailContact.user.deletedAt) {
@@ -500,6 +501,8 @@ export class ContributionResolver {
         transaction.typeId = TransactionTypeId.CREATION
         transaction.memo = contribution.memo
         transaction.userId = contribution.userId
+        transaction.userGradidoID = user.gradidoID
+        transaction.userName = fullName(user.firstName, user.lastName)
         transaction.previous = lastTransaction ? lastTransaction.id : null
         transaction.amount = contribution.amount
         transaction.creationDate = contribution.contributionDate
