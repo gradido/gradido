@@ -134,27 +134,24 @@ export const loadAllRules = (i18nCallback, apollo) => {
 
   extend('usernameHyphens', {
     validate(value) {
-      return !!value.match(/^[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9])*$/)
+      return !!value.match(/^[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/)
     },
     message: (_, values) => i18nCallback.t('form.validation.username-hyphens', values),
   })
 
   extend('usernameUnique', {
     validate(value) {
-      if (value.match(/^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/)) {
-        return apollo
-          .query({
-            query: checkUsername,
-            variables: { username: value },
-          })
-          .then(({ data }) => {
-            return {
-              valid: data.checkUsername,
-            }
-          })
-      } else {
-        return false
-      }
+      if (!value.match(/^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/)) return true
+      return apollo
+        .query({
+          query: checkUsername,
+          variables: { username: value },
+        })
+        .then(({ data }) => {
+          return {
+            valid: data.checkUsername,
+          }
+        })
     },
     message: (_, values) => i18nCallback.t('form.validation.username-unique', values),
   })

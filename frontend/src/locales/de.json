@@ -153,6 +153,7 @@
     "password_new_repeat": "Neues Passwort wiederholen",
     "password_old": "Altes Passwort",
     "recipient": "Empfänger",
+    "recipientCommunity": "Gemeinschaft des Empfängers",
     "reply": "Antworten",
     "reset": "Zurücksetzen",
     "save": "Speichern",
@@ -326,7 +327,7 @@
     "username": {
       "change-success": "Dein Nutzername wurde erfolgreich geändert.",
       "change-username": "Nutzername ändern",
-      "no-username": "Bitte gebe einen Nutzernamen ein. Damit hilfst du anderen Benutzern dich zu finden, ohne ihnen deine Email geben zu müsen."
+      "no-username": "Bitte gebe einen Nutzernamen ein. Damit hilfst du anderen Benutzern dich zu finden, ohne deine Email preisgeben zu müssen."
     }
   },
   "signin": "Anmelden",
