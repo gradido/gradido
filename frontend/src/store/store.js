@@ -16,9 +16,9 @@ export const mutations = {
   gradidoID: (state, gradidoID) => {
     state.gradidoID = gradidoID
   },
-  // username: (state, username) => {
-  //   state.username = username
-  // },
+  username: (state, username) => {
+    state.username = username
+  },
   firstName: (state, firstName) => {
     state.firstName = firstName
   },
@@ -59,7 +59,7 @@ export const actions = {
   login: ({ dispatch, commit }, data) => {
     commit('gradidoID', data.gradidoID)
     commit('language', data.language)
-    // commit('username', data.username)
+    commit('username', data.alias)
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
     commit('newsletterState', data.klickTipp.newsletterState)
@@ -71,7 +71,7 @@ export const actions = {
   },
   logout: ({ commit, state }) => {
     commit('token', null)
-    // commit('username', '')
+    commit('username', '')
     commit('gradidoID', null)
     commit('firstName', '')
     commit('lastName', '')

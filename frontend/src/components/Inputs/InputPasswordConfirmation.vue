@@ -8,7 +8,7 @@
             containsLowercaseCharacter: true,
             containsUppercaseCharacter: true,
             containsNumericCharacter: true,
-            atLeastEightCharactera: true,
+            atLeastEightCharacters: true,
             atLeastOneSpecialCharater: true,
             noWhitespaceCharacters: true,
           }"
