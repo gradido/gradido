@@ -3,15 +3,23 @@
     <div class="bg-white appBoxShadow gradido-border-radius p-3">
       <div class="h3 mb-4">{{ $t('form.send_check') }}</div>
       <b-row class="mt-5">
-        <b-col cols="2"></b-col>
-        <b-col>
-          <div class="h4">{{ userName ? userName : identifier }}</div>
-          <div class="mt-3 h5">{{ $t('form.memo') }}</div>
-          <div>{{ memo }}</div>
-        </b-col>
-        <b-col cols="3">
-          <div class="small">{{ $t('send_gdd') }}</div>
-          <div>{{ amount | GDD }}</div>
+        <b-col cols="12">
+          <b-row class="mt-3">
+            <b-col class="h5">{{ $t('form.recipientCommunity') }}</b-col>
+            <b-col>{{ communityName }}</b-col>
+          </b-row>
+          <b-row>
+            <b-col class="h5">{{ $t('form.recipient') }}</b-col>
+            <b-col>{{ userName ? userName : identifier }}</b-col>
+          </b-row>
+          <b-row>
+            <b-col class="h5">{{ $t('form.amount') }}</b-col>
+            <b-col>{{ amount | GDD }}</b-col>
+          </b-row>
+          <b-row>
+            <b-col class="h5">{{ $t('form.memo') }}</b-col>
+            <b-col>{{ memo }}</b-col>
+          </b-row>
         </b-col>
       </b-row>
 
@@ -58,6 +66,8 @@
   </div>
 </template>
 <script>
+import { COMMUNITY_NAME } from '@/config'
+
 export default {
   name: 'TransactionConfirmationSend',
   props: {
@@ -70,6 +80,7 @@ export default {
   data() {
     return {
       disabled: false,
+      communityName: COMMUNITY_NAME,
     }
   },
 }
