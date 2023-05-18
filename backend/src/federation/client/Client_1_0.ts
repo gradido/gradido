@@ -1,7 +1,7 @@
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { GraphQLClient } from 'graphql-request'
 
-import { getPublicKey } from '@/federation/query/getPublicKey'
+import { getPublicKey } from '@/federation/query/getPublicKey.1.0'
 import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line camelcase
