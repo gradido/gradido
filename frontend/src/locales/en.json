@@ -154,6 +154,7 @@
     "password_new_repeat": "Repeat new password",
     "password_old": "Old password",
     "recipient": "Recipient",
+    "recipientCommunity": "Community of the recipient",
     "reply": "Reply",
     "reset": "Reset",
     "save": "Save",
@@ -173,7 +174,7 @@
       "gddCreationTime": "The field {_field_} must be a number between {min} and {max} with at most one decimal place.",
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point",
       "is-not": "You cannot send Gradidos to yourself",
-      "username-allowed-chars": "The username may contain letters, numbers, hyphens or underscores.",
+      "username-allowed-chars": "The username may only contain letters, numbers, hyphens or underscores.",
       "username-hyphens": "Hyphens or underscores must be in between letters or numbers.",
       "username-unique": "This username is already taken.",
       "valid-identifier": "Must be a valid email, username or gradido ID."
@@ -326,9 +327,9 @@
     "showAmountGDD": "Your GDD amount is visible.",
     "showAmountGDT": "Your GDT amount is visible.",
     "username": {
-      "change-success": "Your username has been successfully changed.",
+      "change-success": "Your username has been changed successfully.",
       "change-username": "Change username",
-      "no-username": "Please enter a username. This helps other users to find you without giving them your email."
+      "no-username": "Please enter a username. This helps other users to find you without exposing your email."
     }
   },
   "signin": "Sign in",

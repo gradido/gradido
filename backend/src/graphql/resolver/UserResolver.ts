@@ -186,7 +186,7 @@ export class UserResolver {
 
     context.setHeaders.push({
       key: 'token',
-      value: encode(dbUser.gradidoID),
+      value: await encode(dbUser.gradidoID),
     })
 
     await EVENT_USER_LOGIN(dbUser)
