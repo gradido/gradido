@@ -1,37 +1,36 @@
 /*
 
 Definition:
-client: In Federation context, the backend is the client 
+client: In federation context, the backend is the client 
 server: In federation context, the federation module is the backend/server
 
-keyPairClient: The client possesses his own keypair used in the federation 
-keyPubServer: the client possesses the public key of the server
+keyPairClient: The client possesses his own key pair used in the federation 
+keyPubServer: The client possesses the public key of the server
 
-keyPairServer: The server posses his own keypair used in the federation
-keyPubClient: the server posses the publicKey of the client
+keyPairServer: The server possesses his own key pair used in the federation
+
+JWE: Encrypted JSONWebToken - JSON Web Signature 
+JWS: Signed JSONWebToken - JSON Web Encryption
+Both are part of the JSON Object Signing and Encryption definitions - see https://github.com/panva/jose
 
 In the header the Client send a Request-JWE to prove identity and possession of the private key.
-The Request-JWE contains a nonce(secret) which can only be decrypted with the private key of the server.
-The Server verifies and decrypts the Request-JWE and returns a Response-JWE, which signs the decrypoted nonce.
+The Request-JWE contains a JWS with a nonce(secret).
+The Server decrypts the Request-JWE and verifies the JWS - then returns a Response-JWE, which contains the decrypted nonce.
 The client verifies the received Response-JWE and verifies the nonce.
 
 Note: If any verification fails the request/response is invalid
 Note: This allows to verify the requesting community and decide if the request is consider authenticated/valid
-Note: The Response-JWE does not need to carry any secret, therefore a JWT would be sufficient.
-      It is a design choice to enable us to respond with encrypted values, even tho currently not needed.
-      This choice is primarily for uniformity rather then any future use and comes with the disadvantage of more encryption work.
 
 Handshake:
 Client ---(Request-JWE)---> Server
 Client <--(Response-JWE)--- Server
 
 The Request-JWE contains:
-- a time of validity(10sec)
 - an encrypted random nonce(with servers public key)
+- the publicKey of the client
 - is signed with the clients privateKey(keyPairClient) to allow verification with the keyPubClient
 
 The Response-JWE contains:
-- a time of validity(10sec) (TODO: not sure if needed)
 - the decrypted nonce from the Request-JWE
 - is signed with the servers privateKey(keyPairServer) to allow verification with the keyPubServer
 
@@ -62,13 +61,11 @@ export const handshake = () => {
   const {clientPubKey, nonce: recievedNonce} = verifyToken(requestToken, server.keyPairServer)
 
   // Logic
-  // TODO: Logic to generate the actual content-payload for the response
-  const data = 'TODO'
+  // TODO: Logic to generate the actual body for the response
 
   // Response
   const payloadResponse = {
     nonce: recievedNonce,
-    data,
   }
   const responseToken = generateToken(payloadResponse, server.keyPairServer, clientPubKey)
 
@@ -97,6 +94,10 @@ const verifyToken = (token, myKeyPair, nonce = null) => {
     const { plaintext } = await jose.compactDecrypt(token, myKeyPair.privateKey)
 
   const decryptedJWEPayload = new TextDecoder().decode(plaintext)
+  // TODO: it is unclear if the pubKey must be explicitly put into the payload or
+  //       if the toke itself contains it already in its protected headers(or elsewhere)
+  //       > Update: after some reasearch - the pubKey is not part of the header -
+  //                 we need it for identification and verification tho
   const clientPubKey = decryptedJWEPayload.pubKey
   const decryptedJWS = decryptedJWEPayload.jws
   // TODO: verify clientPubKey (e.g. check federation table + rights here)
