@@ -11,7 +11,7 @@ module.exports = {
   ],
   coverageThreshold: {
     global: {
-      lines: 72,
+      lines: 74,
     },
   },
   setupFiles: ['<rootDir>/test/testSetup.ts'],
