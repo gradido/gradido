@@ -1,5 +1,3 @@
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
-
 import { getPublicCommunityInfo } from '@/federation/query/getPublicCommunityInfo'
 import { backendLogger as logger } from '@/server/logger'
 
@@ -13,12 +11,7 @@ export interface PublicCommunityInfo {
   publicKey: string
 }
 
-// eslint-disable-next-line camelcase
 export class Client_1_1 extends Client_1_0 {
-  constructor(dbCom: DbFederatedCommunity) {
-    super(dbCom)
-  }
-
   getPublicCommunityInfo = async (): Promise<PublicCommunityInfo | undefined> => {
     logger.info(`getPublicCommunityInfo with endpoint='${this.endpoint}'...`)
     try {

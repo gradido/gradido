@@ -7,7 +7,7 @@ import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCom
 import { backendLogger as logger } from '@/server/logger'
 
 import { Client } from './client/Client'
-import { PublicCommunityInfo } from './client/Client_1_1'
+import { PublicCommunityInfo, Client_1_1 } from './client/Client_1_1'
 import { ApiVersionType } from './enum/apiVersionType'
 
 export function startValidateCommunities(timerInterval: number): void {
@@ -44,10 +44,12 @@ export async function validateCommunities(): Promise<void> {
       if (pubKey && pubKey === dbCom.publicKey.toString()) {
         await DbFederatedCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
         logger.info('Federation: verified community', dbCom)
-        const pubComInfo = await client?.getPublicCommunityInfo()
-        if (pubComInfo) {
-          await writeForeignCommunity(dbCom, pubComInfo)
-          logger.info(`Federation: write foreign community... successfully`)
+        if (client instanceof Client_1_1) {
+          const pubComInfo = await client.getPublicCommunityInfo()
+          if (pubComInfo) {
+            await writeForeignCommunity(dbCom, pubComInfo)
+            logger.info(`Federation: write foreign community... successfully`)
+          }
         }
       } else {
         logger.warn(

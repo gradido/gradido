@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Community as DbCommunity } from '@entity/Community'
-/* @typescript-eslint/no-unused-vars */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Field, ObjectType } from 'type-graphql'
 
 @ObjectType()
