@@ -54,7 +54,7 @@ export const mutations = {
     state.hideAmountGDT = !!hideAmountGDT
   },
   email: (state, email) => {
-    state.email = email ||''
+    state.email = email || ''
   },
 }
 

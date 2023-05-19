@@ -100,6 +100,7 @@ export default {
             data: { login },
           } = result
           this.$store.dispatch('login', login)
+          this.$store.commit('email', this.form.email)
           await loader.hide()
           if (this.$route.params.code) {
             this.$router.push(`/redeem/${this.$route.params.code}`)

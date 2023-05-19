@@ -325,8 +325,8 @@ describe('Vuex store', () => {
       it('commits email', () => {
         logout({ commit, state })
         expect(commit).toHaveBeenNthCalledWith(12, 'email', '')
-      })      
-      
+      })
+
       // how to get this working?
       it.skip('calls localStorage.clear()', () => {
         const clearStorageMock = jest.fn()
