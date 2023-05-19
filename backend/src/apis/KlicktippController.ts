@@ -74,7 +74,7 @@ export const addFieldsToSubscriber = async (
         newsmsnumber,
       )
     } catch (e) {
-      logger.error('Could not update subscriber', email, JSON.stringify(fields), e)
+      logger.error('Could not update subscriber', email, fields, e)
       return false
     }
   }
