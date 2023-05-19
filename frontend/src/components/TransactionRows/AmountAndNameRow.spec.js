@@ -39,37 +39,5 @@ describe('AmountAndNameRow', () => {
         expect(wrapper.find('div.gdd-transaction-list-item-name').find('a').exists()).toBe(false)
       })
     })
-
-    describe('with linked user', () => {
-      beforeEach(async () => {
-        await wrapper.setProps({
-          linkedUser: { firstName: 'Bibi', lastName: 'Bloxberg', email: 'bibi@bloxberg.de' },
-        })
-      })
-
-      it('has a link with first and last name', () => {
-        expect(wrapper.find('div.gdd-transaction-list-item-name').text()).toBe('Bibi Bloxberg')
-      })
-
-      it('has a link', () => {
-        expect(wrapper.find('div.gdd-transaction-list-item-name').find('a').exists()).toBe(true)
-      })
-
-      describe('click link', () => {
-        beforeEach(async () => {
-          await wrapper.find('div.gdd-transaction-list-item-name').find('a').trigger('click')
-        })
-
-        it('emits  set tunneled email', () => {
-          expect(wrapper.emitted('set-tunneled-email')).toEqual([['bibi@bloxberg.de']])
-        })
-
-        it('pushes the route with query for email', () => {
-          expect(mocks.$router.push).toBeCalledWith({
-            path: '/send',
-          })
-        })
-      })
-    })
   })
 })

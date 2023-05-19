@@ -32,7 +32,7 @@ apolloQueryMock.mockResolvedValue({
       validUntil: transactionLinkValidExpireDate(),
       redeemedAt: '2022-03-18T10:08:43.000Z',
       deletedAt: null,
-      user: { firstName: 'Bibi', publisherId: 0, email: 'bibi@bloxberg.de' },
+      user: { firstName: 'Bibi', publisherId: 0, gradidoID: 'other-user-id' },
     },
   },
 })
@@ -44,7 +44,7 @@ const mocks = {
     state: {
       token: null,
       tokenTime: null,
-      email: 'bibi@bloxberg.de',
+      gradidoID: 'current-user-id',
     },
   },
   $apollo: {
@@ -101,7 +101,7 @@ describe('TransactionLink', () => {
               validUntil: transactionLinkValidExpireDate(),
               redeemedAt: '2022-03-18T10:08:43.000Z',
               deletedAt: now,
-              user: { firstName: 'Bibi', publisherId: 0, email: 'bibi@bloxberg.de' },
+              user: { firstName: 'Bibi', publisherId: 0, gradidoID: 'other-user-id' },
             },
           },
         })
@@ -132,7 +132,7 @@ describe('TransactionLink', () => {
               validUntil: '2020-03-18T10:08:43.000Z',
               redeemedAt: '2022-03-18T10:08:43.000Z',
               deletedAt: null,
-              user: { firstName: 'Bibi', publisherId: 0, email: 'bibi@bloxberg.de' },
+              user: { firstName: 'Bibi', publisherId: 0, gradidoID: 'other-user-id' },
             },
           },
         })
@@ -163,7 +163,7 @@ describe('TransactionLink', () => {
               validUntil: transactionLinkValidExpireDate(),
               redeemedAt: '2022-03-18T10:08:43.000Z',
               deletedAt: null,
-              user: { firstName: 'Bibi', publisherId: 0, email: 'bibi@bloxberg.de' },
+              user: { firstName: 'Bibi', publisherId: 0, gradidoID: 'other-user-id' },
             },
           },
         })
@@ -195,7 +195,7 @@ describe('TransactionLink', () => {
               validUntil: transactionLinkValidExpireDate(),
               redeemedAt: null,
               deletedAt: null,
-              user: { firstName: 'Bibi', publisherId: 0, email: 'bibi@bloxberg.de' },
+              user: { firstName: 'Bibi', publisherId: 0, gradidoID: 'other-user-id' },
             },
           },
         })
@@ -239,7 +239,7 @@ describe('TransactionLink', () => {
                   validUntil: transactionLinkValidExpireDate(),
                   redeemedAt: null,
                   deletedAt: null,
-                  user: { firstName: 'Bibi', publisherId: 0, email: 'bibi@bloxberg.de' },
+                  user: { firstName: 'Bibi', publisherId: 0, gradidoID: 'current-user-id' },
                 },
               },
             })
@@ -275,7 +275,7 @@ describe('TransactionLink', () => {
                   validUntil: transactionLinkValidExpireDate(),
                   redeemedAt: null,
                   deletedAt: null,
-                  user: { firstName: 'Peter', publisherId: 0, email: 'peter@listig.de' },
+                  user: { firstName: 'Peter', publisherId: 0, gradidoID: 'other-user-id' },
                 },
               },
             })
@@ -351,7 +351,7 @@ describe('TransactionLink', () => {
                 validUntil: transactionLinkValidExpireDate(),
                 redeemedAt: null,
                 deletedAt: null,
-                user: { firstName: 'Bibi', publisherId: 0, email: 'bibi@bloxberg.de' },
+                user: { firstName: 'Bibi', publisherId: 0, gradidoID: 'other-user-id' },
               },
             },
           })

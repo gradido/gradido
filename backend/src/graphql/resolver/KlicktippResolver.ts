@@ -1,33 +1,17 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-import { Resolver, Query, Authorized, Arg, Mutation, Ctx } from 'type-graphql'
+import { Resolver, Authorized, Mutation, Ctx } from 'type-graphql'
 
-import {
-  getKlickTippUser,
-  getKlicktippTagMap,
-  unsubscribe,
-  klicktippSignIn,
-} from '@/apis/KlicktippController'
+import { unsubscribe, subscribe } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
+import { EVENT_NEWSLETTER_SUBSCRIBE, EVENT_NEWSLETTER_UNSUBSCRIBE } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 
 @Resolver()
 export class KlicktippResolver {
-  @Authorized([RIGHTS.GET_KLICKTIPP_USER])
-  @Query(() => String)
-  async getKlicktippUser(@Arg('email') email: string): Promise<string> {
-    return await getKlickTippUser(email)
-  }
-
-  @Authorized([RIGHTS.GET_KLICKTIPP_TAG_MAP])
-  @Query(() => String)
-  async getKlicktippTagMap(): Promise<string> {
-    return await getKlicktippTagMap()
-  }
-
   @Authorized([RIGHTS.UNSUBSCRIBE_NEWSLETTER])
   @Mutation(() => Boolean)
   async unsubscribeNewsletter(@Ctx() context: Context): Promise<boolean> {
     const user = getUser(context)
+    await EVENT_NEWSLETTER_UNSUBSCRIBE(user)
     return unsubscribe(user.emailContact.email)
   }
 
@@ -35,6 +19,7 @@ export class KlicktippResolver {
   @Mutation(() => Boolean)
   async subscribeNewsletter(@Ctx() context: Context): Promise<boolean> {
     const user = getUser(context)
-    return klicktippSignIn(user.emailContact.email, user.language)
+    await EVENT_NEWSLETTER_SUBSCRIBE(user)
+    return subscribe(user.emailContact.email, user.language)
   }
 }

@@ -3,7 +3,7 @@ import gql from 'graphql-tag'
 export const verifyLogin = gql`
   query {
     verifyLogin {
-      email
+      gradidoID
       firstName
       lastName
       language
@@ -40,7 +40,6 @@ export const transactionsQuery = gql`
           firstName
           lastName
           gradidoID
-          email
         }
         decay {
           decay
@@ -90,6 +89,12 @@ export const queryOptIn = gql`
   }
 `
 
+export const checkUsername = gql`
+  query($username: String!) {
+    checkUsername(username: $username)
+  }
+`
+
 export const queryTransactionLink = gql`
   query($code: String!) {
     queryTransactionLink(code: $code) {
@@ -102,9 +107,9 @@ export const queryTransactionLink = gql`
         redeemedAt
         deletedAt
         user {
+          gradidoID
           firstName
           publisherId
-          email
         }
       }
       ... on ContributionLink {

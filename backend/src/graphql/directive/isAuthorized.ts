@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 import { User } from '@entity/User'
 import { AuthChecker } from 'type-graphql'
 
@@ -10,13 +5,14 @@ import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { decode, encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN } from '@/auth/ROLES'
+import { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
-export const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
+export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
 
   // is rights an inalienable right?
-  if ((<RIGHTS[]>rights).reduce((acc, right) => acc && INALIENABLE_RIGHTS.includes(right), true))
+  if ((rights as RIGHTS[]).reduce((acc, right) => acc && INALIENABLE_RIGHTS.includes(right), true))
     return true
 
   // Do we have a token?
@@ -25,7 +21,7 @@ export const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   }
 
   // Decode the token
-  const decoded = decode(context.token)
+  const decoded = await decode(context.token)
   if (!decoded) {
     throw new LogError('403.13 - Client certificate revoked')
   }
@@ -47,12 +43,12 @@ export const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   }
 
   // check for correct rights
-  const missingRights = (<RIGHTS[]>rights).filter((right) => !context.role.hasRight(right))
+  const missingRights = (rights as RIGHTS[]).filter((right) => !context.role?.hasRight(right))
   if (missingRights.length !== 0) {
     throw new LogError('401 Unauthorized')
   }
 
   // set new header token
-  context.setHeaders.push({ key: 'token', value: encode(decoded.gradidoID) })
+  context.setHeaders.push({ key: 'token', value: await encode(decoded.gradidoID) })
   return true
 }

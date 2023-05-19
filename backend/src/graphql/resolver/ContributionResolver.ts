@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { IsNull, getConnection } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage } from '@entity/ContributionMessage'
@@ -44,6 +43,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { fullName } from '@/util/utilities'
 
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import {
@@ -229,11 +229,11 @@ export class ContributionResolver {
     contributionMessage.createdAt = contributionToUpdate.updatedAt
       ? contributionToUpdate.updatedAt
       : contributionToUpdate.createdAt
-    const changeMessage = `${contributionToUpdate.contributionDate}
+    const changeMessage = `${contributionToUpdate.contributionDate.toString()}
     ---
     ${contributionToUpdate.memo}
     ---
-    ${contributionToUpdate.amount}`
+    ${contributionToUpdate.amount.toString()}`
     contributionMessage.message = changeMessage
     contributionMessage.isModerator = false
     contributionMessage.userId = user.id
@@ -259,7 +259,7 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<Decimal[]> {
     logger.info(
-      `adminCreateContribution(email=${email}, amount=${amount}, memo=${memo}, creationDate=${creationDate})`,
+      `adminCreateContribution(email=${email}, amount=${amount.toString()}, memo=${memo}, creationDate=${creationDate})`,
     )
     const clientTimezoneOffset = getClientTimezoneOffset(context)
     if (!isValidDateString(creationDate)) {
@@ -270,7 +270,7 @@ export class ContributionResolver {
       withDeleted: true,
       relations: ['user'],
     })
-    if (!emailContact || !emailContact.user) {
+    if (!emailContact?.user) {
       throw new LogError('Could not find user', email)
     }
     if (emailContact.deletedAt || emailContact.user.deletedAt) {
@@ -501,6 +501,8 @@ export class ContributionResolver {
         transaction.typeId = TransactionTypeId.CREATION
         transaction.memo = contribution.memo
         transaction.userId = contribution.userId
+        transaction.userGradidoID = user.gradidoID
+        transaction.userName = fullName(user.firstName, user.lastName)
         transaction.previous = lastTransaction ? lastTransaction.id : null
         transaction.amount = contribution.amount
         transaction.creationDate = contribution.contributionDate

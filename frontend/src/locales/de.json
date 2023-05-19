@@ -153,6 +153,7 @@
     "password_new_repeat": "Neues Passwort wiederholen",
     "password_old": "Altes Passwort",
     "recipient": "Empfänger",
+    "recipientCommunity": "Gemeinschaft des Empfängers",
     "reply": "Antworten",
     "reset": "Zurücksetzen",
     "save": "Speichern",
@@ -166,12 +167,15 @@
     "thx": "Danke",
     "to": "bis",
     "to1": "an",
+    "username": "Nutzername",
+    "username-placeholder": "Gebe einen eindeutigen Nutzernamen ein",
     "validation": {
       "gddCreationTime": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens einer Nachkommastelle sein",
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
       "is-not": "Du kannst dir selbst keine Gradidos überweisen",
-      "usernmae-regex": "Der Username muss mit einem Buchstaben beginnen, auf den mindestens zwei alpha-numerische Zeichen folgen müssen.",
-      "usernmae-unique": "Der Username ist bereits vergeben."
+      "username-allowed-chars": "Der Nutzername darf nur aus Buchstaben (ohne Umlaute), Zahlen, Binde- oder Unterstrichen bestehen.",
+      "username-hyphens": "Binde- oder Unterstriche müssen zwischen Buchstaben oder Zahlen stehen.",
+      "username-unique": "Der Nutzername ist bereits vergeben."
     },
     "your_amount": "Dein Betrag"
   },
@@ -320,7 +324,12 @@
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
     },
     "showAmountGDD": "Dein GDD Betrag ist sichtbar.",
-    "showAmountGDT": "Dein GDT Betrag ist sichtbar."
+    "showAmountGDT": "Dein GDT Betrag ist sichtbar.",
+    "username": {
+      "change-success": "Dein Nutzername wurde erfolgreich geändert.",
+      "change-username": "Nutzername ändern",
+      "no-username": "Bitte gebe einen Nutzernamen ein. Damit hilfst du anderen Benutzern dich zu finden, ohne deine Email preisgeben zu müssen."
+    }
   },
   "signin": "Anmelden",
   "signup": "Registrieren",

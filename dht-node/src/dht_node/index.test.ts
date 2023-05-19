@@ -5,7 +5,7 @@ import { startDHT } from './index'
 import DHT from '@hyperswarm/dht'
 import CONFIG from '@/config'
 import { logger } from '@test/testSetup'
-import { Community as DbCommunity } from '@entity/Community'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { testEnvironment, cleanDB } from '@test/helpers'
 
 CONFIG.FEDERATION_DHT_SEED = '64ebcb0e3ad547848fef4197c6e2332f'
@@ -261,7 +261,7 @@ describe('federation', () => {
 
             describe('with receiving wrong but tolerated property data', () => {
               let jsonArray: any[]
-              let result: DbCommunity[] = []
+              let result: DbFederatedCommunity[] = []
               beforeAll(async () => {
                 jest.clearAllMocks()
                 jsonArray = [
@@ -277,7 +277,7 @@ describe('federation', () => {
                   },
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
-                result = await DbCommunity.find({ foreign: true })
+                result = await DbFederatedCommunity.find({ foreign: true })
               })
 
               afterAll(async () => {
@@ -523,7 +523,7 @@ describe('federation', () => {
 
             describe('with receiving data of exact max allowed properties length', () => {
               let jsonArray: any[]
-              let result: DbCommunity[] = []
+              let result: DbFederatedCommunity[] = []
               beforeAll(async () => {
                 jest.clearAllMocks()
                 jsonArray = [
@@ -538,7 +538,7 @@ describe('federation', () => {
                   { api: 'toolong api', url: 'some valid url' },
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
-                result = await DbCommunity.find({ foreign: true })
+                result = await DbFederatedCommunity.find({ foreign: true })
               })
 
               afterAll(async () => {
@@ -570,7 +570,7 @@ describe('federation', () => {
 
             describe('with receiving data of exact max allowed buffer length', () => {
               let jsonArray: any[]
-              let result: DbCommunity[] = []
+              let result: DbFederatedCommunity[] = []
               beforeAll(async () => {
                 jest.clearAllMocks()
                 jsonArray = [
@@ -592,7 +592,7 @@ describe('federation', () => {
                   },
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
-                result = await DbCommunity.find({ foreign: true })
+                result = await DbFederatedCommunity.find({ foreign: true })
               })
 
               afterAll(async () => {
@@ -711,7 +711,7 @@ describe('federation', () => {
             })
 
             describe('with proper data', () => {
-              let result: DbCommunity[] = []
+              let result: DbFederatedCommunity[] = []
               beforeAll(async () => {
                 jest.clearAllMocks()
                 await socketEventMocks.data(
@@ -728,7 +728,7 @@ describe('federation', () => {
                     ]),
                   ),
                 )
-                result = await DbCommunity.find({ foreign: true })
+                result = await DbFederatedCommunity.find({ foreign: true })
               })
 
               afterAll(async () => {

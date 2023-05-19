@@ -13,12 +13,12 @@ export const mutations = {
     localeChanged(language)
     state.language = language
   },
-  email: (state, email) => {
-    state.email = email
+  gradidoID: (state, gradidoID) => {
+    state.gradidoID = gradidoID
   },
-  // username: (state, username) => {
-  //   state.username = username
-  // },
+  username: (state, username) => {
+    state.username = username
+  },
   firstName: (state, firstName) => {
     state.firstName = firstName
   },
@@ -57,9 +57,9 @@ export const mutations = {
 
 export const actions = {
   login: ({ dispatch, commit }, data) => {
-    commit('email', data.email)
+    commit('gradidoID', data.gradidoID)
     commit('language', data.language)
-    // commit('username', data.username)
+    commit('username', data.alias)
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
     commit('newsletterState', data.klickTipp.newsletterState)
@@ -71,8 +71,8 @@ export const actions = {
   },
   logout: ({ commit, state }) => {
     commit('token', null)
-    commit('email', null)
-    // commit('username', '')
+    commit('username', '')
+    commit('gradidoID', null)
     commit('firstName', '')
     commit('lastName', '')
     commit('newsletterState', null)
@@ -91,12 +91,13 @@ try {
   store = new Vuex.Store({
     plugins: [
       createPersistedState({
+        key: 'gradido-frontend',
         storage: window.localStorage,
       }),
     ],
     state: {
-      email: '',
       language: null,
+      gradidoID: null,
       firstName: '',
       lastName: '',
       // username: '',

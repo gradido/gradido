@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CONFIG } from './config'
 import { startValidateCommunities } from './federation/validateCommunities'
 import { createServer } from './server/createServer'
@@ -14,7 +13,7 @@ async function main() {
       console.log(`GraphIQL available at http://localhost:${CONFIG.PORT}`)
     }
   })
-  void startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
+  startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
 }
 
 main().catch((e) => {

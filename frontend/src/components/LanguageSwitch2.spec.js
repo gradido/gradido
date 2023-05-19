@@ -15,7 +15,7 @@ describe('LanguageSwitch', () => {
   let wrapper
 
   const state = {
-    email: 'he@ho.he',
+    gradidoID: 'current-user-id',
     language: null,
   }
 

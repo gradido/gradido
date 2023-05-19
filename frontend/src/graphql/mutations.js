@@ -26,6 +26,7 @@ export const forgotPassword = gql`
 
 export const updateUserInfos = gql`
   mutation(
+    $alias: String
     $firstName: String
     $lastName: String
     $password: String
@@ -35,6 +36,7 @@ export const updateUserInfos = gql`
     $hideAmountGDT: Boolean
   ) {
     updateUserInfos(
+      alias: $alias
       firstName: $firstName
       lastName: $lastName
       password: $password
@@ -145,7 +147,7 @@ export const login = gql`
   mutation($email: String!, $password: String!, $publisherId: Int) {
     login(email: $email, password: $password, publisherId: $publisherId) {
       gradidoID
-      email
+      alias
       firstName
       lastName
       language

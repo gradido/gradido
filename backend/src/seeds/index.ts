@@ -1,10 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
 import { name, internet, datatype } from 'faker'
@@ -38,15 +31,17 @@ const context = {
 
 export const cleanDB = async () => {
   // this only works as long we do not have foreign key constraints
-  for (let i = 0; i < entities.length; i++) {
-    await resetEntity(entities[i])
+  for (const entity of entities) {
+    await resetEntity(entity)
   }
 }
 
-const resetEntity = async (entity: any) => {
+const [entityTypes] = entities
+
+const resetEntity = async (entity: typeof entityTypes) => {
   const items = await entity.find({ withDeleted: true })
   if (items.length > 0) {
-    const ids = items.map((i: any) => i.id)
+    const ids = items.map((i) => i.id)
     await entity.delete(ids)
   }
 }
@@ -59,9 +54,8 @@ const run = async () => {
   logger.info('##seed## clean database successful...')
 
   // seed the standard users
-  for (let i = 0; i < users.length; i++) {
-    const dbUser = await userFactory(seedClient, users[i])
-    logger.info(`##seed## seed standard users[ ${i} ]= ${JSON.stringify(dbUser, null, 2)}`)
+  for (const user of users) {
+    await userFactory(seedClient, user)
   }
   logger.info('##seed## seeding all standard users successful...')
 
@@ -78,20 +72,20 @@ const run = async () => {
   logger.info('##seed## seeding all random users successful...')
 
   // create GDD
-  for (let i = 0; i < creations.length; i++) {
-    await creationFactory(seedClient, creations[i])
+  for (const creation of creations) {
+    await creationFactory(seedClient, creation)
   }
   logger.info('##seed## seeding all creations successful...')
 
   // create Transaction Links
-  for (let i = 0; i < transactionLinks.length; i++) {
-    await transactionLinkFactory(seedClient, transactionLinks[i])
+  for (const transactionLink of transactionLinks) {
+    await transactionLinkFactory(seedClient, transactionLink)
   }
   logger.info('##seed## seeding all transactionLinks successful...')
 
   // create Contribution Links
-  for (let i = 0; i < contributionLinks.length; i++) {
-    await contributionLinkFactory(seedClient, contributionLinks[i])
+  for (const contributionLink of contributionLinks) {
+    await contributionLinkFactory(seedClient, contributionLink)
   }
   logger.info('##seed## seeding all contributionLinks successful...')
 
