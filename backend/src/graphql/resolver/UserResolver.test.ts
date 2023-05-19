@@ -53,6 +53,7 @@ import {
   searchAdminUsers,
   searchUsers,
   user as userQuery,
+  checkUsername,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -2357,15 +2358,21 @@ describe('UserResolver', () => {
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
+        await mutate({
+          mutation: updateUserInfos,
+          variables: {
+            alias: 'bibi',
+          },
+        })
       })
 
-      describe('identifier is no gradido ID and no email', () => {
+      describe('identifier is no gradido ID, no email and no alias', () => {
         it('throws and logs "Unknown identifier type" error', async () => {
           await expect(
             query({
               query: userQuery,
               variables: {
-                identifier: 'identifier',
+                identifier: 'identifier_is_no_valid_alias!',
               },
             }),
           ).resolves.toEqual(
@@ -2373,7 +2380,10 @@ describe('UserResolver', () => {
               errors: [new GraphQLError('Unknown identifier type')],
             }),
           )
-          expect(logger.error).toBeCalledWith('Unknown identifier type', 'identifier')
+          expect(logger.error).toBeCalledWith(
+            'Unknown identifier type',
+            'identifier_is_no_valid_alias!',
+          )
         })
       })
 
@@ -2438,6 +2448,57 @@ describe('UserResolver', () => {
               errors: undefined,
             }),
           )
+        })
+      })
+
+      describe('identifier is found via alias', () => {
+        it('returns user', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: 'bibi',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                user: {
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                },
+              },
+              errors: undefined,
+            }),
+          )
+        })
+      })
+    })
+  })
+
+  describe('check username', () => {
+    describe('reserved alias', () => {
+      it('returns false', async () => {
+        await expect(
+          query({ query: checkUsername, variables: { username: 'root' } }),
+        ).resolves.toMatchObject({
+          data: {
+            checkUsername: false,
+          },
+          errors: undefined,
+        })
+      })
+    })
+
+    describe('valid alias', () => {
+      it('returns true', async () => {
+        await expect(
+          query({ query: checkUsername, variables: { username: 'valid' } }),
+        ).resolves.toMatchObject({
+          data: {
+            checkUsername: true,
+          },
+          errors: undefined,
         })
       })
     })

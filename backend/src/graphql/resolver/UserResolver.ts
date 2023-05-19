@@ -186,7 +186,7 @@ export class UserResolver {
 
     context.setHeaders.push({
       key: 'token',
-      value: encode(dbUser.gradidoID),
+      value: await encode(dbUser.gradidoID),
     })
 
     await EVENT_USER_LOGIN(dbUser)
@@ -496,6 +496,17 @@ export class UserResolver {
     }
     logger.info(`queryOptIn(${optIn}) successful...`)
     return true
+  }
+
+  @Authorized([RIGHTS.CHECK_USERNAME])
+  @Query(() => Boolean)
+  async checkUsername(@Arg('username') username: string): Promise<boolean> {
+    try {
+      await validateAlias(username)
+      return true
+    } catch {
+      return false
+    }
   }
 
   @Authorized([RIGHTS.UPDATE_USER_INFOS])
