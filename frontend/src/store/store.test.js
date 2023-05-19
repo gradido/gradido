@@ -33,6 +33,7 @@ const {
   hasElopage,
   hideAmountGDD,
   hideAmountGDT,
+  email,
 } = mutations
 const { login, logout } = actions
 
@@ -166,6 +167,14 @@ describe('Vuex store', () => {
         expect(state.hideAmountGDT).toEqual(true)
       })
     })
+
+    describe('email', () => {
+      it('sets the state of email', () => {
+        const state = { email: '' }
+        email(state, 'peter@luatig.de')
+        expect(state.email).toEqual('peter@luatig.de')
+      })
+    })
   })
 
   describe('actions', () => {
@@ -253,9 +262,9 @@ describe('Vuex store', () => {
       const commit = jest.fn()
       const state = {}
 
-      it('calls eleven commits', () => {
+      it('calls twelve commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(11)
+        expect(commit).toHaveBeenCalledTimes(12)
       })
 
       it('commits token', () => {
@@ -312,6 +321,12 @@ describe('Vuex store', () => {
         logout({ commit, state })
         expect(commit).toHaveBeenNthCalledWith(11, 'hideAmountGDT', true)
       })
+
+      it('commits email', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(12, 'email', '')
+      })      
+      
       // how to get this working?
       it.skip('calls localStorage.clear()', () => {
         const clearStorageMock = jest.fn()
