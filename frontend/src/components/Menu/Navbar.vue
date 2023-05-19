@@ -29,10 +29,7 @@
               </div>
               <div>
                 <div data-test="navbar-item-username">{{ username.username }}</div>
-
-                <div data-test="navbar-item-email">
-                  {{ $store.state.email }}
-                </div>
+                <div data-test="navbar-item-email">{{ $store.state.email }}</div>
               </div>
             </div>
           </router-link>
