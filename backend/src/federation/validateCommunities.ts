@@ -3,9 +3,11 @@
 import { IsNull } from '@dbTools/typeorm'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 
+// eslint-disable-next-line camelcase
+import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
+import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
 import { backendLogger as logger } from '@/server/logger'
 
-import { Client } from './client/Client'
 import { ApiVersionType } from './enum/apiVersionType'
 
 export function startValidateCommunities(timerInterval: number): void {
@@ -37,17 +39,20 @@ export async function validateCommunities(): Promise<void> {
       continue
     }
     try {
-      const client = Client.getInstance(dbCom)
-      const pubKey = await client?.getPublicKey()
-      if (pubKey && pubKey === dbCom.publicKey.toString()) {
-        await DbFederatedCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
-        logger.info('Federation: verified community', dbCom)
-      } else {
-        logger.warn(
-          'Federation: received not matching publicKey:',
-          pubKey,
-          dbCom.publicKey.toString(),
-        )
+      const client = FederationClientFactory.getInstance(dbCom)
+      // eslint-disable-next-line camelcase
+      if (client instanceof V1_0_FederationClient) {
+        const pubKey = await client.getPublicKey()
+        if (pubKey && pubKey === dbCom.publicKey.toString()) {
+          await DbFederatedCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
+          logger.info('Federation: verified community', dbCom)
+        } else {
+          logger.warn(
+            'Federation: received not matching publicKey:',
+            pubKey,
+            dbCom.publicKey.toString(),
+          )
+        }
       }
     } catch (err) {
       logger.error(`Error:`, err)

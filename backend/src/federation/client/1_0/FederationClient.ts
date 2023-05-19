@@ -5,7 +5,7 @@ import { getPublicKey } from '@/federation/query/getPublicKey'
 import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line camelcase
-export class Client_1_0 {
+export class FederationClient {
   dbCom: DbFederatedCommunity
   endpoint: string
   client: GraphQLClient
