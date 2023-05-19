@@ -148,7 +148,7 @@ export const loadAllRules = (i18nCallback, apollo) => {
 
   extend('usernameUnique', {
     validate(value) {
-      if (!value.match(usernameRegex)) return true
+      if (!value.match(USERNAME_REGEX)) return true
       return apollo
         .query({
           query: checkUsername,
