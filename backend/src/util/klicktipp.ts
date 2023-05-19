@@ -24,11 +24,11 @@ export async function retrieveNotRegisteredEmails(): Promise<string[]> {
 
 async function klickTippSendFieldToUser(
   events: { email: string; value: Date }[],
-  value: string,
+  field: string,
 ): Promise<void> {
   for (const event of events) {
     const time = event.value.setSeconds(0)
-    await addFieldsToSubscriber(event.email, { [value]: Math.trunc(time / 1000) })
+    await addFieldsToSubscriber(event.email, { [field]: Math.trunc(time / 1000) })
   }
 }
 
@@ -53,6 +53,3 @@ export async function exportEventDataToKlickTipp(): Promise<boolean> {
 
   return true
 }
-
-// void exportEventDataToKlickTipp()
-// void retrieveNotRegisteredEmails()

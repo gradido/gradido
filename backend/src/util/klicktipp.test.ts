@@ -50,7 +50,6 @@ describe('klicktipp', () => {
       mutation: login,
       variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
     })
-    // await con.close()
   })
 
   afterAll(() => {
@@ -59,8 +58,6 @@ describe('klicktipp', () => {
 
   describe('exportEventDataToKlickTipp', () => {
     it('calls the KlicktippController', async () => {
-      // console.log(await lastDateTimeEvents('USER_LOGIN'))
-      // console.log(con)
       await exportEventDataToKlickTipp()
       expect(addFieldsToSubscriber).toBeCalled()
     })

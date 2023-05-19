@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
@@ -43,10 +42,9 @@ export const getKlickTippUser = async (email: string): Promise<any> => {
   const isLogin = await loginKlicktippUser()
   if (isLogin) {
     try {
-      const subscriberId = await klicktippConnector.subscriberSearch(email)
-      return klicktippConnector.subscriberGet(subscriberId)
+      return klicktippConnector.subscriberGet(await klicktippConnector.subscriberSearch(email))
     } catch (e) {
-      logger.error(`Could not find subscriber ${email}`)
+      logger.error('Could not find subscriber', email)
       return false
     }
   }
@@ -68,17 +66,16 @@ export const addFieldsToSubscriber = async (
   const isLogin = await loginKlicktippUser()
   if (isLogin) {
     try {
-      const subscriberId = await klicktippConnector.subscriberSearch(email)
+      logger.info(`Update of subscriber (${email}) has been successful`)
       const result = await klicktippConnector.subscriberUpdate(
-        subscriberId,
+        await klicktippConnector.subscriberSearch(email),
         fields,
         newemail,
         newsmsnumber,
       )
-      logger.info(`Update of subscriber (${email}) has been successful, ${result}`)
       return result
     } catch (e) {
-      logger.error(`Could not update subscriber ${email}, ${JSON.stringify(fields)}, ${e}`)
+      logger.error('Could not update subscriber', email, JSON.stringify(fields), e)
       return false
     }
   }
