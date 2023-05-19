@@ -9,9 +9,6 @@ block content
     h2= t('emails.addedContributionMessage.readMessage')
     div(class="p_content")= t('emails.addedContributionMessage.toSeeAndAnswerMessage')
 
-    a.clink(href="https://gdd.gradido.net/community/contribution") #{t('emails.general.toAccount')}
-    br
-    br
-    br
+    a.button-3(href="https://gdd.gradido.net/community/contribution") #{t('emails.general.toAccount')}
 
     include ../includes/doNotReply.pug

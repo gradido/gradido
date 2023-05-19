@@ -9,7 +9,7 @@ body{
 }
 
 h2 {
-  margin-top: 0px;
+  margin-top: 15px;
   color: #383838;
 }
 
@@ -31,9 +31,9 @@ h2 {
 
 .content {
   display: block;
-  width: 100%;
-  margin: 40px 0 40px 0;
-  padding: 20px 0 40px 0;
+  width: 78%;
+  margin: 40px 1% 40px 1%;
+  padding: 20px 10% 40px 10%;
   border-radius: 24px;
   background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);
 }
@@ -41,6 +41,7 @@ h2 {
 .p_content{
   margin: 15px 0 15px 0;
   line-height: 26px;
+  color: #9ca0a8;
 }
 
 .clink {
@@ -60,6 +61,8 @@ h2 {
   border-radius: 20px;
   background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38);
   box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3);
+  margin: 25px 0 25px 0;
+  width: 50%;
 }
 
 .button-4 {

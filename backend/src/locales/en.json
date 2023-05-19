@@ -4,7 +4,7 @@
       "activateAccount": "Activate account",
       "emailRegistered": "Your email address has just been registered with Gradido.",
       "pleaseClickLink": "Please click here to complete the registration and activate your Gradido account.",
-      "subject": "Gradido: Email Verification",
+      "subject": "Email Verification",
       "title": "Email Verification"
     },
     "accountMultiRegistration": {
@@ -13,13 +13,13 @@
       "emailReused": "Your email address has just been used again to register an account with Gradido.",
       "ifYouAreNotTheOne": "If you did not try to register again, please contact our support:",
       "onForgottenPasswordClickLink": "If you have forgotten your password, please click here.",
-      "subject": "Gradido: Try To Register Again With Your Email",
+      "subject": "Try To Register Again With Your Email",
       "title": "Try To Register Again With Your Email"
     },
     "addedContributionMessage": {
       "commonGoodContributionMessage": "You have received a message from {senderFirstName} {senderLastName} regarding your common good contribution “{contributionMemo}”.",
       "readMessage": "Read and reply to message",
-      "subject": "Gradido: Message about your common good contribution",
+      "subject": "Message about your common good contribution",
       "title": "Message about your common good contribution",
       "toSeeAndAnswerMessage": "To view and reply to the message, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab."
     },
@@ -28,17 +28,17 @@
     },
     "contributionConfirmed": {
       "commonGoodContributionConfirmed": "Your common good contribution “{contributionMemo}” has just been approved by {senderFirstName} {senderLastName}. Your Gradido account has been credited with {amountGDD} GDD.",
-      "subject": "Gradido: Your contribution to the common good was confirmed",
+      "subject": "Your contribution to the common good was confirmed",
       "title": "Your contribution to the common good was confirmed"
     },
     "contributionDeleted": {
       "commonGoodContributionDeleted": "Your common good contribution “{contributionMemo}” was deleted by {senderFirstName} {senderLastName}.",
-      "subject": "Gradido: Your common good contribution was deleted",
+      "subject": "Your common good contribution was deleted",
       "title": "Your common good contribution was deleted"
     },
     "contributionDenied": {
       "commonGoodContributionDenied": "Your common good contribution “{contributionMemo}” was rejected by {senderFirstName} {senderLastName}.",
-      "subject": "Gradido: Your common good contribution was rejected",
+      "subject": "Your common good contribution was rejected",
       "title": "Your common good contribution was rejected"
     },
     "footer": {
@@ -70,19 +70,19 @@
     },
     "resetPassword": {
       "pleaseClickLink": "If it was you, please click here.",
-      "subject": "Gradido: Reset password",
+      "subject": "Reset password",
       "title": "Reset password",
       "youOrSomeoneResetPassword": "You, or someone else, requested a password reset for this account."
     },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) has just redeemed your link.",
       "memo": "Message: {transactionMemo}",
-      "subject": "Gradido: {senderFirstName} {senderLastName} has redeemed your Gradido link",
+      "subject": "{senderFirstName} {senderLastName} has redeemed your Gradido link",
       "title": "{senderFirstName} {senderLastName} has redeemed your Gradido link"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "You have just received {transactionAmount} GDD from {senderFirstName} {senderLastName} ({senderEmail}).",
-      "subject": "Gradido: {senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido",
+      "subject": "{senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido",
       "title": "{senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido"
     }
   },
