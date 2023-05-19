@@ -123,7 +123,7 @@ describe('TransactionForm', () => {
             ).toBe('text')
           })
 
-          it('has a label form.receiver', () => {
+          it('has a label form.recipient', () => {
             expect(wrapper.find('div[data-test="input-identifier"]').find('label').text()).toBe(
               'form.recipient',
             )
