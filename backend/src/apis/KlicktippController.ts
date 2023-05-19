@@ -66,14 +66,13 @@ export const addFieldsToSubscriber = async (
   const isLogin = await loginKlicktippUser()
   if (isLogin) {
     try {
-      logger.info(`Update of subscriber (${email}) has been successful`)
-      const result = await klicktippConnector.subscriberUpdate(
+      logger.info('Updating of subscriber', email)
+      return klicktippConnector.subscriberUpdate(
         await klicktippConnector.subscriberSearch(email),
         fields,
         newemail,
         newsmsnumber,
       )
-      return result
     } catch (e) {
       logger.error('Could not update subscriber', email, JSON.stringify(fields), e)
       return false
