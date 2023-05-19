@@ -34,7 +34,7 @@ const i18nMock = {
   n: (value, format) => value,
 }
 
-loadAllRules(i18nMock)
+loadAllRules(i18nMock, { query: jest.fn().mockResolvedValue({ data: { checkUsername: true } }) })
 
 global.localVue = createLocalVue()
 

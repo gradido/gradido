@@ -13,7 +13,7 @@
 </template>
 <script>
 import { formatDistanceToNow } from 'date-fns'
-import { de, en, fr, es, nl } from 'date-fns/locale'
+import { de, enUS as en, fr, es, nl } from 'date-fns/locale'
 
 const locales = { en, de, es, fr, nl }
 
