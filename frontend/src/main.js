@@ -27,7 +27,7 @@ const filters = loadFilters(i18n)
 Vue.filter('amount', filters.amount)
 Vue.filter('GDD', filters.GDD)
 
-loadAllRules(i18n)
+loadAllRules(i18n, apolloProvider.defaultClient)
 
 addNavigationGuards(router, store, apolloProvider.defaultClient)
 

@@ -19,6 +19,7 @@ import {
   createContribution,
   login,
   sendCoins,
+  updateUserInfos,
 } from '@/seeds/graphql/mutations'
 import { transactionsQuery } from '@/seeds/graphql/queries'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -52,10 +53,13 @@ let bobData: any
 let peterData: any
 let user: User[]
 
+let bob: User
+let peter: User
+
 describe('send coins', () => {
   beforeAll(async () => {
-    await userFactory(testEnv, peterLustig)
-    await userFactory(testEnv, bobBaumeister)
+    peter = await userFactory(testEnv, peterLustig)
+    bob = await userFactory(testEnv, bobBaumeister)
     await userFactory(testEnv, stephenHawking)
     await userFactory(testEnv, garrickOllivander)
 
@@ -373,6 +377,114 @@ describe('send coins', () => {
             involvedTransactionId: transaction[0].id,
           }),
         )
+      })
+    })
+
+    describe('send coins via gradido ID', () => {
+      it('sends the coins', async () => {
+        await expect(
+          mutate({
+            mutation: sendCoins,
+            variables: {
+              identifier: peter?.gradidoID,
+              amount: 10,
+              memo: 'send via gradido ID',
+            },
+          }),
+        ).resolves.toMatchObject({
+          data: {
+            sendCoins: true,
+          },
+          errors: undefined,
+        })
+      })
+    })
+
+    describe('send coins via alias', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: updateUserInfos,
+          variables: {
+            alias: 'bob',
+          },
+        })
+        await mutate({
+          mutation: login,
+          variables: peterData,
+        })
+      })
+
+      afterAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: bobData,
+        })
+      })
+
+      it('sends the coins', async () => {
+        await expect(
+          mutate({
+            mutation: sendCoins,
+            variables: {
+              identifier: 'bob',
+              amount: 6.66,
+              memo: 'send via alias',
+            },
+          }),
+        ).resolves.toMatchObject({
+          data: {
+            sendCoins: true,
+          },
+          errors: undefined,
+        })
+      })
+
+      describe("peter's transactions", () => {
+        it('has all expected transactions', async () => {
+          await expect(query({ query: transactionsQuery })).resolves.toMatchObject({
+            data: {
+              transactionList: {
+                balance: expect.any(Object),
+                transactions: [
+                  expect.objectContaining({
+                    typeId: 'DECAY',
+                  }),
+                  expect.objectContaining({
+                    amount: expect.decimalEqual(-6.66),
+                    linkedUser: {
+                      firstName: 'Bob',
+                      gradidoID: bob?.gradidoID,
+                      lastName: 'der Baumeister',
+                    },
+                    memo: 'send via alias',
+                    typeId: 'SEND',
+                  }),
+                  expect.objectContaining({
+                    amount: expect.decimalEqual(10),
+                    linkedUser: {
+                      firstName: 'Bob',
+                      gradidoID: bob?.gradidoID,
+                      lastName: 'der Baumeister',
+                    },
+                    memo: 'send via gradido ID',
+                    typeId: 'RECEIVE',
+                  }),
+                  expect.objectContaining({
+                    amount: expect.decimalEqual(50),
+                    linkedUser: {
+                      firstName: 'Bob',
+                      gradidoID: bob?.gradidoID,
+                      lastName: 'der Baumeister',
+                    },
+                    memo: 'unrepeatable memo',
+                    typeId: 'RECEIVE',
+                  }),
+                ],
+              },
+            },
+            errors: undefined,
+          })
+        })
       })
     })
 
