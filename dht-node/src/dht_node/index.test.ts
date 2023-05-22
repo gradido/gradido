@@ -195,11 +195,7 @@ describe('federation', () => {
           const resultBefore = await DbCommunity.find({ foreign: false })
           expect(resultBefore).toHaveLength(1)
           const modifiedCom = DbCommunity.create()
-          modifiedCom.communityUuid = resultBefore[0].communityUuid
-          modifiedCom.creationDate = resultBefore[0].creationDate
           modifiedCom.description = 'updated description'
-          modifiedCom.foreign = resultBefore[0].foreign
-          modifiedCom.id = resultBefore[0].id
           modifiedCom.name = 'update name'
           modifiedCom.publicKey = Buffer.from(
             '1234567891abcdef7892abcdef7893abcdef7894abcdef7895abcdef7896abcd',

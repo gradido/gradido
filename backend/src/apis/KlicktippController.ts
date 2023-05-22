@@ -4,8 +4,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import { CONFIG } from '@/config'
+import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line import/no-relative-parent-imports
 import KlicktippConnector from 'klicktipp-api'
@@ -41,9 +41,12 @@ export const getKlickTippUser = async (email: string): Promise<any> => {
   if (!CONFIG.KLICKTIPP) return true
   const isLogin = await loginKlicktippUser()
   if (isLogin) {
-    const subscriberId = await klicktippConnector.subscriberSearch(email)
-    const result = await klicktippConnector.subscriberGet(subscriberId)
-    return result
+    try {
+      return klicktippConnector.subscriberGet(await klicktippConnector.subscriberSearch(email))
+    } catch (e) {
+      logger.error('Could not find subscriber', email)
+      return false
+    }
   }
   return false
 }
@@ -62,8 +65,18 @@ export const addFieldsToSubscriber = async (
   if (!CONFIG.KLICKTIPP) return true
   const isLogin = await loginKlicktippUser()
   if (isLogin) {
-    const subscriberId = await klicktippConnector.subscriberSearch(email)
-    return klicktippConnector.subscriberUpdate(subscriberId, fields, newemail, newsmsnumber)
+    try {
+      logger.info('Updating of subscriber', email)
+      return klicktippConnector.subscriberUpdate(
+        await klicktippConnector.subscriberSearch(email),
+        fields,
+        newemail,
+        newsmsnumber,
+      )
+    } catch (e) {
+      logger.error('Could not update subscriber', email, fields, e)
+      return false
+    }
   }
   return false
 }
