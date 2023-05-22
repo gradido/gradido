@@ -10,7 +10,7 @@ let query: any
 // to do: We need a setup for the tests that closes the connection
 let con: any
 
-CONFIG.FEDERATION_API = '1_0'
+CONFIG.FEDERATION_API = '2_0'
 
 beforeAll(async () => {
   const server = await createServer()
@@ -27,9 +27,6 @@ describe('PublicKeyResolver', () => {
   const getPublicKeyQuery = `
     query {
       getPublicKey
-       {
-        publicKey
-      }
     }
   `
 
@@ -46,9 +43,7 @@ describe('PublicKeyResolver', () => {
     it('returns homeCommunity-publicKey', async () => {
       await expect(query({ query: getPublicKeyQuery })).resolves.toMatchObject({
         data: {
-          getPublicKey: {
-            publicKey: expect.stringMatching('homeCommunity-publicKey'),
-          },
+          getPublicKey: expect.stringMatching('homeCommunity-publicKey'),
         },
       })
     })

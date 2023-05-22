@@ -1,11 +1,11 @@
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { GraphQLClient } from 'graphql-request'
 
-import { getPublicKey } from '@/federation/query/getPublicKey.1.0'
+import { getPublicKey } from '@/federation/query/getPublicKey.2.0'
 import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line camelcase
-export class Client_1_0 {
+export class Client_2_0 {
   dbCom: DbFederatedCommunity
   endpoint: string
   client: GraphQLClient
@@ -30,7 +30,7 @@ export class Client_1_0 {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { data } = await this.client.rawRequest(getPublicKey, {})
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!data?.getPublicKey?.publicKey) {
+      if (!data?.getPublicKey) {
         logger.warn('Federation: getPublicKey without response data from endpoint', this.endpoint)
         return
       }
@@ -38,10 +38,10 @@ export class Client_1_0 {
         'Federation: getPublicKey successful from endpoint',
         this.endpoint,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        data.getPublicKey.publicKey,
+        data.getPublicKey,
       )
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-      return data.getPublicKey.publicKey
+      return data.getPublicKey
     } catch (err) {
       logger.warn('Federation: getPublicKey failed for endpoint', this.endpoint)
     }
