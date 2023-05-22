@@ -87,7 +87,37 @@ describe('validate Communities', () => {
             overwrite: ['end_point', 'last_announced_at'],
           })
           .execute()
-
+        /*
+        // eslint-disable-next-line @typescript-eslint/require-await
+        jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+          return {
+            data: {
+              getPublicCommunityInfo: {
+                name: 'Test-Community',
+                description: 'Description of Test-Community',
+                createdAt: 'someDate',
+                publicKey: 'somePubKey',
+              },
+            },
+          } as Response<unknown>
+        })
+        const variables2 = {
+          publicKey: Buffer.from('11111111111111111111111111111111'),
+          apiVersion: '1_0',
+          endPoint: 'http//localhost:5001/api/',
+          lastAnnouncedAt: new Date(),
+        }
+        await DbCommunity.createQueryBuilder()
+          .insert()
+          .into(DbFederatedCommunity)
+          .values(variables1)
+          .orUpdate({
+            conflict_target: ['id', 'publicKey', 'apiVersion'],
+            overwrite: ['end_point', 'last_announced_at'],
+          })
+          .execute()
+        */
         jest.clearAllMocks()
         await validateCommunities()
       })
@@ -102,11 +132,7 @@ describe('validate Communities', () => {
         )
       })
       it('logs not matching publicKeys', () => {
-        expect(logger.warn).toBeCalledWith(
-          'Federation: received not matching publicKey:',
-          'somePubKey',
-          expect.stringMatching('11111111111111111111111111111111'),
-        )
+        expect(logger.warn).toBeCalledWith('Federation: received none or not matching publicKey...')
       })
     })
     describe('with two Communities of api 1_0 and 1_1', () => {
