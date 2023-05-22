@@ -8,6 +8,8 @@
 import { Connection } from '@dbTools/typeorm'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { GraphQLClient } from 'graphql-request'
+import { Response } from 'graphql-request/dist/types'
 
 import { testEnvironment, cleanDB } from '@test/helpers'
 import { logger } from '@test/testSetup'
@@ -59,6 +61,17 @@ describe('validate Communities', () => {
 
     describe('with one Community of api 1_0', () => {
       beforeEach(async () => {
+        // eslint-disable-next-line @typescript-eslint/require-await
+        jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+          return {
+            data: {
+              getPublicKey: {
+                publicKey: 'somePubKey',
+              },
+            },
+          } as Response<unknown>
+        })
         const variables1 = {
           publicKey: Buffer.from('11111111111111111111111111111111'),
           apiVersion: '1_0',
@@ -88,9 +101,28 @@ describe('validate Communities', () => {
           'http//localhost:5001/api/1_0/',
         )
       })
+      it('logs not matching publicKeys', () => {
+        expect(logger.warn).toBeCalledWith(
+          'Federation: received not matching publicKey:',
+          'somePubKey',
+          expect.stringMatching('11111111111111111111111111111111'),
+        )
+      })
     })
     describe('with two Communities of api 1_0 and 1_1', () => {
       beforeEach(async () => {
+        jest.clearAllMocks()
+        // eslint-disable-next-line @typescript-eslint/require-await
+        jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+          return {
+            data: {
+              getPublicKey: {
+                publicKey: '11111111111111111111111111111111',
+              },
+            },
+          } as Response<unknown>
+        })
         const variables2 = {
           publicKey: Buffer.from('11111111111111111111111111111111'),
           apiVersion: '1_1',
