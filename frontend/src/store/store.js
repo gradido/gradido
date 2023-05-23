@@ -16,9 +16,9 @@ export const mutations = {
   gradidoID: (state, gradidoID) => {
     state.gradidoID = gradidoID
   },
-  // username: (state, username) => {
-  //   state.username = username
-  // },
+  username: (state, username) => {
+    state.username = username
+  },
   firstName: (state, firstName) => {
     state.firstName = firstName
   },
@@ -53,13 +53,16 @@ export const mutations = {
   hideAmountGDT: (state, hideAmountGDT) => {
     state.hideAmountGDT = !!hideAmountGDT
   },
+  email: (state, email) => {
+    state.email = email || ''
+  },
 }
 
 export const actions = {
   login: ({ dispatch, commit }, data) => {
     commit('gradidoID', data.gradidoID)
     commit('language', data.language)
-    // commit('username', data.username)
+    commit('username', data.alias)
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
     commit('newsletterState', data.klickTipp.newsletterState)
@@ -71,7 +74,7 @@ export const actions = {
   },
   logout: ({ commit, state }) => {
     commit('token', null)
-    // commit('username', '')
+    commit('username', '')
     commit('gradidoID', null)
     commit('firstName', '')
     commit('lastName', '')
@@ -81,6 +84,7 @@ export const actions = {
     commit('isAdmin', false)
     commit('hideAmountGDD', false)
     commit('hideAmountGDT', true)
+    commit('email', '')
     localStorage.clear()
   },
 }
@@ -109,6 +113,7 @@ try {
       publisherId: null,
       hideAmountGDD: null,
       hideAmountGDT: null,
+      email: '',
     },
     getters: {},
     // Syncronous mutation of the state
