@@ -103,6 +103,7 @@ describe('validate Communities', () => {
           .into(DbFederatedCommunity)
           .values(variables2)
           .orUpdate({
+            // eslint-disable-next-line camelcase
             conflict_target: ['id', 'publicKey', 'apiVersion'],
             overwrite: ['end_point', 'last_announced_at'],
           })
@@ -141,6 +142,7 @@ describe('validate Communities', () => {
           .into(DbFederatedCommunity)
           .values(variables3)
           .orUpdate({
+            // eslint-disable-next-line camelcase
             conflict_target: ['id', 'publicKey', 'apiVersion'],
             overwrite: ['end_point', 'last_announced_at'],
           })
