@@ -2,22 +2,19 @@ import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCom
 
 import { ApiVersionType } from '@/federation/enum/apiVersionType'
 
-// eslint-disable-next-line camelcase
-import { Client_1_0 } from './Client_1_0'
-// eslint-disable-next-line camelcase
-import { Client_1_1 } from './Client_1_1'
+import { FederationClient_1_0 } from './FederationClient_1_0'
+import { FederationClient_1_1 } from './FederationClient_1_1'
 
-// eslint-disable-next-line camelcase
-type FederationClient = Client_1_0 | Client_1_1
+type FederationClientType = FederationClient_1_0 | FederationClient_1_1
 
 interface ClientInstance {
   id: number
   // eslint-disable-next-line no-use-before-define
-  client: FederationClient
+  client: FederationClientType
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export class Client {
+export class FederationClient {
   private static instanceArray: ClientInstance[] = []
 
   /**
@@ -30,9 +27,9 @@ export class Client {
   private static createFederationClient = (dbCom: DbFederatedCommunity) => {
     switch (dbCom.apiVersion) {
       case ApiVersionType.V1_0:
-        return new Client_1_0(dbCom)
+        return new FederationClient_1_0(dbCom)
       case ApiVersionType.V1_1:
-        return new Client_1_1(dbCom)
+        return new FederationClient_1_1(dbCom)
       default:
         return null
     }
@@ -44,14 +41,14 @@ export class Client {
    * This implementation let you subclass the Singleton class while keeping
    * just one instance of each subclass around.
    */
-  public static getInstance(dbCom: DbFederatedCommunity): FederationClient | null {
-    const instance = Client.instanceArray.find((instance) => instance.id === dbCom.id)
+  public static getInstance(dbCom: DbFederatedCommunity): FederationClientType | null {
+    const instance = FederationClient.instanceArray.find((instance) => instance.id === dbCom.id)
     if (instance) {
       return instance.client
     }
-    const client = Client.createFederationClient(dbCom)
+    const client = FederationClient.createFederationClient(dbCom)
     if (client) {
-      Client.instanceArray.push({ id: dbCom.id, client } as ClientInstance)
+      FederationClient.instanceArray.push({ id: dbCom.id, client } as ClientInstance)
     }
     return client
   }
