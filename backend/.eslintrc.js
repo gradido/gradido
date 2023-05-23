@@ -185,6 +185,7 @@ module.exports = {
         tsconfigRootDir: __dirname,
         project: ['./tsconfig.json', '**/tsconfig.json'],
         // this is to properly reference the referenced project database without requirement of compiling it
+        // eslint-disable-next-line camelcase
         EXPERIMENTAL_useSourceOfProjectReferenceRedirect: true,
       },
     },
