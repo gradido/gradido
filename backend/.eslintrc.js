@@ -27,7 +27,8 @@ module.exports = {
     },
   },
   rules: {
-    'no-console': ['error'],
+    'no-console': 'error',
+    camelcase: ['error', { allow: 'FederationClient_*' }],
     'no-debugger': 'error',
     'prettier/prettier': [
       'error',
