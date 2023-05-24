@@ -33,13 +33,12 @@ export const startDHT = async (topic: string): Promise<void> => {
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
     const keyPair = DHT.keyPair(getSeed())
-    logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
+    const pubKeyString = keyPair.publicKey.toString('hex')
+    logger.info(`keyPairDHT: publicKey=${pubKeyString}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
-    await writeHomeCommunityEntry(keyPair.publicKey.toString('hex'))
+    await writeHomeCommunityEntry(pubKeyString)
 
-    const ownApiVersions = await writeFederatedHomeCommunityEntries(
-      keyPair.publicKey.toString('hex'),
-    )
+    const ownApiVersions = await writeFederatedHomeCommunityEntries(pubKeyString)
     logger.info(`ApiList: ${JSON.stringify(ownApiVersions)}`)
 
     const node = new DHT({ keyPair })
@@ -146,7 +145,7 @@ export const startDHT = async (topic: string): Promise<void> => {
         data.peers.forEach((peer: any) => {
           const pubKey = peer.publicKey.toString('hex')
           if (
-            pubKey !== keyPair.publicKey.toString('hex') &&
+            pubKey !== pubKeyString &&
             !successfulRequests.includes(pubKey) &&
             !errorfulRequests.includes(pubKey) &&
             !collectedPubKeys.includes(pubKey)
@@ -197,17 +196,15 @@ export async function writeFederatedHomeCommunityEntries(pubKey: string): Promis
   })
   try {
     // first remove privious existing homeCommunity entries
-    DbFederatedCommunity.createQueryBuilder().delete().where({ foreign: false }).execute()
-    for (let i = 0; i < homeApiVersions.length; i++) {
+    await DbFederatedCommunity.createQueryBuilder().delete().where({ foreign: false }).execute()
+    for (const homeApiVersion of homeApiVersions) {
       const homeCom = DbFederatedCommunity.create()
       homeCom.foreign = false
-      homeCom.apiVersion = homeApiVersions[i].api
-      homeCom.endPoint = homeApiVersions[i].url
+      homeCom.apiVersion = homeApiVersion.api
+      homeCom.endPoint = homeApiVersion.url
       homeCom.publicKey = Buffer.from(pubKey)
       await DbFederatedCommunity.insert(homeCom)
-      logger.info(
-        `federation home-community inserted successfully: ${JSON.stringify(homeApiVersions[i])}`,
-      )
+      logger.info(`federation home-community inserted successfully:`, homeApiVersion)
     }
   } catch (err) {
     throw new Error(`Federation: Error writing federated HomeCommunity-Entries: ${err}`)
@@ -233,7 +230,7 @@ export async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
       homeCom.name = CONFIG.COMMUNITY_NAME
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
       await DbCommunity.save(homeCom)
-      logger.info(`home-community updated successfully: ${JSON.stringify(homeCom)}`)
+      logger.info(`home-community updated successfully:`, homeCom)
     } else {
       // insert a new homecommunity entry including a new ID and a new but ensured unique UUID
       homeCom = new DbCommunity()
@@ -245,7 +242,7 @@ export async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
       homeCom.creationDate = new Date()
       await DbCommunity.insert(homeCom)
-      logger.info(`home-community inserted successfully: ${JSON.stringify(homeCom)}`)
+      logger.info(`home-community inserted successfully:`, homeCom)
     }
   } catch (err) {
     throw new Error(`Federation: Error writing HomeCommunity-Entry: ${err}`)

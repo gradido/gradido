@@ -1,12 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import {
-  CommunityApi,
-  startDHT,
-  writeFederatedHomeCommunityEntries,
-  writeHomeCommunityEntry,
-} from './index'
+import { startDHT } from './index'
 import DHT from '@hyperswarm/dht'
 import CONFIG from '@/config'
 import { logger } from '@test/testSetup'
@@ -121,6 +116,9 @@ describe('federation', () => {
     const hashSpy = jest.spyOn(DHT, 'hash')
     const keyPairSpy = jest.spyOn(DHT, 'keyPair')
     beforeEach(async () => {
+      CONFIG.FEDERATION_COMMUNITY_URL = 'https://test.gradido.net'
+      CONFIG.COMMUNITY_NAME = 'Gradido Test Community'
+      CONFIG.COMMUNITY_DESCRIPTION = 'Community to test the federation'
       DHT.mockClear()
       jest.clearAllMocks()
       await cleanDB()
@@ -137,6 +135,64 @@ describe('federation', () => {
 
     it('initializes a new DHT object', () => {
       expect(DHT).toBeCalledWith({ keyPair: keyPairMock })
+    })
+
+    it('stores the home community in community table ', async () => {
+      const result = await DbCommunity.find()
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: expect.any(Number),
+          foreign: false,
+          url: 'https://test.gradido.net/api/',
+          publicKey: expect.any(Buffer),
+          communityUuid: expect.any(String),
+          authenticatedAt: null,
+          name: 'Gradido Test Community',
+          description: 'Community to test the federation',
+          creationDate: expect.any(Date),
+          createdAt: expect.any(Date),
+          updatedAt: null,
+        }),
+      ])
+      expect(validateUUID(result[0].communityUuid ? result[0].communityUuid : '')).toEqual(true)
+      expect(versionUUID(result[0].communityUuid ? result[0].communityUuid : '')).toEqual(4)
+    })
+
+    it('creates 3 entries in table federated_communities', async () => {
+      const result = await DbFederatedCommunity.find({ order: { id: 'ASC' } })
+      await expect(result).toHaveLength(3)
+      await expect(result).toEqual([
+        expect.objectContaining({
+          id: expect.any(Number),
+          foreign: false,
+          publicKey: expect.any(Buffer),
+          apiVersion: '1_0',
+          endPoint: 'https://test.gradido.net/api/',
+          lastAnnouncedAt: null,
+          createdAt: expect.any(Date),
+          updatedAt: null,
+        }),
+        expect.objectContaining({
+          id: expect.any(Number),
+          foreign: false,
+          publicKey: expect.any(Buffer),
+          apiVersion: '1_1',
+          endPoint: 'https://test.gradido.net/api/',
+          lastAnnouncedAt: null,
+          createdAt: expect.any(Date),
+          updatedAt: null,
+        }),
+        expect.objectContaining({
+          id: expect.any(Number),
+          foreign: false,
+          publicKey: expect.any(Buffer),
+          apiVersion: '2_0',
+          endPoint: 'https://test.gradido.net/api/',
+          lastAnnouncedAt: null,
+          createdAt: expect.any(Date),
+          updatedAt: null,
+        }),
+      ])
     })
 
     describe('DHT node', () => {
@@ -159,131 +215,6 @@ describe('federation', () => {
 
         it('looks up on topic', () => {
           expect(nodeLookupMock).toBeCalledWith(Buffer.from(TEST_TOPIC))
-        })
-      })
-
-      describe('home community', () => {
-        it('one in table communities', async () => {
-          const result = await DbCommunity.find({ foreign: false })
-          expect(result).toEqual(
-            expect.arrayContaining([
-              expect.objectContaining({
-                id: expect.any(Number),
-                foreign: false,
-                url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
-                publicKey: expect.any(Buffer),
-                communityUuid: expect.any(String),
-                authenticatedAt: null,
-                name: CONFIG.COMMUNITY_NAME,
-                description: CONFIG.COMMUNITY_DESCRIPTION,
-                creationDate: expect.any(Date),
-                createdAt: expect.any(Date),
-                updatedAt: null,
-              }),
-            ]),
-          )
-          const valUUID = validateUUID(
-            result[0].communityUuid != null ? result[0].communityUuid : '',
-          )
-          const verUUID = versionUUID(
-            result[0].communityUuid != null ? result[0].communityUuid : '',
-          )
-          expect(valUUID).toEqual(true)
-          expect(verUUID).toEqual(4)
-        })
-        it('update the one in table communities', async () => {
-          const resultBefore = await DbCommunity.find({ foreign: false })
-          expect(resultBefore).toHaveLength(1)
-          const modifiedCom = DbCommunity.create()
-          modifiedCom.description = 'updated description'
-          modifiedCom.name = 'update name'
-          modifiedCom.publicKey = Buffer.from(
-            '1234567891abcdef7892abcdef7893abcdef7894abcdef7895abcdef7896abcd',
-          )
-          modifiedCom.url = 'updated url'
-          await DbCommunity.update(modifiedCom, { id: resultBefore[0].id })
-
-          await writeHomeCommunityEntry(modifiedCom.publicKey.toString())
-          const resultAfter = await DbCommunity.find({ foreign: false })
-          expect(resultAfter).toHaveLength(1)
-          expect(resultAfter).toEqual(
-            expect.arrayContaining([
-              expect.objectContaining({
-                id: resultBefore[0].id,
-                foreign: false,
-                url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
-                publicKey: modifiedCom.publicKey,
-                communityUuid: resultBefore[0].communityUuid,
-                authenticatedAt: null,
-                name: CONFIG.COMMUNITY_NAME,
-                description: CONFIG.COMMUNITY_DESCRIPTION,
-                creationDate: expect.any(Date),
-                createdAt: expect.any(Date),
-                updatedAt: expect.any(Date),
-              }),
-            ]),
-          )
-        })
-      })
-
-      // skipped because ot timing problems in testframework
-      describe.skip('federated home community', () => {
-        it('three in table federated_communities', async () => {
-          const homeApiVersions: CommunityApi[] = await writeFederatedHomeCommunityEntries(
-            keyPairMock.publicKey.toString('hex'),
-          )
-          expect(homeApiVersions).toEqual(
-            expect.arrayContaining([
-              expect.objectContaining({
-                api: '1_0',
-                url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
-              }),
-              expect.objectContaining({
-                api: '1_1',
-                url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
-              }),
-              expect.objectContaining({
-                api: '2_0',
-                url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
-              }),
-            ]),
-          )
-          const result = await DbFederatedCommunity.find({ foreign: false })
-          expect(result).toHaveLength(3)
-          expect(result).toEqual(
-            expect.arrayContaining([
-              expect.objectContaining({
-                id: expect.any(Number),
-                foreign: false,
-                publicKey: expect.any(Buffer),
-                apiVersion: '1_0',
-                endPoint: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
-                lastAnnouncedAt: null,
-                createdAt: expect.any(Date),
-                updatedAt: null,
-              }),
-              expect.objectContaining({
-                id: expect.any(Number),
-                foreign: false,
-                publicKey: expect.any(Buffer),
-                apiVersion: '1_1',
-                endPoint: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
-                lastAnnouncedAt: null,
-                createdAt: expect.any(Date),
-                updatedAt: null,
-              }),
-              expect.objectContaining({
-                id: expect.any(Number),
-                foreign: false,
-                publicKey: expect.any(Buffer),
-                apiVersion: '2_0',
-                endPoint: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
-                lastAnnouncedAt: null,
-                createdAt: expect.any(Date),
-                updatedAt: null,
-              }),
-            ]),
-          )
         })
       })
 
@@ -918,21 +849,117 @@ describe('federation', () => {
                   JSON.stringify([
                     {
                       api: '1_0',
-                      url: 'http://localhost/api/',
+                      url: 'https://test.gradido.net/api/',
                     },
                     {
                       api: '1_1',
-                      url: 'http://localhost/api/',
+                      url: 'https://test.gradido.net/api/',
                     },
                     {
                       api: '2_0',
-                      url: 'http://localhost/api/',
+                      url: 'https://test.gradido.net/api/',
                     },
                   ]),
                 ),
               )
             })
           })
+        })
+      })
+    })
+
+    describe('restart DHT', () => {
+      let homeCommunity: DbCommunity
+      let federatedCommunities: DbFederatedCommunity[]
+
+      describe('without changes', () => {
+        beforeEach(async () => {
+          DHT.mockClear()
+          jest.clearAllMocks()
+          homeCommunity = (await DbCommunity.find())[0]
+          federatedCommunities = await DbFederatedCommunity.find({ order: { id: 'ASC' } })
+          await startDHT(TEST_TOPIC)
+        })
+
+        it('does not change home community in community table except updated at column ', async () => {
+          await expect(DbCommunity.find()).resolves.toEqual([
+            {
+              ...homeCommunity,
+              updatedAt: expect.any(Date),
+            },
+          ])
+        })
+
+        it('rewrites the 3 entries in table federated_communities', async () => {
+          const result = await DbFederatedCommunity.find()
+          await expect(result).toHaveLength(3)
+          await expect(result).toEqual([
+            {
+              ...federatedCommunities[0],
+              id: expect.any(Number),
+              createdAt: expect.any(Date),
+            },
+            {
+              ...federatedCommunities[1],
+              id: expect.any(Number),
+              createdAt: expect.any(Date),
+            },
+            {
+              ...federatedCommunities[2],
+              id: expect.any(Number),
+              createdAt: expect.any(Date),
+            },
+          ])
+        })
+      })
+
+      describe('changeing URL, name and description', () => {
+        beforeEach(async () => {
+          CONFIG.FEDERATION_COMMUNITY_URL = 'https://test2.gradido.net'
+          CONFIG.COMMUNITY_NAME = 'Second Gradido Test Community'
+          CONFIG.COMMUNITY_DESCRIPTION = 'Another Community to test the federation'
+          DHT.mockClear()
+          jest.clearAllMocks()
+          homeCommunity = (await DbCommunity.find())[0]
+          federatedCommunities = await DbFederatedCommunity.find({ order: { id: 'ASC' } })
+          await startDHT(TEST_TOPIC)
+        })
+
+        it('updates URL, name, description and updated at columns  ', async () => {
+          await expect(DbCommunity.find()).resolves.toEqual([
+            {
+              ...homeCommunity,
+              url: 'https://test2.gradido.net/api/',
+              name: 'Second Gradido Test Community',
+              description: 'Another Community to test the federation',
+              updatedAt: expect.any(Date),
+            },
+          ])
+        })
+
+        it('rewrites the 3 entries in table federated_communities with new endpoint', async () => {
+          const result = await DbFederatedCommunity.find()
+          await expect(result).toHaveLength(3)
+          await expect(result).toEqual([
+            {
+              ...federatedCommunities[0],
+              id: expect.any(Number),
+              createdAt: expect.any(Date),
+              endPoint: 'https://test2.gradido.net/api/',
+            },
+            {
+              ...federatedCommunities[1],
+              id: expect.any(Number),
+              createdAt: expect.any(Date),
+              endPoint: 'https://test2.gradido.net/api/',
+            },
+            {
+              ...federatedCommunities[2],
+              id: expect.any(Number),
+              createdAt: expect.any(Date),
+              endPoint: 'https://test2.gradido.net/api/',
+            },
+          ])
         })
       })
     })
