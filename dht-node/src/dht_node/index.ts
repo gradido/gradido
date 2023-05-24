@@ -205,9 +205,7 @@ export async function writeFederatedHomeCommunityEntries(pubKey: string): Promis
       homeCom.endPoint = homeApiVersions[i].url
       homeCom.publicKey = Buffer.from(pubKey)
       await DbFederatedCommunity.insert(homeCom)
-      logger.info(
-        `federation home-community inserted successfully: ${JSON.stringify(homeApiVersions[i])}`,
-      )
+      logger.info(`federation home-community inserted successfully:`, homeApiVersions[i])
     }
   } catch (err) {
     throw new Error(`Federation: Error writing federated HomeCommunity-Entries: ${err}`)
@@ -233,7 +231,7 @@ export async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
       homeCom.name = CONFIG.COMMUNITY_NAME
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
       await DbCommunity.save(homeCom)
-      logger.info(`home-community updated successfully: ${JSON.stringify(homeCom)}`)
+      logger.info(`home-community updated successfully:`, homeCom)
     } else {
       // insert a new homecommunity entry including a new ID and a new but ensured unique UUID
       homeCom = new DbCommunity()
@@ -245,7 +243,7 @@ export async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
       homeCom.creationDate = new Date()
       await DbCommunity.insert(homeCom)
-      logger.info(`home-community inserted successfully: ${JSON.stringify(homeCom)}`)
+      logger.info(`home-community inserted successfully:`, homeCom)
     }
   } catch (err) {
     throw new Error(`Federation: Error writing HomeCommunity-Entry: ${err}`)
