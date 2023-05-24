@@ -33,13 +33,12 @@ export const startDHT = async (topic: string): Promise<void> => {
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
     const keyPair = DHT.keyPair(getSeed())
-    logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
+    const pubKeyString = keyPair.publicKey.toString('hex')
+    logger.info(`keyPairDHT: publicKey=${pubKeyString}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
-    await writeHomeCommunityEntry(keyPair.publicKey.toString('hex'))
+    await writeHomeCommunityEntry(pubKeyString)
 
-    const ownApiVersions = await writeFederatedHomeCommunityEntries(
-      keyPair.publicKey.toString('hex'),
-    )
+    const ownApiVersions = await writeFederatedHomeCommunityEntries(pubKeyString)
     logger.info(`ApiList: ${JSON.stringify(ownApiVersions)}`)
 
     const node = new DHT({ keyPair })
@@ -146,7 +145,7 @@ export const startDHT = async (topic: string): Promise<void> => {
         data.peers.forEach((peer: any) => {
           const pubKey = peer.publicKey.toString('hex')
           if (
-            pubKey !== keyPair.publicKey.toString('hex') &&
+            pubKey !== pubKeyString &&
             !successfulRequests.includes(pubKey) &&
             !errorfulRequests.includes(pubKey) &&
             !collectedPubKeys.includes(pubKey)
