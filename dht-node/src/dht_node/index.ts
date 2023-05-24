@@ -197,15 +197,15 @@ export async function writeFederatedHomeCommunityEntries(pubKey: string): Promis
   })
   try {
     // first remove privious existing homeCommunity entries
-    DbFederatedCommunity.createQueryBuilder().delete().where({ foreign: false }).execute()
-    for (let i = 0; i < homeApiVersions.length; i++) {
+    await DbFederatedCommunity.createQueryBuilder().delete().where({ foreign: false }).execute()
+    for (const homeApiVersion of homeApiVersions) {
       const homeCom = DbFederatedCommunity.create()
       homeCom.foreign = false
-      homeCom.apiVersion = homeApiVersions[i].api
-      homeCom.endPoint = homeApiVersions[i].url
+      homeCom.apiVersion = homeApiVersion.api
+      homeCom.endPoint = homeApiVersion.url
       homeCom.publicKey = Buffer.from(pubKey)
       await DbFederatedCommunity.insert(homeCom)
-      logger.info(`federation home-community inserted successfully:`, homeApiVersions[i])
+      logger.info(`federation home-community inserted successfully:`, homeApiVersion)
     }
   } catch (err) {
     throw new Error(`Federation: Error writing federated HomeCommunity-Entries: ${err}`)
