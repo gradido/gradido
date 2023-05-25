@@ -186,7 +186,7 @@ export const startDHT = async (topic: string): Promise<void> => {
   }
 }
 
-export async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<CommunityApi[]> {
+async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<CommunityApi[]> {
   const homeApiVersions: CommunityApi[] = Object.values(ApiVersionType).map(function (apiEnum) {
     const comApi: CommunityApi = {
       api: apiEnum,
@@ -212,7 +212,7 @@ export async function writeFederatedHomeCommunityEntries(pubKey: string): Promis
   return homeApiVersions
 }
 
-export async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
+async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
   try {
     // check for existing homeCommunity entry
     let homeCom = await DbCommunity.findOne({
