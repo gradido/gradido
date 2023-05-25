@@ -5,7 +5,7 @@ import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCom
 
 import { backendLogger as logger } from '@/server/logger'
 
-import { Client } from './client/Client'
+import { FederationClient } from './client/FederationClient'
 import { ApiVersionType } from './enum/apiVersionType'
 
 export function startValidateCommunities(timerInterval: number): void {
@@ -37,7 +37,7 @@ export async function validateCommunities(): Promise<void> {
       continue
     }
     try {
-      const client = Client.getInstance(dbCom)
+      const client = FederationClient.getInstance(dbCom)
       const pubKey = await client?.getPublicKey()
       if (pubKey && pubKey === dbCom.publicKey.toString()) {
         await DbFederatedCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
