@@ -219,7 +219,7 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
     let homeCom = await DbCommunity.findOne({ foreign: false })
     if (homeCom) {
       // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
-      homeCom.publicKey = Buffer.from(keyPair.publicKey)
+      homeCom.publicKey = keyPair.publicKey
       homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL + '/api/'
       homeCom.name = CONFIG.COMMUNITY_NAME
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
@@ -229,7 +229,7 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
       // insert a new homecommunity entry including a new ID and a new but ensured unique UUID
       homeCom = new DbCommunity()
       homeCom.foreign = false
-      homeCom.publicKey = Buffer.from(keyPair.publicKey)
+      homeCom.publicKey = keyPair.publicKey
       homeCom.communityUuid = await newCommunityUuid()
       homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL + '/api/'
       homeCom.name = CONFIG.COMMUNITY_NAME
