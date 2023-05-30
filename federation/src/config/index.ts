@@ -11,7 +11,7 @@ Decimal.set({
 */
 
 const constants = {
-  DB_VERSION: '0067-community_table_public_key_length',
+  DB_VERSION: '0067-community_tables_public_key_length',
   // DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
