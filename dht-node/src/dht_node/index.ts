@@ -24,6 +24,8 @@ export type CommunityApi = {
   url: string
 }
 
+type KeyPair = { publicKey: Buffer; secretKey: Buffer }
+
 export const startDHT = async (topic: string): Promise<void> => {
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
@@ -31,11 +33,11 @@ export const startDHT = async (topic: string): Promise<void> => {
       CONFIG.FEDERATION_DHT_SEED
         ? Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED)
         : null,
-    )
+    ) as KeyPair
     const pubKeyString = keyPair.publicKey.toString('hex')
     logger.info(`keyPairDHT: publicKey=${pubKeyString}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
-    await writeHomeCommunityEntry(pubKeyString)
+    await writeHomeCommunityEntry(keyPair)
 
     const ownApiVersions = await writeFederatedHomeCommunityEntries(pubKeyString)
     logger.info(`ApiList: ${JSON.stringify(ownApiVersions)}`)
@@ -211,13 +213,13 @@ async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<Commu
   return homeApiVersions
 }
 
-async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
+async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
   try {
     // check for existing homeCommunity entry
     let homeCom = await DbCommunity.findOne({ foreign: false })
     if (homeCom) {
       // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
-      homeCom.publicKey = Buffer.from(pubKey)
+      homeCom.publicKey = Buffer.from(keyPair.publicKey)
       homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL + '/api/'
       homeCom.name = CONFIG.COMMUNITY_NAME
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
@@ -227,7 +229,7 @@ async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
       // insert a new homecommunity entry including a new ID and a new but ensured unique UUID
       homeCom = new DbCommunity()
       homeCom.foreign = false
-      homeCom.publicKey = Buffer.from(pubKey)
+      homeCom.publicKey = Buffer.from(keyPair.publicKey)
       homeCom.communityUuid = await newCommunityUuid()
       homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL + '/api/'
       homeCom.name = CONFIG.COMMUNITY_NAME
