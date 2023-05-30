@@ -24,7 +24,7 @@ enum ApiVersionType {
   V1_1 = '1_1',
   V2_0 = '2_0',
 }
-export type CommunityApi = {
+type CommunityApi = {
   api: string
   url: string
 }
