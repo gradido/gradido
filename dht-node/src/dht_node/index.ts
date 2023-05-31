@@ -250,14 +250,11 @@ async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
 }
 
 const newCommunityUuid = async (): Promise<string> => {
-  let uuid: string
-  let countIds: number
-  do {
-    uuid = uuidv4()
-    countIds = await DbCommunity.count({ where: { communityUuid: uuid } })
-    if (countIds > 0) {
-      logger.info('CommunityUuid creation conflict...')
+  while (true) {
+    const communityUuid = uuidv4()
+    if ((await DbCommunity.count({ where: { communityUuid } })) === 0) {
+      return communityUuid
     }
-  } while (countIds > 0)
-  return uuid
+    logger.info('CommunityUuid creation conflict...', communityUuid)
+  }
 }
