@@ -77,7 +77,6 @@ export default {
         })
         .catch(() => {
           this.toastError(this.$t('gdd_per_link.redeemlink-error'))
-          // this.$router.push('/overview')
         })
     },
     mutationLink(amount) {
