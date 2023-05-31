@@ -7,7 +7,6 @@ import axios from 'axios'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const apiPost = async (url: string, payload: unknown): Promise<any> => {
   logger.trace('POST', url, payload)
   try {
@@ -25,7 +24,6 @@ export const apiPost = async (url: string, payload: unknown): Promise<any> => {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const apiGet = async (url: string): Promise<any> => {
   logger.trace('GET: url=' + url)
   try {

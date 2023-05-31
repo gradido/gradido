@@ -1,6 +1,6 @@
 {
   "name": "gradido-backend",
-  "version": "1.20.0",
+  "version": "1.21.0",
   "description": "Gradido unified backend providing an API-Service for Gradido Transactions",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/backend",
@@ -11,11 +11,11 @@
     "build": "tsc --build && mkdir -p build/src/emails/templates/ && cp -r src/emails/templates/* build/src/emails/templates/ && mkdir -p build/src/locales/ && cp -r src/locales/*.json build/src/locales/",
     "clean": "tsc --build --clean",
     "start": "cross-env TZ=UTC TS_NODE_BASEURL=./build node -r tsconfig-paths/register build/src/index.js",
-    "dev": "cross-env TZ=UTC nodemon -w src --ext ts --exec ts-node -r tsconfig-paths/register src/index.ts",
+    "dev": "cross-env TZ=UTC nodemon -w src --ext ts,pug,json,css --exec ts-node -r tsconfig-paths/register src/index.ts",
     "lint": "eslint --max-warnings=0 .",
     "test": "cross-env TZ=UTC NODE_ENV=development jest --runInBand --forceExit --detectOpenHandles",
     "seed": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/index.ts",
-    "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/klicktipp.ts",
+    "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/executeKlicktipp.ts",
     "locales": "scripts/sort.sh"
   },
   "dependencies": {
@@ -33,7 +33,7 @@
     "graphql": "^15.5.1",
     "graphql-request": "5.0.0",
     "i18n": "^0.15.1",
-    "jsonwebtoken": "^8.5.1",
+    "jose": "^4.14.4",
     "lodash.clonedeep": "^4.5.0",
     "log4js": "^6.4.6",
     "mysql2": "^2.3.0",
@@ -46,12 +46,12 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "^3.2.1",
     "@types/email-templates": "^10.0.1",
     "@types/express": "^4.17.12",
     "@types/faker": "^5.5.9",
     "@types/i18n": "^0.13.4",
     "@types/jest": "^27.0.2",
-    "@types/jsonwebtoken": "^8.5.2",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/node": "^16.10.3",
     "@types/nodemailer": "^6.4.4",
@@ -68,6 +68,7 @@
     "eslint-plugin-n": "^15.7.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-security": "^1.7.1",
     "eslint-plugin-type-graphql": "^1.0.0",
     "faker": "^5.5.3",
     "graphql-tag": "^2.12.6",

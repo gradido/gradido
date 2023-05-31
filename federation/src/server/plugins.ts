@@ -23,8 +23,8 @@ const setHeadersPlugin = {
 
 const filterVariables = (variables: any) => {
   const vars = clonedeep(variables)
-  if (vars.password) vars.password = '***'
-  if (vars.passwordNew) vars.passwordNew = '***'
+  if (vars && vars.password) vars.password = '***'
+  if (vars && vars.passwordNew) vars.passwordNew = '***'
   return vars
 }
 

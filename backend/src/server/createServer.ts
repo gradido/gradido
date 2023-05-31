@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Connection } from '@dbTools/typeorm'
+import { Connection as DbConnection } from '@dbTools/typeorm'
 import { ApolloServer } from 'apollo-server-express'
 import express, { Express, json, urlencoded } from 'express'
 import { Logger } from 'log4js'
 
 import { CONFIG } from '@/config'
 import { schema } from '@/graphql/schema'
-import { connection } from '@/typeorm/connection'
+import { Connection } from '@/typeorm/connection'
 import { checkDBVersion } from '@/typeorm/DBVersion'
 import { elopageWebhook } from '@/webhook/elopage'
 
@@ -21,7 +21,11 @@ import { plugins } from './plugins'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
-type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
+interface ServerDef {
+  apollo: ApolloServer
+  app: Express
+  con: DbConnection
+}
 
 export const createServer = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,8 +37,8 @@ export const createServer = async (
   logger.debug('createServer...')
 
   // open mysql connection
-  const con = await connection()
-  if (!con || !con.isConnected) {
+  const con = await Connection.getInstance()
+  if (!con?.isConnected) {
     logger.fatal(`Couldn't open connection to database!`)
     throw new Error(`Fatal: Couldn't open connection to database`)
   }

@@ -12,6 +12,8 @@ module.exports = {
     'plugin:prettier/recommended',
     'plugin:import/recommended',
     'plugin:import/typescript',
+    'plugin:security/recommended',
+    'plugin:@eslint-community/eslint-comments/recommended',
   ],
   settings: {
     'import/parsers': {
@@ -25,7 +27,8 @@ module.exports = {
     },
   },
   rules: {
-    'no-console': ['error'],
+    'no-console': 'error',
+    camelcase: ['error', { allow: ['FederationClient_*'] }],
     'no-debugger': 'error',
     'prettier/prettier': [
       'error',
@@ -151,6 +154,11 @@ module.exports = {
     'promise/valid-params': 'warn',
     'promise/prefer-await-to-callbacks': 'error',
     'promise/no-multiple-resolved': 'error',
+    // eslint comments
+    '@eslint-community/eslint-comments/disable-enable-pair': ['error', { allowWholeFile: true }],
+    '@eslint-community/eslint-comments/no-restricted-disable': 'error',
+    '@eslint-community/eslint-comments/no-use': 'off',
+    '@eslint-community/eslint-comments/require-description': 'off',
   },
   overrides: [
     // only for ts files
@@ -159,6 +167,7 @@ module.exports = {
       extends: [
         'plugin:@typescript-eslint/recommended',
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
+        'plugin:@typescript-eslint/strict',
         'plugin:type-graphql/recommended',
       ],
       rules: {
@@ -169,11 +178,14 @@ module.exports = {
         '@typescript-eslint/prefer-regexp-exec': 'off',
         // this should not run on ts files: https://github.com/import-js/eslint-plugin-import/issues/2215#issuecomment-911245486
         'import/unambiguous': 'off',
+        // this is not compatible with typeorm, due to joined tables can be null, but are not defined as nullable
+        '@typescript-eslint/no-unnecessary-condition': 'off',
       },
       parserOptions: {
         tsconfigRootDir: __dirname,
         project: ['./tsconfig.json', '**/tsconfig.json'],
         // this is to properly reference the referenced project database without requirement of compiling it
+        // eslint-disable-next-line camelcase
         EXPERIMENTAL_useSourceOfProjectReferenceRedirect: true,
       },
     },

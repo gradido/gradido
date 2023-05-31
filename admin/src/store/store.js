@@ -37,6 +37,7 @@ export const actions = {
 const store = new Vuex.Store({
   plugins: [
     createPersistedState({
+      key: 'gradido-admin',
       storage: window.localStorage,
     }),
   ],

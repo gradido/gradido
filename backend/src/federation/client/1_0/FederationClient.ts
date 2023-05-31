@@ -1,44 +1,49 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
-import { gql } from 'graphql-request'
+import { GraphQLClient } from 'graphql-request'
 
-import { GraphQLGetClient } from '@/federation/client/GraphQLGetClient'
-import { LogError } from '@/server/LogError'
+import { getPublicKey } from '@/federation/client/1_0/query/getPublicKey'
 import { backendLogger as logger } from '@/server/logger'
 
-export async function requestGetPublicKey(
-  dbCom: DbFederatedCommunity,
-): Promise<string | undefined> {
-  let endpoint = dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'
-  endpoint = `${endpoint}${dbCom.apiVersion}/`
-  logger.info(`requestGetPublicKey with endpoint='${endpoint}'...`)
+// eslint-disable-next-line camelcase
+export class FederationClient {
+  dbCom: DbFederatedCommunity
+  endpoint: string
+  client: GraphQLClient
 
-  const graphQLClient = GraphQLGetClient.getInstance(endpoint)
-  logger.debug(`graphQLClient=${JSON.stringify(graphQLClient)}`)
-  const query = gql`
-    query {
-      getPublicKey {
-        publicKey
+  constructor(dbCom: DbFederatedCommunity) {
+    this.dbCom = dbCom
+    this.endpoint = `${dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'}${
+      dbCom.apiVersion
+    }/`
+    this.client = new GraphQLClient(this.endpoint, {
+      method: 'GET',
+      jsonSerializer: {
+        parse: JSON.parse,
+        stringify: JSON.stringify,
+      },
+    })
+  }
+
+  getPublicKey = async (): Promise<string | undefined> => {
+    logger.info('Federation: getPublicKey from endpoint', this.endpoint)
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const { data } = await this.client.rawRequest(getPublicKey, {})
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (!data?.getPublicKey?.publicKey) {
+        logger.warn('Federation: getPublicKey without response data from endpoint', this.endpoint)
+        return
       }
-    }
-  `
-  const variables = {}
-
-  try {
-    const { data, errors, extensions, headers, status } = await graphQLClient.rawRequest(
-      query,
-      variables,
-    )
-    logger.debug(`Response-Data:`, data, errors, extensions, headers, status)
-    if (data) {
-      logger.debug(`Response-PublicKey:`, data.getPublicKey.publicKey)
-      logger.info(`requestGetPublicKey processed successfully`)
+      logger.info(
+        'Federation: getPublicKey successful from endpoint',
+        this.endpoint,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        data.getPublicKey.publicKey,
+      )
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
       return data.getPublicKey.publicKey
+    } catch (err) {
+      logger.warn('Federation: getPublicKey failed for endpoint', this.endpoint)
     }
-    logger.warn(`requestGetPublicKey processed without response data`)
-  } catch (err) {
-    throw new LogError(`Request-Error:`, err)
   }
 }

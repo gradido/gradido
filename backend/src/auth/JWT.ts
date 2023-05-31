@@ -1,22 +1,33 @@
-import { verify, sign } from 'jsonwebtoken'
+import { SignJWT, jwtVerify } from 'jose'
 
 import { CONFIG } from '@/config/'
 import { LogError } from '@/server/LogError'
 
 import { CustomJwtPayload } from './CustomJwtPayload'
 
-export const decode = (token: string): CustomJwtPayload | null => {
+export const decode = async (token: string): Promise<CustomJwtPayload | null> => {
   if (!token) throw new LogError('401 Unauthorized')
+
   try {
-    return <CustomJwtPayload>verify(token, CONFIG.JWT_SECRET)
+    const secret = new TextEncoder().encode(CONFIG.JWT_SECRET)
+    const { payload } = await jwtVerify(token, secret, {
+      issuer: 'urn:gradido:issuer',
+      audience: 'urn:gradido:audience',
+    })
+    return payload as CustomJwtPayload
   } catch (err) {
     return null
   }
 }
 
-export const encode = (gradidoID: string): string => {
-  const token = sign({ gradidoID }, CONFIG.JWT_SECRET, {
-    expiresIn: CONFIG.JWT_EXPIRES_IN,
-  })
+export const encode = async (gradidoID: string): Promise<string> => {
+  const secret = new TextEncoder().encode(CONFIG.JWT_SECRET)
+  const token = await new SignJWT({ gradidoID, 'urn:gradido:claim': true })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setIssuer('urn:gradido:issuer')
+    .setAudience('urn:gradido:audience')
+    .setExpirationTime(CONFIG.JWT_EXPIRES_IN)
+    .sign(secret)
   return token
 }

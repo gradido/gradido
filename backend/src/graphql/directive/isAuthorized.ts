@@ -12,7 +12,7 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
   context.role = ROLE_UNAUTHORIZED // unauthorized user
 
   // is rights an inalienable right?
-  if ((<RIGHTS[]>rights).reduce((acc, right) => acc && INALIENABLE_RIGHTS.includes(right), true))
+  if ((rights as RIGHTS[]).reduce((acc, right) => acc && INALIENABLE_RIGHTS.includes(right), true))
     return true
 
   // Do we have a token?
@@ -21,7 +21,7 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
   }
 
   // Decode the token
-  const decoded = decode(context.token)
+  const decoded = await decode(context.token)
   if (!decoded) {
     throw new LogError('403.13 - Client certificate revoked')
   }
@@ -43,12 +43,12 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
   }
 
   // check for correct rights
-  const missingRights = (<RIGHTS[]>rights).filter((right) => !context.role?.hasRight(right))
+  const missingRights = (rights as RIGHTS[]).filter((right) => !context.role?.hasRight(right))
   if (missingRights.length !== 0) {
     throw new LogError('401 Unauthorized')
   }
 
   // set new header token
-  context.setHeaders.push({ key: 'token', value: encode(decoded.gradidoID) })
+  context.setHeaders.push({ key: 'token', value: await encode(decoded.gradidoID) })
   return true
 }

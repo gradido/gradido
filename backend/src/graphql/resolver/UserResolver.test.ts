@@ -20,6 +20,7 @@ import { ContributionLink } from '@model/ContributionLink'
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
+import { subscribe } from '@/apis/KlicktippController'
 import { CONFIG } from '@/config'
 import {
   sendAccountActivationEmail,
@@ -52,6 +53,7 @@ import {
   searchAdminUsers,
   searchUsers,
   user as userQuery,
+  checkUsername,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -60,8 +62,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
-
-// import { klicktippSignIn } from '@/apis/KlicktippController'
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
@@ -76,15 +76,13 @@ jest.mock('@/emails/sendEmailVariants', () => {
   }
 })
 
-/*
-
 jest.mock('@/apis/KlicktippController', () => {
   return {
     __esModule: true,
-    klicktippSignIn: jest.fn(),
+    subscribe: jest.fn(),
+    getKlickTippUser: jest.fn(),
   }
 })
-*/
 
 let admin: User
 let user: User
@@ -556,16 +554,14 @@ describe('UserResolver', () => {
         expect(newUser.password.toString()).toEqual(encryptedPass.toString())
       })
 
-      /*
       it('calls the klicktipp API', () => {
-        expect(klicktippSignIn).toBeCalledWith(
-          user[0].email,
-          user[0].language,
-          user[0].firstName,
-          user[0].lastName,
+        expect(subscribe).toBeCalledWith(
+          newUser.emailContact.email,
+          newUser.language,
+          newUser.firstName,
+          newUser.lastName,
         )
       })
-      */
 
       it('returns true', () => {
         expect(result).toBeTruthy()
@@ -680,7 +676,6 @@ describe('UserResolver', () => {
           expect.objectContaining({
             data: {
               login: {
-                email: 'bibi@bloxberg.de',
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
@@ -953,7 +948,6 @@ describe('UserResolver', () => {
             expect.objectContaining({
               data: {
                 verifyLogin: {
-                  email: 'bibi@bloxberg.de',
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   language: 'de',
@@ -1205,6 +1199,28 @@ describe('UserResolver', () => {
         })
       })
 
+      describe('alias', () => {
+        beforeEach(() => {
+          jest.clearAllMocks()
+        })
+
+        describe('valid alias', () => {
+          it('updates the user in DB', async () => {
+            await mutate({
+              mutation: updateUserInfos,
+              variables: {
+                alias: 'bibi_Bloxberg',
+              },
+            })
+            await expect(User.findOne()).resolves.toEqual(
+              expect.objectContaining({
+                alias: 'bibi_Bloxberg',
+              }),
+            )
+          })
+        })
+      })
+
       describe('language is not valid', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
@@ -1310,7 +1326,7 @@ describe('UserResolver', () => {
               expect.objectContaining({
                 data: {
                   login: expect.objectContaining({
-                    email: 'bibi@bloxberg.de',
+                    firstName: 'Benjamin',
                   }),
                 },
               }),
@@ -1457,7 +1473,6 @@ describe('UserResolver', () => {
           expect.objectContaining({
             data: {
               login: {
-                email: 'bibi@bloxberg.de',
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
@@ -2343,15 +2358,21 @@ describe('UserResolver', () => {
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
+        await mutate({
+          mutation: updateUserInfos,
+          variables: {
+            alias: 'bibi',
+          },
+        })
       })
 
-      describe('identifier is no gradido ID and no email', () => {
+      describe('identifier is no gradido ID, no email and no alias', () => {
         it('throws and logs "Unknown identifier type" error', async () => {
           await expect(
             query({
               query: userQuery,
               variables: {
-                identifier: 'identifier',
+                identifier: 'identifier_is_no_valid_alias!',
               },
             }),
           ).resolves.toEqual(
@@ -2359,7 +2380,10 @@ describe('UserResolver', () => {
               errors: [new GraphQLError('Unknown identifier type')],
             }),
           )
-          expect(logger.error).toBeCalledWith('Unknown identifier type', 'identifier')
+          expect(logger.error).toBeCalledWith(
+            'Unknown identifier type',
+            'identifier_is_no_valid_alias!',
+          )
         })
       })
 
@@ -2424,6 +2448,57 @@ describe('UserResolver', () => {
               errors: undefined,
             }),
           )
+        })
+      })
+
+      describe('identifier is found via alias', () => {
+        it('returns user', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: 'bibi',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                user: {
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                },
+              },
+              errors: undefined,
+            }),
+          )
+        })
+      })
+    })
+  })
+
+  describe('check username', () => {
+    describe('reserved alias', () => {
+      it('returns false', async () => {
+        await expect(
+          query({ query: checkUsername, variables: { username: 'root' } }),
+        ).resolves.toMatchObject({
+          data: {
+            checkUsername: false,
+          },
+          errors: undefined,
+        })
+      })
+    })
+
+    describe('valid alias', () => {
+      it('returns true', async () => {
+        await expect(
+          query({ query: checkUsername, variables: { username: 'valid' } }),
+        ).resolves.toMatchObject({
+          data: {
+            checkUsername: true,
+          },
+          errors: undefined,
         })
       })
     })

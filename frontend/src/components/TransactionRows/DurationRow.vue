@@ -12,7 +12,7 @@
 </template>
 <script>
 import { formatDistance } from 'date-fns'
-import { en, de, es, fr, nl } from 'date-fns/locale'
+import { enUS as en, de, es, fr, nl } from 'date-fns/locale'
 
 const locales = { en, de, es, fr, nl }
 

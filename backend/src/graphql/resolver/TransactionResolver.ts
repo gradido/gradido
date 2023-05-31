@@ -29,6 +29,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { communityUser } from '@/util/communityUser'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
@@ -48,9 +49,7 @@ export const executeTransaction = async (
   // acquire lock
   const releaseLock = await TRANSACTIONS_LOCK.acquire()
   try {
-    logger.info(
-      `executeTransaction(amount=${amount}, memo=${memo}, sender=${sender}, recipient=${recipient})...`,
-    )
+    logger.info('executeTransaction', amount, memo, sender, recipient)
 
     if (sender.id === recipient.id) {
       throw new LogError('Sender and Recipient are the same', sender.id)
@@ -87,7 +86,11 @@ export const executeTransaction = async (
       transactionSend.typeId = TransactionTypeId.SEND
       transactionSend.memo = memo
       transactionSend.userId = sender.id
+      transactionSend.userGradidoID = sender.gradidoID
+      transactionSend.userName = fullName(sender.firstName, sender.lastName)
       transactionSend.linkedUserId = recipient.id
+      transactionSend.linkedUserGradidoID = recipient.gradidoID
+      transactionSend.linkedUserName = fullName(recipient.firstName, recipient.lastName)
       transactionSend.amount = amount.mul(-1)
       transactionSend.balance = sendBalance.balance
       transactionSend.balanceDate = receivedCallDate
@@ -103,7 +106,11 @@ export const executeTransaction = async (
       transactionReceive.typeId = TransactionTypeId.RECEIVE
       transactionReceive.memo = memo
       transactionReceive.userId = recipient.id
+      transactionReceive.userGradidoID = recipient.gradidoID
+      transactionReceive.userName = fullName(recipient.firstName, recipient.lastName)
       transactionReceive.linkedUserId = sender.id
+      transactionReceive.linkedUserGradidoID = sender.gradidoID
+      transactionReceive.linkedUserName = fullName(sender.firstName, sender.lastName)
       transactionReceive.amount = amount
       const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
       transactionReceive.balance = receiveBalance ? receiveBalance.balance : amount
@@ -119,10 +126,10 @@ export const executeTransaction = async (
       // Save linked transaction id for send
       transactionSend.linkedTransactionId = transactionReceive.id
       await queryRunner.manager.update(dbTransaction, { id: transactionSend.id }, transactionSend)
-      logger.debug(`send Transaction updated: ${transactionSend}`)
+      logger.debug('send Transaction updated', transactionSend)
 
       if (transactionLink) {
-        logger.info(`transactionLink: ${transactionLink}`)
+        logger.info('transactionLink', transactionLink)
         transactionLink.redeemedAt = receivedCallDate
         transactionLink.redeemedBy = recipient.id
         await queryRunner.manager.update(
@@ -271,8 +278,8 @@ export class TransactionResolver {
             sumAmount.mul(-1),
             sumHoldAvailableAmount.mul(-1),
             sumHoldAvailableAmount.minus(sumAmount.toString()).mul(-1),
-            firstDate || now,
-            lastDate || now,
+            firstDate ?? now,
+            lastDate ?? now,
             self,
             (userTransactions.length && userTransactions[0].balance) || new Decimal(0),
           ),
@@ -315,7 +322,6 @@ export class TransactionResolver {
       throw new LogError('Amount to send must be positive', amount)
     }
 
-    // TODO this is subject to replay attacks
     const senderUser = getUser(context)
 
     // validate recipient user
@@ -325,9 +331,7 @@ export class TransactionResolver {
     }
 
     await executeTransaction(amount, memo, senderUser, recipientUser)
-    logger.info(
-      `successful executeTransaction(amount=${amount}, memo=${memo}, senderUser=${senderUser}, recipientUser=${recipientUser})`,
-    )
+    logger.info('successful executeTransaction', amount, memo, senderUser, recipientUser)
     return true
   }
 }

@@ -4,6 +4,8 @@ import { validate, version } from 'uuid'
 
 import { LogError } from '@/server/LogError'
 
+import { VALID_ALIAS_REGEX } from './validateAlias'
+
 export const findUserByIdentifier = async (identifier: string): Promise<DbUser> => {
   let user: DbUser | undefined
   if (validate(identifier) && version(identifier) === 4) {
@@ -27,8 +29,12 @@ export const findUserByIdentifier = async (identifier: string): Promise<DbUser> 
     }
     user = userContact.user
     user.emailContact = userContact
+  } else if (VALID_ALIAS_REGEX.exec(identifier)) {
+    user = await DbUser.findOne({ where: { alias: identifier }, relations: ['emailContact'] })
+    if (!user) {
+      throw new LogError('No user found to given identifier', identifier)
+    }
   } else {
-    // last is alias when implemented
     throw new LogError('Unknown identifier type', identifier)
   }
 
