@@ -210,6 +210,7 @@
     "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
     "redeemed-at": "The link was already redeemed on {date}.",
     "redeemed-title": "redeemed",
+    "redeemlink-error": "This redemption link is not complete.",
     "to-login": "Log in",
     "to-register": "Register a new account.",
     "validUntil": "Valid until",

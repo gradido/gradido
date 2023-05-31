@@ -210,6 +210,7 @@
     "redeemed": "Erfolgreich eingelöst! Deinem Konto wurden {n} GDD gutgeschrieben.",
     "redeemed-at": "Der Link wurde bereits am {date} eingelöst.",
     "redeemed-title": "eingelöst",
+    "redeemlink-error": "Dieser Einlöse-Link ist nicht vollständig.",
     "to-login": "Log dich ein",
     "to-register": "Registriere ein neues Konto.",
     "validUntil": "Gültig bis",
