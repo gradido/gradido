@@ -1,11 +1,12 @@
 <template>
   <div class="redeem-information">
     <b-jumbotron bg-variant="muted" text-variant="dark" border-variant="info">
-      <h1 v-if="isContributionLink">
+      <h1 v-if="amount === ''">{{ $t('gdd_per_link.redeemlink-error') }}</h1>
+      <h1 v-if="isContributionLink && amount !== ''">
         {{ CONFIG.COMMUNITY_NAME }}
         {{ $t('contribution-link.thanksYouWith') }} {{ amount | GDD }}
       </h1>
-      <h1 v-else>
+      <h1 v-if="!isContributionLink && amount !== ''">
         {{ user.firstName }}
         {{ $t('transaction-link.send_you') }} {{ amount | GDD }}
       </h1>
