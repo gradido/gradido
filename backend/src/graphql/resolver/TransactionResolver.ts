@@ -322,8 +322,6 @@ export class TransactionResolver {
       throw new LogError('Amount to send must be positive', amount)
     }
 
-    // TODO this is subject to replay attacks
-    // --- WHY?
     const senderUser = getUser(context)
 
     // validate recipient user

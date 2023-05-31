@@ -66,8 +66,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   )
 }
 
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn('ALTER TABLE `transactions` DROP COLUMN `user_gradido_id`;')
   await queryFn('ALTER TABLE `transactions` DROP COLUMN `user_name`;')
