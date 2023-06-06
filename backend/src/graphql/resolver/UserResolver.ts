@@ -70,7 +70,7 @@ import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 
-import { random } from 'random-bigint'
+import random from 'random-bigint'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getUserCreations } from './util/creations'
