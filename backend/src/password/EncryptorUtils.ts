@@ -22,7 +22,6 @@ import {
   crypto_pwhash_SALTBYTES,
   crypto_pwhash,
   crypto_shorthash,
-  // eslint-disable-next-line import/no-relative-parent-imports
 } from 'sodium-native'
 
 // We will reuse this for changePassword
