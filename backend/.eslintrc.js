@@ -25,10 +25,12 @@ module.exports = {
       },
       node: true,
     },
+    // the parser cannot handle the split sodium import
+    'import/ignore': ['sodium-native'],
   },
   rules: {
     'no-console': 'error',
-    camelcase: ['error', { allow: ['FederationClient_*'] }],
+    camelcase: ['error', { allow: ['FederationClient_*', 'crypto_*', 'randombytes_random'] }],
     'no-debugger': 'error',
     'prettier/prettier': [
       'error',
