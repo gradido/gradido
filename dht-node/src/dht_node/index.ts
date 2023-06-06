@@ -27,6 +27,7 @@ export type CommunityApi = {
 export const startDHT = async (topic: string): Promise<void> => {
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
+    // uses a config defined seed or null, which will generate a random seed for the key pair
     const keyPair = DHT.keyPair(
       CONFIG.FEDERATION_DHT_SEED
         ? Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED)
