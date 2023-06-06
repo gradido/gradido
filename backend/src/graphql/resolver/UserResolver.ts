@@ -70,6 +70,9 @@ import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 
+// eslint-disable-next-line import/no-relative-parent-imports
+import { randombytes_random } from 'sodium-native'
+
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
@@ -77,8 +80,6 @@ import { validateAlias } from './util/validateAlias'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const random = require('random-bigint')
-// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
-const sodium = require('sodium-native')
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -237,7 +238,7 @@ export class UserResolver {
         // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
 
         const user = new User(communityDbUser)
-        user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
+        user.id = randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
         user.gradidoID = uuidv4()
         user.firstName = firstName
         user.lastName = lastName
