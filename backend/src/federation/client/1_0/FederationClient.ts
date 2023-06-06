@@ -1,10 +1,11 @@
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { GraphQLClient } from 'graphql-request'
 
-import { getPublicKey } from '@/federation/query/getPublicKey'
+import { getPublicKey } from '@/federation/client/1_0/query/getPublicKey'
 import { backendLogger as logger } from '@/server/logger'
 
-export class FederationClient_1_0 {
+// eslint-disable-next-line camelcase
+export class FederationClient {
   dbCom: DbFederatedCommunity
   endpoint: string
   client: GraphQLClient
