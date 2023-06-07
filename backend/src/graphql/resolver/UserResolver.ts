@@ -8,17 +8,7 @@ import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import i18n from 'i18n'
-import {
-  Resolver,
-  Query,
-  Args,
-  Arg,
-  Authorized,
-  Ctx,
-  UseMiddleware,
-  Mutation,
-  Int,
-} from 'type-graphql'
+import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
 import { v4 as uuidv4 } from 'uuid'
 
 import { CreateUserArgs } from '@arg/CreateUserArgs'
@@ -60,7 +50,6 @@ import {
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Events'
-import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
@@ -73,6 +62,7 @@ import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
+import { getKlicktippState } from './util/getKlicktippState'
 import { validateAlias } from './util/validateAlias'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
@@ -122,7 +112,6 @@ const newGradidoID = async (): Promise<string> => {
 export class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => User)
-  @UseMiddleware(klicktippNewsletterStateMiddleware)
   async verifyLogin(@Ctx() context: Context): Promise<User> {
     logger.info('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
@@ -132,12 +121,12 @@ export class UserResolver {
     user.hasElopage = await this.hasElopage(context)
 
     logger.debug(`verifyLogin... successful: ${user.firstName}.${user.lastName}`)
+    user.klickTipp = await getKlicktippState(userEntity.emailContact.email)
     return user
   }
 
   @Authorized([RIGHTS.LOGIN])
   @Mutation(() => User)
-  @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
     @Args() { email, password, publisherId }: UnsecureLoginArgs,
     @Ctx() context: Context,
@@ -183,6 +172,7 @@ export class UserResolver {
       dbUser.publisherId = publisherId
       await DbUser.save(dbUser)
     }
+    user.klickTipp = await getKlicktippState(dbUser.emailContact.email)
 
     context.setHeaders.push({
       key: 'token',
