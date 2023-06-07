@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 

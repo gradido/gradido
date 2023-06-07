@@ -22,7 +22,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-unused-vars */
 
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 
 // Set precision value
 Decimal.set({
