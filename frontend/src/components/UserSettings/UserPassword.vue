@@ -103,7 +103,7 @@ export default {
     disabled() {
       return !(
         this.form.newPassword.password !== '' &&
-        this.form.newPassword.password === this.form.newPassword.passwordRepeat
+        this.form.newPassword.password !== this.form.newPassword.passwordRepeat
       )
     },
   },
