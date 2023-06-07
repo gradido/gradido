@@ -94,7 +94,7 @@ export const startDHT = async (topic: string): Promise<void> => {
             const variables = {
               apiVersion: recApiVersion.api,
               endPoint: recApiVersion.url,
-              publicKey: socket.remotePublicKey.toString('hex'),
+              publicKey: socket.remotePublicKey,
               lastAnnouncedAt: new Date(),
             }
             logger.debug(`upsert with variables=${JSON.stringify(variables)}`)
@@ -195,14 +195,14 @@ async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<Commu
     return comApi
   })
   try {
-    // first remove privious existing homeCommunity entries
+    // first remove previous existing homeCommunity entries
     await DbFederatedCommunity.createQueryBuilder().delete().where({ foreign: false }).execute()
     for (const homeApiVersion of homeApiVersions) {
       const homeCom = DbFederatedCommunity.create()
       homeCom.foreign = false
       homeCom.apiVersion = homeApiVersion.api
       homeCom.endPoint = homeApiVersion.url
-      homeCom.publicKey = Buffer.from(pubKey)
+      homeCom.publicKey = Buffer.from(pubKey, 'hex')
       await DbFederatedCommunity.insert(homeCom)
       logger.info(`federation home-community inserted successfully:`, homeApiVersion)
     }
@@ -217,7 +217,7 @@ async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
     // check for existing homeCommunity entry
     let homeCom = await DbCommunity.findOne({
       foreign: false,
-      publicKey: Buffer.from(pubKey),
+      publicKey: Buffer.from(pubKey, 'hex'),
     })
     if (!homeCom) {
       // check if a homecommunity with a different publicKey still exists
@@ -225,7 +225,7 @@ async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
     }
     if (homeCom) {
       // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
-      homeCom.publicKey = Buffer.from(pubKey)
+      homeCom.publicKey = Buffer.from(pubKey, 'hex')
       homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL + '/api/'
       homeCom.name = CONFIG.COMMUNITY_NAME
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
@@ -235,7 +235,7 @@ async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
       // insert a new homecommunity entry including a new ID and a new but ensured unique UUID
       homeCom = new DbCommunity()
       homeCom.foreign = false
-      homeCom.publicKey = Buffer.from(pubKey)
+      homeCom.publicKey = Buffer.from(pubKey, 'hex')
       homeCom.communityUuid = await newCommunityUuid()
       homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL + '/api/'
       homeCom.name = CONFIG.COMMUNITY_NAME
