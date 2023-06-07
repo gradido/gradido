@@ -12,6 +12,7 @@
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-unused-vars */
 
 import fs from 'fs'
 import Decimal from 'decimal.js-light'
