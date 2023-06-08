@@ -60,7 +60,10 @@ module.exports = {
     'import/no-dynamic-require': 'error',
     'import/no-internal-modules': 'off',
     'import/no-relative-packages': 'error',
-    'import/no-relative-parent-imports': ['error', { ignore: ['@/*', 'random-bigint', 'sodium-native'] }],
+    'import/no-relative-parent-imports': [
+      'error',
+      { ignore: ['@/*', 'random-bigint', 'sodium-native'] },
+    ],
     'import/no-self-import': 'error',
     'import/no-unresolved': 'error',
     'import/no-useless-path-segments': 'error',
