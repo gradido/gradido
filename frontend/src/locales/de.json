@@ -181,7 +181,7 @@
     },
     "your_amount": "Dein Betrag"
   },
-  "PersonalDetails":"Persönliche Angaben",
+  "PersonalDetails": "Persönliche Angaben",
   "GDD": "GDD",
   "gddKonto": "GDD Konto",
   "gdd_per_link": {
@@ -293,6 +293,9 @@
   "settings": {
     "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
     "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
+    "darkMode": "dunkel - hell Style",
+    "modeDark": "Nachtmodus",
+    "modeLight": "Tagmodus",
     "language": {
       "changeLanguage": "Sprache ändern",
       "de": "Deutsch",

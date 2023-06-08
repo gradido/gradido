@@ -181,7 +181,7 @@
     },
     "your_amount": "Your amount"
   },
-  "PersonalDetails":"Personal details",
+  "PersonalDetails": "Personal details",
   "GDD": "GDD",
   "gddKonto": "GDD Konto",
   "gdd_per_link": {
@@ -293,6 +293,9 @@
   "settings": {
     "hideAmountGDD": "Your GDD amount is hidden.",
     "hideAmountGDT": "Your GDT amount is hidden.",
+    "darkMode": "dark - light Style",
+    "modeDark": "Style changed to dark mode",
+    "modeLight": "Style changed to light mode",
     "language": {
       "changeLanguage": "Change language",
       "de": "Deutsch",

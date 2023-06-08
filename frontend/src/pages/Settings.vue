@@ -56,7 +56,7 @@
       </b-col>
     </b-row>
     <b-row>
-      <b-col cols="12" md="6" lg="6">Dark - light mode</b-col>
+      <b-col cols="12" md="6" lg="6">{{ $t('settings.darkMode') }}</b-col>
       <b-col cols="12" md="6" lg="6" class="text-right">
         <b-form-checkbox v-model="darkMode" name="dark-mode" switch aligne></b-form-checkbox>
       </b-col>
@@ -104,9 +104,7 @@ export default {
   },
   watch: {
     darkMode(val) {
-      const text = this.darkMode
-        ? this.$t('Style changed to dark mode')
-        : this.$t('Style changed to light mode')
+      const text = this.darkMode ? this.$t('settings.modeDark') : this.$t('settings.modeLight')
       this.$store.commit('setDarkMode', this.darkMode)
       this.toastSuccess(text)
     },
