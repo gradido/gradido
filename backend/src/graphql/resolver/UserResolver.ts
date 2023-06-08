@@ -71,14 +71,12 @@ import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 
 import { randombytes_random } from 'sodium-native'
+import random from 'random-bigint'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { validateAlias } from './util/validateAlias'
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
-const random = require('random-bigint')
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
