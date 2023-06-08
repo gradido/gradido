@@ -45,12 +45,17 @@ WORKDIR ${DOCKER_WORKDIR}
 RUN mkdir -p /database
 
 ##################################################################################
-# DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
+# BASE with build tools for rust based npm modules like @iota/client #############
 ##################################################################################
-FROM base as development
+FROM base as base_extended 
 
 # needed for building @iota/client, it is a rust based module
-RUN apk add --no-cache rust cargo python
+RUN apk add --no-cache rust cargo python3 make g++
+
+##################################################################################
+# DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
+##################################################################################
+FROM base_extended as development
 
 # We don't need to copy or build anything since we gonna bind to the
 # local filesystem which will need a rebuild anyway
@@ -63,15 +68,12 @@ CMD /bin/sh -c "cd /database && yarn install && yarn build && cd /app && yarn in
 ##################################################################################
 # BUILD (Does contain all files and is therefore bloated) ########################
 ##################################################################################
-FROM base as build
+FROM base_extended as build
 
 # Copy everything from backend
 COPY ./backend/ ./
 # Copy everything from database
 COPY ./database/ ../database/
-
-# needed for building @iota/client, it is a rust based module
-RUN apk add --no-cache rust cargo python
 
 # yarn install backend
 RUN yarn install --production=false --frozen-lockfile --non-interactive
