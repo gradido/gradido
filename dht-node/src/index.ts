@@ -21,9 +21,8 @@ async function main() {
     logger.fatal('Fatal: Database Version incorrect')
     throw new Error('Fatal: Database Version incorrect')
   }
-
-  // eslint-disable-next-line no-console
-  console.log(
+  logger.debug(`dhtseed set by CONFIG.FEDERATION_DHT_SEED=${CONFIG.FEDERATION_DHT_SEED}`)
+  logger.info(
     `starting Federation on ${CONFIG.FEDERATION_DHT_TOPIC} ${
       CONFIG.FEDERATION_DHT_SEED ? 'with seed...' : 'without seed...'
     }`,

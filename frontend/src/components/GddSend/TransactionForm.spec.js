@@ -71,9 +71,9 @@ describe('TransactionForm', () => {
     })
 
     describe('with balance <= 0.00 GDD the form is disabled', () => {
-      it('has a disabled input field of type email', () => {
+      it('has a disabled input field of type text', () => {
         expect(
-          wrapper.find('div[data-test="input-email"]').find('input').attributes('disabled'),
+          wrapper.find('div[data-test="input-identifier"]').find('input').attributes('disabled'),
         ).toBe('disabled')
       })
 
@@ -116,51 +116,54 @@ describe('TransactionForm', () => {
           expect(wrapper.vm.radioSelected).toBe(SEND_TYPES.send)
         })
 
-        describe('email field', () => {
-          it('has an input field of type email', () => {
+        describe('identifier field', () => {
+          it('has an input field of type text', () => {
             expect(
-              wrapper.find('div[data-test="input-email"]').find('input').attributes('type'),
-            ).toBe('email')
+              wrapper.find('div[data-test="input-identifier"]').find('input').attributes('type'),
+            ).toBe('text')
           })
 
-          it('has a label form.receiver', () => {
-            expect(wrapper.find('div[data-test="input-email"]').find('label').text()).toBe(
+          it('has a label form.recipient', () => {
+            expect(wrapper.find('div[data-test="input-identifier"]').find('label').text()).toBe(
               'form.recipient',
             )
           })
 
-          it('has a placeholder "E-Mail"', () => {
+          it('has a placeholder for identifier', () => {
             expect(
-              wrapper.find('div[data-test="input-email"]').find('input').attributes('placeholder'),
-            ).toBe('form.email')
+              wrapper
+                .find('div[data-test="input-identifier"]')
+                .find('input')
+                .attributes('placeholder'),
+            ).toBe('form.identifier')
           })
 
-          it('flushes an error message when no valid email is given', async () => {
-            await wrapper.find('div[data-test="input-email"]').find('input').setValue('a')
+          it('flushes an error message when no valid identifier is given', async () => {
+            await wrapper.find('div[data-test="input-identifier"]').find('input').setValue('a')
             await flushPromises()
             expect(
-              wrapper.find('div[data-test="input-email"]').find('.invalid-feedback').text(),
-            ).toBe('validations.messages.email')
+              wrapper.find('div[data-test="input-identifier"]').find('.invalid-feedback').text(),
+            ).toBe('form.validation.valid-identifier')
           })
 
           // TODO:SKIPPED there is no check that the email being sent to is the same as the user's email.
           it.skip('flushes an error message when email is the email of logged in user', async () => {
             await wrapper
-              .find('div[data-test="input-email"]')
+              .find('div[data-test="input-identifier"]')
               .find('input')
               .setValue('user@example.org')
             await flushPromises()
             expect(
-              wrapper.find('div[data-test="input-email"]').find('.invalid-feedback').text(),
+              wrapper.find('div[data-test="input-identifier"]').find('.invalid-feedback').text(),
             ).toBe('form.validation.is-not')
           })
 
-          it('trims the email after blur', async () => {
+          it('trims the identifier after blur', async () => {
             await wrapper
-              .find('div[data-test="input-email"]')
+              .find('div[data-test="input-identifier"]')
               .find('input')
               .setValue('  valid@email.com  ')
-            await wrapper.find('div[data-test="input-email"]').find('input').trigger('blur')
+            await wrapper.find('div[data-test="input-identifier"]').find('input').trigger('blur')
             await flushPromises()
             expect(wrapper.vm.form.identifier).toBe('valid@email.com')
           })
@@ -304,7 +307,7 @@ Die ganze Welt bezwingen.“`)
 
           it('clears all fields on click', async () => {
             await wrapper
-              .find('div[data-test="input-email"]')
+              .find('div[data-test="input-identifier"]')
               .find('input')
               .setValue('someone@watches.tv')
             await wrapper.find('div[data-test="input-amount"]').find('input').setValue('87.23')
@@ -327,7 +330,7 @@ Die ganze Welt bezwingen.“`)
         describe('submit', () => {
           beforeEach(async () => {
             await wrapper
-              .find('div[data-test="input-email"]')
+              .find('div[data-test="input-identifier"]')
               .find('input')
               .setValue('someone@watches.tv')
             await wrapper.find('div[data-test="input-amount"]').find('input').setValue('87.23')
@@ -380,8 +383,8 @@ Die ganze Welt bezwingen.“`)
       })
 
       describe('query for username with success', () => {
-        it('has no email input field', () => {
-          expect(wrapper.find('div[data-test="input-email"]').exists()).toBe(false)
+        it('has no identifier input field', () => {
+          expect(wrapper.find('div[data-test="input-identifier"]').exists()).toBe(false)
         })
 
         it('queries the username', () => {

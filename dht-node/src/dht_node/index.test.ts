@@ -5,8 +5,10 @@ import { startDHT } from './index'
 import DHT from '@hyperswarm/dht'
 import CONFIG from '@/config'
 import { logger } from '@test/testSetup'
+import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { testEnvironment, cleanDB } from '@test/helpers'
+import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 CONFIG.FEDERATION_DHT_SEED = '64ebcb0e3ad547848fef4197c6e2332f'
 
@@ -114,6 +116,9 @@ describe('federation', () => {
     const hashSpy = jest.spyOn(DHT, 'hash')
     const keyPairSpy = jest.spyOn(DHT, 'keyPair')
     beforeEach(async () => {
+      CONFIG.FEDERATION_COMMUNITY_URL = 'https://test.gradido.net'
+      CONFIG.COMMUNITY_NAME = 'Gradido Test Community'
+      CONFIG.COMMUNITY_DESCRIPTION = 'Community to test the federation'
       DHT.mockClear()
       jest.clearAllMocks()
       await cleanDB()
@@ -130,6 +135,64 @@ describe('federation', () => {
 
     it('initializes a new DHT object', () => {
       expect(DHT).toBeCalledWith({ keyPair: keyPairMock })
+    })
+
+    it('stores the home community in community table ', async () => {
+      const result = await DbCommunity.find()
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: expect.any(Number),
+          foreign: false,
+          url: 'https://test.gradido.net/api/',
+          publicKey: expect.any(Buffer),
+          communityUuid: expect.any(String),
+          authenticatedAt: null,
+          name: 'Gradido Test Community',
+          description: 'Community to test the federation',
+          creationDate: expect.any(Date),
+          createdAt: expect.any(Date),
+          updatedAt: null,
+        }),
+      ])
+      expect(validateUUID(result[0].communityUuid ? result[0].communityUuid : '')).toEqual(true)
+      expect(versionUUID(result[0].communityUuid ? result[0].communityUuid : '')).toEqual(4)
+    })
+
+    it('creates 3 entries in table federated_communities', async () => {
+      const result = await DbFederatedCommunity.find({ order: { id: 'ASC' } })
+      await expect(result).toHaveLength(3)
+      await expect(result).toEqual([
+        expect.objectContaining({
+          id: expect.any(Number),
+          foreign: false,
+          publicKey: expect.any(Buffer),
+          apiVersion: '1_0',
+          endPoint: 'https://test.gradido.net/api/',
+          lastAnnouncedAt: null,
+          createdAt: expect.any(Date),
+          updatedAt: null,
+        }),
+        expect.objectContaining({
+          id: expect.any(Number),
+          foreign: false,
+          publicKey: expect.any(Buffer),
+          apiVersion: '1_1',
+          endPoint: 'https://test.gradido.net/api/',
+          lastAnnouncedAt: null,
+          createdAt: expect.any(Date),
+          updatedAt: null,
+        }),
+        expect.objectContaining({
+          id: expect.any(Number),
+          foreign: false,
+          publicKey: expect.any(Buffer),
+          apiVersion: '2_0',
+          endPoint: 'https://test.gradido.net/api/',
+          lastAnnouncedAt: null,
+          createdAt: expect.any(Date),
+          updatedAt: null,
+        }),
+      ])
     })
 
     describe('DHT node', () => {
@@ -780,27 +843,123 @@ describe('federation', () => {
               socketEventMocks.open()
             })
 
-            it.skip('calls socket write with own api versions', () => {
+            it('calls socket write with own api versions', () => {
               expect(socketWriteMock).toBeCalledWith(
                 Buffer.from(
                   JSON.stringify([
                     {
                       api: '1_0',
-                      url: 'http://localhost/api/',
+                      url: 'https://test.gradido.net/api/',
                     },
                     {
                       api: '1_1',
-                      url: 'http://localhost/api/',
+                      url: 'https://test.gradido.net/api/',
                     },
                     {
                       api: '2_0',
-                      url: 'http://localhost/api/',
+                      url: 'https://test.gradido.net/api/',
                     },
                   ]),
                 ),
               )
             })
           })
+        })
+      })
+    })
+
+    describe('restart DHT', () => {
+      let homeCommunity: DbCommunity
+      let federatedCommunities: DbFederatedCommunity[]
+
+      describe('without changes', () => {
+        beforeEach(async () => {
+          DHT.mockClear()
+          jest.clearAllMocks()
+          homeCommunity = (await DbCommunity.find())[0]
+          federatedCommunities = await DbFederatedCommunity.find({ order: { id: 'ASC' } })
+          await startDHT(TEST_TOPIC)
+        })
+
+        it('does not change home community in community table except updated at column ', async () => {
+          await expect(DbCommunity.find()).resolves.toEqual([
+            {
+              ...homeCommunity,
+              updatedAt: expect.any(Date),
+            },
+          ])
+        })
+
+        it('rewrites the 3 entries in table federated_communities', async () => {
+          const result = await DbFederatedCommunity.find()
+          await expect(result).toHaveLength(3)
+          await expect(result).toEqual([
+            {
+              ...federatedCommunities[0],
+              id: expect.any(Number),
+              createdAt: expect.any(Date),
+            },
+            {
+              ...federatedCommunities[1],
+              id: expect.any(Number),
+              createdAt: expect.any(Date),
+            },
+            {
+              ...federatedCommunities[2],
+              id: expect.any(Number),
+              createdAt: expect.any(Date),
+            },
+          ])
+        })
+      })
+
+      describe('changeing URL, name and description', () => {
+        beforeEach(async () => {
+          CONFIG.FEDERATION_COMMUNITY_URL = 'https://test2.gradido.net'
+          CONFIG.COMMUNITY_NAME = 'Second Gradido Test Community'
+          CONFIG.COMMUNITY_DESCRIPTION = 'Another Community to test the federation'
+          DHT.mockClear()
+          jest.clearAllMocks()
+          homeCommunity = (await DbCommunity.find())[0]
+          federatedCommunities = await DbFederatedCommunity.find({ order: { id: 'ASC' } })
+          await startDHT(TEST_TOPIC)
+        })
+
+        it('updates URL, name, description and updated at columns  ', async () => {
+          await expect(DbCommunity.find()).resolves.toEqual([
+            {
+              ...homeCommunity,
+              url: 'https://test2.gradido.net/api/',
+              name: 'Second Gradido Test Community',
+              description: 'Another Community to test the federation',
+              updatedAt: expect.any(Date),
+            },
+          ])
+        })
+
+        it('rewrites the 3 entries in table federated_communities with new endpoint', async () => {
+          const result = await DbFederatedCommunity.find()
+          await expect(result).toHaveLength(3)
+          await expect(result).toEqual([
+            {
+              ...federatedCommunities[0],
+              id: expect.any(Number),
+              createdAt: expect.any(Date),
+              endPoint: 'https://test2.gradido.net/api/',
+            },
+            {
+              ...federatedCommunities[1],
+              id: expect.any(Number),
+              createdAt: expect.any(Date),
+              endPoint: 'https://test2.gradido.net/api/',
+            },
+            {
+              ...federatedCommunities[2],
+              id: expect.any(Number),
+              createdAt: expect.any(Date),
+              endPoint: 'https://test2.gradido.net/api/',
+            },
+          ])
         })
       })
     })

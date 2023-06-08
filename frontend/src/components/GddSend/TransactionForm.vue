@@ -59,10 +59,10 @@
                     </b-col>
                     <b-col cols="12" v-if="radioSelected === sendTypes.send">
                       <div v-if="!gradidoID">
-                        <input-email
+                        <input-identifier
                           :name="$t('form.recipient')"
                           :label="$t('form.recipient')"
-                          :placeholder="$t('form.email')"
+                          :placeholder="$t('form.identifier')"
                           v-model="form.identifier"
                           :disabled="isBalanceDisabled"
                           @onValidation="onValidation"
@@ -134,7 +134,7 @@
 </template>
 <script>
 import { SEND_TYPES } from '@/pages/Send'
-import InputEmail from '@/components/Inputs/InputEmail'
+import InputIdentifier from '@/components/Inputs/InputIdentifier'
 import InputAmount from '@/components/Inputs/InputAmount'
 import InputTextarea from '@/components/Inputs/InputTextarea'
 import { user as userQuery } from '@/graphql/queries'
@@ -144,7 +144,7 @@ import { COMMUNITY_NAME } from '@/config'
 export default {
   name: 'TransactionForm',
   components: {
-    InputEmail,
+    InputIdentifier,
     InputAmount,
     InputTextarea,
   },

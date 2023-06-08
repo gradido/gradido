@@ -142,6 +142,7 @@
     "from": "from",
     "generate_now": "Generate now",
     "hours": "Hours",
+    "identifier": "Email, username or gradido ID",
     "lastname": "Lastname",
     "memo": "Message",
     "message": "Message",
@@ -175,7 +176,8 @@
       "is-not": "You cannot send Gradidos to yourself",
       "username-allowed-chars": "The username may only contain letters, numbers, hyphens or underscores.",
       "username-hyphens": "Hyphens or underscores must be in between letters or numbers.",
-      "username-unique": "This username is already taken."
+      "username-unique": "This username is already taken.",
+      "valid-identifier": "Must be a valid email, username or gradido ID."
     },
     "your_amount": "Your amount"
   },
@@ -208,6 +210,7 @@
     "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
     "redeemed-at": "The link was already redeemed on {date}.",
     "redeemed-title": "redeemed",
+    "redeemlink-error": "This redemption link is not complete.",
     "to-login": "Log in",
     "to-register": "Register a new account.",
     "validUntil": "Valid until",
