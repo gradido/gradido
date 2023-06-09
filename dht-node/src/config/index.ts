@@ -1,5 +1,6 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 import dotenv from 'dotenv'
+
 dotenv.config()
 
 const constants = {
@@ -53,12 +54,10 @@ if (
   )
 }
 
-const CONFIG = {
+export const CONFIG = {
   ...constants,
   ...server,
   ...database,
   ...community,
   ...federation,
 }
-
-export default CONFIG

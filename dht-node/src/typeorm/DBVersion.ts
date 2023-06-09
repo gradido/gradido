@@ -1,4 +1,5 @@
 import { Migration } from '@entity/Migration'
+
 import { logger } from '@/server/logger'
 
 const getDBVersion = async (): Promise<string | null> => {

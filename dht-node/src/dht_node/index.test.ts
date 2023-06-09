@@ -1,14 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { startDHT } from './index'
-import DHT from '@hyperswarm/dht'
-import CONFIG from '@/config'
-import { logger } from '@test/testSetup'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
-import { testEnvironment, cleanDB } from '@test/helpers'
+import DHT from '@hyperswarm/dht'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
+
+import { testEnvironment, cleanDB } from '@test/helpers'
+import { logger } from '@test/testSetup'
+
+import { CONFIG } from '@/config'
+
+import { startDHT } from './index'
 
 CONFIG.FEDERATION_DHT_SEED = '64ebcb0e3ad547848fef4197c6e2332f'
 
