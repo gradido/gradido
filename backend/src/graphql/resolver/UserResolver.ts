@@ -59,14 +59,14 @@ import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 
+import random from 'random-bigint'
+
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getKlicktippState } from './util/getKlicktippState'
 import { validateAlias } from './util/validateAlias'
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
-const random = require('random-bigint')
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const sodium = require('sodium-native')
 
