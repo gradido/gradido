@@ -8,11 +8,6 @@ import { Community as DbCommunity } from '@entity/Community'
 import { v4 as uuidv4 } from 'uuid'
 
 const KEY_SECRET_SEEDBYTES = 32
-const getSeed = (): Buffer | null => {
-  return CONFIG.FEDERATION_DHT_SEED
-    ? Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED)
-    : null
-}
 
 const POLLTIME = 20000
 const SUCCESSTIME = 120000
@@ -24,7 +19,7 @@ enum ApiVersionType {
   V1_1 = '1_1',
   V2_0 = '2_0',
 }
-export type CommunityApi = {
+type CommunityApi = {
   api: string
   url: string
 }
@@ -32,7 +27,12 @@ export type CommunityApi = {
 export const startDHT = async (topic: string): Promise<void> => {
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
-    const keyPair = DHT.keyPair(getSeed())
+    // uses a config defined seed or null, which will generate a random seed for the key pair
+    const keyPair = DHT.keyPair(
+      CONFIG.FEDERATION_DHT_SEED
+        ? Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED)
+        : null,
+    )
     const pubKeyString = keyPair.publicKey.toString('hex')
     logger.info(`keyPairDHT: publicKey=${pubKeyString}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
@@ -243,14 +243,11 @@ async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
 }
 
 const newCommunityUuid = async (): Promise<string> => {
-  let uuid: string
-  let countIds: number
-  do {
-    uuid = uuidv4()
-    countIds = await DbCommunity.count({ where: { communityUuid: uuid } })
-    if (countIds > 0) {
-      logger.info('CommunityUuid creation conflict...')
+  while (true) {
+    const communityUuid = uuidv4()
+    if ((await DbCommunity.count({ where: { communityUuid } })) === 0) {
+      return communityUuid
     }
-  } while (countIds > 0)
-  return uuid
+    logger.info('CommunityUuid creation conflict...', communityUuid)
+  }
 }
