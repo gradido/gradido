@@ -1,4 +1,4 @@
-import log4js from 'log4js'
+import { configure, getLogger } from 'log4js'
 import CONFIG from '@/config'
 
 import { readFileSync } from 'fs'
@@ -13,8 +13,8 @@ options.appenders.dht.filename = filename.replace(
 )
 filename = options.appenders.errorFile.filename
 
-log4js.configure(options)
+configure(options)
 
-const logger = log4js.getLogger('dht')
+const logger = getLogger('dht')
 
 export { logger }
