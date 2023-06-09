@@ -10,7 +10,7 @@ let query: any
 // to do: We need a setup for the tests that closes the connection
 let con: any
 
-CONFIG.FEDERATION_API = '1_0'
+CONFIG.FEDERATION_API = '1_1'
 
 beforeAll(async () => {
   const server = await createServer()
