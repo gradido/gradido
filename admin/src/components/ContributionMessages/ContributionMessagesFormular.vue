@@ -7,7 +7,6 @@
           v-model="form.text"
           :placeholder="$t('contributionLink.memo')"
           rows="3"
-          max-rows="6"
         ></b-form-textarea>
         <b-row class="mt-4 mb-6">
           <b-col>
@@ -39,10 +38,12 @@ export default {
       form: {
         text: '',
       },
+      loading: false,
     }
   },
   methods: {
     onSubmit(event) {
+      this.loading = true
       this.$apollo
         .mutate({
           mutation: adminCreateContributionMessage,
@@ -56,9 +57,11 @@ export default {
           this.$emit('update-state', this.contributionId)
           this.form.text = ''
           this.toastSuccess(this.$t('message.request'))
+          this.loading = false
         })
         .catch((error) => {
           this.toastError(error.message)
+          this.loading = false
         })
     },
     onReset(event) {
@@ -67,10 +70,7 @@ export default {
   },
   computed: {
     disabled() {
-      if (this.form.text !== '') {
-        return false
-      }
-      return true
+      return this.form.text === '' || this.loading
     },
   },
 }

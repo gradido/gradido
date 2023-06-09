@@ -24,15 +24,7 @@ export const copyLinks = {
     },
     copyLinkWithText() {
       navigator.clipboard
-        .writeText(
-          `${this.link}
-${this.$store.state.firstName} ${this.$t('transaction-link.send_you')} ${this.amount} Gradido.
-"${this.memo}"
-${this.$t('gdd_per_link.credit-your-gradido')} ${this.$t('gdd_per_link.validUntilDate', {
-            date: this.$d(new Date(this.validUntil), 'short'),
-          })}
-${this.$t('gdd_per_link.link-hint')}`,
-        )
+        .writeText(this.linkText)
         .then(() => {
           this.toastSuccess(this.$t('gdd_per_link.link-and-text-copied'))
         })
@@ -40,6 +32,17 @@ ${this.$t('gdd_per_link.link-hint')}`,
           this.canCopyLink = false
           this.toastError(this.$t('gdd_per_link.not-copied'))
         })
+    },
+  },
+  computed: {
+    linkText() {
+      return `${this.link}
+${this.$store.state.firstName} ${this.$t('transaction-link.send_you')} ${this.amount} Gradido.
+"${this.memo}"
+${this.$t('gdd_per_link.credit-your-gradido')} ${this.$t('gdd_per_link.validUntilDate', {
+        date: this.$d(new Date(this.validUntil), 'short'),
+      })}
+${this.$t('gdd_per_link.link-hint')}`
     },
   },
 }

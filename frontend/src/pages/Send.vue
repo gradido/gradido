@@ -1,71 +1,66 @@
 <template>
   <div>
-    <b-container>
-      <gdd-send :currentTransactionStep="currentTransactionStep" class="pt-3 ml-2 mr-2">
-        <template #transactionForm>
-          <transaction-form
-            v-bind="transactionData"
-            :balance="balance"
-            @set-transaction="setTransaction"
-          ></transaction-form>
-        </template>
-        <template #transactionConfirmationSend>
-          <transaction-confirmation-send
-            :balance="balance"
-            :email="transactionData.email"
-            :amount="transactionData.amount"
-            :memo="transactionData.memo"
-            @send-transaction="sendTransaction"
-            @on-reset="onReset"
-          ></transaction-confirmation-send>
-        </template>
-        <template #transactionConfirmationLink>
-          <transaction-confirmation-link
-            :balance="balance"
-            :email="transactionData.email"
-            :amount="transactionData.amount"
-            :memo="transactionData.memo"
-            :loading="loading"
-            @send-transaction="sendTransaction"
-            @on-reset="onReset"
-          ></transaction-confirmation-link>
-        </template>
-        <template #transactionResultSendSuccess>
-          <transaction-result-send-success @on-reset="onReset"></transaction-result-send-success>
-        </template>
-        <template #transactionResultSendError>
-          <transaction-result-send-error
-            :error="error"
-            :errorResult="errorResult"
-            @on-reset="onReset"
-          ></transaction-result-send-error>
-        </template>
-        <template #transactionResultLink>
-          <transaction-result-link
-            :link="link"
-            :amount="amount"
-            :memo="memo"
-            :validUntil="validUntil"
-            @on-reset="onReset"
-          ></transaction-result-link>
-        </template>
-      </gdd-send>
-      <hr />
-    </b-container>
+    <gdd-send :currentTransactionStep="currentTransactionStep">
+      <template #transactionForm>
+        <transaction-form
+          v-bind="transactionData"
+          :balance="balance"
+          @set-transaction="setTransaction"
+        ></transaction-form>
+      </template>
+      <template #transactionConfirmationSend>
+        <transaction-confirmation-send
+          :balance="balance"
+          v-bind="transactionData"
+          @send-transaction="sendTransaction"
+          @on-back="onBack"
+        ></transaction-confirmation-send>
+      </template>
+      <template #transactionConfirmationLink>
+        <transaction-confirmation-link
+          :balance="balance"
+          :email="transactionData.identifier"
+          :amount="transactionData.amount"
+          :memo="transactionData.memo"
+          :loading="loading"
+          @send-transaction="sendTransaction"
+          @on-back="onBack"
+        ></transaction-confirmation-link>
+      </template>
+      <template #transactionResultSendSuccess>
+        <transaction-result-send-success @on-back="onBack"></transaction-result-send-success>
+      </template>
+      <template #transactionResultSendError>
+        <transaction-result-send-error
+          :error="error"
+          :errorResult="errorResult"
+          @on-back="onBack"
+        ></transaction-result-send-error>
+      </template>
+      <template #transactionResultLink>
+        <transaction-result-link
+          :link="link"
+          :amount="amount"
+          :memo="memo"
+          :validUntil="validUntil"
+          @on-back="onBack"
+        ></transaction-result-link>
+      </template>
+    </gdd-send>
   </div>
 </template>
 <script>
-import GddSend, { TRANSACTION_STEPS } from '@/components/GddSend.vue'
-import TransactionForm from '@/components/GddSend/TransactionForm.vue'
-import TransactionConfirmationSend from '@/components/GddSend/TransactionConfirmationSend.vue'
-import TransactionConfirmationLink from '@/components/GddSend/TransactionConfirmationLink.vue'
-import TransactionResultSendSuccess from '@/components/GddSend/TransactionResultSendSuccess.vue'
-import TransactionResultSendError from '@/components/GddSend/TransactionResultSendError.vue'
-import TransactionResultLink from '@/components/GddSend/TransactionResultLink.vue'
+import GddSend, { TRANSACTION_STEPS } from '@/components/GddSend'
+import TransactionForm from '@/components/GddSend/TransactionForm'
+import TransactionConfirmationSend from '@/components/GddSend/TransactionConfirmationSend'
+import TransactionConfirmationLink from '@/components/GddSend/TransactionConfirmationLink'
+import TransactionResultSendSuccess from '@/components/GddSend/TransactionResultSendSuccess'
+import TransactionResultSendError from '@/components/GddSend/TransactionResultSendError'
+import TransactionResultLink from '@/components/GddSend/TransactionResultLink'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 
 const EMPTY_TRANSACTION_DATA = {
-  email: '',
+  identifier: '',
   amount: 0,
   memo: '',
 }
@@ -171,9 +166,11 @@ export default {
           throw new Error(`undefined transactionData.selected : ${this.transactionData.selected}`)
       }
       this.loading = false
+      this.$router.push({ query: { gradidoID: undefined } })
     },
-    onReset() {
+    onBack() {
       this.currentTransactionStep = TRANSACTION_STEPS.transactionForm
+      this.$mount()
     },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)

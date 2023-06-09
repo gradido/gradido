@@ -2,26 +2,34 @@
 
 import { SaveOptions, RemoveOptions } from '@dbTools/typeorm'
 import { User as dbUser } from '@entity/User'
+import { UserContact } from '@entity/UserContact'
+
 import { User } from '@model/User'
+
+import { PasswordEncryptionType } from '@/graphql/enum/PasswordEncryptionType'
+// import { UserContact as EmailContact } from '@entity/UserContact'
 
 const communityDbUser: dbUser = {
   id: -1,
   gradidoID: '11111111-2222-4333-4444-55555555',
   alias: '',
-  email: 'support@gradido.net',
+  // email: 'support@gradido.net',
+  emailContact: new UserContact(),
+  emailId: -1,
   firstName: 'Gradido',
   lastName: 'Akademie',
-  pubKey: Buffer.from(''),
-  privKey: Buffer.from(''),
   deletedAt: null,
   password: BigInt(0),
-  emailHash: Buffer.from(''),
+  hideAmountGDD: false,
+  hideAmountGDT: false,
+  //  emailHash: Buffer.from(''),
   createdAt: new Date(),
-  emailChecked: false,
+  // emailChecked: false,
   language: '',
   isAdmin: null,
   publisherId: 0,
-  passphrase: '',
+  // default password encryption type
+  passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
   hasId: function (): boolean {
     throw new Error('Function not implemented.')
   },

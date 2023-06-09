@@ -24,92 +24,40 @@
     >
       <b-card-text>
         <b-link to="creation-confirm">
-          <h1>{{ $store.state.openCreations }}</h1>
+          <h1 data-test="open-creation">{{ $store.state.openCreations }}</h1>
         </b-link>
       </b-card-text>
     </b-card>
-    <contribution-link :items="items" :count="count" />
-    <community-statistic class="mt-5" v-model="statistics" />
   </div>
 </template>
 <script>
-import { listContributionLinks } from '@/graphql/listContributionLinks.js'
-import { communityStatistics } from '@/graphql/communityStatistics.js'
-import ContributionLink from '../components/ContributionLink.vue'
-import CommunityStatistic from '../components/CommunityStatistic.vue'
-import { listUnconfirmedContributions } from '@/graphql/listUnconfirmedContributions.js'
+import { adminListContributions } from '../graphql/adminListContributions'
 
 export default {
   name: 'overview',
-  components: {
-    ContributionLink,
-    CommunityStatistic,
-  },
   data() {
     return {
-      items: [],
-      count: 0,
-      statistics: {
-        totalUsers: null,
-        activeUsers: null,
-        deletedUsers: null,
-        totalGradidoCreated: null,
-        totalGradidoDecayed: null,
-        totalGradidoAvailable: null,
-        totalGradidoUnbookedDecayed: null,
-      },
+      statusFilter: ['IN_PROGRESS', 'PENDING'],
     }
   },
-  methods: {
-    getPendingCreations() {
-      this.$apollo
-        .query({
-          query: listUnconfirmedContributions,
-          fetchPolicy: 'network-only',
-        })
-        .then((result) => {
-          this.$store.commit('setOpenCreations', result.data.listUnconfirmedContributions.length)
-        })
+  apollo: {
+    AllContributions: {
+      query() {
+        return adminListContributions
+      },
+      variables() {
+        // may be at some point we need a pagination here
+        return {
+          statusFilter: this.statusFilter,
+        }
+      },
+      update({ adminListContributions }) {
+        this.$store.commit('setOpenCreations', adminListContributions.contributionCount)
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
     },
-    getContributionLinks() {
-      this.$apollo
-        .query({
-          query: listContributionLinks,
-          fetchPolicy: 'network-only',
-        })
-        .then((result) => {
-          this.count = result.data.listContributionLinks.count
-          this.items = result.data.listContributionLinks.links
-        })
-        .catch(() => {
-          this.toastError('listContributionLinks has no result, use default data')
-        })
-    },
-    getCommunityStatistics() {
-      this.$apollo
-        .query({
-          query: communityStatistics,
-        })
-        .then((result) => {
-          this.statistics.totalUsers = result.data.communityStatistics.totalUsers
-          this.statistics.activeUsers = result.data.communityStatistics.activeUsers
-          this.statistics.deletedUsers = result.data.communityStatistics.deletedUsers
-          this.statistics.totalGradidoCreated = result.data.communityStatistics.totalGradidoCreated
-          this.statistics.totalGradidoDecayed = result.data.communityStatistics.totalGradidoDecayed
-          this.statistics.totalGradidoAvailable =
-            result.data.communityStatistics.totalGradidoAvailable
-          this.statistics.totalGradidoUnbookedDecayed =
-            result.data.communityStatistics.totalGradidoUnbookedDecayed
-        })
-        .catch(() => {
-          this.toastError('communityStatistics has no result, use default data')
-        })
-    },
-  },
-  created() {
-    this.getPendingCreations()
-    this.getCommunityStatistics()
-    this.getContributionLinks()
   },
 }
 </script>

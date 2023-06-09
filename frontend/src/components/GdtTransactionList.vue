@@ -42,10 +42,10 @@
 </template>
 
 <script>
-import Transaction from '@/components/Transaction.vue'
+import Transaction from '@/components/Transaction'
 
 export default {
-  name: 'gdt-transaction-list',
+  name: 'GdtTransactionList',
   components: {
     Transaction,
   },

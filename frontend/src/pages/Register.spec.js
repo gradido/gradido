@@ -65,7 +65,7 @@ describe('Register', () => {
       })
 
       it('has email input fields', () => {
-        expect(wrapper.find('#Email-input-field').exists()).toBe(true)
+        expect(wrapper.find('div[data-test="input-email"]').find('input').exists()).toBe(true)
       })
 
       it('has 1 checkbox input fields', () => {
@@ -107,7 +107,10 @@ describe('Register', () => {
         wrapper.find('#registerLastname').setValue('Mustermann')
       })
       it('has disabled submit button when missing input checked box', () => {
-        wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
+        wrapper
+          .find('div[data-test="input-email"]')
+          .find('input')
+          .setValue('max.mustermann@gradido.net')
         expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
       })
 
@@ -121,7 +124,10 @@ describe('Register', () => {
       beforeEach(() => {
         wrapper.find('#registerFirstname').setValue('Max')
         wrapper.find('#registerLastname').setValue('Mustermann')
-        wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
+        wrapper
+          .find('div[data-test="input-email"]')
+          .find('input')
+          .setValue('max.mustermann@gradido.net')
         wrapper.find('#registerCheckbox').setChecked()
       })
 
@@ -211,7 +217,10 @@ describe('Register', () => {
         wrapper = Wrapper()
         wrapper.find('#registerFirstname').setValue('Max')
         wrapper.find('#registerLastname').setValue('Mustermann')
-        wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
+        wrapper
+          .find('div[data-test="input-email"]')
+          .find('input')
+          .setValue('max.mustermann@gradido.net')
         wrapper.find('#registerCheckbox').setChecked()
         await wrapper.find('form').trigger('submit')
         await flushPromises()

@@ -1,18 +1,23 @@
-import { ApolloServerTestClient } from 'apollo-server-testing'
-import { createTransactionLink } from '@/seeds/graphql/mutations'
-import { login } from '@/seeds/graphql/queries'
-import { TransactionLinkInterface } from '@/seeds/transactionLink/TransactionLinkInterface'
-import { transactionLinkExpireDate } from '@/graphql/resolver/TransactionLinkResolver'
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/unbound-method */
 import { TransactionLink } from '@entity/TransactionLink'
+import { ApolloServerTestClient } from 'apollo-server-testing'
+
+import { transactionLinkExpireDate } from '@/graphql/resolver/TransactionLinkResolver'
+import { login, createTransactionLink } from '@/seeds/graphql/mutations'
+import { TransactionLinkInterface } from '@/seeds/transactionLink/TransactionLinkInterface'
 
 export const transactionLinkFactory = async (
   client: ApolloServerTestClient,
   transactionLink: TransactionLinkInterface,
 ): Promise<void> => {
-  const { mutate, query } = client
+  const { mutate } = client
 
   // login
-  await query({ query: login, variables: { email: transactionLink.email, password: 'Aa12345_' } })
+  await mutate({
+    mutation: login,
+    variables: { email: transactionLink.email, password: 'Aa12345_' },
+  })
 
   const variables = {
     amount: transactionLink.amount,

@@ -5,7 +5,7 @@ import Login from './Login'
 
 const localVue = global.localVue
 
-const apolloQueryMock = jest.fn()
+const apolloMutateMock = jest.fn()
 const mockStoreDispach = jest.fn()
 const mockStoreCommit = jest.fn()
 const mockRouterPush = jest.fn()
@@ -41,7 +41,7 @@ describe('Login', () => {
       params: {},
     },
     $apollo: {
-      query: apolloQueryMock,
+      mutate: apolloMutateMock,
     },
   }
 
@@ -76,7 +76,7 @@ describe('Login', () => {
       })
 
       it('has an Email input field', () => {
-        expect(wrapper.find('input[placeholder="Email"]').exists()).toBe(true)
+        expect(wrapper.find('div[data-test="input-email"]').find('input').exists()).toBe(true)
       })
 
       it('has an Password input field', () => {
@@ -110,10 +110,13 @@ describe('Login', () => {
       describe('valid data', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
-          await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+          await wrapper
+            .find('div[data-test="input-email"]')
+            .find('input')
+            .setValue('user@example.org')
           await wrapper.find('input[placeholder="form.password"]').setValue('1234')
           await flushPromises()
-          apolloQueryMock.mockResolvedValue({
+          apolloMutateMock.mockResolvedValue({
             data: {
               login: 'token',
             },
@@ -123,7 +126,7 @@ describe('Login', () => {
         })
 
         it('calls the API with the given data', () => {
-          expect(apolloQueryMock).toBeCalledWith(
+          expect(apolloMutateMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
                 email: 'user@example.org',
@@ -143,6 +146,10 @@ describe('Login', () => {
             expect(mockStoreDispach).toBeCalledWith('login', 'token')
           })
 
+          it('commits email to store', () => {
+            expect(mockStoreCommit).toBeCalledWith('email', 'user@example.org')
+          })
+
           it('hides the spinner', () => {
             expect(spinnerHideMock).toBeCalled()
           })
@@ -159,7 +166,10 @@ describe('Login', () => {
                 code: 'some-code',
               }
               wrapper = Wrapper()
-              await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+              await wrapper
+                .find('div[data-test="input-email"]')
+                .find('input')
+                .setValue('user@example.org')
               await wrapper.find('input[placeholder="form.password"]').setValue('1234')
               await flushPromises()
               await wrapper.find('form').trigger('submit')
@@ -175,12 +185,15 @@ describe('Login', () => {
 
       describe('login fails', () => {
         const createError = async (errorMessage) => {
-          apolloQueryMock.mockRejectedValue({
+          apolloMutateMock.mockRejectedValue({
             message: errorMessage,
           })
           wrapper = Wrapper()
           jest.clearAllMocks()
-          await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+          await wrapper
+            .find('div[data-test="input-email"]')
+            .find('input')
+            .setValue('user@example.org')
           await wrapper.find('input[placeholder="form.password"]').setValue('1234')
           await flushPromises()
           await wrapper.find('form').trigger('submit')

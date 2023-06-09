@@ -24,9 +24,6 @@ export const mutations = {
   moderator: (state, moderator) => {
     state.moderator = moderator
   },
-  setUserSelectedInMassCreation: (state, userSelectedInMassCreation) => {
-    state.userSelectedInMassCreation = userSelectedInMassCreation
-  },
 }
 
 export const actions = {
@@ -40,6 +37,7 @@ export const actions = {
 const store = new Vuex.Store({
   plugins: [
     createPersistedState({
+      key: 'gradido-admin',
       storage: window.localStorage,
     }),
   ],

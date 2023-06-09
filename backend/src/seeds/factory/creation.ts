@@ -1,14 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
-import { adminCreateContribution, confirmContribution } from '@/seeds/graphql/mutations'
-import { login } from '@/seeds/graphql/queries'
-import { CreationInterface } from '@/seeds/creation/CreationInterface'
-import { ApolloServerTestClient } from 'apollo-server-testing'
-import { User } from '@entity/User'
-import { Transaction } from '@entity/Transaction'
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Contribution } from '@entity/Contribution'
-// import CONFIG from '@/config/index'
+import { Transaction } from '@entity/Transaction'
+import { ApolloServerTestClient } from 'apollo-server-testing'
+
+import { findUserByEmail } from '@/graphql/resolver/UserResolver'
+import { CreationInterface } from '@/seeds/creation/CreationInterface'
+import { login, createContribution, confirmContribution } from '@/seeds/graphql/mutations'
 
 export const nMonthsBefore = (date: Date, months = 1): string => {
   return new Date(date.getFullYear(), date.getMonth() - months, 1).toISOString()
@@ -17,33 +17,29 @@ export const nMonthsBefore = (date: Date, months = 1): string => {
 export const creationFactory = async (
   client: ApolloServerTestClient,
   creation: CreationInterface,
-): Promise<Contribution | void> => {
-  const { mutate, query } = client
+): Promise<Contribution> => {
+  const { mutate } = client
+  await mutate({ mutation: login, variables: { email: creation.email, password: 'Aa12345_' } })
 
-  await query({ query: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
-
-  // TODO it would be nice to have this mutation return the id
-  await mutate({ mutation: adminCreateContribution, variables: { ...creation } })
-
-  const user = await User.findOneOrFail({ where: { email: creation.email } })
-
-  const pendingCreation = await Contribution.findOneOrFail({
-    where: { userId: user.id, amount: creation.amount },
-    order: { createdAt: 'DESC' },
-  })
+  const {
+    data: { createContribution: contribution },
+  } = await mutate({ mutation: createContribution, variables: { ...creation } })
 
   if (creation.confirmed) {
-    await mutate({ mutation: confirmContribution, variables: { id: pendingCreation.id } })
+    const user = await findUserByEmail(creation.email) // userContact.user
 
-    const confirmedCreation = await Contribution.findOneOrFail({ id: pendingCreation.id })
+    await mutate({ mutation: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
+    await mutate({ mutation: confirmContribution, variables: { id: contribution.id } })
+    const confirmedContribution = await Contribution.findOneOrFail({ id: contribution.id })
 
     if (creation.moveCreationDate) {
       const transaction = await Transaction.findOneOrFail({
         where: { userId: user.id, creationDate: new Date(creation.creationDate) },
         order: { balanceDate: 'DESC' },
       })
+
       if (transaction.decay.equals(0) && transaction.creationDate) {
-        confirmedCreation.contributionDate = new Date(
+        confirmedContribution.contributionDate = new Date(
           nMonthsBefore(transaction.creationDate, creation.moveCreationDate),
         )
         transaction.creationDate = new Date(
@@ -53,10 +49,11 @@ export const creationFactory = async (
           nMonthsBefore(transaction.balanceDate, creation.moveCreationDate),
         )
         await transaction.save()
-        await confirmedCreation.save()
+        await confirmedContribution.save()
       }
     }
+    return confirmedContribution
   } else {
-    return pendingCreation
+    return contribution
   }
 }

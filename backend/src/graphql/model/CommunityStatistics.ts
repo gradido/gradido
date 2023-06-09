@@ -1,15 +1,27 @@
-import { ObjectType, Field } from 'type-graphql'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
+import { ObjectType, Field, Int } from 'type-graphql'
+
+@ObjectType()
+export class DynamicStatisticsFields {
+  @Field(() => Int)
+  activeUsers: number
+
+  @Field(() => Decimal)
+  totalGradidoAvailable: Decimal
+
+  @Field(() => Decimal)
+  totalGradidoUnbookedDecayed: Decimal
+}
 
 @ObjectType()
 export class CommunityStatistics {
-  @Field(() => Number)
+  @Field(() => Int)
+  allUsers: number
+
+  @Field(() => Int)
   totalUsers: number
 
-  @Field(() => Number)
-  activeUsers: number
-
-  @Field(() => Number)
+  @Field(() => Int)
   deletedUsers: number
 
   @Field(() => Decimal)
@@ -18,9 +30,7 @@ export class CommunityStatistics {
   @Field(() => Decimal)
   totalGradidoDecayed: Decimal
 
-  @Field(() => Decimal)
-  totalGradidoAvailable: Decimal
-
-  @Field(() => Decimal)
-  totalGradidoUnbookedDecayed: Decimal
+  // be carefull querying this, takes longer than 2 secs.
+  @Field(() => DynamicStatisticsFields)
+  dynamicStatisticsFields: DynamicStatisticsFields
 }

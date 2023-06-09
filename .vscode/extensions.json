@@ -3,6 +3,10 @@
         "streetsidesoftware.code-spell-checker",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "hediet.vscode-drawio"
+        "hediet.vscode-drawio",
+        "streetsidesoftware.code-spell-checker-german",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-mysql",
+        "jcbuisson.vue"
     ]
 }

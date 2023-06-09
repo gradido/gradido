@@ -1,7 +1,7 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-FROM node:12.19.0-alpine3.10 as base
+FROM node:18.7.0-alpine3.16 as base
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
 ## DOCKER_WORKDIR would be a classical ARG, but that is not multi layer persistent - shame
@@ -98,10 +98,16 @@ COPY --from=build ${DOCKER_WORKDIR}/../database/build ../database/build
 # We also copy the node_modules express and serve-static for the run script
 COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
 COPY --from=build ${DOCKER_WORKDIR}/../database/node_modules ../database/node_modules
+
 # Copy static files
 # COPY --from=build ${DOCKER_WORKDIR}/public ./public
 # Copy package.json for script definitions (lock file should not be needed)
 COPY --from=build ${DOCKER_WORKDIR}/package.json ./package.json
+# Copy tsconfig.json to provide alias path definitions
+COPY --from=build ${DOCKER_WORKDIR}/tsconfig.json ./tsconfig.json
+# Copy log4js-config.json to provide log configuration
+COPY --from=build ${DOCKER_WORKDIR}/log4js-config.json ./log4js-config.json
+
 # Copy run scripts run/
 # COPY --from=build ${DOCKER_WORKDIR}/run ./run
 

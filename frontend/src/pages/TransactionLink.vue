@@ -1,6 +1,6 @@
 <template>
   <div class="show-transaction-link-informations">
-    <b-container class="mt-4">
+    <div class="mt-4">
       <transaction-link-item :type="itemType">
         <template #LOGGED_OUT>
           <redeem-logged-out :linkData="linkData" :isContributionLink="isContributionLink" />
@@ -14,7 +14,8 @@
           <redeem-valid
             :linkData="linkData"
             :isContributionLink="isContributionLink"
-            @redeem-link="redeemLink"
+            :validLink="validLink"
+            @mutation-link="mutationLink"
           />
         </template>
 
@@ -22,7 +23,7 @@
           <redeemed-text-box :text="redeemedBoxText" />
         </template>
       </transaction-link-item>
-    </b-container>
+    </div>
   </div>
 </template>
 <script>
@@ -45,15 +46,15 @@ export default {
   },
   data() {
     return {
-      img: '/img/brand/green.png',
       linkData: {
         __typename: 'TransactionLink',
-        amount: '123.45',
-        memo: 'memo',
+        amount: '',
+        memo: '',
         user: {
-          firstName: 'Bibi',
+          firstName: '',
         },
         deletedAt: null,
+        validLink: false,
       },
     }
   },
@@ -68,13 +69,14 @@ export default {
           },
         })
         .then((result) => {
+          this.validLink = true
           this.linkData = result.data.queryTransactionLink
           if (this.linkData.__typename === 'ContributionLink' && this.$store.state.token) {
             this.mutationLink(this.linkData.amount)
           }
         })
-        .catch((err) => {
-          this.toastError(err.message)
+        .catch(() => {
+          this.toastError(this.$t('gdd_per_link.redeemlink-error'))
         })
     },
     mutationLink(amount) {
@@ -98,15 +100,16 @@ export default {
           this.$router.push('/overview')
         })
     },
-    redeemLink(amount) {
-      this.$bvModal.msgBoxConfirm(this.$t('gdd_per_link.redeem-text')).then((value) => {
-        if (value) this.mutationLink(amount)
-      })
-    },
   },
   computed: {
     isContributionLink() {
       return this.$route.params.code.search(/^CL-/) === 0
+    },
+    tokenExpiresInSeconds() {
+      const remainingSecs = Math.floor(
+        (new Date(this.$store.state.tokenTime * 1000).getTime() - new Date().getTime()) / 1000,
+      )
+      return remainingSecs <= 0 ? 0 : remainingSecs
     },
     itemType() {
       // link is deleted: at, from
@@ -135,9 +138,11 @@ export default {
         return `TEXT`
       }
 
-      if (this.$store.state.token) {
+      if (this.$store.state.token && this.$store.state.tokenTime) {
+        if (this.tokenExpiresInSeconds < 5) return `LOGGED_OUT`
+
         // logged in, nicht berechtigt einzulösen, eigener link
-        if (this.linkData.user && this.$store.state.email === this.linkData.user.email) {
+        if (this.linkData.user && this.$store.state.gradidoID === this.linkData.user.gradidoID) {
           return `SELF_CREATOR`
         }
 

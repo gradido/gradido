@@ -1,44 +1,38 @@
-import { ObjectType, Field } from 'type-graphql'
-import { KlickTipp } from './KlickTipp'
 import { User as dbUser } from '@entity/User'
-import Decimal from 'decimal.js-light'
-import { FULL_CREATION_AVAILABLE } from '../resolver/const/const'
+import { ObjectType, Field, Int } from 'type-graphql'
+
+import { KlickTipp } from './KlickTipp'
 
 @ObjectType()
 export class User {
-  constructor(user: dbUser, creation: Decimal[] = FULL_CREATION_AVAILABLE) {
+  constructor(user: dbUser) {
     this.id = user.id
     this.gradidoID = user.gradidoID
     this.alias = user.alias
-    this.email = user.email
+    if (user.emailContact) {
+      this.emailChecked = user.emailContact.emailChecked
+    }
     this.firstName = user.firstName
     this.lastName = user.lastName
     this.deletedAt = user.deletedAt
     this.createdAt = user.createdAt
-    this.emailChecked = user.emailChecked
     this.language = user.language
     this.publisherId = user.publisherId
     this.isAdmin = user.isAdmin
     this.klickTipp = null
     this.hasElopage = null
-    this.creation = creation
+    this.hideAmountGDD = user.hideAmountGDD
+    this.hideAmountGDT = user.hideAmountGDT
   }
 
-  @Field(() => Number)
+  @Field(() => Int)
   id: number
-
-  // `public_key` binary(32) DEFAULT NULL,
-  // `privkey` binary(80) DEFAULT NULL,
 
   @Field(() => String)
   gradidoID: string
 
   @Field(() => String, { nullable: true })
-  alias: string
-
-  // TODO privacy issue here
-  @Field(() => String)
-  email: string
+  alias: string | null
 
   @Field(() => String, { nullable: true })
   firstName: string | null
@@ -49,9 +43,6 @@ export class User {
   @Field(() => Date, { nullable: true })
   deletedAt: Date | null
 
-  // `password` bigint(20) unsigned DEFAULT 0,
-  // `email_hash` binary(32) DEFAULT NULL,
-
   @Field(() => Date)
   createdAt: Date
 
@@ -61,11 +52,15 @@ export class User {
   @Field(() => String)
   language: string
 
-  // This is not the users publisherId, but the one of the users who recommend him
-  @Field(() => Number, { nullable: true })
-  publisherId: number | null
+  @Field(() => Boolean)
+  hideAmountGDD: boolean
 
-  // `passphrase` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  @Field(() => Boolean)
+  hideAmountGDT: boolean
+
+  // This is not the users publisherId, but the one of the users who recommend him
+  @Field(() => Int, { nullable: true })
+  publisherId: number | null
 
   @Field(() => Date, { nullable: true })
   isAdmin: Date | null
@@ -75,7 +70,4 @@ export class User {
 
   @Field(() => Boolean, { nullable: true })
   hasElopage: boolean | null
-
-  @Field(() => [Decimal])
-  creation: Decimal[]
 }

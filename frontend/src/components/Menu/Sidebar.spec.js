@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import Sidebar from './Sidebar.vue'
+import Sidebar from './Sidebar'
 
 const localVue = global.localVue
 
@@ -14,7 +14,7 @@ describe('Sidebar', () => {
     $store: {
       state: {
         hasElopage: true,
-        isAdmin: true,
+        isAdmin: false,
       },
     },
   }
@@ -29,84 +29,85 @@ describe('Sidebar', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div#component-sidebar').exists()).toBeTruthy()
+      expect(wrapper.find('div#component-sidebar').exists()).toBe(true)
     })
 
-    describe('navigation Navbar', () => {
-      it('has ten b-nav-item in the navbar', () => {
-        expect(wrapper.findAll('.nav-item')).toHaveLength(10)
+    describe('the genaral section', () => {
+      it('has six nav-items', () => {
+        expect(wrapper.findAll('ul').at(0).findAll('.nav-item')).toHaveLength(6)
       })
 
-      describe('navigation Navbar (general elements)', () => {
-        it('has nav-item "navigation.overview" in navbar', () => {
-          expect(wrapper.findAll('.nav-item').at(0).text()).toEqual('navigation.overview')
-        })
-
-        it('has nav-item "navigation.send" in navbar', () => {
-          expect(wrapper.findAll('.nav-item').at(1).text()).toEqual('navigation.send')
-        })
-
-        it('has nav-item "gdt.gdt" in navbar', () => {
-          expect(wrapper.findAll('.nav-item').at(3).text()).toEqual('gdt.gdt')
-        })
-
-        it('has nav-item "navigation.community" in navbar', () => {
-          expect(wrapper.findAll('.nav-item').at(4).text()).toContain('navigation.community')
-        })
-
-        it('has nav-item "navigation.profile" in navbar', () => {
-          expect(wrapper.findAll('.nav-item').at(5).text()).toEqual('navigation.profile')
-        })
-
-        it('has nav-item "navigation.info" in navbar', () => {
-          expect(wrapper.findAll('.nav-item').at(6).text()).toEqual('navigation.info')
-        })
+      it('has nav-item "navigation.overview" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(0).text()).toEqual('navigation.overview')
       })
 
-      describe('navigation Navbar (user has an elopage account)', () => {
-        it('has ten b-nav-item in the navbar', () => {
-          expect(wrapper.findAll('.nav-item')).toHaveLength(10)
+      it('has nav-item "navigation.send" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(1).text()).toEqual('navigation.send')
+      })
+
+      it('has nav-item "navigation.transactions" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(2).text()).toEqual('navigation.transactions')
+      })
+
+      it('has nav-item "creation" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(3).text()).toEqual('creation')
+      })
+
+      it('has nav-item "GDT" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(4).text()).toContain('GDT')
+      })
+
+      it('has nav-item "navigation.info" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(5).text()).toContain('navigation.info')
+      })
+    })
+
+    describe('the specific section', () => {
+      describe('for standard users', () => {
+        it('has two nav-items', () => {
+          expect(wrapper.findAll('ul').at(1).findAll('.nav-item')).toHaveLength(2)
         })
 
-        it('has a link to the members area', () => {
-          expect(wrapper.findAll('.nav-item').at(7).text()).toEqual('navigation.members_area')
-          expect(wrapper.findAll('.nav-item').at(7).find('a').attributes('href')).toBe('#')
-        })
-
-        it('has nav-item "navigation.admin_area" in navbar', () => {
-          expect(wrapper.findAll('.nav-item').at(8).text()).toEqual('navigation.admin_area')
+        it('has nav-item "navigation.settings" in navbar', () => {
+          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(0).text()).toEqual(
+            'navigation.settings',
+          )
         })
 
         it('has nav-item "navigation.logout" in navbar', () => {
-          expect(wrapper.findAll('.nav-item').at(9).text()).toEqual('navigation.logout')
+          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(1).text()).toEqual(
+            'navigation.logout',
+          )
         })
       })
 
-      it('has nav-item "navigation.admin_area" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(8).text()).toEqual('navigation.admin_area')
-      })
+      describe('for admin users', () => {
+        beforeAll(() => {
+          mocks.$store.state.isAdmin = true
+          wrapper = Wrapper()
+        })
 
-      it('has nav-item "navigation.logout" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(9).text()).toEqual('navigation.logout')
-      })
-    })
+        it('has three nav-items', () => {
+          expect(wrapper.findAll('ul').at(1).findAll('.nav-item')).toHaveLength(3)
+        })
 
-    describe('navigation Navbar (user has no elopage account)', () => {
-      beforeAll(() => {
-        mocks.$store.state.hasElopage = false
-        wrapper = Wrapper()
-      })
+        it('has nav-item "navigation.settings" in navbar', () => {
+          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(0).text()).toEqual(
+            'navigation.settings',
+          )
+        })
 
-      it('has nine b-nav-item in the navbar', () => {
-        expect(wrapper.findAll('.nav-item')).toHaveLength(9)
-      })
+        it('has nav-item "navigation.admin_area" in navbar', () => {
+          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(1).text()).toEqual(
+            'navigation.admin_area',
+          )
+        })
 
-      it('has nav-item "navigation.admin_area" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(7).text()).toEqual('navigation.admin_area')
-      })
-
-      it('has nav-item "navigation.logout" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(8).text()).toEqual('navigation.logout')
+        it('has nav-item "navigation.logout" in navbar', () => {
+          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(2).text()).toEqual(
+            'navigation.logout',
+          )
+        })
       })
     })
   })

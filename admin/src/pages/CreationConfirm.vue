@@ -1,24 +1,102 @@
+<!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys -->
 <template>
   <div class="creation-confirm">
-    <div v-if="overlay" id="overlay" @dblclick="overlay = false">
-      <overlay :item="item" @overlay-cancel="overlay = false" @confirm-creation="confirmCreation" />
+    <div>
+      <b-tabs v-model="tabIndex" content-class="mt-3" fill>
+        <b-tab active :title-link-attributes="{ 'data-test': 'open' }">
+          <template #title>
+            <b-icon icon="bell-fill" variant="primary"></b-icon>
+            {{ $t('contributions.open') }}
+            <b-badge v-if="$store.state.openCreations > 0" variant="danger">
+              {{ $store.state.openCreations }}
+            </b-badge>
+          </template>
+        </b-tab>
+        <b-tab :title-link-attributes="{ 'data-test': 'confirmed' }">
+          <template #title>
+            <b-icon icon="check" variant="success"></b-icon>
+            {{ $t('contributions.confirms') }}
+          </template>
+        </b-tab>
+        <b-tab :title-link-attributes="{ 'data-test': 'denied' }">
+          <template #title>
+            <b-icon icon="x-circle" variant="warning"></b-icon>
+            {{ $t('contributions.denied') }}
+          </template>
+        </b-tab>
+        <b-tab :title-link-attributes="{ 'data-test': 'deleted' }">
+          <template #title>
+            <b-icon icon="trash" variant="danger"></b-icon>
+            {{ $t('contributions.deleted') }}
+          </template>
+        </b-tab>
+        <b-tab :title-link-attributes="{ 'data-test': 'all' }">
+          <template #title>
+            <b-icon icon="list"></b-icon>
+            {{ $t('contributions.all') }}
+          </template>
+        </b-tab>
+      </b-tabs>
     </div>
     <open-creations-table
       class="mt-4"
-      :items="pendingCreations"
+      :items="items"
       :fields="fields"
-      @remove-creation="removeCreation"
       @show-overlay="showOverlay"
-      @update-state="updateState"
+      @update-state="updateStatus"
+      @update-contributions="$apollo.queries.ListAllContributions.refetch()"
     />
+
+    <b-pagination
+      pills
+      size="lg"
+      v-model="currentPage"
+      :per-page="pageSize"
+      :total-rows="rows"
+      align="center"
+      :hide-ellipsis="true"
+    ></b-pagination>
+
+    <div v-if="overlay" id="overlay" @dblclick="overlay = false">
+      <overlay :item="item" @overlay-cancel="overlay = false">
+        <template #title>
+          {{ $t(overlayTitle) }}
+        </template>
+        <template #text>
+          <p>{{ $t(overlayText) }}</p>
+        </template>
+        <template #question>
+          <p>{{ $t(overlayQuestion) }}</p>
+        </template>
+        <template #submit-btn>
+          <b-button
+            size="md"
+            v-bind:variant="overlayIcon"
+            class="m-3 text-right"
+            @click="overlayEvent"
+          >
+            {{ $t(overlayBtnText) }}
+          </b-button>
+        </template>
+      </overlay>
+    </div>
   </div>
 </template>
 <script>
-import Overlay from '../components/Overlay.vue'
-import OpenCreationsTable from '../components/Tables/OpenCreationsTable.vue'
-import { listUnconfirmedContributions } from '../graphql/listUnconfirmedContributions'
+import Overlay from '../components/Overlay'
+import OpenCreationsTable from '../components/Tables/OpenCreationsTable'
+import { adminListContributions } from '../graphql/adminListContributions'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
+import { denyContribution } from '../graphql/denyContribution'
+
+const FILTER_TAB_MAP = [
+  ['IN_PROGRESS', 'PENDING'],
+  ['CONFIRMED'],
+  ['DENIED'],
+  ['DELETED'],
+  ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
+]
 
 export default {
   name: 'CreationConfirm',
@@ -28,30 +106,57 @@ export default {
   },
   data() {
     return {
-      pendingCreations: [],
+      tabIndex: 0,
+      items: [],
       overlay: false,
       item: {},
+      variant: 'confirm',
+      rows: 0,
+      currentPage: 1,
+      pageSize: 25,
     }
   },
+  watch: {
+    tabIndex() {
+      this.currentPage = 1
+    },
+  },
   methods: {
-    removeCreation(item) {
-      this.$bvModal.msgBoxConfirm(this.$t('creation_form.deleteNow')).then(async (value) => {
-        if (value)
-          await this.$apollo
-            .mutate({
-              mutation: adminDeleteContribution,
-              variables: {
-                id: item.id,
-              },
-            })
-            .then((result) => {
-              this.updatePendingCreations(item.id)
-              this.toastSuccess(this.$t('creation_form.toasted_delete'))
-            })
-            .catch((error) => {
-              this.toastError(error.message)
-            })
-      })
+    deleteCreation() {
+      this.$apollo
+        .mutate({
+          mutation: adminDeleteContribution,
+          variables: {
+            id: this.item.id,
+          },
+        })
+        .then((result) => {
+          this.overlay = false
+          this.updatePendingCreations(this.item.id)
+          this.toastSuccess(this.$t('creation_form.toasted_delete'))
+        })
+        .catch((error) => {
+          this.overlay = false
+          this.toastError(error.message)
+        })
+    },
+    denyCreation() {
+      this.$apollo
+        .mutate({
+          mutation: denyContribution,
+          variables: {
+            id: this.item.id,
+          },
+        })
+        .then((result) => {
+          this.overlay = false
+          this.updatePendingCreations(this.item.id)
+          this.toastSuccess(this.$t('creation_form.toasted_denied'))
+        })
+        .catch((error) => {
+          this.overlay = false
+          this.toastError(error.message)
+        })
     },
     confirmCreation() {
       this.$apollo
@@ -71,64 +176,253 @@ export default {
           this.toastError(error.message)
         })
     },
-    getPendingCreations() {
-      this.$apollo
-        .query({
-          query: listUnconfirmedContributions,
-          fetchPolicy: 'network-only',
-        })
-        .then((result) => {
-          this.$store.commit('resetOpenCreations')
-          this.pendingCreations = result.data.listUnconfirmedContributions
-          this.$store.commit('setOpenCreations', result.data.listUnconfirmedContributions.length)
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-        })
-    },
     updatePendingCreations(id) {
-      this.pendingCreations = this.pendingCreations.filter((obj) => obj.id !== id)
+      this.items = this.items.filter((obj) => obj.id !== id)
       this.$store.commit('openCreationsMinus', 1)
     },
-    showOverlay(item) {
+    showOverlay(item, variant) {
       this.overlay = true
       this.item = item
+      this.variant = variant
     },
-    updateState(id) {
-      this.pendingCreations.find((obj) => obj.id === id).messagesCount++
-      this.pendingCreations.find((obj) => obj.id === id).state = 'IN_PROGRESS'
+    updateStatus(id) {
+      this.items.find((obj) => obj.id === id).messagesCount++
+      this.items.find((obj) => obj.id === id).state = 'IN_PROGRESS'
+    },
+    formatDateOrDash(value) {
+      return value ? this.$d(new Date(value), 'short') : '—'
     },
   },
   computed: {
     fields() {
       return [
-        { key: 'bookmark', label: this.$t('delete') },
-        { key: 'email', label: this.$t('e_mail') },
-        { key: 'firstName', label: this.$t('firstname') },
-        { key: 'lastName', label: this.$t('lastname') },
-        {
-          key: 'amount',
-          label: this.$t('creation'),
-          formatter: (value) => {
-            return value + ' GDD'
+        [
+          // open contributions
+          { key: 'bookmark', label: this.$t('delete') },
+          { key: 'deny', label: this.$t('deny') },
+          { key: 'firstName', label: this.$t('firstname') },
+          { key: 'lastName', label: this.$t('lastname') },
+          {
+            key: 'amount',
+            label: this.$t('creation'),
+            formatter: (value) => {
+              return value + ' GDD'
+            },
           },
-        },
-        { key: 'memo', label: this.$t('text') },
-        {
-          key: 'date',
-          label: this.$t('date'),
-          formatter: (value) => {
-            return this.$d(new Date(value), 'short')
+          { key: 'memo', label: this.$t('text'), class: 'text-break' },
+          {
+            key: 'contributionDate',
+            label: this.$t('created'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
+            },
           },
-        },
-        { key: 'moderator', label: this.$t('moderator') },
-        { key: 'editCreation', label: this.$t('edit') },
-        { key: 'confirm', label: this.$t('save') },
-      ]
+          { key: 'moderatorId', label: this.$t('moderator') },
+          { key: 'editCreation', label: this.$t('chat') },
+          { key: 'confirm', label: this.$t('save') },
+        ],
+        [
+          // confirmed contributions
+          { key: 'firstName', label: this.$t('firstname') },
+          { key: 'lastName', label: this.$t('lastname') },
+          {
+            key: 'amount',
+            label: this.$t('creation'),
+            formatter: (value) => {
+              return value + ' GDD'
+            },
+          },
+          { key: 'memo', label: this.$t('text'), class: 'text-break' },
+          {
+            key: 'contributionDate',
+            label: this.$t('created'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
+            },
+          },
+          {
+            key: 'createdAt',
+            label: this.$t('createdAt'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
+            },
+          },
+          {
+            key: 'confirmedAt',
+            label: this.$t('contributions.confirms'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
+            },
+          },
+          { key: 'confirmedBy', label: this.$t('moderator') },
+          { key: 'chatCreation', label: this.$t('chat') },
+        ],
+        [
+          // denied contributions
+          { key: 'firstName', label: this.$t('firstname') },
+          { key: 'lastName', label: this.$t('lastname') },
+          {
+            key: 'amount',
+            label: this.$t('creation'),
+            formatter: (value) => {
+              return value + ' GDD'
+            },
+          },
+          { key: 'memo', label: this.$t('text'), class: 'text-break' },
+          {
+            key: 'contributionDate',
+            label: this.$t('created'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
+            },
+          },
+          {
+            key: 'createdAt',
+            label: this.$t('createdAt'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
+            },
+          },
+          {
+            key: 'deniedAt',
+            label: this.$t('contributions.denied'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
+            },
+          },
+          { key: 'deniedBy', label: this.$t('moderator') },
+          { key: 'chatCreation', label: this.$t('chat') },
+        ],
+        [
+          // deleted contributions
+          { key: 'firstName', label: this.$t('firstname') },
+          { key: 'lastName', label: this.$t('lastname') },
+          {
+            key: 'amount',
+            label: this.$t('creation'),
+            formatter: (value) => {
+              return value + ' GDD'
+            },
+          },
+          { key: 'memo', label: this.$t('text'), class: 'text-break' },
+          {
+            key: 'contributionDate',
+            label: this.$t('created'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
+            },
+          },
+          {
+            key: 'createdAt',
+            label: this.$t('createdAt'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
+            },
+          },
+          {
+            key: 'deletedAt',
+            label: this.$t('contributions.deleted'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
+            },
+          },
+          { key: 'deletedBy', label: this.$t('moderator') },
+          { key: 'chatCreation', label: this.$t('chat') },
+        ],
+        [
+          // all contributions
+          { key: 'state', label: this.$t('status') },
+          { key: 'firstName', label: this.$t('firstname') },
+          { key: 'lastName', label: this.$t('lastname') },
+          {
+            key: 'amount',
+            label: this.$t('creation'),
+            formatter: (value) => {
+              return value + ' GDD'
+            },
+          },
+          { key: 'memo', label: this.$t('text'), class: 'text-break' },
+          {
+            key: 'contributionDate',
+            label: this.$t('created'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
+            },
+          },
+          {
+            key: 'createdAt',
+            label: this.$t('createdAt'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
+            },
+          },
+          {
+            key: 'confirmedAt',
+            label: this.$t('contributions.confirms'),
+            formatter: (value) => {
+              return this.formatDateOrDash(value)
+            },
+          },
+          { key: 'confirmedBy', label: this.$t('moderator') },
+          { key: 'chatCreation', label: this.$t('chat') },
+        ],
+      ][this.tabIndex]
+    },
+    statusFilter() {
+      return FILTER_TAB_MAP[this.tabIndex]
+    },
+    overlayTitle() {
+      return `overlay.${this.variant}.title`
+    },
+    overlayText() {
+      return `overlay.${this.variant}.text`
+    },
+    overlayQuestion() {
+      return `overlay.${this.variant}.question`
+    },
+    overlayBtnText() {
+      return `overlay.${this.variant}.yes`
+    },
+    overlayEvent() {
+      return this[`${this.variant}Creation`]
+    },
+    overlayIcon() {
+      switch (this.variant) {
+        case 'confirm':
+          return 'success'
+        case 'deny':
+          return 'warning'
+        case 'delete':
+          return 'danger'
+        default:
+          return 'info'
+      }
     },
   },
-  async created() {
-    await this.getPendingCreations()
+  apollo: {
+    ListAllContributions: {
+      query() {
+        return adminListContributions
+      },
+      variables() {
+        return {
+          currentPage: this.currentPage,
+          pageSize: this.pageSize,
+          statusFilter: this.statusFilter,
+        }
+      },
+      fetchPolicy: 'no-cache',
+      update({ adminListContributions }) {
+        this.rows = adminListContributions.contributionCount
+        this.items = adminListContributions.contributionList
+        if (this.statusFilter === FILTER_TAB_MAP[0]) {
+          this.$store.commit('setOpenCreations', adminListContributions.contributionCount)
+        }
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
+    },
   },
 }
 </script>

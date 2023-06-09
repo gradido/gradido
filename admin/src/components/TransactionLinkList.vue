@@ -42,8 +42,8 @@ export default {
           },
         })
         .then((result) => {
-          this.rows = result.data.listTransactionLinksAdmin.linkCount
-          this.items = result.data.listTransactionLinksAdmin.linkList
+          this.rows = result.data.listTransactionLinksAdmin.count
+          this.items = result.data.listTransactionLinksAdmin.links
         })
         .catch((error) => {
           this.toastError(error.message)
@@ -67,7 +67,7 @@ export default {
             return `${value} GDD`
           },
         },
-        { key: 'memo', label: this.$t('transactionlist.memo') },
+        { key: 'memo', label: this.$t('transactionlist.memo'), class: 'text-break' },
         {
           key: 'validUntil',
           label: this.$t('transactionlink.valid_until'),

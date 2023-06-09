@@ -1,230 +1,240 @@
 <template>
-  <b-row class="transaction-form">
-    <b-col xl="12" md="12" class="p-0">
-      <b-card class="p-0 m-0 gradido-custom-background">
-        <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
-          <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
-            <b-row>
-              <b-col>
-                <b-form-radio
-                  v-model="radioSelected"
-                  name="radios"
-                  :value="sendTypes.send"
-                  size="lg"
-                >
-                  {{ $t('send_gdd') }}
-                </b-form-radio>
-              </b-col>
-              <b-col>
-                <b-form-radio
-                  v-model="radioSelected"
-                  name="radios"
-                  :value="sendTypes.link"
-                  size="lg"
-                >
-                  {{ $t('send_per_link') }}
-                </b-form-radio>
-              </b-col>
-            </b-row>
-            <div class="mt-4" v-if="radioSelected === sendTypes.link">
-              <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
-              <div>
-                {{ $t('gdd_per_link.choose-amount') }}
+  <div class="transaction-form">
+    <b-row>
+      <b-col cols="12">
+        <b-card class="appBoxShadow gradido-border-radius" body-class="p-4">
+          <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
+            <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
+              <b-form-radio-group v-model="radioSelected">
+                <b-row class="mb-4">
+                  <b-col cols="12" lg="6">
+                    <b-row class="bg-248 gradido-border-radius pt-lg-2 mr-lg-2">
+                      <b-col cols="10" @click="radioSelected = sendTypes.send" class="pointer">
+                        {{ $t('send_gdd') }}
+                      </b-col>
+                      <b-col cols="2">
+                        <b-form-radio
+                          name="shipping"
+                          size="lg"
+                          :value="sendTypes.send"
+                          stacked
+                          class="custom-radio-button pointer"
+                        ></b-form-radio>
+                      </b-col>
+                    </b-row>
+                  </b-col>
+                  <b-col>
+                    <b-row class="bg-248 gradido-border-radius pt-lg-2 ml-lg-2 mt-2 mt-lg-0">
+                      <b-col cols="10" @click="radioSelected = sendTypes.link" class="pointer">
+                        {{ $t('send_per_link') }}
+                      </b-col>
+                      <b-col cols="2" class="pointer">
+                        <b-form-radio
+                          name="shipping"
+                          :value="sendTypes.link"
+                          size="lg"
+                          class="custom-radio-button"
+                        ></b-form-radio>
+                      </b-col>
+                    </b-row>
+                  </b-col>
+                </b-row>
+              </b-form-radio-group>
+              <div class="mt-4 mb-4" v-if="radioSelected === sendTypes.link">
+                <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
+                <div>
+                  {{ $t('gdd_per_link.choose-amount') }}
+                </div>
               </div>
-            </div>
-
-            <div v-if="radioSelected === sendTypes.send">
-              <validation-provider
-                name="Email"
-                :rules="{
-                  required: radioSelected === sendTypes.send ? true : false,
-                  email: true,
-                  is_not: $store.state.email,
-                }"
-                v-slot="{ errors }"
-              >
-                <label class="input-1 mt-4" for="input-1">{{ $t('form.recipient') }}</label>
-                <b-input-group
-                  id="input-group-1"
-                  class="border border-default"
-                  description="We'll never share your email with anyone else."
-                  size="lg"
-                >
-                  <b-input-group-prepend class="d-none d-md-block">
-                    <b-icon icon="envelope" class="display-4 m-3"></b-icon>
-                  </b-input-group-prepend>
-                  <b-form-input
-                    id="input-1"
-                    v-model="form.email"
-                    v-focus="emailFocused"
-                    @focus="emailFocused = true"
-                    @blur="normalizeEmail()"
-                    type="email"
-                    placeholder="E-Mail"
-                    class="pl-3 gradido-font-large"
-                    :disabled="isBalanceDisabled"
-                  ></b-form-input>
-                </b-input-group>
-                <b-col v-if="errors">
-                  <span v-for="error in errors" :key="error" class="errors">{{ error }}</span>
+              <b-row>
+                <b-col>
+                  <b-row>
+                    <b-col class="mb-4" cols="12" v-if="radioSelected === sendTypes.send">
+                      <b-row>
+                        <b-col>{{ $t('form.recipientCommunity') }}</b-col>
+                      </b-row>
+                      <b-row>
+                        <b-col class="font-weight-bold">{{ communityName }}</b-col>
+                      </b-row>
+                    </b-col>
+                    <b-col cols="12" v-if="radioSelected === sendTypes.send">
+                      <div v-if="!gradidoID">
+                        <input-identifier
+                          :name="$t('form.recipient')"
+                          :label="$t('form.recipient')"
+                          :placeholder="$t('form.identifier')"
+                          v-model="form.identifier"
+                          :disabled="isBalanceDisabled"
+                          @onValidation="onValidation"
+                        />
+                      </div>
+                      <div v-else class="mb-4">
+                        <b-row>
+                          <b-col>{{ $t('form.recipient') }}</b-col>
+                        </b-row>
+                        <b-row>
+                          <b-col class="font-weight-bold">{{ userName }}</b-col>
+                        </b-row>
+                      </div>
+                    </b-col>
+                    <b-col cols="12" lg="6">
+                      <input-amount
+                        v-model="form.amount"
+                        :name="$t('form.amount')"
+                        :label="$t('form.amount')"
+                        :placeholder="'0.01'"
+                        :rules="{ required: true, gddSendAmount: [0.01, balance] }"
+                        typ="TransactionForm"
+                        :disabled="isBalanceDisabled"
+                      ></input-amount>
+                    </b-col>
+                  </b-row>
                 </b-col>
-              </validation-provider>
-            </div>
+              </b-row>
 
-            <div class="mt-4 mb-4">
-              <validation-provider
-                :name="$t('form.amount')"
-                :rules="{
-                  required: true,
-                  gddSendAmount: [0.01, balance],
-                }"
-                v-slot="{ errors, valid }"
-              >
-                <label class="input-2" for="input-2">{{ $t('form.amount') }}</label>
-                <b-input-group id="input-group-2" class="border border-default" size="lg">
-                  <b-input-group-prepend class="p-2 d-none d-md-block">
-                    <div class="m-1 mt-2">{{ $t('GDD') }}</div>
-                  </b-input-group-prepend>
-
-                  <b-form-input
-                    id="input-2"
-                    v-model="form.amount"
-                    type="text"
-                    v-focus="amountFocused"
-                    @focus="amountFocused = true"
-                    @blur="normalizeAmount(valid)"
-                    :placeholder="$n(0.01)"
-                    class="pl-3 gradido-font-large"
-                    :disabled="isBalanceDisabled"
-                  ></b-form-input>
-                </b-input-group>
-                <b-col v-if="errors">
-                  <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
-                </b-col>
-              </validation-provider>
-            </div>
-
-            <div class="mb-4">
-              <validation-provider
-                :rules="{
-                  required: true,
-                  min: 5,
-                  max: 255,
-                }"
-                :name="$t('form.message')"
-                v-slot="{ errors }"
-              >
-                <label class="input-3" for="input-3">{{ $t('form.message') }}</label>
-                <b-input-group id="input-group-3" class="border border-default">
-                  <b-input-group-prepend class="d-none d-md-block">
-                    <b-icon icon="chat-right-text" class="display-4 m-3 mt-4"></b-icon>
-                  </b-input-group-prepend>
-                  <b-form-textarea
-                    id="input-3"
-                    rows="3"
+              <b-row>
+                <b-col>
+                  <input-textarea
                     v-model="form.memo"
-                    class="pl-3 gradido-font-large"
+                    :name="$t('form.message')"
+                    :label="$t('form.message')"
+                    :placeholder="$t('form.message')"
+                    :rules="{ required: true, min: 5, max: 255 }"
                     :disabled="isBalanceDisabled"
-                  ></b-form-textarea>
-                </b-input-group>
-                <b-col v-if="errors">
-                  <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
+                  />
                 </b-col>
-              </validation-provider>
-            </div>
-
-            <div v-if="!!isBalanceDisabled" class="text-danger">
-              {{ $t('form.no_gdd_available') }}
-            </div>
-            <b-row v-else class="test-buttons">
-              <b-col>
-                <b-button type="reset" variant="secondary" @click="onReset">
-                  {{ $t('form.cancel') }}
-                </b-button>
-              </b-col>
-              <b-col class="text-right">
-                <b-button type="submit" variant="primary">
-                  {{ $t('form.check_now') }}
-                </b-button>
-              </b-col>
-            </b-row>
-            <br />
-          </b-form>
-        </validation-observer>
-      </b-card>
-    </b-col>
-  </b-row>
+              </b-row>
+              <div v-if="!!isBalanceDisabled" class="text-danger mt-5">
+                {{ $t('form.no_gdd_available') }}
+              </div>
+              <b-row v-else class="test-buttons mt-3">
+                <b-col cols="12" md="6" lg="6">
+                  <b-button
+                    block
+                    type="reset"
+                    variant="secondary"
+                    @click="onReset"
+                    class="mb-3 mb-md-0 mb-lg-0"
+                  >
+                    {{ $t('form.reset') }}
+                  </b-button>
+                </b-col>
+                <b-col cols="12" md="6" lg="6" class="text-lg-right">
+                  <b-button block type="submit" variant="gradido">
+                    {{ $t('form.check_now') }}
+                  </b-button>
+                </b-col>
+              </b-row>
+            </b-form>
+          </validation-observer>
+        </b-card>
+      </b-col>
+    </b-row>
+  </div>
 </template>
 <script>
-import { BIcon } from 'bootstrap-vue'
-import { SEND_TYPES } from '@/pages/Send.vue'
+import { SEND_TYPES } from '@/pages/Send'
+import InputIdentifier from '@/components/Inputs/InputIdentifier'
+import InputAmount from '@/components/Inputs/InputAmount'
+import InputTextarea from '@/components/Inputs/InputTextarea'
+import { user as userQuery } from '@/graphql/queries'
+import { isEmpty } from 'lodash'
+import { COMMUNITY_NAME } from '@/config'
 
 export default {
   name: 'TransactionForm',
   components: {
-    BIcon,
+    InputIdentifier,
+    InputAmount,
+    InputTextarea,
   },
   props: {
     balance: { type: Number, default: 0 },
-    email: { type: String, default: '' },
+    identifier: { type: String, default: '' },
     amount: { type: Number, default: 0 },
     memo: { type: String, default: '' },
     selected: { type: String, default: 'send' },
   },
-  inject: ['getTunneledEmail'],
   data() {
     return {
-      amountFocused: false,
-      emailFocused: false,
       form: {
-        email: this.email,
+        identifier: this.identifier,
         amount: this.amount ? String(this.amount) : '',
         memo: this.memo,
-        amountValue: 0.0,
       },
       radioSelected: this.selected,
+      userName: '',
+      communityName: COMMUNITY_NAME,
     }
   },
   methods: {
+    onValidation() {
+      this.$refs.formValidator.validate()
+    },
     onSubmit() {
-      this.normalizeAmount(true)
+      if (this.gradidoID) this.form.identifier = this.gradidoID
       this.$emit('set-transaction', {
         selected: this.radioSelected,
-        email: this.form.email,
-        amount: this.form.amountValue,
+        identifier: this.form.identifier,
+        amount: Number(this.form.amount.replace(',', '.')),
         memo: this.form.memo,
+        userName: this.userName,
       })
     },
     onReset(event) {
       event.preventDefault()
-      this.form.email = ''
+      this.form.identifier = ''
       this.form.amount = ''
       this.form.memo = ''
+      this.$refs.formValidator.validate()
+      if (this.$route.query && !isEmpty(this.$route.query))
+        this.$router.replace({ query: undefined })
     },
-    normalizeAmount(isValid) {
-      this.amountFocused = false
-      if (!isValid) return
-      this.form.amountValue = Number(this.form.amount.replace(',', '.'))
-      this.form.amount = this.$n(this.form.amountValue, 'ungroupedDecimal')
-    },
-    normalizeEmail() {
-      this.emailFocused = false
-      this.form.email = this.form.email.trim()
+  },
+  apollo: {
+    UserName: {
+      query() {
+        return userQuery
+      },
+      fetchPolicy: 'network-only',
+      variables() {
+        return { identifier: this.gradidoID }
+      },
+      skip() {
+        return !this.gradidoID
+      },
+      update({ user }) {
+        this.userName = `${user.firstName} ${user.lastName}`
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
     },
   },
   computed: {
+    disabled() {
+      if (
+        this.form.identifier.length > 5 &&
+        parseInt(this.form.amount) <= parseInt(this.balance) &&
+        this.form.memo.length > 5 &&
+        this.form.memo.length <= 255
+      ) {
+        return false
+      }
+      return true
+    },
     isBalanceDisabled() {
       return this.balance <= 0 ? 'disabled' : false
     },
     sendTypes() {
       return SEND_TYPES
     },
-    recipientEmail() {
-      return this.getTunneledEmail()
+    gradidoID() {
+      return this.$route.query && this.$route.query.gradidoID
     },
   },
-  created() {
-    this.form.email = this.recipientEmail ? this.recipientEmail : this.form.email
+  mounted() {
+    if (this.form.identifier !== '') this.$refs.formValidator.validate()
   },
 }
 </script>
@@ -236,5 +246,25 @@ span.errors {
 #input-2:focus,
 #input-3:focus {
   font-weight: bold;
+}
+.border-radius {
+  border-radius: 10px;
+}
+
+label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.custom-control-input:checked ~ .custom-control-label::before {
+  color: #678000;
+  border-color: #678000;
+  background-color: #f1f2ec;
+}
+
+.custom-radio .custom-control-input:checked ~ .custom-control-label::after {
+  content: '\2714';
+  margin-left: 5px;
+  color: #678000;
 }
 </style>

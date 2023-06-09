@@ -10,18 +10,17 @@ import { messages } from 'vee-validate/dist/locale/en.json'
 import RegeneratorRuntime from 'regenerator-runtime'
 import VueTimers from 'vue-timers'
 
-import VueMoment from 'vue-moment'
-
 // import clickOutside from '@/directives/click-ouside.js'
 import { focus } from 'vue-focus'
 
-import { loadAllRules } from '../src/validation-rules'
+import { loadAllRules } from '@/validation-rules'
 
 import { loadFilters } from '@/filters/amount'
 
 import { toasters } from '@/mixins/toaster'
 export const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
 export const toastSuccessSpy = jest.spyOn(toasters.methods, 'toastSuccess')
+export const toastInfoSpy = jest.spyOn(toasters.methods, 'toastInfo')
 
 Object.keys(rules).forEach((rule) => {
   extend(rule, {
@@ -35,7 +34,7 @@ const i18nMock = {
   n: (value, format) => value,
 }
 
-loadAllRules(i18nMock)
+loadAllRules(i18nMock, { query: jest.fn().mockResolvedValue({ data: { checkUsername: true } }) })
 
 global.localVue = createLocalVue()
 
@@ -46,7 +45,6 @@ global.localVue.use(BootstrapVue)
 global.localVue.use(Vuex)
 global.localVue.use(IconsPlugin)
 global.localVue.use(RegeneratorRuntime)
-global.localVue.use(VueMoment)
 global.localVue.use(VueTimers)
 global.localVue.component('validation-provider', ValidationProvider)
 global.localVue.component('validation-observer', ValidationObserver)
@@ -70,6 +68,6 @@ console.warn = (m) => {
 }
 
 // throw errors for vue warnings to force the programmers to take care about warnings
-Vue.config.warnHandler = (w) => {
+Vue.config.warnHandler = async (w) => {
   throw new Error(w)
 }

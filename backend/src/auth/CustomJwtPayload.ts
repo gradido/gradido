@@ -1,5 +1,5 @@
-import { JwtPayload } from 'jsonwebtoken'
+import { JWTPayload } from 'jose'
 
-export interface CustomJwtPayload extends JwtPayload {
-  pubKey: Buffer
+export interface CustomJwtPayload extends JWTPayload {
+  gradidoID: string
 }

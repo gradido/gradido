@@ -4,6 +4,7 @@
   "125": "125%",
   "85": "85%",
   "advanced-calculation": "Proyección",
+  "asterisks": "****",
   "auth": {
     "left": {
       "dignity": "Dignidad",
@@ -25,11 +26,12 @@
     "moderator": "Moderador",
     "moderators": "Moderadores",
     "myContributions": "Mis contribuciones al bien común",
-    "openContributionLinks": "lista de enlaces de contribuciones públicas",
-    "openContributionLinkText": "La comunidad \"{name}\" proporciona actualmente las siguientes {count} creaciones automáticas.",
+    "noOpenContributionLinkText": "Actualmente no hay creaciones generadas por enlaces.",
+    "openContributionLinks": "Creaciones generadas por enlace",
+    "openContributionLinkText": "La comunidad \"{name}\" admite actualmente {count} creaciones generadas por enlaces:",
     "other-communities": "Otras comunidades",
     "statistic": "Estadísticas",
-    "submitContribution": "Aportar una contribución",
+    "submitContribution": "escribir",
     "switch-to-this-community": "cambiar a esta comunidad"
   },
   "contribution": {
@@ -38,10 +40,10 @@
       "answerQuestion": "Por favor,  contesta las preguntas",
       "communityNoteList": "Aquí encontrarás todas las contribuciones enviadas y confirmadas de todos los miembros de esta comunidad.",
       "confirm": "confirmado",
+      "denied": "rechazado",
       "in_progress": "Hay una pregunta de los moderatores.",
       "myContributionNoteList": "Puedes editar o eliminar las contribuciones enviadas que aún no han sido confirmadas en cualquier momento.",
-      "pending": "Enviado y a la espera de confirmación",
-      "rejected": "rechazado"
+      "pending": "Enviado y a la espera de confirmación"
     },
     "date": "Contribución para:",
     "delete": "Eliminar la contribución. ¿Estás seguro?",
@@ -121,7 +123,6 @@
     "from": "De",
     "generate_now": "crear ahora",
     "lastname": "Apellido",
-    "mandatoryField": "campo obligatorio",
     "memo": "Mensaje",
     "message": "Noticia",
     "new_balance": "Saldo de cuenta nuevo depués de confirmación",
@@ -172,7 +173,7 @@
     "link-copied": "El enlace se ha copiado en el portapapeles. Ahora puedes pegarlo en un correo electrónico o mensaje.",
     "link-deleted": "El enlace se eliminó el {date}.",
     "link-expired": "El enlace ya no es válido. La validez expiró el {date}.",
-    "link-hint": "Atención: cualquiera puede canjear este enlace. Por favor, no lo transmitan.",
+    "link-hint": "Atención: cualquiera puede canjear este enlace. Por favor, ¡ten cuidado con él!",
     "link-overview": "Resumen de enlaces",
     "links_count": "Enlaces activos",
     "links_sum": "Enlaces abiertos y códigos QR",
@@ -180,7 +181,6 @@
     "no-redeem": "No puedes canjear tu propio enlace!",
     "not-copied": "¡Desafortunadamente, su dispositivo no permite copiar! Copie el enlace manualmente!",
     "redeem": "Canjear",
-    "redeem-text": "¿Quieres canjear el importe ahora?",
     "redeemed": "¡Canjeado con éxito! Tu cuenta ha sido acreditada con {n} GDD.",
     "redeemed-at": "El enlace ya se canjeó el {date}.",
     "redeemed-title": "canjeado",
@@ -289,16 +289,12 @@
     "forgotPassword": {
       "heading": "Por favor, introduce la dirección de correo electrónico con la que estas registrado en Gradido."
     },
-    "login": {
-      "heading": "Inicia sesión con tus datos de acceso. Manténlos seguros en todo momento!"
-    },
     "resetPassword": {
       "heading": "Por favor, introduce tu contraseña y repítela."
     },
     "signup": {
       "agree": "Acepto la <a href='https://gradido.net/de/datenschutz/' target='_blank' >Política de privacidad</a>.",
       "dont_match": "Las contraseñas no coinciden.",
-      "heading": "Regístrate introduciendo todos los datos completos y en los campos correctos.",
       "lowercase": "Se requiere una letra minúscula.",
       "minimum": "Al menos 8 caracteres.",
       "no-whitespace": "Sin espacios ni tabulaciones.",

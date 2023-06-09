@@ -1,56 +1,61 @@
 <template>
   <div id="component-sidebar">
-    <div class="pl-3">
-      <p></p>
-      <div class="mb-6">
+    <div
+      id="side-menu"
+      ref="sideMenu"
+      class="gradido-border-radius pt-2 bg-white"
+      :class="shadow ? 'appBoxShadow' : ''"
+    >
+      <div class="mb-3 mt-3">
         <b-nav vertical class="w-200">
-          <b-nav-item to="/overview" class="mb-3">
-            <b-icon icon="house" aria-hidden="true"></b-icon>
-            {{ $t('navigation.overview') }}
+          <b-nav-item to="/overview" class="mb-3" active-class="activeRoute">
+            <b-img src="/img/svg/home.svg" height="20" class="svg-icon" />
+            <span class="ml-2">{{ $t('navigation.overview') }}</span>
           </b-nav-item>
-          <b-nav-item to="/send" class="mb-3">
-            <b-icon icon="arrow-left-right" aria-hidden="true"></b-icon>
-            {{ $t('navigation.send') }}
+          <b-nav-item to="/send" class="mb-3" active-class="activeRoute">
+            <b-icon icon="cash" aria-hidden="true"></b-icon>
+            <span class="ml-2">{{ $t('navigation.send') }}</span>
           </b-nav-item>
-          <b-nav-item to="/transactions" class="mb-3">
-            <b-icon icon="layout-text-sidebar-reverse" aria-hidden="true"></b-icon>
-            {{ $t('navigation.transactions') }}
+          <b-nav-item to="/transactions" class="mb-3" active-class="activeRoute">
+            <b-img src="/img/svg/transaction.svg" height="20" class="svg-icon" />
+            <span class="ml-2">{{ $t('navigation.transactions') }}</span>
           </b-nav-item>
-          <b-nav-item to="/gdt" class="mb-3">
-            <b-icon icon="layout-text-sidebar-reverse" aria-hidden="true"></b-icon>
-            {{ $t('gdt.gdt') }}
+          <b-nav-item to="/community" class="mb-3" active-class="activeRoute">
+            <b-img src="/img/svg/community.svg" height="20" class="svg-icon" />
+            <span class="ml-2">{{ $t('creation') }}</span>
           </b-nav-item>
-          <b-nav-item to="/community" class="mb-3">
-            <b-icon icon="people" aria-hidden="true"></b-icon>
-            {{ $t('navigation.community') }}
+          <b-nav-item to="/gdt" class="mb-3" active-class="activeRoute">
+            <b-icon icon="layers" aria-hidden="true"></b-icon>
+            <span class="ml-2">{{ $t('GDT') }}</span>
           </b-nav-item>
-          <b-nav-item to="/profile" class="mb-3">
-            <b-icon icon="gear" aria-hidden="true"></b-icon>
-            {{ $t('navigation.profile') }}
-          </b-nav-item>
-          <b-nav-item to="/information" class="mb-3">
-            <b-icon icon="info-circle" aria-hidden="true"></b-icon>
-            {{ $t('navigation.info') }}
+          <b-nav-item to="/information" active-class="activeRoute">
+            <b-img src="/img/svg/info.svg" height="20" class="svg-icon" />
+            <span class="ml-2">{{ $t('navigation.info') }}</span>
           </b-nav-item>
         </b-nav>
-        <hr />
+        <hr class="m-3" />
         <b-nav vertical class="w-100">
+          <b-nav-item to="/settings" class="mb-3" active-class="activeRoute">
+            <b-img src="/img/svg/settings.svg" height="20" class="svg-icon" />
+            <span class="ml-2">{{ $t('navigation.settings') }}</span>
+          </b-nav-item>
           <b-nav-item
-            v-if="$store.state.hasElopage"
-            class="mb-3"
-            :href="elopageUri"
-            target="_blank"
+            class="mb-3 text-light"
+            v-if="$store.state.isAdmin"
+            @click="$emit('admin')"
+            active-class="activeRoute"
           >
-            <b-icon icon="link45deg" aria-hidden="true"></b-icon>
-            {{ $t('navigation.members_area') }}
-          </b-nav-item>
-          <b-nav-item class="mb-3" v-if="$store.state.isAdmin" @click="$emit('admin')">
             <b-icon icon="shield-check" aria-hidden="true"></b-icon>
-            {{ $t('navigation.admin_area') }}
+            <span class="ml-2">{{ $t('navigation.admin_area') }}</span>
           </b-nav-item>
-          <b-nav-item class="mb-3" @click="$emit('logout')">
-            <b-icon icon="power" aria-hidden="true"></b-icon>
-            {{ $t('navigation.logout') }}
+          <b-nav-item
+            class="font-weight-bold"
+            @click="$emit('logout')"
+            active-class="activeRoute"
+            data-test="logout-menu"
+          >
+            <b-img src="/img/svg/logout.svg" height="20" class="svg-icon" />
+            <span class="ml-2 text-205">{{ $t('navigation.logout') }}</span>
           </b-nav-item>
         </b-nav>
       </div>
@@ -59,18 +64,55 @@
 </template>
 <script>
 export default {
-  name: 'sidebar',
+  name: 'Sidebar',
   props: {
-    elopageUri: {
-      type: String,
-      required: false,
-    },
+    shadow: { type: Boolean, required: false, default: true },
   },
 }
 </script>
 <style>
-.component-navbar .active,
-#component-sidebar .active {
-  font-weight: bold;
+.nav-link {
+  color: rgb(56, 56, 56);
 }
+.activeRoute {
+  font-weight: bold;
+  color: rgb(2, 2, 1);
+  border-left: 4px rgb(219, 129, 19) solid;
+}
+.svg-icon {
+  filter: brightness(1) invert(0);
+}
+
+.activeRoute .svg-icon {
+  filter: brightness(0) invert(0);
+}
+
+#component-sidebar {
+  min-width: 200px;
+}
+@media screen and (min-width: 1025px) {
+  #side-menu {
+    max-width: 180px;
+  }
+  #component-sidebar {
+    min-width: 180px;
+  }
+}
+/*
+@media screen and (min-width: 1075px) {
+  #side-menu {
+    max-width: 200px;
+  }
+  #component-sidebar {
+    min-width: 200px;
+  }
+}
+@media screen and (max-width: 1108px) {
+  #side-menu {
+    max-width: 100%;
+  }
+  #component-sidebar {
+    max-width: 100%;
+  }
+} */
 </style>

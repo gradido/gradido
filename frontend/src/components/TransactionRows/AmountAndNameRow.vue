@@ -10,21 +10,7 @@
       </b-col>
       <b-col cols="7">
         <div class="gdd-transaction-list-item-name">
-          <div v-if="linkedUser && linkedUser.email">
-            <b-link @click.stop="tunnelEmail">
-              {{ itemText }}
-            </b-link>
-            <span v-if="transactionLinkId">
-              {{ $t('via_link') }}
-              <b-icon
-                icon="link45deg"
-                variant="muted"
-                class="m-mb-1"
-                :title="$t('gdd_per_link.redeemed-title')"
-              />
-            </span>
-          </div>
-          <span v-else>{{ itemText }}</span>
+          <span>{{ text }}</span>
         </div>
       </b-col>
     </b-row>
@@ -38,31 +24,9 @@ export default {
       type: String,
       required: true,
     },
-    linkedUser: {
-      type: Object,
-      required: false,
-    },
     text: {
       type: String,
-      required: false,
-    },
-    transactionLinkId: {
-      type: Number,
-      required: false,
-      default: null,
-    },
-  },
-  methods: {
-    tunnelEmail() {
-      this.$emit('set-tunneled-email', this.linkedUser.email)
-      this.$router.push({ path: '/send' })
-    },
-  },
-  computed: {
-    itemText() {
-      return this.linkedUser
-        ? this.linkedUser.firstName + ' ' + this.linkedUser.lastName
-        : this.text
+      required: true,
     },
   },
 }

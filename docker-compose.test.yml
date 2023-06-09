@@ -1,6 +1,25 @@
 version: "3.4"
 
 services:
+  ########################################################
+  # FRONTEND #############################################
+  ########################################################
+  frontend:
+    image: gradido/frontend:test
+    build:
+      target: test
+    environment:
+      - NODE_ENV="test"
+  
+  ########################################################
+  # ADMIN INTERFACE ######################################
+  ########################################################
+  admin:
+    image: gradido/admin:test
+    build:
+      target: test
+    environment:
+      - NODE_ENV="test"
 
   ########################################################
   # BACKEND ##############################################
@@ -18,18 +37,37 @@ services:
       - DB_HOST=mariadb
 
   ########################################################
+  # FEDERATION ###########################################
+  ########################################################
+  federation:
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/federation:test
+    build:
+      target: test
+    networks:
+      - external-net
+      - internal-net
+    environment:
+      - NODE_ENV="test"
+      - DB_HOST=mariadb
+
+  ########################################################
   # DATABASE #############################################
   ########################################################
   database:
+    image: gradido/database:test_up
     build:
       context: ./database
       target: test_up
+    environment:
+      - NODE_ENV="test"
   #  restart: always # this is very dangerous, but worth a test for the delayed mariadb startup at first run
 
   #########################################################
   ## MARIADB ##############################################
   #########################################################
   mariadb:
+    image: gradido/mariadb:test
     networks: 
       - internal-net
       - external-net
@@ -51,6 +89,23 @@ services:
      - external-net
     volumes:
      - /sessions
+  
+  #########################################################
+  ## NGINX ################################################
+  #########################################################
+  nginx:
+    image: gradido/nginx:test
+
+  ########################################################
+  # MAILSERVER TO FAKE SMTP ##############################
+  ########################################################
+  mailserver:
+    image: maildev/maildev
+    ports:
+      - 1080:1080
+      - 1025:1025
+    networks:
+      - external-net
 
 networks:
   external-net:
@@ -59,3 +114,4 @@ networks:
 
 volumes:
   db_test_vol: 
+

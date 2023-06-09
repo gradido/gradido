@@ -98,7 +98,6 @@ const dateTimeFormats = {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      weekday: 'long',
       hour: 'numeric',
       minute: 'numeric',
     },
@@ -114,6 +113,10 @@ const dateTimeFormats = {
     monthAndYear: {
       month: 'long',
       year: 'numeric',
+    },
+    time: {
+      hour: 'numeric',
+      minute: 'numeric',
     },
   },
   de: {
@@ -126,7 +129,6 @@ const dateTimeFormats = {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-      weekday: 'long',
       hour: 'numeric',
       minute: 'numeric',
     },
@@ -142,6 +144,10 @@ const dateTimeFormats = {
     monthAndYear: {
       month: 'long',
       year: 'numeric',
+    },
+    time: {
+      hour: 'numeric',
+      minute: 'numeric',
     },
   },
   es: {
@@ -154,7 +160,6 @@ const dateTimeFormats = {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-      weekday: 'long',
       hour: 'numeric',
       minute: 'numeric',
     },
@@ -170,6 +175,10 @@ const dateTimeFormats = {
     monthAndYear: {
       month: 'long',
       year: 'numeric',
+    },
+    time: {
+      hour: 'numeric',
+      minute: 'numeric',
     },
   },
   fr: {
@@ -182,7 +191,6 @@ const dateTimeFormats = {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-      weekday: 'long',
       hour: 'numeric',
       minute: 'numeric',
     },
@@ -198,6 +206,10 @@ const dateTimeFormats = {
     monthAndYear: {
       month: 'long',
       year: 'numeric',
+    },
+    time: {
+      hour: 'numeric',
+      minute: 'numeric',
     },
   },
   nl: {
@@ -226,6 +238,10 @@ const dateTimeFormats = {
     monthAndYear: {
       month: 'long',
       year: 'numeric',
+    },
+    time: {
+      hour: 'numeric',
+      minute: 'numeric',
     },
   },
 }

@@ -22,15 +22,18 @@ i18n.locale = 'blubb'
 
 const {
   language,
-  email,
+  gradidoID,
   token,
   firstName,
   lastName,
+  username,
   newsletterState,
   publisherId,
   isAdmin,
   hasElopage,
-  creation,
+  hideAmountGDD,
+  hideAmountGDT,
+  email,
 } = mutations
 const { login, logout } = actions
 
@@ -52,11 +55,11 @@ describe('Vuex store', () => {
       })
     })
 
-    describe('email', () => {
-      it('sets the state of email', () => {
-        const state = { email: 'nobody@knows.tv' }
-        email(state, 'someone@there.is')
-        expect(state.email).toEqual('someone@there.is')
+    describe('gradidoID', () => {
+      it('sets the state of gradidoID', () => {
+        const state = { gradidoID: 'old-id' }
+        gradidoID(state, 'new-id')
+        expect(state.gradidoID).toEqual('new-id')
       })
     })
 
@@ -103,6 +106,14 @@ describe('Vuex store', () => {
       })
     })
 
+    describe('username', () => {
+      it('sets the state of username', () => {
+        const state = { username: null }
+        username(state, 'peter')
+        expect(state.username).toEqual('peter')
+      })
+    })
+
     describe('newsletterState', () => {
       it('sets the state of newsletterState', () => {
         const state = { newsletterState: null }
@@ -141,11 +152,27 @@ describe('Vuex store', () => {
       })
     })
 
-    describe('creation', () => {
-      it('sets the state of creation', () => {
-        const state = { creation: null }
-        creation(state, true)
-        expect(state.creation).toEqual(true)
+    describe('hideAmountGDD', () => {
+      it('sets the state of hideAmountGDD', () => {
+        const state = { hideAmountGDD: false }
+        hideAmountGDD(state, false)
+        expect(state.hideAmountGDD).toEqual(false)
+      })
+    })
+
+    describe('hideAmountGDT', () => {
+      it('sets the state of hideAmountGDT', () => {
+        const state = { hideAmountGDT: true }
+        hideAmountGDT(state, true)
+        expect(state.hideAmountGDT).toEqual(true)
+      })
+    })
+
+    describe('email', () => {
+      it('sets the state of email', () => {
+        const state = { email: '' }
+        email(state, 'peter@luatig.de')
+        expect(state.email).toEqual('peter@luatig.de')
       })
     })
   })
@@ -155,8 +182,9 @@ describe('Vuex store', () => {
       const commit = jest.fn()
       const state = {}
       const commitedData = {
-        email: 'user@example.org',
+        gradidoID: 'my-gradido-id',
         language: 'de',
+        alias: 'peter',
         firstName: 'Peter',
         lastName: 'Lustig',
         klickTipp: {
@@ -165,17 +193,18 @@ describe('Vuex store', () => {
         hasElopage: false,
         publisherId: 1234,
         isAdmin: true,
-        creation: ['1000', '1000', '1000'],
+        hideAmountGDD: false,
+        hideAmountGDT: true,
       }
 
-      it('calls nine commits', () => {
+      it('calls eleven commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(9)
+        expect(commit).toHaveBeenCalledTimes(11)
       })
 
-      it('commits email', () => {
+      it('commits gradidoID', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(1, 'email', 'user@example.org')
+        expect(commit).toHaveBeenNthCalledWith(1, 'gradidoID', 'my-gradido-id')
       })
 
       it('commits language', () => {
@@ -183,39 +212,49 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(2, 'language', 'de')
       })
 
+      it('commits username', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(3, 'username', 'peter')
+      })
+
       it('commits firstName', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(3, 'firstName', 'Peter')
+        expect(commit).toHaveBeenNthCalledWith(4, 'firstName', 'Peter')
       })
 
       it('commits lastName', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(4, 'lastName', 'Lustig')
+        expect(commit).toHaveBeenNthCalledWith(5, 'lastName', 'Lustig')
       })
 
       it('commits newsletterState', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(5, 'newsletterState', true)
+        expect(commit).toHaveBeenNthCalledWith(6, 'newsletterState', true)
       })
 
       it('commits hasElopage', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(6, 'hasElopage', false)
+        expect(commit).toHaveBeenNthCalledWith(7, 'hasElopage', false)
       })
 
       it('commits publisherId', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(7, 'publisherId', 1234)
+        expect(commit).toHaveBeenNthCalledWith(8, 'publisherId', 1234)
       })
 
       it('commits isAdmin', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(8, 'isAdmin', true)
+        expect(commit).toHaveBeenNthCalledWith(9, 'isAdmin', true)
       })
 
-      it('commits creation', () => {
+      it('commits hideAmountGDD', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(9, 'creation', ['1000', '1000', '1000'])
+        expect(commit).toHaveBeenNthCalledWith(10, 'hideAmountGDD', false)
+      })
+
+      it('commits hideAmountGDT', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(11, 'hideAmountGDT', true)
       })
     })
 
@@ -223,9 +262,9 @@ describe('Vuex store', () => {
       const commit = jest.fn()
       const state = {}
 
-      it('calls nine commits', () => {
+      it('calls twelve commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(9)
+        expect(commit).toHaveBeenCalledTimes(12)
       })
 
       it('commits token', () => {
@@ -233,44 +272,59 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(1, 'token', null)
       })
 
-      it('commits email', () => {
+      it('commits username', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(2, 'email', null)
+        expect(commit).toHaveBeenNthCalledWith(2, 'username', '')
+      })
+
+      it('commits gradidoID', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(3, 'gradidoID', null)
       })
 
       it('commits firstName', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(3, 'firstName', '')
+        expect(commit).toHaveBeenNthCalledWith(4, 'firstName', '')
       })
 
       it('commits lastName', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(4, 'lastName', '')
+        expect(commit).toHaveBeenNthCalledWith(5, 'lastName', '')
       })
 
       it('commits newsletterState', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(5, 'newsletterState', null)
+        expect(commit).toHaveBeenNthCalledWith(6, 'newsletterState', null)
       })
 
       it('commits hasElopage', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(6, 'hasElopage', false)
+        expect(commit).toHaveBeenNthCalledWith(7, 'hasElopage', false)
       })
 
       it('commits publisherId', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(7, 'publisherId', null)
+        expect(commit).toHaveBeenNthCalledWith(8, 'publisherId', null)
       })
 
       it('commits isAdmin', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(8, 'isAdmin', false)
+        expect(commit).toHaveBeenNthCalledWith(9, 'isAdmin', false)
       })
 
-      it('commits creation', () => {
+      it('commits hideAmountGDD', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(9, 'creation', null)
+        expect(commit).toHaveBeenNthCalledWith(10, 'hideAmountGDD', false)
+      })
+
+      it('commits hideAmountGDT', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(11, 'hideAmountGDT', true)
+      })
+
+      it('commits email', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(12, 'email', '')
       })
 
       // how to get this working?

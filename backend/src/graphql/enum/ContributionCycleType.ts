@@ -1,13 +1,14 @@
 import { registerEnumType } from 'type-graphql'
 
+// lowercase values are not implemented yet
 export enum ContributionCycleType {
-  ONCE = 'once',
+  ONCE = 'ONCE',
   HOUR = 'hour',
   TWO_HOURS = 'two_hours',
   FOUR_HOURS = 'four_hours',
   EIGHT_HOURS = 'eight_hours',
   HALF_DAY = 'half_day',
-  DAY = 'day',
+  DAILY = 'DAILY',
   TWO_DAYS = 'two_days',
   THREE_DAYS = 'three_days',
   FOUR_DAYS = 'four_days',

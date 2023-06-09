@@ -4,6 +4,7 @@
   "125": "125%",
   "85": "85%",
   "advanced-calculation": "Voorcalculatie",
+  "asterisks": "****",
   "auth": {
     "left": {
       "dignity": "Waardigheid",
@@ -25,11 +26,12 @@
     "moderator": "Moderator",
     "moderators": "Moderators",
     "myContributions": "Mijn bijdragen voor het algemeen belang",
-    "openContributionLinks": "openbare lijst van bijdragen",
-    "openContributionLinkText": "De volgende {count} automatische creaties worden momenteel aangeboden door de gemeenschap \"{name}\".",
+    "noOpenContributionLinkText": "Er zijn momenteel geen link-gegenereerde creaties.",
+    "openContributionLinks": "Creaties gegenereerd door link",
+    "openContributionLinkText": "De community \"{name}\" ondersteunt momenteel {count} link-gegenereerde creaties:",
     "other-communities": "Verdere gemeenschappen",
     "statistic": "Statistieken",
-    "submitContribution": "Bijdrage indienen",
+    "submitContribution": "schrijf",
     "switch-to-this-community": "naar deze gemeenschap wisselen"
   },
   "contribution": {
@@ -38,10 +40,10 @@
       "answerQuestion": "Please answer the question",
       "communityNoteList": "Hier vind je alle ingediende en bevestigde bijdragen van alle leden uit deze gemeenschap.",
       "confirm": "bevestigt",
+      "denied": "afgewezen",
       "in_progress": "There is a question from the moderators.",
       "myContributionNoteList": "Ingediende bijdragen, die nog niet bevestigd zijn, kun je op elk moment wijzigen of verwijderen.",
-      "pending": "Ingediend en wacht op bevestiging",
-      "rejected": "afgewezen"
+      "pending": "Ingediend en wacht op bevestiging"
     },
     "date": "Bijdrage voor:",
     "delete": "Bijdrage verwijderen! Weet je het zeker?",
@@ -121,7 +123,6 @@
     "from": "Van",
     "generate_now": "Nu genereren",
     "lastname": "Achternaam",
-    "mandatoryField": "verplicht veld",
     "memo": "Memo",
     "message": "Bericht",
     "new_balance": "Nieuw banksaldo na bevestiging",
@@ -172,7 +173,7 @@
     "link-copied": "Link werd naar het klembord gekopieerd. Je kunt deze nu in een email of bericht invoegen.",
     "link-deleted": "De link werd op {date} verwijderd.",
     "link-expired": "De link is niet meer geldig. De geldigheid is op {date} afgelopen.",
-    "link-hint": "Attentie: Iedereen kan deze link inwisselen. Geef het alsjeblieft niet door!",
+    "link-hint": "Attentie: Ledereen kan deze link inwisselen. Wees er voorzichtig mee!",
     "link-overview": "Overzicht links",
     "links_count": "Actieve links",
     "links_sum": "Open links en QR-Codes",
@@ -180,7 +181,6 @@
     "no-redeem": "Je mag je eigen link niet inwisselen!",
     "not-copied": "Jouw apparaat laat het kopiëren helaas niet toe! Kopieer de link alsjeblieft met de hand!",
     "redeem": "Inwisselen",
-    "redeem-text": "Wil je het bedrag nu inwisselen?",
     "redeemed": "Succesvol ingewisseld! Op jouw rekening werden {n} GDD bijgeschreven.",
     "redeemed-at": "De link werd al op {date} ingewisseld.",
     "redeemed-title": "ingewisseld",
@@ -289,16 +289,12 @@
     "forgotPassword": {
       "heading": "Geef alsjeblieft jouw email, waarmee je bij Gradido aangemeld bent."
     },
-    "login": {
-      "heading": "Meld je met jouw inloggegevens aan. Sla deze altijd veilig op!"
-    },
     "resetPassword": {
       "heading": "Vul alsjeblieft jouw wachtwoord in, en herhaal het."
     },
     "signup": {
       "agree": "Ik ga akkoord met <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a>.",
       "dont_match": "De wachtwoorden zijn niet gelijk.",
-      "heading": "Schrijf je in door alle gegevens volledig en in de juiste velden in te vullen.",
       "lowercase": "Een kleine letter is noodzakelijk.",
       "minimum": "Minstens 8 tekens.",
       "no-whitespace": "Geen spaties en tabs",

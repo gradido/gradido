@@ -1,17 +1,25 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/unbound-method */
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { createContributionLink } from '@/seeds/graphql/mutations'
-import { login } from '@/seeds/graphql/queries'
+
 import { ContributionLink } from '@model/ContributionLink'
+
 import { ContributionLinkInterface } from '@/seeds/contributionLink/ContributionLinkInterface'
+import { login, createContributionLink } from '@/seeds/graphql/mutations'
 
 export const contributionLinkFactory = async (
   client: ApolloServerTestClient,
   contributionLink: ContributionLinkInterface,
 ): Promise<ContributionLink> => {
-  const { mutate, query } = client
+  const { mutate } = client
 
   // login as admin
-  await query({ query: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const user = await mutate({
+    mutation: login,
+    variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+  })
 
   const variables = {
     amount: contributionLink.amount,

@@ -32,8 +32,8 @@ describe('ContentFooter', () => {
         expect(wrapper.find('div.copyright').exists()).toBeTruthy()
       })
 
-      it('renders the copyright year', () => {
-        expect(mocks.$t).toBeCalledWith('footer.copyright.year', { year: 2022 })
+      it('renders the current year as copyright year', () => {
+        expect(mocks.$t).toBeCalledWith('footer.copyright.year', { year: new Date().getFullYear() })
       })
 
       it('renders a link to Gradido-Akademie', () => {

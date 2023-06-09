@@ -1,52 +1,84 @@
-import fs from 'fs'
-import { backendLogger as logger } from '@/server/logger'
-
-import { Context, getUser } from '@/server/context'
-import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
-import CONFIG from '@/config'
-import { User } from '@model/User'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
-import { communityDbUser } from '@/util/communityUser'
-import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import { ContributionLink as dbContributionLink } from '@entity/ContributionLink'
-import { encode } from '@/auth/JWT'
-import CreateUserArgs from '@arg/CreateUserArgs'
-import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
-import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
-import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
-import { OptInType } from '@enum/OptInType'
-import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
-import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
-import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegistrationEmail'
-import { klicktippSignIn } from '@/apis/KlicktippController'
-import { RIGHTS } from '@/auth/RIGHTS'
-import { hasElopageBuys } from '@/util/hasElopageBuys'
-import { eventProtocol } from '@/event/EventProtocolEmitter'
+import { UserContact as DbUserContact } from '@entity/UserContact'
+import i18n from 'i18n'
 import {
-  Event,
-  EventLogin,
-  EventRedeemRegister,
-  EventRegister,
-  EventSendConfirmationEmail,
-} from '@/event/Event'
-import { getUserCreation } from './util/creations'
-import { UserRepository } from '@/typeorm/repository/User'
-import { SearchAdminUsersResult } from '@model/AdminUser'
-import Paginated from '@arg/Paginated'
-import { Order } from '@enum/Order'
+  Resolver,
+  Query,
+  Args,
+  Arg,
+  Authorized,
+  Ctx,
+  UseMiddleware,
+  Mutation,
+  Int,
+} from 'type-graphql'
 import { v4 as uuidv4 } from 'uuid'
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const sodium = require('sodium-native')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const random = require('random-bigint')
+import { CreateUserArgs } from '@arg/CreateUserArgs'
+import { Paginated } from '@arg/Paginated'
+import { SearchUsersArgs } from '@arg/SearchUsersArgs'
+import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
+import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
+import { OptInType } from '@enum/OptInType'
+import { Order } from '@enum/Order'
+import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
+import { UserContactType } from '@enum/UserContactType'
+import { SearchAdminUsersResult } from '@model/AdminUser'
+import { User } from '@model/User'
+import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
+import { UserRepository } from '@repository/User'
 
-// We will reuse this for changePassword
-const isPassword = (password: string): boolean => {
-  return !!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)
-}
+import { subscribe } from '@/apis/KlicktippController'
+import { encode } from '@/auth/JWT'
+import { RIGHTS } from '@/auth/RIGHTS'
+import { CONFIG } from '@/config'
+import {
+  sendAccountActivationEmail,
+  sendAccountMultiRegistrationEmail,
+  sendResetPasswordEmail,
+} from '@/emails/sendEmailVariants'
+import {
+  Event,
+  EventType,
+  EVENT_USER_LOGIN,
+  EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION,
+  EVENT_EMAIL_CONFIRMATION,
+  EVENT_USER_REGISTER,
+  EVENT_USER_ACTIVATE_ACCOUNT,
+  EVENT_EMAIL_ADMIN_CONFIRMATION,
+  EVENT_USER_LOGOUT,
+  EVENT_EMAIL_FORGOT_PASSWORD,
+  EVENT_USER_INFO_UPDATE,
+  EVENT_ADMIN_USER_ROLE_SET,
+  EVENT_ADMIN_USER_DELETE,
+  EVENT_ADMIN_USER_UNDELETE,
+} from '@/event/Events'
+import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
+import { isValidPassword } from '@/password/EncryptorUtils'
+import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
+import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
+import { LogError } from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
+import { communityDbUser } from '@/util/communityUser'
+import { hasElopageBuys } from '@/util/hasElopageBuys'
+import { getTimeDurationObject, printTimeDuration } from '@/util/time'
+
+import random from 'random-bigint'
+
+import { FULL_CREATION_AVAILABLE } from './const/const'
+import { getUserCreations } from './util/creations'
+import { findUserByIdentifier } from './util/findUserByIdentifier'
+import { validateAlias } from './util/validateAlias'
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
+const sodium = require('sodium-native')
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -54,182 +86,23 @@ const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)
 }
 
-const PHRASE_WORD_COUNT = 24
-const WORDS = fs
-  .readFileSync('src/config/mnemonic.uncompressed_buffer13116.txt')
-  .toString()
-  .split(',')
-const PassphraseGenerate = (): string[] => {
-  logger.trace('PassphraseGenerate...')
-  const result = []
-  for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
-    result.push(WORDS[sodium.randombytes_random() % 2048])
-  }
-  return result
+const newEmailContact = (email: string, userId: number): DbUserContact => {
+  logger.trace(`newEmailContact...`)
+  const emailContact = new DbUserContact()
+  emailContact.email = email
+  emailContact.userId = userId
+  emailContact.type = UserContactType.USER_CONTACT_EMAIL
+  emailContact.emailChecked = false
+  emailContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
+  emailContact.emailVerificationCode = random(64)
+  logger.debug('newEmailContact...successful', emailContact)
+  return emailContact
 }
 
-const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
-  logger.trace('KeyPairEd25519Create...')
-  if (!passphrase.length || passphrase.length < PHRASE_WORD_COUNT) {
-    logger.error('passphrase empty or to short')
-    throw new Error('passphrase empty or to short')
-  }
-
-  const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
-  sodium.crypto_hash_sha512_init(state)
-
-  // To prevent breaking existing passphrase-hash combinations word indices will be put into 64 Bit Variable to mimic first implementation of algorithms
-  for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
-    const value = Buffer.alloc(8)
-    const wordIndex = WORDS.indexOf(passphrase[i])
-    value.writeBigInt64LE(BigInt(wordIndex))
-    sodium.crypto_hash_sha512_update(state, value)
-  }
-  // trailing space is part of the login_server implementation
-  const clearPassphrase = passphrase.join(' ') + ' '
-  sodium.crypto_hash_sha512_update(state, Buffer.from(clearPassphrase))
-  const outputHashBuffer = Buffer.alloc(sodium.crypto_hash_sha512_BYTES)
-  sodium.crypto_hash_sha512_final(state, outputHashBuffer)
-
-  const pubKey = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
-  const privKey = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
-
-  sodium.crypto_sign_seed_keypair(
-    pubKey,
-    privKey,
-    outputHashBuffer.slice(0, sodium.crypto_sign_SEEDBYTES),
-  )
-  logger.debug(`KeyPair creation ready. pubKey=${pubKey}`)
-
-  return [pubKey, privKey]
-}
-
-const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[] => {
-  logger.trace('SecretKeyCryptographyCreateKey...')
-  const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
-  const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
-  if (configLoginServerKey.length !== sodium.crypto_shorthash_KEYBYTES) {
-    logger.error(
-      `ServerKey has an invalid size. The size must be ${sodium.crypto_shorthash_KEYBYTES} bytes.`,
-    )
-    throw new Error(
-      `ServerKey has an invalid size. The size must be ${sodium.crypto_shorthash_KEYBYTES} bytes.`,
-    )
-  }
-
-  const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
-  sodium.crypto_hash_sha512_init(state)
-  sodium.crypto_hash_sha512_update(state, Buffer.from(salt))
-  sodium.crypto_hash_sha512_update(state, configLoginAppSecret)
-  const hash = Buffer.alloc(sodium.crypto_hash_sha512_BYTES)
-  sodium.crypto_hash_sha512_final(state, hash)
-
-  const encryptionKey = Buffer.alloc(sodium.crypto_box_SEEDBYTES)
-  const opsLimit = 10
-  const memLimit = 33554432
-  const algo = 2
-  sodium.crypto_pwhash(
-    encryptionKey,
-    Buffer.from(password),
-    hash.slice(0, sodium.crypto_pwhash_SALTBYTES),
-    opsLimit,
-    memLimit,
-    algo,
-  )
-
-  const encryptionKeyHash = Buffer.alloc(sodium.crypto_shorthash_BYTES)
-  sodium.crypto_shorthash(encryptionKeyHash, encryptionKey, configLoginServerKey)
-
-  logger.debug(
-    `SecretKeyCryptographyCreateKey...successful: encryptionKeyHash= ${encryptionKeyHash}, encryptionKey= ${encryptionKey}`,
-  )
-  return [encryptionKeyHash, encryptionKey]
-}
-
-const getEmailHash = (email: string): Buffer => {
-  logger.trace('getEmailHash...')
-  const emailHash = Buffer.alloc(sodium.crypto_generichash_BYTES)
-  sodium.crypto_generichash(emailHash, Buffer.from(email))
-  logger.debug(`getEmailHash...successful: ${emailHash}`)
-  return emailHash
-}
-
-const SecretKeyCryptographyEncrypt = (message: Buffer, encryptionKey: Buffer): Buffer => {
-  logger.trace('SecretKeyCryptographyEncrypt...')
-  const encrypted = Buffer.alloc(message.length + sodium.crypto_secretbox_MACBYTES)
-  const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
-  nonce.fill(31) // static nonce
-
-  sodium.crypto_secretbox_easy(encrypted, message, nonce, encryptionKey)
-  logger.debug(`SecretKeyCryptographyEncrypt...successful: ${encrypted}`)
-  return encrypted
-}
-
-const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: Buffer): Buffer => {
-  logger.trace('SecretKeyCryptographyDecrypt...')
-  const message = Buffer.alloc(encryptedMessage.length - sodium.crypto_secretbox_MACBYTES)
-  const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
-  nonce.fill(31) // static nonce
-
-  sodium.crypto_secretbox_open_easy(message, encryptedMessage, nonce, encryptionKey)
-
-  logger.debug(`SecretKeyCryptographyDecrypt...successful: ${message}`)
-  return message
-}
-
-const newEmailOptIn = (userId: number): LoginEmailOptIn => {
-  logger.trace('newEmailOptIn...')
-  const emailOptIn = new LoginEmailOptIn()
-  emailOptIn.verificationCode = random(64)
-  emailOptIn.userId = userId
-  emailOptIn.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
-  logger.debug(`newEmailOptIn...successful: ${emailOptIn}`)
-  return emailOptIn
-}
-
-// needed by AdminResolver
-// checks if given code exists and can be resent
-// if optIn does not exits, it is created
-export const checkOptInCode = async (
-  optInCode: LoginEmailOptIn | undefined,
-  user: DbUser,
-  optInType: OptInType = OptInType.EMAIL_OPT_IN_REGISTER,
-): Promise<LoginEmailOptIn> => {
-  logger.info(`checkOptInCode... ${optInCode}`)
-  if (optInCode) {
-    if (!canResendOptIn(optInCode)) {
-      logger.error(
-        `email already sent less than ${printTimeDuration(
-          CONFIG.EMAIL_CODE_REQUEST_TIME,
-        )} minutes ago`,
-      )
-      throw new Error(
-        `email already sent less than ${printTimeDuration(
-          CONFIG.EMAIL_CODE_REQUEST_TIME,
-        )} minutes ago`,
-      )
-    }
-    optInCode.updatedAt = new Date()
-    optInCode.resendCount++
-  } else {
-    logger.trace('create new OptIn for userId=' + user.id)
-    optInCode = newEmailOptIn(user.id)
-  }
-
-  if (user.emailChecked) {
-    optInCode.emailOptInTypeId = optInType
-  }
-  await LoginEmailOptIn.save(optInCode).catch(() => {
-    logger.error('Unable to save optin code= ' + optInCode)
-    throw new Error('Unable to save optin code.')
-  })
-  logger.debug(`checkOptInCode...successful: ${optInCode} for userid=${user.id}`)
-  return optInCode
-}
-
-export const activationLink = (optInCode: LoginEmailOptIn): string => {
-  logger.debug(`activationLink(${LoginEmailOptIn})...`)
-  return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, optInCode.verificationCode.toString())
+// eslint-disable-next-line @typescript-eslint/ban-types
+export const activationLink = (verificationCode: BigInt): string => {
+  logger.debug(`activationLink(${verificationCode})...`)
+  return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, verificationCode.toString())
 }
 
 const newGradidoID = async (): Promise<string> => {
@@ -254,17 +127,16 @@ export class UserResolver {
     logger.info('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
     const userEntity = getUser(context)
-    const user = new User(userEntity, await getUserCreation(userEntity.id))
-    // user.pubkey = userEntity.pubKey.toString('hex')
+    const user = new User(userEntity)
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
 
-    logger.debug(`verifyLogin... successful: ${user.firstName}.${user.lastName}, ${user.email}`)
+    logger.debug(`verifyLogin... successful: ${user.firstName}.${user.lastName}`)
     return user
   }
 
   @Authorized([RIGHTS.LOGIN])
-  @Query(() => User)
+  @Mutation(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
     @Args() { email, password, publisherId }: UnsecureLoginArgs,
@@ -272,71 +144,61 @@ export class UserResolver {
   ): Promise<User> {
     logger.info(`login with ${email}, ***, ${publisherId} ...`)
     email = email.trim().toLowerCase()
-    const dbUser = await DbUser.findOneOrFail({ email }, { withDeleted: true }).catch(() => {
-      logger.error(`User with email=${email} does not exists`)
-      throw new Error('No user with this credentials')
-    })
+    const dbUser = await findUserByEmail(email)
     if (dbUser.deletedAt) {
-      logger.error('The User was permanently deleted in database.')
-      throw new Error('This user was permanently deleted. Contact support for questions.')
+      throw new LogError('This user was permanently deleted. Contact support for questions', dbUser)
     }
-    if (!dbUser.emailChecked) {
-      logger.error('The Users email is not validate yet.')
-      throw new Error('User email not validated')
+    if (!dbUser.emailContact.emailChecked) {
+      throw new LogError('The Users email is not validate yet', dbUser)
     }
+    // TODO: at least in test this does not work since `dbUser.password = 0` and `BigInto(0) = 0n`
     if (dbUser.password === BigInt(0)) {
-      logger.error('The User has not set a password yet.')
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
-      throw new Error('User has no password set yet')
+      throw new LogError('The User has not set a password yet', dbUser)
     }
-    if (!dbUser.pubKey || !dbUser.privKey) {
-      logger.error('The User has no private or publicKey.')
-      // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
-      throw new Error('User has no private or publicKey')
+
+    if (!verifyPassword(dbUser, password)) {
+      throw new LogError('No user with this credentials', dbUser)
     }
-    const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
-    const loginUserPassword = BigInt(dbUser.password.toString())
-    if (loginUserPassword !== passwordHash[0].readBigUInt64LE()) {
-      logger.error('The User has no valid credentials.')
-      throw new Error('No user with this credentials')
+
+    if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
+      dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+      dbUser.password = encryptPassword(dbUser, password)
+      await dbUser.save()
     }
     // add pubKey in logger-context for layout-pattern X{user} to print it in each logging message
     logger.addContext('user', dbUser.id)
-    logger.debug('login credentials valid...')
+    logger.debug('validation of login credentials successful...')
 
-    const user = new User(dbUser, await getUserCreation(dbUser.id))
-    logger.debug('user=' + user)
+    const user = new User(dbUser)
+    logger.debug(`user= ${JSON.stringify(user, null, 2)}`)
+
+    i18n.setLocale(user.language)
 
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
-    logger.info('user.hasElopage=' + user.hasElopage)
+    logger.info('user.hasElopage', user.hasElopage)
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
       dbUser.publisherId = publisherId
-      DbUser.save(dbUser)
+      await DbUser.save(dbUser)
     }
 
     context.setHeaders.push({
       key: 'token',
-      value: encode(dbUser.pubKey),
+      value: await encode(dbUser.gradidoID),
     })
-    const ev = new EventLogin()
-    ev.userId = user.id
-    eventProtocol.writeEvent(new Event().setEventLogin(ev))
-    logger.info('successful Login:' + user)
+
+    await EVENT_USER_LOGIN(dbUser)
+    logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
     return user
   }
 
   @Authorized([RIGHTS.LOGOUT])
-  @Query(() => String)
-  async logout(): Promise<boolean> {
-    // TODO: We dont need this anymore, but might need this in the future in oder to invalidate a valid JWT-Token.
-    // Furthermore this hook can be useful for tracking user behaviour (did he logout or not? Warn him if he didn't on next login)
-    // The functionality is fully client side - the client just needs to delete his token with the current implementation.
-    // we could try to force this by sending `token: null` or `token: ''` with this call. But since it bares no real security
-    // we should just return true for now.
-    logger.info('Logout...')
-    // remove user.pubKey from logger-context to ensure a correct filter on log-messages belonging to the same user
+  @Mutation(() => Boolean)
+  async logout(@Ctx() context: Context): Promise<boolean> {
+    await EVENT_USER_LOGOUT(getUser(context))
+    // remove user from logger context
     logger.addContext('user', 'unknown')
     return true
   }
@@ -345,8 +207,9 @@ export class UserResolver {
   @Mutation(() => User)
   async createUser(
     @Args()
-    { email, firstName, lastName, language, publisherId, redeemCode = null }: CreateUserArgs,
+    { email, firstName, lastName, language, publisherId = null, redeemCode = null }: CreateUserArgs,
   ): Promise<User> {
+    logger.addContext('user', 'unknown')
     logger.info(
       `createUser(email=${email}, firstName=${firstName}, lastName=${lastName}, language=${language}, publisherId=${publisherId}, redeemCode =${redeemCode})`,
     )
@@ -357,146 +220,136 @@ export class UserResolver {
     if (!language || !isLanguage(language)) {
       language = DEFAULT_LANGUAGE
     }
+    i18n.setLocale(language)
 
-    // Validate email unique
+    // check if user with email still exists?
     email = email.trim().toLowerCase()
-    // TODO we cannot use repository.count(), since it does not allow to specify if you want to include the soft deletes
-    const userFound = await DbUser.findOne({ email }, { withDeleted: true })
-    logger.info(`DbUser.findOne(email=${email}) = ${userFound}`)
+    if (await checkEmailExists(email)) {
+      const foundUser = await findUserByEmail(email)
+      logger.info('DbUser.findOne', email, foundUser)
 
-    if (userFound) {
-      // ATTENTION: this logger-message will be exactly expected during tests
-      logger.info(`User already exists with this email=${email}`)
-      // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
+      if (foundUser) {
+        // ATTENTION: this logger-message will be exactly expected during tests, next line
+        logger.info(`User already exists with this email=${email}`)
+        logger.info(
+          `Specified username when trying to register multiple times with this email: firstName=${firstName}, lastName=${lastName}`,
+        )
+        // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
 
-      const user = new User(communityDbUser)
-      user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
-      user.gradidoID = uuidv4()
-      user.email = email
-      user.firstName = firstName
-      user.lastName = lastName
-      user.language = language
-      user.publisherId = publisherId
-      logger.debug('partly faked user=' + user)
+        const user = new User(communityDbUser)
+        user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
+        user.gradidoID = uuidv4()
+        user.firstName = firstName
+        user.lastName = lastName
+        user.language = language
+        user.publisherId = publisherId
+        logger.debug('partly faked user', user)
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const emailSent = await sendAccountMultiRegistrationEmail({
-        firstName,
-        lastName,
-        email,
-      })
-      logger.info(`sendAccountMultiRegistrationEmail of ${firstName}.${lastName} to ${email}`)
-      /* uncomment this, when you need the activation link on the console */
-      // In case EMails are disabled log the activation link for the user
-      if (!emailSent) {
-        logger.debug(`Email not send!`)
+        void sendAccountMultiRegistrationEmail({
+          firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
+          lastName: foundUser.lastName, // this is the real name of the email owner, but just "lastName" would be the name of the new registrant which shall not be passed to the outside
+          email,
+          language: foundUser.language, // use language of the emails owner for sending
+        })
+        await EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION(foundUser)
+
+        logger.info(
+          `sendAccountMultiRegistrationEmail by ${firstName} ${lastName} to ${foundUser.firstName} ${foundUser.lastName} <${email}>`,
+        )
+        /* uncomment this, when you need the activation link on the console */
+        // In case EMails are disabled log the activation link for the user
+        logger.info('createUser() faked and send multi registration mail...')
+
+        return user
       }
-      logger.info('createUser() faked and send multi registration mail...')
-
-      return user
     }
 
-    const passphrase = PassphraseGenerate()
-    // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
-    // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
-    // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
-    const emailHash = getEmailHash(email)
     const gradidoID = await newGradidoID()
 
-    const eventRegister = new EventRegister()
-    const eventRedeemRegister = new EventRedeemRegister()
-    const eventSendConfirmEmail = new EventSendConfirmationEmail()
-    const dbUser = new DbUser()
+    const eventRegisterRedeem = Event(
+      EventType.USER_REGISTER_REDEEM,
+      { id: 0 } as DbUser,
+      { id: 0 } as DbUser,
+    )
+    let dbUser = new DbUser()
     dbUser.gradidoID = gradidoID
-    dbUser.email = email
     dbUser.firstName = firstName
     dbUser.lastName = lastName
-    dbUser.emailHash = emailHash
     dbUser.language = language
-    dbUser.publisherId = publisherId
-    dbUser.passphrase = passphrase.join(' ')
-    logger.debug('new dbUser=' + dbUser)
+    dbUser.publisherId = publisherId ?? 0
+    dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
+    logger.debug('new dbUser', dbUser)
     if (redeemCode) {
       if (redeemCode.match(/^CL-/)) {
-        const contributionLink = await dbContributionLink.findOne({
+        const contributionLink = await DbContributionLink.findOne({
           code: redeemCode.replace('CL-', ''),
         })
-        logger.info('redeemCode found contributionLink=' + contributionLink)
+        logger.info('redeemCode found contributionLink', contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
-          eventRedeemRegister.contributionId = contributionLink.id
+          eventRegisterRedeem.involvedContributionLink = contributionLink
         }
       } else {
-        const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
-        logger.info('redeemCode found transactionLink=' + transactionLink)
+        const transactionLink = await DbTransactionLink.findOne({ code: redeemCode })
+        logger.info('redeemCode found transactionLink', transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
-          eventRedeemRegister.transactionId = transactionLink.id
+          eventRegisterRedeem.involvedTransactionLink = transactionLink
         }
       }
     }
-    // TODO this field has no null allowed unlike the loginServer table
-    // dbUser.pubKey = Buffer.from(randomBytes(32)) // Buffer.alloc(32, 0) default to 0000...
-    // dbUser.pubkey = keyPair[0]
-    // loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
-    // loginUser.pubKey = keyPair[0]
-    // loginUser.privKey = encryptedPrivkey
 
-    const event = new Event()
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
-    await queryRunner.startTransaction('READ UNCOMMITTED')
+    await queryRunner.startTransaction('REPEATABLE READ')
     try {
-      await queryRunner.manager.save(dbUser).catch((error) => {
-        logger.error('Error while saving dbUser', error)
-        throw new Error('error saving user')
+      dbUser = await queryRunner.manager.save(dbUser).catch((error) => {
+        throw new LogError('Error while saving dbUser', error)
+      })
+      let emailContact = newEmailContact(email, dbUser.id)
+      emailContact = await queryRunner.manager.save(emailContact).catch((error) => {
+        throw new LogError('Error while saving user email contact', error)
       })
 
-      const emailOptIn = newEmailOptIn(dbUser.id)
-      await queryRunner.manager.save(emailOptIn).catch((error) => {
-        logger.error('Error while saving emailOptIn', error)
-        throw new Error('error saving email opt in')
+      dbUser.emailContact = emailContact
+      dbUser.emailId = emailContact.id
+      await queryRunner.manager.save(dbUser).catch((error) => {
+        throw new LogError('Error while updating dbUser', error)
       })
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
         /{optin}/g,
-        emailOptIn.verificationCode.toString(),
+        emailContact.emailVerificationCode.toString(),
       ).replace(/{code}/g, redeemCode ? '/' + redeemCode : '')
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const emailSent = await sendAccountActivationEmail({
-        link: activationLink,
+      void sendAccountActivationEmail({
         firstName,
         lastName,
         email,
-        duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
+        language,
+        activationLink,
+        timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
       })
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
-      eventSendConfirmEmail.userId = dbUser.id
-      eventProtocol.writeEvent(event.setEventSendConfirmationEmail(eventSendConfirmEmail))
 
-      /* uncomment this, when you need the activation link on the console */
-      // In case EMails are disabled log the activation link for the user
-      if (!emailSent) {
-        logger.debug(`Account confirmation link: ${activationLink}`)
-      }
+      await EVENT_EMAIL_CONFIRMATION(dbUser)
 
       await queryRunner.commitTransaction()
+      logger.addContext('user', dbUser.id)
     } catch (e) {
-      logger.error(`error during create user with ${e}`)
       await queryRunner.rollbackTransaction()
-      throw e
+      throw new LogError('Error creating user', e)
     } finally {
       await queryRunner.release()
     }
     logger.info('createUser() successful...')
 
     if (redeemCode) {
-      eventRedeemRegister.userId = dbUser.id
-      eventProtocol.writeEvent(event.setEventRedeemRegister(eventRedeemRegister))
+      eventRegisterRedeem.affectedUser = dbUser
+      eventRegisterRedeem.actingUser = dbUser
+      await eventRegisterRedeem.save()
     } else {
-      eventRegister.userId = dbUser.id
-      eventProtocol.writeEvent(event.setEventRegister(eventRegister))
+      await EVENT_USER_REGISTER(dbUser)
     }
 
     return new User(dbUser)
@@ -505,36 +358,44 @@ export class UserResolver {
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Mutation(() => Boolean)
   async forgotPassword(@Arg('email') email: string): Promise<boolean> {
+    logger.addContext('user', 'unknown')
     logger.info(`forgotPassword(${email})...`)
     email = email.trim().toLowerCase()
-    const user = await DbUser.findOne({ email })
+    const user = await findUserByEmail(email).catch(() => {
+      logger.warn(`fail on find UserContact per ${email}`)
+    })
     if (!user) {
       logger.warn(`no user found with ${email}`)
       return true
     }
 
-    // can be both types: REGISTER and RESET_PASSWORD
-    let optInCode = await LoginEmailOptIn.findOne({
-      userId: user.id,
+    if (!canEmailResend(user.emailContact.updatedAt || user.emailContact.createdAt)) {
+      throw new LogError(
+        `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
+      )
+    }
+
+    user.emailContact.updatedAt = new Date()
+    user.emailContact.emailResendCount++
+    user.emailContact.emailVerificationCode = random(64)
+    user.emailContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_RESET_PASSWORD
+    await user.emailContact.save().catch(() => {
+      throw new LogError('Unable to save email verification code', user.emailContact)
     })
 
-    optInCode = await checkOptInCode(optInCode, user, OptInType.EMAIL_OPT_IN_RESET_PASSWORD)
-    logger.info(`optInCode for ${email}=${optInCode}`)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const emailSent = await sendResetPasswordEmailMailer({
-      link: activationLink(optInCode),
+    logger.info('optInCode for', email, user.emailContact)
+
+    void sendResetPasswordEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,
-      duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
+      language: user.language,
+      resetLink: activationLink(user.emailContact.emailVerificationCode),
+      timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
-    /*  uncomment this, when you need the activation link on the console */
-    // In case EMails are disabled log the activation link for the user
-    if (!emailSent) {
-      logger.debug(`Reset password link: ${activationLink(optInCode)}`)
-    }
     logger.info(`forgotPassword(${email}) successful...`)
+    await EVENT_EMAIL_FORGOT_PASSWORD(user)
 
     return true
   }
@@ -547,103 +408,76 @@ export class UserResolver {
   ): Promise<boolean> {
     logger.info(`setPassword(${code}, ***)...`)
     // Validate Password
-    if (!isPassword(password)) {
-      throw new Error(
+    if (!isValidPassword(password)) {
+      throw new LogError(
         'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
       )
     }
 
-    // Load code
-    const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: code }).catch(() => {
-      logger.error('Could not login with emailVerificationCode')
-      throw new Error('Could not login with emailVerificationCode')
+    // load code
+    const userContact = await DbUserContact.findOneOrFail(
+      { emailVerificationCode: code },
+      { relations: ['user'] },
+    ).catch(() => {
+      throw new LogError('Could not login with emailVerificationCode')
     })
-    logger.debug('optInCode loaded...')
+    logger.debug('userContact loaded...')
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
-    if (!isOptInValid(optInCode)) {
-      logger.error(
-        `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
-      )
-      throw new Error(
-        `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
+    if (!isEmailVerificationCodeValid(userContact.updatedAt || userContact.createdAt)) {
+      throw new LogError(
+        `Email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
       )
     }
-    logger.debug('optInCode is valid...')
+    logger.debug('EmailVerificationCode is valid...')
 
     // load user
-    const user = await DbUser.findOneOrFail({ id: optInCode.userId }).catch(() => {
-      logger.error('Could not find corresponding Login User')
-      throw new Error('Could not find corresponding Login User')
-    })
-    logger.debug('user with optInCode found...')
-
-    // Generate Passphrase if needed
-    if (!user.passphrase) {
-      const passphrase = PassphraseGenerate()
-      user.passphrase = passphrase.join(' ')
-      logger.debug('new Passphrase generated...')
-    }
-
-    const passphrase = user.passphrase.split(' ')
-    if (passphrase.length < PHRASE_WORD_COUNT) {
-      logger.error('Could not load a correct passphrase')
-      // TODO if this can happen we cannot recover from that
-      // this seem to be good on production data, if we dont
-      // make a coding mistake we do not have a problem here
-      throw new Error('Could not load a correct passphrase')
-    }
-    logger.debug('Passphrase is valid...')
+    const user = userContact.user
+    logger.debug('user with EmailVerificationCode found...')
 
     // Activate EMail
-    user.emailChecked = true
+    userContact.emailChecked = true
 
     // Update Password
-    const passwordHash = SecretKeyCryptographyCreateKey(user.email, password) // return short and long hash
-    const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
-    const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
-    user.password = passwordHash[0].readBigUInt64LE() // using the shorthash
-    user.pubKey = keyPair[0]
-    user.privKey = encryptedPrivkey
+    user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+    user.password = encryptPassword(user, password)
     logger.debug('User credentials updated ...')
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
-    await queryRunner.startTransaction('READ UNCOMMITTED')
+    await queryRunner.startTransaction('REPEATABLE READ')
 
     try {
       // Save user
       await queryRunner.manager.save(user).catch((error) => {
-        logger.error('error saving user: ' + error)
-        throw new Error('error saving user: ' + error)
+        throw new LogError('Error saving user', error)
+      })
+      // Save userContact
+      await queryRunner.manager.save(userContact).catch((error) => {
+        throw new LogError('Error saving userContact', error)
       })
 
       await queryRunner.commitTransaction()
-      logger.info('User data written successfully...')
+      logger.info('User and UserContact data written successfully...')
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      logger.error('Error on writing User data:' + e)
-      throw e
+      throw new LogError('Error on writing User and User Contact data', e)
     } finally {
       await queryRunner.release()
     }
 
     // Sign into Klicktipp
     // TODO do we always signUp the user? How to handle things with old users?
-    if (optInCode.emailOptInTypeId === OptInType.EMAIL_OPT_IN_REGISTER) {
+    if (userContact.emailOptInTypeId === OptInType.EMAIL_OPT_IN_REGISTER) {
       try {
-        await klicktippSignIn(user.email, user.language, user.firstName, user.lastName)
+        await subscribe(userContact.email, user.language, user.firstName, user.lastName)
         logger.debug(
-          `klicktippSignIn(${user.email}, ${user.language}, ${user.firstName}, ${user.lastName})`,
+          `subscribe(${userContact.email}, ${user.language}, ${user.firstName}, ${user.lastName})`,
         )
       } catch (e) {
-        logger.error('Error subscribe to klicktipp:' + e)
-        // TODO is this a problem?
-        // eslint-disable-next-line no-console
-        /*  uncomment this, when you need the activation link on the console
-        console.log('Could not subscribe to klicktipp')
-        */
+        logger.error('Error subscribing to klicktipp', e)
       }
     }
+    await EVENT_USER_ACTIVATE_ACCOUNT(user)
 
     return true
   }
@@ -652,94 +486,114 @@ export class UserResolver {
   @Query(() => Boolean)
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
     logger.info(`queryOptIn(${optIn})...`)
-    const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: optIn })
-    logger.debug(`found optInCode=${optInCode}`)
+    const userContact = await DbUserContact.findOneOrFail({ emailVerificationCode: optIn })
+    logger.debug('found optInCode', userContact)
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
-    if (!isOptInValid(optInCode)) {
-      logger.error(
-        `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
-      )
-      throw new Error(
-        `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
+    if (!isEmailVerificationCodeValid(userContact.updatedAt || userContact.createdAt)) {
+      throw new LogError(
+        `Email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
       )
     }
     logger.info(`queryOptIn(${optIn}) successful...`)
     return true
   }
 
+  @Authorized([RIGHTS.CHECK_USERNAME])
+  @Query(() => Boolean)
+  async checkUsername(@Arg('username') username: string): Promise<boolean> {
+    try {
+      await validateAlias(username)
+      return true
+    } catch {
+      return false
+    }
+  }
+
   @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
   async updateUserInfos(
     @Args()
-    { firstName, lastName, language, password, passwordNew }: UpdateUserInfosArgs,
+    {
+      firstName,
+      lastName,
+      alias,
+      language,
+      password,
+      passwordNew,
+      hideAmountGDD,
+      hideAmountGDT,
+    }: UpdateUserInfosArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
     logger.info(`updateUserInfos(${firstName}, ${lastName}, ${language}, ***, ***)...`)
-    const userEntity = getUser(context)
+    const user = getUser(context)
 
     if (firstName) {
-      userEntity.firstName = firstName
+      user.firstName = firstName
     }
 
     if (lastName) {
-      userEntity.lastName = lastName
+      user.lastName = lastName
+    }
+
+    if (alias && (await validateAlias(alias))) {
+      user.alias = alias
     }
 
     if (language) {
       if (!isLanguage(language)) {
-        logger.error(`"${language}" isn't a valid language`)
-        throw new Error(`"${language}" isn't a valid language`)
+        throw new LogError('Given language is not a valid language', language)
       }
-      userEntity.language = language
+      user.language = language
+      i18n.setLocale(language)
     }
 
     if (password && passwordNew) {
       // Validate Password
-      if (!isPassword(passwordNew)) {
-        logger.error('newPassword does not fullfil the rules')
-        throw new Error(
+      if (!isValidPassword(passwordNew)) {
+        throw new LogError(
           'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
         )
       }
 
-      // TODO: This had some error cases defined - like missing private key. This is no longer checked.
-      const oldPasswordHash = SecretKeyCryptographyCreateKey(userEntity.email, password)
-      if (BigInt(userEntity.password.toString()) !== oldPasswordHash[0].readBigUInt64LE()) {
-        logger.error(`Old password is invalid`)
-        throw new Error(`Old password is invalid`)
+      if (!verifyPassword(user, password)) {
+        throw new LogError(`Old password is invalid`)
       }
 
-      const privKey = SecretKeyCryptographyDecrypt(userEntity.privKey, oldPasswordHash[1])
-      logger.debug('oldPassword decrypted...')
-      const newPasswordHash = SecretKeyCryptographyCreateKey(userEntity.email, passwordNew) // return short and long hash
-      logger.debug('newPasswordHash created...')
-      const encryptedPrivkey = SecretKeyCryptographyEncrypt(privKey, newPasswordHash[1])
-      logger.debug('PrivateKey encrypted...')
-
       // Save new password hash and newly encrypted private key
-      userEntity.password = newPasswordHash[0].readBigUInt64LE()
-      userEntity.privKey = encryptedPrivkey
+      user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+      user.password = encryptPassword(user, passwordNew)
+    }
+
+    // Save hideAmountGDD value
+    if (hideAmountGDD !== undefined) {
+      user.hideAmountGDD = hideAmountGDD
+    }
+    // Save hideAmountGDT value
+    if (hideAmountGDT !== undefined) {
+      user.hideAmountGDT = hideAmountGDT
     }
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
-    await queryRunner.startTransaction('READ UNCOMMITTED')
+    await queryRunner.startTransaction('REPEATABLE READ')
 
     try {
-      await queryRunner.manager.save(userEntity).catch((error) => {
-        throw new Error('error saving user: ' + error)
+      await queryRunner.manager.save(user).catch((error) => {
+        throw new LogError('Error saving user', error)
       })
 
       await queryRunner.commitTransaction()
       logger.debug('writing User data successful...')
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      logger.error(`error on writing updated user data: ${e}`)
-      throw e
+      throw new LogError('Error on writing updated user data', e)
     } finally {
       await queryRunner.release()
     }
     logger.info('updateUserInfos() successfully finished...')
+    await EVENT_USER_INFO_UPDATE(user)
+
     return true
   }
 
@@ -747,13 +601,9 @@ export class UserResolver {
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: Context): Promise<boolean> {
     logger.info(`hasElopage()...`)
-    const userEntity = context.user
-    if (!userEntity) {
-      logger.info('missing context.user for EloPage-check')
-      return false
-    }
-    const elopageBuys = hasElopageBuys(userEntity.email)
-    logger.debug(`has ElopageBuys = ${elopageBuys}`)
+    const userEntity = getUser(context)
+    const elopageBuys = hasElopageBuys(userEntity.emailContact.email)
+    logger.debug('has ElopageBuys', elopageBuys)
     return elopageBuys
   }
 
@@ -786,35 +636,226 @@ export class UserResolver {
       }),
     }
   }
+
+  @Authorized([RIGHTS.SEARCH_USERS])
+  @Query(() => SearchUsersResult)
+  async searchUsers(
+    @Args()
+    { searchText, currentPage = 1, pageSize = 25, filters }: SearchUsersArgs,
+    @Ctx() context: Context,
+  ): Promise<SearchUsersResult> {
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
+    const userRepository = getCustomRepository(UserRepository)
+    const userFields = [
+      'id',
+      'firstName',
+      'lastName',
+      'emailId',
+      'emailContact',
+      'deletedAt',
+      'isAdmin',
+    ]
+    const [users, count] = await userRepository.findBySearchCriteriaPagedFiltered(
+      userFields.map((fieldName) => {
+        return 'user.' + fieldName
+      }),
+      searchText,
+      filters ?? null,
+      currentPage,
+      pageSize,
+    )
+
+    if (users.length === 0) {
+      return {
+        userCount: 0,
+        userList: [],
+      }
+    }
+
+    const creations = await getUserCreations(
+      users.map((u) => u.id),
+      clientTimezoneOffset,
+    )
+
+    const adminUsers = await Promise.all(
+      users.map(async (user) => {
+        let emailConfirmationSend = ''
+        if (!user.emailContact.emailChecked) {
+          if (user.emailContact.updatedAt) {
+            emailConfirmationSend = user.emailContact.updatedAt.toISOString()
+          } else {
+            emailConfirmationSend = user.emailContact.createdAt.toISOString()
+          }
+        }
+        const userCreations = creations.find((c) => c.id === user.id)
+        const adminUser = new UserAdmin(
+          user,
+          userCreations ? userCreations.creations : FULL_CREATION_AVAILABLE,
+          await hasElopageBuys(user.emailContact.email),
+          emailConfirmationSend,
+        )
+        return adminUser
+      }),
+    )
+    return {
+      userCount: count,
+      userList: adminUsers,
+    }
+  }
+
+  @Authorized([RIGHTS.SET_USER_ROLE])
+  @Mutation(() => Date, { nullable: true })
+  async setUserRole(
+    @Arg('userId', () => Int)
+    userId: number,
+    @Arg('isAdmin', () => Boolean)
+    isAdmin: boolean,
+    @Ctx()
+    context: Context,
+  ): Promise<Date | null> {
+    const user = await DbUser.findOne({ id: userId })
+    // user exists ?
+    if (!user) {
+      throw new LogError('Could not find user with given ID', userId)
+    }
+    // administrator user changes own role?
+    const moderator = getUser(context)
+    if (moderator.id === userId) {
+      throw new LogError('Administrator can not change his own role')
+    }
+    // change isAdmin
+    switch (user.isAdmin) {
+      case null:
+        if (isAdmin) {
+          user.isAdmin = new Date()
+        } else {
+          throw new LogError('User is already an usual user')
+        }
+        break
+      default:
+        if (!isAdmin) {
+          user.isAdmin = null
+        } else {
+          throw new LogError('User is already admin')
+        }
+        break
+    }
+    await user.save()
+    await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
+    const newUser = await DbUser.findOne({ id: userId })
+    return newUser ? newUser.isAdmin : null
+  }
+
+  @Authorized([RIGHTS.DELETE_USER])
+  @Mutation(() => Date, { nullable: true })
+  async deleteUser(
+    @Arg('userId', () => Int) userId: number,
+    @Ctx() context: Context,
+  ): Promise<Date | null> {
+    const user = await DbUser.findOne({ id: userId })
+    // user exists ?
+    if (!user) {
+      throw new LogError('Could not find user with given ID', userId)
+    }
+    // moderator user disabled own account?
+    const moderator = getUser(context)
+    if (moderator.id === userId) {
+      throw new LogError('Moderator can not delete his own account')
+    }
+    // soft-delete user
+    await user.softRemove()
+    await EVENT_ADMIN_USER_DELETE(user, moderator)
+    const newUser = await DbUser.findOne({ id: userId }, { withDeleted: true })
+    return newUser ? newUser.deletedAt : null
+  }
+
+  @Authorized([RIGHTS.UNDELETE_USER])
+  @Mutation(() => Date, { nullable: true })
+  async unDeleteUser(
+    @Arg('userId', () => Int) userId: number,
+    @Ctx() context: Context,
+  ): Promise<Date | null> {
+    const user = await DbUser.findOne({ id: userId }, { withDeleted: true })
+    if (!user) {
+      throw new LogError('Could not find user with given ID', userId)
+    }
+    if (!user.deletedAt) {
+      throw new LogError('User is not deleted')
+    }
+    await user.recover()
+    await EVENT_ADMIN_USER_UNDELETE(user, getUser(context))
+    return null
+  }
+
+  // TODO this is an admin function - needs refactor
+  @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
+  @Mutation(() => Boolean)
+  async sendActivationEmail(
+    @Arg('email') email: string,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    email = email.trim().toLowerCase()
+    // const user = await dbUser.findOne({ id: emailContact.userId })
+    const user = await findUserByEmail(email)
+    if (user.deletedAt || user.emailContact.deletedAt) {
+      throw new LogError('User with given email contact is deleted', email)
+    }
+
+    user.emailContact.emailResendCount++
+    await user.emailContact.save()
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    void sendAccountActivationEmail({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email,
+      language: user.language,
+      activationLink: activationLink(user.emailContact.emailVerificationCode),
+      timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
+    })
+
+    await EVENT_EMAIL_ADMIN_CONFIRMATION(user, getUser(context))
+
+    return true
+  }
+
+  @Authorized([RIGHTS.USER])
+  @Query(() => User)
+  async user(@Arg('identifier') identifier: string): Promise<User> {
+    return new User(await findUserByIdentifier(identifier))
+  }
 }
 
-const isTimeExpired = (optIn: LoginEmailOptIn, duration: number): boolean => {
-  const timeElapsed = Date.now() - new Date(optIn.updatedAt).getTime()
+export async function findUserByEmail(email: string): Promise<DbUser> {
+  const dbUserContact = await DbUserContact.findOneOrFail(
+    { email },
+    { withDeleted: true, relations: ['user'] },
+  ).catch(() => {
+    throw new LogError('No user with this credentials', email)
+  })
+  const dbUser = dbUserContact.user
+  dbUser.emailContact = dbUserContact
+  return dbUser
+}
+
+async function checkEmailExists(email: string): Promise<boolean> {
+  const userContact = await DbUserContact.findOne({ email }, { withDeleted: true })
+  if (userContact) {
+    return true
+  }
+  return false
+}
+
+const isTimeExpired = (updatedAt: Date, duration: number): boolean => {
+  const timeElapsed = Date.now() - new Date(updatedAt).getTime()
   // time is given in minutes
   return timeElapsed <= duration * 60 * 1000
 }
 
-const isOptInValid = (optIn: LoginEmailOptIn): boolean => {
-  return isTimeExpired(optIn, CONFIG.EMAIL_CODE_VALID_TIME)
+const isEmailVerificationCodeValid = (updatedAt: Date): boolean => {
+  return isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_VALID_TIME)
 }
 
-const canResendOptIn = (optIn: LoginEmailOptIn): boolean => {
-  return !isTimeExpired(optIn, CONFIG.EMAIL_CODE_REQUEST_TIME)
-}
-
-const getTimeDurationObject = (time: number): { hours?: number; minutes: number } => {
-  if (time > 60) {
-    return {
-      hours: Math.floor(time / 60),
-      minutes: time % 60,
-    }
-  }
-  return { minutes: time }
-}
-
-export const printTimeDuration = (duration: number): string => {
-  const time = getTimeDurationObject(duration)
-  const result = time.minutes > 0 ? `${time.minutes} minutes` : ''
-  if (time.hours) return `${time.hours} hours` + (result !== '' ? ` and ${result}` : '')
-  return result
+const canEmailResend = (updatedAt: Date): boolean => {
+  return !isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_REQUEST_TIME)
 }

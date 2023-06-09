@@ -1,137 +1,133 @@
 import { mount } from '@vue/test-utils'
-import Overview from './Overview.vue'
-import { listContributionLinks } from '@/graphql/listContributionLinks.js'
-import { communityStatistics } from '@/graphql/communityStatistics.js'
-import { listUnconfirmedContributions } from '@/graphql/listUnconfirmedContributions.js'
+import Overview from './Overview'
+import { adminListContributions } from '../graphql/adminListContributions'
+import VueApollo from 'vue-apollo'
+import { createMockClient } from 'mock-apollo-client'
+import { toastErrorSpy } from '../../test/testSetup'
+
+const mockClient = createMockClient()
+const apolloProvider = new VueApollo({
+  defaultClient: mockClient,
+})
 
 const localVue = global.localVue
 
-const apolloQueryMock = jest
-  .fn()
-  .mockResolvedValueOnce({
-    data: {
-      listUnconfirmedContributions: [
-        {
-          pending: true,
-        },
-        {
-          pending: true,
-        },
-        {
-          pending: true,
-        },
-      ],
-    },
-  })
-  .mockResolvedValueOnce({
-    data: {
-      communityStatistics: {
-        totalUsers: 3113,
-        activeUsers: 1057,
-        deletedUsers: 35,
-        totalGradidoCreated: '4083774.05000000000000000000',
-        totalGradidoDecayed: '-1062639.13634129622923372197',
-        totalGradidoAvailable: '2513565.869444365732411569',
-        totalGradidoUnbookedDecayed: '-500474.6738366222166261272',
-      },
-    },
-  })
-  .mockResolvedValueOnce({
-    data: {
-      listContributionLinks: {
-        links: [
-          {
-            id: 1,
-            name: 'Meditation',
-            memo: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l',
-            amount: '200',
-            validFrom: '2022-04-01',
-            validTo: '2022-08-01',
-            cycle: 'täglich',
-            maxPerCycle: '3',
-            maxAmountPerMonth: 0,
-            link: 'https://localhost/redeem/CL-1a2345678',
-          },
-        ],
-        count: 1,
-      },
-    },
-  })
-  .mockResolvedValue({
-    data: {
-      listUnconfirmedContributions: [
-        {
-          pending: true,
-        },
-        {
-          pending: true,
-        },
-        {
-          pending: true,
-        },
-      ],
-    },
-  })
+localVue.use(VueApollo)
 
 const storeCommitMock = jest.fn()
 
 const mocks = {
   $t: jest.fn((t) => t),
   $n: jest.fn((n) => n),
-  $apollo: {
-    query: apolloQueryMock,
-  },
+  $d: jest.fn((d) => d),
   $store: {
     commit: storeCommitMock,
     state: {
-      openCreations: 2,
+      openCreations: 1,
     },
   },
 }
 
+const defaultData = () => {
+  return {
+    adminListContributions: {
+      contributionCount: 2,
+      contributionList: [
+        {
+          id: 1,
+          firstName: 'Bibi',
+          lastName: 'Bloxberg',
+          userId: 99,
+          email: 'bibi@bloxberg.de',
+          amount: 500,
+          memo: 'Danke für alles',
+          date: new Date(),
+          moderatorId: 1,
+          state: 'PENDING',
+          creation: [500, 500, 500],
+          messagesCount: 0,
+          deniedBy: null,
+          deniedAt: null,
+          confirmedBy: null,
+          confirmedAt: null,
+          contributionDate: new Date(),
+          deletedBy: null,
+          deletedAt: null,
+          createdAt: new Date(),
+        },
+        {
+          id: 2,
+          firstName: 'Räuber',
+          lastName: 'Hotzenplotz',
+          userId: 100,
+          email: 'raeuber@hotzenplotz.de',
+          amount: 1000000,
+          memo: 'Gut Ergattert',
+          date: new Date(),
+          moderatorId: 1,
+          state: 'PENDING',
+          creation: [500, 500, 500],
+          messagesCount: 0,
+          deniedBy: null,
+          deniedAt: null,
+          confirmedBy: null,
+          confirmedAt: null,
+          contributionDate: new Date(),
+          deletedBy: null,
+          deletedAt: null,
+          createdAt: new Date(),
+        },
+      ],
+    },
+  }
+}
+
 describe('Overview', () => {
   let wrapper
+  const adminListContributionsMock = jest.fn()
+
+  mockClient.setRequestHandler(
+    adminListContributions,
+    adminListContributionsMock
+      .mockRejectedValueOnce({ message: 'Ouch!' })
+      .mockResolvedValue({ data: defaultData() }),
+  )
 
   const Wrapper = () => {
-    return mount(Overview, { localVue, mocks })
+    return mount(Overview, { localVue, mocks, apolloProvider })
   }
 
   describe('mount', () => {
     beforeEach(() => {
+      jest.clearAllMocks()
       wrapper = Wrapper()
     })
 
-    it('calls listUnconfirmedContributions', () => {
-      expect(apolloQueryMock).toBeCalledWith(
-        expect.objectContaining({
-          query: listUnconfirmedContributions,
-        }),
-      )
+    describe('server response for get pending creations is error', () => {
+      it('toast an error message', () => {
+        expect(toastErrorSpy).toBeCalledWith('Ouch!')
+      })
     })
 
-    it('calls communityStatistics', () => {
-      expect(apolloQueryMock).toBeCalledWith(
-        expect.objectContaining({
-          query: communityStatistics,
-        }),
-      )
-    })
-
-    it('calls listContributionLinks', () => {
-      expect(apolloQueryMock).toBeCalledWith(
-        expect.objectContaining({
-          query: listContributionLinks,
-        }),
-      )
+    it('calls the adminListContributions query', () => {
+      expect(adminListContributionsMock).toBeCalledWith({
+        currentPage: 1,
+        order: 'DESC',
+        pageSize: 25,
+        statusFilter: ['IN_PROGRESS', 'PENDING'],
+      })
     })
 
     it('commits three pending creations to store', () => {
-      expect(storeCommitMock).toBeCalledWith('setOpenCreations', 3)
+      expect(storeCommitMock).toBeCalledWith('setOpenCreations', 2)
     })
 
     describe('with open creations', () => {
-      it('renders a link to confirm creations', () => {
-        expect(wrapper.find('a[href="creation-confirm"]').text()).toContain('2')
+      beforeEach(() => {
+        mocks.$store.state.openCreations = 2
+      })
+      it('renders a link to confirm 2 creations', () => {
+        expect(wrapper.find('[data-test="open-creation"]').text()).toContain('2')
         expect(wrapper.find('a[href="creation-confirm"]').exists()).toBeTruthy()
       })
     })
@@ -142,7 +138,7 @@ describe('Overview', () => {
       })
 
       it('renders a link to confirm creations', () => {
-        expect(wrapper.find('a[href="creation-confirm"]').text()).toContain('0')
+        expect(wrapper.find('[data-test="open-creation"]').text()).toContain('0')
         expect(wrapper.find('a[href="creation-confirm"]').exists()).toBeTruthy()
       })
     })

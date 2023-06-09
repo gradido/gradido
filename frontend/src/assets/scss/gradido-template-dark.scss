@@ -1,0 +1,18 @@
+$dark: #171717;
+$mode-toggle-bg: #262626;
+
+#app {
+  &.dark-mode {
+    background-color: black;
+    color: #fff;
+  }
+}
+
+#app a,
+.navbar-light,
+.navbar-nav,
+.nav-link {
+  &.dark-mode {
+    color: #a7ffa9;
+  }
+}

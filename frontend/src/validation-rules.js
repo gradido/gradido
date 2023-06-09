@@ -1,8 +1,16 @@
 import { configure, extend } from 'vee-validate'
 // eslint-disable-next-line camelcase
 import { required, email, min, max, is_not } from 'vee-validate/dist/rules'
+import { checkUsername } from '@/graphql/queries'
+import { validate as validateUuid, version as versionUuid } from 'uuid'
 
-export const loadAllRules = (i18nCallback) => {
+// taken from vee-validate
+// eslint-disable-next-line no-useless-escape
+const EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+
+const USERNAME_REGEX = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/
+
+export const loadAllRules = (i18nCallback, apollo) => {
   configure({
     defaultMessage: (field, values) => {
       // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
@@ -54,6 +62,18 @@ export const loadAllRules = (i18nCallback) => {
     },
   })
 
+  extend('gddCreationTime', {
+    validate(value, { min, max }) {
+      return value >= min && value <= max
+    },
+    params: ['min', 'max'],
+    message: (_, values) => {
+      // values.min = values.min
+      // values.max = values.max
+      return i18nCallback.t('form.validation.gddCreationTime', values)
+    },
+  })
+
   // eslint-disable-next-line camelcase
   extend('is_not', {
     // eslint-disable-next-line camelcase
@@ -84,7 +104,7 @@ export const loadAllRules = (i18nCallback) => {
     message: (_, values) => i18nCallback.t('site.signup.one_number', values),
   })
 
-  extend('atLeastEightCharactera', {
+  extend('atLeastEightCharacters', {
     validate(value) {
       return !!value.match(/.{8,}/)
     },
@@ -110,5 +130,46 @@ export const loadAllRules = (i18nCallback) => {
       return value === pwd
     },
     message: (_, values) => i18nCallback.t('site.signup.dont_match', values),
+  })
+
+  extend('usernameAllowedChars', {
+    validate(value) {
+      return !!value.match(/^[a-zA-Z0-9_-]+$/)
+    },
+    message: (_, values) => i18nCallback.t('form.validation.username-allowed-chars', values),
+  })
+
+  extend('usernameHyphens', {
+    validate(value) {
+      return !!value.match(/^[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/)
+    },
+    message: (_, values) => i18nCallback.t('form.validation.username-hyphens', values),
+  })
+
+  extend('usernameUnique', {
+    validate(value) {
+      if (!value.match(USERNAME_REGEX)) return true
+      return apollo
+        .query({
+          query: checkUsername,
+          variables: { username: value },
+        })
+        .then(({ data }) => {
+          return {
+            valid: data.checkUsername,
+          }
+        })
+    },
+    message: (_, values) => i18nCallback.t('form.validation.username-unique', values),
+  })
+
+  extend('validIdentifier', {
+    validate(value) {
+      const isEmail = !!EMAIL_REGEX.test(value)
+      const isUsername = !!value.match(USERNAME_REGEX)
+      const isGradidoId = validateUuid(value) && versionUuid(value) === 4
+      return isEmail || isUsername || isGradidoId
+    },
+    message: (_, values) => i18nCallback.t('form.validation.valid-identifier', values),
   })
 }

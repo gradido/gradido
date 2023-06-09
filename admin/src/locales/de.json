@@ -1,14 +1,18 @@
 {
   "all_emails": "Alle Nutzer",
   "back": "zurück",
+  "change_user_role": "Nutzerrolle ändern",
+  "chat": "Chat",
   "contributionLink": {
     "amount": "Betrag",
+    "changeSaved": "Änderungen gespeichert",
     "clear": "Löschen",
+    "close": "Schließen",
     "contributionLinks": "Beitragslinks",
     "create": "Anlegen",
     "cycle": "Zyklus",
-    "deleteNow": "Automatische Creations wirklich löschen?",
-    "maximumAmount": "maximaler Betrag",
+    "deleted": "Automatische Schöpfung gelöscht!",
+    "deleteNow": "Automatische Creations '{name}' wirklich löschen?",
     "maxPerCycle": "Wiederholungen",
     "memo": "Nachricht",
     "name": "Name",
@@ -20,22 +24,26 @@
     "options": {
       "cycle": {
         "daily": "täglich",
-        "hourly": "stündlich",
-        "monthly": "monatlich",
-        "once": "einmalig",
-        "weekly": "wöchentlich",
-        "yearly": "jährlich"
+        "once": "einmalig"
       }
     },
+    "saveChange": "Änderungen speichern",
     "validFrom": "Startdatum",
     "validTo": "Enddatum"
   },
+  "contributions": {
+    "all": "Alle",
+    "confirms": "Bestätigt",
+    "deleted": "Gelöscht",
+    "denied": "Abgelehnt",
+    "open": "Offen"
+  },
+  "created": "Geschöpft",
+  "createdAt": "Angelegt",
   "creation": "Schöpfung",
   "creationList": "Schöpfungsliste",
   "creation_form": {
-    "creation_failed": "Ausstehende Schöpfung für {email} konnte nicht erzeugt werden.",
     "creation_for": "Aktives Grundeinkommen für",
-    "deleteNow": "Möchtest du diesen Beitrag zur Gemeinschaft wirklich löschen?",
     "enter_text": "Text eintragen",
     "form": "Schöpfungsformular",
     "min_characters": "Mindestens 10 Zeichen eingeben",
@@ -46,20 +54,27 @@
     "toasted": "Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegt zur Bestätigung bereit",
     "toasted_created": "Schöpfung wurde erfolgreich gespeichert",
     "toasted_delete": "Offene Schöpfung wurde gelöscht",
+    "toasted_denied": "Offene Schöpfung wurde abgelehnt",
     "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
     "update_creation": "Schöpfung aktualisieren"
   },
   "creation_for_month": "Schöpfung für Monat",
-  "date": "Datum",
   "delete": "Löschen",
   "deleted": "gelöscht",
   "deleted_user": "Alle gelöschten Nutzer",
   "delete_user": "Nutzer löschen",
-  "edit": "Bearbeiten",
+  "deny": "Ablehnen",
   "enabled": "aktiviert",
   "error": "Fehler",
   "expired": "abgelaufen",
   "e_mail": "E-Mail",
+  "federation": {
+    "createdAt": "Erstellt am",
+    "gradidoInstances": "Gradido Instanzen",
+    "lastAnnouncedAt": "letzte Bekanntgabe",
+    "url": "Url",
+    "verified": "Verifiziert"
+  },
   "firstname": "Vorname",
   "footer": {
     "app_version": "App version {version}",
@@ -74,11 +89,19 @@
     "submit": "Senden"
   },
   "GDD": "GDD",
+  "help": {
+    "help": "Hilfe",
+    "transactionlist": {
+      "confirmed": "Wann wurde es von einem Moderator / Admin bestätigt.",
+      "periods": "Für welchen Zeitraum wurde vom Mitglied eingereicht.",
+      "state": "[PENDING = eingereicht, DELETED = gelöscht, IN_PROGRESS = im Dialog mit Moderator, DENIED = abgelehnt, CONFIRMED = bestätigt]",
+      "submitted": "Wann wurde es vom Mitglied eingereicht"
+    }
+  },
   "hide_details": "Details verbergen",
   "lastname": "Nachname",
   "math": {
-    "colon": ":",
-    "exclaim": "!",
+    "equals": "=",
     "pipe": "|",
     "plus": "+"
   },
@@ -86,37 +109,62 @@
     "request": "Die Anfrage wurde gesendet."
   },
   "moderator": "Moderator",
-  "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "name": "Name",
   "navbar": {
+    "automaticContributions": "Automatische Beiträge",
+    "instances": "Instanzen",
     "logout": "Abmelden",
-    "multi_creation": "Mehrfachschöpfung",
     "my-account": "Mein Konto",
-    "open_creation": "Offene Schöpfungen",
-    "overview": "Übersicht",
+    "statistic": "Statistik",
     "user_search": "Nutzersuche"
   },
   "not_open_creations": "Keine offenen Schöpfungen",
   "open": "offen",
   "open_creations": "Offene Schöpfungen",
   "overlay": {
+    "cancel": "Abbrechen",
+    "changeUserRole": {
+      "question": "Willst du die Rolle von {username} wirklich zu {newRole} ändern?",
+      "title": "Nutzerrolle ändern",
+      "yes": "Ja, Nutzerrolle ändern"
+    },
     "confirm": {
-      "cancel": "Abbrechen",
-      "question": "Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und endgültig speichern?",
+      "question": "Willst du diesen Gemeinwohl-Beitrag wirklich bestätigen und gutschreiben?",
+      "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar. Bitte überprüfe genau, dass alles stimmt.",
+      "title": "Gemeinwohl-Beitrag bestätigen!",
+      "yes": "Ja, Beitrag bestätigen und speichern!"
+    },
+    "delete": {
+      "question": "Willst du diesen Gemeinwohl-Beitrag  wirklich endgültig löschen?",
+      "text": "Nach dem Löschen ist der Datensatz nicht mehr vorhanden.",
+      "title": "Gemeinwohl-Beitrag löschen!",
+      "yes": "Ja, Beitrag löschen!"
+    },
+    "deleteUser": {
+      "question": "Willst du {username} wirklich löschen?",
+      "title": "Nutzer löschen",
+      "yes": "Ja, Nutzer löschen"
+    },
+    "deny": {
+      "question": "Willst du diesen Gemeinwohl-Beitrag  wirklich ablehnen?",
       "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
-      "title": "Schöpfung bestätigen!",
-      "yes": "Ja, Schöpfung bestätigen und speichern!"
+      "title": "Gemeinwohl-Beitrag ablehnen!",
+      "yes": "Ja, Beitrag ablehnen und speichern!"
+    },
+    "undeleteUser": {
+      "question": "Willst du wirklich {username} wiederherstellen?",
+      "title": "Nutzer wiederherstellen",
+      "yes": "Ja, Nutzer wiederherstellen"
     }
   },
   "redeemed": "eingelöst",
-  "remove": "Entfernen",
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
-  "remove_all": "alle Nutzer entfernen",
   "save": "Speichern",
   "statistic": {
     "activeUsers": "Aktive Mitglieder",
+    "count": "Menge",
     "deletedUsers": "Gelöschte Mitglieder",
-    "name": "Statistik",
+    "details": "Details",
     "totalGradidoAvailable": "GDD insgesamt im Umlauf",
     "totalGradidoCreated": "GDD insgesamt geschöpft",
     "totalGradidoDecayed": "GDD insgesamt verfallen",
@@ -133,10 +181,11 @@
   },
   "transactionlist": {
     "amount": "Betrag",
-    "balanceDate": "Schöpfungsdatum",
-    "community": "Gemeinschaft",
-    "date": "Datum",
+    "confirmed": "Bestätigt",
     "memo": "Nachricht",
+    "period": "Zeitraum",
+    "state": "Status",
+    "submitted": "Eingereicht",
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },
   "undelete_user": "Nutzer wiederherstellen",

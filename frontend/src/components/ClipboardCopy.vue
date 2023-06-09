@@ -1,19 +1,37 @@
 <template>
   <div class="clipboard-copy">
-    <b-input-group v-if="canCopyLink" size="lg" class="mb-3" prepend="Link">
-      <b-form-input :value="link" type="text" readonly></b-form-input>
-      <b-input-group-append>
-        <b-button size="sm" text="Button" variant="primary" @click="copyLinkWithText">
-          {{ $t('gdd_per_link.copy-link-with-text') }}
-        </b-button>
-        <b-button size="sm" text="Button" variant="primary" @click="copyLink">
-          {{ $t('gdd_per_link.copy-link') }}
-        </b-button>
-        <b-button variant="primary" class="text-light" @click="$emit('show-qr-code-button')">
-          <b-img src="img/svg/qr-code.svg" width="19" class="svg"></b-img>
-        </b-button>
-      </b-input-group-append>
-    </b-input-group>
+    <div v-if="canCopyLink" class="mb-5">
+      <div>
+        <label>{{ $t('gdd_per_link.copy-link') }}</label>
+        <div
+          class="pointer text-center bg-secondary gradido-border-radius p-3"
+          @click="copyLink"
+          data-test="copyLink"
+        >
+          {{ link }}
+          <div>
+            <b-button class="p-4">
+              <b-icon icon="link45deg"></b-icon>
+            </b-button>
+          </div>
+        </div>
+      </div>
+      <div class="mt-5">
+        <label>{{ $t('gdd_per_link.copy-link-with-text') }}</label>
+        <div
+          class="pointer text-center bg-secondary gradido-border-radius p-3"
+          data-test="copyLinkWithText"
+          @click="copyLinkWithText"
+        >
+          {{ linkText }}
+          <div>
+            <b-button class="p-4">
+              <b-icon icon="link45deg"></b-icon>
+            </b-button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div v-else>
       <div class="alert-danger p-3">{{ $t('gdd_per_link.not-copied') }}</div>
       <div class="alert-muted h3 p-3">{{ link }}</div>

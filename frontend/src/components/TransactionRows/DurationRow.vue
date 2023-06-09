@@ -1,16 +1,21 @@
 <template>
   <div class="duration-row">
     <b-row>
-      <b-col cols="5" class="text-right">
+      <b-col cols="12" lg="4" md="4">
         <div>{{ $t('decay.past_time') }}</div>
       </b-col>
-      <b-col cols="7">
-        <span v-if="duration">{{ durationText }}</span>
+      <b-col offset="1" offset-md="0" offset-lg="0" class="text-right mr-5">
+        <span v-if="duration">{{ duration }}</span>
       </b-col>
     </b-row>
   </div>
 </template>
 <script>
+import { formatDistance } from 'date-fns'
+import { enUS as en, de, es, fr, nl } from 'date-fns/locale'
+
+const locales = { en, de, es, fr, nl }
+
 export default {
   name: 'DurationRow',
   props: {
@@ -25,19 +30,9 @@ export default {
   },
   computed: {
     duration() {
-      return this.$moment.duration(new Date(this.decayEnd) - new Date(this.decayStart))._data
-    },
-    durationText() {
-      const order = ['years', 'months', 'days', 'hours', 'minutes', 'seconds']
-      const result = []
-      order.forEach((timeSpan) => {
-        if (this.duration[timeSpan] > 0) {
-          // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
-          const locale = this.$t(`time.${timeSpan}`)
-          result.push(`${this.duration[timeSpan]} ${locale}`)
-        }
+      return formatDistance(new Date(this.decayEnd), new Date(this.decayStart), {
+        locale: locales[this.$i18n.locale],
       })
-      return result.join(', ')
     },
   },
 }

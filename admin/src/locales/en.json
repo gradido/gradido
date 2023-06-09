@@ -1,14 +1,18 @@
 {
   "all_emails": "All users",
   "back": "back",
+  "change_user_role": "Change user role",
+  "chat": "Chat",
   "contributionLink": {
     "amount": "Amount",
+    "changeSaved": "Changes saved",
     "clear": "Clear",
+    "close": "Close",
     "contributionLinks": "Contribution Links",
     "create": "Create",
     "cycle": "Cycle",
-    "deleteNow": "Do you really delete automatic creations?",
-    "maximumAmount": "Maximum amount",
+    "deleted": "Automatic creation deleted!",
+    "deleteNow": "Do you really delete automatic creations '{name}'?",
     "maxPerCycle": "Repetition",
     "memo": "Memo",
     "name": "Name",
@@ -20,22 +24,26 @@
     "options": {
       "cycle": {
         "daily": "daily",
-        "hourly": "hourly",
-        "monthly": "monthly",
-        "once": "once",
-        "weekly": "weekly",
-        "yearly": "yearly"
+        "once": "once"
       }
     },
+    "saveChange": "Save Changes",
     "validFrom": "Start-date",
     "validTo": "End-Date"
   },
+  "contributions": {
+    "all": "All",
+    "confirms": "Confirmed",
+    "deleted": "Deleted",
+    "denied": "Rejected",
+    "open": "Open"
+  },
+  "created": "Created for",
+  "createdAt": "Created at",
   "creation": "Creation",
   "creationList": "Creation list",
   "creation_form": {
-    "creation_failed": "Could not create pending creation for {email}",
     "creation_for": "Active Basic Income for",
-    "deleteNow": "Do you really want to delete this contribution to the community?",
     "enter_text": "Enter text",
     "form": "Creation form",
     "min_characters": "Enter at least 10 characters",
@@ -46,20 +54,27 @@
     "toasted": "Open creation ({value} GDD) for {email} has been saved and is ready for confirmation.",
     "toasted_created": "Creation has been successfully saved",
     "toasted_delete": "Open creation has been deleted",
+    "toasted_denied": "Open creation has been rejected",
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
   },
   "creation_for_month": "Creation for month",
-  "date": "Date",
   "delete": "Delete",
   "deleted": "deleted",
   "deleted_user": "All deleted user",
   "delete_user": "Delete user",
-  "edit": "Edit",
+  "deny": "Reject",
   "enabled": "enabled",
   "error": "Error",
   "expired": "expired",
   "e_mail": "E-mail",
+  "federation": {
+    "createdAt": "Created At ",
+    "gradidoInstances": "Gradido Instances",
+    "lastAnnouncedAt": "Last Announced",
+    "url": "Url",
+    "verified": "Verified"
+  },
   "firstname": "Firstname",
   "footer": {
     "app_version": "App version {version}",
@@ -74,11 +89,19 @@
     "submit": "Send"
   },
   "GDD": "GDD",
+  "help": {
+    "help": "Help",
+    "transactionlist": {
+      "confirmed": "When was it confirmed by a moderator / admin.",
+      "periods": "For what period was it submitted by the member.",
+      "state": "[PENDING = submitted, DELETED = deleted, IN_PROGRESS = in dialogue with moderator, DENIED = rejected, CONFIRMED = confirmed]",
+      "submitted": "When was it submitted by the member"
+    }
+  },
   "hide_details": "Hide details",
   "lastname": "Lastname",
   "math": {
-    "colon": ":",
-    "exclaim": "!",
+    "equals": "=",
     "pipe": "|",
     "plus": "+"
   },
@@ -86,37 +109,62 @@
     "request": "Request has been sent."
   },
   "moderator": "Moderator",
-  "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "name": "Name",
   "navbar": {
+    "automaticContributions": "Automatic Contributions",
+    "instances": "Instances",
     "logout": "Logout",
-    "multi_creation": "Multiple creation",
     "my-account": "My Account",
-    "open_creation": "Open creations",
-    "overview": "Overview",
+    "statistic": "Statistic",
     "user_search": "User search"
   },
   "not_open_creations": "No open creations",
   "open": "open",
   "open_creations": "Open creations",
   "overlay": {
+    "cancel": "Cancel",
+    "changeUserRole": {
+      "question": "Do you really want to change {username}'s role to {newRole}?",
+      "title": "Change user role",
+      "yes": "Yes, change user role"
+    },
     "confirm": {
-      "cancel": "Cancel",
       "question": "Do you really want to carry out and finally save this pre-stored creation?",
-      "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
+      "text": "After saving, the record can no longer be changed. Please check carefully that everything is correct.",
       "title": "Confirm creation!",
       "yes": "Yes, confirm and save creation!"
+    },
+    "delete": {
+      "question": "Do you really want to carry out and finally save this pre-stored creation?",
+      "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
+      "title": "Delete creation!",
+      "yes": "Yes, delete and save creation!"
+    },
+    "deleteUser": {
+      "question": "Do you really want to delete {username}?",
+      "title": "Delete user",
+      "yes": "Yes, delete user"
+    },
+    "deny": {
+      "question": "Do you really want to carry out and finally save this pre-stored creation?",
+      "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
+      "title": "Reject creation!",
+      "yes": "Yes, reject and save creation!"
+    },
+    "undeleteUser": {
+      "question": "Do you really want to undelete {username}",
+      "title": "Undelete user",
+      "yes": "Yes,undelete user"
     }
   },
   "redeemed": "redeemed",
-  "remove": "Remove",
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
-  "remove_all": "Remove all users",
   "save": "Speichern",
   "statistic": {
     "activeUsers": "Active members",
+    "count": "Count",
     "deletedUsers": "Deleted members",
-    "name": "Statistic",
+    "details": "Details",
     "totalGradidoAvailable": "Total GDD in circulation",
     "totalGradidoCreated": "Total created GDD",
     "totalGradidoDecayed": "Total GDD decay",
@@ -133,10 +181,11 @@
   },
   "transactionlist": {
     "amount": "Amount",
-    "balanceDate": "Creation date",
-    "community": "Community",
-    "date": "Date",
+    "confirmed": "Confirmed",
     "memo": "Message",
+    "period": "Period",
+    "state": "State",
+    "submitted": "Submitted",
     "title": "All creation-transactions for the user"
   },
   "undelete_user": "Undelete User",

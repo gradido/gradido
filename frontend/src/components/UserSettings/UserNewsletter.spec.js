@@ -18,7 +18,6 @@ describe('UserCard_Newsletter', () => {
     $store: {
       state: {
         language: 'de',
-        email: 'peter@lustig.de',
         newsletterState: true,
       },
       commit: storeCommitMock,
@@ -60,9 +59,6 @@ describe('UserCard_Newsletter', () => {
       it('calls the unsubscribe mutation', () => {
         expect(mockAPIcall).toBeCalledWith({
           mutation: unsubscribeNewsletter,
-          variables: {
-            email: 'peter@lustig.de',
-          },
         })
       })
 
@@ -89,10 +85,6 @@ describe('UserCard_Newsletter', () => {
       it('calls the subscribe mutation', () => {
         expect(mockAPIcall).toBeCalledWith({
           mutation: subscribeNewsletter,
-          variables: {
-            email: 'peter@lustig.de',
-            language: 'de',
-          },
         })
       })
 

@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import DashboardPlugin from './plugins/dashboard-plugin'
-import App from './App.vue'
+import App from './App'
 import i18n from './i18n.js'
 import { loadAllRules } from './validation-rules'
 import { toasters } from './mixins/toaster'
@@ -27,7 +27,7 @@ const filters = loadFilters(i18n)
 Vue.filter('amount', filters.amount)
 Vue.filter('GDD', filters.GDD)
 
-loadAllRules(i18n)
+loadAllRules(i18n, apolloProvider.defaultClient)
 
 addNavigationGuards(router, store, apolloProvider.defaultClient)
 

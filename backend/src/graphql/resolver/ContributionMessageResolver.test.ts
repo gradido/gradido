@@ -1,26 +1,51 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { Connection } from '@dbTools/typeorm'
+import { Event as DbEvent } from '@entity/Event'
+import { ApolloServerTestClient } from 'apollo-server-testing'
+import { GraphQLError } from 'graphql'
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { GraphQLError } from 'graphql'
+import { logger, i18n as localization } from '@test/testSetup'
+
+import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
+import { EventType } from '@/event/Events'
+import { userFactory } from '@/seeds/factory/user'
 import {
   adminCreateContributionMessage,
   createContribution,
   createContributionMessage,
+  login,
 } from '@/seeds/graphql/mutations'
-import { listContributionMessages, login } from '@/seeds/graphql/queries'
-import { userFactory } from '@/seeds/factory/user'
+import { listContributionMessages } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
-let mutate: any, query: any, con: any
-let testEnv: any
+jest.mock('@/emails/sendEmailVariants', () => {
+  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
+  return {
+    __esModule: true,
+    ...originalModule,
+    sendAddedContributionMessageEmail: jest.fn((a) =>
+      originalModule.sendAddedContributionMessageEmail(a),
+    ),
+  }
+})
+
+let mutate: ApolloServerTestClient['mutate'], con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
 let result: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(logger, localization)
   mutate = testEnv.mutate
-  query = testEnv.query
   con = testEnv.con
   await cleanDB()
 })
@@ -51,8 +76,8 @@ describe('ContributionMessageResolver', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
         await userFactory(testEnv, peterLustig)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
         result = await mutate({
@@ -63,8 +88,8 @@ describe('ContributionMessageResolver', () => {
             creationDate: new Date().toString(),
           },
         })
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
         })
       })
@@ -75,6 +100,7 @@ describe('ContributionMessageResolver', () => {
 
       describe('input not valid', () => {
         it('throws error when contribution does not exist', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: adminCreateContributionMessage,
@@ -87,16 +113,24 @@ describe('ContributionMessageResolver', () => {
             expect.objectContaining({
               errors: [
                 new GraphQLError(
-                  'ContributionMessage was not successful: Error: Contribution not found',
+                  'ContributionMessage was not sent successfully: Error: Contribution not found',
                 ),
               ],
             }),
           )
         })
 
+        it('logs the error "ContributionMessage was not sent successfully: Error: Contribution not found"', () => {
+          expect(logger.error).toBeCalledWith(
+            'ContributionMessage was not sent successfully: Error: Contribution not found',
+            new Error('Contribution not found'),
+          )
+        })
+
         it('throws error when contribution.userId equals user.id', async () => {
-          await query({
-            query: login,
+          jest.clearAllMocks()
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
           const result2 = await mutate({
@@ -119,10 +153,17 @@ describe('ContributionMessageResolver', () => {
             expect.objectContaining({
               errors: [
                 new GraphQLError(
-                  'ContributionMessage was not successful: Error: Admin can not answer on own contribution',
+                  'ContributionMessage was not sent successfully: Error: Admin can not answer on his own contribution',
                 ),
               ],
             }),
+          )
+        })
+
+        it('logs the error "ContributionMessage was not sent successfully: Error: Admin can not answer on his own contribution"', () => {
+          expect(logger.error).toBeCalledWith(
+            'ContributionMessage was not sent successfully: Error: Admin can not answer on his own contribution',
+            new Error('Admin can not answer on his own contribution'),
           )
         })
       })
@@ -151,6 +192,30 @@ describe('ContributionMessageResolver', () => {
             }),
           )
         })
+
+        it('calls sendAddedContributionMessageEmail', () => {
+          expect(sendAddedContributionMessageEmail).toBeCalledWith({
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+            email: 'bibi@bloxberg.de',
+            language: 'de',
+            senderFirstName: 'Peter',
+            senderLastName: 'Lustig',
+            contributionMemo: 'Test env contribution',
+          })
+        })
+
+        it('stores the ADMIN_CONTRIBUTION_MESSAGE_CREATE event in the database', async () => {
+          await expect(DbEvent.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventType.ADMIN_CONTRIBUTION_MESSAGE_CREATE,
+              affectedUserId: expect.any(Number),
+              actingUserId: expect.any(Number),
+              involvedContributionId: result.data.createContribution.id,
+              involvedContributionMessageId: expect.any(Number),
+            }),
+          )
+        })
       })
     })
   })
@@ -173,8 +238,8 @@ describe('ContributionMessageResolver', () => {
 
     describe('authenticated', () => {
       beforeAll(async () => {
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
       })
@@ -185,6 +250,7 @@ describe('ContributionMessageResolver', () => {
 
       describe('input not valid', () => {
         it('throws error when contribution does not exist', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: createContributionMessage,
@@ -197,16 +263,24 @@ describe('ContributionMessageResolver', () => {
             expect.objectContaining({
               errors: [
                 new GraphQLError(
-                  'ContributionMessage was not successful: Error: Contribution not found',
+                  'ContributionMessage was not sent successfully: Error: Contribution not found',
                 ),
               ],
             }),
           )
         })
 
+        it('logs the error "ContributionMessage was not sent successfully: Error: Contribution not found"', () => {
+          expect(logger.error).toBeCalledWith(
+            'ContributionMessage was not sent successfully: Error: Contribution not found',
+            new Error('Contribution not found'),
+          )
+        })
+
         it('throws error when other user tries to send createContributionMessage', async () => {
-          await query({
-            query: login,
+          jest.clearAllMocks()
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
           await expect(
@@ -221,18 +295,25 @@ describe('ContributionMessageResolver', () => {
             expect.objectContaining({
               errors: [
                 new GraphQLError(
-                  'ContributionMessage was not successful: Error: Can not send message to contribution of another user',
+                  'ContributionMessage was not sent successfully: Error: Can not send message to contribution of another user',
                 ),
               ],
             }),
+          )
+        })
+
+        it('logs the error "ContributionMessage was not sent successfully: Error: Can not send message to contribution of another user"', () => {
+          expect(logger.error).toBeCalledWith(
+            'ContributionMessage was not sent successfully: Error: Can not send message to contribution of another user',
+            new Error('Can not send message to contribution of another user'),
           )
         })
       })
 
       describe('valid input', () => {
         beforeAll(async () => {
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
         })
@@ -260,6 +341,18 @@ describe('ContributionMessageResolver', () => {
             }),
           )
         })
+
+        it('stores the CONTRIBUTION_MESSAGE_CREATE event in the database', async () => {
+          await expect(DbEvent.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventType.CONTRIBUTION_MESSAGE_CREATE,
+              affectedUserId: expect.any(Number),
+              actingUserId: expect.any(Number),
+              involvedContributionId: result.data.createContribution.id,
+              involvedContributionMessageId: expect.any(Number),
+            }),
+          )
+        })
       })
     })
   })
@@ -282,8 +375,8 @@ describe('ContributionMessageResolver', () => {
 
     describe('authenticated', () => {
       beforeAll(async () => {
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
       })

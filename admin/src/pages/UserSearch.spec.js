@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import UserSearch from './UserSearch.vue'
+import UserSearch from './UserSearch'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
@@ -25,7 +25,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           email: 'benjamin@bluemchen.de',
           creation: [1000, 1000, 1000],
           emailChecked: true,
-          deletedAt: null,
+          deletedAt: new Date(),
         },
         {
           userId: 3,
@@ -240,6 +240,17 @@ describe('UserSearch', () => {
 
       it('toasts a success message', () => {
         expect(toastSuccessSpy).toBeCalledWith('user_deleted')
+      })
+    })
+
+    describe('recover user', () => {
+      const userId = 2
+      beforeEach(() => {
+        wrapper.findComponent({ name: 'SearchUserTable' }).vm.$emit('updateDeletedAt', userId, null)
+      })
+
+      it('toasts a success message', () => {
+        expect(toastSuccessSpy).toBeCalledWith('user_recovered')
       })
     })
 

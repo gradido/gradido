@@ -1,0 +1,16 @@
+p(style='margin-top: 24px;')
+  = t('emails.general.sincerelyYours')
+  br
+  = t('emails.general.yourGradidoTeam')
+p(style='margin-top: 24px;')= '—————'
+p(style='margin-top: 24px;')
+  if t('general.imprintImageURL').length > 0
+    div(style='position: relative; left: -22px;')
+      img(src=t('general.imprintImageURL'), width='200', alt=t('general.imprintImageAlt'))
+    br
+  each line in t('general.imprint').split(/\n/)
+    = line
+    br
+  a(href='mailto:' + supportEmail)= supportEmail
+  br
+  a(href=communityURL)= communityURL

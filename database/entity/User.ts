@@ -1,1 +1,1 @@
-export { User } from './0047-messages_tables/User'
+export { User } from './0059-add_hide_amount_to_users/User'

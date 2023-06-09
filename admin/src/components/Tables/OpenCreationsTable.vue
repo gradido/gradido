@@ -1,22 +1,36 @@
 <template>
   <div class="open-creations-table">
-    <b-table-lite :items="items" :fields="fields" caption-top striped hover stacked="md">
+    <b-table-lite
+      :items="items"
+      :fields="fields"
+      caption-top
+      striped
+      hover
+      stacked="md"
+      :tbody-tr-class="rowClass"
+    >
+      <template #cell(state)="row">
+        <b-icon :icon="getStatusIcon(row.item.state)"></b-icon>
+      </template>
       <template #cell(bookmark)="row">
-        <b-button
-          variant="danger"
-          size="md"
-          @click="$emit('remove-creation', row.item)"
-          class="mr-2"
-        >
-          <b-icon icon="x" variant="light"></b-icon>
-        </b-button>
+        <div v-if="!myself(row.item)">
+          <b-button
+            variant="danger"
+            size="md"
+            @click="$emit('show-overlay', row.item, 'delete')"
+            class="mr-2"
+          >
+            <b-icon icon="trash" variant="light"></b-icon>
+          </b-button>
+        </div>
       </template>
       <template #cell(editCreation)="row">
-        <div v-if="$store.state.moderator.id !== row.item.userId">
+        <div v-if="!myself(row.item)">
           <b-button
-            v-if="row.item.moderator"
+            v-if="row.item.moderatorId"
             variant="info"
             size="md"
+            :index="0"
             @click="rowToggleDetails(row, 0)"
             class="mr-2"
           >
@@ -25,24 +39,42 @@
           <b-button v-else @click="rowToggleDetails(row, 0)">
             <b-icon icon="chat-dots"></b-icon>
             <b-icon
-              v-if="row.item.state === 'PENDING' && row.item.messageCount > 0"
+              v-if="row.item.state === 'PENDING' && row.item.messagesCount > 0"
               icon="exclamation-circle-fill"
               variant="warning"
             ></b-icon>
             <b-icon
-              v-if="row.item.state === 'IN_PROGRESS' && row.item.messageCount > 0"
+              v-if="row.item.state === 'IN_PROGRESS' && row.item.messagesCount > 0"
               icon="question-diamond"
-              variant="light"
+              variant="warning"
+              class="pl-1"
             ></b-icon>
           </b-button>
         </div>
       </template>
+      <template #cell(chatCreation)="row">
+        <b-button v-if="row.item.messagesCount > 0" @click="rowToggleDetails(row, 0)">
+          <b-icon icon="chat-dots"></b-icon>
+        </b-button>
+      </template>
+      <template #cell(deny)="row">
+        <div v-if="!myself(row.item)">
+          <b-button
+            variant="warning"
+            size="md"
+            @click="$emit('show-overlay', row.item, 'deny')"
+            class="mr-2"
+          >
+            <b-icon icon="x" variant="light"></b-icon>
+          </b-button>
+        </div>
+      </template>
       <template #cell(confirm)="row">
-        <div v-if="$store.state.moderator.id !== row.item.userId">
+        <div v-if="!myself(row.item)">
           <b-button
             variant="success"
             size="md"
-            @click="$emit('show-overlay', row.item)"
+            @click="$emit('show-overlay', row.item, 'confirm')"
             class="mr-2"
           >
             <b-icon icon="check" scale="2" variant=""></b-icon>
@@ -58,21 +90,20 @@
           @row-toggle-details="rowToggleDetails(row, 0)"
         >
           <template #show-creation>
-            <div v-if="row.item.moderator">
+            <div v-if="row.item.moderatorId">
               <edit-creation-formular
                 type="singleCreation"
-                :creation="row.item.creation"
                 :item="row.item"
                 :row="row"
                 :creationUserData="creationUserData"
-                @update-creation-data="updateCreationData"
+                @update-creation-data="$emit('update-contributions')"
               />
             </div>
             <div v-else>
               <contribution-messages-list
                 :contributionId="row.item.id"
+                :contributionState="row.item.state"
                 @update-state="updateState"
-                @update-user-data="updateUserData"
               />
             </div>
           </template>
@@ -84,9 +115,17 @@
 
 <script>
 import { toggleRowDetails } from '../../mixins/toggleRowDetails'
-import RowDetails from '../RowDetails.vue'
-import EditCreationFormular from '../EditCreationFormular.vue'
-import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList.vue'
+import RowDetails from '../RowDetails'
+import EditCreationFormular from '../EditCreationFormular'
+import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList'
+
+const iconMap = {
+  IN_PROGRESS: 'question-square',
+  PENDING: 'bell-fill',
+  CONFIRMED: 'check',
+  DELETED: 'trash',
+  DENIED: 'x-circle',
+}
 
 export default {
   name: 'OpenCreationsTable',
@@ -106,27 +145,20 @@ export default {
       required: true,
     },
   },
-  data() {
-    return {
-      creationUserData: {
-        amount: null,
-        date: null,
-        memo: null,
-        moderator: null,
-      },
-    }
-  },
   methods: {
-    updateCreationData(data) {
-      this.creationUserData = data
-      // this.creationUserData.amount = data.amount
-      // this.creationUserData.date = data.date
-      // this.creationUserData.memo = data.memo
-      // this.creationUserData.moderator = data.moderator
-      data.row.toggleDetails()
+    myself(item) {
+      return item.userId === this.$store.state.moderator.id
     },
-    updateUserData(rowItem, newCreation) {
-      rowItem.creation = newCreation
+    getStatusIcon(status) {
+      return iconMap[status] ? iconMap[status] : 'default-icon'
+    },
+    rowClass(item, type) {
+      if (!item || type !== 'row') return
+      if (item.state === 'CONFIRMED') return 'table-success'
+      if (item.state === 'DENIED') return 'table-warning'
+      if (item.state === 'DELETED') return 'table-danger'
+      if (item.state === 'IN_PROGRESS') return 'table-primary'
+      if (item.state === 'PENDING') return 'table-primary'
     },
     updateState(id) {
       this.$emit('update-state', id)

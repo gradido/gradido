@@ -4,15 +4,16 @@
       {{ $t('removeNotSelf') }}
     </div>
     <div v-else class="mt-5">
-      <b-form-checkbox switch size="lg" v-model="checked">
-        <div>{{ item.deletedAt ? $t('undelete_user') : $t('delete_user') }}</div>
-      </b-form-checkbox>
-
       <div class="mt-3 mb-5">
-        <b-button v-if="checked && item.deletedAt === null" variant="danger" @click="deleteUser">
+        <b-button
+          v-if="!item.deletedAt"
+          variant="danger"
+          v-b-modal.delete-user-modal
+          @click="showDeleteModal()"
+        >
           {{ $t('delete_user') }}
         </b-button>
-        <b-button v-if="checked && item.deletedAt !== null" variant="success" @click="unDeleteUser">
+        <b-button v-else variant="success" v-b-modal.delete-user-modal @click="showUndeleteModal()">
           {{ $t('undelete_user') }}
         </b-button>
       </div>
@@ -31,12 +32,56 @@ export default {
       required: true,
     },
   },
-  data() {
-    return {
-      checked: false,
-    }
-  },
   methods: {
+    showDeleteModal() {
+      this.$bvModal
+        .msgBoxConfirm(
+          this.$t('overlay.deleteUser.question', {
+            username: `${this.item.firstName} ${this.item.lastName}`,
+          }),
+          {
+            cancelTitle: this.$t('overlay.cancel'),
+            centered: true,
+            hideHeaderClose: true,
+            title: this.$t('overlay.deleteUser.title'),
+            okTitle: this.$t('overlay.deleteUser.yes'),
+            okVariant: 'danger',
+            static: true,
+          },
+        )
+        .then((okClicked) => {
+          if (okClicked) {
+            this.deleteUser()
+          }
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+        })
+    },
+    showUndeleteModal() {
+      this.$bvModal
+        .msgBoxConfirm(
+          this.$t('overlay.undeleteUser.question', {
+            username: `${this.item.firstName} ${this.item.lastName}`,
+          }),
+          {
+            cancelTitle: this.$t('overlay.cancel'),
+            centered: true,
+            hideHeaderClose: true,
+            title: this.$t('overlay.undeleteUser.title'),
+            okTitle: this.$t('overlay.undeleteUser.yes'),
+            okVariant: 'success',
+          },
+        )
+        .then((okClicked) => {
+          if (okClicked) {
+            this.unDeleteUser()
+          }
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+        })
+    },
     deleteUser() {
       this.$apollo
         .mutate({
@@ -50,7 +95,6 @@ export default {
             userId: this.item.userId,
             deletedAt: result.data.deleteUser,
           })
-          this.checked = false
         })
         .catch((error) => {
           this.toastError(error.message)
@@ -65,12 +109,10 @@ export default {
           },
         })
         .then((result) => {
-          this.toastSuccess(this.$t('user_recovered'))
           this.$emit('updateDeletedAt', {
             userId: this.item.userId,
             deletedAt: result.data.unDeleteUser,
           })
-          this.checked = false
         })
         .catch((error) => {
           this.toastError(error.message)

@@ -1,9 +1,7 @@
 <template>
   <div id="registerform">
     <b-container v-if="enterData">
-      <div class="pb-5">
-        {{ $t('site.signup.heading') }}
-      </div>
+      <div class="pb-5" align="center">{{ $t('gdd_per_link.isFree') }}</div>
       <validation-observer ref="observer" v-slot="{ handleSubmit }">
         <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
           <b-row>
@@ -61,27 +59,39 @@
             </b-col>
           </b-row>
           <b-row>
-            <b-col><input-email v-model="form.email"></input-email></b-col>
+            <b-col>
+              <input-email
+                v-model="form.email"
+                :name="$t('form.email')"
+                :label="$t('form.email')"
+                :placeholder="$t('form.email')"
+              ></input-email>
+            </b-col>
           </b-row>
-          <div class="my-4">
-            <b-form-checkbox
-              id="registerCheckbox"
-              v-model="form.agree"
-              :name="$t('site.signup.agree')"
-            >
-              <!-- eslint-disable-next-line @intlify/vue-i18n/no-v-html -->
-              <span class="text-muted" v-html="$t('site.signup.agree')"></span>
-            </b-form-checkbox>
-          </div>
-          <div>
-            <b-button
-              type="submit"
-              :disabled="disabled"
-              :variant="disabled ? 'gradido-disable' : 'gradido'"
-            >
-              {{ $t('signup') }}
-            </b-button>
-          </div>
+          <b-row>
+            <b-col cols="12" class="my-4">
+              <b-form-checkbox
+                id="registerCheckbox"
+                v-model="form.agree"
+                :name="$t('site.signup.agree')"
+              >
+                <!-- eslint-disable-next-line @intlify/vue-i18n/no-v-html -->
+                <span class="text-muted" v-html="$t('site.signup.agree')"></span>
+              </b-form-checkbox>
+            </b-col>
+          </b-row>
+          <b-row>
+            <b-col cols="12" lg="6">
+              <b-button
+                block
+                type="submit"
+                :disabled="disabled"
+                :variant="disabled ? 'gradido-disable' : 'gradido'"
+              >
+                {{ $t('signup') }}
+              </b-button>
+            </b-col>
+          </b-row>
         </b-form>
       </validation-observer>
     </b-container>
@@ -94,7 +104,7 @@
 <script>
 import { createUser } from '@/graphql/mutations'
 import CONFIG from '@/config'
-import InputEmail from '@/components/Inputs/InputEmail.vue'
+import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
 
 export default {
@@ -164,3 +174,13 @@ export default {
   },
 }
 </script>
+<style scoped>
+.btn-gradido {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+.btn-gradido-disable {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+</style>

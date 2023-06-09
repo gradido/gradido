@@ -1,6 +1,9 @@
-import Decimal from 'decimal.js-light'
-import CONFIG from '@/config'
+import { Decimal } from 'decimal.js-light'
+
 import { Decay } from '@model/Decay'
+
+import { CONFIG } from '@/config'
+import { LogError } from '@/server/LogError'
 
 // TODO: externalize all those definitions and functions into an external decay library
 
@@ -22,7 +25,7 @@ function calculateDecay(
   const startBlockMs = startBlock.getTime()
 
   if (toMs < fromMs) {
-    throw new Error('to < from, reverse decay calculation is invalid')
+    throw new LogError('calculateDecay: to < from, reverse decay calculation is invalid')
   }
 
   // Initialize with no decay

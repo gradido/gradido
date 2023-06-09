@@ -1,10 +1,13 @@
-import { calculateDecay } from './decay'
-import Decimal from 'decimal.js-light'
-import { Transaction } from '@entity/Transaction'
-import { Decay } from '@model/Decay'
 import { getCustomRepository } from '@dbTools/typeorm'
-import { TransactionLinkRepository } from '@repository/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { Decimal } from 'decimal.js-light'
+
+import { Decay } from '@model/Decay'
+import { TransactionLinkRepository } from '@repository/TransactionLink'
+
+import { getLastTransaction } from '@/graphql/resolver/util/getLastTransaction'
+
+import { calculateDecay } from './decay'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()
@@ -14,22 +17,17 @@ function isStringBoolean(value: string): boolean {
   return false
 }
 
-function isHexPublicKey(publicKey: string): boolean {
-  return /^[0-9A-Fa-f]{64}$/i.test(publicKey)
-}
-
 async function calculateBalance(
   userId: number,
   amount: Decimal,
   time: Date,
   transactionLink?: dbTransactionLink | null,
 ): Promise<{ balance: Decimal; decay: Decay; lastTransactionId: number } | null> {
-  const lastTransaction = await Transaction.findOne({ userId }, { order: { balanceDate: 'DESC' } })
+  const lastTransaction = await getLastTransaction(userId)
   if (!lastTransaction) return null
 
   const decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time)
 
-  // TODO why we have to use toString() here?
   const balance = decay.balance.add(amount.toString())
   const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
   const { sumHoldAvailableAmount } = await transactionLinkRepository.summary(userId, time)
@@ -46,4 +44,4 @@ async function calculateBalance(
   return { balance, lastTransactionId: lastTransaction.id, decay }
 }
 
-export { isHexPublicKey, calculateBalance, isStringBoolean }
+export { calculateBalance, isStringBoolean }

@@ -1,7 +1,8 @@
-import { ObjectType, Field, Int } from 'type-graphql'
-import Decimal from 'decimal.js-light'
 import { ContributionLink as dbContributionLink } from '@entity/ContributionLink'
-import CONFIG from '@/config'
+import { Decimal } from 'decimal.js-light'
+import { ObjectType, Field, Int } from 'type-graphql'
+
+import { CONFIG } from '@/config'
 
 @ObjectType()
 export class ContributionLink {
@@ -21,7 +22,7 @@ export class ContributionLink {
     this.link = CONFIG.COMMUNITY_REDEEM_CONTRIBUTION_URL.replace(/{code}/g, this.code)
   }
 
-  @Field(() => Number)
+  @Field(() => Int)
   id: number
 
   @Field(() => Decimal)

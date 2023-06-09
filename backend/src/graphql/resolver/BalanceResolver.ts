@@ -1,16 +1,20 @@
-import { backendLogger as logger } from '@/server/logger'
-
-import { Context, getUser } from '@/server/context'
-import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
-import { Balance } from '@model/Balance'
-import { calculateDecay } from '@/util/decay'
-import { RIGHTS } from '@/auth/RIGHTS'
-import { Transaction as dbTransaction } from '@entity/Transaction'
-import Decimal from 'decimal.js-light'
-import { GdtResolver } from './GdtResolver'
-import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { getCustomRepository } from '@dbTools/typeorm'
+import { Transaction as dbTransaction } from '@entity/Transaction'
+import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { Decimal } from 'decimal.js-light'
+import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
+
+import { Balance } from '@model/Balance'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
+
+import { RIGHTS } from '@/auth/RIGHTS'
+import { Context, getUser } from '@/server/context'
+import { backendLogger as logger } from '@/server/logger'
+import { calculateDecay } from '@/util/decay'
+
+import { GdtResolver } from './GdtResolver'
+import { getLastTransaction } from './util/getLastTransaction'
 
 @Resolver()
 export class BalanceResolver {
@@ -29,7 +33,7 @@ export class BalanceResolver {
 
     const lastTransaction = context.lastTransaction
       ? context.lastTransaction
-      : await dbTransaction.findOne({ userId: user.id }, { order: { balanceDate: 'DESC' } })
+      : await getLastTransaction(user.id)
 
     logger.debug(`lastTransaction=${lastTransaction}`)
 
@@ -66,7 +70,10 @@ export class BalanceResolver {
       now,
     )
     logger.info(
-      `calculatedDecay(balance=${lastTransaction.balance}, balanceDate=${lastTransaction.balanceDate})=${calculatedDecay}`,
+      'calculatedDecay',
+      lastTransaction.balance,
+      lastTransaction.balanceDate,
+      calculatedDecay,
     )
 
     // The final balance is reduced by the link amount withheld
@@ -92,9 +99,7 @@ export class BalanceResolver {
       count,
       linkCount,
     })
-    logger.info(
-      `new Balance(balance=${balance}, balanceGDT=${balanceGDT}, count=${count}, linkCount=${linkCount}) = ${newBalance}`,
-    )
+    logger.info('new Balance', balance, balanceGDT, count, linkCount, newBalance)
 
     return newBalance
   }

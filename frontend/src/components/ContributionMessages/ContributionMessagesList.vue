@@ -1,25 +1,30 @@
 <template>
   <div class="contribution-messages-list">
-    <b-container>
-      <div v-for="message in messages" v-bind:key="message.id">
+    <div>
+      <div v-for="message in messages" v-bind:key="message.id" class="mt-3">
         <contribution-messages-list-item :message="message" />
       </div>
-    </b-container>
-    <contribution-messages-formular
-      v-if="['PENDING', 'IN_PROGRESS'].includes(state)"
-      :contributionId="contributionId"
-      @get-list-contribution-messages="getListContributionMessages"
-      @update-state="updateState"
-    />
-    <div v-b-toggle="'collapse' + String(contributionId)" class="text-center pointer h2">
-      <b-icon icon="arrow-up-short"></b-icon>
-      {{ $t('form.close') }}
+    </div>
+    <div>
+      <contribution-messages-formular
+        v-if="['PENDING', 'IN_PROGRESS'].includes(state)"
+        :contributionId="contributionId"
+        v-on="$listeners"
+        @update-state="updateState"
+      />
+    </div>
+
+    <div v-b-toggle="'collapse' + String(contributionId)" class="text-center pointer clearboth">
+      <b-button variant="outline-primary" block class="mb-3">
+        <b-icon icon="arrow-up-short"></b-icon>
+        {{ $t('form.close') }}
+      </b-button>
     </div>
   </div>
 </template>
 <script>
-import ContributionMessagesListItem from '@/components/ContributionMessages/ContributionMessagesListItem.vue'
-import ContributionMessagesFormular from '@/components/ContributionMessages/ContributionMessagesFormular.vue'
+import ContributionMessagesListItem from '@/components/ContributionMessages/ContributionMessagesListItem'
+import ContributionMessagesFormular from '@/components/ContributionMessages/ContributionMessagesFormular'
 
 export default {
   name: 'ContributionMessagesList',
@@ -42,9 +47,6 @@ export default {
     },
   },
   methods: {
-    getListContributionMessages() {
-      this.$emit('get-list-contribution-messages', this.contributionId)
-    },
     updateState(id) {
       this.$emit('update-state', id)
     },
@@ -52,7 +54,7 @@ export default {
 }
 </script>
 <style scoped>
-.temp-message {
-  margin-top: 50px;
+.clearboth {
+  clear: both;
 }
 </style>

@@ -1,8 +1,10 @@
-import { ObjectType, Field } from 'type-graphql'
-import { Decay } from './Decay'
 import { Transaction as dbTransaction } from '@entity/Transaction'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
+import { ObjectType, Field, Int } from 'type-graphql'
+
 import { TransactionTypeId } from '@enum/TransactionTypeId'
+
+import { Decay } from './Decay'
 import { User } from './User'
 
 @ObjectType()
@@ -41,17 +43,22 @@ export class Transaction {
     this.memo = transaction.memo
     this.creationDate = transaction.creationDate
     this.linkedUser = linkedUser
-    this.linkedTransactionId = transaction.linkedTransactionId
-    this.transactionLinkId = transaction.transactionLinkId
+    this.linkedTransactionId = transaction.linkedTransactionId ?? null
+    this.linkId = transaction.contribution
+      ? transaction.contribution.contributionLinkId
+      : transaction.transactionLinkId ?? null
+    this.previousBalance =
+      transaction.previousTransaction?.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN) ??
+      new Decimal(0)
   }
 
-  @Field(() => Number)
+  @Field(() => Int)
   id: number
 
   @Field(() => User)
   user: User
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   previous: number | null
 
   @Field(() => TransactionTypeId)
@@ -66,6 +73,9 @@ export class Transaction {
   @Field(() => Date)
   balanceDate: Date
 
+  @Field(() => Decimal)
+  previousBalance: Decimal
+
   @Field(() => Decay)
   decay: Decay
 
@@ -78,10 +88,10 @@ export class Transaction {
   @Field(() => User, { nullable: true })
   linkedUser: User | null
 
-  @Field(() => Number, { nullable: true })
-  linkedTransactionId?: number | null
+  @Field(() => Int, { nullable: true })
+  linkedTransactionId: number | null
 
-  // Links to the TransactionLink when transaction was created by a link
-  @Field(() => Number, { nullable: true })
-  transactionLinkId?: number | null
+  // Links to the TransactionLink/ContributionLink when transaction was created by a link
+  @Field(() => Int, { nullable: true })
+  linkId: number | null
 }

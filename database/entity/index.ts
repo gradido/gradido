@@ -5,19 +5,25 @@ import { Migration } from './Migration'
 import { Transaction } from './Transaction'
 import { TransactionLink } from './TransactionLink'
 import { User } from './User'
+import { UserContact } from './UserContact'
 import { Contribution } from './Contribution'
-import { EventProtocol } from './EventProtocol'
+import { Event } from './Event'
 import { ContributionMessage } from './ContributionMessage'
+import { Community } from './Community'
+import { FederatedCommunity } from './FederatedCommunity'
 
 export const entities = [
+  Community,
   Contribution,
   ContributionLink,
+  ContributionMessage,
+  Event,
+  FederatedCommunity,
   LoginElopageBuys,
   LoginEmailOptIn,
   Migration,
   Transaction,
   TransactionLink,
   User,
-  EventProtocol,
-  ContributionMessage,
+  UserContact,
 ]

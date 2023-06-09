@@ -1,11 +1,18 @@
-import { Context, getUser } from '@/server/context'
-import { Resolver, Query, Args, Ctx, Authorized, Arg } from 'type-graphql'
-import CONFIG from '@/config'
-import { GdtEntryList } from '@model/GdtEntryList'
-import Paginated from '@arg/Paginated'
-import { apiGet, apiPost } from '@/apis/HttpRequest'
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { Resolver, Query, Args, Ctx, Authorized, Arg, Int, Float } from 'type-graphql'
+
+import { Paginated } from '@arg/Paginated'
 import { Order } from '@enum/Order'
+import { GdtEntryList } from '@model/GdtEntryList'
+
+import { apiGet, apiPost } from '@/apis/HttpRequest'
 import { RIGHTS } from '@/auth/RIGHTS'
+import { CONFIG } from '@/config'
+import { Context, getUser } from '@/server/context'
+import { LogError } from '@/server/LogError'
 
 @Resolver()
 export class GdtResolver {
@@ -20,27 +27,28 @@ export class GdtResolver {
 
     try {
       const resultGDT = await apiGet(
-        `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.email}/${currentPage}/${pageSize}/${order}`,
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.emailContact.email}/${currentPage}/${pageSize}/${order}`,
       )
       if (!resultGDT.success) {
-        throw new Error(resultGDT.data)
+        throw new LogError(resultGDT.data)
       }
       return new GdtEntryList(resultGDT.data)
     } catch (err) {
-      throw new Error('GDT Server is not reachable.')
+      throw new LogError('GDT Server is not reachable')
     }
   }
 
   @Authorized([RIGHTS.GDT_BALANCE])
-  @Query(() => Number)
+  @Query(() => Float, { nullable: true })
   async gdtBalance(@Ctx() context: Context): Promise<number | null> {
     const user = getUser(context)
     try {
       const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-        email: user.email,
+        email: user.emailContact.email,
       })
       if (!resultGDTSum.success) {
-        throw new Error('Call not successful')
+        throw new LogError('Call not successful')
       }
       return Number(resultGDTSum.data.sum) || 0
     } catch (err) {
@@ -51,13 +59,13 @@ export class GdtResolver {
   }
 
   @Authorized([RIGHTS.EXIST_PID])
-  @Query(() => Number)
+  @Query(() => Int)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async existPid(@Arg('pid') pid: number): Promise<number> {
+  async existPid(@Arg('pid', () => Int) pid: number): Promise<number> {
     // load user
     const resultPID = await apiGet(`${CONFIG.GDT_API_URL}/publishers/checkPidApi/${pid}`)
     if (!resultPID.success) {
-      throw new Error(resultPID.data)
+      throw new LogError(resultPID.data)
     }
     return resultPID.data.pid
   }

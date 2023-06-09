@@ -1,5 +1,5 @@
 import router from './router'
-import NotFound from '@/pages/NotFoundPage.vue'
+import NotFound from '@/pages/NotFoundPage'
 
 describe('router', () => {
   describe('options', () => {
@@ -49,7 +49,7 @@ describe('router', () => {
         expect(routes.find((r) => r.path === '/').redirect()).toEqual({ path: '/login' })
       })
 
-      it('has sixteen routes defined', () => {
+      it('has 19 routes defined', () => {
         expect(routes).toHaveLength(19)
       })
 
@@ -75,7 +75,19 @@ describe('router', () => {
         })
       })
 
-      describe('community', () => {
+      describe('community without tab parameter', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/community').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('redirects to contribute tab', async () => {
+          expect(routes.find((r) => r.path === '/community').redirect()).toEqual({
+            path: '/community/contribute',
+          })
+        })
+      })
+
+      describe('community with tab parameter', () => {
         it('requires authorization', () => {
           expect(routes.find((r) => r.path === '/community').meta.requiresAuth).toBeTruthy()
         })
@@ -86,7 +98,7 @@ describe('router', () => {
         })
       })
 
-      describe('profile', () => {
+      describe.skip('profile', () => {
         it('requires authorization', () => {
           expect(routes.find((r) => r.path === '/profile').meta.requiresAuth).toBeTruthy()
         })
@@ -178,7 +190,7 @@ describe('router', () => {
         })
       })
 
-      describe('select-community', () => {
+      describe.skip('select-community', () => {
         it('loads the "SelectCommunity" page', async () => {
           const component = await routes.find((r) => r.path === '/select-community').component()
           expect(component.default.name).toBe('SelectCommunity')

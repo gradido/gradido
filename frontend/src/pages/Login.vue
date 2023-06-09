@@ -1,11 +1,18 @@
 <template>
   <div class="login-form">
     <b-container v-if="enterData">
-      <div class="pb-5">{{ $t('site.login.heading') }}</div>
-      <validation-observer ref="observer" v-slot="{ handleSubmit }">
+      <div class="pb-5" align="center">{{ $t('gdd_per_link.isFree') }}</div>
+      <validation-observer ref="observer" v-slot="{ handleSubmit, valid }">
         <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
           <b-row>
-            <b-col sm="12" md="12" lg="6"><input-email v-model="form.email"></input-email></b-col>
+            <b-col sm="12" md="12" lg="6">
+              <input-email
+                v-model="form.email"
+                :name="$t('form.email')"
+                :label="$t('form.email')"
+                :placeholder="$t('form.email')"
+              ></input-email>
+            </b-col>
             <b-col sm="12" md="12" lg="6">
               <input-password
                 :label="$t('form.password')"
@@ -16,15 +23,24 @@
             </b-col>
           </b-row>
           <b-row>
-            <b-col class="d-flex justify-content-end">
-              <router-link to="/forgot-password" class="mt-3">
+            <b-col class="d-flex justify-content-end mb-4 mb-lg-0">
+              <router-link to="/forgot-password" data-test="forgot-password-link">
                 {{ $t('settings.password.forgot_pwd') }}
               </router-link>
             </b-col>
           </b-row>
-          <div class="mt-5">
-            <b-button type="submit" variant="gradido">{{ $t('login') }}</b-button>
-          </div>
+          <b-row>
+            <b-col cols="12" lg="6">
+              <b-button
+                type="submit"
+                :variant="valid ? 'gradido' : 'gradido-disable'"
+                block
+                :disabled="!valid"
+              >
+                {{ $t('login') }}
+              </b-button>
+            </b-col>
+          </b-row>
         </b-form>
       </validation-observer>
     </b-container>
@@ -43,7 +59,7 @@
 import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
-import { login } from '@/graphql/queries'
+import { login } from '@/graphql/mutations'
 
 export default {
   name: 'Login',
@@ -71,20 +87,20 @@ export default {
         container: this.$refs.submitButton,
       })
       this.$apollo
-        .query({
-          query: login,
+        .mutate({
+          mutation: login,
           variables: {
             email: this.form.email,
             password: this.form.password,
             publisherId: this.$store.state.publisherId,
           },
-          fetchPolicy: 'network-only',
         })
         .then(async (result) => {
           const {
             data: { login },
           } = result
           this.$store.dispatch('login', login)
+          this.$store.commit('email', this.form.email)
           await loader.hide()
           if (this.$route.params.code) {
             this.$router.push(`/redeem/${this.$route.params.code}`)
@@ -119,3 +135,13 @@ export default {
   },
 }
 </script>
+<style scoped>
+.btn-gradido {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+.btn-gradido-disable {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+</style>

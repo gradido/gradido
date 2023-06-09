@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Transaction } from '@model/Transaction'
 import { SaveOptions, RemoveOptions } from '@dbTools/typeorm'
 import { Transaction as dbTransaction } from '@entity/Transaction'
+import { Decimal } from 'decimal.js-light'
+
 import { TransactionTypeId } from '@enum/TransactionTypeId'
-import { calculateDecay } from './decay'
+import { Transaction } from '@model/Transaction'
 import { User } from '@model/User'
-import Decimal from 'decimal.js-light'
+
+import { calculateDecay } from './decay'
 
 const defaultModelFunctions = {
   hasId: function (): boolean {
@@ -36,6 +38,7 @@ const virtualLinkTransaction = (
   createdAt: Date,
   validUntil: Date,
   user: User,
+  previousBalance: Decimal,
 ): Transaction => {
   const linkDbTransaction: dbTransaction = {
     id: -2,
@@ -49,7 +52,12 @@ const virtualLinkTransaction = (
     decay: decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
     memo: '',
     creationDate: null,
+    contribution: null,
     ...defaultModelFunctions,
+    userGradidoID: '',
+    userName: null,
+    linkedUserGradidoID: null,
+    linkedUserName: null,
   }
   return new Transaction(linkDbTransaction, user)
 }
@@ -78,7 +86,12 @@ const virtualDecayTransaction = (
     decayStart: decay.start,
     memo: '',
     creationDate: null,
+    contribution: null,
     ...defaultModelFunctions,
+    userGradidoID: '',
+    userName: null,
+    linkedUserGradidoID: null,
+    linkedUserName: null,
   }
   return new Transaction(decayDbTransaction, user)
 }

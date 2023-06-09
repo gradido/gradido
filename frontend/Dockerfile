@@ -20,10 +20,10 @@ ENV PORT="3000"
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
 LABEL org.label-schema.name="gradido:frontend"
-LABEL org.label-schema.description="Gradido Vue Webwallet"
-LABEL org.label-schema.usage="https://github.com/gradido/gradido_vue_wallet/blob/master/README.md"
+LABEL org.label-schema.description="Gradido Wallet Interface"
+LABEL org.label-schema.usage="https://github.com/gradido/gradido/blob/master/README.md"
 LABEL org.label-schema.url="https://gradido.net"
-LABEL org.label-schema.vcs-url="https://github.com/gradido/gradido_vue_wallet/tree/master/backend"
+LABEL org.label-schema.vcs-url="https://github.com/gradido/gradido/tree/master/frontend"
 LABEL org.label-schema.vcs-ref="${BUILD_COMMIT}"
 LABEL org.label-schema.vendor="gradido Community"
 LABEL org.label-schema.version="${BUILD_VERSION}"
@@ -84,7 +84,7 @@ CMD /bin/sh -c "yarn run dev"
 FROM base as production
 
 # Copy "binary"-files from build image
-COPY --from=build ${DOCKER_WORKDIR}/dist ./dist
+COPY --from=build ${DOCKER_WORKDIR}/build ./build
 # We also copy the node_modules express and serve-static for the run script
 COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
 # Copy static files

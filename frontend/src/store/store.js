@@ -13,12 +13,12 @@ export const mutations = {
     localeChanged(language)
     state.language = language
   },
-  email: (state, email) => {
-    state.email = email
+  gradidoID: (state, gradidoID) => {
+    state.gradidoID = gradidoID
   },
-  // username: (state, username) => {
-  //   state.username = username
-  // },
+  username: (state, username) => {
+    state.username = username
+  },
   firstName: (state, firstName) => {
     state.firstName = firstName
   },
@@ -47,35 +47,44 @@ export const mutations = {
   hasElopage: (state, hasElopage) => {
     state.hasElopage = hasElopage
   },
-  creation: (state, creation) => {
-    state.creation = creation
+  hideAmountGDD: (state, hideAmountGDD) => {
+    state.hideAmountGDD = !!hideAmountGDD
+  },
+  hideAmountGDT: (state, hideAmountGDT) => {
+    state.hideAmountGDT = !!hideAmountGDT
+  },
+  email: (state, email) => {
+    state.email = email || ''
   },
 }
 
 export const actions = {
   login: ({ dispatch, commit }, data) => {
-    commit('email', data.email)
+    commit('gradidoID', data.gradidoID)
     commit('language', data.language)
-    // commit('username', data.username)
+    commit('username', data.alias)
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
     commit('newsletterState', data.klickTipp.newsletterState)
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
     commit('isAdmin', data.isAdmin)
-    commit('creation', data.creation)
+    commit('hideAmountGDD', data.hideAmountGDD)
+    commit('hideAmountGDT', data.hideAmountGDT)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
-    commit('email', null)
-    // commit('username', '')
+    commit('username', '')
+    commit('gradidoID', null)
     commit('firstName', '')
     commit('lastName', '')
     commit('newsletterState', null)
     commit('hasElopage', false)
     commit('publisherId', null)
     commit('isAdmin', false)
-    commit('creation', null)
+    commit('hideAmountGDD', false)
+    commit('hideAmountGDT', true)
+    commit('email', '')
     localStorage.clear()
   },
 }
@@ -86,12 +95,13 @@ try {
   store = new Vuex.Store({
     plugins: [
       createPersistedState({
+        key: 'gradido-frontend',
         storage: window.localStorage,
       }),
     ],
     state: {
-      email: '',
       language: null,
+      gradidoID: null,
       firstName: '',
       lastName: '',
       // username: '',
@@ -101,7 +111,9 @@ try {
       newsletterState: null,
       hasElopage: false,
       publisherId: null,
-      creation: null,
+      hideAmountGDD: null,
+      hideAmountGDT: null,
+      email: '',
     },
     getters: {},
     // Syncronous mutation of the state

@@ -1,13 +1,21 @@
 <template>
   <div class="decay-information-box">
-    <decay-information-before-startblock v-if="decay.start === null" />
+    <decay-information-before-startblock v-if="decay.start === null" :memo="memo" />
     <decay-information-decay-startblock
       v-else-if="isStartBlock"
       :amount="amount"
       :decay="decay"
       :typeId="typeId"
     />
-    <decay-information-long v-else :amount="amount" :decay="decay" :typeId="typeId" />
+    <decay-information-long
+      v-else
+      :amount="amount"
+      :decay="decay"
+      :typeId="typeId"
+      :memo="memo"
+      :balance="balance"
+      :previousBalance="previousBalance"
+    />
   </div>
 </template>
 <script>
@@ -31,7 +39,19 @@ export default {
       type: Object,
       required: true,
     },
+    memo: {
+      type: String,
+      required: true,
+    },
     typeId: {
+      type: String,
+      required: true,
+    },
+    balance: {
+      type: String,
+      required: true,
+    },
+    previousBalance: {
       type: String,
       required: true,
     },

@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ContributionListItem from './ContributionListItem.vue'
+import ContributionListItem from './ContributionListItem'
 
 const localVue = global.localVue
 
@@ -9,6 +9,7 @@ describe('ContributionListItem', () => {
   const mocks = {
     $t: jest.fn((t) => t),
     $d: jest.fn((d) => d),
+    $apollo: { query: jest.fn().mockResolvedValue() },
   }
 
   const propsData = {
@@ -47,7 +48,7 @@ describe('ContributionListItem', () => {
 
       it('is x-circle when deletedAt is present', async () => {
         await wrapper.setProps({ deletedAt: new Date().toISOString() })
-        expect(wrapper.vm.icon).toBe('x-circle')
+        expect(wrapper.vm.icon).toBe('trash')
       })
 
       it('is check when confirmedAt is present', async () => {
@@ -73,7 +74,7 @@ describe('ContributionListItem', () => {
 
       it('is warning at when state is IN_PROGRESS', async () => {
         await wrapper.setProps({ state: 'IN_PROGRESS' })
-        expect(wrapper.vm.variant).toBe('warning')
+        expect(wrapper.vm.variant).toBe('205')
       })
     })
 
@@ -88,7 +89,7 @@ describe('ContributionListItem', () => {
 
       describe('edit contribution', () => {
         beforeEach(() => {
-          wrapper.findAll('div.pointer').at(0).trigger('click')
+          wrapper.find('div.test-edit-contribution').trigger('click')
         })
 
         it('emits update contribution form', () => {
@@ -109,7 +110,7 @@ describe('ContributionListItem', () => {
         beforeEach(() => {
           spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve(true))
-          wrapper.findAll('div.pointer').at(1).trigger('click')
+          wrapper.find('div.test-delete-contribution').trigger('click')
         })
 
         it('opens the modal', () => {
@@ -131,6 +132,27 @@ describe('ContributionListItem', () => {
         it('does not emit delete contribution', () => {
           expect(wrapper.emitted('delete-contribution')).toBeFalsy()
         })
+      })
+
+      describe('updateState', () => {
+        beforeEach(async () => {
+          await wrapper.vm.updateState()
+        })
+
+        it('emit update-state', () => {
+          expect(wrapper.vm.$emit('update-state')).toBeTruthy()
+        })
+      })
+    })
+
+    describe('getListContributionMessages', () => {
+      beforeEach(() => {
+        wrapper
+          .findComponent({ name: 'ContributionMessagesList' })
+          .vm.$emit('get-list-contribution-messages')
+      })
+      it('emits closeAllOpenCollapse', () => {
+        expect(wrapper.emitted('closeAllOpenCollapse')).toBeTruthy()
       })
     })
   })

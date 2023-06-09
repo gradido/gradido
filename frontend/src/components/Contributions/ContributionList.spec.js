@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ContributionList from './ContributionList.vue'
+import ContributionList from './ContributionList'
 
 const localVue = global.localVue
 
@@ -114,6 +114,16 @@ describe('ContributionList', () => {
 
       it('emits delete contribution', () => {
         expect(wrapper.emitted('delete-contribution')).toEqual([[{ id: 2 }]])
+      })
+    })
+
+    describe('update status', () => {
+      beforeEach(() => {
+        wrapper.findComponent({ name: 'ContributionListItem' }).vm.$emit('update-state', { id: 2 })
+      })
+
+      it('emits update status', () => {
+        expect(wrapper.emitted('update-state')).toEqual([[{ id: 2 }]])
       })
     })
   })

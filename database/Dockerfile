@@ -18,7 +18,7 @@ ENV NODE_ENV="production"
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
 LABEL org.label-schema.name="gradido:database"
-LABEL org.label-schema.description="Gradido GraphQL Backend"
+LABEL org.label-schema.description="Gradido Database Migration Service"
 LABEL org.label-schema.usage="https://github.com/gradido/gradido/blob/master/README.md"
 LABEL org.label-schema.url="https://gradido.net"
 LABEL org.label-schema.vcs-url="https://github.com/gradido/gradido/tree/master/database"
@@ -100,6 +100,8 @@ COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
 COPY --from=build ${DOCKER_WORKDIR}/package.json ./package.json
 # Copy Mnemonic files
 COPY --from=build ${DOCKER_WORKDIR}/src/config/*.txt ./src/config/
+# Copy log folder
+COPY --from=build ${DOCKER_WORKDIR}/log ./log
 # Copy run scripts run/
 # COPY --from=build ${DOCKER_WORKDIR}/run ./run
 
