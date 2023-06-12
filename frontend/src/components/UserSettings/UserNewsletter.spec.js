@@ -38,22 +38,22 @@ describe('UserCard_Newsletter', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div#formusernewsletter').exists()).toBeTruthy()
+      expect(wrapper.find('div.formusernewsletter').exists()).toBeTruthy()
     })
 
     it('has an edit BFormCheckbox switch', () => {
-      expect(wrapper.find('.Test-BFormCheckbox').exists()).toBeTruthy()
+      expect(wrapper.find('[test="BFormCheckbox"]').exists()).toBeTruthy()
     })
 
     describe('unsubscribe with success', () => {
       beforeEach(async () => {
-        await wrapper.setData({ newsletterState: true })
+        wrapper.setData({ newsletterState: true })
         mockAPIcall.mockResolvedValue({
           data: {
             unsubscribeNewsletter: true,
           },
         })
-        await wrapper.find('input').setChecked(false)
+        wrapper.find('input').setChecked(false)
       })
 
       it('calls the unsubscribe mutation', () => {

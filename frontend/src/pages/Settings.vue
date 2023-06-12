@@ -1,33 +1,50 @@
 <template>
   <div class="card bg-white gradido-border-radius appBoxShadow p-4 mt--3">
     <div class="h2">{{ $t('PersonalDetails') }}</div>
+    <div class="m-4 text-small">
+      {{ $t('settings.info') }}
+    </div>
+
     <b-row>
       <b-col cols="12" md="6" lg="6">
-        <b-form-group :label="$t('form.username')" description="kann nicht geändert werden">
-          <b-form-input v-model="username" readonly></b-form-input>
-        </b-form-group>
+        <user-name />
       </b-col>
       <b-col cols="12" md="6" lg="6">
-        <b-form-group :label="$t('form.email')" description="kann nicht geändert werden">
+        <b-form-group :label="$t('form.email')" :description="$t('settings.emailInfo')">
           <b-form-input v-model="email" readonly></b-form-input>
         </b-form-group>
       </b-col>
     </b-row>
+
     <hr />
-    <b-form @submit="onSubmit('personalDetails')">
+    <b-form>
       <b-row class="mt-3">
         <b-col cols="12" md="6" lg="6">
           <label>{{ $t('form.firstname') }}</label>
-          <b-form-input v-model="firstName" placeholder="Enter your firstname" trim></b-form-input>
+          <b-form-input
+            v-model="firstName"
+            :placeholder="$t('settings.name.enterFirstname')"
+            data-test="test-firstname"
+            trim
+          ></b-form-input>
         </b-col>
         <b-col cols="12" md="6" lg="6">
           <label>{{ $t('form.lastname') }}</label>
-          <b-form-input v-model="lastName" placeholder="Enter your lastname" trim></b-form-input>
+          <b-form-input
+            v-model="lastName"
+            :placeholder="$t('settings.name.enterLastname')"
+            data-test="test-lastname"
+            trim
+          ></b-form-input>
         </b-col>
       </b-row>
-      {{ isDisabled }}
       <div v-if="!isDisabled" class="mt-4 pt-4 text-center">
-        <b-button type="submit" variant="primary">
+        <b-button
+          data-test="submit-userdata"
+          type="submit"
+          variant="primary"
+          @click.prevent="onSubmit"
+        >
           {{ $t('form.save') }}
         </b-button>
       </div>
@@ -45,14 +62,18 @@
     <user-password />
     <hr />
     <b-row class="mb-5">
-      <b-col cols="12" md="6" lg="6">{{ $t('settings.newsletter.newsletter') }}</b-col>
+      <b-col cols="12" md="6" lg="6">
+        {{ $t('settings.newsletter.newsletter') }}
+        <div class="text-small">
+          {{
+            newsletterState
+              ? $t('settings.newsletter.newsletterTrue')
+              : $t('settings.newsletter.newsletterFalse')
+          }}
+        </div>
+      </b-col>
       <b-col cols="12" md="6" lg="6" class="text-right">
-        <b-form-checkbox
-          v-model="newsletterState"
-          name="check-button"
-          switch
-          @change="onSubmit('newsletters')"
-        ></b-form-checkbox>
+        <user-newsletter />
       </b-col>
     </b-row>
     <b-row>
@@ -64,15 +85,19 @@
   </div>
 </template>
 <script>
+import UserName from '@/components/UserSettings/UserName.vue'
 import UserPassword from '@/components/UserSettings/UserPassword'
 import UserLanguage from '@/components/LanguageSwitch2.vue'
-import { updateUserInfos, subscribeNewsletter, unsubscribeNewsletter } from '@/graphql/mutations'
+import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
+import { updateUserInfos } from '@/graphql/mutations'
 
 export default {
   name: 'Profile',
   components: {
+    UserName,
     UserPassword,
     UserLanguage,
+    UserNewsletter,
   },
   props: {
     balance: { type: Number, default: 0 },
@@ -81,7 +106,7 @@ export default {
 
   data() {
     const { state } = this.$store
-    const { darkMode, firstName, lastName, email, language, newsletterState } = state
+    const { darkMode, firstName, lastName, email, newsletterState } = state
 
     return {
       darkMode,
@@ -89,7 +114,6 @@ export default {
       firstName,
       lastName,
       email,
-      selected: language,
       newsletterState,
       mutation: '',
       variables: {},
@@ -104,52 +128,27 @@ export default {
   },
   watch: {
     darkMode(val) {
-      const text = this.darkMode ? this.$t('settings.modeDark') : this.$t('settings.modeLight')
       this.$store.commit('setDarkMode', this.darkMode)
-      this.toastSuccess(text)
+      this.toastSuccess(
+        this.darkMode ? this.$t('settings.modeDark') : this.$t('settings.modeLight'),
+      )
     },
   },
   methods: {
     async onSubmit(key) {
-      switch (key) {
-        case 'personalDetails':
-          this.mutation = updateUserInfos
-          this.variables = {
-            firstName: this.firstName,
-            lastName: this.lastName,
-          }
-          this.$store.commit('firstName', this.firstName)
-          this.$store.commit('lastName', this.form.lastName)
-          this.showUserData = true
-          this.toastSuccess(this.$t('settings.name.change-success'))
-          break
-        case 'newsletters':
-          this.mutation = this.newsletterState ? subscribeNewsletter : unsubscribeNewsletter
-          this.$store.commit('newsletterState', this.newsletterState)
-          this.toastSuccess(
-            this.newsletterState
-              ? this.$t('settings.newsletter.newsletterTrue')
-              : this.$t('settings.newsletter.newsletterFalse'),
-          )
-          break
-        default:
-          break
-      }
       try {
         await this.$apollo.mutate({
-          mutation: this.mutation,
-          variables: this.variables,
+          mutation: updateUserInfos,
+          variables: {
+            firstName: this.firstName,
+            lastName: this.lastName,
+          },
         })
-      } catch (error) {
-        switch (key) {
-          case 'newsletters':
-            this.newsletterState = this.$store.state.newsletterState
-            this.toastError(error.message)
-            break
-          default:
-            break
-        }
-      }
+        this.$store.commit('firstName', this.firstName)
+        this.$store.commit('lastName', this.lastName)
+        this.showUserData = true
+        this.toastSuccess(this.$t('settings.name.change-success'))
+      } catch (error) {}
     },
   },
 }

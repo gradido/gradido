@@ -17,7 +17,7 @@ describe('UserName Form', () => {
     $t: jest.fn((t) => t),
     $store: {
       state: {
-        username: 'peter',
+        username: '',
       },
       commit: storeCommitMock,
     },
@@ -39,41 +39,49 @@ describe('UserName Form', () => {
       expect(wrapper.find('div#username_form').exists()).toBeTruthy()
     })
 
-    it('has an edit icon', () => {
-      expect(wrapper.find('svg.bi-pencil').exists()).toBeTruthy()
+    describe('has no username', () => {
+      it('renders the username', () => {
+        expect(wrapper.find('[data-test="username-input-group"]')).toBeTruthy()
+      })
+
+      it('has no component username change ', () => {
+        expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBeFalsy()
+      })
+    })
+    describe('change / edit  username', () => {
+      beforeEach(async () => {
+        wrapper.vm.isEdit = true
+      })
+
+      it('has no the username', () => {
+        expect(wrapper.find('[data-test="username-input-group"]')).toBeTruthy()
+      })
+
+      it('has a component username change ', () => {
+        expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBeTruthy()
+      })
     })
 
-    it('renders the username', () => {
-      expect(wrapper.findAll('div.col').at(2).text()).toBe('peter')
-    })
+    // describe('has a username', () => {
+    //   beforeEach(async () => {
+    //     wrapper.$store.state.username = 'petra'
+    //   })
+    //   it('has no the username', () => {
+    //     expect(wrapper.find('[data-test="username-input-group"]')).toBeTruthy()
+    //   })
+
+    //   it('has no component username change ', () => {
+    //     expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBeTruthy()
+    //   })
+    // })
 
     describe('edit username', () => {
       beforeEach(async () => {
-        await wrapper.find('svg.bi-pencil').trigger('click')
-      })
-
-      it('shows an cancel icon', () => {
-        expect(wrapper.find('svg.bi-x-circle').exists()).toBeTruthy()
-      })
-
-      it('closes the input when cancel icon is clicked', async () => {
-        await wrapper.find('svg.bi-x-circle').trigger('click')
-        expect(wrapper.find('input').exists()).toBeFalsy()
-      })
-
-      it('does not change the username when cancel is clicked', async () => {
-        await wrapper.find('input').setValue('petra')
-        await wrapper.find('svg.bi-x-circle').trigger('click')
-        expect(wrapper.findAll('div.col').at(2).text()).toBe('peter')
+        wrapper.vm.username = 'petra'
       })
 
       it('has a submit button', () => {
-        expect(wrapper.find('button[type="submit"]').exists()).toBeTruthy()
-      })
-
-      it('does not enable submit button when data is not changed', async () => {
-        await wrapper.find('form').trigger('keyup')
-        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
+        expect(wrapper.find('[data-test="submit-username-button"]').exists()).toBeTruthy()
       })
 
       describe('successfull submit', () => {
@@ -88,7 +96,7 @@ describe('UserName Form', () => {
           jest.clearAllMocks()
           await wrapper.find('input').setValue('petra')
           await wrapper.find('form').trigger('keyup')
-          await wrapper.find('button[type="submit"]').trigger('click')
+          await wrapper.find('[data-test="submit-username-button"]').trigger('click')
           await flushPromises()
         })
 
@@ -109,10 +117,6 @@ describe('UserName Form', () => {
         it('toasts a success message', () => {
           expect(toastSuccessSpy).toBeCalledWith('settings.username.change-success')
         })
-
-        it('has an edit button again', () => {
-          expect(wrapper.find('svg.bi-pencil').exists()).toBeTruthy()
-        })
       })
 
       describe('submit results in server error', () => {
@@ -123,7 +127,7 @@ describe('UserName Form', () => {
           jest.clearAllMocks()
           await wrapper.find('input').setValue('petra')
           await wrapper.find('form').trigger('keyup')
-          await wrapper.find('button[type="submit"]').trigger('click')
+          await wrapper.find('[data-test="submit-username-button"]').trigger('click')
           await flushPromises()
         })
 
@@ -140,17 +144,6 @@ describe('UserName Form', () => {
         it('toasts an error message', () => {
           expect(toastErrorSpy).toBeCalledWith('Error')
         })
-      })
-    })
-
-    describe('no username in store', () => {
-      beforeEach(() => {
-        mocks.$store.state.username = null
-        wrapper = Wrapper()
-      })
-
-      it('displays an information why to enter a username', () => {
-        expect(wrapper.findAll('div.col').at(2).text()).toBe('settings.username.no-username')
       })
     })
   })

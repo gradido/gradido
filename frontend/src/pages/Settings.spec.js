@@ -1,23 +1,16 @@
-import { shallowMount, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import Settings from './Settings'
-import { toastSuccessSpy } from '../../test/testSetup'
-// import { updateUserInfos, subscribeNewsletter, unsubscribeNewsletter } from '@/graphql/mutations'
-import VueApollo from 'vue-apollo'
-import { createMockClient } from 'mock-apollo-client'
-
-const mockClient = createMockClient()
-const apolloProvider = new VueApollo({
-  defaultClient: mockClient,
-})
+import flushPromises from 'flush-promises'
+import { toastSuccessSpy } from '@test/testSetup'
 
 const localVue = global.localVue
 
-describe('Settings', () => {
-  let Wrapper
-  let wrapper
+const mockAPIcall = jest.fn()
 
-  const storeCommitMock = jest.fn()
-  const mockToastSuccess = jest.fn()
+const storeCommitMock = jest.fn()
+
+describe('Settings', () => {
+  let wrapper
 
   const mocks = {
     $t: jest.fn((t) => t),
@@ -32,62 +25,18 @@ describe('Settings', () => {
       },
       commit: storeCommitMock,
     },
+    $apollo: {
+      mutate: mockAPIcall,
+    },
   }
 
-  Wrapper = () => {
-    return mount(Settings, { localVue, mocks, apolloProvider })
+  const Wrapper = () => {
+    return mount(Settings, { localVue, mocks })
   }
 
   describe('mount', () => {
     beforeEach(() => {
       wrapper = Wrapper()
-    })
-
-    describe.skip('watch - darkMode', () => {
-      it('commits correct value to store and calls toastSuccess with the appropriate text for dark mode', () => {
-        wrapper.vm.darkMode = true
-
-        expect(storeCommitMock).toHaveBeenCalledWith('setDarkMode', true)
-        // expect(mockToastSuccess).toHaveBeenCalledWith('Style changed to dark mode')
-        expect(toastSuccessSpy).toBeCalledWith('Style changed to dark mode')
-      })
-
-      it('commits correct value to store and calls toastSuccess with the appropriate text for light mode', () => {
-        wrapper.vm.darkMode = false
-
-        expect(storeCommitMock).toHaveBeenCalledWith('setDarkMode', false)
-        expect(mockToastSuccess).toHaveBeenCalledWith('Style changed to light mode')
-      })
-    })
-  })
-
-  Wrapper = () => {
-    return shallowMount(Settings, { localVue, mocks })
-  }
-
-  describe('shallow Mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
-    })
-
-    it('data function returns correct data object', () => {
-      expect(wrapper.vm.darkMode).toBe(true)
-
-      expect(wrapper.vm.username).toBe('')
-
-      expect(wrapper.vm.firstName).toBe('John')
-
-      expect(wrapper.vm.lastName).toBe('Doe')
-
-      expect(wrapper.vm.email).toBe('john.doe@test.com')
-
-      expect(wrapper.vm.selected).toBe('en')
-
-      expect(wrapper.vm.newsletterState).toBe(false)
-
-      expect(wrapper.vm.mutation).toBe('')
-
-      expect(wrapper.vm.variables).toEqual({})
     })
 
     it('has a user change language form', () => {
@@ -115,6 +64,69 @@ describe('Settings', () => {
         const result = wrapper.vm.isDisabled
 
         expect(result).toBe(false)
+      })
+    })
+
+    describe('successfull submit', () => {
+      beforeEach(async () => {
+        wrapper.vm.firstName = 'Janer'
+        wrapper.vm.lastName = 'Does'
+
+        mockAPIcall.mockResolvedValue({
+          data: {
+            updateUserInfos: {
+              validValues: 3,
+            },
+          },
+        })
+      })
+
+      it('Cange first and lastname', async () => {
+        wrapper.find('[data-test="test-firstname"]')
+        wrapper.find('[data-test="lastname"]')
+
+        await wrapper.find('[data-test="submit-userdata"]').trigger('click')
+        await flushPromises()
+
+        expect(mockAPIcall).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              firstName: 'Janer',
+              lastName: 'Does',
+            },
+          }),
+        )
+      })
+
+      it('commits firstname to store', () => {
+        expect(storeCommitMock).toBeCalledWith('firstName', 'Janer')
+      })
+
+      it('commits lastname to store', () => {
+        expect(storeCommitMock).toBeCalledWith('lastName', 'Does')
+      })
+
+      it('toasts a success message', () => {
+        expect(toastSuccessSpy).toBeCalledWith('settings.name.change-success')
+      })
+    })
+
+    describe('darkMode style', () => {
+      it('default darkMode is true', () => {
+        expect(wrapper.vm.darkMode).toBe(true)
+      })
+
+      describe('sets dark mode ', () => {
+        beforeEach(() => {
+          wrapper.vm.darkMode = false
+        })
+
+        it('commits darkMode to store', () => {
+          expect(storeCommitMock).toBeCalledWith('setDarkMode', false)
+        })
+        it('toasts a success message', () => {
+          expect(toastSuccessSpy).toBeCalledWith('settings.modeLight')
+        })
       })
     })
   })
