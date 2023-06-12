@@ -15,8 +15,13 @@ describe('UserName Form', () => {
     },
   }
 
+  const propsData = {
+    value: '',
+    unique: false,
+  }
+
   const Wrapper = () => {
-    return mount(InputUsername, { localVue, mocks })
+    return mount(InputUsername, { localVue, mocks, propsData })
   }
 
   describe('mount', () => {
