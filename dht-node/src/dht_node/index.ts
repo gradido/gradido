@@ -8,11 +8,6 @@ import { Community as DbCommunity } from '@entity/Community'
 import { v4 as uuidv4 } from 'uuid'
 
 const KEY_SECRET_SEEDBYTES = 32
-const getSeed = (): Buffer | null => {
-  return CONFIG.FEDERATION_DHT_SEED
-    ? Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED)
-    : null
-}
 
 const POLLTIME = 20000
 const SUCCESSTIME = 120000
@@ -32,7 +27,12 @@ type CommunityApi = {
 export const startDHT = async (topic: string): Promise<void> => {
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
-    const keyPair = DHT.keyPair(getSeed())
+    // uses a config defined seed or null, which will generate a random seed for the key pair
+    const keyPair = DHT.keyPair(
+      CONFIG.FEDERATION_DHT_SEED
+        ? Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED)
+        : null,
+    )
     const pubKeyString = keyPair.publicKey.toString('hex')
     logger.info(`keyPairDHT: publicKey=${pubKeyString}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
@@ -215,14 +215,7 @@ async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<Commu
 async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
   try {
     // check for existing homeCommunity entry
-    let homeCom = await DbCommunity.findOne({
-      foreign: false,
-      publicKey: Buffer.from(pubKey),
-    })
-    if (!homeCom) {
-      // check if a homecommunity with a different publicKey still exists
-      homeCom = await DbCommunity.findOne({ foreign: false })
-    }
+    let homeCom = await DbCommunity.findOne({ foreign: false })
     if (homeCom) {
       // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
       homeCom.publicKey = Buffer.from(pubKey)
