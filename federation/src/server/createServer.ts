@@ -36,7 +36,7 @@ type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
 const createServer = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // context: any = serverContext,
-  logger: Logger = apolloLogger
+  logger: Logger = apolloLogger,
   // localization: i18n.I18n = i18n,
 ): Promise<ServerDef> => {
   logger.addContext('user', 'unknown')
