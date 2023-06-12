@@ -182,7 +182,6 @@
     },
     "your_amount": "Dein Betrag"
   },
-  "PersonalDetails": "Persönliche Angaben",
   "GDD": "GDD",
   "gddKonto": "GDD Konto",
   "gdd_per_link": {
@@ -281,6 +280,7 @@
     "settings": "Einstellungen",
     "transactions": "Deine Transaktionen"
   },
+  "PersonalDetails": "Persönliche Angaben",
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
@@ -292,14 +292,11 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
-    "info": "Es können GDD Überweisungen per Username oder E-Mail-Adresse getätigt werden. Deine E-Mail-Adresse wird nicht mehr durch diese Anwendung angezeigt.",
+    "darkMode": "Dunkler Modus",
     "emailInfo": "Wird nicht angezeigt, kann nicht geändert werden.",
     "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
     "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
-    "darkMode": "Dunkler Modus",
-    "modeDark": "Nachtmodus",
-    "modeLight": "Tagmodus",
-    "newSettings": "Neue Einstellungen",
+    "info": "Es können GDD Überweisungen per Username oder E-Mail-Adresse getätigt werden. Deine E-Mail-Adresse wird nicht mehr durch diese Anwendung angezeigt.",
     "language": {
       "changeLanguage": "Sprache ändern",
       "de": "Deutsch",
@@ -309,12 +306,15 @@
       "nl": "Nederlands",
       "success": "Deine Sprache wurde erfolgreich geändert."
     },
+    "modeDark": "Nachtmodus",
+    "modeLight": "Tagmodus",
     "name": {
-      "enterFirstname": "Vorname eingeben",
-      "enterLastname": "Nachname eingeben",
       "change-name": "Name ändern",
-      "change-success": "Dein Name wurde erfolgreich geändert."
+      "change-success": "Dein Name wurde erfolgreich geändert.",
+      "enterFirstname": "Vorname eingeben",
+      "enterLastname": "Nachname eingeben"
     },
+    "newSettings": "Neue Einstellungen",
     "newsletter": {
       "newsletter": "Informationen per E-Mail",
       "newsletterFalse": "Du erhältst keine Informationen per E-Mail.",
