@@ -19,7 +19,7 @@
     }
   },
   "back": "Zurück",
-  "change":"Ändern",
+  "change": "Ändern",
   "community": {
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
     "community": "Gemeinschaft",
@@ -292,14 +292,14 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
-    "info":"Es können GDD Überweisungen per Username oder E-Mail-Adresse getätigt werden. Deine E-Mail-Adresse wird nicht mehr durch diese Anwendung angezeigt.",
-    "emailInfo":"Wird nicht angezeigt, kann nicht geändert werden.",
+    "info": "Es können GDD Überweisungen per Username oder E-Mail-Adresse getätigt werden. Deine E-Mail-Adresse wird nicht mehr durch diese Anwendung angezeigt.",
+    "emailInfo": "Wird nicht angezeigt, kann nicht geändert werden.",
     "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
     "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
     "darkMode": "Dunkler Modus",
     "modeDark": "Nachtmodus",
     "modeLight": "Tagmodus",
-    "newSettings":"Neue Einstellungen",
+    "newSettings": "Neue Einstellungen",
     "language": {
       "changeLanguage": "Sprache ändern",
       "de": "Deutsch",
@@ -310,9 +310,8 @@
       "success": "Deine Sprache wurde erfolgreich geändert."
     },
     "name": {
-      "enterFirstname":"Vorname eingeben",
-      "enterLastname":"Nachname eingeben",
-      "change-username": "Username ändern",
+      "enterFirstname": "Vorname eingeben",
+      "enterLastname": "Nachname eingeben",
       "change-name": "Name ändern",
       "change-success": "Dein Name wurde erfolgreich geändert."
     },
@@ -340,7 +339,6 @@
     "showAmountGDT": "Dein GDT Betrag ist sichtbar.",
     "username": {
       "change-success": "Dein Nutzername wurde erfolgreich geändert.",
-      "change-username": "Nutzername ändern",
       "no-username": "Bitte gebe einen Nutzernamen ein. Damit hilfst du anderen Benutzern dich zu finden, ohne deine Email preisgeben zu müssen."
     }
   },

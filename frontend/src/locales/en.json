@@ -19,7 +19,7 @@
     }
   },
   "back": "Back",
-  "change":"Change",
+  "change": "Change",
   "community": {
     "choose-another-community": "Choose another community",
     "community": "Community",
@@ -292,14 +292,14 @@
     "warningText": "Are you still there?"
   },
   "settings": {
-    "info":"GDD transfers can be made by username or email address. Your email address will no longer be displayed by this application.",
-    "emailInfo":"Not displayed, cannot be changed.",
+    "info": "GDD transfers can be made by username or email address. Your email address will no longer be displayed by this application.",
+    "emailInfo": "Not displayed, cannot be changed.",
     "hideAmountGDD": "Your GDD amount is hidden.",
     "hideAmountGDT": "Your GDT amount is hidden.",
     "darkMode": "Dark Mode",
     "modeDark": "Style changed to dark mode",
     "modeLight": "Style changed to light mode",
-    "newSettings":"New Settings",
+    "newSettings": "New Settings",
     "language": {
       "changeLanguage": "Change language",
       "de": "Deutsch",
@@ -310,9 +310,8 @@
       "success": "Your language has been successfully updated."
     },
     "name": {
-      "enterFirstname":"Enter your firstname",
-      "enterLastname":"Enter your lastname",
-      "change-username": "Change username",
+      "enterFirstname": "Enter your firstname",
+      "enterLastname": "Enter your lastname",
       "change-name": "Change name",
       "change-success": "Your name has been successfully changed."
     },
@@ -340,7 +339,6 @@
     "showAmountGDT": "Your GDT amount is visible.",
     "username": {
       "change-success": "Your username has been changed successfully.",
-      "change-username": "Change username",
       "no-username": "Please enter a username. This helps other users to find you without exposing your email."
     }
   },

@@ -26,9 +26,10 @@
               size="lg"
               text="Button"
               variant="secondary"
+              icon="x-lg"
               @click="$emit('set-is-edit', false)"
             >
-              {{ $t('x') }}
+              <b-icon-x-circle></b-icon-x-circle>
             </b-button>
           </b-input-group-append>
         </b-input-group>
