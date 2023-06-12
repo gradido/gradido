@@ -36,21 +36,18 @@ const database = {
   DB_USER: process.env.DB_USER || 'root',
   DB_PASSWORD: process.env.DB_PASSWORD || '',
   DB_DATABASE: process.env.DB_DATABASE || 'gradido_community',
-  TYPEORM_LOGGING_RELATIVE_PATH:
-    process.env.TYPEORM_LOGGING_RELATIVE_PATH || 'typeorm.backend.log',
+  TYPEORM_LOGGING_RELATIVE_PATH: process.env.TYPEORM_LOGGING_RELATIVE_PATH || 'typeorm.backend.log',
 }
 
 // Check config version
-constants.CONFIG_VERSION.CURRENT =
-  process.env.CONFIG_VERSION || constants.CONFIG_VERSION.DEFAULT
+constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION || constants.CONFIG_VERSION.DEFAULT
 if (
-  ![
-    constants.CONFIG_VERSION.EXPECTED,
-    constants.CONFIG_VERSION.DEFAULT,
-  ].includes(constants.CONFIG_VERSION.CURRENT)
+  ![constants.CONFIG_VERSION.EXPECTED, constants.CONFIG_VERSION.DEFAULT].includes(
+    constants.CONFIG_VERSION.CURRENT,
+  )
 ) {
   throw new Error(
-    `Fatal: Config Version incorrect - expected "${constants.CONFIG_VERSION.EXPECTED}" or "${constants.CONFIG_VERSION.DEFAULT}", but found "${constants.CONFIG_VERSION.CURRENT}"`
+    `Fatal: Config Version incorrect - expected "${constants.CONFIG_VERSION.EXPECTED}" or "${constants.CONFIG_VERSION.DEFAULT}", but found "${constants.CONFIG_VERSION.CURRENT}"`,
   )
 }
 
