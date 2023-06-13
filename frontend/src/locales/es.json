@@ -18,7 +18,6 @@
   },
   "back": "Volver",
   "community": {
-    "startNewsButton":"Introducir nombre de usuario",
     "choose-another-community": "Escoger otra comunidad",
     "community": "Comunidad",
     "continue-to-registration": "Continuar con el registro",
@@ -31,6 +30,7 @@
     "openContributionLinks": "Creaciones generadas por enlace",
     "openContributionLinkText": "La comunidad \"{name}\" admite actualmente {count} creaciones generadas por enlaces:",
     "other-communities": "Otras comunidades",
+    "startNewsButton": "Introducir nombre de usuario",
     "statistic": "Estadísticas",
     "submitContribution": "escribir",
     "switch-to-this-community": "cambiar a esta comunidad"

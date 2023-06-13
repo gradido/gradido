@@ -20,7 +20,6 @@
   },
   "back": "Zurück",
   "community": {
-    "startNewsButton":"Benutzernamen eintragen",
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
     "community": "Gemeinschaft",
     "communityMember": "Du bist aktives Mitglied",
@@ -31,6 +30,7 @@
     "noOpenContributionLinkText": "Zur Zeit gibt es keine per Link erzeugte Schöpfungen.",
     "openContributionLinks": "Per Link erzeugte Schöpfungen",
     "openContributionLinkText": "Die Gemeinschaft „{name}“ unterstützt aktuell {count} per Link erzeugte Schöpfungen:",
+    "startNewsButton": "Benutzernamen eintragen",
     "submitContribution": "Schreiben"
   },
   "communityInfo": "Gemeinschaft Information",

@@ -20,7 +20,6 @@
   },
   "back": "Retour",
   "community": {
-    "startNewsButton":"Saisir le nom d'utilisateur",
     "choose-another-community": "Choisissez une autre communauté",
     "community": "Communauté",
     "communityMember": "Vous etes un membre actif",
@@ -31,6 +30,7 @@
     "noOpenContributionLinkText": "Actuellement, il n'y a pas de créations générées par lien.",
     "openContributionLinks": "Créations générées par lien",
     "openContributionLinkText": "La communauté \"{name}\" soutient actuellement {count} créations générées par lien:",
+    "startNewsButton": "Saisir le nom d'utilisateur",
     "submitContribution": "Contribuer"
   },
   "communityInfo": "Information communauté^^",
