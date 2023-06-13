@@ -20,6 +20,7 @@
   },
   "back": "Back",
   "community": {
+    "startNewsButton":"Enter username",
     "choose-another-community": "Choose another community",
     "community": "Community",
     "communityMember": "You are an active member",

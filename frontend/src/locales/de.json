@@ -20,6 +20,7 @@
   },
   "back": "Zurück",
   "community": {
+    "startNewsButton":"Benutzernamen eintragen",
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
     "community": "Gemeinschaft",
     "communityMember": "Du bist aktives Mitglied",

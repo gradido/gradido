@@ -18,6 +18,7 @@
   },
   "back": "Volver",
   "community": {
+    "startNewsButton":"Introducir nombre de usuario",
     "choose-another-community": "Escoger otra comunidad",
     "community": "Comunidad",
     "continue-to-registration": "Continuar con el registro",
