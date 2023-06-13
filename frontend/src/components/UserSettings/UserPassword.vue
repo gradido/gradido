@@ -37,6 +37,7 @@
                   :variant="invalid ? 'light' : 'success'"
                   class="mt-4"
                   :disabled="invalid && disabled"
+                  data-test="submit-new-password-btn"
                 >
                   {{ $t('form.save') }}
                 </b-button>
