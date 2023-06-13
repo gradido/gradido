@@ -1,7 +1,10 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-FROM node:18.7.0-alpine3.16 as base
+# base on custom docker container which is essential node:18.7.0-alpine3.16 
+# but with installed build-tools for rust native npm modules
+# and with compiled @iota/client
+FROM gradido/iota_alpine:2.2.4 as base
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
 ## DOCKER_WORKDIR would be a classical ARG, but that is not multi layer persistent - shame
@@ -45,17 +48,9 @@ WORKDIR ${DOCKER_WORKDIR}
 RUN mkdir -p /database
 
 ##################################################################################
-# BASE with build tools for rust based npm modules like @iota/client #############
-##################################################################################
-FROM base as base_extended 
-
-# needed for building @iota/client, it is a rust based module
-RUN apk add --no-cache rust cargo python3 make g++
-
-##################################################################################
 # DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
 ##################################################################################
-FROM base_extended as development
+FROM base as development
 
 # We don't need to copy or build anything since we gonna bind to the
 # local filesystem which will need a rebuild anyway
@@ -68,12 +63,16 @@ CMD /bin/sh -c "cd /database && yarn install && yarn build && cd /app && yarn in
 ##################################################################################
 # BUILD (Does contain all files and is therefore bloated) ########################
 ##################################################################################
-FROM base_extended as build
+FROM base as build
 
 # Copy everything from backend
 COPY ./backend/ ./
 # Copy everything from database
 COPY ./database/ ../database/
+
+# Copy prebuild @iota/client
+RUN cp -r /prebuild_node_modules ${WORKDIR}/node_modules
+#COPY --from=gradido/iota_alpine:2.2.4 /node_modules ${WORKDIR}/node_modules
 
 # yarn install backend
 RUN yarn install --production=false --frozen-lockfile --non-interactive
