@@ -27,7 +27,8 @@ module.exports = {
     },
   },
   rules: {
-    'no-console': ['error'],
+    'no-console': 'error',
+    camelcase: ['error', { allow: ['FederationClient_*'] }],
     'no-debugger': 'error',
     'prettier/prettier': [
       'error',
@@ -57,7 +58,7 @@ module.exports = {
     'import/no-dynamic-require': 'error',
     'import/no-internal-modules': 'off',
     'import/no-relative-packages': 'error',
-    'import/no-relative-parent-imports': ['error', { ignore: ['@/*'] }],
+    'import/no-relative-parent-imports': ['error', { ignore: ['@/*', 'random-bigint'] }],
     'import/no-self-import': 'error',
     'import/no-unresolved': 'error',
     'import/no-useless-path-segments': 'error',
@@ -184,6 +185,7 @@ module.exports = {
         tsconfigRootDir: __dirname,
         project: ['./tsconfig.json', '**/tsconfig.json'],
         // this is to properly reference the referenced project database without requirement of compiling it
+        // eslint-disable-next-line camelcase
         EXPERIMENTAL_useSourceOfProjectReferenceRedirect: true,
       },
     },

@@ -53,6 +53,9 @@ export const mutations = {
   hideAmountGDT: (state, hideAmountGDT) => {
     state.hideAmountGDT = !!hideAmountGDT
   },
+  email: (state, email) => {
+    state.email = email || ''
+  },
 }
 
 export const actions = {
@@ -81,6 +84,7 @@ export const actions = {
     commit('isAdmin', false)
     commit('hideAmountGDD', false)
     commit('hideAmountGDT', true)
+    commit('email', '')
     localStorage.clear()
   },
 }
@@ -109,6 +113,7 @@ try {
       publisherId: null,
       hideAmountGDD: null,
       hideAmountGDT: null,
+      email: '',
     },
     getters: {},
     // Syncronous mutation of the state

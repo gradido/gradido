@@ -146,6 +146,10 @@ describe('Login', () => {
             expect(mockStoreDispach).toBeCalledWith('login', 'token')
           })
 
+          it('commits email to store', () => {
+            expect(mockStoreCommit).toBeCalledWith('email', 'user@example.org')
+          })
+
           it('hides the spinner', () => {
             expect(spinnerHideMock).toBeCalled()
           })
