@@ -339,7 +339,7 @@
     "showAmountGDT": "Dein GDT Betrag ist sichtbar.",
     "username": {
       "change-success": "Dein Nutzername wurde erfolgreich geändert.",
-      "no-username": "Bitte gebe einen Nutzernamen ein. Damit hilfst du anderen Benutzern dich zu finden, ohne deine Email preisgeben zu müssen."
+      "no-username": "Bitte gib einen Benutzernamen ein. Damit hilfst du anderen Benutzern dich zu finden, ohne deine E-Mail-Adresse preisgeben zu müssen."
     }
   },
   "signin": "Anmelden",
