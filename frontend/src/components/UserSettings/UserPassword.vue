@@ -17,7 +17,7 @@
     </div>
 
     <div v-if="!showPassword">
-      <validation-observer ref="observer" v-slot="{ handleSubmit }">
+      <validation-observer ref="observer" v-slot="{ handleSubmit, invalid }">
         <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
           <b-row class="mb-2">
             <b-col>
@@ -34,9 +34,9 @@
               <div class="text-right">
                 <b-button
                   type="submit"
-                  :variant="disabled ? 'light' : 'success'"
+                  :variant="invalid ? 'light' : 'success'"
                   class="mt-4"
-                  :disabled="disabled"
+                  :disabled="invalid && disabled"
                   data-test="submit-new-password-btn"
                 >
                   {{ $t('form.save') }}
@@ -101,10 +101,7 @@ export default {
   },
   computed: {
     disabled() {
-      return !(
-        this.form.newPassword.password !== '' &&
-        this.form.newPassword.password !== this.form.newPassword.passwordRepeat
-      )
+      return this.form.newPassword.password !== this.form.newPassword.passwordRepeat
     },
   },
 }
