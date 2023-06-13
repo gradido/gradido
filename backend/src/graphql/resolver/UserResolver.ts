@@ -207,7 +207,7 @@ export class UserResolver {
   @Mutation(() => User)
   async createUser(
     @Args()
-    { email, firstName, lastName, language, publisherId = null, redeemCode = null }: CreateUserArgs,
+    { alias = null, email, firstName, lastName, language, publisherId = null, redeemCode = null }: CreateUserArgs,
   ): Promise<User> {
     logger.addContext('user', 'unknown')
     logger.info(
@@ -243,6 +243,9 @@ export class UserResolver {
         user.lastName = lastName
         user.language = language
         user.publisherId = publisherId
+        if (alias && (await validateAlias(alias))) {
+          user.alias = alias
+        }
         logger.debug('partly faked user', user)
 
         void sendAccountMultiRegistrationEmail({
@@ -276,6 +279,9 @@ export class UserResolver {
     dbUser.firstName = firstName
     dbUser.lastName = lastName
     dbUser.language = language
+    if (alias && (await validateAlias(alias))) {
+      dbUser.alias = alias
+    }
     dbUser.publisherId = publisherId ?? 0
     dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
     logger.debug('new dbUser', dbUser)

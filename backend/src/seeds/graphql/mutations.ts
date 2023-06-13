@@ -50,6 +50,7 @@ export const updateUserInfos = gql`
 
 export const createUser = gql`
   mutation (
+    $alias: String
     $firstName: String!
     $lastName: String!
     $email: String!
@@ -58,6 +59,7 @@ export const createUser = gql`
     $redeemCode: String
   ) {
     createUser(
+      alias: $alias
       email: $email
       firstName: $firstName
       lastName: $lastName

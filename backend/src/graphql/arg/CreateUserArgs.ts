@@ -2,6 +2,9 @@ import { ArgsType, Field, Int } from 'type-graphql'
 
 @ArgsType()
 export class CreateUserArgs {
+  @Field(() => String, { nullable: true })
+  alias?: string | null
+  
   @Field(() => String)
   email: string
 
