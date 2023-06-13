@@ -41,7 +41,6 @@ export default defineConfig({
   e2e: {
     specPattern: '**/*.feature',
     excludeSpecPattern: '*.js',
-    experimentalSessionAndOrigin: true,
     baseUrl: 'http://localhost:3000',
     chromeWebSecurity: false,
     defaultCommandTimeout: 10000,
