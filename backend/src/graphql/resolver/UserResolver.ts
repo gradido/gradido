@@ -207,7 +207,15 @@ export class UserResolver {
   @Mutation(() => User)
   async createUser(
     @Args()
-    { alias = null, email, firstName, lastName, language, publisherId = null, redeemCode = null }: CreateUserArgs,
+    {
+      alias = null,
+      email,
+      firstName,
+      lastName,
+      language,
+      publisherId = null,
+      redeemCode = null,
+    }: CreateUserArgs,
   ): Promise<User> {
     logger.addContext('user', 'unknown')
     logger.info(
