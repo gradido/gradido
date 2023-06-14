@@ -9,9 +9,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       role varchar(40) NOT NULL,
       created_at datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
       updated_at datetime(3),
-      PRIMARY KEY (id),
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-  `)
+      PRIMARY KEY (id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
 
   // merge values from login_email_opt_in table with users.email in new user_contacts table
   await queryFn(`
