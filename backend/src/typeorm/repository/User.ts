@@ -1,8 +1,8 @@
 import { Brackets, EntityRepository, IsNull, Not, Repository } from '@dbTools/typeorm'
 import { User as DbUser } from '@entity/User'
-import { Order } from '@enum/Order'
 
-import { SearchUsersFilters } from '@/graphql/arg/SearchUsersFilters'
+import { SearchUsersFilters } from '@arg/SearchUsersFilters'
+import { Order } from '@enum/Order'
 
 @EntityRepository(DbUser)
 export class UserRepository extends Repository<DbUser> {
@@ -12,7 +12,7 @@ export class UserRepository extends Repository<DbUser> {
     filters: SearchUsersFilters | null,
     currentPage: number,
     pageSize: number,
-    order = Order.ASC
+    order = Order.ASC,
   ): Promise<[DbUser[], number]> {
     const query = this.createQueryBuilder('user')
       .select(select)
@@ -48,7 +48,7 @@ export class UserRepository extends Repository<DbUser> {
     }
 
     return query
-      .orderBy({'user.id': order})
+      .orderBy({ 'user.id': order })
       .take(pageSize)
       .skip((currentPage - 1) * pageSize)
       .getManyAndCount()
