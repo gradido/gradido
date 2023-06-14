@@ -204,9 +204,10 @@ export class ContributionResolver {
     if (contributionToUpdate.moderatorId) {
       throw new LogError('Cannot update contribution of moderator', contributionToUpdate, user.id)
     }
+    const contributionStatusEnum = contributionToUpdate.contributionStatus as ContributionStatus
     if (
-      contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
-      contributionToUpdate.contributionStatus !== ContributionStatus.PENDING
+      contributionStatusEnum !== ContributionStatus.IN_PROGRESS &&
+      contributionStatusEnum !== ContributionStatus.PENDING
     ) {
       throw new LogError(
         'Contribution can not be updated due to status',
@@ -404,7 +405,7 @@ export class ContributionResolver {
     }
     const moderator = getUser(context)
     if (
-      contribution.contributionType === ContributionType.USER &&
+      (contribution.contributionType as ContributionType) === ContributionType.USER &&
       contribution.userId === moderator.id
     ) {
       throw new LogError('Own contribution can not be deleted as admin')
@@ -572,9 +573,10 @@ export class ContributionResolver {
     if (!contributionToUpdate) {
       throw new LogError('Contribution not found', id)
     }
+    const contributionStatus = contributionToUpdate.contributionStatus as ContributionStatus
     if (
-      contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
-      contributionToUpdate.contributionStatus !== ContributionStatus.PENDING
+      contributionStatus !== ContributionStatus.IN_PROGRESS &&
+      contributionStatus !== ContributionStatus.PENDING
     ) {
       throw new LogError(
         'Status of the contribution is not allowed',

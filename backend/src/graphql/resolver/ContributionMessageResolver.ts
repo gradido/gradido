@@ -56,7 +56,9 @@ export class ContributionMessageResolver {
       contributionMessage.isModerator = false
       await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
 
-      if (contribution.contributionStatus === ContributionStatus.IN_PROGRESS) {
+      if (
+        (contribution.contributionStatus as ContributionStatus) === ContributionStatus.IN_PROGRESS
+      ) {
         contribution.contributionStatus = ContributionStatus.PENDING
         await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)
       }
@@ -137,10 +139,11 @@ export class ContributionMessageResolver {
       contributionMessage.isModerator = true
       await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
 
+      const contributionStatusEnum = contribution.contributionStatus as ContributionStatus
       if (
-        contribution.contributionStatus === ContributionStatus.DELETED ||
-        contribution.contributionStatus === ContributionStatus.DENIED ||
-        contribution.contributionStatus === ContributionStatus.PENDING
+        contributionStatusEnum === ContributionStatus.DELETED ||
+        contributionStatusEnum === ContributionStatus.DENIED ||
+        contributionStatusEnum === ContributionStatus.PENDING
       ) {
         contribution.contributionStatus = ContributionStatus.IN_PROGRESS
         await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)

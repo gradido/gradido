@@ -291,7 +291,7 @@ export class TransactionResolver {
     // transactions
     userTransactions.forEach((userTransaction: dbTransaction) => {
       const linkedUser =
-        userTransaction.typeId === TransactionTypeId.CREATION
+        (userTransaction.typeId as TransactionTypeId) === TransactionTypeId.CREATION
           ? communityUser
           : involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
       transactions.push(new Transaction(userTransaction, self, linkedUser))

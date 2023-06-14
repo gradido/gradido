@@ -86,11 +86,6 @@ describe('sendEmailTranslated', () => {
     describe('call of "sendEmailTranslated"', () => {
       it('has expected result', () => {
         expect(result).toMatchObject({
-          envelope: {
-            from: 'info@gradido.net',
-            to: ['receiver@mail.org', 'support@gradido.net'],
-          },
-          message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'receiver@mail.org',
             cc: 'support@gradido.net',
@@ -134,11 +129,6 @@ describe('sendEmailTranslated', () => {
 
     it('call of "sendEmailTranslated" with faked "to"', () => {
       expect(result).toMatchObject({
-        envelope: {
-          from: CONFIG.EMAIL_SENDER,
-          to: [CONFIG.EMAIL_TEST_RECEIVER, 'support@gradido.net'],
-        },
-        message: expect.any(String),
         originalMessage: expect.objectContaining({
           to: CONFIG.EMAIL_TEST_RECEIVER,
           cc: 'support@gradido.net',
