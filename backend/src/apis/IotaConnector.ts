@@ -1,12 +1,44 @@
-import { ClientBuilder } from '@iota/client'
+import { Client, ClientBuilder } from '@iota/client'
 import { MessageWrapper } from '@iota/client/lib/types'
 
 import { CONFIG } from '@/config'
 import { backendLogger as logger } from '@/server/logger'
 
-const IotaClient = CONFIG?.IOTA_API_URL
-  ? new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
-  : null
+// Source: https://refactoring.guru/design-patterns/singleton/typescript/example
+// and ../federation/client/FederationClientFactory.ts
+/**
+ * A Singleton class defines the `getInstance` method that lets clients access
+ * the unique singleton instance.
+ */
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
+class IotaClientSingleton {
+  private static IotaClint: Client
+
+  /**
+   * The Singleton's constructor should always be private to prevent direct
+   * construction calls with the `new` operator.
+   */
+  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-empty-function
+  private constructor() {}
+
+  /**
+   * The static method that controls the access to the singleton instance.
+   *
+   * This implementation let you subclass the Singleton class while keeping
+   * just one instance of each subclass around.
+   */
+  public static getInstance(): Client | null {
+    if (!CONFIG.IOTA || !CONFIG.IOTA_API_URL) {
+      logger.info(`Iota are disabled via config...`)
+      return null
+    }
+    if (!IotaClientSingleton.IotaClint) {
+      IotaClientSingleton.IotaClint = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
+    }
+
+    return IotaClientSingleton.IotaClint
+  }
+}
 
 /**
  * send data message onto iota tangle
@@ -15,11 +47,11 @@ const IotaClient = CONFIG?.IOTA_API_URL
  * @return {MessageWrapper|null} the iota message as json object with transaction data from iota or null if iota is disabled in config
  */
 export const sendDataMessage = (message: string): Promise<MessageWrapper> | null => {
-  if (!CONFIG.IOTA || !IotaClient) {
-    logger.info(`Iota are disabled via config...`)
+  const client = IotaClientSingleton.getInstance()
+  if (!client) {
     return null
   }
-  return IotaClient.message().index(CONFIG.IOTA_COMMUNITY_ALIAS).data(message).submit()
+  return client.message().index(CONFIG.IOTA_COMMUNITY_ALIAS).data(message).submit()
 }
 
 /**
@@ -28,22 +60,22 @@ export const sendDataMessage = (message: string): Promise<MessageWrapper> | null
  * @return {MessageWrapper|null} the iota message as json object with transaction data from iota or null if iota is disabled in config
  */
 export const getMessage = (messageId: string): Promise<MessageWrapper> | null => {
-  if (!CONFIG.IOTA || !IotaClient) {
-    logger.info(`Iota are disabled via config...`)
+  const client = IotaClientSingleton.getInstance()
+  if (!client) {
     return null
   }
-  return IotaClient.getMessage().data(messageId)
+  return client.getMessage().data(messageId)
 }
 /**
  * receive all message ids belonging to our topic from iota tangle
  * @returns array of messageIds
  */
 export const getAllMessages = (): Promise<string[]> | null => {
-  if (!CONFIG.IOTA || !IotaClient) {
-    logger.info(`Iota are disabled via config...`)
+  const client = IotaClientSingleton.getInstance()
+  if (!client) {
     return null
   }
-  return IotaClient.getMessage().index(CONFIG.IOTA_COMMUNITY_ALIAS)
+  return client.getMessage().index(CONFIG.IOTA_COMMUNITY_ALIAS)
 }
 
 /**

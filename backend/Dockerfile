@@ -72,7 +72,6 @@ COPY ./database/ ../database/
 
 # Copy prebuild @iota/client
 RUN cp -r /prebuild_node_modules ${WORKDIR}/node_modules
-#COPY --from=gradido/iota_alpine:2.2.4 /node_modules ${WORKDIR}/node_modules
 
 # yarn install backend
 RUN yarn install --production=false --frozen-lockfile --non-interactive
