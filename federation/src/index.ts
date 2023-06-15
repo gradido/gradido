@@ -14,13 +14,11 @@ async function main() {
 
   app.listen(CONFIG.FEDERATION_PORT, () => {
     // eslint-disable-next-line no-console
-    console.log(
-      `Server is running at http://localhost:${CONFIG.FEDERATION_PORT}`
-    )
+    console.log(`Server is running at http://localhost:${CONFIG.FEDERATION_PORT}`)
     if (CONFIG.GRAPHIQL) {
       // eslint-disable-next-line no-console
       console.log(
-        `GraphIQL available at ${CONFIG.FEDERATION_COMMUNITY_URL}/api/${CONFIG.FEDERATION_API}`
+        `GraphIQL available at ${CONFIG.FEDERATION_COMMUNITY_URL}/api/${CONFIG.FEDERATION_API}`,
       )
     }
   })
