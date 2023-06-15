@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 import Decimal from 'decimal.js-light'
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'

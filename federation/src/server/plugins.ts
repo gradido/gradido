@@ -34,17 +34,12 @@ const logPlugin = {
     const { query, mutation, variables, operationName } = requestContext.request
     if (operationName !== 'IntrospectionQuery') {
       logger.info(`Request:
-${mutation || query}variables: ${JSON.stringify(
-        filterVariables(variables),
-        null,
-        2
-      )}`)
+${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
     }
     return {
       willSendResponse(requestContext: any) {
         if (operationName !== 'IntrospectionQuery') {
-          if (requestContext.context.user)
-            logger.info(`User ID: ${requestContext.context.user.id}`)
+          if (requestContext.context.user) logger.info(`User ID: ${requestContext.context.user.id}`)
           if (requestContext.response.data) {
             logger.info('Response Success!')
             logger.trace(`Response-Data:
@@ -61,8 +56,6 @@ ${JSON.stringify(requestContext.response.errors, null, 2)}`)
 }
 
 const plugins =
-  process.env.NODE_ENV === 'development'
-    ? [setHeadersPlugin]
-    : [setHeadersPlugin, logPlugin]
+  process.env.NODE_ENV === 'development' ? [setHeadersPlugin] : [setHeadersPlugin, logPlugin]
 
 export default plugins
