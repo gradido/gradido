@@ -12,7 +12,7 @@ import { backendLogger as logger } from '@/server/logger'
  */
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 class IotaClientSingleton {
-  private static IotaClint: Client
+  private static IotaClient: Client
 
   /**
    * The Singleton's constructor should always be private to prevent direct
