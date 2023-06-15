@@ -2110,7 +2110,7 @@ describe('UserResolver', () => {
 
   describe('search users', () => {
     const variablesWithoutTextAndFilters = {
-      searchText: '',
+      query: '',
       currentPage: 1,
       pageSize: 25,
       filters: null,

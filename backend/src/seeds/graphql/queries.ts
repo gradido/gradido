@@ -69,12 +69,19 @@ export const sendResetPasswordEmail = gql`
 `
 
 export const searchUsers = gql`
-  query ($searchText: String!, $currentPage: Int, $pageSize: Int, $filters: SearchUsersFilters) {
+  query (
+    $query: String!
+    $filters: SearchUsersFilters
+    $currentPage: Int = 1
+    $pageSize: Int = 25
+    $order: Order = ASC
+  ) {
     searchUsers(
-      searchText: $searchText
+      query: $query
+      filters: $filters
       currentPage: $currentPage
       pageSize: $pageSize
-      filters: $filters
+      order: $order
     ) {
       userCount
       userList {

@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { CreateUserArgs } from '@arg/CreateUserArgs'
 import { Paginated } from '@arg/Paginated'
-import { SearchUsersArgs } from '@arg/SearchUsersArgs'
+import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
 import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
 import { OptInType } from '@enum/OptInType'
@@ -628,8 +628,11 @@ export class UserResolver {
   @Authorized([RIGHTS.SEARCH_USERS])
   @Query(() => SearchUsersResult)
   async searchUsers(
+    @Arg('query', () => String) query: string,
+    @Arg('filters', () => SearchUsersFilters, { nullable: true })
+    filters: SearchUsersFilters | null | undefined,
     @Args()
-    { searchText, currentPage = 1, pageSize = 25, filters }: SearchUsersArgs,
+    { currentPage = 1, pageSize = 25, order = Order.ASC }: Paginated,
     @Ctx() context: Context,
   ): Promise<SearchUsersResult> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
@@ -647,15 +650,16 @@ export class UserResolver {
       userFields.map((fieldName) => {
         return 'user.' + fieldName
       }),
-      searchText,
+      query,
       filters ?? null,
       currentPage,
       pageSize,
+      order,
     )
 
     if (users.length === 0) {
       return {
-        userCount: 0,
+        userCount: count,
         userList: [],
       }
     }
