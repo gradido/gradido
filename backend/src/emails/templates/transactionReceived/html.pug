@@ -1,15 +1,15 @@
-doctype html
-html(lang=locale)
-  head
-    title= t('emails.transactionReceived.subject', { senderFirstName, senderLastName, transactionAmount })
-  body
-    h1(style='margin-bottom: 24px;')= t('emails.transactionReceived.subject', { senderFirstName, senderLastName, transactionAmount })
-    #container.col
-      include ../hello.pug
-      p= t('emails.transactionReceived.haveReceivedAmountGDDFrom', { transactionAmount, senderFirstName, senderLastName, senderEmail })
-      p
-        = t('emails.general.detailsYouFindOnLinkToYourAccount')
-        = " "
-        a(href=overviewURL) #{overviewURL}
-      p= t('emails.general.pleaseDoNotReply')
-      include ../greatingFormularImprint.pug
+extend ../layout.pug
+
+block content
+  h2= t('emails.transactionReceived.title', { senderFirstName, senderLastName, transactionAmount })
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.transactionReceived.haveReceivedAmountGDDFrom', { transactionAmount, senderFirstName, senderLastName, senderEmail })
+  .content
+    h2= t('emails.general.transactionDetails')
+    div(class="p_content")= t('emails.general.detailsYouFindOnLinkToYourAccount')
+    
+    a.button-3(href="https://gdd.gradido.net/transactions") #{t('emails.general.toAccount')}
+
+    include ../includes/doNotReply.pug
+

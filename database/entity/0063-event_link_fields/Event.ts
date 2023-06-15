@@ -2,7 +2,7 @@ import { Contribution } from '../Contribution'
 import { ContributionMessage } from '../ContributionMessage'
 import { User } from '../User'
 import { Transaction } from '../Transaction'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 import {
   BaseEntity,
   Entity,
