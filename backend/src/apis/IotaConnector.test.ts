@@ -37,7 +37,7 @@ describe('apis/IotaConnector/enabled', () => {
         expect(indexationPayload.index).toBe(indexHexString)
       }
     })
-    it('receive hello world message from iota tangle by searching throw all', async () => {
+    it('receives hello world message from iota tangle by searching throw all', async () => {
       const iotaMessages = await getAllMessages()
       expect(iotaMessages).not.toBeNull()
       if (iotaMessages) {
