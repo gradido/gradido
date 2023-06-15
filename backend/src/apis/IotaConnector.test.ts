@@ -28,7 +28,7 @@ describe('apis/IotaConnector/enabled', () => {
         messageId = iotaMessage.messageId
       }
     })
-    it('receive hello world message from iota tangle by message id', async () => {
+    it('receives hello world message from iota tangle by message id', async () => {
       const iotaMessage = await getMessage(messageId)
       expect(iotaMessage).not.toBeNull()
       if (iotaMessage) {
