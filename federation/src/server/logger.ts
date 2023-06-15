@@ -12,25 +12,13 @@ options.appenders.federation.filename = filename
   .replace('%v', CONFIG.FEDERATION_API)
   .replace('%p', CONFIG.FEDERATION_PORT.toString())
 filename = options.appenders.access.filename
-options.appenders.access.filename = filename.replace(
-  '%p',
-  CONFIG.FEDERATION_PORT.toString()
-)
+options.appenders.access.filename = filename.replace('%p', CONFIG.FEDERATION_PORT.toString())
 filename = options.appenders.apollo.filename
-options.appenders.apollo.filename = filename.replace(
-  '%p',
-  CONFIG.FEDERATION_PORT.toString()
-)
+options.appenders.apollo.filename = filename.replace('%p', CONFIG.FEDERATION_PORT.toString())
 filename = options.appenders.backend.filename
-options.appenders.backend.filename = filename.replace(
-  '%p',
-  CONFIG.FEDERATION_PORT.toString()
-)
+options.appenders.backend.filename = filename.replace('%p', CONFIG.FEDERATION_PORT.toString())
 filename = options.appenders.errorFile.filename
-options.appenders.errorFile.filename = filename.replace(
-  '%p',
-  CONFIG.FEDERATION_PORT.toString()
-)
+options.appenders.errorFile.filename = filename.replace('%p', CONFIG.FEDERATION_PORT.toString())
 
 log4js.configure(options)
 
