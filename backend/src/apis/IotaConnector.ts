@@ -32,8 +32,8 @@ class IotaClientSingleton {
       logger.info(`Iota are disabled via config...`)
       return null
     }
-    if (!IotaClientSingleton.IotaClint) {
-      IotaClientSingleton.IotaClint = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
+    if (!IotaClientSingleton.IotaClient) {
+      IotaClientSingleton.IotaClient = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
     }
 
     return IotaClientSingleton.IotaClint
