@@ -15,7 +15,7 @@
 /* eslint-disable no-unused-vars */
 
 import fs from 'fs'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 
 // Set precision value
 Decimal.set({

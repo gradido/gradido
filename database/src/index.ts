@@ -1,6 +1,5 @@
-import 'reflect-metadata'
 import { createDatabase } from './prepare'
-import CONFIG from './config'
+import { CONFIG } from './config'
 
 import { createPool } from 'mysql'
 import { Migration } from 'ts-mysql-migrate'
