@@ -19,7 +19,7 @@ enum ApiVersionType {
   V1_1 = '1_1',
   V2_0 = '2_0',
 }
-export type CommunityApi = {
+type CommunityApi = {
   api: string
   url: string
 }
@@ -29,6 +29,7 @@ type KeyPair = { publicKey: Buffer; secretKey: Buffer }
 export const startDHT = async (topic: string): Promise<void> => {
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
+    // uses a config defined seed or null, which will generate a random seed for the key pair
     const keyPair = DHT.keyPair(
       CONFIG.FEDERATION_DHT_SEED
         ? Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED)
@@ -246,14 +247,11 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
 }
 
 const newCommunityUuid = async (): Promise<string> => {
-  let uuid: string
-  let countIds: number
-  do {
-    uuid = uuidv4()
-    countIds = await DbCommunity.count({ where: { communityUuid: uuid } })
-    if (countIds > 0) {
-      logger.info('CommunityUuid creation conflict...')
+  while (true) {
+    const communityUuid = uuidv4()
+    if ((await DbCommunity.count({ where: { communityUuid } })) === 0) {
+      return communityUuid
     }
-  } while (countIds > 0)
-  return uuid
+    logger.info('CommunityUuid creation conflict...', communityUuid)
+  }
 }
