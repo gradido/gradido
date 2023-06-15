@@ -21,7 +21,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 
 // Set precision value
 Decimal.set({
