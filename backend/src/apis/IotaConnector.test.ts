@@ -18,7 +18,7 @@ describe('apis/IotaConnector/enabled', () => {
     const messageString = 'Hello World - ' + now.toString()
     const messageHexString = Buffer.from(messageString, 'utf8').toString('hex')
     const indexHexString = Buffer.from(CONFIG.IOTA_COMMUNITY_ALIAS, 'utf8').toString('hex')
-    it('send hello world message to iota tangle', async () => {
+    it('sends hello world message to iota tangle', async () => {
       const iotaMessage = await sendDataMessage(messageString)
       expect(iotaMessage).not.toBeNull()
       if (iotaMessage) {
