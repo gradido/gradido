@@ -20,7 +20,6 @@
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-unused-vars */
 
 import { Decimal } from 'decimal.js-light'
 
@@ -41,11 +40,13 @@ interface Decay {
   duration: number | null
 }
 
+/* eslint-disable no-unused-vars */
 export enum TransactionTypeId {
   CREATION = 1,
   SEND = 2,
   RECEIVE = 3,
 }
+/* eslint-enable no-unused-vars */
 
 function decayFormula(value: Decimal, seconds: number): Decimal {
   return value.mul(new Decimal('0.99999997803504048973201202316767079413460520837376').pow(seconds))
