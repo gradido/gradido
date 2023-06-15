@@ -36,7 +36,7 @@ class IotaClientSingleton {
       IotaClientSingleton.IotaClient = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
     }
 
-    return IotaClientSingleton.IotaClint
+    return IotaClientSingleton.IotaClient
   }
 }
 
