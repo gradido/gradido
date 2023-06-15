@@ -49,7 +49,7 @@
       pills
       size="lg"
       v-model="currentPage"
-      per-page="perPage"
+      :per-page="perPage"
       :total-rows="rows"
       align="center"
       :hide-ellipsis="true"
@@ -97,10 +97,11 @@ export default {
         .query({
           query: searchUsers,
           variables: {
-            searchText: this.criteria,
+            query: this.criteria,
+            filters: this.filters,
             currentPage: this.currentPage,
             pageSize: this.perPage,
-            filters: this.filters,
+            order: 'DESC',
           },
           fetchPolicy: 'no-cache',
         })
