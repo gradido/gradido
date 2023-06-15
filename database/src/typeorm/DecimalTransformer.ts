@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 import { ValueTransformer } from 'typeorm'
 
 Decimal.set({
