@@ -14,7 +14,7 @@ When(
 
 And('the user submits the send form', () => {
   sendPage.submit()
-  cy.get('.transaction-confirm-send').should('be.visible')
+  cy.get(sendPage.confirmationBox).should('be.visible')
 })
 
 
@@ -51,4 +51,10 @@ When('the user submits the transaction by confirming', () => {
   cy.get('.rightside-last-transactions').should('be.visible')
   cy.get('.align-items-center').contains('Räuber Hotzenplotz')
   cy.get('.align-items-center').contains('− 120.50 GDD')
+})
+
+
+Then('the transaction details are displayed on the transactions page', () => {
+  cy.get('div.mt-3 > div > div.test-list-group-item').eq(0).contains('div.gdd-transaction-list-item-name', 'Räuber Hotzenplotz')
+  cy.get('div.mt-3 > div > div.test-list-group-item').eq(0).contains('[data-test="send-amount"]', '− 120.50 GDD')
 })

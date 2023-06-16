@@ -1,6 +1,7 @@
 /// <reference types='cypress' />
 
 export class SendPage {
+  confirmationBox = '.transaction-confirm-send'
   submitBtn = '.btn-gradido'
 
   enterReceiverEmail(email: string) {
