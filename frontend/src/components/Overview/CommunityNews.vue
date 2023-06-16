@@ -19,8 +19,8 @@
           <b-row class="my-5">
             <b-col cols="12">
               <div class="text-lg-right">
-                <b-button variant="gradido" :href="item.url" target="_blank">
-                  {{ $t('auth.left.learnMore') }}
+                <b-button variant="gradido" :to="item.url">
+                  {{ $t('community.startNewsButton') }}
                 </b-button>
               </div>
             </b-col>
