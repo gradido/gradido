@@ -17,6 +17,7 @@
     "@babel/core": "^7.13.13",
     "@babel/node": "^7.13.13",
     "@babel/preset-env": "^7.13.12",
+    "@iota/crypto.js": "^1.8.6",
     "@iota/iota.js": "^1.8.6",
     "@iota/util.js": "^1.8.6",
     "@vue/cli-plugin-unit-jest": "^4.5.12",
