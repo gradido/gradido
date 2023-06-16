@@ -376,5 +376,18 @@
     "send_you": "wants to send you"
   },
   "via_link": "via Link",
-  "welcome": "Welcome to the community"
+  "welcome": "Welcome to the community",
+  "iota": {
+    "infoButton": "Get Iota Node Info",
+    "nodeInfo": "Node Info",
+    "name": "Name:",
+    "version": "Version:",
+    "isHealthy": "Is Healthy:",
+    "networkId": "Network Id:",
+    "lastMilestoneIndex": "Latest Milestone Index:",
+    "confirmedMilestoneIndex": "Confirmed Milestone Index:",
+    "pruning": "Pruning Index:",
+    "features": "Features:",
+    "minPoWScore": "Min PoW Score:"
+  }
 }

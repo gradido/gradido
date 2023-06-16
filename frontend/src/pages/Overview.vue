@@ -2,43 +2,45 @@
   <div class="overview">
     <community-news />
     <div class="card mt-5">
-      <button @click="getNodeInfo">Get Iota Node Info</button>
+      <button @click="getNodeInfo">{{ $t('iota.infoButton') }}</button>
       <div v-if="nodeInfo">
-        <h2>Node Info</h2>
+        <h2>{{ $t('iota.nodeInfo') }}</h2>
+
+        {{ nodeInfo }}
         <p>
-          <strong>Name:</strong>
+          <strong>{{ $t('iota.name') }}</strong>
           {{ nodeInfo.name }}
         </p>
         <p>
-          <strong>Version:</strong>
+          <strong>{{ $t('iota.version') }}</strong>
           {{ nodeInfo.version }}
         </p>
         <p>
-          <strong>Is Healthy:</strong>
+          <strong>{{ $t('iota.isHealthy') }}</strong>
           {{ nodeInfo.isHealthy }}
         </p>
         <p>
-          <strong>Network Id:</strong>
+          <strong>{{ $t('iota.networkId') }}</strong>
           {{ nodeInfo.networkId }}
         </p>
         <p>
-          <strong>Latest Milestone Index:</strong>
+          <strong>{{ $t('iota.lastMilestoneIndex') }}</strong>
           {{ nodeInfo.latestMilestoneIndex }}
         </p>
         <p>
-          <strong>Confirmed Milestone Index:</strong>
+          <strong>{{ $t('iota.confirmedMilestoneIndex') }}</strong>
           {{ nodeInfo.confirmedMilestoneIndex }}
         </p>
         <p>
-          <strong>Pruning Index:</strong>
+          <strong>{{ $t('iota.pruning') }}</strong>
           {{ nodeInfo.pruningIndex }}
         </p>
         <p>
-          <strong>Features:</strong>
+          <strong>{{ $t('iota.features') }}</strong>
           {{ nodeInfo.features }}
         </p>
         <p>
-          <strong>Min PoW Score:</strong>
+          <strong>{{ $t('iota.minPoWScore') }}</strong>
           {{ nodeInfo.minPoWScore }}
         </p>
       </div>
@@ -67,7 +69,7 @@ export default {
         const info = await client.info()
         this.nodeInfo = info
       } catch (err) {
-        console.error(err)
+        // console.error(err)
       }
     },
   },

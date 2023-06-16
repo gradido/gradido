@@ -376,5 +376,18 @@
     "send_you": "sendet dir"
   },
   "via_link": "über einen Link",
-  "welcome": "Willkommen in der Gemeinschaft"
+  "welcome": "Willkommen in der Gemeinschaft",
+  "iota": {
+    "infoButton": "Iota-Knoten-Info abrufen",
+    "nodeInfo": "Knoten-Info",
+    "name": "Name:",
+    "version": "Version:",
+    "isHealthy": "Ist gesund:",
+    "networkId": "Netzwerk-Id:",
+    "lastMilestoneIndex": "Letzter Meilenstein-Index:",
+    "confirmedMilestoneIndex": "Bestätigter Meilenstein-Index:",
+    "pruning": "Pruning Index:",
+    "features": "Merkmale:",
+    "minPoWScore": "Min PoW Score:"
+  }
 }
