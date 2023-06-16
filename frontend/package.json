@@ -53,6 +53,7 @@
     "uuid": "^9.0.0",
     "vee-validate": "^3.4.5",
     "vue": "2.6.12",
+    "vue-advanced-chat": "^2.0.7",
     "vue-apollo": "^3.0.7",
     "vue-avatar": "^2.3.3",
     "vue-flatpickr-component": "^8.1.2",

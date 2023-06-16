@@ -78,6 +78,14 @@ const routes = [
       pageTitle: 'information',
     },
   },
+  {
+    path: '/chat',
+    component: () => import('@/pages/Chat'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'chat',
+    },
+  },
   // {
   //   path: '/storys',
   //   component: () => import('@/pages/TopStorys'),

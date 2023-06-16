@@ -35,6 +35,10 @@
         </b-nav>
         <hr class="m-3" />
         <b-nav vertical class="w-100">
+          <b-nav-item to="/chat" class="mb-3" active-class="activeRoute">
+            <b-img src="/img/svg/settings.svg" height="20" class="svg-icon" />
+            <span class="ml-2">chat</span>
+          </b-nav-item>
           <b-nav-item to="/settings" class="mb-3" active-class="activeRoute">
             <b-img src="/img/svg/settings.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.settings') }}</span>
