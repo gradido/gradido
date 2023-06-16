@@ -33,7 +33,7 @@ export class FederationClient {
     const nonce = randombytes_random()
     const ownCommunity = await Community.findOneOrFail({ foreign: false })
     if (!ownCommunity.privateKey) {
-      throw new Error('Own private key not in database.')
+      throw new Error('Own private key not in database')
     }
     const token = await this.generateToken(
       nonce,
