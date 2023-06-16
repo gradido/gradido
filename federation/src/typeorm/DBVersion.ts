@@ -17,7 +17,7 @@ const checkDBVersion = async (DB_VERSION: string): Promise<boolean> => {
     logger.error(
       `Wrong database version detected - the backend requires '${DB_VERSION}' but found '${
         dbVersion || 'None'
-      }`
+      }`,
     )
     return false
   }
