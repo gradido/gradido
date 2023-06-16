@@ -20,11 +20,11 @@ And('the user submits the send form', () => {
 
 Then('the transaction details are presented for confirmation', () => {
   cy.get('.transaction-confirm-send').contains('raeuber@hotzenplotz.de')
-  cy.get('.transaction-confirm-send').contains('+ 120,50 GDD')
+  cy.get('.transaction-confirm-send').contains('+ 120.50 GDD')
   cy.get('.transaction-confirm-send').contains('Some memo text')
-  cy.get('.transaction-confirm-send').contains('+ 515,11 GDD')
-  cy.get('.transaction-confirm-send').contains('− 120,50 GDD')
-  cy.get('.transaction-confirm-send').contains('+ 394,61 GDD')
+  cy.get('.transaction-confirm-send').contains('+ 515.11 GDD')
+  cy.get('.transaction-confirm-send').contains('− 120.50 GDD')
+  cy.get('.transaction-confirm-send').contains('+ 394.61 GDD')
 })
 
 When('the user submits the transaction by confirming', () => {
@@ -50,11 +50,5 @@ When('the user submits the transaction by confirming', () => {
   cy.get('[data-test="send-transaction-success-text"]').should('be.visible')
   cy.get('.rightside-last-transactions').should('be.visible')
   cy.get('.align-items-center').contains('Räuber Hotzenplotz')
-  cy.get('.align-items-center').contains('− 120,50 GDD')
-})
-
-Then('the transaction details are displayed on the transcations page', () => {
-  cy.visit('/transactions')
-  cy.get('.test-list-group-item').contains('Räuber Hotzenplotz')
-  cy.get('.test-list-group-item').contains('− 120,50 GDD')
+  cy.get('.align-items-center').contains('− 120.50 GDD')
 })
