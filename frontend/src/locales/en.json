@@ -235,6 +235,19 @@
     "recruited-member": "Invited member"
   },
   "h": "h",
+  "iota": {
+    "confirmedMilestoneIndex": "Confirmed Milestone Index:",
+    "features": "Features:",
+    "infoButton": "Get Iota Node Info",
+    "isHealthy": "Is Healthy:",
+    "lastMilestoneIndex": "Latest Milestone Index:",
+    "minPoWScore": "Min PoW Score:",
+    "name": "Name:",
+    "networkId": "Network Id:",
+    "nodeInfo": "Node Info",
+    "pruning": "Pruning Index:",
+    "version": "Version:"
+  },
   "language": "Language",
   "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
   "login": "Sign in",
@@ -376,18 +389,5 @@
     "send_you": "wants to send you"
   },
   "via_link": "via Link",
-  "welcome": "Welcome to the community",
-  "iota": {
-    "infoButton": "Get Iota Node Info",
-    "nodeInfo": "Node Info",
-    "name": "Name:",
-    "version": "Version:",
-    "isHealthy": "Is Healthy:",
-    "networkId": "Network Id:",
-    "lastMilestoneIndex": "Latest Milestone Index:",
-    "confirmedMilestoneIndex": "Confirmed Milestone Index:",
-    "pruning": "Pruning Index:",
-    "features": "Features:",
-    "minPoWScore": "Min PoW Score:"
-  }
+  "welcome": "Welcome to the community"
 }

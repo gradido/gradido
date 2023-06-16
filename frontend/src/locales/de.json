@@ -235,6 +235,19 @@
     "recruited-member": "Eingeladenes Mitglied"
   },
   "h": "h",
+  "iota": {
+    "confirmedMilestoneIndex": "Bestätigter Meilenstein-Index:",
+    "features": "Merkmale:",
+    "infoButton": "Iota-Knoten-Info abrufen",
+    "isHealthy": "Ist gesund:",
+    "lastMilestoneIndex": "Letzter Meilenstein-Index:",
+    "minPoWScore": "Min PoW Score:",
+    "name": "Name:",
+    "networkId": "Netzwerk-Id:",
+    "nodeInfo": "Knoten-Info",
+    "pruning": "Pruning Index:",
+    "version": "Version:"
+  },
   "language": "Sprache",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
   "login": "Anmelden",
@@ -376,18 +389,5 @@
     "send_you": "sendet dir"
   },
   "via_link": "über einen Link",
-  "welcome": "Willkommen in der Gemeinschaft",
-  "iota": {
-    "infoButton": "Iota-Knoten-Info abrufen",
-    "nodeInfo": "Knoten-Info",
-    "name": "Name:",
-    "version": "Version:",
-    "isHealthy": "Ist gesund:",
-    "networkId": "Netzwerk-Id:",
-    "lastMilestoneIndex": "Letzter Meilenstein-Index:",
-    "confirmedMilestoneIndex": "Bestätigter Meilenstein-Index:",
-    "pruning": "Pruning Index:",
-    "features": "Merkmale:",
-    "minPoWScore": "Min PoW Score:"
-  }
+  "welcome": "Willkommen in der Gemeinschaft"
 }
