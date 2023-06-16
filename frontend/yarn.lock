@@ -2046,6 +2046,31 @@
     "@intlify/runtime" "9.1.9"
     "@intlify/shared" "9.1.9"
 
+"@iota/crypto.js@^1.8.6":
+  version "1.8.6"
+  resolved "https://registry.yarnpkg.com/@iota/crypto.js/-/crypto.js-1.8.6.tgz#ce480bdecc3e1a43ac701453c20f533b9472d4e7"
+  integrity sha512-bmsBL+gEJVlT1KgkOqjIkPsyNs5VV9MyrAWo9UAYdGNxfyH+KeYiiRzIaQwwhCzUkncuNzlCTbEo2qRJQoKETg==
+  dependencies:
+    "@iota/util.js" "^1.8.6"
+    big-integer "^1.6.51"
+
+"@iota/iota.js@^1.8.6":
+  version "1.8.6"
+  resolved "https://registry.yarnpkg.com/@iota/iota.js/-/iota.js-1.8.6.tgz#ab28513afa825e4e115a3b1fb572cd40e494816f"
+  integrity sha512-KkUgYS+bde2v5ThjQsVWOECdRH1ym0atUod6TPk9YR05xNpVFq/kt4N/QBKqYv0ysLCL/EjR6mVZCrc5mE6CHA==
+  dependencies:
+    "@iota/crypto.js" "^1.8.6"
+    "@iota/util.js" "^1.8.6"
+    big-integer "^1.6.51"
+    node-fetch "2.6.7"
+
+"@iota/util.js@^1.8.6":
+  version "1.8.6"
+  resolved "https://registry.yarnpkg.com/@iota/util.js/-/util.js-1.8.6.tgz#5e320fbeea99bc16167f672607a98c5d1b488ecb"
+  integrity sha512-vQRYU0bDKORGFzeoN2zn7tO4Kjqv+h2P/J//MRspg9Kyy1TKgtGkn0j0M2ZSwJjScH6Cn2BQmRLet/ZBpg6osA==
+  dependencies:
+    big-integer "^1.6.51"
+
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz#fd3db1d59ecf7cf121e80650bb86712f9b55eced"
@@ -4173,6 +4198,11 @@ bfj@^6.1.1:
     check-types "^8.0.3"
     hoopy "^0.1.4"
     tryer "^1.0.1"
+
+big-integer@^1.6.51:
+  version "1.6.51"
+  resolved "https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.51.tgz#0df92a5d9880560d3ff2d5fd20245c889d130686"
+  integrity sha512-GPEid2Y9QU1Exl1rpO9B2IPJGHPSupF5GnVIP0blYvNOMer2bTvSWs1jGOUg04hTmu67nmLsQ9TBo1puaotBHg==
 
 big.js@^3.1.3:
   version "3.2.0"
@@ -10470,7 +10500,7 @@ node-environment-flags@^1.0.5:
     object.getownpropertydescriptors "^2.0.3"
     semver "^5.7.0"
 
-node-fetch@^2.6.1:
+node-fetch@2.6.7, node-fetch@^2.6.1:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
   integrity sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==
