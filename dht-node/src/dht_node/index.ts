@@ -222,6 +222,7 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
     if (homeCom) {
       // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
       homeCom.publicKey = keyPair.publicKey
+      homeCom.privateKey = keyPair.secretKey
       homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL + '/api/'
       homeCom.name = CONFIG.COMMUNITY_NAME
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
@@ -232,6 +233,7 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
       homeCom = new DbCommunity()
       homeCom.foreign = false
       homeCom.publicKey = keyPair.publicKey
+      homeCom.privateKey = keyPair.secretKey
       homeCom.communityUuid = await newCommunityUuid()
       homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL + '/api/'
       homeCom.name = CONFIG.COMMUNITY_NAME
