@@ -56,6 +56,7 @@
           <b-form inline>
             <label class="sr-only" for="inline-form-input-text">Text</label>
             <b-form-input
+              ref="textInput"
               v-model="text"
               id="inline-form-input-text"
               class="mb-2 mr-sm-2 mb-sm-0"
@@ -100,6 +101,38 @@
         <hr />
       </div>
     </div>
+    <hr />
+    <div>
+      <b-form inline>
+        <label class="sr-only" for="inline-form-input-text">Text</label>
+        <b-form-input
+          v-model="textMessage"
+          id="inline-form-input-text"
+          class="mb-2 mr-sm-2 mb-sm-0"
+          placeholder="Jane Doe"
+        ></b-form-input>
+      </b-form>
+      <button
+        @click="sendData"
+        class="
+      "
+      >
+        Send Data to Iota Tangle
+      </button>
+      <div v-if="sendResult.messageId" class="mt-4">
+        <div>Received Message Id: {{ sendResult.messageId }}</div>
+        <div class="mt-4">
+          Explorer Link:
+           
+          <b-link :href="`https://explorer.iota.org/mainnet/message/${sendResult.messageId}`"
+            target="_blank"
+          >
+            {{ `https://explorer.iota.org/mainnet/message/${sendResult.messageId}` }}</b-link>
+        </div>
+      </div>
+
+      <button @click="findMessages">Find Messages</button>
+    </div>
   </div>
 </template>
 
@@ -115,6 +148,8 @@ import {
   ED25519_ADDRESS_TYPE,
   generateBip44Address,
   // IOTA_BIP44_BASE_PATH,
+  retrieveData,
+  sendData,
   SingleNodeClient,
 } from '@iota/iota.js'
 
@@ -131,6 +166,9 @@ export default {
       nodeInfo: null,
       nodeHealth: null,
       addresses: [],
+      myIndex: 0,
+      sendResult: [],
+      textMessage: '',
     }
   },
   computed: {
@@ -189,9 +227,51 @@ export default {
 
       this.addresses = generatedAddresses
     },
+    async sendData() {
+      if (!this.textMessage) {
+        alert('Please enter message')
+        return
+      }
+       
+        console.log('Sending Data')
+        this.sendResult = await sendData(
+          this.client,
+          this.myIndex,
+          Converter.utf8ToBytes(
+            `This is test data from gradido localhost client 🚀 :: ${this.textMessage}`,
+          ),
+        )
+
+        console.log('Received Message Id', sendResult.messageId)
+        console.log(`https://explorer.iota.org/mainnet/message/${sendResult.messageId}`)
+   
+    },
+    async findMessages() {
+      this.client = new SingleNodeClient(API_ENDPOINT)
+      console.log('Finding messages with index', this.sendResult.messageId)
+      const found = await this.client.messagesFind('07ba481e4fd6ce172714015a5f5e400007acf0bc1c1fee3824ffa923cf803473')
+
+      if (found && found.messageIds.length > 0) {
+        console.log(`Found: ${found.count} of ${found.maxResults}`)
+
+        const firstResult = await retrieveData(this.client, found.messageIds[0])
+        if (firstResult) {
+          console.log('First Result')
+          console.log('\tIndex: ', Converter.bytesToUtf8(firstResult.index))
+          console.log(
+            '\tData: ',
+            firstResult.data ? Converter.bytesToUtf8(firstResult.data) : 'None',
+          )
+        }
+      } else {
+        console.log('Found no results')
+      }
+    },
   },
   created() {
     this.getNodeInfo()
+    this.client = new SingleNodeClient(API_ENDPOINT)
+    this.myIndex = Converter.utf8ToBytes('MY-DATA-INDEX')
   },
 }
 </script>
