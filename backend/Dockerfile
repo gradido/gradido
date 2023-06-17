@@ -1,10 +1,7 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-# base on custom docker container which is essential node:18.7.0-alpine3.16 
-# but with installed build-tools for rust native npm modules
-# and with compiled @iota/client
-FROM gradido/iota_alpine:2.2.4 as base
+FROM node:18.7.0-alpine3.16 as base
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
 ## DOCKER_WORKDIR would be a classical ARG, but that is not multi layer persistent - shame
@@ -36,6 +33,8 @@ LABEL maintainer="support@gradido.net"
 # Install Additional Software
 ## install: git
 #RUN apk --no-cache add git
+# Install Build Tool for Rust for @iota/client
+RUN apk add --no-cache rust cargo python3 make g++
 
 # Settings
 ## Expose Container Port
@@ -70,9 +69,6 @@ COPY ./backend/ ./
 # Copy everything from database
 COPY ./database/ ../database/
 
-# Copy prebuild @iota/client
-RUN cp -r /prebuild_node_modules ${WORKDIR}/node_modules
-
 # yarn install backend
 RUN yarn install --production=false --frozen-lockfile --non-interactive
 
@@ -97,6 +93,9 @@ CMD /bin/sh -c "yarn run start"
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
 ##################################################################################
 FROM base as production
+
+# Remove Build Tool for Rust else they would bloat the image unneccessary 
+RUN apk del rust cargo python3 make g++
 
 # Copy "binary"-files from build image
 COPY --from=build ${DOCKER_WORKDIR}/build ./build
