@@ -9,7 +9,7 @@ describe('apis/IotaConnector/disabled', () => {
   it('getInstance return undefined if iota is disabled', () => {
     const spyLog = jest.spyOn(logger, 'info')
     expect(IotaClientSingleton.getInstance()).toBeUndefined()
-    expect(spyLog).toHaveBeenCalledWith('Iota are disabled via config...');
+    expect(spyLog).toHaveBeenCalledWith('Iota are disabled via config...')
   })
 })
 
@@ -21,6 +21,6 @@ describe('apis/IotaConnector/invalidIotaUrl', () => {
   it('log "couldn\'t connect to iota"', () => {
     const spyLog = jest.spyOn(logger, 'error')
     expect(IotaClientSingleton.getInstance()).toBeUndefined()
-    expect(spyLog).toHaveBeenCalledWith('couldn\'t connect to iota')
+    expect(spyLog).toHaveBeenCalledWith("couldn't connect to iota")
   })
 })

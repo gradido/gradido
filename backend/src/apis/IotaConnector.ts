@@ -30,15 +30,15 @@ class IotaClientSingleton {
    */
   public static getInstance(): IotaClientSingleton | undefined {
     if (!CONFIG.IOTA || !CONFIG.IOTA_API_URL) {
-      logger.info(`Iota are disabled via config...`)    
+      logger.info(`Iota are disabled via config...`)
       return
     }
     if (!IotaClientSingleton.instance) {
       IotaClientSingleton.instance = new IotaClientSingleton()
-      try {        
+      try {
         IotaClientSingleton.instance.client = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
-      } catch(e){
-        logger.error('couldn\'t connect to iota')
+      } catch (e) {
+        logger.error("couldn't connect to iota")
         return
       }
     }
