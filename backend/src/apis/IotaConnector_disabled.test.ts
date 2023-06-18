@@ -1,11 +1,6 @@
 import { IotaClientSingleton } from '@/apis/IotaConnector'
 import { CONFIG } from '@/config'
 import { backendLogger as logger } from '@/server/logger'
-/*
-jest.mock('@/config', () => ({
-  CONFIG: { IOTA: true, IOTA_API_URL:'invalidUrl' },
-}))
-*/
 
 describe('apis/IotaConnector/disabled', () => {
   beforeEach(() => {
