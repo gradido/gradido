@@ -13,9 +13,8 @@ describe('apis/IotaConnector/enabled', () => {
     const messageString = 'Hello World - ' + now.toString()
     const messageHexString = Buffer.from(messageString, 'utf8').toString('hex')
     const indexHexString = Buffer.from(CONFIG.IOTA_COMMUNITY_ALIAS, 'utf8').toString('hex')
-    const iota = IotaClientSingleton.getInstance()
     it('sends hello world message to iota tangle', async () => {
-      const iotaMessage = await iota?.sendDataMessage(messageString)
+      const iotaMessage = await IotaClientSingleton.getInstance()?.sendDataMessage(messageString)
       expect(iotaMessage).toMatchObject({
         message: {
           payload: {
@@ -29,7 +28,7 @@ describe('apis/IotaConnector/enabled', () => {
         iotaMessage?.messageId ?? '5498130bc3918e1a7143969ce05805502417e3e1bd596d3c44d6a0adeea22710'
     })
     it('receives hello world message from iota tangle by message id', async () => {
-      const iotaMessage = await iota?.getMessage(messageId)
+      const iotaMessage = await IotaClientSingleton.getInstance()?.getMessage(messageId)
       expect(iotaMessage).toMatchObject({
         message: {
           payload: {

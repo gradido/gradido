@@ -28,14 +28,19 @@ class IotaClientSingleton {
    * This implementation let you subclass the Singleton class while keeping
    * just one instance of each subclass around.
    */
-  public static getInstance(): IotaClientSingleton | null {
+  public static getInstance(): IotaClientSingleton | undefined {
     if (!CONFIG.IOTA || !CONFIG.IOTA_API_URL) {
-      logger.info(`Iota are disabled via config...`)
-      return null
+      logger.info(`Iota are disabled via config...`)    
+      return
     }
     if (!IotaClientSingleton.instance) {
       IotaClientSingleton.instance = new IotaClientSingleton()
-      IotaClientSingleton.instance.client = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
+      try {        
+        IotaClientSingleton.instance.client = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
+      } catch(e){
+        logger.error('couldn\'t connect to iota')
+        return
+      }
     }
 
     return IotaClientSingleton.instance
