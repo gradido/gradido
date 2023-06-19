@@ -28,7 +28,10 @@
         ></transaction-confirmation-link>
       </template>
       <template #transactionResultSendSuccess>
-        <transaction-result-send-success @on-back="onBack"></transaction-result-send-success>
+        <transaction-result-send-success
+          @on-back="onBack"
+          :text="`${balance} GDD, ${transactionData.identifier}, ${transactionData.memo}, ${transactionData.amount}`"
+        ></transaction-result-send-success>
       </template>
       <template #transactionResultSendError>
         <transaction-result-send-error
@@ -128,7 +131,7 @@ export default {
               this.error = false
               this.$emit('set-tunneled-email', null)
               this.updateTransactions({})
-              this.transactionData = { ...EMPTY_TRANSACTION_DATA }
+              // this.transactionData = { ...EMPTY_TRANSACTION_DATA }
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendSuccess
             })
             .catch((error) => {
