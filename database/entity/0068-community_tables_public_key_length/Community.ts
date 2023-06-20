@@ -21,6 +21,9 @@ export class Community extends BaseEntity {
   @Column({ name: 'public_key', type: 'binary', length: 32, nullable: false })
   publicKey: Buffer
 
+  @Column({ name: 'private_key', type: 'binary', length: 64, nullable: true })
+  privateKey: Buffer | null
+
   @Column({
     name: 'community_uuid',
     type: 'char',
