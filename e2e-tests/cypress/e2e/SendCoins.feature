@@ -9,19 +9,19 @@ Feature: Send coins
       | bob@baumeister.de      | Aa12345_ | Bob Baumeister     |
       | raeuber@hotzenplotz.de | Aa12345_ | Räuber Hotzenplotz |
   
-  # Scenario: Send GDD to other user
-  #   Given the user is logged in as "bob@baumeister.de" "Aa12345_"
-  #   And the user navigates to page "/send"
-  #   When the user fills the send form with "raeuber@hotzenplotz.de" "<amount>" "Some memo text"
-  #   And the user submits the send form
-  #   Then the transaction details are presented for confirmation
-  #   When the user submits the transaction by confirming
-  #   And the user navigates to page "/transactions"
-  #   Then the "<receiverName>" and "<amount>" are displayed on the "transactions" page
+  Scenario: Send GDD to other user
+    Given the user is logged in as "bob@baumeister.de" "Aa12345_"
+    And the user navigates to page "/send"
+    When the user fills the send form with "raeuber@hotzenplotz.de" "<amount>" "Some memo text"
+    And the user submits the send form
+    Then the transaction details are presented for confirmation
+    When the user submits the transaction by confirming
+    And the user navigates to page "/transactions"
+    Then the "<receiverName>" and "<amount>" are displayed on the "transactions" page
   
-  # Examples:
-  #   | receiverName       | amount |
-  #   | Räuber Hotzenplotz | 120.50 |
+  Examples:
+    | receiverName       | amount |
+    | Räuber Hotzenplotz | 120.50 |
 
   Scenario: Receive GDD from other user
     Given the user is logged in as "raeuber@hotzenplotz.de" "Aa12345_"
