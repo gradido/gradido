@@ -464,6 +464,13 @@ describe('ContributionMessageResolver', () => {
     })
 
     describe('authenticated as user', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
       it('returns an error', async () => {
         await expect(
           mutate({
