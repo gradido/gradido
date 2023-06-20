@@ -4,14 +4,23 @@ import { MODERATOR_RIGHTS } from './MODERATOR_RIGHTS'
 import { Role } from './Role'
 import { USER_RIGHTS } from './USER_RIGHTS'
 
-export const ROLE_UNAUTHORIZED = new Role('unauthorized', INALIENABLE_RIGHTS)
-export const ROLE_USER = new Role('user', [...INALIENABLE_RIGHTS, ...USER_RIGHTS])
-export const ROLE_MODERATOR = new Role('moderator', [
+export enum ROLE_NAMES {
+  ROLE_NAME_UNAUTHORIZED = 'unauthorized',
+  ROLE_NAME_USER = 'user',
+  ROLE_NAME_MODERATOR = 'moderator',
+  ROLE_NAME_ADMIN = 'admin',
+}
+export const ROLE_UNAUTHORIZED = new Role(ROLE_NAMES.ROLE_NAME_UNAUTHORIZED, INALIENABLE_RIGHTS)
+export const ROLE_USER = new Role(ROLE_NAMES.ROLE_NAME_USER, [
+  ...INALIENABLE_RIGHTS,
+  ...USER_RIGHTS,
+])
+export const ROLE_MODERATOR = new Role(ROLE_NAMES.ROLE_NAME_MODERATOR, [
   ...INALIENABLE_RIGHTS,
   ...USER_RIGHTS,
   ...MODERATOR_RIGHTS,
 ])
-export const ROLE_ADMIN = new Role('admin', [
+export const ROLE_ADMIN = new Role(ROLE_NAMES.ROLE_NAME_ADMIN, [
   ...INALIENABLE_RIGHTS,
   ...USER_RIGHTS,
   ...MODERATOR_RIGHTS,
