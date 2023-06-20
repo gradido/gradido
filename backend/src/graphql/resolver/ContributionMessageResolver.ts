@@ -8,8 +8,8 @@ import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type
 
 import { ContributionMessageArgs } from '@arg/ContributionMessageArgs'
 import { Paginated } from '@arg/Paginated'
+import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
-import { ContributionMessageType } from '@enum/MessageType'
 import { Order } from '@enum/Order'
 import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
 
