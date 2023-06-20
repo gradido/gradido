@@ -7,7 +7,7 @@ When(
   'the user fills the send form with {string} {string} {string}',
   (email: string, amount: string, memoText: string) => {
     sendPage.enterReceiverEmail(email)
-    sendPage.enterAmount(amount)
+    sendPage.enterAmount(`${amount}`)
     sendPage.enterMemoText(memoText)
   }
 )
@@ -53,8 +53,17 @@ When('the user submits the transaction by confirming', () => {
   cy.get('.align-items-center').contains('− 120.50 GDD')
 })
 
-
-Then('the transaction details are displayed on the transactions page', () => {
-  cy.get('div.mt-3 > div > div.test-list-group-item').eq(0).contains('div.gdd-transaction-list-item-name', 'Räuber Hotzenplotz')
-  cy.get('div.mt-3 > div > div.test-list-group-item').eq(0).contains('[data-test="send-amount"]', '− 120.50 GDD')
+Then('the {string} and {string} are displayed on the {string} page', (name: string, amount: string, page: string) => {
+  switch (page) {
+    case 'overview':
+      cy.get('.align-items-center').contains(`${name}`)
+      cy.get('.align-items-center').contains(`${amount} GDD`)
+      break
+    case 'transactions':
+      cy.get('div.mt-3 > div > div.test-list-group-item').eq(0).contains('div.gdd-transaction-list-item-name', `${name}`)
+      cy.get('div.mt-3 > div > div.test-list-group-item').eq(0).contains('[data-test="transaction-amount"]', `${amount} GDD`)
+      break
+    default:
+      throw new Error(`Error in "Then the {string} and {string} are displayed on the {string}} page" step: incorrect page name string "${page}"`)
+  }
 })
