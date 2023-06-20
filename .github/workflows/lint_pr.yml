@@ -29,6 +29,7 @@ jobs:
             database
             release
             federation
+            dht
             workflow
             docker
             other
