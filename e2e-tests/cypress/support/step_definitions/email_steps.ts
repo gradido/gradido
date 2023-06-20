@@ -88,13 +88,16 @@ And('the user receives the transaction e-mail about {string} GDD from {string}',
 })
 
 When('the user opens the {string} link in the browser', (linkName: string) => {
+  const resetPasswordPage = new ResetPasswordPage()
   cy.task('getEmailLink').then((emailLink) => {
     cy.visit(emailLink)
   })
 
   switch (linkName) {
     case 'activation':
-      const resetPasswordPage = new ResetPasswordPage()
+      cy.get(resetPasswordPage.newPasswordInput).should('be.visible')
+      break
+    case 'password reset':
       cy.get(resetPasswordPage.newPasswordInput).should('be.visible')
       break
     case 'transaction':
