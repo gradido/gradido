@@ -22,6 +22,8 @@ import {
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
+import { findContributionMessages } from './util/findContributionMessages'
+
 @Resolver()
 export class ContributionMessageResolver {
   @Authorized([RIGHTS.CREATE_CONTRIBUTION_MESSAGE])
@@ -82,16 +84,12 @@ export class ContributionMessageResolver {
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   ): Promise<ContributionMessageListResult> {
-    const [contributionMessages, count] = await getConnection()
-      .createQueryBuilder()
-      .select('cm')
-      .from(DbContributionMessage, 'cm')
-      .leftJoinAndSelect('cm.user', 'u')
-      .where({ contributionId })
-      .orderBy('cm.createdAt', order)
-      .limit(pageSize)
-      .offset((currentPage - 1) * pageSize)
-      .getManyAndCount()
+    const [contributionMessages, count] = await findContributionMessages({
+      contributionId,
+      currentPage,
+      pageSize,
+      order,
+    })
 
     return {
       count,
