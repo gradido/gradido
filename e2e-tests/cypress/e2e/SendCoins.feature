@@ -21,8 +21,7 @@ Feature: Send coins
   
   Examples:
     | receiverName       | amount |
-    # | Räuber Hotzenplotz | 120.50 |
-    | Räuber Hotzenplotz | 120,50 |
+    | Räuber Hotzenplotz | 120.50 |
 
   Scenario: Receive GDD from other user
     Given the user is logged in as "raeuber@hotzenplotz.de" "Aa12345_"
@@ -34,7 +33,5 @@ Feature: Send coins
   
   Examples:
     | senderName         | amount |
-    # | Bob der Baumeister | 120.50 |
-    | Bob der Baumeister | 120,50 |
-  
+    | Bob der Baumeister | 120.50 |  
   
