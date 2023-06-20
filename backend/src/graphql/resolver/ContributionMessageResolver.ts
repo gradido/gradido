@@ -104,7 +104,7 @@ export class ContributionMessageResolver {
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION_MESSAGE])
   @Mutation(() => ContributionMessage)
   async adminCreateContributionMessage(
-    @Args() { contributionId, message }: ContributionMessageArgs,
+    @Args() { contributionId, message, messageType }: ContributionMessageArgs,
     @Ctx() context: Context,
   ): Promise<ContributionMessage> {
     const moderator = getUser(context)
@@ -133,7 +133,7 @@ export class ContributionMessageResolver {
       contributionMessage.createdAt = new Date()
       contributionMessage.message = message
       contributionMessage.userId = moderator.id
-      contributionMessage.type = ContributionMessageType.DIALOG
+      contributionMessage.type = messageType
       contributionMessage.isModerator = true
       await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
 

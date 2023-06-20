@@ -217,6 +217,33 @@ describe('ContributionMessageResolver', () => {
           )
         })
       })
+
+      describe('contribution message type MODERATOR', () => {
+        it('creates ContributionMessage', async () => {
+          await expect(
+            mutate({
+              mutation: adminCreateContributionMessage,
+              variables: {
+                contributionId: result.data.createContribution.id,
+                message: 'Internal moderator communication',
+                messageType: 'MODERATOR',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                adminCreateContributionMessage: expect.objectContaining({
+                  id: expect.any(Number),
+                  message: 'Internal moderator communication',
+                  type: 'MODERATOR',
+                  userFirstName: 'Peter',
+                  userLastName: 'Lustig',
+                }),
+              },
+            }),
+          )
+        })
+      })
     })
   })
 
@@ -395,7 +422,7 @@ describe('ContributionMessageResolver', () => {
           expect.objectContaining({
             data: {
               listContributionMessages: {
-                count: 2,
+                count: 3,
                 messages: expect.arrayContaining([
                   expect.objectContaining({
                     id: expect.any(Number),
@@ -410,6 +437,13 @@ describe('ContributionMessageResolver', () => {
                     type: 'DIALOG',
                     userFirstName: 'Bibi',
                     userLastName: 'Bloxberg',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    message: 'Internal moderator communication',
+                    type: 'MODERATOR',
+                    userFirstName: 'Peter',
+                    userLastName: 'Lustig',
                   }),
                 ]),
               },
