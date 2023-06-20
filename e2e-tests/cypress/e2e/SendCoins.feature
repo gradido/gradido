@@ -33,5 +33,5 @@ Feature: Send coins
   
   Examples:
     | senderName         | amount |
-    | Bob der Baumeister | 120.50 |  
+    | Bob der Baumeister | 120,50 |  
   

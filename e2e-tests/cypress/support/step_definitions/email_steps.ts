@@ -19,7 +19,7 @@ Then('the user receives an e-mail containing the {string} link', (linkName: stri
       linkPattern = /\/reset-password\/[0-9]+\d/
       break
     case 'transaction':
-      emailSubject = 'has sent you'
+      emailSubject = 'Gradido gesendet'
       linkPattern = /\/overview/
       break
     default:
