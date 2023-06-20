@@ -20,7 +20,7 @@ import {
   createContributionMessage,
   login,
 } from '@/seeds/graphql/mutations'
-import { listContributionMessages } from '@/seeds/graphql/queries'
+import { listContributionMessages, adminListContributionMessages } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
@@ -412,7 +412,7 @@ describe('ContributionMessageResolver', () => {
         resetToken()
       })
 
-      it('returns a list of contributionmessages', async () => {
+      it('returns a list of contributionmessages without type MODERATOR', async () => {
         await expect(
           mutate({
             mutation: listContributionMessages,
@@ -422,6 +422,84 @@ describe('ContributionMessageResolver', () => {
           expect.objectContaining({
             data: {
               listContributionMessages: {
+                count: 2,
+                messages: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    message: 'Admin Test',
+                    type: 'DIALOG',
+                    userFirstName: 'Peter',
+                    userLastName: 'Lustig',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    message: 'User Test',
+                    type: 'DIALOG',
+                    userFirstName: 'Bibi',
+                    userLastName: 'Bloxberg',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
+      })
+    })
+  })
+
+  describe('adminListContributionMessages', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          mutate({
+            mutation: adminListContributionMessages,
+            variables: { contributionId: 1 },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated as user', () => {
+      it('returns an error', async () => {
+        await expect(
+          mutate({
+            mutation: adminListContributionMessages,
+            variables: { contributionId: 1 },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(() => {
+        resetToken()
+      })
+
+      it('returns a list of contributionmessages with type MODERATOR', async () => {
+        await expect(
+          mutate({
+            mutation: adminListContributionMessages,
+            variables: { contributionId: result.data.createContribution.id },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              adminListContributionMessages: {
                 count: 3,
                 messages: expect.arrayContaining([
                   expect.objectContaining({

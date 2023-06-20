@@ -99,6 +99,29 @@ export class ContributionMessageResolver {
     }
   }
 
+  @Authorized([RIGHTS.ADMIN_LIST_ALL_CONTRIBUTION_MESSAGES])
+  @Query(() => ContributionMessageListResult)
+  async adminListContributionMessages(
+    @Arg('contributionId', () => Int) contributionId: number,
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+  ): Promise<ContributionMessageListResult> {
+    const [contributionMessages, count] = await findContributionMessages({
+      contributionId,
+      currentPage,
+      pageSize,
+      order,
+      showModeratorType: true,
+    })
+
+    return {
+      count,
+      messages: contributionMessages.map(
+        (message) => new ContributionMessage(message, message.user),
+      ),
+    }
+  }
+
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION_MESSAGE])
   @Mutation(() => ContributionMessage)
   async adminCreateContributionMessage(
