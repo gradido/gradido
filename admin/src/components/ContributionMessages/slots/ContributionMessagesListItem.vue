@@ -8,7 +8,12 @@
       <b-avatar square variant="warning"></b-avatar>
       <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
       <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
-      <small class="ml-4 text-success" :class="message.type === 'MODERATOR' ? 'text-success' : 'text-warning'">{{ $t('moderator') }}</small>
+      <small
+        class="ml-4 text-success"
+        :class="message.type === 'MODERATOR' ? 'text-success' : 'text-warning'"
+      >
+        {{ $t('moderator') }}
+      </small>
       <parse-message v-bind="message"></parse-message>
       <small v-if="message.type === 'MODERATOR'">
         <hr />
