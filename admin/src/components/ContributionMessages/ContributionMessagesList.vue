@@ -18,7 +18,8 @@
 <script>
 import ContributionMessagesListItem from './slots/ContributionMessagesListItem'
 import ContributionMessagesFormular from '../ContributionMessages/ContributionMessagesFormular'
-import { adminListContributionMessages } from '../../graphql/adminListContributionMessages.js'
+import { listContributionMessages } from '../../graphql/listContributionMessages.js'
+// import { adminListContributionMessages } from '../../graphql/adminListContributionMessages.js'
 
 export default {
   name: 'ContributionMessagesList',
@@ -45,7 +46,7 @@ export default {
     getListContributionMessages(id) {
       this.$apollo
         .query({
-          query: adminListContributionMessages,
+          query: listContributionMessages,
           variables: {
             contributionId: id,
           },
@@ -53,7 +54,7 @@ export default {
         })
         .then((result) => {
           console.log(result)
-          this.messages = result.data.adminListContributionMessages.messages
+          this.messages = result.data.listContributionMessages.messages
         })
         .catch((error) => {
           this.toastError(error.message)
