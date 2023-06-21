@@ -1,7 +1,7 @@
 <template>
   <div class="contribution-messages-formular">
     <div class="mt-5">
-      <b-form @submit.prevent="onSubmit" @reset.prevent="onReset">
+      <b-form @reset.prevent="onReset">
         <b-form-textarea
           id="textarea"
           v-model="form.text"
@@ -12,8 +12,27 @@
           <b-col>
             <b-button type="reset" variant="danger">{{ $t('form.cancel') }}</b-button>
           </b-col>
+          <b-col>
+            <b-button
+              type="button"
+              variant="warning"
+              class="text-black"
+              :disabled="disabled"
+              @click="onSubmit('MODERATOR')"
+              data-test="submit-moderator"
+            >
+              Moderator Notiz
+            </b-button>
+          </b-col>
+
           <b-col class="text-right">
-            <b-button type="submit" variant="primary" :disabled="disabled">
+            <b-button
+              type="submit"
+              variant="primary"
+              :disabled="disabled"
+              @click="onSubmit('DIALOG')"
+              data-test="submit-dialog"
+            >
               {{ $t('form.submit') }}
             </b-button>
           </b-col>
@@ -42,7 +61,7 @@ export default {
     }
   },
   methods: {
-    onSubmit(event) {
+    onSubmit(mType) {
       this.loading = true
       this.$apollo
         .mutate({
@@ -50,6 +69,7 @@ export default {
           variables: {
             contributionId: this.contributionId,
             message: this.form.text,
+            messageType: mType,
           },
         })
         .then((result) => {

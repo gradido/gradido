@@ -64,7 +64,7 @@ describe('ContributionMessagesFormular', () => {
             text: 'text form message',
           },
         })
-        await wrapper.find('form').trigger('submit')
+        await wrapper.find('[data-test="submit-dialog"]').trigger('click')
       })
 
       it('emitted "get-list-contribution-messages" with data', async () => {
@@ -84,7 +84,7 @@ describe('ContributionMessagesFormular', () => {
       beforeEach(async () => {
         apolloMutateMock.mockRejectedValue({ message: 'OUCH!' })
         wrapper = Wrapper()
-        await wrapper.find('form').trigger('submit')
+        await wrapper.find('[data-test="submit-dialog"]').trigger('submit')
       })
 
       it('toasts an error message', () => {
@@ -100,7 +100,11 @@ describe('ContributionMessagesFormular', () => {
           },
         })
         wrapper = Wrapper()
-        await wrapper.find('form').trigger('submit')
+        await wrapper.find('data-test="submit-dialog').trigger('submit')
+      })
+
+      it('moderatorMesage has `DIALOG`', () => {
+        expect(wrapper.vm.messageType).toBeCalledWith('DIALOG')
       })
 
       it('toasts an success message', () => {
