@@ -89,7 +89,7 @@ export class User extends BaseEntity {
 
   @OneToOne(() => UserRole, (role: UserRole) => role.userId)
   @JoinColumn({ name: 'user_id' })
-  userRole: UserRole
+  userRole?: UserRole
 
   @Column({ name: 'referrer_id', type: 'int', unsigned: true, nullable: true, default: null })
   referrerId?: number | null
