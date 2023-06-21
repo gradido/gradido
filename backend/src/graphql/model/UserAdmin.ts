@@ -14,7 +14,9 @@ export class UserAdmin {
     this.hasElopage = hasElopage
     this.deletedAt = user.deletedAt
     this.emailConfirmationSend = emailConfirmationSend
-    this.isAdmin = user.isAdmin
+    if (user.userRole) {
+      this.isAdmin = user.userRole?.createdAt
+    }
   }
 
   @Field(() => Int)

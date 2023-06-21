@@ -4,7 +4,7 @@ import { AuthChecker } from 'type-graphql'
 import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { decode, encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN } from '@/auth/ROLES'
+import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN, ROLE_NAMES, ROLE_MODERATOR } from '@/auth/ROLES'
 import { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
@@ -33,10 +33,14 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
   try {
     const user = await User.findOneOrFail({
       where: { gradidoID: decoded.gradidoID },
-      relations: ['emailContact'],
+      relations: ['emailContact', 'userRole'],
     })
     context.user = user
-    context.role = user.isAdmin ? ROLE_ADMIN : ROLE_USER
+    context.role = user.userRole
+      ? user.userRole.role === ROLE_NAMES.ROLE_NAME_ADMIN
+        ? ROLE_ADMIN
+        : ROLE_MODERATOR
+      : ROLE_USER
   } catch {
     // in case the database query fails (user deleted)
     throw new LogError('401 Unauthorized')

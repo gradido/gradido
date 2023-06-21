@@ -7,6 +7,7 @@ import { ContributionLink as DbContributionLink } from '@entity/ContributionLink
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
+import { UserRole } from '@entity/UserRole'
 import i18n from 'i18n'
 import {
   Resolver,
@@ -38,6 +39,7 @@ import { UserRepository } from '@repository/User'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
+import { ROLE_NAMES } from '@/auth/ROLES'
 import { CONFIG } from '@/config'
 import {
   sendAccountActivationEmail,
@@ -713,7 +715,10 @@ export class UserResolver {
     @Ctx()
     context: Context,
   ): Promise<Date | null> {
-    const user = await DbUser.findOne({ id: userId })
+    const user = await DbUser.findOne({
+      where: { id: userId },
+      relations: ['userRole'],
+    })
     // user exists ?
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
@@ -723,18 +728,24 @@ export class UserResolver {
     if (moderator.id === userId) {
       throw new LogError('Administrator can not change his own role')
     }
-    // change isAdmin
-    switch (user.isAdmin) {
+    // change userRole
+    switch (user.userRole) {
       case null:
         if (isAdmin) {
-          user.isAdmin = new Date()
+          user.userRole = UserRole.create()
+          user.userRole.createdAt = new Date()
+          user.userRole.role = ROLE_NAMES.ROLE_NAME_ADMIN
+          user.userRole.userId = user.id
         } else {
           throw new LogError('User is already an usual user')
         }
         break
       default:
         if (!isAdmin) {
-          user.isAdmin = null
+          if (user.userRole) {
+            await UserRole.delete(user.userRole)
+          }
+          user.userRole = undefined
         } else {
           throw new LogError('User is already admin')
         }
@@ -743,7 +754,11 @@ export class UserResolver {
     await user.save()
     await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
     const newUser = await DbUser.findOne({ id: userId })
-    return newUser ? newUser.isAdmin : null
+    return newUser
+      ? newUser.userRole && newUser.userRole.role === ROLE_NAMES.ROLE_NAME_ADMIN
+        ? newUser.userRole.createdAt
+        : null
+      : null
   }
 
   @Authorized([RIGHTS.DELETE_USER])

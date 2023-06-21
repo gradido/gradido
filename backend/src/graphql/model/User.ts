@@ -18,7 +18,9 @@ export class User {
     this.createdAt = user.createdAt
     this.language = user.language
     this.publisherId = user.publisherId
-    this.isAdmin = user.isAdmin
+    if (user.userRole) {
+      this.isAdmin = user.userRole.createdAt
+    }
     this.klickTipp = null
     this.hasElopage = null
     this.hideAmountGDD = user.hideAmountGDD
