@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { User } from '@entity/User'
+import { UserRole } from '@entity/UserRole'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
+import { ROLE_NAMES } from '@/auth/ROLES'
 import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { UserInterface } from '@/seeds/users/UserInterface'
 
@@ -19,7 +21,7 @@ export const userFactory = async (
   } = await mutate({ mutation: createUser, variables: user })
   // console.log('creatUser:', { id }, { user })
   // get user from database
-  let dbUser = await User.findOneOrFail({ id }, { relations: ['emailContact'] })
+  let dbUser = await User.findOneOrFail({ id }, { relations: ['emailContact', 'userRole'] })
   // console.log('dbUser:', dbUser)
 
   const emailContact = dbUser.emailContact
@@ -38,7 +40,13 @@ export const userFactory = async (
   if (user.createdAt || user.deletedAt || user.isAdmin) {
     if (user.createdAt) dbUser.createdAt = user.createdAt
     if (user.deletedAt) dbUser.deletedAt = user.deletedAt
-    if (user.isAdmin) dbUser.isAdmin = new Date()
+    if (user.isAdmin) {
+      dbUser.userRole = UserRole.create()
+      dbUser.userRole.createdAt = new Date()
+      dbUser.userRole.role = ROLE_NAMES.ROLE_NAME_ADMIN
+      dbUser.userRole.userId = dbUser.id
+      await dbUser.userRole.save()
+    }
     await dbUser.save()
   }
 

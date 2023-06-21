@@ -62,6 +62,8 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
+import { UserRole } from '@entity/UserRole'
+import { ROLE_NAMES } from '@/auth/ROLES'
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
@@ -162,7 +164,7 @@ describe('UserResolver', () => {
               createdAt: expect.any(Date),
               // emailChecked: false,
               language: 'de',
-              isAdmin: null,
+              userRole: null,
               deletedAt: null,
               publisherId: 1234,
               referrerId: null,
@@ -334,8 +336,17 @@ describe('UserResolver', () => {
           })
 
           // make Peter Lustig Admin
-          const peter = await User.findOneOrFail({ id: user[0].id })
-          peter.isAdmin = new Date()
+          const peter = await User.findOneOrFail({
+            where: { id: user[0].id },
+            relations: ['userRole'],
+          })
+          if (peter.userRole == null) {
+            peter.userRole = UserRole.create()
+          }
+          peter.userRole.createdAt = new Date()
+          peter.userRole.role = ROLE_NAMES.ROLE_NAME_ADMIN
+          peter.userRole.userId = peter.id
+          await peter.userRole.save()
           await peter.save()
 
           // date statement
@@ -679,7 +690,7 @@ describe('UserResolver', () => {
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
-                isAdmin: null,
+                userRole: null,
                 klickTipp: {
                   newsletterState: false,
                 },
@@ -936,7 +947,7 @@ describe('UserResolver', () => {
 
         beforeAll(async () => {
           await mutate({ mutation: login, variables })
-          user = await User.find()
+          user = await User.find({ relations: ['userRole'] })
         })
 
         afterAll(() => {
@@ -956,7 +967,7 @@ describe('UserResolver', () => {
                   },
                   hasElopage: false,
                   publisherId: 1234,
-                  isAdmin: null,
+                  userRole: null,
                 },
               },
             }),
@@ -1476,7 +1487,7 @@ describe('UserResolver', () => {
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
-                isAdmin: null,
+                userRole: null,
                 klickTipp: {
                   newsletterState: false,
                 },
@@ -1594,7 +1605,7 @@ describe('UserResolver', () => {
                   { email: 'bibi@bloxberg.de' },
                   { relations: ['user'] },
                 )
-                const adminConatct = await UserContact.findOneOrFail(
+                const adminContact = await UserContact.findOneOrFail(
                   { email: 'peter@lustig.de' },
                   { relations: ['user'] },
                 )
@@ -1602,7 +1613,7 @@ describe('UserResolver', () => {
                   expect.objectContaining({
                     type: EventType.ADMIN_USER_ROLE_SET,
                     affectedUserId: userConatct.user.id,
-                    actingUserId: adminConatct.user.id,
+                    actingUserId: adminContact.user.id,
                   }),
                 )
               })

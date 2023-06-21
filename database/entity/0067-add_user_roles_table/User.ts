@@ -87,8 +87,8 @@ export class User extends BaseEntity {
   @Column({ type: 'bool', default: false })
   hideAmountGDT: boolean
 
-  @OneToOne(() => UserRole, (role: UserRole) => role.userId)
-  @JoinColumn({ name: 'user_id' })
+  @OneToOne(() => UserRole, (userRole) => userRole.userId)
+  @JoinColumn({ name: 'id' })
   userRole?: UserRole
 
   @Column({ name: 'referrer_id', type: 'int', unsigned: true, nullable: true, default: null })
