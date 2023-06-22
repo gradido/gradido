@@ -26,6 +26,7 @@ import { setUserRole } from '../graphql/setUserRole'
 
 const rolesValues = {
   admin: 'admin',
+  moderator: 'moderator',
   user: 'user',
 }
 
@@ -43,20 +44,31 @@ export default {
       roleSelected: this.item.isAdmin ? rolesValues.admin : rolesValues.user,
       roles: [
         { value: rolesValues.user, text: this.$t('userRole.selectRoles.user') },
+        { value: rolesValues.moderator, text: this.$t('userRole.selectRoles.moderator') },
         { value: rolesValues.admin, text: this.$t('userRole.selectRoles.admin') },
       ],
     }
   },
+  computed: {
+    getRoleText() {
+      if (this.roleSelected === 'admin') {
+        return this.$t('userRole.selectRoles.admin')
+      } else if (this.roleSelected === 'moderator') {
+        return this.$t('userRole.selectRoles.moderator')
+      } else {
+        return this.$t('userRole.selectRoles.moderator')
+      }
+    },
+  },
   methods: {
     showModal() {
+      const roleText = this.getRoleText
+
       this.$bvModal
         .msgBoxConfirm(
           this.$t('overlay.changeUserRole.question', {
             username: `${this.item.firstName} ${this.item.lastName}`,
-            newRole:
-              this.roleSelected === 'admin'
-                ? this.$t('userRole.selectRoles.admin')
-                : this.$t('userRole.selectRoles.user'),
+            newRole: roleText,
           }),
           {
             cancelTitle: this.$t('overlay.cancel'),
