@@ -1,20 +1,16 @@
-doctype html
-html(lang=locale)
-  head
-    title= t('emails.accountActivation.subject')
-  body
-    h1(style='margin-bottom: 24px;')= t('emails.accountActivation.subject')
-    #container.col
-      include ../hello.pug
-      p= t('emails.accountActivation.emailRegistered')
-      p
-        = t('emails.accountActivation.pleaseClickLink')
-        br
-        a(href=activationLink) #{activationLink}
-        br
-        = t('emails.general.orCopyLink')
-      p
-        = t('emails.accountActivation.duration', { hours: timeDurationObject.hours, minutes: timeDurationObject.minutes })
-        br
-        a(href=resendLink) #{resendLink}
-      include ../greatingFormularImprint.pug
+extend ../layout.pug
+
+block content
+  h2= t('emails.accountActivation.title')
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.accountActivation.emailRegistered')
+  .content
+    h2= t('emails.general.completeRegistration')
+    div(class="p_content")= t('emails.accountActivation.pleaseClickLink')
+    a.button-3(href=activationLink) #{t('emails.accountActivation.activateAccount')}
+    div(class="p_content")= t('emails.general.orCopyLink')
+
+    a.clink(href=activationLink) #{activationLink}
+
+    include ../includes/requestNewLink.pug

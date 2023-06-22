@@ -1,16 +1,10 @@
-doctype html
-html(lang=locale)
-  head
-    title= t('emails.contributionConfirmed.subject')
-  body
-    h1(style='margin-bottom: 24px;')= t('emails.contributionConfirmed.subject')
-    #container.col
-      include ../hello.pug
-      p= t('emails.contributionConfirmed.commonGoodContributionConfirmed', { senderFirstName, senderLastName, contributionMemo })
-      p= t('emails.general.amountGDD', { amountGDD: contributionAmount })
-      p
-        = t('emails.general.linkToYourAccount')
-        = " "
-        a(href=overviewURL) #{overviewURL}
-      p= t('emails.general.pleaseDoNotReply')
-      include ../greatingFormularImprint.pug
+extend ../layout.pug
+
+block content
+  h2= t('emails.contributionConfirmed.title')
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.contributionConfirmed.commonGoodContributionConfirmed', { contributionMemo, senderFirstName, senderLastName, amountGDD: contributionAmount })
+  .content
+    include ../includes/contributionDetailsCTA.pug
+    include ../includes/doNotReply.pug
