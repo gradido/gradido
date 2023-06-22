@@ -30,6 +30,7 @@
     "noOpenContributionLinkText": "Zur Zeit gibt es keine per Link erzeugte Schöpfungen.",
     "openContributionLinks": "Per Link erzeugte Schöpfungen",
     "openContributionLinkText": "Die Gemeinschaft „{name}“ unterstützt aktuell {count} per Link erzeugte Schöpfungen:",
+    "startNewsButton": "Benutzernamen eintragen",
     "submitContribution": "Schreiben"
   },
   "communityInfo": "Gemeinschaft Information",
@@ -210,6 +211,7 @@
     "redeemed": "Erfolgreich eingelöst! Deinem Konto wurden {n} GDD gutgeschrieben.",
     "redeemed-at": "Der Link wurde bereits am {date} eingelöst.",
     "redeemed-title": "eingelöst",
+    "redeemlink-error": "Dieser Einlöse-Link ist nicht vollständig.",
     "to-login": "Log dich ein",
     "to-register": "Registriere ein neues Konto.",
     "validUntil": "Gültig bis",

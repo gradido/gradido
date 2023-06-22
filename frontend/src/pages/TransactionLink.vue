@@ -14,6 +14,7 @@
           <redeem-valid
             :linkData="linkData"
             :isContributionLink="isContributionLink"
+            :validLink="validLink"
             @mutation-link="mutationLink"
           />
         </template>
@@ -47,12 +48,13 @@ export default {
     return {
       linkData: {
         __typename: 'TransactionLink',
-        amount: '123.45',
-        memo: 'memo',
+        amount: '',
+        memo: '',
         user: {
-          firstName: 'Bibi',
+          firstName: '',
         },
         deletedAt: null,
+        validLink: false,
       },
     }
   },
@@ -67,13 +69,14 @@ export default {
           },
         })
         .then((result) => {
+          this.validLink = true
           this.linkData = result.data.queryTransactionLink
           if (this.linkData.__typename === 'ContributionLink' && this.$store.state.token) {
             this.mutationLink(this.linkData.amount)
           }
         })
-        .catch((err) => {
-          this.toastError(err.message)
+        .catch(() => {
+          this.toastError(this.$t('gdd_per_link.redeemlink-error'))
         })
     },
     mutationLink(amount) {

@@ -8,11 +8,6 @@ import { Community as DbCommunity } from '@entity/Community'
 import { v4 as uuidv4 } from 'uuid'
 
 const KEY_SECRET_SEEDBYTES = 32
-const getSeed = (): Buffer | null => {
-  return CONFIG.FEDERATION_DHT_SEED
-    ? Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED)
-    : null
-}
 
 const POLLTIME = 20000
 const SUCCESSTIME = 120000
@@ -24,19 +19,26 @@ enum ApiVersionType {
   V1_1 = '1_1',
   V2_0 = '2_0',
 }
-export type CommunityApi = {
+type CommunityApi = {
   api: string
   url: string
 }
 
+type KeyPair = { publicKey: Buffer; secretKey: Buffer }
+
 export const startDHT = async (topic: string): Promise<void> => {
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
-    const keyPair = DHT.keyPair(getSeed())
+    // uses a config defined seed or null, which will generate a random seed for the key pair
+    const keyPair = DHT.keyPair(
+      CONFIG.FEDERATION_DHT_SEED
+        ? Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED)
+        : null,
+    ) as KeyPair
     const pubKeyString = keyPair.publicKey.toString('hex')
     logger.info(`keyPairDHT: publicKey=${pubKeyString}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
-    await writeHomeCommunityEntry(pubKeyString)
+    await writeHomeCommunityEntry(keyPair)
 
     const ownApiVersions = await writeFederatedHomeCommunityEntries(pubKeyString)
     logger.info(`ApiList: ${JSON.stringify(ownApiVersions)}`)
@@ -212,20 +214,14 @@ async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<Commu
   return homeApiVersions
 }
 
-async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
+async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
   try {
     // check for existing homeCommunity entry
-    let homeCom = await DbCommunity.findOne({
-      foreign: false,
-      publicKey: Buffer.from(pubKey),
-    })
-    if (!homeCom) {
-      // check if a homecommunity with a different publicKey still exists
-      homeCom = await DbCommunity.findOne({ foreign: false })
-    }
+    let homeCom = await DbCommunity.findOne({ foreign: false })
     if (homeCom) {
       // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
-      homeCom.publicKey = Buffer.from(pubKey)
+      homeCom.publicKey = keyPair.publicKey
+      homeCom.privateKey = keyPair.secretKey
       homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL + '/api/'
       homeCom.name = CONFIG.COMMUNITY_NAME
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
@@ -235,7 +231,8 @@ async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
       // insert a new homecommunity entry including a new ID and a new but ensured unique UUID
       homeCom = new DbCommunity()
       homeCom.foreign = false
-      homeCom.publicKey = Buffer.from(pubKey)
+      homeCom.publicKey = keyPair.publicKey
+      homeCom.privateKey = keyPair.secretKey
       homeCom.communityUuid = await newCommunityUuid()
       homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL + '/api/'
       homeCom.name = CONFIG.COMMUNITY_NAME
@@ -250,14 +247,11 @@ async function writeHomeCommunityEntry(pubKey: string): Promise<void> {
 }
 
 const newCommunityUuid = async (): Promise<string> => {
-  let uuid: string
-  let countIds: number
-  do {
-    uuid = uuidv4()
-    countIds = await DbCommunity.count({ where: { communityUuid: uuid } })
-    if (countIds > 0) {
-      logger.info('CommunityUuid creation conflict...')
+  while (true) {
+    const communityUuid = uuidv4()
+    if ((await DbCommunity.count({ where: { communityUuid } })) === 0) {
+      return communityUuid
     }
-  } while (countIds > 0)
-  return uuid
+    logger.info('CommunityUuid creation conflict...', communityUuid)
+  }
 }
