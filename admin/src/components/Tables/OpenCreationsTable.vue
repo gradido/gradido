@@ -103,6 +103,7 @@
               <contribution-messages-list
                 :contributionId="row.item.id"
                 :contributionState="row.item.state"
+                :contributionUserId="row.item.userId"
                 @update-state="updateState"
               />
             </div>

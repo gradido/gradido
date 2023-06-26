@@ -13,6 +13,14 @@ describe('ContributionMessagesListItem', () => {
     $t: jest.fn((t) => t),
     $d: dateMock,
     $n: numberMock,
+    $store: {
+      state: {
+        moderator: {
+          firstName: 'Peter',
+          lastName: 'Lustig',
+        },
+      },
+    },
   }
 
   describe('if message author has moderator role', () => {
@@ -51,27 +59,21 @@ describe('ContributionMessagesListItem', () => {
       })
 
       it('has the complete user name', () => {
-        expect(wrapper.find('div.text-right.is-moderator > span:nth-child(2)').text()).toBe(
-          'Peter Lustig',
-        )
+        expect(wrapper.find('[data-test="moderator-name"]').text()).toBe('Peter Lustig')
       })
 
       it('has the message creation date', () => {
-        expect(wrapper.find('div.text-right.is-moderator > span:nth-child(3)').text()).toMatch(
+        expect(wrapper.find('[data-test="moderator-date"]').text()).toMatch(
           'Mon Aug 29 2022 12:23:27 GMT+0000',
         )
       })
 
       it('has the moderator label', () => {
-        expect(wrapper.find('div.text-right.is-moderator > small:nth-child(4)').text()).toBe(
-          'moderator',
-        )
+        expect(wrapper.find('[data-test="moderator-label"]').text()).toBe('moderator.moderator')
       })
 
       it('has the message', () => {
-        expect(wrapper.find('div.text-right.is-moderator > div:nth-child(5)').text()).toBe(
-          'Lorem ipsum?',
-        )
+        expect(wrapper.find('[data-test="moderator-message"]').text()).toBe('Lorem ipsum?')
       })
     })
   })
@@ -107,23 +109,21 @@ describe('ContributionMessagesListItem', () => {
       })
 
       it('has a DIV .text-left.is-not-moderator', () => {
-        expect(wrapper.find('div.text-left.is-not-moderator').exists()).toBe(true)
+        expect(wrapper.find('div.text-left.is-user').exists()).toBe(true)
       })
 
       it('has the complete user name', () => {
-        expect(wrapper.find('div.is-not-moderator.text-left > span:nth-child(2)').text()).toBe(
-          'Bibi Bloxberg',
-        )
+        expect(wrapper.find('[data-test="user-name"]').text()).toBe('Bibi Bloxberg')
       })
 
       it('has the message creation date', () => {
-        expect(wrapper.find('div.is-not-moderator.text-left > span:nth-child(3)').text()).toMatch(
+        expect(wrapper.find('[data-test="user-date"]').text()).toMatch(
           'Mon Aug 29 2022 12:25:34 GMT+0000',
         )
       })
 
       it('has the message', () => {
-        expect(wrapper.find('div.is-not-moderator.text-left > div:nth-child(4)').text()).toBe(
+        expect(wrapper.find('[data-test="user-message"]').text()).toBe(
           'Asda sdad ad asdasd, das Ass das Das.',
         )
       })

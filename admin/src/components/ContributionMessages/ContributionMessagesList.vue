@@ -2,7 +2,10 @@
   <div class="contribution-messages-list">
     <b-container>
       <div v-for="message in messages" v-bind:key="message.id">
-        <contribution-messages-list-item :message="message" />
+        <contribution-messages-list-item
+          :message="message"
+          :contributionUserId="contributionUserId"
+        />
       </div>
     </b-container>
 
@@ -33,6 +36,10 @@ export default {
     },
     contributionState: {
       type: String,
+      required: true,
+    },
+    contributionUserId: {
+      type: Number,
       required: true,
     },
   },

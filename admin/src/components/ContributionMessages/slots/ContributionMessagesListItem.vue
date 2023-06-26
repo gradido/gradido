@@ -5,14 +5,18 @@
       class="text-right is-moderator p-2 rounded-sm mb-3"
       :class="isModeratorMessage ? 'is-hidden-moderator-message ' : 'is-moderator-message'"
     >
-      <small class="ml-4">
+      <small class="ml-4" data-test="moderator-label">
         {{ $t('moderator.moderator') }}
       </small>
-      <small class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</small>
-      <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
+      <small class="ml-2" data-test="moderator-date">
+        {{ $d(new Date(message.createdAt), 'short') }}
+      </small>
+      <span class="ml-2 mr-2" data-test="moderator-name">
+        {{ message.userFirstName }} {{ message.userLastName }}
+      </span>
       <b-avatar square variant="warning"></b-avatar>
 
-      <parse-message v-bind="message"></parse-message>
+      <parse-message v-bind="message" data-test="moderator-message"></parse-message>
       <small v-if="isModeratorMessage">
         <hr />
         {{ $t('moderator.request') }}
@@ -20,9 +24,13 @@
     </div>
     <div v-else class="text-left is-user p-2 rounded-sm is-user-message mb-3">
       <b-avatar variant="info"></b-avatar>
-      <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
-      <small class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</small>
-      <parse-message v-bind="message"></parse-message>
+      <span class="ml-2 mr-2" data-test="user-name">
+        {{ message.userFirstName }} {{ message.userLastName }}
+      </span>
+      <small class="ml-2" data-test="user-date">
+        {{ $d(new Date(message.createdAt), 'short') }}
+      </small>
+      <parse-message v-bind="message" data-test="user-message"></parse-message>
     </div>
   </div>
 </template>
@@ -39,13 +47,14 @@ export default {
       type: Object,
       required: true,
     },
+    contributionUserId: {
+      type: Number,
+      required: true,
+    },
   },
   computed: {
     isModerator() {
-      return (
-        this.message.userFirstName === this.$store.state.moderator.firstName &&
-        this.message.userLastName === this.$store.state.moderator.lastName
-      )
+      return this.contributionUserId !== this.message.userId
     },
     isModeratorMessage() {
       return this.message.type === 'MODERATOR'
