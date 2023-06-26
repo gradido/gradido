@@ -2890,64 +2890,6 @@ describe('ContributionResolver', () => {
           ]),
         })
       })
-
-      describe('with query', () => {
-        it('returns the creations of queried user', async () => {
-          const result = await query({
-            query: adminListContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 2,
-              order: Order.DESC,
-              query: 'peter',
-            },
-          })
-          const {
-            data: { adminListContributions: contributionListObject },
-          } = await query({
-            query: adminListContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 2,
-              order: Order.DESC,
-              query: 'peter',
-            },
-          })
-          expect(contributionListObject.contributionList).toHaveLength(3)
-          expect(contributionListObject).toMatchObject({
-            contributionCount: 3,
-            contributionList: expect.arrayContaining([
-              expect.objectContaining({
-                amount: expect.decimalEqual(400),
-                firstName: 'Peter',
-                id: expect.any(Number),
-                lastName: 'Lustig',
-                memo: 'Herzlich Willkommen bei Gradido!',
-                messagesCount: 0,
-                state: 'PENDING',
-              }),
-              expect.objectContaining({
-                amount: expect.decimalEqual(100),
-                firstName: 'Peter',
-                id: expect.any(Number),
-                lastName: 'Lustig',
-                memo: 'Test env contribution',
-                messagesCount: 0,
-                state: 'PENDING',
-              }),
-              expect.objectContaining({
-                amount: expect.decimalEqual(200),
-                firstName: 'Peter',
-                id: expect.any(Number),
-                lastName: 'Lustig',
-                memo: 'Das war leider zu Viel!',
-                messagesCount: 0,
-                state: 'DELETED',
-              }),
-            ]),
-          })
-        })
-      })
     })
   })
 })
