@@ -60,14 +60,14 @@ And('the user receives the transaction e-mail about {string} GDD from {string}',
     Cypress.env('mailserverURL'),
     { args: { amount, senderName, userEMailSite } },
     ({ amount, senderName, userEMailSite }) => {
-      const subject = `Gradido: ${senderName} hat dir ${amount} Gradido gesendet`
+      const subject = `${senderName} hat dir ${amount} Gradido gesendet`
       const linkPattern = /\/overview/
       cy.visit('/')
       cy.get(userEMailSite.emailInbox).should('be.visible')
 
       cy.get(userEMailSite.emailList)
         .find('.email-item')
-        .filter(`:contains(${subject})`)
+        .filter(`:contains(Gradido: ${subject})`)
         .first()
         .click()
       
