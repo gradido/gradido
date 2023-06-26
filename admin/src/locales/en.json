@@ -113,6 +113,7 @@
     "notice": "Moderator note",
     "request": "This message is only visible to the moderators!"
   },
+  "name": "Name",
   "navbar": {
     "automaticContributions": "Automatic Contributions",
     "instances": "Instances",
