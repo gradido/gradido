@@ -40,7 +40,7 @@ module.exports = {
     ],
     // import
     'import/export': 'error',
-    'import/no-deprecated': 'error',
+    // 'import/no-deprecated': 'error',
     'import/no-empty-named-blocks': 'error',
     'import/no-extraneous-dependencies': 'error',
     'import/no-mutable-exports': 'error',

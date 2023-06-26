@@ -36,7 +36,7 @@ export class ContributionMessageResolver {
     await queryRunner.startTransaction('REPEATABLE READ')
     const contributionMessage = DbContributionMessage.create()
     try {
-      const contribution = await DbContribution.findOne({ id: contributionId })
+      const contribution = await DbContribution.findOne({ where: { id: contributionId } })
       if (!contribution) {
         throw new LogError('Contribution not found', contributionId)
       }
@@ -124,7 +124,7 @@ export class ContributionMessageResolver {
       if (contribution.userId === moderator.id) {
         throw new LogError('Admin can not answer on his own contribution', contributionId)
       }
-      if (!contribution.user.emailContact) {
+      if (!contribution.user.emailContact && contribution.user.emailId) {
         contribution.user.emailContact = await DbUserContact.findOneOrFail({
           where: { id: contribution.user.emailId },
         })
