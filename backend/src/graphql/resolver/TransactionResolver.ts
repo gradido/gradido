@@ -16,7 +16,7 @@ import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
-import { TransactionLinkRepository } from '@repository/TransactionLink'
+import { transactionLinkRepository } from '@repository/TransactionLink'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
@@ -245,7 +245,6 @@ export class TransactionResolver {
     const self = new User(user)
     const transactions: Transaction[] = []
 
-    const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
     const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate, transactionLinkcount } =
       await transactionLinkRepository.summary(user.id, now)
     context.linkCount = transactionLinkcount

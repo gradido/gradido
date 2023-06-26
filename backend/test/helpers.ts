@@ -41,7 +41,7 @@ export const testEnvironment = async (testLogger = logger, testI18n = i18n) => {
   return { mutate, query, con }
 }
 
-export const resetEntity = async (entity: anny) => {
+export const resetEntity = async (entity: any) => {
   const items = await entity.find({ withDeleted: true })
   if (items.length > 0) {
     const ids = items.map((e: any) => e.id)

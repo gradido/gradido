@@ -6,7 +6,7 @@ import { Decimal } from 'decimal.js-light'
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 
 import { Balance } from '@model/Balance'
-import { TransactionLinkRepository } from '@repository/TransactionLink'
+import { transactionLinkRepository } from '@repository/TransactionLink'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser } from '@/server/context'
@@ -77,7 +77,6 @@ export class BalanceResolver {
     )
 
     // The final balance is reduced by the link amount withheld
-    const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
     const { sumHoldAvailableAmount } = context.sumHoldAvailableAmount
       ? { sumHoldAvailableAmount: context.sumHoldAvailableAmount }
       : await transactionLinkRepository.summary(user.id, now)
