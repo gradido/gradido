@@ -61,13 +61,13 @@ And('the user receives the transaction e-mail about {string} GDD from {string}',
     { args: { amount, senderName, userEMailSite } },
     ({ amount, senderName, userEMailSite }) => {
       const subject = `${senderName} hat dir ${amount} Gradido gesendet`
-      const linkPattern = /\/overview/
+      const linkPattern = /\/transactions/
       cy.visit('/')
       cy.get(userEMailSite.emailInbox).should('be.visible')
 
       cy.get(userEMailSite.emailList)
         .find('.email-item')
-        .filter(`:contains(Gradido: ${subject})`)
+        .filter(`:contains(${subject})`)
         .first()
         .click()
       
