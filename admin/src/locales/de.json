@@ -111,7 +111,7 @@
   "moderator": {
     "moderator": "Moderator",
     "notice": "Moderator Notiz",
-    "modalNote":"Diese Nachricht ist nur für die Moderatoren sichtbar!"
+    "request": "Diese Nachricht ist nur für die Moderatoren sichtbar!"
   },
   "name": "Name",
   "navbar": {

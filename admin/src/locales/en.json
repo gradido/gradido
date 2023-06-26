@@ -111,7 +111,7 @@
   "moderator": {
     "moderator": "Moderator",
     "notice": "Moderator note",
-    "request":"This message is only visible to the moderators!"
+    "request": "This message is only visible to the moderators!"
   },
   "navbar": {
     "automaticContributions": "Automatic Contributions",
