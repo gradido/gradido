@@ -270,7 +270,7 @@ export class UserResolver {
     if (redeemCode) {
       if (redeemCode.match(/^CL-/)) {
         const contributionLink = await DbContributionLink.findOne({
-          code: redeemCode.replace('CL-', ''),
+          where: { code: redeemCode.replace('CL-', '') },
         })
         logger.info('redeemCode found contributionLink', contributionLink)
         if (contributionLink) {
@@ -278,7 +278,7 @@ export class UserResolver {
           eventRegisterRedeem.involvedContributionLink = contributionLink
         }
       } else {
-        const transactionLink = await DbTransactionLink.findOne({ code: redeemCode })
+        const transactionLink = await DbTransactionLink.findOne({ where:  { code: redeemCode } })
         logger.info('redeemCode found transactionLink', transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
@@ -403,10 +403,10 @@ export class UserResolver {
     }
 
     // load code
-    const userContact = await DbUserContact.findOneOrFail(
-      { emailVerificationCode: code },
-      { relations: ['user'] },
-    ).catch(() => {
+    const userContact = await DbUserContact.findOne({
+      where: { emailVerificationCode: code },
+      relations: ['user'],
+    }).catch(() => {
       throw new LogError('Could not login with emailVerificationCode')
     })
     logger.debug('userContact loaded...')
@@ -474,7 +474,7 @@ export class UserResolver {
   @Query(() => Boolean)
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
     logger.info(`queryOptIn(${optIn})...`)
-    const userContact = await DbUserContact.findOneOrFail({ emailVerificationCode: optIn })
+    const userContact = await DbUserContact.findOneOrFail({ where: { emailVerificationCode: optIn } })
     logger.debug('found optInCode', userContact)
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     if (!isEmailVerificationCodeValid(userContact.updatedAt || userContact.createdAt)) {
@@ -705,7 +705,7 @@ export class UserResolver {
     @Ctx()
     context: Context,
   ): Promise<Date | null> {
-    const user = await DbUser.findOne({ id: userId })
+    const user = await DbUser.findOne({ where: { id: userId } })
     // user exists ?
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
@@ -734,7 +734,7 @@ export class UserResolver {
     }
     await user.save()
     await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
-    const newUser = await DbUser.findOne({ id: userId })
+    const newUser = await DbUser.findOne({ where: { id: userId  } })
     return newUser ? newUser.isAdmin : null
   }
 
@@ -757,7 +757,7 @@ export class UserResolver {
     // soft-delete user
     await user.softRemove()
     await EVENT_ADMIN_USER_DELETE(user, moderator)
-    const newUser = await DbUser.findOne({ id: userId }, { withDeleted: true })
+    const newUser = await DbUser.findOne({ where: { id: userId }, withDeleted: true  })
     return newUser ? newUser.deletedAt : null
   }
 
@@ -767,7 +767,7 @@ export class UserResolver {
     @Arg('userId', () => Int) userId: number,
     @Ctx() context: Context,
   ): Promise<Date | null> {
-    const user = await DbUser.findOne({ id: userId }, { withDeleted: true })
+    const user = await DbUser.findOne({ where: { id: userId }, withDeleted: true })
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
     }
@@ -819,10 +819,11 @@ export class UserResolver {
 }
 
 export async function findUserByEmail(email: string): Promise<DbUser> {
-  const dbUserContact = await DbUserContact.findOneOrFail(
-    { email },
-    { withDeleted: true, relations: ['user'] },
-  ).catch(() => {
+  const dbUserContact = await DbUserContact.findOneOrFail({
+    where: { email },
+    withDeleted: true,
+    relations: ['user']
+  }).catch(() => {
     throw new LogError('No user with this credentials', email)
   })
   const dbUser = dbUserContact.user
@@ -831,7 +832,10 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
 }
 
 async function checkEmailExists(email: string): Promise<boolean> {
-  const userContact = await DbUserContact.findOne({ email }, { withDeleted: true })
+  const userContact = await DbUserContact.findOne({
+    where: { email },
+    withDeleted: true,
+  })
   if (userContact) {
     return true
   }
