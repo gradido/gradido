@@ -1,4 +1,10 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+
 import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
 
@@ -7,7 +13,6 @@ import { createServer } from '@/server/createServer'
 import { i18n, logger } from './testSetup'
 
 export const headerPushMock = jest.fn((t) => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
   context.token = t.value
 })
 
@@ -21,7 +26,7 @@ const context = {
 }
 
 export const cleanDB = async () => {
-  // this only works as lond we do not have foreign key constraints
+  // this only works as long we do not have foreign key constraints
   for (const entity of entities) {
     await resetEntity(entity)
   }
@@ -36,12 +41,10 @@ export const testEnvironment = async (testLogger = logger, testI18n = i18n) => {
   return { mutate, query, con }
 }
 
-const [entityTypes] = entities
-
-export const resetEntity = async (entity: typeof entityTypes) => {
+export const resetEntity = async (entity: anny) => {
   const items = await entity.find({ withDeleted: true })
   if (items.length > 0) {
-    const ids = items.map((i) => i.id)
+    const ids = items.map((e: any) => e.id)
     await entity.delete(ids)
   }
 }

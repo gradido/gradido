@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getConnection, getCustomRepository, IsNull, Not, Equal } from '@dbTools/typeorm'
+import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
@@ -82,13 +82,13 @@ const newEmailContact = (email: string, userId: number): DbUserContact => {
   emailContact.type = UserContactType.USER_CONTACT_EMAIL
   emailContact.emailChecked = false
   emailContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
-  emailContact.emailVerificationCode = random(64)
+  emailContact.emailVerificationCode = random(64).toString()
   logger.debug('newEmailContact...successful', emailContact)
   return emailContact
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export const activationLink = (verificationCode: BigInt): string => {
+export const activationLink = (verificationCode: string): string => {
   logger.debug(`activationLink(${verificationCode})...`)
   return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, verificationCode.toString())
 }
@@ -365,7 +365,7 @@ export class UserResolver {
 
     user.emailContact.updatedAt = new Date()
     user.emailContact.emailResendCount++
-    user.emailContact.emailVerificationCode = random(64)
+    user.emailContact.emailVerificationCode = random(64).toString()
     user.emailContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_RESET_PASSWORD
     await user.emailContact.save().catch(() => {
       throw new LogError('Unable to save email verification code', user.emailContact)
@@ -404,7 +404,7 @@ export class UserResolver {
 
     // load code
     const userContact = await DbUserContact.findOneOrFail({
-      where: { emailVerificationCode: Equal(BigInt(code)) },
+      where: { emailVerificationCode: code },
       relations: ['user'],
     }).catch(() => {
       throw new LogError('Could not login with emailVerificationCode')
@@ -475,7 +475,7 @@ export class UserResolver {
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
     logger.info(`queryOptIn(${optIn})...`)
     const userContact = await DbUserContact.findOneOrFail({
-      where: { emailVerificationCode: Equal(BigInt(optIn)) },
+      where: { emailVerificationCode: optIn },
     })
     logger.debug('found optInCode', userContact)
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
