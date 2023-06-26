@@ -1,4 +1,4 @@
-import { In, Like } from '@dbTools/typeorm'
+import { In, Like, FindOperator } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 
 import { ContributionStatus } from '@enum/ContributionStatus'
@@ -21,28 +21,39 @@ export const findContributions = async (
   const { order, currentPage, pageSize, withDeleted, relations, userId, statusFilter, query } = {
     withDeleted: false,
     relations: [],
+    query: '',
     ...options,
   }
-  const requiredWhere = {
+  const where: {
+    userId?: number | undefined
+    contributionStatus?: FindOperator<ContributionStatus> | undefined
+    user?: Record<string, FindOperator<string>>[] | undefined
+  } = {
     ...(statusFilter?.length && { contributionStatus: In(statusFilter) }),
     ...(userId && { userId }),
   }
 
-  const where = query
-    ? [
-        { ...requiredWhere, name: Like(`%${query}%`) },
-        { ...requiredWhere, lastName: Like(`%${query}%`) },
-        { ...requiredWhere, email: Like(`%${query}%`) },
-      ]
-    : requiredWhere
+  if (query) {
+    where.user = [
+      { firstName: Like(`%${query}%`) },
+      { lastName: Like(`%${query}%`) },
+      // emailContact:  { email: Like(`%${query}%`) },
+    ]
+  }
+
   return DbContribution.findAndCount({
-    where,
+    relations: {
+      user: {
+        emailContact: true,
+      },
+      messages: true,
+    },
     withDeleted,
+    where,
     order: {
       createdAt: order,
       id: order,
     },
-    relations,
     skip: (currentPage - 1) * pageSize,
     take: pageSize,
   })

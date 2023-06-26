@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getCustomRepository } from '@dbTools/typeorm'
+import { getCustomRepository, IsNull } from '@dbTools/typeorm'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { Decimal } from 'decimal.js-light'
@@ -57,7 +57,7 @@ export class BalanceResolver {
     const linkCount = await dbTransactionLink.count({
       where: {
         userId: user.id,
-        redeemedAt: null,
+        redeemedAt: IsNull(),
         // validUntil: MoreThan(new Date()),
       },
     })

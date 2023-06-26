@@ -103,7 +103,7 @@ export class ContributionLinkResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const dbContributionLink = await DbContributionLink.findOne(id)
+    const dbContributionLink = await DbContributionLink.findOne({ where: { id } })
     if (!dbContributionLink) {
       throw new LogError('Contribution Link not found', id)
     }
@@ -130,7 +130,7 @@ export class ContributionLinkResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<ContributionLink> {
-    const dbContributionLink = await DbContributionLink.findOne(id)
+    const dbContributionLink = await DbContributionLink.findOne({ where: { id } })
     if (!dbContributionLink) {
       throw new LogError('Contribution Link not found', id)
     }
