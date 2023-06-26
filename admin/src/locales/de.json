@@ -108,7 +108,11 @@
   "message": {
     "request": "Die Anfrage wurde gesendet."
   },
-  "moderator": "Moderator",
+  "moderator": {
+    "moderator": "Moderator",
+    "notice": "Moderator Notiz",
+    "modalNote":"Diese Nachricht ist nur für die Moderatoren sichtbar!"
+  },
   "name": "Name",
   "navbar": {
     "automaticContributions": "Automatische Beiträge",

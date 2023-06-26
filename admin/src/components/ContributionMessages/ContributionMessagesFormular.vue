@@ -21,7 +21,7 @@
               @click="onSubmit('MODERATOR')"
               data-test="submit-moderator"
             >
-              Moderator Notiz
+              {{ $t('moderator.notice') }}
             </b-button>
           </b-col>
 

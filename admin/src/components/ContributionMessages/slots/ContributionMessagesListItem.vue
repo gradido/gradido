@@ -1,29 +1,27 @@
 <template>
   <div class="contribution-messages-list-item">
     <div
-      v-if="message.isModerator"
-      class="text-right is-moderator"
-      :class="message.type === 'MODERATOR' ? 'is-hidden-moderator-message p-2' : ''"
+      v-if="isModerator"
+      class="text-right is-moderator p-2 rounded-sm mb-3"
+      :class="isModeratorMessage ? 'is-hidden-moderator-message ' : 'is-moderator-message'"
     >
-      <b-avatar square variant="warning"></b-avatar>
-      <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
-      <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
-      <small
-        class="ml-4 text-success"
-        :class="message.type === 'MODERATOR' ? 'text-success' : 'text-warning'"
-      >
-        {{ $t('moderator') }}
+      <small class="ml-4">
+        {{ $t('moderator.moderator') }}
       </small>
+      <small class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</small>
+      <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
+      <b-avatar square variant="warning"></b-avatar>
+
       <parse-message v-bind="message"></parse-message>
-      <small v-if="message.type === 'MODERATOR'">
+      <small v-if="isModeratorMessage">
         <hr />
-        Diese Nachricht ist nur für die Moderatoren sichtbar!
+        {{ $t('moderator.request') }}
       </small>
     </div>
-    <div v-else class="text-left is-not-moderator">
+    <div v-else class="text-left is-user p-2 rounded-sm is-user-message mb-3">
       <b-avatar variant="info"></b-avatar>
       <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
-      <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
+      <small class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</small>
       <parse-message v-bind="message"></parse-message>
     </div>
   </div>
@@ -42,24 +40,36 @@ export default {
       required: true,
     },
   },
+  computed: {
+    isModerator() {
+      return (
+        this.message.userFirstName === this.$store.state.moderator.firstName &&
+        this.message.userLastName === this.$store.state.moderator.lastName
+      )
+    },
+    isModeratorMessage() {
+      return this.message.type === 'MODERATOR'
+    },
+  },
 }
 </script>
 <style>
-.is-not-moderator {
-  clear: both;
-  width: 75%;
-  margin-top: 20px;
-  /* background-color: rgb(261, 204, 221); */
-}
 .is-moderator {
   clear: both;
   float: right;
   width: 75%;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  /* background-color: rgb(255, 255, 128); */
+}
+.is-moderator-message {
+  background-color: rgb(228, 237, 245);
 }
 .is-hidden-moderator-message {
-  background-color: rgb(161, 194, 228);
+  background-color: rgb(217, 161, 228);
+}
+.is-user {
+  clear: both;
+  width: 75%;
+}
+.is-user-message {
+  background-color: rgb(236, 235, 213);
 }
 </style>
