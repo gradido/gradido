@@ -51,6 +51,21 @@ Then('the user receives an e-mail containing the {string} link', (linkName: stri
   )
 })
 
+Then('the user receives no password reset e-mail', () {
+  cy.origin(
+    Cypress.env('mailserverURL'),
+    { args: { userEMailSite } },
+    ({ userEMailSite }) => {      
+      cy.visit('/')
+      cy.get(userEMailSite.emailInbox).should('be.visible')
+
+      cy.get(userEMailSite.emailList)
+        .find('.email-item')
+        .should('have.length', 0)
+    }
+  )
+})
+
 When('the user opens the {string} link in the browser', (linkName: string) => {
   cy.task('getEmailLink').then((emailLink) => {
     cy.visit(emailLink)
