@@ -64,9 +64,9 @@ export default {
       return this.message.type === 'HISTORY'
     },
     boxClass() {
-      if (this.isModeratorMessage) return 'is-moderator is-moderator-message'
       if (this.isModeratorHiddenMessage) return 'is-moderator is-moderator-hidden-message'
       if (this.isHistory) return 'is-user is-user-history-message'
+      if (this.isModeratorMessage) return 'is-moderator is-moderator-message'
       return 'is-user is-user-message'
     },
   },
