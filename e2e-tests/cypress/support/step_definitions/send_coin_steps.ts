@@ -18,13 +18,13 @@ And('the user submits the send form', () => {
 })
 
 
-Then('the transaction details are presented for confirmation', () => {
-  cy.get('.transaction-confirm-send').contains('raeuber@hotzenplotz.de')
-  cy.get('.transaction-confirm-send').contains('+ 120.50 GDD')
-  cy.get('.transaction-confirm-send').contains('Some memo text')
-  cy.get('.transaction-confirm-send').contains('+ 515.11 GDD')
-  cy.get('.transaction-confirm-send').contains('− 120.50 GDD')
-  cy.get('.transaction-confirm-send').contains('+ 394.61 GDD')
+Then('the transaction details are presented for confirmation {string} {string} {string} {string} {string}', (receiverEmail: string, sendAmount: string, memoText: string, senderBalance: string, newSenderBalance: string) => {
+  cy.get('.transaction-confirm-send').contains(receiverEmail)
+  cy.get('.transaction-confirm-send').contains(`+ ${sendAmount} GDD`)
+  cy.get('.transaction-confirm-send').contains(memoText)
+  cy.get('.transaction-confirm-send').contains(`+ ${senderBalance} GDD`)
+  cy.get('.transaction-confirm-send').contains(`− ${sendAmount} GDD`)
+  cy.get('.transaction-confirm-send').contains(`+ ${newSenderBalance} GDD`)
 })
 
 When('the user submits the transaction by confirming', () => {
