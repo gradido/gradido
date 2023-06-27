@@ -850,6 +850,7 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
   })
   const dbUser = dbUserContact.user
   dbUser.emailContact = dbUserContact
+  dbUser.userRole = await UserRole.findOne({ userId: dbUser.id })
   return dbUser
 }
 
