@@ -10,6 +10,7 @@ describe('ContributionMessagesList', () => {
 
   const propsData = {
     contributionId: 42,
+    contributionUserId: 108,
     contributionState: 'PENDING',
   }
 
