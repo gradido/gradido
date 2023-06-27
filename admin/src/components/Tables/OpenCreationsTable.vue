@@ -166,3 +166,9 @@ export default {
   },
 }
 </script>
+<style>
+.btn-warning {
+  background-color: #e1a908;
+  border-color: #e1a908;
+}
+</style>
