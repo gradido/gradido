@@ -43,7 +43,7 @@
       :items="items"
       :fields="fields"
       @show-overlay="showOverlay"
-      @update-state="updateStatus"
+      @update-status="updateStatus"
       @update-contributions="$apollo.queries.ListAllContributions.refetch()"
     />
 
@@ -187,7 +187,7 @@ export default {
     },
     updateStatus(id) {
       this.items.find((obj) => obj.id === id).messagesCount++
-      this.items.find((obj) => obj.id === id).state = 'IN_PROGRESS'
+      this.items.find((obj) => obj.id === id).status = 'IN_PROGRESS'
     },
     formatDateOrDash(value) {
       return value ? this.$d(new Date(value), 'short') : '—'
@@ -331,7 +331,7 @@ export default {
         ],
         [
           // all contributions
-          { key: 'state', label: this.$t('status') },
+          { key: 'status', label: this.$t('status') },
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {
