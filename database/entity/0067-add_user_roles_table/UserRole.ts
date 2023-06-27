@@ -1,5 +1,4 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm'
-import { User } from '../User'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 
 @Entity('user_roles', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class UserRole extends BaseEntity {
@@ -17,8 +16,4 @@ export class UserRole extends BaseEntity {
 
   @Column({ name: 'updated_at', nullable: true, default: null, type: 'datetime' })
   updatedAt: Date | null
-
-  @OneToOne(() => User, (user) => user.id)
-  @JoinColumn({ name: 'user_id' })
-  userRole?: UserRole
 }
