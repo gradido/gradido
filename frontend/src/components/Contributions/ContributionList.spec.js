@@ -119,11 +119,11 @@ describe('ContributionList', () => {
 
     describe('update status', () => {
       beforeEach(() => {
-        wrapper.findComponent({ name: 'ContributionListItem' }).vm.$emit('update-state', { id: 2 })
+        wrapper.findComponent({ name: 'ContributionListItem' }).vm.$emit('update-status', { id: 2 })
       })
 
       it('emits update status', () => {
-        expect(wrapper.emitted('update-state')).toEqual([[{ id: 2 }]])
+        expect(wrapper.emitted('update-status')).toEqual([[{ id: 2 }]])
       })
     })
   })
