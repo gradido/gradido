@@ -1,10 +1,6 @@
 <template>
   <div class="contribution-messages-list-item">
-    <div
-      v-if="isModerator"
-      class="text-right is-moderator p-2 rounded-sm mb-3"
-      :class="isModeratorMessage ? 'is-hidden-moderator-message ' : 'is-moderator-message'"
-    >
+    <div v-if="isModeratorMessage" class="text-right p-2 rounded-sm mb-3" :class="boxClass">
       <small class="ml-4" data-test="moderator-label">
         {{ $t('moderator.moderator') }}
       </small>
@@ -17,18 +13,23 @@
       <b-avatar square variant="warning"></b-avatar>
 
       <parse-message v-bind="message" data-test="moderator-message"></parse-message>
-      <small v-if="isModeratorMessage">
+      <small v-if="isModeratorHiddenMessage">
         <hr />
         {{ $t('moderator.request') }}
       </small>
     </div>
-    <div v-else class="text-left is-user p-2 rounded-sm is-user-message mb-3">
+    <div v-else class="text-left p-2 rounded-sm mb-3" :class="boxClass">
       <b-avatar variant="info"></b-avatar>
       <span class="ml-2 mr-2" data-test="user-name">
         {{ message.userFirstName }} {{ message.userLastName }}
       </span>
       <small class="ml-2" data-test="user-date">
         {{ $d(new Date(message.createdAt), 'short') }}
+      </small>
+      <small v-if="isHistory">
+        <hr />
+        {{ $t('moderator.history') }}
+        <hr />
       </small>
       <parse-message v-bind="message" data-test="user-message"></parse-message>
     </div>
@@ -53,11 +54,20 @@ export default {
     },
   },
   computed: {
-    isModerator() {
+    isModeratorMessage() {
       return this.contributionUserId !== this.message.userId
     },
-    isModeratorMessage() {
+    isModeratorHiddenMessage() {
       return this.message.type === 'MODERATOR'
+    },
+    isHistory() {
+      return this.message.type === 'HISTORY'
+    },
+    boxClass() {
+      if (this.isModeratorMessage) return 'is-moderator is-moderator-message'
+      if (this.isModeratorHiddenMessage) return 'is-moderator is-moderator-hidden-message'
+      if (this.isHistory) return 'is-user is-user-history-message'
+      return 'is-user is-user-message'
     },
   },
 }
@@ -71,7 +81,7 @@ export default {
 .is-moderator-message {
   background-color: rgb(228, 237, 245);
 }
-.is-hidden-moderator-message {
+.is-moderator-hidden-message {
   background-color: rgb(217, 161, 228);
 }
 .is-user {
@@ -80,5 +90,8 @@ export default {
 }
 .is-user-message {
   background-color: rgb(236, 235, 213);
+}
+.is-user-history-message {
+  background-color: rgb(235, 226, 57);
 }
 </style>

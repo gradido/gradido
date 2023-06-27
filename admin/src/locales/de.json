@@ -111,7 +111,8 @@
   "moderator": {
     "moderator": "Moderator",
     "notice": "Moderator Notiz",
-    "request": "Diese Nachricht ist nur für die Moderatoren sichtbar!"
+    "request": "Diese Nachricht ist nur für die Moderatoren sichtbar!",
+    "history": "Die Daten wurden geändert. Dies sind die alten Daten."
   },
   "name": "Name",
   "navbar": {

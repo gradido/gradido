@@ -26,6 +26,7 @@ describe('ContributionMessagesListItem', () => {
   describe('if message author has moderator role', () => {
     const propsData = {
       contributionId: 42,
+      contributionUserId: 108,
       state: 'PENDING',
       message: {
         id: 111,
@@ -81,6 +82,7 @@ describe('ContributionMessagesListItem', () => {
   describe('if message author does not have moderator role', () => {
     const propsData = {
       contributionId: 42,
+      contributionUserId: 108,
       state: 'PENDING',
       message: {
         id: 113,
@@ -132,6 +134,7 @@ describe('ContributionMessagesListItem', () => {
 
   describe('links in contribtion message', () => {
     const propsData = {
+      contributionUserId: 108,
       message: {
         id: 111,
         message: 'Lorem ipsum?',
@@ -159,7 +162,7 @@ describe('ContributionMessagesListItem', () => {
       beforeEach(() => {
         propsData.message.message = 'https://gradido.net/de/'
         wrapper = ModeratorItemWrapper()
-        messageField = wrapper.find('div.is-not-moderator.text-left > div:nth-child(4)')
+        messageField = wrapper.find('[data-test="moderator-message"]')
       })
 
       it('contains the link as text', () => {
@@ -176,7 +179,7 @@ describe('ContributionMessagesListItem', () => {
         propsData.message.message = `Here you find all you need to know about Gradido: https://gradido.net/de/
 and here is the link to the repository: https://github.com/gradido/gradido`
         wrapper = ModeratorItemWrapper()
-        messageField = wrapper.find('div.is-not-moderator.text-left > div:nth-child(4)')
+        messageField = wrapper.find('[data-test="moderator-message"]')
       })
 
       it('contains the whole text', () => {
@@ -196,6 +199,7 @@ and here is the link to the repository: https://github.com/gradido/gradido`)
 
   describe('contribution message type HISTORY', () => {
     const propsData = {
+      contributionUserId: 108,
       message: {
         id: 111,
         message: `Sun Nov 13 2022 13:05:48 GMT+0100 (Central European Standard Time)
@@ -227,7 +231,7 @@ This message also contains a link: https://gradido.net/de/
       beforeEach(() => {
         jest.clearAllMocks()
         wrapper = itemWrapper()
-        messageField = wrapper.find('div.is-not-moderator.text-left > div:nth-child(4)')
+        messageField = wrapper
       })
 
       it('renders the date', () => {
