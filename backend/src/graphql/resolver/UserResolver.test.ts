@@ -142,7 +142,7 @@ describe('UserResolver', () => {
     describe('valid input data', () => {
       // let loginEmailOptIn: LoginEmailOptIn[]
       beforeAll(async () => {
-        user = await User.find({ relations: ['emailContact'] })
+        user = await User.find({ relations: ['emailContact', 'userRole'] })
         // loginEmailOptIn = await LoginEmailOptIn.find()
         emailVerificationCode = user[0].emailContact.emailVerificationCode.toString()
       })
@@ -336,10 +336,22 @@ describe('UserResolver', () => {
           })
 
           // make Peter Lustig Admin
-          const peter = await User.findOneOrFail({
+          let peter = await User.findOneOrFail({
             where: { id: user[0].id },
             relations: ['userRole'],
           })
+          console.log('vorher peter=', peter)
+          await mutate({
+            mutation: setUserRole,
+            variables: { userId: user[0].id, isAdmin: true },
+          })
+          peter = await User.findOneOrFail({
+            where: { id: user[0].id },
+            relations: ['userRole'],
+          })
+          console.log('nachher peter=', peter)
+
+          /*
           if (peter.userRole == null) {
             peter.userRole = UserRole.create()
           }
@@ -347,7 +359,9 @@ describe('UserResolver', () => {
           peter.userRole.role = ROLE_NAMES.ROLE_NAME_ADMIN
           peter.userRole.userId = peter.id
           await peter.userRole.save()
-          await peter.save()
+          // await peter.save()
+          console.log('user peter=', peter)
+          */
 
           // date statement
           const actualDate = new Date()
