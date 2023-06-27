@@ -1,3 +1,4 @@
+import { ROLE_NAMES } from '@/auth/ROLES'
 import { User as dbUser } from '@entity/User'
 import { ObjectType, Field, Int } from 'type-graphql'
 
@@ -19,7 +20,17 @@ export class User {
     this.language = user.language
     this.publisherId = user.publisherId
     if (user.userRole) {
-      this.isAdmin = user.userRole.createdAt
+      switch (user.userRole.role) {
+        case ROLE_NAMES.ROLE_NAME_ADMIN:
+          this.isAdmin = user.userRole.createdAt
+          break
+        case ROLE_NAMES.ROLE_NAME_MODERATOR:
+          this.isModerator = user.userRole.createdAt
+          break
+        default:
+          this.isAdmin = null
+          this.isModerator = null
+      }
     }
     this.klickTipp = null
     this.hasElopage = null
@@ -66,6 +77,9 @@ export class User {
 
   @Field(() => Date, { nullable: true })
   isAdmin: Date | null
+
+  @Field(() => Date, { nullable: true })
+  isModerator: Date | null
 
   @Field(() => KlickTipp, { nullable: true })
   klickTipp: KlickTipp | null
