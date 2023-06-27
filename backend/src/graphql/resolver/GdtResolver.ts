@@ -6,6 +6,7 @@ import { Resolver, Query, Args, Ctx, Authorized, Arg, Int, Float } from 'type-gr
 
 import { Paginated } from '@arg/Paginated'
 import { Order } from '@enum/Order'
+import { GdtEntry } from '@model/GdtEntry'
 import { GdtEntryList } from '@model/GdtEntryList'
 
 import { apiGet, apiPost } from '@/apis/HttpRequest'
@@ -31,9 +32,17 @@ export class GdtResolver {
         `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.emailContact.email}/${currentPage}/${pageSize}/${order}`,
       )
       if (!resultGDT.success) {
-        throw new LogError(resultGDT.data)
+        return new GdtEntryList()
       }
-      return new GdtEntryList(resultGDT.data)
+      const { state, count, gdtEntries, gdtSum, timeUsed } = resultGDT.data
+      return new GdtEntryList(
+        state,
+        count,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+        gdtEntries ? gdtEntries.map((data: any) => new GdtEntry(data)) : [],
+        gdtSum,
+        timeUsed,
+      )
     } catch (err) {
       throw new LogError('GDT Server is not reachable')
     }
