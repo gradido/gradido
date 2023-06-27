@@ -51,13 +51,13 @@ Then('the user receives an e-mail containing the {string} link', (linkName: stri
   )
 })
 
-Then('the user receives no password reset e-mail', () {
+Then('the user receives no password reset e-mail', () => {
   cy.origin(
     Cypress.env('mailserverURL'),
     { args: { userEMailSite } },
     ({ userEMailSite }) => {      
       cy.visit('/')
-      cy.get(userEMailSite.emailInbox).should('be.visible')
+      cy.get(userEMailSite.emailList).should('be.visible')
 
       cy.get(userEMailSite.emailList)
         .find('.email-item')
