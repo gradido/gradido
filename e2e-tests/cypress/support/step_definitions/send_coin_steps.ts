@@ -7,7 +7,7 @@ When(
   'the user fills the send form with {string} {string} {string}',
   (email: string, amount: string, memoText: string) => {
     sendPage.enterReceiverEmail(email)
-    sendPage.enterAmount(`${amount}`)
+    sendPage.enterAmount(amount)
     sendPage.enterMemoText(memoText)
   }
 )
