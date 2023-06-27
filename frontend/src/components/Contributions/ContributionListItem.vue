@@ -2,7 +2,7 @@
   <div>
     <div
       class="contribution-list-item bg-white appBoxShadow gradido-border-radius pt-3 px-3"
-      :class="state === 'IN_PROGRESS' && !allContribution ? 'pulse border border-205' : ''"
+      :class="status === 'IN_PROGRESS' && !allContribution ? 'pulse border border-205' : ''"
     >
       <b-row>
         <b-col cols="3" lg="2" md="2">
@@ -26,7 +26,7 @@
           <div class="mt-3 font-weight-bold">{{ $t('contributionText') }}</div>
           <div class="mb-3 text-break word-break">{{ memo }}</div>
           <div
-            v-if="state === 'IN_PROGRESS'"
+            v-if="status === 'IN_PROGRESS'"
             class="text-205 pointer hover-font-bold"
             @click="visible = !visible"
           >
@@ -37,11 +37,11 @@
           <div class="small">
             {{ $t('creation') }} {{ $t('(') }}{{ amount / 20 }} {{ $t('h') }}{{ $t(')') }}
           </div>
-          <div v-if="state === 'DENIED' && allContribution" class="font-weight-bold">
+          <div v-if="status === 'DENIED' && allContribution" class="font-weight-bold">
             <b-icon icon="x-circle" variant="danger"></b-icon>
             {{ $t('contribution.alert.denied') }}
           </div>
-          <div v-if="state === 'DELETED'" class="small">
+          <div v-if="status === 'DELETED'" class="small">
             {{ $t('contribution.deleted') }}
           </div>
           <div v-else class="font-weight-bold">{{ amount | GDD }}</div>
@@ -53,12 +53,12 @@
         </b-col>
       </b-row>
       <b-row
-        v-if="(!['CONFIRMED', 'DELETED'].includes(state) && !allContribution) || messagesCount > 0"
+        v-if="(!['CONFIRMED', 'DELETED'].includes(status) && !allContribution) || messagesCount > 0"
         class="p-2"
       >
         <b-col cols="3" class="mr-auto text-center">
           <div
-            v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution && !moderatorId"
+            v-if="!['CONFIRMED', 'DELETED'].includes(status) && !allContribution && !moderatorId"
             class="test-delete-contribution pointer mr-3"
             @click="deleteContribution({ id })"
           >
@@ -69,7 +69,7 @@
         </b-col>
         <b-col cols="3" class="text-center">
           <div
-            v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution && !moderatorId"
+            v-if="!['CONFIRMED', 'DELETED'].includes(status) && !allContribution && !moderatorId"
             class="test-edit-contribution pointer mr-3"
             @click="
               $emit('update-contribution-form', {
@@ -95,10 +95,10 @@
       <b-collapse :id="collapsId" class="mt-2" v-model="visible">
         <contribution-messages-list
           :messages="messages_get"
-          :state="state"
+          :status="status"
           :contributionId="contributionId"
           @get-list-contribution-messages="getListContributionMessages"
-          @update-state="updateState"
+          @update-status="updateStatus"
         />
       </b-collapse>
     </div>
@@ -161,7 +161,7 @@ export default {
       type: String,
       required: false,
     },
-    state: {
+    status: {
       type: String,
       required: false,
       default: '',
@@ -197,14 +197,14 @@ export default {
       if (this.deletedAt) return 'trash'
       if (this.deniedAt) return 'x-circle'
       if (this.confirmedAt) return 'check'
-      if (this.state === 'IN_PROGRESS') return 'question'
+      if (this.status === 'IN_PROGRESS') return 'question'
       return 'bell-fill'
     },
     variant() {
       if (this.deletedAt) return 'danger'
       if (this.deniedAt) return 'warning'
       if (this.confirmedAt) return 'success'
-      if (this.state === 'IN_PROGRESS') return '205'
+      if (this.status === 'IN_PROGRESS') return '205'
       return 'primary'
     },
     date() {
@@ -245,8 +245,8 @@ export default {
           this.toastError(error.message)
         })
     },
-    updateState(id) {
-      this.$emit('update-state', id)
+    updateStatus(id) {
+      this.$emit('update-status', id)
     },
   },
   watch: {

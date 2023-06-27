@@ -30,7 +30,7 @@
               @update-list-contributions="updateListContributions"
               @update-contribution-form="updateContributionForm"
               @delete-contribution="deleteContribution"
-              @update-state="updateState"
+              @update-status="updateStatus"
               :contributionCount="contributionCount"
               :showPagination="true"
               :pageSize="pageSize"
@@ -148,7 +148,7 @@ export default {
       update({ listContributions }) {
         this.contributionCount = listContributions.contributionCount
         this.items = listContributions.contributionList
-        if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
+        if (this.items.find((item) => item.status === 'IN_PROGRESS')) {
           this.tabIndex = 1
           if (this.$route.params.tab !== 'contributions')
             this.$router.push({ params: { tab: 'contributions' } })
@@ -290,8 +290,8 @@ export default {
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
     },
-    updateState(id) {
-      this.items.find((item) => item.id === id).state = 'PENDING'
+    updateStatus(id) {
+      this.items.find((item) => item.id === id).status = 'PENDING'
     },
   },
 }
