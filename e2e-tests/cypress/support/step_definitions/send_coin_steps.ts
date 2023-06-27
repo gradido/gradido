@@ -27,7 +27,7 @@ Then('the transaction details are presented for confirmation {string} {string} {
   cy.get('.transaction-confirm-send').contains(`+ ${newSenderBalance} GDD`)
 })
 
-When('the user submits the transaction by confirming', () => {
+When('the user submits the transaction by confirming', (receiverName: string, amount) => {
   cy.intercept({
     method: 'POST',
     url: '/graphql',
@@ -48,14 +48,15 @@ When('the user submits the transaction by confirming', () => {
       .and('equal', true)
   })
   cy.get('[data-test="send-transaction-success-text"]').should('be.visible')
-  cy.get('.rightside-last-transactions').should('be.visible')
-  cy.get('.align-items-center').contains('Räuber Hotzenplotz')
-  cy.get('.align-items-center').contains('− 120.50 GDD')
 })
 
 Then('the {string} and {string} are displayed on the {string} page', (name: string, amount: string, page: string) => {
   switch (page) {
     case 'overview':
+      cy.get('.align-items-center').contains(`${name}`)
+      cy.get('.align-items-center').contains(`${amount} GDD`)
+      break
+    case 'send':
       cy.get('.align-items-center').contains(`${name}`)
       cy.get('.align-items-center').contains(`${amount} GDD`)
       break

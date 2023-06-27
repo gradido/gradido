@@ -16,7 +16,8 @@ Feature: Send coins
     And the user submits the send form
     Then the transaction details are presented for confirmation "<receiverEmail>" "<amount>" "<memoText>" "<senderBalance>" "<newSenderBalance>"
     When the user submits the transaction by confirming
-    And the user navigates to page "/transactions"
+    Then the "<receiverName>" and "<amount>" are displayed on the "send" page
+    When the user navigates to page "/transactions"
     Then the "<receiverName>" and "<amount>" are displayed on the "transactions" page
   
   Examples:
