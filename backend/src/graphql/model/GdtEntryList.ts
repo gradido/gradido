@@ -10,7 +10,7 @@ import { GdtEntry } from './GdtEntry'
 @ObjectType()
 export class GdtEntryList {
   constructor(json: any) {
-    this.state = json.state
+    this.status = json.state
     this.count = json.count
     this.gdtEntries = json.gdtEntries ? json.gdtEntries.map((json: any) => new GdtEntry(json)) : []
     this.gdtSum = json.gdtSum
@@ -18,7 +18,7 @@ export class GdtEntryList {
   }
 
   @Field(() => String)
-  state: string
+  status: string
 
   @Field(() => Int)
   count: number
