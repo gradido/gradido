@@ -8,7 +8,7 @@ describe('ContributionMessagesList', () => {
 
   const propsData = {
     contributionId: 42,
-    state: 'IN_PROGRESS',
+    status: 'IN_PROGRESS',
     messages: [],
   }
 
@@ -40,13 +40,13 @@ describe('ContributionMessagesList', () => {
       expect(wrapper.findComponent({ name: 'ContributionMessagesFormular' }).exists()).toBe(true)
     })
 
-    describe('update State', () => {
+    describe('update Status', () => {
       beforeEach(() => {
-        wrapper.vm.updateState()
+        wrapper.vm.updateStatus()
       })
 
       it('emits getListContributionMessages', async () => {
-        expect(wrapper.vm.$emit('update-state')).toBeTruthy()
+        expect(wrapper.vm.$emit('update-status')).toBeTruthy()
       })
     })
   })

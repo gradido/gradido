@@ -14,7 +14,7 @@ describe('ContributionListItem', () => {
 
   const propsData = {
     contributionId: 42,
-    state: 'PENDING',
+    status: 'PENDING',
     messagesCount: 2,
     id: 1,
     createdAt: '26/07/2022',
@@ -72,8 +72,8 @@ describe('ContributionListItem', () => {
         expect(wrapper.vm.variant).toBe('success')
       })
 
-      it('is warning at when state is IN_PROGRESS', async () => {
-        await wrapper.setProps({ state: 'IN_PROGRESS' })
+      it('is warning at when status is IN_PROGRESS', async () => {
+        await wrapper.setProps({ status: 'IN_PROGRESS' })
         expect(wrapper.vm.variant).toBe('205')
       })
     })
@@ -134,13 +134,13 @@ describe('ContributionListItem', () => {
         })
       })
 
-      describe('updateState', () => {
+      describe('updateStatus', () => {
         beforeEach(async () => {
-          await wrapper.vm.updateState()
+          await wrapper.vm.updateStatus()
         })
 
-        it('emit update-state', () => {
-          expect(wrapper.vm.$emit('update-state')).toBeTruthy()
+        it('emit update-status', () => {
+          expect(wrapper.vm.$emit('update-status')).toBeTruthy()
         })
       })
     })
