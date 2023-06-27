@@ -51,7 +51,7 @@ const defaultData = () => {
           memo: 'Danke für alles',
           date: new Date(),
           moderator: 1,
-          state: 'PENDING',
+          status: 'PENDING',
           creation: [500, 500, 500],
           messagesCount: 0,
           deniedBy: null,
@@ -73,7 +73,7 @@ const defaultData = () => {
           memo: 'Gut Ergattert',
           date: new Date(),
           moderator: 1,
-          state: 'PENDING',
+          status: 'PENDING',
           creation: [500, 500, 500],
           messagesCount: 0,
           deniedBy: null,
@@ -451,12 +451,12 @@ describe('CreationConfirm', () => {
 
     describe('update status', () => {
       beforeEach(async () => {
-        await wrapper.findComponent({ name: 'OpenCreationsTable' }).vm.$emit('update-state', 2)
+        await wrapper.findComponent({ name: 'OpenCreationsTable' }).vm.$emit('update-status', 2)
       })
 
       it('updates the status', () => {
         expect(wrapper.vm.items.find((obj) => obj.id === 2).messagesCount).toBe(1)
-        expect(wrapper.vm.items.find((obj) => obj.id === 2).state).toBe('IN_PROGRESS')
+        expect(wrapper.vm.items.find((obj) => obj.id === 2).status).toBe('IN_PROGRESS')
       })
     })
 

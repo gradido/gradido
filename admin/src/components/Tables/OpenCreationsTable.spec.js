@@ -131,13 +131,13 @@ describe('OpenCreationsTable', () => {
       })
     })
 
-    describe('call updateState', () => {
+    describe('call updateStatus', () => {
       beforeEach(() => {
-        wrapper.vm.updateState(4)
+        wrapper.vm.updateStatus(4)
       })
 
-      it('emits update-state', () => {
-        expect(wrapper.vm.$root.$emit('update-state', 4)).toBeTruthy()
+      it('emits update-status', () => {
+        expect(wrapper.vm.$root.$emit('update-status', 4)).toBeTruthy()
       })
     })
   })

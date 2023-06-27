@@ -9,11 +9,11 @@
       </div>
     </b-container>
 
-    <div v-if="contributionState === 'PENDING' || contributionState === 'IN_PROGRESS'">
+    <div v-if="contributionStatus === 'PENDING' || contributionStatus === 'IN_PROGRESS'">
       <contribution-messages-formular
         :contributionId="contributionId"
         @get-list-contribution-messages="getListContributionMessages"
-        @update-state="updateState"
+        @update-status="updateStatus"
       />
     </div>
   </div>
@@ -34,7 +34,7 @@ export default {
       type: Number,
       required: true,
     },
-    contributionState: {
+    contributionStatus: {
       type: String,
       required: true,
     },
@@ -65,8 +65,8 @@ export default {
           this.toastError(error.message)
         })
     },
-    updateState(id) {
-      this.$emit('update-state', id)
+    updateStatus(id) {
+      this.$emit('update-status', id)
     },
   },
   created() {

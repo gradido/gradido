@@ -94,7 +94,7 @@
     "transactionlist": {
       "confirmed": "When was it confirmed by a moderator / admin.",
       "periods": "For what period was it submitted by the member.",
-      "state": "[PENDING = submitted, DELETED = deleted, IN_PROGRESS = in dialogue with moderator, DENIED = rejected, CONFIRMED = confirmed]",
+      "status": "[PENDING = submitted, DELETED = deleted, IN_PROGRESS = in dialogue with moderator, DENIED = rejected, CONFIRMED = confirmed]",
       "submitted": "When was it submitted by the member"
     }
   },
@@ -189,7 +189,7 @@
     "confirmed": "Confirmed",
     "memo": "Message",
     "period": "Period",
-    "state": "State",
+    "status": "State",
     "submitted": "Submitted",
     "title": "All creation-transactions for the user"
   },
