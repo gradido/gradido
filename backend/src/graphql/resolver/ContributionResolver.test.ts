@@ -2890,6 +2890,97 @@ describe('ContributionResolver', () => {
           ]),
         })
       })
+
+      describe('with user query', () => {
+        it('returns only contributions of the queried user', async () => {
+          const {
+            data: { adminListContributions: contributionListObject },
+          } = await query({
+            query: adminListContributions,
+            variables: {
+              query: 'Peter',
+            },
+          })
+          expect(contributionListObject.contributionList).toHaveLength(3)
+          expect(contributionListObject).toMatchObject({
+            contributionCount: 3,
+            contributionList: expect.arrayContaining([
+              expect.objectContaining({
+                amount: expect.decimalEqual(400),
+                firstName: 'Peter',
+                id: expect.any(Number),
+                lastName: 'Lustig',
+                memo: 'Herzlich Willkommen bei Gradido!',
+                messagesCount: 0,
+                state: 'PENDING',
+              }),
+              expect.objectContaining({
+                amount: expect.decimalEqual(100),
+                firstName: 'Peter',
+                id: expect.any(Number),
+                lastName: 'Lustig',
+                memo: 'Test env contribution',
+                messagesCount: 0,
+                state: 'PENDING',
+              }),
+              expect.objectContaining({
+                amount: expect.decimalEqual(200),
+                firstName: 'Peter',
+                id: expect.any(Number),
+                lastName: 'Lustig',
+                memo: 'Das war leider zu Viel!',
+                messagesCount: 0,
+                state: 'DELETED',
+              }),
+            ]),
+          })
+        })
+
+        // test for case sensitivity and email
+        it('returns only contributions of the queried user email', async () => {
+          const {
+            data: { adminListContributions: contributionListObject },
+          } = await query({
+            query: adminListContributions,
+            variables: {
+              query: 'RAEUBER', // only found in lowercase in the email
+            },
+          })
+          expect(contributionListObject.contributionList).toHaveLength(3)
+          expect(contributionListObject).toMatchObject({
+            contributionCount: 3,
+            contributionList: expect.arrayContaining([
+              expect.objectContaining({
+                amount: expect.decimalEqual(166),
+                firstName: 'Räuber',
+                id: expect.any(Number),
+                lastName: 'Hotzenplotz',
+                memo: 'Whatever contribution',
+                messagesCount: 0,
+                state: 'DENIED',
+              }),
+              expect.objectContaining({
+                amount: expect.decimalEqual(166),
+                firstName: 'Räuber',
+                id: expect.any(Number),
+                lastName: 'Hotzenplotz',
+                memo: 'Whatever contribution',
+                messagesCount: 0,
+                state: 'DELETED',
+              }),
+              expect.objectContaining({
+                amount: expect.decimalEqual(166),
+                firstName: 'Räuber',
+                id: expect.any(Number),
+                lastName: 'Hotzenplotz',
+                memo: 'Whatever contribution',
+                messagesCount: 0,
+                state: 'CONFIRMED',
+              }),
+            ]),
+          })
+        })
+      })
     })
   })
 })
