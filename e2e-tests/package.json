@@ -18,7 +18,7 @@
     "lint": "eslint --max-warnings=0 --ext .js,.ts ."
   },
   "dependencies": {
-    "@badeball/cypress-cucumber-preprocessor": "^12.0.0",
+    "@badeball/cypress-cucumber-preprocessor": "^18.0.1",
     "@cypress/browserify-preprocessor": "^3.0.2",
     "@typescript-eslint/eslint-plugin": "^5.38.0",
     "@typescript-eslint/parser": "^5.38.0",
