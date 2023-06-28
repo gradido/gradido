@@ -35,14 +35,20 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
       where: { gradidoID: decoded.gradidoID },
       relations: ['emailContact', 'userRoles'],
     })
-    console.log('isAuthorized user=', user)
+    // console.log('isAuthorized user=', user)
     context.user = user
-    context.role = user.userRoles
-      ? user.userRoles[0].role === ROLE_NAMES.ROLE_NAME_ADMIN
-        ? ROLE_ADMIN
-        : ROLE_MODERATOR
-      : ROLE_USER
+    if (user.userRoles && user.userRoles.length > 0) {
+      if (user.userRoles[0].role === ROLE_NAMES.ROLE_NAME_ADMIN) {
+        context.role = ROLE_ADMIN
+      } else if (user.userRoles[0].role === ROLE_NAMES.ROLE_NAME_MODERATOR) {
+        context.role = ROLE_MODERATOR
+      }
+    } else {
+      context.role = ROLE_USER
+    }
+    // console.log('context.role=', context.role)
   } catch {
+    // console.log('401 Unauthorized for decoded', decoded)
     // in case the database query fails (user deleted)
     throw new LogError('401 Unauthorized')
   }

@@ -16,6 +16,7 @@ export class UserRepository extends Repository<DbUser> {
       .select(select)
       .withDeleted()
       .leftJoinAndSelect('user.emailContact', 'emailContact')
+      .leftJoinAndSelect('user.userRoles', 'userRoles')
       .where(
         new Brackets((qb) => {
           qb.where(
