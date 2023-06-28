@@ -70,7 +70,36 @@ export const sendEmailTranslated = async ({
   const resultSend = await email
     .send({
       template: path.join(__dirname, 'templates', template),
-      message: receiver,
+      message: {
+        ...receiver,
+        attachments: [
+          {
+            filename: 'gradido-header.jpeg',
+            path: path.join(__dirname, 'templates/includes/gradido-header.jpeg'),
+            cid: 'gradidoheader',
+          },
+          {
+            filename: 'facebook-icon.png',
+            path: path.join(__dirname, 'templates/includes/facebook-icon.png'),
+            cid: 'facebookicon',
+          },
+          {
+            filename: 'telegram-icon.png',
+            path: path.join(__dirname, 'templates/includes/telegram-icon.png'),
+            cid: 'telegramicon',
+          },
+          {
+            filename: 'twitter-icon.png',
+            path: path.join(__dirname, 'templates/includes/twitter-icon.png'),
+            cid: 'twittericon',
+          },
+          {
+            filename: 'youtube-icon.png',
+            path: path.join(__dirname, 'templates/includes/youtube-icon.png'),
+            cid: 'youtubeicon',
+          },
+        ],
+      },
       locals, // the 'locale' in here seems not to be used by 'email-template', because it doesn't work if the language isn't set before by 'i18n.setLocale'
     })
     .catch((error: unknown) => {

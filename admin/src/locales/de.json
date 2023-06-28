@@ -94,7 +94,7 @@
     "transactionlist": {
       "confirmed": "Wann wurde es von einem Moderator / Admin bestätigt.",
       "periods": "Für welchen Zeitraum wurde vom Mitglied eingereicht.",
-      "state": "[PENDING = eingereicht, DELETED = gelöscht, IN_PROGRESS = im Dialog mit Moderator, DENIED = abgelehnt, CONFIRMED = bestätigt]",
+      "status": "[PENDING = eingereicht, DELETED = gelöscht, IN_PROGRESS = im Dialog mit Moderator, DENIED = abgelehnt, CONFIRMED = bestätigt]",
       "submitted": "Wann wurde es vom Mitglied eingereicht"
     }
   },
@@ -184,7 +184,7 @@
     "confirmed": "Bestätigt",
     "memo": "Nachricht",
     "period": "Zeitraum",
-    "state": "Status",
+    "status": "Status",
     "submitted": "Eingereicht",
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },

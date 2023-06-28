@@ -190,7 +190,7 @@ export const listContributions = gql`
         confirmedAt
         confirmedBy
         deletedAt
-        state
+        status
         messagesCount
         deniedAt
         deniedBy
@@ -214,7 +214,7 @@ export const listAllContributions = gql`
         contributionDate
         confirmedAt
         confirmedBy
-        state
+        status
         messagesCount
         deniedAt
         deniedBy

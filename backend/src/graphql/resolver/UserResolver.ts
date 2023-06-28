@@ -8,22 +8,12 @@ import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import i18n from 'i18n'
-import {
-  Resolver,
-  Query,
-  Args,
-  Arg,
-  Authorized,
-  Ctx,
-  UseMiddleware,
-  Mutation,
-  Int,
-} from 'type-graphql'
+import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
 import { v4 as uuidv4 } from 'uuid'
 
 import { CreateUserArgs } from '@arg/CreateUserArgs'
 import { Paginated } from '@arg/Paginated'
-import { SearchUsersArgs } from '@arg/SearchUsersArgs'
+import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
 import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
 import { OptInType } from '@enum/OptInType'
@@ -60,7 +50,6 @@ import {
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Events'
-import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
@@ -71,14 +60,13 @@ import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 
 import random from 'random-bigint'
+import { randombytes_random } from 'sodium-native'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
+import { getKlicktippState } from './util/getKlicktippState'
 import { validateAlias } from './util/validateAlias'
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
-const sodium = require('sodium-native')
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -122,7 +110,6 @@ const newGradidoID = async (): Promise<string> => {
 export class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => User)
-  @UseMiddleware(klicktippNewsletterStateMiddleware)
   async verifyLogin(@Ctx() context: Context): Promise<User> {
     logger.info('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
@@ -132,12 +119,12 @@ export class UserResolver {
     user.hasElopage = await this.hasElopage(context)
 
     logger.debug(`verifyLogin... successful: ${user.firstName}.${user.lastName}`)
+    user.klickTipp = await getKlicktippState(userEntity.emailContact.email)
     return user
   }
 
   @Authorized([RIGHTS.LOGIN])
   @Mutation(() => User)
-  @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
     @Args() { email, password, publisherId }: UnsecureLoginArgs,
     @Ctx() context: Context,
@@ -183,6 +170,7 @@ export class UserResolver {
       dbUser.publisherId = publisherId
       await DbUser.save(dbUser)
     }
+    user.klickTipp = await getKlicktippState(dbUser.emailContact.email)
 
     context.setHeaders.push({
       key: 'token',
@@ -245,7 +233,7 @@ export class UserResolver {
         // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
 
         const user = new User(communityDbUser)
-        user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
+        user.id = randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
         user.gradidoID = uuidv4()
         user.firstName = firstName
         user.lastName = lastName
@@ -654,8 +642,11 @@ export class UserResolver {
   @Authorized([RIGHTS.SEARCH_USERS])
   @Query(() => SearchUsersResult)
   async searchUsers(
+    @Arg('query', () => String) query: string,
+    @Arg('filters', () => SearchUsersFilters, { nullable: true })
+    filters: SearchUsersFilters | null | undefined,
     @Args()
-    { searchText, currentPage = 1, pageSize = 25, filters }: SearchUsersArgs,
+    { currentPage = 1, pageSize = 25, order = Order.ASC }: Paginated,
     @Ctx() context: Context,
   ): Promise<SearchUsersResult> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
@@ -673,15 +664,16 @@ export class UserResolver {
       userFields.map((fieldName) => {
         return 'user.' + fieldName
       }),
-      searchText,
+      query,
       filters ?? null,
       currentPage,
       pageSize,
+      order,
     )
 
     if (users.length === 0) {
       return {
-        userCount: 0,
+        userCount: count,
         userList: [],
       }
     }
