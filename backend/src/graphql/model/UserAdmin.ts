@@ -17,17 +17,10 @@ export class UserAdmin {
     this.deletedAt = user.deletedAt
     this.emailConfirmationSend = emailConfirmationSend
     if (user.userRoles) {
-      switch (user.userRoles[0].role) {
-        case ROLE_NAMES.ROLE_NAME_ADMIN:
-          this.isAdmin = user.userRoles[0].createdAt
-          break
-        case ROLE_NAMES.ROLE_NAME_MODERATOR:
-          this.isModerator = user.userRoles[0].createdAt
-          break
-        default:
-          this.isAdmin = null
-          this.isModerator = null
-      }
+      this.roles = [] as string[]
+      user.userRoles.forEach((userRole) => {
+        this.roles?.push(userRole.role)
+      })
     }
   }
 
@@ -58,11 +51,30 @@ export class UserAdmin {
   @Field(() => String, { nullable: true })
   emailConfirmationSend: string | null
 
-  @Field(() => Date, { nullable: true })
-  isAdmin: Date | null
+  @Field(() => [String], { nullable: true })
+  roles: string[] | null
+}
 
-  @Field(() => Date, { nullable: true })
-  isModerator: Date | null
+export function isAdmin(user: UserAdmin): boolean {
+  if (user.roles) {
+    for (const role of user.roles) {
+      if (role === ROLE_NAMES.ROLE_NAME_ADMIN) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
+export function isModerator(user: UserAdmin): boolean {
+  if (user.roles) {
+    for (const role of user.roles) {
+      if (role === ROLE_NAMES.ROLE_NAME_MODERATOR) {
+        return true
+      }
+    }
+  }
+  return false
 }
 
 @ObjectType()

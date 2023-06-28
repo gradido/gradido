@@ -106,7 +106,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  await cleanDB()
+  // await cleanDB()
   await con.close()
 })
 
@@ -130,7 +130,7 @@ describe('UserResolver', () => {
     })
 
     afterAll(async () => {
-      await cleanDB()
+      // await cleanDB()
     })
 
     it('returns success', () => {
@@ -164,7 +164,7 @@ describe('UserResolver', () => {
               createdAt: expect.any(Date),
               // emailChecked: false,
               language: 'de',
-              userRoles: null,
+              userRoles: expect.any(Array),
               deletedAt: null,
               publisherId: 1234,
               referrerId: null,
@@ -340,28 +340,17 @@ describe('UserResolver', () => {
             where: { id: user[0].id },
             relations: ['userRoles'],
           })
-          console.log('vorher peter=', peter)
-          await mutate({
-            mutation: setUserRole,
-            variables: { userId: user[0].id, role: ROLE_NAMES.ROLE_NAME_ADMIN },
-          })
+          peter.userRoles = [] as UserRole[]
+          peter.userRoles[0] = UserRole.create()
+          peter.userRoles[0].createdAt = new Date()
+          peter.userRoles[0].role = ROLE_NAMES.ROLE_NAME_ADMIN
+          peter.userRoles[0].userId = peter.id
+          await peter.userRoles[0].save()
+
           peter = await User.findOneOrFail({
             where: { id: user[0].id },
             relations: ['userRoles'],
           })
-          console.log('nachher peter=', peter)
-
-          /*
-          if (peter.userRole == null) {
-            peter.userRole = UserRole.create()
-          }
-          peter.userRole.createdAt = new Date()
-          peter.userRole.role = ROLE_NAMES.ROLE_NAME_ADMIN
-          peter.userRole.userId = peter.id
-          await peter.userRole.save()
-          // await peter.save()
-          console.log('user peter=', peter)
-          */
 
           // date statement
           const actualDate = new Date()
@@ -443,13 +432,15 @@ describe('UserResolver', () => {
         beforeAll(async () => {
           await userFactory(testEnv, peterLustig)
           await userFactory(testEnv, bobBaumeister)
-          await mutate({ mutation: login, variables: bobData })
+          const loginResult = await mutate({ mutation: login, variables: bobData })
+          console.log('login result=', loginResult)
 
           // create contribution as user bob
           contribution = await mutate({
             mutation: createContribution,
             variables: { amount: 1000, memo: 'testing', creationDate: new Date().toISOString() },
           })
+          console.log('createContribution contribution=', contribution)
 
           // login as admin
           await mutate({ mutation: login, variables: peterData })
@@ -459,6 +450,7 @@ describe('UserResolver', () => {
             mutation: confirmContribution,
             variables: { id: contribution.data.createContribution.id },
           })
+          console.log('confirmContribution contribution=', contribution)
 
           // login as user bob
           bob = await mutate({ mutation: login, variables: bobData })
@@ -471,6 +463,7 @@ describe('UserResolver', () => {
           })
 
           transactionLink = await TransactionLink.findOneOrFail()
+          console.log('transactionLink=', transactionLink)
 
           resetToken()
 
@@ -483,6 +476,7 @@ describe('UserResolver', () => {
               redeemCode: transactionLink.code,
             },
           })
+          console.log('newUser=', newUser)
         })
 
         it('sets the referrer id to bob baumeister id', async () => {
@@ -704,7 +698,7 @@ describe('UserResolver', () => {
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
-                userRoles: null,
+                roles: expect.any(Array),
                 klickTipp: {
                   newsletterState: false,
                 },
@@ -981,7 +975,7 @@ describe('UserResolver', () => {
                   },
                   hasElopage: false,
                   publisherId: 1234,
-                  userRoles: null,
+                  roles: expect.any(Array),
                 },
               },
             }),
@@ -1501,7 +1495,7 @@ describe('UserResolver', () => {
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
-                userRoles: null,
+                roles: expect.any(Array),
                 klickTipp: {
                   newsletterState: false,
                 },

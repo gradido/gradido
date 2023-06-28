@@ -11,7 +11,7 @@ export const verifyLogin = gql`
       }
       hasElopage
       publisherId
-      isAdmin
+      roles
     }
   }
 `
@@ -87,7 +87,7 @@ export const searchUsers = gql`
         hasElopage
         emailConfirmationSend
         deletedAt
-        isAdmin
+        roles
       }
     }
   }

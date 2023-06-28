@@ -619,7 +619,7 @@ export class UserResolver {
 
     const [users, count] = await userRepository.findAndCount({
       where: {
-        isAdmin: Not(IsNull()),
+        userRoles: Not(IsNull()),
       },
       order: {
         createdAt: order,
@@ -655,7 +655,7 @@ export class UserResolver {
       'emailId',
       'emailContact',
       'deletedAt',
-      'isAdmin',
+      'userRoles',
     ]
     const [users, count] = await userRepository.findBySearchCriteriaPagedFiltered(
       userFields.map((fieldName) => {
@@ -728,6 +728,7 @@ export class UserResolver {
       where: { id: userId },
       relations: ['userRoles'],
     })
+    console.log('setUserRole user=', user)
     // user exists ?
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
@@ -759,9 +760,11 @@ export class UserResolver {
         throw new LogError('User already is in role=', role)
       }
     }
+    console.log('setUserRole before save user=', user)
     await user.save()
     await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
     const newUser = await DbUser.findOne({ id: userId }, { relations: ['userRoles'] })
+    console.log('setUserRole  newUser=', user)
     return newUser?.userRoles ? newUser.userRoles[0].role : null
   }
 

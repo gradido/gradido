@@ -21,7 +21,7 @@ export const userFactory = async (
   } = await mutate({ mutation: createUser, variables: user })
   // console.log('creatUser:', { id }, { user })
   // get user from database
-  let dbUser = await User.findOneOrFail({ id }, { relations: ['emailContact', 'userRole'] })
+  let dbUser = await User.findOneOrFail({ id }, { relations: ['emailContact', 'userRoles'] })
   // console.log('dbUser:', dbUser)
 
   const emailContact = dbUser.emailContact
@@ -35,7 +35,7 @@ export const userFactory = async (
   }
 
   // get last changes of user from database
-  dbUser = await User.findOneOrFail({ id }, { relations: ['emailContact', 'userRole'] })
+  dbUser = await User.findOneOrFail({ id }, { relations: ['emailContact', 'userRoles'] })
 
   if (user.createdAt || user.deletedAt || user.role) {
     if (user.createdAt) dbUser.createdAt = user.createdAt
