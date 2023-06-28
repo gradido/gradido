@@ -1,4 +1,4 @@
-import { And, Then, When } from '@badeball/cypress-cucumber-preprocessor'
+import { Then, When } from '@badeball/cypress-cucumber-preprocessor'
 import { OverviewPage } from '../../e2e/models/OverviewPage'
 import { ResetPasswordPage } from '../../e2e/models/ResetPasswordPage'
 import { UserEMailSite } from '../../e2e/models/UserEMailSite'
