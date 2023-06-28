@@ -1,8 +1,8 @@
 import { Community } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { GraphQLClient } from 'graphql-request'
-import jose from 'jose'
 
+import { generateToken, verifyToken } from '@/federation/auth/JWE'
 import { getPublicKey } from '@/federation/client/1_0/query/getPublicKey'
 import { backendLogger as logger } from '@/server/logger'
 
@@ -35,35 +35,25 @@ export class FederationClient {
     if (!ownCommunity.privateKey) {
       throw new Error('Own private key not in database')
     }
-    const token = await this.generateToken(
-      nonce,
-      { publicKey: ownCommunity.publicKey, privateKey: ownCommunity.privateKey },
-      this.dbCom.publicKey,
-    )
-    const response = this.client.rawRequest(query, variables, {
+
+    const keyPair = { publicKey: ownCommunity.publicKey, privateKey: ownCommunity.privateKey }
+
+    const token = await generateToken(nonce, keyPair, this.dbCom.publicKey)
+    const response = await this.client.rawRequest(query, variables, {
       authorization: `Bearer ${token.toString()}`,
     })
-    return response
-  }
 
-  private async generateToken(
-    nonce: number,
-    keyPair: { publicKey: Buffer; privateKey: Buffer },
-    recieverPublicKey: Buffer,
-  ) {
-    const jws = await new jose.CompactSign(new TextEncoder().encode(nonce.toString()))
-      .setProtectedHeader({ alg: 'ES256' })
-      .sign(keyPair.privateKey)
-    return await new jose.CompactEncrypt(
-      new TextEncoder().encode(
-        JSON.stringify({
-          jws,
-          publicKey: keyPair.publicKey,
-        }),
-      ),
-    )
-      .setProtectedHeader({ alg: 'RSA-OAEP-256', enc: 'A256GCM' })
-      .encrypt(recieverPublicKey)
+    const responseToken = response.headers.get('token')
+
+    if (!responseToken) {
+      throw new Error('Response token missing')
+    }
+
+    const { publicKey } = await verifyToken(responseToken, keyPair, nonce)
+
+    response.headers.set('publicKey', publicKey)
+
+    return response
   }
 
   getPublicKey = async (): Promise<string | undefined> => {
