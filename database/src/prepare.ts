@@ -1,6 +1,6 @@
 import { createConnection } from 'mysql2/promise'
 
-import CONFIG from './config'
+import { CONFIG } from './config'
 
 export const createDatabase = async (): Promise<void> => {
   const con = await createConnection({

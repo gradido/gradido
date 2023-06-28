@@ -69,12 +69,19 @@ export const sendResetPasswordEmail = gql`
 `
 
 export const searchUsers = gql`
-  query ($searchText: String!, $currentPage: Int, $pageSize: Int, $filters: SearchUsersFilters) {
+  query (
+    $query: String!
+    $filters: SearchUsersFilters
+    $currentPage: Int = 1
+    $pageSize: Int = 25
+    $order: Order = ASC
+  ) {
     searchUsers(
-      searchText: $searchText
+      query: $query
+      filters: $filters
       currentPage: $currentPage
       pageSize: $pageSize
-      filters: $filters
+      order: $order
     ) {
       userCount
       userList {
@@ -188,7 +195,7 @@ export const listContributions = gql`
         confirmedAt
         confirmedBy
         deletedAt
-        state
+        status
         messagesCount
         deniedAt
         deniedBy
@@ -211,7 +218,7 @@ query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC, $statusF
       confirmedAt
       confirmedBy
       contributionDate
-      state
+      status
       messagesCount
       deniedAt
       deniedBy
@@ -247,7 +254,7 @@ export const adminListContributions = gql`
         confirmedAt
         confirmedBy
         contributionDate
-        state
+        status
         messagesCount
         deniedAt
         deniedBy

@@ -9,8 +9,8 @@
       stacked="md"
       :tbody-tr-class="rowClass"
     >
-      <template #cell(state)="row">
-        <b-icon :icon="getStatusIcon(row.item.state)"></b-icon>
+      <template #cell(status)="row">
+        <b-icon :icon="getStatusIcon(row.item.status)"></b-icon>
       </template>
       <template #cell(bookmark)="row">
         <div v-if="!myself(row.item)">
@@ -39,12 +39,12 @@
           <b-button v-else @click="rowToggleDetails(row, 0)">
             <b-icon icon="chat-dots"></b-icon>
             <b-icon
-              v-if="row.item.state === 'PENDING' && row.item.messagesCount > 0"
+              v-if="row.item.status === 'PENDING' && row.item.messagesCount > 0"
               icon="exclamation-circle-fill"
               variant="warning"
             ></b-icon>
             <b-icon
-              v-if="row.item.state === 'IN_PROGRESS' && row.item.messagesCount > 0"
+              v-if="row.item.status === 'IN_PROGRESS' && row.item.messagesCount > 0"
               icon="question-diamond"
               variant="warning"
               class="pl-1"
@@ -102,8 +102,8 @@
             <div v-else>
               <contribution-messages-list
                 :contributionId="row.item.id"
-                :contributionState="row.item.state"
-                @update-state="updateState"
+                :contributionStatus="row.item.status"
+                @update-status="updateStatus"
               />
             </div>
           </template>
@@ -154,15 +154,21 @@ export default {
     },
     rowClass(item, type) {
       if (!item || type !== 'row') return
-      if (item.state === 'CONFIRMED') return 'table-success'
-      if (item.state === 'DENIED') return 'table-warning'
-      if (item.state === 'DELETED') return 'table-danger'
-      if (item.state === 'IN_PROGRESS') return 'table-primary'
-      if (item.state === 'PENDING') return 'table-primary'
+      if (item.status === 'CONFIRMED') return 'table-success'
+      if (item.status === 'DENIED') return 'table-warning'
+      if (item.status === 'DELETED') return 'table-danger'
+      if (item.status === 'IN_PROGRESS') return 'table-primary'
+      if (item.status === 'PENDING') return 'table-primary'
     },
-    updateState(id) {
-      this.$emit('update-state', id)
+    updateStatus(id) {
+      this.$emit('update-status', id)
     },
   },
 }
 </script>
+<style>
+.btn-warning {
+  background-color: #e1a908;
+  border-color: #e1a908;
+}
+</style>
