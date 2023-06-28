@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import Settings from './Settings'
 import flushPromises from 'flush-promises'
 import { toastSuccessSpy } from '@test/testSetup'
+import Vue from 'vue'
 
 const localVue = global.localVue
 
@@ -69,8 +70,8 @@ describe('Settings', () => {
 
     describe('successfull submit', () => {
       beforeEach(async () => {
-        wrapper.vm.firstName = 'Janer'
-        wrapper.vm.lastName = 'Does'
+        wrapper.find('[data-test="firstname"]').setValue('Janer')
+        wrapper.find('[data-test="lastname"]').setValue('Does')
 
         mockAPIcall.mockResolvedValue({
           data: {
@@ -82,9 +83,6 @@ describe('Settings', () => {
       })
 
       it('Cange first and lastname', async () => {
-        wrapper.find('[data-test="test-firstname"]')
-        wrapper.find('[data-test="lastname"]')
-
         await wrapper.find('[data-test="submit-userdata"]').trigger('click')
         await flushPromises()
 
@@ -116,7 +114,7 @@ describe('Settings', () => {
         expect(wrapper.vm.darkMode).toBe(true)
       })
 
-      describe('sets dark mode ', () => {
+      describe('dark mode is false', () => {
         beforeEach(() => {
           wrapper.vm.darkMode = false
         })
@@ -126,6 +124,16 @@ describe('Settings', () => {
         })
         it('toasts a success message', () => {
           expect(toastSuccessSpy).toBeCalledWith('settings.modeLight')
+        })
+
+        describe('set dark mode is true', () => {
+          beforeEach(() => {
+            wrapper.vm.darkMode = true
+          })
+          // Test case 1: Test setting dark mode
+          test('darkMode sets the dark mode', () => {
+            expect(storeCommitMock).toBeCalledWith('setDarkMode', true)
+          })
         })
       })
     })

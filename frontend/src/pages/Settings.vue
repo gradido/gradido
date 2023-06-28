@@ -24,7 +24,7 @@
           <b-form-input
             v-model="firstName"
             :placeholder="$t('settings.name.enterFirstname')"
-            data-test="test-firstname"
+            data-test="firstname"
             trim
           ></b-form-input>
         </b-col>
@@ -33,17 +33,17 @@
           <b-form-input
             v-model="lastName"
             :placeholder="$t('settings.name.enterLastname')"
-            data-test="test-lastname"
+            data-test="lastname"
             trim
           ></b-form-input>
         </b-col>
       </b-row>
       <div v-if="!isDisabled" class="mt-4 pt-4 text-center">
         <b-button
-          data-test="submit-userdata"
           type="submit"
           variant="primary"
           @click.prevent="onSubmit"
+          data-test="submit-userdata"
         >
           {{ $t('form.save') }}
         </b-button>
