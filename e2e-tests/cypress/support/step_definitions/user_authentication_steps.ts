@@ -15,6 +15,7 @@ When('the user submits no credentials', () => {
 
 When('the user submits the credentials {string} {string}', (email: string, password: string) => {
   cy.intercept('POST', '/graphql', (req) => {
+    // eslint-disable-next-line no-prototype-builtins
     if (req.body.hasOwnProperty('query') && req.body.query.includes('mutation')) {
       req.alias = 'login'
     }

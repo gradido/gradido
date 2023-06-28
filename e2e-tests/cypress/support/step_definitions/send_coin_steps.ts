@@ -35,7 +35,7 @@ Then(
   },
 )
 
-When('the user submits the transaction by confirming', (receiverName: string, amount) => {
+When('the user submits the transaction by confirming', () => {
   cy.intercept({
     method: 'POST',
     url: '/graphql',

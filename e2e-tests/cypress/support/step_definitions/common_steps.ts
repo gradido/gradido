@@ -1,4 +1,4 @@
-import { Given, Then, When } from '@badeball/cypress-cucumber-preprocessor'
+import { Given, Then } from '@badeball/cypress-cucumber-preprocessor'
 import { OverviewPage } from '../../e2e/models/OverviewPage'
 import { SideNavMenu } from '../../e2e/models/SideNavMenu'
 import { Toasts } from '../../e2e/models/Toasts'

@@ -1,4 +1,4 @@
-import { And, Then, When } from '@badeball/cypress-cucumber-preprocessor'
+import { Then, When } from '@badeball/cypress-cucumber-preprocessor'
 import { OverviewPage } from '../../e2e/models/OverviewPage'
 import { ResetPasswordPage } from '../../e2e/models/ResetPasswordPage'
 import { UserEMailSite } from '../../e2e/models/UserEMailSite'
@@ -55,7 +55,7 @@ Then('the user receives an e-mail containing the {string} link', (linkName: stri
   )
 })
 
-And(
+When(
   'the user receives the transaction e-mail about {string} GDD from {string}',
   (amount: string, senderName: string) => {
     cy.origin(
@@ -102,6 +102,7 @@ When('the user opens the {string} link in the browser', (linkName: string) => {
       cy.get(resetPasswordPage.newPasswordInput).should('be.visible')
       break
     case 'transaction':
+      // eslint-disable-next-line no-case-declarations
       const overviewPage = new OverviewPage()
       cy.get(overviewPage.rightLastTransactionsList).should('be.visible')
       break
