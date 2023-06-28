@@ -29,17 +29,18 @@ describe('UserName Form', () => {
       wrapper = Wrapper()
     })
     it('renders the component', () => {
-      expect(wrapper.find('div.input-username').exists()).toBeTruthy()
+      expect(wrapper.find('[data-test="username"]').exists()).toBeTruthy()
     })
 
     describe('currentValue', () => {
       beforeEach(async () => {
         wrapper = Wrapper()
+
         await wrapper.setProps({ value: 'petra' })
-        await wrapper.find('div.input-username.input[type="text"]').setValue('petra swastiska')
+        await wrapper.find('[data-test="username"]').setValue('petra')
       })
       it('emits input event with the current value', () => {
-        expect(wrapper.emitted('input')).toEqual([['petra swastiska']])
+        expect(wrapper.emitted('input')).toEqual([['petra']])
       })
     })
   })

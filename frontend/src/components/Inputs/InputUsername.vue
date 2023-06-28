@@ -20,6 +20,7 @@
             type="text"
             :state="validated ? valid : false"
             autocomplete="off"
+            data-test="username"
           ></b-form-input>
           <b-input-group-append>
             <b-button
