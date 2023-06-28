@@ -2,7 +2,6 @@ import { mount } from '@vue/test-utils'
 import Settings from './Settings'
 import flushPromises from 'flush-promises'
 import { toastSuccessSpy } from '@test/testSetup'
-import Vue from 'vue'
 
 const localVue = global.localVue
 
