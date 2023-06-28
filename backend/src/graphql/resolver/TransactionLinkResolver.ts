@@ -80,6 +80,7 @@ export class TransactionLinkResolver {
 
     // validate amount
     const sendBalance = await calculateBalance(user.id, holdAvailableAmount.mul(-1), createdDate)
+
     if (!sendBalance) {
       throw new LogError('User has not enough GDD', user.id)
     }

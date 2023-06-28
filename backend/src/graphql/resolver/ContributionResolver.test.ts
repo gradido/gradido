@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Connection } from '@dbTools/typeorm'
+import { Connection, Equal } from '@dbTools/typeorm'
 import { Contribution } from '@entity/Contribution'
 import { Event as DbEvent } from '@entity/Event'
 import { Transaction as DbTransaction } from '@entity/Transaction'
@@ -457,7 +457,7 @@ describe('ContributionResolver', () => {
         describe('contribution has wrong status', () => {
           beforeAll(async () => {
             const contribution = await Contribution.findOneOrFail({
-              id: pendingContribution.data.createContribution.id,
+              where: { id: pendingContribution.data.createContribution.id },
             })
             contribution.contributionStatus = ContributionStatus.DELETED
             await contribution.save()
@@ -469,7 +469,7 @@ describe('ContributionResolver', () => {
 
           afterAll(async () => {
             const contribution = await Contribution.findOneOrFail({
-              id: pendingContribution.data.createContribution.id,
+              where: { id: pendingContribution.data.createContribution.id },
             })
             contribution.contributionStatus = ContributionStatus.PENDING
             await contribution.save()
@@ -1828,7 +1828,7 @@ describe('ContributionResolver', () => {
             creation = await Contribution.findOneOrFail({
               where: {
                 memo: 'Herzlich Willkommen bei Gradido!',
-                amount: 400,
+                amount: Equal(new Decimal('400')),
               },
             })
           })
@@ -2888,64 +2888,6 @@ describe('ContributionResolver', () => {
               state: 'IN_PROGRESS',
             }),
           ]),
-        })
-      })
-
-      describe('with query', () => {
-        it('returns the creations of queried user', async () => {
-          const result = await query({
-            query: adminListContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 2,
-              order: Order.DESC,
-              query: 'peter',
-            },
-          })
-          const {
-            data: { adminListContributions: contributionListObject },
-          } = await query({
-            query: adminListContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 2,
-              order: Order.DESC,
-              query: 'peter',
-            },
-          })
-          expect(contributionListObject.contributionList).toHaveLength(3)
-          expect(contributionListObject).toMatchObject({
-            contributionCount: 3,
-            contributionList: expect.arrayContaining([
-              expect.objectContaining({
-                amount: expect.decimalEqual(400),
-                firstName: 'Peter',
-                id: expect.any(Number),
-                lastName: 'Lustig',
-                memo: 'Herzlich Willkommen bei Gradido!',
-                messagesCount: 0,
-                state: 'PENDING',
-              }),
-              expect.objectContaining({
-                amount: expect.decimalEqual(100),
-                firstName: 'Peter',
-                id: expect.any(Number),
-                lastName: 'Lustig',
-                memo: 'Test env contribution',
-                messagesCount: 0,
-                state: 'PENDING',
-              }),
-              expect.objectContaining({
-                amount: expect.decimalEqual(200),
-                firstName: 'Peter',
-                id: expect.any(Number),
-                lastName: 'Lustig',
-                memo: 'Das war leider zu Viel!',
-                messagesCount: 0,
-                state: 'DELETED',
-              }),
-            ]),
-          })
         })
       })
     })

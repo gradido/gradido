@@ -372,8 +372,6 @@ export class ContributionResolver {
     statusFilter?: ContributionStatus[] | null,
     @Arg('userId', () => Int, { nullable: true })
     userId?: number | null,
-    @Arg('query', () => String, { nullable: true })
-    query?: string | null,
   ): Promise<ContributionListResult> {
     const [dbContributions, count] = await findContributions({
       order,
@@ -383,7 +381,6 @@ export class ContributionResolver {
       userId,
       relations: ['user', 'messages'],
       statusFilter,
-      query,
     })
 
     return new ContributionListResult(
