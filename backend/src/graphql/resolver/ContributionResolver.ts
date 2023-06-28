@@ -138,7 +138,7 @@ export class ContributionResolver {
       currentPage,
       pageSize,
       withDeleted: true,
-      relations: ['messages'],
+      relations: { messages: true },
       userId: user.id,
       statusFilter,
     })
@@ -160,7 +160,7 @@ export class ContributionResolver {
       order,
       currentPage,
       pageSize,
-      relations: ['user'],
+      relations: { user: true },
       statusFilter,
     })
 
@@ -372,6 +372,8 @@ export class ContributionResolver {
     statusFilter?: ContributionStatus[] | null,
     @Arg('userId', () => Int, { nullable: true })
     userId?: number | null,
+    @Arg('query', () => String, { nullable: true })
+    query?: string | null,
   ): Promise<ContributionListResult> {
     const [dbContributions, count] = await findContributions({
       order,
@@ -379,8 +381,14 @@ export class ContributionResolver {
       pageSize,
       withDeleted: true,
       userId,
-      relations: ['user', 'messages'],
+      relations: {
+        user: {
+          emailContact: true,
+        },
+        messages: true,
+      },
       statusFilter,
+      query,
     })
 
     return new ContributionListResult(
