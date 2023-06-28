@@ -34,8 +34,8 @@
           {{ $t('help.transactionlist.confirmed') }}
         </div>
         <div>
-          {{ $t('transactionlist.state') }} {{ $t('math.equals') }}
-          {{ $t('help.transactionlist.state') }}
+          {{ $t('transactionlist.status') }} {{ $t('math.equals') }}
+          {{ $t('help.transactionlist.status') }}
         </div>
       </b-collapse>
     </div>
@@ -78,8 +78,8 @@ export default {
           },
         },
         {
-          key: 'state',
-          label: this.$t('transactionlist.state'),
+          key: 'status',
+          label: this.$t('transactionlist.status'),
         },
         {
           key: 'amount',
