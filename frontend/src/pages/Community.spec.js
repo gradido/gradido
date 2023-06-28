@@ -68,7 +68,7 @@ describe('Community', () => {
                 firstName: 'Bibi',
                 contributionDate: '2022-07-15T08:47:06.000Z',
                 lastName: 'Bloxberg',
-                state: 'IN_PROGRESS',
+                status: 'IN_PROGRESS',
                 messagesCount: 0,
                 deniedAt: null,
                 deniedBy: null,
@@ -85,7 +85,7 @@ describe('Community', () => {
                 firstName: 'Bibi',
                 contributionDate: '2022-06-15T08:47:06.000Z',
                 lastName: 'Bloxberg',
-                state: 'CONFIRMED',
+                status: 'CONFIRMED',
                 messagesCount: 0,
                 deniedAt: null,
                 deniedBy: null,
@@ -121,7 +121,7 @@ describe('Community', () => {
                 deniedAt: null,
                 deniedBy: null,
                 messagesCount: 0,
-                state: 'IN_PROGRESS',
+                status: 'IN_PROGRESS',
               },
               {
                 id: 1550,
@@ -137,7 +137,7 @@ describe('Community', () => {
                 deniedAt: null,
                 deniedBy: null,
                 messagesCount: 0,
-                state: 'IN_PROGRESS',
+                status: 'IN_PROGRESS',
               },
               {
                 id: 1556,
@@ -153,7 +153,7 @@ describe('Community', () => {
                 deniedAt: null,
                 deniedBy: null,
                 messagesCount: 0,
-                state: 'IN_PROGRESS',
+                status: 'IN_PROGRESS',
               },
             ],
             contributionCount: 3,
@@ -263,7 +263,7 @@ describe('Community', () => {
         expect(wrapper.findAll('div[role="tabpanel"]')).toHaveLength(3)
       })
 
-      it('check for correct tabIndex if state is "IN_PROGRESS" or not', () => {
+      it('check for correct tabIndex if status is "IN_PROGRESS" or not', () => {
         expect(routerPushMock).toBeCalledWith({ params: { tab: 'contributions' } })
       })
 

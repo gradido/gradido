@@ -195,7 +195,7 @@ export const listContributions = gql`
         confirmedAt
         confirmedBy
         deletedAt
-        state
+        status
         messagesCount
         deniedAt
         deniedBy
@@ -218,7 +218,7 @@ query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC, $statusF
       confirmedAt
       confirmedBy
       contributionDate
-      state
+      status
       messagesCount
       deniedAt
       deniedBy
@@ -254,7 +254,7 @@ export const adminListContributions = gql`
         confirmedAt
         confirmedBy
         contributionDate
-        state
+        status
         messagesCount
         deniedAt
         deniedBy

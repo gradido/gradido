@@ -1,10 +1,10 @@
 <template>
   <div class="duration-row">
     <b-row>
-      <b-col cols="12" lg="4" md="4">
+      <b-col cols="6" lg="4" md="6" sm="6">
         <div>{{ $t('decay.past_time') }}</div>
       </b-col>
-      <b-col offset="1" offset-md="0" offset-lg="0" class="text-right mr-5">
+      <b-col offset="0" class="text-right mr-0">
         <span v-if="duration">{{ duration }}</span>
       </b-col>
     </b-row>
