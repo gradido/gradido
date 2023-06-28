@@ -36,7 +36,7 @@ describe('UserName Form', () => {
       beforeEach(async () => {
         wrapper = Wrapper()
         await wrapper.setProps({ value: 'petra' })
-        wrapper.vm.currentValue = 'petra swastiska'
+        await wrapper.find('div.input-username.input[type="text"]').setValue('petra swastiska')
       })
       it('emits input event with the current value', () => {
         expect(wrapper.emitted('input')).toEqual([['petra swastiska']])
