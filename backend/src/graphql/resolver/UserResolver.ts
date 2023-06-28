@@ -352,7 +352,8 @@ export class UserResolver {
     const user = await findUserByEmail(email).catch(() => {
       logger.warn(`fail on find UserContact per ${email}`)
     })
-    if (!user) {
+
+    if (!user || user.deletedAt) {
       logger.warn(`no user found with ${email}`)
       return true
     }

@@ -18,7 +18,7 @@ describe('ContributionMessagesListItem', () => {
   describe('if message author has moderator role', () => {
     const propsData = {
       contributionId: 42,
-      state: 'PENDING',
+      status: 'PENDING',
       message: {
         id: 111,
         message: 'Lorem ipsum?',
@@ -79,7 +79,7 @@ describe('ContributionMessagesListItem', () => {
   describe('if message author does not have moderator role', () => {
     const propsData = {
       contributionId: 42,
-      state: 'PENDING',
+      status: 'PENDING',
       message: {
         id: 113,
         message: 'Asda sdad ad asdasd, das Ass das Das. ',
