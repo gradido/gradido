@@ -11,7 +11,7 @@ And('the user opens the change password menu', () => {
 })
 
 When('the user fills the password form with:', (table) => {
-  let hashedTableRows = table.rowsHash()
+  const hashedTableRows = table.rowsHash()
   profilePage.enterOldPassword(hashedTableRows['Old password'])
   profilePage.enterNewPassword(hashedTableRows['New password'])
   profilePage.enterRepeatPassword(hashedTableRows['Repeat new password'])
