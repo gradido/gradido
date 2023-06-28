@@ -56,7 +56,7 @@ When('the user submits the transaction by confirming', () => {
     )
     cy.wrap(interception.response?.body)
       .should('have.nested.property', 'data.sendCoins')
-      .When('equal', true)
+      .and('equal', true)
   })
   cy.get('[data-test="send-transaction-success-text"]').should('be.visible')
 })
