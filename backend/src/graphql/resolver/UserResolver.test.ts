@@ -447,7 +447,7 @@ describe('UserResolver', () => {
             memo: `testing transaction link`,
           })
 
-          transactionLink = await TransactionLink.findOneOrFail({})
+          transactionLink = await TransactionLink.findOneOrFail({ where: { userId: bob.id } })
 
           resetToken()
 
@@ -1106,7 +1106,9 @@ describe('UserResolver', () => {
             errors: [
               // keep Whitspace in error message!
               new GraphQLError(`Could not find any entity of type "UserContact" matching: {
-    "emailVerificationCode": "not-valid"
+    "where": {
+        "emailVerificationCode": "not-valid"
+    }
 }`),
             ],
           }),
@@ -1181,13 +1183,13 @@ describe('UserResolver', () => {
               locale: 'en',
             },
           })
-          await expect(User.findOne({})).resolves.toEqual(
+          await expect(User.find()).resolves.toEqual([
             expect.objectContaining({
               firstName: 'Benjamin',
               lastName: 'Blümchen',
               language: 'en',
             }),
-          )
+          ])
         })
 
         it('stores the USER_INFO_UPDATE event in the database', async () => {
@@ -1218,11 +1220,11 @@ describe('UserResolver', () => {
                 alias: 'bibi_Bloxberg',
               },
             })
-            await expect(User.findOne({})).resolves.toEqual(
+            await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
                 alias: 'bibi_Bloxberg',
               }),
-            )
+            ])
           })
         })
       })

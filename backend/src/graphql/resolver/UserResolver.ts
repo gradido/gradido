@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
+import { getConnection, IsNull, Not } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
@@ -23,7 +23,6 @@ import { UserContactType } from '@enum/UserContactType'
 import { SearchAdminUsersResult } from '@model/AdminUser'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
-import { UserRepository } from '@repository/User'
 
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
@@ -65,6 +64,7 @@ import { randombytes_random } from 'sodium-native'
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
+import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { validateAlias } from './util/validateAlias'
 
@@ -603,9 +603,7 @@ export class UserResolver {
     @Args()
     { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
   ): Promise<SearchAdminUsersResult> {
-    const userRepository = getCustomRepository(UserRepository)
-
-    const [users, count] = await userRepository.findAndCount({
+    const [users, count] = await DbUser.findAndCount({
       where: {
         isAdmin: Not(IsNull()),
       },
@@ -638,7 +636,6 @@ export class UserResolver {
     @Ctx() context: Context,
   ): Promise<SearchUsersResult> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const userRepository = getCustomRepository(UserRepository)
     const userFields = [
       'id',
       'firstName',
@@ -648,7 +645,7 @@ export class UserResolver {
       'deletedAt',
       'isAdmin',
     ]
-    const [users, count] = await userRepository.findBySearchCriteriaPagedFiltered(
+    const [users, count] = await findUsers(
       userFields.map((fieldName) => {
         return 'user.' + fieldName
       }),
