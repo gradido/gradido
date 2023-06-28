@@ -1,4 +1,4 @@
-import { And, Then, When } from '@badeball/cypress-cucumber-preprocessor'
+import { Then, When } from '@badeball/cypress-cucumber-preprocessor'
 import { SendPage } from '../../e2e/models/SendPage'
 
 const sendPage = new SendPage()
@@ -12,7 +12,7 @@ When(
   }
 )
 
-And('the user submits the send form', () => {
+When('the user submits the send form', () => {
   sendPage.submit()
   cy.get(sendPage.confirmationBox).should('be.visible')
 })
@@ -45,12 +45,12 @@ When('the user submits the transaction by confirming', (receiverName: string, am
 `   )
     cy.wrap(interception.response?.body)
       .should('have.nested.property', 'data.sendCoins')
-      .and('equal', true)
+      .When('equal', true)
   })
   cy.get('[data-test="send-transaction-success-text"]').should('be.visible')
 })
 
-Then('the {string} and {string} are displayed on the {string} page', (name: string, amount: string, page: string) => {
+Then('the {string} When {string} are displayed on the {string} page', (name: string, amount: string, page: string) => {
   switch (page) {
     case 'overview':
       cy.get('.align-items-center').contains(`${name}`)
@@ -65,6 +65,6 @@ Then('the {string} and {string} are displayed on the {string} page', (name: stri
       cy.get('div.mt-3 > div > div.test-list-group-item').eq(0).contains('[data-test="transaction-amount"]', `${amount} GDD`)
       break
     default:
-      throw new Error(`Error in "Then the {string} and {string} are displayed on the {string}} page" step: incorrect page name string "${page}"`)
+      throw new Error(`Error in "Then the {string} When {string} are displayed on the {string}} page" step: incorrect page name string "${page}"`)
   }
 })
