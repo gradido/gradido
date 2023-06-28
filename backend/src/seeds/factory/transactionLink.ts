@@ -24,15 +24,12 @@ export const transactionLinkFactory = async (
     memo: transactionLink.memo,
   }
 
-  const result = await mutate({ mutation: createTransactionLink, variables })
-  console.log(result)
-
   // get the transaction links's id
   const {
     data: {
       createTransactionLink: { id },
     },
-  } = result
+  } = await mutate({ mutation: createTransactionLink, variables })
 
   if (transactionLink.createdAt || transactionLink.deletedAt) {
     const dbTransactionLink = await TransactionLink.findOneOrFail({ where: { id } })

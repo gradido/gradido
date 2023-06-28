@@ -37,7 +37,6 @@ export const createServer = async (
   logger.debug('createServer...')
 
   // open mysql connection
-  console.log('Connection.getInstance')
   const con = await Connection.getInstance()
   if (!con?.isConnected) {
     logger.fatal(`Couldn't open connection to database!`)
