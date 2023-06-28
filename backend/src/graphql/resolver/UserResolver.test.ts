@@ -9,6 +9,7 @@ import { Event as DbEvent } from '@entity/Event'
 import { TransactionLink } from '@entity/TransactionLink'
 import { User } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
+import { UserRole } from '@entity/UserRole'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
@@ -21,6 +22,7 @@ import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/help
 import { logger, i18n as localization } from '@test/testSetup'
 
 import { subscribe } from '@/apis/KlicktippController'
+import { ROLE_NAMES } from '@/auth/ROLES'
 import { CONFIG } from '@/config'
 import {
   sendAccountActivationEmail,
@@ -62,8 +64,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
-import { UserRole } from '@entity/UserRole'
-import { ROLE_NAMES } from '@/auth/ROLES'
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
@@ -142,7 +142,7 @@ describe('UserResolver', () => {
     describe('valid input data', () => {
       // let loginEmailOptIn: LoginEmailOptIn[]
       beforeAll(async () => {
-        user = await User.find({ relations: ['emailContact', 'userRole'] })
+        user = await User.find({ relations: ['emailContact', 'userRoles'] })
         // loginEmailOptIn = await LoginEmailOptIn.find()
         emailVerificationCode = user[0].emailContact.emailVerificationCode.toString()
       })
@@ -164,7 +164,7 @@ describe('UserResolver', () => {
               createdAt: expect.any(Date),
               // emailChecked: false,
               language: 'de',
-              userRole: null,
+              userRoles: null,
               deletedAt: null,
               publisherId: 1234,
               referrerId: null,
@@ -338,16 +338,16 @@ describe('UserResolver', () => {
           // make Peter Lustig Admin
           let peter = await User.findOneOrFail({
             where: { id: user[0].id },
-            relations: ['userRole'],
+            relations: ['userRoles'],
           })
           console.log('vorher peter=', peter)
           await mutate({
             mutation: setUserRole,
-            variables: { userId: user[0].id, isAdmin: true },
+            variables: { userId: user[0].id, role: ROLE_NAMES.ROLE_NAME_ADMIN },
           })
           peter = await User.findOneOrFail({
             where: { id: user[0].id },
-            relations: ['userRole'],
+            relations: ['userRoles'],
           })
           console.log('nachher peter=', peter)
 
@@ -704,7 +704,7 @@ describe('UserResolver', () => {
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
-                userRole: null,
+                userRoles: null,
                 klickTipp: {
                   newsletterState: false,
                 },
@@ -961,7 +961,7 @@ describe('UserResolver', () => {
 
         beforeAll(async () => {
           await mutate({ mutation: login, variables })
-          user = await User.find({ relations: ['userRole'] })
+          user = await User.find({ relations: ['userRoles'] })
         })
 
         afterAll(() => {
@@ -981,7 +981,7 @@ describe('UserResolver', () => {
                   },
                   hasElopage: false,
                   publisherId: 1234,
-                  userRole: null,
+                  userRoles: null,
                 },
               },
             }),
@@ -1501,7 +1501,7 @@ describe('UserResolver', () => {
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
-                userRole: null,
+                userRoles: null,
                 klickTipp: {
                   newsletterState: false,
                 },
@@ -1526,7 +1526,10 @@ describe('UserResolver', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
         await expect(
-          mutate({ mutation: setUserRole, variables: { userId: 1, isAdmin: true } }),
+          mutate({
+            mutation: setUserRole,
+            variables: { userId: 1, role: ROLE_NAMES.ROLE_NAME_ADMIN },
+          }),
         ).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('401 Unauthorized')],
@@ -1552,7 +1555,10 @@ describe('UserResolver', () => {
 
         it('returns an error', async () => {
           await expect(
-            mutate({ mutation: setUserRole, variables: { userId: user.id + 1, isAdmin: true } }),
+            mutate({
+              mutation: setUserRole,
+              variables: { userId: user.id + 1, role: ROLE_NAMES.ROLE_NAME_ADMIN },
+            }),
           ).resolves.toEqual(
             expect.objectContaining({
               errors: [new GraphQLError('401 Unauthorized')],
@@ -1579,7 +1585,10 @@ describe('UserResolver', () => {
           it('throws an error', async () => {
             jest.clearAllMocks()
             await expect(
-              mutate({ mutation: setUserRole, variables: { userId: admin.id + 1, isAdmin: true } }),
+              mutate({
+                mutation: setUserRole,
+                variables: { userId: admin.id + 1, role: ROLE_NAMES.ROLE_NAME_ADMIN },
+              }),
             ).resolves.toEqual(
               expect.objectContaining({
                 errors: [new GraphQLError('Could not find user with given ID')],
@@ -1602,7 +1611,7 @@ describe('UserResolver', () => {
               it('returns date string', async () => {
                 const result = await mutate({
                   mutation: setUserRole,
-                  variables: { userId: user.id, isAdmin: true },
+                  variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_ADMIN },
                 })
                 expect(result).toEqual(
                   expect.objectContaining({
@@ -1636,7 +1645,7 @@ describe('UserResolver', () => {
             describe('to usual user', () => {
               it('returns null', async () => {
                 await expect(
-                  mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: false } }),
+                  mutate({ mutation: setUserRole, variables: { userId: user.id, role: null } }),
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
@@ -1654,7 +1663,7 @@ describe('UserResolver', () => {
             it('throws an error', async () => {
               jest.clearAllMocks()
               await expect(
-                mutate({ mutation: setUserRole, variables: { userId: admin.id, isAdmin: false } }),
+                mutate({ mutation: setUserRole, variables: { userId: admin.id, role: null } }),
               ).resolves.toEqual(
                 expect.objectContaining({
                   errors: [new GraphQLError('Administrator can not change his own role')],
@@ -1672,10 +1681,13 @@ describe('UserResolver', () => {
                 jest.clearAllMocks()
                 await mutate({
                   mutation: setUserRole,
-                  variables: { userId: user.id, isAdmin: true },
+                  variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_ADMIN },
                 })
                 await expect(
-                  mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: true } }),
+                  mutate({
+                    mutation: setUserRole,
+                    variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_ADMIN },
+                  }),
                 ).resolves.toEqual(
                   expect.objectContaining({
                     errors: [new GraphQLError('User is already admin')],
@@ -1693,10 +1705,10 @@ describe('UserResolver', () => {
                 jest.clearAllMocks()
                 await mutate({
                   mutation: setUserRole,
-                  variables: { userId: user.id, isAdmin: false },
+                  variables: { userId: user.id, role: null },
                 })
                 await expect(
-                  mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: false } }),
+                  mutate({ mutation: setUserRole, variables: { userId: user.id, role: null } }),
                 ).resolves.toEqual(
                   expect.objectContaining({
                     errors: [new GraphQLError('User is already an usual user')],

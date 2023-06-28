@@ -1,6 +1,7 @@
-import { ROLE_NAMES } from '@/auth/ROLES'
 import { User as dbUser } from '@entity/User'
 import { ObjectType, Field, Int } from 'type-graphql'
+
+import { ROLE_NAMES } from '@/auth/ROLES'
 
 import { KlickTipp } from './KlickTipp'
 
@@ -19,18 +20,11 @@ export class User {
     this.createdAt = user.createdAt
     this.language = user.language
     this.publisherId = user.publisherId
-    if (user.userRole) {
-      switch (user.userRole.role) {
-        case ROLE_NAMES.ROLE_NAME_ADMIN:
-          this.isAdmin = user.userRole.createdAt
-          break
-        case ROLE_NAMES.ROLE_NAME_MODERATOR:
-          this.isModerator = user.userRole.createdAt
-          break
-        default:
-          this.isAdmin = null
-          this.isModerator = null
-      }
+    if (user.userRoles) {
+      this.roles = [] as string[]
+      user.userRoles.forEach((userRole) => {
+        this.roles?.push(userRole.role)
+      })
     }
     this.klickTipp = null
     this.hasElopage = null
@@ -75,15 +69,34 @@ export class User {
   @Field(() => Int, { nullable: true })
   publisherId: number | null
 
-  @Field(() => Date, { nullable: true })
-  isAdmin: Date | null
-
-  @Field(() => Date, { nullable: true })
-  isModerator: Date | null
-
   @Field(() => KlickTipp, { nullable: true })
   klickTipp: KlickTipp | null
 
   @Field(() => Boolean, { nullable: true })
   hasElopage: boolean | null
+
+  @Field(() => [String], { nullable: true })
+  roles: string[] | null
+}
+
+export function isAdmin(user: User): boolean {
+  if (user.roles) {
+    for (const role of user.roles) {
+      if (role === ROLE_NAMES.ROLE_NAME_ADMIN) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
+export function isModerator(user: User): boolean {
+  if (user.roles) {
+    for (const role of user.roles) {
+      if (role === ROLE_NAMES.ROLE_NAME_MODERATOR) {
+        return true
+      }
+    }
+  }
+  return false
 }

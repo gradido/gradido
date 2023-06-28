@@ -706,18 +706,27 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.SET_USER_ROLE])
-  @Mutation(() => Date, { nullable: true })
+  @Mutation(() => String, { nullable: true })
   async setUserRole(
     @Arg('userId', () => Int)
     userId: number,
-    @Arg('isAdmin', () => Boolean)
-    isAdmin: boolean,
+    @Arg('role', () => String)
+    role: string,
     @Ctx()
     context: Context,
-  ): Promise<Date | null> {
+  ): Promise<string | null> {
+    switch (role) {
+      case null:
+      case ROLE_NAMES.ROLE_NAME_ADMIN:
+      case ROLE_NAMES.ROLE_NAME_MODERATOR:
+        logger.debug('setUserRole=', role)
+        break
+      default:
+        throw new LogError('Not allowed to set user role=', role)
+    }
     const user = await DbUser.findOne({
       where: { id: userId },
-      relations: ['userRole'],
+      relations: ['userRoles'],
     })
     // user exists ?
     if (!user) {
@@ -728,37 +737,32 @@ export class UserResolver {
     if (moderator.id === userId) {
       throw new LogError('Administrator can not change his own role')
     }
-    // change userRole
-    switch (user.userRole) {
-      case null:
-        if (isAdmin) {
-          user.userRole = UserRole.create()
-          user.userRole.createdAt = new Date()
-          user.userRole.role = ROLE_NAMES.ROLE_NAME_ADMIN
-          user.userRole.userId = user.id
-        } else {
-          throw new LogError('User is already an usual user')
+    if (isUserInRole(user, role)) {
+      throw new LogError('User already has role=', role)
+    }
+    // if user role should be deleted by role=null as parameter
+    if (role === null && user.userRoles) {
+      for (const usrRole of user.userRoles) {
+        await UserRole.delete(usrRole)
+      }
+      user.userRoles = undefined
+    } else {
+      if (!isUserInRole(user, role)) {
+        if (user.userRoles === undefined) {
+          user.userRoles = [] as UserRole[]
+          user.userRoles[0] = UserRole.create()
         }
-        break
-      default:
-        if (!isAdmin) {
-          if (user.userRole) {
-            await UserRole.delete(user.userRole)
-          }
-          user.userRole = undefined
-        } else {
-          throw new LogError('User is already admin')
-        }
-        break
+        user.userRoles[0].createdAt = new Date()
+        user.userRoles[0].role = role
+        user.userRoles[0].userId = user.id
+      } else {
+        throw new LogError('User already is in role=', role)
+      }
     }
     await user.save()
     await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
-    const newUser = await DbUser.findOne({ id: userId })
-    return newUser
-      ? newUser.userRole && newUser.userRole.role === ROLE_NAMES.ROLE_NAME_ADMIN
-        ? newUser.userRole.createdAt
-        : null
-      : null
+    const newUser = await DbUser.findOne({ id: userId }, { relations: ['userRoles'] })
+    return newUser?.userRoles ? newUser.userRoles[0].role : null
   }
 
   @Authorized([RIGHTS.DELETE_USER])
@@ -850,7 +854,7 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
   })
   const dbUser = dbUserContact.user
   dbUser.emailContact = dbUserContact
-  dbUser.userRole = await UserRole.findOne({ userId: dbUser.id })
+  dbUser.userRoles = await UserRole.find({ userId: dbUser.id })
   return dbUser
 }
 
@@ -874,4 +878,15 @@ const isEmailVerificationCodeValid = (updatedAt: Date): boolean => {
 
 const canEmailResend = (updatedAt: Date): boolean => {
   return !isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_REQUEST_TIME)
+}
+
+export function isUserInRole(user: DbUser, role: string): boolean {
+  if (user?.userRoles) {
+    for (const usrRole of user.userRoles) {
+      if (usrRole.role === role) {
+        return true
+      }
+    }
+  }
+  return false
 }

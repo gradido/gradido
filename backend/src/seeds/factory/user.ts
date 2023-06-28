@@ -37,15 +37,20 @@ export const userFactory = async (
   // get last changes of user from database
   dbUser = await User.findOneOrFail({ id }, { relations: ['emailContact', 'userRole'] })
 
-  if (user.createdAt || user.deletedAt || user.isAdmin) {
+  if (user.createdAt || user.deletedAt || user.role) {
     if (user.createdAt) dbUser.createdAt = user.createdAt
     if (user.deletedAt) dbUser.deletedAt = user.deletedAt
-    if (user.isAdmin) {
-      dbUser.userRole = UserRole.create()
-      dbUser.userRole.createdAt = new Date()
-      dbUser.userRole.role = ROLE_NAMES.ROLE_NAME_ADMIN
-      dbUser.userRole.userId = dbUser.id
-      await dbUser.userRole.save()
+    if (user.role) {
+      dbUser.userRoles = [] as UserRole[]
+      dbUser.userRoles[0] = UserRole.create()
+      dbUser.userRoles[0].createdAt = new Date()
+      if (user.role === ROLE_NAMES.ROLE_NAME_ADMIN) {
+        dbUser.userRoles[0].role = ROLE_NAMES.ROLE_NAME_ADMIN
+      } else if (user.role === ROLE_NAMES.ROLE_NAME_MODERATOR) {
+        dbUser.userRoles[0].role = ROLE_NAMES.ROLE_NAME_MODERATOR
+      }
+      dbUser.userRoles[0].userId = dbUser.id
+      await dbUser.userRoles[0].save()
     }
     await dbUser.save()
   }

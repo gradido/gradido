@@ -2,6 +2,8 @@ import { User } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
 import { ObjectType, Field, Int } from 'type-graphql'
 
+import { ROLE_NAMES } from '@/auth/ROLES'
+
 @ObjectType()
 export class UserAdmin {
   constructor(user: User, creation: Decimal[], hasElopage: boolean, emailConfirmationSend: string) {
@@ -14,8 +16,18 @@ export class UserAdmin {
     this.hasElopage = hasElopage
     this.deletedAt = user.deletedAt
     this.emailConfirmationSend = emailConfirmationSend
-    if (user.userRole) {
-      this.isAdmin = user.userRole?.createdAt
+    if (user.userRoles) {
+      switch (user.userRoles[0].role) {
+        case ROLE_NAMES.ROLE_NAME_ADMIN:
+          this.isAdmin = user.userRoles[0].createdAt
+          break
+        case ROLE_NAMES.ROLE_NAME_MODERATOR:
+          this.isModerator = user.userRoles[0].createdAt
+          break
+        default:
+          this.isAdmin = null
+          this.isModerator = null
+      }
     }
   }
 
@@ -48,6 +60,9 @@ export class UserAdmin {
 
   @Field(() => Date, { nullable: true })
   isAdmin: Date | null
+
+  @Field(() => Date, { nullable: true })
+  isModerator: Date | null
 }
 
 @ObjectType()
