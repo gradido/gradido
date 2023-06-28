@@ -485,7 +485,7 @@ describe('ContributionMessageResolver', () => {
       })
     })
 
-    describe('authenticated', () => {
+    describe('authenticated as admin', () => {
       beforeAll(async () => {
         await mutate({
           mutation: login,
