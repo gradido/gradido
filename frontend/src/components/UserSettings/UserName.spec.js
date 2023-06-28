@@ -77,7 +77,7 @@ describe('UserName Form', () => {
 
     describe('edit username', () => {
       beforeEach(async () => {
-        wrapper.vm.username = 'petra'
+        wrapper.findComponent({ name: 'InputUsername' }).setValue('petra')
       })
 
       it('has a submit button', () => {
