@@ -1,20 +1,15 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field, Int, Float } from 'type-graphql'
 
 import { GdtEntry } from './GdtEntry'
 
 @ObjectType()
 export class GdtEntryList {
-  constructor(json: any) {
-    this.status = json.state
-    this.count = json.count
-    this.gdtEntries = json.gdtEntries ? json.gdtEntries.map((json: any) => new GdtEntry(json)) : []
-    this.gdtSum = json.gdtSum
-    this.timeUsed = json.timeUsed
+  constructor(status = '', count = 0, gdtEntries = [], gdtSum = 0, timeUsed = 0) {
+    this.status = status
+    this.count = count
+    this.gdtEntries = gdtEntries
+    this.gdtSum = gdtSum
+    this.timeUsed = timeUsed
   }
 
   @Field(() => String)
