@@ -6,7 +6,7 @@ let emailLink: string
 
 async function setupNodeEvents(
   on: Cypress.PluginEvents,
-  config: Cypress.PluginConfigOptions
+  config: Cypress.PluginConfigOptions,
 ): Promise<Cypress.PluginConfigOptions> {
   await addCucumberPreprocessorPlugin(on, config)
 
@@ -14,7 +14,7 @@ async function setupNodeEvents(
     'file:preprocessor',
     browserify(config, {
       typescript: require.resolve('typescript'),
-    })
+    }),
   )
 
   on('task', {
