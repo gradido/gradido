@@ -9,12 +9,9 @@ Given('the user navigates to page {string}', (page: string) => {
 
 // login related
 
-Given(
-  'the user is logged in as {string} {string}',
-  (email: string, password: string) => {
-    cy.login(email, password)
-  }
-)
+Given('the user is logged in as {string} {string}', (email: string, password: string) => {
+  cy.login(email, password)
+})
 
 Then('the user is logged in with username {string}', (username: string) => {
   const overviewPage = new OverviewPage()

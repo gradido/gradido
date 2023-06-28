@@ -10,7 +10,7 @@ When(
     registrationPage.enterFirstname(firstname)
     registrationPage.enterLastname(lastname)
     registrationPage.enterEmail(email)
-  }
+  },
 )
 
 When('the user agrees to the privacy policy', () => {

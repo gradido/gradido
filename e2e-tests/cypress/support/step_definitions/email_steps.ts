@@ -23,13 +23,15 @@ Then('the user receives an e-mail containing the {string} link', (linkName: stri
       linkPattern = /\/overview/
       break
     default:
-      throw new Error(`Error in "Then the user receives an e-mail containing the {string} link" step: incorrect linkname string "${linkName}"`)
+      throw new Error(
+        `Error in "Then the user receives an e-mail containing the {string} link" step: incorrect linkname string "${linkName}"`,
+      )
   }
-  
+
   cy.origin(
     Cypress.env('mailserverURL'),
     { args: { emailSubject, linkPattern, userEMailSite } },
-    ({ emailSubject, linkPattern, userEMailSite }) => {      
+    ({ emailSubject, linkPattern, userEMailSite }) => {
       cy.visit('/') // navigate to user's e-mail site (on fake mail server)
       cy.get(userEMailSite.emailInbox).should('be.visible')
 
@@ -39,11 +41,9 @@ Then('the user receives an e-mail containing the {string} link', (linkName: stri
         .first()
         .click()
 
-      cy.get(userEMailSite.emailMeta)
-        .find(userEMailSite.emailSubject)
-        .contains(emailSubject)
+      cy.get(userEMailSite.emailMeta).find(userEMailSite.emailSubject).contains(emailSubject)
 
-      cy.get('.email-content', { timeout: 2000})
+      cy.get('.email-content', { timeout: 2000 })
         .find('.plain-text')
         .contains(linkPattern)
         .invoke('text')
@@ -51,41 +51,42 @@ Then('the user receives an e-mail containing the {string} link', (linkName: stri
           const emailLink = text.match(linkPattern)[0]
           cy.task('setEmailLink', emailLink)
         })
-    }
+    },
   )
 })
 
-And('the user receives the transaction e-mail about {string} GDD from {string}', (amount: string, senderName:string) => {
-  cy.origin(
-    Cypress.env('mailserverURL'),
-    { args: { amount, senderName, userEMailSite } },
-    ({ amount, senderName, userEMailSite }) => {
-      const subject = `${senderName} hat dir ${amount} Gradido gesendet`
-      const linkPattern = /\/transactions/
-      cy.visit('/')
-      cy.get(userEMailSite.emailInbox).should('be.visible')
+When(
+  'the user receives the transaction e-mail about {string} GDD from {string}',
+  (amount: string, senderName: string) => {
+    cy.origin(
+      Cypress.env('mailserverURL'),
+      { args: { amount, senderName, userEMailSite } },
+      ({ amount, senderName, userEMailSite }) => {
+        const subject = `${senderName} hat dir ${amount} Gradido gesendet`
+        const linkPattern = /\/transactions/
+        cy.visit('/')
+        cy.get(userEMailSite.emailInbox).should('be.visible')
 
-      cy.get(userEMailSite.emailList)
-        .find('.email-item')
-        .filter(`:contains(${subject})`)
-        .first()
-        .click()
-      
-      cy.get(userEMailSite.emailMeta)
-        .find(userEMailSite.emailSubject)
-        .contains(subject)
-      
-      cy.get('.email-content', { timeout: 2000})
-        .find('.plain-text')
-        .contains(linkPattern)
-        .invoke('text')
-        .then((text) => {
-          const emailLink = text.match(linkPattern)[0]
-          cy.task('setEmailLink', emailLink)
-        })
-    }
-  )
-})
+        cy.get(userEMailSite.emailList)
+          .find('.email-item')
+          .filter(`:contains(${subject})`)
+          .first()
+          .click()
+
+        cy.get(userEMailSite.emailMeta).find(userEMailSite.emailSubject).contains(subject)
+
+        cy.get('.email-content', { timeout: 2000 })
+          .find('.plain-text')
+          .contains(linkPattern)
+          .invoke('text')
+          .then((text) => {
+            const emailLink = text.match(linkPattern)[0]
+            cy.task('setEmailLink', emailLink)
+          })
+      },
+    )
+  },
+)
 
 When('the user opens the {string} link in the browser', (linkName: string) => {
   const resetPasswordPage = new ResetPasswordPage()
@@ -101,10 +102,13 @@ When('the user opens the {string} link in the browser', (linkName: string) => {
       cy.get(resetPasswordPage.newPasswordInput).should('be.visible')
       break
     case 'transaction':
+      // eslint-disable-next-line no-case-declarations
       const overviewPage = new OverviewPage()
       cy.get(overviewPage.rightLastTransactionsList).should('be.visible')
       break
     default:
-      throw new Error(`Error in "Then the user receives an e-mail containing the {string} link" step: incorrect link name string "${linkName}"`)
+      throw new Error(
+        `Error in "Then the user receives an e-mail containing the {string} link" step: incorrect link name string "${linkName}"`,
+      )
   }
 })
