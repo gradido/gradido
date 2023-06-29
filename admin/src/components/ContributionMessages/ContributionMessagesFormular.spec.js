@@ -89,7 +89,7 @@ describe('ContributionMessagesFormular', () => {
             text: 'text form message',
           },
         })
-        await wrapper.findAll('button').at(2).trigger('click')
+        await wrapper.find('button[data-test="submit-dialog"]').trigger('click')
       })
 
       it('moderatorMesage has `DIALOG`', () => {
@@ -115,7 +115,7 @@ describe('ContributionMessagesFormular', () => {
             text: 'text form message',
           },
         })
-        await wrapper.findAll('button').at(1).trigger('click')
+        await wrapper.find('button[data-test="submit-moderator"]').trigger('click')
       })
 
       it('moderatorMesage has `MODERATOR`', () => {
