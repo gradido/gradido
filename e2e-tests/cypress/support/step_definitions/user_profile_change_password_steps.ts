@@ -1,10 +1,10 @@
-import { And, DataTable, When } from '@badeball/cypress-cucumber-preprocessor'
+import { DataTable, When } from '@badeball/cypress-cucumber-preprocessor'
 import { ProfilePage } from '../../e2e/models/ProfilePage'
 import { Toasts } from '../../e2e/models/Toasts'
 
 const profilePage = new ProfilePage()
 
-And('the user opens the change password menu', () => {
+When('the user opens the change password menu', () => {
   cy.get(profilePage.openChangePassword).click()
   cy.get(profilePage.newPasswordRepeatInput).should('be.visible')
   cy.get(profilePage.submitNewPasswordBtn).should('be.disabled')
@@ -18,7 +18,7 @@ When('the user fills the password form with:', (table: DataTable) => {
   cy.get(profilePage.submitNewPasswordBtn).should('be.enabled')
 })
 
-And('the user submits the password form', () => {
+When('the user submits the password form', () => {
   profilePage.submitPasswordForm()
 })
 
