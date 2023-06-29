@@ -14,9 +14,7 @@ export class ResetPasswordPage {
   }
 
   repeatNewPassword(password: string) {
-    cy.get(this.newPasswordRepeatInput)
-      .find('input[type=password]')
-      .type(password)
+    cy.get(this.newPasswordRepeatInput).find('input[type=password]').type(password)
     return this
   }
 
