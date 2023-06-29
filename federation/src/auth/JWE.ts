@@ -16,40 +16,43 @@ export const verifyToken = async (
 ) => {
   const pubKeyX = Buffer.alloc(crypto_scalarmult_curve25519_BYTES)
   const privKeyX = Buffer.alloc(crypto_scalarmult_curve25519_BYTES)
-  crypto_sign_ed25519_pk_to_curve25519(pubKeyX, keyPair.publicKey)
+  crypto_sign_ed25519_pk_to_curve25519(pubKeyX, keyPair.publicKey.subarray(0, 32))
   crypto_sign_ed25519_sk_to_curve25519(privKeyX, keyPair.privateKey.subarray(0, 32))
   const key = createPrivateKey({
     key: {
       kty: 'OKP',
       crv: 'X25519',
-      x: keyPair.publicKey.toString('base64url'),
-      d: keyPair.privateKey.subarray(0, 32).toString('base64url'),
+      x: pubKeyX.toString('base64url'),
+      d: privKeyX.toString('base64url'),
     },
     format: 'jwk',
   })
 
   const { plaintext } = await compactDecrypt(token, key)
   const decryptedJWEPayload = JSON.parse(new TextDecoder().decode(plaintext)) as {
-    jws: string // CompactSign
-    publicKey: Buffer
+    jws: string
+    publicKey: string
   }
   const foreignPub = createPublicKey({
     key: {
       kty: 'OKP',
       crv: 'Ed25519',
-      x: decryptedJWEPayload.publicKey.toString('base64url'),
+      x: Buffer.from(decryptedJWEPayload.publicKey).toString('base64url'),
     },
     format: 'jwk',
   })
   // TODO: verify clientPubKey (e.g. check federation table + rights here)
   const { payload: payloadJWS } = await compactVerify(decryptedJWEPayload.jws, foreignPub)
-  const receivedNonce = parseInt(new TextDecoder().decode(payloadJWS))
+  const receivedNonce = JSON.parse(new TextDecoder().decode(payloadJWS)) as {
+    nonce: number
+    time: Date
+  }
 
-  if (nonce && receivedNonce !== nonce) {
+  if (nonce && receivedNonce.nonce !== nonce) {
     throw new Error('Could not verify nonce')
   }
 
-  return { publicKey: decryptedJWEPayload.publicKey, nonce: receivedNonce }
+  return { publicKey: Buffer.from(decryptedJWEPayload.publicKey), nonce: receivedNonce.nonce }
 }
 
 export const generateToken = async (
@@ -57,7 +60,7 @@ export const generateToken = async (
   keyPair: { publicKey: Buffer; privateKey: Buffer },
   receiverPublicKey: Buffer,
 ) => {
-  const receiverPublicKeyFixed = Buffer.from(receiverPublicKey.toString(), 'hex')
+  const receiverPublicKeyFixed = receiverPublicKey // Buffer.from(receiverPublicKey.toString(), 'hex')
   const receiverPublicKeyFixedX = Buffer.alloc(crypto_scalarmult_curve25519_BYTES)
   crypto_sign_ed25519_pk_to_curve25519(receiverPublicKeyFixedX, receiverPublicKeyFixed)
   const key = createPrivateKey({
@@ -80,7 +83,7 @@ export const generateToken = async (
   const jws = await new CompactSign(
     new TextEncoder().encode(
       JSON.stringify({
-        nonce: nonce.toString(),
+        nonce,
         time: new Date(),
       }),
     ),
@@ -91,7 +94,7 @@ export const generateToken = async (
     new TextEncoder().encode(
       JSON.stringify({
         jws,
-        publicKey: keyPair.publicKey,
+        publicKey: keyPair.publicKey.subarray(0, 32),
       }),
     ),
   )
