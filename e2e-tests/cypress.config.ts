@@ -45,6 +45,12 @@ export default defineConfig({
     baseUrl: 'http://localhost:3000',
     chromeWebSecurity: false,
     defaultCommandTimeout: 10000,
+    reporter: './node_modules/mochawesome/src/mochawesome.js',
+    reporterOptions: {
+      overwrite: false,
+      html: false,
+      json: true
+    },
     supportFile: 'cypress/support/index.ts',
     viewportHeight: 720,
     viewportWidth: 1280,
