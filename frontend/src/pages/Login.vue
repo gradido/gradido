@@ -86,6 +86,7 @@ export default {
       const loader = this.$loading.show({
         container: this.$refs.submitButton,
       })
+      this.$root.$bvToast.hide()
       this.$apollo
         .mutate({
           mutation: login,

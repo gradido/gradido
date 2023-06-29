@@ -7,10 +7,10 @@
     </div>
     <div>
       <contribution-messages-formular
-        v-if="['PENDING', 'IN_PROGRESS'].includes(state)"
+        v-if="['PENDING', 'IN_PROGRESS'].includes(status)"
         :contributionId="contributionId"
         v-on="$listeners"
-        @update-state="updateState"
+        @update-status="updateStatus"
       />
     </div>
 
@@ -37,7 +37,7 @@ export default {
       type: Number,
       required: true,
     },
-    state: {
+    status: {
       type: String,
       required: true,
     },
@@ -47,8 +47,8 @@ export default {
     },
   },
   methods: {
-    updateState(id) {
-      this.$emit('update-state', id)
+    updateStatus(id) {
+      this.$emit('update-status', id)
     },
   },
 }
