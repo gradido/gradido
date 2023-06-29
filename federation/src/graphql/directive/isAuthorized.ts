@@ -1,7 +1,6 @@
 import { Community as dbCommunity } from '@entity/Community'
 import { AuthChecker } from 'type-graphql'
 
-import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { verifyToken, generateToken } from '@/auth/JWE'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { ROLE_UNAUTHORIZED, ROLE_AUTHORIZED } from '@/auth/ROLES'
@@ -60,8 +59,7 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
       ),
     })
     return true
-  } catch(e) {
-    console.log(e)
+  } catch {
     // in case the database query fails (user deleted)
     throw new LogError('401 Unauthorized')
   }
