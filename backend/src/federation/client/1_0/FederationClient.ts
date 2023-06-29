@@ -75,7 +75,7 @@ export class FederationClient {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
       return data.getPublicKey.publicKey
     } catch (err) {
-      logger.warn('Federation: getPublicKey failed for endpoint', this.endpoint, err)
+      logger.warn('Federation: getPublicKey failed for endpoint', this.endpoint /* , err */)
     }
   }
 }
