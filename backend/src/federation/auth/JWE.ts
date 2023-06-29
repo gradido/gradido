@@ -48,8 +48,6 @@ export const verifyToken = async (
     time: Date
   }
 
-
-  console.log(receivedNonce, nonce, receivedNonce.nonce)
   if (nonce && receivedNonce.nonce !== nonce) {
     throw new Error('Could not verify nonce')
   }
