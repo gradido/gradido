@@ -456,6 +456,40 @@ describe('CreationConfirm', () => {
       })
     })
 
+    describe('user query', () => {
+      describe('with user query', () => {
+        beforeEach(() => {
+          wrapper.findComponent({ name: 'UserQuery' }).vm.$emit('input', 'query')
+        })
+
+        it('calls the API with query', () => {
+          expect(adminListContributionsMock).toBeCalledWith({
+            currentPage: 1,
+            order: 'DESC',
+            pageSize: 25,
+            query: 'query',
+            statusFilter: ['IN_PROGRESS', 'PENDING'],
+          })
+        })
+
+        describe('reset query', () => {
+          beforeEach(() => {
+            wrapper.findComponent({ name: 'UserQuery' }).vm.$emit('input', '')
+          })
+
+          it('calls the API with empty query', () => {
+            expect(adminListContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              query: '',
+              statusFilter: ['IN_PROGRESS', 'PENDING'],
+            })
+          })
+        })
+      })
+    })
+
     describe('update status', () => {
       beforeEach(async () => {
         await wrapper.findComponent({ name: 'OpenCreationsTable' }).vm.$emit('update-status', 2)
