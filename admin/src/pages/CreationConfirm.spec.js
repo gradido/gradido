@@ -341,6 +341,7 @@ describe('CreationConfirm', () => {
             currentPage: 1,
             order: 'DESC',
             pageSize: 25,
+            query: '',
             statusFilter: ['CONFIRMED'],
           })
         })
@@ -356,6 +357,7 @@ describe('CreationConfirm', () => {
               currentPage: 1,
               order: 'DESC',
               pageSize: 25,
+              query: '',
               statusFilter: ['IN_PROGRESS', 'PENDING'],
             })
           })
@@ -372,6 +374,7 @@ describe('CreationConfirm', () => {
               currentPage: 1,
               order: 'DESC',
               pageSize: 25,
+              query: '',
               statusFilter: ['DENIED'],
             })
           })
@@ -388,6 +391,7 @@ describe('CreationConfirm', () => {
               currentPage: 1,
               order: 'DESC',
               pageSize: 25,
+              query: '',
               statusFilter: ['DELETED'],
             })
           })
@@ -404,6 +408,7 @@ describe('CreationConfirm', () => {
               currentPage: 1,
               order: 'DESC',
               pageSize: 25,
+              query: '',
               statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
             })
           })
@@ -424,6 +429,7 @@ describe('CreationConfirm', () => {
                   currentPage: 2,
                   order: 'DESC',
                   pageSize: 25,
+                  query: '',
                   statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
                 })
               })
@@ -439,6 +445,7 @@ describe('CreationConfirm', () => {
                     currentPage: 1,
                     order: 'DESC',
                     pageSize: 25,
+                    query: '',
                     statusFilter: ['IN_PROGRESS', 'PENDING'],
                   })
                 })
