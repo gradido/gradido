@@ -31,6 +31,7 @@
                 :rules="rules"
                 :isEdit="isEdit"
                 @set-is-edit="setIsEdit"
+                data-test="component-input-username"
               />
             </b-col>
             <b-col class="col-12">
