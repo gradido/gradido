@@ -1,4 +1,4 @@
-import { And, Then, When } from '@badeball/cypress-cucumber-preprocessor'
+import { Then, When } from '@badeball/cypress-cucumber-preprocessor'
 import { SendPage } from '../../e2e/models/SendPage'
 
 const sendPage = new SendPage()
@@ -12,7 +12,7 @@ When(
   },
 )
 
-And('the user submits the send form', () => {
+When('the user submits the send form', () => {
   sendPage.submit()
   cy.get(sendPage.confirmationBox).should('be.visible')
 })
