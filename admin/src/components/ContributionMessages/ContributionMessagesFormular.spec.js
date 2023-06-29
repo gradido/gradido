@@ -82,14 +82,14 @@ describe('ContributionMessagesFormular', () => {
       })
     })
 
-    describe('send contribution message with success', () => {
+    describe('send DIALOG contribution message with success', () => {
       beforeEach(async () => {
         await wrapper.setData({
           form: {
             text: 'text form message',
           },
         })
-        await wrapper.find('form').trigger('submit')
+        await wrapper.findAll('button').at(2).trigger('click')
       })
 
       it('moderatorMesage has `DIALOG`', () => {
@@ -99,6 +99,32 @@ describe('ContributionMessagesFormular', () => {
             contributionId: 42,
             message: 'text form message',
             messageType: 'DIALOG',
+          },
+        })
+      })
+
+      it('toasts an success message', () => {
+        expect(toastSuccessSpy).toBeCalledWith('message.request')
+      })
+    })
+
+    describe('send MODERATOR contribution message with success', () => {
+      beforeEach(async () => {
+        await wrapper.setData({
+          form: {
+            text: 'text form message',
+          },
+        })
+        await wrapper.findAll('button').at(1).trigger('click')
+      })
+
+      it('moderatorMesage has `MODERATOR`', () => {
+        expect(apolloMutateMock).toBeCalledWith({
+          mutation: adminCreateContributionMessage,
+          variables: {
+            contributionId: 42,
+            message: 'text form message',
+            messageType: 'MODERATOR',
           },
         })
       })
