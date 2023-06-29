@@ -2912,7 +2912,7 @@ describe('ContributionResolver', () => {
                 lastName: 'Lustig',
                 memo: 'Herzlich Willkommen bei Gradido!',
                 messagesCount: 0,
-                state: 'PENDING',
+                status: 'PENDING',
               }),
               expect.objectContaining({
                 amount: expect.decimalEqual(100),
@@ -2921,7 +2921,7 @@ describe('ContributionResolver', () => {
                 lastName: 'Lustig',
                 memo: 'Test env contribution',
                 messagesCount: 0,
-                state: 'PENDING',
+                status: 'PENDING',
               }),
               expect.objectContaining({
                 amount: expect.decimalEqual(200),
@@ -2930,7 +2930,7 @@ describe('ContributionResolver', () => {
                 lastName: 'Lustig',
                 memo: 'Das war leider zu Viel!',
                 messagesCount: 0,
-                state: 'DELETED',
+                status: 'DELETED',
               }),
             ]),
           })
@@ -2957,7 +2957,7 @@ describe('ContributionResolver', () => {
                 lastName: 'Hotzenplotz',
                 memo: 'Whatever contribution',
                 messagesCount: 0,
-                state: 'DENIED',
+                status: 'DENIED',
               }),
               expect.objectContaining({
                 amount: expect.decimalEqual(166),
@@ -2966,7 +2966,7 @@ describe('ContributionResolver', () => {
                 lastName: 'Hotzenplotz',
                 memo: 'Whatever contribution',
                 messagesCount: 0,
-                state: 'DELETED',
+                status: 'DELETED',
               }),
               expect.objectContaining({
                 amount: expect.decimalEqual(166),
@@ -2975,7 +2975,7 @@ describe('ContributionResolver', () => {
                 lastName: 'Hotzenplotz',
                 memo: 'Whatever contribution',
                 messagesCount: 0,
-                state: 'CONFIRMED',
+                status: 'CONFIRMED',
               }),
             ]),
           })
