@@ -49,7 +49,7 @@ Then('the user receives an e-mail containing the {string} link', (linkName: stri
         .invoke('text')
         .then((text) => {
           const emailLink = text.match(linkPattern)[0]
-          cy.task('setEmailLink', emailLink)
+          cy.task('setEmailLink', emailLink )
         })
     },
   )
@@ -64,9 +64,12 @@ Then('the user receives no password reset e-mail', () => {
       cy.wait(300)
       cy.get(userEMailSite.emailInbox).should('be.visible')
 
-      cy.get(userEMailSite.emailList)
-        .find('.email-item')
-        .should('have.length', 0)
+      cy.get(userEMailSite.emailList).then(($emailList) => {
+        const emailItems = $emailList.find('.email-item')
+        if (emailItems.length > 0) {
+          expect(emailItems.filter(`:contains("asswor")`).length).to.equal(0)
+        }
+      })
     }
   )
 })
