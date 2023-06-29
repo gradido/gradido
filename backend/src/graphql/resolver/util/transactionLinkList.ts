@@ -1,4 +1,4 @@
-import { MoreThan } from '@dbTools/typeorm'
+import { MoreThan, IsNull } from '@dbTools/typeorm'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 
@@ -22,7 +22,7 @@ export async function transactionLinkList(
   const [transactionLinks, count] = await DbTransactionLink.findAndCount({
     where: {
       userId: user.id,
-      ...(!withRedeemed && { redeemedBy: null }),
+      ...(!withRedeemed && { redeemedBy: IsNull() }),
       ...(!withExpired && { validUntil: MoreThan(new Date()) }),
     },
     withDeleted,
