@@ -73,8 +73,8 @@ describe('ContributionMessagesFormular', () => {
         )
       })
 
-      it('emitted "update-state" with data', async () => {
-        expect(wrapper.emitted('update-state')).toEqual(
+      it('emitted "update-status" with data', async () => {
+        expect(wrapper.emitted('update-status')).toEqual(
           expect.arrayContaining([expect.arrayContaining([42])]),
         )
       })
