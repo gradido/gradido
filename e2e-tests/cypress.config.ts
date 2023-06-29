@@ -48,10 +48,7 @@ export default defineConfig({
     viewportHeight: 720,
     viewportWidth: 1280,
     video: false,
-    retries: {
-      runMode: 2,
-      openMode: 0,
-    },
+    retries: 0,
     env: {
       backendURL: 'http://localhost:4000',
       mailserverURL: 'http://localhost:1080',
