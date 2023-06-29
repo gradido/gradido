@@ -25,6 +25,8 @@ import { Connection } from '@dbTools/typeorm'
 import { apolloLogger } from './logger'
 import { Logger } from 'log4js'
 
+import { context as serverContext } from './context'
+
 // i18n
 // import { i18n } from './localization'
 
@@ -35,7 +37,7 @@ type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
 
 const createServer = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  // context: any = serverContext,
+  context: any = serverContext,
   logger: Logger = apolloLogger,
   // localization: i18n.I18n = i18n,
 ): Promise<ServerDef> => {
@@ -78,7 +80,7 @@ const createServer = async (
     schema: await schema(),
     // playground: CONFIG.GRAPHIQL,
     // introspection: CONFIG.GRAPHIQL,
-    // context,
+    context,
     plugins,
     logger,
   })

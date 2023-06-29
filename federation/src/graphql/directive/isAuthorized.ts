@@ -29,20 +29,17 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
     }
 
     context.role = ROLE_UNAUTHORIZED // unauthorized caller
-    // is rights an inalienable right?
-    if (
-      (rights as RIGHTS[]).reduce((acc, right) => acc && INALIENABLE_RIGHTS.includes(right), true)
-    )
-      return true
 
-    // TODO - load from database dynamically & admin - maybe encode this in the token to prevent many database requests
-    // TODO this implementation is bullshit - two database queries cause our user identifiers are not aligned and vary between email, id and pubKey
-
-    const community = await dbCommunity.findOneOrFail({
-      where: { publicKey: decoded.publicKey },
+    const debugComKey = Buffer.alloc(64, 0)
+    decoded.publicKey.copy(debugComKey)
+    const community = await dbCommunity.findOne({
+      where: { publicKey: debugComKey },
     })
-    context.community = community
-    context.role = ROLE_AUTHORIZED // TODO here authorization has to be checked
+    // todo do not respond with token below?
+    if (community) {
+      context.community = community
+      context.role = ROLE_AUTHORIZED // TODO here authorization has to be checked
+    }
 
     // check for correct rights
     const missingRights = (rights as RIGHTS[]).filter((right) => !context.role?.hasRight(right))
@@ -59,11 +56,12 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
           publicKey: ownCommunity.publicKey,
           privateKey: ownCommunity.privateKey,
         },
-        community.publicKey,
-      )(decoded.gradidoID),
+        decoded.publicKey,
+      ),
     })
     return true
-  } catch {
+  } catch(e) {
+    console.log(e)
     // in case the database query fails (user deleted)
     throw new LogError('401 Unauthorized')
   }
