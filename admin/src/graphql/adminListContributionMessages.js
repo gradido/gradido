@@ -18,6 +18,7 @@ export const adminListContributionMessages = gql`
         userFirstName
         userLastName
         userId
+        isModerator
       }
     }
   }

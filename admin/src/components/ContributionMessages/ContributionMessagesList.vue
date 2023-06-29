@@ -12,7 +12,7 @@
     <div v-if="contributionStatus === 'PENDING' || contributionStatus === 'IN_PROGRESS'">
       <contribution-messages-formular
         :contributionId="contributionId"
-        @get-list-contribution-messages="getListContributionMessages"
+        @get-list-contribution-messages="$apollo.queries.Messages.refetch()"
         @update-status="updateStatus"
       />
     </div>
@@ -48,29 +48,29 @@ export default {
       messages: [],
     }
   },
-  methods: {
-    getListContributionMessages(id) {
-      this.$apollo
-        .query({
-          query: adminListContributionMessages,
-          variables: {
-            contributionId: id,
-          },
-          fetchPolicy: 'no-cache',
-        })
-        .then((result) => {
-          this.messages = result.data.adminListContributionMessages.messages
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-        })
+  apollo: {
+    Messages: {
+      query() {
+        return adminListContributionMessages
+      },
+      variables() {
+        return {
+          contributionId: this.contributionId,
+        }
+      },
+      fetchPolicy: 'no-cache',
+      update({ adminListContributionMessages }) {
+        this.messages = adminListContributionMessages.messages
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
     },
+  },
+  methods: {
     updateStatus(id) {
       this.$emit('update-status', id)
     },
-  },
-  created() {
-    this.getListContributionMessages(this.contributionId)
   },
 }
 </script>
