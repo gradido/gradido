@@ -109,10 +109,10 @@
     "request": "Request has been sent."
   },
   "moderator": {
+    "history": "The data has been changed. This is the old data.",
     "moderator": "Moderator",
     "notice": "Moderator note",
-    "request": "This message is only visible to the moderators!",
-    "history": "The data has been changed. This is the old data."
+    "request": "This message is only visible to the moderators!"
   },
   "name": "Name",
   "navbar": {
