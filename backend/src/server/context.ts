@@ -15,7 +15,7 @@ export interface Context {
   clientTimezoneOffset?: number
   gradidoID?: string
   // hack to use less DB calls for Balance Resolver
-  lastTransaction?: dbTransaction
+  lastTransaction?: dbTransaction | null
   transactionCount?: number
   linkCount?: number
   sumHoldAvailableAmount?: Decimal

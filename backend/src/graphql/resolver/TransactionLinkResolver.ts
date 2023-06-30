@@ -81,6 +81,7 @@ export class TransactionLinkResolver {
 
     // validate amount
     const sendBalance = await calculateBalance(user.id, holdAvailableAmount.mul(-1), createdDate)
+
     if (!sendBalance) {
       throw new LogError('User has not enough GDD', user.id)
     }
@@ -109,7 +110,7 @@ export class TransactionLinkResolver {
   ): Promise<boolean> {
     const user = getUser(context)
 
-    const transactionLink = await DbTransactionLink.findOne({ id })
+    const transactionLink = await DbTransactionLink.findOne({ where: { id } })
     if (!transactionLink) {
       throw new LogError('Transaction link not found', id)
     }
@@ -139,17 +140,22 @@ export class TransactionLinkResolver {
   @Query(() => QueryLinkResult)
   async queryTransactionLink(@Arg('code') code: string): Promise<typeof QueryLinkResult> {
     if (code.match(/^CL-/)) {
-      const contributionLink = await DbContributionLink.findOneOrFail(
-        { code: code.replace('CL-', '') },
-        { withDeleted: true },
-      )
+      const contributionLink = await DbContributionLink.findOneOrFail({
+        where: { code: code.replace('CL-', '') },
+        withDeleted: true,
+      })
       return new ContributionLink(contributionLink)
     } else {
-      const transactionLink = await DbTransactionLink.findOneOrFail({ code }, { withDeleted: true })
-      const user = await DbUser.findOneOrFail({ id: transactionLink.userId })
+      const transactionLink = await DbTransactionLink.findOneOrFail({
+        where: { code },
+        withDeleted: true,
+      })
+      const user = await DbUser.findOneOrFail({ where: { id: transactionLink.userId } })
       let redeemedBy: User | null = null
       if (transactionLink?.redeemedBy) {
-        redeemedBy = new User(await DbUser.findOneOrFail({ id: transactionLink.redeemedBy }))
+        redeemedBy = new User(
+          await DbUser.findOneOrFail({ where: { id: transactionLink.redeemedBy } }),
+        )
       }
       return new TransactionLink(transactionLink, new User(user), redeemedBy)
     }
@@ -192,7 +198,7 @@ export class TransactionLinkResolver {
               throw new LogError('Contribution link is no longer valid', contributionLink.validTo)
             }
           }
-          let alreadyRedeemed: DbContribution | undefined
+          let alreadyRedeemed: DbContribution | null
           switch (contributionLink.cycle) {
             case ContributionCycleType.ONCE: {
               alreadyRedeemed = await queryRunner.manager
@@ -310,10 +316,12 @@ export class TransactionLinkResolver {
           throw new LogError('Transaction link not found', code)
         }
 
-        const linkedUser = await DbUser.findOne(
-          { id: transactionLink.userId },
-          { relations: ['emailContact'] },
-        )
+        const linkedUser = await DbUser.findOne({
+          where: {
+            id: transactionLink.userId,
+          },
+          relations: ['emailContact'],
+        })
 
         if (!linkedUser) {
           throw new LogError('Linked user not found for given link', transactionLink.userId)
@@ -379,7 +387,7 @@ export class TransactionLinkResolver {
     @Arg('userId', () => Int)
     userId: number,
   ): Promise<TransactionLinkResult> {
-    const user = await DbUser.findOne({ id: userId })
+    const user = await DbUser.findOne({ where: { id: userId } })
     if (!user) {
       throw new LogError('Could not find requested User', userId)
     }
