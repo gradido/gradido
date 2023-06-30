@@ -311,7 +311,7 @@ export class TransactionLinkResolver {
       const now = new Date()
       const releaseLinkLock = await TRANSACTION_LINK_LOCK.acquire()
       try {
-        const transactionLink = await DbTransactionLink.findOne({ code })
+        const transactionLink = await DbTransactionLink.findOne({ where: { code } })
         if (!transactionLink) {
           throw new LogError('Transaction link not found', code)
         }
