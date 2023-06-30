@@ -8,7 +8,6 @@
         />
       </div>
     </b-container>
-
     <div v-if="contributionStatus === 'PENDING' || contributionStatus === 'IN_PROGRESS'">
       <contribution-messages-formular
         :contributionId="contributionId"
