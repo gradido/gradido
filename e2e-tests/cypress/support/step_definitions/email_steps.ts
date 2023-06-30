@@ -55,6 +55,21 @@ Then('the user receives an e-mail containing the {string} link', (linkName: stri
   )
 })
 
+Then('the user receives no password reset e-mail', () => {
+  cy.origin(Cypress.env('mailserverURL'), { args: { userEMailSite } }, ({ userEMailSite }) => {
+    cy.visit('/')
+    cy.wait(300)
+    cy.get(userEMailSite.emailInbox).should('be.visible')
+
+    cy.get(userEMailSite.emailList).then(($emailList) => {
+      const emailItems = $emailList.find('.email-item')
+      if (emailItems.length > 0) {
+        expect(emailItems.filter(`:contains("asswor")`).length).to.equal(0)
+      }
+    })
+  })
+})
+
 When(
   'the user receives the transaction e-mail about {string} GDD from {string}',
   (amount: string, senderName: string) => {
