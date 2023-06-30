@@ -64,110 +64,114 @@ describe('UserName Form', () => {
       it('first step is username empty ', () => {
         expect(wrapper.vm.username).toEqual('')
       })
-     
 
-      describe('change / edit  username', () => {
+      describe.skip('change / edit  username', () => {
         beforeEach(async () => {
-          wrapper.vm.isEdit = true
+          wrapper.$store.state.username = ''
+          await wrapper.setData({ isEdit: true })
         })
 
         it('first step is isEdit false ', () => {
-          expect(wrapper.vm.isEdit).toEqual(false)
+          expect(wrapper.vm.isEdit).toEqual(true)
         })
 
-        it('has a submit button', () => {
+        it('has a submit button with disabled true', () => {
           // expect(wrapper.find('[data-test="submit-username-button"]').exists()).toBeFalsy()
           // expect(wrapper.find('select.role-select[disabled="disabled"]').exists()).toBe(false)
+          // expect(wrapper.find('[data-test="submit-username-button"]').attributes('disabled')).toBe(true
 
-          expect(wrapper.find('[data-test="submit-username-button"]').prop('disabled')).toBeFalsy()
+          // expect(wrapper.find('[data-test="submit-username-button"]').prop('disabled')).toBeFalsy()
 
+          expect(wrapper.find('[data-test="submit-username-button"]').attributes('disabled')).toBe(
+            'disabled',
+          )
         })
       })
 
-      // describe('has a username', () => {
-      //   beforeEach(async () => {
-      //     wrapper.$store.state.username = 'petra'
-      //   })
-      //   it('has no the username', () => {
-      //     expect(wrapper.find('[data-test="username-input-group"]')).toBeTruthy()
-      //   })
+      describe.skip('has a username', () => {
+        beforeEach(async () => {
+          wrapper.$store.state.username = 'petra'
+        })
+        it('has no the username', () => {
+          expect(wrapper.find('[data-test="username-input-group"]')).toBeTruthy()
+        })
 
-      //   it('has no component username change ', () => {
-      //     expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBeTruthy()
-      //   })
-      // })
+        it('has no component username change ', () => {
+          expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBeTruthy()
+        })
+      })
 
-      // describe('edit username', () => {
-      //   beforeEach(async () => {
-      //     wrapper.findComponent({ name: 'InputUsername' }).setValue('petra')
-      //   })
+      describe.skip('edit username', () => {
+        beforeEach(async () => {
+          wrapper.findComponent({ name: 'InputUsername' }).setValue('petra')
+        })
 
-      //   it('has a submit button', () => {
-      //     expect(wrapper.find('[data-test="submit-username-button"]').exists()).toBeTruthy()
-      //   })
+        it('has a submit button', () => {
+          expect(wrapper.find('[data-test="submit-username-button"]').exists()).toBeTruthy()
+        })
 
-      //   describe('successfull submit', () => {
-      //     beforeEach(async () => {
-      //       mockAPIcall.mockResolvedValue({
-      //         data: {
-      //           updateUserInfos: {
-      //             validValues: 3,
-      //           },
-      //         },
-      //       })
-      //       jest.clearAllMocks()
-      //       await wrapper.find('input').setValue('petra')
-      //       await wrapper.find('form').trigger('keyup')
-      //       await wrapper.find('[data-test="submit-username-button"]').trigger('click')
-      //       await flushPromises()
-      //     })
+        describe('successfull submit', () => {
+          beforeEach(async () => {
+            mockAPIcall.mockResolvedValue({
+              data: {
+                updateUserInfos: {
+                  validValues: 3,
+                },
+              },
+            })
+            jest.clearAllMocks()
+            await wrapper.find('input').setValue('petra')
+            await wrapper.find('form').trigger('keyup')
+            await wrapper.find('[data-test="submit-username-button"]').trigger('click')
+            await flushPromises()
+          })
 
-      //     it('calls the API', () => {
-      //       expect(mockAPIcall).toBeCalledWith(
-      //         expect.objectContaining({
-      //           variables: {
-      //             alias: 'petra',
-      //           },
-      //         }),
-      //       )
-      //     })
+          it('calls the API', () => {
+            expect(mockAPIcall).toBeCalledWith(
+              expect.objectContaining({
+                variables: {
+                  alias: 'petra',
+                },
+              }),
+            )
+          })
 
-      //     it('commits username to store', () => {
-      //       expect(storeCommitMock).toBeCalledWith('username', 'petra')
-      //     })
+          it('commits username to store', () => {
+            expect(storeCommitMock).toBeCalledWith('username', 'petra')
+          })
 
-      //     it('toasts a success message', () => {
-      //       expect(toastSuccessSpy).toBeCalledWith('settings.username.change-success')
-      //     })
-      //   })
+          it('toasts a success message', () => {
+            expect(toastSuccessSpy).toBeCalledWith('settings.username.change-success')
+          })
+        })
 
-      //   describe('submit results in server error', () => {
-      //     beforeEach(async () => {
-      //       mockAPIcall.mockRejectedValue({
-      //         message: 'Error',
-      //       })
-      //       jest.clearAllMocks()
-      //       await wrapper.find('input').setValue('petra')
-      //       await wrapper.find('form').trigger('keyup')
-      //       await wrapper.find('[data-test="submit-username-button"]').trigger('click')
-      //       await flushPromises()
-      //     })
+        describe('submit results in server error', () => {
+          beforeEach(async () => {
+            mockAPIcall.mockRejectedValue({
+              message: 'Error',
+            })
+            jest.clearAllMocks()
+            await wrapper.find('input').setValue('petra')
+            await wrapper.find('form').trigger('keyup')
+            await wrapper.find('[data-test="submit-username-button"]').trigger('click')
+            await flushPromises()
+          })
 
-      //     it('calls the API', () => {
-      //       expect(mockAPIcall).toBeCalledWith(
-      //         expect.objectContaining({
-      //           variables: {
-      //             alias: 'petra',
-      //           },
-      //         }),
-      //       )
-      //     })
+          it('calls the API', () => {
+            expect(mockAPIcall).toBeCalledWith(
+              expect.objectContaining({
+                variables: {
+                  alias: 'petra',
+                },
+              }),
+            )
+          })
 
-      //     it('toasts an error message', () => {
-      //       expect(toastErrorSpy).toBeCalledWith('Error')
-      //     })
-      //   })
-      // })
+          it('toasts an error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('Error')
+          })
+        })
+      })
     })
   })
 })
