@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" ref="app" :class="darkMode ? 'dark-mode' : ''">
     <div :class="$route.meta.requiresAuth ? 'appContent' : ''">
       <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayout'" />
       <div class="goldrand position-fixed fixed-bottom zindex1000"></div>
@@ -13,6 +13,11 @@ import AuthLayout from '@/layouts/AuthLayout'
 
 export default {
   name: 'App',
+  computed: {
+    darkMode() {
+      return this.$store.state.darkMode
+    },
+  },
   components: {
     DashboardLayout,
     AuthLayout,
