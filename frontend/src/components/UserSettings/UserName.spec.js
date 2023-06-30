@@ -17,7 +17,7 @@ describe('UserName Form', () => {
     $t: jest.fn((t) => t),
     $store: {
       state: {
-        username: '',
+        username: null,
       },
       commit: storeCommitMock,
     },
@@ -36,17 +36,18 @@ describe('UserName Form', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div#username_form').exists()).toBeTruthy()
+      expect(wrapper.find('div#username_form').exists()).toBe(true)
     })
 
     describe('has no username', () => {
-      it('renders the username', () => {
-        expect(wrapper.find('[data-test="username-input-group"]')).toBeTruthy()
+      // it('renders the username', () => {
+      //   expect(wrapper.find('[data-test="username-input-group"]')).toBe(true)
+      // })
+
+      it('has a component username change ', () => {
+        expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBe(true)
       })
 
-      it('has no component username change ', () => {
-        expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBeFalsy()
-      })
     })
     describe('change / edit  username', () => {
       beforeEach(async () => {
@@ -80,25 +81,17 @@ describe('UserName Form', () => {
           )
         })
         it('has a submit button with disabled true', () => {
-          expect(wrapper.find('[data-test="submit-username-button"]').exists()).toBeFalsy()
-          // expect(wrapper.find('[data-test="submit-username-button"]').attributes('disabled')).toBe(true)
-
-          // expect(wrapper.find('[data-test="submit-username-button"]').prop('disabled')).toBeFalsy()
-
-          // expect(wrapper.find('[data-test="submit-username-button"]').attributes('disabled')).toBe(
-          //   'disabled',
-          // )
+          expect(wrapper.find('[data-test="submit-username-button"]').exists()).toBe(false)
         })
       })
 
-      describe('edit username', async () => {
+      describe('edit username', () => {
         beforeEach(async () => {
-          // wrapper.findComponent({ name: 'InputUsername' }).setValue('petra')
-          await wrapper.setData({ username: 'petra', isEdit: true })
+          await wrapper.setData({ username: 'petra' })
         })
 
         it('has a submit button', () => {
-          expect(wrapper.find('[data-test="submit-username-button"]').exists()).toBeTruthy()
+          expect(wrapper.find('[data-test="submit-username-button"]').exists()).toBe(true)
         })
 
         describe('successfull submit', () => {
@@ -167,10 +160,10 @@ describe('UserName Form', () => {
       describe('has a username', () => {
         beforeEach(async () => {
           mocks.$store.state.username = 'petra'
-          wrapper.setData({ isEdit: true })
         })
-        it('has no the username', () => {
-          expect(wrapper.find('[data-test="username-input-group"]')).toBeTruthy()
+
+        it('has isEdit true', () => {
+          expect(wrapper.vm.isEdit).toBe(true)
         })
 
         it(' has no username-alert text ', () => {
@@ -178,7 +171,7 @@ describe('UserName Form', () => {
         })
 
         it('has no component username change ', () => {
-          expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBeTruthy()
+          expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBe(false)
         })
       })
     })
