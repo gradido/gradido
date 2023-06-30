@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import ContributionMessagesFormular from './ContributionMessagesFormular'
 import { toastErrorSpy, toastSuccessSpy } from '../../../test/testSetup'
+import { adminCreateContributionMessage } from '@/graphql/adminCreateContributionMessage'
 
 const localVue = global.localVue
 
@@ -34,6 +35,7 @@ describe('ContributionMessagesFormular', () => {
   describe('mount', () => {
     beforeEach(() => {
       wrapper = Wrapper()
+      jest.clearAllMocks()
     })
 
     it('has a DIV .contribution-messages-formular', () => {
@@ -80,6 +82,58 @@ describe('ContributionMessagesFormular', () => {
       })
     })
 
+    describe('send DIALOG contribution message with success', () => {
+      beforeEach(async () => {
+        await wrapper.setData({
+          form: {
+            text: 'text form message',
+          },
+        })
+        await wrapper.find('button[data-test="submit-dialog"]').trigger('click')
+      })
+
+      it('moderatorMesage has `DIALOG`', () => {
+        expect(apolloMutateMock).toBeCalledWith({
+          mutation: adminCreateContributionMessage,
+          variables: {
+            contributionId: 42,
+            message: 'text form message',
+            messageType: 'DIALOG',
+          },
+        })
+      })
+
+      it('toasts an success message', () => {
+        expect(toastSuccessSpy).toBeCalledWith('message.request')
+      })
+    })
+
+    describe('send MODERATOR contribution message with success', () => {
+      beforeEach(async () => {
+        await wrapper.setData({
+          form: {
+            text: 'text form message',
+          },
+        })
+        await wrapper.find('button[data-test="submit-moderator"]').trigger('click')
+      })
+
+      it('moderatorMesage has `MODERATOR`', () => {
+        expect(apolloMutateMock).toBeCalledWith({
+          mutation: adminCreateContributionMessage,
+          variables: {
+            contributionId: 42,
+            message: 'text form message',
+            messageType: 'MODERATOR',
+          },
+        })
+      })
+
+      it('toasts an success message', () => {
+        expect(toastSuccessSpy).toBeCalledWith('message.request')
+      })
+    })
+
     describe('send contribution message with error', () => {
       beforeEach(async () => {
         apolloMutateMock.mockRejectedValue({ message: 'OUCH!' })
@@ -89,22 +143,6 @@ describe('ContributionMessagesFormular', () => {
 
       it('toasts an error message', () => {
         expect(toastErrorSpy).toBeCalledWith('OUCH!')
-      })
-    })
-
-    describe('send contribution message with success', () => {
-      beforeEach(async () => {
-        wrapper.setData({
-          form: {
-            text: 'text form message',
-          },
-        })
-        wrapper = Wrapper()
-        await wrapper.find('form').trigger('submit')
-      })
-
-      it('toasts an success message', () => {
-        expect(toastSuccessSpy).toBeCalledWith('message.request')
       })
     })
   })

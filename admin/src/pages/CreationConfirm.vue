@@ -1,6 +1,7 @@
 <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys -->
 <template>
   <div class="creation-confirm">
+    <user-query class="mb-4 mt-2" v-model="query" />
     <div>
       <b-tabs v-model="tabIndex" content-class="mt-3" fill>
         <b-tab active :title-link-attributes="{ 'data-test': 'open' }">
@@ -85,6 +86,7 @@
 <script>
 import Overlay from '../components/Overlay'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable'
+import UserQuery from '../components/UserQuery'
 import { adminListContributions } from '../graphql/adminListContributions'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
@@ -103,6 +105,7 @@ export default {
   components: {
     OpenCreationsTable,
     Overlay,
+    UserQuery,
   },
   data() {
     return {
@@ -114,6 +117,7 @@ export default {
       rows: 0,
       currentPage: 1,
       pageSize: 25,
+      query: '',
     }
   },
   watch: {
@@ -217,7 +221,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'moderatorId', label: this.$t('moderator') },
+          { key: 'moderatorId', label: this.$t('moderator.moderator') },
           { key: 'editCreation', label: this.$t('chat') },
           { key: 'confirm', label: this.$t('save') },
         ],
@@ -254,7 +258,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'confirmedBy', label: this.$t('moderator') },
+          { key: 'confirmedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
@@ -290,7 +294,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'deniedBy', label: this.$t('moderator') },
+          { key: 'deniedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
@@ -326,7 +330,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'deletedBy', label: this.$t('moderator') },
+          { key: 'deletedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
@@ -363,7 +367,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'confirmedBy', label: this.$t('moderator') },
+          { key: 'confirmedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
       ][this.tabIndex]
@@ -409,6 +413,7 @@ export default {
           currentPage: this.currentPage,
           pageSize: this.pageSize,
           statusFilter: this.statusFilter,
+          query: this.query,
         }
       },
       fetchPolicy: 'no-cache',

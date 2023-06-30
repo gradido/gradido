@@ -39,6 +39,7 @@ const defaultData = () => {
           deletedBy: null,
           deletedAt: null,
           createdAt: new Date(),
+          moderatorId: null,
         },
         {
           id: 2,
@@ -61,6 +62,7 @@ const defaultData = () => {
           deletedBy: null,
           deletedAt: null,
           createdAt: new Date(),
+          moderatorId: null,
         },
       ],
     },
