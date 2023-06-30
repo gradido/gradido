@@ -108,33 +108,33 @@ describe('Settings', () => {
       })
     })
 
-    describe('darkMode style', () => {
-      it('default darkMode is true', () => {
-        expect(wrapper.vm.darkMode).toBe(true)
-      })
+    // TODO: describe('darkMode style', () => {
+    //   it('default darkMode is true', () => {
+    //     expect(wrapper.vm.darkMode).toBe(true)
+    //   })
 
-      describe('dark mode is false', () => {
-        beforeEach(() => {
-          wrapper.vm.darkMode = false
-        })
+    //   describe('dark mode is false', () => {
+    //     beforeEach(() => {
+    //       wrapper.vm.darkMode = false
+    //     })
 
-        it('commits darkMode to store', () => {
-          expect(storeCommitMock).toBeCalledWith('setDarkMode', false)
-        })
-        it('toasts a success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith('settings.modeLight')
-        })
+    //     it('commits darkMode to store', () => {
+    //       expect(storeCommitMock).toBeCalledWith('setDarkMode', false)
+    //     })
+    //     it('toasts a success message', () => {
+    //       expect(toastSuccessSpy).toBeCalledWith('settings.modeLight')
+    //     })
 
-        describe('set dark mode is true', () => {
-          beforeEach(() => {
-            wrapper.vm.darkMode = true
-          })
-          // Test case 1: Test setting dark mode
-          test('darkMode sets the dark mode', () => {
-            expect(storeCommitMock).toBeCalledWith('setDarkMode', true)
-          })
-        })
-      })
-    })
+    //     describe('set dark mode is true', () => {
+    //       beforeEach(() => {
+    //         wrapper.vm.darkMode = true
+    //       })
+    //       // Test case 1: Test setting dark mode
+    //       test('darkMode sets the dark mode', () => {
+    //         expect(storeCommitMock).toBeCalledWith('setDarkMode', true)
+    //       })
+    //     })
+    //   })
+    // })
   })
 })

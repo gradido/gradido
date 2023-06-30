@@ -76,12 +76,12 @@
         <user-newsletter />
       </b-col>
     </b-row>
-    <b-row>
+    <!-- TODO<b-row>
       <b-col cols="12" md="6" lg="6">{{ $t('settings.darkMode') }}</b-col>
       <b-col cols="12" md="6" lg="6" class="text-right">
         <b-form-checkbox v-model="darkMode" name="dark-mode" switch aligne></b-form-checkbox>
       </b-col>
-    </b-row>
+    </b-row> -->
   </div>
 </template>
 <script>
@@ -126,14 +126,14 @@ export default {
       return firstName === this.firstName && lastName === this.lastName
     },
   },
-  watch: {
-    darkMode(val) {
-      this.$store.commit('setDarkMode', this.darkMode)
-      this.toastSuccess(
-        this.darkMode ? this.$t('settings.modeDark') : this.$t('settings.modeLight'),
-      )
-    },
-  },
+  // TODO: watch: {
+  //   darkMode(val) {
+  //     this.$store.commit('setDarkMode', this.darkMode)
+  //     this.toastSuccess(
+  //       this.darkMode ? this.$t('settings.modeDark') : this.$t('settings.modeLight'),
+  //     )
+  //   },
+  // },
   methods: {
     async onSubmit(key) {
       try {
