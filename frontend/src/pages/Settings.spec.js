@@ -48,22 +48,22 @@ describe('Settings', () => {
     })
 
     describe('isDisabled', () => {
-      it('returns false when firstName and lastName match the state', () => {
-        wrapper.vm.firstName = 'John'
-        wrapper.vm.lastName = 'Doe'
-
-        const result = wrapper.vm.isDisabled
-
-        expect(result).toBe(true)
+      it('returns false when firstName and lastName match the state', async () => {
+        // wrapper.vm.firstName = 'John'
+        // wrapper.vm.lastName = 'Doe'
+        wrapper.find('[data-test="firstname"]').setValue('John')
+        wrapper.find('[data-test="lastname"]').setValue('Doe')
+        await wrapper.find('[data-test="firstname"]').trigger('keyup')
+        const result = wrapper.find('[data-test="submit-userdata"]')
+        expect(result.exists()).toBe(false)
       })
 
-      it('returns true when either firstName or lastName do not match the state', () => {
-        wrapper.vm.firstName = 'Jane'
-        wrapper.vm.lastName = 'Doe'
-
-        const result = wrapper.vm.isDisabled
-
-        expect(result).toBe(false)
+      it('returns true when either firstName or lastName do not match the state', async () => {
+        wrapper.find('[data-test="firstname"]').setValue('Janer')
+        wrapper.find('[data-test="lastname"]').setValue('Does')
+        await wrapper.find('[data-test="firstname"]').trigger('keyup')
+        const result = wrapper.find('[data-test="submit-userdata"]')
+        expect(result.exists()).toBe(true)
       })
     })
 
