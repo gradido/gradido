@@ -286,8 +286,12 @@ export const createContributionMessage = gql`
 `
 
 export const adminCreateContributionMessage = gql`
-  mutation ($contributionId: Int!, $message: String!) {
-    adminCreateContributionMessage(contributionId: $contributionId, message: $message) {
+  mutation ($contributionId: Int!, $message: String!, $messageType: ContributionMessageType) {
+    adminCreateContributionMessage(
+      contributionId: $contributionId
+      message: $message
+      messageType: $messageType
+    ) {
       id
       message
       createdAt
