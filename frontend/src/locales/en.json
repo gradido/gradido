@@ -293,7 +293,6 @@
     "warningText": "Are you still there?"
   },
   "settings": {
-    "darkMode": "Dark Mode",
     "emailInfo": "NCannot be changed at this time.",
     "hideAmountGDD": "Your GDD amount is hidden.",
     "hideAmountGDT": "Your GDT amount is hidden.",
@@ -307,8 +306,6 @@
       "nl": "Nederlands",
       "success": "Your language has been successfully updated."
     },
-    "modeDark": "Style changed to dark mode",
-    "modeLight": "Style changed to light mode",
     "name": {
       "change-name": "Change name",
       "change-success": "Your name has been successfully changed.",

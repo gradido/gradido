@@ -293,7 +293,6 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
-    "darkMode": "Dunkler Modus",
     "emailInfo": "Kann aktuell noch nicht geändert werden.",
     "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
     "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
@@ -307,8 +306,6 @@
       "nl": "Nederlands",
       "success": "Deine Sprache wurde erfolgreich geändert."
     },
-    "modeDark": "Nachtmodus",
-    "modeLight": "Tagmodus",
     "name": {
       "change-name": "Name ändern",
       "change-success": "Dein Name wurde erfolgreich geändert.",
