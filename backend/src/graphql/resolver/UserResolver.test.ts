@@ -1687,13 +1687,16 @@ describe('UserResolver', () => {
                   }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [new GraphQLError('User is already admin')],
+                    errors: [new GraphQLError('User already has role=')],
                   }),
                 )
               })
 
               it('logs the error thrown', () => {
-                expect(logger.error).toBeCalledWith('User is already admin')
+                expect(logger.error).toBeCalledWith(
+                  'User already has role=',
+                  ROLE_NAMES.ROLE_NAME_ADMIN,
+                )
               })
             })
 
