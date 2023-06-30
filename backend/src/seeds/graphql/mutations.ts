@@ -119,7 +119,7 @@ export const confirmContribution = gql`
 `
 
 export const setUserRole = gql`
-  mutation ($userId: Int!, $role: String!) {
+  mutation ($userId: Int!, $role: String) {
     setUserRole(userId: $userId, role: $role)
   }
 `

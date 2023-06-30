@@ -717,8 +717,8 @@ export class UserResolver {
   async setUserRole(
     @Arg('userId', () => Int)
     userId: number,
-    @Arg('role', () => String)
-    role: string,
+    @Arg('role', () => String, { nullable: true })
+    role: string | null,
     @Ctx()
     context: Context,
   ): Promise<string | null> {
@@ -735,7 +735,6 @@ export class UserResolver {
       where: { id: userId },
       relations: ['userRoles'],
     })
-    console.log('setUserRole user=', user)
     // user exists ?
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
@@ -745,33 +744,29 @@ export class UserResolver {
     if (moderator.id === userId) {
       throw new LogError('Administrator can not change his own role')
     }
-    if (isUserInRole(user, role)) {
+    // if user role(s) should be deleted by role=null as parameter
+    if (role === null && user.userRoles && user.userRoles.length > 0) {
+      await UserRole.delete({ userId: user.id })
+      user.userRoles = undefined
+    } else if (isUserInRole(user, role)) {
       throw new LogError('User already has role=', role)
     }
-    // if user role should be deleted by role=null as parameter
-    if (role === null && user.userRoles) {
-      for (const usrRole of user.userRoles) {
-        await UserRole.delete(usrRole)
+    if (role) {
+      if (user.userRoles === undefined) {
+        user.userRoles = [] as UserRole[]
       }
-      user.userRoles = undefined
-    } else {
-      if (!isUserInRole(user, role)) {
-        if (user.userRoles === undefined) {
-          user.userRoles = [] as UserRole[]
-          user.userRoles[0] = UserRole.create()
-        }
-        user.userRoles[0].createdAt = new Date()
-        user.userRoles[0].role = role
-        user.userRoles[0].userId = user.id
-      } else {
-        throw new LogError('User already is in role=', role)
+      if (user.userRoles.length < 1) {
+        user.userRoles.push(UserRole.create())
       }
+      user.userRoles[0].createdAt = new Date()
+      user.userRoles[0].role = role
+      user.userRoles[0].userId = user.id
+      await UserRole.save(user.userRoles[0])
     }
-    console.log('setUserRole before save user=', user)
-    await user.save()
+    // await user.save()
     await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
-    const newUser = await DbUser.findOne({ id: userId }, { relations: ['userRoles'] })
-    console.log('setUserRole  newUser=', user)
+    const newUser = await DbUser.findOne({ where: { id: userId }, relations: ['userRoles'] })
+    console.log('setUserRole  newUser=', newUser)
     return newUser?.userRoles ? newUser.userRoles[0].role : null
   }
 
@@ -865,7 +860,7 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
   })
   const dbUser = dbUserContact.user
   dbUser.emailContact = dbUserContact
-  dbUser.userRoles = await UserRole.find({ userId: dbUser.id })
+  dbUser.userRoles = await UserRole.find({ where: { userId: dbUser.id } })
   return dbUser
 }
 
@@ -894,7 +889,7 @@ const canEmailResend = (updatedAt: Date): boolean => {
   return !isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_REQUEST_TIME)
 }
 
-export function isUserInRole(user: DbUser, role: string): boolean {
+export function isUserInRole(user: DbUser, role: string | null): boolean {
   if (user?.userRoles) {
     for (const usrRole of user.userRoles) {
       if (usrRole.role === role) {

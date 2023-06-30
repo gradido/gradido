@@ -434,15 +434,13 @@ describe('UserResolver', () => {
         beforeAll(async () => {
           await userFactory(testEnv, peterLustig)
           await userFactory(testEnv, bobBaumeister)
-          const loginResult = await mutate({ mutation: login, variables: bobData })
-          console.log('login result=', loginResult)
+          await mutate({ mutation: login, variables: bobData })
 
           // create contribution as user bob
           contribution = await mutate({
             mutation: createContribution,
             variables: { amount: 1000, memo: 'testing', creationDate: new Date().toISOString() },
           })
-          console.log('createContribution contribution=', contribution)
 
           // login as admin
           await mutate({ mutation: login, variables: peterData })
@@ -452,7 +450,6 @@ describe('UserResolver', () => {
             mutation: confirmContribution,
             variables: { id: contribution.data.createContribution.id },
           })
-          console.log('confirmContribution contribution=', contribution)
 
           // login as user bob
           bob = await mutate({ mutation: login, variables: bobData })
@@ -477,7 +474,6 @@ describe('UserResolver', () => {
               redeemCode: transactionLink.code,
             },
           })
-          console.log('newUser=', newUser)
         })
 
         it('sets the referrer id to bob baumeister id', async () => {
@@ -1411,7 +1407,7 @@ describe('UserResolver', () => {
         })
       })
 
-      it.only('finds peter@lustig.de', async () => {
+      it('finds peter@lustig.de', async () => {
         await expect(mutate({ mutation: searchAdminUsers })).resolves.toEqual(
           expect.objectContaining({
             data: {
@@ -1625,14 +1621,14 @@ describe('UserResolver', () => {
               })
 
               it('stores the ADMIN_USER_ROLE_SET event in the database', async () => {
-                const userContact = await UserContact.findOneOrFail(
-                  { email: 'bibi@bloxberg.de' },
-                  { relations: ['user'] },
-                )
-                const adminContact = await UserContact.findOneOrFail(
-                  { email: 'peter@lustig.de' },
-                  { relations: ['user'] },
-                )
+                const userContact = await UserContact.findOneOrFail({
+                  where: { email: 'bibi@bloxberg.de' },
+                  relations: ['user'],
+                })
+                const adminContact = await UserContact.findOneOrFail({
+                  where: { email: 'peter@lustig.de' },
+                  relations: ['user'],
+                })
                 await expect(DbEvent.find()).resolves.toContainEqual(
                   expect.objectContaining({
                     type: EventType.ADMIN_USER_ROLE_SET,
