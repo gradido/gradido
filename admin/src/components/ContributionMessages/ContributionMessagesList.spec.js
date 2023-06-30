@@ -93,7 +93,7 @@ describe('ContributionMessagesList', () => {
   const mocks = {
     $t: jest.fn((t) => t),
     $d: jest.fn((d) => d),
-    $n: jest.fn((d) => d),
+    $n: jest.fn((n) => n),
     $i18n: {
       locale: 'en',
     },
