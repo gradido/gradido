@@ -2,14 +2,16 @@
   <div class="contribution-messages-list">
     <b-container>
       <div v-for="message in messages" v-bind:key="message.id">
-        <contribution-messages-list-item :message="message" />
+        <contribution-messages-list-item
+          :message="message"
+          :contributionUserId="contributionUserId"
+        />
       </div>
     </b-container>
-
     <div v-if="contributionStatus === 'PENDING' || contributionStatus === 'IN_PROGRESS'">
       <contribution-messages-formular
         :contributionId="contributionId"
-        @get-list-contribution-messages="getListContributionMessages"
+        @get-list-contribution-messages="$apollo.queries.Messages.refetch()"
         @update-status="updateStatus"
       />
     </div>
@@ -18,7 +20,7 @@
 <script>
 import ContributionMessagesListItem from './slots/ContributionMessagesListItem'
 import ContributionMessagesFormular from '../ContributionMessages/ContributionMessagesFormular'
-import { listContributionMessages } from '../../graphql/listContributionMessages.js'
+import { adminListContributionMessages } from '../../graphql/adminListContributionMessages.js'
 
 export default {
   name: 'ContributionMessagesList',
@@ -35,35 +37,39 @@ export default {
       type: String,
       required: true,
     },
+    contributionUserId: {
+      type: Number,
+      required: true,
+    },
   },
   data() {
     return {
       messages: [],
     }
   },
-  methods: {
-    getListContributionMessages(id) {
-      this.$apollo
-        .query({
-          query: listContributionMessages,
-          variables: {
-            contributionId: id,
-          },
-          fetchPolicy: 'no-cache',
-        })
-        .then((result) => {
-          this.messages = result.data.listContributionMessages.messages
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-        })
+  apollo: {
+    Messages: {
+      query() {
+        return adminListContributionMessages
+      },
+      variables() {
+        return {
+          contributionId: this.contributionId,
+        }
+      },
+      fetchPolicy: 'no-cache',
+      update({ adminListContributionMessages }) {
+        this.messages = adminListContributionMessages.messages
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
     },
+  },
+  methods: {
     updateStatus(id) {
       this.$emit('update-status', id)
     },
-  },
-  created() {
-    this.getListContributionMessages(this.contributionId)
   },
 }
 </script>
