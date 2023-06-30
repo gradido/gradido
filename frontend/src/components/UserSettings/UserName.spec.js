@@ -91,27 +91,10 @@ describe('UserName Form', () => {
         })
       })
 
-      describe('has a username', () => {
+      describe('edit username', async () => {
         beforeEach(async () => {
-          mocks.$store.state.username = 'petra'
-          wrapper.setData({ isEdit: true })
-        })
-        it('has no the username', () => {
-          expect(wrapper.find('[data-test="username-input-group"]')).toBeTruthy()
-        })
-
-        it(' has no username-alert text ', () => {
-          expect(wrapper.find('[data-test="username-alert"]').exists()).toBe(false)
-        })
-
-        it('has no component username change ', () => {
-          expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBeTruthy()
-        })
-      })
-
-      describe.skip('edit username', () => {
-        beforeEach(async () => {
-          wrapper.findComponent({ name: 'InputUsername' }).setValue('petra')
+          // wrapper.findComponent({ name: 'InputUsername' }).setValue('petra')
+          await wrapper.setData({ username: 'petra', isEdit: true })
         })
 
         it('has a submit button', () => {
@@ -178,6 +161,24 @@ describe('UserName Form', () => {
           it('toasts an error message', () => {
             expect(toastErrorSpy).toBeCalledWith('Error')
           })
+        })
+      })
+
+      describe('has a username', () => {
+        beforeEach(async () => {
+          mocks.$store.state.username = 'petra'
+          wrapper.setData({ isEdit: true })
+        })
+        it('has no the username', () => {
+          expect(wrapper.find('[data-test="username-input-group"]')).toBeTruthy()
+        })
+
+        it(' has no username-alert text ', () => {
+          expect(wrapper.find('[data-test="username-alert"]').exists()).toBe(false)
+        })
+
+        it('has no component username change ', () => {
+          expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBeTruthy()
         })
       })
     })

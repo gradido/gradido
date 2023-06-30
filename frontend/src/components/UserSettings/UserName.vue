@@ -3,7 +3,11 @@
     <div v-if="!isEdit && !newUsername">
       <label>{{ $t('form.username') }}</label>
       <b-input-group class="mb-3" data-test="username-input-group">
-        <b-form-input v-model="username" readonly></b-form-input>
+        <b-form-input
+          v-model="username"
+          readonly
+          data-test="username-input-readonly"
+        ></b-form-input>
         <b-input-group-append>
           <b-button
             size="lg"
