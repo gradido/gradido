@@ -1,38 +1,20 @@
 <template>
-  <b-card id="username_form" class="card-border-radius card-background-gray">
-    <div>
-      <b-row class="mb-4 text-right">
-        <b-col class="text-right">
-          <a
-            class="cursor-pointer"
-            @click="showUserData ? (showUserData = !showUserData) : cancelEdit()"
-          >
-            <span class="pointer mr-3">{{ $t('settings.username.change-username') }}</span>
-            <b-icon v-if="showUserData" class="pointer ml-3" icon="pencil"></b-icon>
-            <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
-          </a>
-        </b-col>
-      </b-row>
+  <div id="username_form">
+    <div v-if="$store.state.username">
+      <label>{{ $t('form.username') }}</label>
+      <b-input-group class="mb-3" data-test="username-input-group">
+        <b-form-input
+          v-model="username"
+          readonly
+          data-test="username-input-readonly"
+        ></b-form-input>
+      </b-input-group>
     </div>
-
-    <div>
+    <div v-else>
       <validation-observer ref="usernameObserver" v-slot="{ handleSubmit, invalid }">
         <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
           <b-row class="mb-3">
             <b-col class="col-12">
-              <small>
-                <b>{{ $t('form.username') }}</b>
-              </small>
-            </b-col>
-            <b-col v-if="showUserData" class="col-12">
-              <span v-if="username">
-                {{ username }}
-              </span>
-              <div v-else class="alert">
-                {{ $t('settings.username.no-username') }}
-              </div>
-            </b-col>
-            <b-col v-else class="col-12">
               <input-username
                 v-model="username"
                 :name="$t('form.username')"
@@ -40,10 +22,18 @@
                 :showAllErrors="true"
                 :unique="true"
                 :rules="rules"
+                :isEdit="isEdit"
+                @set-is-edit="setIsEdit"
+                data-test="component-input-username"
               />
             </b-col>
+            <b-col class="col-12">
+              <div v-if="!username" class="alert" data-test="username-alert">
+                {{ $t('settings.username.no-username') }}
+              </div>
+            </b-col>
           </b-row>
-          <b-row class="text-right" v-if="!showUserData">
+          <b-row class="text-right" v-if="newUsername">
             <b-col>
               <div class="text-right" ref="submitButton">
                 <b-button
@@ -51,6 +41,7 @@
                   @click="onSubmit"
                   type="submit"
                   :disabled="disabled(invalid)"
+                  data-test="submit-username-button"
                 >
                   {{ $t('form.save') }}
                 </b-button>
@@ -60,7 +51,7 @@
         </b-form>
       </validation-observer>
     </div>
-  </b-card>
+  </div>
 </template>
 <script>
 import { updateUserInfos } from '@/graphql/mutations'
@@ -73,7 +64,7 @@ export default {
   },
   data() {
     return {
-      showUserData: true,
+      isEdit: false,
       username: this.$store.state.username || '',
       usernameUnique: false,
       rules: {
@@ -87,10 +78,6 @@ export default {
     }
   },
   methods: {
-    cancelEdit() {
-      this.username = this.$store.state.username || ''
-      this.showUserData = true
-    },
     async onSubmit(event) {
       event.preventDefault()
       this.$apollo
@@ -102,7 +89,6 @@ export default {
         })
         .then(() => {
           this.$store.commit('username', this.username)
-          this.showUserData = true
           this.toastSuccess(this.$t('settings.username.change-success'))
         })
         .catch((error) => {
@@ -111,6 +97,10 @@ export default {
     },
     disabled(invalid) {
       return !this.newUsername || invalid
+    },
+    setIsEdit(bool) {
+      this.username = this.$store.state.username
+      this.isEdit = bool
     },
   },
   computed: {

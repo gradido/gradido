@@ -68,10 +68,10 @@ export default {
             },
           })
           .then(() => {
-            // toast success message
+            this.toastSuccess(this.$t('settings.language.success'))
           })
           .catch(() => {
-            // toast error message
+            this.toastSuccess(this.$t('error'))
           })
       }
     },

@@ -69,7 +69,7 @@ describe('Sidebar', () => {
         })
 
         it('has nav-item "navigation.settings" in navbar', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(0).text()).toEqual(
+          expect(wrapper.find('[data-test="settings-menu"]').find('span').text()).toBe(
             'navigation.settings',
           )
         })
@@ -92,7 +92,7 @@ describe('Sidebar', () => {
         })
 
         it('has nav-item "navigation.settings" in navbar', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(0).text()).toEqual(
+          expect(wrapper.find('[data-test="settings-menu"]').find('span').text()).toBe(
             'navigation.settings',
           )
         })

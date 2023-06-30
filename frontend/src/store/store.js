@@ -4,7 +4,6 @@ import createPersistedState from 'vuex-persistedstate'
 import { localeChanged } from 'vee-validate'
 import i18n from '@/i18n.js'
 import jwtDecode from 'jwt-decode'
-
 Vue.use(Vuex)
 
 export const mutations = {
@@ -56,6 +55,9 @@ export const mutations = {
   email: (state, email) => {
     state.email = email || ''
   },
+  setDarkMode: (state, darkMode) => {
+    state.darkMode = !!darkMode
+  },
 }
 
 export const actions = {
@@ -71,6 +73,7 @@ export const actions = {
     commit('isAdmin', data.isAdmin)
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
+    commit('setDarkMode', data.darkMode)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
@@ -85,6 +88,7 @@ export const actions = {
     commit('hideAmountGDD', false)
     commit('hideAmountGDT', true)
     commit('email', '')
+    commit('setDarkMode', false)
     localStorage.clear()
   },
 }
@@ -114,6 +118,7 @@ try {
       hideAmountGDD: null,
       hideAmountGDT: null,
       email: '',
+      darkMode: false,
     },
     getters: {},
     // Syncronous mutation of the state
