@@ -35,9 +35,17 @@
         </b-nav>
         <hr class="m-3" />
         <b-nav vertical class="w-100">
-          <b-nav-item to="/settings" class="mb-3" active-class="activeRoute">
+          <b-nav-item
+            to="/settings"
+            class="mb-3"
+            active-class="activeRoute"
+            data-test="settings-menu"
+          >
             <b-img src="/img/svg/settings.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.settings') }}</span>
+            <b-badge v-if="!$store.state.username" variant="warning">
+              {{ $t('settings.newSettings') }}
+            </b-badge>
           </b-nav-item>
           <b-nav-item
             class="mb-3 text-light"
