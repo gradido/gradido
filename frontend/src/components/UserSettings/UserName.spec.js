@@ -65,35 +65,43 @@ describe('UserName Form', () => {
         expect(wrapper.vm.username).toEqual('')
       })
 
-      describe.skip('change / edit  username', () => {
+      describe('change / edit  username', () => {
         beforeEach(async () => {
-          wrapper.$store.state.username = ''
+          mocks.$store.state.username = ''
           await wrapper.setData({ isEdit: true })
         })
 
         it('first step is isEdit false ', () => {
           expect(wrapper.vm.isEdit).toEqual(true)
         })
-
+        it(' has username-alert text ', () => {
+          expect(wrapper.find('[data-test="username-alert"]').text()).toBe(
+            'settings.username.no-username',
+          )
+        })
         it('has a submit button with disabled true', () => {
-          // expect(wrapper.find('[data-test="submit-username-button"]').exists()).toBeFalsy()
-          // expect(wrapper.find('select.role-select[disabled="disabled"]').exists()).toBe(false)
-          // expect(wrapper.find('[data-test="submit-username-button"]').attributes('disabled')).toBe(true
+          expect(wrapper.find('[data-test="submit-username-button"]').exists()).toBeFalsy()
+          // expect(wrapper.find('[data-test="submit-username-button"]').attributes('disabled')).toBe(true)
 
           // expect(wrapper.find('[data-test="submit-username-button"]').prop('disabled')).toBeFalsy()
 
-          expect(wrapper.find('[data-test="submit-username-button"]').attributes('disabled')).toBe(
-            'disabled',
-          )
+          // expect(wrapper.find('[data-test="submit-username-button"]').attributes('disabled')).toBe(
+          //   'disabled',
+          // )
         })
       })
 
-      describe.skip('has a username', () => {
+      describe('has a username', () => {
         beforeEach(async () => {
-          wrapper.$store.state.username = 'petra'
+          mocks.$store.state.username = 'petra'
+          wrapper.setData({ isEdit: true })
         })
         it('has no the username', () => {
           expect(wrapper.find('[data-test="username-input-group"]')).toBeTruthy()
+        })
+
+        it(' has no username-alert text ', () => {
+          expect(wrapper.find('[data-test="username-alert"]').exists()).toBe(false)
         })
 
         it('has no component username change ', () => {
