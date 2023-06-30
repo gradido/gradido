@@ -1,11 +1,10 @@
-import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { Decimal } from 'decimal.js-light'
 
 import { Decay } from '@model/Decay'
-import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 import { getLastTransaction } from '@/graphql/resolver/util/getLastTransaction'
+import { transactionLinkSummary } from '@/graphql/resolver/util/transactionLinkSummary'
 
 import { calculateDecay } from './decay'
 
@@ -29,8 +28,7 @@ async function calculateBalance(
   const decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time)
 
   const balance = decay.balance.add(amount.toString())
-  const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
-  const { sumHoldAvailableAmount } = await transactionLinkRepository.summary(userId, time)
+  const { sumHoldAvailableAmount } = await transactionLinkSummary(userId, time)
 
   // If we want to redeem a link we need to make sure that the link amount is not considered as blocked
   // else we cannot redeem links which are more or equal to half of what an account actually owns

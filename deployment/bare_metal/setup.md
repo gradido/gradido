@@ -234,7 +234,8 @@ crontab -l
 
 This show all existing entries of the crontab for user `gradido`
 
-To install/add the cronjob for a daily backup at 3:00am please 
+To install/add the cronjob for a daily backup at 3:00am please,
+To install/add the cronjob for a daily klicktipp export at 4:00am please,
 
 Run:
 
@@ -244,4 +245,5 @@ crontab -e
 and insert the following line
 ```bash
 0 3 * * * ~/gradido/deployment/bare_metal/backup.sh
+0 4 * * * cd ~/gradido/backend/ && yarn klicktipp && cd
 ```

@@ -32,7 +32,7 @@ export class UserContact extends BaseEntity {
   email: string
 
   @Column({ name: 'email_verification_code', type: 'bigint', unsigned: true, unique: true })
-  emailVerificationCode: BigInt
+  emailVerificationCode: string
 
   @Column({ name: 'email_opt_in_type_id' })
   emailOptInTypeId: number

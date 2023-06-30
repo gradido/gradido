@@ -12,14 +12,14 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0067-add_user_roles_table',
+  DB_VERSION: '0068-add_user_roles_table',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v15.2023-02-07',
+    EXPECTED: 'v16.2023-06-08',
     CURRENT: '',
   },
 }
@@ -49,6 +49,12 @@ const klicktipp = {
   KLICKTIPP_PASSWORD: process.env.KLICKTIPP_PASSWORD ?? 'secret321',
   KLICKTIPP_APIKEY_DE: process.env.KLICKTIPP_APIKEY_DE ?? 'SomeFakeKeyDE',
   KLICKTIPP_APIKEY_EN: process.env.KLICKTIPP_APIKEY_EN ?? 'SomeFakeKeyEN',
+}
+
+const iota = {
+  IOTA: process.env.IOTA === 'true' || false,
+  IOTA_API_URL: process.env.IOTA_API_URL ?? 'https://chrysalis-nodes.iota.org',
+  IOTA_COMMUNITY_ALIAS: process.env.IOTA_COMMUNITY_ALIAS ?? 'GRADIDO: TestHelloWelt1',
 }
 
 const community = {
@@ -126,6 +132,7 @@ export const CONFIG = {
   ...server,
   ...database,
   ...klicktipp,
+  ...iota,
   ...community,
   ...email,
   ...loginServer,

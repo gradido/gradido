@@ -3,7 +3,7 @@ import { federationLogger as logger } from '@/server/logger'
 
 const getDBVersion = async (): Promise<string | null> => {
   try {
-    const dbVersion = await Migration.findOne({ order: { version: 'DESC' } })
+    const [dbVersion] = await Migration.find({ order: { version: 'DESC' }, take: 1 })
     return dbVersion ? dbVersion.fileName : null
   } catch (error) {
     logger.error(error)
@@ -17,7 +17,7 @@ const checkDBVersion = async (DB_VERSION: string): Promise<boolean> => {
     logger.error(
       `Wrong database version detected - the backend requires '${DB_VERSION}' but found '${
         dbVersion || 'None'
-      }`
+      }`,
     )
     return false
   }

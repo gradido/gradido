@@ -142,6 +142,7 @@ describe('Transactions', () => {
             currentPage: 1,
             pageSize: 25,
           },
+          fetchPolicy: 'network-only',
         })
       })
 
@@ -170,6 +171,7 @@ describe('Transactions', () => {
               currentPage: 2,
               pageSize: 25,
             },
+            fetchPolicy: 'network-only',
           })
         })
       })

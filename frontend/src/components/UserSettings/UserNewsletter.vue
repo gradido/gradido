@@ -1,30 +1,13 @@
 <template>
-  <b-card id="formusernewsletter" class="card-border-radius card-background-gray">
-    <div>
-      <b-row class="mb-3">
-        <b-col class="mb-2 col-12">
-          <small>
-            <b>{{ $t('settings.newsletter.newsletter') }}</b>
-          </small>
-        </b-col>
-        <b-col class="col-12">
-          <b-form-checkbox
-            class="Test-BFormCheckbox"
-            v-model="newsletterState"
-            name="check-button"
-            switch
-            @change="onSubmit"
-          >
-            {{
-              newsletterState
-                ? $t('settings.newsletter.newsletterTrue')
-                : $t('settings.newsletter.newsletterFalse')
-            }}
-          </b-form-checkbox>
-        </b-col>
-      </b-row>
-    </div>
-  </b-card>
+  <div class="formusernewsletter">
+    <b-form-checkbox
+      test="BFormCheckbox"
+      v-model="newsletterState"
+      name="check-button"
+      switch
+      @change="onSubmit"
+    ></b-form-checkbox>
+  </div>
 </template>
 <script>
 import { subscribeNewsletter, unsubscribeNewsletter } from '@/graphql/mutations'

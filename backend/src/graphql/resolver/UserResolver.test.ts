@@ -197,10 +197,12 @@ describe('UserResolver', () => {
       })
 
       it('stores the USER_REGISTER event in the database', async () => {
-        const userConatct = await UserContact.findOneOrFail(
-          { email: 'peter@lustig.de' },
-          { relations: ['user'] },
-        )
+        const userConatct = await UserContact.findOneOrFail({
+          where: {
+            email: 'peter@lustig.de',
+          },
+          relations: ['user'],
+        })
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.USER_REGISTER,
@@ -273,10 +275,10 @@ describe('UserResolver', () => {
       })
 
       it('stores the EMAIL_ACCOUNT_MULTIREGISTRATION event in the database', async () => {
-        const userConatct = await UserContact.findOneOrFail(
-          { email: 'peter@lustig.de' },
-          { relations: ['user'] },
-        )
+        const userConatct = await UserContact.findOneOrFail({
+          where: { email: 'peter@lustig.de' },
+          relations: ['user'],
+        })
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.EMAIL_ACCOUNT_MULTIREGISTRATION,
@@ -294,7 +296,7 @@ describe('UserResolver', () => {
           variables: { ...variables, email: 'bibi@bloxberg.de', language: 'it' },
         })
         await expect(
-          UserContact.findOne({ email: 'bibi@bloxberg.de' }, { relations: ['user'] }),
+          UserContact.findOne({ where: { email: 'bibi@bloxberg.de' }, relations: ['user'] }),
         ).resolves.toEqual(
           expect.objectContaining({
             email: 'bibi@bloxberg.de',
@@ -379,7 +381,7 @@ describe('UserResolver', () => {
 
         it('sets the contribution link id', async () => {
           await expect(
-            UserContact.findOne({ email: 'ein@besucher.de' }, { relations: ['user'] }),
+            UserContact.findOne({ where: { email: 'ein@besucher.de' }, relations: ['user'] }),
           ).resolves.toEqual(
             expect.objectContaining({
               user: expect.objectContaining({
@@ -462,8 +464,7 @@ describe('UserResolver', () => {
             memo: `testing transaction link`,
           })
 
-          transactionLink = await TransactionLink.findOneOrFail()
-          console.log('transactionLink=', transactionLink)
+          transactionLink = await TransactionLink.findOneOrFail({ where: { userId: bob.id } })
 
           resetToken()
 
@@ -481,7 +482,7 @@ describe('UserResolver', () => {
 
         it('sets the referrer id to bob baumeister id', async () => {
           await expect(
-            UserContact.findOne({ email: 'which@ever.de' }, { relations: ['user'] }),
+            UserContact.findOne({ where: { email: 'which@ever.de' }, relations: ['user'] }),
           ).resolves.toEqual(
             expect.objectContaining({
               user: expect.objectContaining({ referrerId: bob.data.login.id }),
@@ -548,16 +549,18 @@ describe('UserResolver', () => {
 
       beforeAll(async () => {
         await mutate({ mutation: createUser, variables: createUserVariables })
-        const emailContact = await UserContact.findOneOrFail({ email: createUserVariables.email })
+        const emailContact = await UserContact.findOneOrFail({
+          where: { email: createUserVariables.email },
+        })
         emailVerificationCode = emailContact.emailVerificationCode.toString()
         result = await mutate({
           mutation: setPassword,
           variables: { code: emailVerificationCode, password: 'Aa12345_' },
         })
-        newUser = await User.findOneOrFail(
-          { id: emailContact.userId },
-          { relations: ['emailContact'] },
-        )
+        newUser = await User.findOneOrFail({
+          where: { id: emailContact.userId },
+          relations: ['emailContact'],
+        })
       })
 
       afterAll(async () => {
@@ -590,7 +593,9 @@ describe('UserResolver', () => {
     describe('no valid password', () => {
       beforeAll(async () => {
         await mutate({ mutation: createUser, variables: createUserVariables })
-        const emailContact = await UserContact.findOneOrFail({ email: createUserVariables.email })
+        const emailContact = await UserContact.findOneOrFail({
+          where: { email: createUserVariables.email },
+        })
         emailVerificationCode = emailContact.emailVerificationCode.toString()
       })
 
@@ -716,10 +721,10 @@ describe('UserResolver', () => {
       })
 
       it('stores the USER_LOGIN event in the database', async () => {
-        const userConatct = await UserContact.findOneOrFail(
-          { email: 'bibi@bloxberg.de' },
-          { relations: ['user'] },
-        )
+        const userConatct = await UserContact.findOneOrFail({
+          where: { email: 'bibi@bloxberg.de' },
+          relations: ['user'],
+        })
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.USER_LOGIN,
@@ -898,10 +903,10 @@ describe('UserResolver', () => {
       })
 
       it('stores the USER_LOGOUT event in the database', async () => {
-        const userConatct = await UserContact.findOneOrFail(
-          { email: 'bibi@bloxberg.de' },
-          { relations: ['user'] },
-        )
+        const userConatct = await UserContact.findOneOrFail({
+          where: { email: 'bibi@bloxberg.de' },
+          relations: ['user'],
+        })
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.USER_LOGOUT,
@@ -1066,10 +1071,10 @@ describe('UserResolver', () => {
         })
 
         it('stores the EMAIL_FORGOT_PASSWORD event in the database', async () => {
-          const userConatct = await UserContact.findOneOrFail(
-            { email: 'bibi@bloxberg.de' },
-            { relations: ['user'] },
-          )
+          const userConatct = await UserContact.findOneOrFail({
+            where: { email: 'bibi@bloxberg.de' },
+            relations: ['user'],
+          })
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.EMAIL_FORGOT_PASSWORD,
@@ -1102,7 +1107,7 @@ describe('UserResolver', () => {
 
     beforeAll(async () => {
       await userFactory(testEnv, bibiBloxberg)
-      emailContact = await UserContact.findOneOrFail({ email: bibiBloxberg.email })
+      emailContact = await UserContact.findOneOrFail({ where: { email: bibiBloxberg.email } })
     })
 
     afterAll(async () => {
@@ -1119,7 +1124,9 @@ describe('UserResolver', () => {
             errors: [
               // keep Whitspace in error message!
               new GraphQLError(`Could not find any entity of type "UserContact" matching: {
-    "emailVerificationCode": "not-valid"
+    "where": {
+        "emailVerificationCode": "not-valid"
+    }
 }`),
             ],
           }),
@@ -1194,20 +1201,20 @@ describe('UserResolver', () => {
               locale: 'en',
             },
           })
-          await expect(User.findOne()).resolves.toEqual(
+          await expect(User.find()).resolves.toEqual([
             expect.objectContaining({
               firstName: 'Benjamin',
               lastName: 'Blümchen',
               language: 'en',
             }),
-          )
+          ])
         })
 
         it('stores the USER_INFO_UPDATE event in the database', async () => {
-          const userConatct = await UserContact.findOneOrFail(
-            { email: 'bibi@bloxberg.de' },
-            { relations: ['user'] },
-          )
+          const userConatct = await UserContact.findOneOrFail({
+            where: { email: 'bibi@bloxberg.de' },
+            relations: ['user'],
+          })
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.USER_INFO_UPDATE,
@@ -1231,11 +1238,11 @@ describe('UserResolver', () => {
                 alias: 'bibi_Bloxberg',
               },
             })
-            await expect(User.findOne()).resolves.toEqual(
+            await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
                 alias: 'bibi_Bloxberg',
               }),
-            )
+            ])
           })
         })
       })
@@ -1452,10 +1459,10 @@ describe('UserResolver', () => {
 
       let bibi: User
       beforeAll(async () => {
-        const usercontact = await UserContact.findOneOrFail(
-          { email: 'bibi@bloxberg.de' },
-          { relations: ['user'] },
-        )
+        const usercontact = await UserContact.findOneOrFail({
+          where: { email: 'bibi@bloxberg.de' },
+          relations: ['user'],
+        })
         bibi = usercontact.user
         bibi.passwordEncryptionType = PasswordEncryptionType.EMAIL
         bibi.password = SecretKeyCryptographyCreateKey(
@@ -1469,10 +1476,10 @@ describe('UserResolver', () => {
       it('changes to gradidoID on login', async () => {
         await mutate({ mutation: login, variables })
 
-        const usercontact = await UserContact.findOneOrFail(
-          { email: 'bibi@bloxberg.de' },
-          { relations: ['user'] },
-        )
+        const usercontact = await UserContact.findOneOrFail({
+          where: { email: 'bibi@bloxberg.de' },
+          relations: ['user'],
+        })
         bibi = usercontact.user
 
         expect(bibi).toEqual(
@@ -1618,7 +1625,7 @@ describe('UserResolver', () => {
               })
 
               it('stores the ADMIN_USER_ROLE_SET event in the database', async () => {
-                const userConatct = await UserContact.findOneOrFail(
+                const userContact = await UserContact.findOneOrFail(
                   { email: 'bibi@bloxberg.de' },
                   { relations: ['user'] },
                 )
@@ -1629,7 +1636,7 @@ describe('UserResolver', () => {
                 await expect(DbEvent.find()).resolves.toContainEqual(
                   expect.objectContaining({
                     type: EventType.ADMIN_USER_ROLE_SET,
-                    affectedUserId: userConatct.user.id,
+                    affectedUserId: userContact.user.id,
                     actingUserId: adminContact.user.id,
                   }),
                 )
@@ -1823,14 +1830,15 @@ describe('UserResolver', () => {
           })
 
           it('stores the ADMIN_USER_DELETE event in the database', async () => {
-            const userConatct = await UserContact.findOneOrFail(
-              { email: 'bibi@bloxberg.de' },
-              { relations: ['user'], withDeleted: true },
-            )
-            const adminConatct = await UserContact.findOneOrFail(
-              { email: 'peter@lustig.de' },
-              { relations: ['user'] },
-            )
+            const userConatct = await UserContact.findOneOrFail({
+              where: { email: 'bibi@bloxberg.de' },
+              relations: ['user'],
+              withDeleted: true,
+            })
+            const adminConatct = await UserContact.findOneOrFail({
+              where: { email: 'peter@lustig.de' },
+              relations: ['user'],
+            })
             await expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
                 type: EventType.ADMIN_USER_DELETE,
@@ -1974,10 +1982,10 @@ describe('UserResolver', () => {
           })
 
           it('sends an account activation email', async () => {
-            const userConatct = await UserContact.findOneOrFail(
-              { email: 'bibi@bloxberg.de' },
-              { relations: ['user'] },
-            )
+            const userConatct = await UserContact.findOneOrFail({
+              where: { email: 'bibi@bloxberg.de' },
+              relations: ['user'],
+            })
             const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
               /{optin}/g,
               userConatct.emailVerificationCode.toString(),
@@ -1996,10 +2004,10 @@ describe('UserResolver', () => {
           })
 
           it('stores the EMAIL_ADMIN_CONFIRMATION event in the database', async () => {
-            const userConatct = await UserContact.findOneOrFail(
-              { email: 'bibi@bloxberg.de' },
-              { relations: ['user'] },
-            )
+            const userConatct = await UserContact.findOneOrFail({
+              where: { email: 'bibi@bloxberg.de' },
+              relations: ['user'],
+            })
             await expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
                 type: EventType.EMAIL_ADMIN_CONFIRMATION,
@@ -2117,14 +2125,14 @@ describe('UserResolver', () => {
             })
 
             it('stores the ADMIN_USER_UNDELETE event in the database', async () => {
-              const userConatct = await UserContact.findOneOrFail(
-                { email: 'bibi@bloxberg.de' },
-                { relations: ['user'] },
-              )
-              const adminConatct = await UserContact.findOneOrFail(
-                { email: 'peter@lustig.de' },
-                { relations: ['user'] },
-              )
+              const userConatct = await UserContact.findOneOrFail({
+                where: { email: 'bibi@bloxberg.de' },
+                relations: ['user'],
+              })
+              const adminConatct = await UserContact.findOneOrFail({
+                where: { email: 'peter@lustig.de' },
+                relations: ['user'],
+              })
               await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventType.ADMIN_USER_UNDELETE,
@@ -2141,7 +2149,7 @@ describe('UserResolver', () => {
 
   describe('search users', () => {
     const variablesWithoutTextAndFilters = {
-      searchText: '',
+      query: '',
       currentPage: 1,
       pageSize: 25,
       filters: null,

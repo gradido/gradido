@@ -17,6 +17,7 @@
           :placeholder="placeholder"
           :type="showPassword ? 'text' : 'password'"
           :state="validated ? valid : false"
+          data-test="password-input-field"
         ></b-form-input>
         <b-input-group-append>
           <b-button

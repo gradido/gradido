@@ -2,13 +2,13 @@ module.exports = {
   root: true,
   env: {
     node: true,
-    cypress: true,
   },
   parser: '@typescript-eslint/parser',
   plugins: ['cypress', 'prettier', '@typescript-eslint' /*, 'jest' */],
   extends: [
     'standard',
     'eslint:recommended',
+    'plugin:cypress/recommended',
     'plugin:prettier/recommended',
     'plugin:@typescript-eslint/recommended',
   ],
