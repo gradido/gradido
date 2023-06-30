@@ -95,7 +95,7 @@ describe('validate alias', () => {
   describe('test against existing alias in database', () => {
     beforeAll(async () => {
       const bibi = await userFactory(testEnv, bibiBloxberg)
-      const user = await User.findOne({ id: bibi.id })
+      const user = await User.findOne({ where: { id: bibi.id } })
       if (user) {
         user.alias = 'b-b'
         await user.save()

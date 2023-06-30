@@ -43,7 +43,7 @@
       :items="items"
       :fields="fields"
       @show-overlay="showOverlay"
-      @update-state="updateStatus"
+      @update-status="updateStatus"
       @update-contributions="$apollo.queries.ListAllContributions.refetch()"
     />
 
@@ -187,7 +187,7 @@ export default {
     },
     updateStatus(id) {
       this.items.find((obj) => obj.id === id).messagesCount++
-      this.items.find((obj) => obj.id === id).state = 'IN_PROGRESS'
+      this.items.find((obj) => obj.id === id).status = 'IN_PROGRESS'
     },
     formatDateOrDash(value) {
       return value ? this.$d(new Date(value), 'short') : '—'
@@ -217,7 +217,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'moderatorId', label: this.$t('moderator') },
+          { key: 'moderatorId', label: this.$t('moderator.moderator') },
           { key: 'editCreation', label: this.$t('chat') },
           { key: 'confirm', label: this.$t('save') },
         ],
@@ -254,7 +254,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'confirmedBy', label: this.$t('moderator') },
+          { key: 'confirmedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
@@ -290,7 +290,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'deniedBy', label: this.$t('moderator') },
+          { key: 'deniedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
@@ -326,12 +326,12 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'deletedBy', label: this.$t('moderator') },
+          { key: 'deletedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
           // all contributions
-          { key: 'state', label: this.$t('status') },
+          { key: 'status', label: this.$t('status') },
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {
@@ -363,7 +363,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'confirmedBy', label: this.$t('moderator') },
+          { key: 'confirmedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
       ][this.tabIndex]

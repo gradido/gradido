@@ -195,7 +195,7 @@ export const listContributions = gql`
         confirmedAt
         confirmedBy
         deletedAt
-        state
+        status
         messagesCount
         deniedAt
         deniedBy
@@ -218,7 +218,7 @@ query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC, $statusF
       confirmedAt
       confirmedBy
       contributionDate
-      state
+      status
       messagesCount
       deniedAt
       deniedBy
@@ -254,7 +254,7 @@ export const adminListContributions = gql`
         confirmedAt
         confirmedBy
         contributionDate
-        state
+        status
         messagesCount
         deniedAt
         deniedBy
@@ -329,6 +329,29 @@ export const searchAdminUsers = gql`
 export const listContributionMessages = gql`
   query ($contributionId: Int!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
     listContributionMessages(
+      contributionId: $contributionId
+      pageSize: $pageSize
+      currentPage: $currentPage
+      order: $order
+    ) {
+      count
+      messages {
+        id
+        message
+        createdAt
+        updatedAt
+        type
+        userFirstName
+        userLastName
+        userId
+      }
+    }
+  }
+`
+
+export const adminListContributionMessages = gql`
+  query ($contributionId: Int!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
+    adminListContributionMessages(
       contributionId: $contributionId
       pageSize: $pageSize
       currentPage: $currentPage

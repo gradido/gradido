@@ -1,20 +1,24 @@
-import { Brackets, EntityRepository, IsNull, Not, Repository } from '@dbTools/typeorm'
+import { getConnection, Brackets, IsNull, Not } from '@dbTools/typeorm'
 import { User as DbUser } from '@entity/User'
 
 import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { Order } from '@enum/Order'
 
-@EntityRepository(DbUser)
-export class UserRepository extends Repository<DbUser> {
-  async findBySearchCriteriaPagedFiltered(
-    select: string[],
-    searchCriteria: string,
-    filters: SearchUsersFilters | null,
-    currentPage: number,
-    pageSize: number,
-    order = Order.ASC,
-  ): Promise<[DbUser[], number]> {
-    const query = this.createQueryBuilder('user')
+import { LogError } from '@/server/LogError'
+
+export const findUsers = async (
+  select: string[],
+  searchCriteria: string,
+  filters: SearchUsersFilters | null,
+  currentPage: number,
+  pageSize: number,
+  order = Order.ASC,
+): Promise<[DbUser[], number]> => {
+  const queryRunner = getConnection().createQueryRunner()
+  try {
+    await queryRunner.connect()
+    const query = queryRunner.manager
+      .createQueryBuilder(DbUser, 'user')
       .select(select)
       .withDeleted()
       .leftJoinAndSelect('user.emailContact', 'emailContact')
@@ -30,27 +34,24 @@ export class UserRepository extends Repository<DbUser> {
           )
         }),
       )
-    /*
-    filterCriteria.forEach((filter) => {
-      query.andWhere(filter)
-    })
-    */
     if (filters) {
       if (filters.byActivated !== null) {
         query.andWhere('emailContact.emailChecked = :value', { value: filters.byActivated })
-        // filterCriteria.push({ 'emailContact.emailChecked': filters.byActivated })
       }
 
       if (filters.byDeleted !== null) {
-        // filterCriteria.push({ deletedAt: filters.byDeleted ? Not(IsNull()) : IsNull() })
         query.andWhere({ deletedAt: filters.byDeleted ? Not(IsNull()) : IsNull() })
       }
     }
 
-    return query
+    return await query
       .orderBy({ 'user.id': order })
       .take(pageSize)
       .skip((currentPage - 1) * pageSize)
       .getManyAndCount()
+  } catch (err) {
+    throw new LogError('Unable to search users', err)
+  } finally {
+    await queryRunner.release()
   }
 }

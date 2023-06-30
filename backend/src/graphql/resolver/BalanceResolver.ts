@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getCustomRepository } from '@dbTools/typeorm'
+import { IsNull } from '@dbTools/typeorm'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { Decimal } from 'decimal.js-light'
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 
 import { Balance } from '@model/Balance'
-import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser } from '@/server/context'
@@ -15,6 +14,7 @@ import { calculateDecay } from '@/util/decay'
 
 import { GdtResolver } from './GdtResolver'
 import { getLastTransaction } from './util/getLastTransaction'
+import { transactionLinkSummary } from './util/transactionLinkSummary'
 
 @Resolver()
 export class BalanceResolver {
@@ -57,7 +57,7 @@ export class BalanceResolver {
     const linkCount = await dbTransactionLink.count({
       where: {
         userId: user.id,
-        redeemedAt: null,
+        redeemedAt: IsNull(),
         // validUntil: MoreThan(new Date()),
       },
     })
@@ -77,10 +77,9 @@ export class BalanceResolver {
     )
 
     // The final balance is reduced by the link amount withheld
-    const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
     const { sumHoldAvailableAmount } = context.sumHoldAvailableAmount
       ? { sumHoldAvailableAmount: context.sumHoldAvailableAmount }
-      : await transactionLinkRepository.summary(user.id, now)
+      : await transactionLinkSummary(user.id, now)
 
     logger.debug(`context.sumHoldAvailableAmount=${context.sumHoldAvailableAmount}`)
     logger.debug(`sumHoldAvailableAmount=${sumHoldAvailableAmount}`)

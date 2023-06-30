@@ -218,7 +218,7 @@ async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<Commu
 async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
   try {
     // check for existing homeCommunity entry
-    let homeCom = await DbCommunity.findOne({ foreign: false })
+    let homeCom = await DbCommunity.findOne({ where: { foreign: false } })
     if (homeCom) {
       // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
       homeCom.publicKey = keyPair.publicKey
