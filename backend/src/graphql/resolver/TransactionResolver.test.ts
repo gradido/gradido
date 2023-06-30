@@ -346,8 +346,10 @@ describe('send coins', () => {
       it('stores the TRANSACTION_SEND event in the database', async () => {
         // Find the exact transaction (sent one is the one with user[1] as user)
         const transaction = await Transaction.find({
-          userId: user[1].id,
-          memo: 'unrepeatable memo',
+          where: {
+            userId: user[1].id,
+            memo: 'unrepeatable memo',
+          },
         })
 
         await expect(DbEvent.find()).resolves.toContainEqual(
@@ -364,8 +366,10 @@ describe('send coins', () => {
       it('stores the TRANSACTION_RECEIVE event in the database', async () => {
         // Find the exact transaction (received one is the one with user[0] as user)
         const transaction = await Transaction.find({
-          userId: user[0].id,
-          memo: 'unrepeatable memo',
+          where: {
+            userId: user[0].id,
+            memo: 'unrepeatable memo',
+          },
         })
 
         await expect(DbEvent.find()).resolves.toContainEqual(

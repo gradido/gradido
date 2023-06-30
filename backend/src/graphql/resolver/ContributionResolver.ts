@@ -101,7 +101,7 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     const user = getUser(context)
-    const contribution = await DbContribution.findOne(id)
+    const contribution = await DbContribution.findOne({ where: { id } })
     if (!contribution) {
       throw new LogError('Contribution not found', id)
     }
@@ -395,7 +395,7 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const contribution = await DbContribution.findOne(id)
+    const contribution = await DbContribution.findOne({ where: { id } })
     if (!contribution) {
       throw new LogError('Contribution not found', id)
     }
@@ -409,10 +409,10 @@ export class ContributionResolver {
     ) {
       throw new LogError('Own contribution can not be deleted as admin')
     }
-    const user = await DbUser.findOneOrFail(
-      { id: contribution.userId },
-      { relations: ['emailContact'] },
-    )
+    const user = await DbUser.findOneOrFail({
+      where: { id: contribution.userId },
+      relations: ['emailContact'],
+    })
     contribution.contributionStatus = ContributionStatus.DELETED
     contribution.deletedBy = moderator.id
     await contribution.save()
@@ -447,7 +447,7 @@ export class ContributionResolver {
     const releaseLock = await TRANSACTIONS_LOCK.acquire()
     try {
       const clientTimezoneOffset = getClientTimezoneOffset(context)
-      const contribution = await DbContribution.findOne(id)
+      const contribution = await DbContribution.findOne({ where: { id } })
       if (!contribution) {
         throw new LogError('Contribution not found', id)
       }
@@ -461,10 +461,11 @@ export class ContributionResolver {
       if (moderatorUser.id === contribution.userId) {
         throw new LogError('Moderator can not confirm own contribution')
       }
-      const user = await DbUser.findOneOrFail(
-        { id: contribution.userId },
-        { withDeleted: true, relations: ['emailContact'] },
-      )
+      const user = await DbUser.findOneOrFail({
+        where: { id: contribution.userId },
+        withDeleted: true,
+        relations: ['emailContact'],
+      })
       if (user.deletedAt) {
         throw new LogError('Can not confirm contribution since the user was deleted')
       }
@@ -565,9 +566,11 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     const contributionToUpdate = await DbContribution.findOne({
-      id,
-      confirmedAt: IsNull(),
-      deniedBy: IsNull(),
+      where: {
+        id,
+        confirmedAt: IsNull(),
+        deniedBy: IsNull(),
+      },
     })
     if (!contributionToUpdate) {
       throw new LogError('Contribution not found', id)
@@ -582,10 +585,10 @@ export class ContributionResolver {
       )
     }
     const moderator = getUser(context)
-    const user = await DbUser.findOne(
-      { id: contributionToUpdate.userId },
-      { relations: ['emailContact'] },
-    )
+    const user = await DbUser.findOne({
+      where: { id: contributionToUpdate.userId },
+      relations: ['emailContact'],
+    })
     if (!user) {
       throw new LogError('Could not find User of the Contribution', contributionToUpdate.userId)
     }
