@@ -47,7 +47,6 @@ describe('UserName Form', () => {
       it('has a component username change ', () => {
         expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBe(true)
       })
-
     })
     describe('change / edit  username', () => {
       beforeEach(async () => {
