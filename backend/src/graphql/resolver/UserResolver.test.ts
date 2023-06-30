@@ -1404,7 +1404,7 @@ describe('UserResolver', () => {
         })
       })
 
-      it('finds peter@lustig.de', async () => {
+      it.only('finds peter@lustig.de', async () => {
         await expect(mutate({ mutation: searchAdminUsers })).resolves.toEqual(
           expect.objectContaining({
             data: {

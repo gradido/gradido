@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
+import { getConnection, getCustomRepository, In, IsNull, Not } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
@@ -76,6 +76,7 @@ import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { validateAlias } from './util/validateAlias'
+import { ArrayMinSize } from 'class-validator'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const random = require('random-bigint')
@@ -616,10 +617,12 @@ export class UserResolver {
     { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
   ): Promise<SearchAdminUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
+    console.log('test')
 
     const [users, count] = await userRepository.findAndCount({
+      relations: ['userRoles'],
       where: {
-        userRoles: Not(IsNull()),
+        userRoles: { role: In(['admin', 'moderator']) },
       },
       order: {
         createdAt: order,
@@ -627,7 +630,7 @@ export class UserResolver {
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
     })
-
+    console.log('users=', users)
     return {
       userCount: count,
       userList: users.map((user) => {
