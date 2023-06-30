@@ -35,7 +35,7 @@ export const findContributions = async (
   }
 
   const where =
-    query && relations && relations.user
+    query && relations?.user
       ? [
           {
             ...requiredWhere,
