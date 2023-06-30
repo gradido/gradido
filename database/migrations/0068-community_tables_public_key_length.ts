@@ -8,12 +8,14 @@
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn('UPDATE `federated_communities` SET `public_key` = UNHEX(public_key);')
-  await queryFn(
-    'ALTER TABLE `federated_communities` MODIFY COLUMN `public_key` binary(32) NOT NULL;',
-  )
-  await queryFn(
-    'ALTER TABLE `communities` MODIFY COLUMN `public_key` binary(32) NULL DEFAULT NULL;',
-  )
+  try {
+    await queryFn(
+      'ALTER TABLE `federated_communities` MODIFY COLUMN `public_key` binary(32) NOT NULL;',
+    )
+    await queryFn('ALTER TABLE `communities` MODIFY COLUMN `public_key` binary(32) NOT NULL;')
+  } catch(e){
+    console.log(e)
+  }
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
