@@ -1,6 +1,6 @@
 <template>
   <div id="username_form">
-    <div v-if="!isEdit && !newUsername">
+    <div v-if="$store.state.username">
       <label>{{ $t('form.username') }}</label>
       <b-input-group class="mb-3" data-test="username-input-group">
         <b-form-input
@@ -8,17 +8,6 @@
           readonly
           data-test="username-input-readonly"
         ></b-form-input>
-        <b-input-group-append>
-          <b-button
-            size="lg"
-            text="Button"
-            variant="secondary"
-            @click="isEdit = !isEdit"
-            data-test="BButton"
-          >
-            {{ $t('change') }}
-          </b-button>
-        </b-input-group-append>
       </b-input-group>
     </div>
     <div v-else>
