@@ -1,42 +1,59 @@
 <template>
-  <validation-provider
-    tag="div"
-    :rules="rules"
-    :name="name"
-    :bails="!showAllErrors"
-    :immediate="immediate"
-    vid="username"
-    v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
-  >
-    <b-form-group :label-for="labelFor">
-      <b-form-input
-        v-model="currentValue"
-        v-bind="ariaInput"
-        :id="labelFor"
-        :name="name"
-        :placeholder="placeholder"
-        type="text"
-        :state="validated ? valid : false"
-        autocomplete="off"
-      ></b-form-input>
-      <b-form-invalid-feedback v-bind="ariaMsg">
-        <div v-if="showAllErrors">
-          <span v-for="error in errors" :key="error">
-            {{ error }}
-            <br />
-          </span>
-        </div>
-        <div v-else>
-          {{ errors[0] }}
-        </div>
-      </b-form-invalid-feedback>
-    </b-form-group>
-  </validation-provider>
+  <div class="input-username">
+    <validation-provider
+      tag="div"
+      :rules="rules"
+      :name="name"
+      :bails="!showAllErrors"
+      :immediate="immediate"
+      vid="username"
+      v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
+    >
+      <b-form-group :label="$t('form.username')">
+        <b-input-group>
+          <b-form-input
+            v-model="currentValue"
+            v-bind="ariaInput"
+            :id="labelFor"
+            :name="name"
+            :placeholder="placeholder"
+            type="text"
+            :state="validated ? valid : false"
+            autocomplete="off"
+            data-test="username"
+          ></b-form-input>
+          <b-input-group-append>
+            <b-button
+              size="lg"
+              text="Button"
+              variant="secondary"
+              icon="x-lg"
+              @click="$emit('set-is-edit', false)"
+            >
+              <b-icon-x-circle></b-icon-x-circle>
+            </b-button>
+          </b-input-group-append>
+        </b-input-group>
+        <b-form-invalid-feedback v-bind="ariaMsg">
+          <div v-if="showAllErrors">
+            <span v-for="error in errors" :key="error">
+              {{ error }}
+              <br />
+            </span>
+          </div>
+          <div v-else>
+            {{ errors[0] }}
+          </div>
+        </b-form-invalid-feedback>
+      </b-form-group>
+    </validation-provider>
+  </div>
 </template>
 <script>
 export default {
   name: 'InputUsername',
   props: {
+    isEdit: { type: Boolean, default: false },
     rules: {
       default: () => {
         return {

@@ -56,6 +56,8 @@ module.exports = {
           'settings.password.subtitle',
           'math.asterisk',
           '/pageTitle./',
+          'error.empty-transactionlist',
+          'error.no-transactionlist',
         ],
         enableFix: false,
       },
