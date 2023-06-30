@@ -221,7 +221,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'moderatorId', label: this.$t('moderator') },
+          { key: 'moderatorId', label: this.$t('moderator.moderator') },
           { key: 'editCreation', label: this.$t('chat') },
           { key: 'confirm', label: this.$t('save') },
         ],
@@ -258,7 +258,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'confirmedBy', label: this.$t('moderator') },
+          { key: 'confirmedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
@@ -294,7 +294,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'deniedBy', label: this.$t('moderator') },
+          { key: 'deniedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
@@ -330,7 +330,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'deletedBy', label: this.$t('moderator') },
+          { key: 'deletedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
@@ -367,7 +367,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'confirmedBy', label: this.$t('moderator') },
+          { key: 'confirmedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
       ][this.tabIndex]

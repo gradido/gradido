@@ -4,6 +4,7 @@
 import { Connection } from '@dbTools/typeorm'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
+import { GraphQLError } from 'graphql'
 
 import { cleanDB, testEnvironment, contributionDateFormatter } from '@test/helpers'
 
@@ -219,7 +220,7 @@ describe('semaphore', () => {
       })
     })
 
-    it('does not throw, but should', async () => {
+    it('does throw error on second redeem call', async () => {
       const redeem1 = mutate({
         mutation: redeemTransactionLink,
         variables: {
@@ -236,7 +237,7 @@ describe('semaphore', () => {
         errors: undefined,
       })
       await expect(redeem2).resolves.toMatchObject({
-        errors: undefined,
+        errors: [new GraphQLError('Transaction link already redeemed')],
       })
     })
   })
