@@ -16,7 +16,7 @@ export class UnconfirmedContribution {
     this.email = user ? user.emailContact.email : ''
     this.moderator = contribution.moderatorId
     this.creation = creations
-    this.state = contribution.contributionStatus
+    this.status = contribution.contributionStatus
     this.messageCount = contribution.messages ? contribution.messages.length : 0
   }
 
@@ -51,7 +51,7 @@ export class UnconfirmedContribution {
   creation: Decimal[]
 
   @Field(() => String)
-  state: string
+  status: string
 
   @Field(() => Int)
   messageCount: number

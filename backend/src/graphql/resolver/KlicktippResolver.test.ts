@@ -72,10 +72,10 @@ describe('KlicktippResolver', () => {
       })
 
       it('stores the NEWSLETTER_SUBSCRIBE event in the database', async () => {
-        const userConatct = await UserContact.findOneOrFail(
-          { email: 'bibi@bloxberg.de' },
-          { relations: ['user'] },
-        )
+        const userConatct = await UserContact.findOneOrFail({
+          where: { email: 'bibi@bloxberg.de' },
+          relations: ['user'],
+        })
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.NEWSLETTER_SUBSCRIBE,
@@ -121,10 +121,10 @@ describe('KlicktippResolver', () => {
       })
 
       it('stores the NEWSLETTER_UNSUBSCRIBE event in the database', async () => {
-        const userConatct = await UserContact.findOneOrFail(
-          { email: 'bibi@bloxberg.de' },
-          { relations: ['user'] },
-        )
+        const userConatct = await UserContact.findOneOrFail({
+          where: { email: 'bibi@bloxberg.de' },
+          relations: ['user'],
+        })
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.NEWSLETTER_UNSUBSCRIBE,

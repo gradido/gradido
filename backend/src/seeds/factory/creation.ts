@@ -19,7 +19,10 @@ export const creationFactory = async (
   creation: CreationInterface,
 ): Promise<Contribution> => {
   const { mutate } = client
-  await mutate({ mutation: login, variables: { email: creation.email, password: 'Aa12345_' } })
+  await mutate({
+    mutation: login,
+    variables: { email: creation.email, password: 'Aa12345_' },
+  })
 
   const {
     data: { createContribution: contribution },
@@ -30,7 +33,9 @@ export const creationFactory = async (
 
     await mutate({ mutation: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
     await mutate({ mutation: confirmContribution, variables: { id: contribution.id } })
-    const confirmedContribution = await Contribution.findOneOrFail({ id: contribution.id })
+    const confirmedContribution = await Contribution.findOneOrFail({
+      where: { id: contribution.id },
+    })
 
     if (creation.moveCreationDate) {
       const transaction = await Transaction.findOneOrFail({

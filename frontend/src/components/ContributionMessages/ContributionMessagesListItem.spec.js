@@ -21,7 +21,7 @@ const mocks = {
 describe('ContributionMessagesList', () => {
   const propsData = {
     contributionId: 42,
-    state: 'PENDING',
+    status: 'PENDING',
     messages: [
       {
         id: 111,

@@ -32,7 +32,7 @@ export const transactionLinkFactory = async (
   } = await mutate({ mutation: createTransactionLink, variables })
 
   if (transactionLink.createdAt || transactionLink.deletedAt) {
-    const dbTransactionLink = await TransactionLink.findOneOrFail({ id })
+    const dbTransactionLink = await TransactionLink.findOneOrFail({ where: { id } })
 
     if (transactionLink.createdAt) {
       dbTransactionLink.createdAt = transactionLink.createdAt
