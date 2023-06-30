@@ -33,6 +33,7 @@ import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'
+import { TRANSACTION_LINK_LOCK } from '@/util/TRANSACTION_LINK_LOCK'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
@@ -308,51 +309,51 @@ export class TransactionLinkResolver {
       return true
     } else {
       const now = new Date()
-      const transactionLink = await DbTransactionLink.findOne({ where: { code } })
-      if (!transactionLink) {
-        throw new LogError('Transaction link not found', code)
+      const releaseLinkLock = await TRANSACTION_LINK_LOCK.acquire()
+      try {
+        const transactionLink = await DbTransactionLink.findOne({ where: { code } })
+        if (!transactionLink) {
+          throw new LogError('Transaction link not found', code)
+        }
+
+        const linkedUser = await DbUser.findOne({
+          where: {
+            id: transactionLink.userId,
+          },
+          relations: ['emailContact'],
+        })
+
+        if (!linkedUser) {
+          throw new LogError('Linked user not found for given link', transactionLink.userId)
+        }
+
+        if (user.id === linkedUser.id) {
+          throw new LogError('Cannot redeem own transaction link', user.id)
+        }
+
+        if (transactionLink.validUntil.getTime() < now.getTime()) {
+          throw new LogError('Transaction link is not valid anymore', transactionLink.validUntil)
+        }
+
+        if (transactionLink.redeemedBy) {
+          throw new LogError('Transaction link already redeemed', transactionLink.redeemedBy)
+        }
+        await executeTransaction(
+          transactionLink.amount,
+          transactionLink.memo,
+          linkedUser,
+          user,
+          transactionLink,
+        )
+        await EVENT_TRANSACTION_LINK_REDEEM(
+          user,
+          { id: transactionLink.userId } as DbUser,
+          transactionLink,
+          transactionLink.amount,
+        )
+      } finally {
+        releaseLinkLock()
       }
-
-      const linkedUser = await DbUser.findOne({
-        where: {
-          id: transactionLink.userId,
-        },
-        relations: ['emailContact'],
-      })
-
-      if (!linkedUser) {
-        throw new LogError('Linked user not found for given link', transactionLink.userId)
-      }
-
-      if (user.id === linkedUser.id) {
-        throw new LogError('Cannot redeem own transaction link', user.id)
-      }
-
-      // TODO: The now check should be done within the semaphore lock,
-      // since the program might wait a while till it is ready to proceed
-      // writing the transaction.
-      if (transactionLink.validUntil.getTime() < now.getTime()) {
-        throw new LogError('Transaction link is not valid anymore', transactionLink.validUntil)
-      }
-
-      if (transactionLink.redeemedBy) {
-        throw new LogError('Transaction link already redeemed', transactionLink.redeemedBy)
-      }
-
-      await executeTransaction(
-        transactionLink.amount,
-        transactionLink.memo,
-        linkedUser,
-        user,
-        transactionLink,
-      )
-      await EVENT_TRANSACTION_LINK_REDEEM(
-        user,
-        { id: transactionLink.userId } as DbUser,
-        transactionLink,
-        transactionLink.amount,
-      )
-
       return true
     }
   }
