@@ -219,6 +219,10 @@ describe('ContributionMessageResolver', () => {
       })
 
       describe('contribution message type MODERATOR', () => {
+        beforeAll(() => {
+          jest.clearAllMocks()
+        })
+
         it('creates ContributionMessage', async () => {
           await expect(
             mutate({
@@ -242,6 +246,10 @@ describe('ContributionMessageResolver', () => {
               },
             }),
           )
+        })
+
+        it("don't call sendAddedContributionMessageEmail", () => {
+          expect(sendAddedContributionMessageEmail).not.toBeCalled()
         })
       })
     })
