@@ -4,6 +4,7 @@ export const verifyLogin = gql`
   query {
     verifyLogin {
       gradidoID
+      alias
       firstName
       lastName
       language
