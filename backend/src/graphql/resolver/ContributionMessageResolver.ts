@@ -167,15 +167,17 @@ export class ContributionMessageResolver {
         await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)
       }
 
-      void sendAddedContributionMessageEmail({
-        firstName: contribution.user.firstName,
-        lastName: contribution.user.lastName,
-        email: contribution.user.emailContact.email,
-        language: contribution.user.language,
-        senderFirstName: moderator.firstName,
-        senderLastName: moderator.lastName,
-        contributionMemo: contribution.memo,
-      })
+      if (messageType !== ContributionMessageType.MODERATOR) {
+        void sendAddedContributionMessageEmail({
+          firstName: contribution.user.firstName,
+          lastName: contribution.user.lastName,
+          email: contribution.user.emailContact.email,
+          language: contribution.user.language,
+          senderFirstName: moderator.firstName,
+          senderLastName: moderator.lastName,
+          contributionMemo: contribution.memo,
+        })
+      }
       await queryRunner.commitTransaction()
       await EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE(
         { id: contribution.userId } as DbUser,
