@@ -1,25 +1,39 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field, Float, Int } from 'type-graphql'
 
 import { GdtEntryType } from '@enum/GdtEntryType'
 
 @ObjectType()
 export class GdtEntry {
-  constructor(json: any) {
-    this.id = json.id
-    this.amount = json.amount
-    this.date = json.date
-    this.email = json.email
-    this.comment = json.comment
-    this.couponCode = json.coupon_code
-    this.gdtEntryType = json.gdt_entry_type_id
-    this.factor = json.factor
-    this.amount2 = json.amount2
-    this.factor2 = json.factor2
-    this.gdt = json.gdt
+  constructor({
+    id,
+    amount,
+    date,
+    email,
+    comment,
+    // eslint-disable-next-line camelcase
+    coupon_code,
+    // eslint-disable-next-line camelcase
+    gdt_entry_type_id,
+    factor,
+    amount2,
+    factor2,
+    gdt,
+  }: any) {
+    this.id = id
+    this.amount = amount
+    this.date = date
+    this.email = email
+    this.comment = comment
+    // eslint-disable-next-line camelcase
+    this.couponCode = coupon_code
+    // eslint-disable-next-line camelcase
+    this.gdtEntryType = gdt_entry_type_id
+    this.factor = factor
+    this.amount2 = amount2
+    this.factor2 = factor2
+    this.gdt = gdt
   }
 
   @Field(() => Int)

@@ -170,7 +170,7 @@
     "to": "to",
     "to1": "to",
     "username": "Username",
-    "username-placeholder": "Enter a unique username",
+    "username-placeholder": "Choose your username",
     "validation": {
       "gddCreationTime": "The field {_field_} must be a number between {min} and {max} with at most one decimal place.",
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point",
@@ -280,6 +280,7 @@
     "settings": "Settings",
     "transactions": "Your transactions"
   },
+  "PersonalDetails": "Personal details",
   "qrCode": "QR Code",
   "send_gdd": "Send GDD",
   "send_per_link": "Send GDD via Link",
@@ -291,8 +292,10 @@
     "warningText": "Are you still there?"
   },
   "settings": {
+    "emailInfo": "NCannot be changed at this time.",
     "hideAmountGDD": "Your GDD amount is hidden.",
     "hideAmountGDT": "Your GDT amount is hidden.",
+    "info": "Transactions can now be made by username or email address.",
     "language": {
       "changeLanguage": "Change language",
       "de": "Deutsch",
@@ -304,8 +307,11 @@
     },
     "name": {
       "change-name": "Change name",
-      "change-success": "Your name has been successfully changed."
+      "change-success": "Your name has been successfully changed.",
+      "enterFirstname": "Enter your firstname",
+      "enterLastname": "Enter your lastname"
     },
+    "newSettings": "New Settings",
     "newsletter": {
       "newsletter": "Information by email",
       "newsletterFalse": "You will not receive any information by email.",
@@ -330,8 +336,7 @@
     "showAmountGDT": "Your GDT amount is visible.",
     "username": {
       "change-success": "Your username has been changed successfully.",
-      "change-username": "Change username",
-      "no-username": "Please enter a username. This helps other users to find you without exposing your email."
+      "no-username": "Please enter a username. This will help other users find you without having to reveal your email address."
     }
   },
   "signin": "Sign in",

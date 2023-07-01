@@ -7,6 +7,7 @@ export const adminListContributions = gql`
     $order: Order = DESC
     $statusFilter: [ContributionStatus!]
     $userId: Int
+    $query: String
   ) {
     adminListContributions(
       currentPage: $currentPage
@@ -14,6 +15,7 @@ export const adminListContributions = gql`
       order: $order
       statusFilter: $statusFilter
       userId: $userId
+      query: $query
     ) {
       contributionCount
       contributionList {
@@ -26,7 +28,7 @@ export const adminListContributions = gql`
         contributionDate
         confirmedAt
         confirmedBy
-        state
+        status
         messagesCount
         deniedAt
         deniedBy

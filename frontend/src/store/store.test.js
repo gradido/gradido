@@ -199,7 +199,7 @@ describe('Vuex store', () => {
 
       it('calls eleven commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(11)
+        expect(commit).toHaveBeenCalledTimes(12)
       })
 
       it('commits gradidoID', () => {
@@ -264,7 +264,7 @@ describe('Vuex store', () => {
 
       it('calls twelve commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(12)
+        expect(commit).toHaveBeenCalledTimes(13)
       })
 
       it('commits token', () => {
