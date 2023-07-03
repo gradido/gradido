@@ -106,7 +106,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  // await cleanDB()
+  await cleanDB()
   await con.close()
 })
 
@@ -130,7 +130,7 @@ describe('UserResolver', () => {
     })
 
     afterAll(async () => {
-      // await cleanDB()
+      await cleanDB()
     })
 
     it('returns success', () => {
