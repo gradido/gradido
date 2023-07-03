@@ -33,8 +33,6 @@ LABEL maintainer="support@gradido.net"
 # Install Additional Software
 ## install: git
 #RUN apk --no-cache add git
-# Install Build Tool for Rust for @iota/client
-RUN apk add --no-cache rust cargo python3 make g++
 
 # Settings
 ## Expose Container Port
@@ -93,9 +91,6 @@ CMD /bin/sh -c "yarn run start"
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
 ##################################################################################
 FROM base as production
-
-# Remove Build Tool for Rust else they would bloat the image unneccessary 
-RUN apk del rust cargo python3 make g++
 
 # Copy "binary"-files from build image
 COPY --from=build ${DOCKER_WORKDIR}/build ./build
