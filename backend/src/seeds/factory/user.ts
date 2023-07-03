@@ -56,7 +56,11 @@ export const userFactory = async (
   }
 
   // get last changes of user from database
-  // dbUser = await User.findOneOrFail({ id }, { withDeleted: true })
+  dbUser = await User.findOneOrFail({
+    where: { id },
+    withDeleted: true,
+    relations: ['emailContact', 'userRoles'],
+  })
 
   return dbUser
 }

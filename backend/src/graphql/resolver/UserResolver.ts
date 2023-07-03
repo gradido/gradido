@@ -134,6 +134,7 @@ export class UserResolver {
     logger.info(`login with ${email}, ***, ${publisherId} ...`)
     email = email.trim().toLowerCase()
     const dbUser = await findUserByEmail(email)
+    // console.log('login dbUser=', dbUser)
     if (dbUser.deletedAt) {
       throw new LogError('This user was permanently deleted. Contact support for questions', dbUser)
     }
