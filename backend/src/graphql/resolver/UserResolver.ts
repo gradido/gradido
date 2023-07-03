@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getConnection, In, IsNull, Not } from '@dbTools/typeorm'
+import { getConnection, In } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
@@ -69,7 +69,6 @@ import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { validateAlias } from './util/validateAlias'
-import { ArrayMinSize } from 'class-validator'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -631,7 +630,6 @@ export class UserResolver {
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
     })
-    console.log('users=', users)
     return {
       userCount: count,
       userList: users.map((user) => {
@@ -710,7 +708,7 @@ export class UserResolver {
     @Arg('userId', () => Int)
     userId: number,
     @Arg('role', () => String, { nullable: true })
-    role: string | null,
+    role: string | null | undefined,
     @Ctx()
     context: Context,
   ): Promise<string | null> {
@@ -764,7 +762,6 @@ export class UserResolver {
     // await user.save()
     await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
     const newUser = await DbUser.findOne({ where: { id: userId }, relations: ['userRoles'] })
-    console.log('setUserRole  newUser=', newUser)
     return newUser?.userRoles ? newUser.userRoles[0].role : null
   }
 
