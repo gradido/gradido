@@ -292,6 +292,7 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
+    "usernameInfo": "Kann nach dem speichern nicht mehr geändert werden!",
     "emailInfo": "Kann aktuell noch nicht geändert werden.",
     "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
     "hideAmountGDT": "Dein GDT Betrag ist versteckt.",

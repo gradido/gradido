@@ -292,7 +292,8 @@
     "warningText": "Are you still there?"
   },
   "settings": {
-    "emailInfo": "NCannot be changed at this time.",
+    "usernameInfo": "Cannot be changed after saving!",
+    "emailInfo": "Cannot be changed at this time.",
     "hideAmountGDD": "Your GDD amount is hidden.",
     "hideAmountGDT": "Your GDT amount is hidden.",
     "info": "Transactions can now be made by username or email address.",
