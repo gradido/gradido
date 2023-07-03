@@ -37,14 +37,18 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
     })
     // console.log('isAuthorized user=', user)
     context.user = user
+    context.role = ROLE_USER
     if (user.userRoles && user.userRoles.length > 0) {
-      if (user.userRoles[0].role === ROLE_NAMES.ROLE_NAME_ADMIN) {
-        context.role = ROLE_ADMIN
-      } else if (user.userRoles[0].role === ROLE_NAMES.ROLE_NAME_MODERATOR) {
-        context.role = ROLE_MODERATOR
+      switch (user.userRoles[0].role) {
+        case ROLE_NAMES.ROLE_NAME_ADMIN:
+          context.role = ROLE_ADMIN
+          break
+        case ROLE_NAMES.ROLE_NAME_MODERATOR:
+          context.role = ROLE_MODERATOR
+          break
+        default:
+          context.role = ROLE_USER
       }
-    } else {
-      context.role = ROLE_USER
     }
     // console.log('context.role=', context.role)
   } catch {
