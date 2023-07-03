@@ -292,7 +292,6 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
-    "usernameInfo": "Kann nach dem speichern nicht mehr geändert werden!",
     "emailInfo": "Kann aktuell noch nicht geändert werden.",
     "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
     "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
@@ -338,7 +337,8 @@
     "username": {
       "change-success": "Dein Nutzername wurde erfolgreich geändert.",
       "no-username": "Bitte gib einen Benutzernamen ein. Damit hilfst du anderen Benutzern dich zu finden, ohne deine E-Mail-Adresse preisgeben zu müssen."
-    }
+    },
+    "usernameInfo": "Kann nach dem speichern nicht mehr geändert werden!"
   },
   "signin": "Anmelden",
   "signup": "Registrieren",

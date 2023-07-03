@@ -292,7 +292,6 @@
     "warningText": "Are you still there?"
   },
   "settings": {
-    "usernameInfo": "Cannot be changed after saving!",
     "emailInfo": "Cannot be changed at this time.",
     "hideAmountGDD": "Your GDD amount is hidden.",
     "hideAmountGDT": "Your GDT amount is hidden.",
@@ -338,7 +337,8 @@
     "username": {
       "change-success": "Your username has been changed successfully.",
       "no-username": "Please enter a username. This will help other users find you without having to reveal your email address."
-    }
+    },
+    "usernameInfo": "Cannot be changed after saving!"
   },
   "signin": "Sign in",
   "signup": "Sign up",
