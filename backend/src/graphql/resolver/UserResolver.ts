@@ -654,15 +654,7 @@ export class UserResolver {
     @Ctx() context: Context,
   ): Promise<SearchUsersResult> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const userFields = [
-      'id',
-      'firstName',
-      'lastName',
-      'emailId',
-      'emailContact',
-      'deletedAt',
-      'userRoles',
-    ]
+    const userFields = ['id', 'firstName', 'lastName', 'emailId', 'emailContact', 'deletedAt']
     const [users, count] = await findUsers(
       userFields.map((fieldName) => {
         return 'user.' + fieldName
@@ -745,12 +737,18 @@ export class UserResolver {
       throw new LogError('Administrator can not change his own role')
     }
     // if user role(s) should be deleted by role=null as parameter
-    if (role === null && user.userRoles && user.userRoles.length > 0) {
-      await UserRole.delete({ userId: user.id })
-      user.userRoles = undefined
+    if (role === null && user.userRoles) {
+      if (user.userRoles.length > 0) {
+        // remove all roles of the user
+        await UserRole.delete({ userId: user.id })
+        user.userRoles.length = 0
+      } else if (user.userRoles.length === 0) {
+        throw new LogError('User is already an usual user')
+      }
     } else if (isUserInRole(user, role)) {
       throw new LogError('User already has role=', role)
     }
+    // if role shoud be set
     if (role) {
       if (user.userRoles === undefined) {
         user.userRoles = [] as UserRole[]
