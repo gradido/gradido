@@ -9,7 +9,7 @@ block content
     h2= t('emails.general.transactionDetails')
     div(class="p_content")= t('emails.general.detailsYouFindOnLinkToYourAccount')
     
-    a.button-3(href="https://gdd.gradido.net/transactions") #{t('emails.general.toAccount')}
+    a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}
 
     include ../includes/doNotReply.pug
 
