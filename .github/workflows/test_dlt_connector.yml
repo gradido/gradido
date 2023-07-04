@@ -1,0 +1,74 @@
+name: Gradido DLT Connector Test CI
+
+on: push
+
+jobs:
+  files-changed:
+    name: Detect File Changes - DLT Connector
+    runs-on: ubuntu-latest
+    outputs:
+      dlt_connector: ${{ steps.changes.outputs.dlt_connector }}
+      docker-compose: ${{ steps.changes.outputs.docker-compose }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - name: Check for frontend file changes
+        uses: dorny/paths-filter@v2.11.1
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: .github/file-filters.yml
+          list-files: shell
+
+  build:
+    name: Docker Build Test - DLT Connector
+    if: needs.files-changed.outputs.dlt_connector == 'true'
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Build 'test' image
+        run: |
+          docker build --target test -t "gradido/dlt-connector:test" -f dlt-connector/Dockerfile .
+          docker save "gradido/dlt-connector:test" > /tmp/dlt-connector.tar
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-dlt-connector-test
+          path: /tmp/dlt-connector.tar
+
+  lint:
+    name: Lint - DLT Connector
+    if: needs.files-changed.outputs.dlt_connector == 'true'
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Lint
+        run: cd dlt-connector && yarn && yarn run lint
+
+  unit_test:
+    name: Unit Tests - DLT Connector
+    if: needs.files-changed.outputs.dlt_connector == 'true' || needs.files-changed.outputs.docker-compose == 'true'
+    needs: [files-changed, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Download Docker Image
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-dlt-connector-test
+          path: /tmp
+
+      - name: Load Docker Image
+        run: docker load < /tmp/dlt-connector.tar
+
+      - name: Unit tests
+        run: docker run --env NODE_ENV=test --rm gradido/dlt-connector:test yarn run test
