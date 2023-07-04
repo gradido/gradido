@@ -10,11 +10,23 @@
   "cypress-cucumber-preprocessor": {
     "nonGlobalStepDefinitions": true,
     "json": {
-      "enabled": true
-    }
+      "enabled": true,
+      "output": "jsonlogs/log.json",
+      "formatter": "cucumber-json-formatter"
+    },
+    "messages": {
+      "enabled": true,
+      "output": "jsonlogs/messages.ndjson"
+    },
+    "html": {
+      "enabled": false
+    },
+    "stepDefinitions": [
+      "cypress/e2e/step_definitions/*.{js,ts}"
+    ]
   },
   "scripts": {
-    "cypress-e2e": "cypress run && mochawesome-merge mochawesome-report/*.json > cypress-combined-report.json && marge --reportDir TestReport cypress-combined-report.json",
+    "cypress-e2e": "cypress run",
     "lint": "eslint --max-warnings=0 --ext .js,.ts ."
   },
   "dependencies": {
@@ -33,10 +45,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-promise": "^5.1.0",
     "jwt-decode": "^3.1.2",
-    "marge": "^1.0.1",
-    "mochawesome": "^7.1.3",
-    "mochawesome-merge": "^4.3.0",
-    "mochawesome-report-generator": "^6.2.0",
+    "multiple-cucumber-html-reporter": "^3.4.0",
     "prettier": "^2.7.1",
     "typescript": "^4.7.4"
   }
