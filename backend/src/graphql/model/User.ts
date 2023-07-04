@@ -77,26 +77,20 @@ export class User {
 
   @Field(() => [String], { nullable: true })
   roles: string[] | null
-}
 
-export function isAdmin(user: User): boolean {
-  if (user.roles) {
-    for (const role of user.roles) {
-      if (role === ROLE_NAMES.ROLE_NAME_ADMIN) {
-        return true
-      }
+  @Field(() => Boolean)
+  isAdmin(): boolean {
+    if (this.roles) {
+      return this.roles.includes(ROLE_NAMES.ROLE_NAME_ADMIN)
     }
+    return false
   }
-  return false
-}
 
-export function isModerator(user: User): boolean {
-  if (user.roles) {
-    for (const role of user.roles) {
-      if (role === ROLE_NAMES.ROLE_NAME_MODERATOR) {
-        return true
-      }
+  @Field(() => Boolean)
+  isModerator(): boolean {
+    if (this.roles) {
+      return this.roles.includes(ROLE_NAMES.ROLE_NAME_MODERATOR)
     }
+    return false
   }
-  return false
 }
