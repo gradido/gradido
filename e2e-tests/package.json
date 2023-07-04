@@ -11,12 +11,12 @@
     "nonGlobalStepDefinitions": true,
     "json": {
       "enabled": true,
-      "output": "jsonlogs/log.json",
+      "output": "cypress/json_logs/cucumber_log.json",
       "formatter": "cucumber-json-formatter"
     },
     "messages": {
       "enabled": true,
-      "output": "jsonlogs/messages.ndjson"
+      "output": "cypress/json_logs/messages.ndjson"
     },
     "html": {
       "enabled": false
