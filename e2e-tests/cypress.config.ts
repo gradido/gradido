@@ -26,14 +26,6 @@ async function setupNodeEvents(
     },
   })
 
-  on('after:run', (results) => {
-    if (results) {
-      // results will be undefined in interactive mode
-      // eslint-disable-next-line no-console
-      console.log(results.status)
-    }
-  })
-
   return config
 }
 
@@ -41,7 +33,6 @@ export default defineConfig({
   e2e: {
     specPattern: '**/*.feature',
     excludeSpecPattern: '*.js',
-    experimentalSessionAndOrigin: true,
     baseUrl: 'http://localhost:3000',
     chromeWebSecurity: false,
     defaultCommandTimeout: 10000,

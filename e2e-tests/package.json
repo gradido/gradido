@@ -8,22 +8,19 @@
   "license": "Apache-2.0",
   "private": false,
   "cypress-cucumber-preprocessor": {
-    "nonGlobalStepDefinitions": true,
+    "stepDefinitions": "cypress/support/step_definitions/*.ts",
     "json": {
       "enabled": true,
-      "output": "cypress/json_logs/cucumber_log.json",
+      "output": "cypress/reports/json_logs/cucumber_log.json",
       "formatter": "cucumber-json-formatter"
     },
     "messages": {
       "enabled": true,
-      "output": "cypress/json_logs/messages.ndjson"
+      "output": "cypress/reports/json_logs/messages.ndjson"
     },
     "html": {
       "enabled": false
-    },
-    "stepDefinitions": [
-      "cypress/e2e/step_definitions/*.{js,ts}"
-    ]
+    }
   },
   "scripts": {
     "cypress-e2e": "cypress run",
