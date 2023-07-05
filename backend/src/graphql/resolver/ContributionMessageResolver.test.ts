@@ -200,11 +200,11 @@ describe('ContributionMessageResolver', () => {
           )
         })
 
-        it("don't call sendAddedContributionMessageEmail", () => {
+        it('does not call sendAddedContributionMessageEmail', () => {
           expect(sendAddedContributionMessageEmail).not.toBeCalled()
         })
 
-        it("don't change contribution status", async () => {
+        it('does not change contribution status', async () => {
           await expect(DbContribution.find()).resolves.toContainEqual(
             expect.objectContaining({
               id: result.data.createContribution.id,
