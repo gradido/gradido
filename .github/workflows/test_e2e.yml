@@ -43,13 +43,19 @@ jobs:
 
       - name: Sleep for 15 seconds
         run: sleep 15s
+      
+      - name: End-to-end tests | prepare
+        run: |
+          wget --no-verbose -O /opt/cucumber-json-formatter "https://github.com/cucumber/json-formatter/releases/download/v19.0.0/cucumber-json-formatter-linux-386"
+          chmod +x /opt/cucumber-json-formatter
+          ln -fs /opt/cucumber-json-formatter /usr/bin/cucumber-json-formatter
+          cd e2e-tests/
+          yarn
 
       - name: End-to-end tests | run tests
         id: e2e-tests
-        run: |
-          cd e2e-tests/
-          yarn
-          yarn run cypress run
+        run: yarn run cypress run
+
       - name: End-to-end tests | if tests failed, upload report
         if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
         uses: actions/upload-artifact@v3
