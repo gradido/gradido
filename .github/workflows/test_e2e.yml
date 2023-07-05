@@ -56,10 +56,12 @@ jobs:
         run: |
           cd e2e-tests/
           yarn run cypress run
-          node create-cucumber-html-report.js
 
       - name: End-to-end tests | if tests failed, upload report
         if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
+        run: |
+          cd e2e-tests/
+          node create-cucumber-html-report.js
         uses: actions/upload-artifact@v3
         with:
           name: cypress-report-PR-${{ github.event.number }}
