@@ -2,12 +2,14 @@
 import { IotaClientSingleton } from '@/client/IotaClientSingleton'
 import CONFIG from '@/config'
 
-CONFIG.IOTA = true
-CONFIG.IOTA_COMMUNITY_ALIAS = 'GRADIDO: TestHelloWelt2'
-CONFIG.IOTA_API_URL = 'https://chrysalis-nodes.iota.org'
-
 describe('apis/IotaClientSingleton/enabled', () => {
   describe('Hello World', () => {
+    beforeEach(() => {
+      CONFIG.IOTA = true
+      CONFIG.IOTA_COMMUNITY_ALIAS = 'GRADIDO: TestHelloWelt2'
+      CONFIG.IOTA_API_URL = 'https://chrysalis-nodes.iota.org'
+    })
+
     const now = new Date()
     let messageId: string
     const messageString = 'Hello World - ' + now.toString()

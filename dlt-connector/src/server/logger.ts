@@ -6,6 +6,6 @@ const options = JSON.parse(readFileSync(CONFIG.LOG4JS_CONFIG, 'utf-8'))
 
 log4js.configure(options)
 
-const logger = log4js.getLogger('dlt-connector')
+const logger = log4js.getLogger('dlt')
 
 export { logger }

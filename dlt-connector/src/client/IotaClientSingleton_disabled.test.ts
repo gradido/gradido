@@ -18,9 +18,8 @@ describe('apis/IotaClientSingleton/invalidIotaUrl', () => {
     CONFIG.IOTA = true
     CONFIG.IOTA_API_URL = 'invalidUrl'
   })
-  it('log "couldn\'t connect to iota"', () => {
-    const spyLog = jest.spyOn(logger, 'error')
-    expect(IotaClientSingleton.getInstance()).toBeUndefined()
-    expect(spyLog).toHaveBeenCalledWith("couldn't connect to iota")
+  it('throw exception on invalid iota url', () => {
+    // eslint-disable-next-line jest/unbound-method
+    expect(IotaClientSingleton.getInstance).toThrow()
   })
 })

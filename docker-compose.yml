@@ -163,12 +163,12 @@ services:
       - internal-net
       - external-net
     ports:
-      - 5037:5037
+      - 6000:6000
     restart: always
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
-      - PORT=5037
+      - PORT=6000
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT

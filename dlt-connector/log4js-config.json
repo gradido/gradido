@@ -1,10 +1,10 @@
 {
   "appenders": 
   {
-    "dht": 
+    "dlt": 
     {
       "type": "dateFile",
-      "filename": "../logs/dht-node/apiversion-%v.log",
+      "filename": "../logs/dlt-connector/apiversion-%v.log",
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
@@ -17,7 +17,7 @@
     "errorFile": 
     {
       "type": "dateFile",
-      "filename": "../logs/dht-node/errors.log",
+      "filename": "../logs/dlt-connector/errors.log",
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
@@ -54,11 +54,11 @@
       "level": "debug",
       "enableCallStack": true
     },
-    "dht":
+    "dlt":
     {
       "appenders":
       [
-        "dht",
+        "dlt",
         "out",
         "errors"
       ],

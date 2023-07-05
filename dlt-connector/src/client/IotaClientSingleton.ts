@@ -35,12 +35,7 @@ class IotaClientSingleton {
     }
     if (!IotaClientSingleton.instance) {
       IotaClientSingleton.instance = new IotaClientSingleton()
-      try {
-        IotaClientSingleton.instance.client = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
-      } catch (e) {
-        logger.error("couldn't connect to iota")
-        return
-      }
+      IotaClientSingleton.instance.client = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
     }
 
     return IotaClientSingleton.instance
