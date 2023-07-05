@@ -158,16 +158,18 @@ export class ContributionMessageResolver {
       contributionMessage.isModerator = true
       await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
 
-      if (
-        contribution.contributionStatus === ContributionStatus.DELETED ||
-        contribution.contributionStatus === ContributionStatus.DENIED ||
-        contribution.contributionStatus === ContributionStatus.PENDING
-      ) {
-        contribution.contributionStatus = ContributionStatus.IN_PROGRESS
-        await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)
-      }
-
       if (messageType !== ContributionMessageType.MODERATOR) {
+        // change status (does not apply to moderator messages)
+        if (
+          contribution.contributionStatus === ContributionStatus.DELETED ||
+          contribution.contributionStatus === ContributionStatus.DENIED ||
+          contribution.contributionStatus === ContributionStatus.PENDING
+        ) {
+          contribution.contributionStatus = ContributionStatus.IN_PROGRESS
+          await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)
+        }
+
+        // send email (never for moderator messages)
         void sendAddedContributionMessageEmail({
           firstName: contribution.user.firstName,
           lastName: contribution.user.lastName,
