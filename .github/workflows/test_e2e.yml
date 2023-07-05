@@ -43,7 +43,7 @@ jobs:
 
       - name: Sleep for 15 seconds
         run: sleep 15s
-      
+            
       - name: End-to-end tests | prepare
       
       - name: End-to-end tests | prepare
