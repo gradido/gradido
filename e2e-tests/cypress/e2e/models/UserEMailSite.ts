@@ -8,10 +8,7 @@ export class UserEMailSite {
   emailSubject = '.subject'
 
   openRecentPasswordResetEMail() {
-    cy.get(this.emailList)
-      .find('email-item')
-      .filter(':contains(asswor)')
-      .click()
+    cy.get(this.emailList).find('email-item').filter(':contains(asswor)').click()
     expect(cy.get(this.emailSubject)).to('contain', 'asswor')
   }
 }

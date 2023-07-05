@@ -23,21 +23,7 @@
       </b-button>
     </div>
     <label>{{ $t('user_search') }}</label>
-    <div>
-      <b-input-group>
-        <b-form-input
-          type="text"
-          class="test-input-criteria"
-          v-model="criteria"
-          :placeholder="$t('user_search')"
-        ></b-form-input>
-        <b-input-group-append class="test-click-clear-criteria" @click="criteria = ''">
-          <b-input-group-text class="pointer">
-            <b-icon icon="x" />
-          </b-input-group-text>
-        </b-input-group-append>
-      </b-input-group>
-    </div>
+    <user-query class="mb-4 mt-2" v-model="criteria" />
     <search-user-table
       type="PageUserSearch"
       :items="searchResult"
@@ -49,7 +35,7 @@
       pills
       size="lg"
       v-model="currentPage"
-      per-page="perPage"
+      :per-page="perPage"
       :total-rows="rows"
       align="center"
       :hide-ellipsis="true"
@@ -61,12 +47,14 @@
 import SearchUserTable from '../components/Tables/SearchUserTable'
 import { searchUsers } from '../graphql/searchUsers'
 import { creationMonths } from '../mixins/creationMonths'
+import UserQuery from '../components/UserQuery'
 
 export default {
   name: 'UserSearch',
   mixins: [creationMonths],
   components: {
     SearchUserTable,
+    UserQuery,
   },
   data() {
     return {
@@ -97,10 +85,11 @@ export default {
         .query({
           query: searchUsers,
           variables: {
-            searchText: this.criteria,
+            query: this.criteria,
+            filters: this.filters,
             currentPage: this.currentPage,
             pageSize: this.perPage,
-            filters: this.filters,
+            order: 'DESC',
           },
           fetchPolicy: 'no-cache',
         })

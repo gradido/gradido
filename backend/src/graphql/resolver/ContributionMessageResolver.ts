@@ -8,8 +8,8 @@ import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type
 
 import { ContributionMessageArgs } from '@arg/ContributionMessageArgs'
 import { Paginated } from '@arg/Paginated'
+import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
-import { ContributionMessageType } from '@enum/MessageType'
 import { Order } from '@enum/Order'
 import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
 
@@ -21,6 +21,8 @@ import {
 } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
+
+import { findContributionMessages } from './util/findContributionMessages'
 
 @Resolver()
 export class ContributionMessageResolver {
@@ -36,7 +38,7 @@ export class ContributionMessageResolver {
     await queryRunner.startTransaction('REPEATABLE READ')
     const contributionMessage = DbContributionMessage.create()
     try {
-      const contribution = await DbContribution.findOne({ id: contributionId })
+      const contribution = await DbContribution.findOne({ where: { id: contributionId } })
       if (!contribution) {
         throw new LogError('Contribution not found', contributionId)
       }
@@ -82,16 +84,35 @@ export class ContributionMessageResolver {
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   ): Promise<ContributionMessageListResult> {
-    const [contributionMessages, count] = await getConnection()
-      .createQueryBuilder()
-      .select('cm')
-      .from(DbContributionMessage, 'cm')
-      .leftJoinAndSelect('cm.user', 'u')
-      .where({ contributionId })
-      .orderBy('cm.createdAt', order)
-      .limit(pageSize)
-      .offset((currentPage - 1) * pageSize)
-      .getManyAndCount()
+    const [contributionMessages, count] = await findContributionMessages({
+      contributionId,
+      currentPage,
+      pageSize,
+      order,
+    })
+
+    return {
+      count,
+      messages: contributionMessages.map(
+        (message) => new ContributionMessage(message, message.user),
+      ),
+    }
+  }
+
+  @Authorized([RIGHTS.ADMIN_LIST_ALL_CONTRIBUTION_MESSAGES])
+  @Query(() => ContributionMessageListResult)
+  async adminListContributionMessages(
+    @Arg('contributionId', () => Int) contributionId: number,
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+  ): Promise<ContributionMessageListResult> {
+    const [contributionMessages, count] = await findContributionMessages({
+      contributionId,
+      currentPage,
+      pageSize,
+      order,
+      showModeratorType: true,
+    })
 
     return {
       count,
@@ -104,7 +125,7 @@ export class ContributionMessageResolver {
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION_MESSAGE])
   @Mutation(() => ContributionMessage)
   async adminCreateContributionMessage(
-    @Args() { contributionId, message }: ContributionMessageArgs,
+    @Args() { contributionId, message, messageType }: ContributionMessageArgs,
     @Ctx() context: Context,
   ): Promise<ContributionMessage> {
     const moderator = getUser(context)
@@ -124,7 +145,7 @@ export class ContributionMessageResolver {
       if (contribution.userId === moderator.id) {
         throw new LogError('Admin can not answer on his own contribution', contributionId)
       }
-      if (!contribution.user.emailContact) {
+      if (!contribution.user.emailContact && contribution.user.emailId) {
         contribution.user.emailContact = await DbUserContact.findOneOrFail({
           where: { id: contribution.user.emailId },
         })
@@ -133,7 +154,7 @@ export class ContributionMessageResolver {
       contributionMessage.createdAt = new Date()
       contributionMessage.message = message
       contributionMessage.userId = moderator.id
-      contributionMessage.type = ContributionMessageType.DIALOG
+      contributionMessage.type = messageType
       contributionMessage.isModerator = true
       await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
 
@@ -146,15 +167,17 @@ export class ContributionMessageResolver {
         await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)
       }
 
-      void sendAddedContributionMessageEmail({
-        firstName: contribution.user.firstName,
-        lastName: contribution.user.lastName,
-        email: contribution.user.emailContact.email,
-        language: contribution.user.language,
-        senderFirstName: moderator.firstName,
-        senderLastName: moderator.lastName,
-        contributionMemo: contribution.memo,
-      })
+      if (messageType !== ContributionMessageType.MODERATOR) {
+        void sendAddedContributionMessageEmail({
+          firstName: contribution.user.firstName,
+          lastName: contribution.user.lastName,
+          email: contribution.user.emailContact.email,
+          language: contribution.user.language,
+          senderFirstName: moderator.firstName,
+          senderLastName: moderator.lastName,
+          contributionMemo: contribution.memo,
+        })
+      }
       await queryRunner.commitTransaction()
       await EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE(
         { id: contribution.userId } as DbUser,

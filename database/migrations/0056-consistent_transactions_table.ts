@@ -34,6 +34,5 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   }
 }
 
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function */
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {}

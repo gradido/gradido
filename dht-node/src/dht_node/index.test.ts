@@ -340,7 +340,7 @@ describe('federation', () => {
                   },
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
-                result = await DbFederatedCommunity.find({ foreign: true })
+                result = await DbFederatedCommunity.find({ where: { foreign: true } })
               })
 
               afterAll(async () => {
@@ -601,7 +601,7 @@ describe('federation', () => {
                   { api: 'toolong api', url: 'some valid url' },
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
-                result = await DbFederatedCommunity.find({ foreign: true })
+                result = await DbFederatedCommunity.find({ where: { foreign: true } })
               })
 
               afterAll(async () => {
@@ -655,7 +655,7 @@ describe('federation', () => {
                   },
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
-                result = await DbFederatedCommunity.find({ foreign: true })
+                result = await DbFederatedCommunity.find({ where: { foreign: true } })
               })
 
               afterAll(async () => {
@@ -791,7 +791,7 @@ describe('federation', () => {
                     ]),
                   ),
                 )
-                result = await DbFederatedCommunity.find({ foreign: true })
+                result = await DbFederatedCommunity.find({ where: { foreign: true } })
               })
 
               afterAll(async () => {

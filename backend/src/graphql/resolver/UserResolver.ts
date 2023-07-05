@@ -2,28 +2,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
+import { getConnection, IsNull, Not } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import i18n from 'i18n'
-import {
-  Resolver,
-  Query,
-  Args,
-  Arg,
-  Authorized,
-  Ctx,
-  UseMiddleware,
-  Mutation,
-  Int,
-} from 'type-graphql'
+import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
 import { v4 as uuidv4 } from 'uuid'
 
 import { CreateUserArgs } from '@arg/CreateUserArgs'
 import { Paginated } from '@arg/Paginated'
-import { SearchUsersArgs } from '@arg/SearchUsersArgs'
+import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
 import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
 import { OptInType } from '@enum/OptInType'
@@ -33,7 +23,6 @@ import { UserContactType } from '@enum/UserContactType'
 import { SearchAdminUsersResult } from '@model/AdminUser'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
-import { UserRepository } from '@repository/User'
 
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
@@ -60,7 +49,6 @@ import {
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Events'
-import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
@@ -71,14 +59,14 @@ import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 
 import random from 'random-bigint'
+import { randombytes_random } from 'sodium-native'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
+import { findUsers } from './util/findUsers'
+import { getKlicktippState } from './util/getKlicktippState'
 import { validateAlias } from './util/validateAlias'
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
-const sodium = require('sodium-native')
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -94,13 +82,13 @@ const newEmailContact = (email: string, userId: number): DbUserContact => {
   emailContact.type = UserContactType.USER_CONTACT_EMAIL
   emailContact.emailChecked = false
   emailContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
-  emailContact.emailVerificationCode = random(64)
+  emailContact.emailVerificationCode = random(64).toString()
   logger.debug('newEmailContact...successful', emailContact)
   return emailContact
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export const activationLink = (verificationCode: BigInt): string => {
+export const activationLink = (verificationCode: string): string => {
   logger.debug(`activationLink(${verificationCode})...`)
   return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, verificationCode.toString())
 }
@@ -122,7 +110,6 @@ const newGradidoID = async (): Promise<string> => {
 export class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => User)
-  @UseMiddleware(klicktippNewsletterStateMiddleware)
   async verifyLogin(@Ctx() context: Context): Promise<User> {
     logger.info('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
@@ -132,12 +119,12 @@ export class UserResolver {
     user.hasElopage = await this.hasElopage(context)
 
     logger.debug(`verifyLogin... successful: ${user.firstName}.${user.lastName}`)
+    user.klickTipp = await getKlicktippState(userEntity.emailContact.email)
     return user
   }
 
   @Authorized([RIGHTS.LOGIN])
   @Mutation(() => User)
-  @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
     @Args() { email, password, publisherId }: UnsecureLoginArgs,
     @Ctx() context: Context,
@@ -183,6 +170,7 @@ export class UserResolver {
       dbUser.publisherId = publisherId
       await DbUser.save(dbUser)
     }
+    user.klickTipp = await getKlicktippState(dbUser.emailContact.email)
 
     context.setHeaders.push({
       key: 'token',
@@ -207,7 +195,15 @@ export class UserResolver {
   @Mutation(() => User)
   async createUser(
     @Args()
-    { email, firstName, lastName, language, publisherId = null, redeemCode = null }: CreateUserArgs,
+    {
+      alias = null,
+      email,
+      firstName,
+      lastName,
+      language,
+      publisherId = null,
+      redeemCode = null,
+    }: CreateUserArgs,
   ): Promise<User> {
     logger.addContext('user', 'unknown')
     logger.info(
@@ -237,12 +233,15 @@ export class UserResolver {
         // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
 
         const user = new User(communityDbUser)
-        user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
+        user.id = randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
         user.gradidoID = uuidv4()
         user.firstName = firstName
         user.lastName = lastName
         user.language = language
         user.publisherId = publisherId
+        if (alias && (await validateAlias(alias))) {
+          user.alias = alias
+        }
         logger.debug('partly faked user', user)
 
         void sendAccountMultiRegistrationEmail({
@@ -276,13 +275,16 @@ export class UserResolver {
     dbUser.firstName = firstName
     dbUser.lastName = lastName
     dbUser.language = language
+    if (alias && (await validateAlias(alias))) {
+      dbUser.alias = alias
+    }
     dbUser.publisherId = publisherId ?? 0
     dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
     logger.debug('new dbUser', dbUser)
     if (redeemCode) {
       if (redeemCode.match(/^CL-/)) {
         const contributionLink = await DbContributionLink.findOne({
-          code: redeemCode.replace('CL-', ''),
+          where: { code: redeemCode.replace('CL-', '') },
         })
         logger.info('redeemCode found contributionLink', contributionLink)
         if (contributionLink) {
@@ -290,7 +292,7 @@ export class UserResolver {
           eventRegisterRedeem.involvedContributionLink = contributionLink
         }
       } else {
-        const transactionLink = await DbTransactionLink.findOne({ code: redeemCode })
+        const transactionLink = await DbTransactionLink.findOne({ where: { code: redeemCode } })
         logger.info('redeemCode found transactionLink', transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
@@ -364,7 +366,8 @@ export class UserResolver {
     const user = await findUserByEmail(email).catch(() => {
       logger.warn(`fail on find UserContact per ${email}`)
     })
-    if (!user) {
+
+    if (!user || user.deletedAt) {
       logger.warn(`no user found with ${email}`)
       return true
     }
@@ -377,7 +380,7 @@ export class UserResolver {
 
     user.emailContact.updatedAt = new Date()
     user.emailContact.emailResendCount++
-    user.emailContact.emailVerificationCode = random(64)
+    user.emailContact.emailVerificationCode = random(64).toString()
     user.emailContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_RESET_PASSWORD
     await user.emailContact.save().catch(() => {
       throw new LogError('Unable to save email verification code', user.emailContact)
@@ -415,10 +418,10 @@ export class UserResolver {
     }
 
     // load code
-    const userContact = await DbUserContact.findOneOrFail(
-      { emailVerificationCode: code },
-      { relations: ['user'] },
-    ).catch(() => {
+    const userContact = await DbUserContact.findOneOrFail({
+      where: { emailVerificationCode: code },
+      relations: ['user'],
+    }).catch(() => {
       throw new LogError('Could not login with emailVerificationCode')
     })
     logger.debug('userContact loaded...')
@@ -486,7 +489,9 @@ export class UserResolver {
   @Query(() => Boolean)
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
     logger.info(`queryOptIn(${optIn})...`)
-    const userContact = await DbUserContact.findOneOrFail({ emailVerificationCode: optIn })
+    const userContact = await DbUserContact.findOneOrFail({
+      where: { emailVerificationCode: optIn },
+    })
     logger.debug('found optInCode', userContact)
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     if (!isEmailVerificationCodeValid(userContact.updatedAt || userContact.createdAt)) {
@@ -613,9 +618,7 @@ export class UserResolver {
     @Args()
     { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
   ): Promise<SearchAdminUsersResult> {
-    const userRepository = getCustomRepository(UserRepository)
-
-    const [users, count] = await userRepository.findAndCount({
+    const [users, count] = await DbUser.findAndCount({
       where: {
         isAdmin: Not(IsNull()),
       },
@@ -640,12 +643,14 @@ export class UserResolver {
   @Authorized([RIGHTS.SEARCH_USERS])
   @Query(() => SearchUsersResult)
   async searchUsers(
+    @Arg('query', () => String) query: string,
+    @Arg('filters', () => SearchUsersFilters, { nullable: true })
+    filters: SearchUsersFilters | null | undefined,
     @Args()
-    { searchText, currentPage = 1, pageSize = 25, filters }: SearchUsersArgs,
+    { currentPage = 1, pageSize = 25, order = Order.ASC }: Paginated,
     @Ctx() context: Context,
   ): Promise<SearchUsersResult> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const userRepository = getCustomRepository(UserRepository)
     const userFields = [
       'id',
       'firstName',
@@ -655,19 +660,20 @@ export class UserResolver {
       'deletedAt',
       'isAdmin',
     ]
-    const [users, count] = await userRepository.findBySearchCriteriaPagedFiltered(
+    const [users, count] = await findUsers(
       userFields.map((fieldName) => {
         return 'user.' + fieldName
       }),
-      searchText,
+      query,
       filters ?? null,
       currentPage,
       pageSize,
+      order,
     )
 
     if (users.length === 0) {
       return {
-        userCount: 0,
+        userCount: count,
         userList: [],
       }
     }
@@ -713,7 +719,7 @@ export class UserResolver {
     @Ctx()
     context: Context,
   ): Promise<Date | null> {
-    const user = await DbUser.findOne({ id: userId })
+    const user = await DbUser.findOne({ where: { id: userId } })
     // user exists ?
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
@@ -742,7 +748,7 @@ export class UserResolver {
     }
     await user.save()
     await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
-    const newUser = await DbUser.findOne({ id: userId })
+    const newUser = await DbUser.findOne({ where: { id: userId } })
     return newUser ? newUser.isAdmin : null
   }
 
@@ -752,7 +758,7 @@ export class UserResolver {
     @Arg('userId', () => Int) userId: number,
     @Ctx() context: Context,
   ): Promise<Date | null> {
-    const user = await DbUser.findOne({ id: userId })
+    const user = await DbUser.findOne({ where: { id: userId } })
     // user exists ?
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
@@ -765,7 +771,7 @@ export class UserResolver {
     // soft-delete user
     await user.softRemove()
     await EVENT_ADMIN_USER_DELETE(user, moderator)
-    const newUser = await DbUser.findOne({ id: userId }, { withDeleted: true })
+    const newUser = await DbUser.findOne({ where: { id: userId }, withDeleted: true })
     return newUser ? newUser.deletedAt : null
   }
 
@@ -775,7 +781,7 @@ export class UserResolver {
     @Arg('userId', () => Int) userId: number,
     @Ctx() context: Context,
   ): Promise<Date | null> {
-    const user = await DbUser.findOne({ id: userId }, { withDeleted: true })
+    const user = await DbUser.findOne({ where: { id: userId }, withDeleted: true })
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
     }
@@ -827,10 +833,11 @@ export class UserResolver {
 }
 
 export async function findUserByEmail(email: string): Promise<DbUser> {
-  const dbUserContact = await DbUserContact.findOneOrFail(
-    { email },
-    { withDeleted: true, relations: ['user'] },
-  ).catch(() => {
+  const dbUserContact = await DbUserContact.findOneOrFail({
+    where: { email },
+    withDeleted: true,
+    relations: ['user'],
+  }).catch(() => {
     throw new LogError('No user with this credentials', email)
   })
   const dbUser = dbUserContact.user
@@ -839,7 +846,10 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
 }
 
 async function checkEmailExists(email: string): Promise<boolean> {
-  const userContact = await DbUserContact.findOne({ email }, { withDeleted: true })
+  const userContact = await DbUserContact.findOne({
+    where: { email },
+    withDeleted: true,
+  })
   if (userContact) {
     return true
   }

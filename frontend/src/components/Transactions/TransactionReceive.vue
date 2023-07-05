@@ -26,7 +26,9 @@
         <div class="small mb-2">
           {{ $t('decay.types.receive') }}
         </div>
-        <div class="font-weight-bold gradido-global-color-accent">{{ amount | GDD }}</div>
+        <div class="font-weight-bold gradido-global-color-accent" data-test="transaction-amount">
+          {{ amount | GDD }}
+        </div>
         <div v-if="linkId" class="small">
           {{ $t('via_link') }}
           <b-icon

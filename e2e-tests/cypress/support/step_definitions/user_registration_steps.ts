@@ -1,4 +1,4 @@
-import { And, When } from '@badeball/cypress-cucumber-preprocessor'
+import { When } from '@badeball/cypress-cucumber-preprocessor'
 import { RegistrationPage } from '../../e2e/models/RegistrationPage'
 
 const registrationPage = new RegistrationPage()
@@ -10,14 +10,14 @@ When(
     registrationPage.enterFirstname(firstname)
     registrationPage.enterLastname(lastname)
     registrationPage.enterEmail(email)
-  }
+  },
 )
 
-And('the user agrees to the privacy policy', () => {
+When('the user agrees to the privacy policy', () => {
   registrationPage.checkPrivacyCheckbox()
 })
 
-And('the user submits the registration form', () => {
+When('the user submits the registration form', () => {
   registrationPage.submitRegistrationForm()
   cy.get(registrationPage.RegistrationThanxHeadline).should('be.visible')
   cy.get(registrationPage.RegistrationThanxText).should('be.visible')

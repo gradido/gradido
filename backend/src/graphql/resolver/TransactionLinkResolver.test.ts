@@ -456,10 +456,10 @@ describe('TransactionLinkResolver', () => {
             })
 
             it('stores the CONTRIBUTION_LINK_REDEEM event in the database', async () => {
-              const userConatct = await UserContact.findOneOrFail(
-                { email: 'bibi@bloxberg.de' },
-                { relations: ['user'] },
-              )
+              const userConatct = await UserContact.findOneOrFail({
+                where: { email: 'bibi@bloxberg.de' },
+                relations: ['user'],
+              })
               await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventType.CONTRIBUTION_LINK_REDEEM,
@@ -611,10 +611,10 @@ describe('TransactionLinkResolver', () => {
           })
 
           it('stores the TRANSACTION_LINK_CREATE event in the database', async () => {
-            const userConatct = await UserContact.findOneOrFail(
-              { email: 'bibi@bloxberg.de' },
-              { relations: ['user'] },
-            )
+            const userConatct = await UserContact.findOneOrFail({
+              where: { email: 'bibi@bloxberg.de' },
+              relations: ['user'],
+            })
             await expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
                 type: EventType.TRANSACTION_LINK_CREATE,
@@ -664,10 +664,10 @@ describe('TransactionLinkResolver', () => {
             })
 
             it('stores the TRANSACTION_LINK_DELETE event in the database', async () => {
-              const userConatct = await UserContact.findOneOrFail(
-                { email: 'bibi@bloxberg.de' },
-                { relations: ['user'] },
-              )
+              const userConatct = await UserContact.findOneOrFail({
+                where: { email: 'bibi@bloxberg.de' },
+                relations: ['user'],
+              })
               await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventType.TRANSACTION_LINK_DELETE,
@@ -719,14 +719,14 @@ describe('TransactionLinkResolver', () => {
             })
 
             it('stores the TRANSACTION_LINK_REDEEM event in the database', async () => {
-              const creator = await UserContact.findOneOrFail(
-                { email: 'bibi@bloxberg.de' },
-                { relations: ['user'] },
-              )
-              const redeemer = await UserContact.findOneOrFail(
-                { email: 'peter@lustig.de' },
-                { relations: ['user'] },
-              )
+              const creator = await UserContact.findOneOrFail({
+                where: { email: 'bibi@bloxberg.de' },
+                relations: ['user'],
+              })
+              const redeemer = await UserContact.findOneOrFail({
+                where: { email: 'peter@lustig.de' },
+                relations: ['user'],
+              })
               await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventType.TRANSACTION_LINK_REDEEM,

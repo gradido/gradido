@@ -7,20 +7,20 @@ import { LogError } from '@/server/LogError'
 import { VALID_ALIAS_REGEX } from './validateAlias'
 
 export const findUserByIdentifier = async (identifier: string): Promise<DbUser> => {
-  let user: DbUser | undefined
+  let user: DbUser | null
   if (validate(identifier) && version(identifier) === 4) {
     user = await DbUser.findOne({ where: { gradidoID: identifier }, relations: ['emailContact'] })
     if (!user) {
       throw new LogError('No user found to given identifier', identifier)
     }
   } else if (/^.{2,}@.{2,}\..{2,}$/.exec(identifier)) {
-    const userContact = await DbUserContact.findOne(
-      {
+    const userContact = await DbUserContact.findOne({
+      where: {
         email: identifier,
         emailChecked: true,
       },
-      { relations: ['user'] },
-    )
+      relations: ['user'],
+    })
     if (!userContact) {
       throw new LogError('No user with this credentials', identifier)
     }

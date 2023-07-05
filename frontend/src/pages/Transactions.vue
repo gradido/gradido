@@ -59,6 +59,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.pageSize,
           },
+          fetchPolicy: 'network-only',
         })
         .then((result) => {
           const {
