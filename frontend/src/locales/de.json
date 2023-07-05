@@ -338,7 +338,7 @@
       "change-success": "Dein Nutzername wurde erfolgreich geändert.",
       "no-username": "Bitte gib einen Benutzernamen ein. Damit hilfst du anderen Benutzern dich zu finden, ohne deine E-Mail-Adresse preisgeben zu müssen."
     },
-    "usernameInfo": "Kann nach dem speichern nicht mehr geändert werden!"
+    "usernameInfo": "Kann nach dem Speichern nicht mehr geändert werden!"
   },
   "signin": "Anmelden",
   "signup": "Registrieren",
