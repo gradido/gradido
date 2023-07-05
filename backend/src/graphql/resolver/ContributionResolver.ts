@@ -142,9 +142,16 @@ export class ContributionResolver {
       userId: user.id,
       statusFilter,
     })
+
     return new ContributionListResult(
       count,
-      dbContributions.map((contribution) => new Contribution(contribution, user)),
+      dbContributions.map((contribution) => {
+        // filter out moderator messages for this call8user)
+        contribution.messages = contribution.messages?.filter(
+          (m) => m.type !== ContributionMessageType.MODERATOR,
+        )
+        return new Contribution(contribution, user)
+      }),
     )
   }
 
