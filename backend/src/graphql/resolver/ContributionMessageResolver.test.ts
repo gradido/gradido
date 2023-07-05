@@ -4,11 +4,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Connection } from '@dbTools/typeorm'
-import { Event as DbEvent } from '@entity/Event'
 import { Contribution as DbContribution } from '@entity/Contribution'
+import { Event as DbEvent } from '@entity/Event'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 
+import { ContributionStatus } from '@enum/ContributionStatus'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
@@ -24,7 +25,6 @@ import {
 import { listContributionMessages, adminListContributionMessages } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { ContributionStatus } from '../enum/ContributionStatus'
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
