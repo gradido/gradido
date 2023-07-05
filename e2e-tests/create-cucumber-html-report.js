@@ -9,7 +9,7 @@ report.generate({
       name: "Gradido webapp"
     },
     device: "Github worker",
-    plattform: {
+    platform: {
       name: "ubuntu",
       version: "latest"
     }
