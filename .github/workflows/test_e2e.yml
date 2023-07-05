@@ -54,7 +54,7 @@ jobs:
 
       - name: End-to-end tests | run tests
         id: e2e-tests
-        run: yarn run cypress run
+        run: pwd && yarn run cypress run
 
       - name: End-to-end tests | if tests failed, upload report
         if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
