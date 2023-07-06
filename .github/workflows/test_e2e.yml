@@ -17,6 +17,15 @@ jobs:
           echo $GITHUB_REF
           echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }'
 
+      - uses: jwalton/gh-find-current-pr@v1
+        id: find-pr
+        with:
+          state: open
+      - run: echo "Your PR is ${PR}"
+        if: success() && steps.findPr.outputs.number
+        env:
+          PR: ${{ steps.findPr.outputs.pr }}
+
   # end-to-end-tests:
   #   name: End-to-End Tests
   #   runs-on: ubuntu-latest
