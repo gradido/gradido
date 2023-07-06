@@ -1,1 +1,1 @@
-export { Community } from './0067-private_key_in_community_table/Community'
+export { Community } from './0068-community_tables_public_key_length/Community'

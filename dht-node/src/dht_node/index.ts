@@ -97,7 +97,7 @@ export const startDHT = async (topic: string): Promise<void> => {
             const variables = {
               apiVersion: recApiVersion.api,
               endPoint: recApiVersion.url,
-              publicKey: socket.remotePublicKey.toString('hex'),
+              publicKey: socket.remotePublicKey,
               lastAnnouncedAt: new Date(),
             }
             logger.debug(`upsert with variables=${JSON.stringify(variables)}`)
@@ -198,14 +198,14 @@ async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<Commu
     return comApi
   })
   try {
-    // first remove privious existing homeCommunity entries
+    // first remove previous existing homeCommunity entries
     await DbFederatedCommunity.createQueryBuilder().delete().where({ foreign: false }).execute()
     for (const homeApiVersion of homeApiVersions) {
       const homeCom = DbFederatedCommunity.create()
       homeCom.foreign = false
       homeCom.apiVersion = homeApiVersion.api
       homeCom.endPoint = homeApiVersion.url
-      homeCom.publicKey = Buffer.from(pubKey)
+      homeCom.publicKey = Buffer.from(pubKey, 'hex')
       await DbFederatedCommunity.insert(homeCom)
       logger.info(`federation home-community inserted successfully:`, homeApiVersion)
     }
