@@ -25,6 +25,11 @@ jobs:
         if: success() && steps.findPr.outputs.number
         env:
           PR: ${{ steps.findPr.outputs.pr }}
+      
+      - uses: 8BitJonny/gh-get-current-pr@2.2.0
+        id: PR
+
+      - run: echo "Your PR number is ${{ steps.PR.outputs.number }} and its JSON is ${{ steps.PR.outputs.pr }}"
 
   # end-to-end-tests:
   #   name: End-to-End Tests
