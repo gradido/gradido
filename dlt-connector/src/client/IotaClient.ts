@@ -1,7 +1,7 @@
 import { ClientBuilder } from '@iota/client'
 import { MessageWrapper } from '@iota/client/lib/types'
 
-import CONFIG from '@/config'
+import { CONFIG } from '@/config'
 
 const client = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
 
