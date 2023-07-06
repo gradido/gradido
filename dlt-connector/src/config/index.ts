@@ -18,7 +18,6 @@ const server = {
 }
 
 const iota = {
-  IOTA: process.env.IOTA === 'true' || false,
   IOTA_API_URL: process.env.IOTA_API_URL ?? 'https://chrysalis-nodes.iota.org',
   IOTA_COMMUNITY_ALIAS: process.env.IOTA_COMMUNITY_ALIAS ?? 'GRADIDO: TestHelloWelt2',
 }
