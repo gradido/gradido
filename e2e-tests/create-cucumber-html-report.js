@@ -7,5 +7,6 @@ report.generate({
   reportPath: "./cypress/reports/cucumber_html_report",
   pageTitle: reportTitle,
   reportName: reportTitle,
+  pageFooter: "<div></div>",
   hideMetadata: true
 });
