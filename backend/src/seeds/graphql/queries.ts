@@ -12,6 +12,8 @@ export const verifyLogin = gql`
       hasElopage
       publisherId
       roles
+      isAdmin
+      isModerator
     }
   }
 `
@@ -95,6 +97,8 @@ export const searchUsers = gql`
         emailConfirmationSend
         deletedAt
         roles
+        isAdmin
+        isModerator
       }
     }
   }
@@ -323,6 +327,7 @@ export const searchAdminUsers = gql`
       userList {
         firstName
         lastName
+        role
       }
     }
   }
