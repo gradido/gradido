@@ -40,9 +40,6 @@ jobs:
       - name: Boot up test system | docker-compose mailserver
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mailserver
 
-      - name: Sleep for 15 seconds
-        run: sleep 15s
-            
       - name: End-to-end tests | prepare
         run: |
           wget --no-verbose -O /opt/cucumber-json-formatter "https://github.com/cucumber/json-formatter/releases/download/v19.0.0/cucumber-json-formatter-linux-386"
