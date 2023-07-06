@@ -9,7 +9,7 @@
       vid="username"
       v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
     >
-      <b-form-group :label="$t('form.username')">
+      <b-form-group :label="$t('form.username')" :description="$t('settings.usernameInfo')">
         <b-input-group>
           <b-form-input
             v-model="currentValue"

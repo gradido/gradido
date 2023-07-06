@@ -158,24 +158,28 @@ export class ContributionMessageResolver {
       contributionMessage.isModerator = true
       await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
 
-      if (
-        contribution.contributionStatus === ContributionStatus.DELETED ||
-        contribution.contributionStatus === ContributionStatus.DENIED ||
-        contribution.contributionStatus === ContributionStatus.PENDING
-      ) {
-        contribution.contributionStatus = ContributionStatus.IN_PROGRESS
-        await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)
-      }
+      if (messageType !== ContributionMessageType.MODERATOR) {
+        // change status (does not apply to moderator messages)
+        if (
+          contribution.contributionStatus === ContributionStatus.DELETED ||
+          contribution.contributionStatus === ContributionStatus.DENIED ||
+          contribution.contributionStatus === ContributionStatus.PENDING
+        ) {
+          contribution.contributionStatus = ContributionStatus.IN_PROGRESS
+          await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)
+        }
 
-      void sendAddedContributionMessageEmail({
-        firstName: contribution.user.firstName,
-        lastName: contribution.user.lastName,
-        email: contribution.user.emailContact.email,
-        language: contribution.user.language,
-        senderFirstName: moderator.firstName,
-        senderLastName: moderator.lastName,
-        contributionMemo: contribution.memo,
-      })
+        // send email (never for moderator messages)
+        void sendAddedContributionMessageEmail({
+          firstName: contribution.user.firstName,
+          lastName: contribution.user.lastName,
+          email: contribution.user.emailContact.email,
+          language: contribution.user.language,
+          senderFirstName: moderator.firstName,
+          senderLastName: moderator.lastName,
+          contributionMemo: contribution.memo,
+        })
+      }
       await queryRunner.commitTransaction()
       await EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE(
         { id: contribution.userId } as DbUser,

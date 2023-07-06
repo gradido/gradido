@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import DHT from '@hyperswarm/dht'
-import { logger } from '@/server/logger'
-import CONFIG from '@/config'
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { Community as DbCommunity } from '@entity/Community'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import DHT from '@hyperswarm/dht'
 import { v4 as uuidv4 } from 'uuid'
+
+import { CONFIG } from '@/config'
+import { logger } from '@/server/logger'
 
 const KEY_SECRET_SEEDBYTES = 32
 

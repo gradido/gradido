@@ -2,13 +2,17 @@
   <div id="username_form">
     <div v-if="$store.state.username">
       <label>{{ $t('form.username') }}</label>
-      <b-input-group class="mb-3" data-test="username-input-group">
+      <b-form-group
+        class="mb-3"
+        data-test="username-input-group"
+        :description="$t('settings.emailInfo')"
+      >
         <b-form-input
           v-model="username"
           readonly
           data-test="username-input-readonly"
         ></b-form-input>
-      </b-input-group>
+      </b-form-group>
     </div>
     <div v-else>
       <validation-observer ref="usernameObserver" v-slot="{ handleSubmit, invalid }">
@@ -38,7 +42,6 @@
               <div class="text-right" ref="submitButton">
                 <b-button
                   :variant="disabled(invalid) ? 'light' : 'success'"
-                  @click="onSubmit"
                   type="submit"
                   :disabled="disabled(invalid)"
                   data-test="submit-username-button"
@@ -79,7 +82,6 @@ export default {
   },
   methods: {
     async onSubmit(event) {
-      event.preventDefault()
       this.$apollo
         .mutate({
           mutation: updateUserInfos,

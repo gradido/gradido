@@ -105,7 +105,7 @@ describe('UserName Form', () => {
             jest.clearAllMocks()
             await wrapper.find('input').setValue('petra')
             await wrapper.find('form').trigger('keyup')
-            await wrapper.find('[data-test="submit-username-button"]').trigger('click')
+            await wrapper.find('[data-test="submit-username-button"]').trigger('submit')
             await flushPromises()
           })
 
@@ -136,7 +136,7 @@ describe('UserName Form', () => {
             jest.clearAllMocks()
             await wrapper.find('input').setValue('petra')
             await wrapper.find('form').trigger('keyup')
-            await wrapper.find('[data-test="submit-username-button"]').trigger('click')
+            await wrapper.find('[data-test="submit-username-button"]').trigger('submit')
             await flushPromises()
           })
 
