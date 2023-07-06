@@ -6,6 +6,7 @@ export class AdminUser {
   constructor(user: User) {
     this.firstName = user.firstName
     this.lastName = user.lastName
+    this.role = user.userRoles ? user.userRoles[0].role : ''
   }
 
   @Field(() => String)
@@ -13,6 +14,9 @@ export class AdminUser {
 
   @Field(() => String)
   lastName: string
+
+  @Field(() => String)
+  role: string
 }
 
 @ObjectType()
