@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
-import CONFIG from '@/config'
-import connection from '@/typeorm/connection'
-import { checkDBVersion } from '@/typeorm/DBVersion'
 import { entities } from '@entity/index'
+
+import { CONFIG } from '@/config'
+import { connection } from '@/typeorm/connection'
+import { checkDBVersion } from '@/typeorm/DBVersion'
+
 import { logger } from './testSetup'
 
 export const headerPushMock = jest.fn((t) => {
