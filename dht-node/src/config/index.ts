@@ -1,9 +1,10 @@
 /* eslint-disable n/no-process-env */
 import dotenv from 'dotenv'
+
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0067-private_key_in_community_table',
+  DB_VERSION: '0068-community_tables_public_key_length',
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
@@ -53,12 +54,10 @@ if (
   )
 }
 
-const CONFIG = {
+export const CONFIG = {
   ...constants,
   ...server,
   ...database,
   ...community,
   ...federation,
 }
-
-export default CONFIG

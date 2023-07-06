@@ -73,9 +73,7 @@ describe('validate Communities', () => {
           } as Response<unknown>
         })
         const variables1 = {
-          publicKey: Buffer.from(
-            '1111111111111111111111111111111111111111111111111111111111111111',
-          ),
+          publicKey: Buffer.from('11111111111111111111111111111111'),
           apiVersion: '1_0',
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
@@ -108,7 +106,7 @@ describe('validate Communities', () => {
         expect(logger.warn).toBeCalledWith(
           'Federation: received not matching publicKey:',
           'somePubKey',
-          expect.stringMatching('1111111111111111111111111111111111111111111111111111111111111111'),
+          expect.stringMatching('11111111111111111111111111111111'),
         )
       })
     })
@@ -120,15 +118,13 @@ describe('validate Communities', () => {
           return {
             data: {
               getPublicKey: {
-                publicKey: '1111111111111111111111111111111111111111111111111111111111111111',
+                publicKey: '11111111111111111111111111111111',
               },
             },
           } as Response<unknown>
         })
         const variables1 = {
-          publicKey: Buffer.from(
-            '1111111111111111111111111111111111111111111111111111111111111111',
-          ),
+          publicKey: Buffer.from('11111111111111111111111111111111'),
           apiVersion: '1_0',
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
@@ -174,15 +170,13 @@ describe('validate Communities', () => {
           return {
             data: {
               getPublicKey: {
-                publicKey: '1111111111111111111111111111111111111111111111111111111111111111',
+                publicKey: '11111111111111111111111111111111',
               },
             },
           } as Response<unknown>
         })
         const variables2 = {
-          publicKey: Buffer.from(
-            '1111111111111111111111111111111111111111111111111111111111111111',
-          ),
+          publicKey: Buffer.from('11111111111111111111111111111111'),
           apiVersion: '1_1',
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
@@ -222,9 +216,7 @@ describe('validate Communities', () => {
       let dbCom: DbFederatedCommunity
       beforeEach(async () => {
         const variables3 = {
-          publicKey: Buffer.from(
-            '1111111111111111111111111111111111111111111111111111111111111111',
-          ),
+          publicKey: Buffer.from('11111111111111111111111111111111'),
           apiVersion: '2_0',
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
