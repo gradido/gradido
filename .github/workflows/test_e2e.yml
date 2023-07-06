@@ -10,8 +10,10 @@ jobs:
       - name: print variables
         env:
           EVENT_NUMBER: ${{ github.event.number }}
+          NUMBER: ${{github.event.issue.number}}
         run: |
-          echo "EVENT_NUMBER: ${{ EVENT_NUMBER }}"
+          echo "EVENT_NUMBER: ${{ env.EVENT_NUMBER }}"
+          echo "NUMBER: ${{ env.NUMBER }}"
           echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }'
 
   # end-to-end-tests:
