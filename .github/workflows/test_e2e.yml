@@ -64,5 +64,5 @@ jobs:
         if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
         uses: actions/upload-artifact@v3
         with:
-          name: cypress-report-PR-${{ github.event.number }}
+          name: cypress-report-pr-${{ github.event.pull_request.number }}
           path: /home/runner/work/gradido/gradido/e2e-tests/cypress/reports/cucumber_html_report
