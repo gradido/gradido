@@ -12,6 +12,6 @@ Feature: User authentication
 
   Scenario: Log in successfully
     Given the user navigates to page "/login"
-    When the user submits the credentials "bibi@bloxberg.de" "Aa12345_X"
+    When the user submits the credentials "bibi@bloxberg.de" "Aa12345_"
     Then the user is logged in with username "Bibi Bloxberg"
 
