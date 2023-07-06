@@ -11,12 +11,8 @@ jobs:
         env:
           EVENT_NUMBER: ${{ github.event.number }}
         run: |
-          echo "github.event.action: ${{ github.event.action }}"
-          echo "github.event.push: ${{ github.event.push }}"
-          echo "github.event.issue.number: ${{ github.event.issue.number }}"
-          echo "EVENT_NUMBER: $EVENT_NUMBER"
-
-          echo "$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")"
+          echo "EVENT_NUMBER: ${{ EVENT_NUMBER }}"
+          echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }'
 
   # end-to-end-tests:
   #   name: End-to-End Tests
