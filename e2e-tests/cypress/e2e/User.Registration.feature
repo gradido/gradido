@@ -4,7 +4,7 @@ Feature: User registration
 
   Scenario: Register successfully
     Given the user navigates to page "/register"
-    When the user fills name and email "Bibi" "Bloxgerg" "bibi@bloxberg.de"
+    When the user fills name and email "Regina" "Register" "regina@register.com"
     And the user agrees to the privacy policy
     And the user submits the registration form
     Then the user receives an e-mail containing the "activation" link
