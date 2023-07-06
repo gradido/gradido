@@ -34,8 +34,9 @@ class IotaClientSingleton {
       return
     }
     if (!IotaClientSingleton.instance) {
+      const client = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
       IotaClientSingleton.instance = new IotaClientSingleton()
-      IotaClientSingleton.instance.client = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
+      IotaClientSingleton.instance.client = client
     }
 
     return IotaClientSingleton.instance
