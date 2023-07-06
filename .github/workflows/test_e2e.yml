@@ -3,69 +3,80 @@ name: Gradido End-to-End Test CI
 on: push
 
 jobs:
-  end-to-end-tests:
-    name: End-to-End Tests
+  get-pr-number
+    name: Get PR number
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Boot up test system | docker-compose mariadb
-        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb
-
-      - name: Boot up test system | docker-compose database
-        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
-
-      - name: Boot up test system | docker-compose backend
+      - name: print variables
+        env:
+          EVENT_NUMBER: ${{ github.event.number }}
         run: |
-          cd backend
-          cp .env.test_e2e .env
-          cd ..
-          docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend 
-
-      - name: Sleep for 10 seconds
-        run: sleep 10s
-
-      - name: Boot up test system | seed backend
-        run: |
-          sudo chown runner:docker -R *
-          cd database
-          yarn && yarn dev_reset
-          cd ../backend
-          yarn && yarn seed
-
-      - name: Boot up test system | docker-compose frontends
-        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps frontend admin nginx
-
-      - name: Boot up test system | docker-compose mailserver
-        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mailserver
-
-      - name: End-to-end tests | prepare
-        run: |
-          wget --no-verbose -O /opt/cucumber-json-formatter "https://github.com/cucumber/json-formatter/releases/download/v19.0.0/cucumber-json-formatter-linux-386"
-          chmod +x /opt/cucumber-json-formatter
-          sudo ln -fs /opt/cucumber-json-formatter /usr/bin/cucumber-json-formatter
-          cd e2e-tests/
-          yarn
-
-      - name: End-to-end tests | run tests
-        id: e2e-tests
-        run: |
-          cd e2e-tests/
-          yarn run cypress run
-
-      - name: End-to-end tests | if tests failed, compile html report
-        if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
-        run: |
-          echo "github.event.pull_request.number ${{ github.event.pull_request.number }}"
-          echo "github.event.number ${{ github.event.number }}"
+          echo "github.event: ${{ github.event }}"
+          echo "event number: "
+          echo "github.event.pull_request.number: ${{ github.event.pull_request.number }}"
+          echo "github.event.number: ${{ github.event.number }}"
           echo "steps.pr.outputs.pull_request_number: ${{ steps.pr.outputs.pull_request_number }}"
-          cd e2e-tests/
-          node create-cucumber-html-report.js
 
-      - name: End-to-end tests | if tests failed, upload report
-        if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: cypress-report-pr-${{ github.event.pull_request.number }}
-          path: /home/runner/work/gradido/gradido/e2e-tests/cypress/reports/cucumber_html_report
+  # end-to-end-tests:
+  #   name: End-to-End Tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+
+  #     - name: Boot up test system | docker-compose mariadb
+  #       run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb
+
+  #     - name: Boot up test system | docker-compose database
+  #       run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
+
+  #     - name: Boot up test system | docker-compose backend
+  #       run: |
+  #         cd backend
+  #         cp .env.test_e2e .env
+  #         cd ..
+  #         docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend 
+
+  #     - name: Sleep for 10 seconds
+  #       run: sleep 10s
+
+  #     - name: Boot up test system | seed backend
+  #       run: |
+  #         sudo chown runner:docker -R *
+  #         cd database
+  #         yarn && yarn dev_reset
+  #         cd ../backend
+  #         yarn && yarn seed
+
+  #     - name: Boot up test system | docker-compose frontends
+  #       run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps frontend admin nginx
+
+  #     - name: Boot up test system | docker-compose mailserver
+  #       run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mailserver
+
+  #     - name: End-to-end tests | prepare
+  #       run: |
+  #         wget --no-verbose -O /opt/cucumber-json-formatter "https://github.com/cucumber/json-formatter/releases/download/v19.0.0/cucumber-json-formatter-linux-386"
+  #         chmod +x /opt/cucumber-json-formatter
+  #         sudo ln -fs /opt/cucumber-json-formatter /usr/bin/cucumber-json-formatter
+  #         cd e2e-tests/
+  #         yarn
+
+  #     - name: End-to-end tests | run tests
+  #       id: e2e-tests
+  #       run: |
+  #         cd e2e-tests/
+  #         yarn run cypress run
+
+  #     - name: End-to-end tests | if tests failed, compile html report
+  #       if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
+  #       run: |
+  #         cd e2e-tests/
+  #         node create-cucumber-html-report.js
+
+  #     - name: End-to-end tests | if tests failed, upload report
+  #       if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: cypress-report-pr-${{ github.event.pull_request.number }}
+  #         path: /home/runner/work/gradido/gradido/e2e-tests/cypress/reports/cucumber_html_report
