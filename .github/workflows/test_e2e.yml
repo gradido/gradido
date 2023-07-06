@@ -8,11 +8,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: print variables
+        env:
+          EVENT_NUMBER: ${{ github.event.number }}
         run: |
           echo "github.event.action: ${{ github.event.action }}"
           echo "github.event.push: ${{ github.event.push }}"
           echo "github.event.issue.number: ${{ github.event.issue.number }}"
-          echo "::set-env name=PR_NUMBER::$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")"
+          echo "EVENT_NUMBER: $EVENT_NUMBER"
+
+          echo "$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")"
 
   # end-to-end-tests:
   #   name: End-to-End Tests
