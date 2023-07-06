@@ -34,10 +34,8 @@ if (
   )
 }
 
-const CONFIG = {
+export const CONFIG = {
   ...constants,
   ...server,
   ...iota,
 }
-
-export default CONFIG
