@@ -251,7 +251,7 @@ describe('ContributionMessageResolver', () => {
           })
         })
 
-        it('change contribution status', async () => {
+        it('changes contribution status', async () => {
           await expect(DbContribution.find()).resolves.toContainEqual(
             expect.objectContaining({
               id: result.data.createContribution.id,
