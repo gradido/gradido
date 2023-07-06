@@ -322,6 +322,8 @@ export const login = gql`
       hasElopage
       publisherId
       roles
+      isAdmin
+      isModerator
     }
   }
 `
