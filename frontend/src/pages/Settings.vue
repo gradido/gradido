@@ -1,7 +1,7 @@
 <template>
   <div class="card bg-white gradido-border-radius appBoxShadow p-4 mt--3">
     <div class="h2">{{ $t('PersonalDetails') }}</div>
-    <div class="m-4 text-small">
+    <div class="my-4 text-small">
       {{ $t('settings.info') }}
     </div>
 
@@ -58,7 +58,7 @@
     </b-row>
 
     <hr />
-    <div class="h3 mt-5">{{ $t('form.password') }}</div>
+    <div class="mt-5">{{ $t('form.password') }}</div>
     <user-password />
     <hr />
     <b-row class="mb-5">
