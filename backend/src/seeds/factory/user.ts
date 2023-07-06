@@ -40,15 +40,14 @@ export const userFactory = async (
   if (user.createdAt || user.deletedAt || user.role) {
     if (user.createdAt) dbUser.createdAt = user.createdAt
     if (user.deletedAt) dbUser.deletedAt = user.deletedAt
-    if (user.role) {
+    if (
+      user.role &&
+      (user.role === ROLE_NAMES.ROLE_NAME_ADMIN || user.role === ROLE_NAMES.ROLE_NAME_MODERATOR)
+    ) {
       dbUser.userRoles = [] as UserRole[]
       dbUser.userRoles[0] = UserRole.create()
       dbUser.userRoles[0].createdAt = new Date()
-      if (user.role === ROLE_NAMES.ROLE_NAME_ADMIN) {
-        dbUser.userRoles[0].role = ROLE_NAMES.ROLE_NAME_ADMIN
-      } else if (user.role === ROLE_NAMES.ROLE_NAME_MODERATOR) {
-        dbUser.userRoles[0].role = ROLE_NAMES.ROLE_NAME_MODERATOR
-      }
+      dbUser.userRoles[0].role = user.role
       dbUser.userRoles[0].userId = dbUser.id
       await dbUser.userRoles[0].save()
     }
@@ -61,6 +60,5 @@ export const userFactory = async (
     withDeleted: true,
     relations: ['emailContact', 'userRoles'],
   })
-
   return dbUser
 }
