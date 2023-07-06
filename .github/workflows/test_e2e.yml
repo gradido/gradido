@@ -3,13 +3,11 @@ name: Gradido End-to-End Test CI
 on: push
 
 jobs:
-  get-pr-number
+  get-pr-number:
     name: Get PR number
     runs-on: ubuntu-latest
     steps:
       - name: print variables
-        env:
-          EVENT_NUMBER: ${{ github.event.number }}
         run: |
           echo "github.event: ${{ github.event }}"
           echo "event number: "
