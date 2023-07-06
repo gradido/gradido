@@ -146,7 +146,7 @@ export class ContributionResolver {
     return new ContributionListResult(
       count,
       dbContributions.map((contribution) => {
-        // filter out moderator messages for this call8user)
+        // filter out moderator messages for this call
         contribution.messages = contribution.messages?.filter(
           (m) => m.type !== ContributionMessageType.MODERATOR,
         )
