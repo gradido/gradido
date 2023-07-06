@@ -1,6 +1,6 @@
 {
   "name": "gradido-federation",
-  "version": "1.22.2",
+  "version": "1.22.3",
   "description": "Gradido federation module providing Gradido-Hub-Federation and versioned API for inter community communication",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/federation",
