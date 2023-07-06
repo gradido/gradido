@@ -2,6 +2,7 @@
 import { IotaClientSingleton } from '@/client/IotaClientSingleton'
 import CONFIG from '@/config'
 import { logger } from '@/server/logger'
+import { MessageWrapper } from '@iota/client/lib/types'
 
 describe('apis/IotaClientSingleton/disabled', () => {
   beforeEach(() => {
@@ -38,8 +39,9 @@ describe('apis/IotaClientSingleton/enabled', () => {
     const messageString = 'Hello World - ' + now.toString()
     const messageHexString = Buffer.from(messageString, 'utf8').toString('hex')
     const indexHexString = Buffer.from(CONFIG.IOTA_COMMUNITY_ALIAS, 'utf8').toString('hex')
+    let iotaMessage: MessageWrapper | undefined
     it('sends hello world message to iota tangle', async () => {
-      const iotaMessage = await IotaClientSingleton.getInstance()?.sendDataMessage(messageString)
+      iotaMessage = await IotaClientSingleton.getInstance()?.sendDataMessage(messageString)
       expect(iotaMessage).toMatchObject({
         message: {
           payload: {
@@ -49,11 +51,13 @@ describe('apis/IotaClientSingleton/enabled', () => {
         },
         messageId: expect.any(String),
       })
-      messageId =
-        iotaMessage?.messageId ?? '5498130bc3918e1a7143969ce05805502417e3e1bd596d3c44d6a0adeea22710'
     })
     it('receives hello world message from iota tangle by message id', async () => {
-      const iotaMessage = await IotaClientSingleton.getInstance()?.getMessage(messageId)
+      // get messageId from send call and if send call failed, use hardcoded message id from first sended hello world message
+      // to able to test it even when send failed
+      messageId =
+        iotaMessage?.messageId ?? '5498130bc3918e1a7143969ce05805502417e3e1bd596d3c44d6a0adeea22710'
+      iotaMessage = await IotaClientSingleton.getInstance()?.getMessage(messageId)
       expect(iotaMessage).toMatchObject({
         message: {
           payload: {
