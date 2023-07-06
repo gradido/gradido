@@ -14,7 +14,7 @@ jobs:
         run: |
           echo "EVENT_NUMBER: ${{ env.EVENT_NUMBER }}"
           echo "NUMBER: ${{ env.NUMBER }}"
-          echo "${{ github.event.action }}"
+          echo $GITHUB_REF
           echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }'
 
   # end-to-end-tests:
