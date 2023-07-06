@@ -13,8 +13,10 @@ export class PublicKeyResolver {
   async getPublicKey(): Promise<GetPublicKeyResult> {
     logger.debug(`getPublicKey() via apiVersion=1_0 ...`)
     const homeCom = await DbFederatedCommunity.findOneOrFail({
-      foreign: false,
-      apiVersion: '1_0',
+      where: {
+        foreign: false,
+        apiVersion: '1_0',
+      },
     })
     logger.info(`getPublicKey()-1_0... return publicKey=${homeCom.publicKey}`)
     return new GetPublicKeyResult(homeCom.publicKey.toString())

@@ -341,6 +341,7 @@ describe('CreationConfirm', () => {
             currentPage: 1,
             order: 'DESC',
             pageSize: 25,
+            query: '',
             statusFilter: ['CONFIRMED'],
           })
         })
@@ -356,6 +357,7 @@ describe('CreationConfirm', () => {
               currentPage: 1,
               order: 'DESC',
               pageSize: 25,
+              query: '',
               statusFilter: ['IN_PROGRESS', 'PENDING'],
             })
           })
@@ -372,6 +374,7 @@ describe('CreationConfirm', () => {
               currentPage: 1,
               order: 'DESC',
               pageSize: 25,
+              query: '',
               statusFilter: ['DENIED'],
             })
           })
@@ -388,6 +391,7 @@ describe('CreationConfirm', () => {
               currentPage: 1,
               order: 'DESC',
               pageSize: 25,
+              query: '',
               statusFilter: ['DELETED'],
             })
           })
@@ -404,6 +408,7 @@ describe('CreationConfirm', () => {
               currentPage: 1,
               order: 'DESC',
               pageSize: 25,
+              query: '',
               statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
             })
           })
@@ -424,6 +429,7 @@ describe('CreationConfirm', () => {
                   currentPage: 2,
                   order: 'DESC',
                   pageSize: 25,
+                  query: '',
                   statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
                 })
               })
@@ -439,10 +445,45 @@ describe('CreationConfirm', () => {
                     currentPage: 1,
                     order: 'DESC',
                     pageSize: 25,
+                    query: '',
                     statusFilter: ['IN_PROGRESS', 'PENDING'],
                   })
                 })
               })
+            })
+          })
+        })
+      })
+    })
+
+    describe('user query', () => {
+      describe('with user query', () => {
+        beforeEach(() => {
+          wrapper.findComponent({ name: 'UserQuery' }).vm.$emit('input', 'query')
+        })
+
+        it('calls the API with query', () => {
+          expect(adminListContributionsMock).toBeCalledWith({
+            currentPage: 1,
+            order: 'DESC',
+            pageSize: 25,
+            query: 'query',
+            statusFilter: ['IN_PROGRESS', 'PENDING'],
+          })
+        })
+
+        describe('reset query', () => {
+          beforeEach(() => {
+            wrapper.findComponent({ name: 'UserQuery' }).vm.$emit('input', '')
+          })
+
+          it('calls the API with empty query', () => {
+            expect(adminListContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              order: 'DESC',
+              pageSize: 25,
+              query: '',
+              statusFilter: ['IN_PROGRESS', 'PENDING'],
             })
           })
         })
