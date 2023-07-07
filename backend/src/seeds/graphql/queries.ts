@@ -387,3 +387,20 @@ export const user = gql`
     }
   }
 `
+export const userContact = gql`
+  query ($userId: Int!) {
+    userContact(userId: $userId) {
+      id
+      type
+      userId
+      email
+      emailOptInTypeId
+      emailResendCount
+      emailChecked
+      phone
+      createdAt
+      updatedAt
+      deletedAt
+    }
+  }
+`

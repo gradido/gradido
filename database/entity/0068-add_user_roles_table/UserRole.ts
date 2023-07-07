@@ -18,7 +18,7 @@ export class UserRole extends BaseEntity {
   @Column({ name: 'updated_at', nullable: true, default: null, type: 'datetime' })
   updatedAt: Date | null
 
-  @ManyToOne(() => User, (user) => user.userRoles)
+  @ManyToOne(() => User, (user) => user.userRoles, { nullable: true })
   @JoinColumn({ name: 'user_id' })
-  user: User
+  user: User | null
 }

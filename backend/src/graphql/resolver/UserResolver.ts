@@ -69,6 +69,7 @@ import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { validateAlias } from './util/validateAlias'
+import { UserContact } from '../model/UserContact'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -223,6 +224,7 @@ export class UserResolver {
     // check if user with email still exists?
     email = email.trim().toLowerCase()
     if (await checkEmailExists(email)) {
+      // console.log('email still exists! email', email)
       const foundUser = await findUserByEmail(email)
       logger.info('DbUser.findOne', email, foundUser)
 
@@ -355,7 +357,6 @@ export class UserResolver {
     } else {
       await EVENT_USER_REGISTER(dbUser)
     }
-    console.log('createUser dbUser=', dbUser)
     return new User(dbUser)
   }
 
@@ -723,44 +724,33 @@ export class UserResolver {
       default:
         throw new LogError('Not allowed to set user role=', role)
     }
-    console.log('1')
     const user = await DbUser.findOne({
       where: { id: userId },
       relations: ['userRoles'],
     })
-    console.log('2')
     // user exists ?
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
     }
-    console.log('3')
     // administrator user changes own role?
     const moderator = getUser(context)
-    console.log('4')
     if (moderator.id === userId) {
       throw new LogError('Administrator can not change his own role')
     }
-    console.log('5')
     // if user role(s) should be deleted by role=null as parameter
     if (role === null && user.userRoles) {
-      console.log('6')
       if (user.userRoles.length > 0) {
-        console.log('7')
         // remove all roles of the user
         await UserRole.delete({ userId: user.id })
-        console.log('8')
         user.userRoles.length = 0
       } else if (user.userRoles.length === 0) {
-        console.log('9')
         throw new LogError('User is already an usual user')
       }
     } else if (isUserInRole(user, role)) {
-      console.log('10')
       throw new LogError('User already has role=', role)
     }
     // if role shoud be set
     if (role) {
-      console.log('11 ', role)
       if (user.userRoles === undefined) {
         user.userRoles = [] as UserRole[]
       }
@@ -774,9 +764,7 @@ export class UserResolver {
     }
     // await user.save()
     await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
-    console.log('12 ')
     const newUser = await DbUser.findOne({ where: { id: userId }, relations: ['userRoles'] })
-    console.log('13 ', newUser)
     return newUser?.userRoles ? newUser.userRoles[0].role : null
   }
 
@@ -857,6 +845,18 @@ export class UserResolver {
   @Query(() => User)
   async user(@Arg('identifier') identifier: string): Promise<User> {
     return new User(await findUserByIdentifier(identifier))
+  }
+
+  @Authorized([RIGHTS.USER])
+  @Query(() => UserContact)
+  async userContact(@Arg('userId', () => Int) userId: number): Promise<UserContact> {
+    return new UserContact(
+      await DbUserContact.findOneOrFail({
+        where: { userId },
+        withDeleted: true,
+        relations: ['user'],
+      }),
+    )
   }
 }
 

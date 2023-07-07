@@ -56,6 +56,7 @@ import {
   searchUsers,
   user as userQuery,
   checkUsername,
+  userContact,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -699,13 +700,15 @@ describe('UserResolver', () => {
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
-                roles: expect.any(Array),
                 klickTipp: {
                   newsletterState: false,
                 },
                 language: 'de',
                 lastName: 'Bloxberg',
                 publisherId: 1234,
+                roles: [],
+                isAdmin: false,
+                isModerator: false,
               },
             },
           }),
@@ -976,7 +979,9 @@ describe('UserResolver', () => {
                   },
                   hasElopage: false,
                   publisherId: 1234,
-                  roles: expect.any(Array),
+                  roles: [],
+                  isAdmin: false,
+                  isModerator: false,
                 },
               },
             }),
@@ -989,6 +994,35 @@ describe('UserResolver', () => {
               type: EventType.USER_LOGIN,
               affectedUserId: user[0].id,
               actingUserId: user[0].id,
+            }),
+          )
+        })
+
+        it('returns usercontact object', async () => {
+          await expect(
+            query({
+              query: userContact,
+              variables: {
+                userId: user[0].id,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                userContact: {
+                  id: expect.any(Number),
+                  type: UserContactType.USER_CONTACT_EMAIL,
+                  userId: user[0].id,
+                  email: 'bibi@bloxberg.de',
+                  emailOptInTypeId: expect.any(Number),
+                  emailResendCount: expect.any(Number),
+                  emailChecked: expect.any(Boolean),
+                  phone: null,
+                  createdAt: expect.any(Date),
+                  updatedAt: expect.any(Date),
+                  deletedAt: null,
+                },
+              },
             }),
           )
         })
@@ -1417,6 +1451,7 @@ describe('UserResolver', () => {
                   expect.objectContaining({
                     firstName: 'Peter',
                     lastName: 'Lustig',
+                    role: ROLE_NAMES.ROLE_NAME_ADMIN,
                   }),
                 ]),
               },
@@ -1498,13 +1533,15 @@ describe('UserResolver', () => {
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
-                roles: expect.any(Array),
                 klickTipp: {
                   newsletterState: false,
                 },
                 language: 'de',
                 lastName: 'Bloxberg',
                 publisherId: 1234,
+                roles: [],
+                isAdmin: false,
+                isModerator: false,
               },
             },
           }),
@@ -1536,7 +1573,7 @@ describe('UserResolver', () => {
     })
 
     describe('authenticated', () => {
-      describe('without admin rights', () => {
+      describe('with user rights', () => {
         beforeAll(async () => {
           user = await userFactory(testEnv, bibiBloxberg)
           await mutate({
@@ -1564,8 +1601,45 @@ describe('UserResolver', () => {
         })
       })
 
+      describe('with moderator rights', () => {
+        beforeAll(async () => {
+          user = await userFactory(testEnv, bibiBloxberg)
+          admin = await userFactory(testEnv, peterLustig)
+
+          // set Moderator-Role for Peter
+          const userRole = await UserRole.findOneOrFail({ where: { userId: admin.id } })
+          userRole.role = ROLE_NAMES.ROLE_NAME_MODERATOR
+          userRole.userId = admin.id
+          await UserRole.save(userRole)
+
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        it('returns an error', async () => {
+          await expect(
+            mutate({
+              mutation: setUserRole,
+              variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_ADMIN },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
       describe('with admin rights', () => {
         beforeAll(async () => {
+          user = await userFactory(testEnv, bibiBloxberg)
           admin = await userFactory(testEnv, peterLustig)
           await mutate({
             mutation: login,
@@ -1578,7 +1652,26 @@ describe('UserResolver', () => {
           resetToken()
         })
 
+        it('returns user with new moderator-role', async () => {
+          const result = await mutate({
+            mutation: setUserRole,
+            variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_MODERATOR },
+          })
+          expect(result).toEqual(
+            expect.objectContaining({
+              data: {
+                setUserRole: ROLE_NAMES.ROLE_NAME_MODERATOR,
+              },
+            }),
+          )
+        })
+
         describe('user to get a new role does not exist', () => {
+          afterAll(async () => {
+            await cleanDB()
+            resetToken()
+          })
+
           it('throws an error', async () => {
             jest.clearAllMocks()
             await expect(
@@ -1601,11 +1694,21 @@ describe('UserResolver', () => {
         describe('change role with success', () => {
           beforeAll(async () => {
             user = await userFactory(testEnv, bibiBloxberg)
+            admin = await userFactory(testEnv, peterLustig)
+            await mutate({
+              mutation: login,
+              variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+            })
+          })
+
+          afterAll(async () => {
+            await cleanDB()
+            resetToken()
           })
 
           describe('user gets new role', () => {
             describe('to admin', () => {
-              it('returns date string', async () => {
+              it('returns admin-rolename', async () => {
                 const result = await mutate({
                   mutation: setUserRole,
                   variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_ADMIN },
@@ -1613,7 +1716,41 @@ describe('UserResolver', () => {
                 expect(result).toEqual(
                   expect.objectContaining({
                     data: {
-                      setUserRole: expect.any(String),
+                      setUserRole: ROLE_NAMES.ROLE_NAME_ADMIN,
+                    },
+                  }),
+                )
+              })
+
+              it('stores the ADMIN_USER_ROLE_SET event in the database', async () => {
+                const userContact = await UserContact.findOneOrFail({
+                  where: { email: 'bibi@bloxberg.de' },
+                  relations: ['user'],
+                })
+                const adminContact = await UserContact.findOneOrFail({
+                  where: { email: 'peter@lustig.de' },
+                  relations: ['user'],
+                })
+                await expect(DbEvent.find()).resolves.toContainEqual(
+                  expect.objectContaining({
+                    type: EventType.ADMIN_USER_ROLE_SET,
+                    affectedUserId: userContact.user.id,
+                    actingUserId: adminContact.user.id,
+                  }),
+                )
+              })
+            })
+
+            describe('to moderator', () => {
+              it('returns date string', async () => {
+                const result = await mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_MODERATOR },
+                })
+                expect(result).toEqual(
+                  expect.objectContaining({
+                    data: {
+                      setUserRole: ROLE_NAMES.ROLE_NAME_MODERATOR,
                     },
                   }),
                 )
@@ -1656,7 +1793,21 @@ describe('UserResolver', () => {
         })
 
         describe('change role with error', () => {
-          describe('is own role', () => {
+          beforeAll(async () => {
+            user = await userFactory(testEnv, bibiBloxberg)
+            admin = await userFactory(testEnv, peterLustig)
+            await mutate({
+              mutation: login,
+              variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+            })
+          })
+
+          afterAll(async () => {
+            await cleanDB()
+            resetToken()
+          })
+
+          describe('his own role', () => {
             it('throws an error', async () => {
               jest.clearAllMocks()
               await expect(
@@ -1669,6 +1820,29 @@ describe('UserResolver', () => {
             })
             it('logs the error thrown', () => {
               expect(logger.error).toBeCalledWith('Administrator can not change his own role')
+            })
+          })
+
+          describe('to not allowed role', () => {
+            it('throws an error', async () => {
+              jest.clearAllMocks()
+              await expect(
+                mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, role: 'unknown rolename' },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('Not allowed to set user role=')],
+                }),
+              )
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'Not allowed to set user role=',
+                'unknown rolename',
+              )
             })
           })
 
@@ -1696,6 +1870,33 @@ describe('UserResolver', () => {
                 expect(logger.error).toBeCalledWith(
                   'User already has role=',
                   ROLE_NAMES.ROLE_NAME_ADMIN,
+                )
+              })
+            })
+
+            describe('to moderator', () => {
+              it('throws an error', async () => {
+                jest.clearAllMocks()
+                await mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_MODERATOR },
+                })
+                await expect(
+                  mutate({
+                    mutation: setUserRole,
+                    variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_MODERATOR },
+                  }),
+                ).resolves.toEqual(
+                  expect.objectContaining({
+                    errors: [new GraphQLError('User already has role=')],
+                  }),
+                )
+              })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith(
+                  'User already has role=',
+                  ROLE_NAMES.ROLE_NAME_MODERATOR,
                 )
               })
             })

@@ -19,10 +19,10 @@ export const userFactory = async (
       createUser: { id },
     },
   } = await mutate({ mutation: createUser, variables: user })
-  console.log('creatUser:', { id }, { user })
+  // console.log('after creatUser:', { id }, { user })
   // get user from database
   let dbUser = await User.findOneOrFail({ where: { id }, relations: ['emailContact', 'userRoles'] })
-  console.log('dbUser:', dbUser)
+  // console.log('dbUser:', dbUser)
 
   const emailContact = dbUser.emailContact
   // console.log('emailContact:', emailContact)

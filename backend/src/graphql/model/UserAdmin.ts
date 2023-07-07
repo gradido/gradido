@@ -53,29 +53,24 @@ export class UserAdmin {
 
   @Field(() => [String], { nullable: true })
   roles: string[] | null
+
+  @Field(() => Boolean)
+  isAdmin(): boolean {
+    if (this.roles) {
+      return this.roles.includes(ROLE_NAMES.ROLE_NAME_ADMIN)
+    }
+    return false
+  }
+
+  @Field(() => Boolean)
+  isModerator(): boolean {
+    if (this.roles) {
+      return this.roles.includes(ROLE_NAMES.ROLE_NAME_MODERATOR)
+    }
+    return false
+  }
 }
 
-export function isAdmin(user: UserAdmin): boolean {
-  if (user.roles) {
-    for (const role of user.roles) {
-      if (role === ROLE_NAMES.ROLE_NAME_ADMIN) {
-        return true
-      }
-    }
-  }
-  return false
-}
-
-export function isModerator(user: UserAdmin): boolean {
-  if (user.roles) {
-    for (const role of user.roles) {
-      if (role === ROLE_NAMES.ROLE_NAME_MODERATOR) {
-        return true
-      }
-    }
-  }
-  return false
-}
 
 @ObjectType()
 export class SearchUsersResult {
