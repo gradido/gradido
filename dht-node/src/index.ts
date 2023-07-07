@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { startDHT } from '@/dht_node/index'
 
-// config
-import CONFIG from './config'
+import { CONFIG } from './config'
 import { logger } from './server/logger'
-import connection from './typeorm/connection'
+import { connection } from './typeorm/connection'
 import { checkDBVersion } from './typeorm/DBVersion'
 
 async function main() {
