@@ -24,6 +24,7 @@ import { UserContactType } from '@enum/UserContactType'
 import { SearchAdminUsersResult } from '@model/AdminUser'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
+import { UserContact } from '@model/UserContact'
 
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
@@ -69,7 +70,6 @@ import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { validateAlias } from './util/validateAlias'
-import { UserContact } from '../model/UserContact'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
