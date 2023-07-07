@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-import { sendDataMessage, getMessage } from '@/client/IotaClient'
+import { sendMessage, receiveMessage } from '@/client/IotaClient'
 
 jest.mock('@iota/client', () => {
   const mockMessageSender = jest.fn().mockImplementation(() => {
@@ -50,12 +50,12 @@ jest.mock('@iota/client', () => {
 
 describe('Iota Tests', () => {
   it('test mocked sendDataMessage', async () => {
-    const result = await sendDataMessage('Test Message')
+    const result = await sendMessage('Test Message')
     expect(result).toBe('5498130bc3918e1a7143969ce05805502417e3e1bd596d3c44d6a0adeea22710')
   })
 
   it('should mock getMessage', async () => {
-    const result = await getMessage(
+    const result = await receiveMessage(
       '5498130bc3918e1a7143969ce05805502417e3e1bd596d3c44d6a0adeea22710',
     )
     expect(result).toMatchObject({

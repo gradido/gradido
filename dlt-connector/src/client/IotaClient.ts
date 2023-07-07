@@ -11,7 +11,7 @@ const client = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
  * @param {string} message - the message as utf based string, will be converted to hex automatically from @iota/client
  * @return {Promise<MessageWrapper>} the iota message typed
  */
-function sendDataMessage(message: string): Promise<MessageWrapper> {
+function sendMessage(message: string): Promise<MessageWrapper> {
   return client.message().index(CONFIG.IOTA_COMMUNITY_ALIAS).data(message).submit()
 }
 
@@ -20,11 +20,11 @@ function sendDataMessage(message: string): Promise<MessageWrapper> {
  * @param {string} messageId - as hex string
  * @return {Promise<MessageWrapper>} the iota message typed
  */
-function getMessage(messageId: string): Promise<MessageWrapper> {
+function receiveMessage(messageId: string): Promise<MessageWrapper> {
   return client.getMessage().data(messageId)
 }
 
-export { sendDataMessage, getMessage }
+export { sendMessage, receiveMessage }
 
 /**
  * example for message: 
