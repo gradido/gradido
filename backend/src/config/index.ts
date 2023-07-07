@@ -19,7 +19,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v16.2023-06-08',
+    EXPECTED: 'v17.2023-07-03',
     CURRENT: '',
   },
 }
@@ -49,12 +49,6 @@ const klicktipp = {
   KLICKTIPP_PASSWORD: process.env.KLICKTIPP_PASSWORD ?? 'secret321',
   KLICKTIPP_APIKEY_DE: process.env.KLICKTIPP_APIKEY_DE ?? 'SomeFakeKeyDE',
   KLICKTIPP_APIKEY_EN: process.env.KLICKTIPP_APIKEY_EN ?? 'SomeFakeKeyEN',
-}
-
-const iota = {
-  IOTA: process.env.IOTA === 'true' || false,
-  IOTA_API_URL: process.env.IOTA_API_URL ?? 'https://chrysalis-nodes.iota.org',
-  IOTA_COMMUNITY_ALIAS: process.env.IOTA_COMMUNITY_ALIAS ?? 'GRADIDO: TestHelloWelt1',
 }
 
 const community = {
@@ -132,7 +126,6 @@ export const CONFIG = {
   ...server,
   ...database,
   ...klicktipp,
-  ...iota,
   ...community,
   ...email,
   ...loginServer,

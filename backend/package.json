@@ -1,6 +1,6 @@
 {
   "name": "gradido-backend",
-  "version": "1.22.0",
+  "version": "1.22.1",
   "description": "Gradido unified backend providing an API-Service for Gradido Transactions",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/backend",
@@ -19,7 +19,6 @@
     "locales": "scripts/sort.sh"
   },
   "dependencies": {
-    "@iota/client": "^2",
     "apollo-server-express": "^2.25.2",
     "await-semaphore": "^0.1.3",
     "axios": "^0.21.1",
