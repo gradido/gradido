@@ -71,7 +71,6 @@ export class UserAdmin {
   }
 }
 
-
 @ObjectType()
 export class SearchUsersResult {
   @Field(() => Int)

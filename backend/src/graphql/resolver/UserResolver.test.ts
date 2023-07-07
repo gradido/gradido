@@ -1006,25 +1006,24 @@ describe('UserResolver', () => {
                 userId: user[0].id,
               },
             }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                userContact: {
-                  id: expect.any(Number),
-                  type: UserContactType.USER_CONTACT_EMAIL,
-                  userId: user[0].id,
-                  email: 'bibi@bloxberg.de',
-                  emailOptInTypeId: expect.any(Number),
-                  emailResendCount: expect.any(Number),
-                  emailChecked: expect.any(Boolean),
-                  phone: null,
-                  createdAt: expect.any(Date),
-                  updatedAt: expect.any(Date),
-                  deletedAt: null,
-                },
+          ).resolves.toMatchObject({
+            // expect.objectContaining({
+            data: {
+              userContact: {
+                id: expect.any(Number),
+                type: UserContactType.USER_CONTACT_EMAIL,
+                userId: user[0].id,
+                email: 'bibi@bloxberg.de',
+                emailOptInTypeId: expect.any(Number),
+                emailResendCount: expect.any(Number),
+                emailChecked: expect.any(Boolean),
+                phone: null,
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+                deletedAt: null,
               },
-            }),
-          )
+            },
+          })
         })
       })
     })
