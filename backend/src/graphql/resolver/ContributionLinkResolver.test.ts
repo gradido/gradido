@@ -542,7 +542,7 @@ describe('Contribution Links', () => {
           })
 
           it('updated the DB record', async () => {
-            await expect(DbContributionLink.findOne(linkId)).resolves.toEqual(
+            await expect(DbContributionLink.findOne({ where: { id: linkId } })).resolves.toEqual(
               expect.objectContaining({
                 id: linkId,
                 name: 'Dokumenta 2023',

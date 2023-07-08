@@ -1,8 +1,8 @@
 import gql from 'graphql-tag'
 
-export const listContributionMessages = gql`
+export const adminListContributionMessages = gql`
   query ($contributionId: Int!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
-    listContributionMessages(
+    adminListContributionMessages(
       contributionId: $contributionId
       pageSize: $pageSize
       currentPage: $currentPage

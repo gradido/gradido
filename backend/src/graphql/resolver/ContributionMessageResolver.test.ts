@@ -4,10 +4,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Connection } from '@dbTools/typeorm'
+import { Contribution as DbContribution } from '@entity/Contribution'
 import { Event as DbEvent } from '@entity/Event'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 
+import { ContributionStatus } from '@enum/ContributionStatus'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
@@ -20,7 +22,7 @@ import {
   createContributionMessage,
   login,
 } from '@/seeds/graphql/mutations'
-import { listContributionMessages } from '@/seeds/graphql/queries'
+import { listContributionMessages, adminListContributionMessages } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
@@ -168,6 +170,50 @@ describe('ContributionMessageResolver', () => {
         })
       })
 
+      describe('contribution message type MODERATOR', () => {
+        beforeAll(() => {
+          jest.clearAllMocks()
+        })
+
+        it('creates ContributionMessage', async () => {
+          await expect(
+            mutate({
+              mutation: adminCreateContributionMessage,
+              variables: {
+                contributionId: result.data.createContribution.id,
+                message: 'Internal moderator communication',
+                messageType: 'MODERATOR',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                adminCreateContributionMessage: expect.objectContaining({
+                  id: expect.any(Number),
+                  message: 'Internal moderator communication',
+                  type: 'MODERATOR',
+                  userFirstName: 'Peter',
+                  userLastName: 'Lustig',
+                }),
+              },
+            }),
+          )
+        })
+
+        it('does not call sendAddedContributionMessageEmail', () => {
+          expect(sendAddedContributionMessageEmail).not.toBeCalled()
+        })
+
+        it('does not change contribution status', async () => {
+          await expect(DbContribution.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              id: result.data.createContribution.id,
+              contributionStatus: ContributionStatus.PENDING,
+            }),
+          )
+        })
+      })
+
       describe('valid input', () => {
         it('creates ContributionMessage', async () => {
           await expect(
@@ -203,6 +249,15 @@ describe('ContributionMessageResolver', () => {
             senderLastName: 'Lustig',
             contributionMemo: 'Test env contribution',
           })
+        })
+
+        it('changes contribution status', async () => {
+          await expect(DbContribution.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              id: result.data.createContribution.id,
+              contributionStatus: ContributionStatus.IN_PROGRESS,
+            }),
+          )
         })
 
         it('stores the ADMIN_CONTRIBUTION_MESSAGE_CREATE event in the database', async () => {
@@ -385,7 +440,7 @@ describe('ContributionMessageResolver', () => {
         resetToken()
       })
 
-      it('returns a list of contributionmessages', async () => {
+      it('returns a list of contributionmessages without type MODERATOR', async () => {
         await expect(
           mutate({
             mutation: listContributionMessages,
@@ -410,6 +465,98 @@ describe('ContributionMessageResolver', () => {
                     type: 'DIALOG',
                     userFirstName: 'Bibi',
                     userLastName: 'Bloxberg',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
+      })
+    })
+  })
+
+  describe('adminListContributionMessages', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          mutate({
+            mutation: adminListContributionMessages,
+            variables: { contributionId: 1 },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated as user', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      it('returns an error', async () => {
+        await expect(
+          mutate({
+            mutation: adminListContributionMessages,
+            variables: { contributionId: 1 },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated as admin', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(() => {
+        resetToken()
+      })
+
+      it('returns a list of contributionmessages with type MODERATOR', async () => {
+        await expect(
+          mutate({
+            mutation: adminListContributionMessages,
+            variables: { contributionId: result.data.createContribution.id },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              adminListContributionMessages: {
+                count: 3,
+                messages: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    message: 'Admin Test',
+                    type: 'DIALOG',
+                    userFirstName: 'Peter',
+                    userLastName: 'Lustig',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    message: 'User Test',
+                    type: 'DIALOG',
+                    userFirstName: 'Bibi',
+                    userLastName: 'Bloxberg',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    message: 'Internal moderator communication',
+                    type: 'MODERATOR',
+                    userFirstName: 'Peter',
+                    userLastName: 'Lustig',
                   }),
                 ]),
               },

@@ -36,6 +36,9 @@ backend: &backend
 dht_node: &dht_node
   - 'dht-node/**/*'
 
+dlt_connector: &dlt_connector
+  - 'dlt-connector/**/*'
+
 docker-compose: &docker-compose
   - 'docker-compose.*'
 
