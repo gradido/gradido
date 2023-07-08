@@ -8,7 +8,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v1.2023-07-04',
+    EXPECTED: 'v2.2023-07-07',
     CURRENT: '',
   },
 }
@@ -20,6 +20,10 @@ const server = {
 const iota = {
   IOTA_API_URL: process.env.IOTA_API_URL ?? 'https://chrysalis-nodes.iota.org',
   IOTA_COMMUNITY_ALIAS: process.env.IOTA_COMMUNITY_ALIAS ?? 'GRADIDO: TestHelloWelt2',
+}
+
+const dltConnector = {
+  DLT_CONNECTOR_PORT: process.env.DLT_CONNECTOR_PORT || 6000,
 }
 
 // Check config version
@@ -38,4 +42,5 @@ export const CONFIG = {
   ...constants,
   ...server,
   ...iota,
+  ...dltConnector,
 }
