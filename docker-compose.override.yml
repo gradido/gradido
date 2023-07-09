@@ -198,6 +198,7 @@ volumes:
   dht_node_modules:
   dht_database_node_modules:
   dht_database_build:
+  dlt_connector_modules:
   federation_node_modules:
   federation_database_node_modules:
   federation_database_build:
