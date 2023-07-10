@@ -1,5 +1,6 @@
 <template>
   <div class="change-user-role-formular">
+    {{ item }}
     <div class="shadow p-3 mb-5 bg-white rounded">
       <div v-if="item.userId === $store.state.moderator.id" class="m-3 mb-4">
         {{ $t('userRole.notChangeYourSelf') }}
@@ -94,7 +95,7 @@ export default {
           mutation: setUserRole,
           variables: {
             userId: this.item.userId,
-            isAdmin: newRole === rolesValues.admin,
+            role: newRole,
           },
         })
         .then((result) => {
@@ -104,10 +105,7 @@ export default {
           })
           this.toastSuccess(
             this.$t('userRole.successfullyChangedTo', {
-              role:
-                result.data.setUserRole !== null
-                  ? this.$t('userRole.selectRoles.admin')
-                  : this.$t('userRole.selectRoles.user'),
+              role: this.getRoleText,
             }),
           )
         })
