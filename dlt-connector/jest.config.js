@@ -18,6 +18,7 @@ module.exports = {
     '@input/(.*)': '<rootDir>/src/graphql/input/$1',
     '@proto/(.*)': '<rootDir>/src/proto/$1',
     '@test/(.*)': '<rootDir>/test/$1',
+    '@client/(.*)': '<rootDir>/src/client/$1',
     '@entity/(.*)':
       // eslint-disable-next-line n/no-process-env
       process.env.NODE_ENV === 'development'

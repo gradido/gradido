@@ -24,7 +24,7 @@ export class TransactionResolver {
   ): Promise<string> {
     const message = TransactionBody.fromObject(transaction)
     const messageBuffer = TransactionBody.encode(message).finish()
-    const resultMessage = iotaSendMessage(messageBuffer)
-    return (await resultMessage).messageId
+    const resultMessage = await iotaSendMessage(messageBuffer)
+    return resultMessage.messageId
   }
 }
