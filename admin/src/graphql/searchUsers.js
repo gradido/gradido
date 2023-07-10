@@ -27,6 +27,8 @@ export const searchUsers = gql`
         emailConfirmationSend
         deletedAt
         isAdmin
+        isModerator
+        roles
       }
     }
   }

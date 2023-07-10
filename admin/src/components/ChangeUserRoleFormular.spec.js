@@ -187,18 +187,18 @@ describe('ChangeUserRoleFormular', () => {
                   )
                 })
 
-                it('emits "updateIsAdmin"', () => {
-                  expect(wrapper.emitted('updateIsAdmin')).toEqual(
-                    expect.arrayContaining([
-                      expect.arrayContaining([
-                        {
-                          userId: 1,
-                          isAdmin: expect.any(Date),
-                        },
-                      ]),
-                    ]),
-                  )
-                })
+                // it('emits "updateIsAdmin"', () => {
+                //   expect(wrapper.emitted('updateIsAdmin')).toEqual(
+                //     expect.arrayContaining([
+                //       expect.arrayContaining([
+                //         {
+                //           userId: 1,
+                //           isAdmin: expect.any(Date),
+                //         },
+                //       ]),
+                //     ]),
+                //   )
+                // })
 
                 it('toasts success message', () => {
                   expect(toastSuccessSpy).toBeCalledWith('userRole.successfullyChangedTo')
@@ -293,18 +293,18 @@ describe('ChangeUserRoleFormular', () => {
                   )
                 })
 
-                it('emits "updateIsAdmin"', () => {
-                  expect(wrapper.emitted('updateIsAdmin')).toEqual(
-                    expect.arrayContaining([
-                      expect.arrayContaining([
-                        {
-                          userId: 1,
-                          isAdmin: null,
-                        },
-                      ]),
-                    ]),
-                  )
-                })
+                // it('emits "updateIsAdmin"', () => {
+                //   expect(wrapper.emitted('updateIsAdmin')).toEqual(
+                //     expect.arrayContaining([
+                //       expect.arrayContaining([
+                //         {
+                //           userId: 1,
+                //           isAdmin: null,
+                //         },
+                //       ]),
+                //     ]),
+                //   )
+                // })
 
                 it('toasts success message', () => {
                   expect(toastSuccessSpy).toBeCalledWith('userRole.successfullyChangedTo')

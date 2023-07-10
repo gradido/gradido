@@ -208,25 +208,25 @@ describe('UserSearch', () => {
     describe('change user role', () => {
       const userId = 4
 
-      describe('to admin', () => {
-        it('updates user role to admin', async () => {
-          await wrapper
-            .findComponent({ name: 'SearchUserTable' })
-            .vm.$emit('updateIsAdmin', userId, new Date())
-          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(
-            expect.any(Date),
-          )
-        })
-      })
+      // describe('to admin', () => {
+      //   it('updates user role to admin', async () => {
+      //     await wrapper
+      //       .findComponent({ name: 'SearchUserTable' })
+      //       .vm.$emit('updateIsAdmin', userId, new Date())
+      //     expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(
+      //       expect.any(Date),
+      //     )
+      //   })
+      // })
 
-      describe('to usual user', () => {
-        it('updates user role to usual user', async () => {
-          await wrapper
-            .findComponent({ name: 'SearchUserTable' })
-            .vm.$emit('updateIsAdmin', userId, null)
-          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(null)
-        })
-      })
+      // describe('to usual user', () => {
+      //   it('updates user role to usual user', async () => {
+      //     await wrapper
+      //       .findComponent({ name: 'SearchUserTable' })
+      //       .vm.$emit('updateIsAdmin', userId, null)
+      //     expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(null)
+      //   })
+      // })
     })
 
     describe('delete user', () => {

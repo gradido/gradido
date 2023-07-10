@@ -47,7 +47,7 @@ export const mutations = {
     state.isAdmin = !!isAdmin
   },
   isModerator: (state, isModerator) => {
-    state.isModerator = isModerator
+    state.isModerator = !!isModerator
   },
   hasElopage: (state, hasElopage) => {
     state.hasElopage = hasElopage
@@ -78,7 +78,7 @@ export const actions = {
     commit('publisherId', data.publisherId)
     commit('isAdmin', data.isAdmin)
     commit('roles', data.roles[0])
-    commit('isModerator', data.roles[0] === 'moderator' || data.roles[0] === 'admin')
+    commit('isModerator', data.isModerator)
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
     commit('setDarkMode', data.darkMode)

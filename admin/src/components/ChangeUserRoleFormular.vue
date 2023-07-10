@@ -99,10 +99,10 @@ export default {
           },
         })
         .then((result) => {
-          this.$emit('updateIsAdmin', {
-            userId: this.item.userId,
-            isAdmin: result.data.setUserRole,
-          })
+          // this.$emit('updateIsAdmin', {
+          //   userId: this.item.userId,
+          //   isAdmin: result.data.setUserRole,
+          // })
           this.toastSuccess(
             this.$t('userRole.successfullyChangedTo', {
               role: this.getRoleText,

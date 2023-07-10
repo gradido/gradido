@@ -94,18 +94,18 @@ describe('SearchUserTable', () => {
         await wrapper.findAll('tbody > tr').at(1).trigger('click')
       })
 
-      describe('isAdmin', () => {
-        beforeEach(async () => {
-          await wrapper.find('div.change-user-role-formular').vm.$emit('updateIsAdmin', {
-            userId: 1,
-            isAdmin: new Date(),
-          })
-        })
+      // describe('isAdmin', () => {
+      //   beforeEach(async () => {
+      //     await wrapper.find('div.change-user-role-formular').vm.$emit('updateIsAdmin', {
+      //       userId: 1,
+      //       isAdmin: new Date(),
+      //     })
+      //   })
 
-        it('emits updateIsAdmin', () => {
-          expect(wrapper.emitted('updateIsAdmin')).toEqual([[1, expect.any(Date)]])
-        })
-      })
+      //   it('emits updateIsAdmin', () => {
+      //     expect(wrapper.emitted('updateIsAdmin')).toEqual([[1, expect.any(Date)]])
+      //   })
+      // })
 
       describe('deleted at', () => {
         beforeEach(async () => {

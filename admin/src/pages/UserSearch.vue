@@ -28,7 +28,6 @@
       type="PageUserSearch"
       :items="searchResult"
       :fields="fields"
-      @updateIsAdmin="updateIsAdmin"
       @updateDeletedAt="updateDeletedAt"
     />
     <b-pagination
@@ -101,9 +100,10 @@ export default {
           this.toastError(error.message)
         })
     },
-    updateIsAdmin(userId, isAdmin) {
-      this.searchResult.find((obj) => obj.userId === userId).isAdmin = isAdmin
-    },
+    // updateIsAdmin(userId, isAdmin) {
+    //   console.log('UpdateSearch updateIsAdmin', isAdmin)
+    //   this.searchResult.find((obj) => obj.userId === userId).isAdmin = isAdmin
+    // },
     updateDeletedAt(userId, deletedAt) {
       this.searchResult.find((obj) => obj.userId === userId).deletedAt = deletedAt
       this.toastSuccess(deletedAt ? this.$t('user_deleted') : this.$t('user_recovered'))
