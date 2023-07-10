@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^3.2.1",
+    "@graphql-tools/mock": "^9.0.0",
     "@types/cors": "^2.8.13",
     "@types/jest": "^27.0.2",
     "@types/node": "^18.11.18",
