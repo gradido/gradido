@@ -221,24 +221,30 @@ describe('semaphore', () => {
     })
 
     it('does throw error on second redeem call', async () => {
-      const redeem1 = mutate({
-        mutation: redeemTransactionLink,
-        variables: {
-          code: myCode,
-        },
-      })
-      const redeem2 = mutate({
-        mutation: redeemTransactionLink,
-        variables: {
-          code: myCode,
-        },
-      })
-      await expect(redeem1).resolves.toMatchObject({
-        errors: undefined,
-      })
-      await expect(redeem2).resolves.toMatchObject({
-        errors: [new GraphQLError('Transaction link already redeemed')],
-      })
+      const result = await Promise.all([
+        mutate({
+          mutation: redeemTransactionLink,
+          variables: {
+            code: myCode,
+          },
+        }),
+        mutate({
+          mutation: redeemTransactionLink,
+          variables: {
+            code: myCode,
+          },
+        }),
+      ])
+      expect(result).toContainEqual(
+        expect.objectContaining({
+          errors: [new GraphQLError('Transaction link already redeemed')],
+        }),
+      )
+      expect(result).toContainEqual(
+        expect.objectContaining({
+          errors: undefined,
+        }),
+      )
     })
   })
 })
