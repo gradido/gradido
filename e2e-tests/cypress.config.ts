@@ -26,14 +26,6 @@ async function setupNodeEvents(
     },
   })
 
-  on('after:run', (results) => {
-    if (results) {
-      // results will be undefined in interactive mode
-      // eslint-disable-next-line no-console
-      console.log(results.status)
-    }
-  })
-
   return config
 }
 
