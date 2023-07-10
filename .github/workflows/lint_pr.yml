@@ -30,6 +30,7 @@ jobs:
             release
             federation
             dht
+            dlt
             workflow
             docker
             other

@@ -42,7 +42,6 @@
               <div class="text-right" ref="submitButton">
                 <b-button
                   :variant="disabled(invalid) ? 'light' : 'success'"
-                  @click="onSubmit"
                   type="submit"
                   :disabled="disabled(invalid)"
                   data-test="submit-username-button"
@@ -83,7 +82,6 @@ export default {
   },
   methods: {
     async onSubmit(event) {
-      event.preventDefault()
       this.$apollo
         .mutate({
           mutation: updateUserInfos,

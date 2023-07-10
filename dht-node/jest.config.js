@@ -1,4 +1,5 @@
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
+// eslint-disable-next-line import/no-commonjs, import/unambiguous
 module.exports = {
   verbose: true,
   preset: 'ts-jest',

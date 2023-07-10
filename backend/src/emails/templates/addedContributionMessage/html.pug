@@ -9,6 +9,6 @@ block content
     h2= t('emails.addedContributionMessage.readMessage')
     div(class="p_content")= t('emails.addedContributionMessage.toSeeAndAnswerMessage')
 
-    a.button-3(href=`${communityURL}contribution`) #{t('emails.general.toAccount')}
+    a.button-3(href=`${communityURL}community/contributions`) #{t('emails.general.toAccount')}
 
     include ../includes/doNotReply.pug
