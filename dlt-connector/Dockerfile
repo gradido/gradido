@@ -67,7 +67,7 @@ FROM base as build
 COPY ./dlt-connector/ ./
 
 # yarn install dlt-connector
-RUN yarn install --production=false --frozen-lockfile --non-interactive
+RUN yarn cache clean && yarn install --production=false --frozen-lockfile --non-interactive
 
 # yarn build
 RUN yarn run build
