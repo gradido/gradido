@@ -40,8 +40,14 @@ export const mutations = {
     if (isNaN(pubId)) pubId = null
     state.publisherId = pubId
   },
+  roles(state, roles) {
+    state.roles = roles
+  },
   isAdmin: (state, isAdmin) => {
     state.isAdmin = !!isAdmin
+  },
+  isModerator: (state, isModerator) => {
+    state.isModerator = isModerator
   },
   hasElopage: (state, hasElopage) => {
     state.hasElopage = hasElopage
@@ -71,6 +77,8 @@ export const actions = {
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
     commit('isAdmin', data.isAdmin)
+    commit('roles', data.roles[0])
+    commit('isModerator', data.roles[0] === 'moderator' || data.roles[0] === 'admin')
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
     commit('setDarkMode', data.darkMode)
@@ -85,6 +93,8 @@ export const actions = {
     commit('hasElopage', false)
     commit('publisherId', null)
     commit('isAdmin', false)
+    commit('roles', '')
+    commit('isModerator', false)
     commit('hideAmountGDD', false)
     commit('hideAmountGDT', true)
     commit('email', '')
@@ -112,6 +122,8 @@ try {
       token: null,
       tokenTime: null,
       isAdmin: false,
+      roles: 'user',
+      isModerator: false,
       newsletterState: null,
       hasElopage: false,
       publisherId: null,

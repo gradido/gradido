@@ -261,6 +261,7 @@
   "moderatorChat": "Moderator Chat",
   "navigation": {
     "admin_area": "Admin Area",
+    "moderator_area": "Moderators",
     "community": "Community",
     "info": "Information",
     "logout": "Logout",
