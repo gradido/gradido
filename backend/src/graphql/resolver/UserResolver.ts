@@ -224,7 +224,6 @@ export class UserResolver {
     // check if user with email still exists?
     email = email.trim().toLowerCase()
     if (await checkEmailExists(email)) {
-      // console.log('email still exists! email', email)
       const foundUser = await findUserByEmail(email)
       logger.info('DbUser.findOne', email, foundUser)
 
