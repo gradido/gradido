@@ -36,7 +36,6 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
       withDeleted: true,
       relations: ['emailContact', 'userRoles'],
     })
-    // console.log('isAuthorized user=', user)
     context.user = user
     context.role = ROLE_USER
     if (user.userRoles && user.userRoles.length > 0) {
@@ -51,9 +50,7 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
           context.role = ROLE_USER
       }
     }
-    // console.log('context.role=', context.role)
   } catch {
-    // console.log('401 Unauthorized for decoded', decoded)
     // in case the database query fails (user deleted)
     throw new LogError('401 Unauthorized')
   }

@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { User } from '@entity/User'
-import { UserRole } from '@entity/UserRole'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { ROLE_NAMES } from '@/auth/ROLES'
+import { setUserRole } from '@/graphql/resolver/util/modifyUserRole'
 import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { UserInterface } from '@/seeds/users/UserInterface'
 
@@ -44,12 +44,7 @@ export const userFactory = async (
       user.role &&
       (user.role === ROLE_NAMES.ROLE_NAME_ADMIN || user.role === ROLE_NAMES.ROLE_NAME_MODERATOR)
     ) {
-      dbUser.userRoles = [] as UserRole[]
-      dbUser.userRoles[0] = UserRole.create()
-      dbUser.userRoles[0].createdAt = new Date()
-      dbUser.userRoles[0].role = user.role
-      dbUser.userRoles[0].userId = dbUser.id
-      await dbUser.userRoles[0].save()
+      await setUserRole(dbUser, user.role)
     }
     await dbUser.save()
   }

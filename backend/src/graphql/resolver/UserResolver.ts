@@ -69,6 +69,7 @@ import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
+import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { validateAlias } from './util/validateAlias'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
@@ -135,7 +136,6 @@ export class UserResolver {
     logger.info(`login with ${email}, ***, ${publisherId} ...`)
     email = email.trim().toLowerCase()
     const dbUser = await findUserByEmail(email)
-    // console.log('login dbUser=', dbUser)
     if (dbUser.deletedAt) {
       throw new LogError('This user was permanently deleted. Contact support for questions', dbUser)
     }
@@ -738,31 +738,13 @@ export class UserResolver {
       throw new LogError('Administrator can not change his own role')
     }
     // if user role(s) should be deleted by role=null as parameter
-    if (role === null && user.userRoles) {
-      if (user.userRoles.length > 0) {
-        // remove all roles of the user
-        await UserRole.delete({ userId: user.id })
-        user.userRoles.length = 0
-      } else if (user.userRoles.length === 0) {
-        throw new LogError('User is already an usual user')
-      }
+    if (role === null) {
+      await deleteUserRole(user)
     } else if (isUserInRole(user, role)) {
       throw new LogError('User already has role=', role)
+    } else {
+      await setUserRole(user, role)
     }
-    // if role shoud be set
-    if (role) {
-      if (user.userRoles === undefined) {
-        user.userRoles = [] as UserRole[]
-      }
-      if (user.userRoles.length < 1) {
-        user.userRoles.push(UserRole.create())
-      }
-      user.userRoles[0].createdAt = new Date()
-      user.userRoles[0].role = role
-      user.userRoles[0].userId = user.id
-      await UserRole.save(user.userRoles[0])
-    }
-    // await user.save()
     await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
     const newUser = await DbUser.findOne({ where: { id: userId }, relations: ['userRoles'] })
     return newUser?.userRoles ? newUser.userRoles[0].role : null
@@ -899,10 +881,10 @@ const canEmailResend = (updatedAt: Date): boolean => {
   return !isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_REQUEST_TIME)
 }
 
-export function isUserInRole(user: DbUser, role: string | null): boolean {
-  if (user?.userRoles) {
-    for (const usrRole of user.userRoles) {
-      if (usrRole.role === role) {
+export function isUserInRole(user: DbUser, role: string): boolean {
+  if (user && role) {
+    for (const userRole of user.userRoles) {
+      if (userRole.role === role) {
         return true
       }
     }
