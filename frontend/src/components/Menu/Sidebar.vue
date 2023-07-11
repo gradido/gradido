@@ -49,18 +49,14 @@
           </b-nav-item>
           <b-nav-item
             class="mb-3 text-light"
-            v-if="$store.state.isModerator"
+            v-if="$store.state.roles.length > 0"
             @click="$emit('admin')"
             active-class="activeRoute"
           >
             <b-icon icon="shield-check" aria-hidden="true"></b-icon>
-            <span v-if="$store.state.isAdmin" class="ml-2">
+            <span class="ml-2">
               {{ $t('navigation.admin_area') }}
             </span>
-            <span v-else class="ml-2">
-              {{ $t('navigation.moderator_area') }}
-            </span>
-            {{ this.$store.state }}
           </b-nav-item>
           <b-nav-item
             class="font-weight-bold"

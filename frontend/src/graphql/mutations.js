@@ -156,7 +156,6 @@ export const login = gql`
       }
       hasElopage
       publisherId
-      isAdmin
       roles
       hideAmountGDD
       hideAmountGDT

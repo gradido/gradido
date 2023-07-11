@@ -43,12 +43,6 @@ export const mutations = {
   roles(state, roles) {
     state.roles = roles
   },
-  isAdmin: (state, isAdmin) => {
-    state.isAdmin = !!isAdmin
-  },
-  isModerator: (state, isModerator) => {
-    state.isModerator = !!isModerator
-  },
   hasElopage: (state, hasElopage) => {
     state.hasElopage = hasElopage
   },
@@ -76,9 +70,7 @@ export const actions = {
     commit('newsletterState', data.klickTipp.newsletterState)
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
-    commit('isAdmin', data.isAdmin)
-    commit('roles', data.roles[0])
-    commit('isModerator', data.isModerator)
+    commit('roles', data.roles)
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
     commit('setDarkMode', data.darkMode)
@@ -92,9 +84,7 @@ export const actions = {
     commit('newsletterState', null)
     commit('hasElopage', false)
     commit('publisherId', null)
-    commit('isAdmin', false)
-    commit('roles', '')
-    commit('isModerator', false)
+    commit('roles', null)
     commit('hideAmountGDD', false)
     commit('hideAmountGDT', true)
     commit('email', '')
@@ -121,9 +111,7 @@ try {
       // username: '',
       token: null,
       tokenTime: null,
-      isAdmin: false,
-      roles: 'user',
-      isModerator: false,
+      roles: [],
       newsletterState: null,
       hasElopage: false,
       publisherId: null,
