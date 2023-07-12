@@ -31,7 +31,7 @@ export class FederationClient {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async request(query: string, variables?: any) {
     const nonce = randombytes_random()
-    const ownCommunity = await Community.findOneOrFail({ foreign: false })
+    const ownCommunity = await Community.findOneOrFail({ where: { foreign: false } })
     if (!ownCommunity.privateKey) {
       throw new Error('Own private key not in database')
     }
