@@ -14,7 +14,7 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
   }
 
   try {
-    const ownCommunity = await dbCommunity.findOneOrFail({ foreign: false })
+    const ownCommunity = await dbCommunity.findOneOrFail({ where: { foreign: false } })
     if (!ownCommunity.privateKey) {
       throw new LogError('Internal Server Error', 'Own private key not in database')
     }
@@ -29,10 +29,8 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
 
     context.role = ROLE_UNAUTHORIZED // unauthorized caller
 
-    const debugComKey = Buffer.alloc(64, 0)
-    decoded.publicKey.copy(debugComKey)
     const community = await dbCommunity.findOne({
-      where: { publicKey: debugComKey },
+      where: { publicKey: decoded.publicKey },
     })
     // todo do not respond with token below?
     if (community) {
