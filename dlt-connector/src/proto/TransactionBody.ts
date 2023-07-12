@@ -9,10 +9,10 @@ export class TransactionBody extends Message<TransactionBody> {
   type: TransactionType
 
   @Field.d(2, 'string')
-  amount: Decimal
+  amount: string
 
   @Field.d(3, 'uint64')
-  created: number
+  createdAt: number
 
   // @protoField.d(4, 'string')
   // communitySum: Decimal
