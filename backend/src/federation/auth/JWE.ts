@@ -5,19 +5,23 @@ import { compactDecrypt, compactVerify, CompactSign, CompactEncrypt } from 'jose
 import {
   crypto_sign_ed25519_pk_to_curve25519,
   crypto_sign_ed25519_sk_to_curve25519,
+  crypto_sign_SECRETKEYBYTES,
+  crypto_box_PUBLICKEYBYTES,
+  crypto_box_SECRETKEYBYTES,
 } from 'sodium-native'
-
-const crypto_scalarmult_curve25519_BYTES = 32
 
 export const verifyToken = async (
   token: string,
   keyPair: { publicKey: Buffer; privateKey: Buffer },
   nonce: number | null = null,
 ) => {
-  const pubKeyX = Buffer.alloc(crypto_scalarmult_curve25519_BYTES)
-  const privKeyX = Buffer.alloc(crypto_scalarmult_curve25519_BYTES)
-  crypto_sign_ed25519_pk_to_curve25519(pubKeyX, keyPair.publicKey.subarray(0, 32))
-  crypto_sign_ed25519_sk_to_curve25519(privKeyX, keyPair.privateKey.subarray(0, 32))
+  const pubKeyX = Buffer.alloc(crypto_box_PUBLICKEYBYTES)
+  const privKeyX = Buffer.alloc(crypto_box_SECRETKEYBYTES)
+  crypto_sign_ed25519_pk_to_curve25519(pubKeyX, keyPair.publicKey)
+  crypto_sign_ed25519_sk_to_curve25519(
+    privKeyX,
+    keyPair.privateKey.subarray(0, crypto_sign_SECRETKEYBYTES),
+  )
   const key = createPrivateKey({
     key: {
       kty: 'OKP',
@@ -60,15 +64,14 @@ export const generateToken = async (
   keyPair: { publicKey: Buffer; privateKey: Buffer },
   receiverPublicKey: Buffer,
 ) => {
-  const receiverPublicKeyFixed = Buffer.from(receiverPublicKey.toString(), 'hex')
-  const receiverPublicKeyFixedX = Buffer.alloc(crypto_scalarmult_curve25519_BYTES)
-  crypto_sign_ed25519_pk_to_curve25519(receiverPublicKeyFixedX, receiverPublicKeyFixed)
+  const receiverPublicKeyX = Buffer.alloc(crypto_box_PUBLICKEYBYTES)
+  crypto_sign_ed25519_pk_to_curve25519(receiverPublicKeyX, receiverPublicKey)
   const key = createPrivateKey({
     key: {
       kty: 'OKP',
       crv: 'Ed25519',
       x: keyPair.publicKey.toString('base64url'),
-      d: keyPair.privateKey.subarray(0, 32).toString('base64url'),
+      d: keyPair.privateKey.subarray(0, crypto_sign_SECRETKEYBYTES).toString('base64url'),
     },
     format: 'jwk',
   })
@@ -76,7 +79,7 @@ export const generateToken = async (
     key: {
       kty: 'OKP',
       crv: 'X25519',
-      x: receiverPublicKeyFixedX.toString('base64url'),
+      x: receiverPublicKeyX.toString('base64url'),
     },
     format: 'jwk',
   })
@@ -94,7 +97,7 @@ export const generateToken = async (
     new TextEncoder().encode(
       JSON.stringify({
         jws,
-        publicKey: keyPair.publicKey.subarray(0, 32),
+        publicKey: keyPair.publicKey,
       }),
     ),
   )
