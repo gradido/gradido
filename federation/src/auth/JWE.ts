@@ -5,20 +5,73 @@ import { compactDecrypt, compactVerify, CompactSign, CompactEncrypt } from 'jose
 import {
   crypto_sign_ed25519_pk_to_curve25519,
   crypto_sign_ed25519_sk_to_curve25519,
+  crypto_sign_SECRETKEYBYTES,
+  crypto_box_PUBLICKEYBYTES,
+  crypto_box_SECRETKEYBYTES,
 } from 'sodium-native'
 
-const crypto_scalarmult_curve25519_BYTES = 32
+interface JWSPayload {
+  nonce: number
+  time: Date
+}
+interface JWEPayload {
+  jws: string
+  publicKey: string
+}
+interface KeyPair {
+  publicKey: Buffer
+  privateKey: Buffer
+}
 
-export const verifyToken = async (
-  token: string,
-  keyPair: { publicKey: Buffer; privateKey: Buffer },
-  nonce: number | null = null,
-) => {
-  const pubKeyX = Buffer.alloc(crypto_scalarmult_curve25519_BYTES)
-  const privKeyX = Buffer.alloc(crypto_scalarmult_curve25519_BYTES)
-  crypto_sign_ed25519_pk_to_curve25519(pubKeyX, keyPair.publicKey.subarray(0, 32))
-  crypto_sign_ed25519_sk_to_curve25519(privKeyX, keyPair.privateKey.subarray(0, 32))
-  const key = createPrivateKey({
+// eslint-disable-next-line camelcase
+const jwk_ed25519_pk = (publicKey: Buffer) => {
+  return createPublicKey({
+    key: {
+      kty: 'OKP',
+      crv: 'Ed25519',
+      x: publicKey.toString('base64url'),
+    },
+    format: 'jwk',
+  })
+}
+
+// eslint-disable-next-line camelcase
+const jwk_ed25519_sk = (keyPair: KeyPair) => {
+  return createPrivateKey({
+    key: {
+      kty: 'OKP',
+      crv: 'Ed25519',
+      x: keyPair.publicKey.toString('base64url'),
+      d: keyPair.privateKey.subarray(0, crypto_sign_SECRETKEYBYTES).toString('base64url'),
+    },
+    format: 'jwk',
+  })
+}
+
+// eslint-disable-next-line camelcase
+const jwk_x25519_pk = (publicKey: Buffer) => {
+  const publicKeyX = Buffer.alloc(crypto_box_PUBLICKEYBYTES)
+  crypto_sign_ed25519_pk_to_curve25519(publicKeyX, publicKey)
+  return createPublicKey({
+    key: {
+      kty: 'OKP',
+      crv: 'X25519',
+      x: publicKeyX.toString('base64url'),
+    },
+    format: 'jwk',
+  })
+}
+
+// eslint-disable-next-line camelcase
+const jwk_x25519_sk = (keyPair: KeyPair) => {
+  const pubKeyX = Buffer.alloc(crypto_box_PUBLICKEYBYTES)
+  const privKeyX = Buffer.alloc(crypto_box_SECRETKEYBYTES)
+  crypto_sign_ed25519_pk_to_curve25519(pubKeyX, keyPair.publicKey)
+  crypto_sign_ed25519_sk_to_curve25519(
+    privKeyX,
+    keyPair.privateKey.subarray(0, crypto_sign_SECRETKEYBYTES),
+  )
+  return createPrivateKey({
     key: {
       kty: 'OKP',
       crv: 'X25519',
@@ -27,59 +80,28 @@ export const verifyToken = async (
     },
     format: 'jwk',
   })
+}
 
+export const verifyToken = async (token: string, keyPair: KeyPair, nonce: number | null = null) => {
+  const key = jwk_x25519_sk(keyPair)
   const { plaintext } = await compactDecrypt(token, key)
-  const decryptedJWEPayload = JSON.parse(new TextDecoder().decode(plaintext)) as {
-    jws: string
-    publicKey: string
-  }
-  const foreignPub = createPublicKey({
-    key: {
-      kty: 'OKP',
-      crv: 'Ed25519',
-      x: Buffer.from(decryptedJWEPayload.publicKey).toString('base64url'),
-    },
-    format: 'jwk',
-  })
-  // TODO: verify clientPubKey (e.g. check federation table + rights here)
-  const { payload: payloadJWS } = await compactVerify(decryptedJWEPayload.jws, foreignPub)
-  const receivedNonce = JSON.parse(new TextDecoder().decode(payloadJWS)) as {
-    nonce: number
-    time: Date
-  }
+  const decryptedJWEPayload = JSON.parse(new TextDecoder().decode(plaintext)) as JWEPayload
+  // TODO validate `decryptedJWEPayload.publicKey` to be in database/authorized
+  const foreignKey = jwk_ed25519_pk(Buffer.from(decryptedJWEPayload.publicKey))
+  const { payload: payloadJWS } = await compactVerify(decryptedJWEPayload.jws, foreignKey)
+  const decryptedJWSPayload = JSON.parse(new TextDecoder().decode(payloadJWS)) as JWSPayload
+  // TODO validate `decryptedJWSPayload.time`
 
-  if (nonce && receivedNonce.nonce !== nonce) {
+  if (nonce && decryptedJWSPayload.nonce !== nonce) {
     throw new Error('Could not verify nonce')
   }
 
-  return { publicKey: Buffer.from(decryptedJWEPayload.publicKey), nonce: receivedNonce.nonce }
+  return { publicKey: decryptedJWEPayload.publicKey, ...decryptedJWSPayload }
 }
 
-export const generateToken = async (
-  nonce: number,
-  keyPair: { publicKey: Buffer; privateKey: Buffer },
-  receiverPublicKey: Buffer,
-) => {
-  const receiverPublicKeyFixed = receiverPublicKey // Buffer.from(receiverPublicKey.toString(), 'hex')
-  const receiverPublicKeyFixedX = Buffer.alloc(crypto_scalarmult_curve25519_BYTES)
-  crypto_sign_ed25519_pk_to_curve25519(receiverPublicKeyFixedX, receiverPublicKeyFixed)
-  const key = createPrivateKey({
-    key: {
-      kty: 'OKP',
-      crv: 'Ed25519',
-      x: keyPair.publicKey.toString('base64url'),
-      d: keyPair.privateKey.subarray(0, 32).toString('base64url'),
-    },
-    format: 'jwk',
-  })
-  const foreignPub = createPublicKey({
-    key: {
-      kty: 'OKP',
-      crv: 'X25519',
-      x: receiverPublicKeyFixedX.toString('base64url'),
-    },
-    format: 'jwk',
-  })
+export const generateToken = async (nonce: number, keyPair: KeyPair, receiverPublicKey: Buffer) => {
+  const key = jwk_ed25519_sk(keyPair)
+  const foreignPub = jwk_x25519_pk(receiverPublicKey)
   const jws = await new CompactSign(
     new TextEncoder().encode(
       JSON.stringify({
@@ -94,7 +116,7 @@ export const generateToken = async (
     new TextEncoder().encode(
       JSON.stringify({
         jws,
-        publicKey: keyPair.publicKey.subarray(0, 32),
+        publicKey: keyPair.publicKey,
       }),
     ),
   )
