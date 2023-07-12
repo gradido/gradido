@@ -30,7 +30,7 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
     context.role = ROLE_UNAUTHORIZED // unauthorized caller
 
     const community = await dbCommunity.findOne({
-      where: { publicKey: decoded.publicKey },
+      where: { publicKey: Buffer.from(decoded.publicKey) },
     })
     // todo do not respond with token below?
     if (community) {
