@@ -53,7 +53,7 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
           publicKey: ownCommunity.publicKey,
           privateKey: ownCommunity.privateKey,
         },
-        decoded.publicKey,
+        Buffer.from(decoded.publicKey),
       ),
     })
     return true
