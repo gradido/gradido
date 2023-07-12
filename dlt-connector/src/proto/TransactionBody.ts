@@ -1,4 +1,3 @@
-import { Decimal } from 'decimal.js-light'
 import { TransactionType } from '../graphql/enum/TransactionType'
 import { Field, Message } from '@apollo/protobufjs'
 
