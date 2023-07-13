@@ -16,7 +16,7 @@ ENV BUILD_COMMIT="0000000"
 ## SET NODE_ENV
 ENV NODE_ENV="production"
 ## App relevant Envs
-ENV PORT="6000"
+ENV PORT="6010"
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
@@ -67,7 +67,7 @@ FROM base as build
 COPY ./dlt-connector/ ./
 
 # yarn install dlt-connector
-RUN yarn install --production=false --frozen-lockfile --non-interactive
+RUN yarn cache clean && yarn install --production=false --frozen-lockfile --non-interactive
 
 # yarn build
 RUN yarn run build

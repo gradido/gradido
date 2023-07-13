@@ -163,7 +163,7 @@ services:
       - internal-net
       - external-net
     ports:
-      - 6000:6000
+      - 6010:6010
     restart: always
     environment:
       # Envs used in Dockerfile

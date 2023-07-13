@@ -23,7 +23,7 @@ const iota = {
 }
 
 const dltConnector = {
-  DLT_CONNECTOR_PORT: process.env.DLT_CONNECTOR_PORT || 6000,
+  DLT_CONNECTOR_PORT: process.env.DLT_CONNECTOR_PORT || 6010,
 }
 
 // Check config version

@@ -22,6 +22,7 @@ import { Decay } from '@model/Decay'
 import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 
+import { transmitTransaction as dltTransmitTransaction } from '@/apis/DltConnection'
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
   sendContributionConfirmedEmail,
@@ -535,6 +536,10 @@ export class ContributionResolver {
         await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
         await queryRunner.commitTransaction()
+
+        // send transaction via dlt-connector
+        // notice: must be called after transactions are saved to db to contain also the id
+        dltTransmitTransaction(transaction)
         logger.info('creation commited successfuly.')
         void sendContributionConfirmedEmail({
           firstName: user.firstName,

@@ -17,6 +17,7 @@ import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
 
+import { transmitTransaction as dltTransmitTransaction } from '@/apis/DltConnection'
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
   sendTransactionLinkRedeemedEmail,
@@ -150,12 +151,17 @@ export const executeTransaction = async (
         transactionReceive,
         transactionReceive.amount,
       )
+      // send transaction via dlt-connector
+      // notice: must be called after transactions are saved to db to contain also the id
+      dltTransmitTransaction(transactionSend)
+      dltTransmitTransaction(transactionReceive)
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Transaction was not successful', e)
     } finally {
       await queryRunner.release()
     }
+
     void sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,
