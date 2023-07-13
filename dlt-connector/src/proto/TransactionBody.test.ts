@@ -9,20 +9,20 @@ describe('proto/TransactionBodyTest', () => {
     // test data
     const type = TransactionType.SEND
     const amount = new Decimal('10')
-    const createAt = 1688992436
+    const createdAt = 1688992436
 
     // init both objects
     // graphql input object
     const transactionInput = new TransactionInput()
     transactionInput.type = type
     transactionInput.amount = amount
-    transactionInput.createdAt = createAt
+    transactionInput.createdAt = createdAt
 
     // protobuf object
     const transactionBody = new TransactionBody()
     transactionBody.type = type
     transactionBody.amount = amount.toString()
-    transactionBody.createdAt = createAt
+    transactionBody.createdAt = createdAt
 
     // create protobuf object from graphql Input object
     const message = TransactionBody.fromObject(transactionInput)
