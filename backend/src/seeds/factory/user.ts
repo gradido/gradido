@@ -3,7 +3,7 @@
 import { User } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
-import { ROLE_NAMES } from '@/auth/ROLES'
+import { RoleNames } from '@enum/RoleNames'
 import { setUserRole } from '@/graphql/resolver/util/modifyUserRole'
 import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { UserInterface } from '@/seeds/users/UserInterface'
@@ -39,7 +39,7 @@ export const userFactory = async (
     if (user.deletedAt) dbUser.deletedAt = user.deletedAt
     if (
       user.role &&
-      (user.role === ROLE_NAMES.ROLE_NAME_ADMIN || user.role === ROLE_NAMES.ROLE_NAME_MODERATOR)
+      (user.role === RoleNames.ROLE_NAME_ADMIN || user.role === RoleNames.ROLE_NAME_MODERATOR)
     ) {
       await setUserRole(dbUser, user.role)
     }

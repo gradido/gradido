@@ -22,7 +22,7 @@ import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/help
 import { logger, i18n as localization } from '@test/testSetup'
 
 import { subscribe } from '@/apis/KlicktippController'
-import { ROLE_NAMES } from '@/auth/ROLES'
+import { RoleNames } from '@enum/RoleNames'
 import { CONFIG } from '@/config'
 import {
   sendAccountActivationEmail,
@@ -56,7 +56,6 @@ import {
   searchUsers,
   user as userQuery,
   checkUsername,
-  userContact,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -339,17 +338,16 @@ describe('UserResolver', () => {
           })
 
           // make Peter Lustig Admin
-          let peter = await User.findOneOrFail({
+          const peter = await User.findOneOrFail({
             where: { id: user[0].id },
             relations: ['userRoles'],
           })
           peter.userRoles = [] as UserRole[]
           peter.userRoles[0] = UserRole.create()
           peter.userRoles[0].createdAt = new Date()
-          peter.userRoles[0].role = ROLE_NAMES.ROLE_NAME_ADMIN
+          peter.userRoles[0].role = RoleNames.ROLE_NAME_ADMIN
           peter.userRoles[0].userId = peter.id
           await peter.userRoles[0].save()
-
 
           // date statement
           const actualDate = new Date()
@@ -364,7 +362,6 @@ describe('UserResolver', () => {
             validFrom: actualDate,
             validTo: futureDate,
           })
-
           resetToken()
           result = await mutate({
             mutation: createUser,
@@ -703,8 +700,6 @@ describe('UserResolver', () => {
                 lastName: 'Bloxberg',
                 publisherId: 1234,
                 roles: [],
-                isAdmin: false,
-                isModerator: false,
               },
             },
           }),
@@ -976,8 +971,6 @@ describe('UserResolver', () => {
                   hasElopage: false,
                   publisherId: 1234,
                   roles: [],
-                  isAdmin: false,
-                  isModerator: false,
                 },
               },
             }),
@@ -992,34 +985,6 @@ describe('UserResolver', () => {
               actingUserId: user[0].id,
             }),
           )
-        })
-
-        it('returns usercontact object', async () => {
-          await expect(
-            query({
-              query: userContact,
-              variables: {
-                userId: user[0].id,
-              },
-            }),
-          ).resolves.toMatchObject({
-            // expect.objectContaining({
-            data: {
-              userContact: {
-                id: expect.any(Number),
-                type: UserContactType.USER_CONTACT_EMAIL,
-                userId: user[0].id,
-                email: 'bibi@bloxberg.de',
-                emailOptInTypeId: expect.any(Number),
-                emailResendCount: expect.any(Number),
-                emailChecked: expect.any(Boolean),
-                phone: null,
-                createdAt: expect.any(String),
-                updatedAt: expect.any(String),
-                deletedAt: null,
-              },
-            },
-          })
         })
       })
     })
@@ -1446,7 +1411,7 @@ describe('UserResolver', () => {
                   expect.objectContaining({
                     firstName: 'Peter',
                     lastName: 'Lustig',
-                    role: ROLE_NAMES.ROLE_NAME_ADMIN,
+                    role: RoleNames.ROLE_NAME_ADMIN,
                   }),
                 ]),
               },
@@ -1535,8 +1500,6 @@ describe('UserResolver', () => {
                 lastName: 'Bloxberg',
                 publisherId: 1234,
                 roles: [],
-                isAdmin: false,
-                isModerator: false,
               },
             },
           }),
@@ -1557,7 +1520,7 @@ describe('UserResolver', () => {
         await expect(
           mutate({
             mutation: setUserRole,
-            variables: { userId: 1, role: ROLE_NAMES.ROLE_NAME_ADMIN },
+            variables: { userId: 1, role: RoleNames.ROLE_NAME_ADMIN },
           }),
         ).resolves.toEqual(
           expect.objectContaining({
@@ -1586,7 +1549,7 @@ describe('UserResolver', () => {
           await expect(
             mutate({
               mutation: setUserRole,
-              variables: { userId: user.id + 1, role: ROLE_NAMES.ROLE_NAME_ADMIN },
+              variables: { userId: user.id + 1, role: RoleNames.ROLE_NAME_ADMIN },
             }),
           ).resolves.toEqual(
             expect.objectContaining({
@@ -1603,7 +1566,7 @@ describe('UserResolver', () => {
 
           // set Moderator-Role for Peter
           const userRole = await UserRole.findOneOrFail({ where: { userId: admin.id } })
-          userRole.role = ROLE_NAMES.ROLE_NAME_MODERATOR
+          userRole.role = RoleNames.ROLE_NAME_MODERATOR
           userRole.userId = admin.id
           await UserRole.save(userRole)
 
@@ -1622,7 +1585,7 @@ describe('UserResolver', () => {
           await expect(
             mutate({
               mutation: setUserRole,
-              variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_ADMIN },
+              variables: { userId: user.id, role: RoleNames.ROLE_NAME_ADMIN },
             }),
           ).resolves.toEqual(
             expect.objectContaining({
@@ -1650,12 +1613,12 @@ describe('UserResolver', () => {
         it('returns user with new moderator-role', async () => {
           const result = await mutate({
             mutation: setUserRole,
-            variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_MODERATOR },
+            variables: { userId: user.id, role: RoleNames.ROLE_NAME_MODERATOR },
           })
           expect(result).toEqual(
             expect.objectContaining({
               data: {
-                setUserRole: ROLE_NAMES.ROLE_NAME_MODERATOR,
+                setUserRole: RoleNames.ROLE_NAME_MODERATOR,
               },
             }),
           )
@@ -1672,7 +1635,7 @@ describe('UserResolver', () => {
             await expect(
               mutate({
                 mutation: setUserRole,
-                variables: { userId: admin.id + 1, role: ROLE_NAMES.ROLE_NAME_ADMIN },
+                variables: { userId: admin.id + 1, role: RoleNames.ROLE_NAME_ADMIN },
               }),
             ).resolves.toEqual(
               expect.objectContaining({
@@ -1706,12 +1669,12 @@ describe('UserResolver', () => {
               it('returns admin-rolename', async () => {
                 const result = await mutate({
                   mutation: setUserRole,
-                  variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_ADMIN },
+                  variables: { userId: user.id, role: RoleNames.ROLE_NAME_ADMIN },
                 })
                 expect(result).toEqual(
                   expect.objectContaining({
                     data: {
-                      setUserRole: ROLE_NAMES.ROLE_NAME_ADMIN,
+                      setUserRole: RoleNames.ROLE_NAME_ADMIN,
                     },
                   }),
                 )
@@ -1740,12 +1703,12 @@ describe('UserResolver', () => {
               it('returns date string', async () => {
                 const result = await mutate({
                   mutation: setUserRole,
-                  variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_MODERATOR },
+                  variables: { userId: user.id, role: RoleNames.ROLE_NAME_MODERATOR },
                 })
                 expect(result).toEqual(
                   expect.objectContaining({
                     data: {
-                      setUserRole: ROLE_NAMES.ROLE_NAME_MODERATOR,
+                      setUserRole: RoleNames.ROLE_NAME_MODERATOR,
                     },
                   }),
                 )
@@ -1847,12 +1810,12 @@ describe('UserResolver', () => {
                 jest.clearAllMocks()
                 await mutate({
                   mutation: setUserRole,
-                  variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_ADMIN },
+                  variables: { userId: user.id, role: RoleNames.ROLE_NAME_ADMIN },
                 })
                 await expect(
                   mutate({
                     mutation: setUserRole,
-                    variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_ADMIN },
+                    variables: { userId: user.id, role: RoleNames.ROLE_NAME_ADMIN },
                   }),
                 ).resolves.toEqual(
                   expect.objectContaining({
@@ -1864,7 +1827,7 @@ describe('UserResolver', () => {
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
                   'User already has role=',
-                  ROLE_NAMES.ROLE_NAME_ADMIN,
+                  RoleNames.ROLE_NAME_ADMIN,
                 )
               })
             })
@@ -1874,12 +1837,12 @@ describe('UserResolver', () => {
                 jest.clearAllMocks()
                 await mutate({
                   mutation: setUserRole,
-                  variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_MODERATOR },
+                  variables: { userId: user.id, role: RoleNames.ROLE_NAME_MODERATOR },
                 })
                 await expect(
                   mutate({
                     mutation: setUserRole,
-                    variables: { userId: user.id, role: ROLE_NAMES.ROLE_NAME_MODERATOR },
+                    variables: { userId: user.id, role: RoleNames.ROLE_NAME_MODERATOR },
                   }),
                 ).resolves.toEqual(
                   expect.objectContaining({
@@ -1891,7 +1854,7 @@ describe('UserResolver', () => {
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
                   'User already has role=',
-                  ROLE_NAMES.ROLE_NAME_MODERATOR,
+                  RoleNames.ROLE_NAME_MODERATOR,
                 )
               })
             })
