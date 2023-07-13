@@ -13,7 +13,7 @@ export class TransactionInput {
   amount: Decimal
 
   @Field(() => Number)
-  created: number
+  createdAt: number
 
   // @protoField.d(4, 'string')
   // @Field(() => Decimal)

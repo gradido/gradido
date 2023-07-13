@@ -12,9 +12,10 @@ export class TransactionResolver {
   //   GeneratingSchemaError: Some errors occurred while generating GraphQL schema:
   //     Type Query must define one or more fields.
   // it seems that at least one query must be defined
+  // https://github.com/ardatan/graphql-tools/issues/764
   @Query(() => String)
-  dummy(): string {
-    return 'nothing'
+  version(): string {
+    return '0.1'
   }
 
   @Mutation(() => String)
