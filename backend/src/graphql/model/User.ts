@@ -1,8 +1,6 @@
 import { User as dbUser } from '@entity/User'
 import { ObjectType, Field, Int } from 'type-graphql'
 
-import { ROLE_NAMES } from '@/auth/ROLES'
-
 import { KlickTipp } from './KlickTipp'
 
 @ObjectType()
@@ -72,14 +70,4 @@ export class User {
 
   @Field(() => [String])
   roles: string[]
-
-  @Field(() => Boolean)
-  isAdmin(): boolean {
-    return this.roles.includes(ROLE_NAMES.ROLE_NAME_ADMIN)
-  }
-
-  @Field(() => Boolean)
-  isModerator(): boolean {
-    return this.roles.includes(ROLE_NAMES.ROLE_NAME_MODERATOR)
-  }
 }

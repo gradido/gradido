@@ -12,8 +12,6 @@ export const verifyLogin = gql`
       hasElopage
       publisherId
       roles
-      isAdmin
-      isModerator
     }
   }
 `
@@ -384,23 +382,6 @@ export const user = gql`
     user(identifier: $identifier) {
       firstName
       lastName
-    }
-  }
-`
-export const userContact = gql`
-  query ($userId: Int!) {
-    userContact(userId: $userId) {
-      id
-      type
-      userId
-      email
-      emailOptInTypeId
-      emailResendCount
-      emailChecked
-      phone
-      createdAt
-      updatedAt
-      deletedAt
     }
   }
 `

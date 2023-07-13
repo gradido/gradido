@@ -1,4 +1,4 @@
-import { ROLE_NAMES } from '@/auth/ROLES'
+import { RoleNames } from '@enum/RoleNames'
 
 import { UserInterface } from './UserInterface'
 
@@ -10,5 +10,5 @@ export const peterLustig: UserInterface = {
   createdAt: new Date('2020-11-25T10:48:43'),
   emailChecked: true,
   language: 'de',
-  role: ROLE_NAMES.ROLE_NAME_ADMIN,
+  role: RoleNames.ROLE_NAME_ADMIN,
 }

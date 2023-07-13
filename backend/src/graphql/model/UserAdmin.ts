@@ -2,8 +2,6 @@ import { User } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
 import { ObjectType, Field, Int } from 'type-graphql'
 
-import { ROLE_NAMES } from '@/auth/ROLES'
-
 @ObjectType()
 export class UserAdmin {
   constructor(user: User, creation: Decimal[], hasElopage: boolean, emailConfirmationSend: string) {
@@ -48,16 +46,6 @@ export class UserAdmin {
 
   @Field(() => [String])
   roles: string[]
-
-  @Field(() => Boolean)
-  isAdmin(): boolean {
-    return this.roles.includes(ROLE_NAMES.ROLE_NAME_ADMIN)
-  }
-
-  @Field(() => Boolean)
-  isModerator(): boolean {
-    return this.roles.includes(ROLE_NAMES.ROLE_NAME_MODERATOR)
-  }
 }
 
 @ObjectType()

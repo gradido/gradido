@@ -24,12 +24,10 @@ import { UserContactType } from '@enum/UserContactType'
 import { SearchAdminUsersResult } from '@model/AdminUser'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
-import { UserContact } from '@model/UserContact'
 
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { ROLE_NAMES } from '@/auth/ROLES'
 import { CONFIG } from '@/config'
 import {
   sendAccountActivationEmail,
@@ -71,6 +69,9 @@ import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { validateAlias } from './util/validateAlias'
+
+import { RoleNames } from '@enum/RoleNames'
+import { SetUserRoleArgs } from '@arg/SetUserRoleArgs'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -707,22 +708,10 @@ export class UserResolver {
   @Authorized([RIGHTS.SET_USER_ROLE])
   @Mutation(() => String, { nullable: true })
   async setUserRole(
-    @Arg('userId', () => Int)
-    userId: number,
-    @Arg('role', () => String, { nullable: true })
-    role: string | null | undefined,
+    @Args() { userId, role }: SetUserRoleArgs,
     @Ctx()
     context: Context,
   ): Promise<string | null> {
-    switch (role) {
-      case null:
-      case ROLE_NAMES.ROLE_NAME_ADMIN:
-      case ROLE_NAMES.ROLE_NAME_MODERATOR:
-        logger.debug('setUserRole=', role)
-        break
-      default:
-        throw new LogError('Not allowed to set user role=', role)
-    }
     const user = await DbUser.findOne({
       where: { id: userId },
       relations: ['userRoles'],
@@ -826,18 +815,6 @@ export class UserResolver {
   @Query(() => User)
   async user(@Arg('identifier') identifier: string): Promise<User> {
     return new User(await findUserByIdentifier(identifier))
-  }
-
-  @Authorized([RIGHTS.USER])
-  @Query(() => UserContact)
-  async userContact(@Arg('userId', () => Int) userId: number): Promise<UserContact> {
-    return new UserContact(
-      await DbUserContact.findOneOrFail({
-        where: { userId },
-        withDeleted: true,
-        relations: ['user'],
-      }),
-    )
   }
 }
 
