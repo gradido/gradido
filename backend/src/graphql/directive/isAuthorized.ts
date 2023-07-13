@@ -39,7 +39,7 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
     })
     context.user = user
     context.role = ROLE_USER
-    if (user.userRoles && user.userRoles.length > 0) {
+    if (user.userRoles?.length > 0) {
       switch (user.userRoles[0].role) {
         case RoleNames.ROLE_NAME_ADMIN:
           context.role = ROLE_ADMIN
