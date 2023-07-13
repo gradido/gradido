@@ -16,12 +16,7 @@ export class UserAdmin {
     this.hasElopage = hasElopage
     this.deletedAt = user.deletedAt
     this.emailConfirmationSend = emailConfirmationSend
-    if (user.userRoles) {
-      this.roles = [] as string[]
-      user.userRoles.forEach((userRole) => {
-        this.roles?.push(userRole.role)
-      })
-    }
+    this.roles = user.userRoles?.map((userRole) => userRole.role) ?? []
   }
 
   @Field(() => Int)
@@ -51,23 +46,17 @@ export class UserAdmin {
   @Field(() => String, { nullable: true })
   emailConfirmationSend: string | null
 
-  @Field(() => [String], { nullable: true })
-  roles: string[] | null
+  @Field(() => [String])
+  roles: string[]
 
   @Field(() => Boolean)
   isAdmin(): boolean {
-    if (this.roles) {
-      return this.roles.includes(ROLE_NAMES.ROLE_NAME_ADMIN)
-    }
-    return false
+    return this.roles.includes(ROLE_NAMES.ROLE_NAME_ADMIN)
   }
 
   @Field(() => Boolean)
   isModerator(): boolean {
-    if (this.roles) {
-      return this.roles.includes(ROLE_NAMES.ROLE_NAME_MODERATOR)
-    }
-    return false
+    return this.roles.includes(ROLE_NAMES.ROLE_NAME_MODERATOR)
   }
 }
 
