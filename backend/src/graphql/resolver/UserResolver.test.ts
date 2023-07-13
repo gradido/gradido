@@ -165,7 +165,7 @@ describe('UserResolver', () => {
               createdAt: expect.any(Date),
               // emailChecked: false,
               language: 'de',
-              userRoles: [], // expect.any(Array),
+              userRoles: [],
               deletedAt: null,
               publisherId: 1234,
               referrerId: null,
