@@ -350,10 +350,6 @@ describe('UserResolver', () => {
           peter.userRoles[0].userId = peter.id
           await peter.userRoles[0].save()
 
-          peter = await User.findOneOrFail({
-            where: { id: user[0].id },
-            relations: ['userRoles'],
-          })
 
           // date statement
           const actualDate = new Date()
