@@ -22,6 +22,7 @@ import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
 
+import { transmitTransaction as dltTransmitTransaction } from '@/apis/DltConnection'
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
   EVENT_CONTRIBUTION_LINK_REDEEM,
@@ -290,6 +291,13 @@ export class TransactionLinkResolver {
           await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
           await queryRunner.commitTransaction()
+          // send transaction via dlt-connector
+          // notice: must be called after transaction are saved to db to contain also the id
+          // we use catch instead of await to prevent slow down of backend
+          // because iota pow calculation which can be use up several seconds
+          dltTransmitTransaction(transaction).catch(() => {
+            logger.error('error on transmit creation transaction')
+          })
           await EVENT_CONTRIBUTION_LINK_REDEEM(
             user,
             transaction,
