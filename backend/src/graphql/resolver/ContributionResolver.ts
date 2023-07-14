@@ -55,6 +55,7 @@ import {
 } from './util/creations'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
+import { getTargetCommunitySum } from './util/getTargetCommunitySum'
 
 @Resolver()
 export class ContributionResolver {
@@ -512,6 +513,7 @@ export class ContributionResolver {
           newBalance = decay.balance
         }
         newBalance = newBalance.add(contribution.amount.toString())
+        const oldCommunitySum = await getTargetCommunitySum(receivedCallDate)
 
         const transaction = new DbTransaction()
         transaction.typeId = TransactionTypeId.CREATION
@@ -526,6 +528,7 @@ export class ContributionResolver {
         transaction.balanceDate = receivedCallDate
         transaction.decay = decay ? decay.decay : new Decimal(0)
         transaction.decayStart = decay ? decay.start : null
+        transaction.communitySum = oldCommunitySum.add(contribution.amount)
         await queryRunner.manager.insert(DbTransaction, transaction)
 
         contribution.confirmedAt = receivedCallDate

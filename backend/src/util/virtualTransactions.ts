@@ -49,6 +49,8 @@ const virtualLinkTransaction = (
     balance: balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
     balanceDate: validUntil,
     decayStart: createdAt,
+    // communitySum depends on date but this transaction has no explicit time
+    communitySum: new Decimal(0),
     decay: decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
     memo: '',
     creationDate: null,
@@ -66,6 +68,7 @@ const virtualDecayTransaction = (
   balance: Decimal,
   balanceDate: Date,
   time: Date = new Date(),
+  communitySum: Decimal,
   user: User,
   holdAvailabeAmount: Decimal,
 ): Transaction => {
@@ -84,6 +87,7 @@ const virtualDecayTransaction = (
     balanceDate: time,
     decay: decay.decay ? decay.roundedDecay : new Decimal(0),
     decayStart: decay.start,
+    communitySum,
     memo: '',
     creationDate: null,
     contribution: null,
