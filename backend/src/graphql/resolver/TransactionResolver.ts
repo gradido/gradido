@@ -153,8 +153,14 @@ export const executeTransaction = async (
       )
       // send transaction via dlt-connector
       // notice: must be called after transactions are saved to db to contain also the id
-      dltTransmitTransaction(transactionSend)
-      dltTransmitTransaction(transactionReceive)
+      // we use catch instead of await to prevent slow down of backend
+      // because iota pow calculation which can be use up several seconds
+      dltTransmitTransaction(transactionSend).catch(() => {
+        logger.error('error on transmit send transaction')
+      })
+      dltTransmitTransaction(transactionReceive).catch(() => {
+        logger.error('error on transmit receive transaction')
+      })
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Transaction was not successful', e)

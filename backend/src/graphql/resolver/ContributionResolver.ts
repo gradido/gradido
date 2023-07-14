@@ -538,8 +538,12 @@ export class ContributionResolver {
         await queryRunner.commitTransaction()
 
         // send transaction via dlt-connector
-        // notice: must be called after transactions are saved to db to contain also the id
-        dltTransmitTransaction(transaction)
+        // notice: must be called after transaction are saved to db to contain also the id
+        // we use catch instead of await to prevent slow down of backend
+        // because iota pow calculation which can be use up several seconds
+        dltTransmitTransaction(transaction).catch(() => {
+          logger.error('error on transmit creation transaction')
+        })
         logger.info('creation commited successfuly.')
         void sendContributionConfirmedEmail({
           firstName: user.firstName,
