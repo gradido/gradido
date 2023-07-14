@@ -855,7 +855,7 @@ const canEmailResend = (updatedAt: Date): boolean => {
   return !isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_REQUEST_TIME)
 }
 
-export function isUserInRole(user: DbUser, role: string): boolean {
+export function isUserInRole(user: DbUser, role: string | null | undefined): boolean {
   if (user && role) {
     for (const userRole of user.userRoles) {
       if (userRole.role === role) {
