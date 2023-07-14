@@ -528,7 +528,7 @@ export class ContributionResolver {
         transaction.balanceDate = receivedCallDate
         transaction.decay = decay ? decay.decay : new Decimal(0)
         transaction.decayStart = decay ? decay.start : null
-        transaction.communitySum = oldCommunitySum.add(contribution.amount)
+        transaction.communitySum = oldCommunitySum.add(contribution.amount.toNumber())
         await queryRunner.manager.insert(DbTransaction, transaction)
 
         contribution.confirmedAt = receivedCallDate
