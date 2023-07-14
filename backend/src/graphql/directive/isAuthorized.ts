@@ -1,13 +1,14 @@
 import { User } from '@entity/User'
 import { AuthChecker } from 'type-graphql'
 
+import { RoleNames } from '@enum/RoleNames'
+
 import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { decode, encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN, ROLE_MODERATOR } from '@/auth/ROLES'
 import { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
-import { RoleNames } from '@enum/RoleNames'
 
 export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
@@ -41,10 +42,10 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
     context.role = ROLE_USER
     if (user.userRoles?.length > 0) {
       switch (user.userRoles[0].role) {
-        case RoleNames.ROLE_NAME_ADMIN:
+        case RoleNames.ADMIN:
           context.role = ROLE_ADMIN
           break
-        case RoleNames.ROLE_NAME_MODERATOR:
+        case RoleNames.MODERATOR:
           context.role = ROLE_MODERATOR
           break
         default:

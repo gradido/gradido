@@ -3,7 +3,7 @@ import { UserRole } from '@entity/UserRole'
 
 import { LogError } from '@/server/LogError'
 
-export async function setUserRole(user: DbUser, role: string | null): Promise<void> {
+export async function setUserRole(user: DbUser, role: string | null | undefined): Promise<void> {
   // if role should be set
   if (role) {
     // in case user has still no associated userRole
