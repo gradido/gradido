@@ -9,11 +9,11 @@ import { Decimal } from 'decimal.js-light'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 
+import { CONFIG } from '@/config'
+import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import { transmitTransaction } from './DltConnection'
-import { CONFIG } from '@/config'
-import { LogError } from '@/server/LogError'
 
 let con: Connection
 
@@ -35,7 +35,6 @@ jest.mock('graphql-request', () => {
       // I have tried, but it didn't work and return every time the first value
       request: jest.fn().mockImplementation(() => {
         testCursor++
-        console.log("testCursor: %d", testCursor)
         if (testCursor === 4) {
           return Promise.resolve(
             // invalid, is 33 Bytes long as binary
