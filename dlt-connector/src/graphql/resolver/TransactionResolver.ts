@@ -5,6 +5,8 @@ import { TransactionBody } from '@proto/TransactionBody'
 
 import { sendMessage as iotaSendMessage } from '@/client/IotaClient'
 
+import { TransmitTransactionResult } from '../model/TransmitTransactionResult'
+
 @Resolver()
 export class TransactionResolver {
   // Why a dummy function?
@@ -18,14 +20,15 @@ export class TransactionResolver {
     return '0.1'
   }
 
-  @Mutation(() => String)
-  async sendTransaction(
+  @Mutation(() => TransmitTransactionResult)
+  async transmitTransaction(
     @Arg('data')
     transaction: TransactionInput,
-  ): Promise<string> {
+  ): Promise<TransmitTransactionResult> {
     const message = TransactionBody.fromObject(transaction)
     const messageBuffer = TransactionBody.encode(message).finish()
     const resultMessage = await iotaSendMessage(messageBuffer)
-    return resultMessage.messageId
+
+    return new TransmitTransactionResult(resultMessage)
   }
 }

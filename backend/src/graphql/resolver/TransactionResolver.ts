@@ -17,7 +17,7 @@ import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
 
-import { transmitTransaction as dltTransmitTransaction } from '@/apis/DltConnection'
+import { DltConnectorClient } from '@/apis/DltConnectorClient'
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
   sendTransactionLinkRedeemedEmail,
@@ -155,12 +155,15 @@ export const executeTransaction = async (
       // notice: must be called after transactions are saved to db to contain also the id
       // we use catch instead of await to prevent slow down of backend
       // because iota pow calculation which can be use up several seconds
-      dltTransmitTransaction(transactionSend).catch(() => {
-        logger.error('error on transmit send transaction')
-      })
-      dltTransmitTransaction(transactionReceive).catch(() => {
-        logger.error('error on transmit receive transaction')
-      })
+      const dltConnector = DltConnectorClient.getInstance()
+      if (dltConnector) {
+        dltConnector.transmitTransaction(transactionSend).catch(() => {
+          logger.error('error on transmit send transaction')
+        })
+        dltConnector.transmitTransaction(transactionReceive).catch(() => {
+          logger.error('error on transmit receive transaction')
+        })
+      }
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Transaction was not successful', e)

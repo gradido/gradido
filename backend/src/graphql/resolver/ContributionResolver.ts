@@ -22,7 +22,7 @@ import { Decay } from '@model/Decay'
 import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 
-import { transmitTransaction as dltTransmitTransaction } from '@/apis/DltConnection'
+import { DltConnectorClient } from '@/apis/DltConnectorClient'
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
   sendContributionConfirmedEmail,
@@ -541,9 +541,12 @@ export class ContributionResolver {
         // notice: must be called after transaction are saved to db to contain also the id
         // we use catch instead of await to prevent slow down of backend
         // because iota pow calculation which can be use up several seconds
-        dltTransmitTransaction(transaction).catch(() => {
-          logger.error('error on transmit creation transaction')
-        })
+        const dltConnector = DltConnectorClient.getInstance()
+        if (dltConnector) {
+          dltConnector.transmitTransaction(transaction).catch(() => {
+            logger.error('error on transmit creation transaction')
+          })
+        }
         logger.info('creation commited successfuly.')
         void sendContributionConfirmedEmail({
           firstName: user.firstName,

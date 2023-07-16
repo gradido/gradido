@@ -6,7 +6,7 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**', '!build/**'],
   coverageThreshold: {
     global: {
-      lines: 63,
+      lines: 65,
     },
   },
   setupFiles: ['<rootDir>/test/testSetup.ts'],
@@ -17,6 +17,7 @@ module.exports = {
     '@enum/(.*)': '<rootDir>/src/graphql/enum/$1',
     '@resolver/(.*)': '<rootDir>/src/graphql/resolver/$1',
     '@input/(.*)': '<rootDir>/src/graphql/input/$1',
+    '@model/(.*)': '<rootDir>/src/graphql/model/$1',
     '@proto/(.*)': '<rootDir>/src/proto/$1',
     '@test/(.*)': '<rootDir>/test/$1',
     '@client/(.*)': '<rootDir>/src/client/$1',

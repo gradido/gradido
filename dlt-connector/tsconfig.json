@@ -51,6 +51,7 @@
       "@arg/*": ["src/graphql/arg/*"],
       "@enum/*": ["src/graphql/enum/*"],
       "@input/*": ["src/graphql/input/*"],
+      "@model/*": ["src/graphql/model/*"],
       "@resolver/*": ["src/graphql/resolver/*"],
       "@scalar/*": ["src/graphql/scalar/*"],
       "@test/*": ["test/*"],
