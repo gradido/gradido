@@ -111,7 +111,7 @@ export class DltConnectorClient {
    */
   public async transmitTransaction(transaction: DbTransaction): Promise<boolean> {
     const typeString = getTransactionTypeString(transaction.typeId)
-    const secondsSinceEpoch = transaction.balanceDate.getTime() / 1000
+    const secondsSinceEpoch = Math.round(transaction.balanceDate.getTime() / 1000)
     const amountString = transaction.amount.toString()
     try {
       const result: { transmitTransaction: { dltTransactionIdHex: string } } =
@@ -119,7 +119,7 @@ export class DltConnectorClient {
           input: {
             type: typeString,
             amount: amountString,
-            created: secondsSinceEpoch,
+            createdAt: secondsSinceEpoch,
           },
         })
       const writeResult = await writeDltMessageId(

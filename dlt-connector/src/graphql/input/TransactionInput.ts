@@ -3,7 +3,7 @@ import { Min } from 'class-validator'
 import { IsPositiveDecimal } from '../validator/Decimal'
 import { Decimal } from 'decimal.js-light'
 import { TransactionType } from '../enum/TransactionType'
-import { InputType, Field } from 'type-graphql'
+import { InputType, Field, Int } from 'type-graphql'
 
 @InputType()
 export class TransactionInput {
@@ -15,7 +15,8 @@ export class TransactionInput {
   amount: Decimal
 
   // 946684800 is Sat Jan 01 2000 00:00:00 GMT+0000
-  @Field(() => Number)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  @Field((type) => Int)
   @Min(946684800)
   createdAt: number
 

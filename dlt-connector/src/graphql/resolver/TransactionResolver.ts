@@ -5,7 +5,7 @@ import { TransactionBody } from '@proto/TransactionBody'
 
 import { sendMessage as iotaSendMessage } from '@/client/IotaClient'
 
-import { TransmitTransactionResult } from '../model/TransmitTransactionResult'
+import { TransmitTransactionResult } from '../output/TransmitTransactionResult'
 
 @Resolver()
 export class TransactionResolver {
