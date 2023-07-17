@@ -162,7 +162,7 @@ describe('Transaction Resolver Test', () => {
       errors: [
         {
           message:
-            'Variable "$input" got invalid value "2023-03-02T10:12:00" at "input.createdAt"; Float cannot represent non numeric value: "2023-03-02T10:12:00"',
+            'Variable "$input" got invalid value "2023-03-02T10:12:00" at "input.createdAt"; Int cannot represent non-integer value: "2023-03-02T10:12:00"',
         },
       ],
     })
