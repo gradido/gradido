@@ -119,8 +119,8 @@ export const confirmContribution = gql`
 `
 
 export const setUserRole = gql`
-  mutation ($userId: Int!, $isAdmin: Boolean!) {
-    setUserRole(userId: $userId, isAdmin: $isAdmin)
+  mutation ($userId: Int!, $role: RoleNames) {
+    setUserRole(userId: $userId, role: $role)
   }
 `
 
@@ -321,7 +321,7 @@ export const login = gql`
       }
       hasElopage
       publisherId
-      isAdmin
+      roles
     }
   }
 `

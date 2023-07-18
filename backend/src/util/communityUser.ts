@@ -26,7 +26,7 @@ const communityDbUser: dbUser = {
   createdAt: new Date(),
   // emailChecked: false,
   language: '',
-  isAdmin: null,
+  userRoles: [],
   publisherId: 0,
   // default password encryption type
   passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,

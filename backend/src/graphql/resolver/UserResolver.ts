@@ -2,11 +2,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getConnection, IsNull, Not } from '@dbTools/typeorm'
+import { getConnection, In } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
+import { UserRole } from '@entity/UserRole'
 import i18n from 'i18n'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
 import { v4 as uuidv4 } from 'uuid'
@@ -14,6 +15,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { CreateUserArgs } from '@arg/CreateUserArgs'
 import { Paginated } from '@arg/Paginated'
 import { SearchUsersFilters } from '@arg/SearchUsersFilters'
+import { SetUserRoleArgs } from '@arg/SetUserRoleArgs'
 import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
 import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
 import { OptInType } from '@enum/OptInType'
@@ -66,6 +68,7 @@ import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
+import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { validateAlias } from './util/validateAlias'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
@@ -159,7 +162,6 @@ export class UserResolver {
 
     const user = new User(dbUser)
     logger.debug(`user= ${JSON.stringify(user, null, 2)}`)
-
     i18n.setLocale(user.language)
 
     // Elopage Status & Stored PublisherId
@@ -353,7 +355,6 @@ export class UserResolver {
     } else {
       await EVENT_USER_REGISTER(dbUser)
     }
-
     return new User(dbUser)
   }
 
@@ -619,8 +620,9 @@ export class UserResolver {
     { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
   ): Promise<SearchAdminUsersResult> {
     const [users, count] = await DbUser.findAndCount({
+      relations: ['userRoles'],
       where: {
-        isAdmin: Not(IsNull()),
+        userRoles: { role: In(['admin', 'moderator']) },
       },
       order: {
         createdAt: order,
@@ -628,13 +630,13 @@ export class UserResolver {
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
     })
-
     return {
       userCount: count,
       userList: users.map((user) => {
         return {
           firstName: user.firstName,
           lastName: user.lastName,
+          role: user.userRoles ? user.userRoles[0].role : '',
         }
       }),
     }
@@ -651,15 +653,7 @@ export class UserResolver {
     @Ctx() context: Context,
   ): Promise<SearchUsersResult> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const userFields = [
-      'id',
-      'firstName',
-      'lastName',
-      'emailId',
-      'emailContact',
-      'deletedAt',
-      'isAdmin',
-    ]
+    const userFields = ['id', 'firstName', 'lastName', 'emailId', 'emailContact', 'deletedAt']
     const [users, count] = await findUsers(
       userFields.map((fieldName) => {
         return 'user.' + fieldName
@@ -710,16 +704,16 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.SET_USER_ROLE])
-  @Mutation(() => Date, { nullable: true })
+  @Mutation(() => String, { nullable: true })
   async setUserRole(
-    @Arg('userId', () => Int)
-    userId: number,
-    @Arg('isAdmin', () => Boolean)
-    isAdmin: boolean,
+    @Args() { userId, role }: SetUserRoleArgs,
     @Ctx()
     context: Context,
-  ): Promise<Date | null> {
-    const user = await DbUser.findOne({ where: { id: userId } })
+  ): Promise<string | null> {
+    const user = await DbUser.findOne({
+      where: { id: userId },
+      relations: ['userRoles'],
+    })
     // user exists ?
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
@@ -729,27 +723,17 @@ export class UserResolver {
     if (moderator.id === userId) {
       throw new LogError('Administrator can not change his own role')
     }
-    // change isAdmin
-    switch (user.isAdmin) {
-      case null:
-        if (isAdmin) {
-          user.isAdmin = new Date()
-        } else {
-          throw new LogError('User is already an usual user')
-        }
-        break
-      default:
-        if (!isAdmin) {
-          user.isAdmin = null
-        } else {
-          throw new LogError('User is already admin')
-        }
-        break
+    // if user role(s) should be deleted by role=null as parameter
+    if (role === null) {
+      await deleteUserRole(user)
+    } else if (isUserInRole(user, role)) {
+      throw new LogError('User already has role=', role)
+    } else {
+      await setUserRole(user, role)
     }
-    await user.save()
     await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
-    const newUser = await DbUser.findOne({ where: { id: userId } })
-    return newUser ? newUser.isAdmin : null
+    const newUser = await DbUser.findOne({ where: { id: userId }, relations: ['userRoles'] })
+    return newUser?.userRoles ? newUser.userRoles[0].role : null
   }
 
   @Authorized([RIGHTS.DELETE_USER])
@@ -842,6 +826,7 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
   })
   const dbUser = dbUserContact.user
   dbUser.emailContact = dbUserContact
+  dbUser.userRoles = await UserRole.find({ where: { userId: dbUser.id } })
   return dbUser
 }
 
@@ -868,4 +853,15 @@ const isEmailVerificationCodeValid = (updatedAt: Date): boolean => {
 
 const canEmailResend = (updatedAt: Date): boolean => {
   return !isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_REQUEST_TIME)
+}
+
+export function isUserInRole(user: DbUser, role: string | null | undefined): boolean {
+  if (user && role) {
+    for (const userRole of user.userRoles) {
+      if (userRole.role === role) {
+        return true
+      }
+    }
+  }
+  return false
 }

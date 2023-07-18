@@ -11,6 +11,7 @@ import { Event } from './Event'
 import { ContributionMessage } from './ContributionMessage'
 import { Community } from './Community'
 import { FederatedCommunity } from './FederatedCommunity'
+import { UserRole } from './UserRole'
 
 export const entities = [
   Community,
@@ -26,4 +27,5 @@ export const entities = [
   TransactionLink,
   User,
   UserContact,
+  UserRole,
 ]

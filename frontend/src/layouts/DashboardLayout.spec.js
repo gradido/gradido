@@ -47,6 +47,7 @@ const mocks = {
       firstName: 'User',
       lastName: 'Example',
       token: 'valid-token',
+      roles: [],
     },
   },
   $i18n: {
