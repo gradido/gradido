@@ -36,9 +36,9 @@ import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
+import { getTargetCommunitySum } from './util/getTargetCommunitySum'
 import { getTransactionList } from './util/getTransactionList'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
-import { getTargetCommunitySum } from './util/getTargetCommunitySum'
 
 export const executeTransaction = async (
   amount: Decimal,

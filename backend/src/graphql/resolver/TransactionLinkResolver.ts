@@ -41,8 +41,8 @@ import { calculateBalance } from '@/util/validate'
 import { executeTransaction } from './TransactionResolver'
 import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
-import { transactionLinkList } from './util/transactionLinkList'
 import { getTargetCommunitySum } from './util/getTargetCommunitySum'
+import { transactionLinkList } from './util/transactionLinkList'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
