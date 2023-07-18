@@ -29,7 +29,7 @@ const {
   username,
   newsletterState,
   publisherId,
-  isAdmin,
+  roles,
   hasElopage,
   hideAmountGDD,
   hideAmountGDT,
@@ -136,11 +136,11 @@ describe('Vuex store', () => {
       })
     })
 
-    describe('isAdmin', () => {
-      it('sets the state of isAdmin', () => {
-        const state = { isAdmin: null }
-        isAdmin(state, true)
-        expect(state.isAdmin).toEqual(true)
+    describe('roles', () => {
+      it('sets the state of roles', () => {
+        const state = { roles: [] }
+        roles(state, ['admin'])
+        expect(state.roles).toEqual(['admin'])
       })
     })
 
@@ -192,7 +192,7 @@ describe('Vuex store', () => {
         },
         hasElopage: false,
         publisherId: 1234,
-        isAdmin: true,
+        roles: ['admin'],
         hideAmountGDD: false,
         hideAmountGDT: true,
       }
@@ -242,9 +242,9 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(8, 'publisherId', 1234)
       })
 
-      it('commits isAdmin', () => {
+      it('commits roles', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(9, 'isAdmin', true)
+        expect(commit).toHaveBeenNthCalledWith(9, 'roles', ['admin'])
       })
 
       it('commits hideAmountGDD', () => {
@@ -307,9 +307,9 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(8, 'publisherId', null)
       })
 
-      it('commits isAdmin', () => {
+      it('commits roles', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(9, 'isAdmin', false)
+        expect(commit).toHaveBeenNthCalledWith(9, 'roles', null)
       })
 
       it('commits hideAmountGDD', () => {
