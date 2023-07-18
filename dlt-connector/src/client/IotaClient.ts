@@ -8,10 +8,10 @@ const client = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
 /**
  * send data message onto iota tangle
  * use CONFIG.IOTA_COMMUNITY_ALIAS for index
- * @param {string} message - the message as utf based string, will be converted to hex automatically from @iota/client
+ * @param {string | Uint8Array} message - the message as utf based string, will be converted to hex automatically from @iota/client
  * @return {Promise<MessageWrapper>} the iota message typed
  */
-function sendMessage(message: string): Promise<MessageWrapper> {
+function sendMessage(message: string | Uint8Array): Promise<MessageWrapper> {
   return client.message().index(CONFIG.IOTA_COMMUNITY_ALIAS).data(message).submit()
 }
 

@@ -8,6 +8,6 @@ export class SetUserRoleArgs {
   @Field(() => Int)
   userId: number
 
-  @Field(() => RoleNames, { nullable: true } )
-  role: RoleNames | null
+  @Field(() => RoleNames, { nullable: true })
+  role: RoleNames | null | undefined
 }

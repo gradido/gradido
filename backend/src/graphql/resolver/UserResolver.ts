@@ -15,6 +15,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { CreateUserArgs } from '@arg/CreateUserArgs'
 import { Paginated } from '@arg/Paginated'
 import { SearchUsersFilters } from '@arg/SearchUsersFilters'
+import { SetUserRoleArgs } from '@arg/SetUserRoleArgs'
 import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
 import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
 import { OptInType } from '@enum/OptInType'
@@ -69,9 +70,6 @@ import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { validateAlias } from './util/validateAlias'
-
-import { RoleNames } from '@enum/RoleNames'
-import { SetUserRoleArgs } from '@arg/SetUserRoleArgs'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -857,7 +855,7 @@ const canEmailResend = (updatedAt: Date): boolean => {
   return !isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_REQUEST_TIME)
 }
 
-export function isUserInRole(user: DbUser, role: string): boolean {
+export function isUserInRole(user: DbUser, role: string | null | undefined): boolean {
   if (user && role) {
     for (const userRole of user.userRoles) {
       if (userRole.role === role) {

@@ -1,10 +1,10 @@
 import { registerEnumType } from 'type-graphql'
 
 export enum RoleNames {
-  ROLE_NAME_ADMIN = 'admin',
-  ROLE_NAME_UNAUTHORIZED = 'unauthorized',
-  ROLE_NAME_USER = 'user',
-  ROLE_NAME_MODERATOR = 'moderator',
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  USER = 'USER',
+  MODERATOR = 'MODERATOR',
+  ADMIN = 'ADMIN',
 }
 
 registerEnumType(RoleNames, {

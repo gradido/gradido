@@ -95,8 +95,6 @@ export const searchUsers = gql`
         emailConfirmationSend
         deletedAt
         roles
-        isAdmin
-        isModerator
       }
     }
   }

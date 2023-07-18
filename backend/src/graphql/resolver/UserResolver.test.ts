@@ -10,19 +10,20 @@ import { TransactionLink } from '@entity/TransactionLink'
 import { User } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
 import { UserRole } from '@entity/UserRole'
+import { UserInputError } from 'apollo-server-express'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
+import { RoleNames } from '@enum/RoleNames'
 import { UserContactType } from '@enum/UserContactType'
 import { ContributionLink } from '@model/ContributionLink'
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
 import { subscribe } from '@/apis/KlicktippController'
-import { RoleNames } from '@enum/RoleNames'
 import { CONFIG } from '@/config'
 import {
   sendAccountActivationEmail,
@@ -345,7 +346,7 @@ describe('UserResolver', () => {
           peter.userRoles = [] as UserRole[]
           peter.userRoles[0] = UserRole.create()
           peter.userRoles[0].createdAt = new Date()
-          peter.userRoles[0].role = RoleNames.ROLE_NAME_ADMIN
+          peter.userRoles[0].role = RoleNames.ADMIN
           peter.userRoles[0].userId = peter.id
           await peter.userRoles[0].save()
 
@@ -1411,7 +1412,7 @@ describe('UserResolver', () => {
                   expect.objectContaining({
                     firstName: 'Peter',
                     lastName: 'Lustig',
-                    role: RoleNames.ROLE_NAME_ADMIN,
+                    role: RoleNames.ADMIN,
                   }),
                 ]),
               },
@@ -1520,7 +1521,7 @@ describe('UserResolver', () => {
         await expect(
           mutate({
             mutation: setUserRole,
-            variables: { userId: 1, role: RoleNames.ROLE_NAME_ADMIN },
+            variables: { userId: 1, role: RoleNames.ADMIN },
           }),
         ).resolves.toEqual(
           expect.objectContaining({
@@ -1549,7 +1550,7 @@ describe('UserResolver', () => {
           await expect(
             mutate({
               mutation: setUserRole,
-              variables: { userId: user.id + 1, role: RoleNames.ROLE_NAME_ADMIN },
+              variables: { userId: user.id + 1, role: RoleNames.ADMIN },
             }),
           ).resolves.toEqual(
             expect.objectContaining({
@@ -1566,7 +1567,7 @@ describe('UserResolver', () => {
 
           // set Moderator-Role for Peter
           const userRole = await UserRole.findOneOrFail({ where: { userId: admin.id } })
-          userRole.role = RoleNames.ROLE_NAME_MODERATOR
+          userRole.role = RoleNames.MODERATOR
           userRole.userId = admin.id
           await UserRole.save(userRole)
 
@@ -1585,7 +1586,7 @@ describe('UserResolver', () => {
           await expect(
             mutate({
               mutation: setUserRole,
-              variables: { userId: user.id, role: RoleNames.ROLE_NAME_ADMIN },
+              variables: { userId: user.id, role: RoleNames.ADMIN },
             }),
           ).resolves.toEqual(
             expect.objectContaining({
@@ -1613,12 +1614,12 @@ describe('UserResolver', () => {
         it('returns user with new moderator-role', async () => {
           const result = await mutate({
             mutation: setUserRole,
-            variables: { userId: user.id, role: RoleNames.ROLE_NAME_MODERATOR },
+            variables: { userId: user.id, role: RoleNames.MODERATOR },
           })
           expect(result).toEqual(
             expect.objectContaining({
               data: {
-                setUserRole: RoleNames.ROLE_NAME_MODERATOR,
+                setUserRole: RoleNames.MODERATOR,
               },
             }),
           )
@@ -1635,7 +1636,7 @@ describe('UserResolver', () => {
             await expect(
               mutate({
                 mutation: setUserRole,
-                variables: { userId: admin.id + 1, role: RoleNames.ROLE_NAME_ADMIN },
+                variables: { userId: admin.id + 1, role: RoleNames.ADMIN },
               }),
             ).resolves.toEqual(
               expect.objectContaining({
@@ -1669,31 +1670,23 @@ describe('UserResolver', () => {
               it('returns admin-rolename', async () => {
                 const result = await mutate({
                   mutation: setUserRole,
-                  variables: { userId: user.id, role: RoleNames.ROLE_NAME_ADMIN },
+                  variables: { userId: user.id, role: RoleNames.ADMIN },
                 })
                 expect(result).toEqual(
                   expect.objectContaining({
                     data: {
-                      setUserRole: RoleNames.ROLE_NAME_ADMIN,
+                      setUserRole: RoleNames.ADMIN,
                     },
                   }),
                 )
               })
 
               it('stores the ADMIN_USER_ROLE_SET event in the database', async () => {
-                const userContact = await UserContact.findOneOrFail({
-                  where: { email: 'bibi@bloxberg.de' },
-                  relations: ['user'],
-                })
-                const adminContact = await UserContact.findOneOrFail({
-                  where: { email: 'peter@lustig.de' },
-                  relations: ['user'],
-                })
                 await expect(DbEvent.find()).resolves.toContainEqual(
                   expect.objectContaining({
                     type: EventType.ADMIN_USER_ROLE_SET,
-                    affectedUserId: userContact.user.id,
-                    actingUserId: adminContact.user.id,
+                    affectedUserId: user.id,
+                    actingUserId: admin.id,
                   }),
                 )
               })
@@ -1703,12 +1696,12 @@ describe('UserResolver', () => {
               it('returns date string', async () => {
                 const result = await mutate({
                   mutation: setUserRole,
-                  variables: { userId: user.id, role: RoleNames.ROLE_NAME_MODERATOR },
+                  variables: { userId: user.id, role: RoleNames.MODERATOR },
                 })
                 expect(result).toEqual(
                   expect.objectContaining({
                     data: {
-                      setUserRole: RoleNames.ROLE_NAME_MODERATOR,
+                      setUserRole: RoleNames.MODERATOR,
                     },
                   }),
                 )
@@ -1716,19 +1709,11 @@ describe('UserResolver', () => {
               })
 
               it('stores the ADMIN_USER_ROLE_SET event in the database', async () => {
-                const userContact = await UserContact.findOneOrFail({
-                  where: { email: 'bibi@bloxberg.de' },
-                  relations: ['user'],
-                })
-                const adminContact = await UserContact.findOneOrFail({
-                  where: { email: 'peter@lustig.de' },
-                  relations: ['user'],
-                })
                 await expect(DbEvent.find()).resolves.toContainEqual(
                   expect.objectContaining({
                     type: EventType.ADMIN_USER_ROLE_SET,
-                    affectedUserId: userContact.user.id,
-                    actingUserId: adminContact.user.id,
+                    affectedUserId: user.id,
+                    actingUserId: admin.id,
                   }),
                 )
               })
@@ -1791,15 +1776,12 @@ describe('UserResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Not allowed to set user role=')],
+                  errors: [
+                    new UserInputError(
+                      'Variable "$role" got invalid value "unknown rolename"; Value "unknown rolename" does not exist in "RoleNames" enum.',
+                    ),
+                  ],
                 }),
-              )
-            })
-
-            it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith(
-                'Not allowed to set user role=',
-                'unknown rolename',
               )
             })
           })
@@ -1810,12 +1792,12 @@ describe('UserResolver', () => {
                 jest.clearAllMocks()
                 await mutate({
                   mutation: setUserRole,
-                  variables: { userId: user.id, role: RoleNames.ROLE_NAME_ADMIN },
+                  variables: { userId: user.id, role: RoleNames.ADMIN },
                 })
                 await expect(
                   mutate({
                     mutation: setUserRole,
-                    variables: { userId: user.id, role: RoleNames.ROLE_NAME_ADMIN },
+                    variables: { userId: user.id, role: RoleNames.ADMIN },
                   }),
                 ).resolves.toEqual(
                   expect.objectContaining({
@@ -1825,10 +1807,7 @@ describe('UserResolver', () => {
               })
 
               it('logs the error thrown', () => {
-                expect(logger.error).toBeCalledWith(
-                  'User already has role=',
-                  RoleNames.ROLE_NAME_ADMIN,
-                )
+                expect(logger.error).toBeCalledWith('User already has role=', RoleNames.ADMIN)
               })
             })
 
@@ -1837,12 +1816,12 @@ describe('UserResolver', () => {
                 jest.clearAllMocks()
                 await mutate({
                   mutation: setUserRole,
-                  variables: { userId: user.id, role: RoleNames.ROLE_NAME_MODERATOR },
+                  variables: { userId: user.id, role: RoleNames.MODERATOR },
                 })
                 await expect(
                   mutate({
                     mutation: setUserRole,
-                    variables: { userId: user.id, role: RoleNames.ROLE_NAME_MODERATOR },
+                    variables: { userId: user.id, role: RoleNames.MODERATOR },
                   }),
                 ).resolves.toEqual(
                   expect.objectContaining({
@@ -1852,10 +1831,7 @@ describe('UserResolver', () => {
               })
 
               it('logs the error thrown', () => {
-                expect(logger.error).toBeCalledWith(
-                  'User already has role=',
-                  RoleNames.ROLE_NAME_MODERATOR,
-                )
+                expect(logger.error).toBeCalledWith('User already has role=', RoleNames.MODERATOR)
               })
             })
 
