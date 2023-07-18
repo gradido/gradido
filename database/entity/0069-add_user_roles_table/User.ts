@@ -60,7 +60,7 @@ export class User extends BaseEntity {
   })
   lastName: string
 
-  @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP', nullable: false })
+  @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP(3)', nullable: false })
   createdAt: Date
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })

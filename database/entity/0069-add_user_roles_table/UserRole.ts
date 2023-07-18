@@ -12,7 +12,7 @@ export class UserRole extends BaseEntity {
   @Column({ length: 40, nullable: false, collation: 'utf8mb4_unicode_ci' })
   role: string
 
-  @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP', nullable: false })
+  @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP(3)', nullable: false })
   createdAt: Date
 
   @Column({ name: 'updated_at', nullable: true, default: null, type: 'datetime' })

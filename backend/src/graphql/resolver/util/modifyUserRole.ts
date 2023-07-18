@@ -12,7 +12,6 @@ export async function setUserRole(user: DbUser, role: string | null | undefined)
       user.userRoles.push(UserRole.create())
     }
     // and initialize the userRole
-    user.userRoles[0].createdAt = new Date()
     user.userRoles[0].role = role
     user.userRoles[0].userId = user.id
     await UserRole.save(user.userRoles[0])
