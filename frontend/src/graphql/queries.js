@@ -13,7 +13,7 @@ export const verifyLogin = gql`
       }
       hasElopage
       publisherId
-      isAdmin
+      roles
       hideAmountGDD
       hideAmountGDT
     }
