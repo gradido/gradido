@@ -20,7 +20,6 @@ export const contributionLinkFactory = async (
     mutation: login,
     variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
   })
-
   const variables = {
     amount: contributionLink.amount,
     memo: contributionLink.memo,
