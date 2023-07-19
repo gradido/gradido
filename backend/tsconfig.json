@@ -52,6 +52,7 @@
       "@enum/*": ["src/graphql/enum/*"],
       "@model/*": ["src/graphql/model/*"],
       "@union/*": ["src/graphql/union/*"],
+      "@proto/*": ["src/proto/*"],
       "@repository/*": ["src/typeorm/repository/*"],
       "@test/*": ["test/*"],
       /* external */
