@@ -19,7 +19,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v17.2023-07-03',
+    EXPECTED: 'v18.2023-07-10',
     CURRENT: '',
   },
 }
@@ -49,6 +49,11 @@ const klicktipp = {
   KLICKTIPP_PASSWORD: process.env.KLICKTIPP_PASSWORD ?? 'secret321',
   KLICKTIPP_APIKEY_DE: process.env.KLICKTIPP_APIKEY_DE ?? 'SomeFakeKeyDE',
   KLICKTIPP_APIKEY_EN: process.env.KLICKTIPP_APIKEY_EN ?? 'SomeFakeKeyEN',
+}
+
+const dltConnector = {
+  DLT_CONNECTOR: process.env.DLT_CONNECTOR === 'true' || false,
+  DLT_CONNECTOR_URL: process.env.DLT_CONNECTOR_URL ?? 'http://localhost:6000',
 }
 
 const community = {
@@ -126,6 +131,7 @@ export const CONFIG = {
   ...server,
   ...database,
   ...klicktipp,
+  ...dltConnector,
   ...community,
   ...email,
   ...loginServer,
