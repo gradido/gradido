@@ -535,6 +535,20 @@ export class ContributionResolver {
         await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
         await queryRunner.commitTransaction()
+
+        /* TODO not the right place, because its inside semaphore locks
+        // send transaction via dlt-connector
+        // notice: must be called after transaction are saved to db to contain also the id
+        // we use catch instead of await to prevent slow down of backend
+        // because iota pow calculation which can be use up several seconds
+        const dltConnector = DltConnectorClient.getInstance()
+        if (dltConnector) {
+          dltConnector.transmitTransaction(transaction).catch(() => {
+            logger.error('error on transmit creation transaction')
+          })
+        }
+        */
+
         logger.info('creation commited successfuly.')
         void sendContributionConfirmedEmail({
           firstName: user.firstName,
