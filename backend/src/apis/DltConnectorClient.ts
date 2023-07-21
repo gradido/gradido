@@ -14,43 +14,6 @@ const mutation = gql`
   }
 `
 
-/**
- * write message id into db to transaction
- * @param dltMessageId message id of dlt message
- * @param transactionId typeorm transaction id
- */
-const writeDltMessageId = async (
-  dltMessageIdHex: string,
-  transactionId: number,
-): Promise<boolean> => {
-  try {
-    const transaction = await DbTransaction.findOne({ where: { id: transactionId } })
-    if (transaction) {
-      const dltMessageId = Buffer.from(dltMessageIdHex, 'hex')
-      if (dltMessageId.length !== 32) {
-        logger.error(
-          'Error dlt message id is invalid: %s, should by 32 Bytes long in binary after converting from hex',
-          dltMessageIdHex,
-        )
-        return false
-      }
-      transaction.dltTransactionId = dltMessageId
-      await transaction.save()
-      logger.info(
-        'transmit transaction over dlt connector, store message id: %s in db',
-        dltMessageIdHex,
-      )
-      return true
-    } else {
-      logger.error('transaction with id: %d not found', transactionId)
-      return false
-    }
-  } catch (e) {
-    logger.error('exception by finding transaction in db: %s', e)
-    return false
-  }
-}
-
 // from ChatGPT
 function getTransactionTypeString(id: TransactionTypeId): string {
   const key = Object.keys(TransactionTypeId).find(
@@ -109,7 +72,7 @@ export class DltConnectorClient {
    * transmit transaction via dlt-connector to iota
    * and update dltTransactionId of transaction in db with iota message id
    */
-  public async transmitTransaction(transaction: DbTransaction): Promise<boolean> {
+  public async transmitTransaction(transaction: DbTransaction): Promise<string> {
     const typeString = getTransactionTypeString(transaction.typeId)
     const secondsSinceEpoch = Math.round(transaction.balanceDate.getTime() / 1000)
     const amountString = transaction.amount.toString()
@@ -122,14 +85,9 @@ export class DltConnectorClient {
             createdAt: secondsSinceEpoch,
           },
         })
-      const writeResult = await writeDltMessageId(
-        result.transmitTransaction.dltTransactionIdHex,
-        transaction.id,
-      )
-      return writeResult
+      return result.transmitTransaction.dltTransactionIdHex
     } catch (e) {
-      logger.error('Error send sending transaction to dlt-connector: %o', e)
-      return false
+      throw new LogError('Error send sending transaction to dlt-connector: %o', e)
     }
   }
 }
