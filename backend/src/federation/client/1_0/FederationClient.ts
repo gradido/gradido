@@ -1,3 +1,4 @@
+
 import { Community } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { GraphQLClient } from 'graphql-request'
@@ -44,7 +45,7 @@ export class FederationClient {
       authorization: `Bearer ${token.toString()}`,
     })
 
-    const responseToken = response.headers.get('token')
+    const responseToken = response.headers?.get('token')
 
     if (!responseToken) {
       throw new Error('Response token missing')
