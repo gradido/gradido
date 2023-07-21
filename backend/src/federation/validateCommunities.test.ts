@@ -222,6 +222,7 @@ describe('validate Communities', () => {
         )
       })
     })
+    // eslint-disable-next-line jest/no-disabled-tests
     describe.skip('with two Communities of api 1_0 and 1_1', () => {
       beforeEach(async () => {
         jest.clearAllMocks()
@@ -273,6 +274,7 @@ describe('validate Communities', () => {
         )
       })
     })
+    // eslint-disable-next-line jest/no-disabled-tests
     describe.skip('with three Communities of api 1_0, 1_1 and 2_0', () => {
       let dbCom: DbFederatedCommunity
       beforeEach(async () => {
