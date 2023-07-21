@@ -19,6 +19,6 @@ export class PublicKeyResolver {
       },
     })
     logger.info(`getPublicKey()-1_0... return publicKey=${homeCom.publicKey.toString('hex')}`)
-    return new GetPublicKeyResult(homeCom.publicKey.toString())
+    return new GetPublicKeyResult(homeCom.publicKey.toString('hex'))
   }
 }
