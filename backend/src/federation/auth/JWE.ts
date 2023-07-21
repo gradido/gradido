@@ -5,6 +5,7 @@ import { compactDecrypt, compactVerify, CompactSign, CompactEncrypt } from 'jose
 import {
   crypto_sign_ed25519_pk_to_curve25519,
   crypto_sign_ed25519_sk_to_curve25519,
+  crypto_sign_PUBLICKEYBYTES,
   crypto_sign_SECRETKEYBYTES,
   crypto_box_PUBLICKEYBYTES,
   crypto_box_SECRETKEYBYTES,
@@ -42,7 +43,9 @@ const jwk_ed25519_sk = (keyPair: KeyPair) => {
       kty: 'OKP',
       crv: 'Ed25519',
       x: keyPair.publicKey.toString('base64url'),
-      d: keyPair.privateKey.subarray(0, crypto_sign_SECRETKEYBYTES).toString('base64url'),
+      d: keyPair.privateKey
+        .subarray(0, crypto_sign_SECRETKEYBYTES - crypto_sign_PUBLICKEYBYTES)
+        .toString('base64url'),
     },
     format: 'jwk',
   })
@@ -69,7 +72,7 @@ const jwk_x25519_sk = (keyPair: KeyPair) => {
   crypto_sign_ed25519_pk_to_curve25519(pubKeyX, keyPair.publicKey)
   crypto_sign_ed25519_sk_to_curve25519(
     privKeyX,
-    keyPair.privateKey.subarray(0, crypto_sign_SECRETKEYBYTES),
+    keyPair.privateKey.subarray(0, crypto_sign_SECRETKEYBYTES - crypto_sign_PUBLICKEYBYTES),
   )
   return createPrivateKey({
     key: {
