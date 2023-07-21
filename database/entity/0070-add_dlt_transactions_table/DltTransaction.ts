@@ -6,7 +6,7 @@ export class DltTransaction extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ name: 'transaction_id', type: 'int', unsigned: true, nullable: false })
+  @Column({ name: 'transactions_id', type: 'int', unsigned: true, nullable: false })
   transactionId: number
 
   @Column({
@@ -28,6 +28,6 @@ export class DltTransaction extends BaseEntity {
   verifiedAt: Date | null
 
   @OneToOne(() => Transaction, (transaction) => transaction.dltTransaction)
-  @JoinColumn({ name: 'transaction_id' })
+  @JoinColumn({ name: 'transactions_id' })
   transaction?: Transaction | null
 }
