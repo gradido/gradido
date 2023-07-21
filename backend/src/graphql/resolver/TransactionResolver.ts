@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { getConnection, In } from '@dbTools/typeorm'
+import { DltTransaction } from '@entity/DltTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as dbUser } from '@entity/User'
@@ -37,6 +38,7 @@ import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
+import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 
 export const executeTransaction = async (
@@ -139,6 +141,14 @@ export const executeTransaction = async (
         )
       }
 
+      const dltTxSend = DltTransaction.create()
+      dltTxSend.transactionId = transactionSend.id
+      await DltTransaction.save(dltTxSend)
+
+      const dltTxRec = DltTransaction.create()
+      dltTxRec.transactionId = transactionReceive.id
+      await DltTransaction.save(dltTxRec)
+
       await queryRunner.commitTransaction()
       logger.info(`commit Transaction successful...`)
 
@@ -151,21 +161,10 @@ export const executeTransaction = async (
         transactionReceive.amount,
       )
 
-      /* TODO not the right place, because its inside semaphore locks
-      // send transaction via dlt-connector
-      // notice: must be called after transactions are saved to db to contain also the id
-      // we use catch instead of await to prevent slow down of backend
-      // because iota pow calculation which can be use up several seconds
-      const dltConnector = DltConnectorClient.getInstance()
-      if (dltConnector) {
-        dltConnector.transmitTransaction(transactionSend).catch(() => {
-          logger.error('error on transmit send transaction')
-        })
-        dltConnector.transmitTransaction(transactionReceive).catch(() => {
-          logger.error('error on transmit receive transaction')
-        })
-      }
-      */
+      // trigger to send transaction via dlt-connector
+      sendTransactionsToDltConnector().catch(() => {
+        logger.error('error on sending transactions to DltConnector')
+      })
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Transaction was not successful', e)

@@ -1,6 +1,7 @@
 import { IsNull, getConnection } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage } from '@entity/ContributionMessage'
+import { DltTransaction } from '@entity/DltTransaction'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User as DbUser } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
@@ -55,6 +56,7 @@ import {
 } from './util/creations'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
+import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
 @Resolver()
 export class ContributionResolver {
@@ -534,20 +536,16 @@ export class ContributionResolver {
         contribution.contributionStatus = ContributionStatus.CONFIRMED
         await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
+        const dltTx = DltTransaction.create()
+        dltTx.transactionId = transaction.id
+        await DltTransaction.save(dltTx)
+
         await queryRunner.commitTransaction()
 
-        /* TODO not the right place, because its inside semaphore locks
-        // send transaction via dlt-connector
-        // notice: must be called after transaction are saved to db to contain also the id
-        // we use catch instead of await to prevent slow down of backend
-        // because iota pow calculation which can be use up several seconds
-        const dltConnector = DltConnectorClient.getInstance()
-        if (dltConnector) {
-          dltConnector.transmitTransaction(transaction).catch(() => {
-            logger.error('error on transmit creation transaction')
-          })
-        }
-        */
+        // trigger to send transaction via dlt-connector
+        sendTransactionsToDltConnector().catch(() => {
+          logger.error('error on sending transactions to DltConnector')
+        })
 
         logger.info('creation commited successfuly.')
         void sendContributionConfirmedEmail({

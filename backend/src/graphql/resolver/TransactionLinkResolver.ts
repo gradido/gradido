@@ -3,6 +3,7 @@ import { randomBytes } from 'crypto'
 import { getConnection } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { DltTransaction } from '@entity/DltTransaction'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
@@ -41,6 +42,7 @@ import { calculateBalance } from '@/util/validate'
 import { executeTransaction } from './TransactionResolver'
 import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
+import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkList } from './util/transactionLinkList'
 
 // TODO: do not export, test it inside the resolver
@@ -289,20 +291,12 @@ export class TransactionLinkResolver {
           contribution.transactionId = transaction.id
           await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
+          const dltTx = DltTransaction.create()
+          dltTx.transactionId = transaction.id
+          await DltTransaction.save(dltTx)
+
           await queryRunner.commitTransaction()
 
-          /* TODO not the right place, because its inside semaphore locks
-          // send transaction via dlt-connector
-          // notice: must be called after transaction are saved to db to contain also the id
-          // we use catch instead of await to prevent slow down of backend
-          // because iota pow calculation which can be use up several seconds
-          const dltConnector = DltConnectorClient.getInstance()
-          if (dltConnector) {
-            dltConnector.transmitTransaction(transaction).catch(() => {
-              logger.error('error on transmit creation transaction')
-            })
-          }
-*/
           await EVENT_CONTRIBUTION_LINK_REDEEM(
             user,
             transaction,
@@ -319,6 +313,10 @@ export class TransactionLinkResolver {
       } finally {
         releaseLock()
       }
+      // trigger to send transaction via dlt-connector
+      sendTransactionsToDltConnector().catch(() => {
+        logger.error('error on sending transactions to DltConnector')
+      })
       return true
     } else {
       const now = new Date()
