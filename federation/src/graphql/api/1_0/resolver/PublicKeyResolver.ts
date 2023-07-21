@@ -18,7 +18,7 @@ export class PublicKeyResolver {
         apiVersion: '1_0',
       },
     })
-    logger.info(`getPublicKey()-1_0... return publicKey=${homeCom.publicKey}`)
+    logger.info(`getPublicKey()-1_0... return publicKey=${homeCom.publicKey.toString('hex')}`)
     return new GetPublicKeyResult(homeCom.publicKey.toString())
   }
 }
