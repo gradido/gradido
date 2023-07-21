@@ -14,9 +14,9 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
   }
 
   try {
-    const ownCommunity = await dbCommunity.findOneOrFail({ where: { foreign: false } })
-    if (!ownCommunity.privateKey) {
-      throw new LogError('Internal Server Error', 'Own private key not in database')
+    const ownCommunity = await dbCommunity.findOne({ where: { foreign: false } })
+    if (!ownCommunity?.privateKey) {
+      throw new LogError('Internal Server Error', 'Own community or private key not in database')
     }
     // Decode the token
     const decoded = await verifyToken(context.token, {

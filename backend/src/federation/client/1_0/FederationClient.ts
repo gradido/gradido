@@ -32,9 +32,9 @@ export class FederationClient {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async request(query: string, variables?: any) {
     const nonce = randombytes_random()
-    const ownCommunity = await Community.findOneOrFail({ where: { foreign: false } })
-    if (!ownCommunity.privateKey) {
-      throw new Error('Own private key not in database')
+    const ownCommunity = await Community.findOne({ where: { foreign: false } })
+    if (!ownCommunity?.privateKey) {
+      throw new Error('Own community or private key not in database')
     }
 
     const keyPair = { publicKey: ownCommunity.publicKey, privateKey: ownCommunity.privateKey }
@@ -79,7 +79,7 @@ export class FederationClient {
 
       return publicKey.toString()
     } catch (err) {
-      logger.warn('Federation: getPublicKey failed for endpoint', this.endpoint, err)
+      logger.warn('Federation: getPublicKey failed for endpoint', this.endpoint /*, err */)
     }
   }
 }
