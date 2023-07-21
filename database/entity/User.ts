@@ -1,1 +1,1 @@
-export { User } from './0059-add_hide_amount_to_users/User'
+export { User } from './0069-add_user_roles_table/User'

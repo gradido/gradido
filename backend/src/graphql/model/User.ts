@@ -18,7 +18,7 @@ export class User {
     this.createdAt = user.createdAt
     this.language = user.language
     this.publisherId = user.publisherId
-    this.isAdmin = user.isAdmin
+    this.roles = user.userRoles?.map((userRole) => userRole.role) ?? []
     this.klickTipp = null
     this.hasElopage = null
     this.hideAmountGDD = user.hideAmountGDD
@@ -62,12 +62,12 @@ export class User {
   @Field(() => Int, { nullable: true })
   publisherId: number | null
 
-  @Field(() => Date, { nullable: true })
-  isAdmin: Date | null
-
   @Field(() => KlickTipp, { nullable: true })
   klickTipp: KlickTipp | null
 
   @Field(() => Boolean, { nullable: true })
   hasElopage: boolean | null
+
+  @Field(() => [String])
+  roles: string[]
 }

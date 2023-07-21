@@ -48,7 +48,13 @@
     "baseUrl": ".",                                 /* Base directory to resolve non-absolute module names. */
     "paths": {                                      /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
       "@/*": ["src/*"],
+      "@arg/*": ["src/graphql/arg/*"],
+      "@enum/*": ["src/graphql/enum/*"],
+      "@input/*": ["src/graphql/input/*"],
+      "@resolver/*": ["src/graphql/resolver/*"],
+      "@scalar/*": ["src/graphql/scalar/*"],
       "@test/*": ["test/*"],
+      "@proto/*" : ["src/proto/*"],
       /* external */
     },
     // "rootDirs": [],                              /* List of root folders whose combined content represents the structure of the project at runtime. */
