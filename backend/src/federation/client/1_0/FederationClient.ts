@@ -8,7 +8,6 @@ import { backendLogger as logger } from '@/server/logger'
 
 import { randombytes_random } from 'sodium-native'
 
-// eslint-disable-next-line camelcase
 export class FederationClient {
   dbCom: DbFederatedCommunity
   endpoint: string
@@ -19,6 +18,8 @@ export class FederationClient {
     this.endpoint = `${dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'}${
       dbCom.apiVersion
     }/`
+    // For local debugging
+    // this.endpoint = 'http://federation:5010/'
     this.client = new GraphQLClient(this.endpoint, {
       method: 'GET',
       jsonSerializer: {
@@ -51,7 +52,8 @@ export class FederationClient {
 
     const { publicKey } = await verifyToken(responseToken, keyPair, nonce)
 
-    response.headers.set('publicKey', publicKey.toString())
+    // The header only allows normal characters - therefore we use hex
+    response.headers.set('publicKey', Buffer.from(publicKey).toString('hex'))
 
     return response
   }
@@ -66,16 +68,18 @@ export class FederationClient {
         logger.warn('Federation: getPublicKey without response data from endpoint', this.endpoint)
         return
       }
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
+      const publicKey = Buffer.from(data.getPublicKey.publicKey, 'hex')
       logger.info(
         'Federation: getPublicKey successful from endpoint',
         this.endpoint,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        data.getPublicKey.publicKey,
+        publicKey.toString('hex'),
       )
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-      return data.getPublicKey.publicKey
+
+      return publicKey.toString()
     } catch (err) {
-      logger.warn('Federation: getPublicKey failed for endpoint', this.endpoint /* , err */)
+      logger.warn('Federation: getPublicKey failed for endpoint', this.endpoint, err)
     }
   }
 }

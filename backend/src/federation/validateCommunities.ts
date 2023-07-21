@@ -26,6 +26,8 @@ export async function validateCommunities(): Promise<void> {
   const dbFederatedCommunities: DbFederatedCommunity[] =
     await DbFederatedCommunity.createQueryBuilder()
       .where({ foreign: true, verifiedAt: IsNull() })
+      // For local debugging
+      // .where({ foreign: false })
       .orWhere('verified_at < last_announced_at')
       .getMany()
 
@@ -50,7 +52,7 @@ export async function validateCommunities(): Promise<void> {
           logger.warn(
             'Federation: received not matching publicKey:',
             pubKey,
-            dbCom.publicKey.toString(),
+            dbCom.publicKey.toString('hex'),
           )
         }
       }
