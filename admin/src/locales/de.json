@@ -209,6 +209,7 @@
     "selectLabel": "Rolle:",
     "selectRoles": {
       "admin": "Administrator",
+      "moderator": "Moderator",
       "user": "einfacher Nutzer"
     },
     "successfullyChangedTo": "Nutzer ist jetzt „{role}“.",
