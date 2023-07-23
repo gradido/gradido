@@ -15,6 +15,7 @@ const propsData = {
       email: 'bibi@bloxberg.de',
       creation: [200, 400, 600],
       emailChecked: true,
+      roles: [],
     },
     {
       userId: 2,
@@ -23,6 +24,7 @@ const propsData = {
       email: 'benjamin@bluemchen.de',
       creation: [1000, 1000, 1000],
       emailChecked: true,
+      roles: [],
     },
     {
       userId: 3,
@@ -31,6 +33,7 @@ const propsData = {
       email: 'peter@lustig.de',
       creation: [0, 0, 0],
       emailChecked: true,
+      roles: ['ADMIN'],
     },
     {
       userId: 4,
@@ -39,6 +42,7 @@ const propsData = {
       email: 'new@user.ch',
       creation: [1000, 1000, 1000],
       emailChecked: false,
+      roles: [],
     },
   ],
   fields: [
