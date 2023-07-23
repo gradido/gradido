@@ -21,6 +21,7 @@ const mocks = {
       moderator: {
         id: 0,
         name: 'test moderator',
+        roles: ['ADMIN'],
       },
     },
   },
@@ -45,7 +46,7 @@ describe('ChangeUserRoleFormular', () => {
         propsData = {
           item: {
             userId: 1,
-            isAdmin: null,
+            roles: ['USER'],
           },
         }
         wrapper = Wrapper()
@@ -61,7 +62,7 @@ describe('ChangeUserRoleFormular', () => {
         propsData = {
           item: {
             userId: 0,
-            isAdmin: null,
+            roles: ['USER'],
           },
         }
         wrapper = Wrapper()
@@ -88,7 +89,7 @@ describe('ChangeUserRoleFormular', () => {
           propsData = {
             item: {
               userId: 1,
-              isAdmin: null,
+              roles: ['USER'],
             },
           }
           wrapper = Wrapper()
@@ -126,7 +127,7 @@ describe('ChangeUserRoleFormular', () => {
           propsData = {
             item: {
               userId: 1,
-              isAdmin: null,
+              roles: ['USER'],
             },
           }
           wrapper = Wrapper()
@@ -149,7 +150,7 @@ describe('ChangeUserRoleFormular', () => {
             })
           })
 
-          describe('new role', () => {
+          describe('new role "MODERATOR"', () => {
             beforeEach(() => {
               rolesToSelect.at(1).setSelected()
             })
@@ -181,7 +182,190 @@ describe('ChangeUserRoleFormular', () => {
                       mutation: setUserRole,
                       variables: {
                         userId: 1,
-                        isAdmin: true,
+                        // isAdmin: true,
+                        role: 'moderator',
+                      },
+                    }),
+                  )
+                })
+
+                it('emits "updateIsAdmin" with role moderator', () => {
+                  expect(wrapper.emitted('updateIsAdmin')).toEqual(
+                    expect.arrayContaining([
+                      expect.arrayContaining([
+                        {
+                          userId: 1,
+                          // isAdmin: true,
+                          role: 'moderator',
+                        },
+                      ]),
+                    ]),
+                  )
+                })
+
+                it('toasts success message', () => {
+                  expect(toastSuccessSpy).toBeCalledWith('userRole.successfullyChangedTo')
+                })
+              })
+
+              describe('confirm role change with error', () => {
+                beforeEach(async () => {
+                  spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                  apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
+                  await wrapper.find('button').trigger('click')
+                  await wrapper.vm.$nextTick()
+                })
+
+                it('toasts an error message', () => {
+                  expect(toastErrorSpy).toBeCalledWith('Oh no!')
+                })
+              })
+            })
+          })
+
+          describe('new role "ADMIN"', () => {
+            beforeEach(() => {
+              rolesToSelect.at(2).setSelected()
+            })
+
+            it('has "change_user_role" button enabled', () => {
+              expect(wrapper.find('button.btn.btn-danger').exists()).toBe(true)
+              expect(wrapper.find('button.btn.btn-danger[disabled="disabled"]').exists()).toBe(
+                false,
+              )
+            })
+
+            describe('clicking the "change_user_role" button', () => {
+              beforeEach(async () => {
+                spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                spy.mockImplementation(() => Promise.resolve(true))
+                await wrapper.find('button').trigger('click')
+                await wrapper.vm.$nextTick()
+              })
+
+              it('calls the modal', () => {
+                expect(wrapper.emitted('showModal'))
+                expect(spy).toHaveBeenCalled()
+              })
+
+              describe('confirm role change with success', () => {
+                it('calls the API', () => {
+                  expect(apolloMutateMock).toBeCalledWith(
+                    expect.objectContaining({
+                      mutation: setUserRole,
+                      variables: {
+                        userId: 1,
+                        // isAdmin: true,
+                        role: 'admin',
+                      },
+                    }),
+                  )
+                })
+
+                it('emits "updateIsAdmin" with role moderator', () => {
+                  expect(wrapper.emitted('updateIsAdmin')).toEqual(
+                    expect.arrayContaining([
+                      expect.arrayContaining([
+                        {
+                          userId: 1,
+                          // isAdmin: true,
+                          role: 'admin',
+                        },
+                      ]),
+                    ]),
+                  )
+                })
+
+                it('toasts success message', () => {
+                  expect(toastSuccessSpy).toBeCalledWith('userRole.successfullyChangedTo')
+                })
+              })
+
+              describe('confirm role change with error', () => {
+                beforeEach(async () => {
+                  spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                  apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
+                  await wrapper.find('button').trigger('click')
+                  await wrapper.vm.$nextTick()
+                })
+
+                it('toasts an error message', () => {
+                  expect(toastErrorSpy).toBeCalledWith('Oh no!')
+                })
+              })
+            })
+          })
+        })
+      })
+
+      describe('user has role "moderator"', () => {
+        beforeEach(() => {
+          apolloMutateMock.mockResolvedValue({
+            data: {
+              setUserRole: null,
+            },
+          })
+          propsData = {
+            item: {
+              userId: 1,
+              // isAdmin: new Date(),
+              roles: ['MODERATOR'],
+            },
+          }
+          wrapper = Wrapper()
+          rolesToSelect = wrapper.find('select.role-select').findAll('option')
+        })
+
+        it('has selected option set to "moderator"', () => {
+          expect(wrapper.find('select.role-select').element.value).toBe('moderator')
+        })
+
+        describe('change select to', () => {
+          describe('same role', () => {
+            it('has "change_user_role" button disabled', () => {
+              expect(wrapper.find('button.btn.btn-danger[disabled="disabled"]').exists()).toBe(true)
+            })
+
+            it('does not call the API', () => {
+              rolesToSelect.at(1).setSelected()
+              // TODO: Fix this
+              expect(apolloMutateMock).not.toHaveBeenCalled()
+            })
+          })
+
+          describe('new role "USER"', () => {
+            beforeEach(() => {
+              rolesToSelect.at(0).setSelected()
+            })
+
+            it('has "change_user_role" button enabled', () => {
+              expect(wrapper.find('button.btn.btn-danger').exists()).toBe(true)
+              expect(wrapper.find('button.btn.btn-danger[disabled="disabled"]').exists()).toBe(
+                false,
+              )
+            })
+
+            describe('clicking the "change_user_role" button', () => {
+              beforeEach(async () => {
+                spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                spy.mockImplementation(() => Promise.resolve(true))
+                await wrapper.find('button').trigger('click')
+                await wrapper.vm.$nextTick()
+              })
+
+              it('calls the modal', () => {
+                expect(wrapper.emitted('showModal'))
+                expect(spy).toHaveBeenCalled()
+              })
+
+              describe('confirm role change with success', () => {
+                it('calls the API', () => {
+                  expect(apolloMutateMock).toBeCalledWith(
+                    expect.objectContaining({
+                      mutation: setUserRole,
+                      variables: {
+                        userId: 1,
+                        role: 'user',
                       },
                     }),
                   )
@@ -193,7 +377,78 @@ describe('ChangeUserRoleFormular', () => {
                       expect.arrayContaining([
                         {
                           userId: 1,
-                          isAdmin: expect.any(Date),
+                          role: 'user',
+                        },
+                      ]),
+                    ]),
+                  )
+                })
+
+                it('toasts success message', () => {
+                  expect(toastSuccessSpy).toBeCalledWith('userRole.successfullyChangedTo')
+                })
+              })
+
+              describe('confirm role change with error', () => {
+                beforeEach(async () => {
+                  spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                  apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
+                  await wrapper.find('button').trigger('click')
+                  await wrapper.vm.$nextTick()
+                })
+
+                it('toasts an error message', () => {
+                  expect(toastErrorSpy).toBeCalledWith('Oh no!')
+                })
+              })
+            })
+          })
+
+          describe('new role "ADMIN"', () => {
+            beforeEach(() => {
+              rolesToSelect.at(2).setSelected()
+            })
+
+            it('has "change_user_role" button enabled', () => {
+              expect(wrapper.find('button.btn.btn-danger').exists()).toBe(true)
+              expect(wrapper.find('button.btn.btn-danger[disabled="disabled"]').exists()).toBe(
+                false,
+              )
+            })
+
+            describe('clicking the "change_user_role" button', () => {
+              beforeEach(async () => {
+                spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                spy.mockImplementation(() => Promise.resolve(true))
+                await wrapper.find('button').trigger('click')
+                await wrapper.vm.$nextTick()
+              })
+
+              it('calls the modal', () => {
+                expect(wrapper.emitted('showModal'))
+                expect(spy).toHaveBeenCalled()
+              })
+
+              describe('confirm role change with success', () => {
+                it('calls the API', () => {
+                  expect(apolloMutateMock).toBeCalledWith(
+                    expect.objectContaining({
+                      mutation: setUserRole,
+                      variables: {
+                        userId: 1,
+                        role: 'admin',
+                      },
+                    }),
+                  )
+                })
+
+                it('emits "updateIsAdmin"', () => {
+                  expect(wrapper.emitted('updateIsAdmin')).toEqual(
+                    expect.arrayContaining([
+                      expect.arrayContaining([
+                        {
+                          userId: 1,
+                          role: 'admin',
                         },
                       ]),
                     ]),
@@ -232,7 +487,8 @@ describe('ChangeUserRoleFormular', () => {
           propsData = {
             item: {
               userId: 1,
-              isAdmin: new Date(),
+              // isAdmin: new Date(),
+              roles: ['ADMIN'],
             },
           }
           wrapper = Wrapper()
@@ -251,11 +507,12 @@ describe('ChangeUserRoleFormular', () => {
 
             it('does not call the API', () => {
               rolesToSelect.at(1).setSelected()
+              // TODO: Fix this
               expect(apolloMutateMock).not.toHaveBeenCalled()
             })
           })
 
-          describe('new role', () => {
+          describe('new role "USER"', () => {
             beforeEach(() => {
               rolesToSelect.at(0).setSelected()
             })
@@ -287,7 +544,7 @@ describe('ChangeUserRoleFormular', () => {
                       mutation: setUserRole,
                       variables: {
                         userId: 1,
-                        isAdmin: false,
+                        role: 'user',
                       },
                     }),
                   )
@@ -299,7 +556,78 @@ describe('ChangeUserRoleFormular', () => {
                       expect.arrayContaining([
                         {
                           userId: 1,
-                          isAdmin: null,
+                          role: 'user',
+                        },
+                      ]),
+                    ]),
+                  )
+                })
+
+                it('toasts success message', () => {
+                  expect(toastSuccessSpy).toBeCalledWith('userRole.successfullyChangedTo')
+                })
+              })
+
+              describe('confirm role change with error', () => {
+                beforeEach(async () => {
+                  spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                  apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
+                  await wrapper.find('button').trigger('click')
+                  await wrapper.vm.$nextTick()
+                })
+
+                it('toasts an error message', () => {
+                  expect(toastErrorSpy).toBeCalledWith('Oh no!')
+                })
+              })
+            })
+          })
+
+          describe('new role "MODERATOR"', () => {
+            beforeEach(() => {
+              rolesToSelect.at(1).setSelected()
+            })
+
+            it('has "change_user_role" button enabled', () => {
+              expect(wrapper.find('button.btn.btn-danger').exists()).toBe(true)
+              expect(wrapper.find('button.btn.btn-danger[disabled="disabled"]').exists()).toBe(
+                false,
+              )
+            })
+
+            describe('clicking the "change_user_role" button', () => {
+              beforeEach(async () => {
+                spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                spy.mockImplementation(() => Promise.resolve(true))
+                await wrapper.find('button').trigger('click')
+                await wrapper.vm.$nextTick()
+              })
+
+              it('calls the modal', () => {
+                expect(wrapper.emitted('showModal'))
+                expect(spy).toHaveBeenCalled()
+              })
+
+              describe('confirm role change with success', () => {
+                it('calls the API', () => {
+                  expect(apolloMutateMock).toBeCalledWith(
+                    expect.objectContaining({
+                      mutation: setUserRole,
+                      variables: {
+                        userId: 1,
+                        role: 'moderator',
+                      },
+                    }),
+                  )
+                })
+
+                it('emits "updateIsAdmin"', () => {
+                  expect(wrapper.emitted('updateIsAdmin')).toEqual(
+                    expect.arrayContaining([
+                      expect.arrayContaining([
+                        {
+                          userId: 1,
+                          role: 'moderator',
                         },
                       ]),
                     ]),

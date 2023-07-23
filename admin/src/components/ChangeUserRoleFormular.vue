@@ -26,6 +26,7 @@ import { setUserRole } from '../graphql/setUserRole'
 
 const rolesValues = {
   admin: 'admin',
+  moderator: 'moderator',
   user: 'user',
 }
 
@@ -39,15 +40,24 @@ export default {
   },
   data() {
     return {
-      currentRole: this.item.isAdmin ? rolesValues.admin : rolesValues.user,
-      roleSelected: this.item.isAdmin ? rolesValues.admin : rolesValues.user,
+      // currentRole: this.item.isAdmin ? rolesValues.admin : rolesValues.user,
+      currentRole: this.newFunction(),
+      // roleSelected: this.item.isAdmin ? rolesValues.admin : rolesValues.user,
+      roleSelected: this.newFunction(),
       roles: [
         { value: rolesValues.user, text: this.$t('userRole.selectRoles.user') },
+        { value: rolesValues.moderator, text: this.$t('userRole.selectRoles.moderator') },
         { value: rolesValues.admin, text: this.$t('userRole.selectRoles.admin') },
       ],
     }
   },
   methods: {
+    newFunction() {
+      let userRole = rolesValues.user
+      if (this.item.roles.includes('ADMIN', 0)) userRole = rolesValues.admin
+      else if (this.item.roles.includes('MODERATOR', 0)) userRole = rolesValues.moderator
+      return userRole
+    },
     showModal() {
       this.$bvModal
         .msgBoxConfirm(
@@ -77,25 +87,32 @@ export default {
         })
     },
     setUserRole(newRole, oldRole) {
+      let role
+      switch (newRole) {
+        case rolesValues.admin:
+        case rolesValues.moderator:
+        case rolesValues.user:
+          role = newRole
+          break
+        default:
+          role = 'USER'
+      }
       this.$apollo
         .mutate({
           mutation: setUserRole,
           variables: {
             userId: this.item.userId,
-            isAdmin: newRole === rolesValues.admin,
+            role,
           },
         })
         .then((result) => {
           this.$emit('updateIsAdmin', {
             userId: this.item.userId,
-            isAdmin: result.data.setUserRole,
+            role,
           })
           this.toastSuccess(
             this.$t('userRole.successfullyChangedTo', {
-              role:
-                result.data.setUserRole !== null
-                  ? this.$t('userRole.selectRoles.admin')
-                  : this.$t('userRole.selectRoles.user'),
+              role: role.text,
             }),
           )
         })
