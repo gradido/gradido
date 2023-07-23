@@ -655,9 +655,7 @@ export class UserResolver {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
     const userFields = ['id', 'firstName', 'lastName', 'emailId', 'emailContact', 'deletedAt']
     const [users, count] = await findUsers(
-      userFields.map((fieldName) => {
-        return 'user.' + fieldName
-      }),
+      userFields,
       query,
       filters ?? null,
       currentPage,

@@ -1,10 +1,24 @@
-import { getConnection, Brackets, IsNull, Not } from '@dbTools/typeorm'
+import { IsNull, Not, Like } from '@dbTools/typeorm'
 import { User as DbUser } from '@entity/User'
 
 import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { Order } from '@enum/Order'
 
-import { LogError } from '@/server/LogError'
+function likeQuery(searchCriteria: string) {
+  return Like(`%${searchCriteria}%`)
+}
+
+function emailCheckedQuery(filters: SearchUsersFilters) {
+  return filters.byActivated ?? undefined
+}
+
+function deletedAtQuery(filters: SearchUsersFilters | null) {
+  return filters?.byDeleted !== undefined && filters?.byDeleted !== null
+    ? filters.byDeleted
+      ? Not(IsNull())
+      : IsNull()
+    : undefined
+}
 
 export const findUsers = async (
   select: string[],
@@ -14,44 +28,51 @@ export const findUsers = async (
   pageSize: number,
   order = Order.ASC,
 ): Promise<[DbUser[], number]> => {
-  const queryRunner = getConnection().createQueryRunner()
-  try {
-    await queryRunner.connect()
-    const query = queryRunner.manager
-      .createQueryBuilder(DbUser, 'user')
-      .select(select)
-      .withDeleted()
-      .leftJoinAndSelect('user.emailContact', 'emailContact')
-      .where(
-        new Brackets((qb) => {
-          qb.where(
-            'user.firstName like :name or user.lastName like :lastName or emailContact.email like :email',
-            {
-              name: `%${searchCriteria}%`,
-              lastName: `%${searchCriteria}%`,
-              email: `%${searchCriteria}%`,
-            },
-          )
-        }),
-      )
-    if (filters) {
-      if (filters.byActivated !== null) {
-        query.andWhere('emailContact.emailChecked = :value', { value: filters.byActivated })
-      }
-
-      if (filters.byDeleted !== null) {
-        query.andWhere({ deletedAt: filters.byDeleted ? Not(IsNull()) : IsNull() })
-      }
-    }
-
-    return await query
-      .orderBy({ 'user.id': order })
-      .take(pageSize)
-      .skip((currentPage - 1) * pageSize)
-      .getManyAndCount()
-  } catch (err) {
-    throw new LogError('Unable to search users', err)
-  } finally {
-    await queryRunner.release()
+  const where = [
+    {
+      firstName: likeQuery(searchCriteria),
+      deletedAt: deletedAtQuery(filters),
+      emailContact: filters
+        ? {
+            emailChecked: emailCheckedQuery(filters),
+          }
+        : undefined,
+    },
+    {
+      lastName: likeQuery(searchCriteria),
+      deletedAt: deletedAtQuery(filters),
+      emailContact: filters
+        ? {
+            emailChecked: emailCheckedQuery(filters),
+          }
+        : undefined,
+    },
+    {
+      emailContact: {
+        // ...(filters ?? emailChecked: filters.byActivated)
+        emailChecked: filters ? emailCheckedQuery(filters) : undefined,
+        email: likeQuery(searchCriteria),
+      },
+      deletedAt: deletedAtQuery(filters),
+    },
+  ]
+  const selectFind = Object.fromEntries(select.map((item) => [item, true]))
+  const relations = ['emailContact', 'userRoles']
+  const orderFind = {
+    id: order,
   }
+  const take = pageSize
+  const skip = (currentPage - 1) * pageSize
+  const withDeleted = true
+
+  const [users, count] = await DbUser.findAndCount({
+    where,
+    withDeleted,
+    select: selectFind,
+    relations,
+    order: orderFind,
+    take,
+    skip,
+  })
+  return [users, count]
 }
