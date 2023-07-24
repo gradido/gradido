@@ -26,6 +26,7 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
+import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
 let mutate: ApolloServerTestClient['mutate'], con: Connection
 let query: ApolloServerTestClient['query']
@@ -381,6 +382,46 @@ describe('send coins', () => {
             involvedTransactionId: transaction[0].id,
           }),
         )
+      })
+
+      it('creates the SEND dlt-transactions', async () => {
+        const transaction = await Transaction.find({
+          where: {
+            userId: user[0].id,
+          },
+          relations: ['dltTransaction'],
+        })
+
+        expect(transaction[0].dltTransaction).toEqual({
+          id: expect.any(Number),
+          transactionId: transaction[0].id,
+          messageId: null,
+          verified: false,
+          createdAt: expect.any(Date),
+          verifiedAt: null,
+        })
+      })
+
+      it('creates the RECEIVED dlt-transactions', async () => {
+        const transaction = await Transaction.find({
+          where: {
+            userId: user[1].id,
+          },
+          relations: ['dltTransaction'],
+        })
+
+        expect(transaction[0].dltTransaction).toEqual({
+          id: expect.any(Number),
+          transactionId: transaction[0].id,
+          messageId: null,
+          verified: false,
+          createdAt: expect.any(Date),
+          verifiedAt: null,
+        })
+      })
+
+      it.skip('invokes sendTransactionsToDltConnector', () => {
+        expect(sendTransactionsToDltConnector).toBeCalled()
       })
     })
 
