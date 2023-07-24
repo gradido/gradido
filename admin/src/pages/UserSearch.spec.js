@@ -35,7 +35,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           lastName: 'Blümchen',
           email: 'benjamin@bluemchen.de',
           creation: [1000, 1000, 1000],
-          roles: ['USER'],
+          roles: [],
           emailChecked: true,
           deletedAt: new Date(),
         },
@@ -45,7 +45,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           lastName: 'Bloxberg',
           email: 'bibi@bloxberg.de',
           creation: [200, 400, 600],
-          roles: ['USER'],
+          roles: [],
           emailChecked: true,
           deletedAt: null,
         },
@@ -216,7 +216,7 @@ describe('UserSearch', () => {
         it('updates user role to admin', async () => {
           await wrapper
             .findComponent({ name: 'SearchUserTable' })
-            .vm.$emit('updateIsAdmin', userId, 'ADMIN')
+            .vm.$emit('updateRoles', userId, ['ADMIN'])
           expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).roles).toEqual([
             'ADMIN',
           ])
@@ -227,10 +227,8 @@ describe('UserSearch', () => {
         it('updates user role to usual user', async () => {
           await wrapper
             .findComponent({ name: 'SearchUserTable' })
-            .vm.$emit('updateIsAdmin', userId, 'USER')
-          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).roles).toEqual([
-            'USER',
-          ])
+            .vm.$emit('updateRoles', userId, [])
+          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).roles).toEqual([])
         })
       })
     })

@@ -100,15 +100,14 @@ describe('SearchUserTable', () => {
 
       describe('isAdmin', () => {
         beforeEach(async () => {
-          await wrapper.find('div.change-user-role-formular').vm.$emit('updateIsAdmin', {
+          await wrapper.find('div.change-user-role-formular').vm.$emit('updateRoles', {
             userId: 1,
-            // isAdmin: new Date(),
-            role: 'ADMIN',
+            roles: ['ADMIN'],
           })
         })
 
         it('emits updateIsAdmin', () => {
-          expect(wrapper.emitted('updateIsAdmin')).toEqual([[1, 'ADMIN']])
+          expect(wrapper.emitted('updateRoles')).toEqual([[1, ['ADMIN']]])
         })
       })
 

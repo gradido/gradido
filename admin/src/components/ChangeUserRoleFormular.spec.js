@@ -46,7 +46,7 @@ describe('ChangeUserRoleFormular', () => {
         propsData = {
           item: {
             userId: 1,
-            roles: ['USER'],
+            roles: [],
           },
         }
         wrapper = Wrapper()
@@ -62,7 +62,7 @@ describe('ChangeUserRoleFormular', () => {
         propsData = {
           item: {
             userId: 0,
-            roles: ['USER'],
+            roles: ['ADMIN'],
           },
         }
         wrapper = Wrapper()
@@ -89,7 +89,7 @@ describe('ChangeUserRoleFormular', () => {
           propsData = {
             item: {
               userId: 1,
-              roles: ['USER'],
+              roles: [],
             },
           }
           wrapper = Wrapper()
@@ -121,7 +121,7 @@ describe('ChangeUserRoleFormular', () => {
         beforeEach(() => {
           apolloMutateMock.mockResolvedValue({
             data: {
-              setUserRole: new Date(),
+              setUserRole: 'ADMIN',
             },
           })
           propsData = {
@@ -135,7 +135,7 @@ describe('ChangeUserRoleFormular', () => {
         })
 
         it('has selected option set to "usual user"', () => {
-          expect(wrapper.find('select.role-select').element.value).toBe('user')
+          expect(wrapper.find('select.role-select').element.value).toBe('USER')
         })
 
         describe('change select to', () => {
@@ -188,13 +188,13 @@ describe('ChangeUserRoleFormular', () => {
                   )
                 })
 
-                it('emits "updateIsAdmin" with role moderator', () => {
-                  expect(wrapper.emitted('updateIsAdmin')).toEqual(
+                it('emits "updateRoles" with role moderator', () => {
+                  expect(wrapper.emitted('updateRoles')).toEqual(
                     expect.arrayContaining([
                       expect.arrayContaining([
                         {
                           userId: 1,
-                          role: 'MODERATOR',
+                          roles: ['MODERATOR'],
                         },
                       ]),
                     ]),
@@ -259,13 +259,13 @@ describe('ChangeUserRoleFormular', () => {
                   )
                 })
 
-                it('emits "updateIsAdmin" with role moderator', () => {
-                  expect(wrapper.emitted('updateIsAdmin')).toEqual(
+                it('emits "updateRoles" with role moderator', () => {
+                  expect(wrapper.emitted('updateRoles')).toEqual(
                     expect.arrayContaining([
                       expect.arrayContaining([
                         {
                           userId: 1,
-                          role: 'ADMIN',
+                          roles: ['ADMIN'],
                         },
                       ]),
                     ]),
@@ -296,6 +296,7 @@ describe('ChangeUserRoleFormular', () => {
 
       describe('user has role "moderator"', () => {
         beforeEach(() => {
+          jest.clearAllMocks()
           apolloMutateMock.mockResolvedValue({
             data: {
               setUserRole: null,
@@ -311,8 +312,8 @@ describe('ChangeUserRoleFormular', () => {
           rolesToSelect = wrapper.find('select.role-select').findAll('option')
         })
 
-        it('has selected option set to "moderator"', () => {
-          expect(wrapper.find('select.role-select').element.value).toBe('moderator')
+        it('has selected option set to "MODERATOR"', () => {
+          expect(wrapper.find('select.role-select').element.value).toBe('MODERATOR')
         })
 
         describe('change select to', () => {
@@ -323,7 +324,6 @@ describe('ChangeUserRoleFormular', () => {
 
             it('does not call the API', () => {
               rolesToSelect.at(1).setSelected()
-              // TODO: Fix this
               expect(apolloMutateMock).not.toHaveBeenCalled()
             })
           })
@@ -366,13 +366,13 @@ describe('ChangeUserRoleFormular', () => {
                   )
                 })
 
-                it('emits "updateIsAdmin"', () => {
-                  expect(wrapper.emitted('updateIsAdmin')).toEqual(
+                it('emits "updateRoles"', () => {
+                  expect(wrapper.emitted('updateRoles')).toEqual(
                     expect.arrayContaining([
                       expect.arrayContaining([
                         {
                           userId: 1,
-                          role: 'USER',
+                          roles: [],
                         },
                       ]),
                     ]),
@@ -437,13 +437,13 @@ describe('ChangeUserRoleFormular', () => {
                   )
                 })
 
-                it('emits "updateIsAdmin"', () => {
-                  expect(wrapper.emitted('updateIsAdmin')).toEqual(
+                it('emits "updateRoles"', () => {
+                  expect(wrapper.emitted('updateRoles')).toEqual(
                     expect.arrayContaining([
                       expect.arrayContaining([
                         {
                           userId: 1,
-                          role: 'ADMIN',
+                          roles: ['ADMIN'],
                         },
                       ]),
                     ]),
@@ -490,7 +490,7 @@ describe('ChangeUserRoleFormular', () => {
         })
 
         it('has selected option set to "admin"', () => {
-          expect(wrapper.find('select.role-select').element.value).toBe('admin')
+          expect(wrapper.find('select.role-select').element.value).toBe('ADMIN')
         })
 
         describe('change select to', () => {
@@ -544,13 +544,13 @@ describe('ChangeUserRoleFormular', () => {
                   )
                 })
 
-                it('emits "updateIsAdmin"', () => {
-                  expect(wrapper.emitted('updateIsAdmin')).toEqual(
+                it('emits "updateRoles"', () => {
+                  expect(wrapper.emitted('updateRoles')).toEqual(
                     expect.arrayContaining([
                       expect.arrayContaining([
                         {
                           userId: 1,
-                          role: 'USER',
+                          roles: [],
                         },
                       ]),
                     ]),
@@ -615,13 +615,13 @@ describe('ChangeUserRoleFormular', () => {
                   )
                 })
 
-                it('emits "updateIsAdmin"', () => {
-                  expect(wrapper.emitted('updateIsAdmin')).toEqual(
+                it('emits "updateRoles"', () => {
+                  expect(wrapper.emitted('updateRoles')).toEqual(
                     expect.arrayContaining([
                       expect.arrayContaining([
                         {
                           userId: 1,
-                          role: 'MODERATOR',
+                          roles: ['MODERATOR'],
                         },
                       ]),
                     ]),

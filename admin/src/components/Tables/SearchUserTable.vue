@@ -79,7 +79,7 @@
               <transaction-link-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
             </b-tab>
             <b-tab :title="$t('userRole.tabTitle')">
-              <change-user-role-formular :item="row.item" @updateIsAdmin="updateIsAdmin" />
+              <change-user-role-formular :item="row.item" @updateRoles="updateRoles" />
             </b-tab>
             <b-tab :title="$t('delete_user')">
               <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
@@ -127,8 +127,8 @@ export default {
     updateUserData(rowItem, newCreation) {
       rowItem.creation = newCreation
     },
-    updateIsAdmin({ userId, role }) {
-      this.$emit('updateIsAdmin', userId, role)
+    updateRoles({ userId, roles }) {
+      this.$emit('updateRoles', userId, roles)
     },
     updateDeletedAt({ userId, deletedAt }) {
       this.$emit('updateDeletedAt', userId, deletedAt)

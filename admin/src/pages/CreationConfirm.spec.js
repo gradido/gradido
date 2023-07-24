@@ -28,8 +28,6 @@ const mocks = {
       moderator: {
         firstName: 'Peter',
         lastName: 'Lustig',
-        isAdmin: true,
-        isModerator: false,
         roles: ['ADMIN'],
         id: 263,
         language: 'de',
