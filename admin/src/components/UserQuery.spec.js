@@ -1,6 +1,5 @@
 import { mount } from '@vue/test-utils'
 import UserQuery from './UserQuery'
-import flushPromises from 'flush-promises'
 
 const localVue = global.localVue
 
@@ -30,12 +29,10 @@ describe('TransactionLinkList', () => {
       expect(wrapper.find('input.test-input-criteria').exists()).toBe(true)
     })
 
-    describe('has', () => {
+    describe('set value', () => {
       beforeEach(async () => {
+        jest.clearAllMocks()
         await wrapper.find('input.test-input-criteria').setValue('Test2')
-        await wrapper.find('input.test-input-criteria').trigger('blur')
-        await flushPromises()
-        await wrapper.vm.$nextTick()
       })
 
       it('emits input', () => {
