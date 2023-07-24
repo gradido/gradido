@@ -72,6 +72,7 @@ const mocks = {
       moderator: {
         id: 0,
         name: 'test moderator',
+        roles: ['ADMIN'],
       },
     },
   },
