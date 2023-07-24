@@ -101,8 +101,8 @@ export default {
           this.toastError(error.message)
         })
     },
-    updateIsAdmin(userId, isAdmin) {
-      this.searchResult.find((obj) => obj.userId === userId).isAdmin = isAdmin
+    updateIsAdmin(userId, role) {
+      this.searchResult.find((obj) => obj.userId === userId).roles = [role]
     },
     updateDeletedAt(userId, deletedAt) {
       this.searchResult.find((obj) => obj.userId === userId).deletedAt = deletedAt

@@ -64,8 +64,10 @@ export default {
           this.$t('overlay.changeUserRole.question', {
             username: `${this.item.firstName} ${this.item.lastName}`,
             newRole:
-              this.roleSelected === 'admin'
+              this.roleSelected === rolesValues.admin
                 ? this.$t('userRole.selectRoles.admin')
+                : this.roleSelected === rolesValues.moderator
+                ? this.$t('userRole.selectRoles.moderator')
                 : this.$t('userRole.selectRoles.user'),
           }),
           {
@@ -87,32 +89,27 @@ export default {
         })
     },
     setUserRole(newRole, oldRole) {
-      let role
-      switch (newRole) {
-        case rolesValues.admin:
-        case rolesValues.moderator:
-        case rolesValues.user:
-          role = newRole
-          break
-        default:
-          role = 'USER'
-      }
+      const role = this.roles.find((role) => {
+        return role.value === newRole
+      })
+      const roleText = role.text
+      const roleValue = role.value.toUpperCase()
       this.$apollo
         .mutate({
           mutation: setUserRole,
           variables: {
             userId: this.item.userId,
-            role,
+            role: role.value.toUpperCase(),
           },
         })
         .then((result) => {
           this.$emit('updateIsAdmin', {
             userId: this.item.userId,
-            role,
+            role: roleValue,
           })
           this.toastSuccess(
             this.$t('userRole.successfullyChangedTo', {
-              role: role.text,
+              role: roleText,
             }),
           )
         })

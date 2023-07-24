@@ -16,6 +16,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           email: 'new@user.ch',
           creation: [1000, 1000, 1000],
           emailChecked: false,
+          roles: [],
           deletedAt: null,
         },
         {
@@ -24,6 +25,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           lastName: 'Lustig',
           email: 'peter@lustig.de',
           creation: [0, 0, 0],
+          roles: ['ADMIN'],
           emailChecked: true,
           deletedAt: null,
         },
@@ -33,6 +35,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           lastName: 'Blümchen',
           email: 'benjamin@bluemchen.de',
           creation: [1000, 1000, 1000],
+          roles: ['USER'],
           emailChecked: true,
           deletedAt: new Date(),
         },
@@ -42,6 +45,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           lastName: 'Bloxberg',
           email: 'bibi@bloxberg.de',
           creation: [200, 400, 600],
+          roles: ['USER'],
           emailChecked: true,
           deletedAt: null,
         },
@@ -212,10 +216,10 @@ describe('UserSearch', () => {
         it('updates user role to admin', async () => {
           await wrapper
             .findComponent({ name: 'SearchUserTable' })
-            .vm.$emit('updateIsAdmin', userId, new Date())
-          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(
-            expect.any(Date),
-          )
+            .vm.$emit('updateIsAdmin', userId, 'ADMIN')
+          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).roles).toEqual([
+            'ADMIN',
+          ])
         })
       })
 
@@ -223,8 +227,10 @@ describe('UserSearch', () => {
         it('updates user role to usual user', async () => {
           await wrapper
             .findComponent({ name: 'SearchUserTable' })
-            .vm.$emit('updateIsAdmin', userId, null)
-          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(null)
+            .vm.$emit('updateIsAdmin', userId, 'USER')
+          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).roles).toEqual([
+            'USER',
+          ])
         })
       })
     })

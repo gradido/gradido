@@ -127,8 +127,8 @@ export default {
     updateUserData(rowItem, newCreation) {
       rowItem.creation = newCreation
     },
-    updateIsAdmin({ userId, isAdmin }) {
-      this.$emit('updateIsAdmin', userId, isAdmin)
+    updateIsAdmin({ userId, role }) {
+      this.$emit('updateIsAdmin', userId, role)
     },
     updateDeletedAt({ userId, deletedAt }) {
       this.$emit('updateDeletedAt', userId, deletedAt)

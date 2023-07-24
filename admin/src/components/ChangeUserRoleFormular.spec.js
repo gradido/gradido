@@ -182,8 +182,7 @@ describe('ChangeUserRoleFormular', () => {
                       mutation: setUserRole,
                       variables: {
                         userId: 1,
-                        // isAdmin: true,
-                        role: 'moderator',
+                        role: 'MODERATOR',
                       },
                     }),
                   )
@@ -195,8 +194,7 @@ describe('ChangeUserRoleFormular', () => {
                       expect.arrayContaining([
                         {
                           userId: 1,
-                          // isAdmin: true,
-                          role: 'moderator',
+                          role: 'MODERATOR',
                         },
                       ]),
                     ]),
@@ -255,8 +253,7 @@ describe('ChangeUserRoleFormular', () => {
                       mutation: setUserRole,
                       variables: {
                         userId: 1,
-                        // isAdmin: true,
-                        role: 'admin',
+                        role: 'ADMIN',
                       },
                     }),
                   )
@@ -268,8 +265,7 @@ describe('ChangeUserRoleFormular', () => {
                       expect.arrayContaining([
                         {
                           userId: 1,
-                          // isAdmin: true,
-                          role: 'admin',
+                          role: 'ADMIN',
                         },
                       ]),
                     ]),
@@ -308,7 +304,6 @@ describe('ChangeUserRoleFormular', () => {
           propsData = {
             item: {
               userId: 1,
-              // isAdmin: new Date(),
               roles: ['MODERATOR'],
             },
           }
@@ -365,7 +360,7 @@ describe('ChangeUserRoleFormular', () => {
                       mutation: setUserRole,
                       variables: {
                         userId: 1,
-                        role: 'user',
+                        role: 'USER',
                       },
                     }),
                   )
@@ -377,7 +372,7 @@ describe('ChangeUserRoleFormular', () => {
                       expect.arrayContaining([
                         {
                           userId: 1,
-                          role: 'user',
+                          role: 'USER',
                         },
                       ]),
                     ]),
@@ -436,7 +431,7 @@ describe('ChangeUserRoleFormular', () => {
                       mutation: setUserRole,
                       variables: {
                         userId: 1,
-                        role: 'admin',
+                        role: 'ADMIN',
                       },
                     }),
                   )
@@ -448,7 +443,7 @@ describe('ChangeUserRoleFormular', () => {
                       expect.arrayContaining([
                         {
                           userId: 1,
-                          role: 'admin',
+                          role: 'ADMIN',
                         },
                       ]),
                     ]),
@@ -487,7 +482,6 @@ describe('ChangeUserRoleFormular', () => {
           propsData = {
             item: {
               userId: 1,
-              // isAdmin: new Date(),
               roles: ['ADMIN'],
             },
           }
@@ -544,7 +538,7 @@ describe('ChangeUserRoleFormular', () => {
                       mutation: setUserRole,
                       variables: {
                         userId: 1,
-                        role: 'user',
+                        role: 'USER',
                       },
                     }),
                   )
@@ -556,7 +550,7 @@ describe('ChangeUserRoleFormular', () => {
                       expect.arrayContaining([
                         {
                           userId: 1,
-                          role: 'user',
+                          role: 'USER',
                         },
                       ]),
                     ]),
@@ -615,7 +609,7 @@ describe('ChangeUserRoleFormular', () => {
                       mutation: setUserRole,
                       variables: {
                         userId: 1,
-                        role: 'moderator',
+                        role: 'MODERATOR',
                       },
                     }),
                   )
@@ -627,7 +621,7 @@ describe('ChangeUserRoleFormular', () => {
                       expect.arrayContaining([
                         {
                           userId: 1,
-                          role: 'moderator',
+                          role: 'MODERATOR',
                         },
                       ]),
                     ]),
