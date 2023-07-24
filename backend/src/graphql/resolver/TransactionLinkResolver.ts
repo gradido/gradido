@@ -314,8 +314,8 @@ export class TransactionLinkResolver {
         releaseLock()
       }
       // trigger to send transaction via dlt-connector
-      sendTransactionsToDltConnector().catch(() => {
-        logger.error('error on sending transactions to DltConnector')
+      sendTransactionsToDltConnector().catch((e) => {
+        logger.error('error on sending transactions to DltConnector:', e)
       })
       return true
     } else {

@@ -162,8 +162,8 @@ export const executeTransaction = async (
       )
 
       // trigger to send transaction via dlt-connector
-      sendTransactionsToDltConnector().catch(() => {
-        logger.error('error on sending transactions to DltConnector')
+      sendTransactionsToDltConnector().catch((e) => {
+        logger.error('error on sending transactions to DltConnector:', e)
       })
     } catch (e) {
       await queryRunner.rollbackTransaction()
