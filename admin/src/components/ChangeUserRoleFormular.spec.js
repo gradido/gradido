@@ -296,7 +296,6 @@ describe('ChangeUserRoleFormular', () => {
 
       describe('user has role "moderator"', () => {
         beforeEach(() => {
-          jest.clearAllMocks()
           apolloMutateMock.mockResolvedValue({
             data: {
               setUserRole: null,
@@ -648,6 +647,24 @@ describe('ChangeUserRoleFormular', () => {
             })
           })
         })
+      })
+    })
+
+    describe('authenticated user is MODERATOR', () => {
+      beforeEach(() => {
+        mocks.$store.state.moderator.roles = ['MODERATOR']
+      })
+
+      it('displays text with role', () => {
+        expect(wrapper.text()).toBe('userRole.selectRoles.admin')
+      })
+
+      it('has no role select', () => {
+        expect(wrapper.find('select.role-select').exists()).toBe(false)
+      })
+
+      it('has no button', () => {
+        expect(wrapper.find('button.btn.btn-dange').exists()).toBe(false)
       })
     })
   })
