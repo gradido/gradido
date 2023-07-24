@@ -54,8 +54,6 @@ describe('navigation guards', () => {
       it('commits the moderator to the store', () => {
         expect(storeCommitMock).toBeCalledWith('moderator', {
           roles: ['ADMIN'],
-          isAdmin: true,
-          isModerator: false,
           language: 'de',
         })
       })
@@ -90,8 +88,6 @@ describe('navigation guards', () => {
       it('commits the moderator to the store', () => {
         expect(storeCommitMock).toBeCalledWith('moderator', {
           roles: ['MODERATOR'],
-          isAdmin: false,
-          isModerator: true,
           language: 'de',
         })
       })
@@ -103,6 +99,7 @@ describe('navigation guards', () => {
 
     describe('with valid token and no roles', () => {
       beforeEach(() => {
+        jest.clearAllMocks()
         apolloQueryMock.mockResolvedValue({
           data: {
             verifyLogin: {
@@ -119,7 +116,7 @@ describe('navigation guards', () => {
       })
 
       it('does not commit the moderator to the store', () => {
-        expect(storeCommitMock).not.toBeCalledWith('moderator', { isAdmin: false })
+        expect(storeCommitMock).not.toBeCalledWith('moderator')
       })
 
       it('redirects to /not-found', async () => {
@@ -178,14 +175,14 @@ describe('navigation guards', () => {
 
     it('does not redirect with token in store and as admin', () => {
       store.state.token = 'valid token'
-      store.state.moderator = { isAdmin: true }
+      store.state.moderator = { roles: ['ADMIN'] }
       navGuard({ path: '/' }, {}, next)
       expect(next).toBeCalledWith()
     })
 
     it('does not redirect with token in store and as moderator', () => {
       store.state.token = 'valid token'
-      store.state.moderator = { isModerator: true }
+      store.state.moderator = { roles: ['MODERATOR'] }
       navGuard({ path: '/' }, {}, next)
       expect(next).toBeCalledWith()
     })
