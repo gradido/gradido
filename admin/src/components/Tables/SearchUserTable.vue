@@ -81,7 +81,7 @@
             <b-tab :title="$t('userRole.tabTitle')">
               <change-user-role-formular :item="row.item" @updateRoles="updateRoles" />
             </b-tab>
-            <b-tab :title="$t('delete_user')">
+            <b-tab v-if="$store.state.moderator.roles.includes('ADMIN')" :title="$t('delete_user')">
               <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
             </b-tab>
           </b-tabs>
