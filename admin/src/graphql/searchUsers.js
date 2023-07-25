@@ -26,7 +26,7 @@ export const searchUsers = gql`
         hasElopage
         emailConfirmationSend
         deletedAt
-        isAdmin
+        roles
       }
     }
   }

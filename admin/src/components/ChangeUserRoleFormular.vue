@@ -1,7 +1,10 @@
 <template>
   <div class="change-user-role-formular">
     <div class="shadow p-3 mb-5 bg-white rounded">
-      <div v-if="item.userId === $store.state.moderator.id" class="m-3 mb-4">
+      <div v-if="!$store.state.moderator.roles.includes('ADMIN')" class="m-3 mb-4">
+        {{ roles.find((role) => role.value === currentRole).text }}
+      </div>
+      <div v-else-if="item.userId === $store.state.moderator.id" class="m-3 mb-4">
         {{ $t('userRole.notChangeYourSelf') }}
       </div>
       <div v-else class="m-3">
@@ -25,8 +28,9 @@
 import { setUserRole } from '../graphql/setUserRole'
 
 const rolesValues = {
-  admin: 'admin',
-  user: 'user',
+  ADMIN: 'ADMIN',
+  MODERATOR: 'MODERATOR',
+  USER: 'USER',
 }
 
 export default {
@@ -39,23 +43,30 @@ export default {
   },
   data() {
     return {
-      currentRole: this.item.isAdmin ? rolesValues.admin : rolesValues.user,
-      roleSelected: this.item.isAdmin ? rolesValues.admin : rolesValues.user,
+      currentRole: this.getCurrentRole(),
+      roleSelected: this.getCurrentRole(),
       roles: [
-        { value: rolesValues.user, text: this.$t('userRole.selectRoles.user') },
-        { value: rolesValues.admin, text: this.$t('userRole.selectRoles.admin') },
+        { value: rolesValues.USER, text: this.$t('userRole.selectRoles.user') },
+        { value: rolesValues.MODERATOR, text: this.$t('userRole.selectRoles.moderator') },
+        { value: rolesValues.ADMIN, text: this.$t('userRole.selectRoles.admin') },
       ],
     }
   },
   methods: {
+    getCurrentRole() {
+      if (this.item.roles.length) return rolesValues[this.item.roles[0]]
+      return rolesValues.USER
+    },
     showModal() {
       this.$bvModal
         .msgBoxConfirm(
           this.$t('overlay.changeUserRole.question', {
             username: `${this.item.firstName} ${this.item.lastName}`,
             newRole:
-              this.roleSelected === 'admin'
+              this.roleSelected === rolesValues.ADMIN
                 ? this.$t('userRole.selectRoles.admin')
+                : this.roleSelected === rolesValues.MODERATOR
+                ? this.$t('userRole.selectRoles.moderator')
                 : this.$t('userRole.selectRoles.user'),
           }),
           {
@@ -77,25 +88,27 @@ export default {
         })
     },
     setUserRole(newRole, oldRole) {
+      const role = this.roles.find((role) => {
+        return role.value === newRole
+      })
+      const roleText = role.text
+      const roleValue = role.value
       this.$apollo
         .mutate({
           mutation: setUserRole,
           variables: {
             userId: this.item.userId,
-            isAdmin: newRole === rolesValues.admin,
+            role: role.value,
           },
         })
         .then((result) => {
-          this.$emit('updateIsAdmin', {
+          this.$emit('updateRoles', {
             userId: this.item.userId,
-            isAdmin: result.data.setUserRole,
+            roles: roleValue === 'USER' ? [] : [roleValue],
           })
           this.toastSuccess(
             this.$t('userRole.successfullyChangedTo', {
-              role:
-                result.data.setUserRole !== null
-                  ? this.$t('userRole.selectRoles.admin')
-                  : this.$t('userRole.selectRoles.user'),
+              role: roleText,
             }),
           )
         })

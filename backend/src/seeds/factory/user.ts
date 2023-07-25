@@ -3,6 +3,9 @@
 import { User } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
+import { RoleNames } from '@enum/RoleNames'
+
+import { setUserRole } from '@/graphql/resolver/util/modifyUserRole'
 import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { UserInterface } from '@/seeds/users/UserInterface'
 
@@ -17,13 +20,10 @@ export const userFactory = async (
       createUser: { id },
     },
   } = await mutate({ mutation: createUser, variables: user })
-  // console.log('creatUser:', { id }, { user })
   // get user from database
-  let dbUser = await User.findOneOrFail({ where: { id }, relations: ['emailContact'] })
-  // console.log('dbUser:', dbUser)
+  let dbUser = await User.findOneOrFail({ where: { id }, relations: ['emailContact', 'userRoles'] })
 
   const emailContact = dbUser.emailContact
-  // console.log('emailContact:', emailContact)
 
   if (user.emailChecked) {
     await mutate({
@@ -33,17 +33,22 @@ export const userFactory = async (
   }
 
   // get last changes of user from database
-  dbUser = await User.findOneOrFail({ where: { id } })
+  dbUser = await User.findOneOrFail({ where: { id }, relations: ['userRoles'] })
 
-  if (user.createdAt || user.deletedAt || user.isAdmin) {
+  if (user.createdAt || user.deletedAt || user.role) {
     if (user.createdAt) dbUser.createdAt = user.createdAt
     if (user.deletedAt) dbUser.deletedAt = user.deletedAt
-    if (user.isAdmin) dbUser.isAdmin = new Date()
+    if (user.role && (user.role === RoleNames.ADMIN || user.role === RoleNames.MODERATOR)) {
+      await setUserRole(dbUser, user.role)
+    }
     await dbUser.save()
   }
 
   // get last changes of user from database
-  // dbUser = await User.findOneOrFail({ id }, { withDeleted: true })
-
+  dbUser = await User.findOneOrFail({
+    where: { id },
+    withDeleted: true,
+    relations: ['emailContact', 'userRoles'],
+  })
   return dbUser
 }

@@ -28,7 +28,7 @@
       type="PageUserSearch"
       :items="searchResult"
       :fields="fields"
-      @updateIsAdmin="updateIsAdmin"
+      @updateRoles="updateRoles"
       @updateDeletedAt="updateDeletedAt"
     />
     <b-pagination
@@ -101,8 +101,8 @@ export default {
           this.toastError(error.message)
         })
     },
-    updateIsAdmin(userId, isAdmin) {
-      this.searchResult.find((obj) => obj.userId === userId).isAdmin = isAdmin
+    updateRoles(userId, roles) {
+      this.searchResult.find((obj) => obj.userId === userId).roles = roles
     },
     updateDeletedAt(userId, deletedAt) {
       this.searchResult.find((obj) => obj.userId === userId).deletedAt = deletedAt

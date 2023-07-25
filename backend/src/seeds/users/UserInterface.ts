@@ -9,5 +9,5 @@ export interface UserInterface {
   language?: string
   deletedAt?: Date
   publisherId?: number
-  isAdmin?: boolean
+  role?: string
 }
