@@ -10,8 +10,8 @@ updates:
     timezone: "Europe/Berlin"
     time: "03:00"
   labels:
-    - devops
-    - service:backend
+    - "devops"
+    - "service:backend"
 
 - package-ecosystem: docker
   directory: "/backend"
@@ -22,8 +22,8 @@ updates:
     timezone: "Europe/Berlin"
     time: "03:00"
   labels:
-    - devops
-    - service:docker
+    - "devops"
+    - "service:docker"
 
 - package-ecosystem: "github-actions"
   directory: "/"
@@ -34,4 +34,4 @@ updates:
     timezone: "Europe/Berlin"
     time: "03:00"
   labels:
-    - devops
+    - "devops"
