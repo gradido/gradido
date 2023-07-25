@@ -16,7 +16,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(`
     INSERT INTO user_roles
       (user_id, role, created_at, updated_at)
-      SELECT u.id, 'admin', u.is_admin, null
+      SELECT u.id, 'ADMIN', u.is_admin, null
       FROM users u
       WHERE u.is_admin IS NOT NULL;`)
 
@@ -31,7 +31,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   )
   // reconstruct the previous is_admin back from user_roles to users table
   const roles = await queryFn(
-    `SELECT r.user_id, r.role, r.created_at FROM user_roles as r WHERE r.role = "admin"`,
+    `SELECT r.user_id, r.role, r.created_at FROM user_roles as r WHERE r.role = "ADMIN"`,
   )
   for (const id in roles) {
     const role = roles[id]

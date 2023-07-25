@@ -49,7 +49,7 @@
           </b-nav-item>
           <b-nav-item
             class="mb-3 text-light"
-            v-if="$store.state.roles.length > 0"
+            v-if="$store.state.roles && $store.state.roles.length > 0"
             @click="$emit('admin')"
             active-class="activeRoute"
           >
