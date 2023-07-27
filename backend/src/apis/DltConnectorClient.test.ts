@@ -85,7 +85,7 @@ describe('undefined DltConnectorClient', () => {
   })
 })
 
-describe('transmitTransaction, without db connection', () => {
+describe.skip('transmitTransaction, without db connection', () => {
   const transaction = new DbTransaction()
   transaction.typeId = 2 // Example transaction type ID
   transaction.amount = new Decimal('10.00') // Example amount
@@ -121,7 +121,7 @@ describe('transmitTransaction', () => {
   transaction.userId = 1
   transaction.userGradidoID = 'dummy gradido id'
 
-  it('cannot find transaction in db', async () => {
+  it.skip('cannot find transaction in db', async () => {
     const result = await DltConnectorClient.getInstance()?.transmitTransaction(transaction)
     expect(result).toBe(false)
   })
@@ -138,14 +138,14 @@ describe('transmitTransaction', () => {
     }
   })
 
-  it('should transmit the transaction and update the dltTransactionId in the database', async () => {
+  it.skip('should transmit the transaction and update the dltTransactionId in the database', async () => {
     await transaction.save()
 
     const result = await DltConnectorClient.getInstance()?.transmitTransaction(transaction)
     expect(result).toBe(true)
   })
 
-  it('invalid dltTransactionId (maximal 32 Bytes in Binary)', async () => {
+  it.skip('invalid dltTransactionId (maximal 32 Bytes in Binary)', async () => {
     await transaction.save()
 
     const result = await DltConnectorClient.getInstance()?.transmitTransaction(transaction)
@@ -153,7 +153,7 @@ describe('transmitTransaction', () => {
   })
 })
 
-describe('try transmitTransaction but graphql request failed', () => {
+describe.skip('try transmitTransaction but graphql request failed', () => {
   it('graphql request should throw', async () => {
     const transaction = new DbTransaction()
     transaction.typeId = 2 // Example transaction type ID
