@@ -1,17 +1,20 @@
 import { IsNull } from '@dbTools/typeorm'
 import { DltTransaction } from '@entity/DltTransaction'
+import { Transaction } from '@entity/Transaction'
 
 import { DltConnectorClient } from '@/apis/DltConnectorClient'
 import { backendLogger as logger } from '@/server/logger'
-import { Monitor } from '@/util/Monitor'
+import { Monitor, MonitorNames } from '@/util/Monitor'
 
 export async function sendTransactionsToDltConnector(): Promise<void> {
+  logger.info('sendTransactionsToDltConnector...')
   // check if this logic is still occupied, no concurrecy allowed
-  if (!Monitor.isLocked) {
+  if (!Monitor.isLocked(MonitorNames.SEND_DLT_TRANSACTIONS)) {
     // mark this block for occuption to prevent concurrency
-    Monitor.lockIt()
+    Monitor.lockIt(MonitorNames.SEND_DLT_TRANSACTIONS)
 
     try {
+      await createDltTransactions()
       const dltConnector = DltConnectorClient.getInstance()
       if (dltConnector) {
         const dltTransactions = await DltTransaction.find({
@@ -49,10 +52,30 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
     } catch (e) {
       logger.error('error on sending transactions to dlt-connector.', e)
     } finally {
-      // releae Monitor occuption
-      Monitor.releaseIt()
+      // releae Monitor occupation
+      Monitor.releaseIt(MonitorNames.SEND_DLT_TRANSACTIONS)
     }
   } else {
     logger.info('sendTransactionsToDltConnector currently locked by monitor...')
   }
+}
+
+async function createDltTransactions(): Promise<void> {
+  const dltqb = DltTransaction.createQueryBuilder().select('transactions_id')
+  const newTransactions = await Transaction.createQueryBuilder()
+    .select('id')
+    .addSelect('balance_date')
+    .where('id NOT IN (' + dltqb.getSql() + ')')
+    .orderBy({ balance_date: 'ASC', id: 'ASC' })
+    .getRawMany()
+  console.log('newTransactions=', newTransactions)
+
+  for(let idx = 0; idx < newTransactions.length; idx++) {
+    const dltTx = DltTransaction.create()
+    dltTx.transactionId = newTransactions[idx].id
+    await DltTransaction.save(dltTx)
+    console.log(`dltTransaction[${idx}]=`, dltTx)
+  }
+  const createdDltTx = await DltTransaction.find()
+  console.log('createddltTx=', createdDltTx)
 }
