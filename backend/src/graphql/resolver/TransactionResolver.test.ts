@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Connection, In, IsNull } from '@dbTools/typeorm'
+import { Connection, In } from '@dbTools/typeorm'
 import { DltTransaction } from '@entity/DltTransaction'
 import { Event as DbEvent } from '@entity/Event'
 import { Transaction } from '@entity/Transaction'
@@ -383,41 +383,50 @@ describe('send coins', () => {
         )
       })
 
-      it('triggers the sendTransactionsToDltConnector', async () => {
-        expect(logger.info).toBeCalledWith('sendTransactionsToDltConnector...')
+      describe('sendTransactionsToDltConnector', () => {
+        let transaction: Transaction[]
+        let dltTransactions: DltTransaction[]
+        beforeAll(async () => {
+          // Find the previous created transactions of sendCoin mutation
+          transaction = await Transaction.find({
+            where: { memo: 'unrepeatable memo' },
+            order: { balanceDate: 'ASC', id: 'ASC' },
+          })
 
-        // Find the previous created transactions of sendCoin mutation
-        const transaction = await Transaction.find({
-          where: { memo: 'unrepeatable memo' },
-          order: { balanceDate: 'ASC', id: 'ASC' },
+          // and read aslong as all async created dlt-transactions are finished
+          do {
+            dltTransactions = await DltTransaction.find({
+              where: { transactionId: In([transaction[0].id, transaction[1].id]) },
+              // relations: ['transaction'],
+              // order: { createdAt: 'ASC', id: 'ASC' },
+            })
+          } while (transaction.length > dltTransactions.length)
         })
-        console.log('transaction=', transaction)
-        // Find the exact transaction (received one is the one with user[0] as user)
-        const dltTransactions = await DltTransaction.find() // {
-        // where: { transactionId: In([transaction[0].id, transaction[1].id]) },
-        // relations: ['transaction'],
-        // order: { createdAt: 'ASC', id: 'ASC' },
-        // })
-        console.log('dltTransactions=', dltTransactions)
 
-        expect(dltTransactions).toContainEqual([
-          {
-            id: expect.any(Number),
-            transactionId: transaction[0].id,
-            messageId: null,
-            verified: false,
-            createdAt: expect.any(Date),
-            verifiedAt: null,
-          },
-          {
-            id: expect.any(Number),
-            transactionId: transaction[1].id,
-            messageId: null,
-            verified: false,
-            createdAt: expect.any(Date),
-            verifiedAt: null,
-          },
-        ])
+        it('has wait till sendTransactionsToDltConnector created all dlt-transactions', () => {
+          expect(logger.info).toBeCalledWith('sendTransactionsToDltConnector...')
+
+          expect(dltTransactions).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                id: expect.any(Number),
+                transactionId: transaction[0].id,
+                messageId: null,
+                verified: false,
+                createdAt: expect.any(Date),
+                verifiedAt: null,
+              }),
+              expect.objectContaining({
+                id: expect.any(Number),
+                transactionId: transaction[1].id,
+                messageId: null,
+                verified: false,
+                createdAt: expect.any(Date),
+                verifiedAt: null,
+              }),
+            ]),
+          )
+        })
       })
     })
 

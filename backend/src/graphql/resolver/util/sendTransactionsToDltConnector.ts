@@ -62,20 +62,21 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
 
 async function createDltTransactions(): Promise<void> {
   const dltqb = DltTransaction.createQueryBuilder().select('transactions_id')
-  const newTransactions = await Transaction.createQueryBuilder()
+  const newTransactions: Transaction[] = await Transaction.createQueryBuilder()
     .select('id')
     .addSelect('balance_date')
     .where('id NOT IN (' + dltqb.getSql() + ')')
+    // eslint-disable-next-line camelcase
     .orderBy({ balance_date: 'ASC', id: 'ASC' })
     .getRawMany()
-  console.log('newTransactions=', newTransactions)
 
-  for(let idx = 0; idx < newTransactions.length; idx++) {
+  const dltTxArray: DltTransaction[] = []
+  let idx = 0
+  while (newTransactions.length > dltTxArray.length) {
+    // timing problems with  for(let idx = 0; idx < newTransactions.length; idx++) {
     const dltTx = DltTransaction.create()
-    dltTx.transactionId = newTransactions[idx].id
+    dltTx.transactionId = newTransactions[idx++].id
     await DltTransaction.save(dltTx)
-    console.log(`dltTransaction[${idx}]=`, dltTx)
+    dltTxArray.push(dltTx)
   }
-  const createdDltTx = await DltTransaction.find()
-  console.log('createddltTx=', createdDltTx)
 }
