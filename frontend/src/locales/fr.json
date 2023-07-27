@@ -29,7 +29,7 @@
     "myContributions": "Mes contributions",
     "noOpenContributionLinkText": "Actuellement, il n'y a pas de créations générées par lien.",
     "openContributionLinks": "Créations générées par lien",
-    "openContributionLinkText": "La communauté \"{name}\" soutient actuellement {count} créations générées par lien:",
+    "openContributionLinkText": "Pour les crédits de départ ou à des fins similaires, la communauté peut créer des \"liens de création\". Ils déclenchent des créations automatiques qui sont créditées à l'utilisateur.\nLa communauté \"{name}\" soutient actuellement {count} créations générées par lien:",
     "startNewsButton": "Saisir nom d'utilisateur",
     "submitContribution": "Contribuer"
   },

@@ -28,7 +28,7 @@
     "myContributions": "Mis contribuciones al bien común",
     "noOpenContributionLinkText": "Actualmente no hay creaciones generadas por enlaces.",
     "openContributionLinks": "Creaciones generadas por enlace",
-    "openContributionLinkText": "La comunidad \"{name}\" admite actualmente {count} creaciones generadas por enlaces:",
+    "openContributionLinkText": "Para créditos iniciales o fines similares, la comunidad puede crear los llamados enlaces de creación. Éstos activan creaciones automáticas que se acreditan al usuario.\nLa comunidad \"{name}\" admite actualmente {count} creaciones generadas por enlaces:",
     "other-communities": "Otras comunidades",
     "startNewsButton": "Introducir nombre de usuario",
     "statistic": "Estadísticas",
