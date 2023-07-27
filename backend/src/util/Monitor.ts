@@ -12,11 +12,17 @@ registerEnumType(MonitorNames, {
   description: 'Name of Monitor-keys', // this one is optional
 })
 
+/* @typescript-eslint/no-extraneous-class */
 export class Monitor {
   private static locks = new Map<MonitorNames, boolean>()
 
   // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-empty-function
   private constructor() {}
+
+  private _dummy = `to avoid unexpected class with only static properties`
+  public get dummy() {
+    return this._dummy
+  }
 
   public static isLocked(key: MonitorNames): boolean | undefined {
     if (this.locks.has(key)) {

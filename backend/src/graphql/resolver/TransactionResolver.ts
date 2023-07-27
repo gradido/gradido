@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { getConnection, In } from '@dbTools/typeorm'
-import { DltTransaction } from '@entity/DltTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as dbUser } from '@entity/User'

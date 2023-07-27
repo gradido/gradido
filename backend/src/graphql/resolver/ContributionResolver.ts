@@ -1,7 +1,6 @@
 import { IsNull, getConnection } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage } from '@entity/ContributionMessage'
-import { DltTransaction } from '@entity/DltTransaction'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User as DbUser } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
