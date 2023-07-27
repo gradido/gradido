@@ -141,14 +141,6 @@ export const executeTransaction = async (
         )
       }
 
-      const dltTxSend = DltTransaction.create()
-      dltTxSend.transactionId = transactionSend.id
-      await DltTransaction.save(dltTxSend)
-
-      const dltTxRec = DltTransaction.create()
-      dltTxRec.transactionId = transactionReceive.id
-      await DltTransaction.save(dltTxRec)
-
       await queryRunner.commitTransaction()
       logger.info(`commit Transaction successful...`)
 
@@ -162,9 +154,7 @@ export const executeTransaction = async (
       )
 
       // trigger to send transaction via dlt-connector
-      sendTransactionsToDltConnector().catch((e) => {
-        logger.error('error on sending transactions to DltConnector:', e)
-      })
+      void sendTransactionsToDltConnector()
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Transaction was not successful', e)

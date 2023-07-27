@@ -536,16 +536,10 @@ export class ContributionResolver {
         contribution.contributionStatus = ContributionStatus.CONFIRMED
         await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
-        const dltTx = DltTransaction.create()
-        dltTx.transactionId = transaction.id
-        await DltTransaction.save(dltTx)
-
         await queryRunner.commitTransaction()
 
         // trigger to send transaction via dlt-connector
-        sendTransactionsToDltConnector().catch((e) => {
-          logger.error('error on sending transactions to DltConnector:', e)
-        })
+        void sendTransactionsToDltConnector()
 
         logger.info('creation commited successfuly.')
         void sendContributionConfirmedEmail({

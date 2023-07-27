@@ -291,10 +291,6 @@ export class TransactionLinkResolver {
           contribution.transactionId = transaction.id
           await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
-          const dltTx = DltTransaction.create()
-          dltTx.transactionId = transaction.id
-          await DltTransaction.save(dltTx)
-
           await queryRunner.commitTransaction()
 
           await EVENT_CONTRIBUTION_LINK_REDEEM(
@@ -314,9 +310,7 @@ export class TransactionLinkResolver {
         releaseLock()
       }
       // trigger to send transaction via dlt-connector
-      sendTransactionsToDltConnector().catch((e) => {
-        logger.error('error on sending transactions to DltConnector:', e)
-      })
+      void sendTransactionsToDltConnector()
       return true
     } else {
       const now = new Date()
