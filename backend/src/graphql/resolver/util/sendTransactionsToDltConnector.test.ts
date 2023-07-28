@@ -80,8 +80,8 @@ let testEnv: {
 }
 */
 
-async function createTxCREATION1(): Promise<Transaction> {
-  const tx = Transaction.create()
+async function createTxCREATION1(verified: boolean): Promise<Transaction> {
+  let tx = Transaction.create()
   tx.amount = new Decimal(1000)
   tx.balance = new Decimal(100)
   tx.balanceDate = new Date('01.01.2023 00:00:00')
@@ -90,11 +90,22 @@ async function createTxCREATION1(): Promise<Transaction> {
   tx.userGradidoID = 'txCREATION1.userGradidoID'
   tx.userId = 1
   tx.userName = 'txCREATION 1'
-  return await Transaction.save(tx)
+  tx = await Transaction.save(tx)
+
+  if (verified) {
+    const dlttx = DltTransaction.create()
+    dlttx.createdAt = new Date('01.01.2023 00:00:10')
+    dlttx.messageId = '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc516c1'
+    dlttx.transactionId = tx.id
+    dlttx.verified = true
+    dlttx.verifiedAt = new Date('01.01.2023 00:01:10')
+    await DltTransaction.save(dlttx)
+  }
+  return tx
 }
 
-async function createTxCREATION2(): Promise<Transaction> {
-  const tx = Transaction.create()
+async function createTxCREATION2(verified: boolean): Promise<Transaction> {
+  let tx = Transaction.create()
   tx.amount = new Decimal(1000)
   tx.balance = new Decimal(200)
   tx.balanceDate = new Date('02.01.2023 00:00:00')
@@ -103,11 +114,22 @@ async function createTxCREATION2(): Promise<Transaction> {
   tx.userGradidoID = 'txCREATION2.userGradidoID'
   tx.userId = 2
   tx.userName = 'txCREATION 2'
-  return await Transaction.save(tx)
+  tx = await Transaction.save(tx)
+
+  if (verified) {
+    const dlttx = DltTransaction.create()
+    dlttx.createdAt = new Date('02.01.2023 00:00:10')
+    dlttx.messageId = '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc516c2'
+    dlttx.transactionId = tx.id
+    dlttx.verified = true
+    dlttx.verifiedAt = new Date('02.01.2023 00:01:10')
+    await DltTransaction.save(dlttx)
+  }
+  return tx
 }
 
-async function createTxCREATION3(): Promise<Transaction> {
-  const tx = Transaction.create()
+async function createTxCREATION3(verified: boolean): Promise<Transaction> {
+  let tx = Transaction.create()
   tx.amount = new Decimal(1000)
   tx.balance = new Decimal(300)
   tx.balanceDate = new Date('03.01.2023 00:00:00')
@@ -116,11 +138,22 @@ async function createTxCREATION3(): Promise<Transaction> {
   tx.userGradidoID = 'txCREATION3.userGradidoID'
   tx.userId = 3
   tx.userName = 'txCREATION 3'
-  return await Transaction.save(tx)
+  tx = await Transaction.save(tx)
+
+  if (verified) {
+    const dlttx = DltTransaction.create()
+    dlttx.createdAt = new Date('03.01.2023 00:00:10')
+    dlttx.messageId = '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc516c3'
+    dlttx.transactionId = tx.id
+    dlttx.verified = true
+    dlttx.verifiedAt = new Date('03.01.2023 00:01:10')
+    await DltTransaction.save(dlttx)
+  }
+  return tx
 }
 
-async function createTxSend1ToReceive2(): Promise<Transaction> {
-  const tx = Transaction.create()
+async function createTxSend1ToReceive2(verified: boolean): Promise<Transaction> {
+  let tx = Transaction.create()
   tx.amount = new Decimal(100)
   tx.balance = new Decimal(1000)
   tx.balanceDate = new Date('11.01.2023 00:00:00')
@@ -132,11 +165,22 @@ async function createTxSend1ToReceive2(): Promise<Transaction> {
   tx.linkedUserGradidoID = 'txRECEIVE2.linkedUserGradidoID'
   tx.linkedUserId = 2
   tx.linkedUserName = 'txRECEIVE 2'
-  return await Transaction.save(tx)
+  tx = await Transaction.save(tx)
+
+  if (verified) {
+    const dlttx = DltTransaction.create()
+    dlttx.createdAt = new Date('11.01.2023 00:00:10')
+    dlttx.messageId = '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc516a1'
+    dlttx.transactionId = tx.id
+    dlttx.verified = true
+    dlttx.verifiedAt = new Date('11.01.2023 00:01:10')
+    await DltTransaction.save(dlttx)
+  }
+  return tx
 }
 
-async function createTxReceive2FromSend1(): Promise<Transaction> {
-  const tx = Transaction.create()
+async function createTxReceive2FromSend1(verified: boolean): Promise<Transaction> {
+  let tx = Transaction.create()
   tx.amount = new Decimal(100)
   tx.balance = new Decimal(1300)
   tx.balanceDate = new Date('11.01.2023 00:00:00')
@@ -148,11 +192,22 @@ async function createTxReceive2FromSend1(): Promise<Transaction> {
   tx.linkedUserGradidoID = 'txSEND1.userGradidoID'
   tx.linkedUserId = 1
   tx.linkedUserName = 'txSEND 1'
-  return await Transaction.save(tx)
+  tx = await Transaction.save(tx)
+
+  if (verified) {
+    const dlttx = DltTransaction.create()
+    dlttx.createdAt = new Date('11.01.2023 00:00:10')
+    dlttx.messageId = '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc516b2'
+    dlttx.transactionId = tx.id
+    dlttx.verified = true
+    dlttx.verifiedAt = new Date('11.01.2023 00:01:10')
+    await DltTransaction.save(dlttx)
+  }
+  return tx
 }
 
-async function createTxSend2ToReceive3(): Promise<Transaction> {
-  const tx = Transaction.create()
+async function createTxSend2ToReceive3(verified: boolean): Promise<Transaction> {
+  let tx = Transaction.create()
   tx.amount = new Decimal(200)
   tx.balance = new Decimal(1100)
   tx.balanceDate = new Date('23.01.2023 00:00:00')
@@ -164,11 +219,22 @@ async function createTxSend2ToReceive3(): Promise<Transaction> {
   tx.linkedUserGradidoID = 'txRECEIVE3.linkedUserGradidoID'
   tx.linkedUserId = 3
   tx.linkedUserName = 'txRECEIVE 3'
-  return await Transaction.save(tx)
+  tx = await Transaction.save(tx)
+
+  if (verified) {
+    const dlttx = DltTransaction.create()
+    dlttx.createdAt = new Date('23.01.2023 00:00:10')
+    dlttx.messageId = '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc516a2'
+    dlttx.transactionId = tx.id
+    dlttx.verified = true
+    dlttx.verifiedAt = new Date('23.01.2023 00:01:10')
+    await DltTransaction.save(dlttx)
+  }
+  return tx
 }
 
-async function createTxReceive3FromSend2(): Promise<Transaction> {
-  const tx = Transaction.create()
+async function createTxReceive3FromSend2(verified: boolean): Promise<Transaction> {
+  let tx = Transaction.create()
   tx.amount = new Decimal(200)
   tx.balance = new Decimal(1500)
   tx.balanceDate = new Date('23.01.2023 00:00:00')
@@ -180,11 +246,22 @@ async function createTxReceive3FromSend2(): Promise<Transaction> {
   tx.linkedUserGradidoID = 'txSEND2.userGradidoID'
   tx.linkedUserId = 2
   tx.linkedUserName = 'txSEND 2'
-  return await Transaction.save(tx)
+  tx = await Transaction.save(tx)
+
+  if (verified) {
+    const dlttx = DltTransaction.create()
+    dlttx.createdAt = new Date('23.01.2023 00:00:10')
+    dlttx.messageId = '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc516b3'
+    dlttx.transactionId = tx.id
+    dlttx.verified = true
+    dlttx.verifiedAt = new Date('23.01.2023 00:01:10')
+    await DltTransaction.save(dlttx)
+  }
+  return tx
 }
 
-async function createTxSend3ToReceive1(): Promise<Transaction> {
-  const tx = Transaction.create()
+async function createTxSend3ToReceive1(verified: boolean): Promise<Transaction> {
+  let tx = Transaction.create()
   tx.amount = new Decimal(300)
   tx.balance = new Decimal(1200)
   tx.balanceDate = new Date('31.01.2023 00:00:00')
@@ -196,11 +273,22 @@ async function createTxSend3ToReceive1(): Promise<Transaction> {
   tx.linkedUserGradidoID = 'txRECEIVE1.linkedUserGradidoID'
   tx.linkedUserId = 1
   tx.linkedUserName = 'txRECEIVE 1'
-  return await Transaction.save(tx)
+  tx = await Transaction.save(tx)
+
+  if (verified) {
+    const dlttx = DltTransaction.create()
+    dlttx.createdAt = new Date('31.01.2023 00:00:10')
+    dlttx.messageId = '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc516a3'
+    dlttx.transactionId = tx.id
+    dlttx.verified = true
+    dlttx.verifiedAt = new Date('31.01.2023 00:01:10')
+    await DltTransaction.save(dlttx)
+  }
+  return tx
 }
 
-async function createTxReceive1FromSend3(): Promise<Transaction> {
-  const tx = Transaction.create()
+async function createTxReceive1FromSend3(verified: boolean): Promise<Transaction> {
+  let tx = Transaction.create()
   tx.amount = new Decimal(300)
   tx.balance = new Decimal(1300)
   tx.balanceDate = new Date('31.01.2023 00:00:00')
@@ -212,7 +300,18 @@ async function createTxReceive1FromSend3(): Promise<Transaction> {
   tx.linkedUserGradidoID = 'txSEND3.userGradidoID'
   tx.linkedUserId = 3
   tx.linkedUserName = 'txSEND 3'
-  return await Transaction.save(tx)
+  tx = await Transaction.save(tx)
+
+  if (verified) {
+    const dlttx = DltTransaction.create()
+    dlttx.createdAt = new Date('31.01.2023 00:00:10')
+    dlttx.messageId = '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc516b1'
+    dlttx.transactionId = tx.id
+    dlttx.verified = true
+    dlttx.verifiedAt = new Date('31.01.2023 00:01:10')
+    await DltTransaction.save(dlttx)
+  }
+  return tx
 }
 
 let con: Connection
@@ -244,22 +343,22 @@ describe('create and send Transactions to DltConnector', () => {
   let txSEND3To1: Transaction
   let txRECEIVE1From3: Transaction
 
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.clearAllMocks()
+  })
 
-    txCREATION1 = await createTxCREATION1()
-    txCREATION2 = await createTxCREATION2()
-    txCREATION3 = await createTxCREATION3()
+  afterEach(async () => {
+    await cleanDB()
   })
 
   describe('with 3 creations but inactive dlt-connector', () => {
-    beforeEach(async () => {
-      jest.clearAllMocks()
+    it('found 3 dlt-transactions', async () => {
+      txCREATION1 = await createTxCREATION1(false)
+      txCREATION2 = await createTxCREATION2(false)
+      txCREATION3 = await createTxCREATION3(false)
+
       CONFIG.DLT_CONNECTOR = false
       await sendTransactionsToDltConnector()
-    })
-
-    it('found 3 dlt-transactions', async () => {
       expect(logger.info).toBeCalledWith('sendTransactionsToDltConnector...')
 
       // Find the previous created transactions of sendCoin mutation
@@ -308,8 +407,12 @@ describe('create and send Transactions to DltConnector', () => {
   })
 
   describe('with 3 creations and active dlt-connector', () => {
-    beforeEach(async () => {
-      jest.clearAllMocks()
+
+    it('found 3 dlt-transactions', async () => {
+      txCREATION1 = await createTxCREATION1(false)
+      txCREATION2 = await createTxCREATION2(false)
+      txCREATION3 = await createTxCREATION3(false)
+
       CONFIG.DLT_CONNECTOR = true
 
       // eslint-disable-next-line @typescript-eslint/require-await
@@ -319,16 +422,14 @@ describe('create and send Transactions to DltConnector', () => {
           data: {
             sendTransaction: {
               dltTransactionIdHex:
-                '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc516212',
+                '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc51621',
             },
           },
         } as Response<unknown>
       })
 
       await sendTransactionsToDltConnector()
-    })
 
-    it('found 3 dlt-transactions', async () => {
       expect(logger.info).toBeCalledWith('sendTransactionsToDltConnector...')
 
       // Find the previous created transactions of sendCoin mutation
@@ -372,7 +473,100 @@ describe('create and send Transactions to DltConnector', () => {
         ]),
       )
     })
+  })
 
+  describe('with 3 verified creations, 1 sendCoins and active dlt-connector', () => {
+    it('found 3 dlt-transactions', async () => {
+      txCREATION1 = await createTxCREATION1(true)
+      txCREATION2 = await createTxCREATION2(true)
+      txCREATION3 = await createTxCREATION3(true)
+
+      txSEND1to2 = await createTxSend1ToReceive2(false)
+      txRECEIVE2From1 = await createTxReceive2FromSend1(false)
+
+      /*
+      txSEND2To3 = await createTxSend2ToReceive3()
+      txRECEIVE3From2 = await createTxReceive3FromSend2()
+      txSEND3To1 = await createTxSend3ToReceive1()
+      txRECEIVE1From3 = await createTxReceive1FromSend3()
+      */
+
+      CONFIG.DLT_CONNECTOR = true
+
+      // eslint-disable-next-line @typescript-eslint/require-await
+      jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return {
+          data: {
+            sendTransaction: {
+              dltTransactionIdHex:
+                '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc51621',
+            },
+          },
+        } as Response<unknown>
+      })
+
+      await sendTransactionsToDltConnector()
+
+      expect(logger.info).toBeCalledWith('sendTransactionsToDltConnector...')
+
+      // Find the previous created transactions of sendCoin mutation
+      const transactions = await Transaction.find({
+        // where: { memo: 'unrepeatable memo' },
+        order: { balanceDate: 'ASC', id: 'ASC' },
+      })
+
+      const dltTransactions = await DltTransaction.find({
+        // where: { transactionId: In([transaction[0].id, transaction[1].id]) },
+        // relations: ['transaction'],
+        order: { createdAt: 'ASC', id: 'ASC' },
+      })
+
+      expect(dltTransactions).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: expect.any(Number),
+            transactionId: txCREATION1.id,
+            messageId: '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc516c1',
+            verified: true,
+            createdAt: new Date('01.01.2023 00:00:10'),
+            verifiedAt: new Date('01.01.2023 00:01:10'),
+          }),
+          expect.objectContaining({
+            id: expect.any(Number),
+            transactionId: txCREATION2.id,
+            messageId: '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc516c2',
+            verified: true,
+            createdAt: new Date('02.01.2023 00:00:10'),
+            verifiedAt: new Date('02.01.2023 00:01:10'),
+          }),
+          expect.objectContaining({
+            id: expect.any(Number),
+            transactionId: txCREATION3.id,
+            messageId: '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc516c3',
+            verified: true,
+            createdAt: new Date('03.01.2023 00:00:10'),
+            verifiedAt: new Date('03.01.2023 00:01:10'),
+          }),
+          expect.objectContaining({
+            id: expect.any(Number),
+            transactionId: txSEND1to2.id,
+            messageId: '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc51621',
+            verified: true,
+            createdAt: new Date('12.01.2023 00:00:10'),
+            verifiedAt: new Date('12.01.2023 00:01:10'),
+          }),
+          expect.objectContaining({
+            id: expect.any(Number),
+            transactionId: txRECEIVE2From1.id,
+            messageId: '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc51621',
+            verified: true,
+            createdAt: new Date('12.01.2023 00:00:10'),
+            verifiedAt: new Date('12.01.2023 00:01:10'),
+          }),
+        ]),
+      )
+    })
     /*
     describe('with one Community of api 1_0 and not matching pubKey', () => {
       beforeEach(async () => {
