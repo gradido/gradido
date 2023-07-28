@@ -17,37 +17,41 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
       await createDltTransactions()
       const dltConnector = DltConnectorClient.getInstance()
       if (dltConnector) {
+        console.log('aktiv dltConnector...')
+        logger.debug('with sending to DltConnector...')
         const dltTransactions = await DltTransaction.find({
           where: { messageId: IsNull() },
           relations: ['transaction'],
           order: { createdAt: 'ASC', id: 'ASC' },
         })
+        console.log('dltTransactions=', dltTransactions)
         for (const dltTx of dltTransactions) {
-          logger.debug('sending dltTx=', dltTx)
-          if (dltTx.transaction && (dltTx.transaction ?? false)) {
-            try {
-              const messageId = await dltConnector.transmitTransaction(dltTx.transaction)
-              logger.debug('received messageId=', messageId)
-              const dltMessageId = Buffer.from(messageId, 'hex')
-              logger.debug('dltMessageId as Buffer=', dltMessageId)
-              if (dltMessageId.length !== 32) {
-                logger.error(
-                  'Error dlt message id is invalid: %s, should by 32 Bytes long in binary after converting from hex',
-                  dltMessageId,
-                )
-                return
-              }
-              dltTx.messageId = dltMessageId.toString()
-              await DltTransaction.save(dltTx)
-              logger.info('store messageId=%s in dltTx=%d', dltTx.messageId, dltTx.id)
-            } catch (e) {
-              logger.error(
-                `error while sending to dlt-connector or writing messageId of dltTx=${dltTx.id}`,
-                e,
+          console.log('sending dltTx=', dltTx)
+          try {
+            const messageId = await dltConnector.transmitTransaction(dltTx.transaction)
+            console.log('received messageId=', messageId)
+            const dltMessageId = Buffer.from(messageId, 'hex')
+            console.log('dltMessageId as Buffer=', dltMessageId)
+            if (dltMessageId.length !== 32) {
+              console.log(
+                'Error dlt message id is invalid: %s, should by 32 Bytes long in binary after converting from hex',
+                dltMessageId,
               )
+              return
             }
+            dltTx.messageId = dltMessageId.toString('hex')
+            await DltTransaction.save(dltTx)
+            logger.info('store messageId=%s in dltTx=%d', dltTx.messageId, dltTx.id)
+          } catch (e) {
+            console.log('error ', e)
+            logger.error(
+              `error while sending to dlt-connector or writing messageId of dltTx=${dltTx.id}`,
+              e,
+            )
           }
         }
+      } else {
+        logger.info('sending to DltConnector currently not configured...')
       }
     } catch (e) {
       logger.error('error on sending transactions to dlt-connector.', e)

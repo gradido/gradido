@@ -6,9 +6,9 @@ import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
-const mutation = gql`
+const sendTransaction = gql`
   mutation ($input: TransactionInput!) {
-    transmitTransaction(data: $input) {
+    sendTransaction(data: $input) {
       dltTransactionIdHex
     }
   }
@@ -35,7 +35,7 @@ function getTransactionTypeString(id: TransactionTypeId): string {
 export class DltConnectorClient {
   // eslint-disable-next-line no-use-before-define
   private static instance: DltConnectorClient
-  private client: GraphQLClient
+  client: GraphQLClient
   /**
    * The Singleton's constructor should always be private to prevent direct
    * construction calls with the `new` operator.
@@ -59,7 +59,13 @@ export class DltConnectorClient {
     }
     if (!DltConnectorClient.instance.client) {
       try {
-        DltConnectorClient.instance.client = new GraphQLClient(CONFIG.DLT_CONNECTOR_URL)
+        DltConnectorClient.instance.client = new GraphQLClient(CONFIG.DLT_CONNECTOR_URL, {
+          method: 'GET',
+          jsonSerializer: {
+            parse: JSON.parse,
+            stringify: JSON.stringify,
+          },
+        })
       } catch (e) {
         logger.error("couldn't connect to dlt-connector: ", e)
         return
@@ -72,22 +78,33 @@ export class DltConnectorClient {
    * transmit transaction via dlt-connector to iota
    * and update dltTransactionId of transaction in db with iota message id
    */
-  public async transmitTransaction(transaction: DbTransaction): Promise<string> {
-    const typeString = getTransactionTypeString(transaction.typeId)
-    const secondsSinceEpoch = Math.round(transaction.balanceDate.getTime() / 1000)
-    const amountString = transaction.amount.toString()
-    try {
-      const result: { transmitTransaction: { dltTransactionIdHex: string } } =
-        await this.client.request(mutation, {
+  public async transmitTransaction(transaction?: DbTransaction | null): Promise<string> {
+    console.log('transmitTransaction tx=', transaction)
+    if (transaction) {
+      const typeString = getTransactionTypeString(transaction.typeId)
+      const secondsSinceEpoch = Math.round(transaction.balanceDate.getTime() / 1000)
+      const amountString = transaction.amount.toString()
+      console.log('typeString=', typeString)
+      console.log('secondsSinceEpoch=', secondsSinceEpoch)
+      console.log('amountString=', amountString)
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const { data } = await this.client.rawRequest(sendTransaction, {
           input: {
             type: typeString,
             amount: amountString,
             createdAt: secondsSinceEpoch,
           },
         })
-      return result.transmitTransaction.dltTransactionIdHex
-    } catch (e) {
-      throw new LogError('Error send sending transaction to dlt-connector: %o', e)
+        console.log('result data=', data)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+        return data.sendTransaction.dltTransactionIdHex
+      } catch (e) {
+        console.log('error return result ', e)
+        throw new LogError('Error send sending transaction to dlt-connector: ', e)
+      }
+    } else {
+      throw new LogError('parameter transaction not set...')
     }
   }
 }
