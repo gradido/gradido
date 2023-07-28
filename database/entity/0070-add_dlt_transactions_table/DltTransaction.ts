@@ -11,7 +11,7 @@ export class DltTransaction extends BaseEntity {
 
   @Column({
     name: 'message_id',
-    length: 40,
+    length: 64,
     nullable: true,
     default: null,
     collation: 'utf8mb4_unicode_ci',

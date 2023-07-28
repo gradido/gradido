@@ -6,7 +6,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     CREATE TABLE dlt_transactions (
       id int unsigned NOT NULL AUTO_INCREMENT,
       transactions_id int(10) unsigned NOT NULL,
-      message_id varchar(40) NULL DEFAULT NULL,
+      message_id varchar(64) NULL DEFAULT NULL,
       verified tinyint(4) NOT NULL DEFAULT 0,
       created_at datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
       verified_at datetime(3),
