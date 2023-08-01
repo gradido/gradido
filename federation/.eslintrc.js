@@ -28,7 +28,7 @@ module.exports = {
   },
   rules: {
     'no-console': 'error',
-    camelcase: 'error',
+    camelcase: ['error', { allow: ['crypto_*'] }],
     'no-debugger': 'error',
     'prettier/prettier': [
       'error',

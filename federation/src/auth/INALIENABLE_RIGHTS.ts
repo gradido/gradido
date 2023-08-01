@@ -1,0 +1,3 @@
+import { RIGHTS } from './RIGHTS'
+
+export const INALIENABLE_RIGHTS = [RIGHTS.GET_PUBLIC_KEY]
