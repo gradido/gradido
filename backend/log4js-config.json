@@ -122,7 +122,6 @@
       "appenders":
       [
         "backend",
-        "out",
         "errors"
       ],
       "level": "debug",
@@ -133,7 +132,6 @@
       "appenders":
       [
         "klicktipp",
-        "out",
         "errors"
       ],
       "level": "debug",
