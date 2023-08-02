@@ -25,7 +25,7 @@ export class FederationClient {
   }
 
   getPublicKey = async (): Promise<string | undefined> => {
-    logger.info('Federation: getPublicKey from endpoint', this.endpoint)
+    logger.debug('Federation: getPublicKey from endpoint', this.endpoint)
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { data } = await this.client.rawRequest(getPublicKey, {})
@@ -34,7 +34,7 @@ export class FederationClient {
         logger.warn('Federation: getPublicKey without response data from endpoint', this.endpoint)
         return
       }
-      logger.info(
+      logger.debug(
         'Federation: getPublicKey successful from endpoint',
         this.endpoint,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
