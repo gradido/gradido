@@ -97,7 +97,7 @@ describe('validate Communities', () => {
         expect(logger.debug).toBeCalledWith(`Federation: found 1 dbCommunities`)
       })
       it('logs requestGetPublicKey for community api 1_0 ', () => {
-        expect(logger.info).toBeCalledWith(
+        expect(logger.debug).toBeCalledWith(
           'Federation: getPublicKey from endpoint',
           'http//localhost:5001/api/1_0/',
         )
@@ -148,7 +148,7 @@ describe('validate Communities', () => {
         expect(logger.debug).toBeCalledWith(`Federation: found 1 dbCommunities`)
       })
       it('logs requestGetPublicKey for community api 1_0 ', () => {
-        expect(logger.info).toBeCalledWith(
+        expect(logger.debug).toBeCalledWith(
           'Federation: getPublicKey from endpoint',
           'http//localhost:5001/api/1_0/',
         )
@@ -200,13 +200,13 @@ describe('validate Communities', () => {
         expect(logger.debug).toBeCalledWith(`Federation: found 2 dbCommunities`)
       })
       it('logs requestGetPublicKey for community api 1_0 ', () => {
-        expect(logger.info).toBeCalledWith(
+        expect(logger.debug).toBeCalledWith(
           'Federation: getPublicKey from endpoint',
           'http//localhost:5001/api/1_0/',
         )
       })
       it('logs requestGetPublicKey for community api 1_1 ', () => {
-        expect(logger.info).toBeCalledWith(
+        expect(logger.debug).toBeCalledWith(
           'Federation: getPublicKey from endpoint',
           'http//localhost:5001/api/1_1/',
         )
@@ -242,13 +242,13 @@ describe('validate Communities', () => {
         expect(logger.debug).toBeCalledWith(`Federation: found 3 dbCommunities`)
       })
       it('logs requestGetPublicKey for community api 1_0 ', () => {
-        expect(logger.info).toBeCalledWith(
+        expect(logger.debug).toBeCalledWith(
           'Federation: getPublicKey from endpoint',
           'http//localhost:5001/api/1_0/',
         )
       })
       it('logs requestGetPublicKey for community api 1_1 ', () => {
-        expect(logger.info).toBeCalledWith(
+        expect(logger.debug).toBeCalledWith(
           'Federation: getPublicKey from endpoint',
           'http//localhost:5001/api/1_1/',
         )
