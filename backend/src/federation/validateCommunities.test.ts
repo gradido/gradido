@@ -154,7 +154,7 @@ describe('validate Communities', () => {
         )
       })
       it('logs community pubKey verified', () => {
-        expect(logger.info).toHaveBeenNthCalledWith(
+        expect(logger.debug).toHaveBeenNthCalledWith(
           3,
           'Federation: verified community with',
           'http//localhost:5001/api/',
