@@ -1,7 +1,7 @@
 find /home/gradido/gradido/deployment/bare_metal/log -name "pm2.admin.????-??-??.log*" -ctime +30 -exec rm -r {} \; > /dev/null
 find /home/gradido/gradido/deployment/bare_metal/log -name "pm2.backend.????-??-??.log*" -ctime +30 -exec rm -r {} \; > /dev/null
 find /home/gradido/gradido/deployment/bare_metal/log -name "pm2.dht-node.????-??-??.log*" -ctime +30 -exec rm -r {} \; > /dev/null
-find /home/gradido/gradido/deployment/bare_metal/log -name "pm2.frontend.??-??-??.log*" -ctime +30 -exec rm -r {} \; > /dev/null
+find /home/gradido/gradido/deployment/bare_metal/log -name "pm2.frontend.????-??-??.log*" -ctime +30 -exec rm -r {} \; > /dev/null
 find /home/gradido/gradido/deployment/bare_metal/log -name "pm2.gradido-federation-*.????-??-??.log*" -ctime +30 -exec rm -r {} \; > /dev/null
 find /home/gradido/gradido/deployment/bare_metal/log -name "typeorm.backend.log.*" -ctime +30 -exec rm -r {} \; > /dev/null
 
