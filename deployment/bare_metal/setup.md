@@ -224,9 +224,8 @@ to start the existing backup.sh script.
 
 ### On production / stage3 / stage2
 
-To check for existing cronjobs for the `gradido` user, please
-
-Run:
+#### Check existing cronjobs
+To check for existing cronjobs for the `gradido` user, please process
 
 ```bash
 crontab -l
@@ -234,10 +233,9 @@ crontab -l
 
 This show all existing entries of the crontab for user `gradido`
 
-To install/add the cronjob for a daily backup at 3:00am please,
-To install/add the cronjob for a daily klicktipp export at 4:00am please,
-
-Run:
+#### Add or install new cronjob
+- Database Backup
+To install/add the cronjob for a daily backup at 3:00am please process
 
 ```bash
 crontab -e
@@ -245,5 +243,26 @@ crontab -e
 and insert the following line
 ```bash
 0 3 * * * ~/gradido/deployment/bare_metal/backup.sh
+```
+
+- Logfile clearance
+To install/add the cronjob for a daily logfile clearance at 3:15 please process
+
+```bash
+crontab -e
+```
+and insert the following line
+```bash
+15 3 * * * ~/gradido/deployment/bare_metal/removeLogFiles.sh
+```
+
+- Klicktipp campains
+To install/add the cronjob for a daily klicktipp export at 4:00am please process
+
+```bash
+crontab -e
+```
+and insert the following line
+```bash
 0 4 * * * cd ~/gradido/backend/ && yarn klicktipp && cd
 ```
