@@ -73,10 +73,6 @@ export class TransactionLinkResolver {
     const createdDate = new Date()
     const validUntil = transactionLinkExpireDate(createdDate)
 
-    if (amount.lessThanOrEqualTo(0)) {
-      throw new LogError('Amount must be a positive number', amount)
-    }
-
     const holdAvailableAmount = amount.minus(calculateDecay(amount, createdDate, validUntil).decay)
 
     // validate amount

@@ -8,10 +8,12 @@ import {
   CONTRIBUTIONLINK_NAME_MIN_CHARS,
   CONTRIBUTIONLINK_NAME_MAX_CHARS,
 } from '@/graphql/resolver/const/const'
+import { IsPositiveDecimal } from '@/graphql/validator/Decimal'
 
 @ArgsType()
 export class ContributionLinkArgs {
   @Field(() => Decimal)
+  @IsPositiveDecimal()
   amount: Decimal
 
   @Field(() => String)

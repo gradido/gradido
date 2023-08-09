@@ -41,10 +41,6 @@ export class ContributionLinkResolver {
   ): Promise<ContributionLink> {
     isStartEndDateValid(validFrom, validTo)
 
-    if (!new Decimal(amount).isPositive()) {
-      throw new LogError('The amount must be a positiv value', amount)
-    }
-
     const dbContributionLink = new DbContributionLink()
     dbContributionLink.amount = amount
     dbContributionLink.name = name

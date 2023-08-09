@@ -3,6 +3,7 @@ import { Decimal } from 'decimal.js-light'
 import { ArgsType, Field } from 'type-graphql'
 
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from '@/graphql/resolver/const/const'
+import { IsPositiveDecimal } from '@/graphql/validator/Decimal'
 
 @ArgsType()
 export class TransactionSendArgs {
@@ -10,6 +11,7 @@ export class TransactionSendArgs {
   identifier: string
 
   @Field(() => Decimal)
+  @IsPositiveDecimal()
   amount: Decimal
 
   @Field(() => String)

@@ -308,9 +308,6 @@ export class TransactionResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     logger.info(`sendCoins(identifier=${identifier}, amount=${amount}, memo=${memo})`)
-    if (amount.lte(0)) {
-      throw new LogError('Amount to send must be positive', amount)
-    }
 
     const senderUser = getUser(context)
 
