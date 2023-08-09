@@ -79,14 +79,10 @@ export class DltConnectorClient {
    * and update dltTransactionId of transaction in db with iota message id
    */
   public async transmitTransaction(transaction?: DbTransaction | null): Promise<string> {
-    console.log('transmitTransaction tx=', transaction)
     if (transaction) {
       const typeString = getTransactionTypeString(transaction.typeId)
       const secondsSinceEpoch = Math.round(transaction.balanceDate.getTime() / 1000)
       const amountString = transaction.amount.toString()
-      console.log('typeString=', typeString)
-      console.log('secondsSinceEpoch=', secondsSinceEpoch)
-      console.log('amountString=', amountString)
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const { data } = await this.client.rawRequest(sendTransaction, {
@@ -96,11 +92,9 @@ export class DltConnectorClient {
             createdAt: secondsSinceEpoch,
           },
         })
-        console.log('result data=', data)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
         return data.sendTransaction.dltTransactionIdHex
       } catch (e) {
-        console.log('error return result ', e)
         throw new LogError('Error send sending transaction to dlt-connector: ', e)
       }
     } else {

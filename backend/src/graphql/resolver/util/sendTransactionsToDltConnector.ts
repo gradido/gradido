@@ -17,23 +17,18 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
       await createDltTransactions()
       const dltConnector = DltConnectorClient.getInstance()
       if (dltConnector) {
-        console.log('aktiv dltConnector...')
         logger.debug('with sending to DltConnector...')
         const dltTransactions = await DltTransaction.find({
           where: { messageId: IsNull() },
           relations: ['transaction'],
           order: { createdAt: 'ASC', id: 'ASC' },
         })
-        console.log('dltTransactions=', dltTransactions)
         for (const dltTx of dltTransactions) {
-          console.log('sending dltTx=', dltTx)
           try {
             const messageId = await dltConnector.transmitTransaction(dltTx.transaction)
-            console.log('received messageId=', messageId)
             const dltMessageId = Buffer.from(messageId, 'hex')
-            console.log('dltMessageId as Buffer=', dltMessageId)
             if (dltMessageId.length !== 32) {
-              console.log(
+              logger.error(
                 'Error dlt message id is invalid: %s, should by 32 Bytes long in binary after converting from hex',
                 dltMessageId,
               )
@@ -45,7 +40,6 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
             await DltTransaction.save(dltTx)
             logger.info('store messageId=%s in dltTx=%d', dltTx.messageId, dltTx.id)
           } catch (e) {
-            console.log('error ', e)
             logger.error(
               `error while sending to dlt-connector or writing messageId of dltTx=${dltTx.id}`,
               e,

@@ -206,6 +206,7 @@ async function createTxReceive2FromSend1(verified: boolean): Promise<Transaction
   return tx
 }
 
+/*
 async function createTxSend2ToReceive3(verified: boolean): Promise<Transaction> {
   let tx = Transaction.create()
   tx.amount = new Decimal(200)
@@ -313,6 +314,7 @@ async function createTxReceive1FromSend3(verified: boolean): Promise<Transaction
   }
   return tx
 }
+*/
 
 let con: Connection
 let testEnv: {
@@ -338,10 +340,10 @@ describe('create and send Transactions to DltConnector', () => {
   let txCREATION3: Transaction
   let txSEND1to2: Transaction
   let txRECEIVE2From1: Transaction
-  let txSEND2To3: Transaction
-  let txRECEIVE3From2: Transaction
-  let txSEND3To1: Transaction
-  let txRECEIVE1From3: Transaction
+  // let txSEND2To3: Transaction
+  // let txRECEIVE3From2: Transaction
+  // let txSEND3To1: Transaction
+  // let txRECEIVE1From3: Transaction
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -407,7 +409,6 @@ describe('create and send Transactions to DltConnector', () => {
   })
 
   describe('with 3 creations and active dlt-connector', () => {
-
     it('found 3 dlt-transactions', async () => {
       txCREATION1 = await createTxCREATION1(false)
       txCREATION2 = await createTxCREATION2(false)
@@ -511,10 +512,12 @@ describe('create and send Transactions to DltConnector', () => {
       expect(logger.info).toBeCalledWith('sendTransactionsToDltConnector...')
 
       // Find the previous created transactions of sendCoin mutation
+      /*
       const transactions = await Transaction.find({
         // where: { memo: 'unrepeatable memo' },
         order: { balanceDate: 'ASC', id: 'ASC' },
       })
+      */
 
       const dltTransactions = await DltTransaction.find({
         // where: { transactionId: In([transaction[0].id, transaction[1].id]) },
