@@ -18,7 +18,6 @@ import {
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
-import { CONTRIBUTIONLINK_NAME_MAX_CHARS, CONTRIBUTIONLINK_NAME_MIN_CHARS } from './const/const'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import { isStartEndDateValid } from './util/creations'
 
@@ -41,12 +40,7 @@ export class ContributionLinkResolver {
     @Ctx() context: Context,
   ): Promise<ContributionLink> {
     isStartEndDateValid(validFrom, validTo)
-    if (name.length < CONTRIBUTIONLINK_NAME_MIN_CHARS) {
-      throw new LogError('The value of name is too short', name.length)
-    }
-    if (name.length > CONTRIBUTIONLINK_NAME_MAX_CHARS) {
-      throw new LogError('The value of name is too long', name.length)
-    }
+
     if (!new Decimal(amount).isPositive()) {
       throw new LogError('The amount must be a positiv value', amount)
     }

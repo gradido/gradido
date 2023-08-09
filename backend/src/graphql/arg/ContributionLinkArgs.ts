@@ -2,7 +2,12 @@ import { MaxLength, MinLength } from 'class-validator'
 import { Decimal } from 'decimal.js-light'
 import { ArgsType, Field, Int } from 'type-graphql'
 
-import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from '@/graphql/resolver/const/const'
+import {
+  MEMO_MAX_CHARS,
+  MEMO_MIN_CHARS,
+  CONTRIBUTIONLINK_NAME_MIN_CHARS,
+  CONTRIBUTIONLINK_NAME_MAX_CHARS,
+} from '@/graphql/resolver/const/const'
 
 @ArgsType()
 export class ContributionLinkArgs {
@@ -10,6 +15,8 @@ export class ContributionLinkArgs {
   amount: Decimal
 
   @Field(() => String)
+  @MaxLength(CONTRIBUTIONLINK_NAME_MAX_CHARS)
+  @MinLength(CONTRIBUTIONLINK_NAME_MIN_CHARS)
   name: string
 
   @Field(() => String)
