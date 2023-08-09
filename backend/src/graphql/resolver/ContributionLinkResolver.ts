@@ -1,6 +1,5 @@
 import { MoreThan, IsNull } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { Decimal } from 'decimal.js-light'
 import { Resolver, Args, Arg, Authorized, Mutation, Query, Int, Ctx } from 'type-graphql'
 
 import { ContributionLinkArgs } from '@arg/ContributionLinkArgs'
