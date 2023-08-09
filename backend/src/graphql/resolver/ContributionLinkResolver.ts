@@ -18,12 +18,7 @@ import {
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
-import {
-  CONTRIBUTIONLINK_NAME_MAX_CHARS,
-  CONTRIBUTIONLINK_NAME_MIN_CHARS,
-  MEMO_MAX_CHARS,
-  MEMO_MIN_CHARS,
-} from './const/const'
+import { CONTRIBUTIONLINK_NAME_MAX_CHARS, CONTRIBUTIONLINK_NAME_MIN_CHARS } from './const/const'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import { isStartEndDateValid } from './util/creations'
 
@@ -51,12 +46,6 @@ export class ContributionLinkResolver {
     }
     if (name.length > CONTRIBUTIONLINK_NAME_MAX_CHARS) {
       throw new LogError('The value of name is too long', name.length)
-    }
-    if (memo.length < MEMO_MIN_CHARS) {
-      throw new LogError('The value of memo is too short', memo.length)
-    }
-    if (memo.length > MEMO_MAX_CHARS) {
-      throw new LogError('The value of memo is too long', memo.length)
     }
     if (!new Decimal(amount).isPositive()) {
       throw new LogError('The amount must be a positiv value', amount)
