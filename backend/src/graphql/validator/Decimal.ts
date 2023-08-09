@@ -2,10 +2,10 @@ import { registerDecorator, ValidationOptions, ValidationArguments } from 'class
 import { Decimal } from 'decimal.js-light'
 
 export function IsPositiveDecimal(validationOptions?: ValidationOptions) {
-  return function (object: NonNullable<unknown>, propertyName: string) {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  return function (object: Object, propertyName: string) {
     registerDecorator({
       name: 'isPositiveDecimal',
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       target: object.constructor,
       propertyName,
       options: validationOptions,
