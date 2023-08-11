@@ -217,5 +217,6 @@
   },
   "user_deleted": "Nutzer ist gelöscht.",
   "user_recovered": "Nutzer ist wiederhergestellt.",
-  "user_search": "Nutzer-Suche"
+  "user_search": "Nutzer-Suche",
+  "user_memo_search": "Nutzer-Kommentar-Suche"
 }

@@ -33,8 +33,8 @@ export const findContributions = async (
     ...(statusFilter?.length && { contributionStatus: In(statusFilter) }),
     ...(userId && { userId }),
   }
-
-  const where =
+  
+  let where =
     query && relations?.user
       ? [
           {
@@ -57,8 +57,16 @@ export const findContributions = async (
               },
             },
           },
+          {
+            ...requiredWhere,
+            memo: Like(`%${query}%`)
+          },
         ]
       : requiredWhere
+  
+  if (!relations?.user && query) {
+    where = [{...requiredWhere, memo: Like(`%${query}%`)}]
+  }
 
   return DbContribution.findAndCount({
     relations,

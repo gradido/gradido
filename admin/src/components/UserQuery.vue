@@ -5,7 +5,7 @@
         type="text"
         class="test-input-criteria"
         v-model="currentValue"
-        :placeholder="$t('user_search')"
+        :placeholder="$t('user_memo_search')"
       ></b-form-input>
       <b-input-group-append class="test-click-clear-criteria" @click="currentValue = ''">
         <b-input-group-text class="pointer">
