@@ -94,38 +94,58 @@ describe('TransactionLinkResolver', () => {
 
       it('throws error when amount is zero', async () => {
         jest.clearAllMocks()
-        await expect(
-          mutate({
-            mutation: createTransactionLink,
-            variables: {
-              amount: 0,
-              memo: 'Test',
-            },
-          }),
-        ).resolves.toMatchObject({
-          errors: [new GraphQLError('Amount must be a positive number')],
+        const { errors: errorObjects } = await mutate({
+          mutation: createTransactionLink,
+          variables: {
+            amount: 0,
+            memo: 'Test Test',
+          },
         })
-      })
-      it('logs the error "Amount must be a positive number" - 0', () => {
-        expect(logger.error).toBeCalledWith('Amount must be a positive number', new Decimal(0))
+        expect(errorObjects).toMatchObject([
+          {
+            message: 'Argument Validation Error',
+            extensions: {
+              exception: {
+                validationErrors: [
+                  {
+                    property: 'amount',
+                    constraints: {
+                      isPositiveDecimal: 'The amount must be a positive value amount',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ])
       })
 
       it('throws error when amount is negative', async () => {
         jest.clearAllMocks()
-        await expect(
-          mutate({
-            mutation: createTransactionLink,
-            variables: {
-              amount: -10,
-              memo: 'Test',
-            },
-          }),
-        ).resolves.toMatchObject({
-          errors: [new GraphQLError('Amount must be a positive number')],
+        const { errors: errorObjects } = await mutate({
+          mutation: createTransactionLink,
+          variables: {
+            amount: -10,
+            memo: 'Test Test',
+          },
         })
-      })
-      it('logs the error "Amount must be a positive number" - -10', () => {
-        expect(logger.error).toBeCalledWith('Amount must be a positive number', new Decimal(-10))
+        expect(errorObjects).toMatchObject([
+          {
+            message: 'Argument Validation Error',
+            extensions: {
+              exception: {
+                validationErrors: [
+                  {
+                    property: 'amount',
+                    constraints: {
+                      isPositiveDecimal: 'The amount must be a positive value amount',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ])
       })
 
       it('throws error when user has not enough GDD', async () => {
@@ -135,7 +155,7 @@ describe('TransactionLinkResolver', () => {
             mutation: createTransactionLink,
             variables: {
               amount: 1001,
-              memo: 'Test',
+              memo: 'Test Test',
             },
           }),
         ).resolves.toMatchObject({

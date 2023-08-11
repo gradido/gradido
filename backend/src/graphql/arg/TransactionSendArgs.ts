@@ -1,4 +1,4 @@
-import { MaxLength, MinLength } from 'class-validator'
+import { MaxLength, MinLength, IsString } from 'class-validator'
 import { Decimal } from 'decimal.js-light'
 import { ArgsType, Field } from 'type-graphql'
 
@@ -8,6 +8,7 @@ import { IsPositiveDecimal } from '@/graphql/validator/Decimal'
 @ArgsType()
 export class TransactionSendArgs {
   @Field(() => String)
+  @IsString()
   identifier: string
 
   @Field(() => Decimal)

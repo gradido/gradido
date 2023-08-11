@@ -1,14 +1,16 @@
-import { MaxLength, MinLength } from 'class-validator'
+import { IsEmail, MaxLength, MinLength } from 'class-validator'
 import { Decimal } from 'decimal.js-light'
 import { ArgsType, Field, InputType } from 'type-graphql'
 
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from '@/graphql/resolver/const/const'
+import { isValidDateString } from '@/graphql/validator/DateString'
 import { IsPositiveDecimal } from '@/graphql/validator/Decimal'
 
 @InputType()
 @ArgsType()
 export class AdminCreateContributionArgs {
   @Field(() => String)
+  @IsEmail()
   email: string
 
   @Field(() => Decimal)
@@ -21,5 +23,6 @@ export class AdminCreateContributionArgs {
   memo: string
 
   @Field(() => String)
+  @isValidDateString()
   creationDate: string
 }

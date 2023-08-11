@@ -49,7 +49,6 @@ import {
   getUserCreation,
   validateContribution,
   updateCreations,
-  isValidDateString,
   getOpenCreations,
 } from './util/creations'
 import { findContributions } from './util/findContributions'
@@ -256,9 +255,6 @@ export class ContributionResolver {
       `adminCreateContribution(email=${email}, amount=${amount.toString()}, memo=${memo}, creationDate=${creationDate})`,
     )
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    if (!isValidDateString(creationDate)) {
-      throw new LogError('CreationDate is invalid', creationDate)
-    }
     const emailContact = await UserContact.findOne({
       where: { email },
       withDeleted: true,

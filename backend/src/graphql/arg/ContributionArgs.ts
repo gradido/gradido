@@ -3,6 +3,7 @@ import { Decimal } from 'decimal.js-light'
 import { ArgsType, Field, InputType } from 'type-graphql'
 
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from '@/graphql/resolver/const/const'
+import { isValidDateString } from '@/graphql/validator/DateString'
 import { IsPositiveDecimal } from '@/graphql/validator/Decimal'
 
 @InputType()
@@ -18,5 +19,6 @@ export class ContributionArgs {
   memo: string
 
   @Field(() => String)
+  @isValidDateString()
   creationDate: string
 }

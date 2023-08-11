@@ -201,6 +201,7 @@ describe('ContributionResolver', () => {
         it('throws error when memo length smaller than 5 chars', async () => {
           jest.clearAllMocks()
           const date = new Date()
+
           const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
@@ -209,12 +210,23 @@ describe('ContributionResolver', () => {
               creationDate: date.toString(),
             },
           })
-
-          expect(errorObjects).toEqual([new GraphQLError('Memo text is too short')])
-        })
-
-        it('logs the error "Memo text is too short"', () => {
-          expect(logger.error).toBeCalledWith('Memo text is too short', 4)
+          expect(errorObjects).toMatchObject([
+            {
+              message: 'Argument Validation Error',
+              extensions: {
+                exception: {
+                  validationErrors: [
+                    {
+                      property: 'memo',
+                      constraints: {
+                        minLength: 'memo must be longer than or equal to 5 characters',
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ])
         })
 
         it('throws error when memo length greater than 255 chars', async () => {
@@ -228,11 +240,23 @@ describe('ContributionResolver', () => {
               creationDate: date.toString(),
             },
           })
-          expect(errorObjects).toEqual([new GraphQLError('Memo text is too long')])
-        })
-
-        it('logs the error "Memo text is too long"', () => {
-          expect(logger.error).toBeCalledWith('Memo text is too long', 259)
+          expect(errorObjects).toMatchObject([
+            {
+              message: 'Argument Validation Error',
+              extensions: {
+                exception: {
+                  validationErrors: [
+                    {
+                      property: 'memo',
+                      constraints: {
+                        maxLength: 'memo must be shorter than or equal to 255 characters',
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ])
         })
 
         it('throws error when creationDate not-valid', async () => {
@@ -245,27 +269,35 @@ describe('ContributionResolver', () => {
               creationDate: 'not-valid',
             },
           })
-          expect(errorObjects).toEqual([
-            new GraphQLError('No information for available creations for the given date'),
+          expect(errorObjects).toMatchObject([
+            {
+              message: 'Argument Validation Error',
+              extensions: {
+                exception: {
+                  validationErrors: [
+                    {
+                      property: 'creationDate',
+                      constraints: {
+                        isValidDateString: 'creationDate must be a valid date string, creationDate',
+                      },
+                    },
+                  ],
+                },
+              },
+            },
           ])
-        })
-
-        it('logs the error "No information for available creations for the given date"', () => {
-          expect(logger.error).toBeCalledWith(
-            'No information for available creations for the given date',
-            expect.any(Date),
-          )
         })
 
         it('throws error when creationDate 3 month behind', async () => {
           jest.clearAllMocks()
           const date = new Date()
+          date.setMonth(date.getMonth() - 3)
           const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
               amount: 100.0,
               memo: 'Test env contribution',
-              creationDate: date.setMonth(date.getMonth() - 3).toString(),
+              creationDate: date.toString(),
             },
           })
           expect(errorObjects).toEqual([
@@ -346,11 +378,23 @@ describe('ContributionResolver', () => {
               creationDate: date.toString(),
             },
           })
-          expect(errorObjects).toEqual([new GraphQLError('Memo text is too short')])
-        })
-
-        it('logs the error "Memo text is too short"', () => {
-          expect(logger.error).toBeCalledWith('Memo text is too short', 4)
+          expect(errorObjects).toMatchObject([
+            {
+              message: 'Argument Validation Error',
+              extensions: {
+                exception: {
+                  validationErrors: [
+                    {
+                      property: 'memo',
+                      constraints: {
+                        minLength: 'memo must be longer than or equal to 5 characters',
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ])
         })
       })
 
@@ -367,11 +411,23 @@ describe('ContributionResolver', () => {
               creationDate: date.toString(),
             },
           })
-          expect(errorObjects).toEqual([new GraphQLError('Memo text is too long')])
-        })
-
-        it('logs the error "Memo text is too long"', () => {
-          expect(logger.error).toBeCalledWith('Memo text is too long', 259)
+          expect(errorObjects).toMatchObject([
+            {
+              message: 'Argument Validation Error',
+              extensions: {
+                exception: {
+                  validationErrors: [
+                    {
+                      property: 'memo',
+                      constraints: {
+                        maxLength: 'memo must be shorter than or equal to 255 characters',
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ])
         })
       })
 
@@ -551,13 +607,14 @@ describe('ContributionResolver', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
           const date = new Date()
+          date.setMonth(date.getMonth() - 3)
           const { errors: errorObjects } = await mutate({
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
               amount: 10.0,
               memo: 'Test env contribution',
-              creationDate: date.setMonth(date.getMonth() - 3).toString(),
+              creationDate: date.toString(),
             },
           })
           expect(errorObjects).toEqual([
@@ -1979,17 +2036,28 @@ describe('ContributionResolver', () => {
             describe('date of creation is not a date string', () => {
               it('throws an error', async () => {
                 jest.clearAllMocks()
-                await expect(
-                  mutate({ mutation: adminCreateContribution, variables }),
-                ).resolves.toEqual(
-                  expect.objectContaining({
-                    errors: [new GraphQLError('CreationDate is invalid')],
-                  }),
-                )
-              })
-
-              it('logs the error "CreationDate is invalid"', () => {
-                expect(logger.error).toBeCalledWith('CreationDate is invalid', 'invalid-date')
+                const { errors: errorObjects } = await mutate({
+                  mutation: adminCreateContribution,
+                  variables,
+                })
+                expect(errorObjects).toMatchObject([
+                  {
+                    message: 'Argument Validation Error',
+                    extensions: {
+                      exception: {
+                        validationErrors: [
+                          {
+                            property: 'creationDate',
+                            constraints: {
+                              isValidDateString:
+                                'creationDate must be a valid date string, creationDate',
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  },
+                ])
               })
             })
 
@@ -2181,7 +2249,7 @@ describe('ContributionResolver', () => {
                 mutate({
                   mutation: adminUpdateContribution,
                   variables: {
-                    id: -1,
+                    id: 728,
                     amount: new Decimal(300),
                     memo: 'Danke Bibi!',
                     creationDate: contributionDateFormatter(new Date()),
@@ -2195,7 +2263,7 @@ describe('ContributionResolver', () => {
             })
 
             it('logs the error "Contribution not found"', () => {
-              expect(logger.error).toBeCalledWith('Contribution not found', -1)
+              expect(logger.error).toBeCalledWith('Contribution not found', 728)
             })
           })
 
