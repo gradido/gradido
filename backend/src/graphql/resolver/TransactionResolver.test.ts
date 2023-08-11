@@ -6,7 +6,6 @@ import { Event as DbEvent } from '@entity/Event'
 import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
