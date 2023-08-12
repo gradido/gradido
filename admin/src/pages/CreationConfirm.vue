@@ -1,7 +1,7 @@
 <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys -->
 <template>
   <div class="creation-confirm">
-    <user-query class="mb-4 mt-2" v-model="query" />
+    <user-query class="mb-4 mt-2" v-model="query" :placeholder="$t('user_memo_search')" />
     <div>
       <b-tabs v-model="tabIndex" content-class="mt-3" fill>
         <b-tab active :title-link-attributes="{ 'data-test': 'open' }">
