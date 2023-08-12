@@ -8,6 +8,7 @@ export const adminListContributions = gql`
     $statusFilter: [ContributionStatus!]
     $userId: Int
     $query: String
+    $noHashtag: Boolean
   ) {
     adminListContributions(
       currentPage: $currentPage
@@ -16,6 +17,7 @@ export const adminListContributions = gql`
       statusFilter: $statusFilter
       userId: $userId
       query: $query
+      noHashtag: $noHashtag
     ) {
       contributionCount
       contributionList {

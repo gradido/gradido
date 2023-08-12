@@ -89,6 +89,7 @@
     "submit": "Send"
   },
   "GDD": "GDD",
+  "hashtag_symbol": "#",
   "help": {
     "help": "Help",
     "transactionlist": {
@@ -124,6 +125,10 @@
     "user_search": "User search"
   },
   "not_open_creations": "No open creations",
+  "no_filter": "No Filter",
+  "no_filter_tooltip": "It is not filtered by hashtags",
+  "no_hashtag": "No Hashtag",
+  "no_hashtag_tooltip": "Displays only contributions without hashtag in comment",
   "open": "open",
   "open_creations": "Open creations",
   "overlay": {
@@ -218,5 +223,5 @@
   "user_deleted": "User is deleted.",
   "user_memo_search": "User and Memo search",
   "user_recovered": "User is recovered.",
-  "user_search": "User search"  
+  "user_search": "User search"
 }

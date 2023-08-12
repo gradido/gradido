@@ -30,7 +30,7 @@ export default {
   computed: {
     placeholderText() {
       return this.placeholder || this.$t('user_search')
-    }
+    },
   },
   watch: {
     currentValue() {
