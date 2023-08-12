@@ -56,7 +56,6 @@ import {
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
 
-
 @Resolver()
 export class ContributionResolver {
   @Authorized([RIGHTS.CREATE_CONTRIBUTION])
