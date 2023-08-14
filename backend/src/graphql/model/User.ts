@@ -1,6 +1,8 @@
 import { User as dbUser } from '@entity/User'
 import { ObjectType, Field, Int } from 'type-graphql'
 
+import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
+
 import { KlickTipp } from './KlickTipp'
 
 @ObjectType()
@@ -23,6 +25,10 @@ export class User {
     this.hasElopage = null
     this.hideAmountGDD = user.hideAmountGDD
     this.hideAmountGDT = user.hideAmountGDT
+    this.publicKey = user.publicKey
+    this.passphrase = user.passphrase
+    this.privateKeyEncrypted = user.privateKeyEncrypted
+    this.passwordEncryptionType = user.passwordEncryptionType
   }
 
   @Field(() => Int)
@@ -57,6 +63,18 @@ export class User {
 
   @Field(() => Boolean)
   hideAmountGDT: boolean
+
+  @Field(() => String)
+  publicKey: string
+
+  @Field(() => String)
+  privateKeyEncrypted: string
+
+  @Field(() => String)
+  passphrase: string
+
+  @Field(() => PasswordEncryptionType)
+  passwordEncryptionType: PasswordEncryptionType
 
   // This is not the users publisherId, but the one of the users who recommend him
   @Field(() => Int, { nullable: true })

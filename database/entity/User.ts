@@ -1,1 +1,1 @@
-export { User } from './0069-add_user_roles_table/User'
+export { User } from './0070-add_key_pair_to_user/User'
