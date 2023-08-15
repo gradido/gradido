@@ -35,8 +35,6 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
               return
             }
             dltTx.messageId = dltMessageId.toString('hex')
-            dltTx.verified = true
-            dltTx.verifiedAt = new Date()
             await DltTransaction.save(dltTx)
             logger.info('store messageId=%s in dltTx=%d', dltTx.messageId, dltTx.id)
           } catch (e) {
