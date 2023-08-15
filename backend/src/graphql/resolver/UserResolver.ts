@@ -8,6 +8,7 @@ import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { UserRole } from '@entity/UserRole'
+import { generateMnemonic } from 'bip39'
 import i18n from 'i18n'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
 import { v4 as uuidv4 } from 'uuid'
@@ -52,7 +53,13 @@ import {
   EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Events'
 import { isValidPassword } from '@/password/EncryptorUtils'
-import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
+import { HDWallet } from '@/password/HDWallet'
+import {
+  encryptPassword,
+  verifyPassword,
+  verifyPasswordWithSecretKey,
+} from '@/password/PasswordEncryptor'
+import { SecretKeyCryptography } from '@/password/SecretKeyCryptography'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
@@ -443,7 +450,20 @@ export class UserResolver {
 
     // Update Password
     user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-    user.password = encryptPassword(user, password)
+    const secretKey = new SecretKeyCryptography(user, password)
+    user.password = secretKey.getShortHash()
+
+    // update key pair
+    // create passphrase if not already exist
+    // TODO: Don't store passphrase unencrypted, save it later with moderator or chosen friends public keys encrypted
+    if (!user.passphrase) {
+      user.passphrase = generateMnemonic(256)
+    }
+    const wallet = HDWallet.createFromPassphrase(user.passphrase)
+
+    user.publicKey = wallet.getRootPublicKeyHex()
+    user.privateKeyEncrypted = wallet.getRootPrivateKeyEncryptedHex(secretKey)
+
     logger.debug('User credentials updated ...')
 
     const queryRunner = getConnection().createQueryRunner()
@@ -561,14 +581,37 @@ export class UserResolver {
           'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
         )
       }
+      const oldSecretKey = new SecretKeyCryptography(user, password)
 
-      if (!verifyPassword(user, password)) {
+      if (!verifyPasswordWithSecretKey(user, oldSecretKey)) {
         throw new LogError(`Old password is invalid`)
       }
 
       // Save new password hash and newly encrypted private key
       user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      user.password = encryptPassword(user, passwordNew)
+      const newSecretKey = new SecretKeyCryptography(user, passwordNew)
+      user.password = newSecretKey.getShortHash()
+
+      // re-encrypt private key
+      if (user.privateKeyEncrypted !== '') {
+        const privateKey = oldSecretKey.decrypt(Buffer.from(user.privateKeyEncrypted, 'hex'))
+        if (privateKey) {
+          user.privateKeyEncrypted = newSecretKey.encrypt(privateKey).toString('hex')
+        } else {
+          user.privateKeyEncrypted = ''
+        }
+      }
+      // if re-encrypt failed or no private key was stored previously in db
+      if (user.privateKeyEncrypted === '') {
+        // create passphrase if not already exist
+        // TODO: Don't store passphrase unencrypted, save it later with moderator or chosen friends public keys encrypted
+        if (!user.passphrase) {
+          user.passphrase = generateMnemonic(256)
+        }
+        const wallet = HDWallet.createFromPassphrase(user.passphrase)
+        user.publicKey = wallet.getRootPublicKeyHex()
+        user.privateKeyEncrypted = wallet.getRootPrivateKeyEncryptedHex(newSecretKey)
+      }
     }
 
     // Save hideAmountGDD value

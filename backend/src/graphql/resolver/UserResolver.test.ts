@@ -31,8 +31,8 @@ import {
   sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Events'
-import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'
+import { SecretKeyCryptography } from '@/password/SecretKeyCryptography'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { userFactory } from '@/seeds/factory/user'
@@ -171,6 +171,9 @@ describe('UserResolver', () => {
               referrerId: null,
               contributionLinkId: null,
               passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
+              publicKey: null,
+              privateKeyEncrypted: null,
+              passphrase: null,
             },
           ])
           const valUUID = validateUUID(user[0].gradidoID)
@@ -1430,12 +1433,10 @@ describe('UserResolver', () => {
       it('has password type gradido id', async () => {
         const users = await User.find()
         bibi = users[1]
-
+        const secretKey = new SecretKeyCryptography(bibi.gradidoID.toString(), 'Aa12345_')
         expect(bibi).toEqual(
           expect.objectContaining({
-            password: SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')[0]
-              .readBigUInt64LE()
-              .toString(),
+            password: secretKey.getShortHash().toString(),
             passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
           }),
         )
@@ -1457,10 +1458,8 @@ describe('UserResolver', () => {
         })
         bibi = usercontact.user
         bibi.passwordEncryptionType = PasswordEncryptionType.EMAIL
-        bibi.password = SecretKeyCryptographyCreateKey(
-          'bibi@bloxberg.de',
-          'Aa12345_',
-        )[0].readBigUInt64LE()
+        const secretKey = new SecretKeyCryptography('bibi@bloxberg.de', 'Aa12345_')
+        bibi.password = secretKey.getShortHash()
 
         await bibi.save()
       })
@@ -1474,12 +1473,11 @@ describe('UserResolver', () => {
         })
         bibi = usercontact.user
 
+        const secretKey = new SecretKeyCryptography(bibi.gradidoID.toString(), 'Aa12345_')
         expect(bibi).toEqual(
           expect.objectContaining({
             firstName: 'Bibi',
-            password: SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')[0]
-              .readBigUInt64LE()
-              .toString(),
+            password: secretKey.getShortHash().toString(),
             passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
           }),
         )
