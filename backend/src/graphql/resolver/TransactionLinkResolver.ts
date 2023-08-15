@@ -41,6 +41,7 @@ import { calculateBalance } from '@/util/validate'
 import { executeTransaction } from './TransactionResolver'
 import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
+import { getTargetCommunitySum } from './util/getTargetCommunitySum'
 import { transactionLinkList } from './util/transactionLinkList'
 
 // TODO: do not export, test it inside the resolver
@@ -270,6 +271,8 @@ export class TransactionLinkResolver {
           }
           newBalance = newBalance.add(contributionLink.amount.toString())
 
+          const oldCommunitySum = await getTargetCommunitySum(now)
+
           const transaction = new DbTransaction()
           transaction.typeId = TransactionTypeId.CREATION
           transaction.memo = contribution.memo
@@ -283,6 +286,7 @@ export class TransactionLinkResolver {
           transaction.balanceDate = now
           transaction.decay = decay ? decay.decay : new Decimal(0)
           transaction.decayStart = decay ? decay.start : null
+          transaction.communitySum = oldCommunitySum.add(contribution.amount.toNumber())
           await queryRunner.manager.insert(DbTransaction, transaction)
 
           contribution.confirmedAt = now

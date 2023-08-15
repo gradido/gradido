@@ -36,6 +36,7 @@ import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
+import { getTargetCommunitySum } from './util/getTargetCommunitySum'
 import { getTransactionList } from './util/getTransactionList'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 
@@ -81,6 +82,10 @@ export const executeTransaction = async (
     await queryRunner.startTransaction('REPEATABLE READ')
     logger.debug(`open Transaction to write...`)
     try {
+      // get current community sum with decay applied
+      // TODO: change on cross group transactions
+      const communitySum = await getTargetCommunitySum(receivedCallDate)
+
       // transaction
       const transactionSend = new dbTransaction()
       transactionSend.typeId = TransactionTypeId.SEND
@@ -96,6 +101,7 @@ export const executeTransaction = async (
       transactionSend.balanceDate = receivedCallDate
       transactionSend.decay = sendBalance.decay.decay
       transactionSend.decayStart = sendBalance.decay.start
+      transactionSend.communitySum = communitySum
       transactionSend.previous = sendBalance.lastTransactionId
       transactionSend.transactionLinkId = transactionLink ? transactionLink.id : null
       await queryRunner.manager.insert(dbTransaction, transactionSend)
@@ -117,6 +123,7 @@ export const executeTransaction = async (
       transactionReceive.balanceDate = receivedCallDate
       transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
       transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
+      transactionReceive.communitySum = communitySum
       transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
       transactionReceive.linkedTransactionId = transactionSend.id
       transactionReceive.transactionLinkId = transactionLink ? transactionLink.id : null
@@ -262,6 +269,7 @@ export class TransactionResolver {
           lastTransaction.balance,
           lastTransaction.balanceDate,
           now,
+          lastTransaction.communitySum,
           self,
           sumHoldAvailableAmount,
         ),
