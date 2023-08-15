@@ -140,21 +140,6 @@ export class Transaction extends BaseEntity {
   })
   linkedTransactionId?: number | null
 
-  @Column({
-    name: 'dlt_transaction_id',
-    type: 'binary',
-    length: 32,
-    default: null,
-  })
-  dltTransactionId?: Buffer | null
-
-  @Column({
-    name: 'dlt_confirmed',
-    type: 'bool',
-    default: false,
-  })
-  dltConfirmed?: boolean
-
   @OneToOne(() => Contribution, (contribution) => contribution.transaction)
   @JoinColumn({ name: 'id', referencedColumnName: 'transactionId' })
   contribution?: Contribution | null
