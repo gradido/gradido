@@ -53,7 +53,7 @@ const klicktipp = {
 
 const dltConnector = {
   DLT_CONNECTOR: process.env.DLT_CONNECTOR === 'true' || false,
-  DLT_CONNECTOR_URL: process.env.DLT_CONNECTOR_URL ?? 'http://localhost:6000',
+  DLT_CONNECTOR_URL: process.env.DLT_CONNECTOR_URL ?? 'http://localhost:6010',
 }
 
 const community = {
