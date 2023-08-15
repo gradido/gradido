@@ -15,6 +15,7 @@ const propsData = {
       email: 'bibi@bloxberg.de',
       creation: [200, 400, 600],
       emailChecked: true,
+      roles: [],
     },
     {
       userId: 2,
@@ -23,6 +24,7 @@ const propsData = {
       email: 'benjamin@bluemchen.de',
       creation: [1000, 1000, 1000],
       emailChecked: true,
+      roles: [],
     },
     {
       userId: 3,
@@ -31,6 +33,7 @@ const propsData = {
       email: 'peter@lustig.de',
       creation: [0, 0, 0],
       emailChecked: true,
+      roles: ['ADMIN'],
     },
     {
       userId: 4,
@@ -39,6 +42,7 @@ const propsData = {
       email: 'new@user.ch',
       creation: [1000, 1000, 1000],
       emailChecked: false,
+      roles: [],
     },
   ],
   fields: [
@@ -68,6 +72,7 @@ const mocks = {
       moderator: {
         id: 0,
         name: 'test moderator',
+        roles: ['ADMIN'],
       },
     },
   },
@@ -96,14 +101,14 @@ describe('SearchUserTable', () => {
 
       describe('isAdmin', () => {
         beforeEach(async () => {
-          await wrapper.find('div.change-user-role-formular').vm.$emit('updateIsAdmin', {
+          await wrapper.find('div.change-user-role-formular').vm.$emit('updateRoles', {
             userId: 1,
-            isAdmin: new Date(),
+            roles: ['ADMIN'],
           })
         })
 
         it('emits updateIsAdmin', () => {
-          expect(wrapper.emitted('updateIsAdmin')).toEqual([[1, expect.any(Date)]])
+          expect(wrapper.emitted('updateRoles')).toEqual([[1, ['ADMIN']]])
         })
       })
 

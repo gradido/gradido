@@ -56,7 +56,7 @@ export default defineConfig({
           }
           hasElopage
           publisherId
-          isAdmin
+          roles
           hideAmountGDD
           hideAmountGDT
           __typename

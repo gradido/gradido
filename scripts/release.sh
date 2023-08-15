@@ -9,6 +9,7 @@ DATABASE_DIR="${PROJECT_DIR}/database/"
 ADMIN_DIR="${PROJECT_DIR}/admin/"
 DHTNODE_DIR="${PROJECT_DIR}/dht-node/"
 FEDERATION_DIR="${PROJECT_DIR}/federation/"
+DLTCONNECTOR_DIR="${PROJECT_DIR}/dlt-connector/"
 
 # navigate to project directory
 cd ${PROJECT_DIR}
@@ -31,6 +32,8 @@ yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${
 cd ${DHTNODE_DIR}
 yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
 cd ${FEDERATION_DIR}
+yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
+cd ${DLTCONNECTOR_DIR}
 yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
 
 # generate changelog

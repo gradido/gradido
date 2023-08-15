@@ -13,7 +13,7 @@ async function main() {
       console.log(`GraphIQL available at http://localhost:${CONFIG.PORT}`)
     }
   })
-  startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
+  void startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
 }
 
 main().catch((e) => {

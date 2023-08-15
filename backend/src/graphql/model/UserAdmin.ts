@@ -14,7 +14,7 @@ export class UserAdmin {
     this.hasElopage = hasElopage
     this.deletedAt = user.deletedAt
     this.emailConfirmationSend = emailConfirmationSend
-    this.isAdmin = user.isAdmin
+    this.roles = user.userRoles?.map((userRole) => userRole.role) ?? []
   }
 
   @Field(() => Int)
@@ -44,8 +44,8 @@ export class UserAdmin {
   @Field(() => String, { nullable: true })
   emailConfirmationSend: string | null
 
-  @Field(() => Date, { nullable: true })
-  isAdmin: Date | null
+  @Field(() => [String])
+  roles: string[]
 }
 
 @ObjectType()

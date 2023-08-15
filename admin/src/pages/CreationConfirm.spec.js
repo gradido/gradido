@@ -28,7 +28,7 @@ const mocks = {
       moderator: {
         firstName: 'Peter',
         lastName: 'Lustig',
-        isAdmin: '2022-08-30T07:41:31.000Z',
+        roles: ['ADMIN'],
         id: 263,
         language: 'de',
       },

@@ -14,7 +14,7 @@ describe('Sidebar', () => {
     $store: {
       state: {
         hasElopage: true,
-        isAdmin: false,
+        roles: [],
       },
     },
   }
@@ -83,7 +83,7 @@ describe('Sidebar', () => {
 
       describe('for admin users', () => {
         beforeAll(() => {
-          mocks.$store.state.isAdmin = true
+          mocks.$store.state.roles = ['admin']
           wrapper = Wrapper()
         })
 

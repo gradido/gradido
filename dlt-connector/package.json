@@ -1,6 +1,6 @@
 {
   "name": "gradido-dlt-connector",
-  "version": "1.22.0",
+  "version": "1.23.1",
   "description": "Gradido DLT-Connector",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/",
