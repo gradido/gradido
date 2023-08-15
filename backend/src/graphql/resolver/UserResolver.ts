@@ -8,6 +8,7 @@ import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { UserRole } from '@entity/UserRole'
+import { generateMnemonic } from 'bip39'
 import i18n from 'i18n'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
 import { v4 as uuidv4 } from 'uuid'
@@ -52,11 +53,13 @@ import {
   EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Events'
 import { isValidPassword } from '@/password/EncryptorUtils'
+import { HDWallet } from '@/password/HDWallet'
 import {
   encryptPassword,
   verifyPassword,
   verifyPasswordWithSecretKey,
 } from '@/password/PasswordEncryptor'
+import { SecretKeyCryptography } from '@/password/SecretKeyCryptography'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
@@ -74,10 +77,6 @@ import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { validateAlias } from './util/validateAlias'
-import { generateMnemonic, mnemonicToSeed } from 'bip39'
-import { SecretKeyCryptography } from '@/password/SecretKeyCryptography'
-import { getMasterKeyFromSeed, getPublicKey } from 'ed25519-hd-key'
-import { HDWallet } from '@/password/HDWallet'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'

@@ -32,6 +32,7 @@ import {
 } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Events'
 import { encryptPassword } from '@/password/PasswordEncryptor'
+import { SecretKeyCryptography } from '@/password/SecretKeyCryptography'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { userFactory } from '@/seeds/factory/user'
@@ -64,7 +65,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
-import { SecretKeyCryptography } from '@/password/SecretKeyCryptography'
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
