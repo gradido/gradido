@@ -12,12 +12,14 @@ import { ContributionMessage } from './ContributionMessage'
 import { Community } from './Community'
 import { FederatedCommunity } from './FederatedCommunity'
 import { UserRole } from './UserRole'
+import { DltTransaction } from './DltTransaction'
 
 export const entities = [
   Community,
   Contribution,
   ContributionLink,
   ContributionMessage,
+  DltTransaction,
   Event,
   FederatedCommunity,
   LoginElopageBuys,
