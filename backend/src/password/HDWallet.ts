@@ -1,8 +1,9 @@
 import { User } from '@entity/User'
-import { mnemonicToSeedSync } from 'bip39'
+import { entropyToMnemonic, mnemonicToSeedSync } from 'bip39'
 import { getMasterKeyFromSeed, getPublicKey } from 'ed25519-hd-key'
 
 import { SecretKeyCryptography } from './SecretKeyCryptography'
+import { randombytes_buf } from 'sodium-native'
 
 export class HDWallet {
   privateKey: Buffer | null = null
@@ -36,6 +37,12 @@ export class HDWallet {
       wallet.publicKey = getPublicKey(wallet.privateKey, false)
     }
     return wallet
+  }
+
+  static generateMnemonic(): string {
+    const entropy = Buffer.alloc(256)
+    randombytes_buf(entropy)
+    return entropyToMnemonic(entropy)
   }
 
   getRootPublicKeyHex(): string {

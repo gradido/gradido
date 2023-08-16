@@ -56,6 +56,7 @@ import { isValidPassword } from '@/password/EncryptorUtils'
 import { HDWallet } from '@/password/HDWallet'
 import {
   encryptPassword,
+  updatePasswordOnDBUser,
   verifyPassword,
   verifyPasswordWithSecretKey,
 } from '@/password/PasswordEncryptor'
@@ -153,14 +154,16 @@ export class UserResolver {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new LogError('The User has not set a password yet', dbUser)
     }
-
-    if (!verifyPassword(dbUser, password)) {
+    const secretKey = new SecretKeyCryptography(dbUser, password)
+    if (!verifyPasswordWithSecretKey(dbUser, secretKey)) {
       throw new LogError('No user with this credentials', dbUser)
     }
 
     if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
       dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      dbUser.password = encryptPassword(dbUser, password)
+      const newSecretKey = new SecretKeyCryptography(dbUser, password)
+      dbUser.password = newSecretKey.getShortHash()
+
       await dbUser.save()
     }
     // add pubKey in logger-context for layout-pattern X{user} to print it in each logging message
@@ -450,20 +453,7 @@ export class UserResolver {
 
     // Update Password
     user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-    const secretKey = new SecretKeyCryptography(user, password)
-    user.password = secretKey.getShortHash()
-
-    // update key pair
-    // create passphrase if not already exist
-    // TODO: Don't store passphrase unencrypted, save it later with moderator or chosen friends public keys encrypted
-    if (!user.passphrase) {
-      user.passphrase = generateMnemonic(256)
-    }
-    const wallet = HDWallet.createFromPassphrase(user.passphrase)
-
-    user.publicKey = wallet.getRootPublicKeyHex()
-    user.privateKeyEncrypted = wallet.getRootPrivateKeyEncryptedHex(secretKey)
-
+    updatePasswordOnDBUser(user, password, null)
     logger.debug('User credentials updated ...')
 
     const queryRunner = getConnection().createQueryRunner()
@@ -589,29 +579,7 @@ export class UserResolver {
 
       // Save new password hash and newly encrypted private key
       user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      const newSecretKey = new SecretKeyCryptography(user, passwordNew)
-      user.password = newSecretKey.getShortHash()
-
-      // re-encrypt private key
-      if (user.privateKeyEncrypted !== '') {
-        const privateKey = oldSecretKey.decrypt(Buffer.from(user.privateKeyEncrypted, 'hex'))
-        if (privateKey) {
-          user.privateKeyEncrypted = newSecretKey.encrypt(privateKey).toString('hex')
-        } else {
-          user.privateKeyEncrypted = ''
-        }
-      }
-      // if re-encrypt failed or no private key was stored previously in db
-      if (user.privateKeyEncrypted === '') {
-        // create passphrase if not already exist
-        // TODO: Don't store passphrase unencrypted, save it later with moderator or chosen friends public keys encrypted
-        if (!user.passphrase) {
-          user.passphrase = generateMnemonic(256)
-        }
-        const wallet = HDWallet.createFromPassphrase(user.passphrase)
-        user.publicKey = wallet.getRootPublicKeyHex()
-        user.privateKeyEncrypted = wallet.getRootPrivateKeyEncryptedHex(newSecretKey)
-      }
+      updatePasswordOnDBUser(user, password, oldSecretKey)
     }
 
     // Save hideAmountGDD value

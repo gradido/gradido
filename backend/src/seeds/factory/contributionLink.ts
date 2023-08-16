@@ -20,6 +20,7 @@ export const contributionLinkFactory = async (
     mutation: login,
     variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
   })
+  console.log("login: %o", user)
   const variables = {
     amount: contributionLink.amount,
     memo: contributionLink.memo,
@@ -32,5 +33,6 @@ export const contributionLinkFactory = async (
   }
 
   const result = await mutate({ mutation: createContributionLink, variables })
+  console.log(result)
   return result.data.createContributionLink
 }

@@ -336,10 +336,11 @@ describe('UserResolver', () => {
       describe('contribution link', () => {
         beforeAll(async () => {
           // activate account of admin Peter Lustig
-          await mutate({
+          const activateAccountResult = await mutate({
             mutation: setPassword,
             variables: { code: emailVerificationCode, password: 'Aa12345_' },
           })
+          console.log('activate account: %o', activateAccountResult)
 
           // make Peter Lustig Admin
           const peter = await User.findOneOrFail({
