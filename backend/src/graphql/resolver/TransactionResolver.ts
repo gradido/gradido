@@ -37,6 +37,7 @@ import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
+import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 
 export const executeTransaction = async (
@@ -150,6 +151,9 @@ export const executeTransaction = async (
         transactionReceive,
         transactionReceive.amount,
       )
+
+      // trigger to send transaction via dlt-connector
+      void sendTransactionsToDltConnector()
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Transaction was not successful', e)

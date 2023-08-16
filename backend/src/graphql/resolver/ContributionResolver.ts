@@ -55,6 +55,7 @@ import {
 } from './util/creations'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
+import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
 @Resolver()
 export class ContributionResolver {
@@ -535,6 +536,10 @@ export class ContributionResolver {
         await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
         await queryRunner.commitTransaction()
+
+        // trigger to send transaction via dlt-connector
+        void sendTransactionsToDltConnector()
+
         logger.info('creation commited successfuly.')
         void sendContributionConfirmedEmail({
           firstName: user.firstName,
