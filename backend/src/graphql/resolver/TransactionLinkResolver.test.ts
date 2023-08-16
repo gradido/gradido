@@ -148,6 +148,63 @@ describe('TransactionLinkResolver', () => {
         ])
       })
 
+      it('throws error when memo text is too short', async () => {
+        jest.clearAllMocks()
+        const { errors: errorObjects } = await mutate({
+          mutation: createTransactionLink,
+          variables: {
+            amount: 100,
+            memo: 'Test',
+          },
+        })
+        expect(errorObjects).toMatchObject([
+          {
+            message: 'Argument Validation Error',
+            extensions: {
+              exception: {
+                validationErrors: [
+                  {
+                    property: 'memo',
+                    constraints: {
+                      minLength: 'memo must be longer than or equal to 5 characters',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ])
+      })
+
+      it('throws error when memo text is too long', async () => {
+        jest.clearAllMocks()
+        const { errors: errorObjects } = await mutate({
+          mutation: createTransactionLink,
+          variables: {
+            identifier: 'peter@lustig.de',
+            amount: 100,
+            memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test t',
+          },
+        })
+        expect(errorObjects).toMatchObject([
+          {
+            message: 'Argument Validation Error',
+            extensions: {
+              exception: {
+                validationErrors: [
+                  {
+                    property: 'memo',
+                    constraints: {
+                      maxLength: 'memo must be shorter than or equal to 255 characters',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ])
+      })
+
       it('throws error when user has not enough GDD', async () => {
         jest.clearAllMocks()
         await expect(

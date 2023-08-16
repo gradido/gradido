@@ -14,11 +14,11 @@ export const schema = async (): Promise<GraphQLSchema> => {
     scalarsMap: [{ type: Decimal, scalar: DecimalScalar }],
     validate: {
       validationError: { target: false },
-      skipMissingProperties: true,
+      skipMissingProperties: false,
       skipNullProperties: true,
-      skipUndefinedProperties: true,
-      forbidUnknownValues: false,
-      stopAtFirstError: false,
+      skipUndefinedProperties: false,
+      forbidUnknownValues: true,
+      stopAtFirstError: true,
     },
   })
 }
