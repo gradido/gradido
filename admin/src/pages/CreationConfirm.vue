@@ -1,7 +1,13 @@
 <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys -->
 <template>
   <div class="creation-confirm">
-    <user-query class="mb-4 mt-2" v-model="query" />
+    <user-query class="mb-2 mt-2" v-model="query" :placeholder="$t('user_memo_search')" />
+    <div class="mb-4">
+      <b-button class="noHashtag" variant="light" @click="swapNoHashtag" v-b-tooltip="tooltipText">
+        <span :style="hashtagColor">{{ $t('hashtag_symbol') }}</span>
+        {{ noHashtag ? $t('no_hashtag') : $t('no_filter') }}
+      </b-button>
+    </div>
     <div>
       <b-tabs v-model="tabIndex" content-class="mt-3" fill>
         <b-tab active :title-link-attributes="{ 'data-test': 'open' }">
@@ -118,6 +124,7 @@ export default {
       currentPage: 1,
       pageSize: 25,
       query: '',
+      noHashtag: null,
     }
   },
   watch: {
@@ -126,6 +133,10 @@ export default {
     },
   },
   methods: {
+    swapNoHashtag() {
+      this.noHashtag = !!(this.noHashtag === null || this.noHashtag === false)
+      this.query()
+    },
     deleteCreation() {
       this.$apollo
         .mutate({
@@ -198,6 +209,12 @@ export default {
     },
   },
   computed: {
+    hashtagColor() {
+      return this.noHashtag ? 'color: red' : 'color: black'
+    },
+    tooltipText() {
+      return this.noHashtag ? this.$t('no_hashtag_tooltip') : this.$t('no_filter_tooltip')
+    },
     fields() {
       return [
         [
@@ -414,6 +431,7 @@ export default {
           pageSize: this.pageSize,
           statusFilter: this.statusFilter,
           query: this.query,
+          noHashtag: this.noHashtag,
         }
       },
       fetchPolicy: 'no-cache',
