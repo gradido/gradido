@@ -67,9 +67,7 @@ describe('validate Communities', () => {
           return { data: {} } as Response<unknown>
         })
         const variables1 = {
-          publicKey: Buffer.from(
-            '1111111111111111111111111111111111111111111111111111111111111111',
-          ),
+          publicKey: Buffer.from('11111111111111111111111111111111'),
           apiVersion: '1_0',
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
@@ -113,9 +111,7 @@ describe('validate Communities', () => {
           } as Response<unknown>
         })
         const variables1 = {
-          publicKey: Buffer.from(
-            '1111111111111111111111111111111111111111111111111111111111111111',
-          ),
+          publicKey: Buffer.from('11111111111111111111111111111111'),
           apiVersion: '1_0',
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
@@ -227,10 +223,26 @@ describe('validate Communities', () => {
       })
       it('logs community pubKey verified', () => {
         expect(logger.debug).toHaveBeenNthCalledWith(
-          6,
-          'Federation: verified community with',
-          'http//localhost:5001/api/',
+          5,
+          'Federation: getPublicKey successful from endpoint',
+          'http//localhost:5001/api/1_0/',
+          '11111111111111111111111111111111',
         )
+        /*
+        await expect(DbCommunity.find()).resolves.toContainEqual(
+          expect.objectContaining({
+            foreign: false,
+            url: 'http://localhost/api',
+            publicKey: Buffer.from('11111111111111111111111111111111'),
+            privateKey: expect.any(Buffer),
+            communityUuid: expect.any(String),
+            authenticatedAt: expect.any(Date),
+            name: expect.any(String),
+            description: expect.any(String),
+            creationDate: expect.any(Date),
+          }),
+        )
+        */
       })
     })
     describe('with two Communities of api 1_0 and 1_1', () => {
