@@ -10,11 +10,22 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
       userCount: 4,
       userList: [
         {
-          userId: 1,
-          firstName: 'Bibi',
-          lastName: 'Bloxberg',
-          email: 'bibi@bloxberg.de',
-          creation: [200, 400, 600],
+          userId: 4,
+          firstName: 'New',
+          lastName: 'User',
+          email: 'new@user.ch',
+          creation: [1000, 1000, 1000],
+          emailChecked: false,
+          roles: [],
+          deletedAt: null,
+        },
+        {
+          userId: 3,
+          firstName: 'Peter',
+          lastName: 'Lustig',
+          email: 'peter@lustig.de',
+          creation: [0, 0, 0],
+          roles: ['ADMIN'],
           emailChecked: true,
           deletedAt: null,
         },
@@ -24,25 +35,18 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           lastName: 'Blümchen',
           email: 'benjamin@bluemchen.de',
           creation: [1000, 1000, 1000],
+          roles: [],
           emailChecked: true,
           deletedAt: new Date(),
         },
         {
-          userId: 3,
-          firstName: 'Peter',
-          lastName: 'Lustig',
-          email: 'peter@lustig.de',
-          creation: [0, 0, 0],
+          userId: 1,
+          firstName: 'Bibi',
+          lastName: 'Bloxberg',
+          email: 'bibi@bloxberg.de',
+          creation: [200, 400, 600],
+          roles: [],
           emailChecked: true,
-          deletedAt: null,
-        },
-        {
-          userId: 4,
-          firstName: 'New',
-          lastName: 'User',
-          email: 'new@user.ch',
-          creation: [1000, 1000, 1000],
-          emailChecked: false,
           deletedAt: null,
         },
       ],
@@ -79,9 +83,10 @@ describe('UserSearch', () => {
       expect(apolloQueryMock).toBeCalledWith(
         expect.objectContaining({
           variables: {
-            searchText: '',
+            query: '',
             currentPage: 1,
             pageSize: 25,
+            order: 'DESC',
             filters: {
               byActivated: null,
               byDeleted: null,
@@ -100,9 +105,10 @@ describe('UserSearch', () => {
         expect(apolloQueryMock).toBeCalledWith(
           expect.objectContaining({
             variables: {
-              searchText: '',
+              query: '',
               currentPage: 1,
               pageSize: 25,
+              order: 'DESC',
               filters: {
                 byActivated: false,
                 byDeleted: null,
@@ -122,9 +128,10 @@ describe('UserSearch', () => {
         expect(apolloQueryMock).toBeCalledWith(
           expect.objectContaining({
             variables: {
-              searchText: '',
+              query: '',
               currentPage: 1,
               pageSize: 25,
+              order: 'DESC',
               filters: {
                 byActivated: null,
                 byDeleted: true,
@@ -144,9 +151,10 @@ describe('UserSearch', () => {
         expect(apolloQueryMock).toBeCalledWith(
           expect.objectContaining({
             variables: {
-              searchText: '',
+              query: '',
               currentPage: 2,
               pageSize: 25,
+              order: 'DESC',
               filters: {
                 byActivated: null,
                 byDeleted: null,
@@ -166,9 +174,10 @@ describe('UserSearch', () => {
         expect(apolloQueryMock).toBeCalledWith(
           expect.objectContaining({
             variables: {
-              searchText: 'search string',
+              query: 'search string',
               currentPage: 1,
               pageSize: 25,
+              order: 'DESC',
               filters: {
                 byActivated: null,
                 byDeleted: null,
@@ -181,13 +190,14 @@ describe('UserSearch', () => {
       describe('reset the search field', () => {
         it('calls the API with empty criteria', async () => {
           jest.clearAllMocks()
-          await wrapper.find('.test-click-clear-criteria').trigger('click')
+          await wrapper.findComponent({ name: 'UserQuery' }).vm.$emit('input', '')
           expect(apolloQueryMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
-                searchText: '',
+                query: '',
                 currentPage: 1,
                 pageSize: 25,
+                order: 'DESC',
                 filters: {
                   byActivated: null,
                   byDeleted: null,
@@ -206,10 +216,10 @@ describe('UserSearch', () => {
         it('updates user role to admin', async () => {
           await wrapper
             .findComponent({ name: 'SearchUserTable' })
-            .vm.$emit('updateIsAdmin', userId, new Date())
-          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(
-            expect.any(Date),
-          )
+            .vm.$emit('updateRoles', userId, ['ADMIN'])
+          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).roles).toEqual([
+            'ADMIN',
+          ])
         })
       })
 
@@ -217,8 +227,8 @@ describe('UserSearch', () => {
         it('updates user role to usual user', async () => {
           await wrapper
             .findComponent({ name: 'SearchUserTable' })
-            .vm.$emit('updateIsAdmin', userId, null)
-          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(null)
+            .vm.$emit('updateRoles', userId, [])
+          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).roles).toEqual([])
         })
       })
     })

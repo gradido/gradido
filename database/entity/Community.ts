@@ -1,1 +1,1 @@
-export { Community } from './0065-refactor_communities_table/Community'
+export { Community } from './0068-community_tables_public_key_length/Community'

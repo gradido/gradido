@@ -3,11 +3,14 @@
 import { createTestClient } from 'apollo-server-testing'
 import createServer from '@/server/createServer'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import CONFIG from '@/config'
 
 let query: any
 
 // to do: We need a setup for the tests that closes the connection
 let con: any
+
+CONFIG.FEDERATION_API = '1_0'
 
 beforeAll(async () => {
   const server = await createServer()

@@ -1,6 +1,6 @@
 {
   "name": "bootstrap-vue-gradido-wallet",
-  "version": "1.21.0",
+  "version": "1.23.2",
   "private": true,
   "scripts": {
     "start": "node run/server.js",

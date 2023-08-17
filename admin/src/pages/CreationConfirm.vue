@@ -1,6 +1,13 @@
 <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys -->
 <template>
   <div class="creation-confirm">
+    <user-query class="mb-2 mt-2" v-model="query" :placeholder="$t('user_memo_search')" />
+    <div class="mb-4">
+      <b-button class="noHashtag" variant="light" @click="swapNoHashtag" v-b-tooltip="tooltipText">
+        <span :style="hashtagColor">{{ $t('hashtag_symbol') }}</span>
+        {{ noHashtag ? $t('no_hashtag') : $t('no_filter') }}
+      </b-button>
+    </div>
     <div>
       <b-tabs v-model="tabIndex" content-class="mt-3" fill>
         <b-tab active :title-link-attributes="{ 'data-test': 'open' }">
@@ -43,7 +50,7 @@
       :items="items"
       :fields="fields"
       @show-overlay="showOverlay"
-      @update-state="updateStatus"
+      @update-status="updateStatus"
       @update-contributions="$apollo.queries.ListAllContributions.refetch()"
     />
 
@@ -85,6 +92,7 @@
 <script>
 import Overlay from '../components/Overlay'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable'
+import UserQuery from '../components/UserQuery'
 import { adminListContributions } from '../graphql/adminListContributions'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
@@ -103,6 +111,7 @@ export default {
   components: {
     OpenCreationsTable,
     Overlay,
+    UserQuery,
   },
   data() {
     return {
@@ -114,6 +123,8 @@ export default {
       rows: 0,
       currentPage: 1,
       pageSize: 25,
+      query: '',
+      noHashtag: null,
     }
   },
   watch: {
@@ -122,6 +133,10 @@ export default {
     },
   },
   methods: {
+    swapNoHashtag() {
+      this.noHashtag = !!(this.noHashtag === null || this.noHashtag === false)
+      this.query()
+    },
     deleteCreation() {
       this.$apollo
         .mutate({
@@ -187,13 +202,19 @@ export default {
     },
     updateStatus(id) {
       this.items.find((obj) => obj.id === id).messagesCount++
-      this.items.find((obj) => obj.id === id).state = 'IN_PROGRESS'
+      this.items.find((obj) => obj.id === id).status = 'IN_PROGRESS'
     },
     formatDateOrDash(value) {
       return value ? this.$d(new Date(value), 'short') : '—'
     },
   },
   computed: {
+    hashtagColor() {
+      return this.noHashtag ? 'color: red' : 'color: black'
+    },
+    tooltipText() {
+      return this.noHashtag ? this.$t('no_hashtag_tooltip') : this.$t('no_filter_tooltip')
+    },
     fields() {
       return [
         [
@@ -217,7 +238,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'moderatorId', label: this.$t('moderator') },
+          { key: 'moderatorId', label: this.$t('moderator.moderator') },
           { key: 'editCreation', label: this.$t('chat') },
           { key: 'confirm', label: this.$t('save') },
         ],
@@ -254,7 +275,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'confirmedBy', label: this.$t('moderator') },
+          { key: 'confirmedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
@@ -290,7 +311,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'deniedBy', label: this.$t('moderator') },
+          { key: 'deniedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
@@ -326,12 +347,12 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'deletedBy', label: this.$t('moderator') },
+          { key: 'deletedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
         [
           // all contributions
-          { key: 'state', label: this.$t('status') },
+          { key: 'status', label: this.$t('status') },
           { key: 'firstName', label: this.$t('firstname') },
           { key: 'lastName', label: this.$t('lastname') },
           {
@@ -363,7 +384,7 @@ export default {
               return this.formatDateOrDash(value)
             },
           },
-          { key: 'confirmedBy', label: this.$t('moderator') },
+          { key: 'confirmedBy', label: this.$t('moderator.moderator') },
           { key: 'chatCreation', label: this.$t('chat') },
         ],
       ][this.tabIndex]
@@ -409,6 +430,8 @@ export default {
           currentPage: this.currentPage,
           pageSize: this.pageSize,
           statusFilter: this.statusFilter,
+          query: this.query,
+          noHashtag: this.noHashtag,
         }
       },
       fetchPolicy: 'no-cache',

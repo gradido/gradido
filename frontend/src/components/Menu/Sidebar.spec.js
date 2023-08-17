@@ -14,7 +14,7 @@ describe('Sidebar', () => {
     $store: {
       state: {
         hasElopage: true,
-        isAdmin: false,
+        roles: [],
       },
     },
   }
@@ -69,7 +69,7 @@ describe('Sidebar', () => {
         })
 
         it('has nav-item "navigation.settings" in navbar', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(0).text()).toEqual(
+          expect(wrapper.find('[data-test="settings-menu"]').find('span').text()).toBe(
             'navigation.settings',
           )
         })
@@ -83,7 +83,7 @@ describe('Sidebar', () => {
 
       describe('for admin users', () => {
         beforeAll(() => {
-          mocks.$store.state.isAdmin = true
+          mocks.$store.state.roles = ['admin']
           wrapper = Wrapper()
         })
 
@@ -92,7 +92,7 @@ describe('Sidebar', () => {
         })
 
         it('has nav-item "navigation.settings" in navbar', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(0).text()).toEqual(
+          expect(wrapper.find('[data-test="settings-menu"]').find('span').text()).toBe(
             'navigation.settings',
           )
         })

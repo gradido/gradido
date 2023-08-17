@@ -11,10 +11,10 @@ import { AdminCreateContributionArgs } from '@arg/AdminCreateContributionArgs'
 import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
 import { ContributionArgs } from '@arg/ContributionArgs'
 import { Paginated } from '@arg/Paginated'
+import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
+import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { ContributionType } from '@enum/ContributionType'
-import { ContributionMessageType } from '@enum/MessageType'
-import { Order } from '@enum/Order'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { Contribution, ContributionListResult } from '@model/Contribution'
@@ -55,6 +55,7 @@ import {
 } from './util/creations'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
+import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
 @Resolver()
 export class ContributionResolver {
@@ -101,7 +102,7 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     const user = getUser(context)
-    const contribution = await DbContribution.findOne(id)
+    const contribution = await DbContribution.findOne({ where: { id } })
     if (!contribution) {
       throw new LogError('Contribution not found', id)
     }
@@ -127,24 +128,27 @@ export class ContributionResolver {
   async listContributions(
     @Ctx() context: Context,
     @Args()
-    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    paginated: Paginated,
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
     statusFilter?: ContributionStatus[] | null,
   ): Promise<ContributionListResult> {
     const user = getUser(context)
-
-    const [dbContributions, count] = await findContributions({
-      order,
-      currentPage,
-      pageSize,
-      withDeleted: true,
-      relations: ['messages'],
-      userId: user.id,
-      statusFilter,
+    const filter = new SearchContributionsFilterArgs()
+    filter.statusFilter = statusFilter
+    filter.userId = user.id
+    const [dbContributions, count] = await findContributions(paginated, filter, true, {
+      messages: true,
     })
+
     return new ContributionListResult(
       count,
-      dbContributions.map((contribution) => new Contribution(contribution, user)),
+      dbContributions.map((contribution) => {
+        // filter out moderator messages for this call
+        contribution.messages = contribution.messages?.filter(
+          (m) => m.type !== ContributionMessageType.MODERATOR,
+        )
+        return new Contribution(contribution, user)
+      }),
     )
   }
 
@@ -152,16 +156,14 @@ export class ContributionResolver {
   @Query(() => ContributionListResult)
   async listAllContributions(
     @Args()
-    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    paginated: Paginated,
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
     statusFilter?: ContributionStatus[] | null,
   ): Promise<ContributionListResult> {
-    const [dbContributions, count] = await findContributions({
-      order,
-      currentPage,
-      pageSize,
-      relations: ['user'],
-      statusFilter,
+    const filter = new SearchContributionsFilterArgs()
+    filter.statusFilter = statusFilter
+    const [dbContributions, count] = await findContributions(paginated, filter, false, {
+      user: true,
     })
 
     return new ContributionListResult(
@@ -366,21 +368,14 @@ export class ContributionResolver {
   @Authorized([RIGHTS.ADMIN_LIST_CONTRIBUTIONS])
   @Query(() => ContributionListResult)
   async adminListContributions(
-    @Args()
-    { currentPage = 1, pageSize = 3, order = Order.DESC }: Paginated,
-    @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
-    statusFilter?: ContributionStatus[] | null,
-    @Arg('userId', () => Int, { nullable: true })
-    userId?: number | null,
+    @Args() paginated: Paginated,
+    @Args() filter: SearchContributionsFilterArgs,
   ): Promise<ContributionListResult> {
-    const [dbContributions, count] = await findContributions({
-      order,
-      currentPage,
-      pageSize,
-      withDeleted: true,
-      userId,
-      relations: ['user', 'messages'],
-      statusFilter,
+    const [dbContributions, count] = await findContributions(paginated, filter, true, {
+      user: {
+        emailContact: true,
+      },
+      messages: true,
     })
 
     return new ContributionListResult(
@@ -395,7 +390,7 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const contribution = await DbContribution.findOne(id)
+    const contribution = await DbContribution.findOne({ where: { id } })
     if (!contribution) {
       throw new LogError('Contribution not found', id)
     }
@@ -409,10 +404,10 @@ export class ContributionResolver {
     ) {
       throw new LogError('Own contribution can not be deleted as admin')
     }
-    const user = await DbUser.findOneOrFail(
-      { id: contribution.userId },
-      { relations: ['emailContact'] },
-    )
+    const user = await DbUser.findOneOrFail({
+      where: { id: contribution.userId },
+      relations: ['emailContact'],
+    })
     contribution.contributionStatus = ContributionStatus.DELETED
     contribution.deletedBy = moderator.id
     await contribution.save()
@@ -447,7 +442,7 @@ export class ContributionResolver {
     const releaseLock = await TRANSACTIONS_LOCK.acquire()
     try {
       const clientTimezoneOffset = getClientTimezoneOffset(context)
-      const contribution = await DbContribution.findOne(id)
+      const contribution = await DbContribution.findOne({ where: { id } })
       if (!contribution) {
         throw new LogError('Contribution not found', id)
       }
@@ -461,10 +456,11 @@ export class ContributionResolver {
       if (moderatorUser.id === contribution.userId) {
         throw new LogError('Moderator can not confirm own contribution')
       }
-      const user = await DbUser.findOneOrFail(
-        { id: contribution.userId },
-        { withDeleted: true, relations: ['emailContact'] },
-      )
+      const user = await DbUser.findOneOrFail({
+        where: { id: contribution.userId },
+        withDeleted: true,
+        relations: ['emailContact'],
+      })
       if (user.deletedAt) {
         throw new LogError('Can not confirm contribution since the user was deleted')
       }
@@ -519,6 +515,10 @@ export class ContributionResolver {
         await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
         await queryRunner.commitTransaction()
+
+        // trigger to send transaction via dlt-connector
+        void sendTransactionsToDltConnector()
+
         logger.info('creation commited successfuly.')
         void sendContributionConfirmedEmail({
           firstName: user.firstName,
@@ -565,9 +565,11 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     const contributionToUpdate = await DbContribution.findOne({
-      id,
-      confirmedAt: IsNull(),
-      deniedBy: IsNull(),
+      where: {
+        id,
+        confirmedAt: IsNull(),
+        deniedBy: IsNull(),
+      },
     })
     if (!contributionToUpdate) {
       throw new LogError('Contribution not found', id)
@@ -582,10 +584,10 @@ export class ContributionResolver {
       )
     }
     const moderator = getUser(context)
-    const user = await DbUser.findOne(
-      { id: contributionToUpdate.userId },
-      { relations: ['emailContact'] },
-    )
+    const user = await DbUser.findOne({
+      where: { id: contributionToUpdate.userId },
+      relations: ['emailContact'],
+    })
     if (!user) {
       throw new LogError('Could not find User of the Contribution', contributionToUpdate.userId)
     }

@@ -89,12 +89,13 @@
     "submit": "Send"
   },
   "GDD": "GDD",
+  "hashtag_symbol": "#",
   "help": {
     "help": "Help",
     "transactionlist": {
       "confirmed": "When was it confirmed by a moderator / admin.",
       "periods": "For what period was it submitted by the member.",
-      "state": "[PENDING = submitted, DELETED = deleted, IN_PROGRESS = in dialogue with moderator, DENIED = rejected, CONFIRMED = confirmed]",
+      "status": "[PENDING = submitted, DELETED = deleted, IN_PROGRESS = in dialogue with moderator, DENIED = rejected, CONFIRMED = confirmed]",
       "submitted": "When was it submitted by the member"
     }
   },
@@ -108,7 +109,12 @@
   "message": {
     "request": "Request has been sent."
   },
-  "moderator": "Moderator",
+  "moderator": {
+    "history": "The data has been changed. This is the old data.",
+    "moderator": "Moderator",
+    "notice": "Moderator note",
+    "request": "This message is only visible to the moderators!"
+  },
   "name": "Name",
   "navbar": {
     "automaticContributions": "Automatic Contributions",
@@ -119,6 +125,10 @@
     "user_search": "User search"
   },
   "not_open_creations": "No open creations",
+  "no_filter": "No Filter",
+  "no_filter_tooltip": "It is not filtered by hashtags",
+  "no_hashtag": "No Hashtag",
+  "no_hashtag_tooltip": "Displays only contributions without hashtag in comment",
   "open": "open",
   "open_creations": "Open creations",
   "overlay": {
@@ -184,7 +194,7 @@
     "confirmed": "Confirmed",
     "memo": "Message",
     "period": "Period",
-    "state": "State",
+    "status": "State",
     "submitted": "Submitted",
     "title": "All creation-transactions for the user"
   },
@@ -204,12 +214,14 @@
     "selectLabel": "Role:",
     "selectRoles": {
       "admin": "administrator",
+      "moderator": "moderator",
       "user": "usual user"
     },
     "successfullyChangedTo": "User is now \"{role}\".",
     "tabTitle": "User Role"
   },
   "user_deleted": "User is deleted.",
+  "user_memo_search": "User and Memo search",
   "user_recovered": "User is recovered.",
   "user_search": "User search"
 }

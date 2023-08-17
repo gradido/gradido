@@ -1,4 +1,5 @@
 export interface UserInterface {
+  alias?: string
   email?: string
   firstName?: string
   lastName?: string
@@ -8,5 +9,5 @@ export interface UserInterface {
   language?: string
   deletedAt?: Date
   publisherId?: number
-  isAdmin?: boolean
+  role?: string
 }

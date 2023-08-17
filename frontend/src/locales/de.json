@@ -29,7 +29,8 @@
     "myContributions": "Meine Beiträge",
     "noOpenContributionLinkText": "Zur Zeit gibt es keine per Link erzeugte Schöpfungen.",
     "openContributionLinks": "Per Link erzeugte Schöpfungen",
-    "openContributionLinkText": "Die Gemeinschaft „{name}“ unterstützt aktuell {count} per Link erzeugte Schöpfungen:",
+    "openContributionLinkText": "Für Startguthaben oder ähnliche Zwecke kann die Gemeinschaft so genannte Schöpfungs-Links erstellen. Sie lösen automatische Schöpfungen aus, die dem Benutzer gut geschrieben werden.\nDie Gemeinschaft „{name}“ unterstützt aktuell {count} per Link erzeugte Schöpfungen:",
+    "startNewsButton": "Benutzernamen eintragen",
     "submitContribution": "Schreiben"
   },
   "communityInfo": "Gemeinschaft Information",
@@ -168,8 +169,8 @@
     "thx": "Danke",
     "to": "bis",
     "to1": "an",
-    "username": "Nutzername",
-    "username-placeholder": "Gebe einen eindeutigen Nutzernamen ein",
+    "username": "Benutzername",
+    "username-placeholder": "Wähle deinen Benutzernamen",
     "validation": {
       "gddCreationTime": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens einer Nachkommastelle sein",
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
@@ -210,6 +211,7 @@
     "redeemed": "Erfolgreich eingelöst! Deinem Konto wurden {n} GDD gutgeschrieben.",
     "redeemed-at": "Der Link wurde bereits am {date} eingelöst.",
     "redeemed-title": "eingelöst",
+    "redeemlink-error": "Dieser Einlöse-Link ist nicht vollständig.",
     "to-login": "Log dich ein",
     "to-register": "Registriere ein neues Konto.",
     "validUntil": "Gültig bis",
@@ -278,6 +280,7 @@
     "settings": "Einstellungen",
     "transactions": "Deine Transaktionen"
   },
+  "PersonalDetails": "Persönliche Angaben",
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
@@ -289,8 +292,10 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
+    "emailInfo": "Kann aktuell noch nicht geändert werden.",
     "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
     "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
+    "info": "Transaktionen können nun per Benutzername oder E-Mail-Adresse getätigt werden.",
     "language": {
       "changeLanguage": "Sprache ändern",
       "de": "Deutsch",
@@ -302,8 +307,11 @@
     },
     "name": {
       "change-name": "Name ändern",
-      "change-success": "Dein Name wurde erfolgreich geändert."
+      "change-success": "Dein Name wurde erfolgreich geändert.",
+      "enterFirstname": "Vorname eingeben",
+      "enterLastname": "Nachname eingeben"
     },
+    "newSettings": "Neue Einstellungen",
     "newsletter": {
       "newsletter": "Informationen per E-Mail",
       "newsletterFalse": "Du erhältst keine Informationen per E-Mail.",
@@ -328,9 +336,9 @@
     "showAmountGDT": "Dein GDT Betrag ist sichtbar.",
     "username": {
       "change-success": "Dein Nutzername wurde erfolgreich geändert.",
-      "change-username": "Nutzername ändern",
-      "no-username": "Bitte gebe einen Nutzernamen ein. Damit hilfst du anderen Benutzern dich zu finden, ohne deine Email preisgeben zu müssen."
-    }
+      "no-username": "Bitte gib einen Benutzernamen ein. Damit hilfst du anderen Benutzern dich zu finden, ohne deine E-Mail-Adresse preisgeben zu müssen."
+    },
+    "usernameInfo": "Kann nach dem Speichern nicht mehr geändert werden!"
   },
   "signin": "Anmelden",
   "signup": "Registrieren",

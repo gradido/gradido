@@ -1,12 +1,19 @@
 import gql from 'graphql-tag'
 
 export const searchUsers = gql`
-  query ($searchText: String!, $currentPage: Int, $pageSize: Int, $filters: SearchUsersFilters) {
+  query (
+    $query: String!
+    $filters: SearchUsersFilters
+    $currentPage: Int = 0
+    $pageSize: Int = 25
+    $order: Order = ASC
+  ) {
     searchUsers(
-      searchText: $searchText
+      query: $query
+      filters: $filters
       currentPage: $currentPage
       pageSize: $pageSize
-      filters: $filters
+      order: $order
     ) {
       userCount
       userList {
@@ -19,7 +26,7 @@ export const searchUsers = gql`
         hasElopage
         emailConfirmationSend
         deletedAt
-        isAdmin
+        roles
       }
     }
   }

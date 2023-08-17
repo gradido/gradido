@@ -5,7 +5,7 @@ export const verifyLogin = gql`
     verifyLogin {
       firstName
       lastName
-      isAdmin
+      roles
       id
       language
     }

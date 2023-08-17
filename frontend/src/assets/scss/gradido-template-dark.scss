@@ -3,7 +3,7 @@ $mode-toggle-bg: #262626;
 
 #app {
   &.dark-mode {
-    background-color: black;
+    background-color: $dark;
     color: #fff;
   }
 }

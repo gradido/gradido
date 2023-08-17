@@ -2,7 +2,7 @@
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { getCustomRepository, getConnection, In } from '@dbTools/typeorm'
+import { getConnection, In } from '@dbTools/typeorm'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as dbUser } from '@entity/User'
@@ -16,7 +16,6 @@ import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
-import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
@@ -38,6 +37,8 @@ import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
+import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
+import { transactionLinkSummary } from './util/transactionLinkSummary'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -150,6 +151,9 @@ export const executeTransaction = async (
         transactionReceive,
         transactionReceive.amount,
       )
+
+      // trigger to send transaction via dlt-connector
+      void sendTransactionsToDltConnector()
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Transaction was not successful', e)
@@ -245,9 +249,8 @@ export class TransactionResolver {
     const self = new User(user)
     const transactions: Transaction[] = []
 
-    const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
     const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate, transactionLinkcount } =
-      await transactionLinkRepository.summary(user.id, now)
+      await transactionLinkSummary(user.id, now)
     context.linkCount = transactionLinkcount
     logger.debug(`transactionLinkcount=${transactionLinkcount}`)
     context.sumHoldAvailableAmount = sumHoldAvailableAmount

@@ -1,39 +1,68 @@
-import { In } from '@dbTools/typeorm'
+import { In, Like, Not } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 
-import { ContributionStatus } from '@enum/ContributionStatus'
-import { Order } from '@enum/Order'
+import { Paginated } from '@arg/Paginated'
+import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
 
-interface FindContributionsOptions {
-  order: Order
-  currentPage: number
-  pageSize: number
-  withDeleted?: boolean
-  relations?: string[]
-  userId?: number | null
-  statusFilter?: ContributionStatus[] | null
+interface Relations {
+  [key: string]: boolean | Relations
 }
 
 export const findContributions = async (
-  options: FindContributionsOptions,
+  paginate: Paginated,
+  filter: SearchContributionsFilterArgs,
+  withDeleted = false,
+  relations: Relations | undefined = undefined,
 ): Promise<[DbContribution[], number]> => {
-  const { order, currentPage, pageSize, withDeleted, relations, userId, statusFilter } = {
-    withDeleted: false,
-    relations: [],
-    ...options,
+  const requiredWhere = {
+    ...(filter.statusFilter?.length && { contributionStatus: In(filter.statusFilter) }),
+    ...(filter.userId && { userId: filter.userId }),
+    ...(filter.noHashtag && { memo: Not(Like(`%#%`)) }),
   }
+
+  let where =
+    filter.query && relations?.user
+      ? [
+          {
+            ...requiredWhere, // And
+            user: {
+              firstName: Like(`%${filter.query}%`),
+            },
+          }, // Or
+          {
+            ...requiredWhere,
+            user: {
+              lastName: Like(`%${filter.query}%`),
+            },
+          }, // Or
+          {
+            ...requiredWhere, // And
+            user: {
+              emailContact: {
+                email: Like(`%${filter.query}%`),
+              },
+            },
+          }, // Or
+          {
+            ...requiredWhere, // And
+            memo: Like(`%${filter.query}%`),
+          },
+        ]
+      : requiredWhere
+
+  if (!relations?.user && filter.query) {
+    where = [{ ...requiredWhere, memo: Like(`%${filter.query}%`) }]
+  }
+
   return DbContribution.findAndCount({
-    where: {
-      ...(statusFilter?.length && { contributionStatus: In(statusFilter) }),
-      ...(userId && { userId }),
-    },
+    relations,
+    where,
     withDeleted,
     order: {
-      createdAt: order,
-      id: order,
+      createdAt: paginate.order,
+      id: paginate.order,
     },
-    relations,
-    skip: (currentPage - 1) * pageSize,
-    take: pageSize,
+    skip: (paginate.currentPage - 1) * paginate.pageSize,
+    take: paginate.pageSize,
   })
 }

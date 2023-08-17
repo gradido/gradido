@@ -1,9 +1,10 @@
-// ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
+/* eslint-disable n/no-process-env */
 import dotenv from 'dotenv'
+
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0066-x-community-sendcoins-transactions_table',
+  DB_VERSION: '0070-add_dlt_transactions_table',
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
@@ -53,12 +54,10 @@ if (
   )
 }
 
-const CONFIG = {
+export const CONFIG = {
   ...constants,
   ...server,
   ...database,
   ...community,
   ...federation,
 }
-
-export default CONFIG

@@ -9,12 +9,15 @@ import { Event as DbEvent } from '@entity/Event'
 import { TransactionLink } from '@entity/TransactionLink'
 import { User } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
+import { UserRole } from '@entity/UserRole'
+import { UserInputError } from 'apollo-server-express'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
+import { RoleNames } from '@enum/RoleNames'
 import { UserContactType } from '@enum/UserContactType'
 import { ContributionLink } from '@model/ContributionLink'
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
@@ -140,7 +143,7 @@ describe('UserResolver', () => {
     describe('valid input data', () => {
       // let loginEmailOptIn: LoginEmailOptIn[]
       beforeAll(async () => {
-        user = await User.find({ relations: ['emailContact'] })
+        user = await User.find({ relations: ['emailContact', 'userRoles'] })
         // loginEmailOptIn = await LoginEmailOptIn.find()
         emailVerificationCode = user[0].emailContact.emailVerificationCode.toString()
       })
@@ -162,7 +165,7 @@ describe('UserResolver', () => {
               createdAt: expect.any(Date),
               // emailChecked: false,
               language: 'de',
-              isAdmin: null,
+              userRoles: [],
               deletedAt: null,
               publisherId: 1234,
               referrerId: null,
@@ -195,10 +198,12 @@ describe('UserResolver', () => {
       })
 
       it('stores the USER_REGISTER event in the database', async () => {
-        const userConatct = await UserContact.findOneOrFail(
-          { email: 'peter@lustig.de' },
-          { relations: ['user'] },
-        )
+        const userConatct = await UserContact.findOneOrFail({
+          where: {
+            email: 'peter@lustig.de',
+          },
+          relations: ['user'],
+        })
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.USER_REGISTER,
@@ -271,10 +276,10 @@ describe('UserResolver', () => {
       })
 
       it('stores the EMAIL_ACCOUNT_MULTIREGISTRATION event in the database', async () => {
-        const userConatct = await UserContact.findOneOrFail(
-          { email: 'peter@lustig.de' },
-          { relations: ['user'] },
-        )
+        const userConatct = await UserContact.findOneOrFail({
+          where: { email: 'peter@lustig.de' },
+          relations: ['user'],
+        })
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.EMAIL_ACCOUNT_MULTIREGISTRATION,
@@ -292,7 +297,7 @@ describe('UserResolver', () => {
           variables: { ...variables, email: 'bibi@bloxberg.de', language: 'it' },
         })
         await expect(
-          UserContact.findOne({ email: 'bibi@bloxberg.de' }, { relations: ['user'] }),
+          UserContact.findOne({ where: { email: 'bibi@bloxberg.de' }, relations: ['user'] }),
         ).resolves.toEqual(
           expect.objectContaining({
             email: 'bibi@bloxberg.de',
@@ -334,9 +339,16 @@ describe('UserResolver', () => {
           })
 
           // make Peter Lustig Admin
-          const peter = await User.findOneOrFail({ id: user[0].id })
-          peter.isAdmin = new Date()
-          await peter.save()
+          const peter = await User.findOneOrFail({
+            where: { id: user[0].id },
+            relations: ['userRoles'],
+          })
+          peter.userRoles = [] as UserRole[]
+          peter.userRoles[0] = UserRole.create()
+          peter.userRoles[0].createdAt = new Date()
+          peter.userRoles[0].role = RoleNames.ADMIN
+          peter.userRoles[0].userId = peter.id
+          await peter.userRoles[0].save()
 
           // date statement
           const actualDate = new Date()
@@ -351,7 +363,6 @@ describe('UserResolver', () => {
             validFrom: actualDate,
             validTo: futureDate,
           })
-
           resetToken()
           result = await mutate({
             mutation: createUser,
@@ -365,7 +376,7 @@ describe('UserResolver', () => {
 
         it('sets the contribution link id', async () => {
           await expect(
-            UserContact.findOne({ email: 'ein@besucher.de' }, { relations: ['user'] }),
+            UserContact.findOne({ where: { email: 'ein@besucher.de' }, relations: ['user'] }),
           ).resolves.toEqual(
             expect.objectContaining({
               user: expect.objectContaining({
@@ -445,7 +456,7 @@ describe('UserResolver', () => {
             memo: `testing transaction link`,
           })
 
-          transactionLink = await TransactionLink.findOneOrFail()
+          transactionLink = await TransactionLink.findOneOrFail({ where: { userId: bob.id } })
 
           resetToken()
 
@@ -462,7 +473,7 @@ describe('UserResolver', () => {
 
         it('sets the referrer id to bob baumeister id', async () => {
           await expect(
-            UserContact.findOne({ email: 'which@ever.de' }, { relations: ['user'] }),
+            UserContact.findOne({ where: { email: 'which@ever.de' }, relations: ['user'] }),
           ).resolves.toEqual(
             expect.objectContaining({
               user: expect.objectContaining({ referrerId: bob.data.login.id }),
@@ -529,16 +540,18 @@ describe('UserResolver', () => {
 
       beforeAll(async () => {
         await mutate({ mutation: createUser, variables: createUserVariables })
-        const emailContact = await UserContact.findOneOrFail({ email: createUserVariables.email })
+        const emailContact = await UserContact.findOneOrFail({
+          where: { email: createUserVariables.email },
+        })
         emailVerificationCode = emailContact.emailVerificationCode.toString()
         result = await mutate({
           mutation: setPassword,
           variables: { code: emailVerificationCode, password: 'Aa12345_' },
         })
-        newUser = await User.findOneOrFail(
-          { id: emailContact.userId },
-          { relations: ['emailContact'] },
-        )
+        newUser = await User.findOneOrFail({
+          where: { id: emailContact.userId },
+          relations: ['emailContact'],
+        })
       })
 
       afterAll(async () => {
@@ -571,7 +584,9 @@ describe('UserResolver', () => {
     describe('no valid password', () => {
       beforeAll(async () => {
         await mutate({ mutation: createUser, variables: createUserVariables })
-        const emailContact = await UserContact.findOneOrFail({ email: createUserVariables.email })
+        const emailContact = await UserContact.findOneOrFail({
+          where: { email: createUserVariables.email },
+        })
         emailVerificationCode = emailContact.emailVerificationCode.toString()
       })
 
@@ -679,13 +694,13 @@ describe('UserResolver', () => {
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
-                isAdmin: null,
                 klickTipp: {
                   newsletterState: false,
                 },
                 language: 'de',
                 lastName: 'Bloxberg',
                 publisherId: 1234,
+                roles: [],
               },
             },
           }),
@@ -697,10 +712,10 @@ describe('UserResolver', () => {
       })
 
       it('stores the USER_LOGIN event in the database', async () => {
-        const userConatct = await UserContact.findOneOrFail(
-          { email: 'bibi@bloxberg.de' },
-          { relations: ['user'] },
-        )
+        const userConatct = await UserContact.findOneOrFail({
+          where: { email: 'bibi@bloxberg.de' },
+          relations: ['user'],
+        })
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.USER_LOGIN,
@@ -879,10 +894,10 @@ describe('UserResolver', () => {
       })
 
       it('stores the USER_LOGOUT event in the database', async () => {
-        const userConatct = await UserContact.findOneOrFail(
-          { email: 'bibi@bloxberg.de' },
-          { relations: ['user'] },
-        )
+        const userConatct = await UserContact.findOneOrFail({
+          where: { email: 'bibi@bloxberg.de' },
+          relations: ['user'],
+        })
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.USER_LOGOUT,
@@ -936,7 +951,7 @@ describe('UserResolver', () => {
 
         beforeAll(async () => {
           await mutate({ mutation: login, variables })
-          user = await User.find()
+          user = await User.find({ relations: ['userRoles'] })
         })
 
         afterAll(() => {
@@ -956,7 +971,7 @@ describe('UserResolver', () => {
                   },
                   hasElopage: false,
                   publisherId: 1234,
-                  isAdmin: null,
+                  roles: [],
                 },
               },
             }),
@@ -1047,10 +1062,10 @@ describe('UserResolver', () => {
         })
 
         it('stores the EMAIL_FORGOT_PASSWORD event in the database', async () => {
-          const userConatct = await UserContact.findOneOrFail(
-            { email: 'bibi@bloxberg.de' },
-            { relations: ['user'] },
-          )
+          const userConatct = await UserContact.findOneOrFail({
+            where: { email: 'bibi@bloxberg.de' },
+            relations: ['user'],
+          })
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.EMAIL_FORGOT_PASSWORD,
@@ -1083,7 +1098,7 @@ describe('UserResolver', () => {
 
     beforeAll(async () => {
       await userFactory(testEnv, bibiBloxberg)
-      emailContact = await UserContact.findOneOrFail({ email: bibiBloxberg.email })
+      emailContact = await UserContact.findOneOrFail({ where: { email: bibiBloxberg.email } })
     })
 
     afterAll(async () => {
@@ -1100,7 +1115,9 @@ describe('UserResolver', () => {
             errors: [
               // keep Whitspace in error message!
               new GraphQLError(`Could not find any entity of type "UserContact" matching: {
-    "emailVerificationCode": "not-valid"
+    "where": {
+        "emailVerificationCode": "not-valid"
+    }
 }`),
             ],
           }),
@@ -1175,20 +1192,20 @@ describe('UserResolver', () => {
               locale: 'en',
             },
           })
-          await expect(User.findOne()).resolves.toEqual(
+          await expect(User.find()).resolves.toEqual([
             expect.objectContaining({
               firstName: 'Benjamin',
               lastName: 'Blümchen',
               language: 'en',
             }),
-          )
+          ])
         })
 
         it('stores the USER_INFO_UPDATE event in the database', async () => {
-          const userConatct = await UserContact.findOneOrFail(
-            { email: 'bibi@bloxberg.de' },
-            { relations: ['user'] },
-          )
+          const userConatct = await UserContact.findOneOrFail({
+            where: { email: 'bibi@bloxberg.de' },
+            relations: ['user'],
+          })
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.USER_INFO_UPDATE,
@@ -1212,11 +1229,11 @@ describe('UserResolver', () => {
                 alias: 'bibi_Bloxberg',
               },
             })
-            await expect(User.findOne()).resolves.toEqual(
+            await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
                 alias: 'bibi_Bloxberg',
               }),
-            )
+            ])
           })
         })
       })
@@ -1395,6 +1412,7 @@ describe('UserResolver', () => {
                   expect.objectContaining({
                     firstName: 'Peter',
                     lastName: 'Lustig',
+                    role: RoleNames.ADMIN,
                   }),
                 ]),
               },
@@ -1433,10 +1451,10 @@ describe('UserResolver', () => {
 
       let bibi: User
       beforeAll(async () => {
-        const usercontact = await UserContact.findOneOrFail(
-          { email: 'bibi@bloxberg.de' },
-          { relations: ['user'] },
-        )
+        const usercontact = await UserContact.findOneOrFail({
+          where: { email: 'bibi@bloxberg.de' },
+          relations: ['user'],
+        })
         bibi = usercontact.user
         bibi.passwordEncryptionType = PasswordEncryptionType.EMAIL
         bibi.password = SecretKeyCryptographyCreateKey(
@@ -1450,10 +1468,10 @@ describe('UserResolver', () => {
       it('changes to gradidoID on login', async () => {
         await mutate({ mutation: login, variables })
 
-        const usercontact = await UserContact.findOneOrFail(
-          { email: 'bibi@bloxberg.de' },
-          { relations: ['user'] },
-        )
+        const usercontact = await UserContact.findOneOrFail({
+          where: { email: 'bibi@bloxberg.de' },
+          relations: ['user'],
+        })
         bibi = usercontact.user
 
         expect(bibi).toEqual(
@@ -1476,13 +1494,13 @@ describe('UserResolver', () => {
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
-                isAdmin: null,
                 klickTipp: {
                   newsletterState: false,
                 },
                 language: 'de',
                 lastName: 'Bloxberg',
                 publisherId: 1234,
+                roles: [],
               },
             },
           }),
@@ -1501,7 +1519,10 @@ describe('UserResolver', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
         await expect(
-          mutate({ mutation: setUserRole, variables: { userId: 1, isAdmin: true } }),
+          mutate({
+            mutation: setUserRole,
+            variables: { userId: 1, role: RoleNames.ADMIN },
+          }),
         ).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('401 Unauthorized')],
@@ -1511,7 +1532,7 @@ describe('UserResolver', () => {
     })
 
     describe('authenticated', () => {
-      describe('without admin rights', () => {
+      describe('with user rights', () => {
         beforeAll(async () => {
           user = await userFactory(testEnv, bibiBloxberg)
           await mutate({
@@ -1527,7 +1548,46 @@ describe('UserResolver', () => {
 
         it('returns an error', async () => {
           await expect(
-            mutate({ mutation: setUserRole, variables: { userId: user.id + 1, isAdmin: true } }),
+            mutate({
+              mutation: setUserRole,
+              variables: { userId: user.id + 1, role: RoleNames.ADMIN },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
+      describe('with moderator rights', () => {
+        beforeAll(async () => {
+          user = await userFactory(testEnv, bibiBloxberg)
+          admin = await userFactory(testEnv, peterLustig)
+
+          // set Moderator-Role for Peter
+          const userRole = await UserRole.findOneOrFail({ where: { userId: admin.id } })
+          userRole.role = RoleNames.MODERATOR
+          userRole.userId = admin.id
+          await UserRole.save(userRole)
+
+          await mutate({
+            mutation: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        it('returns an error', async () => {
+          await expect(
+            mutate({
+              mutation: setUserRole,
+              variables: { userId: user.id, role: RoleNames.ADMIN },
+            }),
           ).resolves.toEqual(
             expect.objectContaining({
               errors: [new GraphQLError('401 Unauthorized')],
@@ -1538,6 +1598,7 @@ describe('UserResolver', () => {
 
       describe('with admin rights', () => {
         beforeAll(async () => {
+          user = await userFactory(testEnv, bibiBloxberg)
           admin = await userFactory(testEnv, peterLustig)
           await mutate({
             mutation: login,
@@ -1550,11 +1611,33 @@ describe('UserResolver', () => {
           resetToken()
         })
 
+        it('returns user with new moderator-role', async () => {
+          const result = await mutate({
+            mutation: setUserRole,
+            variables: { userId: user.id, role: RoleNames.MODERATOR },
+          })
+          expect(result).toEqual(
+            expect.objectContaining({
+              data: {
+                setUserRole: RoleNames.MODERATOR,
+              },
+            }),
+          )
+        })
+
         describe('user to get a new role does not exist', () => {
+          afterAll(async () => {
+            await cleanDB()
+            resetToken()
+          })
+
           it('throws an error', async () => {
             jest.clearAllMocks()
             await expect(
-              mutate({ mutation: setUserRole, variables: { userId: admin.id + 1, isAdmin: true } }),
+              mutate({
+                mutation: setUserRole,
+                variables: { userId: admin.id + 1, role: RoleNames.ADMIN },
+              }),
             ).resolves.toEqual(
               expect.objectContaining({
                 errors: [new GraphQLError('Could not find user with given ID')],
@@ -1570,19 +1653,55 @@ describe('UserResolver', () => {
         describe('change role with success', () => {
           beforeAll(async () => {
             user = await userFactory(testEnv, bibiBloxberg)
+            admin = await userFactory(testEnv, peterLustig)
+            await mutate({
+              mutation: login,
+              variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+            })
+          })
+
+          afterAll(async () => {
+            await cleanDB()
+            resetToken()
           })
 
           describe('user gets new role', () => {
             describe('to admin', () => {
-              it('returns date string', async () => {
+              it('returns admin-rolename', async () => {
                 const result = await mutate({
                   mutation: setUserRole,
-                  variables: { userId: user.id, isAdmin: true },
+                  variables: { userId: user.id, role: RoleNames.ADMIN },
                 })
                 expect(result).toEqual(
                   expect.objectContaining({
                     data: {
-                      setUserRole: expect.any(String),
+                      setUserRole: RoleNames.ADMIN,
+                    },
+                  }),
+                )
+              })
+
+              it('stores the ADMIN_USER_ROLE_SET event in the database', async () => {
+                await expect(DbEvent.find()).resolves.toContainEqual(
+                  expect.objectContaining({
+                    type: EventType.ADMIN_USER_ROLE_SET,
+                    affectedUserId: user.id,
+                    actingUserId: admin.id,
+                  }),
+                )
+              })
+            })
+
+            describe('to moderator', () => {
+              it('returns date string', async () => {
+                const result = await mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, role: RoleNames.MODERATOR },
+                })
+                expect(result).toEqual(
+                  expect.objectContaining({
+                    data: {
+                      setUserRole: RoleNames.MODERATOR,
                     },
                   }),
                 )
@@ -1590,19 +1709,11 @@ describe('UserResolver', () => {
               })
 
               it('stores the ADMIN_USER_ROLE_SET event in the database', async () => {
-                const userConatct = await UserContact.findOneOrFail(
-                  { email: 'bibi@bloxberg.de' },
-                  { relations: ['user'] },
-                )
-                const adminConatct = await UserContact.findOneOrFail(
-                  { email: 'peter@lustig.de' },
-                  { relations: ['user'] },
-                )
                 await expect(DbEvent.find()).resolves.toContainEqual(
                   expect.objectContaining({
                     type: EventType.ADMIN_USER_ROLE_SET,
-                    affectedUserId: userConatct.user.id,
-                    actingUserId: adminConatct.user.id,
+                    affectedUserId: user.id,
+                    actingUserId: admin.id,
                   }),
                 )
               })
@@ -1611,7 +1722,7 @@ describe('UserResolver', () => {
             describe('to usual user', () => {
               it('returns null', async () => {
                 await expect(
-                  mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: false } }),
+                  mutate({ mutation: setUserRole, variables: { userId: user.id, role: null } }),
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
@@ -1625,11 +1736,25 @@ describe('UserResolver', () => {
         })
 
         describe('change role with error', () => {
-          describe('is own role', () => {
+          beforeAll(async () => {
+            user = await userFactory(testEnv, bibiBloxberg)
+            admin = await userFactory(testEnv, peterLustig)
+            await mutate({
+              mutation: login,
+              variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+            })
+          })
+
+          afterAll(async () => {
+            await cleanDB()
+            resetToken()
+          })
+
+          describe('his own role', () => {
             it('throws an error', async () => {
               jest.clearAllMocks()
               await expect(
-                mutate({ mutation: setUserRole, variables: { userId: admin.id, isAdmin: false } }),
+                mutate({ mutation: setUserRole, variables: { userId: admin.id, role: null } }),
               ).resolves.toEqual(
                 expect.objectContaining({
                   errors: [new GraphQLError('Administrator can not change his own role')],
@@ -1641,25 +1766,72 @@ describe('UserResolver', () => {
             })
           })
 
+          describe('to not allowed role', () => {
+            it('throws an error', async () => {
+              jest.clearAllMocks()
+              await expect(
+                mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, role: 'unknown rolename' },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [
+                    new UserInputError(
+                      'Variable "$role" got invalid value "unknown rolename"; Value "unknown rolename" does not exist in "RoleNames" enum.',
+                    ),
+                  ],
+                }),
+              )
+            })
+          })
+
           describe('user has already role to be set', () => {
             describe('to admin', () => {
               it('throws an error', async () => {
                 jest.clearAllMocks()
                 await mutate({
                   mutation: setUserRole,
-                  variables: { userId: user.id, isAdmin: true },
+                  variables: { userId: user.id, role: RoleNames.ADMIN },
                 })
                 await expect(
-                  mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: true } }),
+                  mutate({
+                    mutation: setUserRole,
+                    variables: { userId: user.id, role: RoleNames.ADMIN },
+                  }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [new GraphQLError('User is already admin')],
+                    errors: [new GraphQLError('User already has role=')],
                   }),
                 )
               })
 
               it('logs the error thrown', () => {
-                expect(logger.error).toBeCalledWith('User is already admin')
+                expect(logger.error).toBeCalledWith('User already has role=', RoleNames.ADMIN)
+              })
+            })
+
+            describe('to moderator', () => {
+              it('throws an error', async () => {
+                jest.clearAllMocks()
+                await mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, role: RoleNames.MODERATOR },
+                })
+                await expect(
+                  mutate({
+                    mutation: setUserRole,
+                    variables: { userId: user.id, role: RoleNames.MODERATOR },
+                  }),
+                ).resolves.toEqual(
+                  expect.objectContaining({
+                    errors: [new GraphQLError('User already has role=')],
+                  }),
+                )
+              })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith('User already has role=', RoleNames.MODERATOR)
               })
             })
 
@@ -1668,10 +1840,10 @@ describe('UserResolver', () => {
                 jest.clearAllMocks()
                 await mutate({
                   mutation: setUserRole,
-                  variables: { userId: user.id, isAdmin: false },
+                  variables: { userId: user.id, role: null },
                 })
                 await expect(
-                  mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: false } }),
+                  mutate({ mutation: setUserRole, variables: { userId: user.id, role: null } }),
                 ).resolves.toEqual(
                   expect.objectContaining({
                     errors: [new GraphQLError('User is already an usual user')],
@@ -1792,14 +1964,15 @@ describe('UserResolver', () => {
           })
 
           it('stores the ADMIN_USER_DELETE event in the database', async () => {
-            const userConatct = await UserContact.findOneOrFail(
-              { email: 'bibi@bloxberg.de' },
-              { relations: ['user'], withDeleted: true },
-            )
-            const adminConatct = await UserContact.findOneOrFail(
-              { email: 'peter@lustig.de' },
-              { relations: ['user'] },
-            )
+            const userConatct = await UserContact.findOneOrFail({
+              where: { email: 'bibi@bloxberg.de' },
+              relations: ['user'],
+              withDeleted: true,
+            })
+            const adminConatct = await UserContact.findOneOrFail({
+              where: { email: 'peter@lustig.de' },
+              relations: ['user'],
+            })
             await expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
                 type: EventType.ADMIN_USER_DELETE,
@@ -1943,10 +2116,10 @@ describe('UserResolver', () => {
           })
 
           it('sends an account activation email', async () => {
-            const userConatct = await UserContact.findOneOrFail(
-              { email: 'bibi@bloxberg.de' },
-              { relations: ['user'] },
-            )
+            const userConatct = await UserContact.findOneOrFail({
+              where: { email: 'bibi@bloxberg.de' },
+              relations: ['user'],
+            })
             const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
               /{optin}/g,
               userConatct.emailVerificationCode.toString(),
@@ -1965,10 +2138,10 @@ describe('UserResolver', () => {
           })
 
           it('stores the EMAIL_ADMIN_CONFIRMATION event in the database', async () => {
-            const userConatct = await UserContact.findOneOrFail(
-              { email: 'bibi@bloxberg.de' },
-              { relations: ['user'] },
-            )
+            const userConatct = await UserContact.findOneOrFail({
+              where: { email: 'bibi@bloxberg.de' },
+              relations: ['user'],
+            })
             await expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
                 type: EventType.EMAIL_ADMIN_CONFIRMATION,
@@ -2086,14 +2259,14 @@ describe('UserResolver', () => {
             })
 
             it('stores the ADMIN_USER_UNDELETE event in the database', async () => {
-              const userConatct = await UserContact.findOneOrFail(
-                { email: 'bibi@bloxberg.de' },
-                { relations: ['user'] },
-              )
-              const adminConatct = await UserContact.findOneOrFail(
-                { email: 'peter@lustig.de' },
-                { relations: ['user'] },
-              )
+              const userConatct = await UserContact.findOneOrFail({
+                where: { email: 'bibi@bloxberg.de' },
+                relations: ['user'],
+              })
+              const adminConatct = await UserContact.findOneOrFail({
+                where: { email: 'peter@lustig.de' },
+                relations: ['user'],
+              })
               await expect(DbEvent.find()).resolves.toContainEqual(
                 expect.objectContaining({
                   type: EventType.ADMIN_USER_UNDELETE,
@@ -2110,7 +2283,7 @@ describe('UserResolver', () => {
 
   describe('search users', () => {
     const variablesWithoutTextAndFilters = {
-      searchText: '',
+      query: '',
       currentPage: 1,
       pageSize: 25,
       filters: null,

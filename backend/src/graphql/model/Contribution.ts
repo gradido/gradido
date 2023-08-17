@@ -15,7 +15,7 @@ export class Contribution {
     this.confirmedAt = contribution.confirmedAt
     this.confirmedBy = contribution.confirmedBy
     this.contributionDate = contribution.contributionDate
-    this.state = contribution.contributionStatus
+    this.status = contribution.contributionStatus
     this.messagesCount = contribution.messages ? contribution.messages.length : 0
     this.deniedAt = contribution.deniedAt
     this.deniedBy = contribution.deniedBy
@@ -68,7 +68,7 @@ export class Contribution {
   messagesCount: number
 
   @Field(() => String)
-  state: string
+  status: string
 
   @Field(() => Int, { nullable: true })
   moderatorId: number | null

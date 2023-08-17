@@ -35,18 +35,28 @@
         </b-nav>
         <hr class="m-3" />
         <b-nav vertical class="w-100">
-          <b-nav-item to="/settings" class="mb-3" active-class="activeRoute">
+          <b-nav-item
+            to="/settings"
+            class="mb-3"
+            active-class="activeRoute"
+            data-test="settings-menu"
+          >
             <b-img src="/img/svg/settings.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.settings') }}</span>
+            <b-badge v-if="!$store.state.username" variant="warning">
+              {{ $t('settings.newSettings') }}
+            </b-badge>
           </b-nav-item>
           <b-nav-item
             class="mb-3 text-light"
-            v-if="$store.state.isAdmin"
+            v-if="$store.state.roles && $store.state.roles.length > 0"
             @click="$emit('admin')"
             active-class="activeRoute"
           >
             <b-icon icon="shield-check" aria-hidden="true"></b-icon>
-            <span class="ml-2">{{ $t('navigation.admin_area') }}</span>
+            <span class="ml-2">
+              {{ $t('navigation.admin_area') }}
+            </span>
           </b-nav-item>
           <b-nav-item
             class="font-weight-bold"

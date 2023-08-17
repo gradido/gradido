@@ -89,12 +89,13 @@
     "submit": "Senden"
   },
   "GDD": "GDD",
+  "hashtag_symbol": "#",
   "help": {
     "help": "Hilfe",
     "transactionlist": {
       "confirmed": "Wann wurde es von einem Moderator / Admin bestätigt.",
       "periods": "Für welchen Zeitraum wurde vom Mitglied eingereicht.",
-      "state": "[PENDING = eingereicht, DELETED = gelöscht, IN_PROGRESS = im Dialog mit Moderator, DENIED = abgelehnt, CONFIRMED = bestätigt]",
+      "status": "[PENDING = eingereicht, DELETED = gelöscht, IN_PROGRESS = im Dialog mit Moderator, DENIED = abgelehnt, CONFIRMED = bestätigt]",
       "submitted": "Wann wurde es vom Mitglied eingereicht"
     }
   },
@@ -108,7 +109,12 @@
   "message": {
     "request": "Die Anfrage wurde gesendet."
   },
-  "moderator": "Moderator",
+  "moderator": {
+    "history": "Die Daten wurden geändert. Dies sind die alten Daten.",
+    "moderator": "Moderator",
+    "notice": "Moderator Notiz",
+    "request": "Diese Nachricht ist nur für die Moderatoren sichtbar!"
+  },
   "name": "Name",
   "navbar": {
     "automaticContributions": "Automatische Beiträge",
@@ -119,6 +125,10 @@
     "user_search": "Nutzersuche"
   },
   "not_open_creations": "Keine offenen Schöpfungen",
+  "no_filter": "Keine Filterung",
+  "no_filter_tooltip": "Es wird nicht nach Hashtags gefiltert",
+  "no_hashtag": "Ohne Hashtag",
+  "no_hashtag_tooltip": "Zeigt nur Schöpfungen ohne Hashtag im Kommentar an",
   "open": "offen",
   "open_creations": "Offene Schöpfungen",
   "overlay": {
@@ -184,7 +194,7 @@
     "confirmed": "Bestätigt",
     "memo": "Nachricht",
     "period": "Zeitraum",
-    "state": "Status",
+    "status": "Status",
     "submitted": "Eingereicht",
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },
@@ -204,12 +214,14 @@
     "selectLabel": "Rolle:",
     "selectRoles": {
       "admin": "Administrator",
+      "moderator": "Moderator",
       "user": "einfacher Nutzer"
     },
     "successfullyChangedTo": "Nutzer ist jetzt „{role}“.",
     "tabTitle": "Nutzer-Rolle"
   },
   "user_deleted": "Nutzer ist gelöscht.",
+  "user_memo_search": "Nutzer-Kommentar-Suche",
   "user_recovered": "Nutzer ist wiederhergestellt.",
   "user_search": "Nutzer-Suche"
 }

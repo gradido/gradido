@@ -10,6 +10,7 @@
       {
         "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] - %m"
       },
+      "compress": true,
       "keepFileExt" : true,
       "fileNameSep" : "_",
       "numBackups" : 30
@@ -23,6 +24,7 @@
       {
         "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] - %m"
       },
+      "compress": true,
       "keepFileExt" : true,
       "fileNameSep" : "_",
       "numBackups" : 30
@@ -36,6 +38,7 @@
       {
         "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] - %m"
       },
+      "compress": true,
       "keepFileExt" : true,
       "fileNameSep" : "_",
       "numBackups" : 30
@@ -49,6 +52,7 @@
       {
         "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] - %m"
       },
+      "compress": true,
       "keepFileExt" : true,
       "fileNameSep" : "_",
       "numBackups" : 30
@@ -62,6 +66,7 @@
       {
         "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] - %m %s"
       },
+      "compress": true,
       "keepFileExt" : true,
       "fileNameSep" : "_",
       "numBackups" : 30
@@ -117,7 +122,6 @@
       "appenders":
       [
         "backend",
-        "out",
         "errors"
       ],
       "level": "debug",
@@ -128,7 +132,6 @@
       "appenders":
       [
         "klicktipp",
-        "out",
         "errors"
       ],
       "level": "debug",

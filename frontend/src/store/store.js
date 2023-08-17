@@ -4,7 +4,6 @@ import createPersistedState from 'vuex-persistedstate'
 import { localeChanged } from 'vee-validate'
 import i18n from '@/i18n.js'
 import jwtDecode from 'jwt-decode'
-
 Vue.use(Vuex)
 
 export const mutations = {
@@ -41,8 +40,8 @@ export const mutations = {
     if (isNaN(pubId)) pubId = null
     state.publisherId = pubId
   },
-  isAdmin: (state, isAdmin) => {
-    state.isAdmin = !!isAdmin
+  roles(state, roles) {
+    state.roles = roles
   },
   hasElopage: (state, hasElopage) => {
     state.hasElopage = hasElopage
@@ -56,6 +55,9 @@ export const mutations = {
   email: (state, email) => {
     state.email = email || ''
   },
+  setDarkMode: (state, darkMode) => {
+    state.darkMode = !!darkMode
+  },
 }
 
 export const actions = {
@@ -68,9 +70,10 @@ export const actions = {
     commit('newsletterState', data.klickTipp.newsletterState)
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
-    commit('isAdmin', data.isAdmin)
+    commit('roles', data.roles)
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
+    commit('setDarkMode', data.darkMode)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
@@ -81,10 +84,11 @@ export const actions = {
     commit('newsletterState', null)
     commit('hasElopage', false)
     commit('publisherId', null)
-    commit('isAdmin', false)
+    commit('roles', null)
     commit('hideAmountGDD', false)
     commit('hideAmountGDT', true)
     commit('email', '')
+    commit('setDarkMode', false)
     localStorage.clear()
   },
 }
@@ -107,13 +111,14 @@ try {
       // username: '',
       token: null,
       tokenTime: null,
-      isAdmin: false,
+      roles: [],
       newsletterState: null,
       hasElopage: false,
       publisherId: null,
       hideAmountGDD: null,
       hideAmountGDT: null,
       email: '',
+      darkMode: false,
     },
     getters: {},
     // Syncronous mutation of the state

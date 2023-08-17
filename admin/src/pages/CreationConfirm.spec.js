@@ -28,7 +28,7 @@ const mocks = {
       moderator: {
         firstName: 'Peter',
         lastName: 'Lustig',
-        isAdmin: '2022-08-30T07:41:31.000Z',
+        roles: ['ADMIN'],
         id: 263,
         language: 'de',
       },
@@ -51,7 +51,7 @@ const defaultData = () => {
           memo: 'Danke für alles',
           date: new Date(),
           moderator: 1,
-          state: 'PENDING',
+          status: 'PENDING',
           creation: [500, 500, 500],
           messagesCount: 0,
           deniedBy: null,
@@ -73,7 +73,7 @@ const defaultData = () => {
           memo: 'Gut Ergattert',
           date: new Date(),
           moderator: 1,
-          state: 'PENDING',
+          status: 'PENDING',
           creation: [500, 500, 500],
           messagesCount: 0,
           deniedBy: null,
@@ -339,8 +339,10 @@ describe('CreationConfirm', () => {
         it('refetches contributions with proper filter', () => {
           expect(adminListContributionsMock).toBeCalledWith({
             currentPage: 1,
+            noHashtag: null,
             order: 'DESC',
             pageSize: 25,
+            query: '',
             statusFilter: ['CONFIRMED'],
           })
         })
@@ -354,8 +356,10 @@ describe('CreationConfirm', () => {
           it('refetches contributions with proper filter', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
+              noHashtag: null,
               order: 'DESC',
               pageSize: 25,
+              query: '',
               statusFilter: ['IN_PROGRESS', 'PENDING'],
             })
           })
@@ -370,8 +374,10 @@ describe('CreationConfirm', () => {
           it('refetches contributions with proper filter', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
+              noHashtag: null,
               order: 'DESC',
               pageSize: 25,
+              query: '',
               statusFilter: ['DENIED'],
             })
           })
@@ -386,8 +392,10 @@ describe('CreationConfirm', () => {
           it('refetches contributions with proper filter', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
+              noHashtag: null,
               order: 'DESC',
               pageSize: 25,
+              query: '',
               statusFilter: ['DELETED'],
             })
           })
@@ -402,8 +410,10 @@ describe('CreationConfirm', () => {
           it('refetches contributions with proper filter', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
+              noHashtag: null,
               order: 'DESC',
               pageSize: 25,
+              query: '',
               statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
             })
           })
@@ -422,8 +432,10 @@ describe('CreationConfirm', () => {
               it('calls the API again', () => {
                 expect(adminListContributionsMock).toBeCalledWith({
                   currentPage: 2,
+                  noHashtag: null,
                   order: 'DESC',
                   pageSize: 25,
+                  query: '',
                   statusFilter: ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
                 })
               })
@@ -437,8 +449,10 @@ describe('CreationConfirm', () => {
                 it('refetches contributions with proper filter and current page = 1', () => {
                   expect(adminListContributionsMock).toBeCalledWith({
                     currentPage: 1,
+                    noHashtag: null,
                     order: 'DESC',
                     pageSize: 25,
+                    query: '',
                     statusFilter: ['IN_PROGRESS', 'PENDING'],
                   })
                 })
@@ -449,14 +463,50 @@ describe('CreationConfirm', () => {
       })
     })
 
+    describe('user query', () => {
+      describe('with user query', () => {
+        beforeEach(() => {
+          wrapper.findComponent({ name: 'UserQuery' }).vm.$emit('input', 'query')
+        })
+
+        it('calls the API with query', () => {
+          expect(adminListContributionsMock).toBeCalledWith({
+            currentPage: 1,
+            noHashtag: null,
+            order: 'DESC',
+            pageSize: 25,
+            query: 'query',
+            statusFilter: ['IN_PROGRESS', 'PENDING'],
+          })
+        })
+
+        describe('reset query', () => {
+          beforeEach(() => {
+            wrapper.findComponent({ name: 'UserQuery' }).vm.$emit('input', '')
+          })
+
+          it('calls the API with empty query', () => {
+            expect(adminListContributionsMock).toBeCalledWith({
+              currentPage: 1,
+              noHashtag: null,
+              order: 'DESC',
+              pageSize: 25,
+              query: '',
+              statusFilter: ['IN_PROGRESS', 'PENDING'],
+            })
+          })
+        })
+      })
+    })
+
     describe('update status', () => {
       beforeEach(async () => {
-        await wrapper.findComponent({ name: 'OpenCreationsTable' }).vm.$emit('update-state', 2)
+        await wrapper.findComponent({ name: 'OpenCreationsTable' }).vm.$emit('update-status', 2)
       })
 
       it('updates the status', () => {
         expect(wrapper.vm.items.find((obj) => obj.id === 2).messagesCount).toBe(1)
-        expect(wrapper.vm.items.find((obj) => obj.id === 2).state).toBe('IN_PROGRESS')
+        expect(wrapper.vm.items.find((obj) => obj.id === 2).status).toBe('IN_PROGRESS')
       })
     })
 

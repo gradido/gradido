@@ -12,14 +12,14 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0066-x-community-sendcoins-transactions_table',
+  DB_VERSION: '0070-add_dlt_transactions_table',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v15.2023-02-07',
+    EXPECTED: 'v18.2023-07-10',
     CURRENT: '',
   },
 }
@@ -49,6 +49,11 @@ const klicktipp = {
   KLICKTIPP_PASSWORD: process.env.KLICKTIPP_PASSWORD ?? 'secret321',
   KLICKTIPP_APIKEY_DE: process.env.KLICKTIPP_APIKEY_DE ?? 'SomeFakeKeyDE',
   KLICKTIPP_APIKEY_EN: process.env.KLICKTIPP_APIKEY_EN ?? 'SomeFakeKeyEN',
+}
+
+const dltConnector = {
+  DLT_CONNECTOR: process.env.DLT_CONNECTOR === 'true' || false,
+  DLT_CONNECTOR_URL: process.env.DLT_CONNECTOR_URL ?? 'http://localhost:6010',
 }
 
 const community = {
@@ -126,6 +131,7 @@ export const CONFIG = {
   ...server,
   ...database,
   ...klicktipp,
+  ...dltConnector,
   ...community,
   ...email,
   ...loginServer,

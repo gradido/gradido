@@ -4,6 +4,7 @@ export const verifyLogin = gql`
   query {
     verifyLogin {
       gradidoID
+      alias
       firstName
       lastName
       language
@@ -12,7 +13,7 @@ export const verifyLogin = gql`
       }
       hasElopage
       publisherId
-      isAdmin
+      roles
       hideAmountGDD
       hideAmountGDT
     }
@@ -190,7 +191,7 @@ export const listContributions = gql`
         confirmedAt
         confirmedBy
         deletedAt
-        state
+        status
         messagesCount
         deniedAt
         deniedBy
@@ -214,7 +215,7 @@ export const listAllContributions = gql`
         contributionDate
         confirmedAt
         confirmedBy
-        state
+        status
         messagesCount
         deniedAt
         deniedBy
