@@ -4,6 +4,9 @@ import { ArgsType, Field } from 'type-graphql'
 @ArgsType()
 export class TransactionSendArgs {
   @Field(() => String)
+  communityIdentifier: string
+
+  @Field(() => String)
   identifier: string
 
   @Field(() => Decimal)

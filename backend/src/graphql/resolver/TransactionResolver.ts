@@ -34,6 +34,7 @@ import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualT
 
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
+import { isHomeCommunity } from './util/communities'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
@@ -317,24 +318,32 @@ export class TransactionResolver {
   @Authorized([RIGHTS.SEND_COINS])
   @Mutation(() => Boolean)
   async sendCoins(
-    @Args() { identifier, amount, memo }: TransactionSendArgs,
+    @Args() { communityIdentifier, identifier, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.info(`sendCoins(identifier=${identifier}, amount=${amount}, memo=${memo})`)
-    if (amount.lte(0)) {
-      throw new LogError('Amount to send must be positive', amount)
+    logger.info(
+      `sendCoins(communityIdentifier=${communityIdentifier}, identifier=${identifier}, amount=${amount}, memo=${memo})`,
+    )
+    if (!communityIdentifier || (await isHomeCommunity(communityIdentifier))) {
+      // processing a local sendCoins
+      if (amount.lte(0)) {
+        throw new LogError('Amount to send must be positive', amount)
+      }
+
+      const senderUser = getUser(context)
+
+      // validate recipient user
+      const recipientUser = await findUserByIdentifier(identifier)
+      if (!recipientUser) {
+        throw new LogError('The recipient user was not found', recipientUser)
+      }
+
+      await executeTransaction(amount, memo, senderUser, recipientUser)
+      logger.info('successful executeTransaction', amount, memo, senderUser, recipientUser)
+    } else {
+      // processing a x-community sendCoins
+      logger.debug('processing a x-community transaction...')
     }
-
-    const senderUser = getUser(context)
-
-    // validate recipient user
-    const recipientUser = await findUserByIdentifier(identifier)
-    if (!recipientUser) {
-      throw new LogError('The recipient user was not found', recipientUser)
-    }
-
-    await executeTransaction(amount, memo, senderUser, recipientUser)
-    logger.info('successful executeTransaction', amount, memo, senderUser, recipientUser)
     return true
   }
 }
