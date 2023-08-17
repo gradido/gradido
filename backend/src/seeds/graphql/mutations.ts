@@ -79,8 +79,13 @@ export const sendActivationEmail = gql`
 `
 
 export const sendCoins = gql`
-  mutation ($identifier: String!, $amount: Decimal!, $memo: String!) {
-    sendCoins(identifier: $identifier, amount: $amount, memo: $memo)
+  mutation ($identifier: String!, $amount: Decimal!, $memo: String!, $communityIdentifier: String) {
+    sendCoins(
+      identifier: $identifier
+      amount: $amount
+      memo: $memo
+      communityIdentifier: $communityIdentifier
+    )
   }
 `
 
