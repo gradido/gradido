@@ -3,6 +3,9 @@ import { Contribution as DbContribution } from '@entity/Contribution'
 
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
+import { Connection } from '@typeorm/connection'
+
+import { LogError } from '@/server/LogError'
 
 interface Relations {
   [key: string]: boolean | Relations
@@ -14,11 +17,20 @@ export const findContributions = async (
   withDeleted = false,
   relations: Relations | undefined = undefined,
 ): Promise<[DbContribution[], number]> => {
+  const connection = await Connection.getInstance()
+  if (!connection) {
+    throw new LogError('Cannot connect to db')
+  }
   const requiredWhere = {
     ...(filter.statusFilter?.length && { contributionStatus: In(filter.statusFilter) }),
     ...(filter.userId && { userId: filter.userId }),
     ...(filter.noHashtag && { memo: Not(Like(`%#%`)) }),
   }
+  const queryBuilder = connection.getRepository(DbContribution).createQueryBuilder('Contribution')
+  queryBuilder.where(requiredWhere)
+  return queryBuilder.getManyAndCount()
+  /*
+  
 
   let where =
     filter.query && relations?.user
@@ -65,4 +77,5 @@ export const findContributions = async (
     skip: (paginate.currentPage - 1) * paginate.pageSize,
     take: paginate.pageSize,
   })
+  */
 }
