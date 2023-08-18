@@ -30,20 +30,21 @@ describe('PublicCommunityInfoResolver', () => {
        {
         name
         description
-        createdAt
+        creationDate
         publicKey
       }
     }
   `
 
   describe('getPublicCommunityInfo', () => {
+    let homeCom: DbCommunity
     beforeEach(async () => {
-      const homeCom = new DbCommunity()
+      homeCom = new DbCommunity()
       homeCom.foreign = false
       homeCom.url = 'homeCommunity-url'
       homeCom.name = 'Community-Name'
       homeCom.description = 'Community-Description'
-      homeCom.createdAt = new Date()
+      homeCom.creationDate = new Date()
       homeCom.publicKey = Buffer.from('homeCommunity-publicKey')
       await DbCommunity.insert(homeCom)
     })
@@ -54,7 +55,7 @@ describe('PublicCommunityInfoResolver', () => {
           getPublicCommunityInfo: {
             name: 'Community-Name',
             description: 'Community-Description',
-            createdAt: expect.any(Date),
+            creationDate: homeCom.creationDate?.toISOString(),
             publicKey: expect.stringMatching('homeCommunity-publicKey'),
           },
         },

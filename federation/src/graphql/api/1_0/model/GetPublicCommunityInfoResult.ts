@@ -7,10 +7,10 @@ import { Field, ObjectType } from 'type-graphql'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class GetPublicCommunityInfoResult {
   constructor(dbCom: DbCommunity) {
-    this.publicKey = dbCom.publicKey.toString('hex')
+    this.publicKey = dbCom.publicKey.toString()
     this.name = dbCom.name
     this.description = dbCom.description
-    this.createdAt = dbCom.creationDate
+    this.creationDate = dbCom.creationDate
   }
 
   @Field(() => String)
@@ -20,7 +20,7 @@ export class GetPublicCommunityInfoResult {
   description: string | null
 
   @Field(() => Date)
-  createdAt: Date | null
+  creationDate: Date | null
 
   @Field(() => String)
   publicKey: string
