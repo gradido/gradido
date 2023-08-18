@@ -55,6 +55,8 @@ export async function validateCommunities(): Promise<void> {
           if (pubComInfo) {
             await writeForeignCommunity(dbCom, pubComInfo)
             logger.info(`Federation: write publicInfo of community: name=${pubComInfo.name}`)
+          } else {
+            logger.warn('Federation: missing result of getPublicCommunityInfo')
           }
         } else {
           logger.warn(
@@ -74,7 +76,7 @@ async function writeForeignCommunity(
   dbCom: DbFederatedCommunity,
   pubInfo: PublicCommunityInfo,
 ): Promise<void> {
-  if (!dbCom || !pubInfo || !(dbCom.publicKey.toString('hex') === pubInfo.publicKey)) {
+  if (!dbCom || !pubInfo || !(dbCom.publicKey.toString() === pubInfo.publicKey)) {
     logger.error(
       `Error in writeForeignCommunity: missmatching parameters or publicKey. pubInfo:${JSON.stringify(
         pubInfo,
@@ -85,7 +87,7 @@ async function writeForeignCommunity(
     if (!com) {
       com = DbCommunity.create()
     }
-    com.creationDate = pubInfo.createdAt
+    com.creationDate = pubInfo.creationDate
     com.description = pubInfo.description
     com.foreign = true
     com.name = pubInfo.name

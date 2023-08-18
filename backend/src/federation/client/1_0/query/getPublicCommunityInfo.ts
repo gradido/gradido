@@ -5,7 +5,7 @@ export const getPublicCommunityInfo = gql`
     getPublicCommunityInfo {
       name
       description
-      createdAt
+      creationDate
       publicKey
     }
   }
