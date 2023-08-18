@@ -51,7 +51,7 @@ export class FederationClient {
   }
 
   getPublicCommunityInfo = async (): Promise<PublicCommunityInfo | undefined> => {
-    logger.info(`Federation: getPublicCommunityInfo with endpoint='${this.endpoint}'...`)
+    logger.debug(`Federation: getPublicCommunityInfo with endpoint='${this.endpoint}'...`)
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { data } = await this.client.rawRequest(getPublicCommunityInfo, {})
@@ -63,7 +63,7 @@ export class FederationClient {
         )
         return
       }
-      logger.info(`Federation: getPublicCommunityInfo successful from endpoint=${this.endpoint}`)
+      logger.debug(`Federation: getPublicCommunityInfo successful from endpoint=${this.endpoint}`)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       logger.debug(`publicCommunityInfo:`, data.getPublicCommunityInfo)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
