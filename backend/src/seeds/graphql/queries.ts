@@ -157,6 +157,21 @@ export const getCommunities = gql`
   }
 `
 
+export const getCommunitySelections = gql`
+  query {
+    getCommunitySelections {
+      id
+      foreign
+      name
+      description
+      url
+      creationDate
+      uuid
+      authenticatedAt
+    }
+  }
+`
+
 export const queryTransactionLink = gql`
   query ($code: String!) {
     queryTransactionLink(code: $code) {
