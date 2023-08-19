@@ -2792,11 +2792,28 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
+      it('throw error for invalid ContributionStatus in statusFilter array', async() => {
+        const { errors: errorObjects } = await query({
+          query: adminListContributions,
+          variables: {
+            statusFilter:["INVALID_STATUS"]
+          }
+        })
+        expect(errorObjects).toMatchObject([
+          {
+            message: "Variable \"$statusFilter\" got invalid value \"INVALID_STATUS\" at \"statusFilter[0]\"; Value \"INVALID_STATUS\" does not exist in \"ContributionStatus\" enum.",
+            extensions: {
+              code: "BAD_USER_INPUT"
+            },
+          },
+        ])
+      })
+
       it('returns 17 creations in total', async () => {
         const {
           data: { adminListContributions: contributionListObject },
         } = await query({
-          query: adminListContributions,
+          query: adminListContributions          
         })
         expect(contributionListObject.contributionList).toHaveLength(17)
         expect(contributionListObject).toMatchObject({

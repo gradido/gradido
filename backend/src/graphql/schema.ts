@@ -12,8 +12,9 @@ export const schema = async (): Promise<GraphQLSchema> => {
     resolvers: [path.join(__dirname, 'resolver', `!(*.test).{js,ts}`)],
     authChecker: isAuthorized,
     scalarsMap: [{ type: Decimal, scalar: DecimalScalar }],
+    emitSchemaFile: true,
     validate: {
-      validationError: { target: false },
+      validationError: { target: true },
       skipMissingProperties: true,
       skipNullProperties: true,
       skipUndefinedProperties: false,
