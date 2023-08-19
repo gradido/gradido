@@ -14,7 +14,7 @@ export const schema = async (): Promise<GraphQLSchema> => {
     scalarsMap: [{ type: Decimal, scalar: DecimalScalar }],
     emitSchemaFile: true,
     validate: {
-      validationError: { target: true },
+      validationError: { target: false },
       skipMissingProperties: true,
       skipNullProperties: true,
       skipUndefinedProperties: false,
