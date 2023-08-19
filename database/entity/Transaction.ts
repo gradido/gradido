@@ -1,1 +1,1 @@
-export { Transaction } from './0066-x-community-sendcoins-transactions_table/Transaction'
+export { Transaction } from './0070-add_dlt_transactions_table/Transaction'

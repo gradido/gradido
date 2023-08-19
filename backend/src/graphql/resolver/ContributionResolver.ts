@@ -11,10 +11,10 @@ import { AdminCreateContributionArgs } from '@arg/AdminCreateContributionArgs'
 import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
 import { ContributionArgs } from '@arg/ContributionArgs'
 import { Paginated } from '@arg/Paginated'
+import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
 import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { ContributionType } from '@enum/ContributionType'
-import { Order } from '@enum/Order'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { Contribution, ContributionListResult } from '@model/Contribution'
@@ -53,6 +53,7 @@ import {
 } from './util/creations'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
+import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
 @Resolver()
 export class ContributionResolver {
@@ -119,20 +120,16 @@ export class ContributionResolver {
   async listContributions(
     @Ctx() context: Context,
     @Args()
-    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    paginated: Paginated,
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
     statusFilter?: ContributionStatus[] | null,
   ): Promise<ContributionListResult> {
     const user = getUser(context)
-
-    const [dbContributions, count] = await findContributions({
-      order,
-      currentPage,
-      pageSize,
-      withDeleted: true,
-      relations: { messages: true },
-      userId: user.id,
-      statusFilter,
+    const filter = new SearchContributionsFilterArgs()
+    filter.statusFilter = statusFilter
+    filter.userId = user.id
+    const [dbContributions, count] = await findContributions(paginated, filter, true, {
+      messages: true,
     })
 
     return new ContributionListResult(
@@ -151,16 +148,14 @@ export class ContributionResolver {
   @Query(() => ContributionListResult)
   async listAllContributions(
     @Args()
-    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    paginated: Paginated,
     @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
     statusFilter?: ContributionStatus[] | null,
   ): Promise<ContributionListResult> {
-    const [dbContributions, count] = await findContributions({
-      order,
-      currentPage,
-      pageSize,
-      relations: { user: true },
-      statusFilter,
+    const filter = new SearchContributionsFilterArgs()
+    filter.statusFilter = statusFilter
+    const [dbContributions, count] = await findContributions(paginated, filter, false, {
+      user: true,
     })
 
     return new ContributionListResult(
@@ -356,29 +351,14 @@ export class ContributionResolver {
   @Authorized([RIGHTS.ADMIN_LIST_CONTRIBUTIONS])
   @Query(() => ContributionListResult)
   async adminListContributions(
-    @Args()
-    { currentPage = 1, pageSize = 3, order = Order.DESC }: Paginated,
-    @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
-    statusFilter?: ContributionStatus[] | null,
-    @Arg('userId', () => Int, { nullable: true })
-    userId?: number | null,
-    @Arg('query', () => String, { nullable: true })
-    query?: string | null,
+    @Args() paginated: Paginated,
+    @Args() filter: SearchContributionsFilterArgs,
   ): Promise<ContributionListResult> {
-    const [dbContributions, count] = await findContributions({
-      order,
-      currentPage,
-      pageSize,
-      withDeleted: true,
-      userId,
-      relations: {
-        user: {
-          emailContact: true,
-        },
-        messages: true,
+    const [dbContributions, count] = await findContributions(paginated, filter, true, {
+      user: {
+        emailContact: true,
       },
-      statusFilter,
-      query,
+      messages: true,
     })
 
     return new ContributionListResult(
@@ -518,6 +498,10 @@ export class ContributionResolver {
         await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
         await queryRunner.commitTransaction()
+
+        // trigger to send transaction via dlt-connector
+        void sendTransactionsToDltConnector()
+
         logger.info('creation commited successfuly.')
         void sendContributionConfirmedEmail({
           firstName: user.firstName,
