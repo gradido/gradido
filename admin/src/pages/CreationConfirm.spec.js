@@ -339,6 +339,7 @@ describe('CreationConfirm', () => {
         it('refetches contributions with proper filter', () => {
           expect(adminListContributionsMock).toBeCalledWith({
             currentPage: 1,
+            noHashtag: null,
             order: 'DESC',
             pageSize: 25,
             query: '',
@@ -355,6 +356,7 @@ describe('CreationConfirm', () => {
           it('refetches contributions with proper filter', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
+              noHashtag: null,
               order: 'DESC',
               pageSize: 25,
               query: '',
@@ -372,6 +374,7 @@ describe('CreationConfirm', () => {
           it('refetches contributions with proper filter', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
+              noHashtag: null,
               order: 'DESC',
               pageSize: 25,
               query: '',
@@ -389,6 +392,7 @@ describe('CreationConfirm', () => {
           it('refetches contributions with proper filter', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
+              noHashtag: null,
               order: 'DESC',
               pageSize: 25,
               query: '',
@@ -406,6 +410,7 @@ describe('CreationConfirm', () => {
           it('refetches contributions with proper filter', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
+              noHashtag: null,
               order: 'DESC',
               pageSize: 25,
               query: '',
@@ -427,6 +432,7 @@ describe('CreationConfirm', () => {
               it('calls the API again', () => {
                 expect(adminListContributionsMock).toBeCalledWith({
                   currentPage: 2,
+                  noHashtag: null,
                   order: 'DESC',
                   pageSize: 25,
                   query: '',
@@ -443,6 +449,7 @@ describe('CreationConfirm', () => {
                 it('refetches contributions with proper filter and current page = 1', () => {
                   expect(adminListContributionsMock).toBeCalledWith({
                     currentPage: 1,
+                    noHashtag: null,
                     order: 'DESC',
                     pageSize: 25,
                     query: '',
@@ -465,6 +472,7 @@ describe('CreationConfirm', () => {
         it('calls the API with query', () => {
           expect(adminListContributionsMock).toBeCalledWith({
             currentPage: 1,
+            noHashtag: null,
             order: 'DESC',
             pageSize: 25,
             query: 'query',
@@ -480,6 +488,7 @@ describe('CreationConfirm', () => {
           it('calls the API with empty query', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
+              noHashtag: null,
               order: 'DESC',
               pageSize: 25,
               query: '',

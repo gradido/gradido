@@ -41,6 +41,7 @@ import { calculateBalance } from '@/util/validate'
 import { executeTransaction } from './TransactionResolver'
 import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
+import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkList } from './util/transactionLinkList'
 
 // TODO: do not export, test it inside the resolver
@@ -286,6 +287,7 @@ export class TransactionLinkResolver {
           await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
           await queryRunner.commitTransaction()
+
           await EVENT_CONTRIBUTION_LINK_REDEEM(
             user,
             transaction,
@@ -302,6 +304,8 @@ export class TransactionLinkResolver {
       } finally {
         releaseLock()
       }
+      // trigger to send transaction via dlt-connector
+      void sendTransactionsToDltConnector()
       return true
     } else {
       const now = new Date()

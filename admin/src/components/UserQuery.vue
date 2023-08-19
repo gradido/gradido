@@ -5,7 +5,7 @@
         type="text"
         class="test-input-criteria"
         v-model="currentValue"
-        :placeholder="$t('user_search')"
+        :placeholder="placeholderText"
       ></b-form-input>
       <b-input-group-append class="test-click-clear-criteria" @click="currentValue = ''">
         <b-input-group-text class="pointer">
@@ -20,11 +20,17 @@ export default {
   name: 'UserQuery',
   props: {
     value: { type: String, default: '' },
+    placeholder: { type: String, default: '' },
   },
   data() {
     return {
       currentValue: this.value,
     }
+  },
+  computed: {
+    placeholderText() {
+      return this.placeholder || this.$t('user_search')
+    },
   },
   watch: {
     currentValue() {

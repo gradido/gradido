@@ -1,10 +1,12 @@
-/** eslint-disable @typescript-eslint/no-unsafe-call */
 /** eslint-disable @typescript-eslint/no-unsafe-assignment */
+/** eslint-disable @typescript-eslint/no-unsafe-call */
 import { IsNull } from '@dbTools/typeorm'
+import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 
 // eslint-disable-next-line camelcase
 import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
+import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
 import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
 import { backendLogger as logger } from '@/server/logger'
 
@@ -48,7 +50,14 @@ export async function validateCommunities(): Promise<void> {
         const pubKey = await client.getPublicKey()
         if (pubKey && pubKey === dbCom.publicKey.toString()) {
           await DbFederatedCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
-          logger.debug('Federation: verified community with', dbCom.endPoint)
+          logger.info(`Federation: verified community with:`, dbCom.endPoint)
+          const pubComInfo = await client.getPublicCommunityInfo()
+          if (pubComInfo) {
+            await writeForeignCommunity(dbCom, pubComInfo)
+            logger.info(`Federation: write publicInfo of community: name=${pubComInfo.name}`)
+          } else {
+            logger.warn('Federation: missing result of getPublicCommunityInfo')
+          }
         } else {
           logger.warn(
             'Federation: received not matching publicKey:',
@@ -60,5 +69,30 @@ export async function validateCommunities(): Promise<void> {
     } catch (err) {
       logger.error(`Error:`, err)
     }
+  }
+}
+
+async function writeForeignCommunity(
+  dbCom: DbFederatedCommunity,
+  pubInfo: PublicCommunityInfo,
+): Promise<void> {
+  if (!dbCom || !pubInfo || !(dbCom.publicKey.toString() === pubInfo.publicKey)) {
+    logger.error(
+      `Error in writeForeignCommunity: missmatching parameters or publicKey. pubInfo:${JSON.stringify(
+        pubInfo,
+      )}`,
+    )
+  } else {
+    let com = await DbCommunity.findOneBy({ publicKey: dbCom.publicKey })
+    if (!com) {
+      com = DbCommunity.create()
+    }
+    com.creationDate = pubInfo.creationDate
+    com.description = pubInfo.description
+    com.foreign = true
+    com.name = pubInfo.name
+    com.publicKey = dbCom.publicKey
+    com.url = dbCom.endPoint
+    await DbCommunity.save(com)
   }
 }
