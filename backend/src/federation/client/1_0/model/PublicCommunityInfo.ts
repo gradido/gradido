@@ -1,0 +1,6 @@
+export interface PublicCommunityInfo {
+  name: string
+  description: string
+  creationDate: Date
+  publicKey: string
+}

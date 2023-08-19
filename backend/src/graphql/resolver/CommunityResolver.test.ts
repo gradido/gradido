@@ -6,12 +6,13 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Connection } from '@dbTools/typeorm'
+import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
-import { testEnvironment } from '@test/helpers'
+import { cleanDB, testEnvironment } from '@test/helpers'
 
-import { getCommunities } from '@/seeds/graphql/queries'
+import { getCommunities, getCommunitySelections } from '@/seeds/graphql/queries'
 
 // to do: We need a setup for the tests that closes the connection
 let query: ApolloServerTestClient['query'], con: Connection
@@ -29,6 +30,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
+  await cleanDB()
   await con.close()
 })
 
@@ -55,6 +57,7 @@ describe('CommunityResolver', () => {
 
     describe('only home-communities entries', () => {
       beforeEach(async () => {
+        await cleanDB()
         jest.clearAllMocks()
 
         homeCom1 = DbFederatedCommunity.create()
@@ -223,6 +226,149 @@ describe('CommunityResolver', () => {
                 lastErrorAt: null,
                 createdAt: foreignCom1.createdAt.toISOString(),
                 updatedAt: null,
+              },
+            ],
+          },
+        })
+      })
+    })
+  })
+
+  describe('getCommunitySelections', () => {
+    let homeCom1: DbCommunity
+    let foreignCom1: DbCommunity
+    let foreignCom2: DbCommunity
+
+    describe('with empty list', () => {
+      beforeEach(async () => {
+        await cleanDB()
+        jest.clearAllMocks()
+      })
+
+      it('returns no community entry', async () => {
+        // const result: Community[] = await query({ query: getCommunities })
+        // expect(result.length).toEqual(0)
+        await expect(query({ query: getCommunitySelections })).resolves.toMatchObject({
+          data: {
+            getCommunitySelections: [],
+          },
+        })
+      })
+    })
+
+    describe('with one home-community entry', () => {
+      beforeEach(async () => {
+        await cleanDB()
+        jest.clearAllMocks()
+
+        homeCom1 = DbCommunity.create()
+        homeCom1.foreign = false
+        homeCom1.url = 'http://localhost/api'
+        homeCom1.publicKey = Buffer.from('publicKey-HomeCommunity')
+        homeCom1.privateKey = Buffer.from('privateKey-HomeCommunity')
+        homeCom1.communityUuid = 'HomeCom-UUID'
+        homeCom1.authenticatedAt = new Date()
+        homeCom1.name = 'HomeCommunity-name'
+        homeCom1.description = 'HomeCommunity-description'
+        homeCom1.creationDate = new Date()
+        await DbCommunity.insert(homeCom1)
+      })
+
+      it('returns 1 home-community entry', async () => {
+        await expect(query({ query: getCommunitySelections })).resolves.toMatchObject({
+          data: {
+            getCommunitySelections: [
+              {
+                id: expect.any(Number),
+                foreign: homeCom1.foreign,
+                name: homeCom1.name,
+                description: homeCom1.description,
+                url: homeCom1.url,
+                creationDate: homeCom1.creationDate?.toISOString(),
+                uuid: homeCom1.communityUuid,
+                authenticatedAt: homeCom1.authenticatedAt?.toISOString(),
+              },
+            ],
+          },
+        })
+      })
+    })
+
+    describe('with several community entries', () => {
+      beforeEach(async () => {
+        await cleanDB()
+        jest.clearAllMocks()
+
+        homeCom1 = DbCommunity.create()
+        homeCom1.foreign = false
+        homeCom1.url = 'http://localhost/api'
+        homeCom1.publicKey = Buffer.from('publicKey-HomeCommunity')
+        homeCom1.privateKey = Buffer.from('privateKey-HomeCommunity')
+        homeCom1.communityUuid = 'HomeCom-UUID'
+        homeCom1.authenticatedAt = new Date()
+        homeCom1.name = 'HomeCommunity-name'
+        homeCom1.description = 'HomeCommunity-description'
+        homeCom1.creationDate = new Date()
+        await DbCommunity.insert(homeCom1)
+
+        foreignCom1 = DbCommunity.create()
+        foreignCom1.foreign = true
+        foreignCom1.url = 'http://stage-2.gradido.net/api'
+        foreignCom1.publicKey = Buffer.from('publicKey-stage-2_Community')
+        foreignCom1.privateKey = Buffer.from('privateKey-stage-2_Community')
+        foreignCom1.communityUuid = 'Stage2-Com-UUID'
+        foreignCom1.authenticatedAt = new Date()
+        foreignCom1.name = 'Stage-2_Community-name'
+        foreignCom1.description = 'Stage-2_Community-description'
+        foreignCom1.creationDate = new Date()
+        await DbCommunity.insert(foreignCom1)
+
+        foreignCom2 = DbCommunity.create()
+        foreignCom2.foreign = true
+        foreignCom2.url = 'http://stage-3.gradido.net/api'
+        foreignCom2.publicKey = Buffer.from('publicKey-stage-3_Community')
+        foreignCom2.privateKey = Buffer.from('privateKey-stage-3_Community')
+        foreignCom2.communityUuid = 'Stage3-Com-UUID'
+        foreignCom2.authenticatedAt = new Date()
+        foreignCom2.name = 'Stage-3_Community-name'
+        foreignCom2.description = 'Stage-3_Community-description'
+        foreignCom2.creationDate = new Date()
+        await DbCommunity.insert(foreignCom2)
+      })
+
+      it('returns 3 community entries', async () => {
+        await expect(query({ query: getCommunitySelections })).resolves.toMatchObject({
+          data: {
+            getCommunitySelections: [
+              {
+                id: expect.any(Number),
+                foreign: homeCom1.foreign,
+                name: homeCom1.name,
+                description: homeCom1.description,
+                url: homeCom1.url,
+                creationDate: homeCom1.creationDate?.toISOString(),
+                uuid: homeCom1.communityUuid,
+                authenticatedAt: homeCom1.authenticatedAt?.toISOString(),
+              },
+              {
+                id: expect.any(Number),
+                foreign: foreignCom1.foreign,
+                name: foreignCom1.name,
+                description: foreignCom1.description,
+                url: foreignCom1.url,
+                creationDate: foreignCom1.creationDate?.toISOString(),
+                uuid: foreignCom1.communityUuid,
+                authenticatedAt: foreignCom1.authenticatedAt?.toISOString(),
+              },
+              {
+                id: expect.any(Number),
+                foreign: foreignCom2.foreign,
+                name: foreignCom2.name,
+                description: foreignCom2.description,
+                url: foreignCom2.url,
+                creationDate: foreignCom2.creationDate?.toISOString(),
+                uuid: foreignCom2.communityUuid,
+                authenticatedAt: foreignCom2.authenticatedAt?.toISOString(),
               },
             ],
           },
