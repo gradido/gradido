@@ -51,6 +51,8 @@ services:
       - internal-net
     environment:
       - NODE_ENV="development"
+    ports:
+      - 9229:9229
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
