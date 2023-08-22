@@ -2,12 +2,10 @@
 <template>
   <div class="creation-confirm">
     <user-query class="mb-2 mt-2" v-model="query" :placeholder="$t('user_memo_search')" />
-    <div class="mb-4">
-      <b-button class="noHashtag" variant="light" @click="swapNoHashtag" v-b-tooltip="tooltipText">
-        <span :style="hashtagColor">{{ $t('hashtag_symbol') }}</span>
-        {{ noHashtag ? $t('no_hashtag') : $t('no_filter') }}
-      </b-button>
-    </div>
+    <label class="mb-4">
+      <input type="checkbox" class="noHashtag" v-model="noHashtag" @change="swapNoHashtag" />
+      <span class="ml-2" v-b-tooltip="$t('no_hashtag_tooltip')">{{ $t('no_hashtag') }}</span>
+    </label>
     <div>
       <b-tabs v-model="tabIndex" content-class="mt-3" fill>
         <b-tab active :title-link-attributes="{ 'data-test': 'open' }">
@@ -134,7 +132,6 @@ export default {
   },
   methods: {
     swapNoHashtag() {
-      this.noHashtag = !!(this.noHashtag === null || this.noHashtag === false)
       this.query()
     },
     deleteCreation() {
@@ -209,12 +206,6 @@ export default {
     },
   },
   computed: {
-    hashtagColor() {
-      return this.noHashtag ? 'color: red' : 'color: black'
-    },
-    tooltipText() {
-      return this.noHashtag ? this.$t('no_hashtag_tooltip') : this.$t('no_filter_tooltip')
-    },
     fields() {
       return [
         [
