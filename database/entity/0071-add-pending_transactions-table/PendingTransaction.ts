@@ -9,6 +9,9 @@ export class PendingTransaction extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
+  @Column({ name: 'state', unsigned: true, nullable: false })
+  state: number
+
   @Column({ type: 'int', unsigned: true, unique: true, nullable: true, default: null })
   previous: number | null
 
