@@ -5,8 +5,6 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import { SendCoinsArgs } from './model/SendCoinsArgs'
-import { commitSendCoins } from './query/commitSendCoins'
-import { revertSendCoins } from './query/revertSendCoins'
 import { voteForSendCoins } from './query/voteForSendCoins'
 
 // eslint-disable-next-line camelcase
@@ -51,6 +49,7 @@ export class SendCoinsClient {
     }
   }
 
+  /*
   revertSendCoins = async (args: SendCoinsArgs): Promise<boolean> => {
     logger.debug(`X-Com: revertSendCoins against endpoint='${this.endpoint}'...`)
     try {
@@ -84,4 +83,5 @@ export class SendCoinsClient {
       throw new LogError(`X-Com: commitSendCoins failed for endpoint=${this.endpoint}`, err)
     }
   }
+  */
 }
