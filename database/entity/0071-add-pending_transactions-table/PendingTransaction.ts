@@ -1,8 +1,7 @@
 /* eslint-disable no-use-before-define */
 import { Decimal } from 'decimal.js-light'
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
-import { Contribution } from '../Contribution'
 
 @Entity('pending_transactions')
 export class PendingTransaction extends BaseEntity {
@@ -48,7 +47,7 @@ export class PendingTransaction extends BaseEntity {
   @Column({
     name: 'balance_date',
     type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP',
+    default: () => 'CURRENT_TIMESTAMP(3)',
     nullable: false,
   })
   balanceDate: Date
@@ -98,6 +97,15 @@ export class PendingTransaction extends BaseEntity {
   userName: string | null
 
   @Column({
+    name: 'user_community_uuid',
+    type: 'varchar',
+    length: 36,
+    nullable: false,
+    collation: 'utf8mb4_unicode_ci',
+  })
+  userCommunityUuid: string
+
+  @Column({
     name: 'linked_user_id',
     type: 'int',
     unsigned: true,
@@ -125,6 +133,15 @@ export class PendingTransaction extends BaseEntity {
   linkedUserName: string | null
 
   @Column({
+    name: 'linked_user_community_uuid',
+    type: 'varchar',
+    length: 36,
+    nullable: false,
+    collation: 'utf8mb4_unicode_ci',
+  })
+  linkedUserCommunityUuid: string
+
+  @Column({
     name: 'linked_transaction_id',
     type: 'int',
     unsigned: true,
@@ -132,12 +149,4 @@ export class PendingTransaction extends BaseEntity {
     default: null,
   })
   linkedTransactionId?: number | null
-
-  @OneToOne(() => Contribution, (contribution) => contribution.transaction)
-  @JoinColumn({ name: 'id', referencedColumnName: 'transactionId' })
-  contribution?: Contribution | null
-
-  @OneToOne(() => PendingTransaction)
-  @JoinColumn({ name: 'previous' })
-  previousPendingTransaction?: PendingTransaction | null
 }

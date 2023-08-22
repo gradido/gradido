@@ -7,6 +7,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(`
     CREATE TABLE pending_transactions (
       id int unsigned NOT NULL AUTO_INCREMENT,
+      state int(10) NOT NULL,
       previous int(10) unsigned DEFAULT NULL NULL,
       type_id int(10) DEFAULT NULL NULL,
       transaction_link_id int(10) unsigned DEFAULT NULL NULL,
@@ -20,11 +21,12 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       user_id int(10) unsigned NOT NULL,
       user_gradido_id char(36) NOT NULL,
       user_name varchar(512) COLLATE utf8mb4_unicode_ci DEFAULT NULL NULL,
+      user_community_uuid  char(36) NOT NULL,
       linked_user_id int(10) unsigned DEFAULT NULL NULL,
       linked_user_gradido_id char(36) NOT NULL,
       linked_user_name varchar(512) COLLATE utf8mb4_unicode_ci DEFAULT NULL NULL,
+      linked_user_community_uuid  char(36) NOT NULL,
       linked_transaction_id int(10) DEFAULT NULL NULL,
-      state int(10) DEFAULT NULL NULL,
       PRIMARY KEY (id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
 }
