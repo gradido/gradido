@@ -20,6 +20,7 @@ module.exports = {
     '@model/(.*)': '<rootDir>/src/graphql/model/$1',
     '@union/(.*)': '<rootDir>/src/graphql/union/$1',
     '@repository/(.*)': '<rootDir>/src/typeorm/repository/$1',
+    '@typeorm/(.*)': '<rootDir>/src/typeorm/$1',
     '@test/(.*)': '<rootDir>/test/$1',
     '@entity/(.*)':
       // eslint-disable-next-line n/no-process-env

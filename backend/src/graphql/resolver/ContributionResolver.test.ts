@@ -2786,6 +2786,14 @@ describe('ContributionResolver', () => {
           mutation: login,
           variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
         })
+        await mutate({
+          mutation: createContribution,
+          variables: {
+            amount: 100.0,
+            memo: '#firefighters',
+            creationDate: new Date().toString(),
+          },
+        })
       })
 
       afterAll(() => {
@@ -2810,16 +2818,26 @@ describe('ContributionResolver', () => {
         ])
       })
 
-      it('returns 17 creations in total', async () => {
+      it('returns 18 creations in total', async () => {
         const {
           data: { adminListContributions: contributionListObject },
         } = await query({
           query: adminListContributions,
         })
-        expect(contributionListObject.contributionList).toHaveLength(17)
+        // console.log('17 contributions: %s', JSON.stringify(contributionListObject, null, 2))
+        expect(contributionListObject.contributionList).toHaveLength(18)
         expect(contributionListObject).toMatchObject({
-          contributionCount: 17,
+          contributionCount: 18,
           contributionList: expect.arrayContaining([
+            expect.objectContaining({
+              amount: expect.decimalEqual(100),
+              firstName: 'Peter',
+              id: expect.any(Number),
+              lastName: 'Lustig',
+              memo: '#firefighters',
+              messagesCount: 0,
+              status: 'PENDING',
+            }),
             expect.objectContaining({
               amount: expect.decimalEqual(50),
               firstName: 'Bibi',
@@ -2991,23 +3009,23 @@ describe('ContributionResolver', () => {
         })
         expect(contributionListObject.contributionList).toHaveLength(2)
         expect(contributionListObject).toMatchObject({
-          contributionCount: 4,
+          contributionCount: 5,
           contributionList: expect.arrayContaining([
+            expect.objectContaining({
+              amount: '100',
+              firstName: 'Peter',
+              id: expect.any(Number),
+              lastName: 'Lustig',
+              memo: '#firefighters',
+              messagesCount: 0,
+              status: 'PENDING',
+            }),
             expect.objectContaining({
               amount: '400',
               firstName: 'Peter',
               id: expect.any(Number),
               lastName: 'Lustig',
               memo: 'Herzlich Willkommen bei Gradido!',
-              messagesCount: 0,
-              status: 'PENDING',
-            }),
-            expect.objectContaining({
-              amount: '100',
-              firstName: 'Peter',
-              id: expect.any(Number),
-              lastName: 'Lustig',
-              memo: 'Test env contribution',
               messagesCount: 0,
               status: 'PENDING',
             }),
@@ -3035,6 +3053,60 @@ describe('ContributionResolver', () => {
             query: adminListContributions,
             variables: {
               query: 'Peter',
+            },
+          })
+          expect(contributionListObject.contributionList).toHaveLength(4)
+          expect(contributionListObject).toMatchObject({
+            contributionCount: 4,
+            contributionList: expect.arrayContaining([
+              expect.objectContaining({
+                amount: expect.decimalEqual(100),
+                firstName: 'Peter',
+                id: expect.any(Number),
+                lastName: 'Lustig',
+                memo: '#firefighters',
+                messagesCount: 0,
+                status: 'PENDING',
+              }),
+              expect.objectContaining({
+                amount: expect.decimalEqual(400),
+                firstName: 'Peter',
+                id: expect.any(Number),
+                lastName: 'Lustig',
+                memo: 'Herzlich Willkommen bei Gradido!',
+                messagesCount: 0,
+                status: 'PENDING',
+              }),
+              expect.objectContaining({
+                amount: expect.decimalEqual(100),
+                firstName: 'Peter',
+                id: expect.any(Number),
+                lastName: 'Lustig',
+                memo: 'Test env contribution',
+                messagesCount: 0,
+                status: 'PENDING',
+              }),
+              expect.objectContaining({
+                amount: expect.decimalEqual(200),
+                firstName: 'Peter',
+                id: expect.any(Number),
+                lastName: 'Lustig',
+                memo: 'Das war leider zu Viel!',
+                messagesCount: 0,
+                status: 'DELETED',
+              }),
+            ]),
+          })
+        })
+
+        it('returns only contributions of the queried user without hashtags', async () => {
+          const {
+            data: { adminListContributions: contributionListObject },
+          } = await query({
+            query: adminListContributions,
+            variables: {
+              query: 'Peter',
+              noHashtag: true,
             },
           })
           expect(contributionListObject.contributionList).toHaveLength(3)
@@ -3069,6 +3141,48 @@ describe('ContributionResolver', () => {
                 status: 'DELETED',
               }),
             ]),
+          })
+        })
+
+        it('returns only contributions with #firefighter', async () => {
+          const {
+            data: { adminListContributions: contributionListObject },
+          } = await query({
+            query: adminListContributions,
+            variables: {
+              query: '#firefighter',
+            },
+          })
+          expect(contributionListObject.contributionList).toHaveLength(1)
+          expect(contributionListObject).toMatchObject({
+            contributionCount: 1,
+            contributionList: expect.arrayContaining([
+              expect.objectContaining({
+                amount: expect.decimalEqual(100),
+                firstName: 'Peter',
+                id: expect.any(Number),
+                lastName: 'Lustig',
+                memo: '#firefighters',
+                messagesCount: 0,
+                status: 'PENDING',
+              }),
+            ]),
+          })
+        })
+
+        it('returns no contributions with #firefighter and no hashtag', async () => {
+          const {
+            data: { adminListContributions: contributionListObject },
+          } = await query({
+            query: adminListContributions,
+            variables: {
+              query: '#firefighter',
+              noHashtag: true,
+            },
+          })
+          expect(contributionListObject.contributionList).toHaveLength(0)
+          expect(contributionListObject).toMatchObject({
+            contributionCount: 0,
           })
         })
 
