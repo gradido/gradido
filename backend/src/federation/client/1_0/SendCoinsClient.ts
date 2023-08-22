@@ -5,6 +5,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import { SendCoinsArgs } from './model/SendCoinsArgs'
+import { commitSendCoins } from './query/commitSendCoins'
 import { revertSendCoins } from './query/revertSendCoins'
 import { voteForSendCoins } from './query/voteForSendCoins'
 
@@ -64,6 +65,23 @@ export class SendCoinsClient {
       return true
     } catch (err) {
       throw new LogError(`X-Com: revertSendCoins failed for endpoint=${this.endpoint}`, err)
+    }
+  }
+
+  commitSendCoins = async (args: SendCoinsArgs): Promise<boolean> => {
+    logger.debug(`X-Com: commitSendCoins against endpoint='${this.endpoint}'...`)
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const { data } = await this.client.rawRequest(commitSendCoins, { args })
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (!data?.commitSendCoins?.acknowledged) {
+        logger.warn('X-Com: commitSendCoins without response data from endpoint', this.endpoint)
+        return false
+      }
+      logger.debug(`X-Com: commitSendCoins successful from endpoint=${this.endpoint}`)
+      return true
+    } catch (err) {
+      throw new LogError(`X-Com: commitSendCoins failed for endpoint=${this.endpoint}`, err)
     }
   }
 }
