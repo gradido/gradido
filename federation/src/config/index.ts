@@ -12,13 +12,13 @@ Decimal.set({
 
 const constants = {
   DB_VERSION: '0071-add-pending_transactions-table',
-  // DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
+  DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v1.2023-01-09',
+    EXPECTED: 'v2.2023-08-24',
     CURRENT: '',
   },
 }
