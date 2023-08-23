@@ -4,7 +4,7 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
-  OneToMany,
+  OneToOne,
   JoinColumn,
 } from 'typeorm'
 import { Decimal } from 'decimal.js-light'
@@ -74,6 +74,6 @@ export class TransactionDraft {
   @Column({ name: 'protocol_version', type: 'int', default: 1 })
   protocolVersion: number
 
-  @OneToMany(() => ConfirmedTransaction, (transaction) => transaction.transactionDraft)
-  confirmedTransactions?: ConfirmedTransaction[]
+  @OneToOne(() => ConfirmedTransaction, (transaction) => transaction.transactionDraft)
+  confirmedTransaction?: ConfirmedTransaction
 }

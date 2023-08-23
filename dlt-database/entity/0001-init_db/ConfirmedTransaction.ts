@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToOne,
 } from 'typeorm'
 import { Decimal } from 'decimal.js-light'
 
@@ -17,7 +18,7 @@ export class ConfirmedTransaction {
   @PrimaryGeneratedColumn('increment', { unsigned: true, type: 'bigint' })
   id: number
 
-  @ManyToOne(() => TransactionDraft, (draft) => draft.confirmedTransactions)
+  @OneToOne(() => TransactionDraft, (draft) => draft.confirmedTransaction)
   @JoinColumn({ name: 'transaction_draft_id' })
   transactionDraft: TransactionDraft
 
@@ -33,6 +34,9 @@ export class ConfirmedTransaction {
   @ManyToOne(() => Account, (account) => account.confirmedTransactions)
   @JoinColumn({ name: 'account_id' })
   account: Account
+
+  @Column({ name: 'account_id', type: 'int', unsigned: true })
+  accountId: number
 
   @Column({
     name: 'account_balance',
