@@ -11,7 +11,7 @@ Decimal.set({
 */
 
 const constants = {
-  DB_VERSION: '0070-add_dlt_transactions_table',
+  DB_VERSION: '0071-add-pending_transactions-table',
   // DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
