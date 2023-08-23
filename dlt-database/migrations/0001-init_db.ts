@@ -54,6 +54,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`created_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
       \`confirmed_at\` datetime DEFAULT NULL,
       PRIMARY KEY (\`id\`),
+      UNIQUE KEY \`pubkey\` (\`pubkey\`),
       FOREIGN KEY (\`gmw_account_id\`) REFERENCES accounts(id),
       FOREIGN KEY (\`auf_account_id\`) REFERENCES accounts(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`)
