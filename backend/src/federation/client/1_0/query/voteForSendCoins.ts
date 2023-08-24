@@ -4,6 +4,7 @@ export const voteForSendCoins = gql`
   mutation (
     $communityReceiverIdentifier: String!
     $userReceiverIdentifier: String!
+    $creationDate: Date!
     $amount: Decimal!
     $memo: String!
     $communitySenderIdentifier: String!
@@ -13,13 +14,12 @@ export const voteForSendCoins = gql`
     voteForSendCoins(
       communityReceiverIdentifier: $communityReceiverIdentifier
       userReceiverIdentifier: $userReceiverIdentifier
+      creationDate: $creationDate
       amount: $amount
       memo: $memo
       communitySenderIdentifier: $communitySenderIdentifier
       userSenderIdentifier: $userSenderIdentifier
       userSenderName: $userSenderName
-    ) {
-      vote
-    }
+    )
   }
 `

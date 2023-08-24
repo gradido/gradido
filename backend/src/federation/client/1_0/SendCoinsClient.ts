@@ -33,7 +33,7 @@ export class SendCoinsClient {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { data } = await this.client.rawRequest(voteForSendCoins, { args })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!data?.voteForSendCoins?.vote) {
+      if (!data?.voteForSendCoins) {
         logger.warn('X-Com: voteForSendCoins without response data from endpoint', this.endpoint)
         return false
       }
