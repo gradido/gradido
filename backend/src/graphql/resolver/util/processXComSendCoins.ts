@@ -16,9 +16,8 @@ import { backendLogger as logger } from '@/server/logger'
 import { calculateSenderBalance } from '@/util/calculateSenderBalance'
 import { fullName } from '@/util/utilities'
 
-export async function processXComSendCoins(
+export async function processXComPendingSendCoins(
   receiverFCom: DbFederatedCommunity,
-  senderFCom: DbFederatedCommunity,
   receiverCom: DbCommunity,
   senderCom: DbCommunity,
   creationDate: Date,
@@ -28,11 +27,23 @@ export async function processXComSendCoins(
   recipient: dbUser,
 ): Promise<boolean> {
   try {
+    logger.debug(
+      `XCom: processXComPendingSendCoins...`,
+      receiverFCom,
+      receiverCom,
+      senderCom,
+      creationDate,
+      amount,
+      memo,
+      sender,
+      recipient,
+    )
     // first calculate the sender balance and check if the transaction is allowed
     const senderBalance = await calculateSenderBalance(sender.id, amount.mul(-1), creationDate)
     if (!senderBalance) {
       throw new LogError('User has not enough GDD or amount is < 0', senderBalance)
     }
+    logger.debug(`X-Com: calculated senderBalance = `, senderBalance)
 
     const client = SendCoinsClientFactory.getInstance(receiverFCom)
     // eslint-disable-next-line camelcase
@@ -50,7 +61,9 @@ export async function processXComSendCoins(
         : 'homeCom-UUID'
       args.userSenderIdentifier = sender.gradidoID
       args.userSenderName = fullName(sender.firstName, sender.lastName)
+      logger.debug(`X-Com: ready for voteForSendCoins with args=`, args)
       const recipientName = await client.voteForSendCoins(args)
+      logger.debug(`X-Com: returnd from voteForSendCoins:`, recipientName)
       if (recipientName) {
         // writing the pending transaction on receiver-side was successfull, so now write the sender side
         try {
@@ -72,19 +85,26 @@ export async function processXComSendCoins(
           if (senderCom.communityUuid) pendingTx.userCommunityUuid = senderCom.communityUuid
           pendingTx.userGradidoID = sender.gradidoID
           pendingTx.userName = fullName(sender.firstName, sender.lastName)
+          logger.debug(`X-Com: initialized sender pendingTX=`, pendingTx)
 
           await DbPendingTransaction.insert(pendingTx)
+          logger.debug(`X-Com: sender pendingTx successfully inserted...`)
         } catch (err) {
           logger.error(`Error in writing sender pending transaction: `, err)
           // revert the existing pending transaction on receiver side
           let revertCount = 0
+          logger.debug(`X-Com: first try to revertSendCoins of receiver`)
           do {
             if (await client.revertSendCoins(args)) {
-              logger.debug('revertSendCoins()-1_0... successfull')
+              logger.debug(`revertSendCoins()-1_0... successfull after revertCount=`, revertCount)
+              // treat revertingSendCoins as an error of the whole sendCoins-process
               throw new LogError('Error in writing sender pending transaction: `, err')
             }
           } while (CONFIG.FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS > revertCount++)
-          throw new LogError('Error in reverting receiver pending transaction even after retries')
+          throw new LogError(
+            `Error in reverting receiver pending transaction even after revertCount=`,
+            revertCount,
+          )
         }
         logger.debug(`voteForSendCoins()-1_0... successfull`)
       }
