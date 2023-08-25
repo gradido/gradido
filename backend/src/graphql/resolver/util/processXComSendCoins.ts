@@ -77,7 +77,14 @@ export async function processXComSendCoins(
         } catch (err) {
           logger.error(`Error in writing sender pending transaction: `, err)
           // revert the existing pending transaction on receiver side
-          // TODO in the issue #3186
+          let revertCount = 0
+          do {
+            if (await client.revertSendCoins(args)) {
+              logger.debug('revertSendCoins()-1_0... successfull')
+              throw new LogError('Error in writing sender pending transaction: `, err')
+            }
+          } while (CONFIG.FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS > revertCount++)
+          throw new LogError('Error in reverting receiver pending transaction even after retries')
         }
         logger.debug(`voteForSendCoins()-1_0... successfull`)
       }
