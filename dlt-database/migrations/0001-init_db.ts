@@ -35,6 +35,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`type\` tinyint unsigned NOT NULL,
       \`created_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
       \`confirmed_at\` datetime DEFAULT NULL,
+      \`balance\` decimal(40,20) NOT NULL DEFAULT 0,
+      \`balance_date\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, 
       PRIMARY KEY (\`id\`),
       UNIQUE KEY \`pubkey\` (\`pubkey\`),
       FOREIGN KEY (\`user_id\`) REFERENCES users(id)

@@ -14,6 +14,8 @@ import { User } from './User'
 import { Community } from './Community'
 import { TransactionRecipe } from './TransactionRecipe'
 import { ConfirmedTransaction } from './ConfirmedTransaction'
+import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
+import Decimal from 'decimal.js-light'
 
 @Entity('accounts')
 export class Account {
@@ -41,12 +43,23 @@ export class Account {
     name: 'created_at',
     type: 'datetime',
     default: () => 'CURRENT_TIMESTAMP',
-    nullable: false,
   })
   createdAt: Date
 
   @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })
   confirmedAt?: Date
+
+  @Column({
+    type: 'decimal',
+    precision: 40,
+    scale: 20,
+    default: 0,
+    transformer: DecimalTransformer,
+  })
+  balance: Decimal
+
+  @Column({ name: 'balance_date', type: 'datetime' })
+  balanceDate: Date
 
   @OneToOne(() => Community, (community) => community.gmwAccount)
   gmwCommunity?: Community
