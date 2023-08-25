@@ -11,6 +11,7 @@ import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { calculateRecepientBalance } from '@/graphql/util/calculateRecepientBalance'
 import Decimal from 'decimal.js-light'
 import { fullName } from '@/graphql/util/fullName'
+import { SendCoinsResult } from '../model/SendCoinsResult'
 
 @Resolver()
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -28,7 +29,8 @@ export class SendCoinsResolver {
       userSenderIdentifier,
       userSenderName,
     }: SendCoinsArgs,
-  ): Promise<boolean> {
+  ): Promise<SendCoinsResult> {
+    const result = new SendCoinsResult()
     logger.debug(`voteForSendCoins() via apiVersion=1_0 ...`)
     try {
       // first check if receiver community is correct
@@ -68,10 +70,13 @@ export class SendCoinsResolver {
       pendingTx.userName = fullName(receiverUser.firstName, receiverUser.lastName)
 
       await DbPendingTransaction.insert(pendingTx)
+      result.vote = true
+      result.receiverFirstName = receiverUser.firstName
+      result.receiverLastName = receiverUser.lastName
       logger.debug(`voteForSendCoins()-1_0... successfull`)
     } catch (err) {
       throw new LogError(`Error in voteForSendCoins: `, err)
     }
-    return true
+    return result
   }
 }

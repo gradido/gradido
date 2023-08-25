@@ -6,6 +6,7 @@ import { backendLogger as logger } from '@/server/logger'
 
 import { SendCoinsArgs } from './model/SendCoinsArgs'
 import { voteForSendCoins } from './query/voteForSendCoins'
+import { SendCoinsResult } from './model/SendCoinsResult'
 
 // eslint-disable-next-line camelcase
 export class SendCoinsClient {
@@ -27,23 +28,25 @@ export class SendCoinsClient {
     })
   }
 
-  voteForSendCoins = async (args: SendCoinsArgs): Promise<boolean> => {
+  voteForSendCoins = async (args: SendCoinsArgs): Promise<SendCoinsResult | null> => {
     logger.debug('X-Com: voteForSendCoins against endpoint', this.endpoint)
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { data } = await this.client.rawRequest(voteForSendCoins, { args })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!data?.voteForSendCoins) {
-        logger.warn('X-Com: voteForSendCoins without response data from endpoint', this.endpoint)
-        return false
+      if (!data?.voteForSendCoins?.SendCoinsResult.vote) {
+        logger.warn(
+          'X-Com: voteForSendCoins failed with: ',
+          data?.voteForSendCoins?.SendCoinsResult,
+        )
+        return null
       }
       logger.debug(
-        'X-Com: voteForSendCoins successful from endpoint',
-        this.endpoint,
+        'X-Com: voteForSendCoins successful with result=',
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        data.voteForSendCoins.vote,
+        data.voteForSendCoins.SendCoinsResult,
       )
-      return true
+      return data.voteForSendCoins.SendCoinsResult
     } catch (err) {
       throw new LogError(`X-Com: voteForSendCoins failed for endpoint=${this.endpoint}:`, err)
     }
