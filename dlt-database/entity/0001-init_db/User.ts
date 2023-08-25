@@ -22,7 +22,7 @@ export class User extends BaseEntity {
   @Column({
     name: 'created_at',
     type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP',
+    default: () => 'CURRENT_TIMESTAMP(3)',
   })
   createdAt: Date
 
