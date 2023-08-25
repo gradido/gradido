@@ -7,7 +7,9 @@ The Path for key derivation contain the gradido id, and derivation index of acco
 Gradido ID: 03857ac1-9cc2-483e-8a91-e5b10f5b8d16
 Derivation Index: 1 
 Key derivation Path:
+```
 m/03857ac1'/9cc2'/483e'/8a91'/e5b10f5b8d16'/1
+```
 
 ## gmw and auf accounts
 For gmw and auf accounts two special Paths used:
