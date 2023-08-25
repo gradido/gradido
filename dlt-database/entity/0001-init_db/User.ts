@@ -16,8 +16,8 @@ export class User extends BaseEntity {
   })
   gradidoID?: string
 
-  @Column({ type: 'binary', length: 32, unique: true })
-  pubkey: Buffer
+  @Column({ name: 'derive1_pubkey', type: 'binary', length: 32, unique: true })
+  derive1Pubkey: Buffer
 
   @Column({
     name: 'created_at',

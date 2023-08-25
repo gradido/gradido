@@ -33,8 +33,8 @@ export class Account {
   @Column({ name: 'derivation_index', type: 'int', unsigned: true })
   derivationIndex: number
 
-  @Column({ type: 'binary', length: 32, unique: true })
-  pubkey: Buffer
+  @Column({ name: 'derive2_pubkey', type: 'binary', length: 32, unique: true })
+  derive2Pubkey: Buffer
 
   @Column({ type: 'tinyint', unsigned: true })
   type: number

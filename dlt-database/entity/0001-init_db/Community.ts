@@ -20,14 +20,14 @@ export class Community {
   @Column({ name: 'iota_topic', collation: 'utf8mb4_unicode_ci' })
   iotaTopic: string
 
-  @Column({ type: 'binary', length: 32, unique: true })
-  pubkey: Buffer
+  @Column({ name: 'root_pubkey', type: 'binary', length: 32, unique: true })
+  rootPubkey: Buffer
 
-  @Column({ type: 'binary', length: 32, nullable: true })
-  privkey?: Buffer
+  @Column({ name: 'root_privkey', type: 'binary', length: 32, nullable: true })
+  rootPrivkey?: Buffer
 
-  @Column({ type: 'binary', length: 32, nullable: true })
-  chaincode?: Buffer
+  @Column({ name: 'root_chaincode', type: 'binary', length: 32, nullable: true })
+  rootChaincode?: Buffer
 
   @Column({ type: 'tinyint', default: true })
   foreign: boolean
