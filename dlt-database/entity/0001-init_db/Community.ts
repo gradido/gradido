@@ -35,14 +35,14 @@ export class Community {
   @Column({ name: 'gmw_account_id', type: 'int', unsigned: true, nullable: true })
   gmwAccountId?: number
 
-  @OneToOne(() => Account, (account) => account.gmwCommunity)
+  @OneToOne(() => Account)
   @JoinColumn({ name: 'gmw_account_id' })
   gmwAccount?: Account
 
   @Column({ name: 'auf_account_id', type: 'int', unsigned: true, nullable: true })
   aufAccountId?: number
 
-  @OneToOne(() => Account, (account) => account.aufCommunity)
+  @OneToOne(() => Account)
   @JoinColumn({ name: 'auf_account_id' })
   aufAccount?: Account
 

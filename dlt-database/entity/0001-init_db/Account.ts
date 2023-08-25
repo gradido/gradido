@@ -61,12 +61,6 @@ export class Account {
   @Column({ name: 'balance_date', type: 'datetime' })
   balanceDate: Date
 
-  @OneToOne(() => Community, (community) => community.gmwAccount)
-  gmwCommunity?: Community
-
-  @OneToOne(() => Community, (community) => community.aufAccount)
-  aufCommunity?: Community
-
   @ManyToMany(() => Community, (community) => community.communityAccounts)
   @JoinTable({
     name: 'accounts_communities',
