@@ -14,36 +14,36 @@ import { Account } from './Account'
 import { Community } from './Community'
 import { ConfirmedTransaction } from './ConfirmedTransaction'
 
-@Entity('transaction_drafts')
-export class TransactionDraft {
+@Entity('transaction_recipes')
+export class TransactionRecipe {
   @PrimaryGeneratedColumn('increment', { unsigned: true, type: 'bigint' })
   id: number
 
   @Column({ name: 'iota_message_id', type: 'binary', length: 32, nullable: true })
   iotaMessageId?: Buffer
 
-  @ManyToOne(() => Account, (account) => account.transactionDraftsSigning)
+  @ManyToOne(() => Account, (account) => account.transactionRecipesSigning)
   @JoinColumn({ name: 'signing_account_id' })
   signingAccount: Account
 
   @Column({ name: 'signing_account_id', type: 'int', unsigned: true })
   signingAccountId: number
 
-  @ManyToOne(() => Account, (account) => account.transactionDraftsRecipient)
+  @ManyToOne(() => Account, (account) => account.transactionRecipesRecipient)
   @JoinColumn({ name: 'recipient_account_id' })
   recipientAccount?: Account
 
   @Column({ name: 'recipient_account_id', type: 'int', unsigned: true, nullable: true })
   recipientAccountId?: number
 
-  @ManyToOne(() => Community, (community) => community.transactionDraftsSender)
+  @ManyToOne(() => Community, (community) => community.transactionRecipesSender)
   @JoinColumn({ name: 'sender_community_id' })
   senderCommunity: Community
 
   @Column({ name: 'sender_community_id', type: 'int', unsigned: true })
   senderCommunityId: number
 
-  @ManyToOne(() => Community, (community) => community.transactionDraftsRecipient)
+  @ManyToOne(() => Community, (community) => community.transactionRecipesRecipient)
   @JoinColumn({ name: 'recipient_community_id' })
   recipientCommunity?: Community
 
@@ -74,6 +74,6 @@ export class TransactionDraft {
   @Column({ name: 'protocol_version', type: 'int', default: 1 })
   protocolVersion: number
 
-  @OneToOne(() => ConfirmedTransaction, (transaction) => transaction.transactionDraft)
+  @OneToOne(() => ConfirmedTransaction, (transaction) => transaction.transactionRecipe)
   confirmedTransaction?: ConfirmedTransaction
 }

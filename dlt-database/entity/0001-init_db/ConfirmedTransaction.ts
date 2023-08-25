@@ -11,19 +11,19 @@ import { Decimal } from 'decimal.js-light'
 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Account } from './Account'
-import { TransactionDraft } from './TransactionDraft'
+import { TransactionRecipe } from './TransactionRecipe'
 
 @Entity('confirmed_transactions')
 export class ConfirmedTransaction {
   @PrimaryGeneratedColumn('increment', { unsigned: true, type: 'bigint' })
   id: number
 
-  @OneToOne(() => TransactionDraft, (draft) => draft.confirmedTransaction)
-  @JoinColumn({ name: 'transaction_draft_id' })
-  transactionDraft: TransactionDraft
+  @OneToOne(() => TransactionRecipe, (recipe) => recipe.confirmedTransaction)
+  @JoinColumn({ name: 'transaction_recipe_id' })
+  transactionRecipe: TransactionRecipe
 
-  @Column({ name: 'transaction_draft_id', type: 'int', unsigned: true })
-  transactionDraftId: number
+  @Column({ name: 'transaction_recipe_id', type: 'int', unsigned: true })
+  transactionRecipeId: number
 
   @Column({ type: 'bigint' })
   nr: number

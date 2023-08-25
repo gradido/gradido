@@ -30,7 +30,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     CREATE TABLE IF NOT EXISTS \`accounts\` (
       \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,
       \`user_id\` int(10) unsigned DEFAULT NULL,
-      \`account_nr\` int(10) unsigned NOT NULL DEFAULT 0,
+      \`derivation_index\` int(10) unsigned NOT NULL,
       \`pubkey\` binary(32) NOT NULL,
       \`type\` tinyint unsigned NOT NULL,
       \`created_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -72,7 +72,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
 
   await queryFn(`
-    CREATE TABLE IF NOT EXISTS \`transaction_drafts\` (
+    CREATE TABLE IF NOT EXISTS \`transaction_recipes\` (
       \`id\` bigint unsigned NOT NULL AUTO_INCREMENT,
       \`iota_message_id\` binary(32) DEFAULT NULL,
       \`signing_account_id\` int(10) unsigned NOT NULL,
@@ -95,7 +95,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(`
     CREATE TABLE IF NOT EXISTS \`confirmed_transactions\` (
       \`id\` bigint unsigned NOT NULL AUTO_INCREMENT,
-      \`transaction_draft_id\` bigint unsigned NOT NULL,
+      \`transaction_recipe_id\` bigint unsigned NOT NULL,
       \`nr\` bigint unsigned NOT NULL,
       \`running_hash\` binary(48) NOT NULL,
       \`account_id\` int(10) unsigned NOT NULL,
@@ -103,7 +103,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`iota_milestone\` bigint NOT NULL,
       \`confirmed_at\` datetime NOT NULL,
       PRIMARY KEY (\`id\`),
-      FOREIGN KEY (\`transaction_draft_id\`) REFERENCES transaction_drafts(id),
+      FOREIGN KEY (\`transaction_recipe_id\`) REFERENCES transaction_recipes(id),
       FOREIGN KEY (\`account_id\`) REFERENCES accounts(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`)
 }
@@ -113,7 +113,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn(`DROP TABLE IF EXISTS \`users\`;`)
   await queryFn(`DROP TABLE IF EXISTS \`accounts\`;`)
   await queryFn(`DROP TABLE IF EXISTS \`account_community\`;`)
-  await queryFn(`DROP TABLE IF EXISTS \`transaction_drafts\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`transaction_recipes\`;`)
   await queryFn(`DROP TABLE IF EXISTS \`confirmed_transactions\`;`)
   await queryFn(`DROP TABLE IF EXISTS \`community\`;`)
 }

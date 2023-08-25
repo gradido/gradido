@@ -10,7 +10,7 @@ import {
   JoinTable,
 } from 'typeorm'
 import { Account } from './Account'
-import { TransactionDraft } from './TransactionDraft'
+import { TransactionRecipe } from './TransactionRecipe'
 
 @Entity('communities')
 export class Community {
@@ -60,9 +60,9 @@ export class Community {
   })
   communityAccounts: Account[]
 
-  @OneToMany(() => TransactionDraft, (draft) => draft.senderCommunity)
-  transactionDraftsSender?: TransactionDraft[]
+  @OneToMany(() => TransactionRecipe, (recipe) => recipe.senderCommunity)
+  transactionRecipesSender?: TransactionRecipe[]
 
-  @OneToMany(() => TransactionDraft, (draft) => draft.recipientCommunity)
-  transactionDraftsRecipient?: TransactionDraft[]
+  @OneToMany(() => TransactionRecipe, (recipe) => recipe.recipientCommunity)
+  transactionRecipesRecipient?: TransactionRecipe[]
 }

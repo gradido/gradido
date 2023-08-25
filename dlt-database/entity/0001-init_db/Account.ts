@@ -12,7 +12,7 @@ import {
 } from 'typeorm'
 import { User } from './User'
 import { Community } from './Community'
-import { TransactionDraft } from './TransactionDraft'
+import { TransactionRecipe } from './TransactionRecipe'
 import { ConfirmedTransaction } from './ConfirmedTransaction'
 
 @Entity('accounts')
@@ -28,8 +28,8 @@ export class Account {
   @Column({ name: 'user_id', type: 'int', unsigned: true, nullable: true })
   userId?: number
 
-  @Column({ name: 'account_nr', type: 'int', unsigned: true, default: 0 })
-  accountNr: number
+  @Column({ name: 'derivation_index', type: 'int', unsigned: true })
+  derivationIndex: number
 
   @Column({ type: 'binary', length: 32, unique: true })
   pubkey: Buffer
@@ -62,11 +62,11 @@ export class Account {
   })
   accountCommunities: Community[]
 
-  @OneToMany(() => TransactionDraft, (draft) => draft.signingAccount)
-  transactionDraftsSigning?: TransactionDraft[]
+  @OneToMany(() => TransactionRecipe, (recipe) => recipe.signingAccount)
+  transactionRecipesSigning?: TransactionRecipe[]
 
-  @OneToMany(() => TransactionDraft, (draft) => draft.recipientAccount)
-  transactionDraftsRecipient?: TransactionDraft[]
+  @OneToMany(() => TransactionRecipe, (recipe) => recipe.recipientAccount)
+  transactionRecipesRecipient?: TransactionRecipe[]
 
   @OneToMany(() => ConfirmedTransaction, (transaction) => transaction.account)
   confirmedTransactions?: ConfirmedTransaction[]
