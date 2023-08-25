@@ -4,16 +4,17 @@ import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTrans
 import { User as dbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
 
+import { CONFIG } from '@/config'
 import { SendCoinsArgs } from '@/federation/client/1_0/model/SendCoinsArgs'
 // eslint-disable-next-line camelcase
 import { SendCoinsClient as V1_0_SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
 import { SendCoinsClientFactory } from '@/federation/client/SendCoinsClientFactory'
-import { backendLogger as logger } from '@/server/logger'
-import { CONFIG } from '@/config'
-import { fullName } from '@/util/utilities'
-import { calculateSenderBalance } from '@/util/calculateSenderBalance'
+import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'
+import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'
-
+import { backendLogger as logger } from '@/server/logger'
+import { calculateSenderBalance } from '@/util/calculateSenderBalance'
+import { fullName } from '@/util/utilities'
 
 export async function processXComSendCoins(
   receiverFCom: DbFederatedCommunity,
@@ -27,6 +28,7 @@ export async function processXComSendCoins(
   recipient: dbUser,
 ): Promise<boolean> {
   try {
+    // first calculate the sender balance and check if the transaction is allowed
     const senderBalance = await calculateSenderBalance(sender.id, amount.mul(-1), creationDate)
     if (!senderBalance) {
       throw new LogError('User has not enough GDD or amount is < 0', senderBalance)
@@ -48,28 +50,35 @@ export async function processXComSendCoins(
         : 'homeCom-UUID'
       args.userSenderIdentifier = sender.gradidoID
       args.userSenderName = fullName(sender.firstName, sender.lastName)
-      const result = await client.voteForSendCoins(args)
-      if(result) {
-        const pendingTx = DbPendingTransaction.create()
-        pendingTx.amount = amount.mul(-1)
-        pendingTx.balance = senderBalance ? senderBalance.balance : new Decimal(0)
-        pendingTx.balanceDate = creationDate
-        pendingTx.decay = senderBalance ? senderBalance.decay.decay : new Decimal(0)
-        pendingTx.decayStart = senderBalance ? senderBalance.decay.start : null
-        pendingTx.linkedUserCommunityUuid = receiverCom.communityUuid
-          ? receiverCom.communityUuid
-          : CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID
-        pendingTx.linkedUserGradidoID = recipient.gradidoID
-        pendingTx.linkedUserName = userSenderName
-        pendingTx.memo = memo
-        pendingTx.previous = receiveBalance ? receiveBalance.lastTransactionId : null
-        pendingTx.state = PendingTransactionState.NEW
-        pendingTx.typeId = TransactionTypeId.RECEIVE
-        pendingTx.userCommunityUuid = communityReceiverIdentifier
-        pendingTx.userGradidoID = userReceiverIdentifier
-        pendingTx.userName = fullName(receiverUser.firstName, receiverUser.lastName)
+      const recipientName = await client.voteForSendCoins(args)
+      if (recipientName) {
+        // writing the pending transaction on receiver-side was successfull, so now write the sender side
+        try {
+          const pendingTx = DbPendingTransaction.create()
+          pendingTx.amount = amount.mul(-1)
+          pendingTx.balance = senderBalance ? senderBalance.balance : new Decimal(0)
+          pendingTx.balanceDate = creationDate
+          pendingTx.decay = senderBalance ? senderBalance.decay.decay : new Decimal(0)
+          pendingTx.decayStart = senderBalance ? senderBalance.decay.start : null
+          pendingTx.linkedUserCommunityUuid = receiverCom.communityUuid
+            ? receiverCom.communityUuid
+            : CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID
+          pendingTx.linkedUserGradidoID = recipient.gradidoID
+          pendingTx.linkedUserName = recipientName
+          pendingTx.memo = memo
+          pendingTx.previous = senderBalance ? senderBalance.lastTransactionId : null
+          pendingTx.state = PendingTransactionState.NEW
+          pendingTx.typeId = TransactionTypeId.SEND
+          if (senderCom.communityUuid) pendingTx.userCommunityUuid = senderCom.communityUuid
+          pendingTx.userGradidoID = sender.gradidoID
+          pendingTx.userName = fullName(sender.firstName, sender.lastName)
 
-        await DbPendingTransaction.insert(pendingTx)
+          await DbPendingTransaction.insert(pendingTx)
+        } catch (err) {
+          logger.error(`Error in writing sender pending transaction: `, err)
+          // revert the existing pending transaction on receiver side
+          // TODO in the issue #3186
+        }
         logger.debug(`voteForSendCoins()-1_0... successfull`)
       }
     }
