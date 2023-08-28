@@ -94,38 +94,115 @@ describe('TransactionLinkResolver', () => {
 
       it('throws error when amount is zero', async () => {
         jest.clearAllMocks()
-        await expect(
-          mutate({
-            mutation: createTransactionLink,
-            variables: {
-              amount: 0,
-              memo: 'Test',
-            },
-          }),
-        ).resolves.toMatchObject({
-          errors: [new GraphQLError('Amount must be a positive number')],
+        const { errors: errorObjects } = await mutate({
+          mutation: createTransactionLink,
+          variables: {
+            amount: 0,
+            memo: 'Test Test',
+          },
         })
-      })
-      it('logs the error "Amount must be a positive number" - 0', () => {
-        expect(logger.error).toBeCalledWith('Amount must be a positive number', new Decimal(0))
+        expect(errorObjects).toMatchObject([
+          {
+            message: 'Argument Validation Error',
+            extensions: {
+              exception: {
+                validationErrors: [
+                  {
+                    property: 'amount',
+                    constraints: {
+                      isPositiveDecimal: 'The amount must be a positive value amount',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ])
       })
 
       it('throws error when amount is negative', async () => {
         jest.clearAllMocks()
-        await expect(
-          mutate({
-            mutation: createTransactionLink,
-            variables: {
-              amount: -10,
-              memo: 'Test',
-            },
-          }),
-        ).resolves.toMatchObject({
-          errors: [new GraphQLError('Amount must be a positive number')],
+        const { errors: errorObjects } = await mutate({
+          mutation: createTransactionLink,
+          variables: {
+            amount: -10,
+            memo: 'Test Test',
+          },
         })
+        expect(errorObjects).toMatchObject([
+          {
+            message: 'Argument Validation Error',
+            extensions: {
+              exception: {
+                validationErrors: [
+                  {
+                    property: 'amount',
+                    constraints: {
+                      isPositiveDecimal: 'The amount must be a positive value amount',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ])
       })
-      it('logs the error "Amount must be a positive number" - -10', () => {
-        expect(logger.error).toBeCalledWith('Amount must be a positive number', new Decimal(-10))
+
+      it('throws error when memo text is too short', async () => {
+        jest.clearAllMocks()
+        const { errors: errorObjects } = await mutate({
+          mutation: createTransactionLink,
+          variables: {
+            amount: 100,
+            memo: 'Test',
+          },
+        })
+        expect(errorObjects).toMatchObject([
+          {
+            message: 'Argument Validation Error',
+            extensions: {
+              exception: {
+                validationErrors: [
+                  {
+                    property: 'memo',
+                    constraints: {
+                      minLength: 'memo must be longer than or equal to 5 characters',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ])
+      })
+
+      it('throws error when memo text is too long', async () => {
+        jest.clearAllMocks()
+        const { errors: errorObjects } = await mutate({
+          mutation: createTransactionLink,
+          variables: {
+            identifier: 'peter@lustig.de',
+            amount: 100,
+            memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test t',
+          },
+        })
+        expect(errorObjects).toMatchObject([
+          {
+            message: 'Argument Validation Error',
+            extensions: {
+              exception: {
+                validationErrors: [
+                  {
+                    property: 'memo',
+                    constraints: {
+                      maxLength: 'memo must be shorter than or equal to 255 characters',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ])
       })
 
       it('throws error when user has not enough GDD', async () => {
@@ -135,7 +212,7 @@ describe('TransactionLinkResolver', () => {
             mutation: createTransactionLink,
             variables: {
               amount: 1001,
-              memo: 'Test',
+              memo: 'Test Test',
             },
           }),
         ).resolves.toMatchObject({

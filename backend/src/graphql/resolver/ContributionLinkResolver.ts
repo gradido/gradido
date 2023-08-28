@@ -1,6 +1,5 @@
 import { MoreThan, IsNull } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { Decimal } from 'decimal.js-light'
 import { Resolver, Args, Arg, Authorized, Mutation, Query, Int, Ctx } from 'type-graphql'
 
 import { ContributionLinkArgs } from '@arg/ContributionLinkArgs'
@@ -18,12 +17,6 @@ import {
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
-import {
-  CONTRIBUTIONLINK_NAME_MAX_CHARS,
-  CONTRIBUTIONLINK_NAME_MIN_CHARS,
-  MEMO_MAX_CHARS,
-  MEMO_MIN_CHARS,
-} from './const/const'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import { isStartEndDateValid } from './util/creations'
 
@@ -46,21 +39,6 @@ export class ContributionLinkResolver {
     @Ctx() context: Context,
   ): Promise<ContributionLink> {
     isStartEndDateValid(validFrom, validTo)
-    if (name.length < CONTRIBUTIONLINK_NAME_MIN_CHARS) {
-      throw new LogError('The value of name is too short', name.length)
-    }
-    if (name.length > CONTRIBUTIONLINK_NAME_MAX_CHARS) {
-      throw new LogError('The value of name is too long', name.length)
-    }
-    if (memo.length < MEMO_MIN_CHARS) {
-      throw new LogError('The value of memo is too short', memo.length)
-    }
-    if (memo.length > MEMO_MAX_CHARS) {
-      throw new LogError('The value of memo is too long', memo.length)
-    }
-    if (!new Decimal(amount).isPositive()) {
-      throw new LogError('The amount must be a positiv value', amount)
-    }
 
     const dbContributionLink = new DbContributionLink()
     dbContributionLink.amount = amount

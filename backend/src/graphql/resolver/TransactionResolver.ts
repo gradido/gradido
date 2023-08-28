@@ -33,7 +33,6 @@ import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
 import { BalanceResolver } from './BalanceResolver'
-import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
@@ -54,14 +53,6 @@ export const executeTransaction = async (
 
     if (sender.id === recipient.id) {
       throw new LogError('Sender and Recipient are the same', sender.id)
-    }
-
-    if (memo.length < MEMO_MIN_CHARS) {
-      throw new LogError('Memo text is too short', memo.length)
-    }
-
-    if (memo.length > MEMO_MAX_CHARS) {
-      throw new LogError('Memo text is too long', memo.length)
     }
 
     // validate amount
@@ -321,9 +312,6 @@ export class TransactionResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     logger.info(`sendCoins(identifier=${identifier}, amount=${amount}, memo=${memo})`)
-    if (amount.lte(0)) {
-      throw new LogError('Amount to send must be positive', amount)
-    }
 
     const senderUser = getUser(context)
 
