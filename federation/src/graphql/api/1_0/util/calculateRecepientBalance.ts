@@ -1,8 +1,7 @@
+import { calculateDecay } from '@/graphql/util/decay'
+import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import { Decimal } from 'decimal.js-light'
-
-import { getLastTransaction } from './getLastTransaction'
-import { calculateDecay } from './decay'
-import { Decay } from '../api/1_0/model/Decay'
+import { Decay } from '../model/Decay'
 
 export async function calculateRecepientBalance(
   userId: number,

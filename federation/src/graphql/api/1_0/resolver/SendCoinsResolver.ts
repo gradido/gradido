@@ -8,9 +8,11 @@ import { User as DbUser } from '@entity/User'
 import { LogError } from '@/server/LogError'
 import { PendingTransactionState } from '../enum/PendingTransactionState'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
-import { calculateRecepientBalance } from '@/graphql/util/calculateRecepientBalance'
+import { calculateRecepientBalance } from '../util/calculateRecepientBalance'
 import Decimal from 'decimal.js-light'
 import { fullName } from '@/graphql/util/fullName'
+import { settlePendingReceiveTransaction } from '../util/settlePendingReceiveTransaction'
+import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from '../const/const'
 
 @Resolver()
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -50,6 +52,14 @@ export class SendCoinsResolver {
           homeCom.name,
         )
       }
+      if (memo.length < MEMO_MIN_CHARS) {
+        throw new LogError('Memo text is too short', memo.length)
+      }
+
+      if (memo.length > MEMO_MAX_CHARS) {
+        throw new LogError('Memo text is too long', memo.length)
+      }
+
       const receiveBalance = await calculateRecepientBalance(receiverUser.id, amount, creationDate)
       const pendingTx = DbPendingTransaction.create()
       pendingTx.amount = amount
@@ -149,6 +159,87 @@ export class SendCoinsResolver {
       return true
     } catch (err) {
       throw new LogError(`Error in revertSendCoins: `, err)
+    }
+  }
+
+  @Mutation(() => Boolean)
+  async settleSendCoins(
+    @Args()
+    {
+      communityReceiverIdentifier,
+      userReceiverIdentifier,
+      creationDate,
+      amount,
+      memo,
+      communitySenderIdentifier,
+      userSenderIdentifier,
+      userSenderName,
+    }: SendCoinsArgs,
+  ): Promise<boolean> {
+    logger.debug(`settleSendCoins() via apiVersion=1_0 ...`)
+    try {
+      // first check if receiver community is correct
+      const homeCom = await DbCommunity.findOneByOrFail({
+        communityUuid: communityReceiverIdentifier,
+      })
+      /*
+      if (!homeCom) {
+        throw new LogError(
+          `settleSendCoins with wrong communityReceiverIdentifier`,
+          communityReceiverIdentifier,
+        )
+      }
+      */
+      // second check if receiver user exists in this community
+      const receiverUser = await DbUser.findOneByOrFail({ gradidoID: userReceiverIdentifier })
+      /*
+      if (!receiverUser) {
+        throw new LogError(
+          `settleSendCoins with unknown userReceiverIdentifier in the community=`,
+          homeCom.name,
+        )
+      }
+      */
+      const pendingTx = await DbPendingTransaction.findOneBy({
+        userCommunityUuid: communityReceiverIdentifier,
+        userGradidoID: userReceiverIdentifier,
+        state: PendingTransactionState.NEW,
+        typeId: TransactionTypeId.RECEIVE,
+        balanceDate: creationDate,
+        linkedUserCommunityUuid: communitySenderIdentifier,
+        linkedUserGradidoID: userSenderIdentifier,
+      })
+      logger.debug('XCom: settleSendCoins found pendingTX=', pendingTx)
+      if (pendingTx && pendingTx.amount === amount && pendingTx.memo === memo) {
+        logger.debug('XCom: settleSendCoins matching pendingTX for settlement...')
+        try {
+          await settlePendingReceiveTransaction(homeCom, receiverUser, pendingTx)
+          logger.debug('XCom: settlePendingReceiveTransaction successfully...')
+        } catch (err) {
+          throw new LogError('Error in settlePendingReceiveTransaction: ', err)
+        }
+      } else {
+        logger.debug(
+          'XCom: settlePendingReceiveTransaction NOT matching pendingTX for settlement...',
+        )
+        throw new LogError(
+          `Can't find in settlePendingReceiveTransaction the pending receiver TX for args=`,
+          communityReceiverIdentifier,
+          userReceiverIdentifier,
+          PendingTransactionState.NEW,
+          TransactionTypeId.RECEIVE,
+          creationDate,
+          amount,
+          memo,
+          communitySenderIdentifier,
+          userSenderIdentifier,
+          userSenderName,
+        )
+      }
+      logger.debug(`settlePendingReceiveTransaction()-1_0... successfull`)
+      return true
+    } catch (err) {
+      throw new LogError(`Error in settlePendingReceiveTransaction: `, err)
     }
   }
 }

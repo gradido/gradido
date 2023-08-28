@@ -114,3 +114,70 @@ export async function processXComPendingSendCoins(
   }
   return true
 }
+
+export async function processXComCommittingSendCoins(
+  receiverFCom: DbFederatedCommunity,
+  receiverCom: DbCommunity,
+  senderCom: DbCommunity,
+  creationDate: Date,
+  amount: Decimal,
+  memo: string,
+  sender: dbUser,
+  recipient: dbUser,
+): Promise<boolean> {
+  try {
+    logger.debug(
+      `XCom: processXComCommittingSendCoins...`,
+      receiverFCom,
+      receiverCom,
+      senderCom,
+      creationDate,
+      amount,
+      memo,
+      sender,
+      recipient,
+    )
+    // first find pending Tx with given parameters
+    const pendingTx = await DbPendingTransaction.findOneBy({
+      userCommunityUuid: senderCom.communityUuid ? senderCom.communityUuid : 'homeCom-UUID',
+      userGradidoID: sender.gradidoID,
+      userName: fullName(sender.firstName, sender.lastName),
+      linkedUserCommunityUuid: receiverCom.communityUuid
+        ? receiverCom.communityUuid
+        : CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID,
+      linkedUserGradidoID: recipient.gradidoID,
+      typeId: TransactionTypeId.SEND,
+      state: PendingTransactionState.NEW,
+      balanceDate: creationDate,
+      memo,
+    })
+    if (pendingTx) {
+      logger.debug(`X-Com: find pending Tx for settlement:`, pendingTx)
+      const client = SendCoinsClientFactory.getInstance(receiverFCom)
+      // eslint-disable-next-line camelcase
+      if (client instanceof V1_0_SendCoinsClient) {
+        const args = new SendCoinsArgs()
+        args.communityReceiverIdentifier = pendingTx.linkedUserCommunityUuid
+          ? pendingTx.linkedUserCommunityUuid
+          : CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID
+        if (pendingTx.linkedUserGradidoID) {
+          args.userReceiverIdentifier = pendingTx.linkedUserGradidoID
+        }
+        args.creationDate = pendingTx.balanceDate
+        args.amount = pendingTx.amount
+        args.memo = pendingTx.memo
+        args.communitySenderIdentifier = pendingTx.userCommunityUuid
+        args.userSenderIdentifier = pendingTx.userGradidoID
+        if (pendingTx.userName) {
+          args.userSenderName = pendingTx.userName
+        }
+        logger.debug(`X-Com: ready for settleSendCoins with args=`, args)
+        const acknoleged = await client.settleSendCoins(args)
+        logger.debug(`X-Com: returnd from settleSendCoins:`, acknoleged)
+      }
+    }
+  } catch (err) {
+    logger.error(`Error:`, err)
+  }
+  return true
+}
