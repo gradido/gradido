@@ -317,7 +317,7 @@ export class TransactionResolver {
   @Authorized([RIGHTS.SEND_COINS])
   @Mutation(() => Boolean)
   async sendCoins(
-    @Args() { identifier, amount, memo }: TransactionSendArgs,
+    @Args() { identifier, amount, memo, targetCommunity }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
     logger.info(`sendCoins(identifier=${identifier}, amount=${amount}, memo=${memo})`)

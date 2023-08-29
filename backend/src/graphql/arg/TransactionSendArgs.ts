@@ -1,5 +1,5 @@
 import { Decimal } from 'decimal.js-light'
-import { ArgsType, Field } from 'type-graphql'
+import { ArgsType, Field, Int } from 'type-graphql'
 
 @ArgsType()
 export class TransactionSendArgs {
@@ -11,4 +11,7 @@ export class TransactionSendArgs {
 
   @Field(() => String)
   memo: string
+
+  @Field(() => Int)
+  targetCommunity: number
 }

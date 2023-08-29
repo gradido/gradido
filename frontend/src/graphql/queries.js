@@ -72,14 +72,13 @@ export const listGDTEntriesQuery = gql`
   }
 `
 
-export const communities = gql`
+export const selectCommunities = gql`
   query {
     communities {
       id
       name
-      url
       description
-      registerUrl
+      foreign
     }
   }
 `
