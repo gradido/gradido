@@ -118,17 +118,6 @@ export const listGDTEntriesQuery = gql`
   }
 `
 
-export const communityInfo = gql`
-  query {
-    getCommunityInfo {
-      name
-      description
-      registerUrl
-      url
-    }
-  }
-`
-
 export const communities = gql`
   query {
     communities {
@@ -159,7 +148,7 @@ export const getCommunities = gql`
 
 export const getCommunitySelections = gql`
   query {
-    getCommunitySelections {
+    communities {
       id
       foreign
       name
