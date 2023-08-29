@@ -7,7 +7,6 @@ import { Event as DbEvent } from '@entity/Event'
 import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
@@ -94,7 +93,7 @@ describe('send coins', () => {
           variables: {
             identifier: 'wrong@email.com',
             amount: 100,
-            memo: 'test',
+            memo: 'test test',
           },
         }),
       ).toEqual(
@@ -122,7 +121,7 @@ describe('send coins', () => {
             variables: {
               identifier: 'stephen@hawking.uk',
               amount: 100,
-              memo: 'test',
+              memo: 'test test',
             },
           }),
         ).toEqual(
@@ -151,7 +150,7 @@ describe('send coins', () => {
             variables: {
               identifier: 'garrick@ollivander.com',
               amount: 100,
-              memo: 'test',
+              memo: 'test test',
             },
           }),
         ).toEqual(
@@ -187,7 +186,7 @@ describe('send coins', () => {
             variables: {
               identifier: 'bob@baumeister.de',
               amount: 100,
-              memo: 'test',
+              memo: 'test test',
             },
           }),
         ).toEqual(
@@ -205,48 +204,62 @@ describe('send coins', () => {
     describe('memo text is too short', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
-        expect(
-          await mutate({
-            mutation: sendCoins,
-            variables: {
-              identifier: 'peter@lustig.de',
-              amount: 100,
-              memo: 'test',
+        const { errors: errorObjects } = await mutate({
+          mutation: sendCoins,
+          variables: {
+            identifier: 'peter@lustig.de',
+            amount: 100,
+            memo: 'Test',
+          },
+        })
+        expect(errorObjects).toMatchObject([
+          {
+            message: 'Argument Validation Error',
+            extensions: {
+              exception: {
+                validationErrors: [
+                  {
+                    property: 'memo',
+                    constraints: {
+                      minLength: 'memo must be longer than or equal to 5 characters',
+                    },
+                  },
+                ],
+              },
             },
-          }),
-        ).toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('Memo text is too short')],
-          }),
-        )
-      })
-
-      it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('Memo text is too short', 4)
+          },
+        ])
       })
     })
 
     describe('memo text is too long', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
-        expect(
-          await mutate({
-            mutation: sendCoins,
-            variables: {
-              identifier: 'peter@lustig.de',
-              amount: 100,
-              memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test t',
+        const { errors: errorObjects } = await mutate({
+          mutation: sendCoins,
+          variables: {
+            identifier: 'peter@lustig.de',
+            amount: 100,
+            memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test t',
+          },
+        })
+        expect(errorObjects).toMatchObject([
+          {
+            message: 'Argument Validation Error',
+            extensions: {
+              exception: {
+                validationErrors: [
+                  {
+                    property: 'memo',
+                    constraints: {
+                      maxLength: 'memo must be shorter than or equal to 255 characters',
+                    },
+                  },
+                ],
+              },
             },
-          }),
-        ).toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('Memo text is too long')],
-          }),
-        )
-      })
-
-      it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('Memo text is too long', 256)
+          },
+        ])
       })
     })
 
@@ -303,24 +316,31 @@ describe('send coins', () => {
     describe('trying to send negative amount', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
-        expect(
-          await mutate({
-            mutation: sendCoins,
-            variables: {
-              identifier: 'peter@lustig.de',
-              amount: -50,
-              memo: 'testing negative',
+        const { errors: errorObjects } = await mutate({
+          mutation: sendCoins,
+          variables: {
+            identifier: 'peter@lustig.de',
+            amount: -50,
+            memo: 'testing negative',
+          },
+        })
+        expect(errorObjects).toMatchObject([
+          {
+            message: 'Argument Validation Error',
+            extensions: {
+              exception: {
+                validationErrors: [
+                  {
+                    property: 'amount',
+                    constraints: {
+                      isPositiveDecimal: 'The amount must be a positive value amount',
+                    },
+                  },
+                ],
+              },
             },
-          }),
-        ).toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('Amount to send must be positive')],
-          }),
-        )
-      })
-
-      it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('Amount to send must be positive', new Decimal(-50))
+          },
+        ])
       })
     })
 
