@@ -13,6 +13,7 @@ import Decimal from 'decimal.js-light'
 import { fullName } from '@/graphql/util/fullName'
 import { settlePendingReceiveTransaction } from '../util/settlePendingReceiveTransaction'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from '../const/const'
+import { checkTradingLevel } from '@/graphql/util/checkTradingLevel'
 
 @Resolver()
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -44,12 +45,25 @@ export class SendCoinsResolver {
           communityReceiverIdentifier,
         )
       }
+      if (!(await checkTradingLevel(homeCom, amount))) {
+        throw new LogError(
+          `X-Com: configuration of Trading-Level doesn't permit requested x-com sendCoin action!`,
+        )
+      }
       // second check if receiver user exists in this community
       const receiverUser = await DbUser.findOneBy({ gradidoID: userReceiverIdentifier })
       if (!receiverUser) {
         throw new LogError(
           `voteForSendCoins with unknown userReceiverIdentifier in the community=`,
           homeCom.name,
+        )
+      }
+      if (
+        communitySenderIdentifier === communityReceiverIdentifier &&
+        userReceiverIdentifier === userSenderIdentifier
+      ) {
+        throw new LogError(
+          `Sender and Recipient are the same: communityUUID=${communityReceiverIdentifier}, gradidoID=${userReceiverIdentifier}`,
         )
       }
       if (memo.length < MEMO_MIN_CHARS) {

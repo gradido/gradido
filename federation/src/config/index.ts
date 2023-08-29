@@ -55,6 +55,11 @@ const federation = {
   FEDERATION_API: process.env.FEDERATION_API || '1_0',
   FEDERATION_PORT: process.env.FEDERATION_PORT || 5010,
   FEDERATION_COMMUNITY_URL: process.env.FEDERATION_COMMUNITY_URL || null,
+  FEDERATION_TRADING_LEVEL: {
+    RECEIVER_COMMUNITY_URL: 'https://stage3.gradido.net/api/',
+    SEND_COINS: true,
+    AMOUNT: 100,
+  },
 }
 
 const CONFIG = {

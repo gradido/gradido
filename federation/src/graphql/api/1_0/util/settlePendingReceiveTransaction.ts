@@ -29,43 +29,25 @@ export async function settlePendingReceiveTransaction(
   try {
     logger.info('X-Com: settlePendingReceiveTransaction:', homeCom, receiverUser, pendingTx)
 
+    // ensure that no other pendingTx with the same sender or recipient exists
     const openSenderPendingTx = await DbPendingTransaction.count({
       where: [
-        { userGradidoID: pendingTx?.userGradidoID, state: PendingTransactionState.NEW },
-        { linkedUserGradidoID: pendingTx?.linkedUserGradidoID, state: PendingTransactionState.NEW },
+        { userGradidoID: pendingTx.userGradidoID, state: PendingTransactionState.NEW },
+        { linkedUserGradidoID: pendingTx.linkedUserGradidoID!, state: PendingTransactionState.NEW },
       ],
     })
     const openReceiverPendingTx = await DbPendingTransaction.count({
       where: [
-        { userGradidoID: userReceiverIdentifier, state: PendingTransactionState.NEW },
-        { linkedUserGradidoID: userReceiverIdentifier, state: PendingTransactionState.NEW },
+        { userGradidoID: pendingTx.linkedUserGradidoID!, state: PendingTransactionState.NEW },
+        { linkedUserGradidoID: pendingTx.userGradidoID, state: PendingTransactionState.NEW },
       ],
     })
     if (openSenderPendingTx > 1 || openReceiverPendingTx > 1) {
       throw new LogError('There are more than 1 pending Transactions for Sender and/or Recipient')
     }
 
-    if (
-      communityReceiverIdentifier === communitySenderIdentifier &&
-      communitySenderIdentifier === userSenderIdentifier
-    ) {
-      throw new LogError('Sender and Recipient are the same user: ', userSenderName)
-    }
-
-    if (memo.length < MEMO_MIN_CHARS) {
-      throw new LogError('Memo text is too short', memo.length)
-    }
-
-    if (memo.length > MEMO_MAX_CHARS) {
-      throw new LogError('Memo text is too long', memo.length)
-    }
-
     const recipientUser = await DbUser.findOneByOrFail({ gradidoID: userReceiverIdentifier })
     const lastTransaction = await getLastTransaction(recipientUser.id)
-    const pendingTx = await DbPendingTransaction.findOneByOrFail({
-      userId: recipientUser.id,
-      userGradidoID: recipientUser.gradidoID,
-    })
 
     if (lastTransaction?.id !== pendingTx.previous) {
       throw new LogError(

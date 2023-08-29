@@ -6,8 +6,8 @@ import { backendLogger as logger } from '@/server/logger'
 
 import { SendCoinsArgs } from './model/SendCoinsArgs'
 import { revertSendCoins } from './query/revertSendCoins'
-import { voteForSendCoins } from './query/voteForSendCoins'
 import { settleSendCoins } from './query/settleSendCoins'
+import { voteForSendCoins } from './query/voteForSendCoins'
 
 // eslint-disable-next-line camelcase
 export class SendCoinsClient {
