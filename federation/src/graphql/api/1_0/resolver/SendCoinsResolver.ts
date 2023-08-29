@@ -45,12 +45,13 @@ export class SendCoinsResolver {
           communityReceiverIdentifier,
         )
       }
+      // second check is configured trading level
       if (!(await checkTradingLevel(homeCom, amount))) {
         throw new LogError(
           `X-Com: configuration of Trading-Level doesn't permit requested x-com sendCoin action!`,
         )
       }
-      // second check if receiver user exists in this community
+      // third check if receiver user exists in this community
       const receiverUser = await DbUser.findOneBy({ gradidoID: userReceiverIdentifier })
       if (!receiverUser) {
         throw new LogError(

@@ -6,18 +6,16 @@ import { getConnection, In } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
-import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
-import { Decimal } from 'decimal.js-light'
 
 import { PendingTransactionState } from '../enum/PendingTransactionState'
-import { TransactionTypeId } from '../enum/TransactionTypeId'
 
 import { LogError } from '@/server/LogError'
 import { federationLogger as logger } from '@/server/logger'
 
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
+import { calculateRecepientBalance } from './calculateRecepientBalance'
 
 export async function settlePendingReceiveTransaction(
   homeCom: DbCommunity,
@@ -26,6 +24,11 @@ export async function settlePendingReceiveTransaction(
 ): Promise<boolean> {
   // acquire lock
   const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  const queryRunner = getConnection().createQueryRunner()
+  await queryRunner.connect()
+  await queryRunner.startTransaction('REPEATABLE READ')
+  logger.debug(`open Transaction to write...`)
+
   try {
     logger.info('X-Com: settlePendingReceiveTransaction:', homeCom, receiverUser, pendingTx)
 
@@ -46,14 +49,44 @@ export async function settlePendingReceiveTransaction(
       throw new LogError('There are more than 1 pending Transactions for Sender and/or Recipient')
     }
 
-    const recipientUser = await DbUser.findOneByOrFail({ gradidoID: userReceiverIdentifier })
-    const lastTransaction = await getLastTransaction(recipientUser.id)
+    const lastTransaction = await getLastTransaction(receiverUser.id)
 
     if (lastTransaction?.id !== pendingTx.previous) {
       throw new LogError(
         `X-Com: missmatching transaction order! lastTransationId=${lastTransaction?.id} != pendingTx.previous=${pendingTx.previous}`,
       )
     }
+
+    const transactionReceive = new dbTransaction()
+    transactionReceive.typeId = pendingTx.typeId
+    transactionReceive.memo = pendingTx.memo
+    transactionReceive.userId = pendingTx.userId
+    transactionReceive.userGradidoID = pendingTx.userGradidoID
+    transactionReceive.userName = pendingTx.userName
+    transactionReceive.linkedUserId = pendingTx.linkedUserId
+    transactionReceive.linkedUserGradidoID = pendingTx.linkedUserGradidoID
+    transactionReceive.linkedUserName = pendingTx.linkedUserName
+    transactionReceive.amount = pendingTx.amount
+    const receiveBalance = await calculateRecepientBalance(
+      receiverUser.id,
+      pendingTx.amount,
+      pendingTx.balanceDate,
+    )
+    if (receiveBalance?.balance !== pendingTx.balance) {
+      throw new LogError(
+        `X-Com: Calculation-Error on receiver balance: receiveBalance=${receiveBalance?.balance}, pendingTx.balance=${pendingTx.balance}`,
+      )
+    }
+    transactionReceive.balance = pendingTx.balance
+    transactionReceive.balanceDate = pendingTx.balanceDate
+    transactionReceive.decay = pendingTx.decay
+    transactionReceive.decayStart = pendingTx.decayStart
+    transactionReceive.previous = pendingTx.previous
+    transactionReceive.linkedTransactionId = pendingTx.linkedTransactionId
+    await queryRunner.manager.insert(dbTransaction, transactionReceive)
+    logger.debug(`receive Transaction inserted: ${dbTransaction}`)
+
+    /*
     // validate amount
     const receivedCallDate = new Date()
     const sendBalance = await calculateBalance(
@@ -129,27 +162,30 @@ export async function settlePendingReceiveTransaction(
           transactionLink,
         )
       }
+      */
+    await queryRunner.commitTransaction()
+    logger.info(`commit Transaction successful...`)
 
-      await queryRunner.commitTransaction()
-      logger.info(`commit Transaction successful...`)
+    /*
+    await EVENT_TRANSACTION_SEND(sender, recipient, transactionSend, transactionSend.amount)
 
-      await EVENT_TRANSACTION_SEND(sender, recipient, transactionSend, transactionSend.amount)
-
-      await EVENT_TRANSACTION_RECEIVE(
-        recipient,
-        sender,
-        transactionReceive,
-        transactionReceive.amount,
-      )
-
-      // trigger to send transaction via dlt-connector
-      void sendTransactionsToDltConnector()
-    } catch (e) {
-      await queryRunner.rollbackTransaction()
-      throw new LogError('Transaction was not successful', e)
-    } finally {
-      await queryRunner.release()
-    }
+    await EVENT_TRANSACTION_RECEIVE(
+      recipient,
+      sender,
+      transactionReceive,
+      transactionReceive.amount,
+    )
+    */
+    // trigger to send transaction via dlt-connector
+    // void sendTransactionsToDltConnector()
+  } catch (e) {
+    await queryRunner.rollbackTransaction()
+    throw new LogError('Transaction was not successful', e)
+  } finally {
+    await queryRunner.release()
+    releaseLock()
+  }
+  /*
     void sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,
@@ -177,5 +213,6 @@ export async function settlePendingReceiveTransaction(
   } finally {
     releaseLock()
   }
+  */
   return true
 }
