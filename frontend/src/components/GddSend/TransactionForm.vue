@@ -55,8 +55,8 @@
                       </b-row>
                       <b-row>
                         <b-col class="font-weight-bold">
-                          <community-switch 
-                            v-model="form.targetCommunity" 
+                          <community-switch
+                            v-model="form.targetCommunity"
                             :disabled="isBalanceDisabled"
                           />
                         </b-col>
@@ -161,7 +161,12 @@ export default {
     amount: { type: Number, default: 0 },
     memo: { type: String, default: '' },
     selected: { type: String, default: 'send' },
-    targetCommunity: { type: Object, default: { id: 0, name: COMMUNITY_NAME } },
+    targetCommunity: {
+      type: Object,
+      default: function () {
+        return { uuid: '', name: COMMUNITY_NAME }
+      },
+    },
   },
   data() {
     return {
@@ -172,7 +177,7 @@ export default {
         targetCommunity: this.targetCommunity,
       },
       radioSelected: this.selected,
-      userName: ''
+      userName: '',
     }
   },
   methods: {
@@ -195,7 +200,7 @@ export default {
       this.form.identifier = ''
       this.form.amount = ''
       this.form.memo = ''
-      this.form.targetCommunity = { id: 0, name: COMMUNITY_NAME }
+      this.form.targetCommunity = { uuid: '', name: COMMUNITY_NAME }
       this.$refs.formValidator.validate()
       if (this.$route.query && !isEmpty(this.$route.query))
         this.$router.replace({ query: undefined })

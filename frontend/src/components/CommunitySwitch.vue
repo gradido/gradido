@@ -6,7 +6,7 @@
         @click.prevent="updateCommunity(community)"
         :key="community.id"
         :title="community.description"
-        :active="value.id === community.id"
+        :active="value.uuid === community.uuid"
       >
         {{ community.name }}
       </b-dropdown-item>
@@ -20,7 +20,12 @@ import { COMMUNITY_NAME } from '@/config'
 export default {
   name: 'CommunitySwitch',
   props: {
-    value: { type: Object, default: { id: 0, name: COMMUNITY_NAME } },
+    value: {
+      type: Object,
+      default: function () {
+        return { uuid: '', name: COMMUNITY_NAME }
+      },
+    },
   },
   data() {
     return {
@@ -29,13 +34,12 @@ export default {
   },
   methods: {
     updateCommunity(community) {
-      this.value = community
-      this.$emit('input', this.value)
+      this.$emit('input', community)
     },
     setDefaultCommunity() {
       // set default community, the only one which isn't foreign
       // we assume it is only one entry with foreign = false
-      if (!this.value.id && this.communities.length) {
+      if (this.value.uuid === '' && this.communities.length) {
         const foundCommunity = this.communities.find((community) => !community.foreign)
         if (foundCommunity) {
           this.updateCommunity(foundCommunity)

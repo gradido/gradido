@@ -75,7 +75,7 @@ export const listGDTEntriesQuery = gql`
 export const selectCommunities = gql`
   query {
     communities {
-      id
+      uuid
       name
       description
       foreign

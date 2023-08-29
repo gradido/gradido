@@ -1,6 +1,6 @@
 import { MaxLength, MinLength, IsString } from 'class-validator'
 import { Decimal } from 'decimal.js-light'
-import { ArgsType, Field, Int } from 'type-graphql'
+import { ArgsType, Field } from 'type-graphql'
 
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from '@/graphql/resolver/const/const'
 import { IsPositiveDecimal } from '@/graphql/validator/Decimal'
@@ -9,7 +9,11 @@ import { IsPositiveDecimal } from '@/graphql/validator/Decimal'
 export class TransactionSendArgs {
   @Field(() => String)
   @IsString()
-  identifier: string
+  recipientCommunityIdentifier: string
+
+  @Field(() => String)
+  @IsString()
+  recipientIdentifier: string
 
   @Field(() => Decimal)
   @IsPositiveDecimal()
@@ -19,7 +23,4 @@ export class TransactionSendArgs {
   @MaxLength(MEMO_MAX_CHARS)
   @MinLength(MEMO_MIN_CHARS)
   memo: string
-
-  @Field(() => Int)
-  targetCommunity: number
 }

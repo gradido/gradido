@@ -123,9 +123,11 @@ export default {
             .mutate({
               mutation: sendCoins,
               variables: {
-                ...this.transactionData,
-                // from target community we need only the id
-                targetCommunity: this.transactionData.targetCommunity.id,
+                // from target community we need only the uuid
+                recipientCommunityIdentifier: this.transactionData.targetCommunity.uuid,
+                recipientIdentifier: this.transactionData.identifier,
+                amount: this.transactionData.amount,
+                memo: this.transactionData.memo,
               },
             })
             .then(() => {

@@ -76,7 +76,12 @@ export default {
     amount: { type: Number, required: true },
     memo: { type: String, required: true },
     userName: { type: String, default: '' },
-    targetCommunity: { type: Object, default: { id: 0, name: COMMUNITY_NAME }},
+    targetCommunity: {
+      type: Object,
+      default: function () {
+        return { uuid: '', name: COMMUNITY_NAME }
+      },
+    },
   },
   data() {
     return {
