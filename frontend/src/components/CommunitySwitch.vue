@@ -15,16 +15,12 @@
 </template>
 <script>
 import { selectCommunities } from '@/graphql/queries'
-import { COMMUNITY_NAME } from '@/config'
 
 export default {
   name: 'CommunitySwitch',
   props: {
     value: {
       type: Object,
-      default: function () {
-        return { uuid: '', name: COMMUNITY_NAME }
-      },
     },
   },
   data() {
