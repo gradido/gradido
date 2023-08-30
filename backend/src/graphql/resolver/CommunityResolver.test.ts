@@ -12,7 +12,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 
-import { getCommunities, getCommunitySelections } from '@/seeds/graphql/queries'
+import { getCommunities, communities } from '@/seeds/graphql/queries'
 
 // to do: We need a setup for the tests that closes the connection
 let query: ApolloServerTestClient['query'], con: Connection
@@ -234,7 +234,7 @@ describe('CommunityResolver', () => {
     })
   })
 
-  describe('getCommunitySelections', () => {
+  describe('communities', () => {
     let homeCom1: DbCommunity
     let foreignCom1: DbCommunity
     let foreignCom2: DbCommunity
@@ -248,9 +248,9 @@ describe('CommunityResolver', () => {
       it('returns no community entry', async () => {
         // const result: Community[] = await query({ query: getCommunities })
         // expect(result.length).toEqual(0)
-        await expect(query({ query: getCommunitySelections })).resolves.toMatchObject({
+        await expect(query({ query: communities })).resolves.toMatchObject({
           data: {
-            getCommunitySelections: [],
+            communities: [],
           },
         })
       })
@@ -275,9 +275,9 @@ describe('CommunityResolver', () => {
       })
 
       it('returns 1 home-community entry', async () => {
-        await expect(query({ query: getCommunitySelections })).resolves.toMatchObject({
+        await expect(query({ query: communities })).resolves.toMatchObject({
           data: {
-            getCommunitySelections: [
+            communities: [
               {
                 id: expect.any(Number),
                 foreign: homeCom1.foreign,
@@ -337,9 +337,9 @@ describe('CommunityResolver', () => {
       })
 
       it('returns 3 community entries', async () => {
-        await expect(query({ query: getCommunitySelections })).resolves.toMatchObject({
+        await expect(query({ query: communities })).resolves.toMatchObject({
           data: {
-            getCommunitySelections: [
+            communities: [
               {
                 id: expect.any(Number),
                 foreign: homeCom1.foreign,
