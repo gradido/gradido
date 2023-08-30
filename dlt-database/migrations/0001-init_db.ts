@@ -112,7 +112,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(`
     CREATE TABLE IF NOT EXISTS \`invalid_transactions\` (
       \`id\` bigint unsigned NOT NULL AUTO_INCREMENT,
-      \`iota_message_id\` binary(32) DEFAULT NULL,
+      \`iota_message_id\` binary(32) NOT NULL,
       PRIMARY KEY (\`id\`),
       INDEX (\`iota_message_id\`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`)
