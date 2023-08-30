@@ -2,7 +2,7 @@
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { getConnection, In } from '@dbTools/typeorm'
+import { getConnection, In, IsNull } from '@dbTools/typeorm'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as dbUser } from '@entity/User'
@@ -264,7 +264,28 @@ export class TransactionResolver {
       logger.debug(`transactions=${transactions}`)
 
       // virtual transaction for pending transaction-links sum
-      if (sumHoldAvailableAmount.greaterThan(0)) {
+      if (sumHoldAvailableAmount.isZero()) {
+        const linkCount = await dbTransactionLink.count({
+          where: {
+            userId: user.id,
+            redeemedAt: IsNull(),
+          },
+        })
+        if (linkCount > 0) {
+          transactions.push(
+            virtualLinkTransaction(
+              lastTransaction.balance,
+              new Decimal(0),
+              new Decimal(0),
+              new Decimal(0),
+              now,
+              now,
+              self,
+              (userTransactions.length && userTransactions[0].balance) || new Decimal(0),
+            ),
+          )
+        }
+      } else if (sumHoldAvailableAmount.greaterThan(0)) {
         logger.debug(`sumHoldAvailableAmount > 0: transactions=${transactions}`)
         transactions.push(
           virtualLinkTransaction(
