@@ -46,7 +46,7 @@ export class Community {
   @JoinColumn({ name: 'auf_account_id' })
   aufAccount?: Account
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(3)' })
   createdAt: Date
 
   @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })

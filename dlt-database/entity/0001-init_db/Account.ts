@@ -38,11 +38,7 @@ export class Account {
   @Column({ type: 'tinyint', unsigned: true })
   type: number
 
-  @CreateDateColumn({
-    name: 'created_at',
-    type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP',
-  })
+  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(3)' })
   createdAt: Date
 
   @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })
@@ -57,7 +53,11 @@ export class Account {
   })
   balance: Decimal
 
-  @Column({ name: 'balance_date', type: 'datetime' })
+  @Column({
+    name: 'balance_date',
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP(3)',
+  })
   balanceDate: Date
 
   @ManyToMany(() => Community, (community) => community.communityAccounts)

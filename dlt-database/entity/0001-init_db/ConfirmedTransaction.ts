@@ -1,12 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  ManyToOne,
-  JoinColumn,
-  OneToOne,
-} from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm'
 import { Decimal } from 'decimal.js-light'
 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
@@ -52,6 +44,6 @@ export class ConfirmedTransaction {
   @Column({ name: 'iota_milestone', type: 'bigint' })
   iotaMilestone: number
 
-  @CreateDateColumn({ name: 'confirmed_at', type: 'datetime' })
+  @Column({ name: 'confirmed_at', type: 'datetime' })
   confirmedAt: Date
 }

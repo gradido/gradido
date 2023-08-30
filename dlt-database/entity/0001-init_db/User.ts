@@ -1,4 +1,12 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinColumn } from 'typeorm'
+import {
+  BaseEntity,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  JoinColumn,
+  CreateDateColumn,
+} from 'typeorm'
 
 import { Account } from './Account'
 
@@ -18,7 +26,7 @@ export class User extends BaseEntity {
   @Column({ name: 'derive1_pubkey', type: 'binary', length: 32, unique: true })
   derive1Pubkey: Buffer
 
-  @Column({
+  @CreateDateColumn({
     name: 'created_at',
     type: 'datetime',
     default: () => 'CURRENT_TIMESTAMP(3)',
