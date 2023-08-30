@@ -15,6 +15,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateSenderBalance } from '@/util/calculateSenderBalance'
 import { fullName } from '@/util/utilities'
+import { settlePendingSenderTransaction } from './settlePendingSenderTransaction'
 
 export async function processXComPendingSendCoins(
   receiverFCom: DbFederatedCommunity,
@@ -174,6 +175,31 @@ export async function processXComCommittingSendCoins(
         logger.debug(`X-Com: ready for settleSendCoins with args=`, args)
         const acknoleged = await client.settleSendCoins(args)
         logger.debug(`X-Com: returnd from settleSendCoins:`, acknoleged)
+        if (acknoleged) {
+          // settle the pending transaction on receiver-side was successfull, so now settle the sender side
+          try {
+            await settlePendingSenderTransaction(senderCom, sender, pendingTx)
+          } catch (err) {
+            logger.error(`Error in writing sender pending transaction: `, err)
+            // revert the existing pending transaction on receiver side
+            let revertCount = 0
+            logger.debug(`X-Com: first try to revertSetteledSendCoins of receiver`)
+            do {
+              if (await client.revertSettledSendCoins(args)) {
+                logger.debug(
+                  `revertSettledSendCoins()-1_0... successfull after revertCount=`,
+                  revertCount,
+                )
+                // treat revertingSettledSendCoins as an error of the whole sendCoins-process
+                throw new LogError('Error in settle sender pending transaction: `, err')
+              }
+            } while (CONFIG.FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS > revertCount++)
+            throw new LogError(
+              `Error in reverting receiver pending transaction even after revertCount=`,
+              revertCount,
+            )
+          }
+        }
       }
     }
   } catch (err) {
