@@ -122,10 +122,13 @@ export const communities = gql`
   query {
     communities {
       id
+      foreign
       name
-      url
       description
-      registerUrl
+      url
+      creationDate
+      uuid
+      authenticatedAt
     }
   }
 `
@@ -142,21 +145,6 @@ export const getCommunities = gql`
       lastErrorAt
       createdAt
       updatedAt
-    }
-  }
-`
-
-export const getCommunitySelections = gql`
-  query {
-    communities {
-      id
-      foreign
-      name
-      description
-      url
-      creationDate
-      uuid
-      authenticatedAt
     }
   }
 `
