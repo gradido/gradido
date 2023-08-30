@@ -22,6 +22,7 @@ export class TransactionRecipe {
   @Column({ name: 'iota_message_id', type: 'binary', length: 32, nullable: true })
   iotaMessageId?: Buffer
 
+  // if transaction has a sender than it is also the sender account
   @ManyToOne(() => Account, (account) => account.transactionRecipesSigning)
   @JoinColumn({ name: 'signing_account_id' })
   signingAccount: Account
