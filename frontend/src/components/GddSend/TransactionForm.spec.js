@@ -4,7 +4,7 @@ import flushPromises from 'flush-promises'
 import { SEND_TYPES } from '@/pages/Send'
 import { createMockClient } from 'mock-apollo-client'
 import VueApollo from 'vue-apollo'
-import { user as userQuery } from '@/graphql/queries'
+import { user as userQuery, selectCommunities as selectCommunitiesQuery } from '@/graphql/queries'
 
 const mockClient = createMockClient()
 const apolloProvider = new VueApollo({
@@ -57,6 +57,28 @@ describe('TransactionForm', () => {
           firstName: 'Bibi',
           lastName: 'Bloxberg',
         },
+      },
+    }),
+  )
+
+  mockClient.setRequestHandler(
+    selectCommunitiesQuery,
+    jest.fn().mockResolvedValue({
+      data: {
+        communities: [
+          {
+            uuid: '8f4c146a-79b5-413f-89ed-53f624ec49b2',
+            name: 'Gradido Entwicklung',
+            description: 'Gradido-Community einer lokalen Entwicklungsumgebung.',
+            foreign: false,
+          },
+          {
+            uuid: 'ashasas',
+            name: 'Hunde-Community',
+            description: 'Hier geht es um Hunde',
+            foreign: true,
+          },
+        ],
       },
     }),
   )
@@ -352,6 +374,12 @@ Die ganze Welt bezwingen.“`)
                   memo: 'Long enough',
                   selected: 'send',
                   userName: '',
+                  targetCommunity: {
+                    description: 'Gradido-Community einer lokalen Entwicklungsumgebung.',
+                    foreign: false,
+                    name: 'Gradido Entwicklung',
+                    uuid: '8f4c146a-79b5-413f-89ed-53f624ec49b2',
+                  },
                 },
               ],
             ])

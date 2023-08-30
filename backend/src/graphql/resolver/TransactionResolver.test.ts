@@ -91,7 +91,7 @@ describe('send coins', () => {
         await mutate({
           mutation: sendCoins,
           variables: {
-            identifier: 'wrong@email.com',
+            recipientIdentifier: 'wrong@email.com',
             amount: 100,
             memo: 'test test',
           },
@@ -119,7 +119,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              identifier: 'stephen@hawking.uk',
+              recipientIdentifier: 'stephen@hawking.uk',
               amount: 100,
               memo: 'test test',
             },
@@ -148,7 +148,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              identifier: 'garrick@ollivander.com',
+              recipientIdentifier: 'garrick@ollivander.com',
               amount: 100,
               memo: 'test test',
             },
@@ -184,7 +184,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              identifier: 'bob@baumeister.de',
+              recipientIdentifier: 'bob@baumeister.de',
               amount: 100,
               memo: 'test test',
             },
@@ -207,7 +207,7 @@ describe('send coins', () => {
         const { errors: errorObjects } = await mutate({
           mutation: sendCoins,
           variables: {
-            identifier: 'peter@lustig.de',
+            recipientIdentifier: 'peter@lustig.de',
             amount: 100,
             memo: 'Test',
           },
@@ -238,7 +238,7 @@ describe('send coins', () => {
         const { errors: errorObjects } = await mutate({
           mutation: sendCoins,
           variables: {
-            identifier: 'peter@lustig.de',
+            recipientIdentifier: 'peter@lustig.de',
             amount: 100,
             memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test t',
           },
@@ -270,7 +270,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              identifier: 'peter@lustig.de',
+              recipientIdentifier: 'peter@lustig.de',
               amount: 100,
               memo: 'testing',
             },
@@ -319,7 +319,7 @@ describe('send coins', () => {
         const { errors: errorObjects } = await mutate({
           mutation: sendCoins,
           variables: {
-            identifier: 'peter@lustig.de',
+            recipientIdentifier: 'peter@lustig.de',
             amount: -50,
             memo: 'testing negative',
           },
@@ -350,7 +350,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
-              identifier: 'peter@lustig.de',
+              recipientIdentifier: 'peter@lustig.de',
               amount: 50,
               memo: 'unrepeatable memo',
             },
@@ -456,7 +456,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
-              identifier: peter?.gradidoID,
+              recipientIdentifier: peter?.gradidoID,
               amount: 10,
               memo: 'send via gradido ID',
             },
@@ -496,7 +496,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
-              identifier: 'bob',
+              recipientIdentifier: 'bob',
               amount: 6.66,
               memo: 'send via alias',
             },
@@ -564,7 +564,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
-              identifier: 'peter@lustig.de',
+              recipientIdentifier: 'peter@lustig.de',
               amount: 10,
               memo: 'first transaction',
             },
@@ -580,7 +580,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
-              identifier: 'peter@lustig.de',
+              recipientIdentifier: 'peter@lustig.de',
               amount: 20,
               memo: 'second transaction',
             },
@@ -596,7 +596,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
-              identifier: 'peter@lustig.de',
+              recipientIdentifier: 'peter@lustig.de',
               amount: 30,
               memo: 'third transaction',
             },
@@ -612,7 +612,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
-              identifier: 'peter@lustig.de',
+              recipientIdentifier: 'peter@lustig.de',
               amount: 40,
               memo: 'fourth transaction',
             },
