@@ -11,7 +11,6 @@ export class User extends BaseEntity {
     name: 'gradido_id',
     length: 36,
     nullable: true,
-    unique: true,
     collation: 'utf8mb4_unicode_ci',
   })
   gradidoID?: string

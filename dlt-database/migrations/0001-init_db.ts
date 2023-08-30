@@ -22,7 +22,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`created_at\` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
       \`confirmed_at\` datetime(3) DEFAULT NULL,
       PRIMARY KEY (\`id\`),
-      UNIQUE KEY \`gradido_id\` (\`gradido_id\`),
+      INDEX \`gradido_id\` (\`gradido_id\`),
       UNIQUE KEY \`pubkey\` (\`pubkey\`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`)
 
