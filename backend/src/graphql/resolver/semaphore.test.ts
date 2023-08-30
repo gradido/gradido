@@ -156,7 +156,11 @@ describe('semaphore', () => {
     })
     const bibisTransaction = mutate({
       mutation: sendCoins,
-      variables: { identifier: 'bob@baumeister.de', amount: '50', memo: 'Das ist für dich, Bob' },
+      variables: {
+        recipientIdentifier: 'bob@baumeister.de',
+        amount: '50',
+        memo: 'Das ist für dich, Bob',
+      },
     })
     await mutate({
       mutation: login,
@@ -172,7 +176,11 @@ describe('semaphore', () => {
     })
     const bobsTransaction = mutate({
       mutation: sendCoins,
-      variables: { identifier: 'bibi@bloxberg.de', amount: '50', memo: 'Das ist für dich, Bibi' },
+      variables: {
+        recipientIdentifier: 'bibi@bloxberg.de',
+        amount: '50',
+        memo: 'Das ist für dich, Bibi',
+      },
     })
     await mutate({
       mutation: login,

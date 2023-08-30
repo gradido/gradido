@@ -7,9 +7,9 @@ import { IsPositiveDecimal } from '@/graphql/validator/Decimal'
 
 @ArgsType()
 export class TransactionSendArgs {
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @IsString()
-  recipientCommunityIdentifier: string
+  recipientCommunityIdentifier?: string | null | undefined
 
   @Field(() => String)
   @IsString()

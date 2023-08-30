@@ -5,7 +5,6 @@ import { SEND_TYPES } from '@/pages/Send'
 import { createMockClient } from 'mock-apollo-client'
 import VueApollo from 'vue-apollo'
 import { user as userQuery, selectCommunities as selectCommunitiesQuery } from '@/graphql/queries'
-import { COMMUNITY_NAME } from '@/config'
 
 const mockClient = createMockClient()
 const apolloProvider = new VueApollo({
