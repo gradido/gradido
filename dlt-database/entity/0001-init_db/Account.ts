@@ -5,7 +5,6 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
-  OneToOne,
   OneToMany,
   ManyToMany,
   JoinTable,
@@ -15,7 +14,7 @@ import { Community } from './Community'
 import { TransactionRecipe } from './TransactionRecipe'
 import { ConfirmedTransaction } from './ConfirmedTransaction'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
-import Decimal from 'decimal.js-light'
+import { Decimal } from 'decimal.js-light'
 
 @Entity('accounts')
 export class Account {
