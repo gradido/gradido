@@ -6,7 +6,7 @@
         <b-col cols="12">
           <b-row class="mt-3">
             <b-col class="h5">{{ $t('form.recipientCommunity') }}</b-col>
-            <b-col>{{ communityName }}</b-col>
+            <b-col>{{ targetCommunity.name }}</b-col>
           </b-row>
           <b-row>
             <b-col class="h5">{{ $t('form.recipient') }}</b-col>
@@ -76,11 +76,16 @@ export default {
     amount: { type: Number, required: true },
     memo: { type: String, required: true },
     userName: { type: String, default: '' },
+    targetCommunity: {
+      type: Object,
+      default: function () {
+        return { uuid: '', name: COMMUNITY_NAME }
+      },
+    },
   },
   data() {
     return {
       disabled: false,
-      communityName: COMMUNITY_NAME,
     }
   },
 }

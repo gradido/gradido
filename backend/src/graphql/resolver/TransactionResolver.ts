@@ -308,15 +308,18 @@ export class TransactionResolver {
   @Authorized([RIGHTS.SEND_COINS])
   @Mutation(() => Boolean)
   async sendCoins(
-    @Args() { identifier, amount, memo }: TransactionSendArgs,
+    @Args()
+    { /* recipientCommunityIdentifier, */ recipientIdentifier, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.info(`sendCoins(identifier=${identifier}, amount=${amount}, memo=${memo})`)
+    logger.info(
+      `sendCoins(recipientIdentifier=${recipientIdentifier}, amount=${amount}, memo=${memo})`,
+    )
 
     const senderUser = getUser(context)
 
     // validate recipient user
-    const recipientUser = await findUserByIdentifier(identifier)
+    const recipientUser = await findUserByIdentifier(recipientIdentifier)
     if (!recipientUser) {
       throw new LogError('The recipient user was not found', recipientUser)
     }
