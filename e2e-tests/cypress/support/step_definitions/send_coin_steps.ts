@@ -50,13 +50,14 @@ When('the user submits the transaction by confirming', () => {
       'have.property',
       'query',
       `mutation ($recipientCommunityIdentifier: String!, $recipientIdentifier: String!, $amount: Decimal!, $memo: String!) {
-         sendCoins(
-           recipientCommunityIdentifier: $recipientCommunityIdentifier
-           recipientIdentifier: $recipientIdentifier
-           amount: $amount
-           memo: $memo
-         )
-       }`,
+        sendCoins(
+          recipientCommunityIdentifier: $recipientCommunityIdentifier
+          recipientIdentifier: $recipientIdentifier
+          amount: $amount
+          memo: $memo
+        )
+      }
+      `,
     )
     cy.wrap(interception.response?.body)
       .should('have.nested.property', 'data.sendCoins')
