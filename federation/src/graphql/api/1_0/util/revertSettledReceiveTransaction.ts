@@ -15,9 +15,8 @@ import { federationLogger as logger } from '@/server/logger'
 
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
-import { calculateRecepientBalance } from './calculateRecepientBalance'
 
-export async function settlePendingReceiveTransaction(
+export async function revertSettledReceiveTransaction(
   homeCom: DbCommunity,
   receiverUser: DbUser,
   pendingTx: DbPendingTransaction,
@@ -31,19 +30,29 @@ export async function settlePendingReceiveTransaction(
   logger.debug(`start Transaction for write-access...`)
 
   try {
-    logger.info('X-Com: settlePendingReceiveTransaction:', homeCom, receiverUser, pendingTx)
+    logger.info('X-Com: revertSettledReceiveTransaction:', homeCom, receiverUser, pendingTx)
 
     // ensure that no other pendingTx with the same sender or recipient exists
     const openSenderPendingTx = await DbPendingTransaction.count({
       where: [
         { userGradidoID: pendingTx.userGradidoID, state: PendingTransactionState.NEW },
-        { linkedUserGradidoID: pendingTx.linkedUserGradidoID!, state: PendingTransactionState.NEW },
+        { userGradidoID: pendingTx.userGradidoID, state: PendingTransactionState.SETTLED },
+        {
+          linkedUserGradidoID: pendingTx.linkedUserGradidoID!,
+          state: PendingTransactionState.NEW,
+        },
+        {
+          linkedUserGradidoID: pendingTx.linkedUserGradidoID!,
+          state: PendingTransactionState.SETTLED,
+        },
       ],
     })
     const openReceiverPendingTx = await DbPendingTransaction.count({
       where: [
         { userGradidoID: pendingTx.linkedUserGradidoID!, state: PendingTransactionState.NEW },
+        { userGradidoID: pendingTx.linkedUserGradidoID!, state: PendingTransactionState.SETTLED },
         { linkedUserGradidoID: pendingTx.userGradidoID, state: PendingTransactionState.NEW },
+        { linkedUserGradidoID: pendingTx.userGradidoID, state: PendingTransactionState.SETTLED },
       ],
     })
     if (openSenderPendingTx > 1 || openReceiverPendingTx > 1) {
@@ -51,49 +60,32 @@ export async function settlePendingReceiveTransaction(
     }
 
     const lastTransaction = await getLastTransaction(receiverUser.id)
+    // now the last Tx must be the equivalant to the pendingTX
+    if (
+      lastTransaction &&
+      lastTransaction.balance === pendingTx.balance &&
+      lastTransaction.balanceDate === pendingTx.balanceDate &&
+      lastTransaction.userGradidoID === pendingTx.userGradidoID &&
+      lastTransaction.userName === pendingTx.userName &&
+      lastTransaction.amount === pendingTx.amount &&
+      lastTransaction.memo === pendingTx.memo &&
+      lastTransaction.linkedUserGradidoID === pendingTx.linkedUserGradidoID &&
+      lastTransaction.linkedUserName === pendingTx.linkedUserName
+    ) {
+      await queryRunner.manager.remove(dbTransaction, lastTransaction)
+      logger.debug(`X-Com: revert settlement receive Transaction removed:`, lastTransaction)
+      // and mark the pendingTx in the pending_transactions table as reverted
+      pendingTx.state = PendingTransactionState.REVERTED
+      await queryRunner.manager.save(DbPendingTransaction, pendingTx)
 
-    if (lastTransaction?.id !== pendingTx.previous) {
+      await queryRunner.commitTransaction()
+      logger.info(`commit revert settlement recipient Transaction successful...`)
+    } else {
+      // TODO: if the last TX is not equivelant to pendingTX, the transactions must be corrected in EXPERT-MODE
       throw new LogError(
-        `X-Com: missmatching transaction order! lastTransationId=${lastTransaction?.id} != pendingTx.previous=${pendingTx.previous}`,
+        `X-Com: missmatching transaction order for revert settlement! lastTransation=${lastTransaction} != pendingTx=${pendingTx}`,
       )
     }
-
-    // transfer the pendingTx to the transactions table
-    const transactionReceive = new dbTransaction()
-    transactionReceive.typeId = pendingTx.typeId
-    transactionReceive.memo = pendingTx.memo
-    transactionReceive.userId = pendingTx.userId
-    transactionReceive.userGradidoID = pendingTx.userGradidoID
-    transactionReceive.userName = pendingTx.userName
-    transactionReceive.linkedUserId = pendingTx.linkedUserId
-    transactionReceive.linkedUserGradidoID = pendingTx.linkedUserGradidoID
-    transactionReceive.linkedUserName = pendingTx.linkedUserName
-    transactionReceive.amount = pendingTx.amount
-    const receiveBalance = await calculateRecepientBalance(
-      receiverUser.id,
-      pendingTx.amount,
-      pendingTx.balanceDate,
-    )
-    if (receiveBalance?.balance !== pendingTx.balance) {
-      throw new LogError(
-        `X-Com: Calculation-Error on receiver balance: receiveBalance=${receiveBalance?.balance}, pendingTx.balance=${pendingTx.balance}`,
-      )
-    }
-    transactionReceive.balance = pendingTx.balance
-    transactionReceive.balanceDate = pendingTx.balanceDate
-    transactionReceive.decay = pendingTx.decay
-    transactionReceive.decayStart = pendingTx.decayStart
-    transactionReceive.previous = pendingTx.previous
-    transactionReceive.linkedTransactionId = pendingTx.linkedTransactionId
-    await queryRunner.manager.insert(dbTransaction, transactionReceive)
-    logger.debug(`receive Transaction inserted: ${dbTransaction}`)
-
-    // and mark the pendingTx in the pending_transactions table as settled
-    pendingTx.state = PendingTransactionState.SETTLED
-    await queryRunner.manager.save(DbPendingTransaction, pendingTx)
-
-    await queryRunner.commitTransaction()
-    logger.info(`commit recipient Transaction successful...`)
 
     /*
     await EVENT_TRANSACTION_SEND(sender, recipient, transactionSend, transactionSend.amount)
@@ -109,7 +101,7 @@ export async function settlePendingReceiveTransaction(
     // void sendTransactionsToDltConnector()
   } catch (e) {
     await queryRunner.rollbackTransaction()
-    throw new LogError('X-Com: recipient Transaction was not successful', e)
+    throw new LogError('X-Com: revert settlement recipient Transaction was not successful', e)
   } finally {
     await queryRunner.release()
     releaseLock()
