@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Connection, In } from '@dbTools/typeorm'
+import { Community as DbCommunity } from '@entity/Community'
 import { DltTransaction } from '@entity/DltTransaction'
 import { Event as DbEvent } from '@entity/Event'
 import { Transaction } from '@entity/Transaction'
@@ -56,12 +57,24 @@ let user: User[]
 let bob: User
 let peter: User
 
+let homeCom: DbCommunity
+
 describe('send coins', () => {
   beforeAll(async () => {
     peter = await userFactory(testEnv, peterLustig)
     bob = await userFactory(testEnv, bobBaumeister)
     await userFactory(testEnv, stephenHawking)
     await userFactory(testEnv, garrickOllivander)
+    homeCom = DbCommunity.create()
+    homeCom.communityUuid = 'homeCom-UUID'
+    homeCom.creationDate = new Date('2000-01-01')
+    homeCom.description = 'homeCom description'
+    homeCom.foreign = false
+    homeCom.name = 'homeCom name'
+    homeCom.privateKey = Buffer.from('homeCom privateKey')
+    homeCom.publicKey = Buffer.from('homeCom publicKey')
+    homeCom.url = 'homeCom url'
+    homeCom = await DbCommunity.save(homeCom)
 
     bobData = {
       email: 'bob@baumeister.de',
@@ -91,6 +104,7 @@ describe('send coins', () => {
         await mutate({
           mutation: sendCoins,
           variables: {
+            recipientCommunityIdentifier: homeCom.communityUuid,
             recipientIdentifier: 'wrong@email.com',
             amount: 100,
             memo: 'test test',
@@ -119,6 +133,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'stephen@hawking.uk',
               amount: 100,
               memo: 'test test',
@@ -148,6 +163,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'garrick@ollivander.com',
               amount: 100,
               memo: 'test test',
@@ -184,6 +200,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'bob@baumeister.de',
               amount: 100,
               memo: 'test test',
@@ -207,6 +224,7 @@ describe('send coins', () => {
         const { errors: errorObjects } = await mutate({
           mutation: sendCoins,
           variables: {
+            recipientCommunityIdentifier: homeCom.communityUuid,
             recipientIdentifier: 'peter@lustig.de',
             amount: 100,
             memo: 'Test',
@@ -238,6 +256,7 @@ describe('send coins', () => {
         const { errors: errorObjects } = await mutate({
           mutation: sendCoins,
           variables: {
+            recipientCommunityIdentifier: homeCom.communityUuid,
             recipientIdentifier: 'peter@lustig.de',
             amount: 100,
             memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test t',
@@ -270,6 +289,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
               amount: 100,
               memo: 'testing',
@@ -319,6 +339,7 @@ describe('send coins', () => {
         const { errors: errorObjects } = await mutate({
           mutation: sendCoins,
           variables: {
+            recipientCommunityIdentifier: homeCom.communityUuid,
             recipientIdentifier: 'peter@lustig.de',
             amount: -50,
             memo: 'testing negative',
@@ -350,6 +371,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
               amount: 50,
               memo: 'unrepeatable memo',
@@ -456,6 +478,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: peter?.gradidoID,
               amount: 10,
               memo: 'send via gradido ID',
@@ -496,6 +519,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'bob',
               amount: 6.66,
               memo: 'send via alias',
@@ -564,6 +588,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
               amount: 10,
               memo: 'first transaction',
@@ -580,6 +605,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
               amount: 20,
               memo: 'second transaction',
@@ -596,6 +622,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
               amount: 30,
               memo: 'third transaction',
@@ -612,6 +639,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
               amount: 40,
               memo: 'fourth transaction',

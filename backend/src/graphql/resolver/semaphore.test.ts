@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Connection } from '@dbTools/typeorm'
+import { Community as DbCommunity } from '@entity/Community'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
@@ -48,9 +49,21 @@ describe('semaphore', () => {
   let bibisTransactionLinkCode = ''
   let bibisOpenContributionId = -1
   let bobsOpenContributionId = -1
+  let homeCom: DbCommunity
 
   beforeAll(async () => {
     const now = new Date()
+    homeCom = DbCommunity.create()
+    homeCom.communityUuid = 'homeCom-UUID'
+    homeCom.creationDate = new Date('2000-01-01')
+    homeCom.description = 'homeCom description'
+    homeCom.foreign = false
+    homeCom.name = 'homeCom name'
+    homeCom.privateKey = Buffer.from('homeCom privateKey')
+    homeCom.publicKey = Buffer.from('homeCom publicKey')
+    homeCom.url = 'homeCom url'
+    homeCom = await DbCommunity.save(homeCom)
+
     await userFactory(testEnv, bibiBloxberg)
     await userFactory(testEnv, peterLustig)
     await userFactory(testEnv, bobBaumeister)
@@ -157,6 +170,7 @@ describe('semaphore', () => {
     const bibisTransaction = mutate({
       mutation: sendCoins,
       variables: {
+        recipientCommunityIdentifier: homeCom.communityUuid,
         recipientIdentifier: 'bob@baumeister.de',
         amount: '50',
         memo: 'Das ist für dich, Bob',
@@ -177,6 +191,7 @@ describe('semaphore', () => {
     const bobsTransaction = mutate({
       mutation: sendCoins,
       variables: {
+        recipientCommunityIdentifier: homeCom.communityUuid,
         recipientIdentifier: 'bibi@bloxberg.de',
         amount: '50',
         memo: 'Das ist für dich, Bibi',

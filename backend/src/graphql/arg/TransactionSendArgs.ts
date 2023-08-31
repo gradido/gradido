@@ -23,7 +23,4 @@ export class TransactionSendArgs {
   @MaxLength(MEMO_MAX_CHARS)
   @MinLength(MEMO_MIN_CHARS)
   memo: string
-
-  @Field(() => String)
-  communityIdentifier: string
 }
