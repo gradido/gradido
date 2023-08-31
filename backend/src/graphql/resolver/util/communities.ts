@@ -2,7 +2,9 @@ import { Community as DbCommunity } from '@entity/Community'
 
 export async function isHomeCommunity(communityIdentifier: string): Promise<boolean> {
   const homeCommunity = await DbCommunity.findOneByOrFail({ foreign: false })
-  if (communityIdentifier === homeCommunity.name) {
+  if (communityIdentifier === homeCommunity.id.toString()) {
+    return true
+  } else if (communityIdentifier === homeCommunity.name) {
     return true
   } else if (communityIdentifier === homeCommunity.communityUuid) {
     return true

@@ -45,12 +45,10 @@ import { calculateDecay } from '@/util/decay'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { fullName } from '@/util/utilities'
 
-import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import {
   getUserCreation,
   validateContribution,
   updateCreations,
-  isValidDateString,
   getOpenCreations,
 } from './util/creations'
 import { findContributions } from './util/findContributions'
@@ -66,12 +64,6 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    if (memo.length < MEMO_MIN_CHARS) {
-      throw new LogError('Memo text is too short', memo.length)
-    }
-    if (memo.length > MEMO_MAX_CHARS) {
-      throw new LogError('Memo text is too long', memo.length)
-    }
 
     const user = getUser(context)
     const creations = await getUserCreation(user.id, clientTimezoneOffset)
@@ -181,12 +173,6 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    if (memo.length < MEMO_MIN_CHARS) {
-      throw new LogError('Memo text is too short', memo.length)
-    }
-    if (memo.length > MEMO_MAX_CHARS) {
-      throw new LogError('Memo text is too long', memo.length)
-    }
 
     const user = getUser(context)
 
@@ -264,9 +250,6 @@ export class ContributionResolver {
       `adminCreateContribution(email=${email}, amount=${amount.toString()}, memo=${memo}, creationDate=${creationDate})`,
     )
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    if (!isValidDateString(creationDate)) {
-      throw new LogError('CreationDate is invalid', creationDate)
-    }
     const emailContact = await UserContact.findOne({
       where: { email },
       withDeleted: true,

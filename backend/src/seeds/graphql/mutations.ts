@@ -78,6 +78,7 @@ export const sendActivationEmail = gql`
   }
 `
 
+/*
 export const sendCoins = gql`
   mutation ($identifier: String!, $amount: Decimal!, $memo: String!, $communityIdentifier: String) {
     sendCoins(
@@ -85,6 +86,22 @@ export const sendCoins = gql`
       amount: $amount
       memo: $memo
       communityIdentifier: $communityIdentifier
+    )
+  }
+`
+*/
+export const sendCoins = gql`
+  mutation (
+    $recipientCommunityIdentifier: String!
+    $recipientIdentifier: String!
+    $amount: Decimal!
+    $memo: String!
+  ) {
+    sendCoins(
+      recipientCommunityIdentifier: $recipientCommunityIdentifier
+      recipientIdentifier: $recipientIdentifier
+      amount: $amount
+      memo: $memo
     )
   }
 `

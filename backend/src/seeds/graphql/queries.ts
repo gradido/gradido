@@ -118,25 +118,17 @@ export const listGDTEntriesQuery = gql`
   }
 `
 
-export const communityInfo = gql`
-  query {
-    getCommunityInfo {
-      name
-      description
-      registerUrl
-      url
-    }
-  }
-`
-
 export const communities = gql`
   query {
     communities {
       id
+      foreign
       name
-      url
       description
-      registerUrl
+      url
+      creationDate
+      uuid
+      authenticatedAt
     }
   }
 `
@@ -236,6 +228,7 @@ export const adminListContributions = gql`
     $statusFilter: [ContributionStatus!]
     $userId: Int
     $query: String
+    $noHashtag: Boolean
   ) {
     adminListContributions(
       currentPage: $currentPage
@@ -244,6 +237,7 @@ export const adminListContributions = gql`
       statusFilter: $statusFilter
       userId: $userId
       query: $query
+      noHashtag: $noHashtag
     ) {
       contributionCount
       contributionList {

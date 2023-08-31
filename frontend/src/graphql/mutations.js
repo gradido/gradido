@@ -71,12 +71,17 @@ export const createUser = gql`
 `
 
 export const sendCoins = gql`
-  mutation ($identifier: String!, $amount: Decimal!, $memo: String!, $communityIdentifier: String) {
+  mutation(
+    $recipientCommunityIdentifier: String!
+    $recipientIdentifier: String!
+    $amount: Decimal!
+    $memo: String!
+  ) {
     sendCoins(
-      identifier: $identifier
+      recipientCommunityIdentifier: $recipientCommunityIdentifier
+      recipientIdentifier: $recipientIdentifier
       amount: $amount
       memo: $memo
-      communityIdentifier: $communityIdentifier
     )
   }
 `

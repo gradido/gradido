@@ -136,6 +136,14 @@ export const creations: CreationInterface[] = [
     confirmed: true,
     moveCreationDate: 12,
   },
+  {
+    email: 'bibi@bloxberg.de',
+    amount: 1000,
+    memo: '#Hexen',
+    creationDate: nMonthsBefore(new Date()),
+    confirmed: true,
+    moveCreationDate: 12,
+  },
   ...bobsTransactions,
   {
     email: 'raeuber@hotzenplotz.de',

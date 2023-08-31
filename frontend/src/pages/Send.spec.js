@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import Send, { SEND_TYPES } from './Send'
+import Send from './Send'
 import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
 import { TRANSACTION_STEPS } from '@/components/GddSend'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
@@ -118,11 +118,10 @@ describe('Send', () => {
               expect.objectContaining({
                 mutation: sendCoins,
                 variables: {
-                  identifier: 'user@example.org',
+                  recipientIdentifier: 'user@example.org',
                   amount: 23.45,
                   memo: 'Make the best of it!',
-                  selected: SEND_TYPES.send,
-                  userName: '',
+                  recipientCommunityIdentifier: '',
                 },
               }),
             )
@@ -217,11 +216,10 @@ describe('Send', () => {
               expect.objectContaining({
                 mutation: sendCoins,
                 variables: {
-                  identifier: 'gradido-ID',
+                  recipientIdentifier: 'gradido-ID',
                   amount: 34.56,
                   memo: 'Make the best of it!',
-                  selected: SEND_TYPES.send,
-                  userName: '',
+                  recipientCommunityIdentifier: '',
                 },
               }),
             )

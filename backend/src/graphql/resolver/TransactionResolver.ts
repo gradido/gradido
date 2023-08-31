@@ -57,14 +57,6 @@ export const executeTransaction = async (
       throw new LogError('Sender and Recipient are the same', sender.id)
     }
 
-    if (memo.length < MEMO_MIN_CHARS) {
-      throw new LogError('Memo text is too short', memo.length)
-    }
-
-    if (memo.length > MEMO_MAX_CHARS) {
-      throw new LogError('Memo text is too long', memo.length)
-    }
-
     // validate amount
     const receivedCallDate = new Date()
     const sendBalance = await calculateBalance(
@@ -470,24 +462,20 @@ export class TransactionResolver {
   @Authorized([RIGHTS.SEND_COINS])
   @Mutation(() => Boolean)
   async sendCoins(
-    @Args() { identifier, amount, memo, communityIdentifier }: TransactionSendArgs,
+    @Args()
+    { recipientCommunityIdentifier, recipientIdentifier, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.info(
-      `sendCoins(identifier=${identifier}, amount=${amount}, memo=${memo}, communityIdentifier=${communityIdentifier})`,
+    logger.debug(
+      `sendCoins(recipientCommunityIdentifier=${recipientCommunityIdentifier}, identifier=${recipientIdentifier}, amount=${amount}, memo=${memo})`,
     )
-
-    if (amount.lte(0)) {
-      throw new LogError('Amount to send must be positive', amount)
-    }
 
     const senderUser = getUser(context)
 
-    if (!communityIdentifier || (await isHomeCommunity(communityIdentifier))) {
+    if (!recipientCommunityIdentifier || (await isHomeCommunity(recipientCommunityIdentifier))) {
       // processing sendCoins within sender and recepient are both in home community
-
       // validate recipient user
-      const recipientUser = await findUserByIdentifier(identifier)
+      const recipientUser = await findUserByIdentifier(recipientIdentifier)
       if (!recipientUser) {
         throw new LogError('The recipient user was not found', recipientUser)
       }

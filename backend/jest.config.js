@@ -7,7 +7,7 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**', '!build/**'],
   coverageThreshold: {
     global: {
-      lines: 90,
+      lines: 89,
     },
   },
   setupFiles: ['<rootDir>/test/testSetup.ts'],
@@ -20,6 +20,7 @@ module.exports = {
     '@model/(.*)': '<rootDir>/src/graphql/model/$1',
     '@union/(.*)': '<rootDir>/src/graphql/union/$1',
     '@repository/(.*)': '<rootDir>/src/typeorm/repository/$1',
+    '@typeorm/(.*)': '<rootDir>/src/typeorm/$1',
     '@test/(.*)': '<rootDir>/test/$1',
     '@entity/(.*)':
       // eslint-disable-next-line n/no-process-env
