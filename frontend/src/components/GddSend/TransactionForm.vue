@@ -54,7 +54,12 @@
                         <b-col>{{ $t('form.recipientCommunity') }}</b-col>
                       </b-row>
                       <b-row>
-                        <b-col class="font-weight-bold">{{ communityName }}</b-col>
+                        <b-col class="font-weight-bold">
+                          <community-switch
+                            v-model="form.targetCommunity"
+                            :disabled="isBalanceDisabled"
+                          />
+                        </b-col>
                       </b-row>
                     </b-col>
                     <b-col cols="12" v-if="radioSelected === sendTypes.send">
@@ -137,6 +142,7 @@ import { SEND_TYPES } from '@/pages/Send'
 import InputIdentifier from '@/components/Inputs/InputIdentifier'
 import InputAmount from '@/components/Inputs/InputAmount'
 import InputTextarea from '@/components/Inputs/InputTextarea'
+import CommunitySwitch from '@/components/CommunitySwitch.vue'
 import { user as userQuery } from '@/graphql/queries'
 import { isEmpty } from 'lodash'
 import { COMMUNITY_NAME } from '@/config'
@@ -147,6 +153,7 @@ export default {
     InputIdentifier,
     InputAmount,
     InputTextarea,
+    CommunitySwitch,
   },
   props: {
     balance: { type: Number, default: 0 },
@@ -154,6 +161,12 @@ export default {
     amount: { type: Number, default: 0 },
     memo: { type: String, default: '' },
     selected: { type: String, default: 'send' },
+    targetCommunity: {
+      type: Object,
+      default: function () {
+        return { uuid: '', name: COMMUNITY_NAME }
+      },
+    },
   },
   data() {
     return {
@@ -161,10 +174,10 @@ export default {
         identifier: this.identifier,
         amount: this.amount ? String(this.amount) : '',
         memo: this.memo,
+        targetCommunity: this.targetCommunity,
       },
       radioSelected: this.selected,
       userName: '',
-      communityName: COMMUNITY_NAME,
     }
   },
   methods: {
@@ -179,6 +192,7 @@ export default {
         amount: Number(this.form.amount.replace(',', '.')),
         memo: this.form.memo,
         userName: this.userName,
+        targetCommunity: this.form.targetCommunity,
       })
     },
     onReset(event) {
@@ -186,6 +200,7 @@ export default {
       this.form.identifier = ''
       this.form.amount = ''
       this.form.memo = ''
+      this.form.targetCommunity = { uuid: '', name: COMMUNITY_NAME }
       this.$refs.formValidator.validate()
       if (this.$route.query && !isEmpty(this.$route.query))
         this.$router.replace({ query: undefined })

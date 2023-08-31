@@ -122,7 +122,13 @@ export default {
           this.$apollo
             .mutate({
               mutation: sendCoins,
-              variables: this.transactionData,
+              variables: {
+                // from target community we need only the uuid
+                recipientCommunityIdentifier: this.transactionData.targetCommunity.uuid,
+                recipientIdentifier: this.transactionData.identifier,
+                amount: this.transactionData.amount,
+                memo: this.transactionData.memo,
+              },
             })
             .then(() => {
               this.error = false
