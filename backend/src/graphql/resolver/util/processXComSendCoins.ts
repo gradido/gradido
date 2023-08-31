@@ -15,6 +15,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateSenderBalance } from '@/util/calculateSenderBalance'
 import { fullName } from '@/util/utilities'
+
 import { settlePendingSenderTransaction } from './settlePendingSenderTransaction'
 
 export async function processXComPendingSendCoins(

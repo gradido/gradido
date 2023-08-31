@@ -8,13 +8,13 @@ import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTrans
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { User as DbUser } from '@entity/User'
 
+import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
+import { calculateSenderBalance } from '@/util/calculateSenderBalance'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
 import { getLastTransaction } from './getLastTransaction'
-import { calculateSenderBalance } from '@/util/calculateSenderBalance'
-import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'
 
 export async function settlePendingSenderTransaction(
   homeCom: DbCommunity,

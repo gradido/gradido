@@ -54,9 +54,9 @@
       "@repository/*": ["src/typeorm/repository/*"],
       "@test/*": ["test/*"],
       /* common */
-      "@common/*": ["../common/src/*"],
-      "@email/*": ["../common/scr/email/*"],
-      "@event/*": ["../common/src/event/*"],
+      // "@common/*": ["../common/src/*"],
+      // "@email/*": ["../common/scr/email/*"],
+      // "@event/*": ["../common/src/event/*"],
       /* external */
       "@typeorm/*": ["../backend/src/typeorm/*", "../../backend/src/typeorm/*"],
       "@dbTools/*": ["../database/src/*", "../../database/build/src/*"],
