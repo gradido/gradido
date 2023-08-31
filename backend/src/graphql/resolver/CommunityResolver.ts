@@ -26,7 +26,7 @@ export class CommunityResolver {
 
   @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => [Community])
-  async getCommunitySelections(): Promise<Community[]> {
+  async communities(): Promise<Community[]> {
     const dbCommunities: DbCommunity[] = await DbCommunity.find({
       order: {
         name: 'ASC',
