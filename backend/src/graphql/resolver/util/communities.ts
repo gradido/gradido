@@ -19,3 +19,18 @@ export async function getCommunityUrl(communityIdentifier: string): Promise<stri
   const community = await DbCommunity.findOneByOrFail({ name: communityIdentifier })
   return community.url
 }
+
+export async function isCommunityAuthenticated(communityIdentifier: string): Promise<boolean> {
+  const community = await DbCommunity.findOneOrFail({
+    where: [
+      { communityUuid: communityIdentifier },
+      { name: communityIdentifier },
+      { url: communityIdentifier },
+    ],
+  })
+  if (community.authenticatedAt) {
+    return true
+  } else {
+    return false
+  }
+}

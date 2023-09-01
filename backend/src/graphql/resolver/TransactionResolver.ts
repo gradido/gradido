@@ -33,12 +33,13 @@ import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
 import { BalanceResolver } from './BalanceResolver'
-import { isHomeCommunity } from './util/communities'
+import { isCommunityAuthenticated, isHomeCommunity } from './util/communities'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
+import { CONFIG } from '@/config'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -484,6 +485,12 @@ export class TransactionResolver {
     } else {
       // processing a x-community sendCoins
       logger.debug('processing a x-community transaction...')
+      if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
+        throw new LogError('X-Community sendCoins disabled per configuration!')
+      }
+      if (!(await isCommunityAuthenticated(recipientCommunityIdentifier))) {
+        throw new LogError('recipient commuity is connected, but still not authenticated yet!')
+      }
     }
     return true
   }
