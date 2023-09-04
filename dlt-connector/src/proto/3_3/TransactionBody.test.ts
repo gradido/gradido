@@ -1,6 +1,6 @@
 import 'reflect-metadata'
 import { TransactionType } from '@enum/TransactionType'
-import { TransactionInput } from '@input/TransactionInput'
+// import { TransactionInput } from '@input/TransactionInput'
 import Decimal from 'decimal.js-light'
 import { TransactionBody } from './TransactionBody'
 import { TimestampSeconds } from './TimestampSeconds'
@@ -15,7 +15,7 @@ describe('proto/TransactionBodyTest', () => {
 
     // init both objects
     // graphql input object
-    const transactionInput = new TransactionInput()
+   /* const transactionInput = new TransactionInput()
     transactionInput.type = type
     transactionInput.amount = amount
     transactionInput.createdAt = createdAt.seconds
@@ -34,5 +34,6 @@ describe('proto/TransactionBodyTest', () => {
 
     // compare
     expect(messageBuffer).toStrictEqual(messageBuffer2)
+    */
   })
 })

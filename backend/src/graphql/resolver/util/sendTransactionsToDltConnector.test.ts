@@ -360,7 +360,7 @@ describe('create and send Transactions to DltConnector', () => {
       txCREATION3 = await createTxCREATION3(false)
 
       CONFIG.DLT_CONNECTOR = false
-      await sendTransactionsToDltConnector()
+      await sendTransactionsToDltConnector('senderCommunityUuid')
       expect(logger.info).toBeCalledWith('sendTransactionsToDltConnector...')
 
       // Find the previous created transactions of sendCoin mutation
@@ -429,7 +429,7 @@ describe('create and send Transactions to DltConnector', () => {
         } as Response<unknown>
       })
 
-      await sendTransactionsToDltConnector()
+      await sendTransactionsToDltConnector('senderCommunityUuid')
 
       expect(logger.info).toBeCalledWith('sendTransactionsToDltConnector...')
 
@@ -507,7 +507,7 @@ describe('create and send Transactions to DltConnector', () => {
         } as Response<unknown>
       })
 
-      await sendTransactionsToDltConnector()
+      await sendTransactionsToDltConnector('senderCommunityUuid')
 
       expect(logger.info).toBeCalledWith('sendTransactionsToDltConnector...')
 

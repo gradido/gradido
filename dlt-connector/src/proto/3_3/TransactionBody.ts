@@ -2,28 +2,34 @@ import { Field, Message, OneOf } from '@apollo/protobufjs'
 
 import { CrossGroupType } from '@/graphql/enum/CrossGroupType'
 
-import { TimestampSeconds } from './TimestampSeconds'
+import { Timestamp } from './Timestamp'
 import { GradidoTransfer } from './GradidoTransfer'
 import { GradidoCreation } from './GradidoCreation'
 import { GradidoDeferredTransfer } from './GradidoDeferredTransfer'
 import { GroupFriendsUpdate } from './GroupFriendsUpdate'
 import { RegisterAddress } from './RegisterAddress'
-
-/*interface OneofExample {
-  result:
-    | { oneofKind: 'value'; value: number }
-    | { oneofKind: 'error'; error: string }
-    | { oneofKind: undefined }
-}*/
+import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { determineCrossGroupType, determineOtherGroup } from '@/controller/TransactionBody'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
 export class TransactionBody extends Message<TransactionBody> {
+  public constructor(transaction: TransactionDraft) {
+    const type = determineCrossGroupType(transaction)
+    super({
+      memo: 'Not implemented yet',
+      createdAt: new Timestamp(transaction.createdAt),
+      versionNumber: '3.3',
+      type,
+      otherGroup: determineOtherGroup(type, transaction),
+    })
+  }
+
   @Field.d(1, 'string')
   public memo: string
 
-  @Field.d(2, TimestampSeconds)
-  public createdAt: TimestampSeconds
+  @Field.d(2, Timestamp)
+  public createdAt: Timestamp
 
   @Field.d(3, 'string')
   public versionNumber: string

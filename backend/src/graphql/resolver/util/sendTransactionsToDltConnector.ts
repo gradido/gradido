@@ -6,7 +6,10 @@ import { DltConnectorClient } from '@/apis/DltConnectorClient'
 import { backendLogger as logger } from '@/server/logger'
 import { Monitor, MonitorNames } from '@/util/Monitor'
 
-export async function sendTransactionsToDltConnector(): Promise<void> {
+export async function sendTransactionsToDltConnector(
+  senderCommunityUuid: string,
+  recipientCommunityUuid = '',
+): Promise<void> {
   logger.info('sendTransactionsToDltConnector...')
   // check if this logic is still occupied, no concurrecy allowed
   if (!Monitor.isLocked(MonitorNames.SEND_DLT_TRANSACTIONS)) {
@@ -24,8 +27,15 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
           order: { createdAt: 'ASC', id: 'ASC' },
         })
         for (const dltTx of dltTransactions) {
+          if (!dltTx.transaction) {
+            continue
+          }
           try {
-            const messageId = await dltConnector.transmitTransaction(dltTx.transaction)
+            const messageId = await dltConnector.transmitTransaction(
+              dltTx.transaction,
+              senderCommunityUuid,
+              recipientCommunityUuid,
+            )
             const dltMessageId = Buffer.from(messageId, 'hex')
             if (dltMessageId.length !== 32) {
               logger.error(

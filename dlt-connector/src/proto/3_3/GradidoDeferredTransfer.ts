@@ -1,7 +1,7 @@
 import { Field, Message } from '@apollo/protobufjs'
 
 import { GradidoTransfer } from './GradidoTransfer'
-import { Timestamp } from './Timestamp'
+import { TimestampSeconds } from './TimestampSeconds'
 
 // transaction type for chargeable transactions
 // for transaction for people which haven't a account already
@@ -23,8 +23,8 @@ export class GradidoDeferredTransfer extends Message<GradidoDeferredTransfer> {
   // the decay for amount and the seconds until timeout is lost no matter what happened
   // consider is as fee for this service
   // rest decay could be transferred back as separate transaction
-  @Field.d(2, 'Timestamp')
-  public timeout: Timestamp
+  @Field.d(2, 'TimestampSeconds')
+  public timeout: TimestampSeconds
 
   // split for n recipient
   // max gradido per recipient? or per transaction with cool down?

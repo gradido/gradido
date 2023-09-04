@@ -51,10 +51,12 @@
       "@arg/*": ["src/graphql/arg/*"],
       "@enum/*": ["src/graphql/enum/*"],
       "@input/*": ["src/graphql/input/*"],
+      "@model/*": ["src/graphql/model/*"],
       "@resolver/*": ["src/graphql/resolver/*"],
       "@scalar/*": ["src/graphql/scalar/*"],
       "@test/*": ["test/*"],
       "@proto/*" : ["src/proto/*"],
+      "@controller/*": ["src/controller/*"],
       /* external */
     },
     // "rootDirs": [],                              /* List of root folders whose combined content represents the structure of the project at runtime. */
