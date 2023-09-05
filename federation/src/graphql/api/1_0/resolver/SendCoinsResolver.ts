@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Args, Mutation, Query, Resolver } from 'type-graphql'
+import { Args, Mutation, Resolver } from 'type-graphql'
 import { federationLogger as logger } from '@/server/logger'
 import { Community as DbCommunity } from '@entity/Community'
 import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
@@ -8,7 +8,7 @@ import { User as DbUser } from '@entity/User'
 import { LogError } from '@/server/LogError'
 import { PendingTransactionState } from '../enum/PendingTransactionState'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
-import { calculateRecepientBalance } from '@/graphql/util/calculateRecepientBalance'
+import { calculateRecipientBalance } from '@/graphql/util/calculateRecipientBalance'
 import Decimal from 'decimal.js-light'
 import { fullName } from '@/graphql/util/fullName'
 
@@ -51,7 +51,7 @@ export class SendCoinsResolver {
     }
     try {
       const txDate = new Date(creationDate)
-      const receiveBalance = await calculateRecepientBalance(receiverUser.id, amount, txDate)
+      const receiveBalance = await calculateRecipientBalance(receiverUser.id, amount, txDate)
       const pendingTx = DbPendingTransaction.create()
       pendingTx.amount = amount
       pendingTx.balance = receiveBalance ? receiveBalance.balance : new Decimal(0)

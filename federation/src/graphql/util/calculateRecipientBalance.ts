@@ -4,7 +4,7 @@ import { getLastTransaction } from './getLastTransaction'
 import { calculateDecay } from './decay'
 import { Decay } from '../api/1_0/model/Decay'
 
-export async function calculateRecepientBalance(
+export async function calculateRecipientBalance(
   userId: number,
   amount: Decimal,
   time: Date,
