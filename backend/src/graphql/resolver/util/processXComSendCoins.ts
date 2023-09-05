@@ -42,7 +42,7 @@ export async function processXComSendCoins(
         ? receiverCom.communityUuid
         : CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID
       args.userReceiverIdentifier = recipient.gradidoID
-      args.creationDate = creationDate
+      args.creationDate = creationDate.toISOString()
       args.amount = amount
       args.memo = memo
       args.communitySenderIdentifier = senderCom.communityUuid
