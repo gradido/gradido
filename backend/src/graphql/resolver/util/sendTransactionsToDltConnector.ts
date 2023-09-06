@@ -1,12 +1,11 @@
 import { IsNull } from '@dbTools/typeorm'
+import { Community } from '@entity/Community'
 import { DltTransaction } from '@entity/DltTransaction'
 import { Transaction } from '@entity/Transaction'
 
 import { DltConnectorClient } from '@/apis/DltConnectorClient'
 import { backendLogger as logger } from '@/server/logger'
 import { Monitor, MonitorNames } from '@/util/Monitor'
-
-import { getHomeCommunityUuid } from './communities'
 
 export async function sendTransactionsToDltConnector(): Promise<void> {
   logger.info('sendTransactionsToDltConnector...')
@@ -19,7 +18,11 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
       await createDltTransactions()
       const dltConnector = DltConnectorClient.getInstance()
       // TODO: get actual communities from users
-      const senderCommunityUuid = await getHomeCommunityUuid()
+      const homeCommunity = await Community.findOneOrFail({ where: { foreign: false } })
+      const senderCommunityUuid = homeCommunity.communityUuid
+      if (!senderCommunityUuid) {
+        throw new Error('Cannot find community uuid of home community')
+      }
       const recipientCommunityUuid = ''
       if (dltConnector) {
         logger.debug('with sending to DltConnector...')
