@@ -18,6 +18,7 @@ import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
 
 import { RIGHTS } from '@/auth/RIGHTS'
+import { CONFIG } from '@/config'
 import {
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
@@ -39,7 +40,6 @@ import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
-import { CONFIG } from '@/config'
 
 export const executeTransaction = async (
   amount: Decimal,
