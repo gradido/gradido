@@ -4,7 +4,7 @@ export const revertSendCoins = gql`
   mutation (
     $communityReceiverIdentifier: String!
     $userReceiverIdentifier: String!
-    $creationDate: Date!
+    $creationDate: String!
     $amount: Decimal!
     $memo: String!
     $communitySenderIdentifier: String!

@@ -58,6 +58,7 @@ export class SendCoinsResolver {
       pendingTx.balanceDate = txDate
       pendingTx.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
       pendingTx.decayStart = receiveBalance ? receiveBalance.decay.start : null
+      pendingTx.creationDate = new Date()
       pendingTx.linkedUserCommunityUuid = communitySenderIdentifier
       pendingTx.linkedUserGradidoID = userSenderIdentifier
       pendingTx.linkedUserName = userSenderName
@@ -94,36 +95,36 @@ export class SendCoinsResolver {
     }: SendCoinsArgs,
   ): Promise<boolean> {
     logger.debug(`revertSendCoins() via apiVersion=1_0 ...`)
+    // first check if receiver community is correct
+    const homeCom = await DbCommunity.findOneBy({
+      communityUuid: communityReceiverIdentifier,
+    })
+    if (!homeCom) {
+      throw new LogError(
+        `revertSendCoins with wrong communityReceiverIdentifier`,
+        communityReceiverIdentifier,
+      )
+    }
+    // second check if receiver user exists in this community
+    const receiverUser = await DbUser.findOneBy({ gradidoID: userReceiverIdentifier })
+    if (!receiverUser) {
+      throw new LogError(
+        `revertSendCoins with unknown userReceiverIdentifier in the community=`,
+        homeCom.name,
+      )
+    }
     try {
-      // first check if receiver community is correct
-      const homeCom = await DbCommunity.findOneBy({
-        communityUuid: communityReceiverIdentifier,
-      })
-      if (!homeCom) {
-        throw new LogError(
-          `revertSendCoins with wrong communityReceiverIdentifier`,
-          communityReceiverIdentifier,
-        )
-      }
-      // second check if receiver user exists in this community
-      const receiverUser = await DbUser.findOneBy({ gradidoID: userReceiverIdentifier })
-      if (!receiverUser) {
-        throw new LogError(
-          `revertSendCoins with unknown userReceiverIdentifier in the community=`,
-          homeCom.name,
-        )
-      }
       const pendingTx = await DbPendingTransaction.findOneBy({
         userCommunityUuid: communityReceiverIdentifier,
         userGradidoID: userReceiverIdentifier,
         state: PendingTransactionState.NEW,
         typeId: TransactionTypeId.RECEIVE,
-        balanceDate: creationDate,
+        balanceDate: new Date(creationDate),
         linkedUserCommunityUuid: communitySenderIdentifier,
         linkedUserGradidoID: userSenderIdentifier,
       })
       logger.debug('XCom: revertSendCoins found pendingTX=', pendingTx)
-      if (pendingTx && pendingTx.amount === amount) {
+      if (pendingTx && pendingTx.amount.toString() === amount.toString()) {
         logger.debug('XCom: revertSendCoins matching pendingTX for remove...')
         try {
           await pendingTx.remove()
@@ -132,7 +133,11 @@ export class SendCoinsResolver {
           throw new LogError('Error in revertSendCoins on removing pendingTx of receiver: ', err)
         }
       } else {
-        logger.debug('XCom: revertSendCoins NOT matching pendingTX for remove...')
+        logger.debug(
+          'XCom: revertSendCoins NOT matching pendingTX for remove:',
+          pendingTx?.amount,
+          amount,
+        )
         throw new LogError(
           `Can't find in revertSendCoins the pending receiver TX for args=`,
           communityReceiverIdentifier,
