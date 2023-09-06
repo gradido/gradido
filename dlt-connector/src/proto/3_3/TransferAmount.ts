@@ -1,4 +1,3 @@
-import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { Field, Message } from '@apollo/protobufjs'
 
 // https://www.npmjs.com/package/@apollo/protobufjs

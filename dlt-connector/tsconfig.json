@@ -57,6 +57,7 @@
       "@test/*": ["test/*"],
       "@proto/*" : ["src/proto/*"],
       "@controller/*": ["src/controller/*"],
+      "@validator/*" : ["src/graphql/validator/*"]
       /* external */
     },
     // "rootDirs": [],                              /* List of root folders whose combined content represents the structure of the project at runtime. */

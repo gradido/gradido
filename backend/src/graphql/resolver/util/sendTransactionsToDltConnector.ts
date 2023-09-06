@@ -6,10 +6,9 @@ import { DltConnectorClient } from '@/apis/DltConnectorClient'
 import { backendLogger as logger } from '@/server/logger'
 import { Monitor, MonitorNames } from '@/util/Monitor'
 
-export async function sendTransactionsToDltConnector(
-  senderCommunityUuid: string,
-  recipientCommunityUuid = '',
-): Promise<void> {
+import { getHomeCommunityUuid } from './communities'
+
+export async function sendTransactionsToDltConnector(): Promise<void> {
   logger.info('sendTransactionsToDltConnector...')
   // check if this logic is still occupied, no concurrecy allowed
   if (!Monitor.isLocked(MonitorNames.SEND_DLT_TRANSACTIONS)) {
@@ -19,6 +18,9 @@ export async function sendTransactionsToDltConnector(
     try {
       await createDltTransactions()
       const dltConnector = DltConnectorClient.getInstance()
+      // TODO: get actual communities from users
+      const senderCommunityUuid = await getHomeCommunityUuid()
+      const recipientCommunityUuid = ''
       if (dltConnector) {
         logger.debug('with sending to DltConnector...')
         const dltTransactions = await DltTransaction.find({
@@ -26,6 +28,7 @@ export async function sendTransactionsToDltConnector(
           relations: ['transaction'],
           order: { createdAt: 'ASC', id: 'ASC' },
         })
+
         for (const dltTx of dltTransactions) {
           if (!dltTx.transaction) {
             continue

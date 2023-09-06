@@ -10,10 +10,10 @@ export function IsPositiveDecimal(validationOptions?: ValidationOptions) {
       propertyName,
       options: validationOptions,
       validator: {
-        validate(value: Decimal) {
+        validate(value: Decimal): boolean {
           return value.greaterThan(0)
         },
-        defaultMessage(args: ValidationArguments) {
+        defaultMessage(args: ValidationArguments): string {
           return `The ${propertyName} must be a positive value ${args.property}`
         },
       },

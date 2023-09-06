@@ -23,7 +23,7 @@ export class TransactionResolver {
     return '0.1'
   }
 
-  @Mutation(() => String)
+  @Mutation(() => TransactionResult)
   async sendTransaction(
     @Arg('data')
     transaction: TransactionDraft,
@@ -37,8 +37,9 @@ export class TransactionResolver {
     } catch (error) {
       if (error instanceof TransactionError) {
         return new TransactionResult(error)
+      } else {
+        throw error
       }
-      throw error
     }
   }
 }

@@ -1,4 +1,4 @@
-import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator'
+import { registerDecorator, ValidationOptions } from 'class-validator'
 
 export function isValidDateString(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/ban-types
@@ -9,11 +9,11 @@ export function isValidDateString(validationOptions?: ValidationOptions) {
       propertyName,
       options: validationOptions,
       validator: {
-        validate(value: string) {
+        validate(value: string): boolean {
           return new Date(value).toString() !== 'Invalid Date'
         },
-        defaultMessage(args: ValidationArguments) {
-          return `${propertyName} must be a valid date string, ${args.property}`
+        defaultMessage(): string {
+          return `${propertyName} must be a valid date string`
         },
       },
     })

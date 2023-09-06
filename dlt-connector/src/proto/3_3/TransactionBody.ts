@@ -18,7 +18,7 @@ export class TransactionBody extends Message<TransactionBody> {
     const type = determineCrossGroupType(transaction)
     super({
       memo: 'Not implemented yet',
-      createdAt: new Timestamp(transaction.createdAt),
+      createdAt: new Timestamp(new Date(transaction.createdAt)),
       versionNumber: '3.3',
       type,
       otherGroup: determineOtherGroup(type, transaction),

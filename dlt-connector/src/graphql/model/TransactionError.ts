@@ -2,10 +2,11 @@ import { ObjectType, Field } from 'type-graphql'
 import { TransactionErrorType } from '../enum/TransactionErrorType'
 
 @ObjectType()
-export class TransactionError {
+export class TransactionError implements Error {
   constructor(type: TransactionErrorType, message: string) {
     this.type = type
     this.message = message
+    this.name = type.toString()
   }
 
   @Field(() => TransactionErrorType)
@@ -13,4 +14,7 @@ export class TransactionError {
 
   @Field(() => String)
   message: string
+
+  @Field(() => String)
+  name: string
 }

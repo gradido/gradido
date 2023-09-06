@@ -16,18 +16,10 @@ export const create = (transaction: TransactionDraft): TransactionBody => {
       body.data = 'gradidoCreation'
       break
     case TransactionType.SEND:
-      body.transfer = new GradidoTransfer(transaction)
-      body.data = 'gradidoTransfer'
-      break
     case TransactionType.RECEIVE:
       body.transfer = new GradidoTransfer(transaction)
       body.data = 'gradidoTransfer'
       break
-    default:
-      throw new TransactionError(
-        TransactionErrorType.NOT_IMPLEMENTED_YET,
-        'transaction type unknown',
-      )
   }
   return body
 }
@@ -62,13 +54,20 @@ export const determineOtherGroup = (
     case CrossGroupType.LOCAL:
       return ''
     case CrossGroupType.INBOUND:
+      if (!recipientUser.communityUuid) {
+        throw new TransactionError(
+          TransactionErrorType.MISSING_PARAMETER,
+          'missing recipient user community id for cross group transaction',
+        )
+      }
       return recipientUser.communityUuid
     case CrossGroupType.OUTBOUND:
+      if (!senderUser.communityUuid) {
+        throw new TransactionError(
+          TransactionErrorType.MISSING_PARAMETER,
+          'missing sender user community id for cross group transaction',
+        )
+      }
       return senderUser.communityUuid
-    default:
-      throw new TransactionError(
-        TransactionErrorType.NOT_IMPLEMENTED_YET,
-        type.toString() + ' for enum CrossGroupType not implemented yet',
-      )
   }
 }

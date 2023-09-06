@@ -3,11 +3,9 @@ import { TransactionError } from './TransactionError'
 
 @ObjectType()
 export class TransactionResult {
-  constructor(content: TransactionError | Buffer | string) {
+  constructor(content: TransactionError | string) {
     if (content instanceof TransactionError) {
       this.error = content
-    } else if (content instanceof Buffer) {
-      this.messageId = content.toString('hex')
     } else if (typeof content === 'string') {
       this.messageId = content
     }
