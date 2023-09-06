@@ -27,6 +27,7 @@ jobs:
             frontend
             admin
             database
+            dlt-database
             release
             federation
             dht
