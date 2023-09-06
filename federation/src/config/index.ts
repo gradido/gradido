@@ -1,14 +1,12 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
+import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
 dotenv.config()
-/*
-import Decimal from 'decimal.js-light'
 
 Decimal.set({
   precision: 25,
   rounding: Decimal.ROUND_HALF_UP,
 })
-*/
 
 const constants = {
   DB_VERSION: '0071-add-pending_transactions-table',

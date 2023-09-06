@@ -294,7 +294,7 @@ describe('CommunityResolver', () => {
       })
     })
 
-    describe('with several community entries', () => {
+    describe('returns 2 filtered communities even with 3 existing entries', () => {
       beforeEach(async () => {
         await cleanDB()
         jest.clearAllMocks()
@@ -316,8 +316,8 @@ describe('CommunityResolver', () => {
         foreignCom1.url = 'http://stage-2.gradido.net/api'
         foreignCom1.publicKey = Buffer.from('publicKey-stage-2_Community')
         foreignCom1.privateKey = Buffer.from('privateKey-stage-2_Community')
-        foreignCom1.communityUuid = 'Stage2-Com-UUID'
-        foreignCom1.authenticatedAt = new Date()
+        // foreignCom1.communityUuid = 'Stage2-Com-UUID'
+        // foreignCom1.authenticatedAt = new Date()
         foreignCom1.name = 'Stage-2_Community-name'
         foreignCom1.description = 'Stage-2_Community-description'
         foreignCom1.creationDate = new Date()
@@ -336,7 +336,7 @@ describe('CommunityResolver', () => {
         await DbCommunity.insert(foreignCom2)
       })
 
-      it('returns 3 community entries', async () => {
+      it('returns 2 community entries', async () => {
         await expect(query({ query: communities })).resolves.toMatchObject({
           data: {
             communities: [
@@ -350,6 +350,7 @@ describe('CommunityResolver', () => {
                 uuid: homeCom1.communityUuid,
                 authenticatedAt: homeCom1.authenticatedAt?.toISOString(),
               },
+              /*
               {
                 id: expect.any(Number),
                 foreign: foreignCom1.foreign,
@@ -360,6 +361,7 @@ describe('CommunityResolver', () => {
                 uuid: foreignCom1.communityUuid,
                 authenticatedAt: foreignCom1.authenticatedAt?.toISOString(),
               },
+              */
               {
                 id: expect.any(Number),
                 foreign: foreignCom2.foreign,
