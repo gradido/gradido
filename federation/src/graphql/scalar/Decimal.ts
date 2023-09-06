@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { Decimal } from 'decimal.js-light'
 import { GraphQLScalarType, Kind } from 'graphql'
-import Decimal from 'decimal.js-light'
 
-export default new GraphQLScalarType({
+export const DecimalScalar = new GraphQLScalarType({
   name: 'Decimal',
   description: 'The `Decimal` scalar type to represent currency values',
 
