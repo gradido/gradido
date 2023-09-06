@@ -1,3 +1,4 @@
+import { IsNull, Not } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { Resolver, Query, Authorized } from 'type-graphql'
@@ -28,6 +29,7 @@ export class CommunityResolver {
   @Query(() => [Community])
   async communities(): Promise<Community[]> {
     const dbCommunities: DbCommunity[] = await DbCommunity.find({
+      where: { communityUuid: Not(IsNull()) }, //, authenticatedAt: Not(IsNull()) },
       order: {
         name: 'ASC',
       },
