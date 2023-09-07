@@ -84,7 +84,6 @@ export class DltConnectorClient {
     recipientCommunityUuid = '',
   ): Promise<string> {
     const typeString = getTransactionTypeString(transaction.typeId)
-    const milliSecondsSinceEpoch = Math.round(transaction.balanceDate.getTime())
     const amountString = transaction.amount.toString()
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -100,7 +99,7 @@ export class DltConnectorClient {
           },
           amount: amountString,
           type: typeString,
-          createdAt: milliSecondsSinceEpoch,
+          createdAt: transaction.balanceDate.toString(),
         },
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access

@@ -30,7 +30,7 @@ export class TransactionDraft {
 
   @Field(() => String)
   @isValidDateString()
-  createdAt: string // in milliseconds
+  createdAt: string
 
   // only for creation transactions
   @Field(() => String, { nullable: true })
