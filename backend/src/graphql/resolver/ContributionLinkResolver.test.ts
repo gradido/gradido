@@ -339,107 +339,142 @@ describe('Contribution Links', () => {
 
         it('returns an error if name is shorter than 5 characters', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: createContributionLink,
-              variables: {
-                ...variables,
-                name: '123',
+          const { errors: errorObjects } = await mutate({
+            mutation: createContributionLink,
+            variables: {
+              ...variables,
+              name: '123',
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            {
+              message: 'Argument Validation Error',
+              extensions: {
+                exception: {
+                  validationErrors: [
+                    {
+                      property: 'name',
+                      constraints: {
+                        minLength: 'name must be longer than or equal to 5 characters',
+                      },
+                    },
+                  ],
+                },
               },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('The value of name is too short')],
-            }),
-          )
-        })
-
-        it('logs the error "The value of name is too short"', () => {
-          expect(logger.error).toBeCalledWith('The value of name is too short', 3)
+            },
+          ])
         })
 
         it('returns an error if name is longer than 100 characters', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: createContributionLink,
-              variables: {
-                ...variables,
-                name: '12345678901234567892123456789312345678941234567895123456789612345678971234567898123456789912345678901',
+          const { errors: errorObjects } = await mutate({
+            mutation: createContributionLink,
+            variables: {
+              ...variables,
+              name: '12345678901234567892123456789312345678941234567895123456789612345678971234567898123456789912345678901',
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            {
+              message: 'Argument Validation Error',
+              extensions: {
+                exception: {
+                  validationErrors: [
+                    {
+                      property: 'name',
+                      constraints: {
+                        maxLength: 'name must be shorter than or equal to 100 characters',
+                      },
+                    },
+                  ],
+                },
               },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('The value of name is too long')],
-            }),
-          )
-        })
-
-        it('logs the error "The value of name is too long"', () => {
-          expect(logger.error).toBeCalledWith('The value of name is too long', 101)
+            },
+          ])
         })
 
         it('returns an error if memo is shorter than 5 characters', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: createContributionLink,
-              variables: {
-                ...variables,
-                memo: '123',
+          const { errors: errorObjects } = await mutate({
+            mutation: createContributionLink,
+            variables: {
+              ...variables,
+              memo: '123',
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            {
+              message: 'Argument Validation Error',
+              extensions: {
+                exception: {
+                  validationErrors: [
+                    {
+                      property: 'memo',
+                      constraints: {
+                        minLength: 'memo must be longer than or equal to 5 characters',
+                      },
+                    },
+                  ],
+                },
               },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('The value of memo is too short')],
-            }),
-          )
-        })
-
-        it('logs the error "The value of memo is too short"', () => {
-          expect(logger.error).toBeCalledWith('The value of memo is too short', 3)
+            },
+          ])
         })
 
         it('returns an error if memo is longer than 255 characters', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: createContributionLink,
-              variables: {
-                ...variables,
-                memo: '1234567890123456789212345678931234567894123456789512345678961234567897123456789812345678991234567890123456789012345678921234567893123456789412345678951234567896123456789712345678981234567899123456789012345678901234567892123456789312345678941234567895123456',
+          const { errors: errorObjects } = await mutate({
+            mutation: createContributionLink,
+            variables: {
+              ...variables,
+              memo: '1234567890123456789212345678931234567894123456789512345678961234567897123456789812345678991234567890123456789012345678921234567893123456789412345678951234567896123456789712345678981234567899123456789012345678901234567892123456789312345678941234567895123456',
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            {
+              message: 'Argument Validation Error',
+              extensions: {
+                exception: {
+                  validationErrors: [
+                    {
+                      property: 'memo',
+                      constraints: {
+                        maxLength: 'memo must be shorter than or equal to 255 characters',
+                      },
+                    },
+                  ],
+                },
               },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('The value of memo is too long')],
-            }),
-          )
-        })
-
-        it('logs the error "The value of memo is too long"', () => {
-          expect(logger.error).toBeCalledWith('The value of memo is too long', 256)
+            },
+          ])
         })
 
         it('returns an error if amount is not positive', async () => {
           jest.clearAllMocks()
-          await expect(
-            mutate({
-              mutation: createContributionLink,
-              variables: {
-                ...variables,
-                amount: new Decimal(0),
+          const { errors: errorObjects } = await mutate({
+            mutation: createContributionLink,
+            variables: {
+              ...variables,
+              amount: new Decimal(0),
+            },
+          })
+          expect(errorObjects).toMatchObject([
+            {
+              message: 'Argument Validation Error',
+              extensions: {
+                exception: {
+                  validationErrors: [
+                    {
+                      property: 'amount',
+                      constraints: {
+                        isPositiveDecimal: 'The amount must be a positive value amount',
+                      },
+                    },
+                  ],
+                },
               },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('The amount must be a positiv value')],
-            }),
-          )
-        })
-
-        it('logs the error "The amount must be a positiv value"', () => {
-          expect(logger.error).toBeCalledWith('The amount must be a positiv value', new Decimal(0))
+            },
+          ])
         })
       })
 

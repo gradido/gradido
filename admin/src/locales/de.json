@@ -89,7 +89,6 @@
     "submit": "Senden"
   },
   "GDD": "GDD",
-  "hashtag_symbol": "#",
   "help": {
     "help": "Hilfe",
     "transactionlist": {
@@ -125,10 +124,8 @@
     "user_search": "Nutzersuche"
   },
   "not_open_creations": "Keine offenen Schöpfungen",
-  "no_filter": "Keine Filterung",
-  "no_filter_tooltip": "Es wird nicht nach Hashtags gefiltert",
-  "no_hashtag": "Ohne Hashtag",
-  "no_hashtag_tooltip": "Zeigt nur Schöpfungen ohne Hashtag im Kommentar an",
+  "no_hashtag": "#Hashtags verbergen",
+  "no_hashtag_tooltip": "Zeigt nur Beiträge ohne Hashtag im Text",
   "open": "offen",
   "open_creations": "Offene Schöpfungen",
   "overlay": {
@@ -221,7 +218,7 @@
     "tabTitle": "Nutzer-Rolle"
   },
   "user_deleted": "Nutzer ist gelöscht.",
-  "user_memo_search": "Nutzer-Kommentar-Suche",
+  "user_memo_search": "Benutzer- und Text-Suche",
   "user_recovered": "Nutzer ist wiederhergestellt.",
   "user_search": "Nutzer-Suche"
 }

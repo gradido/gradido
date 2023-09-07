@@ -2,7 +2,7 @@
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { getConnection, In } from '@dbTools/typeorm'
+import { getConnection, In, IsNull } from '@dbTools/typeorm'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as dbUser } from '@entity/User'
@@ -33,7 +33,6 @@ import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
 import { BalanceResolver } from './BalanceResolver'
-import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
@@ -54,14 +53,6 @@ export const executeTransaction = async (
 
     if (sender.id === recipient.id) {
       throw new LogError('Sender and Recipient are the same', sender.id)
-    }
-
-    if (memo.length < MEMO_MIN_CHARS) {
-      throw new LogError('Memo text is too short', memo.length)
-    }
-
-    if (memo.length > MEMO_MAX_CHARS) {
-      throw new LogError('Memo text is too long', memo.length)
     }
 
     // validate amount
@@ -273,7 +264,28 @@ export class TransactionResolver {
       logger.debug(`transactions=${transactions}`)
 
       // virtual transaction for pending transaction-links sum
-      if (sumHoldAvailableAmount.greaterThan(0)) {
+      if (sumHoldAvailableAmount.isZero()) {
+        const linkCount = await dbTransactionLink.count({
+          where: {
+            userId: user.id,
+            redeemedAt: IsNull(),
+          },
+        })
+        if (linkCount > 0) {
+          transactions.push(
+            virtualLinkTransaction(
+              lastTransaction.balance,
+              new Decimal(0),
+              new Decimal(0),
+              new Decimal(0),
+              now,
+              now,
+              self,
+              (userTransactions.length && userTransactions[0].balance) || new Decimal(0),
+            ),
+          )
+        }
+      } else if (sumHoldAvailableAmount.greaterThan(0)) {
         logger.debug(`sumHoldAvailableAmount > 0: transactions=${transactions}`)
         transactions.push(
           virtualLinkTransaction(
@@ -317,18 +329,18 @@ export class TransactionResolver {
   @Authorized([RIGHTS.SEND_COINS])
   @Mutation(() => Boolean)
   async sendCoins(
-    @Args() { identifier, amount, memo }: TransactionSendArgs,
+    @Args()
+    { /* recipientCommunityIdentifier, */ recipientIdentifier, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.info(`sendCoins(identifier=${identifier}, amount=${amount}, memo=${memo})`)
-    if (amount.lte(0)) {
-      throw new LogError('Amount to send must be positive', amount)
-    }
+    logger.info(
+      `sendCoins(recipientIdentifier=${recipientIdentifier}, amount=${amount}, memo=${memo})`,
+    )
 
     const senderUser = getUser(context)
 
     // validate recipient user
-    const recipientUser = await findUserByIdentifier(identifier)
+    const recipientUser = await findUserByIdentifier(recipientIdentifier)
     if (!recipientUser) {
       throw new LogError('The recipient user was not found', recipientUser)
     }

@@ -1,11 +1,30 @@
-import { In, Like, Not } from '@dbTools/typeorm'
+/* eslint-disable security/detect-object-injection */
+import { Brackets, In, Like, Not, SelectQueryBuilder } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
+import { Connection } from '@typeorm/connection'
+
+import { LogError } from '@/server/LogError'
 
 interface Relations {
   [key: string]: boolean | Relations
+}
+
+function joinRelationsRecursive(
+  relations: Relations,
+  queryBuilder: SelectQueryBuilder<DbContribution>,
+  currentPath: string,
+): void {
+  for (const key in relations) {
+    // console.log('leftJoin: %s, %s', `${currentPath}.${key}`, key)
+    queryBuilder.leftJoinAndSelect(`${currentPath}.${key}`, key)
+    if (typeof relations[key] === 'object') {
+      // If it's a nested relation
+      joinRelationsRecursive(relations[key] as Relations, queryBuilder, key)
+    }
+  }
 }
 
 export const findContributions = async (
@@ -14,55 +33,37 @@ export const findContributions = async (
   withDeleted = false,
   relations: Relations | undefined = undefined,
 ): Promise<[DbContribution[], number]> => {
-  const requiredWhere = {
+  const connection = await Connection.getInstance()
+  if (!connection) {
+    throw new LogError('Cannot connect to db')
+  }
+  const queryBuilder = connection.getRepository(DbContribution).createQueryBuilder('Contribution')
+  if (relations) joinRelationsRecursive(relations, queryBuilder, 'Contribution')
+  if (withDeleted) queryBuilder.withDeleted()
+  queryBuilder.where({
     ...(filter.statusFilter?.length && { contributionStatus: In(filter.statusFilter) }),
     ...(filter.userId && { userId: filter.userId }),
     ...(filter.noHashtag && { memo: Not(Like(`%#%`)) }),
-  }
-
-  let where =
-    filter.query && relations?.user
-      ? [
-          {
-            ...requiredWhere, // And
-            user: {
-              firstName: Like(`%${filter.query}%`),
-            },
-          }, // Or
-          {
-            ...requiredWhere,
-            user: {
-              lastName: Like(`%${filter.query}%`),
-            },
-          }, // Or
-          {
-            ...requiredWhere, // And
-            user: {
-              emailContact: {
-                email: Like(`%${filter.query}%`),
-              },
-            },
-          }, // Or
-          {
-            ...requiredWhere, // And
-            memo: Like(`%${filter.query}%`),
-          },
-        ]
-      : requiredWhere
-
-  if (!relations?.user && filter.query) {
-    where = [{ ...requiredWhere, memo: Like(`%${filter.query}%`) }]
-  }
-
-  return DbContribution.findAndCount({
-    relations,
-    where,
-    withDeleted,
-    order: {
-      createdAt: paginate.order,
-      id: paginate.order,
-    },
-    skip: (paginate.currentPage - 1) * paginate.pageSize,
-    take: paginate.pageSize,
   })
+  queryBuilder.printSql()
+  if (filter.query) {
+    const queryString = '%' + filter.query + '%'
+    queryBuilder.andWhere(
+      new Brackets((qb) => {
+        qb.where({ memo: Like(queryString) })
+        if (relations?.user) {
+          qb.orWhere('user.first_name LIKE :firstName', { firstName: queryString })
+            .orWhere('user.last_name LIKE :lastName', { lastName: queryString })
+            .orWhere('emailContact.email LIKE :emailContact', { emailContact: queryString })
+            .orWhere({ memo: Like(queryString) })
+        }
+      }),
+    )
+  }
+  return queryBuilder
+    .orderBy('Contribution.createdAt', paginate.order)
+    .addOrderBy('Contribution.id', paginate.order)
+    .skip((paginate.currentPage - 1) * paginate.pageSize)
+    .take(paginate.pageSize)
+    .getManyAndCount()
 }

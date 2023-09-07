@@ -12,14 +12,14 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0070-add_dlt_transactions_table',
+  DB_VERSION: '0071-add-pending_transactions-table',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v18.2023-07-10',
+    EXPECTED: 'v19.2023-08-25',
     CURRENT: '',
   },
 }
@@ -124,6 +124,9 @@ if (
 const federation = {
   FEDERATION_VALIDATE_COMMUNITY_TIMER:
     Number(process.env.FEDERATION_VALIDATE_COMMUNITY_TIMER) || 60000,
+  // default value for community-uuid is equal uuid of stage-3
+  FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID:
+    process.env.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID ?? '56a55482-909e-46a4-bfa2-cd025e894ebc',
 }
 
 export const CONFIG = {

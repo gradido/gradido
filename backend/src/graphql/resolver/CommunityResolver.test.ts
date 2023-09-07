@@ -12,7 +12,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 
-import { getCommunities, getCommunitySelections } from '@/seeds/graphql/queries'
+import { getCommunities, communities } from '@/seeds/graphql/queries'
 
 // to do: We need a setup for the tests that closes the connection
 let query: ApolloServerTestClient['query'], con: Connection
@@ -234,7 +234,7 @@ describe('CommunityResolver', () => {
     })
   })
 
-  describe('getCommunitySelections', () => {
+  describe('communities', () => {
     let homeCom1: DbCommunity
     let foreignCom1: DbCommunity
     let foreignCom2: DbCommunity
@@ -248,9 +248,9 @@ describe('CommunityResolver', () => {
       it('returns no community entry', async () => {
         // const result: Community[] = await query({ query: getCommunities })
         // expect(result.length).toEqual(0)
-        await expect(query({ query: getCommunitySelections })).resolves.toMatchObject({
+        await expect(query({ query: communities })).resolves.toMatchObject({
           data: {
-            getCommunitySelections: [],
+            communities: [],
           },
         })
       })
@@ -275,9 +275,9 @@ describe('CommunityResolver', () => {
       })
 
       it('returns 1 home-community entry', async () => {
-        await expect(query({ query: getCommunitySelections })).resolves.toMatchObject({
+        await expect(query({ query: communities })).resolves.toMatchObject({
           data: {
-            getCommunitySelections: [
+            communities: [
               {
                 id: expect.any(Number),
                 foreign: homeCom1.foreign,
@@ -294,7 +294,7 @@ describe('CommunityResolver', () => {
       })
     })
 
-    describe('with several community entries', () => {
+    describe('returns 2 filtered communities even with 3 existing entries', () => {
       beforeEach(async () => {
         await cleanDB()
         jest.clearAllMocks()
@@ -316,8 +316,8 @@ describe('CommunityResolver', () => {
         foreignCom1.url = 'http://stage-2.gradido.net/api'
         foreignCom1.publicKey = Buffer.from('publicKey-stage-2_Community')
         foreignCom1.privateKey = Buffer.from('privateKey-stage-2_Community')
-        foreignCom1.communityUuid = 'Stage2-Com-UUID'
-        foreignCom1.authenticatedAt = new Date()
+        // foreignCom1.communityUuid = 'Stage2-Com-UUID'
+        // foreignCom1.authenticatedAt = new Date()
         foreignCom1.name = 'Stage-2_Community-name'
         foreignCom1.description = 'Stage-2_Community-description'
         foreignCom1.creationDate = new Date()
@@ -336,10 +336,10 @@ describe('CommunityResolver', () => {
         await DbCommunity.insert(foreignCom2)
       })
 
-      it('returns 3 community entries', async () => {
-        await expect(query({ query: getCommunitySelections })).resolves.toMatchObject({
+      it('returns 2 community entries', async () => {
+        await expect(query({ query: communities })).resolves.toMatchObject({
           data: {
-            getCommunitySelections: [
+            communities: [
               {
                 id: expect.any(Number),
                 foreign: homeCom1.foreign,
@@ -350,6 +350,7 @@ describe('CommunityResolver', () => {
                 uuid: homeCom1.communityUuid,
                 authenticatedAt: homeCom1.authenticatedAt?.toISOString(),
               },
+              /*
               {
                 id: expect.any(Number),
                 foreign: foreignCom1.foreign,
@@ -360,6 +361,7 @@ describe('CommunityResolver', () => {
                 uuid: foreignCom1.communityUuid,
                 authenticatedAt: foreignCom1.authenticatedAt?.toISOString(),
               },
+              */
               {
                 id: expect.any(Number),
                 foreign: foreignCom2.foreign,
