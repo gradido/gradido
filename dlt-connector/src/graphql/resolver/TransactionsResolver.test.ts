@@ -79,7 +79,7 @@ describe('Transaction Resolver Test', () => {
       errors: [
         {
           message:
-            'Variable "$input" got invalid value "INVALID" at "input.type"; Value "INVALID" does not exist in "InputTransactionType\" enum.',
+            'Variable "$input" got invalid value "INVALID" at "input.type"; Value "INVALID" does not exist in "InputTransactionType" enum.',
         },
       ],
     })
