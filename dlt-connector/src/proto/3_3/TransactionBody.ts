@@ -1,6 +1,6 @@
 import { Field, Message, OneOf } from '@apollo/protobufjs'
 
-import { CrossGroupType } from '@/graphql/enum/CrossGroupType'
+import { CrossGroupType } from './enum/CrossGroupType'
 
 import { Timestamp } from './Timestamp'
 import { GradidoTransfer } from './GradidoTransfer'
@@ -10,18 +10,26 @@ import { GroupFriendsUpdate } from './GroupFriendsUpdate'
 import { RegisterAddress } from './RegisterAddress'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { determineCrossGroupType, determineOtherGroup } from '@/controller/TransactionBody'
+import { CommunityRoot } from './CommunityRoot'
+import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
 export class TransactionBody extends Message<TransactionBody> {
-  public constructor(transaction: TransactionDraft) {
-    const type = determineCrossGroupType(transaction)
+  public constructor(transaction: TransactionDraft | CommunityDraft) {
+    let type = CrossGroupType.LOCAL
+    let otherGroup = ''
+    if (transaction instanceof TransactionDraft) {
+      type = determineCrossGroupType(transaction)
+      otherGroup = determineOtherGroup(type, transaction)
+    }
+
     super({
       memo: 'Not implemented yet',
       createdAt: new Timestamp(new Date(transaction.createdAt)),
       versionNumber: '3.3',
       type,
-      otherGroup: determineOtherGroup(type, transaction),
+      otherGroup,
     })
   }
 
@@ -46,6 +54,7 @@ export class TransactionBody extends Message<TransactionBody> {
     'groupFriendsUpdate',
     'registerAddress',
     'gradidoDeferredTransfer',
+    'communityRoot',
   )
   public data: string
 
@@ -63,4 +72,7 @@ export class TransactionBody extends Message<TransactionBody> {
 
   @Field.d(10, 'GradidoDeferredTransfer')
   deferredTransfer?: GradidoDeferredTransfer
+
+  @Field.d(11, 'CommunityRoot')
+  communityRoot?: CommunityRoot
 }

@@ -25,13 +25,13 @@ module.exports = {
     '@entity/(.*)':
       // eslint-disable-next-line n/no-process-env
       process.env.NODE_ENV === 'development'
-        ? '<rootDir>/../database/entity/$1'
-        : '<rootDir>/../database/build/entity/$1',
+        ? '<rootDir>/../dlt-database/entity/$1'
+        : '<rootDir>/../dlt-database/build/entity/$1',
     '@dbTools/(.*)':
       // eslint-disable-next-line n/no-process-env
       process.env.NODE_ENV === 'development'
-        ? '<rootDir>/../database/src/$1'
-        : '<rootDir>/../database/build/src/$1',
+        ? '<rootDir>/../dlt-database/src/$1'
+        : '<rootDir>/../dlt-database/build/src/$1',
     '@validator/(.*)': '<rootDir>/src/graphql/validator/$1',
   },
 }

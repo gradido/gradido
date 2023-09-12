@@ -1,18 +1,21 @@
 import 'reflect-metadata'
-
+import { DataSource as DBDataSource } from '@dbTools/typeorm'
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
 import express, { Express } from 'express'
 
 // graphql
 import { schema } from '@/graphql/schema'
+import { DataSource } from '@/typeorm/DataSource'
+import { checkDBVersion } from '@/typeorm/DBVersion'
 
 import { logger as dltLogger } from './logger'
 import { Logger } from 'log4js'
 import cors from 'cors'
 import bodyParser from 'body-parser'
+import { CONFIG } from '@/config'
 
-type ServerDef = { apollo: ApolloServer; app: Express }
+type ServerDef = { apollo: ApolloServer; app: Express; con: DBDataSource }
 
 interface MyContext {
   token?: string
@@ -26,6 +29,22 @@ const createServer = async (
 ): Promise<ServerDef> => {
   logger.addContext('user', 'unknown')
   logger.debug('createServer...')
+
+  // open mysql connection
+  try {
+    await DataSource.initialize()
+  } catch (error) {
+    // try and catch for logging
+    logger.fatal(`Couldn't open connection to database!`)
+    throw error
+  }
+
+  // check for correct database version
+  const dbVersion = await checkDBVersion(CONFIG.DB_VERSION)
+  if (!dbVersion) {
+    logger.fatal('Fatal: Database Version incorrect')
+    throw new Error('Fatal: Database Version incorrect')
+  }
 
   // Express Server
   const app = express()
@@ -49,7 +68,7 @@ const createServer = async (
   )
   logger.debug('createServer...successful')
 
-  return { apollo, app }
+  return { apollo, app, con: DataSource }
 }
 
 export default createServer

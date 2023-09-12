@@ -1,6 +1,6 @@
 import { Field, Message } from '@apollo/protobufjs'
 
-import { AddressType } from '@enum/AddressType'
+import { AddressType } from './enum/AddressType'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define

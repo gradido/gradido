@@ -1,4 +1,4 @@
-import { CrossGroupType } from '@/graphql/enum/CrossGroupType'
+import { CrossGroupType } from '@/proto/3_3/enum/CrossGroupType'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionType } from '@/graphql/enum/TransactionType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
@@ -6,6 +6,9 @@ import { TransactionError } from '@/graphql/model/TransactionError'
 import { GradidoCreation } from '@/proto/3_3/GradidoCreation'
 import { GradidoTransfer } from '@/proto/3_3/GradidoTransfer'
 import { TransactionBody } from '@/proto/3_3/TransactionBody'
+import { CommunityDraft } from '@/graphql/input/CommunityDraft'
+import { CommunityRoot } from '@/proto/3_3/CommunityRoot'
+import { Community } from '@entity/Community'
 
 export const create = (transaction: TransactionDraft): TransactionBody => {
   const body = new TransactionBody(transaction)
@@ -21,6 +24,16 @@ export const create = (transaction: TransactionDraft): TransactionBody => {
       body.data = 'gradidoTransfer'
       break
   }
+  return body
+}
+
+export const createCommunity = (
+  community: CommunityDraft,
+  communityObject: Community,
+): TransactionBody => {
+  const body = new TransactionBody(community)
+  body.communityRoot = new CommunityRoot(communityObject)
+  body.data = 'communityRoot'
   return body
 }
 
