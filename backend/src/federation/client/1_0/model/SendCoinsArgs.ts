@@ -9,8 +9,8 @@ export class SendCoinsArgs {
   @Field(() => String)
   userReceiverIdentifier: string
 
-  @Field(() => Date)
-  creationDate: Date
+  @Field(() => String)
+  creationDate: string
 
   @Field(() => Decimal)
   amount: Decimal

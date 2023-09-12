@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
+/* <<<<<<< HEAD
 import { createServer } from '@/server/createServer'
 import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
@@ -36,6 +37,37 @@ export const cleanDB = async () => {
 
 export const testEnvironment = async (testLogger = logger) => {
   // , testI18n = i18n) => {
+=======
+*/
+import { entities } from '@entity/index'
+import { createTestClient } from 'apollo-server-testing'
+
+import createServer from '@/server/createServer'
+
+import { logger } from './testSetup'
+
+export const headerPushMock = jest.fn((t) => {
+  context.token = t.value
+})
+
+const context = {
+  token: '',
+  setHeaders: {
+    push: headerPushMock,
+    forEach: jest.fn(),
+  },
+  clientTimezoneOffset: 0,
+}
+
+export const cleanDB = async () => {
+  // this only works as long we do not have foreign key constraints
+  for (const entity of entities) {
+    await resetEntity(entity)
+  }
+}
+
+export const testEnvironment = async (testLogger = logger) => {
+  // >>>>>>> refs/remotes/origin/master
   const server = await createServer(testLogger) // context, testLogger, testI18n)
   const con = server.con
   const testClient = createTestClient(server.apollo)
