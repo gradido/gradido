@@ -1,12 +1,12 @@
 // https://www.npmjs.com/package/@apollo/protobufjs
 
 import { Decimal } from 'decimal.js-light'
-import { TransactionType } from '@enum/TransactionType'
-import { InputType, Field } from 'type-graphql'
+import { InputTransactionType } from '@enum/InputTransactionType'
+import { InputType, Field, Int } from 'type-graphql'
 import { UserIdentifier } from './UserIdentifier'
 import { isValidDateString } from '@validator/DateString'
 import { IsPositiveDecimal } from '@validator/Decimal'
-import { IsEnum, IsObject, ValidateNested } from 'class-validator'
+import { IsEnum, IsObject, IsPositive, ValidateNested } from 'class-validator'
 
 @InputType()
 export class TransactionDraft {
@@ -20,13 +20,17 @@ export class TransactionDraft {
   @ValidateNested()
   recipientUser: UserIdentifier
 
+  @Field(() => Int)
+  @IsPositive()
+  backendTransactionId: number
+
   @Field(() => Decimal)
   @IsPositiveDecimal()
   amount: Decimal
 
-  @Field(() => TransactionType)
-  @IsEnum(TransactionType)
-  type: TransactionType
+  @Field(() => InputTransactionType)
+  @IsEnum(InputTransactionType)
+  type: InputTransactionType
 
   @Field(() => String)
   @isValidDateString()

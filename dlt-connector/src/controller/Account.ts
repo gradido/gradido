@@ -1,3 +1,71 @@
-export const createCommunitySpecialAccounts = async(community: Community): Promise<void> => {
-  
+import { AddressType } from '@/proto/3_3/enum/AddressType'
+import { Account } from '@entity/Account'
+import { Community } from '@entity/Community'
+import { KeyManager } from './KeyManager'
+import { hardenDerivationIndex } from '@/utils'
+import { LogError } from '@/server/LogError'
+import { KeyPair } from '../model/KeyPair'
+import { getKeyPair as getUserKeyPair } from './User'
+
+const GMW_ACCOUNT_DERIVATION_INDEX = 1
+const AUF_ACCOUNT_DERIVATION_INDEX = 2
+
+export const createAccount = (
+  derivationIndex: number,
+  derive2Pubkey: Buffer,
+  type: AddressType,
+  createdAt: Date,
+): Account => {
+  if (derive2Pubkey.length !== 32) {
+    throw new LogError('invalid public key size')
+  }
+  const account = new Account()
+  account.derivationIndex = derivationIndex
+  account.derive2Pubkey = derive2Pubkey
+  account.type = type.valueOf()
+  account.createdAt = createdAt
+  return account
+}
+
+export const createCommunitySpecialAccounts = (community: Community): void => {
+  const km = KeyManager.getInstance()
+
+  // create account for gmw account
+  const gmwDerivationIndex = hardenDerivationIndex(GMW_ACCOUNT_DERIVATION_INDEX)
+  community.gmwAccount = createAccount(
+    gmwDerivationIndex,
+    km.derive([gmwDerivationIndex]).publicKey,
+    AddressType.COMMUNITY_GMW,
+    community.createdAt,
+  )
+
+  // create account for auf account
+  const aufDerivationIndex = hardenDerivationIndex(AUF_ACCOUNT_DERIVATION_INDEX)
+  community.aufAccount = createAccount(
+    aufDerivationIndex,
+    km.derive([aufDerivationIndex]).publicKey,
+    AddressType.COMMUNITY_AUF,
+    community.createdAt,
+  )
+}
+
+export const getKeyPair = (account: Account): KeyPair | null => {
+  const km = KeyManager.getInstance()
+  switch (account.type) {
+    case AddressType.NONE:
+      return null
+    case AddressType.COMMUNITY_HUMAN:
+    case AddressType.COMMUNITY_PROJECT:
+    case AddressType.SUBACCOUNT:
+      if (!account.user) {
+        throw new LogError('no user for account')
+      }
+      return km.derive([account.derivationIndex], getUserKeyPair(account.user))
+    case AddressType.COMMUNITY_GMW:
+      return km.derive([hardenDerivationIndex(GMW_ACCOUNT_DERIVATION_INDEX)])
+    case AddressType.COMMUNITY_AUF:
+      return km.derive([hardenDerivationIndex(AUF_ACCOUNT_DERIVATION_INDEX)])
+    default:
+      return null
+  }
 }

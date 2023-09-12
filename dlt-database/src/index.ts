@@ -5,9 +5,9 @@ import { createPool } from 'mysql'
 import { Migration } from 'ts-mysql-migrate'
 import path from 'path'
 
-const run = async (command: string) => {
+const migrateDB = async (command: string, database: string) => {
   // Database actions not supported by our migration library
-  await createDatabase()
+  await createDatabase(database)
 
   // Initialize Migrations
   const pool = createPool({
@@ -15,7 +15,7 @@ const run = async (command: string) => {
     port: CONFIG.DB_PORT,
     user: CONFIG.DB_USER,
     password: CONFIG.DB_PASSWORD,
-    database: CONFIG.DB_DATABASE,
+    database,
   })
   const migration = new Migration({
     conn: pool,
@@ -43,6 +43,13 @@ const run = async (command: string) => {
 
   // Terminate connections gracefully
   pool.end()
+}
+
+const run = async (command: string) => {
+  await migrateDB(command, CONFIG.DB_DATABASE)
+  if (CONFIG.DB_DATABASE_TEST) {
+    await migrateDB(command, CONFIG.DB_DATABASE_TEST)
+  }
 }
 
 run(process.argv[2])

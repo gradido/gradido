@@ -1,13 +1,14 @@
 import { ObjectType, Field } from 'type-graphql'
 import { TransactionError } from './TransactionError'
+import { TransactionRecipe } from './TransactionRecipe'
 
 @ObjectType()
 export class TransactionResult {
-  constructor(content: TransactionError | string) {
+  constructor(content?: TransactionError | TransactionRecipe) {
     if (content instanceof TransactionError) {
       this.error = content
-    } else if (typeof content === 'string') {
-      this.messageId = content
+    } else if (content instanceof TransactionRecipe) {
+      this.recipe = content
     }
   }
 
@@ -17,5 +18,8 @@ export class TransactionResult {
 
   // if no error happend, the message id of the iota transaction
   @Field(() => String, { nullable: true })
-  messageId?: string
+  recipe?: TransactionRecipe
+
+  @Field(() => Boolean)
+  succeed: boolean
 }

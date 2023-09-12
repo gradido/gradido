@@ -9,6 +9,7 @@ import { sendMessage as iotaSendMessage } from '@/client/IotaClient'
 import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
 import { TransactionResult } from '../model/TransactionResult'
 import { TransactionError } from '../model/TransactionError'
+import { CONFIG } from '@/config'
 
 @Resolver()
 export class TransactionResolver {
@@ -32,8 +33,8 @@ export class TransactionResolver {
       const body = createTransactionBody(transaction)
       const message = createGradidoTransaction(body)
       const messageBuffer = GradidoTransaction.encode(message).finish()
-      const resultMessage = await iotaSendMessage(messageBuffer)
-      return new TransactionResult(resultMessage.messageId)
+      const resultMessage = await iotaSendMessage(messageBuffer, CONFIG.IOTA_COMMUNITY_ALIAS)
+      return new TransactionResult()
     } catch (error) {
       if (error instanceof TransactionError) {
         return new TransactionResult(error)

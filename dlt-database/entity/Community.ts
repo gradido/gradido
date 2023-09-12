@@ -1,1 +1,1 @@
-export { Community } from './0002-communities_increase_privkey/Community'
+export { Community } from './0002-refactor_add_community/Community'

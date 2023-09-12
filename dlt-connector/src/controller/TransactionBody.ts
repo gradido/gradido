@@ -1,6 +1,6 @@
 import { CrossGroupType } from '@/proto/3_3/enum/CrossGroupType'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
-import { TransactionType } from '@/graphql/enum/TransactionType'
+import { InputTransactionType as TransactionType } from '@/graphql/enum/InputTransactionType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { GradidoCreation } from '@/proto/3_3/GradidoCreation'

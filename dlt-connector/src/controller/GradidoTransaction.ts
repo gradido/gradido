@@ -8,3 +8,5 @@ export const create = (body: TransactionBody): GradidoTransaction => {
   // TODO: add correct signature(s)
   return transaction
 }
+
+// export const sign = (transaction: GradidoTransaction, signer: )

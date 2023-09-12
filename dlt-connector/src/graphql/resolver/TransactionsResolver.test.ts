@@ -33,7 +33,7 @@ describe('Transaction Resolver Test', () => {
   it('test mocked sendTransaction', async () => {
     const response = await apolloTestServer.executeOperation({
       query:
-        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, messageId} }',
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, succeed} }',
       variables: {
         input: {
           senderUser: {
@@ -42,6 +42,7 @@ describe('Transaction Resolver Test', () => {
           recipientUser: {
             uuid: 'ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe',
           },
+          backendTransactionId: 1,
           type: 'SEND',
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
@@ -51,15 +52,13 @@ describe('Transaction Resolver Test', () => {
     assert(response.body.kind === 'single')
     expect(response.body.singleResult.errors).toBeUndefined()
     const transactionResult = response.body.singleResult.data?.sendTransaction as TransactionResult
-    expect(transactionResult.messageId).toBe(
-      '5498130bc3918e1a7143969ce05805502417e3e1bd596d3c44d6a0adeea22710',
-    )
+    expect(transactionResult.succeed).toBe(true)
   })
 
   it('test mocked sendTransaction invalid transactionType ', async () => {
     const response = await apolloTestServer.executeOperation({
       query:
-        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, messageId} }',
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}} }',
       variables: {
         input: {
           senderUser: {
@@ -68,6 +67,7 @@ describe('Transaction Resolver Test', () => {
           recipientUser: {
             uuid: 'ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe',
           },
+          backendTransactionId: 1,
           type: 'INVALID',
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
@@ -79,7 +79,7 @@ describe('Transaction Resolver Test', () => {
       errors: [
         {
           message:
-            'Variable "$input" got invalid value "INVALID" at "input.type"; Value "INVALID" does not exist in "TransactionType" enum.',
+            'Variable "$input" got invalid value "INVALID" at "input.type"; Value "INVALID" does not exist in "InputTransactionType\" enum.',
         },
       ],
     })
@@ -88,7 +88,7 @@ describe('Transaction Resolver Test', () => {
   it('test mocked sendTransaction invalid amount ', async () => {
     const response = await apolloTestServer.executeOperation({
       query:
-        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, messageId} }',
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}} }',
       variables: {
         input: {
           senderUser: {
@@ -97,6 +97,7 @@ describe('Transaction Resolver Test', () => {
           recipientUser: {
             uuid: 'ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe',
           },
+          backendTransactionId: 1,
           type: 'SEND',
           amount: 'no number',
           createdAt: '2012-04-17T17:12:00Z',
@@ -117,7 +118,7 @@ describe('Transaction Resolver Test', () => {
   it('test mocked sendTransaction invalid created date ', async () => {
     const response = await apolloTestServer.executeOperation({
       query:
-        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, messageId} }',
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}} }',
       variables: {
         input: {
           senderUser: {
@@ -126,6 +127,7 @@ describe('Transaction Resolver Test', () => {
           recipientUser: {
             uuid: 'ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe',
           },
+          backendTransactionId: 1,
           type: 'SEND',
           amount: '10',
           createdAt: 'not valid',
@@ -156,7 +158,7 @@ describe('Transaction Resolver Test', () => {
   it('test mocked sendTransaction missing creationDate for contribution', async () => {
     const response = await apolloTestServer.executeOperation({
       query:
-        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, messageId} }',
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}} }',
       variables: {
         input: {
           senderUser: {
@@ -165,6 +167,7 @@ describe('Transaction Resolver Test', () => {
           recipientUser: {
             uuid: 'ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe',
           },
+          backendTransactionId: 1,
           type: 'CREATION',
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',

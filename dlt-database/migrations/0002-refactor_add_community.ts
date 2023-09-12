@@ -4,8 +4,12 @@
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // write upgrade logic as parameter of queryFn
   await queryFn(`ALTER TABLE \`communities\` MODIFY COLUMN \`root_privkey\` binary(64) NOT NULL;`)
+  await queryFn(
+    `ALTER TABLE \`transaction_recipes\` ADD COLUMN \`backend_transaction_id\` bigint(20) unsigned DEFAULT NULL AFTER \`iota_message_id\`;`,
+  )
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`ALTER TABLE \`communities\` MODIFY COLUMN \`root_privkey\` binary(32) NOT NULL;`)
+  await queryFn(`ALTER TABLE \`transaction_recipes\` DROP COLUMN \`backend_transaction_id\`;`)
 }

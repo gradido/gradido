@@ -3,33 +3,19 @@ import { randombytes_buf } from 'sodium-native'
 import { CONFIG } from '../config'
 import { entropyToMnemonic, mnemonicToSeedSync } from 'bip39'
 // https://www.npmjs.com/package/bip32-ed25519?activeTab=code
-import { generateFromSeed, toPublic, derivePrivate } from 'bip32-ed25519'
+import { generateFromSeed, derivePrivate } from 'bip32-ed25519'
 import { logger } from '@/server/logger'
 import { Community } from '@entity/Community'
 import { loadHomeCommunityKeyPair } from './Community'
+import { LogError } from '@/server/LogError'
+import { KeyPair } from '../model/KeyPair'
+
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts
 /**
  * A Singleton class defines the `getInstance` method that lets clients access
  * the unique singleton instance.
  */
-
-export class KeyPair {
-  public constructor(extendPrivateKey: Buffer) {
-    this.privateKey = extendPrivateKey.subarray(0, 64)
-    this.chainCode = extendPrivateKey.subarray(64, 96)
-    this.publicKey = toPublic(extendPrivateKey).subarray(0, 32)
-  }
-
-  public getExtendPrivateKey(): Buffer {
-    return Buffer.concat([this.privateKey, this.chainCode])
-  }
-
-  publicKey: Buffer
-  chainCode: Buffer
-  privateKey: Buffer
-}
-
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class KeyManager {
   // eslint-disable-next-line no-use-before-define
@@ -56,6 +42,16 @@ export class KeyManager {
     return KeyManager.instance
   }
 
+  public async init(): Promise<boolean> {
+    try {
+      this.homeCommunityRootKeys = await loadHomeCommunityKeyPair()
+      return true
+    } catch (error) {
+      logger.error('error by init key manager', error)
+      return false
+    }
+  }
+
   public generateKeysForCommunity(community: Community): void {
     if (community.foreign) {
       throw new Error('generateKeysForCommunity only allowed for home community!')
@@ -67,14 +63,20 @@ export class KeyManager {
     community.rootPubkey = publicKey
     community.rootPrivkey = privateKey
     community.rootChaincode = chainCode
+    this.homeCommunityRootKeys = new KeyPair(community)
   }
 
-  public async derive(path: number[]): Promise<KeyPair> {
-    const rootKeys = await this.getHomeCommunityRootKeyPair()
+  public derive(path: number[], parentKeys?: KeyPair): KeyPair {
+    const extendedPrivateKey = parentKeys
+      ? parentKeys.getExtendPrivateKey()
+      : this.homeCommunityRootKeys?.getExtendPrivateKey()
+    if (!extendedPrivateKey) {
+      throw new LogError('missing parent or root key pair')
+    }
     return new KeyPair(
       path.reduce(
         (extendPrivateKey: Buffer, node: number) => derivePrivate(extendPrivateKey, node),
-        rootKeys.getExtendPrivateKey(),
+        extendedPrivateKey,
       ),
     )
   }
@@ -86,12 +88,5 @@ export class KeyManager {
     const entropy = Buffer.alloc(256)
     randombytes_buf(entropy)
     return entropyToMnemonic(entropy)
-  }
-
-  private async getHomeCommunityRootKeyPair(): Promise<KeyPair> {
-    if (!this.homeCommunityRootKeys) {
-      this.homeCommunityRootKeys = await loadHomeCommunityKeyPair()
-    }
-    return this.homeCommunityRootKeys
   }
 }

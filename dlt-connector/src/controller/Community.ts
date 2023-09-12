@@ -3,7 +3,9 @@ import { uuid4ToBuffer } from '@/utils'
 import { Community } from '@entity/Community'
 import { DataSource } from '@typeorm/DataSource'
 import { crypto_generichash as cryptoHash } from 'sodium-native'
-import { KeyManager, KeyPair } from './KeyManager'
+import { KeyManager } from './KeyManager'
+import { createCommunitySpecialAccounts } from './Account'
+import { KeyPair } from '@/model/KeyPair'
 
 export const iotaTopicFromCommunityUUID = (communityUUID: string): string => {
   const hash = Buffer.alloc(32)
@@ -20,16 +22,14 @@ export const isExist = async (community: CommunityDraft | string): Promise<boole
   return result.length > 0
 }
 
-export const insertCommunity = async (
-  community: CommunityDraft,
-  topic?: string,
-): Promise<Community> => {
+export const create = (community: CommunityDraft, topic?: string): Community => {
   const communityEntity = new Community()
   communityEntity.iotaTopic = topic ?? iotaTopicFromCommunityUUID(community.uuid)
   communityEntity.createdAt = new Date(community.createdAt)
   communityEntity.foreign = community.foreign
   if (!community.foreign) {
     KeyManager.getInstance().generateKeysForCommunity(communityEntity)
+    createCommunitySpecialAccounts(communityEntity)
   }
   return communityEntity
 }
@@ -47,9 +47,5 @@ export const loadHomeCommunityKeyPair = async (): Promise<KeyPair> => {
   if (!community.rootChaincode || !community.rootPrivkey) {
     throw new Error('Missing chaincode or private key for home community')
   }
-  return {
-    pubKey: community.rootPubkey,
-    chaincode: community.rootChaincode,
-    privKey: community.rootPrivkey,
-  }
+  return new KeyPair(community)
 }

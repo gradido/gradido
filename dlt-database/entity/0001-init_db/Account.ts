@@ -23,7 +23,7 @@ export class Account {
 
   @ManyToOne(() => User, (user) => user.accounts) // Assuming you have a User entity with 'accounts' relation
   @JoinColumn({ name: 'user_id' })
-  user: User
+  user?: User
 
   // if user id is null, account belongs to community gmw or auf
   @Column({ name: 'user_id', type: 'int', unsigned: true, nullable: true })

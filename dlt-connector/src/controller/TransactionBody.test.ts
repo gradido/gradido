@@ -5,7 +5,7 @@ import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { CrossGroupType } from '@/proto/3_3/enum/CrossGroupType'
-import { TransactionType } from '@/graphql/enum/TransactionType'
+import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
 import Decimal from 'decimal.js-light'
 
 describe('test controller/TransactionBody', () => {
@@ -16,7 +16,7 @@ describe('test controller/TransactionBody', () => {
       const transactionDraft = new TransactionDraft()
       transactionDraft.senderUser = senderUser
       transactionDraft.recipientUser = recipientUser
-      transactionDraft.type = TransactionType.CREATION
+      transactionDraft.type = InputTransactionType.CREATION
       transactionDraft.amount = new Decimal(1000)
       transactionDraft.createdAt = '2022-01-02T19:10:34.121'
       transactionDraft.targetDate = '2021-12-01T10:05:00.191'
@@ -45,7 +45,7 @@ describe('test controller/TransactionBody', () => {
       const transactionDraft = new TransactionDraft()
       transactionDraft.senderUser = senderUser
       transactionDraft.recipientUser = recipientUser
-      transactionDraft.type = TransactionType.SEND
+      transactionDraft.type = InputTransactionType.SEND
       transactionDraft.amount = new Decimal(1000)
       transactionDraft.createdAt = '2022-01-02T19:10:34.121'
       const body = create(transactionDraft)
@@ -71,7 +71,7 @@ describe('test controller/TransactionBody', () => {
       const transactionDraft = new TransactionDraft()
       transactionDraft.senderUser = senderUser
       transactionDraft.recipientUser = recipientUser
-      transactionDraft.type = TransactionType.RECEIVE
+      transactionDraft.type = InputTransactionType.RECEIVE
       transactionDraft.amount = new Decimal(1000)
       transactionDraft.createdAt = '2022-01-02T19:10:34.121'
       const body = create(transactionDraft)
@@ -113,12 +113,12 @@ describe('test controller/TransactionBody', () => {
     })
 
     it('inbound transaction (send to sender community)', () => {
-      transactionDraft.type = TransactionType.SEND
+      transactionDraft.type = InputTransactionType.SEND
       expect(determineCrossGroupType(transactionDraft)).toEqual(CrossGroupType.INBOUND)
     })
 
     it('outbound transaction (send to recipient community)', () => {
-      transactionDraft.type = TransactionType.RECEIVE
+      transactionDraft.type = InputTransactionType.RECEIVE
       expect(determineCrossGroupType(transactionDraft)).toEqual(CrossGroupType.OUTBOUND)
     })
   })

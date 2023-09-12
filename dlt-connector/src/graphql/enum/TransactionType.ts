@@ -1,9 +1,12 @@
 import { registerEnumType } from 'type-graphql'
 
 export enum TransactionType {
-  CREATION = 1,
-  SEND = 2,
-  RECEIVE = 3,
+  GRADIDO_TRANSFER = 1,
+  GRADIDO_CREATION = 2,
+  GROUP_FRIENDS_UPDATE = 3,
+  REGISTER_ADDRESS = 4,
+  GRADIDO_DEFERRED_TRANSFER = 5,
+  COMMUNITY_ROOT = 6,
 }
 
 registerEnumType(TransactionType, {
