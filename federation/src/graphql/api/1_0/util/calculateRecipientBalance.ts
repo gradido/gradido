@@ -3,7 +3,7 @@ import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import { Decimal } from 'decimal.js-light'
 import { Decay } from '../model/Decay'
 
-export async function calculateRecepientBalance(
+export async function calculateRecipientBalance(
   userId: number,
   amount: Decimal,
   time: Date,
