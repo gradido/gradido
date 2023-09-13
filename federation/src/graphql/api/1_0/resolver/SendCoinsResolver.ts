@@ -12,7 +12,7 @@ import { calculateRecipientBalance } from '../util/calculateRecipientBalance'
 import Decimal from 'decimal.js-light'
 import { fullName } from '@/graphql/util/fullName'
 import { settlePendingReceiveTransaction } from '../util/settlePendingReceiveTransaction'
-import { checkTradingLevel } from '@/graphql/util/checkTradingLevel'
+// import { checkTradingLevel } from '@/graphql/util/checkTradingLevel'
 import { revertSettledReceiveTransaction } from '../util/revertSettledReceiveTransaction'
 
 @Resolver()
@@ -176,50 +176,70 @@ export class SendCoinsResolver {
       userSenderName,
     }: SendCoinsArgs,
   ): Promise<boolean> {
-    logger.debug(`settleSendCoins() via apiVersion=1_0 ...`)
-    try {
-      const pendingTx = await DbPendingTransaction.findOneBy({
-        userCommunityUuid: communityReceiverIdentifier,
-        userGradidoID: userReceiverIdentifier,
-        state: PendingTransactionState.NEW,
-        typeId: TransactionTypeId.RECEIVE,
-        balanceDate: new Date(creationDate),
-        linkedUserCommunityUuid: communitySenderIdentifier,
-        linkedUserGradidoID: userSenderIdentifier,
+    logger.debug(
+      `settleSendCoins() via apiVersion=1_0 ...userCommunityUuid=${communityReceiverIdentifier}, userGradidoID=${userReceiverIdentifier}, balanceDate=${creationDate},amount=${amount.valueOf()}, memo=${memo}, linkedUserCommunityUuid = ${communitySenderIdentifier}, userSenderIdentifier=${userSenderIdentifier}, userSenderName=${userSenderName}`,
+    )
+    // first check if receiver community is correct
+    const homeCom = await DbCommunity.findOneBy({
+      communityUuid: communityReceiverIdentifier,
+    })
+    if (!homeCom) {
+      throw new LogError(
+        `settleSendCoins with wrong communityReceiverIdentifier`,
+        communityReceiverIdentifier,
+      )
+    }
+    // second check if receiver user exists in this community
+    const receiverUser = await DbUser.findOneBy({ gradidoID: userReceiverIdentifier })
+    if (!receiverUser) {
+      throw new LogError(
+        `settleSendCoins with unknown userReceiverIdentifier in the community=`,
+        homeCom.name,
+      )
+    }
+    // try {
+    const pendingTx = await DbPendingTransaction.findOneBy({
+      userCommunityUuid: communityReceiverIdentifier,
+      userGradidoID: userReceiverIdentifier,
+      state: PendingTransactionState.NEW,
+      typeId: TransactionTypeId.RECEIVE,
+      balanceDate: new Date(creationDate),
+      linkedUserCommunityUuid: communitySenderIdentifier,
+      linkedUserGradidoID: userSenderIdentifier,
+    })
+    logger.debug('XCom: settleSendCoins found pendingTX=', pendingTx?.toString())
+    if (pendingTx && pendingTx.amount.toString() === amount.toString() && pendingTx.memo === memo) {
+      logger.debug('XCom: settleSendCoins matching pendingTX for settlement...')
+
+      const homeCom = await DbCommunity.findOneByOrFail({
+        communityUuid: communityReceiverIdentifier,
       })
-      logger.debug('XCom: settleSendCoins found pendingTX=', pendingTx)
-      if (pendingTx && pendingTx.amount === amount && pendingTx.memo === memo) {
-        logger.debug('XCom: settleSendCoins matching pendingTX for settlement...')
+      const receiverUser = await DbUser.findOneByOrFail({ gradidoID: userReceiverIdentifier })
 
-        const homeCom = await DbCommunity.findOneByOrFail({
-          communityUuid: communityReceiverIdentifier,
-        })
-        const receiverUser = await DbUser.findOneByOrFail({ gradidoID: userReceiverIdentifier })
-
-        await settlePendingReceiveTransaction(homeCom, receiverUser, pendingTx)
-        logger.debug(`XCom: settlePendingReceiveTransaction()-1_0... successfull`)
-        return true
-      } else {
-        logger.debug(
-          'XCom: settlePendingReceiveTransaction NOT matching pendingTX for settlement...',
-        )
-        throw new LogError(
-          `Can't find in settlePendingReceiveTransaction the pending receiver TX for args=`,
-          communityReceiverIdentifier,
-          userReceiverIdentifier,
-          PendingTransactionState.NEW,
-          TransactionTypeId.RECEIVE,
-          creationDate,
-          amount,
-          memo,
-          communitySenderIdentifier,
-          userSenderIdentifier,
-          userSenderName,
-        )
-      }
+      await settlePendingReceiveTransaction(homeCom, receiverUser, pendingTx)
+      logger.debug(`XCom: settlePendingReceiveTransaction()-1_0... successfull`)
+      return true
+    } else {
+      logger.debug('XCom: settlePendingReceiveTransaction NOT matching pendingTX for settlement...')
+      throw new LogError(
+        `Can't find in settlePendingReceiveTransaction the pending receiver TX for args=`,
+        communityReceiverIdentifier,
+        userReceiverIdentifier,
+        PendingTransactionState.NEW,
+        TransactionTypeId.RECEIVE,
+        creationDate,
+        amount,
+        memo,
+        communitySenderIdentifier,
+        userSenderIdentifier,
+        userSenderName,
+      )
+    }
+/*
     } catch (err) {
       throw new LogError(`Error in settlePendingReceiveTransaction: `, err)
     }
+*/
   }
 
   @Mutation(() => Boolean)
@@ -236,64 +256,66 @@ export class SendCoinsResolver {
       userSenderName,
     }: SendCoinsArgs,
   ): Promise<boolean> {
-    try {
-      logger.debug(`revertSettledSendCoins() via apiVersion=1_0 ...`)
-      // first check if receiver community is correct
-      const homeCom = await DbCommunity.findOneBy({
-        communityUuid: communityReceiverIdentifier,
-      })
-      if (!homeCom) {
-        throw new LogError(
-          `revertSettledSendCoins with wrong communityReceiverIdentifier`,
-          communityReceiverIdentifier,
-        )
+    // try {
+    logger.debug(`revertSettledSendCoins() via apiVersion=1_0 ...`)
+    // first check if receiver community is correct
+    const homeCom = await DbCommunity.findOneBy({
+      communityUuid: communityReceiverIdentifier,
+    })
+    if (!homeCom) {
+      throw new LogError(
+        `revertSettledSendCoins with wrong communityReceiverIdentifier`,
+        communityReceiverIdentifier,
+      )
+    }
+    // second check if receiver user exists in this community
+    const receiverUser = await DbUser.findOneBy({ gradidoID: userReceiverIdentifier })
+    if (!receiverUser) {
+      throw new LogError(
+        `revertSettledSendCoins with unknown userReceiverIdentifier in the community=`,
+        homeCom.name,
+      )
+    }
+    const pendingTx = await DbPendingTransaction.findOneBy({
+      userCommunityUuid: communityReceiverIdentifier,
+      userGradidoID: userReceiverIdentifier,
+      state: PendingTransactionState.SETTLED,
+      typeId: TransactionTypeId.RECEIVE,
+      balanceDate: new Date(creationDate),
+      linkedUserCommunityUuid: communitySenderIdentifier,
+      linkedUserGradidoID: userSenderIdentifier,
+    })
+    logger.debug('XCom: revertSettledSendCoins found pendingTX=', pendingTx)
+    if (pendingTx && pendingTx.amount === amount && pendingTx.memo === memo) {
+      logger.debug('XCom: revertSettledSendCoins matching pendingTX for remove...')
+      try {
+        await revertSettledReceiveTransaction(homeCom, receiverUser, pendingTx)
+        logger.debug('XCom: revertSettledSendCoins pendingTX successfully')
+      } catch (err) {
+        throw new LogError('Error in revertSettledSendCoins of receiver: ', err)
       }
-      // second check if receiver user exists in this community
-      const receiverUser = await DbUser.findOneBy({ gradidoID: userReceiverIdentifier })
-      if (!receiverUser) {
-        throw new LogError(
-          `revertSettledSendCoins with unknown userReceiverIdentifier in the community=`,
-          homeCom.name,
-        )
-      }
-      const pendingTx = await DbPendingTransaction.findOneBy({
-        userCommunityUuid: communityReceiverIdentifier,
-        userGradidoID: userReceiverIdentifier,
-        state: PendingTransactionState.SETTLED,
-        typeId: TransactionTypeId.RECEIVE,
-        balanceDate: new Date(creationDate),
-        linkedUserCommunityUuid: communitySenderIdentifier,
-        linkedUserGradidoID: userSenderIdentifier,
-      })
-      logger.debug('XCom: revertSettledSendCoins found pendingTX=', pendingTx)
-      if (pendingTx && pendingTx.amount === amount && pendingTx.memo === memo) {
-        logger.debug('XCom: revertSettledSendCoins matching pendingTX for remove...')
-        try {
-          await revertSettledReceiveTransaction(homeCom, receiverUser, pendingTx)
-          logger.debug('XCom: revertSettledSendCoins pendingTX successfully')
-        } catch (err) {
-          throw new LogError('Error in revertSettledSendCoins of receiver: ', err)
-        }
-      } else {
-        logger.debug('XCom: revertSettledSendCoins NOT matching pendingTX...')
-        throw new LogError(
-          `Can't find in revertSettledSendCoins the pending receiver TX for args=`,
-          communityReceiverIdentifier,
-          userReceiverIdentifier,
-          PendingTransactionState.SETTLED,
-          TransactionTypeId.RECEIVE,
-          creationDate,
-          amount,
-          memo,
-          communitySenderIdentifier,
-          userSenderIdentifier,
-          userSenderName,
-        )
-      }
-      logger.debug(`revertSendCoins()-1_0... successfull`)
-      return true
+    } else {
+      logger.debug('XCom: revertSettledSendCoins NOT matching pendingTX...')
+      throw new LogError(
+        `Can't find in revertSettledSendCoins the pending receiver TX for args=`,
+        communityReceiverIdentifier,
+        userReceiverIdentifier,
+        PendingTransactionState.SETTLED,
+        TransactionTypeId.RECEIVE,
+        creationDate,
+        amount,
+        memo,
+        communitySenderIdentifier,
+        userSenderIdentifier,
+        userSenderName,
+      )
+    }
+    logger.debug(`revertSendCoins()-1_0... successfull`)
+    return true
+/*
     } catch (err) {
       throw new LogError(`Error in revertSendCoins: `, err)
     }
+*/
   }
 }

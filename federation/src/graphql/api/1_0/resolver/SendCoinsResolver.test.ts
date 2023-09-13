@@ -9,6 +9,11 @@ import { GraphQLError } from 'graphql'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 import { Connection } from '@dbTools/typeorm'
+import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
+import Decimal from 'decimal.js-light'
+import { calculateRecipientBalance } from '../util/calculateRecipientBalance'
+import { PendingTransactionState } from '../enum/PendingTransactionState'
+import { TransactionTypeId } from '../enum/TransactionTypeId'
 
 let mutate: ApolloServerTestClient['mutate'], con: Connection
 // let query: ApolloServerTestClient['query']
@@ -89,6 +94,29 @@ describe('SendCoinsResolver', () => {
   }
 `
 
+  const settleSendCoinsMutation = `
+  mutation (
+    $communityReceiverIdentifier: String!
+    $userReceiverIdentifier: String!
+    $creationDate: String!
+    $amount: Decimal!
+    $memo: String!
+    $communitySenderIdentifier: String!
+    $userSenderIdentifier: String!
+    $userSenderName: String!
+  ) {
+    settleSendCoins(
+      communityReceiverIdentifier: $communityReceiverIdentifier
+      userReceiverIdentifier: $userReceiverIdentifier
+      creationDate: $creationDate
+      amount: $amount
+      memo: $memo
+      communitySenderIdentifier: $communitySenderIdentifier
+      userSenderIdentifier: $userSenderIdentifier
+      userSenderName: $userSenderName
+    )
+  }
+`
   describe('voteForSendCoins', () => {
     let homeCom: DbCommunity
     let foreignCom: DbCommunity
@@ -347,6 +375,148 @@ describe('SendCoinsResolver', () => {
           expect.objectContaining({
             data: {
               revertSendCoins: true,
+            },
+          }),
+        )
+      })
+    })
+  })
+
+  describe('settleSendCoins', () => {
+    let homeCom: DbCommunity
+    let foreignCom: DbCommunity
+    let sendUser: DbUser
+    let recipUser: DbUser
+    let pendingTx: DbPendingTransaction
+    const creationDate = new Date()
+
+    beforeEach(async () => {
+      await cleanDB()
+      homeCom = DbCommunity.create()
+      homeCom.foreign = false
+      homeCom.url = 'homeCom-url'
+      homeCom.name = 'homeCom-Name'
+      homeCom.description = 'homeCom-Description'
+      homeCom.creationDate = new Date()
+      homeCom.publicKey = Buffer.from('homeCom-publicKey')
+      homeCom.communityUuid = 'homeCom-UUID'
+      await DbCommunity.insert(homeCom)
+
+      foreignCom = DbCommunity.create()
+      foreignCom.foreign = true
+      foreignCom.url = 'foreignCom-url'
+      foreignCom.name = 'foreignCom-Name'
+      foreignCom.description = 'foreignCom-Description'
+      foreignCom.creationDate = new Date()
+      foreignCom.publicKey = Buffer.from('foreignCom-publicKey')
+      foreignCom.communityUuid = 'foreignCom-UUID'
+      await DbCommunity.insert(foreignCom)
+
+      sendUser = DbUser.create()
+      sendUser.alias = 'sendUser-alias'
+      sendUser.firstName = 'sendUser-FirstName'
+      sendUser.gradidoID = 'sendUser-GradidoID'
+      sendUser.lastName = 'sendUser-LastName'
+      await DbUser.insert(sendUser)
+
+      recipUser = DbUser.create()
+      recipUser.alias = 'recipUser-alias'
+      recipUser.firstName = 'recipUser-FirstName'
+      recipUser.gradidoID = 'recipUser-GradidoID'
+      recipUser.lastName = 'recipUser-LastName'
+      await DbUser.insert(recipUser)
+
+      pendingTx = DbPendingTransaction.create()
+      pendingTx.amount = new Decimal(100)
+      pendingTx.balanceDate = creationDate
+      // pendingTx.balance = new Decimal(0)
+      pendingTx.linkedUserId = sendUser.id
+      pendingTx.linkedUserCommunityUuid = foreignCom.communityUuid
+      pendingTx.linkedUserGradidoID = sendUser.gradidoID
+      pendingTx.state = PendingTransactionState.NEW
+      pendingTx.typeId = TransactionTypeId.RECEIVE
+      pendingTx.memo = 'X-Com-TX memo'
+      pendingTx.userId = recipUser.id
+      pendingTx.userCommunityUuid = homeCom.communityUuid
+      pendingTx.userGradidoID = recipUser.gradidoID
+      await DbPendingTransaction.insert(pendingTx)
+    })
+
+    describe('unknown recipient community', () => {
+      it('throws an error', async () => {
+        jest.clearAllMocks()
+        expect(
+          await mutate({
+            mutation: settleSendCoinsMutation,
+            variables: {
+              communityReceiverIdentifier: 'invalid foreignCom',
+              userReceiverIdentifier: recipUser.gradidoID,
+              creationDate: creationDate.toISOString(),
+              amount: 100,
+              memo: 'X-Com-TX memo',
+              communitySenderIdentifier: foreignCom.communityUuid,
+              userSenderIdentifier: sendUser.gradidoID,
+              userSenderName: fullName(sendUser.firstName, sendUser.lastName),
+            },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('settleSendCoins with wrong communityReceiverIdentifier')],
+          }),
+        )
+      })
+    })
+
+    describe('unknown recipient user', () => {
+      it('throws an error', async () => {
+        jest.clearAllMocks()
+        expect(
+          await mutate({
+            mutation: settleSendCoinsMutation,
+            variables: {
+              communityReceiverIdentifier: homeCom.communityUuid,
+              userReceiverIdentifier: 'invalid recipient',
+              creationDate: creationDate.toISOString(),
+              amount: 100,
+              memo: 'X-Com-TX memo',
+              communitySenderIdentifier: foreignCom.communityUuid,
+              userSenderIdentifier: sendUser.gradidoID,
+              userSenderName: fullName(sendUser.firstName, sendUser.lastName),
+            },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            errors: [
+              new GraphQLError(
+                'settleSendCoins with unknown userReceiverIdentifier in the community=',
+              ),
+            ],
+          }),
+        )
+      })
+    })
+
+    describe('valid X-Com-TX settled', () => {
+      it('throws an error', async () => {
+        jest.clearAllMocks()
+        expect(
+          await mutate({
+            mutation: settleSendCoinsMutation,
+            variables: {
+              communityReceiverIdentifier: homeCom.communityUuid,
+              userReceiverIdentifier: recipUser.gradidoID,
+              creationDate: creationDate.toISOString(),
+              amount: 100,
+              memo: 'X-Com-TX memo',
+              communitySenderIdentifier: foreignCom.communityUuid,
+              userSenderIdentifier: sendUser.gradidoID,
+              userSenderName: fullName(sendUser.firstName, sendUser.lastName),
+            },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            data: {
+              settleSendCoins: true,
             },
           }),
         )

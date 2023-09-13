@@ -15,7 +15,7 @@ import { federationLogger as logger } from '@/server/logger'
 
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
-import { calculateRecepientBalance } from './calculateRecepientBalance'
+import { calculateRecipientBalance } from './calculateRecipientBalance'
 
 export async function settlePendingReceiveTransaction(
   homeCom: DbCommunity,
@@ -52,7 +52,7 @@ export async function settlePendingReceiveTransaction(
 
     const lastTransaction = await getLastTransaction(receiverUser.id)
 
-    if (lastTransaction?.id !== pendingTx.previous) {
+    if (lastTransaction === undefined && lastTransaction.id !== pendingTx.previous) {
       throw new LogError(
         `X-Com: missmatching transaction order! lastTransationId=${lastTransaction?.id} != pendingTx.previous=${pendingTx.previous}`,
       )
@@ -69,7 +69,7 @@ export async function settlePendingReceiveTransaction(
     transactionReceive.linkedUserGradidoID = pendingTx.linkedUserGradidoID
     transactionReceive.linkedUserName = pendingTx.linkedUserName
     transactionReceive.amount = pendingTx.amount
-    const receiveBalance = await calculateRecepientBalance(
+    const receiveBalance = await calculateRecipientBalance(
       receiverUser.id,
       pendingTx.amount,
       pendingTx.balanceDate,
