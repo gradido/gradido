@@ -25,6 +25,7 @@
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
     "decimal.js-light": "^2.5.1",
+    "dlt-database": "file:../dlt-database",
     "dotenv": "10.0.0",
     "express": "4.17.1",
     "graphql": "^16.7.1",

@@ -44,6 +44,7 @@ EXPOSE ${PORT}
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
+RUN mkdir -p /dlt-database
 
 ##################################################################################
 # DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
@@ -56,7 +57,7 @@ FROM base as development
 # Run command
 # (for development we need to execute yarn install since the
 #  node_modules are on another volume and need updating)
-CMD /bin/sh -c "cd /app && yarn install && yarn run dev"
+CMD /bin/sh -c "cd /dlt-database && yarn install && yarn build && cd /app && yarn install && yarn run dev"
 
 ##################################################################################
 # BUILD (Does contain all files and is therefore bloated) ########################
@@ -65,12 +66,20 @@ FROM base as build
 
 # Copy everything from dlt-connector
 COPY ./dlt-connector/ ./
+# Copy everything from dlt-database
+COPY ./dlt-database/ ../dlt-database/
 
 # yarn install dlt-connector
 RUN yarn install --production=false --frozen-lockfile --non-interactive
 
+# yarn install dlt-database
+RUN cd ../dlt-database && yarn install --production=false --frozen-lockfile --non-interactive
+
 # yarn build
 RUN yarn run build
+
+# yarn build dlt-database
+RUN cd ../dlt-database && yarn run build
 
 ##################################################################################
 # TEST ###########################################################################
@@ -90,9 +99,10 @@ RUN apk del rust cargo python3 make g++
 
 # Copy "binary"-files from build image
 COPY --from=build ${DOCKER_WORKDIR}/build ./build
-
+COPY --from=build ${DOCKER_WORKDIR}/../dlt-database/build ../dlt-database/build
 # We also copy the node_modules express and serve-static for the run script
 COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
+COPY --from=build ${DOCKER_WORKDIR}/../dlt-database/node_modules ../dlt-database/node_modules
 # Copy static files
 # COPY --from=build ${DOCKER_WORKDIR}/public ./public
 # Copy package.json for script definitions (lock file should not be needed)
