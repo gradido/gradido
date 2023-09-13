@@ -6,15 +6,13 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
-  ManyToMany,
-  JoinTable,
 } from 'typeorm'
-import { User } from './User'
-import { Community } from './Community'
-import { TransactionRecipe } from './TransactionRecipe'
-import { ConfirmedTransaction } from './ConfirmedTransaction'
+import { User } from '../User'
+import { TransactionRecipe } from '../TransactionRecipe'
+import { ConfirmedTransaction } from '../ConfirmedTransaction'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Decimal } from 'decimal.js-light'
+import { AccountCommunity } from '../AccountCommunity'
 
 @Entity('accounts')
 export class Account {
@@ -23,7 +21,7 @@ export class Account {
 
   @ManyToOne(() => User, (user) => user.accounts) // Assuming you have a User entity with 'accounts' relation
   @JoinColumn({ name: 'user_id' })
-  user: User
+  user?: User
 
   // if user id is null, account belongs to community gmw or auf
   @Column({ name: 'user_id', type: 'int', unsigned: true, nullable: true })
@@ -60,13 +58,9 @@ export class Account {
   })
   balanceDate: Date
 
-  @ManyToMany(() => Community, (community) => community.communityAccounts)
-  @JoinTable({
-    name: 'accounts_communities',
-    joinColumn: { name: 'account_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'community_id', referencedColumnName: 'id' },
-  })
-  accountCommunities: Community[]
+  @OneToMany(() => AccountCommunity, (accountCommunity) => accountCommunity.account)
+  @JoinColumn({ name: 'account_id' })
+  accountCommunities: AccountCommunity[]
 
   @OneToMany(() => TransactionRecipe, (recipe) => recipe.signingAccount)
   transactionRecipesSigning?: TransactionRecipe[]

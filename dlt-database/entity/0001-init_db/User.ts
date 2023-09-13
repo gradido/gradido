@@ -8,7 +8,7 @@ import {
   CreateDateColumn,
 } from 'typeorm'
 
-import { Account } from './Account'
+import { Account } from '../Account'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {

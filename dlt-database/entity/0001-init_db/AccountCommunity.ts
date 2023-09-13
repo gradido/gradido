@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm'
 
-import { Account } from './Account'
-import { Community } from './Community'
+import { Account } from '../Account'
+import { Community } from '../Community'
 
 @Entity('accounts_communities')
 export class AccountCommunity {
@@ -15,7 +15,7 @@ export class AccountCommunity {
   @Column({ name: 'account_id', type: 'int', unsigned: true })
   accountId: number
 
-  @ManyToOne(() => Community, (community) => community.communityAccounts)
+  @ManyToOne(() => Community, (community) => community.accountCommunities)
   @JoinColumn({ name: 'community_id' })
   community: Community
 
