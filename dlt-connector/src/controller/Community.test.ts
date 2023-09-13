@@ -1,6 +1,11 @@
 import 'reflect-metadata'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import { create as createCommunity, getAllTopics, iotaTopicFromCommunityUUID, isExist } from './Community'
+import {
+  create as createCommunity,
+  getAllTopics,
+  iotaTopicFromCommunityUUID,
+  isExist,
+} from './Community'
 import { TestDB } from '@test/TestDB'
 import { getDataSource } from '@/typeorm/DataSource'
 
