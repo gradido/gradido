@@ -12,7 +12,7 @@ import {
   isExist,
 } from '@/controller/Community'
 import { TransactionErrorType } from '../enum/TransactionErrorType'
-import { logger } from '@test/testSetup'
+import { logger } from '@/server/logger'
 
 @Resolver()
 export class CommunityResolver {
