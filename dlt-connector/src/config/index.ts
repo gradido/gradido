@@ -24,7 +24,7 @@ const database = {
   DB_USER: process.env.DB_USER ?? 'root',
   DB_PASSWORD: process.env.DB_PASSWORD ?? '',
   DB_DATABASE: process.env.DB_DATABASE ?? 'gradido_dlt',
-  DB_DATABASE_TEST: process.env.DB_DATABASE_TEST || null,
+  DB_DATABASE_TEST: process.env.DB_DATABASE_TEST ?? 'gradido_dlt_test',
   TYPEORM_LOGGING_RELATIVE_PATH: process.env.TYPEORM_LOGGING_RELATIVE_PATH ?? 'typeorm.backend.log',
 }
 
