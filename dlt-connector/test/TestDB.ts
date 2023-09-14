@@ -1,4 +1,6 @@
 import { DataSource, FileLogger } from '@dbTools/typeorm'
+import { createDatabase } from 'typeorm-extension'
+
 import { entities } from '@entity/index'
 
 import { CONFIG } from '@/config'
@@ -11,6 +13,11 @@ export class TestDB {
   private constructor() {
     if (!CONFIG.DB_DATABASE_TEST) {
       throw new LogError('no test db in config')
+    }
+    if (CONFIG.DB_DATABASE === CONFIG.DB_DATABASE_TEST) {
+      throw new LogError(
+        'main db is the same as test db, not good because test db will be cleared after each test run',
+      )
     }
     this.dbConnect = new DataSource({
       type: 'mysql',
@@ -42,6 +49,21 @@ export class TestDB {
   async setupTestDB() {
     // eslint-disable-next-line no-console
     try {
+      if (!CONFIG.DB_DATABASE_TEST) {
+        throw new LogError('no test db in config')
+      }
+      await createDatabase({
+        ifNotExist: true,
+        options: {
+          type: 'mysql',
+          charset: 'utf8mb4_unicode_ci',
+          host: CONFIG.DB_HOST,
+          port: CONFIG.DB_PORT,
+          username: CONFIG.DB_USER,
+          password: CONFIG.DB_PASSWORD,
+          database: CONFIG.DB_DATABASE_TEST,
+        },
+      })
       await this.dbConnect.initialize()
     } catch (error) {
       // eslint-disable-next-line no-console
