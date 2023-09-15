@@ -51,18 +51,16 @@ export async function processXComPendingSendCoins(
     // eslint-disable-next-line camelcase
     if (client instanceof V1_0_SendCoinsClient) {
       const args = new SendCoinsArgs()
-      args.communityReceiverIdentifier = receiverCom.communityUuid
+      args.recipientCommunityUuid = receiverCom.communityUuid
         ? receiverCom.communityUuid
         : CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID
-      args.userReceiverIdentifier = recipient.gradidoID
+      args.recipientUserIdentifier = recipient.gradidoID
       args.creationDate = creationDate.toISOString()
       args.amount = amount
       args.memo = memo
-      args.communitySenderIdentifier = senderCom.communityUuid
-        ? senderCom.communityUuid
-        : 'homeCom-UUID'
-      args.userSenderIdentifier = sender.gradidoID
-      args.userSenderName = fullName(sender.firstName, sender.lastName)
+      args.senderCommunityUuid = senderCom.communityUuid ? senderCom.communityUuid : 'homeCom-UUID'
+      args.senderUserUuid = sender.gradidoID
+      args.senderUserName = fullName(sender.firstName, sender.lastName)
       logger.debug(`X-Com: ready for voteForSendCoins with args=`, args)
       const recipientName = await client.voteForSendCoins(args)
       logger.debug(`X-Com: returnd from voteForSendCoins:`, recipientName)
@@ -159,19 +157,19 @@ export async function processXComCommittingSendCoins(
       // eslint-disable-next-line camelcase
       if (client instanceof V1_0_SendCoinsClient) {
         const args = new SendCoinsArgs()
-        args.communityReceiverIdentifier = pendingTx.linkedUserCommunityUuid
+        args.recipientCommunityUuid = pendingTx.linkedUserCommunityUuid
           ? pendingTx.linkedUserCommunityUuid
           : CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID
         if (pendingTx.linkedUserGradidoID) {
-          args.userReceiverIdentifier = pendingTx.linkedUserGradidoID
+          args.recipientUserIdentifier = pendingTx.linkedUserGradidoID
         }
-        args.creationDate = pendingTx.balanceDate
+        args.creationDate = pendingTx.balanceDate.toISOString()
         args.amount = pendingTx.amount
         args.memo = pendingTx.memo
-        args.communitySenderIdentifier = pendingTx.userCommunityUuid
-        args.userSenderIdentifier = pendingTx.userGradidoID
+        args.senderCommunityUuid = pendingTx.userCommunityUuid
+        args.senderUserUuid = pendingTx.userGradidoID
         if (pendingTx.userName) {
-          args.userSenderName = pendingTx.userName
+          args.senderUserName = pendingTx.userName
         }
         logger.debug(`X-Com: ready for settleSendCoins with args=`, args)
         const acknoleged = await client.settleSendCoins(args)
