@@ -1,12 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  ManyToOne,
-  JoinColumn,
-  OneToMany,
-} from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm'
 import { User } from '../User'
 import { TransactionRecipe } from '../TransactionRecipe'
 import { ConfirmedTransaction } from '../ConfirmedTransaction'
@@ -36,7 +28,7 @@ export class Account {
   @Column({ type: 'tinyint', unsigned: true })
   type: number
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(3)' })
+  @Column({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(3)' })
   createdAt: Date
 
   @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })

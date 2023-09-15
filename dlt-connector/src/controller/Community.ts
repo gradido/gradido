@@ -1,5 +1,5 @@
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import { uuid4ToBuffer } from '@/utils'
+import { uuid4ToBuffer } from '@/utils/typeConverter'
 import { Community } from '@entity/Community'
 import { getDataSource } from '@typeorm/DataSource'
 import { crypto_generichash as cryptoHash } from 'sodium-native'

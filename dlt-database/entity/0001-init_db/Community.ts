@@ -1,12 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  JoinColumn,
-  OneToOne,
-  OneToMany,
-} from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne, OneToMany } from 'typeorm'
 import { Account } from '../Account'
 import { TransactionRecipe } from '../TransactionRecipe'
 import { AccountCommunity } from '../AccountCommunity'
@@ -45,7 +37,7 @@ export class Community {
   @JoinColumn({ name: 'auf_account_id' })
   aufAccount?: Account
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(3)' })
+  @Column({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(3)' })
   createdAt: Date
 
   @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })

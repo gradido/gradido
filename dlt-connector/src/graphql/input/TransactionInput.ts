@@ -3,9 +3,8 @@
 import { Decimal } from 'decimal.js-light'
 import { TransactionType } from '../enum/TransactionType'
 import { InputType, Field } from 'type-graphql'
-import { IsEnum } from 'class-validator'
+import { IsEnum, IsInt, Min } from 'class-validator'
 import { IsPositiveDecimal } from '../validator/Decimal'
-import { isValidDateString } from '../validator/DateString'
 
 @InputType()
 export class TransactionInput {
@@ -18,7 +17,8 @@ export class TransactionInput {
   amount: Decimal
 
   @Field(() => Number)
-  @isValidDateString()
+  @IsInt()
+  @Min(978346800)
   createdAt: number
 
   // @protoField.d(4, 'string')

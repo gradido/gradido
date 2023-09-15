@@ -1,12 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  ManyToOne,
-  OneToOne,
-  JoinColumn,
-} from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToOne, JoinColumn } from 'typeorm'
 import { Decimal } from 'decimal.js-light'
 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
@@ -63,7 +55,7 @@ export class TransactionRecipe {
   @Column({ type: 'tinyint' })
   type: number
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime' })
+  @Column({ name: 'created_at', type: 'datetime' })
   createdAt: Date
 
   @Column({ name: 'body_bytes', type: 'blob' })

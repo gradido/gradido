@@ -34,6 +34,7 @@ export class CommunityResolver {
   ): Promise<TransactionResult> {
     try {
       const topic = iotaTopicFromCommunityUUID(communityDraft.uuid)
+
       // check if community was already written to db
       if (await isExist(topic)) {
         return new TransactionResult(
@@ -47,25 +48,15 @@ export class CommunityResolver {
       if (!communityDraft.foreign) {
         // TODO: CommunityRoot Transaction for blockchain
       }
-
-      const queryRunner = getDataSource().createQueryRunner()
-      await queryRunner.connect()
-      await queryRunner.startTransaction()
-
       try {
-        await queryRunner.manager.save(community)
-        await queryRunner.commitTransaction()
+        await getDataSource().manager.save(community)
         result = new TransactionResult()
       } catch (err) {
         logger.error('error saving new community into db: %s', err)
         result = new TransactionResult(
           new TransactionError(TransactionErrorType.DB_ERROR, 'error saving community into db'),
         )
-        await queryRunner.rollbackTransaction()
-      } finally {
-        await queryRunner.release()
       }
-
       return result
     } catch (error) {
       if (error instanceof TransactionError) {
