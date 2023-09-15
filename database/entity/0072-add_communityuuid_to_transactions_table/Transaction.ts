@@ -3,6 +3,7 @@ import { Decimal } from 'decimal.js-light'
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Contribution } from '../Contribution'
+import { DltTransaction } from '../DltTransaction'
 
 @Entity('transactions')
 export class Transaction extends BaseEntity {
@@ -151,6 +152,10 @@ export class Transaction extends BaseEntity {
   @OneToOne(() => Contribution, (contribution) => contribution.transaction)
   @JoinColumn({ name: 'id', referencedColumnName: 'transactionId' })
   contribution?: Contribution | null
+
+  @OneToOne(() => DltTransaction, (dlt) => dlt.transactionId)
+  @JoinColumn({ name: 'id', referencedColumnName: 'transactionId' })
+  dltTransaction?: DltTransaction | null
 
   @OneToOne(() => Transaction)
   @JoinColumn({ name: 'previous' })

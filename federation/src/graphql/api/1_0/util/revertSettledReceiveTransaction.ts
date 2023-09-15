@@ -64,10 +64,10 @@ export async function revertSettledReceiveTransaction(
     if (
       lastTransaction &&
       lastTransaction.balance === pendingTx.balance &&
-      lastTransaction.balanceDate === pendingTx.balanceDate &&
+      lastTransaction.balanceDate.toISOString() === pendingTx.balanceDate.toISOString() &&
       lastTransaction.userGradidoID === pendingTx.userGradidoID &&
       lastTransaction.userName === pendingTx.userName &&
-      lastTransaction.amount === pendingTx.amount &&
+      lastTransaction.amount.toString() === pendingTx.amount.toString() &&
       lastTransaction.memo === pendingTx.memo &&
       lastTransaction.linkedUserGradidoID === pendingTx.linkedUserGradidoID &&
       lastTransaction.linkedUserName === pendingTx.linkedUserName
@@ -83,7 +83,9 @@ export async function revertSettledReceiveTransaction(
     } else {
       // TODO: if the last TX is not equivelant to pendingTX, the transactions must be corrected in EXPERT-MODE
       throw new LogError(
-        `X-Com: missmatching transaction order for revert settlement! lastTransation=${lastTransaction} != pendingTx=${pendingTx}`,
+        `X-Com: missmatching transaction order for revert settlement!`,
+        lastTransaction,
+        pendingTx,
       )
     }
 

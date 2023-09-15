@@ -2,24 +2,24 @@ import { gql } from 'graphql-request'
 
 export const revertSettledSendCoins = gql`
   mutation (
-    $communityReceiverIdentifier: String!
-    $userReceiverIdentifier: String!
-    $creationDate: Date!
+    $recipientCommunityUuid: String!
+    $recipientUserIdentifier: String!
+    $creationDate: String!
     $amount: Decimal!
     $memo: String!
-    $communitySenderIdentifier: String!
-    $userSenderIdentifier: String!
-    $userSenderName: String!
+    $senderCommunityUuid: String!
+    $senderUserUuid: String!
+    $senderUserName: String!
   ) {
     revertSettledSendCoins(
-      communityReceiverIdentifier: $communityReceiverIdentifier
-      userReceiverIdentifier: $userReceiverIdentifier
+      recipientCommunityUuid: $recipientCommunityUuid
+      recipientUserIdentifier: $recipientUserIdentifier
       creationDate: $creationDate
       amount: $amount
       memo: $memo
-      communitySenderIdentifier: $communitySenderIdentifier
-      userSenderIdentifier: $userSenderIdentifier
-      userSenderName: $userSenderName
+      senderCommunityUuid: $senderCommunityUuid
+      senderUserUuid: $senderUserUuid
+      senderUserName: $senderUserName
     )
   }
 `

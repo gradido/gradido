@@ -16,6 +16,7 @@ import { federationLogger as logger } from '@/server/logger'
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
 import { calculateRecipientBalance } from './calculateRecipientBalance'
+import Decimal from 'decimal.js-light'
 
 export async function settlePendingReceiveTransaction(
   homeCom: DbCommunity,
@@ -52,7 +53,7 @@ export async function settlePendingReceiveTransaction(
 
     const lastTransaction = await getLastTransaction(receiverUser.id)
 
-    if (lastTransaction === undefined && lastTransaction.id !== pendingTx.previous) {
+    if (lastTransaction !== null && lastTransaction.id !== pendingTx.previous) {
       throw new LogError(
         `X-Com: missmatching transaction order! lastTransationId=${lastTransaction?.id} != pendingTx.previous=${pendingTx.previous}`,
       )
@@ -63,9 +64,11 @@ export async function settlePendingReceiveTransaction(
     transactionReceive.typeId = pendingTx.typeId
     transactionReceive.memo = pendingTx.memo
     transactionReceive.userId = pendingTx.userId
+    transactionReceive.userCommunityUuid = pendingTx.userCommunityUuid
     transactionReceive.userGradidoID = pendingTx.userGradidoID
     transactionReceive.userName = pendingTx.userName
     transactionReceive.linkedUserId = pendingTx.linkedUserId
+    transactionReceive.linkedUserCommunityUuid = pendingTx.linkedUserCommunityUuid
     transactionReceive.linkedUserGradidoID = pendingTx.linkedUserGradidoID
     transactionReceive.linkedUserName = pendingTx.linkedUserName
     transactionReceive.amount = pendingTx.amount
@@ -74,16 +77,19 @@ export async function settlePendingReceiveTransaction(
       pendingTx.amount,
       pendingTx.balanceDate,
     )
-    if (receiveBalance?.balance !== pendingTx.balance) {
+    if (
+      receiveBalance !== null &&
+      receiveBalance.balance.toString() !== pendingTx.balance.toString()
+    ) {
       throw new LogError(
-        `X-Com: Calculation-Error on receiver balance: receiveBalance=${receiveBalance?.balance}, pendingTx.balance=${pendingTx.balance}`,
+        `X-Com: Calculation-Error on receiver balance: receiveBalance=${receiveBalance.balance}, pendingTx.balance=${pendingTx.balance}`,
       )
     }
-    transactionReceive.balance = pendingTx.balance
+    transactionReceive.balance = receiveBalance ? receiveBalance.balance : pendingTx.amount
     transactionReceive.balanceDate = pendingTx.balanceDate
-    transactionReceive.decay = pendingTx.decay
-    transactionReceive.decayStart = pendingTx.decayStart
-    transactionReceive.previous = pendingTx.previous
+    transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
+    transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
+    transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
     transactionReceive.linkedTransactionId = pendingTx.linkedTransactionId
     await queryRunner.manager.insert(dbTransaction, transactionReceive)
     logger.debug(`receive Transaction inserted: ${dbTransaction}`)
