@@ -126,6 +126,11 @@ const federation = {
     Number(process.env.FEDERATION_VALIDATE_COMMUNITY_TIMER) || 60000,
   FEDERATION_XCOM_SENDCOINS_ENABLED:
     process.env.FEDERATION_XCOM_SENDCOINS_ENABLED === 'true' || false,
+  // default value for community-uuid is equal uuid of stage-3
+  FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID:
+    process.env.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID ?? '56a55482-909e-46a4-bfa2-cd025e894ebc',
+  FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS:
+    process.env.FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS ?? 3,
 }
 
 export const CONFIG = {
