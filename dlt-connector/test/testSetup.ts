@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { logger } from '@/server/logger'
 
 jest.setTimeout(1000000)
@@ -13,7 +14,7 @@ jest.mock('@/server/logger', () => {
       debug: jest.fn(),
       warn: jest.fn(),
       info: jest.fn(),
-      error: jest.fn(),
+      error: jest.fn((msg, ...args) => console.log(msg, args)),
       fatal: jest.fn(),
     },
   }

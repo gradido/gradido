@@ -5,6 +5,7 @@ export enum TransactionErrorType {
   MISSING_PARAMETER = 'Missing parameter',
   ALREADY_EXIST = 'Already exist',
   DB_ERROR = 'DB Error',
+  PROTO_DECODE_ERROR = 'Proto Decode Error',
 }
 
 registerEnumType(TransactionErrorType, {

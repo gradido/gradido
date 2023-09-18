@@ -17,21 +17,25 @@ import { TransactionType } from '@/graphql/enum/TransactionType'
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
 export class TransactionBody extends Message<TransactionBody> {
-  public constructor(transaction: TransactionDraft | CommunityDraft) {
-    let type = CrossGroupType.LOCAL
-    let otherGroup = ''
-    if (transaction instanceof TransactionDraft) {
-      type = determineCrossGroupType(transaction)
-      otherGroup = determineOtherGroup(type, transaction)
-    }
+  public constructor(transaction?: TransactionDraft | CommunityDraft) {
+    if (transaction) {
+      let type = CrossGroupType.LOCAL
+      let otherGroup = ''
+      if (transaction instanceof TransactionDraft) {
+        type = determineCrossGroupType(transaction)
+        otherGroup = determineOtherGroup(type, transaction)
+      }
 
-    super({
-      memo: 'Not implemented yet',
-      createdAt: new Timestamp(new Date(transaction.createdAt)),
-      versionNumber: '3.3',
-      type,
-      otherGroup,
-    })
+      super({
+        memo: 'Not implemented yet',
+        createdAt: new Timestamp(new Date(transaction.createdAt)),
+        versionNumber: '3.3',
+        type,
+        otherGroup,
+      })
+    } else {
+      super()
+    }
   }
 
   @Field.d(1, 'string')

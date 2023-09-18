@@ -6,11 +6,15 @@ import { TransactionBody } from './TransactionBody'
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
 export class GradidoTransaction extends Message<GradidoTransaction> {
-  constructor(body: TransactionBody) {
-    super({
-      sigMap: new SignatureMap(),
-      bodyBytes: Buffer.from(TransactionBody.encode(body).finish()),
-    })
+  constructor(body?: TransactionBody) {
+    if (body) {
+      super({
+        sigMap: new SignatureMap(),
+        bodyBytes: Buffer.from(TransactionBody.encode(body).finish()),
+      })
+    } else {
+      super()
+    }
   }
 
   @Field.d(1, SignatureMap)

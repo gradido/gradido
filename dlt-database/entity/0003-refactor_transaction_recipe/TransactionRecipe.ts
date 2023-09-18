@@ -28,10 +28,10 @@ export class TransactionRecipe {
   // if transaction has a sender than it is also the sender account
   @ManyToOne(() => Account, (account) => account.transactionRecipesSigning)
   @JoinColumn({ name: 'signing_account_id' })
-  signingAccount: Account
+  signingAccount?: Account
 
-  @Column({ name: 'signing_account_id', type: 'int', unsigned: true })
-  signingAccountId: number
+  @Column({ name: 'signing_account_id', type: 'int', unsigned: true, nullable: true })
+  signingAccountId?: number
 
   @ManyToOne(() => Account, (account) => account.transactionRecipesRecipient)
   @JoinColumn({ name: 'recipient_account_id' })
@@ -75,7 +75,7 @@ export class TransactionRecipe {
   @Column({ type: 'binary', length: 64 })
   signature: Buffer
 
-  @Column({ name: 'protocol_version', type: 'string', default: '1' })
+  @Column({ name: 'protocol_version', type: 'varchar', length: 255, default: '1' })
   protocolVersion: string
 
   @OneToOne(() => ConfirmedTransaction, (transaction) => transaction.transactionRecipe)

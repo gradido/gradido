@@ -1,8 +1,9 @@
 import { User } from '@entity/User'
 import { KeyPair } from '../model/KeyPair'
 import { LogError } from '@/server/LogError'
-import { hardenDerivationIndex, uuid4ToBuffer } from '@/utils'
 import { KeyManager } from './KeyManager'
+import { uuid4ToBuffer } from '@/utils/typeConverter'
+import { hardenDerivationIndex } from '@/utils/derivationHelper'
 
 export const getKeyPair = (user: User): KeyPair => {
   if (!user.gradidoID) {

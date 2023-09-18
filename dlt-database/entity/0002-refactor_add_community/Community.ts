@@ -34,14 +34,14 @@ export class Community {
   @Column({ name: 'gmw_account_id', type: 'int', unsigned: true, nullable: true })
   gmwAccountId?: number
 
-  @OneToOne(() => Account)
+  @OneToOne(() => Account, { cascade: true })
   @JoinColumn({ name: 'gmw_account_id' })
   gmwAccount?: Account
 
   @Column({ name: 'auf_account_id', type: 'int', unsigned: true, nullable: true })
   aufAccountId?: number
 
-  @OneToOne(() => Account)
+  @OneToOne(() => Account, { cascade: true })
   @JoinColumn({ name: 'auf_account_id' })
   aufAccount?: Account
 

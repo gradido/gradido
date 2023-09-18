@@ -46,7 +46,7 @@ export class Account {
     type: 'decimal',
     precision: 40,
     scale: 20,
-    default: 0,
+    default: '0', // don't work
     transformer: DecimalTransformer,
   })
   balance: Decimal

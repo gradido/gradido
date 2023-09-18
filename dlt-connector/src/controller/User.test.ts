@@ -1,4 +1,5 @@
-import { hardenDerivationIndex, uuid4ToBuffer } from '@/utils'
+import { hardenDerivationIndex } from '@/utils/derivationHelper'
+import { uuid4ToBuffer } from '@/utils/typeConverter'
 
 describe('controller/user', () => {
   const userUUID = '03857ac1-9cc2-483e-8a91-e5b10f5b8d16'

@@ -4,12 +4,16 @@ import { Community } from '@entity/Community'
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
 export class CommunityRoot extends Message<CommunityRoot> {
-  public constructor(community: Community) {
-    super({
-      rootPubkey: community.rootPubkey,
-      gmwPubkey: community.gmwAccount?.derive2Pubkey,
-      aufPubkey: community.aufAccount?.derive2Pubkey,
-    })
+  public constructor(community?: Community) {
+    if (community) {
+      super({
+        rootPubkey: community.rootPubkey,
+        gmwPubkey: community.gmwAccount?.derive2Pubkey,
+        aufPubkey: community.aufAccount?.derive2Pubkey,
+      })
+    } else {
+      super()
+    }
   }
 
   @Field.d(1, 'bytes')

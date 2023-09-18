@@ -2,10 +2,11 @@ import { AddressType } from '@/proto/3_3/enum/AddressType'
 import { Account } from '@entity/Account'
 import { Community } from '@entity/Community'
 import { KeyManager } from './KeyManager'
-import { hardenDerivationIndex } from '@/utils'
 import { LogError } from '@/server/LogError'
 import { KeyPair } from '../model/KeyPair'
 import { getKeyPair as getUserKeyPair } from './User'
+import { hardenDerivationIndex } from '@/utils/derivationHelper'
+import Decimal from 'decimal.js-light'
 
 const GMW_ACCOUNT_DERIVATION_INDEX = 1
 const AUF_ACCOUNT_DERIVATION_INDEX = 2
@@ -24,6 +25,7 @@ export const createAccount = (
   account.derive2Pubkey = derive2Pubkey
   account.type = type.valueOf()
   account.createdAt = createdAt
+  account.balance = new Decimal(0)
   return account
 }
 

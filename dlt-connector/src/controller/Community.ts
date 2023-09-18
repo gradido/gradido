@@ -1,17 +1,12 @@
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import { uuid4ToBuffer } from '@/utils'
 import { Community } from '@entity/Community'
 import { getDataSource } from '@typeorm/DataSource'
-import { crypto_generichash as cryptoHash } from 'sodium-native'
 import { KeyManager } from './KeyManager'
 import { createCommunitySpecialAccounts } from './Account'
 import { KeyPair } from '@/model/KeyPair'
-
-export const iotaTopicFromCommunityUUID = (communityUUID: string): string => {
-  const hash = Buffer.alloc(32)
-  cryptoHash(hash, uuid4ToBuffer(communityUUID))
-  return hash.toString('hex')
-}
+import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
+import { CommunityArg } from '@/graphql/arg/CommunityArg'
+import { IsNull, Not } from 'typeorm'
 
 export const isExist = async (community: CommunityDraft | string): Promise<boolean> => {
   const iotaTopic =
@@ -32,6 +27,16 @@ export const create = (community: CommunityDraft, topic?: string): Community => 
     createCommunitySpecialAccounts(communityEntity)
   }
   return communityEntity
+}
+
+export const find = async ({ uuid, foreign, confirmed }: CommunityArg): Promise<Community[]> => {
+  return await getDataSource().manager.find(Community, {
+    where: {
+      ...(uuid && { iotaTopic: iotaTopicFromCommunityUUID(uuid) }),
+      ...(foreign && { foreign }),
+      ...(confirmed && { confirmedAt: Not(IsNull()) }),
+    },
+  })
 }
 
 export const getAllTopics = async (): Promise<string[]> => {

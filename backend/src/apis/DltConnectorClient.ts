@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { Community } from '@entity/Community'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { gql, GraphQLClient } from 'graphql-request'
 
@@ -10,6 +13,22 @@ const sendTransaction = gql`
   mutation ($input: TransactionInput!) {
     sendTransaction(data: $input) {
       dltTransactionIdHex
+    }
+  }
+`
+const isCommunityExist = gql`
+  query ($uuid: String) {
+    isCommunityExist(uuid: $uuid)
+  }
+`
+const addCommunity = gql`
+  mutation ($input: CommunityDraft!) {
+    addCommunity(data: $input) {
+      succeed
+      error {
+        name
+        message
+      }
     }
   }
 `
@@ -60,7 +79,10 @@ export class DltConnectorClient {
     if (!DltConnectorClient.instance.client) {
       try {
         DltConnectorClient.instance.client = new GraphQLClient(CONFIG.DLT_CONNECTOR_URL, {
-          method: 'GET',
+          headers: {
+            'content-type': 'application/json',
+          },
+          method: 'POST',
           jsonSerializer: {
             parse: JSON.parse,
             stringify: JSON.stringify,
@@ -86,7 +108,6 @@ export class DltConnectorClient {
     const typeString = getTransactionTypeString(transaction.typeId)
     const amountString = transaction.amount.toString()
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { data } = await this.client.rawRequest(sendTransaction, {
         input: {
           senderUser: {
@@ -102,10 +123,54 @@ export class DltConnectorClient {
           createdAt: transaction.balanceDate.toString(),
         },
       })
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return data.sendTransaction.dltTransactionIdHex
     } catch (e) {
       throw new LogError('Error send sending transaction to dlt-connector: ', e)
     }
   }
+
+  /**
+   * check if our home community was already added to dlt connector
+   * @return true if home community exist on dlt connector
+   */
+  public async checkHomeCommunity(): Promise<boolean> {
+    const { communityUuid } = await Community.findOneOrFail({ where: { foreign: false } })
+    const { data } = await this.client.rawRequest(isCommunityExist, {
+      uuid: communityUuid,
+    })
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return data.isCommunityExist
+  }
+
+  public async addCommunity({ communityUuid, foreign, createdAt }: Community): Promise<void> {
+    const { data } = await this.client.rawRequest(addCommunity, {
+      input: {
+        uuid: communityUuid,
+        foreign,
+        createdAt: createdAt.toString(),
+      },
+    })
+    if (data.error) {
+      const { message, name } = data.error
+      throw new LogError('error adding community with: %s, details: %s', name, message)
+    }
+  }
 }
+/*
+@InputType()
+export class CommunityDraft {
+  @Field(() => String)
+  @IsUUID('4')
+  uuid: string
+
+  @Field(() => Boolean)
+  @IsBoolean()
+  foreign: boolean
+
+  @Field(() => String)
+  @isValidDateString()
+  createdAt: string
+}
+
+*/

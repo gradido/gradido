@@ -1,5 +1,6 @@
-import { Timestamp } from './proto/3_3/Timestamp'
-import { hardenDerivationIndex, HARDENED_KEY_BITMASK, timestampToDate } from './utils'
+import { Timestamp } from '../proto/3_3/Timestamp'
+import { hardenDerivationIndex, HARDENED_KEY_BITMASK } from './derivationHelper'
+import { timestampToDate } from './typeConverter'
 
 describe('utils', () => {
   it('test bitmask for hardened keys', () => {
