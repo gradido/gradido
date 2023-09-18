@@ -10,9 +10,9 @@ import {
 import { Decimal } from 'decimal.js-light'
 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
-import { Account } from './Account'
-import { Community } from './Community'
-import { ConfirmedTransaction } from './ConfirmedTransaction'
+import { Account } from '../Account'
+import { Community } from '../Community'
+import { ConfirmedTransaction } from '../ConfirmedTransaction'
 
 @Entity('transaction_recipes')
 export class TransactionRecipe {
@@ -48,7 +48,7 @@ export class TransactionRecipe {
   @JoinColumn({ name: 'recipient_community_id' })
   recipientCommunity?: Community
 
-  @Column({ name: 'sender_community_id', type: 'int', unsigned: true, nullable: true })
+  @Column({ name: 'recipient_community_id', type: 'int', unsigned: true, nullable: true })
   recipientCommunityId?: number
 
   @Column({

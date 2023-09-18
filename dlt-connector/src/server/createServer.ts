@@ -6,7 +6,7 @@ import express, { Express } from 'express'
 
 // graphql
 import { schema } from '@/graphql/schema'
-import { DataSource } from '@/typeorm/DataSource'
+import { getDataSource } from '@/typeorm/DataSource'
 import { checkDBVersion } from '@/typeorm/DBVersion'
 
 import { logger as dltLogger } from './logger'
@@ -32,7 +32,7 @@ const createServer = async (
 
   // open mysql connection
   try {
-    await DataSource.initialize()
+    await getDataSource().initialize()
   } catch (error) {
     // try and catch for logging
     logger.fatal(`Couldn't open connection to database!`)
@@ -68,7 +68,7 @@ const createServer = async (
   )
   logger.debug('createServer...successful')
 
-  return { apollo, app, con: DataSource }
+  return { apollo, app, con: getDataSource() }
 }
 
 export default createServer

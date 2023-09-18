@@ -2,8 +2,8 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne
 import { Decimal } from 'decimal.js-light'
 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
-import { Account } from './Account'
-import { TransactionRecipe } from './TransactionRecipe'
+import { Account } from '../Account'
+import { TransactionRecipe } from '../TransactionRecipe'
 
 @Entity('confirmed_transactions')
 export class ConfirmedTransaction {

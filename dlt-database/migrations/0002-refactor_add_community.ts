@@ -3,13 +3,23 @@
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // write upgrade logic as parameter of queryFn
-  await queryFn(`ALTER TABLE \`communities\` MODIFY COLUMN \`root_privkey\` binary(64) NOT NULL;`)
   await queryFn(
-    `ALTER TABLE \`transaction_recipes\` ADD COLUMN \`backend_transaction_id\` bigint(20) unsigned DEFAULT NULL AFTER \`iota_message_id\`;`,
+    `ALTER TABLE \`communities\` MODIFY COLUMN \`root_privkey\` binary(64) NULL DEFAULT NULL;`,
+  )
+  await queryFn(
+    `ALTER TABLE \`communities\` MODIFY COLUMN \`root_pubkey\` binary(32) NULL DEFAULT NULL;`,
+  )
+  await queryFn(
+    `ALTER TABLE \`communities\` MODIFY COLUMN \`root_chaincode\` binary(32) NULL DEFAULT NULL;`,
   )
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  await queryFn(`ALTER TABLE \`communities\` MODIFY COLUMN \`root_privkey\` binary(32) NOT NULL;`)
-  await queryFn(`ALTER TABLE \`transaction_recipes\` DROP COLUMN \`backend_transaction_id\`;`)
+  await queryFn(
+    `ALTER TABLE \`communities\` MODIFY COLUMN \`root_privkey\` binary(32) DEFAULT NULL;`,
+  )
+  await queryFn(`ALTER TABLE \`communities\` MODIFY COLUMN \`root_pubkey\` binary(32) NOT NULL;`)
+  await queryFn(
+    `ALTER TABLE \`communities\` MODIFY COLUMN \`root_chaincode\` binary(32) DEFAULT NULL;`,
+  )
 }

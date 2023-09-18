@@ -3,8 +3,7 @@ import { Resolver, Query, Arg, Mutation } from 'type-graphql'
 import { CommunityDraft } from '@input/CommunityDraft'
 
 import { createCommunity as createCommunityTransactionBody } from '@controller/TransactionBody'
-import { create as createGradidoTransaction } from '@controller/GradidoTransaction'
-import { DataSource } from '@typeorm/DataSource'
+import { getDataSource } from '@typeorm/DataSource'
 
 import { sendMessage as iotaSendMessage } from '@/client/IotaClient'
 import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
@@ -17,6 +16,7 @@ import {
 } from '@/controller/Community'
 import { TransactionErrorType } from '../enum/TransactionErrorType'
 import { logger } from '@test/testSetup'
+import { KeyManager } from '@/controller/KeyManager'
 
 @Resolver()
 export class CommunityResolver {
@@ -46,23 +46,26 @@ export class CommunityResolver {
       }
       const community = createCommunity(communityDraft, topic)
 
+      let result: TransactionResult
       // create only a CommunityRoot Start Transaction for own community
       if (!communityDraft.foreign) {
-        const transaction = createGradidoTransaction(
+        const transaction = new GradidoTransaction(
           createCommunityTransactionBody(communityDraft, community),
         )
+        KeyManager.getInstance().sign(transaction)
       }
 
-      const queryRunner = DataSource.createQueryRunner()
+      const queryRunner = getDataSource().createQueryRunner()
       await queryRunner.connect()
       await queryRunner.startTransaction()
-      let result: TransactionResult
+
       try {
         await queryRunner.manager.save(community)
         await queryRunner.commitTransaction()
         result = new TransactionResult()
       } catch (err) {
         logger.error('error saving new community into db: %s', err)
+        console.log('error saving into db: %s', err)
         result = new TransactionResult(
           new TransactionError(TransactionErrorType.DB_ERROR, 'error saving community into db'),
         )

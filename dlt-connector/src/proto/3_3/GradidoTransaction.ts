@@ -1,10 +1,18 @@
 import { Field, Message } from '@apollo/protobufjs'
 
 import { SignatureMap } from './SignatureMap'
+import { TransactionBody } from './TransactionBody'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
 export class GradidoTransaction extends Message<GradidoTransaction> {
+  constructor(body: TransactionBody) {
+    super({
+      sigMap: new SignatureMap(),
+      bodyBytes: Buffer.from(TransactionBody.encode(body).finish()),
+    })
+  }
+
   @Field.d(1, SignatureMap)
   public sigMap: SignatureMap
 
@@ -17,5 +25,5 @@ export class GradidoTransaction extends Message<GradidoTransaction> {
   // if it is a cross group transaction the parent message
   // id from outbound transaction or other by cross
   @Field.d(3, 'bytes')
-  public parentMessageId: Buffer
+  public parentMessageId?: Buffer
 }

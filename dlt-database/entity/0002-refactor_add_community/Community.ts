@@ -6,11 +6,10 @@ import {
   JoinColumn,
   OneToOne,
   OneToMany,
-  ManyToMany,
-  JoinTable,
 } from 'typeorm'
 import { Account } from '../Account'
 import { TransactionRecipe } from '../TransactionRecipe'
+import { AccountCommunity } from '../AccountCommunity'
 
 @Entity('communities')
 export class Community {
@@ -20,8 +19,8 @@ export class Community {
   @Column({ name: 'iota_topic', collation: 'utf8mb4_unicode_ci' })
   iotaTopic: string
 
-  @Column({ name: 'root_pubkey', type: 'binary', length: 32, unique: true })
-  rootPubkey: Buffer
+  @Column({ name: 'root_pubkey', type: 'binary', length: 32, unique: true, nullable: true })
+  rootPubkey?: Buffer
 
   @Column({ name: 'root_privkey', type: 'binary', length: 64, nullable: true })
   rootPrivkey?: Buffer
@@ -52,13 +51,9 @@ export class Community {
   @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })
   confirmedAt?: Date
 
-  @ManyToMany(() => Account, (account) => account.accountCommunities)
-  @JoinTable({
-    name: 'accounts_communities',
-    joinColumn: { name: 'community_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'account_id', referencedColumnName: 'id' },
-  })
-  communityAccounts: Account[]
+  @OneToMany(() => AccountCommunity, (accountCommunity) => accountCommunity.community)
+  @JoinColumn({ name: 'community_id' })
+  accountCommunities: AccountCommunity[]
 
   @OneToMany(() => TransactionRecipe, (recipe) => recipe.senderCommunity)
   transactionRecipesSender?: TransactionRecipe[]

@@ -4,7 +4,7 @@ dotenv.config()
 
 const constants = {
   LOG4JS_CONFIG: 'log4js-config.json',
-  DB_VERSION: '0001-init_db',
+  DB_VERSION: '0002-refactor_add_community',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {

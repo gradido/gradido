@@ -15,8 +15,8 @@ export class KeyPair {
       this.chainCode = input.subarray(64, 96)
       this.publicKey = toPublic(input).subarray(0, 32)
     } else if (input instanceof Community) {
-      if (!input.rootPrivkey || !input.rootChaincode) {
-        throw new LogError('missing private key or chaincode in commmunity entity')
+      if (!input.rootPrivkey || !input.rootChaincode || !input.rootPubkey) {
+        throw new LogError('missing private key or chaincode or public key in commmunity entity')
       }
       this.privateKey = input.rootPrivkey
       this.publicKey = input.rootPubkey

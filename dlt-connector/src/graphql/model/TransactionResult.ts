@@ -5,8 +5,10 @@ import { TransactionRecipe } from './TransactionRecipe'
 @ObjectType()
 export class TransactionResult {
   constructor(content?: TransactionError | TransactionRecipe) {
+    this.succeed = true
     if (content instanceof TransactionError) {
       this.error = content
+      this.succeed = false
     } else if (content instanceof TransactionRecipe) {
       this.recipe = content
     }

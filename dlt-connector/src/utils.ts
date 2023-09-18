@@ -1,3 +1,5 @@
+import { Timestamp } from "./proto/3_3/Timestamp"
+
 export const uuid4ToBuffer = (uuid: string): Buffer => {
   // Remove dashes from the UUIDv4 string
   const cleanedUUID = uuid.replace(/-/g, '')
@@ -24,4 +26,16 @@ export const hardenDerivationIndex = (derivationIndex: number): number => {
   Source: ChatGPT
   */
   return (derivationIndex | HARDENED_KEY_BITMASK) >>> 0
+}
+
+/*
+// Calculate seconds and nanoseconds from milliseconds
+      seconds = Math.floor(input / 1000)
+      nanoSeconds = (input % 1000) * 1000000
+*/
+
+export const timestampToDate = (timestamp: Timestamp): Date => {
+  let milliseconds = timestamp.nanoSeconds / 1000000
+  milliseconds += timestamp.seconds * 1000
+  return new Date(milliseconds)
 }

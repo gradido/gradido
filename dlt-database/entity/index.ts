@@ -8,8 +8,8 @@ import { TransactionRecipe } from './TransactionRecipe'
 import { User } from './User'
 
 export const entities = [
-  Account,
   AccountCommunity,
+  Account,
   Community,
   ConfirmedTransaction,
   InvalidTransaction,

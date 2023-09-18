@@ -9,6 +9,8 @@ import { Community } from '@entity/Community'
 import { loadHomeCommunityKeyPair } from './Community'
 import { LogError } from '@/server/LogError'
 import { KeyPair } from '../model/KeyPair'
+import { sign as signGradidoTransaction } from './GradidoTransaction'
+import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts
@@ -64,6 +66,22 @@ export class KeyManager {
     community.rootPrivkey = privateKey
     community.rootChaincode = chainCode
     this.homeCommunityRootKeys = new KeyPair(community)
+  }
+
+  public sign(transaction: GradidoTransaction, keys?: KeyPair[]) {
+    let localKeys: KeyPair[] = []
+
+    if (!keys && this.homeCommunityRootKeys) {
+      localKeys.push(this.homeCommunityRootKeys)
+    } else if (keys) {
+      localKeys = keys
+    }
+    if (!localKeys.length) {
+      throw new LogError('no key pair for signing')
+    }
+    localKeys.forEach((keyPair: KeyPair) => {
+      signGradidoTransaction(transaction, keyPair)
+    })
   }
 
   public derive(path: number[], parentKeys?: KeyPair): KeyPair {

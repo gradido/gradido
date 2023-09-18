@@ -1,7 +1,7 @@
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { uuid4ToBuffer } from '@/utils'
 import { Community } from '@entity/Community'
-import { DataSource } from '@typeorm/DataSource'
+import { getDataSource } from '@typeorm/DataSource'
 import { crypto_generichash as cryptoHash } from 'sodium-native'
 import { KeyManager } from './KeyManager'
 import { createCommunitySpecialAccounts } from './Account'
@@ -16,7 +16,7 @@ export const iotaTopicFromCommunityUUID = (communityUUID: string): string => {
 export const isExist = async (community: CommunityDraft | string): Promise<boolean> => {
   const iotaTopic =
     community instanceof CommunityDraft ? iotaTopicFromCommunityUUID(community.uuid) : community
-  const result = await DataSource.manager.find(Community, {
+  const result = await getDataSource().manager.find(Community, {
     where: { iotaTopic },
   })
   return result.length > 0
@@ -35,12 +35,12 @@ export const create = (community: CommunityDraft, topic?: string): Community => 
 }
 
 export const getAllTopics = async (): Promise<string[]> => {
-  const communities = await DataSource.manager.find(Community, { select: { iotaTopic: true } })
+  const communities = await getDataSource().manager.find(Community, { select: { iotaTopic: true } })
   return communities.map((community) => community.iotaTopic)
 }
 
 export const loadHomeCommunityKeyPair = async (): Promise<KeyPair> => {
-  const community = await DataSource.manager.findOneOrFail(Community, {
+  const community = await getDataSource().manager.findOneOrFail(Community, {
     where: { foreign: false },
     select: { rootChaincode: true, rootPubkey: true, rootPrivkey: true },
   })

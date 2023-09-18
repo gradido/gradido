@@ -11,7 +11,7 @@ import { Decimal } from 'decimal.js-light'
 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Account } from '../Account'
-import { Community } from './Community'
+import { Community } from '../Community'
 import { ConfirmedTransaction } from '../ConfirmedTransaction'
 
 @Entity('transaction_recipes')
@@ -51,7 +51,7 @@ export class TransactionRecipe {
   @JoinColumn({ name: 'recipient_community_id' })
   recipientCommunity?: Community
 
-  @Column({ name: 'sender_community_id', type: 'int', unsigned: true, nullable: true })
+  @Column({ name: 'recipient_community_id', type: 'int', unsigned: true, nullable: true })
   recipientCommunityId?: number
 
   @Column({
@@ -75,8 +75,8 @@ export class TransactionRecipe {
   @Column({ type: 'binary', length: 64 })
   signature: Buffer
 
-  @Column({ name: 'protocol_version', type: 'int', default: 1 })
-  protocolVersion: number
+  @Column({ name: 'protocol_version', type: 'string', default: '1' })
+  protocolVersion: string
 
   @OneToOne(() => ConfirmedTransaction, (transaction) => transaction.transactionRecipe)
   confirmedTransaction?: ConfirmedTransaction

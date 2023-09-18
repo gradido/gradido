@@ -12,6 +12,7 @@ import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { determineCrossGroupType, determineOtherGroup } from '@/controller/TransactionBody'
 import { CommunityRoot } from './CommunityRoot'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
+import { TransactionType } from '@/graphql/enum/TransactionType'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
@@ -75,4 +76,13 @@ export class TransactionBody extends Message<TransactionBody> {
 
   @Field.d(11, 'CommunityRoot')
   communityRoot?: CommunityRoot
+
+  public getTransactionType(): TransactionType | undefined {
+    if (this.transfer) return TransactionType.GRADIDO_TRANSFER
+    else if (this.creation) return TransactionType.GRADIDO_CREATION
+    else if (this.groupFriendsUpdate) return TransactionType.GROUP_FRIENDS_UPDATE
+    else if (this.registerAddress) return TransactionType.REGISTER_ADDRESS
+    else if (this.deferredTransfer) return TransactionType.GRADIDO_DEFERRED_TRANSFER
+    else if (this.communityRoot) return TransactionType.COMMUNITY_ROOT
+  }
 }

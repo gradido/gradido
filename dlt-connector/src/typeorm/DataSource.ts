@@ -5,7 +5,7 @@ import { entities } from '@entity/index'
 
 import { CONFIG } from '@/config'
 
-export const DataSource = new DBDataSource({
+const DataSource = new DBDataSource({
   type: 'mysql',
   host: CONFIG.DB_HOST,
   port: CONFIG.DB_PORT,
@@ -22,3 +22,5 @@ export const DataSource = new DBDataSource({
     charset: 'utf8mb4_unicode_ci',
   },
 })
+
+export const getDataSource = () => DataSource

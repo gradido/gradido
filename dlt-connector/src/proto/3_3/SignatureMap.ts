@@ -6,5 +6,5 @@ import { SignaturePair } from './SignaturePair'
 // eslint-disable-next-line no-use-before-define
 export class SignatureMap extends Message<SignatureMap> {
   @Field.d(1, SignaturePair, 'repeated')
-  public sigPair: SignaturePair
+  public sigPair: SignaturePair[]
 }
