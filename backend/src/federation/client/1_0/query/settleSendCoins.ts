@@ -1,6 +1,6 @@
 import { gql } from 'graphql-request'
 
-export const voteForSendCoins = gql`
+export const settleSendCoins = gql`
   mutation (
     $recipientCommunityUuid: String!
     $recipientUserIdentifier: String!
@@ -11,7 +11,7 @@ export const voteForSendCoins = gql`
     $senderUserUuid: String!
     $senderUserName: String!
   ) {
-    voteForSendCoins(
+    settleSendCoins(
       recipientCommunityUuid: $recipientCommunityUuid
       recipientUserIdentifier: $recipientUserIdentifier
       creationDate: $creationDate

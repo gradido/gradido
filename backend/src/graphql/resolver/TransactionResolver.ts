@@ -3,6 +3,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { getConnection, In, IsNull } from '@dbTools/typeorm'
+import { Community as dbCommunity } from '@entity/Community'
+import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as dbUser } from '@entity/User'
@@ -12,6 +14,7 @@ import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { Paginated } from '@arg/Paginated'
 import { TransactionSendArgs } from '@arg/TransactionSendArgs'
 import { Order } from '@enum/Order'
+import { PendingTransactionState } from '@enum/PendingTransactionState'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
@@ -46,12 +49,29 @@ export const executeTransaction = async (
   memo: string,
   sender: dbUser,
   recipient: dbUser,
+  homeCom: dbCommunity,
   transactionLink?: dbTransactionLink | null,
 ): Promise<boolean> => {
   // acquire lock
   const releaseLock = await TRANSACTIONS_LOCK.acquire()
   try {
-    logger.info('executeTransaction', amount, memo, sender, recipient)
+    logger.info('executeTransaction', amount, memo, homeCom, sender, recipient)
+
+    const openSenderPendingTx = await DbPendingTransaction.count({
+      where: [
+        { userGradidoID: sender.gradidoID, state: PendingTransactionState.NEW },
+        { linkedUserGradidoID: sender.gradidoID, state: PendingTransactionState.NEW },
+      ],
+    })
+    const openReceiverPendingTx = await DbPendingTransaction.count({
+      where: [
+        { userGradidoID: recipient.gradidoID, state: PendingTransactionState.NEW },
+        { linkedUserGradidoID: recipient.gradidoID, state: PendingTransactionState.NEW },
+      ],
+    })
+    if (openSenderPendingTx > 0 || openReceiverPendingTx > 0) {
+      throw new LogError('There are still pending Transactions for Sender and/or Recipient')
+    }
 
     if (sender.id === recipient.id) {
       throw new LogError('Sender and Recipient are the same', sender.id)
@@ -80,9 +100,15 @@ export const executeTransaction = async (
       transactionSend.typeId = TransactionTypeId.SEND
       transactionSend.memo = memo
       transactionSend.userId = sender.id
+      if (homeCom.communityUuid) {
+        transactionSend.userCommunityUuid = homeCom.communityUuid
+      }
       transactionSend.userGradidoID = sender.gradidoID
       transactionSend.userName = fullName(sender.firstName, sender.lastName)
       transactionSend.linkedUserId = recipient.id
+      if (homeCom.communityUuid) {
+        transactionSend.linkedUserCommunityUuid = homeCom.communityUuid
+      }
       transactionSend.linkedUserGradidoID = recipient.gradidoID
       transactionSend.linkedUserName = fullName(recipient.firstName, recipient.lastName)
       transactionSend.amount = amount.mul(-1)
@@ -100,9 +126,15 @@ export const executeTransaction = async (
       transactionReceive.typeId = TransactionTypeId.RECEIVE
       transactionReceive.memo = memo
       transactionReceive.userId = recipient.id
+      if (homeCom.communityUuid) {
+        transactionReceive.userCommunityUuid = homeCom.communityUuid
+      }
       transactionReceive.userGradidoID = recipient.gradidoID
       transactionReceive.userName = fullName(recipient.firstName, recipient.lastName)
       transactionReceive.linkedUserId = sender.id
+      if (homeCom.communityUuid) {
+        transactionReceive.linkedUserCommunityUuid = homeCom.communityUuid
+      }
       transactionReceive.linkedUserGradidoID = sender.gradidoID
       transactionReceive.linkedUserName = fullName(sender.firstName, sender.lastName)
       transactionReceive.amount = amount
@@ -487,9 +519,10 @@ export class TransactionResolver {
     { recipientCommunityIdentifier, recipientIdentifier, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.debug(
-      `sendCoins(recipientCommunityIdentifier=${recipientCommunityIdentifier}, identifier=${recipientIdentifier}, amount=${amount}, memo=${memo})`,
+    logger.info(
+      `sendCoins(recipientCommunityIdentifier=${recipientCommunityIdentifier}, recipientIdentifier=${recipientIdentifier}, amount=${amount}, memo=${memo})`,
     )
+    const homeCom = await dbCommunity.findOneOrFail({ where: { foreign: false } })
 
     const senderUser = getUser(context)
 
@@ -501,7 +534,7 @@ export class TransactionResolver {
         throw new LogError('The recipient user was not found', recipientUser)
       }
 
-      await executeTransaction(amount, memo, senderUser, recipientUser)
+      await executeTransaction(amount, memo, senderUser, recipientUser, homeCom)
       logger.info('successful executeTransaction', amount, memo, senderUser, recipientUser)
     } else {
       // processing a x-community sendCoins

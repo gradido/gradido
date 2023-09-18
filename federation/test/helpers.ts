@@ -4,11 +4,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-
 import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
 
-import createServer from '@/server/createServer'
+import { createServer } from '@/server/createServer'
 
 import { logger } from './testSetup'
 

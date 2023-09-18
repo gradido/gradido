@@ -6,6 +6,8 @@ import { backendLogger as logger } from '@/server/logger'
 
 import { SendCoinsArgs } from './model/SendCoinsArgs'
 import { revertSendCoins } from './query/revertSendCoins'
+import { revertSettledSendCoins } from './query/revertSettledSendCoins'
+import { settleSendCoins } from './query/settleSendCoins'
 import { voteForSendCoins } from './query/voteForSendCoins'
 
 // eslint-disable-next-line camelcase
@@ -72,22 +74,40 @@ export class SendCoinsClient {
     }
   }
 
-  /*
-  commitSendCoins = async (args: SendCoinsArgs): Promise<boolean> => {
-    logger.debug(`X-Com: commitSendCoins against endpoint='${this.endpoint}'...`)
+  settleSendCoins = async (args: SendCoinsArgs): Promise<boolean> => {
+    logger.debug(`X-Com: settleSendCoins against endpoint='${this.endpoint}'...`)
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const { data } = await this.client.rawRequest(commitSendCoins, { args })
+      const { data } = await this.client.rawRequest(settleSendCoins, { args })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!data?.commitSendCoins?.acknowledged) {
-        logger.warn('X-Com: commitSendCoins without response data from endpoint', this.endpoint)
+      if (!data?.settleSendCoins?.acknowledged) {
+        logger.warn('X-Com: settleSendCoins without response data from endpoint', this.endpoint)
         return false
       }
-      logger.debug(`X-Com: commitSendCoins successful from endpoint=${this.endpoint}`)
+      logger.debug(`X-Com: settleSendCoins successful from endpoint=${this.endpoint}`)
       return true
     } catch (err) {
-      throw new LogError(`X-Com: commitSendCoins failed for endpoint=${this.endpoint}`, err)
+      throw new LogError(`X-Com: settleSendCoins failed for endpoint=${this.endpoint}`, err)
     }
   }
-  */
+
+  revertSettledSendCoins = async (args: SendCoinsArgs): Promise<boolean> => {
+    logger.debug(`X-Com: revertSettledSendCoins against endpoint='${this.endpoint}'...`)
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const { data } = await this.client.rawRequest(revertSettledSendCoins, { args })
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (!data?.revertSettledSendCoins?.acknowledged) {
+        logger.warn(
+          'X-Com: revertSettledSendCoins without response data from endpoint',
+          this.endpoint,
+        )
+        return false
+      }
+      logger.debug(`X-Com: revertSettledSendCoins successful from endpoint=${this.endpoint}`)
+      return true
+    } catch (err) {
+      throw new LogError(`X-Com: revertSettledSendCoins failed for endpoint=${this.endpoint}`, err)
+    }
+  }
 }

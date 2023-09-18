@@ -2,10 +2,9 @@ import { registerEnumType } from 'type-graphql'
 
 export enum PendingTransactionState {
   NEW = 1,
-  WAIT_ON_PENDING = 2,
-  PENDING = 3,
-  WAIT_ON_CONFIRM = 4,
-  CONFIRMED = 5,
+  PENDING = 2,
+  SETTLED = 3,
+  REVERTED = 4,
 }
 
 registerEnumType(PendingTransactionState, {
