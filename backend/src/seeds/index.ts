@@ -12,6 +12,7 @@ import { CONFIG } from '@/config'
 import { createServer } from '@/server/createServer'
 import { backendLogger as logger } from '@/server/logger'
 
+import { writeHomeCommunityEntry } from './community'
 import { contributionLinks } from './contributionLink/index'
 import { creations } from './creation/index'
 import { contributionLinkFactory } from './factory/contributionLink'
@@ -56,6 +57,9 @@ const run = async () => {
   const { con } = server
   await cleanDB()
   logger.info('##seed## clean database successful...')
+
+  // seed home community
+  await writeHomeCommunityEntry()
 
   // seed the standard users
   for (const user of users) {
