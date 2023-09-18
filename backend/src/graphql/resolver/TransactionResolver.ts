@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { getConnection, In, IsNull } from '@dbTools/typeorm'
+import { Community as dbCommunity } from '@entity/Community'
 import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
@@ -46,12 +47,13 @@ export const executeTransaction = async (
   memo: string,
   sender: dbUser,
   recipient: dbUser,
+  homeCom: dbCommunity,
   transactionLink?: dbTransactionLink | null,
 ): Promise<boolean> => {
   // acquire lock
   const releaseLock = await TRANSACTIONS_LOCK.acquire()
   try {
-    logger.info('executeTransaction', amount, memo, sender, recipient)
+    logger.info('executeTransaction', amount, memo, homeCom, sender, recipient)
 
     const openSenderPendingTx = await DbPendingTransaction.count({
       where: [
@@ -96,9 +98,15 @@ export const executeTransaction = async (
       transactionSend.typeId = TransactionTypeId.SEND
       transactionSend.memo = memo
       transactionSend.userId = sender.id
+      if (homeCom.communityUuid) {
+        transactionSend.userCommunityUuid = homeCom.communityUuid
+      }
       transactionSend.userGradidoID = sender.gradidoID
       transactionSend.userName = fullName(sender.firstName, sender.lastName)
       transactionSend.linkedUserId = recipient.id
+      if (homeCom.communityUuid) {
+        transactionSend.linkedUserCommunityUuid = homeCom.communityUuid
+      }
       transactionSend.linkedUserGradidoID = recipient.gradidoID
       transactionSend.linkedUserName = fullName(recipient.firstName, recipient.lastName)
       transactionSend.amount = amount.mul(-1)
@@ -116,9 +124,15 @@ export const executeTransaction = async (
       transactionReceive.typeId = TransactionTypeId.RECEIVE
       transactionReceive.memo = memo
       transactionReceive.userId = recipient.id
+      if (homeCom.communityUuid) {
+        transactionReceive.userCommunityUuid = homeCom.communityUuid
+      }
       transactionReceive.userGradidoID = recipient.gradidoID
       transactionReceive.userName = fullName(recipient.firstName, recipient.lastName)
       transactionReceive.linkedUserId = sender.id
+      if (homeCom.communityUuid) {
+        transactionReceive.linkedUserCommunityUuid = homeCom.communityUuid
+      }
       transactionReceive.linkedUserGradidoID = sender.gradidoID
       transactionReceive.linkedUserName = fullName(sender.firstName, sender.lastName)
       transactionReceive.amount = amount
@@ -348,12 +362,13 @@ export class TransactionResolver {
   @Mutation(() => Boolean)
   async sendCoins(
     @Args()
-    { /* recipientCommunityIdentifier, */ recipientIdentifier, amount, memo }: TransactionSendArgs,
+    { recipientCommunityIdentifier, recipientIdentifier, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
     logger.info(
-      `sendCoins(recipientIdentifier=${recipientIdentifier}, amount=${amount}, memo=${memo})`,
+      `sendCoins(recipientCommunityIdentifier=${recipientCommunityIdentifier}, recipientIdentifier=${recipientIdentifier}, amount=${amount}, memo=${memo})`,
     )
+    const homeCom = await dbCommunity.findOneOrFail({ where: { foreign: false } })
 
     const senderUser = getUser(context)
 
@@ -363,7 +378,7 @@ export class TransactionResolver {
       throw new LogError('The recipient user was not found', recipientUser)
     }
 
-    await executeTransaction(amount, memo, senderUser, recipientUser)
+    await executeTransaction(amount, memo, senderUser, recipientUser, homeCom)
     logger.info('successful executeTransaction', amount, memo, senderUser, recipientUser)
     return true
   }
