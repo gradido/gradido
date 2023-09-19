@@ -22,9 +22,9 @@ export class AccountCommunity {
   @Column({ name: 'community_id', type: 'int', unsigned: true })
   communityId: number
 
-  @Column({ name: 'valid_from', type: 'datetime', precision: 3 })
+  @Column({ name: 'valid_from', type: 'datetime' })
   validFrom: Date
 
-  @Column({ name: 'valid_to', type: 'datetime', precision: 3, nullable: true })
+  @Column({ name: 'valid_to', type: 'datetime', nullable: true })
   validTo?: Date
 }

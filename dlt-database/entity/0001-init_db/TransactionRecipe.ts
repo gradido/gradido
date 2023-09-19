@@ -55,7 +55,7 @@ export class TransactionRecipe {
   @Column({ type: 'tinyint' })
   type: number
 
-  @Column({ name: 'created_at', type: 'datetime' })
+  @Column({ name: 'created_at', type: 'datetime', precision: 3 })
   createdAt: Date
 
   @Column({ name: 'body_bytes', type: 'blob' })

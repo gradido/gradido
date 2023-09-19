@@ -44,6 +44,6 @@ export class ConfirmedTransaction {
   @Column({ name: 'iota_milestone', type: 'bigint' })
   iotaMilestone: number
 
-  @Column({ name: 'confirmed_at', type: 'datetime', precision: 3 })
+  @Column({ name: 'confirmed_at', type: 'datetime' })
   confirmedAt: Date
 }

@@ -8,6 +8,7 @@ import {
 } from './Community'
 import { TestDB } from '@test/TestDB'
 import { getDataSource } from '@/typeorm/DataSource'
+import { Community } from '@entity/Community'
 
 jest.mock('@typeorm/DataSource', () => ({
   getDataSource: () => TestDB.instance.dbConnect,
@@ -55,8 +56,15 @@ describe('controller/Community', () => {
       const communityDraft = new CommunityDraft()
       communityDraft.foreign = false
       communityDraft.createdAt = '2022-05-01T17:00:12.128Z'
-      communityDraft.uuid = '3d813cab-47fb-32ba-91df-831e1593ac29'
-      expect(await isExist(communityDraft)).toBe(false)
+      communityDraft.uuid = '3d813cbb-47fb-32ba-91df-831e1593ac29'
+      expect(await isExist(communityDraft)).toBe(true)
+    })
+
+    it('createdAt with ms precision', async () => {
+      const list = await getDataSource().manager.findOne(Community, { where: { foreign: false } })
+      expect(list).toMatchObject({
+        createdAt: new Date('2022-05-01T17:00:12.128Z'),
+      })
     })
   })
 })
