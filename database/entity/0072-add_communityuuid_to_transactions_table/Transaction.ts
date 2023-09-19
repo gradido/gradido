@@ -81,10 +81,10 @@ export class Transaction extends BaseEntity {
     name: 'user_community_uuid',
     type: 'varchar',
     length: 36,
-    nullable: false,
+    nullable: true,
     collation: 'utf8mb4_unicode_ci',
   })
-  userCommunityUuid: string
+  userCommunityUuid: string | null
 
   @Column({
     name: 'user_gradido_id',

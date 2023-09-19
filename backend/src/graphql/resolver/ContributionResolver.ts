@@ -1,5 +1,4 @@
 import { IsNull, getConnection } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage } from '@entity/ContributionMessage'
 import { Transaction as DbTransaction } from '@entity/Transaction'
@@ -448,7 +447,6 @@ export class ContributionResolver {
       if (user.deletedAt) {
         throw new LogError('Can not confirm contribution since the user was deleted')
       }
-      const homeCom = await DbCommunity.findOneOrFail({ where: { foreign: false } })
       const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
       validateContribution(
         creations,
@@ -482,9 +480,6 @@ export class ContributionResolver {
         transaction.typeId = TransactionTypeId.CREATION
         transaction.memo = contribution.memo
         transaction.userId = contribution.userId
-        if (homeCom.communityUuid) {
-          transaction.userCommunityUuid = homeCom.communityUuid
-        }
         transaction.userGradidoID = user.gradidoID
         transaction.userName = fullName(user.firstName, user.lastName)
         transaction.previous = lastTransaction ? lastTransaction.id : null
