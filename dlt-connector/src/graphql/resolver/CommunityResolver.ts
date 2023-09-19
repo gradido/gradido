@@ -16,17 +16,6 @@ import { logger } from '@/server/logger'
 
 @Resolver()
 export class CommunityResolver {
-  // Why a dummy function?
-  // to prevent this error by start:
-  //   GeneratingSchemaError: Some errors occurred while generating GraphQL schema:
-  //     Type Query must define one or more fields.
-  // it seems that at least one query must be defined
-  // https://github.com/ardatan/graphql-tools/issues/764
-  @Query(() => String)
-  version(): string {
-    return '0.1'
-  }
-
   @Mutation(() => TransactionResult)
   async addCommunity(
     @Arg('data')
