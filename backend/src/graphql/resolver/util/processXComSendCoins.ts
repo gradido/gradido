@@ -6,6 +6,7 @@ import { Decimal } from 'decimal.js-light'
 
 import { CONFIG } from '@/config'
 import { SendCoinsArgs } from '@/federation/client/1_0/model/SendCoinsArgs'
+import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 // eslint-disable-next-line camelcase
 import { SendCoinsClient as V1_0_SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
 import { SendCoinsClientFactory } from '@/federation/client/SendCoinsClientFactory'
@@ -21,11 +22,13 @@ import { settlePendingSenderTransaction } from './settlePendingSenderTransaction
 export async function processXComPendingSendCoins(
   receiverCom: DbCommunity,
   senderCom: DbCommunity,
+  creationDate: Date,
   amount: Decimal,
   memo: string,
   sender: dbUser,
   recipientIdentifier: string,
-): Promise<boolean> {
+): Promise<SendCoinsResult> {
+  let sendCoinsResult = new SendCoinsResult()
   try {
     logger.debug(
       `XCom: processXComPendingSendCoins...`,
@@ -36,7 +39,6 @@ export async function processXComPendingSendCoins(
       sender,
       recipientIdentifier,
     )
-    const creationDate = new Date()
     // first calculate the sender balance and check if the transaction is allowed
     const senderBalance = await calculateSenderBalance(sender.id, amount.mul(-1), creationDate)
     if (!senderBalance) {
@@ -67,7 +69,7 @@ export async function processXComPendingSendCoins(
       args.senderUserUuid = sender.gradidoID
       args.senderUserName = fullName(sender.firstName, sender.lastName)
       logger.debug(`X-Com: ready for voteForSendCoins with args=`, args)
-      const sendCoinsResult = await client.voteForSendCoins(args)
+      sendCoinsResult = await client.voteForSendCoins(args)
       logger.debug(`X-Com: returnd from voteForSendCoins:`, sendCoinsResult)
       if (sendCoinsResult.vote) {
         // writing the pending transaction on receiver-side was successfull, so now write the sender side
@@ -81,8 +83,12 @@ export async function processXComPendingSendCoins(
           if (receiverCom.communityUuid) {
             pendingTx.linkedUserCommunityUuid = receiverCom.communityUuid
           }
-          pendingTx.linkedUserGradidoID = sendCoinsResult.recipGradidoID
-          pendingTx.linkedUserName = sendCoinsResult.recipName
+          if (sendCoinsResult.recipGradidoID) {
+            pendingTx.linkedUserGradidoID = sendCoinsResult.recipGradidoID
+          }
+          if (sendCoinsResult.recipName) {
+            pendingTx.linkedUserName = sendCoinsResult.recipName
+          }
           pendingTx.memo = memo
           pendingTx.previous = senderBalance ? senderBalance.lastTransactionId : null
           pendingTx.state = PendingTransactionState.NEW
@@ -117,23 +123,22 @@ export async function processXComPendingSendCoins(
   } catch (err) {
     logger.error(`Error:`, err)
   }
-  return true
+  return sendCoinsResult
 }
 
 export async function processXComCommittingSendCoins(
-  receiverFCom: DbFederatedCommunity,
   receiverCom: DbCommunity,
   senderCom: DbCommunity,
   creationDate: Date,
   amount: Decimal,
   memo: string,
   sender: dbUser,
-  recipient: dbUser,
-): Promise<boolean> {
+  recipUuid: string,
+): Promise<SendCoinsResult> {
+  let sendCoinsResult = new SendCoinsResult()
   try {
     logger.debug(
       `XCom: processXComCommittingSendCoins...`,
-      receiverFCom,
       receiverCom,
       senderCom,
       creationDate,
@@ -150,7 +155,7 @@ export async function processXComCommittingSendCoins(
       linkedUserCommunityUuid: receiverCom.communityUuid
         ? receiverCom.communityUuid
         : CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID,
-      linkedUserGradidoID: recipient.gradidoID,
+      linkedUserGradidoID: recipUuid,
       typeId: TransactionTypeId.SEND,
       state: PendingTransactionState.NEW,
       balanceDate: creationDate,
@@ -158,6 +163,12 @@ export async function processXComCommittingSendCoins(
     })
     if (pendingTx) {
       logger.debug(`X-Com: find pending Tx for settlement:`, pendingTx)
+      const receiverFCom = await DbFederatedCommunity.findOneOrFail({
+        where: {
+          publicKey: receiverCom.publicKey,
+          apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
+        },
+      })
       const client = SendCoinsClientFactory.getInstance(receiverFCom)
       // eslint-disable-next-line camelcase
       if (client instanceof V1_0_SendCoinsClient) {

@@ -1,7 +1,6 @@
 import { randomBytes } from 'crypto'
 
 import { getConnection } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { Transaction as DbTransaction } from '@entity/Transaction'
@@ -166,7 +165,7 @@ export class TransactionLinkResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const homeCom = await DbCommunity.findOneOrFail({ where: { foreign: false } })
+    // const homeCom = await DbCommunity.findOneOrFail({ where: { foreign: false } })
     const user = getUser(context)
 
     if (code.match(/^CL-/)) {
@@ -273,9 +272,11 @@ export class TransactionLinkResolver {
           transaction.typeId = TransactionTypeId.CREATION
           transaction.memo = contribution.memo
           transaction.userId = contribution.userId
+          /* local transaction will not carry homeComUuid for local users 
           if (homeCom.communityUuid) {
             transaction.userCommunityUuid = homeCom.communityUuid
           }
+          */
           transaction.userGradidoID = user.gradidoID
           transaction.userName = fullName(user.firstName, user.lastName)
           transaction.previous = lastTransaction ? lastTransaction.id : null
@@ -348,7 +349,6 @@ export class TransactionLinkResolver {
           transactionLink.memo,
           linkedUser,
           user,
-          homeCom,
           transactionLink,
         )
         await EVENT_TRANSACTION_LINK_REDEEM(
