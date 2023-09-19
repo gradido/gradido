@@ -1,14 +1,10 @@
 import 'reflect-metadata'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import {
-  create as createCommunity,
-  getAllTopics,
-  iotaTopicFromCommunityUUID,
-  isExist,
-} from './Community'
+import { create as createCommunity, getAllTopics, isExist } from './Community'
 import { TestDB } from '@test/TestDB'
 import { getDataSource } from '@/typeorm/DataSource'
 import { Community } from '@entity/Community'
+import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 
 jest.mock('@typeorm/DataSource', () => ({
   getDataSource: () => TestDB.instance.dbConnect,
@@ -61,7 +57,7 @@ describe('controller/Community', () => {
     })
 
     it('createdAt with ms precision', async () => {
-      const list = await getDataSource().manager.findOne(Community, { where: { foreign: false } })
+      const list = await Community.findOne({ where: { foreign: false } })
       expect(list).toMatchObject({
         createdAt: new Date('2022-05-01T17:00:12.128Z'),
       })

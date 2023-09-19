@@ -1,10 +1,18 @@
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne, OneToMany } from 'typeorm'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  JoinColumn,
+  OneToOne,
+  OneToMany,
+  BaseEntity,
+} from 'typeorm'
 import { Account } from '../Account'
 import { TransactionRecipe } from '../TransactionRecipe'
 import { AccountCommunity } from '../AccountCommunity'
 
 @Entity('communities')
-export class Community {
+export class Community extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 

@@ -1,18 +1,13 @@
-import { Resolver, Query, Arg, Mutation } from 'type-graphql'
+import { Resolver, Arg, Mutation } from 'type-graphql'
 
 import { CommunityDraft } from '@input/CommunityDraft'
 
-import { getDataSource } from '@typeorm/DataSource'
-
 import { TransactionResult } from '../model/TransactionResult'
 import { TransactionError } from '../model/TransactionError'
-import {
-  create as createCommunity,
-  iotaTopicFromCommunityUUID,
-  isExist,
-} from '@/controller/Community'
+import { create as createCommunity, isExist } from '@/controller/Community'
 import { TransactionErrorType } from '../enum/TransactionErrorType'
 import { logger } from '@/server/logger'
+import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 
 @Resolver()
 export class CommunityResolver {
@@ -38,7 +33,7 @@ export class CommunityResolver {
         // TODO: CommunityRoot Transaction for blockchain
       }
       try {
-        await getDataSource().manager.save(community)
+        await community.save()
         result = new TransactionResult()
       } catch (err) {
         logger.error('error saving new community into db: %s', err)

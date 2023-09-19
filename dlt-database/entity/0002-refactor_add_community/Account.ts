@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+  BaseEntity,
+} from 'typeorm'
 import { User } from '../User'
 import { TransactionRecipe } from '../TransactionRecipe'
 import { ConfirmedTransaction } from '../ConfirmedTransaction'
@@ -7,7 +15,7 @@ import { Decimal } from 'decimal.js-light'
 import { AccountCommunity } from '../AccountCommunity'
 
 @Entity('accounts')
-export class Account {
+export class Account extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 

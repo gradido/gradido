@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToOne, JoinColumn } from 'typeorm'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToOne,
+  JoinColumn,
+  BaseEntity,
+} from 'typeorm'
 import { Decimal } from 'decimal.js-light'
 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
@@ -7,7 +15,7 @@ import { Community } from '../Community'
 import { ConfirmedTransaction } from '../ConfirmedTransaction'
 
 @Entity('transaction_recipes')
-export class TransactionRecipe {
+export class TransactionRecipe extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true, type: 'bigint' })
   id: number
 
