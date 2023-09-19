@@ -58,7 +58,7 @@ let bob: User
 let peter: User
 
 let homeCom: DbCommunity
-// let foreignCom: DbCommunity
+let foreignCom: DbCommunity
 
 describe('send coins', () => {
   beforeAll(async () => {
@@ -67,7 +67,7 @@ describe('send coins', () => {
     await userFactory(testEnv, stephenHawking)
     await userFactory(testEnv, garrickOllivander)
     homeCom = DbCommunity.create()
-    homeCom.communityUuid = 'homeCom-UUID'
+    homeCom.communityUuid = '7f474922-b6d8-4b64-8cd0-ebf0a1d8756e'
     homeCom.creationDate = new Date('2000-01-01')
     homeCom.description = 'homeCom description'
     homeCom.foreign = false
@@ -76,6 +76,17 @@ describe('send coins', () => {
     homeCom.publicKey = Buffer.from('homeCom publicKey')
     homeCom.url = 'homeCom url'
     homeCom = await DbCommunity.save(homeCom)
+
+    foreignCom = DbCommunity.create()
+    foreignCom.communityUuid = '7f474922-b6d8-4b64-8cd0-cea0a1d8756e'
+    foreignCom.creationDate = new Date('2000-06-06')
+    foreignCom.description = 'homeCom description'
+    foreignCom.foreign = true
+    foreignCom.name = 'foreignCom name'
+    foreignCom.privateKey = Buffer.from('foreignCom privateKey')
+    foreignCom.publicKey = Buffer.from('foreignCom publicKey')
+    foreignCom.url = 'foreignCom url'
+    foreignCom = await DbCommunity.save(foreignCom)
 
     bobData = {
       email: 'bob@baumeister.de',
@@ -579,6 +590,27 @@ describe('send coins', () => {
             },
             errors: undefined,
           })
+        })
+      })
+    })
+
+    describe.only('X-Com send coins via gradido ID', () => {
+      it('sends the coins', async () => {
+        await expect(
+          mutate({
+            mutation: sendCoins,
+            variables: {
+              recipientCommunityIdentifier: foreignCom.communityUuid,
+              recipientIdentifier: peter?.gradidoID,
+              amount: 10,
+              memo: 'x-com send via gradido ID',
+            },
+          }),
+        ).resolves.toMatchObject({
+          data: {
+            sendCoins: true,
+          },
+          errors: undefined,
         })
       })
     })

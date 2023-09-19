@@ -19,7 +19,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v19.2023-09-01',
+    EXPECTED: 'v20.2023-09-19',
     CURRENT: '',
   },
 }
@@ -122,6 +122,7 @@ if (
 }
 
 const federation = {
+  FEDERATION_BACKEND_SEND_ON_API: process.env.FEDERATION_BACKEND_SEND_ON_API || '1_0',
   FEDERATION_VALIDATE_COMMUNITY_TIMER:
     Number(process.env.FEDERATION_VALIDATE_COMMUNITY_TIMER) || 60000,
   FEDERATION_XCOM_SENDCOINS_ENABLED:

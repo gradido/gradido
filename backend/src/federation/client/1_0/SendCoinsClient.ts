@@ -5,6 +5,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import { SendCoinsArgs } from './model/SendCoinsArgs'
+import { SendCoinsResult } from './model/SendCoinsResult'
 import { revertSendCoins } from './query/revertSendCoins'
 import { revertSettledSendCoins } from './query/revertSettledSendCoins'
 import { settleSendCoins } from './query/settleSendCoins'
@@ -30,27 +31,30 @@ export class SendCoinsClient {
     })
   }
 
-  voteForSendCoins = async (args: SendCoinsArgs): Promise<string | undefined> => {
+  voteForSendCoins = async (args: SendCoinsArgs): Promise<SendCoinsResult> => {
     logger.debug('X-Com: voteForSendCoins against endpoint=', this.endpoint)
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { data } = await this.client.rawRequest(voteForSendCoins, { args })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!data?.voteForSendCoins?.voteForSendCoins) {
+      if (!data?.voteForSendCoins?.vote) {
         logger.warn(
           'X-Com: voteForSendCoins failed with: ',
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          data.voteForSendCoins.voteForSendCoins,
+          data.voteForSendCoins.recipGradidoID,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          data.voteForSendCoins.recipName,
         )
-        return
+        return new SendCoinsResult()
       }
-      logger.debug(
-        'X-Com: voteForSendCoins successful with result=',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        data.voteForSendCoins,
-      )
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-      return data.voteForSendCoins.voteForSendCoins
+      const result = new SendCoinsResult()
+      result.vote = true
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+      result.recipGradidoID = data.voteForSendCoins.recipGradidoID
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+      result.recipName = data.voteForSendCoins.recipName
+      logger.debug('X-Com: voteForSendCoins successful with result=', result)
+      return result
     } catch (err) {
       throw new LogError(`X-Com: voteForSendCoins failed for endpoint=${this.endpoint}:`, err)
     }

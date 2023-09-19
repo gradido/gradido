@@ -20,6 +20,10 @@ export const voteForSendCoins = gql`
       senderCommunityUuid: $senderCommunityUuid
       senderUserUuid: $senderUserUuid
       senderUserName: $senderUserName
-    )
+    ) {
+      vote
+      recipGradidoID
+      recipName
+    }
   }
 `

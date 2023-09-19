@@ -19,27 +19,24 @@ import { fullName } from '@/util/utilities'
 import { settlePendingSenderTransaction } from './settlePendingSenderTransaction'
 
 export async function processXComPendingSendCoins(
-  receiverFCom: DbFederatedCommunity,
   receiverCom: DbCommunity,
   senderCom: DbCommunity,
-  creationDate: Date,
   amount: Decimal,
   memo: string,
   sender: dbUser,
-  recipient: dbUser,
+  recipientIdentifier: string,
 ): Promise<boolean> {
   try {
     logger.debug(
       `XCom: processXComPendingSendCoins...`,
-      receiverFCom,
       receiverCom,
       senderCom,
-      creationDate,
       amount,
       memo,
       sender,
-      recipient,
+      recipientIdentifier,
     )
+    const creationDate = new Date()
     // first calculate the sender balance and check if the transaction is allowed
     const senderBalance = await calculateSenderBalance(sender.id, amount.mul(-1), creationDate)
     if (!senderBalance) {
@@ -47,24 +44,32 @@ export async function processXComPendingSendCoins(
     }
     logger.debug(`X-Com: calculated senderBalance = `, senderBalance)
 
+    const receiverFCom = await DbFederatedCommunity.findOneOrFail({
+      where: {
+        publicKey: receiverCom.publicKey,
+        apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
+      },
+    })
     const client = SendCoinsClientFactory.getInstance(receiverFCom)
     // eslint-disable-next-line camelcase
     if (client instanceof V1_0_SendCoinsClient) {
       const args = new SendCoinsArgs()
-      args.recipientCommunityUuid = receiverCom.communityUuid
-        ? receiverCom.communityUuid
-        : CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID
-      args.recipientUserIdentifier = recipient.gradidoID
+      if (receiverCom.communityUuid) {
+        args.recipientCommunityUuid = receiverCom.communityUuid
+      }
+      args.recipientUserIdentifier = recipientIdentifier
       args.creationDate = creationDate.toISOString()
       args.amount = amount
       args.memo = memo
-      args.senderCommunityUuid = senderCom.communityUuid ? senderCom.communityUuid : 'homeCom-UUID'
+      if (senderCom.communityUuid) {
+        args.senderCommunityUuid = senderCom.communityUuid
+      }
       args.senderUserUuid = sender.gradidoID
       args.senderUserName = fullName(sender.firstName, sender.lastName)
       logger.debug(`X-Com: ready for voteForSendCoins with args=`, args)
-      const recipientName = await client.voteForSendCoins(args)
-      logger.debug(`X-Com: returnd from voteForSendCoins:`, recipientName)
-      if (recipientName) {
+      const sendCoinsResult = await client.voteForSendCoins(args)
+      logger.debug(`X-Com: returnd from voteForSendCoins:`, sendCoinsResult)
+      if (sendCoinsResult.vote) {
         // writing the pending transaction on receiver-side was successfull, so now write the sender side
         try {
           const pendingTx = DbPendingTransaction.create()
@@ -73,11 +78,11 @@ export async function processXComPendingSendCoins(
           pendingTx.balanceDate = creationDate
           pendingTx.decay = senderBalance ? senderBalance.decay.decay : new Decimal(0)
           pendingTx.decayStart = senderBalance ? senderBalance.decay.start : null
-          pendingTx.linkedUserCommunityUuid = receiverCom.communityUuid
-            ? receiverCom.communityUuid
-            : CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID
-          pendingTx.linkedUserGradidoID = recipient.gradidoID
-          pendingTx.linkedUserName = recipientName
+          if (receiverCom.communityUuid) {
+            pendingTx.linkedUserCommunityUuid = receiverCom.communityUuid
+          }
+          pendingTx.linkedUserGradidoID = sendCoinsResult.recipGradidoID
+          pendingTx.linkedUserName = sendCoinsResult.recipName
           pendingTx.memo = memo
           pendingTx.previous = senderBalance ? senderBalance.lastTransactionId : null
           pendingTx.state = PendingTransactionState.NEW

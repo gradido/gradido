@@ -14,6 +14,7 @@ import { settlePendingReceiveTransaction } from '../util/settlePendingReceiveTra
 // import { checkTradingLevel } from '@/graphql/util/checkTradingLevel'
 import { revertSettledReceiveTransaction } from '../util/revertSettledReceiveTransaction'
 import { findUserByIdentifier } from '@/graphql/util/findUserByIdentifier'
+import { SendCoinsResult } from '../model/SendCoinsResult'
 
 @Resolver()
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -31,7 +32,7 @@ export class SendCoinsResolver {
       senderUserUuid,
       senderUserName,
     }: SendCoinsArgs,
-  ): Promise<string> {
+  ): Promise<SendCoinsResult> {
     logger.debug(
       `voteForSendCoins() via apiVersion=1_0 ...`,
       recipientCommunityUuid,
@@ -43,7 +44,7 @@ export class SendCoinsResolver {
       senderUserUuid,
       senderUserName,
     )
-    let result: string
+    const result = new SendCoinsResult()
     // first check if receiver community is correct
     const homeCom = await DbCommunity.findOneBy({
       communityUuid: recipientCommunityUuid,
@@ -88,7 +89,9 @@ export class SendCoinsResolver {
       pendingTx.userName = fullName(receiverUser.firstName, receiverUser.lastName)
 
       await DbPendingTransaction.insert(pendingTx)
-      result = pendingTx.userName
+      result.vote = true
+      result.recipName = pendingTx.userName
+      result.recipGradidoID = pendingTx.userGradidoID
       logger.debug(`voteForSendCoins()-1_0... successfull`)
     } catch (err) {
       throw new LogError(`Error in voteForSendCoins: `, err)

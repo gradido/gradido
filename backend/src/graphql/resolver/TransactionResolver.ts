@@ -43,6 +43,7 @@ import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
+import { processXComPendingSendCoins } from './util/processXComSendCoins'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -545,6 +546,17 @@ export class TransactionResolver {
       if (!(await isCommunityAuthenticated(recipientCommunityIdentifier))) {
         throw new LogError('recipient commuity is connected, but still not authenticated yet!')
       }
+      const recipCom = await dbCommunity.findOneOrFail({
+        where: { communityUuid: recipientCommunityIdentifier },
+      })
+      await processXComPendingSendCoins(
+        recipCom,
+        homeCom,
+        amount,
+        memo,
+        senderUser,
+        recipientIdentifier,
+      )
     }
     return true
   }
