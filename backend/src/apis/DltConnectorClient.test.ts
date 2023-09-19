@@ -136,8 +136,8 @@ describe('transmitTransaction', () => {
     try {
       await DltConnectorClient.getInstance()?.transmitTransaction(
         localTransaction,
-        'senderCommunityUUid',
-        'recipientCommunity',
+        'senderCommunityUuid',
+        'recipientCommunityUuid',
       )
     } catch (e) {
       expect(e).toMatchObject(

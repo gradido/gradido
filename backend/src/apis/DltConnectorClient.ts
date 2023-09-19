@@ -80,8 +80,8 @@ export class DltConnectorClient {
    */
   public async transmitTransaction(
     transaction: DbTransaction,
-    senderCommunityUuid = '',
-    recipientCommunityUuid = '',
+    senderCommunityUuid?: string,
+    recipientCommunityUuid?: string,
   ): Promise<string> {
     const typeString = getTransactionTypeString(transaction.typeId)
     const amountString = transaction.amount.toString()
