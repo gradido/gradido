@@ -13,7 +13,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   // read the community uuid of the homeCommunity
   const result = await queryFn(`SELECT c.community_uuid from communities as c WHERE c.foreign = 0`)
   // and if uuid exists enter the home_community_uuid for sender and recipient of each still existing transaction
-  if (result[0]) {
+  if (result && result[0]) {
     await queryFn(
       `UPDATE transactions as t SET t.user_community_uuid = "${result[0].community_uuid}" WHERE t.user_id IS NOT NULL AND t.user_community_uuid IS NULL`,
     )
