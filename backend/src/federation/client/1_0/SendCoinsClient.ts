@@ -23,7 +23,7 @@ export class SendCoinsClient {
       dbCom.apiVersion
     }/`
     this.client = new GraphQLClient(this.endpoint, {
-      method: 'GET',
+      method: 'POST',
       jsonSerializer: {
         parse: JSON.parse,
         stringify: JSON.stringify,
