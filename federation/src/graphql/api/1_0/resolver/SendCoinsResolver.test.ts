@@ -68,8 +68,13 @@ describe('SendCoinsResolver', () => {
         senderCommunityUuid: $senderCommunityUuid
         senderUserUuid: $senderUserUuid
         senderUserName: $senderUserName
-      )
-  }`
+      ) {
+      vote
+      recipGradidoID
+      recipName
+    }
+  }
+`
 
   const settleSendCoinsMutation = `
   mutation (
@@ -220,7 +225,11 @@ describe('SendCoinsResolver', () => {
         ).toEqual(
           expect.objectContaining({
             data: {
-              voteForSendCoins: 'recipUser-FirstName recipUser-LastName',
+              voteForSendCoins: {
+                recipGradidoID: '56a55482-909e-46a4-bfa2-cd025e894ebd',
+                recipName: 'recipUser-FirstName recipUser-LastName',
+                vote: true,
+              },
             },
           }),
         )

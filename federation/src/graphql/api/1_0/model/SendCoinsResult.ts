@@ -1,6 +1,6 @@
-import { ArgsType, Field } from 'type-graphql'
+import { Field, ObjectType } from 'type-graphql'
 
-@ArgsType()
+@ObjectType()
 export class SendCoinsResult {
   constructor() {
     this.vote = false
@@ -9,9 +9,9 @@ export class SendCoinsResult {
   @Field(() => Boolean)
   vote: boolean
 
-  @Field(() => String, { nullable: true })
+  @Field(() => String)
   recipGradidoID: string | null
 
-  @Field(() => String, { nullable: true })
+  @Field(() => String)
   recipName: string | null
 }

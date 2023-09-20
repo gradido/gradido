@@ -34,18 +34,21 @@ export class SendCoinsClient {
   voteForSendCoins = async (args: SendCoinsArgs): Promise<SendCoinsResult> => {
     logger.debug('X-Com: voteForSendCoins against endpoint=', this.endpoint)
     try {
+      logger.debug(`SendCoinsClient: voteForSendCoins with args=`, args)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { data } = await this.client.rawRequest(voteForSendCoins, { args })
+      logger.debug(`SendCoinsClient: after rawRequest...`, data)
+      const sendCoinsResult = data as SendCoinsResult
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!data?.voteForSendCoins?.vote) {
+      if (!sendCoinsResult.vote) {
         logger.warn(
           'X-Com: voteForSendCoins failed with: ',
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          data.voteForSendCoins.recipGradidoID,
+          sendCoinsResult.recipGradidoID,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          data.voteForSendCoins.recipName,
+          sendCoinsResult.recipName,
         )
-        return new SendCoinsResult()
+        return sendCoinsResult
       }
       const result = new SendCoinsResult()
       result.vote = true

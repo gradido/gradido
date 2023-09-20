@@ -19,7 +19,7 @@ import { SendCoinsResult } from '../model/SendCoinsResult'
 @Resolver()
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class SendCoinsResolver {
-  @Mutation(() => String)
+  @Mutation(() => SendCoinsResult)
   async voteForSendCoins(
     @Args()
     {

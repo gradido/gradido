@@ -121,7 +121,7 @@ export async function processXComPendingSendCoins(
       }
     }
   } catch (err) {
-    logger.error(`Error:`, err)
+    throw new LogError(`Error:`, err)
   }
   return sendCoinsResult
 }
