@@ -135,7 +135,7 @@ export async function processXComCommittingSendCoins(
   sender: dbUser,
   recipUuid: string,
 ): Promise<SendCoinsResult> {
-  let sendCoinsResult = new SendCoinsResult()
+  const sendCoinsResult = new SendCoinsResult()
   try {
     logger.debug(
       `XCom: processXComCommittingSendCoins...`,
@@ -145,7 +145,7 @@ export async function processXComCommittingSendCoins(
       amount,
       memo,
       sender,
-      recipient,
+      recipUuid,
     )
     // first find pending Tx with given parameters
     const pendingTx = await DbPendingTransaction.findOneBy({
@@ -188,12 +188,20 @@ export async function processXComCommittingSendCoins(
           args.senderUserName = pendingTx.userName
         }
         logger.debug(`X-Com: ready for settleSendCoins with args=`, args)
-        const acknoleged = await client.settleSendCoins(args)
-        logger.debug(`X-Com: returnd from settleSendCoins:`, acknoleged)
-        if (acknoleged) {
+        const acknowledge = await client.settleSendCoins(args)
+        logger.debug(`X-Com: returnd from settleSendCoins:`, acknowledge)
+        if (acknowledge) {
           // settle the pending transaction on receiver-side was successfull, so now settle the sender side
           try {
-            await settlePendingSenderTransaction(senderCom, sender, pendingTx)
+            sendCoinsResult.vote = await settlePendingSenderTransaction(
+              senderCom,
+              sender,
+              pendingTx,
+            )
+            if (sendCoinsResult.vote) {
+              sendCoinsResult.recipName = pendingTx.linkedUserName
+              sendCoinsResult.recipGradidoID = pendingTx.linkedUserGradidoID
+            }
           } catch (err) {
             logger.error(`Error in writing sender pending transaction: `, err)
             // revert the existing pending transaction on receiver side
@@ -219,6 +227,7 @@ export async function processXComCommittingSendCoins(
     }
   } catch (err) {
     logger.error(`Error:`, err)
+    sendCoinsResult.vote = false
   }
-  return true
+  return sendCoinsResult
 }

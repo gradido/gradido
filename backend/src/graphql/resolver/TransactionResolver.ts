@@ -27,6 +27,7 @@ import {
   sendTransactionReceivedEmail,
 } from '@/emails/sendEmailVariants'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
+import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
@@ -41,10 +42,12 @@ import { isCommunityAuthenticated, isHomeCommunity } from './util/communities'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
-import { processXComCommittingSendCoins, processXComPendingSendCoins } from './util/processXComSendCoins'
+import {
+  processXComCommittingSendCoins,
+  processXComPendingSendCoins,
+} from './util/processXComSendCoins'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
-import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -537,7 +540,7 @@ export class TransactionResolver {
         where: { communityUuid: recipientCommunityIdentifier },
       })
       let pendingResult: SendCoinsResult
-      let commitingResult: SendCoinsResult
+      let committingResult: SendCoinsResult
       const creationDate = new Date()
 
       try {
@@ -550,8 +553,8 @@ export class TransactionResolver {
           senderUser,
           recipientIdentifier,
         )
-        if(pendingResult.vote && pendingResult.recipGradidoID) {
-          commitingResult = await processXComCommittingSendCoins(
+        if (pendingResult.vote && pendingResult.recipGradidoID) {
+          committingResult = await processXComCommittingSendCoins(
             recipCom,
             homeCom,
             creationDate,
@@ -560,12 +563,26 @@ export class TransactionResolver {
             senderUser,
             pendingResult.recipGradidoID,
           )
-          if(!commitingResult.vote) {
-            
+          if (!committingResult.vote) {
+            logger.fatal('FATAL ERROR: on processXComCommittingSendCoins for', committingResult)
+            throw new LogError(
+              'FATAL ERROR: on processXComCommittingSendCoins with ',
+              recipientCommunityIdentifier,
+              recipientIdentifier,
+              amount.toString(),
+              memo,
+            )
           }
         }
       } catch (err) {
-        
+        throw new LogError(
+          'ERROR: on processXComCommittingSendCoins with ',
+          recipientCommunityIdentifier,
+          recipientIdentifier,
+          amount.toString(),
+          memo,
+          err,
+        )
       }
     }
     return true
