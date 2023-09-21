@@ -64,7 +64,7 @@ export class SendCoinsClient {
       const { data } = await this.client.rawRequest(revertSendCoins, { args })
       logger.debug(`X-Com: SendCoinsClient: after revertSendCoins: data=`, data)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!data?.revertSendCoins?.revertSendCoins) {
+      if (!data?.revertSendCoins) {
         logger.warn('X-Com: revertSendCoins without response data from endpoint', this.endpoint)
         return false
       }
@@ -89,7 +89,7 @@ export class SendCoinsClient {
       const { data } = await this.client.rawRequest(settleSendCoins, { args })
       logger.debug(`X-Com: SendCoinsClient: after settleSendCoins: data=`, data)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!data?.settleSendCoins?.acknowledged) {
+      if (!data?.settleSendCoins) {
         logger.warn(
           'X-Com: SendCoinsClient: settleSendCoins without response data from endpoint',
           this.endpoint,
@@ -116,7 +116,7 @@ export class SendCoinsClient {
       const { data } = await this.client.rawRequest(revertSettledSendCoins, { args })
       logger.debug(`X-Com: SendCoinsClient: after revertSettledSendCoins: data=`, data)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!data?.revertSettledSendCoins?.acknowledged) {
+      if (!data?.revertSettledSendCoins) {
         logger.warn(
           'X-Com: SendCoinsClient: revertSettledSendCoins without response data from endpoint',
           this.endpoint,

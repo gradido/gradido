@@ -77,18 +77,13 @@ export async function settlePendingReceiveTransaction(
       pendingTx.amount,
       pendingTx.balanceDate,
     )
-    if (
-      receiveBalance !== null &&
-      receiveBalance.balance.toString() !== pendingTx.balance.toString()
-    ) {
-      throw new LogError(
-        `X-Com: Calculation-Error on receiver balance: receiveBalance=${receiveBalance.balance}, pendingTx.balance=${pendingTx.balance}`,
-      )
+    if (!receiveBalance) {
+      throw new LogError(`Receiver has not enough GDD or amount is < 0', sendBalance`)
     }
-    transactionReceive.balance = receiveBalance ? receiveBalance.balance : pendingTx.amount
+    transactionReceive.balance = receiveBalance.balance
     transactionReceive.balanceDate = pendingTx.balanceDate
-    transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
-    transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
+    transactionReceive.decay = receiveBalance.decay.decay
+    transactionReceive.decayStart = receiveBalance.decay.start
     transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
     transactionReceive.linkedTransactionId = pendingTx.linkedTransactionId
     await queryRunner.manager.insert(dbTransaction, transactionReceive)

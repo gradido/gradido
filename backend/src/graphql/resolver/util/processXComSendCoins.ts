@@ -39,6 +39,23 @@ export async function processXComPendingSendCoins(
       sender,
       recipientIdentifier,
     )
+    const openSenderPendingTx = await DbPendingTransaction.count({
+      where: [
+        { userGradidoID: sender.gradidoID, state: PendingTransactionState.NEW },
+        { linkedUserGradidoID: sender.gradidoID, state: PendingTransactionState.NEW },
+      ],
+    })
+    const openReceiverPendingTx = await DbPendingTransaction.count({
+      where: [
+        { userGradidoID: recipientIdentifier, state: PendingTransactionState.NEW },
+        { linkedUserGradidoID: recipientIdentifier, state: PendingTransactionState.NEW },
+      ],
+    })
+    if (openSenderPendingTx > 0 || openReceiverPendingTx > 0) {
+      throw new LogError(
+        `There exist still ongoing 'Pending-Transactions' for the involved users on sender-side!`,
+      )
+    }
     // first calculate the sender balance and check if the transaction is allowed
     const senderBalance = await calculateSenderBalance(sender.id, amount.mul(-1), creationDate)
     if (!senderBalance) {
@@ -77,10 +94,10 @@ export async function processXComPendingSendCoins(
         try {
           const pendingTx = DbPendingTransaction.create()
           pendingTx.amount = amount.mul(-1)
-          pendingTx.balance = senderBalance ? senderBalance.balance : new Decimal(0)
+          pendingTx.balance = senderBalance.balance
           pendingTx.balanceDate = creationDate
-          pendingTx.decay = senderBalance ? senderBalance.decay.decay : new Decimal(0)
-          pendingTx.decayStart = senderBalance ? senderBalance.decay.start : null
+          pendingTx.decay = senderBalance.decay.decay
+          pendingTx.decayStart = senderBalance.decay.start
           if (receiverCom.communityUuid) {
             pendingTx.linkedUserCommunityUuid = receiverCom.communityUuid
           }
@@ -95,7 +112,7 @@ export async function processXComPendingSendCoins(
           pendingTx.state = PendingTransactionState.NEW
           pendingTx.typeId = TransactionTypeId.SEND
           if (senderCom.communityUuid) pendingTx.userCommunityUuid = senderCom.communityUuid
-          pendingTx.id = sender.id
+          pendingTx.userId = sender.id
           pendingTx.userGradidoID = sender.gradidoID
           pendingTx.userName = fullName(sender.firstName, sender.lastName)
           logger.debug(`X-Com: initialized sender pendingTX=`, pendingTx)
@@ -126,6 +143,7 @@ export async function processXComPendingSendCoins(
           voteResult,
         )
       }
+      return voteResult
     }
   } catch (err) {
     throw new LogError(`Error:`, err)
@@ -156,12 +174,11 @@ export async function processXComCommittingSendCoins(
     )
     // first find pending Tx with given parameters
     const pendingTx = await DbPendingTransaction.findOneBy({
-      userCommunityUuid: senderCom.communityUuid ? senderCom.communityUuid : 'homeCom-UUID',
+      userCommunityUuid: senderCom.communityUuid ?? 'homeCom-UUID',
       userGradidoID: sender.gradidoID,
       userName: fullName(sender.firstName, sender.lastName),
-      linkedUserCommunityUuid: receiverCom.communityUuid
-        ? receiverCom.communityUuid
-        : CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID,
+      linkedUserCommunityUuid:
+        receiverCom.communityUuid ?? CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID,
       linkedUserGradidoID: recipUuid,
       typeId: TransactionTypeId.SEND,
       state: PendingTransactionState.NEW,
@@ -187,7 +204,7 @@ export async function processXComCommittingSendCoins(
           args.recipientUserIdentifier = pendingTx.linkedUserGradidoID
         }
         args.creationDate = pendingTx.balanceDate.toISOString()
-        args.amount = pendingTx.amount
+        args.amount = pendingTx.amount.mul(-1)
         args.memo = pendingTx.memo
         args.senderCommunityUuid = pendingTx.userCommunityUuid
         args.senderUserUuid = pendingTx.userGradidoID

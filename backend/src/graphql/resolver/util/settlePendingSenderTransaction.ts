@@ -15,6 +15,7 @@ import { calculateSenderBalance } from '@/util/calculateSenderBalance'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
 import { getLastTransaction } from './getLastTransaction'
+import Decimal from 'decimal.js-light'
 
 export async function settlePendingSenderTransaction(
   homeCom: DbCommunity,
@@ -73,15 +74,13 @@ export async function settlePendingSenderTransaction(
       pendingTx.amount,
       pendingTx.balanceDate,
     )
-    if (sendBalance?.balance !== pendingTx.balance) {
-      throw new LogError(
-        `X-Com: Calculation-Error on receiver balance: receiveBalance=${sendBalance?.balance}, pendingTx.balance=${pendingTx.balance}`,
-      )
+    if (!sendBalance) {
+      throw new LogError(`Sender has not enough GDD or amount is < 0', sendBalance`)
     }
-    transactionSend.balance = pendingTx.balance
+    transactionSend.balance = sendBalance?.balance ?? new Decimal(0)
     transactionSend.balanceDate = pendingTx.balanceDate
-    transactionSend.decay = pendingTx.decay
-    transactionSend.decayStart = pendingTx.decayStart
+    transactionSend.decay = sendBalance.decay.decay // pendingTx.decay
+    transactionSend.decayStart = sendBalance.decay.start // pendingTx.decayStart
     transactionSend.previous = pendingTx.previous
     transactionSend.linkedTransactionId = pendingTx.linkedTransactionId
     await queryRunner.manager.insert(dbTransaction, transactionSend)
