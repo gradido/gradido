@@ -8,13 +8,13 @@ import { LogError } from '@/server/LogError'
 import { PendingTransactionState } from '../enum/PendingTransactionState'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { calculateRecipientBalance } from '../util/calculateRecipientBalance'
-import Decimal from 'decimal.js-light'
 import { fullName } from '@/graphql/util/fullName'
 import { settlePendingReceiveTransaction } from '../util/settlePendingReceiveTransaction'
 // import { checkTradingLevel } from '@/graphql/util/checkTradingLevel'
 import { revertSettledReceiveTransaction } from '../util/revertSettledReceiveTransaction'
 import { findUserByIdentifier } from '@/graphql/util/findUserByIdentifier'
 import { SendCoinsResult } from '../model/SendCoinsResult'
+import Decimal from 'decimal.js-light'
 
 @Resolver()
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -78,15 +78,12 @@ export class SendCoinsResolver {
     try {
       const txDate = new Date(args.creationDate)
       const receiveBalance = await calculateRecipientBalance(receiverUser.id, args.amount, txDate)
-      if (!receiveBalance) {
-        throw new LogError('Receiver has not enough GDD or amount is < 0', receiveBalance)
-      }
       const pendingTx = DbPendingTransaction.create()
       pendingTx.amount = args.amount
-      pendingTx.balance = receiveBalance.balance
+      pendingTx.balance = receiveBalance ? receiveBalance.balance : args.amount
       pendingTx.balanceDate = txDate
-      pendingTx.decay = receiveBalance.decay.decay
-      pendingTx.decayStart = receiveBalance.decay.start
+      pendingTx.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
+      pendingTx.decayStart = receiveBalance ? receiveBalance.decay.start : null
       pendingTx.creationDate = new Date()
       pendingTx.linkedUserCommunityUuid = args.senderCommunityUuid
       pendingTx.linkedUserGradidoID = args.senderUserUuid

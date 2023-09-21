@@ -77,13 +77,10 @@ export async function settlePendingReceiveTransaction(
       pendingTx.amount,
       pendingTx.balanceDate,
     )
-    if (!receiveBalance) {
-      throw new LogError(`Receiver has not enough GDD or amount is < 0', sendBalance`)
-    }
-    transactionReceive.balance = receiveBalance.balance
+    transactionReceive.balance = receiveBalance ? receiveBalance.balance : pendingTx.amount
     transactionReceive.balanceDate = pendingTx.balanceDate
-    transactionReceive.decay = receiveBalance.decay.decay
-    transactionReceive.decayStart = receiveBalance.decay.start
+    transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
+    transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
     transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
     transactionReceive.linkedTransactionId = pendingTx.linkedTransactionId
     await queryRunner.manager.insert(dbTransaction, transactionReceive)
