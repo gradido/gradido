@@ -121,7 +121,6 @@
     {
       "appenders":
       [
-        "out",
         "backend",
         "errors"
       ],
