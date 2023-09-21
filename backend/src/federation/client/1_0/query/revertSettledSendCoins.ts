@@ -1,6 +1,12 @@
 import { gql } from 'graphql-request'
 
 export const revertSettledSendCoins = gql`
+  mutation ($args: SendCoinsArgs!) {
+    revertSettledSendCoins(data: $args)
+  }
+`
+/*
+
   mutation (
     $recipientCommunityUuid: String!
     $recipientUserIdentifier: String!
@@ -22,4 +28,4 @@ export const revertSettledSendCoins = gql`
       senderUserName: $senderUserName
     )
   }
-`
+*/

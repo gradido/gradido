@@ -74,7 +74,9 @@ export const executeTransaction = async (
       ],
     })
     if (openSenderPendingTx > 0 || openReceiverPendingTx > 0) {
-      throw new LogError('There are still pending Transactions for Sender and/or Recipient')
+      throw new LogError(
+        `There exist still ongoing 'Pending-Transactions' for the involved users on sender-side!`,
+      )
     }
 
     if (sender.id === recipient.id) {
@@ -529,7 +531,7 @@ export class TransactionResolver {
       logger.info('successful executeTransaction', amount, memo, senderUser, recipientUser)
     } else {
       // processing a x-community sendCoins
-      logger.debug('processing a x-community transaction...')
+      logger.debug('X-Com: processing a x-community transaction...')
       if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
         throw new LogError('X-Community sendCoins disabled per configuration!')
       }

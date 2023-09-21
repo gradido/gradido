@@ -57,6 +57,24 @@ export class SendCoinsResolver {
         homeCom.name,
       )
     }
+    const openSenderPendingTx = await DbPendingTransaction.count({
+      where: [
+        { userGradidoID: args.senderUserUuid, state: PendingTransactionState.NEW },
+        { linkedUserGradidoID: args.senderUserUuid, state: PendingTransactionState.NEW },
+      ],
+    })
+    const openReceiverPendingTx = await DbPendingTransaction.count({
+      where: [
+        { userGradidoID: receiverUser.gradidoID, state: PendingTransactionState.NEW },
+        { linkedUserGradidoID: receiverUser.gradidoID, state: PendingTransactionState.NEW },
+      ],
+    })
+    if (openSenderPendingTx > 0 || openReceiverPendingTx > 0) {
+      throw new LogError(
+        `There exist still ongoing 'Pending-Transactions' for the involved users on receiver-side!`,
+      )
+    }
+
     try {
       const txDate = new Date(args.creationDate)
       const receiveBalance = await calculateRecipientBalance(receiverUser.id, args.amount, txDate)
@@ -94,18 +112,6 @@ export class SendCoinsResolver {
   async revertSendCoins(
     @Arg('data')
     args: SendCoinsArgs,
-    /*
-    {
-      recipientCommunityUuid,
-      recipientUserIdentifier,
-      creationDate,
-      amount,
-      memo,
-      senderCommunityUuid,
-      senderUserUuid,
-      senderUserName,
-    }: SendCoinsArgs,
-    */
   ): Promise<boolean> {
     logger.debug(`revertSendCoins() via apiVersion=1_0 ...`)
     // first check if receiver community is correct
@@ -179,18 +185,6 @@ export class SendCoinsResolver {
   async settleSendCoins(
     @Arg('data')
     args: SendCoinsArgs,
-    /*
-    {
-      recipientCommunityUuid,
-      recipientUserIdentifier,
-      creationDate,
-      amount,
-      memo,
-      senderCommunityUuid,
-      senderUserUuid,
-      senderUserName,
-    }: SendCoinsArgs,
-    */
   ): Promise<boolean> {
     logger.debug(
       `settleSendCoins() via apiVersion=1_0 ...userCommunityUuid=${
@@ -264,18 +258,6 @@ export class SendCoinsResolver {
   async revertSettledSendCoins(
     @Arg('data')
     args: SendCoinsArgs,
-    /*
-    {
-      recipientCommunityUuid,
-      recipientUserIdentifier,
-      creationDate,
-      amount,
-      memo,
-      senderCommunityUuid,
-      senderUserUuid,
-      senderUserName,
-    }: SendCoinsArgs,
-    */
   ): Promise<boolean> {
     logger.debug(`revertSettledSendCoins() via apiVersion=1_0 ...`)
     // first check if receiver community is correct

@@ -10,8 +10,8 @@ export class SendCoinsResult {
   vote: boolean
 
   @Field(() => String, { nullable: true })
-  recipGradidoID: string | null | undefined
+  recipGradidoID: string | null
 
   @Field(() => String, { nullable: true })
-  recipName: string | null | undefined
+  recipName: string | null
 }

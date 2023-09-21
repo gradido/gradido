@@ -28,7 +28,7 @@ export async function processXComPendingSendCoins(
   sender: dbUser,
   recipientIdentifier: string,
 ): Promise<SendCoinsResult> {
-  let sendCoinsResult = new SendCoinsResult()
+  let voteResult: SendCoinsResult
   try {
     logger.debug(
       `XCom: processXComPendingSendCoins...`,
@@ -69,9 +69,10 @@ export async function processXComPendingSendCoins(
       args.senderUserUuid = sender.gradidoID
       args.senderUserName = fullName(sender.firstName, sender.lastName)
       logger.debug(`X-Com: ready for voteForSendCoins with args=`, args)
-      sendCoinsResult = await client.voteForSendCoins(args)
-      logger.debug(`X-Com: returnd from voteForSendCoins:`, sendCoinsResult)
-      if (sendCoinsResult.vote) {
+      voteResult = await client.voteForSendCoins(args)
+      logger.debug(`X-Com: returnd from voteForSendCoins:`, voteResult)
+      if (voteResult.vote) {
+        logger.debug(`X-Com: prepare pendingTransaction for sender...`)
         // writing the pending transaction on receiver-side was successfull, so now write the sender side
         try {
           const pendingTx = DbPendingTransaction.create()
@@ -83,17 +84,18 @@ export async function processXComPendingSendCoins(
           if (receiverCom.communityUuid) {
             pendingTx.linkedUserCommunityUuid = receiverCom.communityUuid
           }
-          if (sendCoinsResult.recipGradidoID) {
-            pendingTx.linkedUserGradidoID = sendCoinsResult.recipGradidoID
+          if (voteResult.recipGradidoID) {
+            pendingTx.linkedUserGradidoID = voteResult.recipGradidoID
           }
-          if (sendCoinsResult.recipName) {
-            pendingTx.linkedUserName = sendCoinsResult.recipName
+          if (voteResult.recipName) {
+            pendingTx.linkedUserName = voteResult.recipName
           }
           pendingTx.memo = memo
           pendingTx.previous = senderBalance ? senderBalance.lastTransactionId : null
           pendingTx.state = PendingTransactionState.NEW
           pendingTx.typeId = TransactionTypeId.SEND
           if (senderCom.communityUuid) pendingTx.userCommunityUuid = senderCom.communityUuid
+          pendingTx.id = sender.id
           pendingTx.userGradidoID = sender.gradidoID
           pendingTx.userName = fullName(sender.firstName, sender.lastName)
           logger.debug(`X-Com: initialized sender pendingTX=`, pendingTx)
@@ -118,12 +120,17 @@ export async function processXComPendingSendCoins(
           )
         }
         logger.debug(`voteForSendCoins()-1_0... successfull`)
+      } else {
+        logger.debug(
+          `X-Com: break with error on writing pendingTransaction for recipient...`,
+          voteResult,
+        )
       }
     }
   } catch (err) {
     throw new LogError(`Error:`, err)
   }
-  return sendCoinsResult
+  return new SendCoinsResult()
 }
 
 export async function processXComCommittingSendCoins(
