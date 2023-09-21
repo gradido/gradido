@@ -23,18 +23,6 @@ export class SendCoinsResolver {
   async voteForSendCoins(
     @Arg('data')
     args: SendCoinsArgs,
-    /*
-    {
-      recipientCommunityUuid,
-      recipientUserIdentifier,
-      creationDate,
-      amount,
-      memo,
-      senderCommunityUuid,
-      senderUserUuid,
-      senderUserName,
-    }
-    */
   ): Promise<SendCoinsResult> {
     logger.debug(
       `voteForSendCoins() via apiVersion=1_0 ...`,

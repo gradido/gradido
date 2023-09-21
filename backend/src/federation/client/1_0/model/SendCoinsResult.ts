@@ -1,6 +1,6 @@
-import { ArgsType, Field } from 'type-graphql'
+import { Field, ObjectType } from 'type-graphql'
 
-@ArgsType()
+@ObjectType()
 export class SendCoinsResult {
   constructor() {
     this.vote = false
