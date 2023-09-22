@@ -38,7 +38,7 @@ import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
 import { BalanceResolver } from './BalanceResolver'
-import { isCommunityAuthenticated, isHomeCommunity } from './util/communities'
+import { getCommunityName, isCommunityAuthenticated, isHomeCommunity } from './util/communities'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
@@ -249,12 +249,21 @@ export class TransactionResolver {
 
     // find involved users; I am involved
     const involvedUserIds: number[] = [user.id]
+    const involvedRemoteUsers: User[] = []
     userTransactions.forEach((transaction: dbTransaction) => {
       if (transaction.linkedUserId && !involvedUserIds.includes(transaction.linkedUserId)) {
         involvedUserIds.push(transaction.linkedUserId)
       }
+      if (!transaction.linkedUserId && transaction.linkedUserGradidoID) {
+        const remoteUser = new User(null)
+        remoteUser.gradidoID = transaction.linkedUserGradidoID
+        remoteUser.firstName = transaction.linkedUserName
+        remoteUser.lastName = transaction.linkedUserCommunityUuid
+        involvedRemoteUsers.push(remoteUser)
+      }
     })
-    logger.debug(`involvedUserIds=${involvedUserIds}`)
+    logger.debug(`involvedUserIds=`, involvedUserIds)
+    logger.debug(`involvedRemoteUsers=`, involvedRemoteUsers)
 
     // We need to show the name for deleted users for old transactions
     const involvedDbUsers = await dbUser.find({
@@ -263,7 +272,7 @@ export class TransactionResolver {
       relations: ['emailContact'],
     })
     const involvedUsers = involvedDbUsers.map((u) => new User(u))
-    logger.debug(`involvedUsers=${involvedUsers}`)
+    logger.debug(`involvedUsers=`, involvedUsers)
 
     const self = new User(user)
     const transactions: Transaction[] = []
@@ -333,10 +342,25 @@ export class TransactionResolver {
 
     // transactions
     userTransactions.forEach((userTransaction: dbTransaction) => {
+      /*
       const linkedUser =
         userTransaction.typeId === TransactionTypeId.CREATION
           ? communityUser
           : involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
+      */
+      let linkedUser: User | undefined
+      if (userTransaction.typeId === TransactionTypeId.CREATION) {
+        linkedUser = communityUser
+        logger.debug('CREATION-linkedUser=', linkedUser)
+      } else if (userTransaction.linkedUserId) {
+        linkedUser = involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
+        logger.debug('local linkedUser=', linkedUser)
+      } else if (userTransaction.linkedUserCommunityUuid) {
+        linkedUser = involvedRemoteUsers.find(
+          (u) => u.gradidoID === userTransaction.linkedUserGradidoID,
+        )
+        logger.debug('remote linkedUser=', linkedUser)
+      }
       transactions.push(new Transaction(userTransaction, self, linkedUser))
     })
     logger.debug(`TransactionTypeId.CREATION: transactions=${transactions}`)

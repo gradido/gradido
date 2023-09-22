@@ -7,6 +7,7 @@ import { Community as DbCommunity } from '@entity/Community'
 import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { User as DbUser } from '@entity/User'
+import { Decimal } from 'decimal.js-light'
 
 import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'
 import { LogError } from '@/server/LogError'
@@ -15,7 +16,6 @@ import { calculateSenderBalance } from '@/util/calculateSenderBalance'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
 import { getLastTransaction } from './getLastTransaction'
-import Decimal from 'decimal.js-light'
 
 export async function settlePendingSenderTransaction(
   homeCom: DbCommunity,
@@ -66,6 +66,7 @@ export async function settlePendingSenderTransaction(
     transactionSend.userGradidoID = pendingTx.userGradidoID
     transactionSend.userName = pendingTx.userName
     transactionSend.linkedUserId = pendingTx.linkedUserId
+    transactionSend.linkedUserCommunityUuid = pendingTx.linkedUserCommunityUuid
     transactionSend.linkedUserGradidoID = pendingTx.linkedUserGradidoID
     transactionSend.linkedUserName = pendingTx.linkedUserName
     transactionSend.amount = pendingTx.amount

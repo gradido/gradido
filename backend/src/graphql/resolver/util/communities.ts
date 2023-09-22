@@ -40,3 +40,14 @@ export async function isCommunityAuthenticated(communityIdentifier: string): Pro
     return false
   }
 }
+
+export async function getCommunityName(communityIdentifier: string): Promise<string> {
+  const community = await DbCommunity.findOne({
+    where: [{ communityUuid: communityIdentifier }, { url: communityIdentifier }],
+  })
+  if (community?.name) {
+    return community.name
+  } else {
+    return ''
+  }
+}
