@@ -72,7 +72,4 @@ export default {
   transform: translateY(-50%);
   position: relative;
 }
-.community-switch ul li:first-child {
-  display: none;
-}
 </style>
