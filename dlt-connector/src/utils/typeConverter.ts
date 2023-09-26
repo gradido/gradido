@@ -1,6 +1,7 @@
 import { crypto_generichash as cryptoHash } from 'sodium-native'
 
 import { Timestamp } from '@/proto/3_3/Timestamp'
+import { TimestampSeconds } from '@/proto/3_3/TimestampSeconds'
 
 export const uuid4ToBuffer = (uuid: string): Buffer => {
   // Remove dashes from the UUIDv4 string
@@ -22,4 +23,12 @@ export const timestampToDate = (timestamp: Timestamp): Date => {
   let milliseconds = timestamp.nanoSeconds / 1000000
   milliseconds += timestamp.seconds * 1000
   return new Date(milliseconds)
+}
+
+export const timestampSecondsToDate = (timestamp: TimestampSeconds): Date => {
+  return new Date(timestamp.seconds * 1000)
+}
+
+export const base64ToBuffer = (base64: string): Buffer => {
+  return Buffer.from(base64, 'base64')
 }

@@ -33,6 +33,7 @@
     "express": "4.17.1",
     "graphql": "^16.7.1",
     "graphql-scalars": "^1.22.2",
+    "jsonrpc-ts-client": "^0.2.3",
     "log4js": "^6.7.1",
     "nodemon": "^2.0.20",
     "reflect-metadata": "^0.1.13",

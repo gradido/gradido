@@ -7,6 +7,10 @@
 
 import { receiveAllMessagesForTopic } from '@/client/IotaClient'
 import { getAllTopics } from './Community'
+import { getTransactions } from '@/client/GradidoNode'
+import { Resolver } from 'type-graphql'
+import { ConfirmedTransaction } from '@entity/ConfirmedTransaction'
+import { confirmFromNodeServer } from './ConfirmedTransaction'
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class TransactionsManager {
@@ -27,16 +31,36 @@ export class TransactionsManager {
    * This implementation let you subclass the Singleton class while keeping
    * just one instance of each subclass around.
    */
-  public static async getInstance(): Promise<TransactionsManager | undefined> {
+  public static getInstance(): TransactionsManager {
     if (!TransactionsManager.instance) {
       TransactionsManager.instance = new TransactionsManager()
-      await TransactionsManager.instance.init()
     }
     return TransactionsManager.instance
   }
 
-  public async init() {
-    this.topicsForListening = await getAllTopics()
+  public async init(): Promise<void[]> {
+    return Promise.all(
+      (await getAllTopics()).map((topic) => {
+        return this.addTopic(topic)
+      }),
+    )
+  }
+
+  /**
+   * add topic to list and warmup, load transaction from node server (he must already listen to this topic)
+   * TODO: implement logic in node js rather than using GradidoNode
+   * @param newTopic
+   */
+  public async addTopic(newTopic: string): Promise<void> {
+    this.topicsForListening.push(newTopic)
+    let count = 0
+    let cursor = 0
+    do {
+      const confirmedTransactions = await getTransactions(cursor, 100, newTopic)
+      count = confirmedTransactions.length
+      cursor += count
+      await confirmFromNodeServer(confirmedTransactions)
+    } while (count === 100)
   }
 
   public async isTopicIsEmpty(iotaTopic: Buffer): Promise<boolean> {

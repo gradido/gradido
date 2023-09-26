@@ -17,6 +17,8 @@ import { Community } from '@model/Community'
 import { CommunityArg } from '@arg/CommunityArg'
 import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
+import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
+import { TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY } from '@/tasks/transmitToIota'
 
 @Resolver()
 export class CommunityResolver {
@@ -76,6 +78,7 @@ export class CommunityResolver {
           await queryRunner.manager.save(community)
           await queryRunner.manager.save(recipe)
           await queryRunner.commitTransaction()
+          ConditionalSleepManager.getInstance().signal(TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY)
           result = new TransactionResult()
         } catch (err) {
           logger.error('error saving new community into db: %s', err)

@@ -1,5 +1,5 @@
 import { ClientBuilder } from '@iota/client'
-import { MessageWrapper } from '@iota/client/lib/types'
+import { MessageMetadata, MessageWrapper } from '@iota/client/lib/types'
 
 import { CONFIG } from '@/config'
 const client = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
@@ -30,7 +30,12 @@ function receiveAllMessagesForTopic(topic: string | Uint8Array): Promise<string[
   return client.getMessage().index(topic)
 }
 
-export { sendMessage, receiveMessage, receiveAllMessagesForTopic }
+async function getIotaMilestone(messageId: string): Promise<number | undefined> {
+  const metadata = await client.getMessage().metadata(messageId)
+  return metadata.referencedByMilestoneIndex
+}
+
+export { sendMessage, receiveMessage, receiveAllMessagesForTopic, getIotaMilestone }
 
 /**
  * example for message: 

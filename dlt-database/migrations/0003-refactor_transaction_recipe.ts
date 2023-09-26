@@ -18,6 +18,13 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(
     `ALTER TABLE \`transaction_recipes\` MODIFY COLUMN \`signing_account_id\` int(10) unsigned NULL DEFAULT NULL;`,
   )
+
+  await queryFn(
+    `ALTER TABLE \`confirmed_transactions\` MODIFY COLUMN  \`account_id\` int(10) unsigned NULL DEFAULT NULL;`,
+  )
+  await queryFn(
+    `ALTER TABLE \`confirmed_transactions\` MODIFY COLUMN  \`iota_milestone\` bigint NULL DEFAULT NULL;`,
+  )
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
@@ -31,5 +38,11 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   )
   await queryFn(
     `ALTER TABLE \`transaction_recipes\` MODIFY COLUMN \`signing_account_id\` int(10) unsigned NOT NULL;`,
+  )
+  await queryFn(
+    `ALTER TABLE \`confirmed_transactions\` MODIFY COLUMN  \`account_id\` int(10) unsigned NOT NULL;`,
+  )
+  await queryFn(
+    `ALTER TABLE \`confirmed_transactions\` MODIFY COLUMN  \`iota_milestone\` bigint NOT NULL;`,
   )
 }

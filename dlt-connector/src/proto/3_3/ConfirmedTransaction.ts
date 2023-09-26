@@ -1,6 +1,7 @@
 import { Field, Message } from '@apollo/protobufjs'
 import { GradidoTransaction } from './GradidoTransaction'
 import { TimestampSeconds } from './TimestampSeconds'
+import { base64ToBuffer } from '@/utils/typeConverter'
 
 /*
 	id will be set by Node server
@@ -11,6 +12,10 @@ import { TimestampSeconds } from './TimestampSeconds'
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
 export class ConfirmedTransaction extends Message<ConfirmedTransaction> {
+  static fromBase64(base64: string): ConfirmedTransaction {
+    return ConfirmedTransaction.decode(new Uint8Array(base64ToBuffer(base64)))
+  }
+
   @Field.d(1, 'uint64')
   id: number
 
