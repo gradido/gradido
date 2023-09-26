@@ -3,6 +3,7 @@ import { ApolloServer } from '@apollo/server'
 import { createApolloTestServer } from '@test/ApolloServerMock'
 import assert from 'assert'
 import { TransactionResult } from '../model/TransactionResult'
+import { TestDB } from '@test/TestDB'
 
 let apolloTestServer: ApolloServer
 
@@ -16,7 +17,11 @@ jest.mock('@/client/IotaClient', () => {
 
 describe('Transaction Resolver Test', () => {
   beforeAll(async () => {
+    await TestDB.instance.setupTestDB()
     apolloTestServer = await createApolloTestServer()
+  })
+  afterAll(async () => {
+    await TestDB.instance.teardownTestDB()
   })
   it('test version query', async () => {
     const response = await apolloTestServer.executeOperation({

@@ -6,6 +6,7 @@ export enum TransactionErrorType {
   ALREADY_EXIST = 'Already exist',
   DB_ERROR = 'DB Error',
   PROTO_DECODE_ERROR = 'Proto Decode Error',
+  INVALID_SIGNATURE = 'Invalid Signature',
 }
 
 registerEnumType(TransactionErrorType, {

@@ -2,10 +2,10 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   ManyToOne,
   OneToOne,
   JoinColumn,
+  BaseEntity,
 } from 'typeorm'
 import { Decimal } from 'decimal.js-light'
 
@@ -15,7 +15,7 @@ import { Community } from '../Community'
 import { ConfirmedTransaction } from '../ConfirmedTransaction'
 
 @Entity('transaction_recipes')
-export class TransactionRecipe {
+export class TransactionRecipe extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true, type: 'bigint' })
   id: number
 
@@ -63,7 +63,7 @@ export class TransactionRecipe {
   @Column({ type: 'tinyint' })
   type: number
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime' })
+  @Column({ name: 'created_at', type: 'datetime', precision: 3 })
   createdAt: Date
 
   @Column({ name: 'body_bytes', type: 'blob' })

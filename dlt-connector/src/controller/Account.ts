@@ -11,7 +11,7 @@ import Decimal from 'decimal.js-light'
 const GMW_ACCOUNT_DERIVATION_INDEX = 1
 const AUF_ACCOUNT_DERIVATION_INDEX = 2
 
-export const createAccount = (
+export const create = (
   derivationIndex: number,
   derive2Pubkey: Buffer,
   type: AddressType,
@@ -20,7 +20,7 @@ export const createAccount = (
   if (derive2Pubkey.length !== 32) {
     throw new LogError('invalid public key size')
   }
-  const account = new Account()
+  const account = Account.create()
   account.derivationIndex = derivationIndex
   account.derive2Pubkey = derive2Pubkey
   account.type = type.valueOf()
@@ -34,7 +34,7 @@ export const createCommunitySpecialAccounts = (community: Community): void => {
 
   // create account for gmw account
   const gmwDerivationIndex = hardenDerivationIndex(GMW_ACCOUNT_DERIVATION_INDEX)
-  community.gmwAccount = createAccount(
+  community.gmwAccount = create(
     gmwDerivationIndex,
     km.derive([gmwDerivationIndex]).publicKey,
     AddressType.COMMUNITY_GMW,
@@ -43,7 +43,7 @@ export const createCommunitySpecialAccounts = (community: Community): void => {
 
   // create account for auf account
   const aufDerivationIndex = hardenDerivationIndex(AUF_ACCOUNT_DERIVATION_INDEX)
-  community.aufAccount = createAccount(
+  community.aufAccount = create(
     aufDerivationIndex,
     km.derive([aufDerivationIndex]).publicKey,
     AddressType.COMMUNITY_AUF,

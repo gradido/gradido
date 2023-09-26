@@ -66,6 +66,7 @@ export class CommunityResolver {
         KeyManager.getInstance().sign(transaction)
         const recipe = createTransactionRecipe(transaction)
         recipe.senderCommunity = community
+
         const queryRunner = getDataSource().createQueryRunner()
         await queryRunner.connect()
         await queryRunner.startTransaction()
@@ -85,11 +86,12 @@ export class CommunityResolver {
         } finally {
           await queryRunner.release()
         }
+
         return result
       } else {
         // foreign community are simply stored into db
         try {
-          await getDataSource().manager.save(community)
+          await community.save()
           return new TransactionResult()
         } catch (error) {
           logger.error('error saving new foreign community into db: %s', error)

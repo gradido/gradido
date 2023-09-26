@@ -43,6 +43,7 @@ export const determineCrossGroupType = ({
   type,
 }: TransactionDraft): CrossGroupType => {
   if (
+    !recipientUser.communityUuid ||
     recipientUser.communityUuid === '' ||
     senderUser.communityUuid === recipientUser.communityUuid ||
     type === TransactionType.CREATION

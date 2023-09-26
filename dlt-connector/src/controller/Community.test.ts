@@ -6,6 +6,7 @@ import { entropyToMnemonic, mnemonicToSeedSync } from 'bip39'
 import { generateFromSeed, toPublic, derivePrivate } from 'bip32-ed25519'
 import { AddressType } from '@/proto/3_3/enum/AddressType'
 import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
+import { TestDB } from '@test/TestDB'
 
 const rootKeysSeed = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899'
 CONFIG.IOTA_HOME_COMMUNITY_SEED = rootKeysSeed
@@ -54,6 +55,15 @@ describe('controller/Community', () => {
   })
 
   describe('createCommunity', () => {
+    beforeAll(async () => {
+      await TestDB.instance.setupTestDB()
+      // apolloTestServer = await createApolloTestServer()
+    })
+
+    afterAll(async () => {
+      await TestDB.instance.teardownTestDB()
+    })
+
     it('valid community', () => {
       const communityDraft = new CommunityDraft()
       communityDraft.foreign = false

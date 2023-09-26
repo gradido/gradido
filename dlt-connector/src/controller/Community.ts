@@ -1,6 +1,5 @@
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { Community } from '@entity/Community'
-import { getDataSource } from '@typeorm/DataSource'
 import { KeyManager } from './KeyManager'
 import { createCommunitySpecialAccounts } from './Account'
 import { KeyPair } from '@/model/KeyPair'
@@ -11,14 +10,14 @@ import { IsNull, Not } from 'typeorm'
 export const isExist = async (community: CommunityDraft | string): Promise<boolean> => {
   const iotaTopic =
     community instanceof CommunityDraft ? iotaTopicFromCommunityUUID(community.uuid) : community
-  const result = await getDataSource().manager.find(Community, {
+  const result = await Community.find({
     where: { iotaTopic },
   })
   return result.length > 0
 }
 
 export const create = (community: CommunityDraft, topic?: string): Community => {
-  const communityEntity = new Community()
+  const communityEntity = Community.create()
   communityEntity.iotaTopic = topic ?? iotaTopicFromCommunityUUID(community.uuid)
   communityEntity.createdAt = new Date(community.createdAt)
   communityEntity.foreign = community.foreign
@@ -30,7 +29,7 @@ export const create = (community: CommunityDraft, topic?: string): Community => 
 }
 
 export const find = async ({ uuid, foreign, confirmed }: CommunityArg): Promise<Community[]> => {
-  return await getDataSource().manager.find(Community, {
+  return await Community.find({
     where: {
       ...(uuid && { iotaTopic: iotaTopicFromCommunityUUID(uuid) }),
       ...(foreign && { foreign }),
@@ -40,12 +39,12 @@ export const find = async ({ uuid, foreign, confirmed }: CommunityArg): Promise<
 }
 
 export const getAllTopics = async (): Promise<string[]> => {
-  const communities = await getDataSource().manager.find(Community, { select: { iotaTopic: true } })
+  const communities = await Community.find({ select: { iotaTopic: true } })
   return communities.map((community) => community.iotaTopic)
 }
 
 export const loadHomeCommunityKeyPair = async (): Promise<KeyPair> => {
-  const community = await getDataSource().manager.findOneOrFail(Community, {
+  const community = await Community.findOneOrFail({
     where: { foreign: false },
     select: { rootChaincode: true, rootPubkey: true, rootPrivkey: true },
   })

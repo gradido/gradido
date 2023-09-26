@@ -2,10 +2,10 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   ManyToOne,
   OneToOne,
   JoinColumn,
+  BaseEntity,
 } from 'typeorm'
 import { Decimal } from 'decimal.js-light'
 
@@ -15,7 +15,7 @@ import { Community } from '../Community'
 import { ConfirmedTransaction } from '../ConfirmedTransaction'
 
 @Entity('transaction_recipes')
-export class TransactionRecipe {
+export class TransactionRecipe extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true, type: 'bigint' })
   id: number
 
@@ -24,6 +24,13 @@ export class TransactionRecipe {
 
   @Column({ name: 'backend_transaction_id', type: 'bigint', unsigned: true, nullable: true })
   backendTransactionId?: number
+
+  @OneToOne(() => TransactionRecipe)
+  // eslint-disable-next-line no-use-before-define
+  paringTransactionRecipe?: TransactionRecipe
+
+  @Column({ name: 'paring_transaction_recipe_id', type: 'bigint', unsigned: true, nullable: true })
+  paringTransactionRecipeId?: number
 
   // if transaction has a sender than it is also the sender account
   @ManyToOne(() => Account, (account) => account.transactionRecipesSigning)
@@ -66,7 +73,7 @@ export class TransactionRecipe {
   @Column({ type: 'tinyint' })
   type: number
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime' })
+  @Column({ name: 'created_at', type: 'datetime', precision: 3 })
   createdAt: Date
 
   @Column({ name: 'body_bytes', type: 'blob' })

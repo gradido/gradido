@@ -10,7 +10,7 @@ import { TimestampSeconds } from './TimestampSeconds'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
-export class GradidoConfirmedTransaction extends Message<GradidoConfirmedTransaction> {
+export class ConfirmedTransaction extends Message<ConfirmedTransaction> {
   @Field.d(1, 'uint64')
   id: number
 

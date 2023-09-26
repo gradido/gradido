@@ -2,17 +2,17 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   JoinColumn,
   OneToOne,
   OneToMany,
+  BaseEntity,
 } from 'typeorm'
 import { Account } from '../Account'
 import { TransactionRecipe } from '../TransactionRecipe'
 import { AccountCommunity } from '../AccountCommunity'
 
 @Entity('communities')
-export class Community {
+export class Community extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
@@ -45,7 +45,12 @@ export class Community {
   @JoinColumn({ name: 'auf_account_id' })
   aufAccount?: Account
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(3)' })
+  @Column({
+    name: 'created_at',
+    type: 'datetime',
+    precision: 3,
+    default: () => 'CURRENT_TIMESTAMP(3)',
+  })
   createdAt: Date
 
   @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })

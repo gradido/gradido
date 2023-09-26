@@ -6,13 +6,17 @@ import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
 export class GradidoTransfer extends Message<GradidoTransfer> {
-  constructor(transaction: TransactionDraft, coinOrigin?: string) {
-    super({
-      sender: new TransferAmount({
-        amount: transaction.amount.toString(),
-        communityId: coinOrigin,
-      }),
-    })
+  constructor(transaction?: TransactionDraft, coinOrigin?: string) {
+    if (transaction) {
+      super({
+        sender: new TransferAmount({
+          amount: transaction.amount.toString(),
+          communityId: coinOrigin,
+        }),
+      })
+    } else {
+      super()
+    }
   }
 
   @Field.d(1, TransferAmount)

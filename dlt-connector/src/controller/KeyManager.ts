@@ -11,6 +11,7 @@ import { LogError } from '@/server/LogError'
 import { KeyPair } from '../model/KeyPair'
 import { sign as signGradidoTransaction } from './GradidoTransaction'
 import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
+import { Key } from 'readline'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts
@@ -82,6 +83,11 @@ export class KeyManager {
     localKeys.forEach((keyPair: KeyPair) => {
       signGradidoTransaction(transaction, keyPair)
     })
+  }
+
+  public getHomeCommunityPublicKey(): Buffer | undefined {
+    if (!this.homeCommunityRootKeys) return undefined
+    return this.homeCommunityRootKeys.publicKey
   }
 
   public derive(path: number[], parentKeys?: KeyPair): KeyPair {
