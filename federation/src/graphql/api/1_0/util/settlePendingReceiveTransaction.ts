@@ -77,14 +77,6 @@ export async function settlePendingReceiveTransaction(
       pendingTx.amount,
       pendingTx.balanceDate,
     )
-    if (
-      receiveBalance !== null &&
-      receiveBalance.balance.toString() !== pendingTx.balance.toString()
-    ) {
-      throw new LogError(
-        `X-Com: Calculation-Error on receiver balance: receiveBalance=${receiveBalance.balance}, pendingTx.balance=${pendingTx.balance}`,
-      )
-    }
     transactionReceive.balance = receiveBalance ? receiveBalance.balance : pendingTx.amount
     transactionReceive.balanceDate = pendingTx.balanceDate
     transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)

@@ -1,7 +1,7 @@
 import { Decimal } from 'decimal.js-light'
-import { ArgsType, Field } from 'type-graphql'
+import { Field, InputType } from 'type-graphql'
 
-@ArgsType()
+@InputType()
 export class SendCoinsArgs {
   @Field(() => String)
   recipientCommunityUuid: string
