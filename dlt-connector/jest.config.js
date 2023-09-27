@@ -6,7 +6,7 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**', '!build/**'],
   coverageThreshold: {
     global: {
-      lines: 63,
+      lines: 77,
     },
   },
   setupFiles: ['<rootDir>/test/testSetup.ts'],
@@ -14,6 +14,8 @@ module.exports = {
   modulePathIgnorePatterns: ['<rootDir>/build/'],
   moduleNameMapper: {
     '@/(.*)': '<rootDir>/src/$1',
+    '@arg/(.*)': '<rootDir>/src/graphql/arg/$1',
+    '@controller/(.*)': '<rootDir>/src/controller/$1',
     '@enum/(.*)': '<rootDir>/src/graphql/enum/$1',
     '@resolver/(.*)': '<rootDir>/src/graphql/resolver/$1',
     '@input/(.*)': '<rootDir>/src/graphql/input/$1',
@@ -30,6 +32,7 @@ module.exports = {
       process.env.NODE_ENV === 'development'
         ? '<rootDir>/../database/src/$1'
         : '<rootDir>/../database/build/src/$1',
+    '@validator/(.*)': '<rootDir>/src/graphql/validator/$1',
   },
 }
 /*

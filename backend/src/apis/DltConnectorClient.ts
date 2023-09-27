@@ -78,27 +78,34 @@ export class DltConnectorClient {
    * transmit transaction via dlt-connector to iota
    * and update dltTransactionId of transaction in db with iota message id
    */
-  public async transmitTransaction(transaction?: DbTransaction | null): Promise<string> {
-    if (transaction) {
-      const typeString = getTransactionTypeString(transaction.typeId)
-      const secondsSinceEpoch = Math.round(transaction.balanceDate.getTime() / 1000)
-      const amountString = transaction.amount.toString()
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const { data } = await this.client.rawRequest(sendTransaction, {
-          input: {
-            type: typeString,
-            amount: amountString,
-            createdAt: secondsSinceEpoch,
+  public async transmitTransaction(
+    transaction: DbTransaction,
+    senderCommunityUuid?: string,
+    recipientCommunityUuid?: string,
+  ): Promise<string> {
+    const typeString = getTransactionTypeString(transaction.typeId)
+    const amountString = transaction.amount.toString()
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const { data } = await this.client.rawRequest(sendTransaction, {
+        input: {
+          senderUser: {
+            uuid: transaction.userGradidoID,
+            communityUuid: senderCommunityUuid,
           },
-        })
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-        return data.sendTransaction.dltTransactionIdHex
-      } catch (e) {
-        throw new LogError('Error send sending transaction to dlt-connector: ', e)
-      }
-    } else {
-      throw new LogError('parameter transaction not set...')
+          recipientUser: {
+            uuid: transaction.linkedUserGradidoID,
+            communityUuid: recipientCommunityUuid,
+          },
+          amount: amountString,
+          type: typeString,
+          createdAt: transaction.balanceDate.toString(),
+        },
+      })
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+      return data.sendTransaction.dltTransactionIdHex
+    } catch (e) {
+      throw new LogError('Error send sending transaction to dlt-connector: ', e)
     }
   }
 }
