@@ -163,16 +163,17 @@ services:
       - internal-net
       - external-net
     ports:
-      - 6000:6000
+      - 6010:6010
     restart: always
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
-      - PORT=6000
+      - PORT=6010
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
       - NODE_ENV="production"
+      - DB_HOST=mariadb
       # Application only envs
     volumes:
       # <host_machine_directory>:<container_directory> – mirror bidirectional path in local context with path in Docker container

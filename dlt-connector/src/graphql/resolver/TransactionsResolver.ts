@@ -1,9 +1,14 @@
 import { Resolver, Query, Arg, Mutation } from 'type-graphql'
 
-import { TransactionInput } from '@input/TransactionInput'
-import { TransactionBody } from '@proto/TransactionBody'
+import { TransactionDraft } from '@input/TransactionDraft'
+
+import { create as createTransactionBody } from '@controller/TransactionBody'
+import { create as createGradidoTransaction } from '@controller/GradidoTransaction'
 
 import { sendMessage as iotaSendMessage } from '@/client/IotaClient'
+import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
+import { TransactionResult } from '../model/TransactionResult'
+import { TransactionError } from '../model/TransactionError'
 
 @Resolver()
 export class TransactionResolver {
@@ -18,14 +23,23 @@ export class TransactionResolver {
     return '0.1'
   }
 
-  @Mutation(() => String)
+  @Mutation(() => TransactionResult)
   async sendTransaction(
     @Arg('data')
-    transaction: TransactionInput,
-  ): Promise<string> {
-    const message = TransactionBody.fromObject(transaction)
-    const messageBuffer = TransactionBody.encode(message).finish()
-    const resultMessage = await iotaSendMessage(messageBuffer)
-    return resultMessage.messageId
+    transaction: TransactionDraft,
+  ): Promise<TransactionResult> {
+    try {
+      const body = createTransactionBody(transaction)
+      const message = createGradidoTransaction(body)
+      const messageBuffer = GradidoTransaction.encode(message).finish()
+      const resultMessage = await iotaSendMessage(messageBuffer)
+      return new TransactionResult(resultMessage.messageId)
+    } catch (error) {
+      if (error instanceof TransactionError) {
+        return new TransactionResult(error)
+      } else {
+        throw error
+      }
+    }
   }
 }

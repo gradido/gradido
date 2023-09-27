@@ -1,12 +1,20 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToOne,
+  BaseEntity,
+} from 'typeorm'
 import { Decimal } from 'decimal.js-light'
 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
-import { Account } from './Account'
-import { TransactionRecipe } from './TransactionRecipe'
+import { Account } from '../Account'
+import { TransactionRecipe } from '../TransactionRecipe'
 
 @Entity('confirmed_transactions')
-export class ConfirmedTransaction {
+export class ConfirmedTransaction extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true, type: 'bigint' })
   id: number
 
@@ -44,6 +52,6 @@ export class ConfirmedTransaction {
   @Column({ name: 'iota_milestone', type: 'bigint' })
   iotaMilestone: number
 
-  @Column({ name: 'confirmed_at', type: 'datetime' })
+  @Column({ name: 'confirmed_at', type: 'datetime', precision: 3 })
   confirmedAt: Date
 }

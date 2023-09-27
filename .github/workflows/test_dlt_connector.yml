@@ -60,15 +60,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
-      - name: Download Docker Image
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-dlt-connector-test
-          path: /tmp
+            
+      - name: DLT-Connector | docker-compose mariadb
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
 
-      - name: Load Docker Image
-        run: docker load < /tmp/dlt-connector.tar
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
 
-      - name: Unit tests
-        run: docker run --env NODE_ENV=test --rm gradido/dlt-connector:test yarn run test
+      - name:  DLT-Connector | Unit tests
+        run: cd dlt-database && yarn && yarn build && cd ../dlt-connector && yarn && yarn test      
