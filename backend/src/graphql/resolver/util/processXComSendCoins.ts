@@ -174,7 +174,7 @@ export async function processXComCommittingSendCoins(
         logger.debug(`X-Com: ready for settleSendCoins with args=`, args)
         const acknoleged = await client.settleSendCoins(args)
         logger.debug(`X-Com: returnd from settleSendCoins:`, acknoleged)
-        if (acknoleged) {
+        if (acknowledge) {
           // settle the pending transaction on receiver-side was successfull, so now settle the sender side
           try {
             await settlePendingSenderTransaction(senderCom, sender, pendingTx)
