@@ -18,6 +18,15 @@ jest.mock('@typeorm/DataSource', () => ({
 }))
 
 describe('controller/Community', () => {
+  beforeAll(async () => {
+    await TestDB.instance.setupTestDB()
+    // apolloTestServer = await createApolloTestServer()
+  })
+
+  afterAll(async () => {
+    await TestDB.instance.teardownTestDB()
+  })
+
   // generate Home Community Extended Private Key manually to check if intern correct functions are called
   const mnemonic = entropyToMnemonic(rootKeysSeed)
   const seed = mnemonicToSeedSync(mnemonic)
@@ -61,15 +70,6 @@ describe('controller/Community', () => {
   })
 
   describe('createCommunity', () => {
-    beforeAll(async () => {
-      await TestDB.instance.setupTestDB()
-      // apolloTestServer = await createApolloTestServer()
-    })
-
-    afterAll(async () => {
-      await TestDB.instance.teardownTestDB()
-    })
-
     it('valid community', async () => {
       const communityDraft = new CommunityDraft()
       communityDraft.foreign = false
@@ -108,7 +108,9 @@ describe('controller/Community', () => {
   describe('list communities', () => {
     it('get all topics', async () => {
       expect(await findAll({ iotaTopic: true })).toMatchObject([
-        '204ef6aed15fbf0f9da5819e88f8eea8e3adbe1e2c2d43280780a4b8c2d32b56',
+        {
+          iotaTopic: '204ef6aed15fbf0f9da5819e88f8eea8e3adbe1e2c2d43280780a4b8c2d32b56',
+        },
       ])
     })
 

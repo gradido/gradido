@@ -34,7 +34,6 @@ export class CommunityRoot extends Message<CommunityRoot> implements Transaction
     throw new Error('Method not implemented.')
   }
 
-  public fillTransactionRecipe(recipe: TransactionRecipe): void {
-    throw new Error('Method not implemented.')
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+  public fillTransactionRecipe(recipe: TransactionRecipe): void {}
 }
