@@ -134,11 +134,7 @@ describe('transmitTransaction', () => {
     const localTransaction = new DbTransaction()
     localTransaction.typeId = 12
     try {
-      await DltConnectorClient.getInstance()?.transmitTransaction(
-        localTransaction,
-        'senderCommunityUUid',
-        'recipientCommunity',
-      )
+      await DltConnectorClient.getInstance()?.transmitTransaction(localTransaction)
     } catch (e) {
       expect(e).toMatchObject(
         new LogError('invalid transaction type id: ' + localTransaction.typeId.toString()),

@@ -33,7 +33,7 @@ describe('graphql/resolver/CommunityResolver', () => {
           input: {
             uuid: '3d813cbb-37fb-42ba-91df-831e1593ac29',
             foreign: true,
-            createdAt: '2012-04-17T17:12:00Z',
+            createdAt: '2012-04-17T17:12:00.0012Z',
           },
         },
       })
@@ -50,7 +50,7 @@ describe('graphql/resolver/CommunityResolver', () => {
           input: {
             uuid: '3d823cad-37fb-41cd-91df-152e1593ac29',
             foreign: false,
-            createdAt: '2012-05-12T13:12:00Z',
+            createdAt: '2012-05-12T13:12:00.2917Z',
           },
         },
       })
@@ -58,6 +58,23 @@ describe('graphql/resolver/CommunityResolver', () => {
       expect(response.body.singleResult.errors).toBeUndefined()
       const transactionResult = response.body.singleResult.data?.addCommunity as TransactionResult
       expect(transactionResult.succeed).toEqual(true)
+    })
+
+    it('test add existing community', async () => {
+      const response = await apolloTestServer.executeOperation({
+        query: 'mutation ($input: CommunityDraft!) { addCommunity(data: $input) {succeed} }',
+        variables: {
+          input: {
+            uuid: '3d823cad-37fb-41cd-91df-152e1593ac29',
+            foreign: false,
+            createdAt: '2012-05-12T13:12:00.1271Z',
+          },
+        },
+      })
+      assert(response.body.kind === 'single')
+      expect(response.body.singleResult.errors).toBeUndefined()
+      const transactionResult = response.body.singleResult.data?.addCommunity as TransactionResult
+      expect(transactionResult.succeed).toEqual(false)
     })
   })
 })

@@ -5,6 +5,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import { SendCoinsArgs } from './model/SendCoinsArgs'
+import { revertSendCoins } from './query/revertSendCoins'
 import { voteForSendCoins } from './query/voteForSendCoins'
 
 // eslint-disable-next-line camelcase
@@ -28,7 +29,7 @@ export class SendCoinsClient {
   }
 
   voteForSendCoins = async (args: SendCoinsArgs): Promise<string | undefined> => {
-    logger.debug('X-Com: voteForSendCoins against endpoint', this.endpoint)
+    logger.debug('X-Com: voteForSendCoins against endpoint=', this.endpoint)
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { data } = await this.client.rawRequest(voteForSendCoins, { args })
@@ -53,24 +54,25 @@ export class SendCoinsClient {
     }
   }
 
-  /*
   revertSendCoins = async (args: SendCoinsArgs): Promise<boolean> => {
-    logger.debug(`X-Com: revertSendCoins against endpoint='${this.endpoint}'...`)
+    logger.debug('X-Com: revertSendCoins against endpoint=', this.endpoint)
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { data } = await this.client.rawRequest(revertSendCoins, { args })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!data?.revertSendCoins?.acknowledged) {
+      if (!data?.revertSendCoins?.revertSendCoins) {
         logger.warn('X-Com: revertSendCoins without response data from endpoint', this.endpoint)
         return false
       }
       logger.debug(`X-Com: revertSendCoins successful from endpoint=${this.endpoint}`)
       return true
     } catch (err) {
-      throw new LogError(`X-Com: revertSendCoins failed for endpoint=${this.endpoint}`, err)
+      logger.error(`X-Com: revertSendCoins failed for endpoint=${this.endpoint}`, err)
+      return false
     }
   }
 
+  /*
   commitSendCoins = async (args: SendCoinsArgs): Promise<boolean> => {
     logger.debug(`X-Com: commitSendCoins against endpoint='${this.endpoint}'...`)
     try {

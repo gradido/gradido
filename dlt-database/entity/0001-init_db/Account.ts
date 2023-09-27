@@ -60,7 +60,7 @@ export class Account extends BaseEntity {
     name: 'balance_date',
     type: 'datetime',
     precision: 3,
-    default: () => 'CURRENT_TIMESTAMP()',
+    default: () => 'CURRENT_TIMESTAMP(3)',
   })
   balanceDate: Date
 

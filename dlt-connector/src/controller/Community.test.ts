@@ -1,15 +1,21 @@
 import 'reflect-metadata'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import { create as createCommunity } from './Community'
 import { CONFIG } from '@/config'
 import { entropyToMnemonic, mnemonicToSeedSync } from 'bip39'
 import { generateFromSeed, toPublic, derivePrivate } from 'bip32-ed25519'
 import { AddressType } from '@/proto/3_3/enum/AddressType'
 import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 import { TestDB } from '@test/TestDB'
+import { create as createCommunity, findAll, isExist } from './Community'
+import { getDataSource } from '@/typeorm/DataSource'
+import { Community } from '@entity/Community'
 
 const rootKeysSeed = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899'
 CONFIG.IOTA_HOME_COMMUNITY_SEED = rootKeysSeed
+
+jest.mock('@typeorm/DataSource', () => ({
+  getDataSource: () => TestDB.instance.dbConnect,
+}))
 
 describe('controller/Community', () => {
   // generate Home Community Extended Private Key manually to check if intern correct functions are called
@@ -64,7 +70,7 @@ describe('controller/Community', () => {
       await TestDB.instance.teardownTestDB()
     })
 
-    it('valid community', () => {
+    it('valid community', async () => {
       const communityDraft = new CommunityDraft()
       communityDraft.foreign = false
       communityDraft.createdAt = '2022-05-01T17:00:12.128Z'
@@ -94,6 +100,30 @@ describe('controller/Community', () => {
           type: AddressType.COMMUNITY_AUF,
           createdAt: createdAtDate,
         },
+      })
+      await getDataSource().manager.save(communityEntity)
+    })
+  })
+
+  describe('list communities', () => {
+    it('get all topics', async () => {
+      expect(await findAll({ iotaTopic: true })).toMatchObject([
+        '204ef6aed15fbf0f9da5819e88f8eea8e3adbe1e2c2d43280780a4b8c2d32b56',
+      ])
+    })
+
+    it('isExist with communityDraft', async () => {
+      const communityDraft = new CommunityDraft()
+      communityDraft.foreign = false
+      communityDraft.createdAt = '2022-05-01T17:00:12.128Z'
+      communityDraft.uuid = '3d813cbb-47fb-32ba-91df-831e1593ac29'
+      expect(await isExist(communityDraft)).toBe(true)
+    })
+
+    it('createdAt with ms precision', async () => {
+      const list = await Community.findOne({ where: { foreign: false } })
+      expect(list).toMatchObject({
+        createdAt: new Date('2022-05-01T17:00:12.128Z'),
       })
     })
   })
