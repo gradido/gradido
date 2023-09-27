@@ -4,6 +4,9 @@ import { LogError } from '@/server/LogError'
 import { KeyManager } from './KeyManager'
 import { uuid4ToBuffer } from '@/utils/typeConverter'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
+import { UserIdentifier } from '@/graphql/input/UserIdentifier'
+import { In } from 'typeorm'
+import { Account } from '@entity/Account'
 
 export const getKeyPair = (user: User): KeyPair => {
   if (!user.gradidoID) {

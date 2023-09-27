@@ -9,13 +9,14 @@ import { TransactionBase } from '@/controller/TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { TransactionRecipe } from '@entity/TransactionRecipe'
 import Decimal from 'decimal.js-light'
+import { Account } from '@entity/Account'
 
 // need signature from group admin or
 // percent of group users another than the receiver
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
 export class GradidoCreation extends Message<GradidoCreation> implements TransactionBase {
-  constructor(transaction: TransactionDraft) {
+  constructor(transaction: TransactionDraft, recipientAccount?: Account) {
     if (!transaction.targetDate) {
       throw new TransactionError(
         TransactionErrorType.MISSING_PARAMETER,
@@ -23,7 +24,10 @@ export class GradidoCreation extends Message<GradidoCreation> implements Transac
       )
     }
     super({
-      recipient: new TransferAmount({ amount: transaction.amount.toString() }),
+      recipient: new TransferAmount({
+        amount: transaction.amount.toString(),
+        pubkey: recipientAccount?.derive2Pubkey,
+      }),
       targetDate: new TimestampSeconds(new Date(transaction.targetDate)),
     })
   }

@@ -6,17 +6,25 @@ import { TransactionBase } from '@/controller/TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { TransactionRecipe } from '@entity/TransactionRecipe'
 import Decimal from 'decimal.js-light'
+import { Account } from '@entity/Account'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
 export class GradidoTransfer extends Message<GradidoTransfer> implements TransactionBase {
-  constructor(transaction?: TransactionDraft, coinOrigin?: string) {
+  constructor(
+    transaction?: TransactionDraft,
+    signingAccount?: Account,
+    recipientAccount?: Account,
+    coinOrigin?: string,
+  ) {
     if (transaction) {
       super({
         sender: new TransferAmount({
           amount: transaction.amount.toString(),
+          pubkey: signingAccount?.derive2Pubkey,
           communityId: coinOrigin,
         }),
+        recipient: recipientAccount?.derive2Pubkey,
       })
     } else {
       super()

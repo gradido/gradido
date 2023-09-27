@@ -79,7 +79,7 @@ export class TransactionRecipe extends BaseEntity {
   @Column({ name: 'body_bytes', type: 'blob' })
   bodyBytes: Buffer
 
-  @Column({ type: 'binary', length: 64 })
+  @Column({ type: 'binary', length: 64, unique: true })
   signature: Buffer
 
   @Column({ name: 'protocol_version', type: 'varchar', length: 255, default: '1' })

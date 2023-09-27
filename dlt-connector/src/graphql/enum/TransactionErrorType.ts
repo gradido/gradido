@@ -8,6 +8,7 @@ export enum TransactionErrorType {
   PROTO_DECODE_ERROR = 'Proto Decode Error',
   INVALID_SIGNATURE = 'Invalid Signature',
   LOGIC_ERROR = 'Logic Error',
+  NOT_FOUND = 'Not found',
 }
 
 registerEnumType(TransactionErrorType, {

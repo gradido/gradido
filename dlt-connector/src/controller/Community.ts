@@ -6,6 +6,8 @@ import { KeyPair } from '@/model/KeyPair'
 import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 import { CommunityArg } from '@/graphql/arg/CommunityArg'
 import { FindOptionsSelect, In, IsNull, Not } from 'typeorm'
+import { UserIdentifier } from '@/graphql/input/UserIdentifier'
+import { TransactionsManager } from './TransactionsManager'
 
 export const isExist = async (community: CommunityDraft | string): Promise<boolean> => {
   const iotaTopic =
@@ -40,6 +42,15 @@ export const find = async ({ uuid, foreign, confirmed }: CommunityArg): Promise<
 
 export const findCommunitiesByTopics = (topics: string[]): Promise<Community[]> => {
   return Community.findBy({ iotaTopic: In(topics) })
+}
+
+export const getCommunityForUserIdentifier = async (
+  identifier: UserIdentifier,
+): Promise<Community | undefined> => {
+  const topic = identifier.communityUuid
+    ? iotaTopicFromCommunityUUID(identifier.communityUuid)
+    : TransactionsManager.getInstance().getHomeCommunityTopic()
+  return (await Community.findOneBy({ iotaTopic: topic })) ?? undefined
 }
 
 export const findAll = (select: FindOptionsSelect<Community>): Promise<Community[]> => {

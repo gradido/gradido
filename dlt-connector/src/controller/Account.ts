@@ -8,6 +8,8 @@ import { getKeyPair as getUserKeyPair } from './User'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
 import Decimal from 'decimal.js-light'
 import { In } from '@dbTools/typeorm'
+import { UserIdentifier } from '@/graphql/input/UserIdentifier'
+import { User } from '@entity/User'
 
 const GMW_ACCOUNT_DERIVATION_INDEX = 1
 const AUF_ACCOUNT_DERIVATION_INDEX = 2
@@ -34,6 +36,13 @@ export const findAccountsByPublicKeys = (publicKeys: Buffer[]): Promise<Account[
   return Account.findBy({ derive2Pubkey: In(publicKeys) })
 }
 
+export const findAccountByPublicKey = async (
+  publicKey: Buffer | undefined,
+): Promise<Account | undefined> => {
+  if (!publicKey) return undefined
+  return (await Account.findOneBy({ derive2Pubkey: publicKey })) ?? undefined
+}
+
 export const createCommunitySpecialAccounts = (community: Community): void => {
   const km = KeyManager.getInstance()
 
@@ -54,6 +63,17 @@ export const createCommunitySpecialAccounts = (community: Community): void => {
     AddressType.COMMUNITY_AUF,
     community.createdAt,
   )
+}
+
+export const findAccountByUserIdentifier = async ({
+  uuid,
+  accountNr,
+}: UserIdentifier): Promise<Account | undefined> => {
+  const account = await User.findOne({
+    where: { gradidoID: uuid, accounts: { derivationIndex: accountNr ?? 1 } },
+    relations: ['accounts'],
+  })
+  return account?.accounts?.[0]
 }
 
 export const getKeyPair = (account: Account): KeyPair | null => {

@@ -11,9 +11,9 @@ import { TransactionRecipe as TransactionRecipeEntity } from '@entity/Transactio
 import { IsNull, Not } from 'typeorm'
 import { verify } from './GradidoTransaction'
 import { Account } from '@entity/Account'
-import { findAccountsByPublicKeys } from './Account'
+import { findAccountByPublicKey, findAccountsByPublicKeys } from './Account'
 import { TransactionsManager } from './TransactionsManager'
-import { findCommunitiesByTopics } from './Community'
+import { findCommunitiesByTopics, getCommunityForUserIdentifier } from './Community'
 import { Community } from '@entity/Community'
 
 export class TransactionRecipe {
@@ -46,6 +46,8 @@ export class TransactionRecipe {
   public static async create(
     transaction: GradidoTransaction,
     transactionDraft?: TransactionDraft,
+    signingAccount?: Account,
+    recipientAccount?: Account,
   ): Promise<TransactionRecipe> {
     const recipeEntity = TransactionRecipeEntity.create()
     const recipe = new TransactionRecipe(recipeEntity)
@@ -61,50 +63,24 @@ export class TransactionRecipe {
       throw new LogError("signature count don't like expected")
     }
     const firstSigPair = transaction.sigMap.sigPair[0]
+
+    // get recipient and signer accounts if not already set
+    recipeEntity.signingAccount =
+      signingAccount ?? (await findAccountByPublicKey(firstSigPair.pubKey))
     recipeEntity.signature = firstSigPair.signature
-    // get recipient and signer accounts
-    const recipientPublicKey = body.getRecipientPublicKey()
-    const publicKeys = [firstSigPair.pubKey]
-    if (recipientPublicKey) {
-      publicKeys.push(recipientPublicKey)
-    }
-    // why put them in a array? To reduce db calls
-    const accounts = await findAccountsByPublicKeys(publicKeys)
-    accounts.forEach((account: Account) => {
-      if (account.derive2Pubkey.compare(firstSigPair.pubKey) === 0) {
-        recipeEntity.signingAccount = account
-      } else if (recipientPublicKey && account.derive2Pubkey.compare(recipientPublicKey) === 0) {
-        recipeEntity.recipientAccount = account
-      }
-    })
+    recipeEntity.recipientAccount =
+      recipientAccount ?? (await findAccountByPublicKey(body.getRecipientPublicKey()))
 
     if (transactionDraft) {
       // get recipient and sender community
-      const homeCommunityTopic = TransactionsManager.getInstance().getHomeCommunityTopic()
-      let senderCommunityTopic = homeCommunityTopic
-      if (transactionDraft.senderUser.communityUuid) {
-        senderCommunityTopic = iotaTopicFromCommunityUUID(transactionDraft.senderUser.communityUuid)
+      const senderCommunity = await getCommunityForUserIdentifier(transactionDraft.senderUser)
+      if (!senderCommunity) {
+        throw new LogError("couldn't find sender community for transaction")
       }
-      let recipientCommunityTopic = homeCommunityTopic
-      if (transactionDraft.recipientUser.communityUuid) {
-        recipientCommunityTopic = iotaTopicFromCommunityUUID(
-          transactionDraft.recipientUser.communityUuid,
-        )
-      }
-      const communities = await findCommunitiesByTopics(
-        [senderCommunityTopic, recipientCommunityTopic].filter(
-          (value, index, array) => array.indexOf(value) === index,
-        ),
+      recipeEntity.senderCommunity = senderCommunity
+      recipeEntity.recipientCommunity = await getCommunityForUserIdentifier(
+        transactionDraft.recipientUser,
       )
-      communities.forEach((community: Community) => {
-        // sender and recipient community can be the same, therefore no else if
-        if (community.iotaTopic === senderCommunityTopic) {
-          recipeEntity.senderCommunity = community
-        }
-        if (community.iotaTopic === recipientCommunityTopic) {
-          recipeEntity.recipientCommunity = community
-        }
-      })
 
       if (recipeEntity.amount !== transactionDraft.amount) {
         throw new TransactionError(
@@ -170,4 +146,8 @@ export const getNextPendingTransaction = async (): Promise<TransactionRecipeEnti
     where: { iotaMessageId: Not(IsNull()) },
     order: { createdAt: 'ASC' },
   })
+}
+
+export const findBySignature = (signature: Buffer): Promise<TransactionRecipeEntity | null> => {
+  return TransactionRecipeEntity.findOneBy({ signature })
 }

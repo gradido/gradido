@@ -18,6 +18,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(
     `ALTER TABLE \`transaction_recipes\` MODIFY COLUMN \`signing_account_id\` int(10) unsigned NULL DEFAULT NULL;`,
   )
+  await queryFn(`ALTER TABLE \`transaction_recipes\` ADD UNIQUE KEY \`signature\` (\`signature\`);`)
 
   await queryFn(
     `ALTER TABLE \`confirmed_transactions\` MODIFY COLUMN  \`account_id\` int(10) unsigned NULL DEFAULT NULL;`,
@@ -39,6 +40,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn(
     `ALTER TABLE \`transaction_recipes\` MODIFY COLUMN \`signing_account_id\` int(10) unsigned NOT NULL;`,
   )
+  await queryFn(`ALTER TABLE \`transaction_recipes\` DROP INDEX \`signature\`;`)
   await queryFn(
     `ALTER TABLE \`confirmed_transactions\` MODIFY COLUMN  \`account_id\` int(10) unsigned NOT NULL;`,
   )
