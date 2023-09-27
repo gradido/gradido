@@ -44,7 +44,7 @@ export class Account extends BaseEntity {
   })
   createdAt: Date
 
-  @Column({ name: 'confirmed_at', type: 'datetime', precision: 3, nullable: true })
+  @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })
   confirmedAt?: Date
 
   @Column({
@@ -59,8 +59,7 @@ export class Account extends BaseEntity {
   @Column({
     name: 'balance_date',
     type: 'datetime',
-    precision: 3,
-    default: () => 'CURRENT_TIMESTAMP(3)',
+    default: () => 'CURRENT_TIMESTAMP()',
   })
   balanceDate: Date
 

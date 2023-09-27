@@ -29,7 +29,6 @@ export class User extends BaseEntity {
   @Column({
     name: 'confirmed_at',
     type: 'datetime',
-    precision: 3,
     nullable: true,
   })
   confirmedAt?: Date

@@ -10,7 +10,7 @@ export function isValidDateString(validationOptions?: ValidationOptions) {
       options: validationOptions,
       validator: {
         validate(value: string): boolean {
-          return new Date(value).toString() !== 'Invalid Date'
+          return !isNaN(Date.parse(value))
         },
         defaultMessage(): string {
           return `${propertyName} must be a valid date string`

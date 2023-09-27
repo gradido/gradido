@@ -19,10 +19,10 @@ export class Community extends BaseEntity {
   @Column({ name: 'iota_topic', collation: 'utf8mb4_unicode_ci' })
   iotaTopic: string
 
-  @Column({ name: 'root_pubkey', type: 'binary', length: 32, unique: true })
-  rootPubkey: Buffer
+  @Column({ name: 'root_pubkey', type: 'binary', length: 32, unique: true, nullable: true })
+  rootPubkey?: Buffer
 
-  @Column({ name: 'root_privkey', type: 'binary', length: 32, nullable: true })
+  @Column({ name: 'root_privkey', type: 'binary', length: 64, nullable: true })
   rootPrivkey?: Buffer
 
   @Column({ name: 'root_chaincode', type: 'binary', length: 32, nullable: true })
@@ -53,7 +53,7 @@ export class Community extends BaseEntity {
   })
   createdAt: Date
 
-  @Column({ name: 'confirmed_at', type: 'datetime', precision: 3, nullable: true })
+  @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })
   confirmedAt?: Date
 
   @OneToMany(() => AccountCommunity, (accountCommunity) => accountCommunity.community)
