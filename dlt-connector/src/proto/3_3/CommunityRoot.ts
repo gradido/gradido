@@ -1,9 +1,12 @@
+import { TransactionBase } from '@/controller/TransactionBase'
+import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Field, Message } from '@apollo/protobufjs'
 import { Community } from '@entity/Community'
+import { TransactionRecipe } from '@entity/TransactionRecipe'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
-export class CommunityRoot extends Message<CommunityRoot> {
+export class CommunityRoot extends Message<CommunityRoot> implements TransactionBase {
   public constructor(community?: Community) {
     if (community) {
       super({
@@ -26,4 +29,12 @@ export class CommunityRoot extends Message<CommunityRoot> {
   // community compensation and environment founds account
   @Field.d(3, 'bytes')
   public aufPubkey: Buffer
+
+  public validate(level: TransactionValidationLevel): boolean {
+    throw new Error('Method not implemented.')
+  }
+
+  public fillTransactionRecipe(recipe: TransactionRecipe): void {
+    throw new Error('Method not implemented.')
+  }
 }

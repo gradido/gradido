@@ -44,21 +44,23 @@ export const confirmFromNodeServer = async (
     .filter((messageId) => !!messageId)
   // find message ids for which we don't already have a transaction recipe
   const missingMessageIds = messageIDs.filter((id) => !foundMessageIds.includes(id))
-  const newRecipes = missingMessageIds.map((messageId: Buffer) => {
-    const confirmedTransaction = sortByMessageId.get(messageId)
-    if (!confirmedTransaction) {
-      throw new LogError('transaction for message id not longer exist')
-    }
-    const recipe = TransactionRecipe.create(confirmedTransaction.transaction)
-    const recipeEntity = recipe.getTransactionRecipeEntity()
-    if (confirmedTransaction.transaction.parentMessageId) {
-      throw new LogError(
-        'cross group paring transaction found, please add code for handling it properly!',
-      )
-    }
-    recipeEntity.iotaMessageId = messageId
-    return recipe
-  })
+  const newRecipes = await Promise.all(
+    missingMessageIds.map(async (messageId: Buffer) => {
+      const confirmedTransaction = sortByMessageId.get(messageId)
+      if (!confirmedTransaction) {
+        throw new LogError('transaction for message id not longer exist')
+      }
+      const recipe = await TransactionRecipe.create(confirmedTransaction.transaction)
+      const recipeEntity = recipe.getTransactionRecipeEntity()
+      if (confirmedTransaction.transaction.parentMessageId) {
+        throw new LogError(
+          'cross group paring transaction found, please add code for handling it properly!',
+        )
+      }
+      recipeEntity.iotaMessageId = messageId
+      return recipe
+    }),
+  )
   // save new transaction recipes
   const storedRecipes = await TransactionRecipeEntity.save(
     newRecipes.map((recipe: TransactionRecipe) => recipe.getTransactionRecipeEntity()),

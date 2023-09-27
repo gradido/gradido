@@ -5,12 +5,16 @@ import { TransferAmount } from './TransferAmount'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { TransactionBase } from '@/controller/TransactionBase'
+import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
+import { TransactionRecipe } from '@entity/TransactionRecipe'
+import Decimal from 'decimal.js-light'
 
 // need signature from group admin or
 // percent of group users another than the receiver
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
-export class GradidoCreation extends Message<GradidoCreation> {
+export class GradidoCreation extends Message<GradidoCreation> implements TransactionBase {
   constructor(transaction: TransactionDraft) {
     if (!transaction.targetDate) {
       throw new TransactionError(
@@ -29,4 +33,12 @@ export class GradidoCreation extends Message<GradidoCreation> {
 
   @Field.d(3, 'TimestampSeconds')
   public targetDate: TimestampSeconds
+
+  public validate(level: TransactionValidationLevel): boolean {
+    throw new Error('Method not implemented.')
+  }
+
+  public fillTransactionRecipe(recipe: TransactionRecipe): void {
+    recipe.amount = new Decimal(this.recipient.amount ?? 0)
+  }
 }

@@ -1,7 +1,4 @@
-import {
-  decodeGradidoTransaction,
-  getNextPendingTransaction,
-} from '../controller/TransactionRecipe'
+import { TransactionRecipe, getNextPendingTransaction } from '../controller/TransactionRecipe'
 import { GradidoTransaction } from '../proto/3_3/GradidoTransaction'
 import { sendMessage as iotaSendMessage } from '../client/IotaClient'
 import { CrossGroupType } from '../proto/3_3/enum/CrossGroupType'
@@ -38,7 +35,8 @@ export const transmitToIota = async (): Promise<void> => {
         )
         continue
       }
-      const { transaction, body } = decodeGradidoTransaction(recipe)
+      const recipeController = new TransactionRecipe(recipe)
+      const { transaction, body } = recipeController.getGradidoTransaction()
       const messageBuffer = GradidoTransaction.encode(transaction).finish()
       if (body.type === CrossGroupType.LOCAL) {
         const resultMessage = await iotaSendMessage(messageBuffer, recipe.senderCommunity.iotaTopic)

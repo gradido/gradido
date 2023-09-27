@@ -6,12 +6,15 @@ import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
 import { TransactionBody } from '@/proto/3_3/TransactionBody'
 import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
-import { timestampToDate } from '@/utils/typeConverter'
+import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 import { TransactionRecipe as TransactionRecipeEntity } from '@entity/TransactionRecipe'
 import { IsNull, Not } from 'typeorm'
 import { verify } from './GradidoTransaction'
-import Decimal from 'decimal.js-light'
 import { Account } from '@entity/Account'
+import { findAccountsByPublicKeys } from './Account'
+import { TransactionsManager } from './TransactionsManager'
+import { findCommunitiesByTopics } from './Community'
+import { Community } from '@entity/Community'
 
 export class TransactionRecipe {
   private recipeEntity: TransactionRecipeEntity
@@ -40,10 +43,10 @@ export class TransactionRecipe {
     return this.recipeEntity
   }
 
-  public static create(
+  public static async create(
     transaction: GradidoTransaction,
     transactionDraft?: TransactionDraft,
-  ): TransactionRecipe {
+  ): Promise<TransactionRecipe> {
     const recipeEntity = TransactionRecipeEntity.create()
     const recipe = new TransactionRecipe(recipeEntity)
     if (transactionDraft) {
@@ -51,39 +54,58 @@ export class TransactionRecipe {
     }
     recipeEntity.bodyBytes = transaction.bodyBytes
     const body = recipe.getBody()
+    body.fillTransactionRecipe(recipeEntity)
 
-    recipeEntity.protocolVersion = body.versionNumber
-    recipeEntity.createdAt = timestampToDate(body.createdAt)
     // TODO: adapt if transactions with more than one signatures where added
     if (transaction.sigMap.sigPair.length !== 1) {
       throw new LogError("signature count don't like expected")
     }
-    recipeEntity.signature = transaction.sigMap.sigPair[0].signature
-    const transactionType = body.getTransactionType()
-    if (!transactionType) {
-      throw new LogError("invalid TransactionBody couldn't determine transaction type")
+    const firstSigPair = transaction.sigMap.sigPair[0]
+    recipeEntity.signature = firstSigPair.signature
+    // get recipient and signer accounts
+    const recipientPublicKey = body.getRecipientPublicKey()
+    const publicKeys = [firstSigPair.pubKey]
+    if (recipientPublicKey) {
+      publicKeys.push(recipientPublicKey)
     }
-    recipeEntity.type = transactionType.valueOf()
+    // why put them in a array? To reduce db calls
+    const accounts = await findAccountsByPublicKeys(publicKeys)
+    accounts.forEach((account: Account) => {
+      if (account.derive2Pubkey.compare(firstSigPair.pubKey) === 0) {
+        recipeEntity.signingAccount = account
+      } else if (recipientPublicKey && account.derive2Pubkey.compare(recipientPublicKey) === 0) {
+        recipeEntity.recipientAccount = account
+      }
+    })
 
-    switch (transactionType) {
-      case TransactionType.COMMUNITY_ROOT:
-        break
-      case TransactionType.GRADIDO_TRANSFER:
-        recipeEntity.amount = new Decimal(body.transfer?.sender?.amount ?? 0)
-        break
-      case TransactionType.GRADIDO_DEFERRED_TRANSFER:
-        recipeEntity.amount = new Decimal(body.deferredTransfer?.transfer.sender.amount ?? 0)
-        break
-      case TransactionType.GRADIDO_CREATION:
-        recipeEntity.amount = new Decimal(body.creation?.recipient.amount ?? 0)
-        break
-      default:
-        throw new TransactionError(
-          TransactionErrorType.NOT_IMPLEMENTED_YET,
-          'TransactionRecipe creation not yet implemented for: ' + transactionType.toString(),
-        )
-    }
     if (transactionDraft) {
+      // get recipient and sender community
+      const homeCommunityTopic = TransactionsManager.getInstance().getHomeCommunityTopic()
+      let senderCommunityTopic = homeCommunityTopic
+      if (transactionDraft.senderUser.communityUuid) {
+        senderCommunityTopic = iotaTopicFromCommunityUUID(transactionDraft.senderUser.communityUuid)
+      }
+      let recipientCommunityTopic = homeCommunityTopic
+      if (transactionDraft.recipientUser.communityUuid) {
+        recipientCommunityTopic = iotaTopicFromCommunityUUID(
+          transactionDraft.recipientUser.communityUuid,
+        )
+      }
+      const communities = await findCommunitiesByTopics(
+        [senderCommunityTopic, recipientCommunityTopic].filter(
+          (value, index, array) => array.indexOf(value) === index,
+        ),
+      )
+      communities.forEach((community: Community) => {
+        // sender and recipient community can be the same, therefore no else if
+        if (community.iotaTopic === senderCommunityTopic) {
+          recipeEntity.senderCommunity = community
+        }
+        if (community.iotaTopic === recipientCommunityTopic) {
+          recipeEntity.recipientCommunity = community
+        }
+      })
+
       if (recipeEntity.amount !== transactionDraft.amount) {
         throw new TransactionError(
           TransactionErrorType.LOGIC_ERROR,

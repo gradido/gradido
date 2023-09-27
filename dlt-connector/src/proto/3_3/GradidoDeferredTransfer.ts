@@ -2,6 +2,10 @@ import { Field, Message } from '@apollo/protobufjs'
 
 import { GradidoTransfer } from './GradidoTransfer'
 import { TimestampSeconds } from './TimestampSeconds'
+import { TransactionBase } from '@/controller/TransactionBase'
+import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
+import { TransactionRecipe } from '@entity/TransactionRecipe'
+import Decimal from 'decimal.js-light'
 
 // transaction type for chargeable transactions
 // for transaction for people which haven't a account already
@@ -10,8 +14,11 @@ import { TimestampSeconds } from './TimestampSeconds'
 // seed must be long enough to prevent brute force, maybe base64 encoded
 // to own account
 // https://www.npmjs.com/package/@apollo/protobufjs
-// eslint-disable-next-line no-use-before-define
-export class GradidoDeferredTransfer extends Message<GradidoDeferredTransfer> {
+export class GradidoDeferredTransfer
+  // eslint-disable-next-line no-use-before-define
+  extends Message<GradidoDeferredTransfer>
+  implements TransactionBase
+{
   // amount is amount with decay for time span between transaction was received and timeout
   // useable amount can be calculated
   // recipient address don't need to be registered in blockchain with register address
@@ -28,4 +35,12 @@ export class GradidoDeferredTransfer extends Message<GradidoDeferredTransfer> {
 
   // split for n recipient
   // max gradido per recipient? or per transaction with cool down?
+
+  public validate(level: TransactionValidationLevel): boolean {
+    throw new Error('Method not implemented.')
+  }
+
+  public fillTransactionRecipe(recipe: TransactionRecipe): void {
+    recipe.amount = new Decimal(this.transfer.sender.amount ?? 0)
+  }
 }

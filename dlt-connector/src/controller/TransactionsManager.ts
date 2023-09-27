@@ -6,10 +6,8 @@
  */
 
 import { receiveAllMessagesForTopic } from '@/client/IotaClient'
-import { getAllTopics } from './Community'
+import { findAll as findAllCommunities } from './Community'
 import { getTransactions } from '@/client/GradidoNode'
-import { Resolver } from 'type-graphql'
-import { ConfirmedTransaction } from '@entity/ConfirmedTransaction'
 import { confirmFromNodeServer } from './ConfirmedTransaction'
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -17,6 +15,7 @@ export class TransactionsManager {
   // eslint-disable-next-line no-use-before-define
   private static instance: TransactionsManager
   private topicsForListening: string[]
+  private homeCommunityTopic: string
 
   /**
    * The Singleton's constructor should always be private to prevent direct
@@ -40,8 +39,11 @@ export class TransactionsManager {
 
   public async init(): Promise<void[]> {
     return Promise.all(
-      (await getAllTopics()).map((topic) => {
-        return this.addTopic(topic)
+      (await findAllCommunities({ iotaTopic: true, foreign: true })).map((community) => {
+        if (community.foreign) {
+          this.homeCommunityTopic = community.iotaTopic
+        }
+        return this.addTopic(community.iotaTopic)
       }),
     )
   }
@@ -66,5 +68,9 @@ export class TransactionsManager {
   public async isTopicIsEmpty(iotaTopic: Buffer): Promise<boolean> {
     const messageIds = await receiveAllMessagesForTopic(new Uint8Array(iotaTopic))
     return messageIds.length > 0
+  }
+
+  public getHomeCommunityTopic(): string {
+    return this.homeCommunityTopic
   }
 }

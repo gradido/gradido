@@ -7,6 +7,7 @@ import { KeyPair } from '../model/KeyPair'
 import { getKeyPair as getUserKeyPair } from './User'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
 import Decimal from 'decimal.js-light'
+import { In } from '@dbTools/typeorm'
 
 const GMW_ACCOUNT_DERIVATION_INDEX = 1
 const AUF_ACCOUNT_DERIVATION_INDEX = 2
@@ -27,6 +28,10 @@ export const create = (
   account.createdAt = createdAt
   account.balance = new Decimal(0)
   return account
+}
+
+export const findAccountsByPublicKeys = (publicKeys: Buffer[]): Promise<Account[]> => {
+  return Account.findBy({ derive2Pubkey: In(publicKeys) })
 }
 
 export const createCommunitySpecialAccounts = (community: Community): void => {

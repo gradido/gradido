@@ -11,7 +11,7 @@ import { TransactionError } from '@model/TransactionError'
 import { create as createCommunity, find, isExist } from '@/controller/Community'
 import { TransactionErrorType } from '@enum/TransactionErrorType'
 import { KeyManager } from '@/controller/KeyManager'
-import { create as createTransactionRecipe } from '@/controller/TransactionRecipe'
+import { TransactionRecipe } from '@/controller/TransactionRecipe'
 import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 import { Community } from '@model/Community'
 import { CommunityArg } from '@arg/CommunityArg'
@@ -66,7 +66,8 @@ export class CommunityResolver {
           createCommunityTransactionBody(communityDraft, community),
         )
         KeyManager.getInstance().sign(transaction)
-        const recipe = createTransactionRecipe(transaction)
+        const recipeController = await TransactionRecipe.create(transaction)
+        const recipe = recipeController.getTransactionRecipeEntity()
         recipe.senderCommunity = community
 
         const queryRunner = getDataSource().createQueryRunner()
