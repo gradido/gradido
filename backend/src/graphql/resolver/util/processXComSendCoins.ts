@@ -1,3 +1,4 @@
+/*
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
@@ -28,6 +29,7 @@ export async function processXComPendingSendCoins(
   sender: dbUser,
   recipient: dbUser,
 ): Promise<boolean> {
+
   try {
     logger.debug(
       `XCom: processXComPendingSendCoins...`,
@@ -62,9 +64,9 @@ export async function processXComPendingSendCoins(
       args.senderUserUuid = sender.gradidoID
       args.senderUserName = fullName(sender.firstName, sender.lastName)
       logger.debug(`X-Com: ready for voteForSendCoins with args=`, args)
-      const recipientName = await client.voteForSendCoins(args)
-      logger.debug(`X-Com: returnd from voteForSendCoins:`, recipientName)
-      if (recipientName) {
+      const sendCoinsResult = await client.voteForSendCoins(args)
+      logger.debug(`X-Com: returnd from voteForSendCoins:`, sendCoinsResult)
+      if (sendCoinsResult) {
         // writing the pending transaction on receiver-side was successfull, so now write the sender side
         try {
           const pendingTx = DbPendingTransaction.create()
@@ -77,7 +79,7 @@ export async function processXComPendingSendCoins(
             ? receiverCom.communityUuid
             : CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID
           pendingTx.linkedUserGradidoID = recipient.gradidoID
-          pendingTx.linkedUserName = recipientName
+          pendingTx.linkedUserName = sendCoinsResult.recipName
           pendingTx.memo = memo
           pendingTx.previous = senderBalance ? senderBalance.lastTransactionId : null
           pendingTx.state = PendingTransactionState.NEW
@@ -172,8 +174,8 @@ export async function processXComCommittingSendCoins(
           args.senderUserName = pendingTx.userName
         }
         logger.debug(`X-Com: ready for settleSendCoins with args=`, args)
-        const acknoleged = await client.settleSendCoins(args)
-        logger.debug(`X-Com: returnd from settleSendCoins:`, acknoleged)
+        const acknowledge = await client.settleSendCoins(args)
+        logger.debug(`X-Com: returnd from settleSendCoins:`, acknowledge)
         if (acknowledge) {
           // settle the pending transaction on receiver-side was successfull, so now settle the sender side
           try {
@@ -206,3 +208,4 @@ export async function processXComCommittingSendCoins(
   }
   return true
 }
+*/
