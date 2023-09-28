@@ -50,7 +50,9 @@ export const confirmFromNodeServer = async (
       if (!confirmedTransaction) {
         throw new LogError('transaction for message id not longer exist')
       }
-      const recipe = await TransactionRecipe.create(confirmedTransaction.transaction)
+      const recipe = await TransactionRecipe.create({
+        transaction: confirmedTransaction.transaction,
+      })
       const recipeEntity = recipe.getTransactionRecipeEntity()
       if (confirmedTransaction.transaction.parentMessageId) {
         throw new LogError(

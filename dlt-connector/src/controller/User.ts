@@ -5,8 +5,7 @@ import { KeyManager } from './KeyManager'
 import { uuid4ToBuffer } from '@/utils/typeConverter'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
-import { In } from 'typeorm'
-import { Account } from '@entity/Account'
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 
 export const getKeyPair = (user: User): KeyPair => {
   if (!user.gradidoID) {
@@ -28,4 +27,16 @@ export const getKeyPair = (user: User): KeyPair => {
     )
   }
   return keyPair
+}
+
+export const findByGradidoId = ({ uuid }: UserIdentifier): Promise<User | null> => {
+  return User.findOneBy({ gradidoID: uuid })
+}
+
+export const create = (userAccountDraft: UserAccountDraft): User => {
+  const user = User.create()
+  user.createdAt = new Date(userAccountDraft.createdAt)
+  user.gradidoID = userAccountDraft.user.uuid
+  user.derive1Pubkey = getKeyPair(user).publicKey
+  return user
 }

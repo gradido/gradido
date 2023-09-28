@@ -10,19 +10,83 @@ import { TransactionError } from '../model/TransactionError'
 import { TransactionRecipe, findBySignature } from '@/controller/TransactionRecipe'
 import { TransactionRecipe as TransactionRecipeOutput } from '@model/TransactionRecipe'
 import { KeyManager } from '@/controller/KeyManager'
-import { findAccountByUserIdentifier, getKeyPair } from '@/controller/Account'
+import {
+  createFromUserAccountDraft,
+  findAccountByUserIdentifier,
+  getKeyPair,
+} from '@/controller/Account'
 import { TransactionErrorType } from '../enum/TransactionErrorType'
 import { CrossGroupType } from '@/proto/3_3/enum/CrossGroupType'
 import { UserAccountDraft } from '@input/UserAccountDraft'
+import { create as createUser, findByGradidoId } from '@/controller/User'
+import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
+import { logger } from '@/server/logger'
+import { getDataSource } from '@/typeorm/DataSource'
+import { TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY } from '@/tasks/transmitToIota'
 
 @Resolver()
 export class TransactionResolver {
   @Mutation(() => TransactionResult)
   async registerAddress(
     @Arg('data')
-    user: UserAccountDraft,
+    userAccountDraft: UserAccountDraft,
   ): Promise<TransactionResult> {
-    return new TransactionResult()
+    try {
+      let user = await findByGradidoId(userAccountDraft.user)
+      if (!user) {
+        user = createUser(userAccountDraft)
+      }
+      const account = createFromUserAccountDraft(userAccountDraft, user)
+      const body = createTransactionBody(userAccountDraft, account)
+      const gradidoTransaction = createGradidoTransaction(body)
+      const signingKeyPair = getKeyPair(account)
+      if (!signingKeyPair) {
+        throw new TransactionError(
+          TransactionErrorType.NOT_FOUND,
+          "couldn't found signing key pair",
+        )
+      }
+      KeyManager.getInstance().sign(gradidoTransaction, [signingKeyPair])
+      const recipeTransactionController = await TransactionRecipe.create({
+        transaction: gradidoTransaction,
+        senderUser: userAccountDraft.user,
+        signingAccount: account,
+      })
+      const recipeTransaction = recipeTransactionController.getTransactionRecipeEntity()
+      const queryRunner = getDataSource().createQueryRunner()
+      await queryRunner.connect()
+      await queryRunner.startTransaction()
+
+      let result: TransactionResult
+      try {
+        if (!user.hasId()) {
+          await queryRunner.manager.save(user)
+        }
+        await queryRunner.manager.save(account)
+        await queryRunner.manager.save(recipeTransaction)
+        await queryRunner.commitTransaction()
+        ConditionalSleepManager.getInstance().signal(TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY)
+        result = new TransactionResult(new TransactionRecipeOutput(recipeTransaction))
+      } catch (err) {
+        logger.error('error saving user or new account into db: %s', err)
+        result = new TransactionResult(
+          new TransactionError(
+            TransactionErrorType.DB_ERROR,
+            'error saving user or new account into db',
+          ),
+        )
+        await queryRunner.rollbackTransaction()
+      } finally {
+        await queryRunner.release()
+      }
+      return result
+    } catch (error) {
+      if (error instanceof TransactionError) {
+        return new TransactionResult(error)
+      } else {
+        throw error
+      }
+    }
   }
 
   @Mutation(() => TransactionResult)
@@ -56,12 +120,13 @@ export class TransactionResolver {
         )
       }
       KeyManager.getInstance().sign(gradidoTransaction, [signingKeyPair])
-      const recipeTransactionController = await TransactionRecipe.create(
-        gradidoTransaction,
-        transaction,
+      const recipeTransactionController = await TransactionRecipe.create({
+        transaction: gradidoTransaction,
+        senderUser: transaction.senderUser,
+        recipientUser: transaction.recipientUser,
         signingAccount,
         recipientAccount,
-      )
+      })
       try {
         await recipeTransactionController.getTransactionRecipeEntity().save()
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

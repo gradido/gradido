@@ -10,24 +10,31 @@ import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { CommunityRoot } from '@/proto/3_3/CommunityRoot'
 import { Community } from '@entity/Community'
 import { Account } from '@entity/Account'
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
+import { RegisterAddress } from '@/proto/3_3/RegisterAddress'
 
 export const create = (
-  transaction: TransactionDraft,
+  transaction: TransactionDraft | UserAccountDraft,
   signingAccount?: Account,
   recipientAccount?: Account,
 ): TransactionBody => {
   const body = new TransactionBody(transaction)
   // TODO: load pubkeys for sender and recipient user from db
-  switch (transaction.type) {
-    case TransactionType.CREATION:
-      body.creation = new GradidoCreation(transaction, recipientAccount)
-      body.data = 'gradidoCreation'
-      break
-    case TransactionType.SEND:
-    case TransactionType.RECEIVE:
-      body.transfer = new GradidoTransfer(transaction, signingAccount, recipientAccount)
-      body.data = 'gradidoTransfer'
-      break
+  if (transaction instanceof TransactionDraft) {
+    switch (transaction.type) {
+      case TransactionType.CREATION:
+        body.creation = new GradidoCreation(transaction, recipientAccount)
+        body.data = 'gradidoCreation'
+        break
+      case TransactionType.SEND:
+      case TransactionType.RECEIVE:
+        body.transfer = new GradidoTransfer(transaction, signingAccount, recipientAccount)
+        body.data = 'gradidoTransfer'
+        break
+    }
+  } else if (transaction instanceof UserAccountDraft) {
+    body.registerAddress = new RegisterAddress(transaction, signingAccount?.user)
+    body.data = 'registerAddress'
   }
   return body
 }

@@ -2,6 +2,9 @@ import { crypto_generichash as cryptoHash } from 'sodium-native'
 
 import { Timestamp } from '@/proto/3_3/Timestamp'
 import { TimestampSeconds } from '@/proto/3_3/TimestampSeconds'
+import { AccountType } from '@/graphql/enum/AccountType'
+import { AddressType } from '@/proto/3_3/enum/AddressType'
+import { LogError } from '@/server/LogError'
 
 export const uuid4ToBuffer = (uuid: string): Buffer => {
   // Remove dashes from the UUIDv4 string
@@ -31,4 +34,46 @@ export const timestampSecondsToDate = (timestamp: TimestampSeconds): Date => {
 
 export const base64ToBuffer = (base64: string): Buffer => {
   return Buffer.from(base64, 'base64')
+}
+
+export const accountTypeToAddressType = (accountType: AccountType): AddressType => {
+  switch (accountType) {
+    case AccountType.NONE:
+      return AddressType.NONE
+    case AccountType.COMMUNITY_HUMAN:
+      return AddressType.COMMUNITY_HUMAN
+    case AccountType.COMMUNITY_GMW:
+      return AddressType.COMMUNITY_GMW
+    case AccountType.COMMUNITY_AUF:
+      return AddressType.COMMUNITY_AUF
+    case AccountType.COMMUNITY_PROJECT:
+      return AddressType.COMMUNITY_PROJECT
+    case AccountType.SUBACCOUNT:
+      return AddressType.SUBACCOUNT
+    case AccountType.CRYPTO_ACCOUNT:
+      return AddressType.CRYPTO_ACCOUNT
+    default:
+      throw new LogError(`Unsupported AccountType: ${accountType}`)
+  }
+}
+
+export const addressTypeToAccountType = (addressType: AddressType): AccountType => {
+  switch (addressType) {
+    case AddressType.NONE:
+      return AccountType.NONE
+    case AddressType.COMMUNITY_HUMAN:
+      return AccountType.COMMUNITY_HUMAN
+    case AddressType.COMMUNITY_GMW:
+      return AccountType.COMMUNITY_GMW
+    case AddressType.COMMUNITY_AUF:
+      return AccountType.COMMUNITY_AUF
+    case AddressType.COMMUNITY_PROJECT:
+      return AccountType.COMMUNITY_PROJECT
+    case AddressType.SUBACCOUNT:
+      return AccountType.SUBACCOUNT
+    case AddressType.CRYPTO_ACCOUNT:
+      return AccountType.CRYPTO_ACCOUNT
+    default:
+      throw new LogError(`Unsupported AddressType: ${addressType}`)
+  }
 }

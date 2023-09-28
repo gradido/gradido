@@ -66,7 +66,7 @@ export class CommunityResolver {
           createCommunityTransactionBody(communityDraft, community),
         )
         KeyManager.getInstance().sign(transaction)
-        const recipeController = await TransactionRecipe.create(transaction)
+        const recipeController = await TransactionRecipe.create({ transaction })
         const recipe = recipeController.getTransactionRecipeEntity()
         recipe.senderCommunity = community
 

@@ -10,6 +10,8 @@ import Decimal from 'decimal.js-light'
 import { In } from '@dbTools/typeorm'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { User } from '@entity/User'
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
+import { accountTypeToAddressType } from '@/utils/typeConverter'
 
 const GMW_ACCOUNT_DERIVATION_INDEX = 1
 const AUF_ACCOUNT_DERIVATION_INDEX = 2
@@ -28,6 +30,24 @@ export const create = (
   account.derive2Pubkey = derive2Pubkey
   account.type = type.valueOf()
   account.createdAt = createdAt
+  account.balance = new Decimal(0)
+  return account
+}
+
+export const createFromUserAccountDraft = (
+  userAccountDraft: UserAccountDraft,
+  user: User,
+): Account => {
+  const account = Account.create()
+  account.derivationIndex = userAccountDraft.user.accountNr ?? 1
+  account.type = accountTypeToAddressType(userAccountDraft.accountType)
+  account.user = user
+  account.createdAt = new Date(userAccountDraft.createdAt)
+  const keyPair = getKeyPair(account)
+  if (!keyPair) {
+    throw new LogError('Error deriving key pair')
+  }
+  account.derive2Pubkey = keyPair.publicKey
   account.balance = new Decimal(0)
   return account
 }

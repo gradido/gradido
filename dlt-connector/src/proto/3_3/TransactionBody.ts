@@ -17,11 +17,12 @@ import { TransactionBase } from '@/controller/TransactionBase'
 import { TransactionRecipe } from '@entity/TransactionRecipe'
 import { timestampToDate } from '@/utils/typeConverter'
 import { LogError } from '@/server/LogError'
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
 export class TransactionBody extends Message<TransactionBody> {
-  public constructor(transaction?: TransactionDraft | CommunityDraft) {
+  public constructor(transaction?: TransactionDraft | CommunityDraft | UserAccountDraft) {
     if (transaction) {
       let type = CrossGroupType.LOCAL
       let otherGroup = ''

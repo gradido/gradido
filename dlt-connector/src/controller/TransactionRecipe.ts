@@ -15,6 +15,18 @@ import { findAccountByPublicKey, findAccountsByPublicKeys } from './Account'
 import { TransactionsManager } from './TransactionsManager'
 import { findCommunitiesByTopics, getCommunityForUserIdentifier } from './Community'
 import { Community } from '@entity/Community'
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
+import { User } from '@entity/User'
+import { UserIdentifier } from '@/graphql/input/UserIdentifier'
+
+interface CreateTransactionRecipeOptions {
+  transaction: GradidoTransaction
+  senderUser?: UserIdentifier
+  recipientUser?: UserIdentifier
+  signingAccount?: Account
+  recipientAccount?: Account
+  backendTransactionId?: number
+}
 
 export class TransactionRecipe {
   private recipeEntity: TransactionRecipeEntity
@@ -43,16 +55,18 @@ export class TransactionRecipe {
     return this.recipeEntity
   }
 
-  public static async create(
-    transaction: GradidoTransaction,
-    transactionDraft?: TransactionDraft,
-    signingAccount?: Account,
-    recipientAccount?: Account,
-  ): Promise<TransactionRecipe> {
+  public static async create({
+    transaction,
+    senderUser,
+    recipientUser,
+    signingAccount,
+    recipientAccount,
+    backendTransactionId,
+  }: CreateTransactionRecipeOptions): Promise<TransactionRecipe> {
     const recipeEntity = TransactionRecipeEntity.create()
     const recipe = new TransactionRecipe(recipeEntity)
-    if (transactionDraft) {
-      recipeEntity.backendTransactionId = transactionDraft.backendTransactionId
+    if (backendTransactionId) {
+      recipeEntity.backendTransactionId = backendTransactionId
     }
     recipeEntity.bodyBytes = transaction.bodyBytes
     const body = recipe.getBody()
@@ -71,23 +85,16 @@ export class TransactionRecipe {
     recipeEntity.recipientAccount =
       recipientAccount ?? (await findAccountByPublicKey(body.getRecipientPublicKey()))
 
-    if (transactionDraft) {
+    if (senderUser) {
       // get recipient and sender community
-      const senderCommunity = await getCommunityForUserIdentifier(transactionDraft.senderUser)
+      const senderCommunity = await getCommunityForUserIdentifier(senderUser)
       if (!senderCommunity) {
         throw new LogError("couldn't find sender community for transaction")
       }
       recipeEntity.senderCommunity = senderCommunity
-      recipeEntity.recipientCommunity = await getCommunityForUserIdentifier(
-        transactionDraft.recipientUser,
-      )
-
-      if (recipeEntity.amount !== transactionDraft.amount) {
-        throw new TransactionError(
-          TransactionErrorType.LOGIC_ERROR,
-          'recipe amount differ from amount in transactionDraft',
-        )
-      }
+    }
+    if (recipientUser) {
+      recipeEntity.recipientCommunity = await getCommunityForUserIdentifier(recipientUser)
     }
 
     return recipe

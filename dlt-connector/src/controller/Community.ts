@@ -40,6 +40,10 @@ export const find = async ({ uuid, foreign, confirmed }: CommunityArg): Promise<
   })
 }
 
+export const findByCommunityUuid = async (communityUuid: string): Promise<Community | null> => {
+  return await Community.findOneBy({ iotaTopic: iotaTopicFromCommunityUUID(communityUuid) })
+}
+
 export const findCommunitiesByTopics = (topics: string[]): Promise<Community[]> => {
   return Community.findBy({ iotaTopic: In(topics) })
 }
