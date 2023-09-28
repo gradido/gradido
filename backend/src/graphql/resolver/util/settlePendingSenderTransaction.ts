@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/*
+
 import { getConnection } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
@@ -94,7 +94,7 @@ export async function settlePendingSenderTransaction(
     await queryRunner.commitTransaction()
     logger.info(`commit send Transaction successful...`)
 
-    --*
+    /*
     await EVENT_TRANSACTION_SEND(sender, recipient, transactionSend, transactionSend.amount)
 
     await EVENT_TRANSACTION_RECEIVE(
@@ -103,7 +103,7 @@ export async function settlePendingSenderTransaction(
       transactionReceive,
       transactionReceive.amount,
     )
-    *--
+    */
     // trigger to send transaction via dlt-connector
     // void sendTransactionsToDltConnector()
   } catch (e) {
@@ -113,7 +113,7 @@ export async function settlePendingSenderTransaction(
     await queryRunner.release()
     releaseLock()
   }
-  --*
+  /*
     void sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,
@@ -141,7 +141,6 @@ export async function settlePendingSenderTransaction(
   } finally {
     releaseLock()
   }
-  *--
+  */
   return true
 }
-*/
