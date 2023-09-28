@@ -10,11 +10,7 @@ import { GraphQLError } from 'graphql'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 import { Connection } from '@dbTools/typeorm'
-import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
 import Decimal from 'decimal.js-light'
-import { PendingTransactionState } from '../enum/PendingTransactionState'
-import { TransactionTypeId } from '../enum/TransactionTypeId'
-import { Transaction as DbTransaction } from '@entity/Transaction'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
 
 let mutate: ApolloServerTestClient['mutate'], con: Connection
@@ -334,7 +330,6 @@ describe('SendCoinsResolver', () => {
   })
 
   describe('settleSendCoins', () => {
-    let pendingTx: DbPendingTransaction
     const creationDate = new Date()
 
     beforeEach(async () => {
@@ -355,26 +350,6 @@ describe('SendCoinsResolver', () => {
         mutation: voteForSendCoinsMutation,
         variables: { args },
       })
-      /*
-      pendingTx = DbPendingTransaction.create()
-      pendingTx.amount = new Decimal(100)
-      pendingTx.balanceDate = creationDate
-      // pendingTx.balance = new Decimal(0)
-      pendingTx.linkedUserId = sendUser.id
-      if (foreignCom.communityUuid) {
-        pendingTx.linkedUserCommunityUuid = foreignCom.communityUuid
-      }
-      pendingTx.linkedUserGradidoID = sendUser.gradidoID
-      pendingTx.state = PendingTransactionState.NEW
-      pendingTx.typeId = TransactionTypeId.RECEIVE
-      pendingTx.memo = 'X-Com-TX memo'
-      pendingTx.userId = recipUser.id
-      if (homeCom.communityUuid) {
-        pendingTx.userCommunityUuid = homeCom.communityUuid
-      }
-      pendingTx.userGradidoID = recipUser.gradidoID
-      await DbPendingTransaction.insert(pendingTx)
-      */
     })
 
     describe('unknown recipient community', () => {
@@ -470,8 +445,6 @@ describe('SendCoinsResolver', () => {
   })
 
   describe('revertSettledSendCoins', () => {
-    let pendingTx: DbPendingTransaction
-    let settledTx: DbTransaction
     const creationDate = new Date()
 
     beforeEach(async () => {
@@ -496,44 +469,6 @@ describe('SendCoinsResolver', () => {
         mutation: settleSendCoinsMutation,
         variables: { args },
       })
-      /*
-      pendingTx = DbPendingTransaction.create()
-      pendingTx.amount = new Decimal(100)
-      pendingTx.balanceDate = creationDate
-      // pendingTx.balance = new Decimal(0)
-      pendingTx.linkedUserId = sendUser.id
-      if (foreignCom.communityUuid) {
-        pendingTx.linkedUserCommunityUuid = foreignCom.communityUuid
-      }
-      pendingTx.linkedUserGradidoID = sendUser.gradidoID
-      pendingTx.linkedUserName = fullName(sendUser.firstName, sendUser.lastName)
-      pendingTx.state = PendingTransactionState.SETTLED
-      pendingTx.typeId = TransactionTypeId.RECEIVE
-      pendingTx.memo = 'X-Com-TX memo'
-      pendingTx.userId = recipUser.id
-      if (homeCom.communityUuid) {
-        pendingTx.userCommunityUuid = homeCom.communityUuid
-      }
-      pendingTx.userGradidoID = recipUser.gradidoID
-      await DbPendingTransaction.insert(pendingTx)
-
-      settledTx = DbTransaction.create()
-      settledTx.amount = new Decimal(100)
-      settledTx.balanceDate = creationDate
-      // pendingTx.balance = new Decimal(0)
-      settledTx.linkedUserId = sendUser.id
-      settledTx.linkedUserCommunityUuid = foreignCom.communityUuid
-      settledTx.linkedUserGradidoID = sendUser.gradidoID
-      settledTx.linkedUserName = fullName(sendUser.firstName, sendUser.lastName)
-      settledTx.typeId = TransactionTypeId.RECEIVE
-      settledTx.memo = 'X-Com-TX memo'
-      settledTx.userId = recipUser.id
-      if (homeCom.communityUuid) {
-        settledTx.userCommunityUuid = homeCom.communityUuid
-      }
-      settledTx.userGradidoID = recipUser.gradidoID
-      await DbTransaction.insert(settledTx)
-      */
     })
 
     describe('unknown recipient community', () => {
