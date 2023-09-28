@@ -10,11 +10,8 @@ import { GraphQLError } from 'graphql'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 import { Connection } from '@dbTools/typeorm'
-import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
 import Decimal from 'decimal.js-light'
-import { PendingTransactionState } from '../enum/PendingTransactionState'
-import { TransactionTypeId } from '../enum/TransactionTypeId'
-import { Transaction as DbTransaction } from '@entity/Transaction'
+import { SendCoinsArgs } from '../model/SendCoinsArgs'
 
 let mutate: ApolloServerTestClient['mutate'], con: Connection
 // let query: ApolloServerTestClient['query']
@@ -49,54 +46,24 @@ afterAll(async () => {
 
 describe('SendCoinsResolver', () => {
   const voteForSendCoinsMutation = `
-    mutation (
-      $recipientCommunityUuid: String!
-      $recipientUserIdentifier: String!
-      $creationDate: String!
-      $amount: Decimal!
-      $memo: String!
-      $senderCommunityUuid: String!
-      $senderUserUuid: String!
-      $senderUserName: String!
-    ) {
-      voteForSendCoins(
-        recipientCommunityUuid: $recipientCommunityUuid
-        recipientUserIdentifier: $recipientUserIdentifier
-        creationDate: $creationDate
-        amount: $amount
-        memo: $memo
-        senderCommunityUuid: $senderCommunityUuid
-        senderUserUuid: $senderUserUuid
-        senderUserName: $senderUserName
-      ) {
+  mutation ($args: SendCoinsArgs!) {
+    voteForSendCoins(data: $args) {
       vote
       recipGradidoID
       recipName
     }
-  }
-`
-
+  }`
   const settleSendCoinsMutation = `
-  mutation (
-    $recipientCommunityUuid: String!
-    $recipientUserIdentifier: String!
-    $creationDate: String!
-    $amount: Decimal!
-    $memo: String!
-    $senderCommunityUuid: String!
-    $senderUserUuid: String!
-    $senderUserName: String!
-  ) {
-    settleSendCoins(
-      recipientCommunityUuid: $recipientCommunityUuid
-      recipientUserIdentifier: $recipientUserIdentifier
-      creationDate: $creationDate
-      amount: $amount
-      memo: $memo
-      senderCommunityUuid: $senderCommunityUuid
-      senderUserUuid: $senderUserUuid
-      senderUserName: $senderUserName
-    )
+  mutation ($args: SendCoinsArgs!) {
+    settleSendCoins(data: $args)
+  }`
+  const revertSendCoinsMutation = `
+  mutation ($args: SendCoinsArgs!) {
+    revertSendCoins(data: $args)
+  }`
+  const revertSettledSendCoinsMutation = `
+  mutation ($args: SendCoinsArgs!) {
+    revertSettledSendCoins(data: $args)
   }`
 
   beforeEach(async () => {
@@ -154,19 +121,21 @@ describe('SendCoinsResolver', () => {
     describe('unknown recipient community', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
+        const args = new SendCoinsArgs()
+        args.recipientCommunityUuid = 'invalid foreignCom'
+        args.recipientUserIdentifier = recipUser.gradidoID
+        args.creationDate = new Date().toISOString()
+        args.amount = new Decimal(100)
+        args.memo = 'X-Com-TX memo'
+        if (homeCom.communityUuid) {
+          args.senderCommunityUuid = homeCom.communityUuid
+        }
+        args.senderUserUuid = sendUser.gradidoID
+        args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
         expect(
           await mutate({
             mutation: voteForSendCoinsMutation,
-            variables: {
-              recipientCommunityUuid: 'invalid foreignCom',
-              recipientUserIdentifier: recipUser.gradidoID,
-              creationDate: new Date().toISOString(),
-              amount: 100,
-              memo: 'X-Com-TX memo',
-              senderCommunityUuid: homeCom.communityUuid,
-              senderUserUuid: sendUser.gradidoID,
-              senderUserName: fullName(sendUser.firstName, sendUser.lastName),
-            },
+            variables: { args },
           }),
         ).toEqual(
           expect.objectContaining({
@@ -179,19 +148,23 @@ describe('SendCoinsResolver', () => {
     describe('unknown recipient user', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
+        const args = new SendCoinsArgs()
+        if (foreignCom.communityUuid) {
+          args.recipientCommunityUuid = foreignCom.communityUuid
+        }
+        args.recipientUserIdentifier = 'invalid recipient'
+        args.creationDate = new Date().toISOString()
+        args.amount = new Decimal(100)
+        args.memo = 'X-Com-TX memo'
+        if (homeCom.communityUuid) {
+          args.senderCommunityUuid = homeCom.communityUuid
+        }
+        args.senderUserUuid = sendUser.gradidoID
+        args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
         expect(
           await mutate({
             mutation: voteForSendCoinsMutation,
-            variables: {
-              recipientCommunityUuid: foreignCom.communityUuid,
-              recipientUserIdentifier: 'invalid recipient',
-              creationDate: new Date().toISOString(),
-              amount: 100,
-              memo: 'X-Com-TX memo',
-              senderCommunityUuid: homeCom.communityUuid,
-              senderUserUuid: sendUser.gradidoID,
-              senderUserName: fullName(sendUser.firstName, sendUser.lastName),
-            },
+            variables: { args },
           }),
         ).toEqual(
           expect.objectContaining({
@@ -208,19 +181,23 @@ describe('SendCoinsResolver', () => {
     describe('valid X-Com-TX voted', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
+        const args = new SendCoinsArgs()
+        if (foreignCom.communityUuid) {
+          args.recipientCommunityUuid = foreignCom.communityUuid
+        }
+        args.recipientUserIdentifier = recipUser.gradidoID
+        args.creationDate = new Date().toISOString()
+        args.amount = new Decimal(100)
+        args.memo = 'X-Com-TX memo'
+        if (homeCom.communityUuid) {
+          args.senderCommunityUuid = homeCom.communityUuid
+        }
+        args.senderUserUuid = sendUser.gradidoID
+        args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
         expect(
           await mutate({
             mutation: voteForSendCoinsMutation,
-            variables: {
-              recipientCommunityUuid: foreignCom.communityUuid,
-              recipientUserIdentifier: recipUser.gradidoID,
-              creationDate: new Date().toISOString(),
-              amount: 100,
-              memo: 'X-Com-TX memo',
-              senderCommunityUuid: homeCom.communityUuid,
-              senderUserUuid: sendUser.gradidoID,
-              senderUserName: fullName(sendUser.firstName, sendUser.lastName),
-            },
+            variables: { args },
           }),
         ).toEqual(
           expect.objectContaining({
@@ -238,63 +215,46 @@ describe('SendCoinsResolver', () => {
   })
 
   describe('revertSendCoins', () => {
-    const revertSendCoinsMutation = `
-      mutation (
-        $recipientCommunityUuid: String!
-        $recipientUserIdentifier: String!
-        $creationDate: String!
-        $amount: Decimal!
-        $memo: String!
-        $senderCommunityUuid: String!
-        $senderUserUuid: String!
-        $senderUserName: String!
-      ) {
-        revertSendCoins(
-          recipientCommunityUuid: $recipientCommunityUuid
-          recipientUserIdentifier: $recipientUserIdentifier
-          creationDate: $creationDate
-          amount: $amount
-          memo: $memo
-          senderCommunityUuid: $senderCommunityUuid
-          senderUserUuid: $senderUserUuid
-          senderUserName: $senderUserName
-        )
-      }`
-
     const creationDate = new Date()
 
     beforeEach(async () => {
+      const args = new SendCoinsArgs()
+      if (foreignCom.communityUuid) {
+        args.recipientCommunityUuid = foreignCom.communityUuid
+      }
+      args.recipientUserIdentifier = recipUser.gradidoID
+      args.creationDate = creationDate.toISOString()
+      args.amount = new Decimal(100)
+      args.memo = 'X-Com-TX memo'
+      if (homeCom.communityUuid) {
+        args.senderCommunityUuid = homeCom.communityUuid
+      }
+      args.senderUserUuid = sendUser.gradidoID
+      args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
       await mutate({
         mutation: voteForSendCoinsMutation,
-        variables: {
-          recipientCommunityUuid: foreignCom.communityUuid,
-          recipientUserIdentifier: recipUser.gradidoID,
-          creationDate: creationDate.toISOString(),
-          amount: 100,
-          memo: 'X-Com-TX memo',
-          senderCommunityUuid: homeCom.communityUuid,
-          senderUserUuid: sendUser.gradidoID,
-          senderUserName: fullName(sendUser.firstName, sendUser.lastName),
-        },
+        variables: { args },
       })
     })
 
     describe('unknown recipient community', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
+        const args = new SendCoinsArgs()
+        args.recipientCommunityUuid = 'invalid foreignCom'
+        args.recipientUserIdentifier = recipUser.gradidoID
+        args.creationDate = creationDate.toISOString()
+        args.amount = new Decimal(100)
+        args.memo = 'X-Com-TX memo'
+        if (homeCom.communityUuid) {
+          args.senderCommunityUuid = homeCom.communityUuid
+        }
+        args.senderUserUuid = sendUser.gradidoID
+        args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
         expect(
           await mutate({
             mutation: revertSendCoinsMutation,
-            variables: {
-              recipientCommunityUuid: 'invalid foreignCom',
-              recipientUserIdentifier: recipUser.gradidoID,
-              creationDate: creationDate.toISOString(),
-              amount: 100,
-              memo: 'X-Com-TX memo',
-              senderCommunityUuid: homeCom.communityUuid,
-              senderUserUuid: sendUser.gradidoID,
-              senderUserName: fullName(sendUser.firstName, sendUser.lastName),
-            },
+            variables: { args },
           }),
         ).toEqual(
           expect.objectContaining({
@@ -307,19 +267,23 @@ describe('SendCoinsResolver', () => {
     describe('unknown recipient user', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
+        const args = new SendCoinsArgs()
+        if (foreignCom.communityUuid) {
+          args.recipientCommunityUuid = foreignCom.communityUuid
+        }
+        args.recipientUserIdentifier = 'invalid recipient'
+        args.creationDate = creationDate.toISOString()
+        args.amount = new Decimal(100)
+        args.memo = 'X-Com-TX memo'
+        if (homeCom.communityUuid) {
+          args.senderCommunityUuid = homeCom.communityUuid
+        }
+        args.senderUserUuid = sendUser.gradidoID
+        args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
         expect(
           await mutate({
             mutation: revertSendCoinsMutation,
-            variables: {
-              recipientCommunityUuid: foreignCom.communityUuid,
-              recipientUserIdentifier: 'invalid recipient',
-              creationDate: creationDate.toISOString(),
-              amount: 100,
-              memo: 'X-Com-TX memo',
-              senderCommunityUuid: homeCom.communityUuid,
-              senderUserUuid: sendUser.gradidoID,
-              senderUserName: fullName(sendUser.firstName, sendUser.lastName),
-            },
+            variables: { args },
           }),
         ).toEqual(
           expect.objectContaining({
@@ -336,19 +300,23 @@ describe('SendCoinsResolver', () => {
     describe('valid X-Com-TX reverted', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
+        const args = new SendCoinsArgs()
+        if (foreignCom.communityUuid) {
+          args.recipientCommunityUuid = foreignCom.communityUuid
+        }
+        args.recipientUserIdentifier = recipUser.gradidoID
+        args.creationDate = creationDate.toISOString()
+        args.amount = new Decimal(100)
+        args.memo = 'X-Com-TX memo'
+        if (homeCom.communityUuid) {
+          args.senderCommunityUuid = homeCom.communityUuid
+        }
+        args.senderUserUuid = sendUser.gradidoID
+        args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
         expect(
           await mutate({
             mutation: revertSendCoinsMutation,
-            variables: {
-              recipientCommunityUuid: foreignCom.communityUuid,
-              recipientUserIdentifier: recipUser.gradidoID,
-              creationDate: creationDate.toISOString(),
-              amount: 100,
-              memo: 'X-Com-TX memo',
-              senderCommunityUuid: homeCom.communityUuid,
-              senderUserUuid: sendUser.gradidoID,
-              senderUserName: fullName(sendUser.firstName, sendUser.lastName),
-            },
+            variables: { args },
           }),
         ).toEqual(
           expect.objectContaining({
@@ -362,46 +330,46 @@ describe('SendCoinsResolver', () => {
   })
 
   describe('settleSendCoins', () => {
-    let pendingTx: DbPendingTransaction
     const creationDate = new Date()
 
     beforeEach(async () => {
-      pendingTx = DbPendingTransaction.create()
-      pendingTx.amount = new Decimal(100)
-      pendingTx.balanceDate = creationDate
-      // pendingTx.balance = new Decimal(0)
-      pendingTx.linkedUserId = sendUser.id
+      const args = new SendCoinsArgs()
       if (foreignCom.communityUuid) {
-        pendingTx.linkedUserCommunityUuid = foreignCom.communityUuid
+        args.recipientCommunityUuid = foreignCom.communityUuid
       }
-      pendingTx.linkedUserGradidoID = sendUser.gradidoID
-      pendingTx.state = PendingTransactionState.NEW
-      pendingTx.typeId = TransactionTypeId.RECEIVE
-      pendingTx.memo = 'X-Com-TX memo'
-      pendingTx.userId = recipUser.id
+      args.recipientUserIdentifier = recipUser.gradidoID
+      args.creationDate = creationDate.toISOString()
+      args.amount = new Decimal(100)
+      args.memo = 'X-Com-TX memo'
       if (homeCom.communityUuid) {
-        pendingTx.userCommunityUuid = homeCom.communityUuid
+        args.senderCommunityUuid = homeCom.communityUuid
       }
-      pendingTx.userGradidoID = recipUser.gradidoID
-      await DbPendingTransaction.insert(pendingTx)
+      args.senderUserUuid = sendUser.gradidoID
+      args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+      await mutate({
+        mutation: voteForSendCoinsMutation,
+        variables: { args },
+      })
     })
 
     describe('unknown recipient community', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
+        const args = new SendCoinsArgs()
+        args.recipientCommunityUuid = 'invalid foreignCom'
+        args.recipientUserIdentifier = recipUser.gradidoID
+        args.creationDate = creationDate.toISOString()
+        args.amount = new Decimal(100)
+        args.memo = 'X-Com-TX memo'
+        if (homeCom.communityUuid) {
+          args.senderCommunityUuid = homeCom.communityUuid
+        }
+        args.senderUserUuid = sendUser.gradidoID
+        args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
         expect(
           await mutate({
             mutation: settleSendCoinsMutation,
-            variables: {
-              recipientCommunityUuid: 'invalid foreignCom',
-              recipientUserIdentifier: recipUser.gradidoID,
-              creationDate: creationDate.toISOString(),
-              amount: 100,
-              memo: 'X-Com-TX memo',
-              senderCommunityUuid: foreignCom.communityUuid,
-              senderUserUuid: sendUser.gradidoID,
-              senderUserName: fullName(sendUser.firstName, sendUser.lastName),
-            },
+            variables: { args },
           }),
         ).toEqual(
           expect.objectContaining({
@@ -414,19 +382,23 @@ describe('SendCoinsResolver', () => {
     describe('unknown recipient user', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
+        const args = new SendCoinsArgs()
+        if (foreignCom.communityUuid) {
+          args.recipientCommunityUuid = foreignCom.communityUuid
+        }
+        args.recipientUserIdentifier = 'invalid recipient'
+        args.creationDate = creationDate.toISOString()
+        args.amount = new Decimal(100)
+        args.memo = 'X-Com-TX memo'
+        if (homeCom.communityUuid) {
+          args.senderCommunityUuid = homeCom.communityUuid
+        }
+        args.senderUserUuid = sendUser.gradidoID
+        args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
         expect(
           await mutate({
             mutation: settleSendCoinsMutation,
-            variables: {
-              recipientCommunityUuid: homeCom.communityUuid,
-              recipientUserIdentifier: 'invalid recipient',
-              creationDate: creationDate.toISOString(),
-              amount: 100,
-              memo: 'X-Com-TX memo',
-              senderCommunityUuid: foreignCom.communityUuid,
-              senderUserUuid: sendUser.gradidoID,
-              senderUserName: fullName(sendUser.firstName, sendUser.lastName),
-            },
+            variables: { args },
           }),
         ).toEqual(
           expect.objectContaining({
@@ -443,19 +415,23 @@ describe('SendCoinsResolver', () => {
     describe('valid X-Com-TX settled', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
+        const args = new SendCoinsArgs()
+        if (foreignCom.communityUuid) {
+          args.recipientCommunityUuid = foreignCom.communityUuid
+        }
+        args.recipientUserIdentifier = recipUser.gradidoID
+        args.creationDate = creationDate.toISOString()
+        args.amount = new Decimal(100)
+        args.memo = 'X-Com-TX memo'
+        if (homeCom.communityUuid) {
+          args.senderCommunityUuid = homeCom.communityUuid
+        }
+        args.senderUserUuid = sendUser.gradidoID
+        args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
         expect(
           await mutate({
             mutation: settleSendCoinsMutation,
-            variables: {
-              recipientCommunityUuid: homeCom.communityUuid,
-              recipientUserIdentifier: recipUser.gradidoID,
-              creationDate: creationDate.toISOString(),
-              amount: 100,
-              memo: 'X-Com-TX memo',
-              senderCommunityUuid: foreignCom.communityUuid,
-              senderUserUuid: sendUser.gradidoID,
-              senderUserName: fullName(sendUser.firstName, sendUser.lastName),
-            },
+            variables: { args },
           }),
         ).toEqual(
           expect.objectContaining({
@@ -469,88 +445,50 @@ describe('SendCoinsResolver', () => {
   })
 
   describe('revertSettledSendCoins', () => {
-    const revertSettledSendCoinsMutation = `
-    mutation (
-      $recipientCommunityUuid: String!
-      $recipientUserIdentifier: String!
-      $creationDate: String!
-      $amount: Decimal!
-      $memo: String!
-      $senderCommunityUuid: String!
-      $senderUserUuid: String!
-      $senderUserName: String!
-    ) {
-      revertSettledSendCoins(
-        recipientCommunityUuid: $recipientCommunityUuid
-        recipientUserIdentifier: $recipientUserIdentifier
-        creationDate: $creationDate
-        amount: $amount
-        memo: $memo
-        senderCommunityUuid: $senderCommunityUuid
-        senderUserUuid: $senderUserUuid
-        senderUserName: $senderUserName
-      )
-    }`
-
-    let pendingTx: DbPendingTransaction
-    let settledTx: DbTransaction
     const creationDate = new Date()
 
     beforeEach(async () => {
-      pendingTx = DbPendingTransaction.create()
-      pendingTx.amount = new Decimal(100)
-      pendingTx.balanceDate = creationDate
-      // pendingTx.balance = new Decimal(0)
-      pendingTx.linkedUserId = sendUser.id
+      const args = new SendCoinsArgs()
       if (foreignCom.communityUuid) {
-        pendingTx.linkedUserCommunityUuid = foreignCom.communityUuid
+        args.recipientCommunityUuid = foreignCom.communityUuid
       }
-      pendingTx.linkedUserGradidoID = sendUser.gradidoID
-      pendingTx.linkedUserName = fullName(sendUser.firstName, sendUser.lastName)
-      pendingTx.state = PendingTransactionState.SETTLED
-      pendingTx.typeId = TransactionTypeId.RECEIVE
-      pendingTx.memo = 'X-Com-TX memo'
-      pendingTx.userId = recipUser.id
+      args.recipientUserIdentifier = recipUser.gradidoID
+      args.creationDate = creationDate.toISOString()
+      args.amount = new Decimal(100)
+      args.memo = 'X-Com-TX memo'
       if (homeCom.communityUuid) {
-        pendingTx.userCommunityUuid = homeCom.communityUuid
+        args.senderCommunityUuid = homeCom.communityUuid
       }
-      pendingTx.userGradidoID = recipUser.gradidoID
-      await DbPendingTransaction.insert(pendingTx)
-
-      settledTx = DbTransaction.create()
-      settledTx.amount = new Decimal(100)
-      settledTx.balanceDate = creationDate
-      // pendingTx.balance = new Decimal(0)
-      settledTx.linkedUserId = sendUser.id
-      settledTx.linkedUserCommunityUuid = foreignCom.communityUuid
-      settledTx.linkedUserGradidoID = sendUser.gradidoID
-      settledTx.linkedUserName = fullName(sendUser.firstName, sendUser.lastName)
-      settledTx.typeId = TransactionTypeId.RECEIVE
-      settledTx.memo = 'X-Com-TX memo'
-      settledTx.userId = recipUser.id
-      if (homeCom.communityUuid) {
-        settledTx.userCommunityUuid = homeCom.communityUuid
-      }
-      settledTx.userGradidoID = recipUser.gradidoID
-      await DbTransaction.insert(settledTx)
+      args.senderUserUuid = sendUser.gradidoID
+      args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+      await mutate({
+        mutation: voteForSendCoinsMutation,
+        variables: { args },
+      })
+      await mutate({
+        mutation: settleSendCoinsMutation,
+        variables: { args },
+      })
     })
 
     describe('unknown recipient community', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
+        const args = new SendCoinsArgs()
+        args.recipientCommunityUuid = 'invalid foreignCom'
+        args.recipientUserIdentifier = recipUser.gradidoID
+        args.creationDate = creationDate.toISOString()
+        args.amount = new Decimal(100)
+        args.memo = 'X-Com-TX memo'
+        if (homeCom.communityUuid) {
+          args.senderCommunityUuid = homeCom.communityUuid
+        }
+        args.senderUserUuid = sendUser.gradidoID
+        args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
         expect(
           await mutate({
             mutation: revertSettledSendCoinsMutation,
-            variables: {
-              recipientCommunityUuid: 'invalid foreignCom',
-              recipientUserIdentifier: recipUser.gradidoID,
-              creationDate: creationDate.toISOString(),
-              amount: 100,
-              memo: 'X-Com-TX memo',
-              senderCommunityUuid: foreignCom.communityUuid,
-              senderUserUuid: sendUser.gradidoID,
-              senderUserName: fullName(sendUser.firstName, sendUser.lastName),
-            },
+            variables: { args },
           }),
         ).toEqual(
           expect.objectContaining({
@@ -563,19 +501,23 @@ describe('SendCoinsResolver', () => {
     describe('unknown recipient user', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
+        const args = new SendCoinsArgs()
+        if (foreignCom.communityUuid) {
+          args.recipientCommunityUuid = foreignCom.communityUuid
+        }
+        args.recipientUserIdentifier = 'invalid recipient'
+        args.creationDate = creationDate.toISOString()
+        args.amount = new Decimal(100)
+        args.memo = 'X-Com-TX memo'
+        if (homeCom.communityUuid) {
+          args.senderCommunityUuid = homeCom.communityUuid
+        }
+        args.senderUserUuid = sendUser.gradidoID
+        args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
         expect(
           await mutate({
             mutation: revertSettledSendCoinsMutation,
-            variables: {
-              recipientCommunityUuid: homeCom.communityUuid,
-              recipientUserIdentifier: 'invalid recipient',
-              creationDate: creationDate.toISOString(),
-              amount: 100,
-              memo: 'X-Com-TX memo',
-              senderCommunityUuid: foreignCom.communityUuid,
-              senderUserUuid: sendUser.gradidoID,
-              senderUserName: fullName(sendUser.firstName, sendUser.lastName),
-            },
+            variables: { args },
           }),
         ).toEqual(
           expect.objectContaining({
@@ -592,19 +534,23 @@ describe('SendCoinsResolver', () => {
     describe('valid X-Com-TX settled', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
+        const args = new SendCoinsArgs()
+        if (foreignCom.communityUuid) {
+          args.recipientCommunityUuid = foreignCom.communityUuid
+        }
+        args.recipientUserIdentifier = recipUser.gradidoID
+        args.creationDate = creationDate.toISOString()
+        args.amount = new Decimal(100)
+        args.memo = 'X-Com-TX memo'
+        if (homeCom.communityUuid) {
+          args.senderCommunityUuid = homeCom.communityUuid
+        }
+        args.senderUserUuid = sendUser.gradidoID
+        args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
         expect(
           await mutate({
             mutation: revertSettledSendCoinsMutation,
-            variables: {
-              recipientCommunityUuid: homeCom.communityUuid,
-              recipientUserIdentifier: recipUser.gradidoID,
-              creationDate: creationDate.toISOString(),
-              amount: 100,
-              memo: 'X-Com-TX memo',
-              senderCommunityUuid: foreignCom.communityUuid,
-              senderUserUuid: sendUser.gradidoID,
-              senderUserName: fullName(sendUser.firstName, sendUser.lastName),
-            },
+            variables: { args },
           }),
         ).toEqual(
           expect.objectContaining({

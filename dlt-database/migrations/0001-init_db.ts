@@ -125,6 +125,6 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn(`DROP TABLE IF EXISTS \`accounts_communities\`;`)
   await queryFn(`DROP TABLE IF EXISTS \`transaction_recipes\`;`)
   await queryFn(`DROP TABLE IF EXISTS \`confirmed_transactions\`;`)
-  await queryFn(`DROP TABLE IF EXISTS \`community\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`communities\`;`)
   await queryFn(`DROP TABLE IF EXISTS \`invalid_transactions\`;`)
 }

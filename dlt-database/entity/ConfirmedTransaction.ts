@@ -1,1 +1,1 @@
-export { ConfirmedTransaction } from './0001-init_db/ConfirmedTransaction'
+export { ConfirmedTransaction } from './0002-refactor_add_community/ConfirmedTransaction'

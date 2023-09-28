@@ -157,8 +157,8 @@ export class SendCoinsResolver {
       } else {
         logger.debug(
           'XCom: revertSendCoins NOT matching pendingTX for remove:',
-          pendingTx?.amount,
-          args.amount,
+          pendingTx?.amount.toString(),
+          args.amount.toString(),
         )
         throw new LogError(
           `Can't find in revertSendCoins the pending receiver TX for args=`,
@@ -283,7 +283,7 @@ export class SendCoinsResolver {
     }
     const pendingTx = await DbPendingTransaction.findOneBy({
       userCommunityUuid: args.recipientCommunityUuid,
-      userGradidoID: receiverUser.gradidoID,
+      userGradidoID: args.recipientUserIdentifier,
       state: PendingTransactionState.SETTLED,
       typeId: TransactionTypeId.RECEIVE,
       balanceDate: new Date(args.creationDate),

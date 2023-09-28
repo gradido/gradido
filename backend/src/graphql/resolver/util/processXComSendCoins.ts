@@ -96,8 +96,8 @@ export async function processXComPendingSendCoins(
           pendingTx.amount = amount.mul(-1)
           pendingTx.balance = senderBalance.balance
           pendingTx.balanceDate = creationDate
-          pendingTx.decay = senderBalance.decay.decay
-          pendingTx.decayStart = senderBalance.decay.start
+          pendingTx.decay = senderBalance ? senderBalance.decay.decay : new Decimal(0)
+          pendingTx.decayStart = senderBalance ? senderBalance.decay.start : null
           if (receiverCom.communityUuid) {
             pendingTx.linkedUserCommunityUuid = receiverCom.communityUuid
           }
@@ -190,6 +190,7 @@ export async function processXComCommittingSendCoins(
       const receiverFCom = await DbFederatedCommunity.findOneOrFail({
         where: {
           publicKey: receiverCom.publicKey,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
         },
       })

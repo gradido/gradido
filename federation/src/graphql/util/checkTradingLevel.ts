@@ -7,7 +7,7 @@ export async function checkTradingLevel(homeCom: DbCommunity, amount: Decimal): 
   const tradingLevel = CONFIG.FEDERATION_TRADING_LEVEL
   if (homeCom.url !== tradingLevel.RECEIVER_COMMUNITY_URL) {
     logger.warn(
-      `X-Com: tradingLevel allows to receive coins only wiht url ${tradingLevel.RECEIVER_COMMUNITY_URL}`,
+      `X-Com: tradingLevel allows to receive coins only with url ${tradingLevel.RECEIVER_COMMUNITY_URL}`,
     )
     return false
   }

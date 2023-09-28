@@ -60,14 +60,31 @@ export async function revertSettledReceiveTransaction(
     }
 
     const lastTransaction = await getLastTransaction(receiverUser.id)
+    logger.debug(`LastTransaction vs PendingTransaction`)
+    logger.debug(`balance:`, lastTransaction?.balance.toString(), pendingTx.balance.toString())
+    logger.debug(
+      `balanceDate:`,
+      lastTransaction?.balanceDate.toISOString(),
+      pendingTx.balanceDate.toISOString(),
+    )
+    logger.debug(`GradidoID:`, lastTransaction?.userGradidoID, pendingTx.userGradidoID)
+    logger.debug(`Name:`, lastTransaction?.userName, pendingTx.userName)
+    logger.debug(`amount:`, lastTransaction?.amount.toString(), pendingTx.amount.toString())
+    logger.debug(`memo:`, lastTransaction?.memo, pendingTx.memo)
+    logger.debug(
+      `linkedUserGradidoID:`,
+      lastTransaction?.linkedUserGradidoID,
+      pendingTx.linkedUserGradidoID,
+    )
+    logger.debug(`linkedUserName:`, lastTransaction?.linkedUserName, pendingTx.linkedUserName)
     // now the last Tx must be the equivalant to the pendingTX
     if (
       lastTransaction &&
-      lastTransaction.balance === pendingTx.balance &&
+      lastTransaction.balance.comparedTo(pendingTx.balance) === 0 &&
       lastTransaction.balanceDate.toISOString() === pendingTx.balanceDate.toISOString() &&
       lastTransaction.userGradidoID === pendingTx.userGradidoID &&
       lastTransaction.userName === pendingTx.userName &&
-      lastTransaction.amount.toString() === pendingTx.amount.toString() &&
+      lastTransaction.amount.comparedTo(pendingTx.amount) === 0 &&
       lastTransaction.memo === pendingTx.memo &&
       lastTransaction.linkedUserGradidoID === pendingTx.linkedUserGradidoID &&
       lastTransaction.linkedUserName === pendingTx.linkedUserName
