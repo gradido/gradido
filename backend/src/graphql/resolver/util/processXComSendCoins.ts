@@ -87,7 +87,7 @@ export async function processXComPendingSendCoins(
       args.senderUserName = fullName(sender.firstName, sender.lastName)
       logger.debug(`X-Com: ready for voteForSendCoins with args=`, args)
       voteResult = await client.voteForSendCoins(args)
-      logger.debug(`X-Com: returnd from voteForSendCoins:`, voteResult)
+      logger.debug(`X-Com: returned from voteForSendCoins:`, voteResult)
       if (voteResult.vote) {
         logger.debug(`X-Com: prepare pendingTransaction for sender...`)
         // writing the pending transaction on receiver-side was successfull, so now write the sender side
@@ -138,7 +138,7 @@ export async function processXComPendingSendCoins(
         }
         logger.debug(`voteForSendCoins()-1_0... successfull`)
       } else {
-        logger.debug(
+        logger.error(
           `X-Com: break with error on writing pendingTransaction for recipient...`,
           voteResult,
         )

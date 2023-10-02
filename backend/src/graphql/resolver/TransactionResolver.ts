@@ -38,7 +38,7 @@ import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
 import { BalanceResolver } from './BalanceResolver'
-import { getCommunityName, isCommunityAuthenticated, isHomeCommunity } from './util/communities'
+import { isCommunityAuthenticated, isHomeCommunity } from './util/communities'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
@@ -258,7 +258,7 @@ export class TransactionResolver {
         const remoteUser = new User(null)
         remoteUser.gradidoID = transaction.linkedUserGradidoID
         remoteUser.firstName = transaction.linkedUserName
-        remoteUser.lastName = transaction.linkedUserCommunityUuid
+        remoteUser.lastName = 'GradidoID: ' + transaction.linkedUserGradidoID
         involvedRemoteUsers.push(remoteUser)
       }
     })
@@ -385,7 +385,7 @@ export class TransactionResolver {
     { recipientCommunityIdentifier, recipientIdentifier, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.info(
+    logger.debug(
       `sendCoins(recipientCommunityIdentifier=${recipientCommunityIdentifier}, recipientIdentifier=${recipientIdentifier}, amount=${amount}, memo=${memo})`,
     )
     const homeCom = await DbCommunity.findOneOrFail({ where: { foreign: false } })
@@ -413,6 +413,7 @@ export class TransactionResolver {
       const recipCom = await DbCommunity.findOneOrFail({
         where: { communityUuid: recipientCommunityIdentifier },
       })
+      logger.debug('recipient commuity: ', recipCom)
       let pendingResult: SendCoinsResult
       let committingResult: SendCoinsResult
       const creationDate = new Date()
@@ -427,7 +428,9 @@ export class TransactionResolver {
           senderUser,
           recipientIdentifier,
         )
+        logger.debug('processXComPendingSendCoins result: ', pendingResult)
         if (pendingResult.vote && pendingResult.recipGradidoID) {
+          logger.debug('vor processXComCommittingSendCoins... ')
           committingResult = await processXComCommittingSendCoins(
             recipCom,
             homeCom,
@@ -437,6 +440,7 @@ export class TransactionResolver {
             senderUser,
             pendingResult.recipGradidoID,
           )
+          logger.debug('processXComCommittingSendCoins result: ', committingResult)
           if (!committingResult.vote) {
             logger.fatal('FATAL ERROR: on processXComCommittingSendCoins for', committingResult)
             throw new LogError(

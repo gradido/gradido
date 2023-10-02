@@ -1,10 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Connection, In } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { DltTransaction } from '@entity/DltTransaction'
 import { Event as DbEvent } from '@entity/Event'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
@@ -14,6 +18,9 @@ import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
 import { EventType } from '@/event/Events'
+import { SendCoinsArgs } from '@/federation/client/1_0/model/SendCoinsArgs'
+import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
+import { SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
@@ -27,6 +34,7 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
+import { fullName } from '@/util/utilities'
 
 let mutate: ApolloServerTestClient['mutate'], con: Connection
 let query: ApolloServerTestClient['query']
@@ -47,7 +55,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy() // close()
 })
 
 let bobData: any
@@ -59,6 +67,7 @@ let peter: User
 
 let homeCom: DbCommunity
 let foreignCom: DbCommunity
+let fedForeignCom: DbFederatedCommunity
 
 describe('send coins', () => {
   beforeAll(async () => {
@@ -67,7 +76,7 @@ describe('send coins', () => {
     await userFactory(testEnv, stephenHawking)
     await userFactory(testEnv, garrickOllivander)
     homeCom = DbCommunity.create()
-    homeCom.communityUuid = '7f474922-b6d8-4b64-8cd0-ebf0a1d8756e'
+    homeCom.communityUuid = '7f474922-b6d8-4b64-8cd0-ebf0a1d875aa'
     homeCom.creationDate = new Date('2000-01-01')
     homeCom.description = 'homeCom description'
     homeCom.foreign = false
@@ -78,14 +87,15 @@ describe('send coins', () => {
     homeCom = await DbCommunity.save(homeCom)
 
     foreignCom = DbCommunity.create()
-    foreignCom.communityUuid = '7f474922-b6d8-4b64-8cd0-cea0a1d8756e'
+    foreignCom.communityUuid = '7f474922-b6d8-4b64-8cd0-cea0a1d875bb'
     foreignCom.creationDate = new Date('2000-06-06')
-    foreignCom.description = 'homeCom description'
+    foreignCom.description = 'foreignCom description'
     foreignCom.foreign = true
     foreignCom.name = 'foreignCom name'
     foreignCom.privateKey = Buffer.from('foreignCom privateKey')
     foreignCom.publicKey = Buffer.from('foreignCom publicKey')
-    foreignCom.url = 'foreignCom url'
+    foreignCom.url = 'foreignCom_url'
+    foreignCom.authenticatedAt = new Date('2000-06-12')
     foreignCom = await DbCommunity.save(foreignCom)
 
     bobData = {
@@ -594,7 +604,45 @@ describe('send coins', () => {
       })
     })
 
-    describe.only('X-Com send coins via gradido ID', () => {
+    describe('X-Com send coins via gradido ID', () => {
+      beforeAll(async () => {
+        fedForeignCom = DbFederatedCommunity.create()
+        fedForeignCom.apiVersion = '1_0'
+        fedForeignCom.foreign = true
+        fedForeignCom.publicKey = Buffer.from('foreignCom publicKey')
+        fedForeignCom.endPoint = 'http://foreignCom_url/api'
+        fedForeignCom.lastAnnouncedAt = new Date('2000-06-09')
+        fedForeignCom.verifiedAt = new Date('2000-06-10')
+        fedForeignCom = await DbFederatedCommunity.save(fedForeignCom)
+
+        jest
+          .spyOn(SendCoinsClient.prototype, 'voteForSendCoins')
+          .mockImplementation(async (args: SendCoinsArgs): Promise<SendCoinsResult> => {
+            // console.log('mock of voteForSendCoins...', args)
+            return Promise.resolve({
+              vote: true,
+              recipName: fullName(peter.firstName, peter.lastName),
+              recipGradidoID: args.recipientUserIdentifier,
+            })
+          })
+
+        jest
+          .spyOn(SendCoinsClient.prototype, 'settleSendCoins')
+          .mockImplementation(async (args: SendCoinsArgs): Promise<boolean> => {
+            // console.log('mock of settleSendCoins...', args)
+            return Promise.resolve(true)
+          })
+
+        await mutate({
+          mutation: login,
+          variables: bobData,
+        })
+      })
+
+      afterAll(() => {
+        jest.clearAllMocks()
+      })
+
       it('sends the coins', async () => {
         await expect(
           mutate({
