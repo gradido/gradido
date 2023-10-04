@@ -34,6 +34,7 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
+import { CONFIG } from '@/config'
 
 let mutate: ApolloServerTestClient['mutate'], con: Connection
 let query: ApolloServerTestClient['query']
@@ -605,6 +606,7 @@ describe('send coins', () => {
 
     describe('X-Com send coins via gradido ID', () => {
       beforeAll(async () => {
+        CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED = true
         fedForeignCom = DbFederatedCommunity.create()
         fedForeignCom.apiVersion = '1_0'
         fedForeignCom.foreign = true
