@@ -2,6 +2,9 @@ import 'reflect-metadata'
 import { ApolloServer } from '@apollo/server'
 import { createApolloTestServer } from '@test/ApolloServerMock'
 import assert from 'assert'
+import { TransactionResult } from '../model/TransactionResult'
+
+let apolloTestServer: ApolloServer
 
 jest.mock('@/client/IotaClient', () => {
   return {
@@ -10,8 +13,6 @@ jest.mock('@/client/IotaClient', () => {
     }),
   }
 })
-
-let apolloTestServer: ApolloServer
 
 describe('Transaction Resolver Test', () => {
   beforeAll(async () => {
@@ -31,30 +32,45 @@ describe('Transaction Resolver Test', () => {
   })
   it('test mocked sendTransaction', async () => {
     const response = await apolloTestServer.executeOperation({
-      query: 'mutation ($input: TransactionInput!) { sendTransaction(data: $input) }',
+      query:
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, messageId} }',
       variables: {
         input: {
+          senderUser: {
+            uuid: '0ec72b74-48c2-446f-91ce-31ad7d9f4d65',
+          },
+          recipientUser: {
+            uuid: 'ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe',
+          },
           type: 'SEND',
           amount: '10',
-          createdAt: 1688992436,
+          createdAt: '2012-04-17T17:12:00Z',
         },
       },
     })
     assert(response.body.kind === 'single')
     expect(response.body.singleResult.errors).toBeUndefined()
-    expect(response.body.singleResult.data?.sendTransaction).toBe(
+    const transactionResult = response.body.singleResult.data?.sendTransaction as TransactionResult
+    expect(transactionResult.messageId).toBe(
       '5498130bc3918e1a7143969ce05805502417e3e1bd596d3c44d6a0adeea22710',
     )
   })
 
   it('test mocked sendTransaction invalid transactionType ', async () => {
     const response = await apolloTestServer.executeOperation({
-      query: 'mutation ($input: TransactionInput!) { sendTransaction(data: $input) }',
+      query:
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, messageId} }',
       variables: {
         input: {
+          senderUser: {
+            uuid: '0ec72b74-48c2-446f-91ce-31ad7d9f4d65',
+          },
+          recipientUser: {
+            uuid: 'ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe',
+          },
           type: 'INVALID',
           amount: '10',
-          createdAt: 1688992436,
+          createdAt: '2012-04-17T17:12:00Z',
         },
       },
     })
@@ -71,12 +87,19 @@ describe('Transaction Resolver Test', () => {
 
   it('test mocked sendTransaction invalid amount ', async () => {
     const response = await apolloTestServer.executeOperation({
-      query: 'mutation ($input: TransactionInput!) { sendTransaction(data: $input) }',
+      query:
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, messageId} }',
       variables: {
         input: {
+          senderUser: {
+            uuid: '0ec72b74-48c2-446f-91ce-31ad7d9f4d65',
+          },
+          recipientUser: {
+            uuid: 'ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe',
+          },
           type: 'SEND',
           amount: 'no number',
-          createdAt: 1688992436,
+          createdAt: '2012-04-17T17:12:00Z',
         },
       },
     })
@@ -93,12 +116,19 @@ describe('Transaction Resolver Test', () => {
 
   it('test mocked sendTransaction invalid created date ', async () => {
     const response = await apolloTestServer.executeOperation({
-      query: 'mutation ($input: TransactionInput!) { sendTransaction(data: $input) }',
+      query:
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, messageId} }',
       variables: {
         input: {
+          senderUser: {
+            uuid: '0ec72b74-48c2-446f-91ce-31ad7d9f4d65',
+          },
+          recipientUser: {
+            uuid: 'ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe',
+          },
           type: 'SEND',
           amount: '10',
-          createdAt: '2023-03-02T10:12:00',
+          createdAt: 'not valid',
         },
       },
     })
@@ -106,10 +136,47 @@ describe('Transaction Resolver Test', () => {
     expect(response.body.singleResult).toMatchObject({
       errors: [
         {
-          message:
-            'Variable "$input" got invalid value "2023-03-02T10:12:00" at "input.createdAt"; Float cannot represent non numeric value: "2023-03-02T10:12:00"',
+          message: 'Argument Validation Error',
+          extensions: {
+            code: 'BAD_USER_INPUT',
+            validationErrors: [
+              {
+                value: 'not valid',
+                property: 'createdAt',
+                constraints: {
+                  isValidDateString: 'createdAt must be a valid date string',
+                },
+              },
+            ],
+          },
         },
       ],
+    })
+  })
+  it('test mocked sendTransaction missing creationDate for contribution', async () => {
+    const response = await apolloTestServer.executeOperation({
+      query:
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, messageId} }',
+      variables: {
+        input: {
+          senderUser: {
+            uuid: '0ec72b74-48c2-446f-91ce-31ad7d9f4d65',
+          },
+          recipientUser: {
+            uuid: 'ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe',
+          },
+          type: 'CREATION',
+          amount: '10',
+          createdAt: '2012-04-17T17:12:00Z',
+        },
+      },
+    })
+    assert(response.body.kind === 'single')
+    expect(response.body.singleResult.data?.sendTransaction).toMatchObject({
+      error: {
+        type: 'MISSING_PARAMETER',
+        message: 'missing targetDate for contribution',
+      },
     })
   })
 })

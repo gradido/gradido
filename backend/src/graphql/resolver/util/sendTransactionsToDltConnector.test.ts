@@ -6,6 +6,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Connection } from '@dbTools/typeorm'
+import { Community } from '@entity/Community'
 import { DltTransaction } from '@entity/DltTransaction'
 import { Transaction } from '@entity/Transaction'
 import { ApolloServerTestClient } from 'apollo-server-testing'
@@ -14,6 +15,7 @@ import { Decimal } from 'decimal.js-light'
 // import { Response } from 'graphql-request/dist/types'
 import { GraphQLClient } from 'graphql-request'
 import { Response } from 'graphql-request/dist/types'
+import { v4 as uuidv4 } from 'uuid'
 
 import { testEnvironment, cleanDB } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
@@ -79,6 +81,16 @@ let testEnv: {
   con: Connection
 }
 */
+
+async function createHomeCommunity(): Promise<Community> {
+  const homeCommunity = Community.create()
+  homeCommunity.foreign = false
+  homeCommunity.communityUuid = uuidv4()
+  homeCommunity.url = 'localhost'
+  homeCommunity.publicKey = Buffer.from('0x6e6a6c6d6feffe', 'hex')
+  await Community.save(homeCommunity)
+  return homeCommunity
+}
 
 async function createTxCREATION1(verified: boolean): Promise<Transaction> {
   let tx = Transaction.create()
@@ -358,6 +370,7 @@ describe('create and send Transactions to DltConnector', () => {
       txCREATION1 = await createTxCREATION1(false)
       txCREATION2 = await createTxCREATION2(false)
       txCREATION3 = await createTxCREATION3(false)
+      await createHomeCommunity()
 
       CONFIG.DLT_CONNECTOR = false
       await sendTransactionsToDltConnector()
@@ -413,6 +426,7 @@ describe('create and send Transactions to DltConnector', () => {
       txCREATION1 = await createTxCREATION1(false)
       txCREATION2 = await createTxCREATION2(false)
       txCREATION3 = await createTxCREATION3(false)
+      await createHomeCommunity()
 
       CONFIG.DLT_CONNECTOR = true
 
@@ -481,6 +495,7 @@ describe('create and send Transactions to DltConnector', () => {
       txCREATION1 = await createTxCREATION1(true)
       txCREATION2 = await createTxCREATION2(true)
       txCREATION3 = await createTxCREATION3(true)
+      await createHomeCommunity()
 
       txSEND1to2 = await createTxSend1ToReceive2(false)
       txRECEIVE2From1 = await createTxReceive2FromSend1(false)
