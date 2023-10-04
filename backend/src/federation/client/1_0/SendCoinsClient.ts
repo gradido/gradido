@@ -48,7 +48,11 @@ export class SendCoinsClient {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
       result.recipGradidoID = data.voteForSendCoins.recipGradidoID
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-      result.recipName = data.voteForSendCoins.recipName
+      result.recipFirstName = data.voteForSendCoins.recipFirstName
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+      result.recipLastName = data.voteForSendCoins.recipLastName
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+      result.recipAlias = data.voteForSendCoins.recipAlias
       logger.debug('X-Com: voteForSendCoins successful with result=', result)
       return result
     } catch (err) {

@@ -34,7 +34,6 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
-import { fullName } from '@/util/utilities'
 
 let mutate: ApolloServerTestClient['mutate'], con: Connection
 let query: ApolloServerTestClient['query']
@@ -618,18 +617,20 @@ describe('send coins', () => {
         jest
           .spyOn(SendCoinsClient.prototype, 'voteForSendCoins')
           .mockImplementation(async (args: SendCoinsArgs): Promise<SendCoinsResult> => {
-            // console.log('mock of voteForSendCoins...', args)
+            logger.debug('mock of voteForSendCoins...', args)
             return Promise.resolve({
               vote: true,
-              recipName: fullName(peter.firstName, peter.lastName),
+              recipFirstName: peter.firstName,
+              recipLastName: peter.lastName,
               recipGradidoID: args.recipientUserIdentifier,
+              recipAlias: peter.alias,
             })
           })
 
         jest
           .spyOn(SendCoinsClient.prototype, 'settleSendCoins')
           .mockImplementation(async (args: SendCoinsArgs): Promise<boolean> => {
-            // console.log('mock of settleSendCoins...', args)
+            logger.debug('mock of settleSendCoins...', args)
             return Promise.resolve(true)
           })
 

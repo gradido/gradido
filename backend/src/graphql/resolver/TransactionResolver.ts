@@ -258,7 +258,7 @@ export class TransactionResolver {
         const remoteUser = new User(null)
         remoteUser.gradidoID = transaction.linkedUserGradidoID
         remoteUser.firstName = transaction.linkedUserName
-        remoteUser.lastName = 'GradidoID: ' + transaction.linkedUserGradidoID
+        remoteUser.lastName = '(GradidoID: ' + transaction.linkedUserGradidoID + ')'
         involvedRemoteUsers.push(remoteUser)
       }
     })

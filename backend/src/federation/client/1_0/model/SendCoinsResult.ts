@@ -13,5 +13,11 @@ export class SendCoinsResult {
   recipGradidoID: string | null
 
   @Field(() => String, { nullable: true })
-  recipName: string | null
+  recipFirstName: string | null
+
+  @Field(() => String, { nullable: true })
+  recipLastName: string | null
+
+  @Field(() => String, { nullable: true })
+  recipAlias: string | null
 }

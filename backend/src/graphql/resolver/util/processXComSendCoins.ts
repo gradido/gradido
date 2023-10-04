@@ -104,8 +104,8 @@ export async function processXComPendingSendCoins(
           if (voteResult.recipGradidoID) {
             pendingTx.linkedUserGradidoID = voteResult.recipGradidoID
           }
-          if (voteResult.recipName) {
-            pendingTx.linkedUserName = voteResult.recipName
+          if (voteResult.recipFirstName && voteResult.recipLastName) {
+            pendingTx.linkedUserName = fullName(voteResult.recipFirstName, voteResult.recipLastName)
           }
           pendingTx.memo = memo
           pendingTx.previous = senderBalance ? senderBalance.lastTransactionId : null
@@ -224,7 +224,16 @@ export async function processXComCommittingSendCoins(
               pendingTx,
             )
             if (sendCoinsResult.vote) {
-              sendCoinsResult.recipName = pendingTx.linkedUserName
+              if (pendingTx.linkedUserName) {
+                sendCoinsResult.recipFirstName = pendingTx.linkedUserName.slice(
+                  0,
+                  pendingTx.linkedUserName.indexOf(' '),
+                )
+                sendCoinsResult.recipLastName = pendingTx.linkedUserName.slice(
+                  pendingTx.linkedUserName.indexOf(' '),
+                  pendingTx.linkedUserName.length,
+                )
+              }
               sendCoinsResult.recipGradidoID = pendingTx.linkedUserGradidoID
             }
           } catch (err) {
