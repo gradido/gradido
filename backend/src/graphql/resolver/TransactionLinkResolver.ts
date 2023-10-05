@@ -165,6 +165,7 @@ export class TransactionLinkResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
+    // const homeCom = await DbCommunity.findOneOrFail({ where: { foreign: false } })
     const user = getUser(context)
 
     if (code.match(/^CL-/)) {
@@ -271,6 +272,11 @@ export class TransactionLinkResolver {
           transaction.typeId = TransactionTypeId.CREATION
           transaction.memo = contribution.memo
           transaction.userId = contribution.userId
+          /* local transaction will not carry homeComUuid for local users 
+          if (homeCom.communityUuid) {
+            transaction.userCommunityUuid = homeCom.communityUuid
+          }
+          */
           transaction.userGradidoID = user.gradidoID
           transaction.userName = fullName(user.firstName, user.lastName)
           transaction.previous = lastTransaction ? lastTransaction.id : null

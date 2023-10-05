@@ -1,25 +1,41 @@
 import { gql } from 'graphql-request'
 
 export const voteForSendCoins = gql`
+  mutation ($args: SendCoinsArgs!) {
+    voteForSendCoins(data: $args) {
+      vote
+      recipGradidoID
+      recipName
+    }
+  }
+`
+
+/*
   mutation (
-    $communityReceiverIdentifier: String!
-    $userReceiverIdentifier: String!
+    $recipientCommunityUuid: String!
+    $recipientUserIdentifier: String!
     $creationDate: String!
     $amount: Decimal!
     $memo: String!
-    $communitySenderIdentifier: String!
-    $userSenderIdentifier: String!
-    $userSenderName: String!
+    $senderCommunityUuid: String!
+    $senderUserUuid: String!
+    $senderUserName: String!
   ) {
     voteForSendCoins(
-      communityReceiverIdentifier: $communityReceiverIdentifier
-      userReceiverIdentifier: $userReceiverIdentifier
-      creationDate: $creationDate
-      amount: $amount
-      memo: $memo
-      communitySenderIdentifier: $communitySenderIdentifier
-      userSenderIdentifier: $userSenderIdentifier
-      userSenderName: $userSenderName
-    )
+      data: {
+        recipientCommunityUuid: $recipientCommunityUuid
+        recipientUserIdentifier: $recipientUserIdentifier
+        creationDate: $creationDate
+        amount: $amount
+        memo: $memo
+        senderCommunityUuid: $senderCommunityUuid
+        senderUserUuid: $senderUserUuid
+        senderUserName: $senderUserName
+      }
+    ) {
+      vote
+      recipGradidoID
+      recipName
+    }
   }
-`
+*/

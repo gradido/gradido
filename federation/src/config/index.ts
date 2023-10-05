@@ -1,6 +1,7 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
+
 dotenv.config()
 
 Decimal.set({
@@ -9,7 +10,7 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0071-add-pending_transactions-table',
+  DB_VERSION: '0072-add_communityuuid_to_transactions_table',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
@@ -53,9 +54,14 @@ const federation = {
   FEDERATION_API: process.env.FEDERATION_API || '1_0',
   FEDERATION_PORT: process.env.FEDERATION_PORT || 5010,
   FEDERATION_COMMUNITY_URL: process.env.FEDERATION_COMMUNITY_URL || null,
+  FEDERATION_TRADING_LEVEL: {
+    RECEIVER_COMMUNITY_URL: 'https://stage3.gradido.net/api/',
+    SEND_COINS: true,
+    AMOUNT: 100,
+  },
 }
 
-const CONFIG = {
+export const CONFIG = {
   ...constants,
   ...server,
   ...database,

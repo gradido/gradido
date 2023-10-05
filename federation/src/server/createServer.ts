@@ -13,7 +13,7 @@ import cors from './cors'
 import plugins from './plugins'
 
 // config
-import CONFIG from '@/config'
+import { CONFIG } from '@/config'
 
 // graphql
 import schema from '@/graphql/schema'
@@ -33,7 +33,7 @@ import { Logger } from 'log4js'
 
 type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
 
-const createServer = async (
+export const createServer = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // context: any = serverContext,
   logger: Logger = apolloLogger,

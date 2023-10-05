@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { getConnection, In, IsNull } from '@dbTools/typeorm'
+import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as dbUser } from '@entity/User'
@@ -12,6 +13,7 @@ import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { Paginated } from '@arg/Paginated'
 import { TransactionSendArgs } from '@arg/TransactionSendArgs'
 import { Order } from '@enum/Order'
+import { PendingTransactionState } from '@enum/PendingTransactionState'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
@@ -50,6 +52,22 @@ export const executeTransaction = async (
   const releaseLock = await TRANSACTIONS_LOCK.acquire()
   try {
     logger.info('executeTransaction', amount, memo, sender, recipient)
+
+    const openSenderPendingTx = await DbPendingTransaction.count({
+      where: [
+        { userGradidoID: sender.gradidoID, state: PendingTransactionState.NEW },
+        { linkedUserGradidoID: sender.gradidoID, state: PendingTransactionState.NEW },
+      ],
+    })
+    const openReceiverPendingTx = await DbPendingTransaction.count({
+      where: [
+        { userGradidoID: recipient.gradidoID, state: PendingTransactionState.NEW },
+        { linkedUserGradidoID: recipient.gradidoID, state: PendingTransactionState.NEW },
+      ],
+    })
+    if (openSenderPendingTx > 0 || openReceiverPendingTx > 0) {
+      throw new LogError('There are still pending Transactions for Sender and/or Recipient')
+    }
 
     if (sender.id === recipient.id) {
       throw new LogError('Sender and Recipient are the same', sender.id)
@@ -330,13 +348,12 @@ export class TransactionResolver {
   @Mutation(() => Boolean)
   async sendCoins(
     @Args()
-    { /* recipientCommunityIdentifier, */ recipientIdentifier, amount, memo }: TransactionSendArgs,
+    { recipientCommunityIdentifier, recipientIdentifier, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
     logger.info(
-      `sendCoins(recipientIdentifier=${recipientIdentifier}, amount=${amount}, memo=${memo})`,
+      `sendCoins(recipientCommunityIdentifier=${recipientCommunityIdentifier}, recipientIdentifier=${recipientIdentifier}, amount=${amount}, memo=${memo})`,
     )
-
     const senderUser = getUser(context)
 
     // validate recipient user
