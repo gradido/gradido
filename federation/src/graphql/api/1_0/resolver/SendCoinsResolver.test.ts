@@ -50,7 +50,9 @@ describe('SendCoinsResolver', () => {
     voteForSendCoins(data: $args) {
       vote
       recipGradidoID
-      recipName
+      recipFirstName
+      recipLastName
+      recipAlias
     }
   }`
   const settleSendCoinsMutation = `
@@ -204,7 +206,9 @@ describe('SendCoinsResolver', () => {
             data: {
               voteForSendCoins: {
                 recipGradidoID: '56a55482-909e-46a4-bfa2-cd025e894ebd',
-                recipName: 'recipUser-FirstName recipUser-LastName',
+                recipFirstName: 'recipUser-FirstName',
+                recipLastName: 'recipUser-LastName',
+                recipAlias: 'recipUser-alias',
                 vote: true,
               },
             },

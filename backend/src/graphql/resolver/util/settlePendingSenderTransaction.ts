@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/*
+
 import { getConnection } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { User as DbUser } from '@entity/User'
+import { Decimal } from 'decimal.js-light'
 
 import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'
 import { LogError } from '@/server/LogError'
@@ -65,6 +66,7 @@ export async function settlePendingSenderTransaction(
     transactionSend.userGradidoID = pendingTx.userGradidoID
     transactionSend.userName = pendingTx.userName
     transactionSend.linkedUserId = pendingTx.linkedUserId
+    transactionSend.linkedUserCommunityUuid = pendingTx.linkedUserCommunityUuid
     transactionSend.linkedUserGradidoID = pendingTx.linkedUserGradidoID
     transactionSend.linkedUserName = pendingTx.linkedUserName
     transactionSend.amount = pendingTx.amount
@@ -73,15 +75,13 @@ export async function settlePendingSenderTransaction(
       pendingTx.amount,
       pendingTx.balanceDate,
     )
-    if (sendBalance?.balance !== pendingTx.balance) {
-      throw new LogError(
-        `X-Com: Calculation-Error on receiver balance: receiveBalance=${sendBalance?.balance}, pendingTx.balance=${pendingTx.balance}`,
-      )
+    if (!sendBalance) {
+      throw new LogError(`Sender has not enough GDD or amount is < 0', sendBalance`)
     }
-    transactionSend.balance = pendingTx.balance
+    transactionSend.balance = sendBalance?.balance ?? new Decimal(0)
     transactionSend.balanceDate = pendingTx.balanceDate
-    transactionSend.decay = pendingTx.decay
-    transactionSend.decayStart = pendingTx.decayStart
+    transactionSend.decay = sendBalance.decay.decay // pendingTx.decay
+    transactionSend.decayStart = sendBalance.decay.start // pendingTx.decayStart
     transactionSend.previous = pendingTx.previous
     transactionSend.linkedTransactionId = pendingTx.linkedTransactionId
     await queryRunner.manager.insert(dbTransaction, transactionSend)
@@ -94,7 +94,7 @@ export async function settlePendingSenderTransaction(
     await queryRunner.commitTransaction()
     logger.info(`commit send Transaction successful...`)
 
-    --*
+    /*
     await EVENT_TRANSACTION_SEND(sender, recipient, transactionSend, transactionSend.amount)
 
     await EVENT_TRANSACTION_RECEIVE(
@@ -103,7 +103,7 @@ export async function settlePendingSenderTransaction(
       transactionReceive,
       transactionReceive.amount,
     )
-    *--
+    */
     // trigger to send transaction via dlt-connector
     // void sendTransactionsToDltConnector()
   } catch (e) {
@@ -113,7 +113,7 @@ export async function settlePendingSenderTransaction(
     await queryRunner.release()
     releaseLock()
   }
-  --*
+  /*
     void sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,
@@ -141,7 +141,6 @@ export async function settlePendingSenderTransaction(
   } finally {
     releaseLock()
   }
-  *--
+  */
   return true
 }
-*/

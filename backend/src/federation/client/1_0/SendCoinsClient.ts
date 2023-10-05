@@ -6,10 +6,10 @@ import { backendLogger as logger } from '@/server/logger'
 
 import { SendCoinsArgs } from './model/SendCoinsArgs'
 import { SendCoinsResult } from './model/SendCoinsResult'
-import { revertSendCoins } from './query/revertSendCoins'
-import { revertSettledSendCoins } from './query/revertSettledSendCoins'
-import { settleSendCoins } from './query/settleSendCoins'
-import { voteForSendCoins } from './query/voteForSendCoins'
+import { revertSendCoins as revertSendCoinsQuery } from './query/revertSendCoins'
+import { revertSettledSendCoins as revertSettledSendCoinsQuery } from './query/revertSettledSendCoins'
+import { settleSendCoins as settleSendCoinsQuery } from './query/settleSendCoins'
+import { voteForSendCoins as voteForSendCoinsQuery } from './query/voteForSendCoins'
 
 // eslint-disable-next-line camelcase
 export class SendCoinsClient {
@@ -31,16 +31,16 @@ export class SendCoinsClient {
     })
   }
 
-  voteForSendCoins = async (args: SendCoinsArgs): Promise<SendCoinsResult> => {
+  async voteForSendCoins(args: SendCoinsArgs): Promise<SendCoinsResult> {
     logger.debug('X-Com: voteForSendCoins against endpoint=', this.endpoint)
     try {
       logger.debug(`X-Com: SendCoinsClient: voteForSendCoins with args=`, args)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const { data } = await this.client.rawRequest(voteForSendCoins, { args })
+      const { data } = await this.client.rawRequest(voteForSendCoinsQuery, { args })
       logger.debug(`X-Com: SendCoinsClient: after rawRequest...data:`, data)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (!data?.voteForSendCoins?.vote) {
-        logger.warn('X-Com: voteForSendCoins failed with: ', data)
+        logger.debug('X-Com: voteForSendCoins failed with: ', data)
         return new SendCoinsResult()
       }
       const result = new SendCoinsResult()
@@ -48,7 +48,11 @@ export class SendCoinsClient {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
       result.recipGradidoID = data.voteForSendCoins.recipGradidoID
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-      result.recipName = data.voteForSendCoins.recipName
+      result.recipFirstName = data.voteForSendCoins.recipFirstName
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+      result.recipLastName = data.voteForSendCoins.recipLastName
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+      result.recipAlias = data.voteForSendCoins.recipAlias
       logger.debug('X-Com: voteForSendCoins successful with result=', result)
       return result
     } catch (err) {
@@ -56,12 +60,12 @@ export class SendCoinsClient {
     }
   }
 
-  revertSendCoins = async (args: SendCoinsArgs): Promise<boolean> => {
+  async revertSendCoins(args: SendCoinsArgs): Promise<boolean> {
     logger.debug('X-Com: revertSendCoins against endpoint=', this.endpoint)
     try {
       logger.debug(`X-Com: SendCoinsClient: revertSendCoins with args=`, args)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const { data } = await this.client.rawRequest(revertSendCoins, { args })
+      const { data } = await this.client.rawRequest(revertSendCoinsQuery, { args })
       logger.debug(`X-Com: SendCoinsClient: after revertSendCoins: data=`, data)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (!data?.revertSendCoins) {
@@ -81,12 +85,12 @@ export class SendCoinsClient {
     }
   }
 
-  settleSendCoins = async (args: SendCoinsArgs): Promise<boolean> => {
+  async settleSendCoins(args: SendCoinsArgs): Promise<boolean> {
     logger.debug(`X-Com: settleSendCoins against endpoint='${this.endpoint}'...`)
     try {
       logger.debug(`X-Com: SendCoinsClient: settleSendCoins with args=`, args)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const { data } = await this.client.rawRequest(settleSendCoins, { args })
+      const { data } = await this.client.rawRequest(settleSendCoinsQuery, { args })
       logger.debug(`X-Com: SendCoinsClient: after settleSendCoins: data=`, data)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (!data?.settleSendCoins) {
@@ -108,12 +112,12 @@ export class SendCoinsClient {
     }
   }
 
-  revertSettledSendCoins = async (args: SendCoinsArgs): Promise<boolean> => {
+  async revertSettledSendCoins(args: SendCoinsArgs): Promise<boolean> {
     logger.debug(`X-Com: revertSettledSendCoins against endpoint='${this.endpoint}'...`)
     try {
       logger.debug(`X-Com: SendCoinsClient: revertSettledSendCoins with args=`, args)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const { data } = await this.client.rawRequest(revertSettledSendCoins, { args })
+      const { data } = await this.client.rawRequest(revertSettledSendCoinsQuery, { args })
       logger.debug(`X-Com: SendCoinsClient: after revertSettledSendCoins: data=`, data)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (!data?.revertSettledSendCoins) {

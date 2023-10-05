@@ -99,8 +99,10 @@ export class SendCoinsResolver {
 
       await DbPendingTransaction.insert(pendingTx)
       result.vote = true
-      result.recipName = pendingTx.userName
-      result.recipGradidoID = pendingTx.userGradidoID
+      result.recipFirstName = receiverUser.firstName
+      result.recipLastName = receiverUser.lastName
+      result.recipAlias = receiverUser.alias
+      result.recipGradidoID = receiverUser.gradidoID
       logger.debug(`voteForSendCoins()-1_0... successfull`)
     } catch (err) {
       throw new LogError(`Error in voteForSendCoins: `, err)
