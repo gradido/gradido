@@ -58,6 +58,8 @@ const virtualLinkTransaction = (
     userName: null,
     linkedUserGradidoID: null,
     linkedUserName: null,
+    userCommunityUuid: null,
+    linkedUserCommunityUuid: null,
   }
   return new Transaction(linkDbTransaction, user)
 }
@@ -92,6 +94,8 @@ const virtualDecayTransaction = (
     userName: null,
     linkedUserGradidoID: null,
     linkedUserName: null,
+    userCommunityUuid: null,
+    linkedUserCommunityUuid: null,
   }
   return new Transaction(decayDbTransaction, user)
 }
