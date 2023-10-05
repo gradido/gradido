@@ -24,12 +24,12 @@ export const iotaTopicFromCommunityUUID = (communityUUID: string): string => {
 
 export const timestampToDate = (timestamp: Timestamp): Date => {
   let milliseconds = timestamp.nanoSeconds / 1000000
-  milliseconds += timestamp.seconds * 1000
+  milliseconds += timestamp.seconds.mul(1000).toNumber()
   return new Date(milliseconds)
 }
 
 export const timestampSecondsToDate = (timestamp: TimestampSeconds): Date => {
-  return new Date(timestamp.seconds * 1000)
+  return new Date(timestamp.seconds.mul(1000).toNumber())
 }
 
 export const base64ToBuffer = (base64: string): Buffer => {

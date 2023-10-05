@@ -143,12 +143,13 @@ export class DltConnectorClient {
     return data.isCommunityExist
   }
 
-  public async addCommunity({ communityUuid, foreign, createdAt }: Community): Promise<void> {
+  public async addCommunity(community: Community): Promise<void> {
+    logger.info('add community to dlt-connector', community)
     const { data } = await this.client.rawRequest(addCommunity, {
       input: {
-        uuid: communityUuid,
-        foreign,
-        createdAt: createdAt.toString(),
+        uuid: community.communityUuid,
+        foreign: community.foreign,
+        createdAt: community.createdAt.toString(),
       },
     })
     if (data.error) {

@@ -18,6 +18,7 @@ import { Community } from '@entity/Community'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { User } from '@entity/User'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
+import { SignaturePair } from '@/proto/3_3/SignaturePair'
 
 interface CreateTransactionRecipeOptions {
   transaction: GradidoTransaction
@@ -109,7 +110,11 @@ export class TransactionRecipe {
         'missing signature in transaction recipe',
       )
     }
-    transaction.sigMap.sigPair[0].signature = this.recipeEntity.signature
+    const signaturePair = new SignaturePair()
+    if (this.recipeEntity.signature.length !== 64) {
+      throw new TransactionError(TransactionErrorType.INVALID_SIGNATURE, "signature isn't 64 bytes")
+    }
+    signaturePair.signature = this.recipeEntity.signature
     if (body.communityRoot) {
       const publicKey = this.recipeEntity.senderCommunity.rootPubkey
       if (!publicKey) {
@@ -118,7 +123,8 @@ export class TransactionRecipe {
           'missing community public key for community root transaction',
         )
       }
-      transaction.sigMap.sigPair[0].pubKey = publicKey
+      signaturePair.pubKey = publicKey
+      transaction.sigMap.sigPair.push(signaturePair)
     } else {
       throw new TransactionError(
         TransactionErrorType.NOT_IMPLEMENTED_YET,
@@ -150,7 +156,7 @@ export class TransactionRecipe {
 
 export const getNextPendingTransaction = async (): Promise<TransactionRecipeEntity | null> => {
   return await TransactionRecipeEntity.findOne({
-    where: { iotaMessageId: Not(IsNull()) },
+    where: { iotaMessageId: IsNull() },
     order: { createdAt: 'ASC' },
   })
 }

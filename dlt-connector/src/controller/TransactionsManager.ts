@@ -9,12 +9,13 @@ import { receiveAllMessagesForTopic } from '@/client/IotaClient'
 import { findAll as findAllCommunities } from './Community'
 import { getTransactions } from '@/client/GradidoNode'
 import { confirmFromNodeServer } from './ConfirmedTransaction'
+import { logger } from '@/server/logger'
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class TransactionsManager {
   // eslint-disable-next-line no-use-before-define
   private static instance: TransactionsManager
-  private topicsForListening: string[]
+  private topicsForListening: string[] = []
   private homeCommunityTopic: string
 
   /**
@@ -54,14 +55,20 @@ export class TransactionsManager {
    * @param newTopic
    */
   public async addTopic(newTopic: string): Promise<void> {
+    logger.info('add topic', newTopic)
     this.topicsForListening.push(newTopic)
     let count = 0
     let cursor = 0
     do {
-      const confirmedTransactions = await getTransactions(cursor, 100, newTopic)
-      count = confirmedTransactions.length
-      cursor += count
-      await confirmFromNodeServer(confirmedTransactions)
+      try {
+        const confirmedTransactions = await getTransactions(cursor, 100, newTopic)
+        count = confirmedTransactions.length
+        cursor += count
+        await confirmFromNodeServer(confirmedTransactions)
+      } catch (error) {
+        logger.error('cannot get transactions from node server')
+        throw error
+      }
     } while (count === 100)
   }
 

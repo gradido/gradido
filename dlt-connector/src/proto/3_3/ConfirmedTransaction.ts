@@ -2,6 +2,7 @@ import { Field, Message } from '@apollo/protobufjs'
 import { GradidoTransaction } from './GradidoTransaction'
 import { TimestampSeconds } from './TimestampSeconds'
 import { base64ToBuffer } from '@/utils/typeConverter'
+import Long from 'long'
 
 /*
 	id will be set by Node server
@@ -17,7 +18,7 @@ export class ConfirmedTransaction extends Message<ConfirmedTransaction> {
   }
 
   @Field.d(1, 'uint64')
-  id: number
+  id: Long
 
   @Field.d(2, 'GradidoTransaction')
   transaction: GradidoTransaction

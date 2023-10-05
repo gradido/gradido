@@ -2,6 +2,7 @@ import { CONFIG } from '@/config'
 import { ConfirmedTransaction } from '@/proto/3_3/ConfirmedTransaction'
 import { AddressType, getAddressTypeEnumValue } from '@/proto/3_3/enum/AddressType'
 import { LogError } from '@/server/LogError'
+import { logger } from '@/server/logger'
 import JsonRpcClient from 'jsonrpc-ts-client'
 import { JsonRpcEitherResponse } from 'jsonrpc-ts-client/dist/types/utils/jsonrpc'
 
@@ -14,6 +15,7 @@ enum JsonRPCErrorCodes {
   GRADIDO_NODE_ERROR = -10000,
   UNKNOWN_GROUP = -10001,
   NOT_IMPLEMENTED = -10002,
+  TRANSACTION_NOT_FOUND = -10003,
   // default errors from json rpc standard: https://www.jsonrpc.org/specification
   // -32700 	Parse error 	Invalid JSON was received by the server.
   PARSE_ERROR = -32700,
@@ -56,12 +58,14 @@ async function getTransactions(
   maxResultCount: number,
   iotaTopic: string,
 ): Promise<ConfirmedTransaction[]> {
-  const response = await client.exec<ConfirmedTransactionList>('getTransactions', {
+  const parameter = {
     format: 'base64',
     fromTransactionId,
     maxResultCount,
     communityId: iotaTopic,
-  }) // sends payload {jsonrpc: '2.0',  params: ...}
+  }
+  logger.info('call getTransactions on Node Server via jsonrpc 2.0 with ', parameter)
+  const response = await client.exec<ConfirmedTransactionList>('getTransactions', parameter) // sends payload {jsonrpc: '2.0',  params: ...}
   return resolveResponse(response, (result: ConfirmedTransactionList) =>
     result.transactions.map((transactionBase64) =>
       ConfirmedTransaction.fromBase64(transactionBase64),
@@ -73,6 +77,7 @@ async function getTransaction(
   transactionId: number | Buffer,
   iotaTopic: string,
 ): Promise<ConfirmedTransaction | undefined> {
+  logger.info('call gettransaction on Node Server via jsonrpc 2.0')
   const response = await client.exec<ConfirmedTransactionResponse>('gettransaction', {
     format: 'base64',
     communityId: iotaTopic,
@@ -85,6 +90,7 @@ async function getTransaction(
 }
 
 async function getAddressType(pubkey: Buffer, iotaTopic: string): Promise<AddressType | undefined> {
+  logger.info('call getaddresstype on Node Server via jsonrpc 2.0')
   const response = await client.exec<AddressTypeResult>('getaddresstype', {
     pubkey: pubkey.toString('hex'),
     communityId: iotaTopic,

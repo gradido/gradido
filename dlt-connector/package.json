@@ -40,7 +40,8 @@
     "sodium-native": "^4.0.4",
     "tsconfig-paths": "^4.1.2",
     "type-graphql": "^2.0.0-beta.2",
-    "typeorm": "^0.3.17"
+    "typeorm": "^0.3.17",
+    "long": "^5.2.3"
   },
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^3.2.1",

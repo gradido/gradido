@@ -24,6 +24,7 @@ import { TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY } from '@/tasks/transmitToIota'
 export class CommunityResolver {
   @Query(() => Community)
   async community(@Args() communityArg: CommunityArg): Promise<Community> {
+    logger.info('community', communityArg)
     const result = await find(communityArg)
     if (result.length === 0) {
       throw new LogError('cannot find community')
@@ -36,11 +37,13 @@ export class CommunityResolver {
 
   @Query(() => Boolean)
   async isCommunityExist(@Args() communityArg: CommunityArg): Promise<boolean> {
+    logger.info('isCommunity', communityArg)
     return (await find(communityArg)).length === 1
   }
 
   @Query(() => [Community])
   async communities(@Args() communityArg: CommunityArg): Promise<Community[]> {
+    logger.info('communities', communityArg)
     const result = await find(communityArg)
     return result.map((communityEntity) => new Community(communityEntity))
   }
@@ -50,6 +53,7 @@ export class CommunityResolver {
     @Arg('data')
     communityDraft: CommunityDraft,
   ): Promise<TransactionResult> {
+    logger.info('addCommunity', communityDraft)
     try {
       const topic = iotaTopicFromCommunityUUID(communityDraft.uuid)
       // check if community was already written to db

@@ -47,7 +47,9 @@ export class TransactionRecipe extends BaseEntity {
   @Column({ name: 'recipient_account_id', type: 'int', unsigned: true, nullable: true })
   recipientAccountId?: number
 
-  @ManyToOne(() => Community, (community) => community.transactionRecipesSender)
+  @ManyToOne(() => Community, (community) => community.transactionRecipesSender, {
+    eager: true,
+  })
   @JoinColumn({ name: 'sender_community_id' })
   senderCommunity: Community
 

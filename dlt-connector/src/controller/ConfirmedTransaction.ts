@@ -13,7 +13,7 @@ export const create = (
 ): ConfirmedTransactionEntity => {
   const confirmedTransaction = ConfirmedTransactionEntity.create()
   confirmedTransaction.transactionRecipe = transactionRecipe.getTransactionRecipeEntity()
-  confirmedTransaction.nr = confirmedTransactionProto.id
+  confirmedTransaction.nr = confirmedTransactionProto.id.toNumber()
   confirmedTransaction.runningHash = confirmedTransactionProto.runningHash
   const balanceAccount = transactionRecipe.getBalanceAccount()
   if (balanceAccount === undefined) {
