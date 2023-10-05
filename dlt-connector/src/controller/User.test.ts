@@ -1,3 +1,4 @@
+import 'reflect-metadata'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
 import { uuid4ToBuffer } from '@/utils/typeConverter'
 

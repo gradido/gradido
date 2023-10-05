@@ -5,6 +5,8 @@ import { TimestampSeconds } from '@/proto/3_3/TimestampSeconds'
 import { AccountType } from '@/graphql/enum/AccountType'
 import { AddressType } from '@/proto/3_3/enum/AddressType'
 import { LogError } from '@/server/LogError'
+import Long from 'long'
+import { time } from 'console'
 
 export const uuid4ToBuffer = (uuid: string): Buffer => {
   // Remove dashes from the UUIDv4 string
@@ -24,12 +26,12 @@ export const iotaTopicFromCommunityUUID = (communityUUID: string): string => {
 
 export const timestampToDate = (timestamp: Timestamp): Date => {
   let milliseconds = timestamp.nanoSeconds / 1000000
-  milliseconds += timestamp.seconds.mul(1000).toNumber()
+  milliseconds += timestamp.seconds * 1000
   return new Date(milliseconds)
 }
 
 export const timestampSecondsToDate = (timestamp: TimestampSeconds): Date => {
-  return new Date(timestamp.seconds.mul(1000).toNumber())
+  return new Date(timestamp.seconds * 1000)
 }
 
 export const base64ToBuffer = (base64: string): Buffer => {

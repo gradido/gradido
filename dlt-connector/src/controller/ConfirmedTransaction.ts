@@ -13,7 +13,7 @@ export const create = (
 ): ConfirmedTransactionEntity => {
   const confirmedTransaction = ConfirmedTransactionEntity.create()
   confirmedTransaction.transactionRecipe = transactionRecipe.getTransactionRecipeEntity()
-  confirmedTransaction.nr = confirmedTransactionProto.id.toNumber()
+  confirmedTransaction.nr = confirmedTransactionProto.id
   confirmedTransaction.runningHash = confirmedTransactionProto.runningHash
   const balanceAccount = transactionRecipe.getBalanceAccount()
   if (balanceAccount === undefined) {
@@ -79,6 +79,5 @@ export const confirmFromNodeServer = async (
     return create(confirmedTransaction, new TransactionRecipe(recipe))
   })
   await ConfirmedTransactionEntity.save(newConfirmedTransactions)
-
-  // ConfirmedTransactionEntity.find({ where: { } })
+  // TODO: fill confirmedAt Dates in User, Account
 }

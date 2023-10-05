@@ -1,3 +1,4 @@
+import 'reflect-metadata'
 import { Timestamp } from '../proto/3_3/Timestamp'
 import { hardenDerivationIndex, HARDENED_KEY_BITMASK } from './derivationHelper'
 import { timestampToDate } from './typeConverter'
