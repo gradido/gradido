@@ -57,7 +57,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Frontend | Lint
-        run: cd frontend && yarn && yarn run lint
+        run: cd frontend && yarn global add node-gyp && yarn && yarn run lint
 
   stylelint:
     if: needs.files-changed.outputs.frontend == 'true'
@@ -69,7 +69,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Frontend | Stylelint
-        run: cd frontend && yarn && yarn run stylelint
+        run: cd frontend && yarn global add node-gyp && yarn && yarn run stylelint
 
   locales:
     if: needs.files-changed.outputs.frontend == 'true'
@@ -81,4 +81,4 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Frontend | Locales
-        run: cd frontend && yarn && yarn run locales
+        run: cd frontend && yarn global add node-gyp && yarn && yarn run locales
