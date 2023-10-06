@@ -63,7 +63,7 @@ FROM base as build
 # Copy everything
 COPY . .
 # npm install
-RUN yarn install --production=false --frozen-lockfile --non-interactive
+RUN yarn global add node-gyp && yarn install --production=false --frozen-lockfile --non-interactive
 # npm build
 RUN yarn run build
 
