@@ -251,18 +251,40 @@ export class TransactionResolver {
     // find involved users; I am involved
     const involvedUserIds: number[] = [user.id]
     const involvedRemoteUsers: User[] = []
-    userTransactions.forEach((transaction: dbTransaction) => {
+    // userTransactions.forEach((transaction: dbTransaction) => {
+    // use normal for loop because of timing problems with await in forEach-loop
+    for (const transaction of userTransactions) {
       if (transaction.linkedUserId && !involvedUserIds.includes(transaction.linkedUserId)) {
         involvedUserIds.push(transaction.linkedUserId)
       }
       if (!transaction.linkedUserId && transaction.linkedUserGradidoID) {
-        const remoteUser = new User(null)
-        remoteUser.gradidoID = transaction.linkedUserGradidoID
-        remoteUser.firstName = transaction.linkedUserName
-        remoteUser.lastName = '(GradidoID: ' + transaction.linkedUserGradidoID + ')'
+        logger.debug(
+          'search for remoteUser...',
+          transaction.linkedUserCommunityUuid,
+          transaction.linkedUserGradidoID,
+        )
+        const dbRemoteUser = await dbUser.findOne({
+          where: [
+            {
+              foreign: true,
+              communityUuid: transaction.linkedUserCommunityUuid ?? undefined,
+              gradidoID: transaction.linkedUserGradidoID,
+            },
+          ],
+        })
+        logger.debug('found dbRemoteUser:', dbRemoteUser)
+        const remoteUser = new User(dbRemoteUser)
+        if (dbRemoteUser === null) {
+          if (transaction.linkedUserCommunityUuid !== null) {
+            remoteUser.communityUuid = transaction.linkedUserCommunityUuid
+          }
+          remoteUser.gradidoID = transaction.linkedUserGradidoID
+          remoteUser.firstName = transaction.linkedUserName
+          remoteUser.lastName = 'GradidoID: ' + transaction.linkedUserGradidoID
+        }
         involvedRemoteUsers.push(remoteUser)
       }
-    })
+    }
     logger.debug(`involvedUserIds=`, involvedUserIds)
     logger.debug(`involvedRemoteUsers=`, involvedRemoteUsers)
 
@@ -337,7 +359,7 @@ export class TransactionResolver {
             (userTransactions.length && userTransactions[0].balance) || new Decimal(0),
           ),
         )
-        logger.debug(`transactions=${transactions}`)
+        logger.debug(`transactions=`, transactions)
       }
     }
 
@@ -364,7 +386,7 @@ export class TransactionResolver {
       }
       transactions.push(new Transaction(userTransaction, self, linkedUser))
     })
-    logger.debug(`TransactionTypeId.CREATION: transactions=${transactions}`)
+    logger.debug(`TransactionTypeId.CREATION: transactions=`, transactions)
 
     transactions.forEach((transaction: Transaction) => {
       if (transaction.typeId !== TransactionTypeId.DECAY) {

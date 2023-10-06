@@ -8,6 +8,8 @@ export class User {
   constructor(user: dbUser | null) {
     if (user) {
       this.id = user.id
+      this.foreign = user.foreign
+      this.communityUuid = user.communityUuid
       this.gradidoID = user.gradidoID
       this.alias = user.alias
       if (user.emailContact) {
@@ -29,6 +31,12 @@ export class User {
 
   @Field(() => Int)
   id: number
+
+  @Field(() => Boolean)
+  foreign: boolean
+
+  @Field(() => String)
+  communityUuid: string
 
   @Field(() => String)
   gradidoID: string
