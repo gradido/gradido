@@ -171,6 +171,8 @@ describe('UserResolver', () => {
               referrerId: null,
               contributionLinkId: null,
               passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
+              communityUuid: null,
+              foreign: false,
             },
           ])
           const valUUID = validateUUID(user[0].gradidoID)

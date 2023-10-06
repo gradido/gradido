@@ -8,7 +8,6 @@ import {
   JoinColumn,
   OneToOne,
 } from 'typeorm'
-import { Community } from '../Community'
 import { Contribution } from '../Contribution'
 import { ContributionMessage } from '../ContributionMessage'
 import { UserContact } from '../UserContact'
@@ -37,7 +36,7 @@ export class User extends BaseEntity {
     nullable: true,
     collation: 'utf8mb4_unicode_ci',
   })
-  communityUuid: string | null
+  communityUuid: string
 
   @Column({
     name: 'alias',

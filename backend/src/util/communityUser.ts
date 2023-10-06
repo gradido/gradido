@@ -49,7 +49,7 @@ const communityDbUser: dbUser = {
     throw new Error('Function not implemented.')
   },
   foreign: false,
-  communityUuid: null,
+  communityUuid: '55555555-4444-4333-2222-11111111',
 }
 const communityUser = new User(communityDbUser)
 

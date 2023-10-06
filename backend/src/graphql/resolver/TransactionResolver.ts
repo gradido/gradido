@@ -47,6 +47,7 @@ import {
   processXComPendingSendCoins,
 } from './util/processXComSendCoins'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
+import { storeForeignUser } from './util/storeForeignUser'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 
 export const executeTransaction = async (
@@ -404,6 +405,7 @@ export class TransactionResolver {
     } else {
       // processing a x-community sendCoins
       logger.debug('X-Com: processing a x-community transaction...')
+      console.log('X-Com: processing a x-community transaction...')
       if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
         throw new LogError('X-Community sendCoins disabled per configuration!')
       }
@@ -414,6 +416,7 @@ export class TransactionResolver {
         where: { communityUuid: recipientCommunityIdentifier },
       })
       logger.debug('recipient commuity: ', recipCom)
+      console.log('recipient commuity: ', recipCom)
       let pendingResult: SendCoinsResult
       let committingResult: SendCoinsResult
       const creationDate = new Date()
@@ -429,8 +432,10 @@ export class TransactionResolver {
           recipientIdentifier,
         )
         logger.debug('processXComPendingSendCoins result: ', pendingResult)
+        console.log('processXComPendingSendCoins result: ', pendingResult)
         if (pendingResult.vote && pendingResult.recipGradidoID) {
           logger.debug('vor processXComCommittingSendCoins... ')
+          console.log('vor processXComCommittingSendCoins... ')
           committingResult = await processXComCommittingSendCoins(
             recipCom,
             homeCom,
@@ -441,6 +446,7 @@ export class TransactionResolver {
             pendingResult.recipGradidoID,
           )
           logger.debug('processXComCommittingSendCoins result: ', committingResult)
+          console.log('processXComCommittingSendCoins result: ', committingResult)
           if (!committingResult.vote) {
             logger.fatal('FATAL ERROR: on processXComCommittingSendCoins for', committingResult)
             throw new LogError(
@@ -449,6 +455,21 @@ export class TransactionResolver {
               recipientIdentifier,
               amount.toString(),
               memo,
+            )
+          }
+          // after successful x-com-tx store the recipient as foreign user
+          logger.debug('store recipient as foreign user...')
+          console.log('store recipient as foreign user...')
+          if (await storeForeignUser(recipCom, committingResult)) {
+            logger.info(
+              'X-Com: new foreign user inserted successfully...',
+              recipCom.communityUuid,
+              committingResult.recipGradidoID,
+            )
+            console.log(
+              'X-Com: new foreign user inserted successfully...',
+              recipCom.communityUuid,
+              committingResult.recipGradidoID,
             )
           }
         }
