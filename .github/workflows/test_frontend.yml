@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Frontend | Unit tests
-        run: cd frontend && yarn && yarn run test
+        run: cd frontend && yarn global add node-gyp && yarn && yarn run test
 
   lint:
     if: needs.files-changed.outputs.frontend == 'true'
