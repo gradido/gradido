@@ -3,6 +3,7 @@ import { TransactionType } from '@/graphql/enum/TransactionType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
+import { ConfirmedTransaction } from '@/proto/3_3/ConfirmedTransaction'
 import { TransactionBody } from '@/proto/3_3/TransactionBody'
 import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
@@ -69,20 +70,20 @@ export class TransactionRecipe {
     if (backendTransactionId) {
       recipeEntity.backendTransactionId = backendTransactionId
     }
-    recipeEntity.bodyBytes = transaction.bodyBytes
+    recipeEntity.bodyBytes = Buffer.from(transaction.bodyBytes)
     const body = recipe.getBody()
     body.fillTransactionRecipe(recipeEntity)
 
+    const firstSigPair = transaction.getFirstSignature()
     // TODO: adapt if transactions with more than one signatures where added
-    if (transaction.sigMap.sigPair.length !== 1) {
+    if (!firstSigPair || transaction.sigMap.sigPair.length !== 1) {
       throw new LogError("signature count don't like expected")
     }
-    const firstSigPair = transaction.sigMap.sigPair[0]
 
     // get recipient and signer accounts if not already set
     recipeEntity.signingAccount =
       signingAccount ?? (await findAccountByPublicKey(firstSigPair.pubKey))
-    recipeEntity.signature = firstSigPair.signature
+    recipeEntity.signature = Buffer.from(firstSigPair.signature)
     recipeEntity.recipientAccount =
       recipientAccount ?? (await findAccountByPublicKey(body.getRecipientPublicKey()))
 
@@ -92,7 +93,7 @@ export class TransactionRecipe {
       if (!senderCommunity) {
         throw new LogError("couldn't find sender community for transaction")
       }
-      recipeEntity.senderCommunity = senderCommunity
+      recipeEntity.senderCommunity = senderCommunity      
     }
     if (recipientUser) {
       recipeEntity.recipientCommunity = await getCommunityForUserIdentifier(recipientUser)
@@ -152,6 +153,13 @@ export class TransactionRecipe {
         return null
     }
   }
+
+  public async confirm(confirmedTransaction: ConfirmedTransaction): Promise<void> {
+    const body = this.getBody()
+    switch(body.getTransactionType()) {
+      case 
+    }
+  }
 }
 
 export const getNextPendingTransaction = async (): Promise<TransactionRecipeEntity | null> => {
@@ -162,5 +170,5 @@ export const getNextPendingTransaction = async (): Promise<TransactionRecipeEnti
 }
 
 export const findBySignature = (signature: Buffer): Promise<TransactionRecipeEntity | null> => {
-  return TransactionRecipeEntity.findOneBy({ signature })
+  return TransactionRecipeEntity.findOneBy({ signature: Buffer.from(signature) })
 }

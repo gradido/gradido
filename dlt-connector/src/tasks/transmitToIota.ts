@@ -7,8 +7,6 @@ import { logger } from '../server/logger'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
-import { verify as ed25519Verify } from 'bip32-ed25519'
-import { TransactionBody } from '@/proto/3_3/TransactionBody'
 
 function sleep(ms: number) {
   return new Promise((resolve) => {
@@ -33,7 +31,8 @@ export const transmitToIota = async (): Promise<void> => {
       if (!recipe) {
         await ConditionalSleepManager.getInstance().sleep(
           TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY,
-          1000,
+          //1000,
+          100000,
         )
         continue
       }
@@ -41,30 +40,7 @@ export const transmitToIota = async (): Promise<void> => {
       const recipeController = new TransactionRecipe(recipe)
       const { transaction, body } = recipeController.getGradidoTransaction()
       const messageBuffer = GradidoTransaction.encode(transaction).finish()
-      const transactionDecoded = GradidoTransaction.decode(messageBuffer)
-      const bodyDecoded = TransactionBody.decode(transactionDecoded.bodyBytes)
-      if (transactionDecoded.sigMap.sigPair[0].signature.length !== 64) {
-        throw new TransactionError(
-          TransactionErrorType.INVALID_SIGNATURE,
-          'signature size on decoded transaction is wrong!',
-        )
-      }
-      console.log('signature: %s', transactionDecoded.sigMap.sigPair[0].signature.toString('hex'))
-      console.log('message buffer: \n%s', Buffer.from(messageBuffer).toString('hex'))
-      const verified = ed25519Verify(
-        transactionDecoded.bodyBytes,
-        transactionDecoded.sigMap.sigPair[0].signature,
-        transactionDecoded.sigMap.sigPair[0].pubKey,
-      )
-      console.log('result from verified: %d', verified)
-      console.log('bodyBytes: %s', transactionDecoded.bodyBytes.toString('hex'))
-      console.log('publickey: %s', transactionDecoded.sigMap.sigPair[0].pubKey.toString('hex'))
-      console.log('signature: %s', transactionDecoded.sigMap.sigPair[0].signature.toString('hex'))
-      console.log('json: %s', JSON.stringify(transactionDecoded.toJSON(), null, 2))
-      console.log('json body: %s', JSON.stringify(bodyDecoded.toJSON(), null, 2))
-      const bodyBytesReincoded = TransactionBody.encode(bodyDecoded).finish()
-      console.log('body bytes new: %s', Buffer.from(bodyBytesReincoded).toString('base64'))
-
+      
       if (body.type === CrossGroupType.LOCAL) {
         const resultMessage = await iotaSendMessage(
           messageBuffer,

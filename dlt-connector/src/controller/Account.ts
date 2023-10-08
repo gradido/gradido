@@ -60,7 +60,7 @@ export const findAccountByPublicKey = async (
   publicKey: Buffer | undefined,
 ): Promise<Account | undefined> => {
   if (!publicKey) return undefined
-  return (await Account.findOneBy({ derive2Pubkey: publicKey })) ?? undefined
+  return (await Account.findOneBy({ derive2Pubkey: Buffer.from(publicKey) })) ?? undefined
 }
 
 export const createCommunitySpecialAccounts = (community: Community): void => {

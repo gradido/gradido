@@ -28,7 +28,7 @@ export class ConfirmedTransaction extends BaseEntity {
   @Column({ type: 'bigint' })
   nr: number
 
-  @Column({ type: 'binary', length: 48 })
+  @Column({ name: 'running_hash', type: 'binary', length: 48 })
   runningHash: Buffer
 
   @ManyToOne(() => Account, (account) => account.confirmedTransactions)

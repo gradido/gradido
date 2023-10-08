@@ -11,14 +11,17 @@ import { TransactionError } from '@model/TransactionError'
 import { create as createCommunity, find, isExist } from '@/controller/Community'
 import { TransactionErrorType } from '@enum/TransactionErrorType'
 import { KeyManager } from '@/controller/KeyManager'
-import { TransactionRecipe } from '@/controller/TransactionRecipe'
-import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
+import { TransactionRecipe as TransactionRecipeController, findBySignature } from '@/controller/TransactionRecipe'
+import { iotaTopicFromCommunityUUID, timestampSecondsToDate } from '@/utils/typeConverter'
 import { Community } from '@model/Community'
 import { CommunityArg } from '@arg/CommunityArg'
 import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
 import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
 import { TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY } from '@/tasks/transmitToIota'
+import { getTransaction } from '@/client/GradidoNode'
+import { confirmFromNodeServer } from '@/controller/ConfirmedTransaction'
+import { TransactionRecipe } from '@model/TransactionRecipe'
 
 @Resolver()
 export class CommunityResolver {
@@ -66,11 +69,31 @@ export class CommunityResolver {
 
       // create only a CommunityRoot Start Transaction for own community
       if (!communityDraft.foreign) {
+        // check if a CommunityRoot Transaction exist already on iota blockchain
+        const existingCommunityRootTransaction = await getTransaction(1, community.iotaTopic)
+        if (existingCommunityRootTransaction) {
+          await confirmFromNodeServer([existingCommunityRootTransaction])
+          const firstSignaturePair = existingCommunityRootTransaction.transaction.getFirstSignature()
+          if(!firstSignaturePair) {
+            throw new TransactionError(TransactionErrorType.INVALID_SIGNATURE, 'find transaction recipe without signature in db')
+          }
+          const recipe = await findBySignature(firstSignaturePair.signature)
+          if(!recipe) {
+            throw new TransactionError(TransactionErrorType.NOT_FOUND, 'load community root entry from Gradido Node, but could find it afterwards in DB')
+          }
+          community.confirmedAt = timestampSecondsToDate(existingCommunityRootTransaction.confirmedAt)
+          community.save()
+          recipe.senderCommunity = community
+
+          console.log('result from resolver call: %o', recipe)
+          return new TransactionResult(new TransactionRecipe(recipe))
+        }
+
         const transaction = new GradidoTransaction(
           createCommunityTransactionBody(communityDraft, community),
         )
         KeyManager.getInstance().sign(transaction)
-        const recipeController = await TransactionRecipe.create({ transaction })
+        const recipeController = await TransactionRecipeController.create({ transaction })
         const recipe = recipeController.getTransactionRecipeEntity()
         recipe.senderCommunity = community
 

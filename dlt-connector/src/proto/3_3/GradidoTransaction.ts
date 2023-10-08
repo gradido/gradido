@@ -2,6 +2,7 @@ import { Field, Message } from '@apollo/protobufjs'
 
 import { SignatureMap } from './SignatureMap'
 import { TransactionBody } from './TransactionBody'
+import { SignaturePair } from './SignaturePair'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
@@ -30,4 +31,8 @@ export class GradidoTransaction extends Message<GradidoTransaction> {
   // id from outbound transaction or other by cross
   @Field.d(3, 'bytes')
   public parentMessageId?: Buffer
+
+  getFirstSignature(): SignaturePair | undefined {
+    return this.sigMap.sigPair.length > 0 ? this.sigMap.sigPair[0] : undefined
+  }
 }

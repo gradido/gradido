@@ -45,6 +45,7 @@ interface AddressTypeResult {
 }
 
 function resolveResponse<T, R>(response: JsonRpcEitherResponse<T>, onSuccess: (result: T) => R): R {
+  console.log('response from gradido node: %s', JSON.stringify(response, null, 2))
   if (response.isSuccess()) {
     return onSuccess(response.result)
   } else if (response.isError()) {
