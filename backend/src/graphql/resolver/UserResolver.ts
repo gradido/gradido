@@ -809,8 +809,11 @@ export class UserResolver {
 
   @Authorized([RIGHTS.USER])
   @Query(() => User)
-  async user(@Arg('identifier') identifier: string): Promise<User> {
-    return new User(await findUserByIdentifier(identifier))
+  async user(
+    @Arg('identifier') identifier: string,
+    @Arg('communityIdentifier') communityIdentifier?: string,
+  ): Promise<User> {
+    return new User(await findUserByIdentifier(identifier, communityIdentifier))
   }
 }
 
