@@ -7,9 +7,9 @@ import { Community } from '@model/Community'
 import { FederatedCommunity } from '@model/FederatedCommunity'
 
 import { RIGHTS } from '@/auth/RIGHTS'
+import { LogError } from '@/server/LogError'
 
 import { getCommunity } from './util/communities'
-import { LogError } from '@/server/LogError'
 
 @Resolver()
 export class CommunityResolver {
