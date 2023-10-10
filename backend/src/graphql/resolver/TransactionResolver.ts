@@ -38,7 +38,7 @@ import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
 import { BalanceResolver } from './BalanceResolver'
-import { isCommunityAuthenticated, isHomeCommunity } from './util/communities'
+import { getCommunityName, isCommunityAuthenticated, isHomeCommunity } from './util/communities'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
@@ -275,13 +275,23 @@ export class TransactionResolver {
         logger.debug('found dbRemoteUser:', dbRemoteUser)
         const remoteUser = new User(dbRemoteUser)
         if (dbRemoteUser === null) {
+          logger.debug('no dbRemoteUser found, init from tx:', transaction)
           if (transaction.linkedUserCommunityUuid !== null) {
             remoteUser.communityUuid = transaction.linkedUserCommunityUuid
           }
           remoteUser.gradidoID = transaction.linkedUserGradidoID
-          remoteUser.firstName = transaction.linkedUserName
-          remoteUser.lastName = 'GradidoID: ' + transaction.linkedUserGradidoID
+          if (transaction.linkedUserName) {
+            remoteUser.firstName = transaction.linkedUserName.slice(
+              0,
+              transaction.linkedUserName.indexOf(' '),
+            )
+            remoteUser.lastName = transaction.linkedUserName?.slice(
+              transaction.linkedUserName.indexOf(' '),
+              transaction.linkedUserName.length,
+            )
+          }
         }
+        remoteUser.communityName = await getCommunityName(remoteUser.communityUuid)
         involvedRemoteUsers.push(remoteUser)
       }
     }
@@ -427,7 +437,6 @@ export class TransactionResolver {
     } else {
       // processing a x-community sendCoins
       logger.debug('X-Com: processing a x-community transaction...')
-      console.log('X-Com: processing a x-community transaction...')
       if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
         throw new LogError('X-Community sendCoins disabled per configuration!')
       }
@@ -438,7 +447,6 @@ export class TransactionResolver {
         where: { communityUuid: recipientCommunityIdentifier },
       })
       logger.debug('recipient commuity: ', recipCom)
-      console.log('recipient commuity: ', recipCom)
       let pendingResult: SendCoinsResult
       let committingResult: SendCoinsResult
       const creationDate = new Date()
@@ -454,10 +462,8 @@ export class TransactionResolver {
           recipientIdentifier,
         )
         logger.debug('processXComPendingSendCoins result: ', pendingResult)
-        console.log('processXComPendingSendCoins result: ', pendingResult)
         if (pendingResult.vote && pendingResult.recipGradidoID) {
           logger.debug('vor processXComCommittingSendCoins... ')
-          console.log('vor processXComCommittingSendCoins... ')
           committingResult = await processXComCommittingSendCoins(
             recipCom,
             homeCom,
@@ -468,7 +474,6 @@ export class TransactionResolver {
             pendingResult.recipGradidoID,
           )
           logger.debug('processXComCommittingSendCoins result: ', committingResult)
-          console.log('processXComCommittingSendCoins result: ', committingResult)
           if (!committingResult.vote) {
             logger.fatal('FATAL ERROR: on processXComCommittingSendCoins for', committingResult)
             throw new LogError(
@@ -481,14 +486,8 @@ export class TransactionResolver {
           }
           // after successful x-com-tx store the recipient as foreign user
           logger.debug('store recipient as foreign user...')
-          console.log('store recipient as foreign user...')
           if (await storeForeignUser(recipCom, committingResult)) {
             logger.info(
-              'X-Com: new foreign user inserted successfully...',
-              recipCom.communityUuid,
-              committingResult.recipGradidoID,
-            )
-            console.log(
               'X-Com: new foreign user inserted successfully...',
               recipCom.communityUuid,
               committingResult.recipGradidoID,

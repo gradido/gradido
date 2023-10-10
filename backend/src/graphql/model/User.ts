@@ -38,6 +38,9 @@ export class User {
   @Field(() => String)
   communityUuid: string
 
+  @Field(() => String, { nullable: true })
+  communityName: string | null
+
   @Field(() => String)
   gradidoID: string
 
