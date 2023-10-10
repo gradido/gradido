@@ -1,4 +1,4 @@
-import { Resolver, Arg, Mutation } from 'type-graphql'
+import { Resolver, Arg, Mutation, Args } from 'type-graphql'
 
 import { TransactionDraft } from '@input/TransactionDraft'
 
@@ -23,6 +23,10 @@ import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
 import { logger } from '@/server/logger'
 import { getDataSource } from '@/typeorm/DataSource'
 import { TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY } from '@/tasks/transmitToIota'
+import { ConfirmedTransaction } from '@/proto/3_3/ConfirmedTransaction'
+import { TransactionsManager } from '@/controller/TransactionsManager'
+import { confirmFromNodeServer } from '@/controller/ConfirmedTransaction'
+import { ConfirmedTransactionInput } from '../input/ConfirmedTransactionInput'
 
 @Resolver()
 export class TransactionResolver {
@@ -154,5 +158,33 @@ export class TransactionResolver {
         throw error
       }
     }
+  }
+
+  // called from gradido node after a new block was confirmed
+  @Mutation(() => TransactionResult)
+  async newGradidoBlock(
+    @Arg('data') { transactionBase64, iotaTopic }: ConfirmedTransactionInput,
+  ): Promise<TransactionResult> {
+    if (!TransactionsManager.getInstance().isTopicExist(iotaTopic)) {
+      return new TransactionResult(
+        new TransactionError(TransactionErrorType.NOT_FOUND, 'topic not found'),
+      )
+    }
+    try {
+      const confirmedTransaction = ConfirmedTransaction.fromBase64(transactionBase64)
+      await confirmFromNodeServer([confirmedTransaction], iotaTopic)
+    } catch (error) {
+      if (error instanceof TransactionError) {
+        return new TransactionResult(error)
+      }
+      logger.error('error on call newGradidoBlock', error)
+      return new TransactionResult(
+        new TransactionError(
+          TransactionErrorType.LOGIC_ERROR,
+          'not expected error, see dlt-connector log for further details',
+        ),
+      )
+    }
+    return new TransactionResult()
   }
 }

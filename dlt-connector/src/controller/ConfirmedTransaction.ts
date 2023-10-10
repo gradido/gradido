@@ -40,6 +40,9 @@ export const confirmFromNodeServer = async (
   transactions: ConfirmedTransaction[],
   iotaTopic: string,
 ): Promise<void> => {
+  if (!transactions.length) {
+    return
+  }
   // create map with message ids as key
   const sortByMessageId = transactions.reduce((messageIdMap, transaction) => {
     return messageIdMap.set(Buffer.from(transaction.messageId).toString('hex'), transaction)
@@ -51,11 +54,11 @@ export const confirmFromNodeServer = async (
   // load transactionRecipes for message ids
   logger.info('load transaction recipes for iota message ids:', messageIDsHex)
   const transactionRecipes = await TransactionRecipeEntity.getRepository()
-    .createQueryBuilder()
+    .createQueryBuilder('TransactionRecipe')
     .where('HEX(TransactionRecipe.iota_message_id) IN (:...messageIDs)', {
       messageIDs: messageIDsHex,
     })
-    .leftJoinAndSelect('TransactionRecipes.confirmedTransaction', 'ConfirmedTransaction')
+    .leftJoinAndSelect('TransactionRecipe.confirmedTransaction', 'ConfirmedTransaction')
     .getMany()
 
   const foundMessageIds = transactionRecipes

@@ -77,6 +77,10 @@ export class TransactionsManager {
     return messageIds.length > 0
   }
 
+  public isTopicExist(iotaTopic: string): boolean {
+    return this.topicsForListening.indexOf(iotaTopic) !== -1
+  }
+
   public getHomeCommunityTopic(): string {
     return this.homeCommunityTopic
   }
