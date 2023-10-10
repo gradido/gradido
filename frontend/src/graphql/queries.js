@@ -288,3 +288,15 @@ export const user = gql`
     }
   }
 `
+
+export const userAndCommunity = gql`
+  query($identifier: String!, $communityUuid: String!) {
+    user(identifier: $identifier) {
+      firstName
+      lastName
+    }
+    community(communityUuid: $communityUuid) {
+      name
+    }
+  }
+`
