@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Field, Message } from '@apollo/protobufjs'
 
 import { AddressType } from './enum/AddressType'
-import { TransactionBase } from '@/controller/TransactionBase'
+import { TransactionBase } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { TransactionRecipe } from '@entity/TransactionRecipe'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
@@ -43,6 +44,7 @@ export class RegisterAddress extends Message<RegisterAddress> implements Transac
     throw new Error('Method not implemented.')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-  public fillTransactionRecipe(recipe: TransactionRecipe): void {}
+  public fillTransactionRecipe(recipe: TransactionRecipe): void {
+    throw new Error('Method not implemented.')
+  }
 }

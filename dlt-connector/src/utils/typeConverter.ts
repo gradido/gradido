@@ -5,8 +5,6 @@ import { TimestampSeconds } from '@/proto/3_3/TimestampSeconds'
 import { AccountType } from '@/graphql/enum/AccountType'
 import { AddressType } from '@/proto/3_3/enum/AddressType'
 import { LogError } from '@/server/LogError'
-import Long from 'long'
-import { time } from 'console'
 
 export const uuid4ToBuffer = (uuid: string): Buffer => {
   // Remove dashes from the UUIDv4 string

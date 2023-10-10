@@ -31,7 +31,7 @@ export const transmitToIota = async (): Promise<void> => {
       if (!recipe) {
         await ConditionalSleepManager.getInstance().sleep(
           TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY,
-          //1000,
+          // 1000,
           100000,
         )
         continue
@@ -40,7 +40,7 @@ export const transmitToIota = async (): Promise<void> => {
       const recipeController = new TransactionRecipe(recipe)
       const { transaction, body } = recipeController.getGradidoTransaction()
       const messageBuffer = GradidoTransaction.encode(transaction).finish()
-      
+
       if (body.type === CrossGroupType.LOCAL) {
         const resultMessage = await iotaSendMessage(
           messageBuffer,

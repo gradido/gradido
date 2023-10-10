@@ -64,8 +64,7 @@ export class TransactionsManager {
         const confirmedTransactions = await getTransactions(cursor, 100, newTopic)
         count = confirmedTransactions.length
         cursor += count
-        const senderCommunity = findByIotaTopic(newTopic)
-        await confirmFromNodeServer(confirmedTransactions)
+        await confirmFromNodeServer(confirmedTransactions, newTopic)
       } catch (error) {
         logger.error('cannot get transactions from node server')
         throw error

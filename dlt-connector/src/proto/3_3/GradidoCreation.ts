@@ -5,7 +5,7 @@ import { TransferAmount } from './TransferAmount'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
-import { TransactionBase } from '@/controller/TransactionBase'
+import { TransactionBase } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { TransactionRecipe } from '@entity/TransactionRecipe'
 import Decimal from 'decimal.js-light'
@@ -38,6 +38,7 @@ export class GradidoCreation extends Message<GradidoCreation> implements Transac
   @Field.d(3, 'TimestampSeconds')
   public targetDate: TimestampSeconds
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public validate(level: TransactionValidationLevel): boolean {
     throw new Error('Method not implemented.')
   }

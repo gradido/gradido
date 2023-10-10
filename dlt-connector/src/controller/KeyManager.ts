@@ -11,7 +11,6 @@ import { LogError } from '@/server/LogError'
 import { KeyPair } from '../model/KeyPair'
 import { sign as signGradidoTransaction } from './GradidoTransaction'
 import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
-import { Key } from 'readline'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts

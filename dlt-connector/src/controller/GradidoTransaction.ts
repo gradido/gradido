@@ -7,6 +7,7 @@ import { SignaturePair } from '@/proto/3_3/SignaturePair'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { logger } from '@/server/logger'
+import { LogError } from '@/server/LogError'
 
 export const create = (body: TransactionBody): GradidoTransaction => {
   const err = TransactionBody.verify(body)
@@ -26,4 +27,13 @@ export const sign = (transaction: GradidoTransaction, signer: KeyPair): void => 
 export const verify = ({ sigMap, bodyBytes }: GradidoTransaction): boolean => {
   const { signature, pubKey } = sigMap.sigPair[0]
   return ed25519Verify(bodyBytes, signature, pubKey)
+}
+
+export const getBody = (gradidoTransaction: GradidoTransaction): TransactionBody => {
+  try {
+    return TransactionBody.decode(new Uint8Array(gradidoTransaction.bodyBytes))
+  } catch (error) {
+    logger.error('error decoding body from gradido transaction: %s', error)
+    throw new LogError('cannot decode body from gradido transaction')
+  }
 }

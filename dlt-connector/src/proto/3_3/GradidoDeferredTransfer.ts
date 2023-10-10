@@ -2,7 +2,7 @@ import { Field, Message } from '@apollo/protobufjs'
 
 import { GradidoTransfer } from './GradidoTransfer'
 import { TimestampSeconds } from './TimestampSeconds'
-import { TransactionBase } from '@/controller/TransactionBase'
+import { TransactionBase } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { TransactionRecipe } from '@entity/TransactionRecipe'
 import Decimal from 'decimal.js-light'
@@ -36,6 +36,7 @@ export class GradidoDeferredTransfer
   // split for n recipient
   // max gradido per recipient? or per transaction with cool down?
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public validate(level: TransactionValidationLevel): boolean {
     throw new Error('Method not implemented.')
   }

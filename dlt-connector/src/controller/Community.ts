@@ -8,6 +8,8 @@ import { CommunityArg } from '@/graphql/arg/CommunityArg'
 import { FindOptionsSelect, In, IsNull, Not } from 'typeorm'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { TransactionsManager } from './TransactionsManager'
+import { getDataSource } from '@/typeorm/DataSource'
+import { LogError } from '@/server/LogError'
 
 export const isExist = async (community: CommunityDraft | string): Promise<boolean> => {
   const iotaTopic =
@@ -63,6 +65,19 @@ export const getCommunityForUserIdentifier = async (
 
 export const findAll = (select: FindOptionsSelect<Community>): Promise<Community[]> => {
   return Community.find({ select })
+}
+
+export const confirm = async (iotaTopic: string, confirmedAt: Date): Promise<boolean> => {
+  const result = await getDataSource()
+    .createQueryBuilder()
+    .update(Community)
+    .set({ confirmedAt })
+    .where('iotaTopic = :iotaTopic', { iotaTopic })
+    .execute()
+  if (result.affected && result.affected > 1) {
+    throw new LogError('more than one community matched by topic: %s', iotaTopic)
+  }
+  return result.affected === 1
 }
 
 export const loadHomeCommunityKeyPair = async (): Promise<KeyPair> => {

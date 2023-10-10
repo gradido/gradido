@@ -2,10 +2,14 @@ import { User } from '@entity/User'
 import { KeyPair } from '../model/KeyPair'
 import { LogError } from '@/server/LogError'
 import { KeyManager } from './KeyManager'
-import { uuid4ToBuffer } from '@/utils/typeConverter'
+import { timestampSecondsToDate, timestampToDate, uuid4ToBuffer } from '@/utils/typeConverter'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
+import { RegisterAddress } from '@/proto/3_3/RegisterAddress'
+import { getDataSource } from '@/typeorm/DataSource'
+import { ConfirmedTransaction } from '@/proto/3_3/ConfirmedTransaction'
+import { getBody } from './GradidoTransaction'
 
 export const getKeyPair = (user: User): KeyPair => {
   if (!user.gradidoID) {
@@ -33,10 +37,44 @@ export const findByGradidoId = ({ uuid }: UserIdentifier): Promise<User | null> 
   return User.findOneBy({ gradidoID: uuid })
 }
 
+export const findByPublicKey = (publicKey: Buffer): Promise<User | null> => {
+  return User.findOneBy({ derive1Pubkey: Buffer.from(publicKey) })
+}
+
 export const create = (userAccountDraft: UserAccountDraft): User => {
   const user = User.create()
   user.createdAt = new Date(userAccountDraft.createdAt)
   user.gradidoID = userAccountDraft.user.uuid
   user.derive1Pubkey = getKeyPair(user).publicKey
   return user
+}
+
+export const createFromProto = (confirmedTransaction: ConfirmedTransaction): User => {
+  const body = getBody(confirmedTransaction.transaction)
+  const registerAddress = body.registerAddress
+  if (!registerAddress) {
+    throw new LogError('wrong type of transaction, registerAddress expected')
+  }
+  const user = User.create()
+  user.createdAt = timestampToDate(body.createdAt)
+  user.derive1Pubkey = Buffer.from(registerAddress.userPubkey)
+  user.confirmedAt = timestampSecondsToDate(confirmedTransaction.confirmedAt)
+  return user
+}
+
+export const confirm = async (
+  registerAddress: RegisterAddress,
+  confirmedAt: Date,
+): Promise<boolean> => {
+  const publicKey = Buffer.from(registerAddress.userPubkey)
+  const result = await getDataSource()
+    .createQueryBuilder()
+    .update(User)
+    .set({ confirmedAt })
+    .where('derive1Pubkey = :publicKey', { publicKey })
+    .execute()
+  if (result.affected && result.affected > 1) {
+    throw new LogError('more than one user matched by public key: %s', publicKey)
+  }
+  return result.affected === 1
 }

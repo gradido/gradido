@@ -1,23 +1,16 @@
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionType } from '@/graphql/enum/TransactionType'
-import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
-import { ConfirmedTransaction } from '@/proto/3_3/ConfirmedTransaction'
 import { TransactionBody } from '@/proto/3_3/TransactionBody'
 import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
-import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 import { TransactionRecipe as TransactionRecipeEntity } from '@entity/TransactionRecipe'
-import { IsNull, Not } from 'typeorm'
+import { IsNull } from 'typeorm'
 import { verify } from './GradidoTransaction'
 import { Account } from '@entity/Account'
-import { findAccountByPublicKey, findAccountsByPublicKeys } from './Account'
-import { TransactionsManager } from './TransactionsManager'
-import { findCommunitiesByTopics, getCommunityForUserIdentifier } from './Community'
-import { Community } from '@entity/Community'
-import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
-import { User } from '@entity/User'
+import { confirm as confirmAccount, findAccountByPublicKey } from './Account'
+import { confirm as confirmCommunity, getCommunityForUserIdentifier } from './Community'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { SignaturePair } from '@/proto/3_3/SignaturePair'
 
@@ -93,7 +86,7 @@ export class TransactionRecipe {
       if (!senderCommunity) {
         throw new LogError("couldn't find sender community for transaction")
       }
-      recipeEntity.senderCommunity = senderCommunity      
+      recipeEntity.senderCommunity = senderCommunity
     }
     if (recipientUser) {
       recipeEntity.recipientCommunity = await getCommunityForUserIdentifier(recipientUser)
@@ -154,11 +147,26 @@ export class TransactionRecipe {
     }
   }
 
-  public async confirm(confirmedTransaction: ConfirmedTransaction): Promise<void> {
+  public async confirm(confirmedAt: Date, iotaTopic: string): Promise<boolean> {
     const body = this.getBody()
-    switch(body.getTransactionType()) {
-      case 
+    switch (body.getTransactionType()) {
+      case TransactionType.GRADIDO_CREATION:
+      case TransactionType.GRADIDO_TRANSFER:
+        return true
+      case TransactionType.COMMUNITY_ROOT:
+        return await confirmCommunity(iotaTopic, confirmedAt)
+      case TransactionType.REGISTER_ADDRESS:
+        if (!body.registerAddress) {
+          throw new LogError('missing RegisterAddress in ConfirmedTransaction')
+        }
+        return await confirmAccount(body.registerAddress, confirmedAt)
+      default:
+        throw new LogError('not implemented yet')
     }
+  }
+
+  public getMessageIdHex(): string | undefined {
+    return this.recipeEntity.iotaMessageId?.toString('hex')
   }
 }
 

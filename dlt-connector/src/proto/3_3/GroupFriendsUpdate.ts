@@ -1,4 +1,5 @@
-import { TransactionBase } from '@/controller/TransactionBase'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { TransactionBase } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Field, Message } from '@apollo/protobufjs'
 import { TransactionRecipe } from '@entity/TransactionRecipe'

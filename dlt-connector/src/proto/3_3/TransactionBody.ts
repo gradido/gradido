@@ -13,7 +13,7 @@ import { determineCrossGroupType, determineOtherGroup } from '@/controller/Trans
 import { CommunityRoot } from './CommunityRoot'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { TransactionType } from '@/graphql/enum/TransactionType'
-import { TransactionBase } from '@/controller/TransactionBase'
+import { TransactionBase } from '../TransactionBase'
 import { TransactionRecipe } from '@entity/TransactionRecipe'
 import { timestampToDate } from '@/utils/typeConverter'
 import { LogError } from '@/server/LogError'

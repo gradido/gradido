@@ -1,4 +1,4 @@
-import { TransactionBase } from '@/controller/TransactionBase'
+import { TransactionBase } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Field, Message } from '@apollo/protobufjs'
 import { Community } from '@entity/Community'
@@ -30,7 +30,8 @@ export class CommunityRoot extends Message<CommunityRoot> implements Transaction
   @Field.d(3, 'bytes')
   public aufPubkey: Buffer
 
-  public validate(level: TransactionValidationLevel): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public validate(_level: TransactionValidationLevel): boolean {
     throw new Error('Method not implemented.')
   }
 
