@@ -235,6 +235,7 @@ export default {
       update({ user, community }) {
         this.userName = `${user.firstName} ${user.lastName}`
         this.recipientCommunity.name = community.name
+        this.recipientCommunity.uuid = this.communityUuid
       },
       error({ message }) {
         this.toastError(message)

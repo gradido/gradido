@@ -426,10 +426,15 @@ export class TransactionResolver {
 
     if (!recipientCommunityIdentifier || (await isHomeCommunity(recipientCommunityIdentifier))) {
       // processing sendCoins within sender and recepient are both in home community
-      // validate recipient user
-      const recipientUser = await findUserByIdentifier(recipientIdentifier)
+      const recipientUser = await findUserByIdentifier(
+        recipientIdentifier,
+        recipientCommunityIdentifier,
+      )
       if (!recipientUser) {
         throw new LogError('The recipient user was not found', recipientUser)
+      }
+      if (recipientUser.foreign) {
+        throw new LogError('Found foreign recipient user for a local transaction:', recipientUser)
       }
 
       await executeTransaction(amount, memo, senderUser, recipientUser)

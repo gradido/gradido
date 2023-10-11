@@ -35,8 +35,9 @@ export const findUserByIdentifier = async (
     }
     if (userContact.user.communityUuid !== communityIdentifier) {
       throw new LogError(
-        'Found user to given contact, but belongs to foreign community',
+        'Found user to given contact, but belongs to other community',
         identifier,
+        communityIdentifier,
       )
     }
     user = userContact.user
