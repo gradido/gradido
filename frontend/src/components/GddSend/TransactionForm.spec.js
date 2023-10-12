@@ -4,7 +4,7 @@ import flushPromises from 'flush-promises'
 import { SEND_TYPES } from '@/pages/Send'
 import { createMockClient } from 'mock-apollo-client'
 import VueApollo from 'vue-apollo'
-import { user as userQuery, selectCommunities as selectCommunitiesQuery } from '@/graphql/queries'
+import { userAndCommunity, selectCommunities as selectCommunitiesQuery } from '@/graphql/queries'
 
 const mockClient = createMockClient()
 const apolloProvider = new VueApollo({
@@ -47,18 +47,23 @@ describe('TransactionForm', () => {
     })
   }
 
-  const userQueryMock = jest.fn()
+  const userAndCommunityMock = jest.fn()
 
   mockClient.setRequestHandler(
-    userQuery,
-    userQueryMock.mockRejectedValueOnce({ message: 'Query user name fails!' }).mockResolvedValue({
-      data: {
-        user: {
-          firstName: 'Bibi',
-          lastName: 'Bloxberg',
+    userAndCommunity,
+    userAndCommunityMock
+      .mockRejectedValueOnce({ message: 'Query user name fails!' })
+      .mockResolvedValue({
+        data: {
+          user: {
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+          },
+          community: {
+            name: 'Gradido Entwicklung',
+          },
         },
-      },
-    }),
+      }),
   )
 
   mockClient.setRequestHandler(
@@ -416,7 +421,7 @@ Die ganze Welt bezwingen.“`)
         })
 
         it('queries the username', () => {
-          expect(userQueryMock).toBeCalledWith({
+          expect(userAndCommunityMock).toBeCalledWith({
             identifier: 'gradido-ID',
           })
         })
