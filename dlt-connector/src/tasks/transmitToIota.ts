@@ -60,7 +60,7 @@ export const transmitToIota = async (): Promise<void> => {
       }
     } catch (error) {
       logger.error('error while transmitting to iota ', error)
-      await sleep(2000)
+      await sleep(10000)
     }
   }
   logger.info(

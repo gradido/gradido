@@ -36,7 +36,7 @@ const addCommunity = gql`
 `
 
 const registerAddress = gql`
-  mutation($input: UserAccountDraft!) {
+  mutation ($input: UserAccountDraft!) {
     registerAddress(data: $input) {
       succeed
       error {
@@ -44,6 +44,7 @@ const registerAddress = gql`
         message
       }
     }
+  }
 `
 
 // from ChatGPT
@@ -147,8 +148,7 @@ export class DltConnectorClient {
    * check if our home community was already added to dlt connector
    * @return true if home community exist on dlt connector
    */
-  public async checkHomeCommunity(): Promise<boolean> {
-    const { communityUuid } = await Community.findOneOrFail({ where: { foreign: false } })
+  public async checkHomeCommunity(communityUuid: string): Promise<boolean> {
     const { data } = await this.client.rawRequest(isCommunityExist, {
       uuid: communityUuid,
     })
@@ -195,20 +195,3 @@ export class DltConnectorClient {
     }
   }
 }
-/*
-@InputType()
-export class CommunityDraft {
-  @Field(() => String)
-  @IsUUID('4')
-  uuid: string
-
-  @Field(() => Boolean)
-  @IsBoolean()
-  foreign: boolean
-
-  @Field(() => String)
-  @isValidDateString()
-  createdAt: string
-}
-
-*/

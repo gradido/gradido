@@ -1,7 +1,7 @@
 import { ConfirmedTransaction } from '@/proto/3_3/ConfirmedTransaction'
 import { ConfirmedTransaction as ConfirmedTransactionEntity } from '@entity/ConfirmedTransaction'
 import { TransactionRecipe as TransactionRecipeEntity } from '@entity/TransactionRecipe'
-import { TransactionRecipe } from './TransactionRecipe'
+import { TransactionRecipe, findExistingTransactionRecipeAndMissingMessageIds, removeConfirmedTransactionRecipes } from './TransactionRecipe'
 import { LogError } from '@/server/LogError'
 import Decimal from 'decimal.js-light'
 import { timestampSecondsToDate } from '@/utils/typeConverter'
@@ -51,21 +51,12 @@ export const confirmFromNodeServer = async (
   for (const key of sortByMessageId.keys()) {
     messageIDsHex.push(key)
   }
+
   // load transactionRecipes for message ids
   logger.info('load transaction recipes for iota message ids:', messageIDsHex)
-  const transactionRecipes = await TransactionRecipeEntity.getRepository()
-    .createQueryBuilder('TransactionRecipe')
-    .where('HEX(TransactionRecipe.iota_message_id) IN (:...messageIDs)', {
-      messageIDs: messageIDsHex,
-    })
-    .leftJoinAndSelect('TransactionRecipe.confirmedTransaction', 'ConfirmedTransaction')
-    .getMany()
+  let { existingTransactionRecipes, missingMessageIdsHex } =
+    await findExistingTransactionRecipeAndMissingMessageIds(messageIDsHex)
 
-  const foundMessageIds = transactionRecipes
-    .map((recipe) => recipe.iotaMessageId?.toString('hex'))
-    .filter((messageId) => !!messageId)
-  // find message ids for which we don't already have a transaction recipe
-  const missingMessageIdsHex = messageIDsHex.filter((id: string) => !foundMessageIds.includes(id))
   logger.info("create new recipes for iota message ids we haven't found", missingMessageIdsHex)
   const newRecipes = await Promise.all(
     missingMessageIdsHex.map(async (messageIdHex: string) => {
@@ -89,15 +80,13 @@ export const confirmFromNodeServer = async (
       return recipe
     }),
   )
-  // save new transaction recipes
-  logger.info('save new recipes', newRecipes.length)
   let allTransactionRecipe: TransactionRecipeEntity[] = []
   try {
-    const storedNewRecipes = await TransactionRecipeEntity.save(
+    existingTransactionRecipes = await removeConfirmedTransactionRecipes(existingTransactionRecipes)
+    // create confirmed transaction entities from receipts
+    allTransactionRecipe = existingTransactionRecipes.concat(
       newRecipes.map((recipe: TransactionRecipe) => recipe.getTransactionRecipeEntity()),
     )
-    // create confirmed transaction entities from receipts
-    allTransactionRecipe = transactionRecipes.concat(storedNewRecipes)
     const confirmedTransactionEntities = allTransactionRecipe.map(
       (recipe: TransactionRecipeEntity) => {
         if (!recipe.iotaMessageId) {
@@ -118,9 +107,7 @@ export const confirmFromNodeServer = async (
 
   const newUsers: User[] = []
   const newAccounts: Account[] = []
-  if (allTransactionRecipe.length !== transactions.length) {
-    throw new LogError("something gone wrong, we haven't enough transaction recipes!")
-  }
+
   for (const transactionRecipe of allTransactionRecipe.map(
     (transactionRecipeEntity) => new TransactionRecipe(transactionRecipeEntity),
   )) {

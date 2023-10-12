@@ -18,7 +18,7 @@ export class ConfirmedTransaction extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true, type: 'bigint' })
   id: number
 
-  @OneToOne(() => TransactionRecipe, (recipe) => recipe.confirmedTransaction)
+  @OneToOne(() => TransactionRecipe, (recipe) => recipe.confirmedTransaction, { cascade: true })
   @JoinColumn({ name: 'transaction_recipe_id' })
   transactionRecipe: TransactionRecipe
 

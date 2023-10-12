@@ -5,10 +5,11 @@ import { buildSchema } from 'type-graphql'
 import { DecimalScalar } from './scalar/Decimal'
 import { TransactionResolver } from './resolver/TransactionsResolver'
 import { CommunityResolver } from './resolver/CommunityResolver'
+import { AccountResolver } from './resolver/AccountsResolver'
 
 export const schema = async (): Promise<GraphQLSchema> => {
   return buildSchema({
-    resolvers: [TransactionResolver, CommunityResolver],
+    resolvers: [TransactionResolver, CommunityResolver, AccountResolver],
     scalarsMap: [{ type: Decimal, scalar: DecimalScalar }],
     validate: {
       validationError: { target: false },

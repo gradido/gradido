@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Field, Message } from '@apollo/protobufjs'
 
-import { AddressType } from './enum/AddressType'
+import { AddressType } from '@proto/3_3/enum/AddressType'
 import { TransactionBase } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { TransactionRecipe } from '@entity/TransactionRecipe'
@@ -31,7 +32,7 @@ export class RegisterAddress extends Message<RegisterAddress> implements Transac
   @Field.d(1, 'bytes')
   public userPubkey: Buffer
 
-  @Field.d(2, 'AddressType')
+  @Field.d(2, AddressType)
   public addressType: AddressType
 
   @Field.d(3, 'bytes')
@@ -44,7 +45,5 @@ export class RegisterAddress extends Message<RegisterAddress> implements Transac
     throw new Error('Method not implemented.')
   }
 
-  public fillTransactionRecipe(recipe: TransactionRecipe): void {
-    throw new Error('Method not implemented.')
-  }
+  public fillTransactionRecipe(_recipe: TransactionRecipe): void {}
 }

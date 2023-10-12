@@ -1,6 +1,8 @@
 import 'reflect-metadata'
 import { Timestamp } from '@/proto/3_3/Timestamp'
-import { timestampToDate } from './typeConverter'
+import { accountTypeToAddressType, timestampToDate } from './typeConverter'
+import { AccountType } from '@/graphql/enum/AccountType'
+import { AddressType } from '@/proto/3_3/enum/AddressType'
 
 describe('utils/typeConverter', () => {
   it('timestampToDate', () => {
@@ -8,5 +10,9 @@ describe('utils/typeConverter', () => {
     const timestamp = new Timestamp(now)
     expect(timestamp.seconds).toBe(Math.round(now.getTime() / 1000))
     expect(timestampToDate(timestamp)).toEqual(now)
+  })
+
+  it('accountTypeToAddressType', () => {
+    expect(accountTypeToAddressType(AccountType.COMMUNITY_HUMAN)).toBe(AddressType.COMMUNITY_HUMAN)
   })
 })

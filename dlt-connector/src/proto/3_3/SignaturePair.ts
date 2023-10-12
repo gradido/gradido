@@ -8,4 +8,8 @@ export class SignaturePair extends Message<SignaturePair> {
 
   @Field.d(2, 'bytes')
   public signature: Buffer
+
+  public validate(): boolean {
+    return this.pubKey.length === 32 && this.signature.length === 64
+  }
 }

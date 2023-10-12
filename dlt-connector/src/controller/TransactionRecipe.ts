@@ -6,13 +6,14 @@ import { TransactionBody } from '@/proto/3_3/TransactionBody'
 import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
 import { TransactionRecipe as TransactionRecipeEntity } from '@entity/TransactionRecipe'
-import { IsNull } from 'typeorm'
+import { In, IsNull } from 'typeorm'
 import { verify } from './GradidoTransaction'
 import { Account } from '@entity/Account'
 import { confirm as confirmAccount, findAccountByPublicKey } from './Account'
 import { confirm as confirmCommunity, getCommunityForUserIdentifier } from './Community'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { SignaturePair } from '@/proto/3_3/SignaturePair'
+import { ConfirmedTransaction } from '@entity/ConfirmedTransaction'
 
 interface CreateTransactionRecipeOptions {
   transaction: GradidoTransaction
@@ -118,12 +119,23 @@ export class TransactionRecipe {
         )
       }
       signaturePair.pubKey = publicKey
-      transaction.sigMap.sigPair.push(signaturePair)
+    } else if (this.recipeEntity.signingAccount) {
+      const publicKey = this.recipeEntity.signingAccount.derive2Pubkey
+      if (!publicKey) {
+        throw new TransactionError(
+          TransactionErrorType.MISSING_PARAMETER,
+          'missing signing account public key for transaction',
+        )
+      }
+      signaturePair.pubKey = publicKey
     } else {
       throw new TransactionError(
-        TransactionErrorType.NOT_IMPLEMENTED_YET,
-        'not implented yet getting public key from another transaction type as community root',
+        TransactionErrorType.NOT_FOUND,
+        "signingAccount not exist and it isn't a community root transaction",
       )
+    }
+    if (signaturePair.validate()) {
+      transaction.sigMap.sigPair.push(signaturePair)
     }
     if (!verify(transaction)) {
       throw new TransactionError(TransactionErrorType.INVALID_SIGNATURE, 'signature is invalid')
@@ -174,9 +186,54 @@ export const getNextPendingTransaction = async (): Promise<TransactionRecipeEnti
   return await TransactionRecipeEntity.findOne({
     where: { iotaMessageId: IsNull() },
     order: { createdAt: 'ASC' },
+    relations: { signingAccount: true },
   })
 }
 
 export const findBySignature = (signature: Buffer): Promise<TransactionRecipeEntity | null> => {
   return TransactionRecipeEntity.findOneBy({ signature: Buffer.from(signature) })
+}
+
+export const findExistingTransactionRecipeAndMissingMessageIds = async (
+  messageIDsHex: string[],
+): Promise<{
+  existingTransactionRecipes: TransactionRecipeEntity[]
+  missingMessageIdsHex: string[]
+}> => {
+  const existingTransactionRecipes = await TransactionRecipeEntity.getRepository()
+    .createQueryBuilder('TransactionRecipe')
+    .where('HEX(TransactionRecipe.iota_message_id) IN (:...messageIDs)', {
+      messageIDs: messageIDsHex,
+    })
+    .leftJoinAndSelect('TransactionRecipe.confirmedTransaction', 'ConfirmedTransaction')
+    .getMany()
+
+  const foundMessageIds = existingTransactionRecipes
+    .map((recipe) => recipe.iotaMessageId?.toString('hex'))
+    .filter((messageId) => !!messageId)
+  // find message ids for which we don't already have a transaction recipe
+  const missingMessageIdsHex = messageIDsHex.filter((id: string) => !foundMessageIds.includes(id))
+  return { existingTransactionRecipes, missingMessageIdsHex }
+}
+
+export const removeConfirmedTransactionRecipes = async (
+  transactionRecipes: TransactionRecipeEntity[],
+): Promise<TransactionRecipeEntity[]> => {
+  const confirmedTransactions = await ConfirmedTransaction.find({
+    where: {
+      transactionRecipeId: In(
+        transactionRecipes.map(
+          (transactionRecipe: TransactionRecipeEntity) => transactionRecipe.id,
+        ),
+      ),
+    },
+    select: { transactionRecipeId: true },
+  })
+  const confirmedTransactionRecipeIds = confirmedTransactions.map(
+    (confirmedTransaction: ConfirmedTransaction) => confirmedTransaction.transactionRecipeId,
+  )
+  return transactionRecipes.filter(
+    (transactionRecipe: TransactionRecipeEntity) =>
+      !confirmedTransactionRecipeIds.includes(transactionRecipe.id),
+  )
 }

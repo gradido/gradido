@@ -10,9 +10,18 @@ import { logger } from '@/server/logger'
 import { LogError } from '@/server/LogError'
 
 export const create = (body: TransactionBody): GradidoTransaction => {
-  const err = TransactionBody.verify(body)
-  if (err) {
-    logger.error('error verify TransactionBody with: %s', err)
+  console.log(body)
+  try {
+    const error = TransactionBody.verify(body)
+    if (error) {
+      logger.error('error verify TransactionBody with', error)
+      throw new TransactionError(TransactionErrorType.PROTO_DECODE_ERROR, 'body verifying failed')
+    }
+  } catch (err) {
+    if (err instanceof TransactionError) {
+      throw err
+    }
+    logger.error('exception verify TransactionBody', err)
     throw new TransactionError(TransactionErrorType.PROTO_DECODE_ERROR, 'body verifying failed')
   }
   return new GradidoTransaction(body)

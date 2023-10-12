@@ -25,7 +25,7 @@ export const getKeyPair = (user: User): KeyPair => {
   }
   // parts: [2206563009, 2629978174, 2324817329, 2405141782]
   const keyPair = KeyManager.getInstance().derive(parts)
-  if (user.derive1Pubkey.compare(keyPair.publicKey) !== 0) {
+  if (user.derive1Pubkey && user.derive1Pubkey.compare(keyPair.publicKey) !== 0) {
     throw new LogError(
       'The freshly derived public key does not correspond to the stored public key',
     )

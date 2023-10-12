@@ -19,8 +19,11 @@ async function main() {
   })
   const dlt = DltConnectorClient.getInstance()
   if (dlt) {
-    if (!(await dlt.checkHomeCommunity())) {
-      const homeCommunity = await Community.findOneOrFail({ where: { foreign: false } })
+    const homeCommunity = await Community.findOneOrFail({ where: { foreign: false } })
+    if (
+      homeCommunity.communityUuid &&
+      !(await dlt.checkHomeCommunity(homeCommunity.communityUuid))
+    ) {
       await dlt.addCommunity(homeCommunity)
     } else {
       backendLogger.info('Home Community already exist on dlt-connector')
