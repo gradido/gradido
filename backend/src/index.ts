@@ -1,4 +1,5 @@
 import { Community } from '@entity/Community'
+
 import { DltConnectorClient } from './apis/DltConnectorClient'
 import { CONFIG } from './config'
 import { startValidateCommunities } from './federation/validateCommunities'

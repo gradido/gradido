@@ -85,7 +85,9 @@ async function getTransaction(
     iotaMessageId: transactionId instanceof Buffer ? transactionId.toString('hex') : undefined,
   })
   return resolveResponse(response, (result: ConfirmedTransactionResponse) =>
-    result.transaction && result.transaction !== '' ? ConfirmedTransaction.fromBase64(result.transaction) : undefined,
+    result.transaction && result.transaction !== ''
+      ? ConfirmedTransaction.fromBase64(result.transaction)
+      : undefined,
   )
 }
 

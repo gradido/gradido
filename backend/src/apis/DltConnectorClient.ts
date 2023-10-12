@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { CONFIG } from '@/config'
 import { Community } from '@entity/Community'
 import { Transaction as DbTransaction } from '@entity/Transaction'
+import { User as DbUser } from '@entity/User'
 import { gql, GraphQLClient } from 'graphql-request'
 
-import { CONFIG } from '@/config'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'
+
 import { backendLogger as logger } from '@/server/logger'
 
 const sendTransaction = gql`
@@ -31,6 +33,17 @@ const addCommunity = gql`
       }
     }
   }
+`
+
+const registerAddress = gql`
+  mutation($input: UserAccountDraft!) {
+    registerAddress(data: $input) {
+      succeed
+      error {
+        name
+        message
+      }
+    }
 `
 
 // from ChatGPT
@@ -155,6 +168,30 @@ export class DltConnectorClient {
     if (data.error) {
       const { message, name } = data.error
       throw new LogError('error adding community with: %s, details: %s', name, message)
+    }
+  }
+
+  /**
+   * Add Community User to dlt and create his first account for contribution on dlt
+   * @param user
+   * @param communityUuid
+   */
+  public async addUser(user: DbUser, communityUuid: string): Promise<void> {
+    logger.info('add user to dlt-connector', user)
+    const { data } = await this.client.rawRequest(registerAddress, {
+      input: {
+        user: {
+          uuid: user.gradidoID,
+          communityUuid,
+          accountNr: 1,
+        },
+        createdAt: user.createdAt.toString(),
+        accountType: 'COMMUNITY_HUMAN',
+      },
+    })
+    if (data.error) {
+      const { message, name } = data.error
+      throw new LogError('error adding user with: %s, details: %s', name, message)
     }
   }
 }
