@@ -9,6 +9,7 @@ import {
   confirm as confirmUser,
   createFromProto as createUserFromProto,
   findByPublicKey,
+  findByPublicKeyWithAccount,
 } from './User'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
 import Decimal from 'decimal.js-light'
@@ -89,7 +90,16 @@ export const confirm = async (
     publicKey = Buffer.from(registerAddress.subaccountPubkey)
   } else if (registerAddress.userPubkey && registerAddress.userPubkey.length === 32) {
     if (registerAddress.addressType === AddressType.COMMUNITY_HUMAN) {
-      return confirmUser(registerAddress, confirmedAt)
+      if (!(await confirmUser(registerAddress, confirmedAt))) {
+        throw new LogError("couldn't confirm User")
+      }
+      const user = await findByPublicKeyWithAccount(registerAddress.userPubkey, 1)
+      if (!user || user.accounts?.length !== 1) {
+        throw new LogError("couldn't find first (contribution) account for user in db!")
+      }
+      user.accounts[0].confirmedAt = confirmedAt
+      user.accounts[0].save()
+      return true
     }
     publicKey = Buffer.from(registerAddress.userPubkey)
   }

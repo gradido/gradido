@@ -10,6 +10,7 @@ import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { TransactionsManager } from './TransactionsManager'
 import { getDataSource } from '@/typeorm/DataSource'
 import { LogError } from '@/server/LogError'
+import { Account } from '@entity/Account'
 
 export const isExist = async (community: CommunityDraft | string): Promise<boolean> => {
   const iotaTopic =
@@ -68,12 +69,24 @@ export const findAll = (select: FindOptionsSelect<Community>): Promise<Community
 }
 
 export const confirm = async (iotaTopic: string, confirmedAt: Date): Promise<boolean> => {
-  const result = await getDataSource()
-    .createQueryBuilder()
-    .update(Community)
-    .set({ confirmedAt })
-    .where('iotaTopic = :iotaTopic', { iotaTopic })
-    .execute()
+  const query = `
+    UPDATE communities c
+    LEFT JOIN accounts gmw ON c.gmw_account_id = gmw.id
+    LEFT JOIN accounts auf ON c.auf_account_id = auf.id
+    SET c.confirmed_at = ?,
+        gmw.confirmed_at = ?,
+        auf.confirmed_at = ?
+    WHERE c.iota_topic = ?
+  `
+
+  const entityManager = Community.getRepository().manager // getDataSource().manager
+  const result = await entityManager.query(query, [
+    confirmedAt,
+    confirmedAt,
+    confirmedAt,
+    iotaTopic,
+  ])
+
   if (result.affected && result.affected > 1) {
     throw new LogError('more than one community matched by topic: %s', iotaTopic)
   }

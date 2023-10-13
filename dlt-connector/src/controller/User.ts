@@ -41,6 +41,16 @@ export const findByPublicKey = (publicKey: Buffer): Promise<User | null> => {
   return User.findOneBy({ derive1Pubkey: Buffer.from(publicKey) })
 }
 
+export const findByPublicKeyWithAccount = (
+  publicKey: Buffer,
+  derivationIndex: number,
+): Promise<User | null> => {
+  return User.findOne({
+    relations: { accounts: true },
+    where: { derive1Pubkey: Buffer.from(publicKey), accounts: { derivationIndex } },
+  })
+}
+
 export const create = (userAccountDraft: UserAccountDraft): User => {
   const user = User.create()
   user.createdAt = new Date(userAccountDraft.createdAt)
