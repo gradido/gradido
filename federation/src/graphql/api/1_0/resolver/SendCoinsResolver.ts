@@ -15,6 +15,7 @@ import { revertSettledReceiveTransaction } from '../util/revertSettledReceiveTra
 import { findUserByIdentifier } from '@/graphql/util/findUserByIdentifier'
 import { SendCoinsResult } from '../model/SendCoinsResult'
 import Decimal from 'decimal.js-light'
+import { storeForeignUser } from '../util/storeForeignUser'
 
 @Resolver()
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -236,6 +237,16 @@ export class SendCoinsResolver {
       logger.debug('XCom: settleSendCoins matching pendingTX for settlement...')
 
       await settlePendingReceiveTransaction(homeCom, receiverUser, pendingTx)
+      // after successful x-com-tx store the recipient as foreign user
+      logger.debug('store recipient as foreign user...')
+      if (await storeForeignUser(args)) {
+        logger.info(
+          'X-Com: new foreign user inserted successfully...',
+          args.senderCommunityUuid,
+          args.senderUserUuid,
+        )
+      }
+
       logger.debug(`XCom: settlePendingReceiveTransaction()-1_0... successfull`)
       return true
     } else {

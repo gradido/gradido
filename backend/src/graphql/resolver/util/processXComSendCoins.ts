@@ -85,6 +85,7 @@ export async function processXComPendingSendCoins(
       }
       args.senderUserUuid = sender.gradidoID
       args.senderUserName = fullName(sender.firstName, sender.lastName)
+      args.senderAlias = sender.alias
       logger.debug(`X-Com: ready for voteForSendCoins with args=`, args)
       voteResult = await client.voteForSendCoins(args)
       logger.debug(`X-Com: returned from voteForSendCoins:`, voteResult)
@@ -212,6 +213,7 @@ export async function processXComCommittingSendCoins(
         if (pendingTx.userName) {
           args.senderUserName = pendingTx.userName
         }
+        args.senderAlias = sender.alias
         logger.debug(`X-Com: ready for settleSendCoins with args=`, args)
         const acknowledge = await client.settleSendCoins(args)
         logger.debug(`X-Com: returnd from settleSendCoins:`, acknowledge)
