@@ -134,6 +134,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: voteForSendCoinsMutation,
@@ -163,6 +164,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: voteForSendCoinsMutation,
@@ -196,6 +198,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: voteForSendCoinsMutation,
@@ -235,6 +238,7 @@ describe('SendCoinsResolver', () => {
       }
       args.senderUserUuid = sendUser.gradidoID
       args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+      args.senderAlias = sendUser.alias
       await mutate({
         mutation: voteForSendCoinsMutation,
         variables: { args },
@@ -255,6 +259,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: revertSendCoinsMutation,
@@ -284,6 +289,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: revertSendCoinsMutation,
@@ -317,6 +323,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: revertSendCoinsMutation,
@@ -350,6 +357,7 @@ describe('SendCoinsResolver', () => {
       }
       args.senderUserUuid = sendUser.gradidoID
       args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+      args.senderAlias = sendUser.alias
       await mutate({
         mutation: voteForSendCoinsMutation,
         variables: { args },
@@ -370,6 +378,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: settleSendCoinsMutation,
@@ -399,6 +408,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: settleSendCoinsMutation,
@@ -432,6 +442,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: settleSendCoinsMutation,
@@ -465,6 +476,7 @@ describe('SendCoinsResolver', () => {
       }
       args.senderUserUuid = sendUser.gradidoID
       args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+      args.senderAlias = sendUser.alias
       await mutate({
         mutation: voteForSendCoinsMutation,
         variables: { args },
@@ -489,6 +501,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: revertSettledSendCoinsMutation,
@@ -518,6 +531,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: revertSettledSendCoinsMutation,
@@ -551,6 +565,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: revertSettledSendCoinsMutation,

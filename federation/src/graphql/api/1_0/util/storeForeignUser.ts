@@ -19,11 +19,6 @@ export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
           args.senderCommunityUuid,
           args.senderUserUuid,
         )
-        console.log(
-          'X-Com: no foreignUser found for:',
-          args.senderCommunityUuid,
-          args.senderUserUuid,
-        )
         let foreignUser = DbUser.create()
         foreignUser.foreign = true
         if (args.senderAlias !== null) {
@@ -40,7 +35,6 @@ export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
         foreignUser.gradidoID = args.senderUserUuid
         foreignUser = await DbUser.save(foreignUser)
         logger.debug('X-Com: new foreignUser inserted:', foreignUser)
-        console.log('X-Com: new foreignUser inserted:', foreignUser)
 
         return true
       } else if (
@@ -54,20 +48,13 @@ export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
           user,
           args,
         )
-        console.log(
-          'X-Com: foreignUser still exists, but with different name or alias:',
-          user,
-          args,
-        )
         return false
       } else {
         logger.debug('X-Com: foreignUser still exists...:', user)
-        console.log('X-Com: foreignUser still exists...:', user)
         return true
       }
     } catch (err) {
       logger.error('X-Com: error in storeForeignUser;', err)
-      console.log('X-Com: error in storeForeignUser;', err)
       return false
     }
   }
