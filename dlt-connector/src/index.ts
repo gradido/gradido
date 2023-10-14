@@ -9,12 +9,14 @@ async function main() {
   // eslint-disable-next-line no-console
   console.log(`DLT_CONNECTOR_PORT=${CONFIG.DLT_CONNECTOR_PORT}`)
   const { app } = await createServer()
-
+  const startTime = Date.now()
   await KeyManager.getInstance().init()
   await TransactionsManager.getInstance().init()
   // loop run all the time, check for new transaction for sending to iota
   void transmitToIota()
   app.listen(CONFIG.DLT_CONNECTOR_PORT, () => {
+    // eslint-disable-next-line no-console
+    console.log(`startup time: ${Date.now() - startTime} ms`)
     // eslint-disable-next-line no-console
     console.log(`Server is running at http://localhost:${CONFIG.DLT_CONNECTOR_PORT}`)
   })

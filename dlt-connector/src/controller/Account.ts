@@ -173,11 +173,15 @@ export const findAccountByUserIdentifier = async ({
   uuid,
   accountNr,
 }: UserIdentifier): Promise<Account | undefined> => {
-  const account = await User.findOne({
+  const user = await User.findOne({
     where: { gradidoID: uuid, accounts: { derivationIndex: accountNr ?? 1 } },
-    relations: ['accounts'],
+    relations: { accounts: true },
   })
-  return account?.accounts?.[0]
+  if (user && user.accounts?.length === 1) {
+    const account = user.accounts[0]
+    account.user = user
+    return account
+  }
 }
 
 export const getKeyPair = (account: Account): KeyPair | null => {

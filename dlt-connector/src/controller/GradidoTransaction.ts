@@ -10,7 +10,6 @@ import { logger } from '@/server/logger'
 import { LogError } from '@/server/LogError'
 
 export const create = (body: TransactionBody): GradidoTransaction => {
-  console.log(body)
   try {
     const error = TransactionBody.verify(body)
     if (error) {

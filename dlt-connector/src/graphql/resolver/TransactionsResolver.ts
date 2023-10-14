@@ -29,6 +29,7 @@ export class TransactionResolver {
     transaction: TransactionDraft,
   ): Promise<TransactionResult> {
     try {
+      logger.info('sendTransaction call', transaction)
       const signingAccount = await findAccountByUserIdentifier(transaction.senderUser)
       if (!signingAccount) {
         throw new TransactionError(
@@ -36,6 +37,8 @@ export class TransactionResolver {
           "couldn't found sender user account in db",
         )
       }
+      logger.info('signing account', signingAccount)
+
       const recipientAccount = await findAccountByUserIdentifier(transaction.recipientUser)
       if (!recipientAccount) {
         throw new TransactionError(
@@ -43,7 +46,10 @@ export class TransactionResolver {
           "couldn't found recipient user account in db",
         )
       }
+      logger.info('recipient account', recipientAccount)
+
       const body = createTransactionBody(transaction, signingAccount, recipientAccount)
+      logger.info('body', body)
       const gradidoTransaction = createGradidoTransaction(body)
 
       const signingKeyPair = getKeyPair(signingAccount)
@@ -53,6 +59,8 @@ export class TransactionResolver {
           "couldn't found signing key pair",
         )
       }
+      logger.info('key pair for signing', signingKeyPair)
+
       KeyManager.getInstance().sign(gradidoTransaction, [signingKeyPair])
       const recipeTransactionController = await TransactionRecipe.create({
         transaction: gradidoTransaction,

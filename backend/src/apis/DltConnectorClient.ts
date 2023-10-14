@@ -12,9 +12,16 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 const sendTransaction = gql`
-  mutation ($input: TransactionInput!) {
+  mutation ($input: TransactionDraft!) {
     sendTransaction(data: $input) {
-      dltTransactionIdHex
+      succeed
+      error {
+        name
+        message
+      }
+      recipe {
+        id
+      }
     }
   }
 `
@@ -121,24 +128,49 @@ export class DltConnectorClient {
   ): Promise<string> {
     const typeString = getTransactionTypeString(transaction.typeId)
     const amountString = transaction.amount.toString()
-    try {
-      const { data } = await this.client.rawRequest(sendTransaction, {
-        input: {
-          senderUser: {
-            uuid: transaction.userGradidoID,
-            communityUuid: senderCommunityUuid,
-          },
-          recipientUser: {
-            uuid: transaction.linkedUserGradidoID,
-            communityUuid: recipientCommunityUuid,
-          },
-          amount: amountString,
-          type: typeString,
-          createdAt: transaction.balanceDate.toString(),
+    const params = {
+      input: {
+        senderUser: {
+          uuid: transaction.userGradidoID,
+          communityUuid: senderCommunityUuid,
         },
-      })
+        recipientUser: {
+          uuid: transaction.linkedUserGradidoID,
+          communityUuid: recipientCommunityUuid,
+        },
+        amount: amountString,
+        type: typeString,
+        createdAt: transaction.balanceDate.toString(),
+        backendTransactionId: transaction.id,
+        targetDate: transaction.creationDate?.toString(),
+      },
+    }
+    if (transaction.typeId === TransactionTypeId.CREATION) {
+      const confirmingUserId = transaction.contribution?.confirmedBy
+      if (!confirmingUserId) {
+        throw new LogError("couldn't find id of confirming moderator for contribution transaction!")
+      }
+      const confirmingUser = await DbUser.findOneOrFail({ where: { id: confirmingUserId } })
+      params.input.senderUser = {
+        uuid: confirmingUser.gradidoID,
+        communityUuid: senderCommunityUuid,
+      }
+      params.input.recipientUser = {
+        uuid: transaction.userGradidoID,
+        communityUuid: senderCommunityUuid,
+      }
+    }
+    try {
+      // TODO: add account nr for user after they have also more than one account in backend
+      const { data } = await this.client.rawRequest(sendTransaction, params)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return data.sendTransaction.dltTransactionIdHex
+      if (data.sendTransaction.succeed) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+        return data.sendTransaction.recipe.id.toString()
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        throw new Error(data.sendTransaction.error.message)
+      }
     } catch (e) {
       throw new LogError('Error send sending transaction to dlt-connector: ', e)
     }

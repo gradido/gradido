@@ -28,6 +28,10 @@ export class KeyPair {
     return Buffer.concat([this.privateKey, this.chainCode])
   }
 
+  public getExtendPublicKey(): Buffer {
+    return Buffer.concat([this.publicKey, this.chainCode])
+  }
+
   publicKey: Buffer
   chainCode: Buffer
   privateKey: Buffer
