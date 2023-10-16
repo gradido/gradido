@@ -371,7 +371,7 @@ export const adminListContributionMessages = gql`
 
 export const user = gql`
   query ($identifier: String!, $communityIdentifier: String) {
-    user(identifier: $identifier, $communityIdentifier: $communityIdentifier) {
+    user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
       firstName
       lastName
       foreign
