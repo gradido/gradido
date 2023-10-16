@@ -195,6 +195,7 @@ export default {
     onSubmit() {
       if (this.gradidoID) this.form.identifier = this.gradidoID
       if (this.communityUuid) {
+        this.recipientCommunity.uuid = this.communityUuid
         this.form.targetCommunity = this.recipientCommunity
       }
       this.$emit('set-transaction', {
