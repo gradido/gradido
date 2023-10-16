@@ -23,11 +23,6 @@ export async function storeForeignUser(
           recipCom.communityUuid,
           committingResult.recipGradidoID,
         )
-        console.log(
-          'X-Com: no foreignUser found for:',
-          recipCom.communityUuid,
-          committingResult.recipGradidoID,
-        )
         let foreignUser = DbUser.create()
         foreignUser.foreign = true
         if (committingResult.recipAlias !== null) {
@@ -43,7 +38,6 @@ export async function storeForeignUser(
         foreignUser.gradidoID = committingResult.recipGradidoID
         foreignUser = await DbUser.save(foreignUser)
         logger.debug('X-Com: new foreignUser inserted:', foreignUser)
-        console.log('X-Com: new foreignUser inserted:', foreignUser)
 
         return true
       } else if (
@@ -56,20 +50,13 @@ export async function storeForeignUser(
           user,
           committingResult,
         )
-        console.log(
-          'X-Com: foreignUser still exists, but with different name or alias:',
-          user,
-          committingResult,
-        )
         return false
       } else {
         logger.debug('X-Com: foreignUser still exists...:', user)
-        console.log('X-Com: foreignUser still exists...:', user)
         return true
       }
     } catch (err) {
       logger.error('X-Com: error in storeForeignUser;', err)
-      console.log('X-Com: error in storeForeignUser;', err)
       return false
     }
   }
