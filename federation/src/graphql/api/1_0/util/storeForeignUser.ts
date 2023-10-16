@@ -27,7 +27,7 @@ export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
         foreignUser.communityUuid = args.senderCommunityUuid
         if (args.senderUserName !== null) {
           foreignUser.firstName = args.senderUserName.slice(0, args.senderUserName.indexOf(' '))
-          foreignUser.firstName = args.senderUserName.slice(
+          foreignUser.lastName = args.senderUserName.slice(
             args.senderUserName.indexOf(' '),
             args.senderUserName.length,
           )
