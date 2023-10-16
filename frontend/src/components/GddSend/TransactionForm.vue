@@ -55,10 +55,17 @@
                       </b-row>
                       <b-row>
                         <b-col class="font-weight-bold">
-                          <community-switch
-                            v-model="form.targetCommunity"
-                            :disabled="isBalanceDisabled"
-                          />
+                          <div v-if="!communityUuid">
+                            <community-switch
+                              v-model="form.targetCommunity"
+                              :disabled="isBalanceDisabled"
+                            />
+                          </div>
+                          <div v-else class="mb-4">
+                            <b-row>
+                              <b-col class="font-weight-bold">{{ recipientCommunity.name }}</b-col>
+                            </b-row>
+                          </div>
                         </b-col>
                       </b-row>
                     </b-col>
@@ -143,7 +150,7 @@ import InputIdentifier from '@/components/Inputs/InputIdentifier'
 import InputAmount from '@/components/Inputs/InputAmount'
 import InputTextarea from '@/components/Inputs/InputTextarea'
 import CommunitySwitch from '@/components/CommunitySwitch.vue'
-import { user as userQuery } from '@/graphql/queries'
+import { userAndCommunity } from '@/graphql/queries'
 import { isEmpty } from 'lodash'
 import { COMMUNITY_NAME } from '@/config'
 
@@ -178,6 +185,7 @@ export default {
       },
       radioSelected: this.selected,
       userName: '',
+      recipientCommunity: { uuid: '', name: '' },
     }
   },
   methods: {
@@ -186,6 +194,10 @@ export default {
     },
     onSubmit() {
       if (this.gradidoID) this.form.identifier = this.gradidoID
+      if (this.communityUuid) {
+        this.recipientCommunity.uuid = this.communityUuid
+        this.form.targetCommunity = this.recipientCommunity
+      }
       this.$emit('set-transaction', {
         selected: this.radioSelected,
         identifier: this.form.identifier,
@@ -209,17 +221,21 @@ export default {
   apollo: {
     UserName: {
       query() {
-        return userQuery
+        return userAndCommunity
       },
       fetchPolicy: 'network-only',
       variables() {
-        return { identifier: this.gradidoID }
+        return {
+          identifier: this.gradidoID,
+          communityUuid: this.communityUuid,
+        }
       },
       skip() {
         return !this.gradidoID
       },
-      update({ user }) {
+      update({ user, community }) {
         this.userName = `${user.firstName} ${user.lastName}`
+        this.recipientCommunity.name = community.name
       },
       error({ message }) {
         this.toastError(message)
@@ -246,6 +262,9 @@ export default {
     },
     gradidoID() {
       return this.$route.query && this.$route.query.gradidoID
+    },
+    communityUuid() {
+      return this.$route.query && this.$route.query.communityUuid
     },
   },
   mounted() {
