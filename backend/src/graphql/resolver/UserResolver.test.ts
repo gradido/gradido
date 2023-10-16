@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Connection } from '@dbTools/typeorm'
+import { Community as DbCommunity } from '@entity/Community'
 import { Event as DbEvent } from '@entity/Event'
 import { TransactionLink } from '@entity/TransactionLink'
 import { User } from '@entity/User'
@@ -2502,6 +2503,39 @@ describe('UserResolver', () => {
   })
 
   describe('user', () => {
+    let homeCom1: DbCommunity
+    let foreignCom1: DbCommunity
+
+    beforeAll(async () => {
+      homeCom1 = DbCommunity.create()
+      homeCom1.foreign = false
+      homeCom1.url = 'http://localhost/api'
+      homeCom1.publicKey = Buffer.from('publicKey-HomeCommunity')
+      homeCom1.privateKey = Buffer.from('privateKey-HomeCommunity')
+      homeCom1.communityUuid = uuidv4() // 'HomeCom-UUID'
+      homeCom1.authenticatedAt = new Date()
+      homeCom1.name = 'HomeCommunity-name'
+      homeCom1.description = 'HomeCommunity-description'
+      homeCom1.creationDate = new Date()
+      await DbCommunity.insert(homeCom1)
+
+      foreignCom1 = DbCommunity.create()
+      foreignCom1.foreign = true
+      foreignCom1.url = 'http://stage-2.gradido.net/api'
+      foreignCom1.publicKey = Buffer.from('publicKey-stage-2_Community')
+      foreignCom1.privateKey = Buffer.from('privateKey-stage-2_Community')
+      foreignCom1.communityUuid = uuidv4() // 'Stage2-Com-UUID'
+      foreignCom1.authenticatedAt = new Date()
+      foreignCom1.name = 'Stage-2_Community-name'
+      foreignCom1.description = 'Stage-2_Community-description'
+      foreignCom1.creationDate = new Date()
+      await DbCommunity.insert(foreignCom1)
+    })
+
+    afterAll(async () => {
+      await DbCommunity.clear()
+    })
+
     beforeEach(() => {
       jest.clearAllMocks()
     })
@@ -2548,6 +2582,7 @@ describe('UserResolver', () => {
               query: userQuery,
               variables: {
                 identifier: 'identifier_is_no_valid_alias!',
+                communityIdentifier: homeCom1.communityUuid,
               },
             }),
           ).resolves.toEqual(
@@ -2569,14 +2604,44 @@ describe('UserResolver', () => {
               query: userQuery,
               variables: {
                 identifier: uuid,
+                communityIdentifier: homeCom1.communityUuid,
               },
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('No user found to given identifier')],
+              errors: [new GraphQLError('No user found to given identifier(s)')],
             }),
           )
-          expect(logger.error).toBeCalledWith('No user found to given identifier', uuid)
+          expect(logger.error).toBeCalledWith(
+            'No user found to given identifier(s)',
+            uuid,
+            homeCom1.communityUuid,
+          )
+        })
+      })
+
+      describe('identifier is found via email, but not matching community', () => {
+        it('returns user', async () => {
+          await expect(
+            query({
+              query: userQuery,
+              variables: {
+                identifier: 'bibi@bloxberg.de',
+                communityIdentifier: foreignCom1.communityUuid,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [
+                new GraphQLError('Found user to given contact, but belongs to other community'),
+              ],
+            }),
+          )
+          expect(logger.error).toBeCalledWith(
+            'Found user to given contact, but belongs to other community',
+            'bibi@bloxberg.de',
+            foreignCom1.communityUuid,
+          )
         })
       })
 
@@ -2587,15 +2652,16 @@ describe('UserResolver', () => {
               query: userQuery,
               variables: {
                 identifier: 'bibi@bloxberg.de',
+                communityIdentifier: homeCom1.communityUuid,
               },
             }),
           ).resolves.toEqual(
             expect.objectContaining({
               data: {
-                user: {
+                user: expect.objectContaining({
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
-                },
+                }),
               },
               errors: undefined,
             }),
@@ -2610,15 +2676,16 @@ describe('UserResolver', () => {
               query: userQuery,
               variables: {
                 identifier: user.gradidoID,
+                communityIdentifier: homeCom1.communityUuid,
               },
             }),
           ).resolves.toEqual(
             expect.objectContaining({
               data: {
-                user: {
+                user: expect.objectContaining({
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
-                },
+                }),
               },
               errors: undefined,
             }),
@@ -2633,15 +2700,16 @@ describe('UserResolver', () => {
               query: userQuery,
               variables: {
                 identifier: 'bibi',
+                communityIdentifier: homeCom1.communityUuid,
               },
             }),
           ).resolves.toEqual(
             expect.objectContaining({
               data: {
-                user: {
+                user: expect.objectContaining({
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
-                },
+                }),
               },
               errors: undefined,
             }),
