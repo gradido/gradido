@@ -20,7 +20,7 @@ export const create = (
 ): ConfirmedTransactionEntity => {
   const confirmedTransaction = ConfirmedTransactionEntity.create()
   confirmedTransaction.transactionRecipe = transactionRecipe.getTransactionRecipeEntity()
-  confirmedTransaction.nr = confirmedTransactionProto.id
+  confirmedTransaction.nr = confirmedTransactionProto.id.toInt()
   confirmedTransaction.runningHash = Buffer.from(confirmedTransactionProto.runningHash)
   const balanceAccount = transactionRecipe.getBalanceAccount()
   if (balanceAccount === undefined) {
@@ -124,15 +124,17 @@ export const confirmFromNodeServer = async (
       throw new LogError('transaction for message id not longer exist')
     }
 
+    const body = transactionRecipe.getBody()
     // confirm all connected tables
     if (
       !(await transactionRecipe.confirm(
         timestampSecondsToDate(confirmedTransaction.confirmedAt),
         iotaTopic,
+        new Decimal(confirmedTransaction.accountBalance),
       ))
     ) {
       // if transaction came from blockchain, from another Community or backup we don't have account or user and must create them
-      if (transactionRecipe.getBody().registerAddress) {
+      if (body.registerAddress) {
         const newEntity = await createFromProto(confirmedTransaction)
         if (newEntity instanceof User) {
           newUsers.push(newEntity)
@@ -141,6 +143,8 @@ export const confirmFromNodeServer = async (
         } else {
           throw new LogError('not implemented yet')
         }
+      } else if (body.creation || body.transfer || body.deferredTransfer) {
+        throw new LogError('error by updating account balance')
       }
     }
   }

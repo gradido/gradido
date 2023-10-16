@@ -9,11 +9,12 @@ import { TransactionRecipe as TransactionRecipeEntity } from '@entity/Transactio
 import { In, IsNull } from 'typeorm'
 import { verify } from './GradidoTransaction'
 import { Account } from '@entity/Account'
-import { confirm as confirmAccount, findAccountByPublicKey } from './Account'
+import { confirm as confirmAccount, findAccountByPublicKey, updateBalance } from './Account'
 import { confirm as confirmCommunity, getCommunityForUserIdentifier } from './Community'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { SignaturePair } from '@/proto/3_3/SignaturePair'
 import { ConfirmedTransaction } from '@entity/ConfirmedTransaction'
+import Decimal from 'decimal.js-light'
 
 interface CreateTransactionRecipeOptions {
   transaction: GradidoTransaction
@@ -159,12 +160,21 @@ export class TransactionRecipe {
     }
   }
 
-  public async confirm(confirmedAt: Date, iotaTopic: string): Promise<boolean> {
+  public async confirm(
+    confirmedAt: Date,
+    iotaTopic: string,
+    accountBalance: Decimal,
+  ): Promise<boolean> {
     const body = this.getBody()
+    let publicKey: Buffer | undefined
     switch (body.getTransactionType()) {
       case TransactionType.GRADIDO_CREATION:
       case TransactionType.GRADIDO_TRANSFER:
-        return true
+        publicKey = body.getRecipientPublicKey()
+        if (publicKey && publicKey.length === 32) {
+          return await updateBalance(publicKey, accountBalance, confirmedAt)
+        }
+        return false
       case TransactionType.COMMUNITY_ROOT:
         return await confirmCommunity(iotaTopic, confirmedAt)
       case TransactionType.REGISTER_ADDRESS:
@@ -194,6 +204,10 @@ export const findBySignature = (signature: Buffer): Promise<TransactionRecipeEnt
   return TransactionRecipeEntity.findOneBy({ signature: Buffer.from(signature) })
 }
 
+export const findByMessageId = (iotaMessageId: string): Promise<TransactionRecipeEntity | null> => {
+  return TransactionRecipeEntity.findOneBy({ iotaMessageId: Buffer.from(iotaMessageId, 'hex') })
+}
+
 export const findExistingTransactionRecipeAndMissingMessageIds = async (
   messageIDsHex: string[],
 ): Promise<{
@@ -206,6 +220,8 @@ export const findExistingTransactionRecipeAndMissingMessageIds = async (
       messageIDs: messageIDsHex,
     })
     .leftJoinAndSelect('TransactionRecipe.confirmedTransaction', 'ConfirmedTransaction')
+    .leftJoinAndSelect('TransactionRecipe.recipientAccount', 'RecipientAccount')
+    .leftJoinAndSelect('TransactionRecipe.signingAccount', 'SigningAccount')
     .getMany()
 
   const foundMessageIds = existingTransactionRecipes

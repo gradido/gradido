@@ -1,4 +1,4 @@
-import { Field, Message } from '@apollo/protobufjs'
+import { Field, Message } from 'protobufjs'
 
 import { TimestampSeconds } from './TimestampSeconds'
 import { TransferAmount } from './TransferAmount'
@@ -16,20 +16,24 @@ import { Account } from '@entity/Account'
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
 export class GradidoCreation extends Message<GradidoCreation> implements TransactionBase {
-  constructor(transaction: TransactionDraft, recipientAccount?: Account) {
-    if (!transaction.targetDate) {
-      throw new TransactionError(
-        TransactionErrorType.MISSING_PARAMETER,
-        'missing targetDate for contribution',
-      )
+  constructor(transaction?: TransactionDraft, recipientAccount?: Account) {
+    if (transaction) {
+      if (!transaction.targetDate) {
+        throw new TransactionError(
+          TransactionErrorType.MISSING_PARAMETER,
+          'missing targetDate for contribution',
+        )
+      }
+      super({
+        recipient: new TransferAmount({
+          amount: transaction.amount.toString(),
+          pubkey: recipientAccount?.derive2Pubkey,
+        }),
+        targetDate: new TimestampSeconds(new Date(transaction.targetDate)),
+      })
+    } else {
+      super()
     }
-    super({
-      recipient: new TransferAmount({
-        amount: transaction.amount.toString(),
-        pubkey: recipientAccount?.derive2Pubkey,
-      }),
-      targetDate: new TimestampSeconds(new Date(transaction.targetDate)),
-    })
   }
 
   @Field.d(1, TransferAmount)

@@ -60,15 +60,14 @@ export const createFromProto = async (
   let user: User | null = null
   if (registerAddress.userPubkey && registerAddress.userPubkey.length === 32) {
     if (registerAddress.addressType === AddressType.COMMUNITY_HUMAN) {
-      return createUserFromProto(confirmedTransaction)
+      user = createUserFromProto(confirmedTransaction)
     } else {
       user = await findByPublicKey(registerAddress.userPubkey)
-      account.derive2Pubkey = Buffer.from(registerAddress.userPubkey)
     }
   }
-  // subaccount has higher priority as userPubkey so it maybe overwrite already set pubkey, but this is intentionally
-  if (registerAddress.subaccountPubkey && registerAddress.subaccountPubkey.length === 32) {
-    account.derive2Pubkey = Buffer.from(registerAddress.subaccountPubkey)
+
+  if (registerAddress.accountPubkey && registerAddress.accountPubkey.length === 32) {
+    account.derive2Pubkey = Buffer.from(registerAddress.accountPubkey)
   }
   account.type = registerAddress.addressType.valueOf()
   account.createdAt = timestampToDate(body.createdAt)
@@ -86,9 +85,8 @@ export const confirm = async (
   confirmedAt: Date,
 ): Promise<boolean> => {
   let publicKey: Buffer | undefined
-  if (registerAddress.subaccountPubkey && registerAddress.subaccountPubkey.length === 32) {
-    publicKey = Buffer.from(registerAddress.subaccountPubkey)
-  } else if (registerAddress.userPubkey && registerAddress.userPubkey.length === 32) {
+
+  if (registerAddress.userPubkey && registerAddress.userPubkey.length === 32) {
     if (registerAddress.addressType === AddressType.COMMUNITY_HUMAN) {
       if (!(await confirmUser(registerAddress, confirmedAt))) {
         throw new LogError("couldn't confirm User")
@@ -103,6 +101,9 @@ export const confirm = async (
     }
     publicKey = Buffer.from(registerAddress.userPubkey)
   }
+  if (registerAddress.accountPubkey && registerAddress.accountPubkey.length === 32) {
+    publicKey = Buffer.from(registerAddress.accountPubkey)
+  }
   if (!publicKey) {
     throw new LogError("invalid Register Address, could't find a public key")
   }
@@ -115,6 +116,24 @@ export const confirm = async (
   if (result.affected && result.affected > 1) {
     throw new LogError('more than one account matched by publicKey: %s', publicKey.toString('hex'))
   }
+  return result.affected === 1
+}
+
+export const updateBalance = async (
+  publicKey: Buffer,
+  balance: Decimal,
+  balanceDate: Date,
+): Promise<boolean> => {
+  const result = await getDataSource()
+    .createQueryBuilder()
+    .update(Account)
+    .set({
+      balance,
+      balanceDate,
+    })
+    .where('derive2Pubkey = :publicKey', { publicKey: Buffer.from(publicKey) })
+    .andWhere('balanceDate < :balanceDate', { balanceDate })
+    .execute()
   return result.affected === 1
 }
 

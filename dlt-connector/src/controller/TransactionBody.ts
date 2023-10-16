@@ -33,7 +33,7 @@ export const create = (
         break
     }
   } else if (transaction instanceof UserAccountDraft) {
-    body.registerAddress = new RegisterAddress(transaction, signingAccount?.user)
+    body.registerAddress = new RegisterAddress(transaction, signingAccount?.user, signingAccount)
     body.data = 'registerAddress'
   }
   return body

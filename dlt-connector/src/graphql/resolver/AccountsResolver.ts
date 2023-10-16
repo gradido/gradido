@@ -1,7 +1,7 @@
-import { Arg, Mutation, Resolver } from 'type-graphql'
+import { Arg, Args, Mutation, Query, Resolver } from 'type-graphql'
 import { TransactionResult } from '../model/TransactionResult'
 import { UserAccountDraft } from '../input/UserAccountDraft'
-import { create as createUser, findByGradidoId } from '@/controller/User'
+import { create as createUser, findByGradidoId, findUserByIdentifier } from '@/controller/User'
 import {
   createFromUserAccountDraft,
   findAccountByUserIdentifier,
@@ -18,9 +18,27 @@ import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
 import { TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY } from '@/tasks/transmitToIota'
 import { logger } from '@/server/logger'
 import { TransactionRecipe as TransactionRecipeOutput } from '@model/TransactionRecipe'
+import { UserIdentifier } from '../input/UserIdentifier'
+import { Account } from '@entity/Account'
 
 @Resolver()
 export class AccountResolver {
+  @Query(() => Boolean)
+  async isAccountExist(@Arg('data') userIdentifier: UserIdentifier): Promise<boolean> {
+    logger.info('isAccountExist', userIdentifier)
+    const user = await findUserByIdentifier(userIdentifier)
+    if (user) {
+      if (user.accounts) {
+        return (
+          user.accounts.filter(
+            (value: Account) => value.derivationIndex === userIdentifier.accountNr,
+          ).length === 1
+        )
+      }
+    }
+    return false
+  }
+
   @Mutation(() => TransactionResult)
   async registerAddress(
     @Arg('data')

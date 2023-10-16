@@ -1,4 +1,4 @@
-import { Field, Message } from '@apollo/protobufjs'
+import { Field, Message } from 'protobufjs'
 
 import { GradidoTransfer } from './GradidoTransfer'
 import { TimestampSeconds } from './TimestampSeconds'

@@ -1,4 +1,4 @@
-import { Field, Message } from '@apollo/protobufjs'
+import { Field, Message } from 'protobufjs'
 
 import { SignaturePair } from './SignaturePair'
 

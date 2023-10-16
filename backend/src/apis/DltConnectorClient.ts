@@ -30,6 +30,12 @@ const isCommunityExist = gql`
     isCommunityExist(uuid: $uuid)
   }
 `
+
+const isAccountExist = gql`
+  query ($input: UserIdentifier!) {
+    isAccountExist(data: $input)
+  }
+`
 const addCommunity = gql`
   mutation ($input: CommunityDraft!) {
     addCommunity(data: $input) {
@@ -147,6 +153,7 @@ export class DltConnectorClient {
     }
     if (transaction.typeId === TransactionTypeId.CREATION) {
       const confirmingUserId = transaction.contribution?.confirmedBy
+      logger.info('confirming user id', confirmingUserId)
       if (!confirmingUserId) {
         throw new LogError("couldn't find id of confirming moderator for contribution transaction!")
       }
@@ -186,6 +193,22 @@ export class DltConnectorClient {
     })
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return data.isCommunityExist
+  }
+
+  /**
+   * check if account was already added to dlt connector
+   * @return true if account exist on dlt connector
+   */
+  public async checkAccount(user: DbUser, communityUuid: string): Promise<boolean> {
+    const { data } = await this.client.rawRequest(isAccountExist, {
+      input: {
+        uuid: user.gradidoID,
+        communityUuid,
+        accountNr: 1,
+      },
+    })
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return data.isAccountExist
   }
 
   public async addCommunity(community: Community): Promise<void> {

@@ -10,6 +10,7 @@ import { RegisterAddress } from '@/proto/3_3/RegisterAddress'
 import { getDataSource } from '@/typeorm/DataSource'
 import { ConfirmedTransaction } from '@/proto/3_3/ConfirmedTransaction'
 import { getBody } from './GradidoTransaction'
+import { Account } from '@entity/Account'
 
 export const getKeyPair = (user: User): KeyPair => {
   if (!user.gradidoID) {
@@ -39,6 +40,11 @@ export const findByGradidoId = ({ uuid }: UserIdentifier): Promise<User | null> 
 
 export const findByPublicKey = (publicKey: Buffer): Promise<User | null> => {
   return User.findOneBy({ derive1Pubkey: Buffer.from(publicKey) })
+}
+
+// TODO: adjust after implement AccountCommunity
+export const findUserByIdentifier = ({ uuid }: UserIdentifier): Promise<User | null> => {
+  return User.findOne({ where: { gradidoID: uuid }, relations: { accounts: true } })
 }
 
 export const findByPublicKeyWithAccount = (

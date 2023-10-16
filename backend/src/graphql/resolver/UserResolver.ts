@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getConnection, In } from '@dbTools/typeorm'
+import { getConnection, In, TreeRepositoryUtils } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
@@ -350,13 +350,6 @@ export class UserResolver {
       await queryRunner.release()
     }
     logger.info('createUser() successful...')
-    const dltConnectorClient = DltConnectorClient.getInstance()
-    if (dltConnectorClient) {
-      const homeCommunity = await DbCommunity.findOneOrFail({ where: { foreign: false } })
-      if (homeCommunity.communityUuid) {
-        void dltConnectorClient.addUser(dbUser, homeCommunity.communityUuid)
-      }
-    }
 
     if (redeemCode) {
       eventRegisterRedeem.affectedUser = dbUser
@@ -489,6 +482,24 @@ export class UserResolver {
         )
       } catch (e) {
         logger.error('Error subscribing to klicktipp', e)
+      }
+    }
+    // send user to dlt-connector
+    const dltConnectorClient = DltConnectorClient.getInstance()
+    if (dltConnectorClient) {
+      const homeCommunity = await DbCommunity.findOneOrFail({ where: { foreign: false } })
+      if (homeCommunity.communityUuid) {
+        dltConnectorClient
+          .checkAccount(user, homeCommunity.communityUuid)
+          .then((isAccountExist) => {
+            if (!isAccountExist && homeCommunity.communityUuid) {
+              void dltConnectorClient.addUser(user, homeCommunity.communityUuid)
+            }
+            return true
+          })
+          .catch((reason) => {
+            logger.error('error in check account', reason)
+          })
       }
     }
     await EVENT_USER_ACTIVATE_ACCOUNT(user)

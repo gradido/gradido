@@ -1,4 +1,4 @@
-import { Field, Message, OneOf } from '@apollo/protobufjs'
+import { Field, Message, OneOf } from 'protobufjs'
 
 import { CrossGroupType } from './enum/CrossGroupType'
 

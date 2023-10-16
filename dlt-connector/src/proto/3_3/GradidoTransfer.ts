@@ -1,4 +1,4 @@
-import { Field, Message } from '@apollo/protobufjs'
+import { Field, Message } from 'protobufjs'
 
 import { TransferAmount } from './TransferAmount'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'

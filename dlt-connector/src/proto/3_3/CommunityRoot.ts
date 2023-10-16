@@ -1,6 +1,6 @@
 import { TransactionBase } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
-import { Field, Message } from '@apollo/protobufjs'
+import { Field, Message } from 'protobufjs'
 import { Community } from '@entity/Community'
 import { TransactionRecipe } from '@entity/TransactionRecipe'
 

@@ -7,7 +7,7 @@ import { create as createGradidoTransaction } from '@controller/GradidoTransacti
 
 import { TransactionResult } from '../model/TransactionResult'
 import { TransactionError } from '../model/TransactionError'
-import { TransactionRecipe, findBySignature } from '@/controller/TransactionRecipe'
+import { TransactionRecipe, findByMessageId, findBySignature } from '@/controller/TransactionRecipe'
 import { TransactionRecipe as TransactionRecipeOutput } from '@model/TransactionRecipe'
 import { KeyManager } from '@/controller/KeyManager'
 import { findAccountByUserIdentifier, getKeyPair } from '@/controller/Account'
@@ -20,6 +20,8 @@ import { confirmFromNodeServer } from '@/controller/ConfirmedTransaction'
 import { ConfirmedTransactionInput } from '../input/ConfirmedTransactionInput'
 import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
 import { TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY } from '@/tasks/transmitToIota'
+import { InvalidTransactionInput } from '../input/InvalidTransactionInput'
+import { InvalidTransaction } from '@entity/InvalidTransaction'
 
 @Resolver()
 export class TransactionResolver {
@@ -68,6 +70,7 @@ export class TransactionResolver {
         recipientUser: transaction.recipientUser,
         signingAccount,
         recipientAccount,
+        backendTransactionId: transaction.backendTransactionId,
       })
       try {
         await recipeTransactionController.getTransactionRecipeEntity().save()
@@ -110,7 +113,9 @@ export class TransactionResolver {
       )
     }
     try {
+      logger.debug('transaction in base64', transactionBase64)
       const confirmedTransaction = ConfirmedTransaction.fromBase64(transactionBase64)
+      logger.debug('confirmed Transaction from NodeServer', confirmedTransaction.toJSON())
       await confirmFromNodeServer([confirmedTransaction], iotaTopic)
     } catch (error) {
       if (error instanceof TransactionError) {
@@ -123,6 +128,34 @@ export class TransactionResolver {
           'not expected error, see dlt-connector log for further details',
         ),
       )
+    }
+    return new TransactionResult()
+  }
+
+  @Mutation(() => TransactionResult)
+  async failedGradidoBlock(
+    @Arg('data') { iotaMessageId, errorMessage }: InvalidTransactionInput,
+  ): Promise<TransactionResult> {
+    const transactionReceipt = await findByMessageId(iotaMessageId)
+    if (transactionReceipt) {
+      logger.error('invalid transaction', errorMessage, transactionReceipt)
+    } else {
+      logger.info("invalid transaction (but we haven't create it)", errorMessage, iotaMessageId)
+    }
+    const invalidTransaction = InvalidTransaction.create()
+    invalidTransaction.iotaMessageId = Buffer.from(iotaMessageId, 'hex')
+    try {
+      invalidTransaction.save()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.code !== 'ER_DUP_ENTRY') {
+        return new TransactionResult(
+          new TransactionError(
+            TransactionErrorType.DB_ERROR,
+            'error by save invalidTransaction: ' + error,
+          ),
+        )
+      }
     }
     return new TransactionResult()
   }

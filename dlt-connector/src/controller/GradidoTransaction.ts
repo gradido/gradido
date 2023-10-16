@@ -29,11 +29,21 @@ export const create = (body: TransactionBody): GradidoTransaction => {
 export const sign = (transaction: GradidoTransaction, signer: KeyPair): void => {
   const signature = ed25519Sign(transaction.bodyBytes, signer.getExtendPrivateKey())
   const sigPair = new SignaturePair({ pubKey: signer.publicKey, signature })
+  logger.debug('sign transaction', {
+    signature: signature.toString('hex'),
+    publicKey: signer.publicKey.toString('hex'),
+    bodyBytes: transaction.bodyBytes.toString('hex'),
+  })
   transaction.sigMap.sigPair.push(sigPair)
 }
 
 export const verify = ({ sigMap, bodyBytes }: GradidoTransaction): boolean => {
   const { signature, pubKey } = sigMap.sigPair[0]
+  logger.debug('verify transaction', {
+    signature: signature.toString('hex'),
+    publicKey: pubKey.toString('hex'),
+    bodyBytes: bodyBytes.toString('hex'),
+  })
   return ed25519Verify(bodyBytes, signature, pubKey)
 }
 

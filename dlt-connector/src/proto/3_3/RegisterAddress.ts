@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Field, Message } from '@apollo/protobufjs'
+import { Field, Message } from 'protobufjs'
 
 import { AddressType } from '@proto/3_3/enum/AddressType'
 import { TransactionBase } from '../TransactionBase'
@@ -18,11 +18,15 @@ export class RegisterAddress extends Message<RegisterAddress> implements Transac
   constructor(transaction?: UserAccountDraft, user?: User, account?: Account) {
     if (transaction) {
       super({ addressType: accountTypeToAddressType(transaction.accountType) })
-      if (account && transaction.accountType === AccountType.SUBACCOUNT) {
-        this.subaccountPubkey = account.derive2Pubkey
+      if (account) {
+        this.derivationIndex = account.derivationIndex
       }
-      if (user) {
+      if (account && transaction.accountType === AccountType.SUBACCOUNT) {
+        this.accountPubkey = account.derive2Pubkey
+      }
+      if (user && account) {
         this.userPubkey = user.derive1Pubkey
+        this.accountPubkey = account?.derive2Pubkey
       }
     } else {
       super()
@@ -39,7 +43,10 @@ export class RegisterAddress extends Message<RegisterAddress> implements Transac
   public nameHash: Buffer
 
   @Field.d(4, 'bytes')
-  public subaccountPubkey: Buffer
+  public accountPubkey: Buffer
+
+  @Field.d(5, 'uint32')
+  public derivationIndex?: number
 
   public validate(level: TransactionValidationLevel): boolean {
     throw new Error('Method not implemented.')

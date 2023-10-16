@@ -9,7 +9,7 @@ import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as dbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
-import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
+import { Resolver, Query, Args, Authorized, Ctx, Mutation, Arg } from 'type-graphql'
 
 import { Paginated } from '@arg/Paginated'
 import { TransactionSendArgs } from '@arg/TransactionSendArgs'
@@ -48,6 +48,7 @@ import {
 } from './util/processXComSendCoins'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
+import { ConfirmedTransactionInput } from '../arg/ConfirmTransactionInput'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -465,4 +466,14 @@ export class TransactionResolver {
     }
     return true
   }
+/*
+  @Mutation(() => Boolean)
+  async confirmTransaction(
+    @Arg('data') confirmedTransactionInput: ConfirmedTransactionInput,
+  ): Promise<boolean> {
+    logger.debug('confirmTransaction', confirmedTransactionInput)
+    
+    return true
+  }
+  */
 }
