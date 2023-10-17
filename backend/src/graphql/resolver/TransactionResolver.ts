@@ -476,7 +476,7 @@ export class TransactionResolver {
             amount,
             memo,
             senderUser,
-            pendingResult.recipGradidoID,
+            pendingResult,
           )
           logger.debug('processXComCommittingSendCoins result: ', committingResult)
           if (!committingResult.vote) {

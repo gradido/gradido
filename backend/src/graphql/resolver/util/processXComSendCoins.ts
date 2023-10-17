@@ -159,7 +159,7 @@ export async function processXComCommittingSendCoins(
   amount: Decimal,
   memo: string,
   sender: dbUser,
-  recipUuid: string,
+  recipient: SendCoinsResult,
 ): Promise<SendCoinsResult> {
   const sendCoinsResult = new SendCoinsResult()
   try {
@@ -171,7 +171,7 @@ export async function processXComCommittingSendCoins(
       amount,
       memo,
       sender,
-      recipUuid,
+      recipient,
     )
     // first find pending Tx with given parameters
     const pendingTx = await DbPendingTransaction.findOneBy({
@@ -180,7 +180,7 @@ export async function processXComCommittingSendCoins(
       userName: fullName(sender.firstName, sender.lastName),
       linkedUserCommunityUuid:
         receiverCom.communityUuid ?? CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID,
-      linkedUserGradidoID: recipUuid,
+      linkedUserGradidoID: recipient.recipGradidoID ? recipient.recipGradidoID : undefined,
       typeId: TransactionTypeId.SEND,
       state: PendingTransactionState.NEW,
       balanceDate: creationDate,
@@ -237,6 +237,7 @@ export async function processXComCommittingSendCoins(
                 )
               }
               sendCoinsResult.recipGradidoID = pendingTx.linkedUserGradidoID
+              sendCoinsResult.recipAlias = recipient.recipAlias
             }
           } catch (err) {
             logger.error(`Error in writing sender pending transaction: `, err)

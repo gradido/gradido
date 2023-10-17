@@ -50,7 +50,18 @@ export async function storeForeignUser(
           user,
           committingResult,
         )
-        return false
+        if (committingResult.recipFirstName !== null) {
+          user.firstName = committingResult.recipFirstName
+        }
+        if (committingResult.recipLastName !== null) {
+          user.lastName = committingResult.recipLastName
+        }
+        if (committingResult.recipAlias !== null) {
+          user.alias = committingResult.recipAlias
+        }
+        await DbUser.save(user)
+        logger.debug('update recipient successful.', user)
+        return true
       } else {
         logger.debug('X-Com: foreignUser still exists...:', user)
         return true
