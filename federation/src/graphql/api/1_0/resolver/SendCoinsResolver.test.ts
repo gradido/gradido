@@ -13,7 +13,7 @@ import { Connection } from '@dbTools/typeorm'
 import Decimal from 'decimal.js-light'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
 
-let mutate: ApolloServerTestClient['mutate'], con: Connection
+let mutate: ApolloServerTestClient['mutate'] // , con: Connection
 // let query: ApolloServerTestClient['query']
 
 let testEnv: {
