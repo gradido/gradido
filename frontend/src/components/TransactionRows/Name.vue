@@ -50,7 +50,9 @@ export default {
         ? this.linkedUser.alias
           ? this.linkedUser.alias +
             (this.linkedUser.communityName ? ' / ' + this.linkedUser.communityName : '')
-          : this.linkedUser.firstName + ' ' + this.linkedUser.lastName +
+          : this.linkedUser.firstName +
+            ' ' +
+            this.linkedUser.lastName +
             (this.linkedUser.communityName ? ' / ' + this.linkedUser.communityName : '')
         : this.text
     },
