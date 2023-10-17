@@ -21,7 +21,7 @@ export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
         )
         let foreignUser = DbUser.create()
         foreignUser.foreign = true
-        if (args.senderAlias !== null) {
+        if (args.senderAlias) {
           foreignUser.alias = args.senderAlias
         }
         foreignUser.communityUuid = args.senderCommunityUuid

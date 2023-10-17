@@ -41,7 +41,6 @@ export class SendCoinsResolver {
     // first check if receiver community is correct
     const homeCom = await DbCommunity.findOneBy({
       communityUuid: args.recipientCommunityUuid,
-      foreign: false,
     })
     if (!homeCom) {
       throw new LogError(
