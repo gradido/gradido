@@ -35,7 +35,7 @@ beforeAll(async () => {
   testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
   //  query = testEnv.query
-  con = testEnv.con
+  // con = testEnv.con
   await cleanDB()
 })
 
