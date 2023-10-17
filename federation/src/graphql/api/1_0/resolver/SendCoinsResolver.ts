@@ -35,11 +35,13 @@ export class SendCoinsResolver {
       args.senderCommunityUuid,
       args.senderUserUuid,
       args.senderUserName,
+      args.senderAlias,
     )
     const result = new SendCoinsResult()
     // first check if receiver community is correct
     const homeCom = await DbCommunity.findOneBy({
       communityUuid: args.recipientCommunityUuid,
+      foreign: false,
     })
     if (!homeCom) {
       throw new LogError(
@@ -50,7 +52,10 @@ export class SendCoinsResolver {
     let receiverUser
     try {
       // second check if receiver user exists in this community
-      receiverUser = await findUserByIdentifier(args.recipientUserIdentifier)
+      receiverUser = await findUserByIdentifier(
+        args.recipientUserIdentifier,
+        args.recipientCommunityUuid,
+      )
     } catch (err) {
       logger.error('Error in findUserByIdentifier:', err)
       throw new LogError(

@@ -38,7 +38,7 @@ import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
 import { BalanceResolver } from './BalanceResolver'
-import { getCommunityName, isCommunityAuthenticated, isHomeCommunity } from './util/communities'
+import { getCommunity, getCommunityName, isHomeCommunity } from './util/communities'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
@@ -445,13 +445,17 @@ export class TransactionResolver {
       if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
         throw new LogError('X-Community sendCoins disabled per configuration!')
       }
-      if (!(await isCommunityAuthenticated(recipientCommunityIdentifier))) {
+      const recipCom = await getCommunity(recipientCommunityIdentifier)
+      logger.debug('recipient commuity: ', recipCom)
+      if (recipCom === null) {
+        throw new LogError(
+          'no recipient commuity found for identifier:',
+          recipientCommunityIdentifier,
+        )
+      }
+      if (recipCom !== null && recipCom.authenticatedAt === null) {
         throw new LogError('recipient commuity is connected, but still not authenticated yet!')
       }
-      const recipCom = await DbCommunity.findOneOrFail({
-        where: { communityUuid: recipientCommunityIdentifier },
-      })
-      logger.debug('recipient commuity: ', recipCom)
       let pendingResult: SendCoinsResult
       let committingResult: SendCoinsResult
       const creationDate = new Date()

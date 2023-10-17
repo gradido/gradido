@@ -27,6 +27,6 @@ export class SendCoinsArgs {
   @Field(() => String)
   senderUserName: string
 
-  @Field(() => String)
-  senderAlias: string
+  @Field(() => String, { nullable: true })
+  senderAlias?: string | null
 }
