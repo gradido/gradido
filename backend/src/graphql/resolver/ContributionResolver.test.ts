@@ -29,6 +29,7 @@ import {
   sendContributionDeniedEmail,
 } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Events'
+import { schema } from '@/graphql/schema'
 import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
@@ -77,7 +78,7 @@ let contributionToDelete: any
 let bibiCreatedContribution: Contribution
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(await schema(), logger, localization)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con

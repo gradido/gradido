@@ -5,6 +5,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { testEnvironment, cleanDB } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
+import { schema } from '@/graphql/schema'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 
@@ -18,7 +19,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(await schema(), logger, localization)
   con = testEnv.con
   await cleanDB()
 })

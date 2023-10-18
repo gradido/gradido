@@ -22,6 +22,7 @@ import { logger, i18n as localization } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
+import { schema } from '@/graphql/schema'
 
 import { sendTransactionsToDltConnector } from './sendTransactionsToDltConnector'
 
@@ -336,7 +337,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(await schema(), logger, localization)
   con = testEnv.con
   await cleanDB()
 })

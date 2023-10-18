@@ -12,6 +12,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 
+import { schema } from '@/graphql/schema'
 import { getCommunities, communities } from '@/seeds/graphql/queries'
 
 // to do: We need a setup for the tests that closes the connection
@@ -23,7 +24,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(await schema())
   query = testEnv.query
   con = testEnv.con
   await DbFederatedCommunity.clear()

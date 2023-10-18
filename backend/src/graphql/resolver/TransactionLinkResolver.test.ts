@@ -16,6 +16,7 @@ import { cleanDB, testEnvironment, resetToken, resetEntity } from '@test/helpers
 import { logger } from '@test/testSetup'
 
 import { EventType } from '@/event/Events'
+import { schema } from '@/graphql/schema'
 import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
@@ -54,7 +55,7 @@ let testEnv: {
 let user: User
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(await schema())
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con

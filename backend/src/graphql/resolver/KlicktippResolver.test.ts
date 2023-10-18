@@ -11,6 +11,7 @@ import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
 import { EventType } from '@/event/Events'
+import { schema } from '@/graphql/schema'
 import { userFactory } from '@/seeds/factory/user'
 import { login, subscribeNewsletter, unsubscribeNewsletter } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -18,7 +19,7 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 let testEnv: any, mutate: any, con: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(await schema(), logger, localization)
   mutate = testEnv.mutate
   con = testEnv.con
   await cleanDB()

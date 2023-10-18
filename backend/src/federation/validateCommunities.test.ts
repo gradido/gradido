@@ -14,6 +14,8 @@ import { Response } from 'graphql-request/dist/types'
 import { testEnvironment, cleanDB } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
+import { schema as federationSchema } from '@/federation/server/schema'
+
 import { validateCommunities } from './validateCommunities'
 
 let con: Connection
@@ -23,8 +25,10 @@ let testEnv: {
   con: Connection
 }
 
+const FEDERATION_API = '1_0'
+
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger)
+  testEnv = await testEnvironment(await federationSchema(FEDERATION_API), logger)
   con = testEnv.con
   await cleanDB()
 })

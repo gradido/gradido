@@ -8,6 +8,7 @@ import { GraphQLError } from 'graphql'
 import { testEnvironment, cleanDB } from '@test/helpers'
 
 import { CONFIG } from '@/config'
+import { schema } from '@/graphql/schema'
 import { createUser, setPassword, forgotPassword } from '@/seeds/graphql/mutations'
 import { queryOptIn } from '@/seeds/graphql/queries'
 
@@ -25,7 +26,7 @@ CONFIG.EMAIL_CODE_REQUEST_TIME = 10
 CONFIG.EMAIL = false
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(await schema())
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con

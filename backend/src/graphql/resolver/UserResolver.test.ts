@@ -32,6 +32,7 @@ import {
   sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Events'
+import { schema } from '@/graphql/schema'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
@@ -100,7 +101,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(await schema(), logger, localization)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con

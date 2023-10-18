@@ -11,6 +11,7 @@ import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
 import { EventType } from '@/event/Events'
+import { schema } from '@/graphql/schema'
 import { userFactory } from '@/seeds/factory/user'
 import {
   login,
@@ -32,7 +33,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(await schema())
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con

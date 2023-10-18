@@ -23,6 +23,7 @@ import { EventType } from '@/event/Events'
 import { SendCoinsArgs } from '@/federation/client/1_0/model/SendCoinsArgs'
 import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 import { SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
+import { schema } from '@/graphql/schema'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
@@ -47,7 +48,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger)
+  testEnv = await testEnvironment(await schema(), logger)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con

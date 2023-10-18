@@ -5,6 +5,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { testEnvironment, cleanDB, contributionDateFormatter } from '@test/helpers'
 
+import { schema } from '@/graphql/schema'
 import { userFactory } from '@/seeds/factory/user'
 import { login, createContribution, adminCreateContribution } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -20,7 +21,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(await schema())
   mutate = testEnv.mutate
   con = testEnv.con
   await cleanDB()

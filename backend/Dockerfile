@@ -16,6 +16,8 @@ ENV BUILD_COMMIT="0000000"
 ENV NODE_ENV="production"
 ## App relevant Envs
 ENV PORT="4000"
+ENV FEDERATION_1_0_PORT="5010"
+ENV FEDERATION_1_1_PORT="5011"
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
@@ -37,6 +39,8 @@ LABEL maintainer="support@gradido.net"
 # Settings
 ## Expose Container Port
 EXPOSE ${PORT}
+EXPOSE ${FEDERATION_1_0_PORT}
+EXPOSE ${FEDERATION_1_1_PORT}
 
 ## Workdir
 RUN mkdir -p ${DOCKER_WORKDIR}

@@ -9,6 +9,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { testEnvironment, cleanDB, resetToken } from '@test/helpers'
 
 import { addFieldsToSubscriber } from '@/apis/KlicktippController'
+import { schema } from '@/graphql/schema'
 import { creations } from '@/seeds/creation'
 import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
@@ -28,7 +29,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(await schema())
   mutate = testEnv.mutate
   con = testEnv.con
   await DbEvent.clear()

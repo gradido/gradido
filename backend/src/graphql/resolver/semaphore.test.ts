@@ -9,6 +9,7 @@ import { GraphQLError } from 'graphql'
 
 import { cleanDB, testEnvironment, contributionDateFormatter } from '@test/helpers'
 
+import { schema } from '@/graphql/schema'
 import { creationFactory, nMonthsBefore } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
@@ -32,7 +33,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(await schema())
   mutate = testEnv.mutate
   con = testEnv.con
   await cleanDB()

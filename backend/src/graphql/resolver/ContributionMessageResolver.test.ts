@@ -15,6 +15,7 @@ import { logger, i18n as localization } from '@test/testSetup'
 
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Events'
+import { schema } from '@/graphql/schema'
 import { userFactory } from '@/seeds/factory/user'
 import {
   adminCreateContributionMessage,
@@ -46,7 +47,7 @@ let testEnv: {
 let result: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(await schema(), logger, localization)
   mutate = testEnv.mutate
   con = testEnv.con
   await cleanDB()

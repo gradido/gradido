@@ -21,6 +21,8 @@ import { transactionLinkFactory } from './factory/transactionLink'
 import { userFactory } from './factory/user'
 import { transactionLinks } from './transactionLink/index'
 import { users } from './users/index'
+import { schema } from '@/graphql/schema'
+import { Connection } from '@/typeorm/connection'
 
 CONFIG.EMAIL = false
 
@@ -52,9 +54,13 @@ const resetEntity = async (entity: any) => {
 }
 
 const run = async () => {
-  const server = await createServer(context)
+  const server = createServer(logger, await schema(), 'seed', context)
   const seedClient = createTestClient(server.apollo)
-  const { con } = server
+  const con = await Connection.getInstance()
+  if (!con?.isConnected) {
+    logger.fatal(`Couldn't open connection to database!`)
+    throw new Error(`Fatal: Couldn't open connection to database`)
+  }
   await cleanDB()
   logger.info('##seed## clean database successful...')
 

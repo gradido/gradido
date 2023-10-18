@@ -18,7 +18,8 @@ configure(options)
 const apolloLogger = getLogger('apollo')
 const backendLogger = getLogger('backend')
 const klickTippLogger = getLogger('klicktipp')
+const federationLogger = getLogger('federation')
 
 backendLogger.addContext('user', 'unknown')
 
-export { apolloLogger, backendLogger, klickTippLogger }
+export { apolloLogger, backendLogger, klickTippLogger, federationLogger }

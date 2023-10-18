@@ -10,6 +10,7 @@ import { testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
+import { schema } from '@/graphql/schema'
 
 import { sendEmailTranslated } from './sendEmailTranslated'
 import {
@@ -32,7 +33,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(await schema(), logger, localization)
   con = testEnv.con
 })
 
