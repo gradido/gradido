@@ -10,6 +10,8 @@ import { findAll as findAllCommunities } from './Community'
 import { getTransactions } from '@/client/GradidoNode'
 import { confirmFromNodeServer } from './ConfirmedTransaction'
 import { logger } from '@/server/logger'
+import { TransactionError } from '@/graphql/model/TransactionError'
+import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class TransactionsManager {
@@ -56,6 +58,9 @@ export class TransactionsManager {
    */
   public async addTopic(newTopic: string): Promise<void> {
     logger.info('add topic', newTopic)
+    if (this.topicsForListening.includes(newTopic)) {
+      throw new TransactionError(TransactionErrorType.ALREADY_EXIST, 'topic already exist')
+    }
     this.topicsForListening.push(newTopic)
     let count = 0
     let cursor = 0

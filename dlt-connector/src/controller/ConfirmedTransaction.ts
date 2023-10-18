@@ -13,6 +13,8 @@ import { logger } from '@/server/logger'
 import { createFromProto } from '@controller/Account'
 import { User } from '@entity/User'
 import { Account } from '@entity/Account'
+import { BackendClient } from '@/client/BackendClient'
+import { TransactionType } from '@/graphql/enum/TransactionType'
 
 export const create = (
   confirmedTransactionProto: ConfirmedTransaction,
@@ -91,8 +93,12 @@ export const confirmFromNodeServer = async (
     allTransactionRecipe = existingTransactionRecipes.concat(
       newRecipes.map((recipe: TransactionRecipe) => recipe.getTransactionRecipeEntity()),
     )
-    const confirmedTransactionEntities = allTransactionRecipe.map(
-      (recipe: TransactionRecipeEntity) => {
+    const backend = BackendClient.getInstance()
+    if (!backend) {
+      throw new LogError('error instancing backend client')
+    }
+    const confirmedTransactionEntities = await Promise.all(
+      allTransactionRecipe.map(async (recipe: TransactionRecipeEntity) => {
         if (!recipe.iotaMessageId) {
           throw new LogError('missing iota message id')
         }
@@ -100,8 +106,26 @@ export const confirmFromNodeServer = async (
         if (!confirmedTransaction) {
           throw new LogError('transaction for message id not longer exist')
         }
-        return create(confirmedTransaction, new TransactionRecipe(recipe))
-      },
+        // confirm backend
+        const confirmedTransactionEntity = create(
+          confirmedTransaction,
+          new TransactionRecipe(recipe),
+        )
+        if (
+          [
+            TransactionType.GRADIDO_CREATION,
+            TransactionType.GRADIDO_TRANSFER,
+            TransactionType.GRADIDO_DEFERRED_TRANSFER,
+          ].includes(recipe.type)
+        ) {
+          try {
+            await backend.confirmTransaction(confirmedTransactionEntity)
+          } catch (error) {
+            logger.error(error)
+          }
+        }
+        return confirmedTransactionEntity
+      }),
     )
     await ConfirmedTransactionEntity.save(confirmedTransactionEntities)
     logger.info('saved confirmed transactions', confirmedTransactionEntities.length)

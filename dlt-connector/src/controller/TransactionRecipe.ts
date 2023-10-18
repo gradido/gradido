@@ -221,7 +221,9 @@ export const findExistingTransactionRecipeAndMissingMessageIds = async (
     })
     .leftJoinAndSelect('TransactionRecipe.confirmedTransaction', 'ConfirmedTransaction')
     .leftJoinAndSelect('TransactionRecipe.recipientAccount', 'RecipientAccount')
+    .leftJoinAndSelect('RecipientAccount.user', 'RecipientUser')
     .leftJoinAndSelect('TransactionRecipe.signingAccount', 'SigningAccount')
+    .leftJoinAndSelect('SigningAccount.user', 'SigningUser')
     .getMany()
 
   const foundMessageIds = existingTransactionRecipes

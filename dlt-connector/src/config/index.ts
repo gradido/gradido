@@ -9,7 +9,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v5.2023-09-26',
+    EXPECTED: 'v6.2023-10-17',
     CURRENT: '',
   },
 }
@@ -42,6 +42,10 @@ const nodeServer = {
   NODE_SERVER_URL: process.env.NODE_SERVER_URL ?? 'http://localhost:8340',
 }
 
+const backendServer = {
+  BACKEND_SERVER_URL: process.env.BACKEND_SERVER_URL ?? 'http://backend:4000',
+}
+
 // Check config version
 constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION || constants.CONFIG_VERSION.DEFAULT
 if (
@@ -61,4 +65,5 @@ export const CONFIG = {
   ...iota,
   ...dltConnector,
   ...nodeServer,
+  ...backendServer,
 }

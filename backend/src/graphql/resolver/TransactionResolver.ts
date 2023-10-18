@@ -49,6 +49,7 @@ import {
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 import { ConfirmedTransactionInput } from '../arg/ConfirmTransactionInput'
+import { calculateDecay } from '@/util/decay'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -466,14 +467,44 @@ export class TransactionResolver {
     }
     return true
   }
-/*
+
   @Mutation(() => Boolean)
   async confirmTransaction(
     @Arg('data') confirmedTransactionInput: ConfirmedTransactionInput,
   ): Promise<boolean> {
     logger.debug('confirmTransaction', confirmedTransactionInput)
-    
+    const transaction = await dbTransaction.findOne({
+      where: { id: confirmedTransactionInput.transactionId },
+      relations: {
+        dltTransaction: true,
+      },
+    })
+    if (!transaction) {
+      throw new LogError('transaction with id not found', confirmedTransactionInput.transactionId)
+    }
+    if (confirmedTransactionInput.gradidoId !== transaction.userGradidoID) {
+      throw new LogError('user gradido id differ')
+    }
+    const confirmedBalanceDate = new Date(confirmedTransactionInput.balanceDate)
+    if (transaction.balanceDate > confirmedBalanceDate) {
+      throw new LogError('backend balanceDate is newer as dlt connector confirmed balance date')
+    }
+    const decay = calculateDecay(transaction.balance, transaction.balanceDate, confirmedBalanceDate)
+    if (decay.balance.sub(confirmedTransactionInput.balance).abs() > new Decimal('0.0000001')) {
+      throw new LogError(
+        'balances differ to much',
+        decay.balance,
+        confirmedTransactionInput.balance,
+        decay.balance.sub(confirmedTransactionInput.balance).abs(),
+      )
+    }
+    if (transaction.dltTransaction) {
+      const dltTx = transaction.dltTransaction
+      dltTx.verified = true
+      dltTx.verifiedAt = new Date(confirmedTransactionInput.balanceDate)
+      dltTx.messageId = confirmedTransactionInput.iotaMessageId
+      await dltTx.save()
+    }
     return true
   }
-  */
 }

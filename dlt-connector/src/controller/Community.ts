@@ -3,14 +3,28 @@ import { Community } from '@entity/Community'
 import { KeyManager } from './KeyManager'
 import { createCommunitySpecialAccounts } from './Account'
 import { KeyPair } from '@/model/KeyPair'
-import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
+import { iotaTopicFromCommunityUUID, timestampSecondsToDate } from '@/utils/typeConverter'
+import { createCommunity as createCommunityTransactionBody } from '@controller/TransactionBody'
 import { CommunityArg } from '@/graphql/arg/CommunityArg'
 import { FindOptionsSelect, In, IsNull, Not } from 'typeorm'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { TransactionsManager } from './TransactionsManager'
 import { getDataSource } from '@/typeorm/DataSource'
 import { LogError } from '@/server/LogError'
-import { Account } from '@entity/Account'
+import { logger } from '@/server/logger'
+import { TransactionRecipe } from '@model/TransactionRecipe'
+import { TransactionResult } from '@/graphql/model/TransactionResult'
+import { TransactionError } from '@/graphql/model/TransactionError'
+import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { getTransaction } from '@/client/GradidoNode'
+import { confirmFromNodeServer } from './ConfirmedTransaction'
+import {
+  TransactionRecipe as TransactionRecipeController,
+  findBySignature,
+} from '@/controller/TransactionRecipe'
+import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
+import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
+import { TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY } from '@/tasks/transmitToIota'
 
 export const isExist = async (community: CommunityDraft | string): Promise<boolean> => {
   const iotaTopic =
@@ -102,4 +116,83 @@ export const loadHomeCommunityKeyPair = async (): Promise<KeyPair> => {
     throw new Error('Missing chaincode or private key for home community')
   }
   return new KeyPair(community)
+}
+
+/**
+ * should be only called if home community not already exist
+ * @param communityDraft
+ * @returns
+ */
+export const addHomeCommunity = async (
+  communityDraft: CommunityDraft,
+): Promise<TransactionResult> => {
+  try {
+    if (communityDraft.foreign) {
+      throw new LogError('not a home community')
+    }
+    const topic = iotaTopicFromCommunityUUID(communityDraft.uuid)
+    const community = create(communityDraft, topic)
+
+    // check if a CommunityRoot Transaction exist already on iota blockchain
+    const existingCommunityRootTransaction = await getTransaction(1, community.iotaTopic)
+    if (existingCommunityRootTransaction) {
+      await confirmFromNodeServer([existingCommunityRootTransaction], topic)
+      const firstSignaturePair = existingCommunityRootTransaction.transaction.getFirstSignature()
+      if (!firstSignaturePair) {
+        throw new TransactionError(
+          TransactionErrorType.INVALID_SIGNATURE,
+          'find transaction recipe without signature in db',
+        )
+      }
+      const recipe = await findBySignature(firstSignaturePair.signature)
+      if (!recipe) {
+        throw new TransactionError(
+          TransactionErrorType.NOT_FOUND,
+          'load community root entry from Gradido Node, but could find it afterwards in DB',
+        )
+      }
+      community.confirmedAt = timestampSecondsToDate(existingCommunityRootTransaction.confirmedAt)
+      community.save()
+      recipe.senderCommunity = community
+
+      // console.log('result from resolver call: %o', recipe)
+      return new TransactionResult(new TransactionRecipe(recipe))
+    }
+
+    const transaction = new GradidoTransaction(
+      createCommunityTransactionBody(communityDraft, community),
+    )
+    KeyManager.getInstance().sign(transaction)
+    const recipeController = await TransactionRecipeController.create({ transaction })
+    const recipe = recipeController.getTransactionRecipeEntity()
+    recipe.senderCommunity = community
+
+    const queryRunner = getDataSource().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+
+    let result: TransactionResult
+    try {
+      await queryRunner.manager.save(community)
+      await queryRunner.manager.save(recipe)
+      await queryRunner.commitTransaction()
+      ConditionalSleepManager.getInstance().signal(TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY)
+      result = new TransactionResult()
+    } catch (err) {
+      logger.error('error saving new community into db: %s', err)
+      result = new TransactionResult(
+        new TransactionError(TransactionErrorType.DB_ERROR, 'error saving community into db'),
+      )
+      await queryRunner.rollbackTransaction()
+    } finally {
+      await queryRunner.release()
+    }
+    return result
+  } catch (error) {
+    if (error instanceof TransactionError) {
+      return new TransactionResult(error)
+    } else {
+      throw error
+    }
+  }
 }

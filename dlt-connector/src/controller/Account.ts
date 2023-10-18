@@ -93,7 +93,11 @@ export const confirm = async (
       }
       const user = await findByPublicKeyWithAccount(registerAddress.userPubkey, 1)
       if (!user || user.accounts?.length !== 1) {
-        throw new LogError("couldn't find first (contribution) account for user in db!")
+        console.log(JSON.stringify(user, null, 2))
+        throw new LogError(
+          "couldn't find first (contribution) account for user in db!",
+          Buffer.from(registerAddress.userPubkey).toString('hex'),
+        )
       }
       user.accounts[0].confirmedAt = confirmedAt
       user.accounts[0].save()
