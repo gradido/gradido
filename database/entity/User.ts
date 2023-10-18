@@ -1,1 +1,1 @@
-export { User } from './0069-add_user_roles_table/User'
+export { User } from './0073-introduce_foreign_user_in_users_table/User'

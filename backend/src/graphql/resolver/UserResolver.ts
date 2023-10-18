@@ -12,6 +12,7 @@ import i18n from 'i18n'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
 import { v4 as uuidv4 } from 'uuid'
 
+import { UserArgs } from '@arg//UserArgs'
 import { CreateUserArgs } from '@arg/CreateUserArgs'
 import { Paginated } from '@arg/Paginated'
 import { SearchUsersFilters } from '@arg/SearchUsersFilters'
@@ -64,6 +65,7 @@ import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
+import { getCommunityName, getHomeCommunity } from './util/communities'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
@@ -809,8 +811,18 @@ export class UserResolver {
 
   @Authorized([RIGHTS.USER])
   @Query(() => User)
-  async user(@Arg('identifier') identifier: string): Promise<User> {
-    return new User(await findUserByIdentifier(identifier))
+  async user(
+    @Args()
+    { identifier, communityIdentifier }: UserArgs,
+  ): Promise<User> {
+    const foundDbUser = await findUserByIdentifier(identifier, communityIdentifier)
+    const modelUser = new User(foundDbUser)
+    if (!foundDbUser.communityUuid) {
+      modelUser.communityName = (await Promise.resolve(getHomeCommunity())).name
+    } else {
+      modelUser.communityName = await getCommunityName(foundDbUser.communityUuid)
+    }
+    return modelUser
   }
 }
 

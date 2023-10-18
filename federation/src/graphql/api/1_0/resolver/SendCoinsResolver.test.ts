@@ -13,7 +13,7 @@ import { Connection } from '@dbTools/typeorm'
 import Decimal from 'decimal.js-light'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
 
-let mutate: ApolloServerTestClient['mutate'], con: Connection
+let mutate: ApolloServerTestClient['mutate'] // , con: Connection
 // let query: ApolloServerTestClient['query']
 
 let testEnv: {
@@ -35,13 +35,15 @@ beforeAll(async () => {
   testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
   //  query = testEnv.query
-  con = testEnv.con
+  // con = testEnv.con
   await cleanDB()
 })
 
 afterAll(async () => {
   // await cleanDB()
-  await con.destroy()
+  if (!testEnv.con || !testEnv.con.isConnected) {
+    await testEnv.con.close()
+  }
 })
 
 describe('SendCoinsResolver', () => {
@@ -92,6 +94,7 @@ describe('SendCoinsResolver', () => {
 
     sendUser = DbUser.create()
     sendUser.alias = 'sendUser-alias'
+    sendUser.communityUuid = '56a55482-909e-46a4-bfa2-cd025e894eba'
     sendUser.firstName = 'sendUser-FirstName'
     sendUser.gradidoID = '56a55482-909e-46a4-bfa2-cd025e894ebc'
     sendUser.lastName = 'sendUser-LastName'
@@ -106,6 +109,7 @@ describe('SendCoinsResolver', () => {
 
     recipUser = DbUser.create()
     recipUser.alias = 'recipUser-alias'
+    recipUser.communityUuid = '56a55482-909e-46a4-bfa2-cd025e894ebb'
     recipUser.firstName = 'recipUser-FirstName'
     recipUser.gradidoID = '56a55482-909e-46a4-bfa2-cd025e894ebd'
     recipUser.lastName = 'recipUser-LastName'
@@ -134,6 +138,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: voteForSendCoinsMutation,
@@ -163,6 +168,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: voteForSendCoinsMutation,
@@ -180,7 +186,7 @@ describe('SendCoinsResolver', () => {
       })
     })
 
-    describe('valid X-Com-TX voted', () => {
+    describe('valid X-Com-TX voted per gradidoID', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
         const args = new SendCoinsArgs()
@@ -196,6 +202,83 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
+        expect(
+          await mutate({
+            mutation: voteForSendCoinsMutation,
+            variables: { args },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            data: {
+              voteForSendCoins: {
+                recipGradidoID: '56a55482-909e-46a4-bfa2-cd025e894ebd',
+                recipFirstName: 'recipUser-FirstName',
+                recipLastName: 'recipUser-LastName',
+                recipAlias: 'recipUser-alias',
+                vote: true,
+              },
+            },
+          }),
+        )
+      })
+    })
+
+    describe('valid X-Com-TX voted per alias', () => {
+      it('throws an error', async () => {
+        jest.clearAllMocks()
+        const args = new SendCoinsArgs()
+        if (foreignCom.communityUuid) {
+          args.recipientCommunityUuid = foreignCom.communityUuid
+        }
+        args.recipientUserIdentifier = recipUser.alias
+        args.creationDate = new Date().toISOString()
+        args.amount = new Decimal(100)
+        args.memo = 'X-Com-TX memo'
+        if (homeCom.communityUuid) {
+          args.senderCommunityUuid = homeCom.communityUuid
+        }
+        args.senderUserUuid = sendUser.gradidoID
+        args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
+        expect(
+          await mutate({
+            mutation: voteForSendCoinsMutation,
+            variables: { args },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            data: {
+              voteForSendCoins: {
+                recipGradidoID: '56a55482-909e-46a4-bfa2-cd025e894ebd',
+                recipFirstName: 'recipUser-FirstName',
+                recipLastName: 'recipUser-LastName',
+                recipAlias: 'recipUser-alias',
+                vote: true,
+              },
+            },
+          }),
+        )
+      })
+    })
+
+    describe('valid X-Com-TX voted per email', () => {
+      it('throws an error', async () => {
+        jest.clearAllMocks()
+        const args = new SendCoinsArgs()
+        if (foreignCom.communityUuid) {
+          args.recipientCommunityUuid = foreignCom.communityUuid
+        }
+        args.recipientUserIdentifier = recipContact.email
+        args.creationDate = new Date().toISOString()
+        args.amount = new Decimal(100)
+        args.memo = 'X-Com-TX memo'
+        if (homeCom.communityUuid) {
+          args.senderCommunityUuid = homeCom.communityUuid
+        }
+        args.senderUserUuid = sendUser.gradidoID
+        args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: voteForSendCoinsMutation,
@@ -235,6 +318,7 @@ describe('SendCoinsResolver', () => {
       }
       args.senderUserUuid = sendUser.gradidoID
       args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+      args.senderAlias = sendUser.alias
       await mutate({
         mutation: voteForSendCoinsMutation,
         variables: { args },
@@ -255,6 +339,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: revertSendCoinsMutation,
@@ -284,6 +369,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: revertSendCoinsMutation,
@@ -317,6 +403,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: revertSendCoinsMutation,
@@ -350,6 +437,7 @@ describe('SendCoinsResolver', () => {
       }
       args.senderUserUuid = sendUser.gradidoID
       args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+      args.senderAlias = sendUser.alias
       await mutate({
         mutation: voteForSendCoinsMutation,
         variables: { args },
@@ -370,6 +458,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: settleSendCoinsMutation,
@@ -399,6 +488,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: settleSendCoinsMutation,
@@ -432,6 +522,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: settleSendCoinsMutation,
@@ -465,6 +556,7 @@ describe('SendCoinsResolver', () => {
       }
       args.senderUserUuid = sendUser.gradidoID
       args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+      args.senderAlias = sendUser.alias
       await mutate({
         mutation: voteForSendCoinsMutation,
         variables: { args },
@@ -489,6 +581,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: revertSettledSendCoinsMutation,
@@ -518,6 +611,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: revertSettledSendCoinsMutation,
@@ -551,6 +645,7 @@ describe('SendCoinsResolver', () => {
         }
         args.senderUserUuid = sendUser.gradidoID
         args.senderUserName = fullName(sendUser.firstName, sendUser.lastName)
+        args.senderAlias = sendUser.alias
         expect(
           await mutate({
             mutation: revertSettledSendCoinsMutation,
@@ -573,7 +668,7 @@ async function newEmailContact(email: string, userId: number): Promise<DbUserCon
   emailContact.email = email
   emailContact.userId = userId
   emailContact.type = 'EMAIL'
-  emailContact.emailChecked = false
+  emailContact.emailChecked = true
   emailContact.emailOptInTypeId = 1
   emailContact.emailVerificationCode = '1' + userId
   return emailContact

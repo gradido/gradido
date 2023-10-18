@@ -15,6 +15,12 @@ export async function isHomeCommunity(communityIdentifier: string): Promise<bool
   }
 }
 
+export async function getHomeCommunity(): Promise<DbCommunity> {
+  return await DbCommunity.findOneOrFail({
+    where: [{ foreign: false }],
+  })
+}
+
 export async function getCommunityUrl(communityIdentifier: string): Promise<string> {
   const community = await DbCommunity.findOneOrFail({
     where: [

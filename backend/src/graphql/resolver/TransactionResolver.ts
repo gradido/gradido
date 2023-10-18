@@ -38,7 +38,7 @@ import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
 import { BalanceResolver } from './BalanceResolver'
-import { isCommunityAuthenticated, isHomeCommunity } from './util/communities'
+import { getCommunity, getCommunityName, isHomeCommunity } from './util/communities'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
@@ -47,6 +47,7 @@ import {
   processXComPendingSendCoins,
 } from './util/processXComSendCoins'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
+import { storeForeignUser } from './util/storeForeignUser'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 
 export const executeTransaction = async (
@@ -250,18 +251,50 @@ export class TransactionResolver {
     // find involved users; I am involved
     const involvedUserIds: number[] = [user.id]
     const involvedRemoteUsers: User[] = []
-    userTransactions.forEach((transaction: dbTransaction) => {
+    // userTransactions.forEach((transaction: dbTransaction) => {
+    // use normal for loop because of timing problems with await in forEach-loop
+    for (const transaction of userTransactions) {
       if (transaction.linkedUserId && !involvedUserIds.includes(transaction.linkedUserId)) {
         involvedUserIds.push(transaction.linkedUserId)
       }
       if (!transaction.linkedUserId && transaction.linkedUserGradidoID) {
-        const remoteUser = new User(null)
-        remoteUser.gradidoID = transaction.linkedUserGradidoID
-        remoteUser.firstName = transaction.linkedUserName
-        remoteUser.lastName = '(GradidoID: ' + transaction.linkedUserGradidoID + ')'
+        logger.debug(
+          'search for remoteUser...',
+          transaction.linkedUserCommunityUuid,
+          transaction.linkedUserGradidoID,
+        )
+        const dbRemoteUser = await dbUser.findOne({
+          where: [
+            {
+              foreign: true,
+              communityUuid: transaction.linkedUserCommunityUuid ?? undefined,
+              gradidoID: transaction.linkedUserGradidoID,
+            },
+          ],
+        })
+        logger.debug('found dbRemoteUser:', dbRemoteUser)
+        const remoteUser = new User(dbRemoteUser)
+        if (dbRemoteUser === null) {
+          logger.debug('no dbRemoteUser found, init from tx:', transaction)
+          if (transaction.linkedUserCommunityUuid !== null) {
+            remoteUser.communityUuid = transaction.linkedUserCommunityUuid
+          }
+          remoteUser.gradidoID = transaction.linkedUserGradidoID
+          if (transaction.linkedUserName) {
+            remoteUser.firstName = transaction.linkedUserName.slice(
+              0,
+              transaction.linkedUserName.indexOf(' '),
+            )
+            remoteUser.lastName = transaction.linkedUserName?.slice(
+              transaction.linkedUserName.indexOf(' '),
+              transaction.linkedUserName.length,
+            )
+          }
+        }
+        remoteUser.communityName = await getCommunityName(remoteUser.communityUuid)
         involvedRemoteUsers.push(remoteUser)
       }
-    })
+    }
     logger.debug(`involvedUserIds=`, involvedUserIds)
     logger.debug(`involvedRemoteUsers=`, involvedRemoteUsers)
 
@@ -336,7 +369,7 @@ export class TransactionResolver {
             (userTransactions.length && userTransactions[0].balance) || new Decimal(0),
           ),
         )
-        logger.debug(`transactions=${transactions}`)
+        logger.debug(`transactions=`, transactions)
       }
     }
 
@@ -363,7 +396,7 @@ export class TransactionResolver {
       }
       transactions.push(new Transaction(userTransaction, self, linkedUser))
     })
-    logger.debug(`TransactionTypeId.CREATION: transactions=${transactions}`)
+    logger.debug(`TransactionTypeId.CREATION: transactions=`, transactions)
 
     transactions.forEach((transaction: Transaction) => {
       if (transaction.typeId !== TransactionTypeId.DECAY) {
@@ -393,10 +426,15 @@ export class TransactionResolver {
 
     if (!recipientCommunityIdentifier || (await isHomeCommunity(recipientCommunityIdentifier))) {
       // processing sendCoins within sender and recepient are both in home community
-      // validate recipient user
-      const recipientUser = await findUserByIdentifier(recipientIdentifier)
+      const recipientUser = await findUserByIdentifier(
+        recipientIdentifier,
+        recipientCommunityIdentifier,
+      )
       if (!recipientUser) {
         throw new LogError('The recipient user was not found', recipientUser)
+      }
+      if (recipientUser.foreign) {
+        throw new LogError('Found foreign recipient user for a local transaction:', recipientUser)
       }
 
       await executeTransaction(amount, memo, senderUser, recipientUser)
@@ -407,13 +445,17 @@ export class TransactionResolver {
       if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
         throw new LogError('X-Community sendCoins disabled per configuration!')
       }
-      if (!(await isCommunityAuthenticated(recipientCommunityIdentifier))) {
+      const recipCom = await getCommunity(recipientCommunityIdentifier)
+      logger.debug('recipient commuity: ', recipCom)
+      if (recipCom === null) {
+        throw new LogError(
+          'no recipient commuity found for identifier:',
+          recipientCommunityIdentifier,
+        )
+      }
+      if (recipCom !== null && recipCom.authenticatedAt === null) {
         throw new LogError('recipient commuity is connected, but still not authenticated yet!')
       }
-      const recipCom = await DbCommunity.findOneOrFail({
-        where: { communityUuid: recipientCommunityIdentifier },
-      })
-      logger.debug('recipient commuity: ', recipCom)
       let pendingResult: SendCoinsResult
       let committingResult: SendCoinsResult
       const creationDate = new Date()
@@ -438,7 +480,7 @@ export class TransactionResolver {
             amount,
             memo,
             senderUser,
-            pendingResult.recipGradidoID,
+            pendingResult,
           )
           logger.debug('processXComCommittingSendCoins result: ', committingResult)
           if (!committingResult.vote) {
@@ -449,6 +491,15 @@ export class TransactionResolver {
               recipientIdentifier,
               amount.toString(),
               memo,
+            )
+          }
+          // after successful x-com-tx store the recipient as foreign user
+          logger.debug('store recipient as foreign user...')
+          if (await storeForeignUser(recipCom, committingResult)) {
+            logger.info(
+              'X-Com: new foreign user inserted successfully...',
+              recipCom.communityUuid,
+              committingResult.recipGradidoID,
             )
           }
         }

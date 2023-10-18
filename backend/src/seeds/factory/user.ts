@@ -5,6 +5,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { RoleNames } from '@enum/RoleNames'
 
+import { getHomeCommunity } from '@/graphql/resolver/util/communities'
 import { setUserRole } from '@/graphql/resolver/util/modifyUserRole'
 import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { UserInterface } from '@/seeds/users/UserInterface'
@@ -42,6 +43,15 @@ export const userFactory = async (
       await setUserRole(dbUser, user.role)
     }
     await dbUser.save()
+  }
+  try {
+    const homeCom = await getHomeCommunity()
+    if (homeCom.communityUuid) {
+      dbUser.communityUuid = homeCom.communityUuid
+      await User.save(dbUser)
+    }
+  } catch (err) {
+    // no homeCommunity exists
   }
 
   // get last changes of user from database
