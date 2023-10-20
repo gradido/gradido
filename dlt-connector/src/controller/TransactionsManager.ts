@@ -6,12 +6,12 @@
  */
 
 import { receiveAllMessagesForTopic } from '@/client/IotaClient'
-import { findAll as findAllCommunities } from './Community'
 import { getTransactions } from '@/client/GradidoNode'
 import { confirmFromNodeServer } from './ConfirmedTransaction'
 import { logger } from '@/server/logger'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { CommunityRepository } from '@/data/Community.repository'
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class TransactionsManager {
@@ -42,7 +42,7 @@ export class TransactionsManager {
 
   public async init(): Promise<void[]> {
     return Promise.all(
-      (await findAllCommunities({ iotaTopic: true, foreign: true })).map((community) => {
+      (await CommunityRepository.findAll({ iotaTopic: true, foreign: true })).map((community) => {
         if (community.foreign) {
           this.homeCommunityTopic = community.iotaTopic
         }

@@ -1,8 +1,8 @@
 import 'reflect-metadata'
-import { Timestamp } from '@/proto/3_3/Timestamp'
+import { Timestamp } from '@/data/proto/3_3/Timestamp'
 import { accountTypeToAddressType, timestampToDate } from './typeConverter'
 import { AccountType } from '@/graphql/enum/AccountType'
-import { AddressType } from '@/proto/3_3/enum/AddressType'
+import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 
 describe('utils/typeConverter', () => {
   it('timestampToDate', () => {

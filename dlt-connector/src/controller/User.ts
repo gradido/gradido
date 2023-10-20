@@ -6,9 +6,9 @@ import { timestampSecondsToDate, timestampToDate, uuid4ToBuffer } from '@/utils/
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
-import { RegisterAddress } from '@/proto/3_3/RegisterAddress'
+import { RegisterAddress } from '@/data/proto/3_3/RegisterAddress'
 import { getDataSource } from '@/typeorm/DataSource'
-import { ConfirmedTransaction } from '@/proto/3_3/ConfirmedTransaction'
+import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { getBody } from './GradidoTransaction'
 import { Account } from '@entity/Account'
 

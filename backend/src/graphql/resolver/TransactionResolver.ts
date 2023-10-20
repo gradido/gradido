@@ -489,13 +489,20 @@ export class TransactionResolver {
     if (transaction.balanceDate > confirmedBalanceDate) {
       throw new LogError('backend balanceDate is newer as dlt connector confirmed balance date')
     }
+    // convert to string because as Decimal subtraction didn't work
+    const balance = confirmedTransactionInput.balance.toString()
     const decay = calculateDecay(transaction.balance, transaction.balanceDate, confirmedBalanceDate)
-    if (decay.balance.sub(confirmedTransactionInput.balance).abs() > new Decimal('0.0000001')) {
+    if (decay.balance.sub(balance).abs().greaterThan('0.0000001')) {
+      console.log(
+        'time diff: %d ms',
+        transaction.balanceDate.getTime() - confirmedBalanceDate.getTime(),
+      )
+      console.log('diff: %s', decay.balance.sub(balance).toString())
       throw new LogError(
         'balances differ to much',
         decay.balance,
-        confirmedTransactionInput.balance,
-        decay.balance.sub(confirmedTransactionInput.balance).abs(),
+        balance,
+        decay.balance.sub(balance).abs(),
       )
     }
     if (transaction.dltTransaction) {

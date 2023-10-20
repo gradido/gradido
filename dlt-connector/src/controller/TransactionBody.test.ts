@@ -4,7 +4,7 @@ import { create, determineCrossGroupType, determineOtherGroup } from './Transact
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
-import { CrossGroupType } from '@/proto/3_3/enum/CrossGroupType'
+import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
 import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
 import Decimal from 'decimal.js-light'
 

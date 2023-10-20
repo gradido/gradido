@@ -82,14 +82,19 @@ export class BackendClient {
   public async confirmTransaction(confirmedTransaction: ConfirmedTransaction): Promise<void> {
     logger.info('confirmTransaction to backend', confirmedTransaction)
     const transactionRecipe = confirmedTransaction.transactionRecipe
+    // force parse to int, typeorm return id as string even it is typed as numeric
+    let transactionId = transactionRecipe.backendTransactionId
+    if (typeof transactionRecipe.backendTransactionId === 'string') {
+      transactionId = parseInt(transactionRecipe.backendTransactionId)
+    }
     const input = {
-      transactionId: transactionRecipe.backendTransactionId,
+      transactionId,
       iotaMessageId: transactionRecipe.iotaMessageId?.toString('hex'),
       gradidoId: confirmedTransaction.account?.user?.gradidoID,
       balance: confirmedTransaction.accountBalance,
       balanceDate: confirmedTransaction.confirmedAt.toString(),
     }
-    // console.log("input: %o", input)
+    console.log("input: %o", input)
     const { errors } = await this.client.rawRequest<boolean>(confirmTransaction, { input })
     if (errors) {
       throw new LogError('error confirm transaction with: %s, details: %s', errors)

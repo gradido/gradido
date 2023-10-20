@@ -1,8 +1,8 @@
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionType } from '@/graphql/enum/TransactionType'
 import { TransactionError } from '@/graphql/model/TransactionError'
-import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
-import { TransactionBody } from '@/proto/3_3/TransactionBody'
+import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
+import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
 import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
 import { TransactionRecipe as TransactionRecipeEntity } from '@entity/TransactionRecipe'
@@ -10,10 +10,11 @@ import { In, IsNull } from 'typeorm'
 import { verify } from './GradidoTransaction'
 import { Account } from '@entity/Account'
 import { confirm as confirmAccount, findAccountByPublicKey, updateBalance } from './Account'
-import { confirm as confirmCommunity, getCommunityForUserIdentifier } from './Community'
+import { confirm as confirmCommunity } from './Community'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
-import { SignaturePair } from '@/proto/3_3/SignaturePair'
+import { SignaturePair } from '@/data/proto/3_3/SignaturePair'
 import { ConfirmedTransaction } from '@entity/ConfirmedTransaction'
+import { CommunityRepository } from '@/data/Community.repository'
 import Decimal from 'decimal.js-light'
 
 interface CreateTransactionRecipeOptions {
@@ -71,9 +72,6 @@ export class TransactionRecipe {
 
     const firstSigPair = transaction.getFirstSignature()
     // TODO: adapt if transactions with more than one signatures where added
-    if (!firstSigPair || transaction.sigMap.sigPair.length !== 1) {
-      throw new LogError("signature count don't like expected")
-    }
 
     // get recipient and signer accounts if not already set
     recipeEntity.signingAccount =
@@ -84,14 +82,16 @@ export class TransactionRecipe {
 
     if (senderUser) {
       // get recipient and sender community
-      const senderCommunity = await getCommunityForUserIdentifier(senderUser)
+      const senderCommunity = await CommunityRepository.getCommunityForUserIdentifier(senderUser)
       if (!senderCommunity) {
         throw new LogError("couldn't find sender community for transaction")
       }
       recipeEntity.senderCommunity = senderCommunity
     }
     if (recipientUser) {
-      recipeEntity.recipientCommunity = await getCommunityForUserIdentifier(recipientUser)
+      recipeEntity.recipientCommunity = await CommunityRepository.getCommunityForUserIdentifier(
+        recipientUser,
+      )
     }
 
     return recipe

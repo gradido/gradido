@@ -2,37 +2,23 @@ import { Resolver, Query, Arg, Mutation, Args } from 'type-graphql'
 
 import { CommunityDraft } from '@input/CommunityDraft'
 
-import { createCommunity as createCommunityTransactionBody } from '@controller/TransactionBody'
-import { getDataSource } from '@typeorm/DataSource'
-
-import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
 import { TransactionResult } from '@model/TransactionResult'
 import { TransactionError } from '@model/TransactionError'
-import { addHomeCommunity, create as createCommunity, find, isExist } from '@/controller/Community'
 import { TransactionErrorType } from '@enum/TransactionErrorType'
-import { KeyManager } from '@/controller/KeyManager'
-import {
-  TransactionRecipe as TransactionRecipeController,
-  findBySignature,
-} from '@/controller/TransactionRecipe'
-import { iotaTopicFromCommunityUUID, timestampSecondsToDate } from '@/utils/typeConverter'
+import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 import { Community } from '@model/Community'
 import { CommunityArg } from '@arg/CommunityArg'
 import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
-import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
-import { TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY } from '@/tasks/transmitToIota'
-import { getTransaction } from '@/client/GradidoNode'
-import { confirmFromNodeServer } from '@/controller/ConfirmedTransaction'
-import { TransactionRecipe } from '@model/TransactionRecipe'
-import { TransactionsManager } from '@/controller/TransactionsManager'
+import { CommunityRepository } from '@/data/Community.repository'
+import { addCommunity } from '@/interactions/backendToDb/community/community.context'
 
 @Resolver()
 export class CommunityResolver {
   @Query(() => Community)
   async community(@Args() communityArg: CommunityArg): Promise<Community> {
     logger.info('community', communityArg)
-    const result = await find(communityArg)
+    const result = await CommunityRepository.findByCommunityArg(communityArg)
     if (result.length === 0) {
       throw new LogError('cannot find community')
     } else if (result.length === 1) {
@@ -45,13 +31,13 @@ export class CommunityResolver {
   @Query(() => Boolean)
   async isCommunityExist(@Args() communityArg: CommunityArg): Promise<boolean> {
     logger.info('isCommunity', communityArg)
-    return (await find(communityArg)).length === 1
+    return (await CommunityRepository.findByCommunityArg(communityArg)).length === 1
   }
 
   @Query(() => [Community])
   async communities(@Args() communityArg: CommunityArg): Promise<Community[]> {
     logger.info('communities', communityArg)
-    const result = await find(communityArg)
+    const result = await CommunityRepository.findByCommunityArg(communityArg)
     return result.map((communityEntity) => new Community(communityEntity))
   }
 
@@ -63,26 +49,11 @@ export class CommunityResolver {
     logger.info('addCommunity', communityDraft)
     const topic = iotaTopicFromCommunityUUID(communityDraft.uuid)
     // check if community was already written to db
-    if (await isExist(topic)) {
+    if (await CommunityRepository.isExist(topic)) {
       return new TransactionResult(
         new TransactionError(TransactionErrorType.ALREADY_EXIST, 'community already exist!'),
       )
     }
-    if (!communityDraft.foreign) {
-      return addHomeCommunity(communityDraft)
-    }
-    const community = createCommunity(communityDraft, topic)
-    await TransactionsManager.getInstance().addTopic(topic)
-
-    // foreign community are simply stored into db
-    try {
-      await community.save()
-      return new TransactionResult()
-    } catch (error) {
-      logger.error('error saving new foreign community into db: %s', error)
-      return new TransactionResult(
-        new TransactionError(TransactionErrorType.DB_ERROR, 'error saving community into db'),
-      )
-    }
+    return await addCommunity(communityDraft, topic)
   }
 }

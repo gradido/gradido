@@ -1,4 +1,4 @@
-import { ConfirmedTransaction } from '@/proto/3_3/ConfirmedTransaction'
+import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { ConfirmedTransaction as ConfirmedTransactionEntity } from '@entity/ConfirmedTransaction'
 import { TransactionRecipe as TransactionRecipeEntity } from '@entity/TransactionRecipe'
 import {
@@ -106,6 +106,7 @@ export const confirmFromNodeServer = async (
         if (!confirmedTransaction) {
           throw new LogError('transaction for message id not longer exist')
         }
+        console.log('recipe: %o', recipe)
         // confirm backend
         const confirmedTransactionEntity = create(
           confirmedTransaction,

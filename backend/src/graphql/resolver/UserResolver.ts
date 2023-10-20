@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getConnection, In, TreeRepositoryUtils } from '@dbTools/typeorm'
+import { getConnection, In } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
@@ -27,6 +27,7 @@ import { SearchAdminUsersResult } from '@model/AdminUser'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 
+import { DltConnectorClient } from '@/apis/DltConnectorClient'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -71,8 +72,6 @@ import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { validateAlias } from './util/validateAlias'
-
-import { DltConnectorClient } from '@/apis/DltConnectorClient'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'

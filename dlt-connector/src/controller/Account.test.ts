@@ -1,6 +1,6 @@
 import { LogError } from '@/server/LogError'
 import { create } from './Account'
-import { AddressType } from '@/proto/3_3/enum/AddressType'
+import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 
 describe('controller/Account', () => {
   it("test createAccount if provided public key hasn't expected length", () => {

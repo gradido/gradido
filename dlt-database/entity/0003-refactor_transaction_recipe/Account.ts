@@ -63,6 +63,24 @@ export class Account extends BaseEntity {
   })
   balanceDate: Date
 
+  @Column({
+    name: 'balance_created_at',
+    type: 'decimal',
+    precision: 40,
+    scale: 20,
+    default: 0,
+    transformer: DecimalTransformer,
+  })
+  balanceCreatedAt: Decimal
+
+  @Column({
+    name: 'balance_created_at_date',
+    type: 'datetime',
+    precision: 3,
+    default: () => 'CURRENT_TIMESTAMP(3)',
+  })
+  balanceCreatedAtDate: Date
+
   @OneToMany(() => AccountCommunity, (accountCommunity) => accountCommunity.account)
   @JoinColumn({ name: 'account_id' })
   accountCommunities: AccountCommunity[]

@@ -1,14 +1,9 @@
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { Community } from '@entity/Community'
 import { KeyManager } from './KeyManager'
-import { createCommunitySpecialAccounts } from './Account'
 import { KeyPair } from '@/model/KeyPair'
 import { iotaTopicFromCommunityUUID, timestampSecondsToDate } from '@/utils/typeConverter'
 import { createCommunity as createCommunityTransactionBody } from '@controller/TransactionBody'
-import { CommunityArg } from '@/graphql/arg/CommunityArg'
-import { FindOptionsSelect, In, IsNull, Not } from 'typeorm'
-import { UserIdentifier } from '@/graphql/input/UserIdentifier'
-import { TransactionsManager } from './TransactionsManager'
 import { getDataSource } from '@/typeorm/DataSource'
 import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
@@ -22,65 +17,10 @@ import {
   TransactionRecipe as TransactionRecipeController,
   findBySignature,
 } from '@/controller/TransactionRecipe'
-import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
+import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
 import { TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY } from '@/tasks/transmitToIota'
-
-export const isExist = async (community: CommunityDraft | string): Promise<boolean> => {
-  const iotaTopic =
-    community instanceof CommunityDraft ? iotaTopicFromCommunityUUID(community.uuid) : community
-  const result = await Community.find({
-    where: { iotaTopic },
-  })
-  return result.length > 0
-}
-
-export const create = (community: CommunityDraft, topic?: string): Community => {
-  const communityEntity = Community.create()
-  communityEntity.iotaTopic = topic ?? iotaTopicFromCommunityUUID(community.uuid)
-  communityEntity.createdAt = new Date(community.createdAt)
-  communityEntity.foreign = community.foreign
-  if (!community.foreign) {
-    KeyManager.getInstance().generateKeysForCommunity(communityEntity)
-    createCommunitySpecialAccounts(communityEntity)
-  }
-  return communityEntity
-}
-
-export const find = async ({ uuid, foreign, confirmed }: CommunityArg): Promise<Community[]> => {
-  return await Community.find({
-    where: {
-      ...(uuid && { iotaTopic: iotaTopicFromCommunityUUID(uuid) }),
-      ...(foreign && { foreign }),
-      ...(confirmed && { confirmedAt: Not(IsNull()) }),
-    },
-  })
-}
-
-export const findByCommunityUuid = async (communityUuid: string): Promise<Community | null> => {
-  return await Community.findOneBy({ iotaTopic: iotaTopicFromCommunityUUID(communityUuid) })
-}
-
-export const findByIotaTopic = async (iotaTopic: string): Promise<Community | null> => {
-  return await Community.findOneBy({ iotaTopic })
-}
-
-export const findCommunitiesByTopics = (topics: string[]): Promise<Community[]> => {
-  return Community.findBy({ iotaTopic: In(topics) })
-}
-
-export const getCommunityForUserIdentifier = async (
-  identifier: UserIdentifier,
-): Promise<Community | undefined> => {
-  const topic = identifier.communityUuid
-    ? iotaTopicFromCommunityUUID(identifier.communityUuid)
-    : TransactionsManager.getInstance().getHomeCommunityTopic()
-  return (await Community.findOneBy({ iotaTopic: topic })) ?? undefined
-}
-
-export const findAll = (select: FindOptionsSelect<Community>): Promise<Community[]> => {
-  return Community.find({ select })
-}
+import { createHomeCommunity } from '@/data/community.factory'
 
 export const confirm = async (iotaTopic: string, confirmedAt: Date): Promise<boolean> => {
   const query = `
@@ -131,24 +71,18 @@ export const addHomeCommunity = async (
       throw new LogError('not a home community')
     }
     const topic = iotaTopicFromCommunityUUID(communityDraft.uuid)
-    const community = create(communityDraft, topic)
+    const community = createHomeCommunity(communityDraft, topic)
 
     // check if a CommunityRoot Transaction exist already on iota blockchain
     const existingCommunityRootTransaction = await getTransaction(1, community.iotaTopic)
     if (existingCommunityRootTransaction) {
       await confirmFromNodeServer([existingCommunityRootTransaction], topic)
       const firstSignaturePair = existingCommunityRootTransaction.transaction.getFirstSignature()
-      if (!firstSignaturePair) {
-        throw new TransactionError(
-          TransactionErrorType.INVALID_SIGNATURE,
-          'find transaction recipe without signature in db',
-        )
-      }
       const recipe = await findBySignature(firstSignaturePair.signature)
       if (!recipe) {
         throw new TransactionError(
           TransactionErrorType.NOT_FOUND,
-          'load community root entry from Gradido Node, but could find it afterwards in DB',
+          "load community root entry from Gradido Node, but couldn't find it afterwards in DB",
         )
       }
       community.confirmedAt = timestampSecondsToDate(existingCommunityRootTransaction.confirmedAt)
@@ -177,7 +111,7 @@ export const addHomeCommunity = async (
       await queryRunner.manager.save(recipe)
       await queryRunner.commitTransaction()
       ConditionalSleepManager.getInstance().signal(TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY)
-      result = new TransactionResult()
+      result = new TransactionResult(new TransactionRecipe(recipe))
     } catch (err) {
       logger.error('error saving new community into db: %s', err)
       result = new TransactionResult(

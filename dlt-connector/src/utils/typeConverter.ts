@@ -1,10 +1,14 @@
 import { crypto_generichash as cryptoHash } from 'sodium-native'
 
-import { Timestamp } from '@/proto/3_3/Timestamp'
-import { TimestampSeconds } from '@/proto/3_3/TimestampSeconds'
+import { Timestamp } from '@/data/proto/3_3/Timestamp'
+import { TimestampSeconds } from '@/data/proto/3_3/TimestampSeconds'
 import { AccountType } from '@/graphql/enum/AccountType'
-import { AddressType } from '@/proto/3_3/enum/AddressType'
+import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { LogError } from '@/server/LogError'
+import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
+import { logger } from '@/server/logger'
+import { TransactionError } from '@/graphql/model/TransactionError'
+import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 
 export const uuid4ToBuffer = (uuid: string): Buffer => {
   // Remove dashes from the UUIDv4 string
@@ -34,6 +38,18 @@ export const timestampSecondsToDate = (timestamp: TimestampSeconds): Date => {
 
 export const base64ToBuffer = (base64: string): Buffer => {
   return Buffer.from(base64, 'base64')
+}
+
+export const bodyBytesToTransactionBody = (bodyBytes: Buffer): TransactionBody => {
+  try {
+    return TransactionBody.decode(new Uint8Array(bodyBytes))
+  } catch (error) {
+    logger.error('error decoding body from gradido transaction: %s', error)
+    throw new TransactionError(
+      TransactionErrorType.PROTO_DECODE_ERROR,
+      'cannot decode body from gradido transaction',
+    )
+  }
 }
 
 export const accountTypeToAddressType = (accountType: AccountType): AddressType => {

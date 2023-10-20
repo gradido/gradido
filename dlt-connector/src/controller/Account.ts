@@ -23,9 +23,9 @@ import {
   timestampToDate,
 } from '@/utils/typeConverter'
 import { getDataSource } from '@/typeorm/DataSource'
-import { ConfirmedTransaction } from '@/proto/3_3/ConfirmedTransaction'
+import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { getBody } from './GradidoTransaction'
-import { RegisterAddress } from '@/proto/3_3/RegisterAddress'
+import { RegisterAddress } from '@/data/proto/3_3/RegisterAddress'
 
 const GMW_ACCOUNT_DERIVATION_INDEX = 1
 const AUF_ACCOUNT_DERIVATION_INDEX = 2

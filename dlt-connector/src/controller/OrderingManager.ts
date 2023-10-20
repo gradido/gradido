@@ -1,6 +1,6 @@
-import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
-import { Timestamp } from '@/proto/3_3/Timestamp'
-import { TimestampSeconds } from '@/proto/3_3/TimestampSeconds'
+import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
+import { Timestamp } from '@/data/proto/3_3/Timestamp'
+import { TimestampSeconds } from '@/data/proto/3_3/TimestampSeconds'
 
 type GradidoTransactionWithGroup = {
   transaction: GradidoTransaction

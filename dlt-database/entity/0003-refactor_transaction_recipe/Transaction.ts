@@ -12,10 +12,9 @@ import { Decimal } from 'decimal.js-light'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Account } from '../Account'
 import { Community } from '../Community'
-import { ConfirmedTransaction } from '../ConfirmedTransaction'
 
-@Entity('transaction_recipes')
-export class TransactionRecipe extends BaseEntity {
+@Entity('transactions')
+export class Transaction extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true, type: 'bigint' })
   id: number
 
@@ -25,12 +24,12 @@ export class TransactionRecipe extends BaseEntity {
   @Column({ name: 'backend_transaction_id', type: 'bigint', unsigned: true, nullable: true })
   backendTransactionId?: number
 
-  @OneToOne(() => TransactionRecipe)
+  @OneToOne(() => Transaction)
   // eslint-disable-next-line no-use-before-define
-  paringTransactionRecipe?: TransactionRecipe
+  paringTransaction?: Transaction
 
-  @Column({ name: 'paring_transaction_recipe_id', type: 'bigint', unsigned: true, nullable: true })
-  paringTransactionRecipeId?: number
+  @Column({ name: 'paring_transaction_id', type: 'bigint', unsigned: true, nullable: true })
+  paringTransactionId?: number
 
   // if transaction has a sender than it is also the sender account
   @ManyToOne(() => Account, (account) => account.transactionRecipesSigning)
@@ -96,6 +95,26 @@ export class TransactionRecipe extends BaseEntity {
   @Column({ name: 'protocol_version', type: 'varchar', length: 255, default: '1' })
   protocolVersion: string
 
-  @OneToOne(() => ConfirmedTransaction, (transaction) => transaction.transactionRecipe)
-  confirmedTransaction?: ConfirmedTransaction
+  @Column({ type: 'bigint' })
+  nr: number
+
+  @Column({ name: 'running_hash', type: 'binary', length: 48 })
+  runningHash: Buffer
+
+  @Column({
+    name: 'account_balance',
+    type: 'decimal',
+    precision: 40,
+    scale: 20,
+    nullable: false,
+    default: 0,
+    transformer: DecimalTransformer,
+  })
+  accountBalanceConfirmedAt: Decimal
+
+  @Column({ name: 'iota_milestone', type: 'bigint', nullable: true })
+  iotaMilestone?: number
+
+  @Column({ name: 'confirmed_at', type: 'datetime' })
+  confirmedAt: Date
 }

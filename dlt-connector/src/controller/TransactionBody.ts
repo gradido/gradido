@@ -1,17 +1,17 @@
-import { CrossGroupType } from '@/proto/3_3/enum/CrossGroupType'
+import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { InputTransactionType as TransactionType } from '@/graphql/enum/InputTransactionType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
-import { GradidoCreation } from '@/proto/3_3/GradidoCreation'
-import { GradidoTransfer } from '@/proto/3_3/GradidoTransfer'
-import { TransactionBody } from '@/proto/3_3/TransactionBody'
+import { GradidoCreation } from '@/data/proto/3_3/GradidoCreation'
+import { GradidoTransfer } from '@/data/proto/3_3/GradidoTransfer'
+import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import { CommunityRoot } from '@/proto/3_3/CommunityRoot'
+import { CommunityRoot } from '@/data/proto/3_3/CommunityRoot'
 import { Community } from '@entity/Community'
 import { Account } from '@entity/Account'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
-import { RegisterAddress } from '@/proto/3_3/RegisterAddress'
+import { RegisterAddress } from '@/data/proto/3_3/RegisterAddress'
 
 export const create = (
   transaction: TransactionDraft | UserAccountDraft,

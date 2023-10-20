@@ -1,4 +1,4 @@
-import { Arg, Args, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Mutation, Query, Resolver } from 'type-graphql'
 import { TransactionResult } from '../model/TransactionResult'
 import { UserAccountDraft } from '../input/UserAccountDraft'
 import { create as createUser, findByGradidoId, findUserByIdentifier } from '@/controller/User'

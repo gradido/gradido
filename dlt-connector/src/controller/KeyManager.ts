@@ -10,7 +10,7 @@ import { loadHomeCommunityKeyPair } from './Community'
 import { LogError } from '@/server/LogError'
 import { KeyPair } from '../model/KeyPair'
 import { sign as signGradidoTransaction } from './GradidoTransaction'
-import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
+import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts
@@ -54,18 +54,15 @@ export class KeyManager {
     }
   }
 
-  public generateKeysForCommunity(community: Community): void {
-    if (community.foreign) {
-      throw new Error('generateKeysForCommunity only allowed for home community!')
-    }
+  public static generateKeyPair(): KeyPair {
     const mnemonic = KeyManager.generateMnemonic(CONFIG.IOTA_HOME_COMMUNITY_SEED ?? undefined)
-    logger.info('passphrase for home community key pair: ' + mnemonic)
+    // logger.info('passphrase for key pair: ' + mnemonic)
     const seed = mnemonicToSeedSync(mnemonic)
-    const { publicKey, privateKey, chainCode } = new KeyPair(generateFromSeed(seed))
-    community.rootPubkey = publicKey
-    community.rootPrivkey = privateKey
-    community.rootChaincode = chainCode
-    this.homeCommunityRootKeys = new KeyPair(community)
+    return new KeyPair(generateFromSeed(seed))
+  }
+
+  public setHomeCommunityKeyPair(keyPair: KeyPair) {
+    this.homeCommunityRootKeys = keyPair
   }
 
   public sign(transaction: GradidoTransaction, keys?: KeyPair[]) {

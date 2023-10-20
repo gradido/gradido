@@ -1,9 +1,9 @@
 import { sign as ed25519Sign, verify as ed25519Verify } from 'bip32-ed25519'
 
 import { KeyPair } from '@/model/KeyPair'
-import { GradidoTransaction } from '@/proto/3_3/GradidoTransaction'
-import { TransactionBody } from '@/proto/3_3/TransactionBody'
-import { SignaturePair } from '@/proto/3_3/SignaturePair'
+import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
+import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
+import { SignaturePair } from '@/data/proto/3_3/SignaturePair'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { logger } from '@/server/logger'
