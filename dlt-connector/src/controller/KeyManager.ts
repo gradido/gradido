@@ -5,7 +5,6 @@ import { entropyToMnemonic, mnemonicToSeedSync } from 'bip39'
 // https://www.npmjs.com/package/bip32-ed25519?activeTab=code
 import { generateFromSeed, derivePrivate } from 'bip32-ed25519'
 import { logger } from '@/server/logger'
-import { Community } from '@entity/Community'
 import { loadHomeCommunityKeyPair } from './Community'
 import { LogError } from '@/server/LogError'
 import { KeyPair } from '../model/KeyPair'

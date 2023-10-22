@@ -1,6 +1,6 @@
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
-import { bodyBytesToTransactionBody } from '@/utils/typeConverter'
+import { bodyBytesToTransactionBody, transactionBodyToBodyBytes } from '@/utils/typeConverter'
 import { Transaction } from '@entity/Transaction'
 import { AccountRepository } from './Account.repository'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
@@ -45,6 +45,11 @@ export class TransactionBuilder {
     return result
   }
 
+  // return transaction without calling reset
+  public getTransaction(): Transaction {
+    return this.transaction
+  }
+
   public setSigningAccount(signingAccount: Account): TransactionBuilder {
     this.transaction.signingAccount = signingAccount
     return this
@@ -71,6 +76,11 @@ export class TransactionBuilder {
       this.transaction.senderCommunity.id !== recipientCommunity.id
         ? recipientCommunity
         : undefined
+    return this
+  }
+
+  public setSignature(signature: Buffer): TransactionBuilder {
+    this.transaction.signature = signature
     return this
   }
 
@@ -131,6 +141,7 @@ export class TransactionBuilder {
 
   public fromTransactionBody(transactionBody: TransactionBody): TransactionBuilder {
     transactionBody.fillTransactionRecipe(this.transaction)
+    this.transaction.bodyBytes ??= transactionBodyToBodyBytes(transactionBody)
     return this
   }
 }

@@ -52,6 +52,18 @@ export const bodyBytesToTransactionBody = (bodyBytes: Buffer): TransactionBody =
   }
 }
 
+export const transactionBodyToBodyBytes = (transactionBody: TransactionBody): Buffer => {
+  try {
+    return Buffer.from(TransactionBody.encode(transactionBody).finish())
+  } catch (error) {
+    logger.error('error encoding transaction body to body bytes', error)
+    throw new TransactionError(
+      TransactionErrorType.PROTO_ENCODE_ERROR,
+      'cannot encode transaction body',
+    )
+  }
+}
+
 export const accountTypeToAddressType = (accountType: AccountType): AddressType => {
   switch (accountType) {
     case AccountType.NONE:

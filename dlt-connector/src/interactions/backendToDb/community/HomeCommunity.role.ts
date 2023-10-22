@@ -4,11 +4,8 @@ import { CommunityRole } from './Community.role'
 import { getTransaction } from '@/client/GradidoNode'
 import { timestampSecondsToDate } from '@/utils/typeConverter'
 import { createHomeCommunity } from '@/data/community.factory'
-import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
-import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
-import { KeyManager } from '@/controller/KeyManager'
-import { KeyPair } from '@/model/KeyPair'
-import { TransactionBuilder } from '@/data/Transaction.builder'
+import { createCommunityRootTransactionRecipe } from '../transaction/transaction.context'
+import { QueryRunner } from 'typeorm'
 
 export class HomeCommunityRole extends CommunityRole {
   public async addCommunity(communityDraft: CommunityDraft, topic: string): Promise<Community> {
@@ -20,18 +17,11 @@ export class HomeCommunityRole extends CommunityRole {
       community.confirmedAt = timestampSecondsToDate(existingCommunityRootTransaction.confirmedAt)
       return community.save()
     } else {
-      // if not create transaction for it
-      const transactionBody = new TransactionBodyBuilder().fromCommunityDraft(
-        communityDraft,
-        community,
+      createCommunityRootTransactionRecipe(communityDraft, community).storeAsTransaction(
+        async (queryRunner: QueryRunner): Promise<void> => {
+          await queryRunner.manager.save(community)
+        },
       )
-      const gradidoTransaction = new GradidoTransaction(transactionBody)
-      KeyManager.getInstance().sign(gradidoTransaction, [new KeyPair(community)])
-      const transactionBuilder = new TransactionBuilder()
-      const transaction = transactionBuilder
-        .fromGradidoTransaction(gradidoTransaction)
-        .setSenderCommunity(community)
-        .build()
     }
     return community.save()
   }

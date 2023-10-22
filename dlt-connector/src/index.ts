@@ -4,10 +4,9 @@ import createServer from './server/createServer'
 import { stop as stopTransmitToIota, transmitToIota } from './tasks/transmitToIota'
 import { TransactionsManager } from './controller/TransactionsManager'
 import { KeyManager } from './controller/KeyManager'
-import { Community } from '@entity/Community'
 import { BackendClient } from './client/BackendClient'
 import { LogError } from './server/LogError'
-import { addHomeCommunity } from './controller/Community'
+import { addCommunity } from '@/interactions/backendToDb/community/community.context'
 
 async function main() {
   // eslint-disable-next-line no-console
@@ -25,7 +24,7 @@ async function main() {
       throw new LogError('cannot connect to backend')
     }
     const communityDraft = await backend.homeCommunityUUid()
-    addHomeCommunity(communityDraft)
+    addCommunity(communityDraft)
   }
 
   await TransactionsManager.getInstance().init()

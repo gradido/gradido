@@ -1,4 +1,4 @@
-import { AddressType } from '@proto/3_3/enum/AddressType'
+import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { Account } from '@entity/Account'
 import { Community } from '@entity/Community'
 import { KeyManager } from './KeyManager'

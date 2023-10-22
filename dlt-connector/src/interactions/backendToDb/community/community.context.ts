@@ -4,15 +4,19 @@ import { ForeignCommunityRole } from './ForeignCommunity.role'
 import { HomeCommunityRole } from './HomeCommunity.role'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionsManager } from '@/controller/TransactionsManager'
+import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 
 export const addCommunity = async (
   communityDraft: CommunityDraft,
-  iotaTopic: string,
+  iotaTopic?: string,
 ): Promise<TransactionResult> => {
   const communityRole = communityDraft.foreign
     ? new ForeignCommunityRole()
     : new HomeCommunityRole()
   try {
+    if (!iotaTopic) {
+      iotaTopic = iotaTopicFromCommunityUUID(communityDraft.uuid)
+    }
     await communityRole.addCommunity(communityDraft, iotaTopic)
     await TransactionsManager.getInstance().addTopic(iotaTopic)
     return new TransactionResult()
