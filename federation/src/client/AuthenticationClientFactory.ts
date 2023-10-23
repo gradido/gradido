@@ -3,7 +3,7 @@ import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCom
 import { AuthenticationClient as V1_0_AuthenticationClient } from './1_0/AuthenticationClient'
 // eslint-disable-next-line camelcase
 import { AuthenticationClient as V1_1_AuthenticationClient } from './1_1/AuthenticationClient'
-import { ApiVersionType } from './enum/apiVersionType'
+import { ApiVersionType } from './enum/ApiVersionType'
 
 // eslint-disable-next-line camelcase
 type AuthenticationClient = V1_0_AuthenticationClient | V1_1_AuthenticationClient
