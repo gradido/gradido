@@ -20,7 +20,7 @@ export async function startCommunityAuthentication(
   const foreignCom = await DbCommunity.findOneByOrFail({ publicKey: foreignFedCom.publicKey })
   if (foreignCom && foreignCom.communityUuid === null && foreignCom.authenticatedAt === null) {
     try {
-      const client = AuthenticationClientFactory.getInstance(homeFedCom)
+      const client = AuthenticationClientFactory.getInstance(foreignFedCom)
       // eslint-disable-next-line camelcase
       if (client instanceof V1_0_AuthenticationClient) {
         const args = new OpenConnectionArgs()

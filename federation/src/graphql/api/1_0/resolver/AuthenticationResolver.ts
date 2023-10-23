@@ -2,14 +2,13 @@
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import { federationLogger as logger } from '@/server/logger'
 import { Community as DbCommunity } from '@entity/Community'
+import { FederatedCommunity as DbFedCommunity } from '@entity/FederatedCommunity'
 import { LogError } from '@/server/LogError'
 import { OpenConnectionArgs } from '../model/OpenConnectionArgs'
-import {
-  startOpenConnectionCallback,
-  startOpenConnectionRedirect,
-} from '../util/authenticateCommunity'
+import { startAuthentication, startOpenConnectionCallback } from '../util/authenticateCommunity'
 import { OpenConnectionCallbackArgs } from '../model/OpenConnectionCallbackArgs'
-import { ApiVersionType } from '@/client/enum/apiVersionType'
+import { CONFIG } from '@/config'
+import { AuthenticationArgs } from '../model/AuthenticationArgs'
 
 @Resolver()
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -28,7 +27,8 @@ export class AuthenticationResolver {
     if (!requestedCom) {
       throw new LogError(`unknown requesting community with publicKey`, args.publicKey)
     }
-    void startOpenConnectionRedirect(args, requestedCom, ApiVersionType.V1_0)
+    // no await to respond immediatly and invoke callback-request asynchron
+    void startOpenConnectionCallback(args, requestedCom, CONFIG.FEDERATION_API)
     return true
   }
 
@@ -38,14 +38,37 @@ export class AuthenticationResolver {
     args: OpenConnectionCallbackArgs,
   ): Promise<boolean> {
     logger.debug(`Authentication: openConnectionCallback() via apiVersion=1_0 ...`, args)
-    // first find with args.publicKey the community, which invokes openConnectionCallback
-    const callbackCom = await DbCommunity.findOneBy({
-      publicKey: Buffer.from(args.publicKey),
-    })
-    if (!callbackCom) {
-      throw new LogError(`unknown callback community with publicKey`, args.publicKey)
+    // TODO decrypt args.url with homeCom.privateKey and verify signing with callbackFedCom.publicKey
+    const endPoint = args.url.slice(0, args.url.lastIndexOf('/'))
+    const apiVersion = args.url.slice(args.url.lastIndexOf('/'), args.url.length)
+    const callbackFedCom = await DbFedCommunity.findOneBy({ endPoint, apiVersion })
+    if (!callbackFedCom) {
+      throw new LogError(`unknown callback community with url`, args.url)
     }
-    void startOpenConnectionCallback(args, callbackCom)
+    // no await to respond immediatly and invoke authenticate-request asynchron
+    void startAuthentication(args.oneTimeCode, callbackFedCom)
     return true
+  }
+
+  @Mutation(() => String)
+  async authenticate(
+    @Arg('data')
+    args: AuthenticationArgs,
+  ): Promise<string | null> {
+    logger.debug(`Authentication: authenticate() via apiVersion=1_0 ...`, args)
+    const authCom = await DbCommunity.findOneByOrFail({ communityUuid: args.oneTimeCode })
+    logger.debug('Authentication: found authCom:', authCom)
+    if (authCom) {
+      // TODO decrypt args.uuid with authCom.publicKey
+      authCom.communityUuid = args.uuid
+      await DbCommunity.save(authCom)
+      logger.debug('Authentication: store authCom.uuid successfully:', authCom)
+      const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
+      // TODO encrypt homeCom.uuid with homeCom.privateKey
+      if (homeCom.communityUuid) {
+        return homeCom.communityUuid
+      }
+    }
+    return null
   }
 }

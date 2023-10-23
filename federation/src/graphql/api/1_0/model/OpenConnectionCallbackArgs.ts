@@ -1,12 +1,9 @@
-import { ArgsType, Field } from 'type-graphql'
+import { Field, InputType } from 'type-graphql'
 
-@ArgsType()
+@InputType()
 export class OpenConnectionCallbackArgs {
   @Field(() => String)
   oneTimeCode: string
-
-  @Field(() => String)
-  publicKey: string
 
   @Field(() => String)
   url: string

@@ -59,7 +59,7 @@ export async function validateCommunities(): Promise<void> {
           const pubComInfo = await client.getPublicCommunityInfo()
           if (pubComInfo) {
             await writeForeignCommunity(dbCom, pubComInfo)
-            void startCommunityAuthentication(dbCom)
+            await startCommunityAuthentication(dbCom)
             logger.debug(`Federation: write publicInfo of community: name=${pubComInfo.name}`)
           } else {
             logger.warn('Federation: missing result of getPublicCommunityInfo')

@@ -7,7 +7,6 @@ import { openConnectionCallback } from './query/openConnectionCallback'
 import { AuthenticationArgs } from '@/graphql/api/1_0/model/AuthenticationArgs'
 import { authenticate } from './query/authenticate'
 
-
 export class AuthenticationClient {
   dbCom: DbFederatedCommunity
   endpoint: string
@@ -27,12 +26,13 @@ export class AuthenticationClient {
     })
   }
 
-  async openConnectionCallback(args: OpenConnectionCallbackArgs): Promise<boolean | undefined> {
+  async openConnectionCallback(args: OpenConnectionCallbackArgs): Promise<boolean> {
     logger.debug('Authentication: openConnectionCallback with endpoint', this.endpoint, args)
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const { data } = await this.client.rawRequest(openConnectionCallback, { args })
-      if (!data?.openConnectionCallback) {
+      const { data } = await this.client.rawRequest<any>(openConnectionCallback, { args })
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (data && data.openConnectionCallback) {
         logger.warn(
           'Authentication: openConnectionCallback without response data from endpoint',
           this.endpoint,
@@ -47,24 +47,24 @@ export class AuthenticationClient {
     } catch (err) {
       logger.error('Authentication: error on openConnectionCallback', err)
     }
+    return false
   }
 
-  async authenticate(args: AuthenticationArgs): Promise<string | undefined> {
+  async authenticate(args: AuthenticationArgs): Promise<string | null> {
     logger.debug('Authentication: authenticate with endpoint=', this.endpoint)
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const { data } = await this.client.rawRequest(authenticate, {})
+      const { data } = await this.client.rawRequest<any>(authenticate, { args })
+      logger.debug('Authentication: after authenticate: data:', data)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!data?.authenticate) {
-        logger.warn(
-          'Authentication: authenticate without response data from endpoint',
-          this.endpoint,
-        )
-        return
+      const authUuid: string = data?.authenticate.uuid
+      if (authUuid) {
+        logger.debug('Authentication: received authenticated uuid', authUuid)
+        return authUuid
       }
-      const 
     } catch (err) {
       logger.error('Authentication: authenticate  failed for endpoint', this.endpoint)
     }
+    return null
   }
 }
