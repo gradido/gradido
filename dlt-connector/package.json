@@ -16,10 +16,11 @@
     "test": "cross-env TZ=UTC NODE_ENV=development jest --runInBand --forceExit --detectOpenHandles"
   },
   "dependencies": {
-    "@apollo/protobufjs": "^1.2.7",
     "@apollo/server": "^4.7.5",
     "@apollo/utils.fetcher": "^3.0.0",
     "@iota/client": "^2.2.4",
+    "bip32-ed25519": "^0.0.4",
+    "bip39": "^3.1.0",
     "body-parser": "^1.20.2",
     "class-validator": "^0.14.0",
     "cors": "^2.8.5",
@@ -32,6 +33,7 @@
     "graphql-scalars": "^1.22.2",
     "log4js": "^6.7.1",
     "nodemon": "^2.0.20",
+    "protobufjs": "^7.2.5",
     "reflect-metadata": "^0.1.13",
     "sodium-native": "^4.0.4",
     "tsconfig-paths": "^4.1.2",
