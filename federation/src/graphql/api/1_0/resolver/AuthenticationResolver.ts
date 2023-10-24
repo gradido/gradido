@@ -18,15 +18,23 @@ export class AuthenticationResolver {
     @Arg('data')
     args: OpenConnectionArgs,
   ): Promise<boolean> {
-    logger.debug(`Authentication: openConnection() via apiVersion=1_0 ...`, args)
+    logger.debug(
+      `Authentication: openConnection() via apiVersion=1_0 ...`,
+      args.url,
+      Buffer.from(args.publicKey, 'hex').toString(),
+    )
 
     // first find with args.publicKey the community, which starts openConnection request
     const requestedCom = await DbCommunity.findOneBy({
       publicKey: Buffer.from(args.publicKey),
     })
     if (!requestedCom) {
-      throw new LogError(`unknown requesting community with publicKey`, args.publicKey)
+      throw new LogError(
+        `unknown requesting community with publicKey`,
+        Buffer.from(args.publicKey, 'hex').toString(),
+      )
     }
+    logger.debug(`Authentication: found requestedCom:`, requestedCom)
     // no await to respond immediatly and invoke callback-request asynchron
     void startOpenConnectionCallback(args, requestedCom, CONFIG.FEDERATION_API)
     return true
@@ -41,10 +49,12 @@ export class AuthenticationResolver {
     // TODO decrypt args.url with homeCom.privateKey and verify signing with callbackFedCom.publicKey
     const endPoint = args.url.slice(0, args.url.lastIndexOf('/'))
     const apiVersion = args.url.slice(args.url.lastIndexOf('/'), args.url.length)
+    logger.debug(`Authentication: search fedCom per:`, endPoint, apiVersion)
     const callbackFedCom = await DbFedCommunity.findOneBy({ endPoint, apiVersion })
     if (!callbackFedCom) {
       throw new LogError(`unknown callback community with url`, args.url)
     }
+    logger.debug(`Authentication: found fedCom and start authentication:`, callbackFedCom)
     // no await to respond immediatly and invoke authenticate-request asynchron
     void startAuthentication(args.oneTimeCode, callbackFedCom)
     return true

@@ -1,10 +1,12 @@
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { CONFIG } from '@/config'
 // eslint-disable-next-line camelcase
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
 import { backendLogger as logger } from '@/server/logger'
+
 
 import { OpenConnectionArgs } from './client/1_0/model/OpenConnectionArgs'
 import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
@@ -18,7 +20,19 @@ export async function startCommunityAuthentication(
     apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
   })
   const foreignCom = await DbCommunity.findOneByOrFail({ publicKey: foreignFedCom.publicKey })
-  if (foreignCom && foreignCom.communityUuid === null && foreignCom.authenticatedAt === null) {
+  logger.debug(
+    'Authentication: started for foreignFedCom:',
+    foreignFedCom.endPoint,
+    foreignFedCom.publicKey.toString('hex'),
+  )
+  // check if communityUuid is a valid v4Uuid and not still a temporary onetimecode
+  if (
+    foreignCom &&
+    ((foreignCom.communityUuid === null && foreignCom.authenticatedAt === null) ||
+      (foreignCom.communityUuid !== null &&
+        !validateUUID(foreignCom.communityUuid) &&
+        versionUUID(foreignCom.communityUuid) !== 4))
+  ) {
     try {
       const client = AuthenticationClientFactory.getInstance(foreignFedCom)
       // eslint-disable-next-line camelcase

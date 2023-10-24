@@ -16,9 +16,9 @@ export async function startOpenConnectionCallback(
   api: string,
 ): Promise<void> {
   logger.debug(
-    `Authentication: startOpenConnectionRedirect()...`,
-    args.publicKey,
+    `Authentication: startOpenConnectionCallback() with:`,
     args.url,
+    Buffer.from(args.publicKey, 'hex').toString(),
     requestedCom,
   )
   try {
@@ -31,6 +31,7 @@ export async function startOpenConnectionCallback(
     // store oneTimeCode in requestedCom.community_uuid as authenticate-request-identifier
     requestedCom.communityUuid = oneTimeCode.toString()
     await DbCommunity.save(requestedCom)
+    logger.debug(`Authentication: stored oneTimeCode in requestedCom:`, requestedCom)
 
     const client = AuthenticationClientFactory.getInstance(homeFedCom)
     // eslint-disable-next-line camelcase
@@ -41,14 +42,15 @@ export async function startOpenConnectionCallback(
       callbackArgs.url = homeFedCom.endPoint.endsWith('/')
         ? homeFedCom.endPoint
         : homeFedCom.endPoint + '/' + homeFedCom.apiVersion
+      logger.debug(`Authentication: start openConnectionCallback with args:`, callbackArgs)
       if (await client.openConnectionCallback(callbackArgs)) {
-        logger.debug('Authentication: startOpenConnectionRedirect() successful:', callbackArgs)
+        logger.debug('Authentication: startOpenConnectionCallback() successful:', callbackArgs)
       } else {
-        logger.error('Authentication: startOpenConnectionRedirect() failed:', callbackArgs)
+        logger.error('Authentication: startOpenConnectionCallback() failed:', callbackArgs)
       }
     }
   } catch (err) {
-    logger.error('Authentication: error in startOpenConnectionRedirect:', err)
+    logger.error('Authentication: error in startOpenConnectionCallback:', err)
   }
 }
 
@@ -74,15 +76,20 @@ export async function startAuthentication(
       if (homeCom.communityUuid) {
         authenticationArgs.uuid = homeCom.communityUuid
       }
-      logger.debug(`Authentication: vor authenticate()...`, authenticationArgs)
+      logger.debug(`Authentication: invoke authenticate() with:`, authenticationArgs)
       const fedComUuid = await client.authenticate(authenticationArgs)
-      logger.debug(`Authentication: nach authenticate()...`, fedComUuid)
+      logger.debug(`Authentication: response of authenticate():`, fedComUuid)
       if (fedComUuid !== null) {
-        // TODO decrypt fedComUuid with callbackFedCom.publicKey
+        logger.debug(
+          `Authentication: received communityUUid for callbackFedCom:`,
+          fedComUuid,
+          callbackFedCom,
+        )
         const callbackCom = await DbCommunity.findOneByOrFail({
           foreign: true,
           publicKey: callbackFedCom.publicKey,
         })
+        // TODO decrypt fedComUuid with callbackFedCom.publicKey
         callbackCom.communityUuid = fedComUuid
         callbackCom.authenticatedAt = new Date()
         await DbCommunity.save(callbackCom)
