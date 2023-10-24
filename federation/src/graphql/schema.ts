@@ -11,7 +11,6 @@ const schema = async (): Promise<GraphQLSchema> => {
     resolvers: [getApiResolvers()],
     // authChecker: isAuthorized,
     scalarsMap: [{ type: Decimal, scalar: DecimalScalar }],
-    /*
     validate: {
       validationError: { target: false },
       skipMissingProperties: true,
@@ -20,7 +19,6 @@ const schema = async (): Promise<GraphQLSchema> => {
       forbidUnknownValues: true,
       stopAtFirstError: true,
     },
-    */
   })
 }
 
