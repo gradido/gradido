@@ -24,7 +24,7 @@ export async function startCommunityAuthentication(
       // eslint-disable-next-line camelcase
       if (client instanceof V1_0_AuthenticationClient) {
         const args = new OpenConnectionArgs()
-        args.publicKey = homeCom.publicKey.toString('hex')
+        args.publicKey = homeCom.publicKey.toString()
         // TODO encrypt url with foreignCom.publicKey and sign it with homeCom.privateKey
         args.url = homeFedCom.endPoint.endsWith('/')
           ? homeFedCom.endPoint
