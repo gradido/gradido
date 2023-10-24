@@ -22,7 +22,7 @@ export class AuthenticationResolver {
 
     // first find with args.publicKey the community, which starts openConnection request
     const requestedCom = await DbCommunity.findOneBy({
-      publicKey: Buffer.from(args.publicKey),
+      publicKey: Buffer.from(args.publicKey, 'hex'),
     })
     if (!requestedCom) {
       throw new LogError(`unknown requesting community with publicKey`, args.publicKey)
