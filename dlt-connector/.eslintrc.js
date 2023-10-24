@@ -14,6 +14,7 @@ module.exports = {
     // 'plugin:import/typescript',
     // 'plugin:security/recommended',
     'plugin:@eslint-community/eslint-comments/recommended',
+    'plugin:dci-lint/recommended',
   ],
   settings: {
     'import/parsers': {
@@ -36,6 +37,7 @@ module.exports = {
         htmlWhitespaceSensitivity: 'ignore',
       },
     ],
+    // 'dci-lint/literal-role-contracts': 'off'
     // import
     // 'import/export': 'error',
     // 'import/no-deprecated': 'error',

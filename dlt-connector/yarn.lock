@@ -2586,6 +2586,11 @@ eslint-module-utils@^2.7.4, eslint-module-utils@^2.8.0:
   dependencies:
     debug "^3.2.7"
 
+eslint-plugin-dci-lint@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-dci-lint/-/eslint-plugin-dci-lint-0.3.0.tgz#dcd73c50505b589b415017cdb72716f98e9495c3"
+  integrity sha512-BhgrwJ5k3eMN41NwCZ/tYQGDTMOrHXpH8XOfRZrGtPqmlnOZCVGWow+KyZMz0/wOFVpXx/q9B0y7R7qtU7lnqg==
+
 eslint-plugin-es@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/eslint-plugin-es/-/eslint-plugin-es-4.1.0.tgz#f0822f0c18a535a97c3e714e89f88586a7641ec9"

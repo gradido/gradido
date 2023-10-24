@@ -6,7 +6,7 @@ import { KeyPair } from '@/data/KeyPair'
 import { sign } from '@/utils/cryptoHelper'
 
 export class CommunityRootTransactionRole extends TransactionRecipeRole {
-  public createFromCommunityDraft(
+  public createFromCommunityRoot(
     communityDraft: CommunityDraft,
     community: Community,
   ): CommunityRootTransactionRole {

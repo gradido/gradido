@@ -14,8 +14,12 @@ export class TransactionRecipeRole {
     this.transactionBuilder = new TransactionBuilder()
   }
 
-  public createFromTransactionDraft(transactionDraft: TransactionDraft): TransactionRecipeRole {
+  public create(transactionDraft: TransactionDraft): TransactionRecipeRole {
     return this
+  }
+
+  public getTransaction(): Transaction {
+    return this.transactionBuilder.getTransaction()
   }
 
   public async storeAsTransaction(

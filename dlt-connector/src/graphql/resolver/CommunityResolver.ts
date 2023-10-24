@@ -11,7 +11,7 @@ import { CommunityArg } from '@arg/CommunityArg'
 import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
 import { CommunityRepository } from '@/data/Community.repository'
-import { addCommunity } from '@/interactions/backendToDb/community/community.context'
+import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
 
 @Resolver()
 export class CommunityResolver {
@@ -54,6 +54,20 @@ export class CommunityResolver {
         new TransactionError(TransactionErrorType.ALREADY_EXIST, 'community already exist!'),
       )
     }
-    return await addCommunity(communityDraft, topic)
+    // prepare context for interaction
+    // shouldn't throw at all
+    // TODO: write tests to make sure that it doesn't throw
+    const addCommunityContext = new AddCommunityContext(communityDraft, topic)
+    try {
+      // actually run interaction, create community, accounts for foreign community and transactionRecipe  
+      await addCommunityContext.run()
+      return new TransactionResult()
+    } catch (error) {
+      if (error instanceof TransactionError) {
+        return new TransactionResult(error)
+      } else {
+        throw error
+      }
+    }
   }
 }
