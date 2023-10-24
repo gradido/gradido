@@ -15,3 +15,10 @@ export const decimalSeparatorByLanguage = (a: Decimal, language: string): string
 
 export const fullName = (firstName: string, lastName: string): string =>
   [firstName, lastName].filter(Boolean).join(' ')
+
+export function stringToHex(str: string): string {
+  return str
+    .split('')
+    .map((char) => char.charCodeAt(0).toString(16).padStart(2, '0'))
+    .join('')
+}

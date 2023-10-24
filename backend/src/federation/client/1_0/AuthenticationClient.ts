@@ -2,6 +2,7 @@ import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCom
 import { GraphQLClient } from 'graphql-request'
 
 import { backendLogger as logger } from '@/server/logger'
+import { stringToHex } from '@/util/utilities'
 
 import { OpenConnectionArgs } from './model/OpenConnectionArgs'
 import { openConnection } from './query/openConnection'
@@ -29,7 +30,7 @@ export class AuthenticationClient {
     logger.debug(
       `Authentication: openConnection at ${this.endpoint} for args:`,
       args.url,
-      Buffer.from(args.publicKey, 'hex').toString(),
+      stringToHex(args.publicKey),
     )
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

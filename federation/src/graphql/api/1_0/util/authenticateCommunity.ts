@@ -9,6 +9,7 @@ import { AuthenticationClientFactory } from '@/client/AuthenticationClientFactor
 // eslint-disable-next-line camelcase
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
 import { AuthenticationArgs } from '../model/AuthenticationArgs'
+import { stringToHex } from '@/util/utilities'
 
 export async function startOpenConnectionCallback(
   args: OpenConnectionArgs,
@@ -18,7 +19,7 @@ export async function startOpenConnectionCallback(
   logger.debug(
     `Authentication: startOpenConnectionCallback() with:`,
     args.url,
-    Buffer.from(args.publicKey, 'hex').toString(),
+    stringToHex(args.publicKey),
     requestedCom,
   )
   try {

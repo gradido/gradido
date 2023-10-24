@@ -6,7 +6,7 @@ import { CONFIG } from '@/config'
 // eslint-disable-next-line camelcase
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
 import { backendLogger as logger } from '@/server/logger'
-
+import { stringToHex } from '@/util/utilities'
 
 import { OpenConnectionArgs } from './client/1_0/model/OpenConnectionArgs'
 import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
@@ -23,7 +23,7 @@ export async function startCommunityAuthentication(
   logger.debug(
     'Authentication: started for foreignFedCom:',
     foreignFedCom.endPoint,
-    foreignFedCom.publicKey.toString('hex'),
+    stringToHex(foreignFedCom.publicKey.toString()),
   )
   // check if communityUuid is a valid v4Uuid and not still a temporary onetimecode
   if (

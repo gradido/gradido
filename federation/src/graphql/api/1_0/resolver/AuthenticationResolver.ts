@@ -9,6 +9,7 @@ import { startAuthentication, startOpenConnectionCallback } from '../util/authen
 import { OpenConnectionCallbackArgs } from '../model/OpenConnectionCallbackArgs'
 import { CONFIG } from '@/config'
 import { AuthenticationArgs } from '../model/AuthenticationArgs'
+import { stringToHex } from '@/util/utilities'
 
 @Resolver()
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -21,7 +22,7 @@ export class AuthenticationResolver {
     logger.debug(
       `Authentication: openConnection() via apiVersion=1_0 ...`,
       args.url,
-      Buffer.from(args.publicKey, 'hex').toString(),
+      stringToHex(args.publicKey),
     )
 
     // first find with args.publicKey the community, which starts openConnection request
@@ -29,10 +30,7 @@ export class AuthenticationResolver {
       publicKey: Buffer.from(args.publicKey),
     })
     if (!requestedCom) {
-      throw new LogError(
-        `unknown requesting community with publicKey`,
-        Buffer.from(args.publicKey, 'hex').toString(),
-      )
+      throw new LogError(`unknown requesting community with publicKey`, stringToHex(args.publicKey))
     }
     logger.debug(`Authentication: found requestedCom:`, requestedCom)
     // no await to respond immediatly and invoke callback-request asynchron
