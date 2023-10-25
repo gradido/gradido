@@ -21,6 +21,7 @@ export class AuthenticationResolver {
   ): Promise<boolean> {
     logger.debug(
       `Authentication: openConnection() via apiVersion=1_0 ...`,
+      args,
       args.url,
       stringToHex(args.publicKey),
     )

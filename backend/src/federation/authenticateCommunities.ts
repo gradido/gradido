@@ -23,7 +23,7 @@ export async function startCommunityAuthentication(
   logger.debug(
     'Authentication: started for foreignFedCom:',
     foreignFedCom.endPoint,
-    stringToHex(foreignFedCom.publicKey.toString()),
+    foreignFedCom.publicKey.toString('hex'),
   )
   // check if communityUuid is a valid v4Uuid and not still a temporary onetimecode
   if (
@@ -43,6 +43,11 @@ export async function startCommunityAuthentication(
         args.url = homeFedCom.endPoint.endsWith('/')
           ? homeFedCom.endPoint
           : homeFedCom.endPoint + '/' + homeFedCom.apiVersion
+        logger.debug(
+          'Authentication: before client.openConnection() args:',
+          args.publicKey,
+          args.url,
+        )
         if (await client.openConnection(args)) {
           logger.info(`Authentication: successful initiated at community:`, foreignFedCom.endPoint)
         } else {
