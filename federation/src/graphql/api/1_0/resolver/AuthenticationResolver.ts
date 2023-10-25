@@ -47,14 +47,14 @@ export class AuthenticationResolver {
     // TODO decrypt args.url with homeCom.privateKey and verify signing with callbackFedCom.publicKey
     const endPoint = args.url.slice(0, args.url.lastIndexOf('/') + 1)
     const apiVersion = args.url.slice(args.url.lastIndexOf('/') + 1, args.url.length)
-    logger.debug(`Authentication: search fedCom per:`, endPoint, apiVersion)
-    const callbackFedCom = await DbFedCommunity.findOneBy({ endPoint, apiVersion })
-    if (!callbackFedCom) {
+    logger.debug(`Authentication: search fedComB per:`, endPoint, apiVersion)
+    const fedComB = await DbFedCommunity.findOneBy({ endPoint, apiVersion })
+    if (!fedComB) {
       throw new LogError(`unknown callback community with url`, args.url)
     }
-    logger.debug(`Authentication: found fedCom and start authentication:`, callbackFedCom)
+    logger.debug(`Authentication: found fedComB and start authentication:`, fedComB)
     // no await to respond immediatly and invoke authenticate-request asynchron
-    void startAuthentication(args.oneTimeCode, callbackFedCom)
+    void startAuthentication(args.oneTimeCode, fedComB)
     return true
   }
 

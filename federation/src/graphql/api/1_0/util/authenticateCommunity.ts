@@ -56,18 +56,18 @@ export async function startOpenConnectionCallback(
 
 export async function startAuthentication(
   oneTimeCode: string,
-  callbackFedCom: DbFedCommunity,
+  fedComB: DbFedCommunity,
 ): Promise<void> {
-  logger.debug(`Authentication: startAuthentication()...`, oneTimeCode, callbackFedCom)
+  logger.debug(`Authentication: startAuthentication()...`, oneTimeCode, fedComB)
   try {
     const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
     const homeFedCom = await DbFedCommunity.findOneByOrFail({
       foreign: false,
-      apiVersion: callbackFedCom.apiVersion,
+      apiVersion: fedComB.apiVersion,
     })
 
     // TODO encrypt homeCom.uuid with homeCom.privateKey and sign it with callbackFedCom.publicKey
-    const client = AuthenticationClientFactory.getInstance(homeFedCom)
+    const client = AuthenticationClientFactory.getInstance(fedComB)
     // eslint-disable-next-line camelcase
     if (client instanceof V1_0_AuthenticationClient) {
       const authenticationArgs = new AuthenticationArgs()
@@ -83,11 +83,11 @@ export async function startAuthentication(
         logger.debug(
           `Authentication: received communityUUid for callbackFedCom:`,
           fedComUuid,
-          callbackFedCom,
+          fedComB,
         )
         const callbackCom = await DbCommunity.findOneByOrFail({
           foreign: true,
-          publicKey: callbackFedCom.publicKey,
+          publicKey: fedComB.publicKey,
         })
         // TODO decrypt fedComUuid with callbackFedCom.publicKey
         callbackCom.communityUuid = fedComUuid
