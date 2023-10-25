@@ -57,7 +57,7 @@ export class AuthenticationClient {
       const { data } = await this.client.rawRequest<any>(authenticate, { args })
       logger.debug('Authentication: after authenticate: data:', data)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const authUuid: string = data?.authenticate.uuid
+      const authUuid: string = data?.authenticate
       if (authUuid) {
         logger.debug('Authentication: received authenticated uuid', authUuid)
         return authUuid
