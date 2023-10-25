@@ -9,7 +9,6 @@ import { startAuthentication, startOpenConnectionCallback } from '../util/authen
 import { OpenConnectionCallbackArgs } from '../model/OpenConnectionCallbackArgs'
 import { CONFIG } from '@/config'
 import { AuthenticationArgs } from '../model/AuthenticationArgs'
-import { stringToHex } from '@/util/utilities'
 
 @Resolver()
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -19,19 +18,21 @@ export class AuthenticationResolver {
     @Arg('data')
     args: OpenConnectionArgs,
   ): Promise<boolean> {
+    const pubKeyBuf = Buffer.from(args.publicKey, 'hex')
     logger.debug(
       `Authentication: openConnection() via apiVersion=1_0 ...`,
       args,
       args.url,
-      stringToHex(args.publicKey),
+      args.publicKey,
+      pubKeyBuf.toString('hex'),
     )
 
     // first find with args.publicKey the community, which starts openConnection request
     const requestedCom = await DbCommunity.findOneBy({
-      publicKey: Buffer.from(args.publicKey),
+      publicKey: pubKeyBuf, // Buffer.from(args.publicKey),
     })
     if (!requestedCom) {
-      throw new LogError(`unknown requesting community with publicKey`, stringToHex(args.publicKey))
+      throw new LogError(`unknown requesting community with publicKey`, pubKeyBuf.toString('hex'))
     }
     logger.debug(`Authentication: found requestedCom:`, requestedCom)
     // no await to respond immediatly and invoke callback-request asynchron
