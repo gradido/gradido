@@ -69,6 +69,7 @@ export class AuthenticationResolver {
     if (authCom) {
       // TODO decrypt args.uuid with authCom.publicKey
       authCom.communityUuid = args.uuid
+      authCom.authenticatedAt = new Date()
       await DbCommunity.save(authCom)
       logger.debug('Authentication: store authCom.uuid successfully:', authCom)
       const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
