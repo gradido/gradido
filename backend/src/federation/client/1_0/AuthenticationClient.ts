@@ -26,11 +26,7 @@ export class AuthenticationClient {
   }
 
   async openConnection(args: OpenConnectionArgs): Promise<boolean | undefined> {
-    logger.debug(
-      `Authentication: openConnection at ${this.endpoint} for args:`,
-      args.url,
-      args.publicKey,
-    )
+    logger.debug(`Authentication: openConnection at ${this.endpoint} for args:`, args)
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { data } = await this.client.rawRequest(openConnection, { args })
