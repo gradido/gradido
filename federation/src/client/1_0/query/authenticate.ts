@@ -1,7 +1,7 @@
 import { gql } from 'graphql-request'
 
 export const authenticate = gql`
-  mutation ($args: AuthenticateArgs!) {
+  mutation ($args: AuthenticationArgs!) {
     authenticate(data: $args) {
       uuid
     }
