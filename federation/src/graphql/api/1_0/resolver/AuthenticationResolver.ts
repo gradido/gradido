@@ -45,8 +45,8 @@ export class AuthenticationResolver {
   ): Promise<boolean> {
     logger.debug(`Authentication: openConnectionCallback() via apiVersion=1_0 ...`, args)
     // TODO decrypt args.url with homeCom.privateKey and verify signing with callbackFedCom.publicKey
-    const endPoint = args.url.slice(0, args.url.lastIndexOf('/'))
-    const apiVersion = args.url.slice(args.url.lastIndexOf('/'), args.url.length)
+    const endPoint = args.url.slice(0, args.url.lastIndexOf('/') + 1)
+    const apiVersion = args.url.slice(args.url.lastIndexOf('/') + 1, args.url.length)
     logger.debug(`Authentication: search fedCom per:`, endPoint, apiVersion)
     const callbackFedCom = await DbFedCommunity.findOneBy({ endPoint, apiVersion })
     if (!callbackFedCom) {
