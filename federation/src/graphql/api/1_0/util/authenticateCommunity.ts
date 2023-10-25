@@ -9,19 +9,13 @@ import { AuthenticationClientFactory } from '@/client/AuthenticationClientFactor
 // eslint-disable-next-line camelcase
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
 import { AuthenticationArgs } from '../model/AuthenticationArgs'
-import { stringToHex } from '@/util/utilities'
 
 export async function startOpenConnectionCallback(
   args: OpenConnectionArgs,
   requestedCom: DbCommunity,
   api: string,
 ): Promise<void> {
-  logger.debug(
-    `Authentication: startOpenConnectionCallback() with:`,
-    args.url,
-    stringToHex(args.publicKey),
-    requestedCom,
-  )
+  logger.debug(`Authentication: startOpenConnectionCallback() with:`, args, requestedCom)
   try {
     const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
     const homeFedCom = await DbFedCommunity.findOneByOrFail({
