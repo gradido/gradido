@@ -40,7 +40,7 @@ export async function startOpenConnectionCallback(
       callbackArgs.oneTimeCode = oneTimeCode.toString()
       // TODO encrypt callbackArgs.url with requestedCom.publicKey and sign it with homeCom.privateKey
       callbackArgs.url = homeFedCom.endPoint.endsWith('/')
-        ? homeFedCom.endPoint
+        ? homeFedCom.endPoint + homeFedCom.apiVersion
         : homeFedCom.endPoint + '/' + homeFedCom.apiVersion
       logger.debug(`Authentication: start openConnectionCallback with args:`, callbackArgs)
       if (await client.openConnectionCallback(callbackArgs)) {

@@ -44,7 +44,7 @@ export class AuthenticationClient {
       )
       return true
     } catch (err) {
-      logger.error('Authentication: error on openConnection', err)
+      logger.error('Authentication: error on openConnection: ', err)
     }
   }
 }
