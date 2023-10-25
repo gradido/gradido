@@ -25,16 +25,16 @@ export class AuthenticationResolver {
     logger.debug(`Authentication: pubKeyBuf=`, pubKeyBuf)
     logger.debug(`Authentication: pubKeyBufString=`, pubKeyBuf.toString('hex'))
 
-    // first find with args.publicKey the community, which starts openConnection request
-    const requestedCom = await DbCommunity.findOneBy({
+    // first find with args.publicKey the community 'comA', which starts openConnection request
+    const comA = await DbCommunity.findOneBy({
       publicKey: pubKeyBuf, // Buffer.from(args.publicKey),
     })
-    if (!requestedCom) {
+    if (!comA) {
       throw new LogError(`unknown requesting community with publicKey`, pubKeyBuf.toString('hex'))
     }
-    logger.debug(`Authentication: found requestedCom:`, requestedCom)
+    logger.debug(`Authentication: found requestedCom:`, comA)
     // no await to respond immediatly and invoke callback-request asynchron
-    void startOpenConnectionCallback(args, requestedCom, CONFIG.FEDERATION_API)
+    void startOpenConnectionCallback(args, comA, CONFIG.FEDERATION_API)
     return true
   }
 

@@ -12,23 +12,28 @@ import { AuthenticationArgs } from '../model/AuthenticationArgs'
 
 export async function startOpenConnectionCallback(
   args: OpenConnectionArgs,
-  requestedCom: DbCommunity,
+  comA: DbCommunity,
   api: string,
 ): Promise<void> {
-  logger.debug(`Authentication: startOpenConnectionCallback() with:`, args, requestedCom)
+  logger.debug(`Authentication: startOpenConnectionCallback() with:`, args, comA)
   try {
     const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
     const homeFedCom = await DbFedCommunity.findOneByOrFail({
       foreign: false,
       apiVersion: api,
     })
+    const fedComA = await DbFedCommunity.findOneByOrFail({
+      foreign: true,
+      apiVersion: api,
+      publicKey: comA.publicKey,
+    })
     const oneTimeCode = randombytes_random()
     // store oneTimeCode in requestedCom.community_uuid as authenticate-request-identifier
-    requestedCom.communityUuid = oneTimeCode.toString()
-    await DbCommunity.save(requestedCom)
-    logger.debug(`Authentication: stored oneTimeCode in requestedCom:`, requestedCom)
+    comA.communityUuid = oneTimeCode.toString()
+    await DbCommunity.save(comA)
+    logger.debug(`Authentication: stored oneTimeCode in requestedCom:`, comA)
 
-    const client = AuthenticationClientFactory.getInstance(homeFedCom)
+    const client = AuthenticationClientFactory.getInstance(fedComA)
     // eslint-disable-next-line camelcase
     if (client instanceof V1_0_AuthenticationClient) {
       const callbackArgs = new OpenConnectionCallbackArgs()
