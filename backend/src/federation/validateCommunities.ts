@@ -53,21 +53,19 @@ export async function validateCommunities(): Promise<void> {
       // eslint-disable-next-line camelcase
       if (client instanceof V1_0_FederationClient) {
         const pubKey = await client.getPublicKey()
-        logger.debug('Federation: nach getPublicKey()=', pubKey)
-        logger.debug('Federation: dbCom.publicKey=', dbCom.publicKey.toString())
         if (pubKey && pubKey === dbCom.publicKey.toString()) {
           await DbFederatedCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
-          logger.info(`Federation: verified community with:`, dbCom.endPoint)
+          logger.debug(`Federation: verified community with:`, dbCom.endPoint)
           const pubComInfo = await client.getPublicCommunityInfo()
           if (pubComInfo) {
             await writeForeignCommunity(dbCom, pubComInfo)
             await startCommunityAuthentication(dbCom)
             logger.debug(`Federation: write publicInfo of community: name=${pubComInfo.name}`)
           } else {
-            logger.warn('Federation: missing result of getPublicCommunityInfo')
+            logger.debug('Federation: missing result of getPublicCommunityInfo')
           }
         } else {
-          logger.warn(
+          logger.debug(
             'Federation: received not matching publicKey:',
             pubKey,
             dbCom.publicKey.toString(),

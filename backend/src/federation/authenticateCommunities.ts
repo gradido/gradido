@@ -47,13 +47,6 @@ export async function startCommunityAuthentication(
           homeCom.publicKey.toString('hex'),
           args.url,
         )
-        const pubKeyBuf = Buffer.from(args.publicKey, 'hex')
-        logger.debug(`Authentication: url=`, args.url)
-        logger.debug(`Authentication: homeCom.PublicKey=`, homeCom.publicKey)
-        logger.debug(`Authentication: pubKeyBuf=`, pubKeyBuf)
-        logger.debug(`Authentication: pubKeyBufString=`, pubKeyBuf.toString('hex'))
-        logger.debug(`Authentication: publicKey=`, args.publicKey)
-
         if (await client.openConnection(args)) {
           logger.info(`Authentication: successful initiated at community:`, foreignFedCom.endPoint)
         } else {
