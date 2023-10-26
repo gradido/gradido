@@ -1,6 +1,6 @@
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
-import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
+import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { CONFIG } from '@/config'
 // eslint-disable-next-line camelcase

@@ -17,7 +17,6 @@ export async function startOpenConnectionCallback(
 ): Promise<void> {
   logger.debug(`Authentication: startOpenConnectionCallback() with:`, args, comA)
   try {
-    const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
     const homeFedCom = await DbFedCommunity.findOneByOrFail({
       foreign: false,
       apiVersion: api,
@@ -61,10 +60,6 @@ export async function startAuthentication(
   logger.debug(`Authentication: startAuthentication()...`, oneTimeCode, fedComB)
   try {
     const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
-    const homeFedCom = await DbFedCommunity.findOneByOrFail({
-      foreign: false,
-      apiVersion: fedComB.apiVersion,
-    })
 
     // TODO encrypt homeCom.uuid with homeCom.privateKey and sign it with callbackFedCom.publicKey
     const client = AuthenticationClientFactory.getInstance(fedComB)

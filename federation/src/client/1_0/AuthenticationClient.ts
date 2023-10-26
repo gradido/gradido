@@ -29,7 +29,7 @@ export class AuthenticationClient {
   async openConnectionCallback(args: OpenConnectionCallbackArgs): Promise<boolean> {
     logger.debug('Authentication: openConnectionCallback with endpoint', this.endpoint, args)
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
       const { data } = await this.client.rawRequest<any>(openConnectionCallback, { args })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (data && data.openConnectionCallback) {
@@ -53,7 +53,7 @@ export class AuthenticationClient {
   async authenticate(args: AuthenticationArgs): Promise<string | null> {
     logger.debug('Authentication: authenticate with endpoint=', this.endpoint)
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
       const { data } = await this.client.rawRequest<any>(authenticate, { args })
       logger.debug('Authentication: after authenticate: data:', data)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
