@@ -20,10 +20,6 @@ export class AuthenticationResolver {
   ): Promise<boolean> {
     const pubKeyBuf = Buffer.from(args.publicKey, 'hex')
     logger.debug(`Authentication: openConnection() via apiVersion=1_0:`, args)
-    logger.debug(`Authentication: url=`, args.url)
-    logger.debug(`Authentication: publicKey=`, args.publicKey)
-    logger.debug(`Authentication: pubKeyBuf=`, pubKeyBuf)
-    logger.debug(`Authentication: pubKeyBufString=`, pubKeyBuf.toString('hex'))
 
     // first find with args.publicKey the community 'comA', which starts openConnection request
     const comA = await DbCommunity.findOneBy({

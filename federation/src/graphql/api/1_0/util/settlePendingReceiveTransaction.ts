@@ -91,7 +91,7 @@ export async function settlePendingReceiveTransaction(
     await queryRunner.manager.save(DbPendingTransaction, pendingTx)
 
     await queryRunner.commitTransaction()
-    logger.info(`commit recipient Transaction successful...`)
+    logger.debug(`commit recipient Transaction successful...`)
 
     /*
     await EVENT_TRANSACTION_SEND(sender, recipient, transactionSend, transactionSend.amount)

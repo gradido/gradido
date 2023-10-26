@@ -48,7 +48,7 @@ export async function startCommunityAuthentication(
           args.url,
         )
         if (await client.openConnection(args)) {
-          logger.info(`Authentication: successful initiated at community:`, foreignFedCom.endPoint)
+          logger.debug(`Authentication: successful initiated at community:`, foreignFedCom.endPoint)
         } else {
           logger.error(`Authentication: can't initiate at community:`, foreignFedCom.endPoint)
         }
