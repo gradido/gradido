@@ -32,8 +32,8 @@ export class UserAdmin {
   @Field(() => [Decimal])
   creation: Decimal[]
 
-  @Field(() => Boolean)
-  emailChecked: boolean
+  @Field(() => Boolean, { nullable: true })
+  emailChecked: boolean | null
 
   @Field(() => Boolean)
   hasElopage: boolean
