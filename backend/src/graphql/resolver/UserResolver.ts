@@ -681,17 +681,17 @@ export class UserResolver {
       users.map(async (user) => {
         let emailConfirmationSend = ''
         if (!user.emailContact?.emailChecked) {
-          if (user.emailContact.updatedAt) {
-            emailConfirmationSend = user.emailContact.updatedAt.toISOString()
+          if (user.emailContact?.updatedAt) {
+            emailConfirmationSend = user.emailContact?.updatedAt.toISOString()
           } else {
-            emailConfirmationSend = user.emailContact.createdAt.toISOString()
+            emailConfirmationSend = user.emailContact?.createdAt.toISOString()
           }
         }
         const userCreations = creations.find((c) => c.id === user.id)
         const adminUser = new UserAdmin(
           user,
           userCreations ? userCreations.creations : FULL_CREATION_AVAILABLE,
-          await hasElopageBuys(user.emailContact.email),
+          await hasElopageBuys(user.emailContact?.email),
           emailConfirmationSend,
         )
         return adminUser
