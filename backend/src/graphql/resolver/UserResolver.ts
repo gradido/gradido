@@ -680,7 +680,7 @@ export class UserResolver {
     const adminUsers = await Promise.all(
       users.map(async (user) => {
         let emailConfirmationSend = ''
-        if (!user.emailContact.emailChecked) {
+        if (!user.emailContact?.emailChecked) {
           if (user.emailContact.updatedAt) {
             emailConfirmationSend = user.emailContact.updatedAt.toISOString()
           } else {
