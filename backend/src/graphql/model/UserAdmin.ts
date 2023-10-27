@@ -20,8 +20,8 @@ export class UserAdmin {
   @Field(() => Int)
   userId: number
 
-  @Field(() => String)
-  email: string
+  @Field(() => String, { nullable: true })
+  email: string | null
 
   @Field(() => String)
   firstName: string
