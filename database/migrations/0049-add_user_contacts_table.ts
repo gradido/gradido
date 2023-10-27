@@ -13,7 +13,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,
         \`type\` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
         \`user_id\` int(10) unsigned NOT NULL,
-        \`email\` varchar(255) COLLATE utf8mb4_unicode_ci NULL UNIQUE,
+        \`email\` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL UNIQUE,
         \`email_verification_code\` bigint(20) unsigned DEFAULT NULL UNIQUE,
         \`email_opt_in_type_id\` int DEFAULT NULL,
         \`email_resend_count\` int DEFAULT '0',
@@ -88,7 +88,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
       `UPDATE users SET email = "${contact.email}", email_checked="${contact.email_checked}" WHERE id = "${contact.user_id}" and email_id = "${contact.id}"`,
     )
   }
-  await queryFn('ALTER TABLE users MODIFY COLUMN email varchar(255) NULL UNIQUE;')
+  await queryFn('ALTER TABLE users MODIFY COLUMN email varchar(255) NOT NULL UNIQUE;')
 
   // write downgrade logic as parameter of queryFn
   await queryFn(`DROP TABLE IF EXISTS user_contacts;`)
