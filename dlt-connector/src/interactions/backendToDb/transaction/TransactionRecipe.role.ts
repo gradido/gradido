@@ -1,12 +1,12 @@
+import { AccountRepository } from '@/data/Account.repository'
+import { KeyPair } from '@/data/KeyPair'
 import { TransactionBuilder } from '@/data/Transaction.builder'
+import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
-import { TransactionRecipe } from '@/graphql/model/TransactionRecipe'
-import { TransactionResult } from '@/graphql/model/TransactionResult'
-import { logger } from '@/server/logger'
-import { getDataSource } from '@/typeorm/DataSource'
-import { QueryRunner } from 'typeorm'
+import { sign } from '@/utils/cryptoHelper'
+import { Transaction } from '@entity/Transaction'
 
 export class TransactionRecipeRole {
   protected transactionBuilder: TransactionBuilder
@@ -14,40 +14,50 @@ export class TransactionRecipeRole {
     this.transactionBuilder = new TransactionBuilder()
   }
 
-  public create(transactionDraft: TransactionDraft): TransactionRecipeRole {
+  public async create(transactionDraft: TransactionDraft): Promise<TransactionRecipeRole> {
+    const senderUser = transactionDraft.senderUser
+    const recipientUser = transactionDraft.recipientUser
+
+    // loading signing and recipient account
+    // TODO: look for ways to use only one db call for both
+    const signingAccount = await AccountRepository.findAccountByUserIdentifier(senderUser)
+    if (!signingAccount) {
+      throw new TransactionError(
+        TransactionErrorType.NOT_FOUND,
+        "couldn't found sender user account in db",
+      )
+    }
+    const recipientAccount = await AccountRepository.findAccountByUserIdentifier(recipientUser)
+    if (!recipientAccount) {
+      throw new TransactionError(
+        TransactionErrorType.NOT_FOUND,
+        "couldn't found recipient user account in db",
+      )
+    }
+
+    // create proto transaction body
+    const transactionBodyBuilder = new TransactionBodyBuilder()
+      .setSigningAccount(signingAccount)
+      .setRecipientAccount(recipientAccount)
+      .fromTransactionDraft(transactionDraft)
+    // build transaction entity
+
+    this.transactionBuilder
+      .fromTransactionBodyBuilder(transactionBodyBuilder)
+      .setBackendTransactionId(transactionDraft.backendTransactionId)
+    await this.transactionBuilder.setSenderCommunityFromSenderUser(senderUser)
+    if (recipientUser.uuid !== senderUser.uuid) {
+      await this.transactionBuilder.setRecipientCommunityFromRecipientUser(recipientUser)
+    }
+    const transaction = this.transactionBuilder.getTransaction()
+    // sign
+    this.transactionBuilder.setSignature(
+      sign(transaction.bodyBytes, new KeyPair(this.transactionBuilder.getSenderCommunity())),
+    )
     return this
   }
 
   public getTransaction(): Transaction {
     return this.transactionBuilder.getTransaction()
-  }
-
-  public async storeAsTransaction(
-    transactionFunction: (queryRunner: QueryRunner) => Promise<void>,
-  ): Promise<TransactionResult> {
-    const queryRunner = getDataSource().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction()
-
-    let result: TransactionResult
-    try {
-      const transactionRecipe = this.transactionBuilder.build()
-      await transactionFunction(queryRunner)
-      await queryRunner.manager.save(transactionRecipe)
-      await queryRunner.commitTransaction()
-      result = new TransactionResult(new TransactionRecipe(transactionRecipe))
-    } catch (err) {
-      logger.error('error saving new transaction recipe into db: %s', err)
-      result = new TransactionResult(
-        new TransactionError(
-          TransactionErrorType.DB_ERROR,
-          'error saving transaction recipe into db',
-        ),
-      )
-      await queryRunner.rollbackTransaction()
-    } finally {
-      await queryRunner.release()
-    }
-    return result
   }
 }

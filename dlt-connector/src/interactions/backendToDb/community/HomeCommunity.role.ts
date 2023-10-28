@@ -1,16 +1,19 @@
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { Community } from '@entity/Community'
 import { CommunityRole } from './Community.role'
-import { QueryRunner } from 'typeorm'
 import { Transaction } from '@entity/Transaction'
 import { KeyManager } from '@/controller/KeyManager'
 import { AccountFactory } from '@/data/Account.factory'
 import { CreateTransactionRecipeContext } from '../transaction/CreateTransationRecipe.context'
+import { logger } from '@/server/logger'
+import { TransactionError } from '@/graphql/model/TransactionError'
+import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { getDataSource } from '@/typeorm/DataSource'
 
 export class HomeCommunityRole extends CommunityRole {
   private transactionRecipe: Transaction
 
-  public create(communityDraft: CommunityDraft, topic: string): void {
+  public async create(communityDraft: CommunityDraft, topic: string): Promise<void> {
     super.create(communityDraft, topic)
     // generate key pair for signing transactions and deriving all keys for community
     const keyPair = KeyManager.generateKeyPair()
@@ -26,22 +29,22 @@ export class HomeCommunityRole extends CommunityRole {
 
     const transactionRecipeContext = new CreateTransactionRecipeContext(communityDraft)
     transactionRecipeContext.setCommunity(this.self)
-    transactionRecipeContext.run()
+    await transactionRecipeContext.run()
     this.transactionRecipe = transactionRecipeContext.getTransactionRecipe()
   }
 
-  public store(): Promise<Community> {
-
-  }
-
-  public async addCommunity(communityDraft: CommunityDraft, topic: string): Promise<Community> {
-    const community = createHomeCommunity(communityDraft, topic)
-
-    createCommunityRootTransactionRecipe(communityDraft, community).storeAsTransaction(
-      async (queryRunner: QueryRunner): Promise<void> => {
-        await queryRunner.manager.save(community)
-      },
-    )
-    return community.save()
+  public async store(): Promise<Community> {
+    try {
+      return await getDataSource().transaction(async (transactionalEntityManager) => {
+        await transactionalEntityManager.save(this.transactionRecipe)
+        return await transactionalEntityManager.save(this.self)
+      })
+    } catch (error) {
+      logger.error('error saving home community into db: %s', error)
+      throw new TransactionError(
+        TransactionErrorType.DB_ERROR,
+        'error saving home community into db',
+      )
+    }
   }
 }

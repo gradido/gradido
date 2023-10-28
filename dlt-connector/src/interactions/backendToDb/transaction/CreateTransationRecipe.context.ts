@@ -27,7 +27,7 @@ export class CreateTransactionRecipeContext {
     this.community = community
   }
 
-  public getCommunity() {
+  public getCommunity(): Community | undefined {
     return this.community
   }
 
@@ -35,9 +35,10 @@ export class CreateTransactionRecipeContext {
     return this.transactionRecipeRole.getTransaction()
   }
 
-  public run(): void {
+  public async run(): Promise<void> {
     if (this.draft instanceof TransactionDraft) {
-      this.transactionRecipeRole = new TransactionRecipeRole().create(this.draft)
+      this.transactionRecipeRole = new TransactionRecipeRole()
+      await this.transactionRecipeRole.create(this.draft)
     } else if (this.draft instanceof CommunityDraft) {
       if (!this.community) {
         throw new TransactionError(TransactionErrorType.MISSING_PARAMETER, 'community was not set')

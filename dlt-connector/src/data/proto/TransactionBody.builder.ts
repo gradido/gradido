@@ -25,6 +25,8 @@ export class TransactionBodyBuilder {
 
   public reset(): void {
     this.body = undefined
+    this.signingAccount = undefined
+    this.recipientAccount = undefined
   }
 
   /**
@@ -42,14 +44,26 @@ export class TransactionBodyBuilder {
    * client code before disposing of the previous result.
    */
   public build(): TransactionBody {
-    const result = this.body
-    if (!result) {
+    const result = this.getTransactionBody()
+    this.reset()
+    return result
+  }
+
+  public getTransactionBody(): TransactionBody {
+    if (!this.body) {
       throw new LogError(
         'cannot build Transaction Body, missing information, please call at least fromTransactionDraft or fromCommunityDraft',
       )
     }
-    this.reset()
-    return result
+    return this.body
+  }
+
+  public getSigningAccount(): Account | undefined {
+    return this.signingAccount
+  }
+
+  public getRecipientAccount(): Account | undefined {
+    return this.recipientAccount
   }
 
   public setSigningAccount(signingAccount: Account): TransactionBodyBuilder {
@@ -67,11 +81,17 @@ export class TransactionBodyBuilder {
     // TODO: load pubkeys for sender and recipient user from db
     switch (transactionDraft.type) {
       case InputTransactionType.CREATION:
+        if (!this.recipientAccount) {
+          throw new LogError('missing recipient account for creation transaction!')
+        }
         this.body.creation = new GradidoCreation(transactionDraft, this.recipientAccount)
         this.body.data = 'gradidoCreation'
         break
       case InputTransactionType.SEND:
       case InputTransactionType.RECEIVE:
+        if (!this.recipientAccount || !this.signingAccount) {
+          throw new LogError('missing signing and/or recipient account for transfer transaction!')
+        }
         this.body.transfer = new GradidoTransfer(
           transactionDraft,
           this.signingAccount,

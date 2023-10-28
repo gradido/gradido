@@ -59,7 +59,7 @@ export class CommunityResolver {
     // TODO: write tests to make sure that it doesn't throw
     const addCommunityContext = new AddCommunityContext(communityDraft, topic)
     try {
-      // actually run interaction, create community, accounts for foreign community and transactionRecipe  
+      // actually run interaction, create community, accounts for foreign community and transactionRecipe
       await addCommunityContext.run()
       return new TransactionResult()
     } catch (error) {

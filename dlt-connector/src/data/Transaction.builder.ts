@@ -8,6 +8,7 @@ import { CommunityRepository } from './Community.repository'
 import { LogError } from '@/server/LogError'
 import { Account } from '@entity/Account'
 import { Community } from '@entity/Community'
+import { TransactionBodyBuilder } from './proto/TransactionBody.builder'
 
 export class TransactionBuilder {
   private transaction: Transaction
@@ -50,6 +51,10 @@ export class TransactionBuilder {
     return this.transaction
   }
 
+  public getSenderCommunity(): Community {
+    return this.transaction.senderCommunity
+  }
+
   public setSigningAccount(signingAccount: Account): TransactionBuilder {
     this.transaction.signingAccount = signingAccount
     return this
@@ -81,6 +86,11 @@ export class TransactionBuilder {
 
   public setSignature(signature: Buffer): TransactionBuilder {
     this.transaction.signature = signature
+    return this
+  }
+
+  public setBackendTransactionId(backendTransactionId: number): TransactionBuilder {
+    this.transaction.backendTransactionId = backendTransactionId
     return this
   }
 
@@ -142,6 +152,21 @@ export class TransactionBuilder {
   public fromTransactionBody(transactionBody: TransactionBody): TransactionBuilder {
     transactionBody.fillTransactionRecipe(this.transaction)
     this.transaction.bodyBytes ??= transactionBodyToBodyBytes(transactionBody)
+    return this
+  }
+
+  public fromTransactionBodyBuilder(
+    transactionBodyBuilder: TransactionBodyBuilder,
+  ): TransactionBuilder {
+    const signingAccount = transactionBodyBuilder.getSigningAccount()
+    if (signingAccount) {
+      this.setSigningAccount(signingAccount)
+    }
+    const recipientAccount = transactionBodyBuilder.getRecipientAccount()
+    if (recipientAccount) {
+      this.setRecipientAccount(recipientAccount)
+    }
+    this.fromTransactionBody(transactionBodyBuilder.getTransactionBody())
     return this
   }
 }

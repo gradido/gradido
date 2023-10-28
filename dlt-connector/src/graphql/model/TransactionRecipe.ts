@@ -1,10 +1,10 @@
 import { Field, Int, ObjectType } from 'type-graphql'
-import { TransactionRecipe as TransactionRecipeEntity } from '@entity/TransactionRecipe'
 import { TransactionType } from '@enum/TransactionType'
+import { Transaction } from '@entity/Transaction'
 
 @ObjectType()
 export class TransactionRecipe {
-  public constructor({ id, createdAt, type, senderCommunity }: TransactionRecipeEntity) {
+  public constructor({ id, createdAt, type, senderCommunity }: Transaction) {
     this.id = id
     this.createdAt = createdAt.toString()
     this.type = type

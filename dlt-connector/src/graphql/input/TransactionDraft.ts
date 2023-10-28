@@ -2,11 +2,11 @@
 
 import { Decimal } from 'decimal.js-light'
 import { InputTransactionType } from '@enum/InputTransactionType'
-import { InputType, Field } from 'type-graphql'
+import { InputType, Field, Int } from 'type-graphql'
 import { UserIdentifier } from './UserIdentifier'
 import { isValidDateString } from '@validator/DateString'
 import { IsPositiveDecimal } from '@validator/Decimal'
-import { IsEnum, IsObject, ValidateNested } from 'class-validator'
+import { IsEnum, IsObject, IsPositive, ValidateNested } from 'class-validator'
 
 @InputType()
 export class TransactionDraft {
@@ -19,6 +19,10 @@ export class TransactionDraft {
   @IsObject()
   @ValidateNested()
   recipientUser: UserIdentifier
+
+  @Field(() => Int)
+  @IsPositive()
+  backendTransactionId: number
 
   @Field(() => Decimal)
   @IsPositiveDecimal()
