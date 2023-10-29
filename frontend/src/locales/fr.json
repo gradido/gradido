@@ -20,6 +20,7 @@
   },
   "back": "Retour",
   "community": {
+    "admins": "Administrateurs",
     "choose-another-community": "Choisissez une autre communauté",
     "community": "Communauté",
     "communityMember": "Vous etes un membre actif",
