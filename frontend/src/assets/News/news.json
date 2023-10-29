@@ -1,37 +1,47 @@
 [
   {
     "locale": "de",
-    "date": "4. Juli 2023",
-    "text": "Neue Funktion verfügbar: Jetzt Benutzernamen eintragen!",
-    "url": "/settings",
-    "extra": "Deine persönlichen Daten sind uns wichtig, und wir legen großen Wert auf deren Schutz. Wir wissen, dass nicht jeder seine E-Mail-Adresse anderen Benutzern preisgeben möchte. Aus diesem Grund kannst du nun einen Benutzernamen deiner Wahl in den Einstellungen angeben. Dies ist auch ein wichtiger Bestandteil unserer Vorbereitung für die bevorstehende Einführung unserer dezentralen Community-Server."
+    "date": "30.10.2023",
+    "text": "Gradido wird dezentral (Beta)",
+    "url": "/send",
+    "extra": "Gradido-Communities können nun ihre eigenen dezentralen Gradido-Server betreiben. Transaktionen zwischen den Servern sind möglich. Im Senden-Dialog findest Du ein Auswahl-Menü mit den verfügbaren Communities, um das Ziel für den Empfänger auszuwählen. Bitte beachte, dass diese Funktion sich noch in der Beta-Testphase befindet und die Communities erst nach und nach hinzugefügt werden.",
+    "extra2": "Wenn Ihr als Community Euren eigenen Gradido-Server betreiben wollt, schreibt uns bitte eine E-Mail an ",
+    "email": "support@gradido.net"
   },
   {
     "locale": "en",
-    "date": "4 July 2023",
-    "text": "New function available: Enter username now!",
-    "url": "/settings",
-    "extra": "Your personal information is important to us, and we take great care to protect it. We know that not everyone wants to reveal their email address to other users. For this reason, you can now enter a username of your choice in the settings. This is also an important part of our preparation for the upcoming launch of our decentralized community servers."
+    "date": "30.10.2023",
+    "text": "Gradido becomes decentralized (Beta)",
+    "url": "/send",
+    "extra": "Gradido communities can now run their own decentralized Gradido servers. Transactions between the servers are possible. In the send dialog you will find a dropdown menu with the available communities to select the destination for the receiver. Please note that this feature is still in beta testing and communities will be added gradually.",
+    "extra2": "If you want to run your own Gradido server as a community, please send us an email to ",
+    "email": "support@gradido.net"
   },
   {
     "locale": "fr",
-    "date": "4 juillet 2023",
-    "text": "Nouvelle fonction disponible : Saisis ton nom d'utilisateur maintenant !",
-    "url": "/settings",
-    "extra": "Tes données personnelles sont importantes pour nous et nous attachons une grande importance à leur protection. Nous savons que certains ne souhaitent pas divulguer leur adresse e-mail à d'autres utilisateurs. C'est pourquoi tu peux désormais indiquer un nom d'utilisateur de ton choix dans les paramètres. Il s'agit également d'un élément important de notre préparation à l'introduction prochaine de nos serveurs communautaires décentralisés."
+    "date": "30.10.2023",
+    "text": "Gradido devient décentralisé (Beta)",
+    "url": "/send",
+    "extra": "Les communautés Gradido peuvent désormais gérer leurs propres serveurs Gradido décentralisés. Les transactions entre les serveurs sont possibles. Dans la boîte de dialogue d'envoi, tu trouveras un menu de sélection avec les communautés disponibles pour choisir la destination du destinataire. Veuillez noter que cette fonction est encore en phase de test bêta et que les communautés ne seront ajoutées qu'au fur et à mesure.",
+    "extra2": "Si vous souhaitez exploiter votre propre serveur Gradido en tant que communauté, veuillez nous envoyer un e-mail à ",
+    "email": "support@gradido.net"
   },
   {
     "locale": "es",
-    "date": "4 julio 20233",
-    "text": "Nueva función disponible: Introduzca ahora su nombre de usuario",
-    "url": "/settings",
-    "extra": "Sus datos personales son importantes para nosotros y concedemos gran importancia a su protección. Sabemos que no todo el mundo quiere revelar su dirección de correo electrónico a otros usuarios. Por este motivo, ahora puede introducir un nombre de usuario de su elección en los ajustes. Esto es también una parte importante de nuestra preparación para el próximo lanzamiento de nuestros servidores comunitarios descentralizados."
+    "date": "30.10.2023",
+    "text": "Gradido se descentraliza (Beta)",
+    "url": "/send",
+    "extra": "Las comunidades de Gradido ya pueden gestionar sus propios servidores descentralizados de Gradido. Las transacciones entre los servidores son posibles. En el diálogo de envío encontrarás un menú desplegable con las comunidades disponibles para seleccionar el destino del destinatario. Ten en cuenta que esta función aún está en fase de pruebas beta y que las comunidades se irán añadiendo poco a poco.",
+    "extra2": "Si quieres gestionar tu propio servidor Gradido como comunidad, envíanos un correo electrónico a ",
+    "email": "support@gradido.net"
   },
   {
     "locale": "nl",
-    "date": "4 juli 2023",
-    "text": "Nieuwe functie beschikbaar: Voer nu je gebruikersnaam in!",
-    "url": "/settings",
-    "extra": "Je persoonlijke gegevens zijn belangrijk voor ons en we hechten veel belang aan de bescherming ervan. We weten dat niet iedereen zijn e-mailadres bekend wil maken aan andere gebruikers. Daarom kun je nu een gebruikersnaam naar keuze invoeren in de instellingen. Dit is ook een belangrijk onderdeel van onze voorbereiding op de komende lancering van onze gedecentraliseerde community servers."
+    "date": "30.10.2023",
+    "text": "Gradido wordt gedecentraliseerd (Beta)",
+    "url": "/send",
+    "extra": "Gradido-gemeenschappen kunnen nu hun eigen gedecentraliseerde Gradido-servers beheren. Transacties tussen de servers zijn mogelijk. In het verzenddialoogvenster vind je een vervolgkeuzemenu met de beschikbare communities om de bestemming voor de ontvanger te selecteren. Houd er rekening mee dat deze functie zich nog in de beta-testfase bevindt en dat de communities beetje bij beetje zullen worden toegevoegd.",
+    "extra2": "Als je je eigen Gradido server als community wilt gebruiken, stuur ons dan een e-mail naar ",
+    "email": "support@gradido.net"
   }
 ]

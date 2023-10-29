@@ -13,6 +13,10 @@
           <b-row class="my-5">
             <b-col>
               {{ item.extra }}
+              <br />
+              <br />
+              {{ item.extra2 }}
+              <a :href="'mailto:' + item.email">{{ item.email }}</a>
             </b-col>
           </b-row>
 
