@@ -30,7 +30,7 @@
     "noOpenContributionLinkText": "Zur Zeit gibt es keine per Link erzeugte Schöpfungen.",
     "openContributionLinks": "Per Link erzeugte Schöpfungen",
     "openContributionLinkText": "Für Startguthaben oder ähnliche Zwecke kann die Gemeinschaft so genannte Schöpfungs-Links erstellen. Sie lösen automatische Schöpfungen aus, die dem Benutzer gut geschrieben werden.\nDie Gemeinschaft „{name}“ unterstützt aktuell {count} per Link erzeugte Schöpfungen:",
-    "startNewsButton": "Benutzernamen eintragen",
+    "startNewsButton": "Gradidos versenden",
     "submitContribution": "Schreiben"
   },
   "communityInfo": "Gemeinschaft Information",
