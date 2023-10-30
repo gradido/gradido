@@ -44,7 +44,7 @@
           >
             {{ $t('footer.whitepaper') }}
           </b-nav-item>
-          <b-nav-item :href="`https://gradido.net/${$i18n.locale}/contact/`" target="_blank">
+          <b-nav-item :href="`mailto:${CONFIG.SUPPORT_MAIL}`" target="_blank">
             {{ $t('navigation.support') }}
           </b-nav-item>
         </b-nav>

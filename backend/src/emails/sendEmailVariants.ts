@@ -230,7 +230,7 @@ export const sendTransactionReceivedEmail = (data: {
       locale: data.language,
       senderFirstName: data.senderFirstName,
       senderLastName: data.senderLastName,
-      senderEmail: CONFIG.EMAIL_SENDER_GRADIDOS_RECEIVED,
+      senderEmail: data.senderEmail,
       transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
       overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
       supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
