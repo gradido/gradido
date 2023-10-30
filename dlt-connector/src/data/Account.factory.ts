@@ -1,4 +1,4 @@
-import { KeyManager } from '@/controller/KeyManager'
+import { KeyManager } from '@/manager/KeyManager'
 import { KeyPair } from '@/data/KeyPair'
 import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
