@@ -10,6 +10,7 @@ import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommuni
 import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
 import { backendLogger as logger } from '@/server/logger'
 
+import { startCommunityAuthentication } from './authenticateCommunities'
 import { ApiVersionType } from './enum/apiVersionType'
 
 export async function startValidateCommunities(timerInterval: number): Promise<void> {
@@ -40,7 +41,11 @@ export async function validateCommunities(): Promise<void> {
     const apiValueStrings: string[] = Object.values(ApiVersionType)
     logger.debug(`suppported ApiVersions=`, apiValueStrings)
     if (!apiValueStrings.includes(dbCom.apiVersion)) {
-      logger.warn('Federation: dbCom with unsupported apiVersion', dbCom.endPoint, dbCom.apiVersion)
+      logger.debug(
+        'Federation: dbCom with unsupported apiVersion',
+        dbCom.endPoint,
+        dbCom.apiVersion,
+      )
       continue
     }
     try {
@@ -50,16 +55,17 @@ export async function validateCommunities(): Promise<void> {
         const pubKey = await client.getPublicKey()
         if (pubKey && pubKey === dbCom.publicKey.toString()) {
           await DbFederatedCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
-          logger.info(`Federation: verified community with:`, dbCom.endPoint)
+          logger.debug(`Federation: verified community with:`, dbCom.endPoint)
           const pubComInfo = await client.getPublicCommunityInfo()
           if (pubComInfo) {
             await writeForeignCommunity(dbCom, pubComInfo)
-            logger.info(`Federation: write publicInfo of community: name=${pubComInfo.name}`)
+            await startCommunityAuthentication(dbCom)
+            logger.debug(`Federation: write publicInfo of community: name=${pubComInfo.name}`)
           } else {
-            logger.warn('Federation: missing result of getPublicCommunityInfo')
+            logger.debug('Federation: missing result of getPublicCommunityInfo')
           }
         } else {
-          logger.warn(
+          logger.debug(
             'Federation: received not matching publicKey:',
             pubKey,
             dbCom.publicKey.toString(),

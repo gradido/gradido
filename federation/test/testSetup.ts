@@ -1,9 +1,14 @@
+// import { CONFIG } from '@/config'
+// import { i18n } from '@/server/localization'
 import { federationLogger as logger } from '@/server/logger'
+
+// CONFIG.EMAIL = true
+// CONFIG.EMAIL_TEST_MODUS = false
 
 jest.setTimeout(1000000)
 
 jest.mock('@/server/logger', () => {
-  const originalModule = jest.requireActual('@/server/logger')
+  const originalModule = jest.requireActual<typeof logger>('@/server/logger')
   return {
     __esModule: true,
     ...originalModule,
@@ -18,5 +23,21 @@ jest.mock('@/server/logger', () => {
     },
   }
 })
+
+/*
+jest.mock('@/server/localization', () => {
+  const originalModule = jest.requireActual<typeof i18n>('@/server/localization')
+  return {
+    __esModule: true,
+    ...originalModule,
+    i18n: {
+      init: jest.fn(),
+      // configure: jest.fn(),
+      // __: jest.fn(),
+      // setLocale: jest.fn(),
+    },
+  }
+})
+*/
 
 export { logger }
