@@ -11,7 +11,7 @@
         </b-link>
       </div>
       <hr />
-      <div class="h3">{{ $t('community.openContributionLinks') }}</div>
+      <!--<div class="h3">{{ $t('community.openContributionLinks') }}</div>
       <div v-if="count > 0">
         {{
           $t('community.openContributionLinkText', {
@@ -34,13 +34,15 @@
         </li>
       </ul>
 
-      <hr />
+      <hr />-->
 
+      <div class="h3">{{ $t('community.admins') }}</div>
+      <ul>
+        <li v-for="item in admins" :key="item.id">{{ item.firstName }} {{ item.lastName }}</li>
+      </ul>
       <div class="h3">{{ $t('community.moderators') }}</div>
       <ul>
-        <li v-for="item in itemsAdminUser" v-bind:key="item.id">
-          {{ item.firstName }} {{ item.lastName }}
-        </li>
+        <li v-for="item in moderators" :key="item.id">{{ item.firstName }} {{ item.lastName }}</li>
       </ul>
 
       <hr />
@@ -95,6 +97,14 @@ export default {
       totalGradidoDecayed: null,
       totalGradidoAvailable: null,
     }
+  },
+  computed: {
+    admins() {
+      return this.itemsAdminUser.filter((item) => item.role === 'ADMIN')
+    },
+    moderators() {
+      return this.itemsAdminUser.filter((item) => item.role === 'MODERATOR')
+    },
   },
   methods: {
     getContributionLinks() {
