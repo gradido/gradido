@@ -96,7 +96,7 @@ export async function revertSettledReceiveTransaction(
       await queryRunner.manager.save(DbPendingTransaction, pendingTx)
 
       await queryRunner.commitTransaction()
-      logger.info(`commit revert settlement recipient Transaction successful...`)
+      logger.debug(`commit revert settlement recipient Transaction successful...`)
     } else {
       // TODO: if the last TX is not equivelant to pendingTX, the transactions must be corrected in EXPERT-MODE
       throw new LogError(

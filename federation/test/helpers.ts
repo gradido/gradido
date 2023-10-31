@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
+
 import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
 
@@ -31,8 +32,8 @@ export const cleanDB = async () => {
   }
 }
 
-export const testEnvironment = async (testLogger = logger) => {
-  const server = await createServer(testLogger) // context, testLogger, testI18n)
+export const testEnvironment = async (testLogger = logger /*, testI18n = i18n */) => {
+  const server = await createServer(/* context, */ testLogger /* , testI18n */)
   const con = server.con
   const testClient = createTestClient(server.apollo)
   const mutate = testClient.mutate
