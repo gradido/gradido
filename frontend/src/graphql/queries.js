@@ -241,6 +241,7 @@ export const searchAdminUsers = gql`
       userList {
         firstName
         lastName
+        role
       }
     }
   }

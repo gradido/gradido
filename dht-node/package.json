@@ -1,6 +1,6 @@
 {
   "name": "gradido-dht-node",
-  "version": "1.23.3",
+  "version": "2.0.0",
   "description": "Gradido dht-node module",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/",
