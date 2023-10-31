@@ -2,25 +2,15 @@ import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { getDataSource } from '@/typeorm/DataSource'
 import { Account } from '@entity/Account'
 import { User } from '@entity/User'
-import { In } from 'typeorm'
 
-export const AccountRepository = getDataSource()
-  .getRepository(Account)
+export const UserRepository = getDataSource()
+  .getRepository(User)
   .extend({
-    findAccountsByPublicKeys(publicKeys: Buffer[]): Promise<Account[]> {
-      return this.findBy({ derive2Pubkey: In(publicKeys) })
-    },
-
-    async findAccountByPublicKey(publicKey: Buffer | undefined): Promise<Account | undefined> {
-      if (!publicKey) return undefined
-      return (await this.findOneBy({ derive2Pubkey: Buffer.from(publicKey) })) ?? undefined
-    },
-
     async findAccountByUserIdentifier({
       uuid,
       accountNr,
     }: UserIdentifier): Promise<Account | undefined> {
-      const user = await User.findOne({
+      const user = await this.findOne({
         where: { gradidoID: uuid, accounts: { derivationIndex: accountNr ?? 1 } },
         relations: { accounts: true },
       })

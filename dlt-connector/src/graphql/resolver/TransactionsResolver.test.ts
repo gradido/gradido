@@ -1,8 +1,9 @@
 import 'reflect-metadata'
 import { ApolloServer } from '@apollo/server'
+import { TestDB } from '@test/TestDB'
 import { createApolloTestServer } from '@test/ApolloServerMock'
 import assert from 'assert'
-import { TransactionResult } from '../model/TransactionResult'
+import { TransactionResult } from '@model/TransactionResult'
 
 let apolloTestServer: ApolloServer
 
@@ -14,26 +15,24 @@ jest.mock('@/client/IotaClient', () => {
   }
 })
 
+jest.mock('@typeorm/DataSource', () => ({
+  getDataSource: jest.fn(() => TestDB.instance.dbConnect),
+}))
+
 describe('Transaction Resolver Test', () => {
   beforeAll(async () => {
     apolloTestServer = await createApolloTestServer()
+    await TestDB.instance.setupTestDB()
   })
-  it('test version query', async () => {
-    const response = await apolloTestServer.executeOperation({
-      query: '{ version }',
-    })
-    // Note the use of Node's assert rather than Jest's expect; if using
-    // TypeScript, `assert`` will appropriately narrow the type of `body`
-    // and `expect` will not.
-    // Source: https://www.apollographql.com/docs/apollo-server/testing/testing
-    assert(response.body.kind === 'single')
-    expect(response.body.singleResult.errors).toBeUndefined()
-    expect(response.body.singleResult.data?.version).toBe('0.1')
+
+  afterAll(async () => {
+    await TestDB.instance.teardownTestDB()
   })
+
   it('test mocked sendTransaction', async () => {
     const response = await apolloTestServer.executeOperation({
       query:
-        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, messageId} }',
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, succeed} }',
       variables: {
         input: {
           senderUser: {
@@ -45,21 +44,20 @@ describe('Transaction Resolver Test', () => {
           type: 'SEND',
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
+          backendTransactionId: 1,
         },
       },
     })
     assert(response.body.kind === 'single')
     expect(response.body.singleResult.errors).toBeUndefined()
     const transactionResult = response.body.singleResult.data?.sendTransaction as TransactionResult
-    expect(transactionResult.messageId).toBe(
-      '5498130bc3918e1a7143969ce05805502417e3e1bd596d3c44d6a0adeea22710',
-    )
+    expect(transactionResult.succeed).toBe(true)
   })
 
   it('test mocked sendTransaction invalid transactionType ', async () => {
     const response = await apolloTestServer.executeOperation({
       query:
-        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, messageId} }',
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, succeed} }',
       variables: {
         input: {
           senderUser: {
@@ -71,6 +69,7 @@ describe('Transaction Resolver Test', () => {
           type: 'INVALID',
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
+          backendTransactionId: 1,
         },
       },
     })
@@ -88,7 +87,7 @@ describe('Transaction Resolver Test', () => {
   it('test mocked sendTransaction invalid amount ', async () => {
     const response = await apolloTestServer.executeOperation({
       query:
-        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, messageId} }',
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, succeed} }',
       variables: {
         input: {
           senderUser: {
@@ -100,6 +99,7 @@ describe('Transaction Resolver Test', () => {
           type: 'SEND',
           amount: 'no number',
           createdAt: '2012-04-17T17:12:00Z',
+          backendTransactionId: 1,
         },
       },
     })
@@ -117,7 +117,7 @@ describe('Transaction Resolver Test', () => {
   it('test mocked sendTransaction invalid created date ', async () => {
     const response = await apolloTestServer.executeOperation({
       query:
-        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, messageId} }',
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, succeed} }',
       variables: {
         input: {
           senderUser: {
@@ -129,6 +129,7 @@ describe('Transaction Resolver Test', () => {
           type: 'SEND',
           amount: '10',
           createdAt: 'not valid',
+          backendTransactionId: 1,
         },
       },
     })
@@ -156,7 +157,7 @@ describe('Transaction Resolver Test', () => {
   it('test mocked sendTransaction missing creationDate for contribution', async () => {
     const response = await apolloTestServer.executeOperation({
       query:
-        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, messageId} }',
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, succeed} }',
       variables: {
         input: {
           senderUser: {
@@ -168,6 +169,7 @@ describe('Transaction Resolver Test', () => {
           type: 'CREATION',
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
+          backendTransactionId: 1,
         },
       },
     })

@@ -3,12 +3,7 @@ import { randombytes_buf } from 'sodium-native'
 import { CONFIG } from '../config'
 import { entropyToMnemonic, mnemonicToSeedSync } from 'bip39'
 // https://www.npmjs.com/package/bip32-ed25519?activeTab=code
-import {
-  generateFromSeed,
-  derivePrivate,
-  sign as ed25519Sign,
-  verify as ed25519Verify,
-} from 'bip32-ed25519'
+import { generateFromSeed, derivePrivate, sign as ed25519Sign } from 'bip32-ed25519'
 import { logger } from '@/server/logger'
 import { LogError } from '@/server/LogError'
 import { KeyPair } from '@/data/KeyPair'

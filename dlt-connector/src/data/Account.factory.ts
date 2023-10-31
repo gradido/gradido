@@ -21,6 +21,7 @@ export class AccountFactory {
     account.type = type.valueOf()
     account.createdAt = createdAt
     account.balance = new Decimal(0)
+    account.balanceCreatedAt = new Decimal(0)
     return account
   }
 

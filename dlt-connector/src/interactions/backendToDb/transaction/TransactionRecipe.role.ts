@@ -1,6 +1,7 @@
 import { AccountRepository } from '@/data/Account.repository'
 import { KeyPair } from '@/data/KeyPair'
 import { TransactionBuilder } from '@/data/Transaction.builder'
+import { UserRepository } from '@/data/User.repository'
 import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
@@ -10,7 +11,8 @@ import { Transaction } from '@entity/Transaction'
 
 export class TransactionRecipeRole {
   protected transactionBuilder: TransactionBuilder
-  construct() {
+
+  public constructor() {
     this.transactionBuilder = new TransactionBuilder()
   }
 
@@ -20,14 +22,14 @@ export class TransactionRecipeRole {
 
     // loading signing and recipient account
     // TODO: look for ways to use only one db call for both
-    const signingAccount = await AccountRepository.findAccountByUserIdentifier(senderUser)
+    const signingAccount = await UserRepository.findAccountByUserIdentifier(senderUser)
     if (!signingAccount) {
       throw new TransactionError(
         TransactionErrorType.NOT_FOUND,
         "couldn't found sender user account in db",
       )
     }
-    const recipientAccount = await AccountRepository.findAccountByUserIdentifier(recipientUser)
+    const recipientAccount = await UserRepository.findAccountByUserIdentifier(recipientUser)
     if (!recipientAccount) {
       throw new TransactionError(
         TransactionErrorType.NOT_FOUND,

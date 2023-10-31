@@ -16,14 +16,14 @@ export const CommunityRepository = getDataSource()
     async isExist(community: CommunityDraft | string): Promise<boolean> {
       const iotaTopic =
         community instanceof CommunityDraft ? iotaTopicFromCommunityUUID(community.uuid) : community
-      const result = await Community.find({
+      const result = await this.find({
         where: { iotaTopic },
       })
       return result.length > 0
     },
 
     async findByCommunityArg({ uuid, foreign, confirmed }: CommunityArg): Promise<Community[]> {
-      return await Community.find({
+      return await this.find({
         where: {
           ...(uuid && { iotaTopic: iotaTopicFromCommunityUUID(uuid) }),
           ...(foreign && { foreign }),
@@ -33,15 +33,15 @@ export const CommunityRepository = getDataSource()
     },
 
     async findByCommunityUuid(communityUuid: string): Promise<Community | null> {
-      return await Community.findOneBy({ iotaTopic: iotaTopicFromCommunityUUID(communityUuid) })
+      return await this.findOneBy({ iotaTopic: iotaTopicFromCommunityUUID(communityUuid) })
     },
 
     async findByIotaTopic(iotaTopic: string): Promise<Community | null> {
-      return await Community.findOneBy({ iotaTopic })
+      return await this.findOneBy({ iotaTopic })
     },
 
     findCommunitiesByTopics(topics: string[]): Promise<Community[]> {
-      return Community.findBy({ iotaTopic: In(topics) })
+      return this.findBy({ iotaTopic: In(topics) })
     },
 
     async getCommunityForUserIdentifier(
@@ -51,18 +51,18 @@ export const CommunityRepository = getDataSource()
         throw new TransactionError(TransactionErrorType.MISSING_PARAMETER, 'community uuid not set')
       }
       return (
-        (await Community.findOneBy({
+        (await this.findOneBy({
           iotaTopic: iotaTopicFromCommunityUUID(identifier.communityUuid),
         })) ?? undefined
       )
     },
 
     findAll(select: FindOptionsSelect<Community>): Promise<Community[]> {
-      return Community.find({ select })
+      return this.find({ select })
     },
 
     async loadHomeCommunityKeyPair(): Promise<KeyPair> {
-      const community = await Community.findOneOrFail({
+      const community = await this.findOneOrFail({
         where: { foreign: false },
         select: { rootChaincode: true, rootPubkey: true, rootPrivkey: true },
       })

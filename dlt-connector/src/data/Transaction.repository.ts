@@ -43,6 +43,9 @@ export const TransactionRepository = getDataSource()
       return { existingTransactions, missingMessageIdsHex }
     },
     async removeConfirmedTransaction(transactions: Transaction[]): Promise<Transaction[]> {
-      return transactions.filter((transaction: Transaction) => transaction.runningHash.length === 0)
+      return transactions.filter(
+        (transaction: Transaction) =>
+          transaction.runningHash === undefined || transaction.runningHash.length === 0,
+      )
     },
   })

@@ -76,9 +76,10 @@ export class Transaction extends BaseEntity {
     type: 'decimal',
     precision: 40,
     scale: 20,
+    nullable: true,
     transformer: DecimalTransformer,
   })
-  accountBalanceCreatedAt: Decimal
+  accountBalanceCreatedAt?: Decimal
 
   @Column({ type: 'tinyint' })
   type: number
@@ -95,26 +96,25 @@ export class Transaction extends BaseEntity {
   @Column({ name: 'protocol_version', type: 'varchar', length: 255, default: '1' })
   protocolVersion: string
 
-  @Column({ type: 'bigint' })
-  nr: number
+  @Column({ type: 'bigint', nullable: true })
+  nr?: number
 
-  @Column({ name: 'running_hash', type: 'binary', length: 48 })
-  runningHash: Buffer
+  @Column({ name: 'running_hash', type: 'binary', length: 48, nullable: true })
+  runningHash?: Buffer
 
   @Column({
     name: 'account_balance',
     type: 'decimal',
     precision: 40,
     scale: 20,
-    nullable: false,
-    default: 0,
+    nullable: true,
     transformer: DecimalTransformer,
   })
-  accountBalanceConfirmedAt: Decimal
+  accountBalanceConfirmedAt?: Decimal
 
   @Column({ name: 'iota_milestone', type: 'bigint', nullable: true })
   iotaMilestone?: number
 
-  @Column({ name: 'confirmed_at', type: 'datetime' })
-  confirmedAt: Date
+  @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })
+  confirmedAt?: Date
 }

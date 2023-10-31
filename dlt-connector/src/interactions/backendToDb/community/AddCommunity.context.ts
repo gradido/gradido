@@ -24,7 +24,7 @@ export class AddCommunityContext {
   }
 
   public async run(): Promise<void> {
-    this.communityRole.create(this.communityDraft, this.iotaTopic)
+    await this.communityRole.create(this.communityDraft, this.iotaTopic)
     await this.communityRole.store()
   }
 }

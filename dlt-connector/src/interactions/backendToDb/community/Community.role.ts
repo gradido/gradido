@@ -10,7 +10,7 @@ export abstract class CommunityRole {
     this.self = Community.create()
   }
 
-  public create(communityDraft: CommunityDraft, topic: string): void {
+  public async create(communityDraft: CommunityDraft, topic: string): Promise<void> {
     this.self.iotaTopic = topic
     this.self.createdAt = new Date(communityDraft.createdAt)
     this.self.foreign = communityDraft.foreign
