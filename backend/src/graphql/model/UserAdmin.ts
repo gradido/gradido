@@ -6,11 +6,11 @@ import { ObjectType, Field, Int } from 'type-graphql'
 export class UserAdmin {
   constructor(user: User, creation: Decimal[], hasElopage: boolean, emailConfirmationSend: string) {
     this.userId = user.id
-    this.email = user.emailContact.email
+    this.email = user.emailContact?.email
     this.firstName = user.firstName
     this.lastName = user.lastName
     this.creation = creation
-    this.emailChecked = user.emailContact.emailChecked
+    this.emailChecked = user.emailContact?.emailChecked
     this.hasElopage = hasElopage
     this.deletedAt = user.deletedAt
     this.emailConfirmationSend = emailConfirmationSend
@@ -20,8 +20,8 @@ export class UserAdmin {
   @Field(() => Int)
   userId: number
 
-  @Field(() => String)
-  email: string
+  @Field(() => String, { nullable: true })
+  email: string | null
 
   @Field(() => String)
   firstName: string
@@ -32,8 +32,8 @@ export class UserAdmin {
   @Field(() => [Decimal])
   creation: Decimal[]
 
-  @Field(() => Boolean)
-  emailChecked: boolean
+  @Field(() => Boolean, { nullable: true })
+  emailChecked: boolean | null
 
   @Field(() => Boolean)
   hasElopage: boolean
