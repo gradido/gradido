@@ -7,6 +7,7 @@ import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArg
 import { Connection } from '@typeorm/connection'
 
 import { LogError } from '@/server/LogError'
+import { Order } from '@/graphql/enum/Order'
 
 interface Relations {
   [key: string]: boolean | Relations
@@ -28,7 +29,7 @@ function joinRelationsRecursive(
 }
 
 export const findContributions = async (
-  { pageSize = 3, currentPage, order }: Paginated,
+  { pageSize = 3, currentPage = 1, order = Order.DESC }: Paginated,
   filter: SearchContributionsFilterArgs,
   withDeleted = false,
   relations: Relations | undefined = undefined,

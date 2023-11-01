@@ -6,15 +6,15 @@ import { Order } from '@enum/Order'
 
 @ArgsType()
 export class Paginated {
-  @Field(() => Int, { defaultValue: 1 })
+  @Field(() => Int, { nullable: true })
   @IsPositive()
-  currentPage: number
+  currentPage?: number
 
   @Field(() => Int, { nullable: true })
   @IsPositive()
   pageSize?: number
 
-  @Field(() => Order, { defaultValue: Order.DESC })
+  @Field(() => Order, { nullable: true })
   @IsEnum(Order)
-  order: Order
+  order?: Order
 }
