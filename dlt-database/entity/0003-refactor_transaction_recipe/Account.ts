@@ -18,7 +18,7 @@ export class Account extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @ManyToOne(() => User, (user) => user.accounts, { cascade: true, eager: true }) // Assuming you have a User entity with 'accounts' relation
+  @ManyToOne(() => User, (user) => user.accounts, { cascade: ['insert'], eager: true }) // Assuming you have a User entity with 'accounts' relation
   @JoinColumn({ name: 'user_id' })
   user?: User
 

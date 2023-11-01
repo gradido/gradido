@@ -53,7 +53,6 @@ export class Connection {
   }
 
   public getDataSource(): DBDataSource {
-    console.log('production getDataSource called!')
     return this.connection
   }
 

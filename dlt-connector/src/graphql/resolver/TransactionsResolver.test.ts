@@ -7,13 +7,11 @@ import assert from 'assert'
 import { TransactionResult } from '@model/TransactionResult'
 import { AccountFactory } from '@/data/Account.factory'
 import { CONFIG } from '@/config'
-import { KeyManager } from '@/manager/KeyManager'
 import { UserFactory } from '@/data/User.factory'
 import { UserAccountDraft } from '../input/UserAccountDraft'
 import { UserLogic } from '@/data/User.logic'
 import { AccountType } from '../enum/AccountType'
 import { UserIdentifier } from '../input/UserIdentifier'
-import { KeyPair } from '@/data/KeyPair'
 import { CommunityDraft } from '../input/CommunityDraft'
 import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
 
@@ -36,22 +34,22 @@ jest.mock('@typeorm/DataSource', () => ({
 const communityUUID = '3d813cbb-37fb-42ba-91df-831e1593ac29'
 
 const createUserStoreAccount = async (uuid: string): Promise<UserIdentifier> => {
-  const senderUserAccountDraft = new UserAccountDraft()
-  senderUserAccountDraft.accountType = AccountType.COMMUNITY_HUMAN
-  senderUserAccountDraft.createdAt = new Date().toString()
-  senderUserAccountDraft.user = new UserIdentifier()
-  senderUserAccountDraft.user.uuid = uuid
-  senderUserAccountDraft.user.communityUuid = communityUUID
-  const senderUser = UserFactory.create(senderUserAccountDraft)
-  const senderUserLogic = new UserLogic(senderUser)
-  const senderAccount = AccountFactory.createAccountFromUserAccountDraft(
-    senderUserAccountDraft,
-    senderUserLogic.calculateKeyPair(),
+  const userAccountDraft = new UserAccountDraft()
+  userAccountDraft.accountType = AccountType.COMMUNITY_HUMAN
+  userAccountDraft.createdAt = new Date().toString()
+  userAccountDraft.user = new UserIdentifier()
+  userAccountDraft.user.uuid = uuid
+  userAccountDraft.user.communityUuid = communityUUID
+  const user = UserFactory.create(userAccountDraft)
+  const userLogic = new UserLogic(user)
+  const account = AccountFactory.createAccountFromUserAccountDraft(
+    userAccountDraft,
+    userLogic.calculateKeyPair(),
   )
-  senderAccount.user = senderUser
-  // user is set to cascade true will be saved together with account
-  await senderAccount.save()
-  return senderUserAccountDraft.user
+  account.user = user
+  // user is set to cascade: ['insert'] will be saved together with account
+  await account.save()
+  return userAccountDraft.user
 }
 
 describe('Transaction Resolver Test', () => {
