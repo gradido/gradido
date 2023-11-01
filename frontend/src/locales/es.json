@@ -18,6 +18,7 @@
   },
   "back": "Volver",
   "community": {
+    "admins": "Administradores",
     "choose-another-community": "Escoger otra comunidad",
     "community": "Comunidad",
     "continue-to-registration": "Continuar con el registro",
@@ -30,7 +31,7 @@
     "openContributionLinks": "Creaciones generadas por enlace",
     "openContributionLinkText": "Para créditos iniciales o fines similares, la comunidad puede crear los llamados enlaces de creación. Éstos activan creaciones automáticas que se acreditan al usuario.\nLa comunidad \"{name}\" admite actualmente {count} creaciones generadas por enlaces:",
     "other-communities": "Otras comunidades",
-    "startNewsButton": "Introducir nombre de usuario",
+    "startNewsButton": "Enviar Gradidos",
     "statistic": "Estadísticas",
     "submitContribution": "escribir",
     "switch-to-this-community": "cambiar a esta comunidad"

@@ -1,47 +1,63 @@
+import { KeyPair } from '@/data/KeyPair'
 import { TransactionBuilder } from '@/data/Transaction.builder'
+import { UserRepository } from '@/data/User.repository'
+import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
-import { TransactionRecipe } from '@/graphql/model/TransactionRecipe'
-import { TransactionResult } from '@/graphql/model/TransactionResult'
-import { logger } from '@/server/logger'
-import { TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY } from '@/tasks/transmitToIota'
-import { getDataSource } from '@/typeorm/DataSource'
-import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
-import { QueryRunner } from 'typeorm'
+import { sign } from '@/utils/cryptoHelper'
+import { Transaction } from '@entity/Transaction'
 
-export abstract class TransactionRecipeRole {
+export class TransactionRecipeRole {
   protected transactionBuilder: TransactionBuilder
-  construct() {
+
+  public constructor() {
     this.transactionBuilder = new TransactionBuilder()
   }
 
-  public async storeAsTransaction(
-    transactionFunction: (queryRunner: QueryRunner) => Promise<void>,
-  ): Promise<TransactionResult> {
-    const queryRunner = getDataSource().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction()
+  public async create(transactionDraft: TransactionDraft): Promise<TransactionRecipeRole> {
+    const senderUser = transactionDraft.senderUser
+    const recipientUser = transactionDraft.recipientUser
 
-    let result: TransactionResult
-    try {
-      const transactionRecipe = this.transactionBuilder.build()
-      await transactionFunction(queryRunner)
-      await queryRunner.manager.save(transactionRecipe)
-      await queryRunner.commitTransaction()
-      ConditionalSleepManager.getInstance().signal(TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY)
-      result = new TransactionResult(new TransactionRecipe(transactionRecipe))
-    } catch (err) {
-      logger.error('error saving new transaction recipe into db: %s', err)
-      result = new TransactionResult(
-        new TransactionError(
-          TransactionErrorType.DB_ERROR,
-          'error saving transaction recipe into db',
-        ),
+    // loading signing and recipient account
+    // TODO: look for ways to use only one db call for both
+    const signingAccount = await UserRepository.findAccountByUserIdentifier(senderUser)
+    if (!signingAccount) {
+      throw new TransactionError(
+        TransactionErrorType.NOT_FOUND,
+        "couldn't found sender user account in db",
       )
-      await queryRunner.rollbackTransaction()
-    } finally {
-      await queryRunner.release()
     }
-    return result
+    const recipientAccount = await UserRepository.findAccountByUserIdentifier(recipientUser)
+    if (!recipientAccount) {
+      throw new TransactionError(
+        TransactionErrorType.NOT_FOUND,
+        "couldn't found recipient user account in db",
+      )
+    }
+    // create proto transaction body
+    const transactionBodyBuilder = new TransactionBodyBuilder()
+      .setSigningAccount(signingAccount)
+      .setRecipientAccount(recipientAccount)
+      .fromTransactionDraft(transactionDraft)
+    // build transaction entity
+
+    this.transactionBuilder
+      .fromTransactionBodyBuilder(transactionBodyBuilder)
+      .setBackendTransactionId(transactionDraft.backendTransactionId)
+    await this.transactionBuilder.setSenderCommunityFromSenderUser(senderUser)
+    if (recipientUser.uuid !== senderUser.uuid) {
+      await this.transactionBuilder.setRecipientCommunityFromRecipientUser(recipientUser)
+    }
+    const transaction = this.transactionBuilder.getTransaction()
+    // sign
+    this.transactionBuilder.setSignature(
+      sign(transaction.bodyBytes, new KeyPair(this.transactionBuilder.getSenderCommunity())),
+    )
+    return this
+  }
+
+  public getTransaction(): Transaction {
+    return this.transactionBuilder.getTransaction()
   }
 }

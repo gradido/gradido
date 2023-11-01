@@ -20,6 +20,7 @@
   },
   "back": "Zurück",
   "community": {
+    "admins": "Administratoren",
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
     "community": "Gemeinschaft",
     "communityMember": "Du bist aktives Mitglied",
@@ -27,10 +28,7 @@
     "moderator": "Moderator",
     "moderators": "Moderatoren",
     "myContributions": "Meine Beiträge",
-    "noOpenContributionLinkText": "Zur Zeit gibt es keine per Link erzeugte Schöpfungen.",
-    "openContributionLinks": "Per Link erzeugte Schöpfungen",
-    "openContributionLinkText": "Für Startguthaben oder ähnliche Zwecke kann die Gemeinschaft so genannte Schöpfungs-Links erstellen. Sie lösen automatische Schöpfungen aus, die dem Benutzer gut geschrieben werden.\nDie Gemeinschaft „{name}“ unterstützt aktuell {count} per Link erzeugte Schöpfungen:",
-    "startNewsButton": "Benutzernamen eintragen",
+    "startNewsButton": "Gradidos versenden",
     "submitContribution": "Schreiben"
   },
   "communityInfo": "Gemeinschaft Information",
@@ -77,8 +75,7 @@
     "yourActivity": "Bitte trage eine Tätigkeit ein!"
   },
   "contribution-link": {
-    "thanksYouWith": "dankt dir mit",
-    "unique": "(einmalig)"
+    "thanksYouWith": "dankt dir mit"
   },
   "contributionText": "Beitragstext",
   "creation": "Schöpfen",

@@ -55,8 +55,7 @@
       "@resolver/*": ["src/graphql/resolver/*"],
       "@scalar/*": ["src/graphql/scalar/*"],
       "@test/*": ["test/*"],
-      "@proto/*" : ["src/proto/*"],
-      "@controller/*": ["src/controller/*"],
+      "@proto/*" : ["src/proto/*"],      
       "@validator/*" : ["src/graphql/validator/*"],
       "@typeorm/*" : ["src/typeorm/*"],
       /* external */

@@ -8,12 +8,12 @@ export const AccountRepository = getDataSource()
   .getRepository(Account)
   .extend({
     findAccountsByPublicKeys(publicKeys: Buffer[]): Promise<Account[]> {
-      return Account.findBy({ derive2Pubkey: In(publicKeys) })
+      return this.findBy({ derive2Pubkey: In(publicKeys) })
     },
 
     async findAccountByPublicKey(publicKey: Buffer | undefined): Promise<Account | undefined> {
       if (!publicKey) return undefined
-      return (await Account.findOneBy({ derive2Pubkey: Buffer.from(publicKey) })) ?? undefined
+      return (await this.findOneBy({ derive2Pubkey: Buffer.from(publicKey) })) ?? undefined
     },
 
     async findAccountByUserIdentifier({

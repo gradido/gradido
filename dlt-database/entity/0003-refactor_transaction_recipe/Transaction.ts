@@ -32,21 +32,21 @@ export class Transaction extends BaseEntity {
   paringTransactionId?: number
 
   // if transaction has a sender than it is also the sender account
-  @ManyToOne(() => Account, (account) => account.transactionRecipesSigning)
+  @ManyToOne(() => Account, (account) => account.transactionSigning)
   @JoinColumn({ name: 'signing_account_id' })
   signingAccount?: Account
 
   @Column({ name: 'signing_account_id', type: 'int', unsigned: true, nullable: true })
   signingAccountId?: number
 
-  @ManyToOne(() => Account, (account) => account.transactionRecipesRecipient)
+  @ManyToOne(() => Account, (account) => account.transactionRecipient)
   @JoinColumn({ name: 'recipient_account_id' })
   recipientAccount?: Account
 
   @Column({ name: 'recipient_account_id', type: 'int', unsigned: true, nullable: true })
   recipientAccountId?: number
 
-  @ManyToOne(() => Community, (community) => community.transactionRecipesSender, {
+  @ManyToOne(() => Community, (community) => community.transactionSender, {
     eager: true,
   })
   @JoinColumn({ name: 'sender_community_id' })
@@ -55,7 +55,7 @@ export class Transaction extends BaseEntity {
   @Column({ name: 'sender_community_id', type: 'int', unsigned: true })
   senderCommunityId: number
 
-  @ManyToOne(() => Community, (community) => community.transactionRecipesRecipient)
+  @ManyToOne(() => Community, (community) => community.transactionRecipient)
   @JoinColumn({ name: 'recipient_community_id' })
   recipientCommunity?: Community
 
@@ -76,9 +76,10 @@ export class Transaction extends BaseEntity {
     type: 'decimal',
     precision: 40,
     scale: 20,
+    nullable: true,
     transformer: DecimalTransformer,
   })
-  accountBalanceCreatedAt: Decimal
+  accountBalanceCreatedAt?: Decimal
 
   @Column({ type: 'tinyint' })
   type: number
@@ -95,26 +96,25 @@ export class Transaction extends BaseEntity {
   @Column({ name: 'protocol_version', type: 'varchar', length: 255, default: '1' })
   protocolVersion: string
 
-  @Column({ type: 'bigint' })
-  nr: number
+  @Column({ type: 'bigint', nullable: true })
+  nr?: number
 
-  @Column({ name: 'running_hash', type: 'binary', length: 48 })
-  runningHash: Buffer
+  @Column({ name: 'running_hash', type: 'binary', length: 48, nullable: true })
+  runningHash?: Buffer
 
   @Column({
     name: 'account_balance',
     type: 'decimal',
     precision: 40,
     scale: 20,
-    nullable: false,
-    default: 0,
+    nullable: true,
     transformer: DecimalTransformer,
   })
-  accountBalanceConfirmedAt: Decimal
+  accountBalanceConfirmedAt?: Decimal
 
   @Column({ name: 'iota_milestone', type: 'bigint', nullable: true })
   iotaMilestone?: number
 
-  @Column({ name: 'confirmed_at', type: 'datetime' })
-  confirmedAt: Date
+  @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })
+  confirmedAt?: Date
 }

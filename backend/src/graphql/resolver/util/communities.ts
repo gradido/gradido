@@ -1,3 +1,4 @@
+import { FindOptionsWhere } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 
 export async function isHomeCommunity(communityIdentifier: string): Promise<boolean> {
@@ -13,6 +14,12 @@ export async function isHomeCommunity(communityIdentifier: string): Promise<bool
   } else {
     return false
   }
+}
+
+export async function getHomeCommunity(): Promise<DbCommunity> {
+  return await DbCommunity.findOneOrFail({
+    where: [{ foreign: false }],
+  })
 }
 
 export async function getCommunityUrl(communityIdentifier: string): Promise<string> {
@@ -50,4 +57,16 @@ export async function getCommunityName(communityIdentifier: string): Promise<str
   } else {
     return ''
   }
+}
+
+export async function getCommunity(
+  communityUuid?: string | null,
+  foreign?: boolean | null,
+): Promise<DbCommunity | null> {
+  return await DbCommunity.findOne({
+    where: {
+      ...(foreign !== null && foreign !== undefined && { foreign }),
+      ...(communityUuid && { communityUuid }),
+    },
+  })
 }

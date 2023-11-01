@@ -1,28 +1,51 @@
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { Community } from '@entity/Community'
 import { CommunityRole } from './Community.role'
-import { getTransaction } from '@/client/GradidoNode'
-import { timestampSecondsToDate } from '@/utils/typeConverter'
-import { createHomeCommunity } from '@/data/community.factory'
-import { createCommunityRootTransactionRecipe } from '../transaction/transaction.context'
-import { QueryRunner } from 'typeorm'
+import { Transaction } from '@entity/Transaction'
+import { KeyManager } from '@/manager/KeyManager'
+import { AccountFactory } from '@/data/Account.factory'
+import { CreateTransactionRecipeContext } from '../transaction/CreateTransationRecipe.context'
+import { logger } from '@/server/logger'
+import { TransactionError } from '@/graphql/model/TransactionError'
+import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { getDataSource } from '@/typeorm/DataSource'
 
 export class HomeCommunityRole extends CommunityRole {
-  public async addCommunity(communityDraft: CommunityDraft, topic: string): Promise<Community> {
-    const community = createHomeCommunity(communityDraft, topic)
+  private transactionRecipe: Transaction
 
-    // check if a CommunityRoot Transaction exist already on iota blockchain
-    const existingCommunityRootTransaction = await getTransaction(1, community.iotaTopic)
-    if (existingCommunityRootTransaction) {
-      community.confirmedAt = timestampSecondsToDate(existingCommunityRootTransaction.confirmedAt)
-      return community.save()
-    } else {
-      createCommunityRootTransactionRecipe(communityDraft, community).storeAsTransaction(
-        async (queryRunner: QueryRunner): Promise<void> => {
-          await queryRunner.manager.save(community)
-        },
+  public async create(communityDraft: CommunityDraft, topic: string): Promise<void> {
+    super.create(communityDraft, topic)
+    // generate key pair for signing transactions and deriving all keys for community
+    const keyPair = KeyManager.generateKeyPair()
+    this.self.rootPubkey = keyPair.publicKey
+    this.self.rootPrivkey = keyPair.privateKey
+    this.self.rootChaincode = keyPair.chainCode
+    // we should only have one home community per server
+    KeyManager.getInstance().setHomeCommunityKeyPair(keyPair)
+
+    // create auf account and gmw account
+    this.self.aufAccount = AccountFactory.createAufAccount(keyPair, this.self.createdAt)
+    this.self.gmwAccount = AccountFactory.createGmwAccount(keyPair, this.self.createdAt)
+
+    const transactionRecipeContext = new CreateTransactionRecipeContext(communityDraft)
+    transactionRecipeContext.setCommunity(this.self)
+    await transactionRecipeContext.run()
+    this.transactionRecipe = transactionRecipeContext.getTransactionRecipe()
+  }
+
+  public async store(): Promise<Community> {
+    try {
+      return await getDataSource().transaction(async (transactionalEntityManager) => {
+        const community = await transactionalEntityManager.save(this.self)
+        await transactionalEntityManager.save(this.transactionRecipe)
+        return community
+      })
+    } catch (error) {
+      logger.error('error saving home community into db: %s', error)
+      throw new TransactionError(
+        TransactionErrorType.DB_ERROR,
+        'error saving home community into db',
       )
     }
-    return community.save()
   }
 }

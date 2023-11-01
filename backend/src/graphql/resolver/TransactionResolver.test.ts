@@ -13,6 +13,7 @@ import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
+import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
@@ -71,12 +72,8 @@ let fedForeignCom: DbFederatedCommunity
 
 describe('send coins', () => {
   beforeAll(async () => {
-    peter = await userFactory(testEnv, peterLustig)
-    bob = await userFactory(testEnv, bobBaumeister)
-    await userFactory(testEnv, stephenHawking)
-    await userFactory(testEnv, garrickOllivander)
     homeCom = DbCommunity.create()
-    homeCom.communityUuid = '7f474922-b6d8-4b64-8cd0-ebf0a1d875aa'
+    homeCom.communityUuid = uuidv4()
     homeCom.creationDate = new Date('2000-01-01')
     homeCom.description = 'homeCom description'
     homeCom.foreign = false
@@ -87,7 +84,7 @@ describe('send coins', () => {
     homeCom = await DbCommunity.save(homeCom)
 
     foreignCom = DbCommunity.create()
-    foreignCom.communityUuid = '7f474922-b6d8-4b64-8cd0-cea0a1d875bb'
+    foreignCom.communityUuid = uuidv4()
     foreignCom.creationDate = new Date('2000-06-06')
     foreignCom.description = 'foreignCom description'
     foreignCom.foreign = true
@@ -97,6 +94,11 @@ describe('send coins', () => {
     foreignCom.url = 'foreignCom_url'
     foreignCom.authenticatedAt = new Date('2000-06-12')
     foreignCom = await DbCommunity.save(foreignCom)
+
+    peter = await userFactory(testEnv, peterLustig)
+    bob = await userFactory(testEnv, bobBaumeister)
+    await userFactory(testEnv, stephenHawking)
+    await userFactory(testEnv, garrickOllivander)
 
     bobData = {
       email: 'bob@baumeister.de',

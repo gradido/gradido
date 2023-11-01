@@ -4,7 +4,7 @@ import { InputType, Field } from 'type-graphql'
 import { UserIdentifier } from './UserIdentifier'
 import { isValidDateString } from '@validator/DateString'
 import { IsEnum, IsObject, ValidateNested } from 'class-validator'
-import { AccountType } from '@enum/AccountType'
+import { AccountType } from '@/graphql/enum/AccountType'
 
 @InputType()
 export class UserAccountDraft {

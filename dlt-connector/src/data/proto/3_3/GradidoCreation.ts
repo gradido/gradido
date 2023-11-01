@@ -7,7 +7,7 @@ import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionBase } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
-import { TransactionRecipe } from '@entity/TransactionRecipe'
+import { Transaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
 import { Account } from '@entity/Account'
 
@@ -47,7 +47,7 @@ export class GradidoCreation extends Message<GradidoCreation> implements Transac
     throw new Error('Method not implemented.')
   }
 
-  public fillTransactionRecipe(recipe: TransactionRecipe): void {
+  public fillTransactionRecipe(recipe: Transaction): void {
     recipe.amount = new Decimal(this.recipient.amount ?? 0)
   }
 }

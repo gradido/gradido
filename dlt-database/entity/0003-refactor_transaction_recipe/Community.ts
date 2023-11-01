@@ -8,7 +8,7 @@ import {
   BaseEntity,
 } from 'typeorm'
 import { Account } from '../Account'
-import { TransactionRecipe } from '../TransactionRecipe'
+import { Transaction } from '../Transaction'
 import { AccountCommunity } from '../AccountCommunity'
 
 @Entity('communities')
@@ -60,9 +60,9 @@ export class Community extends BaseEntity {
   @JoinColumn({ name: 'community_id' })
   accountCommunities: AccountCommunity[]
 
-  @OneToMany(() => TransactionRecipe, (recipe) => recipe.senderCommunity)
-  transactionRecipesSender?: TransactionRecipe[]
+  @OneToMany(() => Transaction, (recipe) => recipe.senderCommunity)
+  transactionSender?: Transaction[]
 
-  @OneToMany(() => TransactionRecipe, (recipe) => recipe.recipientCommunity)
-  transactionRecipesRecipient?: TransactionRecipe[]
+  @OneToMany(() => Transaction, (recipe) => recipe.recipientCommunity)
+  transactionRecipient?: Transaction[]
 }

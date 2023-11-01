@@ -8,8 +8,7 @@ import {
   BaseEntity,
 } from 'typeorm'
 import { User } from '../User'
-import { TransactionRecipe } from '../TransactionRecipe'
-import { ConfirmedTransaction } from '../ConfirmedTransaction'
+import { Transaction } from '../Transaction'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Decimal } from 'decimal.js-light'
 import { AccountCommunity } from '../AccountCommunity'
@@ -19,7 +18,7 @@ export class Account extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @ManyToOne(() => User, (user) => user.accounts, { cascade: true, eager: true }) // Assuming you have a User entity with 'accounts' relation
+  @ManyToOne(() => User, (user) => user.accounts, { cascade: ['insert'], eager: true }) // Assuming you have a User entity with 'accounts' relation
   @JoinColumn({ name: 'user_id' })
   user?: User
 
@@ -85,12 +84,9 @@ export class Account extends BaseEntity {
   @JoinColumn({ name: 'account_id' })
   accountCommunities: AccountCommunity[]
 
-  @OneToMany(() => TransactionRecipe, (recipe) => recipe.signingAccount)
-  transactionRecipesSigning?: TransactionRecipe[]
+  @OneToMany(() => Transaction, (transaction) => transaction.signingAccount)
+  transactionSigning?: Transaction[]
 
-  @OneToMany(() => TransactionRecipe, (recipe) => recipe.recipientAccount)
-  transactionRecipesRecipient?: TransactionRecipe[]
-
-  @OneToMany(() => ConfirmedTransaction, (transaction) => transaction.account)
-  confirmedTransactions?: ConfirmedTransaction[]
+  @OneToMany(() => Transaction, (transaction) => transaction.recipientAccount)
+  transactionRecipient?: Transaction[]
 }

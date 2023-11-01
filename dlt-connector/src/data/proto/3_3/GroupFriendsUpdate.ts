@@ -2,7 +2,7 @@
 import { TransactionBase } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Field, Message } from 'protobufjs'
-import { TransactionRecipe } from '@entity/TransactionRecipe'
+import { Transaction } from '@entity/Transaction'
 
 // connect group together
 // only CrossGroupType CROSS (in TransactionBody)
@@ -21,7 +21,7 @@ export class GroupFriendsUpdate extends Message<GroupFriendsUpdate> implements T
     throw new Error('Method not implemented.')
   }
 
-  public fillTransactionRecipe(recipe: TransactionRecipe): void {
+  public fillTransactionRecipe(recipe: Transaction): void {
     throw new Error('Method not implemented.')
   }
 }

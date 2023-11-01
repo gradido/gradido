@@ -40,7 +40,10 @@ export const transactionsQuery = gql`
         linkedUser {
           firstName
           lastName
+          communityUuid
+          communityName
           gradidoID
+          alias
         }
         decay {
           decay
@@ -238,6 +241,7 @@ export const searchAdminUsers = gql`
       userList {
         firstName
         lastName
+        role
       }
     }
   }
@@ -281,6 +285,19 @@ export const user = gql`
     user(identifier: $identifier) {
       firstName
       lastName
+      communityName
+    }
+  }
+`
+
+export const userAndCommunity = gql`
+  query($identifier: String!, $communityUuid: String!) {
+    user(identifier: $identifier) {
+      firstName
+      lastName
+    }
+    community(communityUuid: $communityUuid) {
+      name
     }
   }
 `

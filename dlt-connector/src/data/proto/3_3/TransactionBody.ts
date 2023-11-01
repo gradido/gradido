@@ -9,12 +9,12 @@ import { GradidoDeferredTransfer } from './GradidoDeferredTransfer'
 import { GroupFriendsUpdate } from './GroupFriendsUpdate'
 import { RegisterAddress } from './RegisterAddress'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { determineCrossGroupType, determineOtherGroup } from '@/controller/TransactionBody'
+import { determineCrossGroupType, determineOtherGroup } from '../transactionBody.logic'
 import { CommunityRoot } from './CommunityRoot'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { TransactionType } from '@/graphql/enum/TransactionType'
 import { TransactionBase } from '../TransactionBase'
-import { TransactionRecipe } from '@entity/TransactionRecipe'
+import { Transaction } from '@entity/Transaction'
 import { timestampToDate } from '@/utils/typeConverter'
 import { LogError } from '@/server/LogError'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
@@ -104,7 +104,7 @@ export class TransactionBody extends Message<TransactionBody> {
     if (this.communityRoot) return this.communityRoot
   }
 
-  public fillTransactionRecipe(recipe: TransactionRecipe): void {
+  public fillTransactionRecipe(recipe: Transaction): void {
     recipe.createdAt = timestampToDate(this.createdAt)
     recipe.protocolVersion = this.versionNumber
     const transactionType = this.getTransactionType()

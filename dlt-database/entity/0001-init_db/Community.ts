@@ -8,7 +8,7 @@ import {
   BaseEntity,
 } from 'typeorm'
 import { Account } from '../Account'
-import { TransactionRecipe } from '../TransactionRecipe'
+import { TransactionRecipe } from './TransactionRecipe'
 import { AccountCommunity } from '../AccountCommunity'
 
 @Entity('communities')

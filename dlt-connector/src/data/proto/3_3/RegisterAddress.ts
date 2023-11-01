@@ -5,12 +5,12 @@ import { Field, Message } from 'protobufjs'
 import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { TransactionBase } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
-import { TransactionRecipe } from '@entity/TransactionRecipe'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { User } from '@entity/User'
 import { accountTypeToAddressType } from '@/utils/typeConverter'
 import { AccountType } from '@/graphql/enum/AccountType'
 import { Account } from '@entity/Account'
+import { Transaction } from '@entity/Transaction'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
@@ -52,5 +52,5 @@ export class RegisterAddress extends Message<RegisterAddress> implements Transac
     throw new Error('Method not implemented.')
   }
 
-  public fillTransactionRecipe(_recipe: TransactionRecipe): void {}
+  public fillTransactionRecipe(_recipe: Transaction): void {}
 }

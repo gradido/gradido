@@ -3,11 +3,14 @@ import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { Resolver, Query, Authorized, Arg, Args } from 'type-graphql'
 
+import { CommunityArgs } from '@arg/CommunityArgs'
 import { Community } from '@model/Community'
 import { FederatedCommunity } from '@model/FederatedCommunity'
 
 import { RIGHTS } from '@/auth/RIGHTS'
-import { CommunityArgs } from '@/graphql/arg/CommunityArgs'
+import { LogError } from '@/server/LogError'
+
+import { getCommunity } from './util/communities'
 
 @Resolver()
 export class CommunityResolver {
@@ -27,20 +30,6 @@ export class CommunityResolver {
   }
 
   @Authorized([RIGHTS.COMMUNITIES])
-  @Query(() => Community)
-  async community(@Args() { foreign, communityUuid }: CommunityArgs): Promise<Community> {
-    const where: FindOptionsWhere<DbCommunity> = {}
-    if (foreign !== null && foreign !== undefined) {
-      where.foreign = foreign
-    }
-    if (communityUuid) {
-      where.communityUuid = communityUuid
-    }
-    const community = await DbCommunity.findOneOrFail({ where })
-    return new Community(community)
-  }
-
-  @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => [Community])
   async communities(): Promise<Community[]> {
     const dbCommunities: DbCommunity[] = await DbCommunity.find({
@@ -50,5 +39,15 @@ export class CommunityResolver {
       },
     })
     return dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
+  }
+
+  @Authorized([RIGHTS.COMMUNITIES])
+  @Query(() => Community)
+  async community(@Args() communityArgs: CommunityArgs): Promise<Community> {
+    const community = await getCommunity(communityArgs)
+    if (!community) {
+      throw new LogError('community not found', communityArgs.communityUuid, communityArgs.foreign)
+    }
+    return new Community(community)
   }
 }

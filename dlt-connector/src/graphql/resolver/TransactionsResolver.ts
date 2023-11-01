@@ -1,26 +1,18 @@
 import { Resolver, Arg, Mutation } from 'type-graphql'
-
 import { TransactionDraft } from '@input/TransactionDraft'
-
-import { create as createTransactionBody } from '@controller/TransactionBody'
-import { create as createGradidoTransaction } from '@controller/GradidoTransaction'
-
 import { TransactionResult } from '../model/TransactionResult'
 import { TransactionError } from '../model/TransactionError'
-import { TransactionRecipe, findByMessageId, findBySignature } from '@/controller/TransactionRecipe'
-import { TransactionRecipe as TransactionRecipeOutput } from '@model/TransactionRecipe'
-import { KeyManager } from '@/controller/KeyManager'
-import { findAccountByUserIdentifier, getKeyPair } from '@/controller/Account'
+import { CreateTransactionRecipeContext } from '@/interactions/backendToDb/transaction/CreateTransationRecipe.context'
+import { TransactionRecipe } from '../model/TransactionRecipe'
+import { TransactionRepository } from '@/data/Transaction.repository'
 import { TransactionErrorType } from '../enum/TransactionErrorType'
-import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
-import { logger } from '@/server/logger'
-import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { TransactionsManager } from '@/controller/TransactionsManager'
-import { confirmFromNodeServer } from '@/controller/ConfirmedTransaction'
 import { ConfirmedTransactionInput } from '../input/ConfirmedTransactionInput'
-import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
-import { TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY } from '@/tasks/transmitToIota'
+import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
+import { logger } from '@/server/logger'
+import { confirmFromNodeServer } from '@/controller/ConfirmedTransaction'
 import { InvalidTransactionInput } from '../input/InvalidTransactionInput'
+import { findByMessageId } from '@/controller/TransactionRecipe'
 import { InvalidTransaction } from '@entity/InvalidTransaction'
 
 @Resolver()
@@ -28,72 +20,28 @@ export class TransactionResolver {
   @Mutation(() => TransactionResult)
   async sendTransaction(
     @Arg('data')
-    transaction: TransactionDraft,
+    transactionDraft: TransactionDraft,
   ): Promise<TransactionResult> {
+    const createTransactionRecipeContext = new CreateTransactionRecipeContext(transactionDraft)
     try {
-      logger.info('sendTransaction call', transaction)
-      const signingAccount = await findAccountByUserIdentifier(transaction.senderUser)
-      if (!signingAccount) {
-        throw new TransactionError(
-          TransactionErrorType.NOT_FOUND,
-          "couldn't found sender user account in db",
+      await createTransactionRecipeContext.run()
+      const transactionRecipe = createTransactionRecipeContext.getTransactionRecipe()
+      await transactionRecipe.save()
+      return new TransactionResult(new TransactionRecipe(transactionRecipe))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.code === 'ER_DUP_ENTRY') {
+        const existingRecipe = await TransactionRepository.findBySignature(
+          createTransactionRecipeContext.getTransactionRecipe().signature,
         )
-      }
-      logger.info('signing account', signingAccount)
-
-      const recipientAccount = await findAccountByUserIdentifier(transaction.recipientUser)
-      if (!recipientAccount) {
-        throw new TransactionError(
-          TransactionErrorType.NOT_FOUND,
-          "couldn't found recipient user account in db",
-        )
-      }
-      logger.info('recipient account', recipientAccount)
-
-      const body = createTransactionBody(transaction, signingAccount, recipientAccount)
-      logger.info('body', body)
-      const gradidoTransaction = createGradidoTransaction(body)
-
-      const signingKeyPair = getKeyPair(signingAccount)
-      if (!signingKeyPair) {
-        throw new TransactionError(
-          TransactionErrorType.NOT_FOUND,
-          "couldn't found signing key pair",
-        )
-      }
-      logger.info('key pair for signing', signingKeyPair)
-
-      KeyManager.getInstance().sign(gradidoTransaction, [signingKeyPair])
-      const recipeTransactionController = await TransactionRecipe.create({
-        transaction: gradidoTransaction,
-        senderUser: transaction.senderUser,
-        recipientUser: transaction.recipientUser,
-        signingAccount,
-        recipientAccount,
-        backendTransactionId: transaction.backendTransactionId,
-      })
-      try {
-        await recipeTransactionController.getTransactionRecipeEntity().save()
-        ConditionalSleepManager.getInstance().signal(TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        if (error.code === 'ER_DUP_ENTRY' && body.type === CrossGroupType.LOCAL) {
-          const existingRecipe = await findBySignature(
-            gradidoTransaction.sigMap.sigPair[0].signature,
+        if (!existingRecipe) {
+          throw new TransactionError(
+            TransactionErrorType.LOGIC_ERROR,
+            "recipe cannot be added because signature exist but couldn't load this existing receipt",
           )
-          if (!existingRecipe) {
-            throw new TransactionError(
-              TransactionErrorType.LOGIC_ERROR,
-              "recipe cannot be added because signature exist but couldn't load this existing receipt",
-            )
-          }
-          return new TransactionResult(new TransactionRecipeOutput(existingRecipe))
-        } else {
-          throw error
         }
+        return new TransactionResult(new TransactionRecipe(existingRecipe))
       }
-      return new TransactionResult()
-    } catch (error) {
       if (error instanceof TransactionError) {
         return new TransactionResult(error)
       } else {

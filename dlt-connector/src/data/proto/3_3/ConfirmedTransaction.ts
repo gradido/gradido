@@ -2,7 +2,6 @@ import { Field, Message } from 'protobufjs'
 import { GradidoTransaction } from './GradidoTransaction'
 import { TimestampSeconds } from './TimestampSeconds'
 import { base64ToBuffer } from '@/utils/typeConverter'
-import Long from 'long'
 
 /*
 	id will be set by Node server

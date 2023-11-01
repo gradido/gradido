@@ -7,13 +7,12 @@ import express, { Express } from 'express'
 // graphql
 import { schema } from '@/graphql/schema'
 import { getDataSource } from '@/typeorm/DataSource'
-import { checkDBVersion } from '@/typeorm/DBVersion'
 
 import { logger as dltLogger } from './logger'
 import { Logger } from 'log4js'
 import cors from 'cors'
 import bodyParser from 'body-parser'
-import { CONFIG } from '@/config'
+import { Connection } from '@/typeorm/DataSource'
 
 type ServerDef = { apollo: ApolloServer; app: Express; con: DBDataSource }
 
@@ -30,22 +29,8 @@ const createServer = async (
   logger.addContext('user', 'unknown')
   logger.debug('createServer...')
 
-  // open mysql connection
-  try {
-    await getDataSource().initialize()
-  } catch (error) {
-    // try and catch for logging
-    logger.fatal(`Couldn't open connection to database!`)
-    throw error
-  }
-
-  // check for correct database version
-  const dbVersion = await checkDBVersion(CONFIG.DB_VERSION)
-  if (!dbVersion) {
-    logger.fatal('Fatal: Database Version incorrect')
-    throw new Error('Fatal: Database Version incorrect')
-  }
-
+  // connect to db and test db version
+  await Connection.getInstance().init()
   // Express Server
   const app = express()
 

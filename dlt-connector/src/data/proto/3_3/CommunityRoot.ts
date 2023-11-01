@@ -2,7 +2,7 @@ import { TransactionBase } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Field, Message } from 'protobufjs'
 import { Community } from '@entity/Community'
-import { TransactionRecipe } from '@entity/TransactionRecipe'
+import { Transaction } from '@entity/Transaction'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
@@ -36,5 +36,5 @@ export class CommunityRoot extends Message<CommunityRoot> implements Transaction
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-  public fillTransactionRecipe(recipe: TransactionRecipe): void {}
+  public fillTransactionRecipe(recipe: Transaction): void {}
 }
