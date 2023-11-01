@@ -6,6 +6,9 @@ import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
 import { logger } from '@/server/logger'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { AccountType } from '@/graphql/enum/AccountType'
+import { AddressType } from '@/graphql/enum/AddressType'
+import { LogError } from '@/server/LogError'
 
 export const uuid4ToBuffer = (uuid: string): Buffer => {
   // Remove dashes from the UUIDv4 string
@@ -58,5 +61,47 @@ export const transactionBodyToBodyBytes = (transactionBody: TransactionBody): Bu
       TransactionErrorType.PROTO_ENCODE_ERROR,
       'cannot encode transaction body',
     )
+  }
+}
+
+export const accountTypeToAddressType = (accountType: AccountType): AddressType => {
+  switch (accountType) {
+    case AccountType.NONE:
+      return AddressType.NONE
+    case AccountType.COMMUNITY_HUMAN:
+      return AddressType.COMMUNITY_HUMAN
+    case AccountType.COMMUNITY_GMW:
+      return AddressType.COMMUNITY_GMW
+    case AccountType.COMMUNITY_AUF:
+      return AddressType.COMMUNITY_AUF
+    case AccountType.COMMUNITY_PROJECT:
+      return AddressType.COMMUNITY_PROJECT
+    case AccountType.SUBACCOUNT:
+      return AddressType.SUBACCOUNT
+    case AccountType.CRYPTO_ACCOUNT:
+      return AddressType.CRYPTO_ACCOUNT
+    default:
+      throw new LogError(`Unsupported AccountType: ${accountType}`)
+  }
+}
+
+export const addressTypeToAccountType = (addressType: AddressType): AccountType => {
+  switch (addressType) {
+    case AddressType.NONE:
+      return AccountType.NONE
+    case AddressType.COMMUNITY_HUMAN:
+      return AccountType.COMMUNITY_HUMAN
+    case AddressType.COMMUNITY_GMW:
+      return AccountType.COMMUNITY_GMW
+    case AddressType.COMMUNITY_AUF:
+      return AccountType.COMMUNITY_AUF
+    case AddressType.COMMUNITY_PROJECT:
+      return AccountType.COMMUNITY_PROJECT
+    case AddressType.SUBACCOUNT:
+      return AccountType.SUBACCOUNT
+    case AddressType.CRYPTO_ACCOUNT:
+      return AccountType.CRYPTO_ACCOUNT
+    default:
+      throw new LogError(`Unsupported AddressType: ${addressType}`)
   }
 }

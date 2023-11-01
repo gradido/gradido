@@ -3,6 +3,7 @@ import { ForeignCommunityRole } from './ForeignCommunity.role'
 import { HomeCommunityRole } from './HomeCommunity.role'
 import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 import { CommunityRole } from './Community.role'
+import { Community } from '@entity/Community'
 
 /**
  * @DCI-Context

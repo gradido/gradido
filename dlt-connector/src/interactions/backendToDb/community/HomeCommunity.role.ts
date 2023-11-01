@@ -35,7 +35,6 @@ export class HomeCommunityRole extends CommunityRole {
 
   public async store(): Promise<Community> {
     try {
-      console.log('store transaction: %s', JSON.stringify(this.transactionRecipe, null, 2))
       return await getDataSource().transaction(async (transactionalEntityManager) => {
         const community = await transactionalEntityManager.save(this.self)
         await transactionalEntityManager.save(this.transactionRecipe)
@@ -43,7 +42,6 @@ export class HomeCommunityRole extends CommunityRole {
       })
     } catch (error) {
       logger.error('error saving home community into db: %s', error)
-      console.log(error)
       throw new TransactionError(
         TransactionErrorType.DB_ERROR,
         'error saving home community into db',

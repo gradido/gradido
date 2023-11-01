@@ -1,9 +1,23 @@
 import 'reflect-metadata'
 import { ApolloServer } from '@apollo/server'
+// must be imported before createApolloTestServer so that TestDB was created before createApolloTestServer imports repositories
 import { TestDB } from '@test/TestDB'
 import { createApolloTestServer } from '@test/ApolloServerMock'
 import assert from 'assert'
 import { TransactionResult } from '@model/TransactionResult'
+import { AccountFactory } from '@/data/Account.factory'
+import { CONFIG } from '@/config'
+import { KeyManager } from '@/manager/KeyManager'
+import { UserFactory } from '@/data/User.factory'
+import { UserAccountDraft } from '../input/UserAccountDraft'
+import { UserLogic } from '@/data/User.logic'
+import { AccountType } from '../enum/AccountType'
+import { UserIdentifier } from '../input/UserIdentifier'
+import { KeyPair } from '@/data/KeyPair'
+import { CommunityDraft } from '../input/CommunityDraft'
+import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
+
+CONFIG.IOTA_HOME_COMMUNITY_SEED = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899'
 
 let apolloTestServer: ApolloServer
 
@@ -19,10 +33,42 @@ jest.mock('@typeorm/DataSource', () => ({
   getDataSource: jest.fn(() => TestDB.instance.dbConnect),
 }))
 
+const communityUUID = '3d813cbb-37fb-42ba-91df-831e1593ac29'
+
+const createUserStoreAccount = async (uuid: string): Promise<UserIdentifier> => {
+  const senderUserAccountDraft = new UserAccountDraft()
+  senderUserAccountDraft.accountType = AccountType.COMMUNITY_HUMAN
+  senderUserAccountDraft.createdAt = new Date().toString()
+  senderUserAccountDraft.user = new UserIdentifier()
+  senderUserAccountDraft.user.uuid = uuid
+  senderUserAccountDraft.user.communityUuid = communityUUID
+  const senderUser = UserFactory.create(senderUserAccountDraft)
+  const senderUserLogic = new UserLogic(senderUser)
+  const senderAccount = AccountFactory.createAccountFromUserAccountDraft(
+    senderUserAccountDraft,
+    senderUserLogic.calculateKeyPair(),
+  )
+  senderAccount.user = senderUser
+  // user is set to cascade true will be saved together with account
+  await senderAccount.save()
+  return senderUserAccountDraft.user
+}
+
 describe('Transaction Resolver Test', () => {
+  let senderUser: UserIdentifier
+  let recipientUser: UserIdentifier
   beforeAll(async () => {
-    apolloTestServer = await createApolloTestServer()
     await TestDB.instance.setupTestDB()
+    apolloTestServer = await createApolloTestServer()
+
+    const communityDraft = new CommunityDraft()
+    communityDraft.uuid = communityUUID
+    communityDraft.foreign = false
+    communityDraft.createdAt = new Date().toString()
+    const addCommunityContext = new AddCommunityContext(communityDraft)
+    await addCommunityContext.run()
+    senderUser = await createUserStoreAccount('0ec72b74-48c2-446f-91ce-31ad7d9f4d65')
+    recipientUser = await createUserStoreAccount('ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe')
   })
 
   afterAll(async () => {
@@ -32,15 +78,11 @@ describe('Transaction Resolver Test', () => {
   it('test mocked sendTransaction', async () => {
     const response = await apolloTestServer.executeOperation({
       query:
-        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, succeed} }',
+        'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {succeed, recipe { id, topic }} }',
       variables: {
         input: {
-          senderUser: {
-            uuid: '0ec72b74-48c2-446f-91ce-31ad7d9f4d65',
-          },
-          recipientUser: {
-            uuid: 'ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe',
-          },
+          senderUser,
+          recipientUser,
           type: 'SEND',
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
@@ -51,6 +93,7 @@ describe('Transaction Resolver Test', () => {
     assert(response.body.kind === 'single')
     expect(response.body.singleResult.errors).toBeUndefined()
     const transactionResult = response.body.singleResult.data?.sendTransaction as TransactionResult
+    expect(transactionResult.recipe).toBeDefined()
     expect(transactionResult.succeed).toBe(true)
   })
 
@@ -60,12 +103,8 @@ describe('Transaction Resolver Test', () => {
         'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, succeed} }',
       variables: {
         input: {
-          senderUser: {
-            uuid: '0ec72b74-48c2-446f-91ce-31ad7d9f4d65',
-          },
-          recipientUser: {
-            uuid: 'ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe',
-          },
+          senderUser,
+          recipientUser,
           type: 'INVALID',
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
@@ -78,7 +117,7 @@ describe('Transaction Resolver Test', () => {
       errors: [
         {
           message:
-            'Variable "$input" got invalid value "INVALID" at "input.type"; Value "INVALID" does not exist in "TransactionType" enum.',
+            'Variable "$input" got invalid value "INVALID" at "input.type"; Value "INVALID" does not exist in "InputTransactionType" enum.',
         },
       ],
     })
@@ -90,12 +129,8 @@ describe('Transaction Resolver Test', () => {
         'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, succeed} }',
       variables: {
         input: {
-          senderUser: {
-            uuid: '0ec72b74-48c2-446f-91ce-31ad7d9f4d65',
-          },
-          recipientUser: {
-            uuid: 'ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe',
-          },
+          senderUser,
+          recipientUser,
           type: 'SEND',
           amount: 'no number',
           createdAt: '2012-04-17T17:12:00Z',
@@ -120,12 +155,8 @@ describe('Transaction Resolver Test', () => {
         'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, succeed} }',
       variables: {
         input: {
-          senderUser: {
-            uuid: '0ec72b74-48c2-446f-91ce-31ad7d9f4d65',
-          },
-          recipientUser: {
-            uuid: 'ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe',
-          },
+          senderUser,
+          recipientUser,
           type: 'SEND',
           amount: '10',
           createdAt: 'not valid',
@@ -160,12 +191,8 @@ describe('Transaction Resolver Test', () => {
         'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, succeed} }',
       variables: {
         input: {
-          senderUser: {
-            uuid: '0ec72b74-48c2-446f-91ce-31ad7d9f4d65',
-          },
-          recipientUser: {
-            uuid: 'ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe',
-          },
+          senderUser,
+          recipientUser,
           type: 'CREATION',
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',

@@ -18,7 +18,7 @@ export class TransactionResolver {
     try {
       await createTransactionRecipeContext.run()
       const transactionRecipe = createTransactionRecipeContext.getTransactionRecipe()
-      transactionRecipe.save()
+      await transactionRecipe.save()
       return new TransactionResult(new TransactionRecipe(transactionRecipe))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {

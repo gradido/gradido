@@ -36,7 +36,6 @@ export class TransactionRecipeRole {
         "couldn't found recipient user account in db",
       )
     }
-
     // create proto transaction body
     const transactionBodyBuilder = new TransactionBodyBuilder()
       .setSigningAccount(signingAccount)

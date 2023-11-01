@@ -1,5 +1,6 @@
 import 'reflect-metadata'
 import { ApolloServer } from '@apollo/server'
+// must be imported before createApolloTestServer so that TestDB was created before createApolloTestServer imports repositories
 import { TestDB } from '@test/TestDB'
 import { createApolloTestServer } from '@test/ApolloServerMock'
 import assert from 'assert'
