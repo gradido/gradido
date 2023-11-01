@@ -10,9 +10,9 @@ export class Paginated {
   @IsPositive()
   currentPage: number
 
-  @Field(() => Int, { defaultValue: 3 })
+  @Field(() => Int, { nullable: true })
   @IsPositive()
-  pageSize: number
+  pageSize?: number
 
   @Field(() => Order, { defaultValue: Order.DESC })
   @IsEnum(Order)
