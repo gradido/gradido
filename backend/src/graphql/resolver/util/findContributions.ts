@@ -6,8 +6,8 @@ import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
 import { Connection } from '@typeorm/connection'
 
-import { LogError } from '@/server/LogError'
 import { Order } from '@/graphql/enum/Order'
+import { LogError } from '@/server/LogError'
 
 interface Relations {
   [key: string]: boolean | Relations
