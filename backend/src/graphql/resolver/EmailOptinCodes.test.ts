@@ -11,6 +11,8 @@ import { CONFIG } from '@/config'
 import { createUser, setPassword, forgotPassword } from '@/seeds/graphql/mutations'
 import { queryOptIn } from '@/seeds/graphql/queries'
 
+import { createHomeCommunity } from './util/communities'
+
 let mutate: ApolloServerTestClient['mutate'],
   query: ApolloServerTestClient['query'],
   con: Connection
@@ -46,6 +48,7 @@ describe('EmailOptinCodes', () => {
       lastName: 'Lustig',
       language: 'de',
     }
+    await createHomeCommunity()
     const {
       data: { createUser: user },
     } = await mutate({ mutation: createUser, variables })

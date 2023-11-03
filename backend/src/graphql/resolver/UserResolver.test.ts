@@ -67,6 +67,8 @@ import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
 
+import { createHomeCommunity } from './util/communities'
+
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
   return {
@@ -125,9 +127,11 @@ describe('UserResolver', () => {
     let result: any
     let emailVerificationCode: string
     let user: User[]
+    let homeCom: DbCommunity
 
     beforeAll(async () => {
       jest.clearAllMocks()
+      homeCom = await createHomeCommunity()
       result = await mutate({ mutation: createUser, variables })
     })
 
@@ -172,7 +176,7 @@ describe('UserResolver', () => {
               referrerId: null,
               contributionLinkId: null,
               passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
-              communityUuid: null,
+              communityUuid: homeCom.communityUuid,
               foreign: false,
             },
           ])
@@ -542,6 +546,7 @@ describe('UserResolver', () => {
       let newUser: User
 
       beforeAll(async () => {
+        await createHomeCommunity()
         await mutate({ mutation: createUser, variables: createUserVariables })
         const emailContact = await UserContact.findOneOrFail({
           where: { email: createUserVariables.email },
@@ -586,6 +591,7 @@ describe('UserResolver', () => {
 
     describe('no valid password', () => {
       beforeAll(async () => {
+        await createHomeCommunity()
         await mutate({ mutation: createUser, variables: createUserVariables })
         const emailContact = await UserContact.findOneOrFail({
           where: { email: createUserVariables.email },

@@ -63,3 +63,23 @@ export async function getCommunity(communityUuid: string): Promise<DbCommunity |
     where: [{ communityUuid }],
   })
 }
+
+export async function createHomeCommunity(): Promise<DbCommunity> {
+  let homeCom: DbCommunity
+  try {
+    return await getHomeCommunity()
+  } catch (err) {
+    homeCom = DbCommunity.create()
+    homeCom.foreign = false
+    homeCom.url = 'http://localhost/api'
+    homeCom.publicKey = Buffer.from('publicKey-HomeCommunity')
+    homeCom.privateKey = Buffer.from('privateKey-HomeCommunity')
+    homeCom.communityUuid = 'HomeCom-UUID'
+    homeCom.authenticatedAt = new Date()
+    homeCom.name = 'HomeCommunity-name'
+    homeCom.description = 'HomeCommunity-description'
+    homeCom.creationDate = new Date()
+    await DbCommunity.insert(homeCom)
+    return homeCom
+  }
+}
