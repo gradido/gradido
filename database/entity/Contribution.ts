@@ -1,1 +1,1 @@
-export { Contribution } from './0052-add_updated_at_to_contributions/Contribution'
+export { Contribution } from './0074-add_updated_by_contribution/Contribution'
