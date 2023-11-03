@@ -13,5 +13,5 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  await queryFn('SELECT * FROM dual;')
+  await queryFn('')
 }
