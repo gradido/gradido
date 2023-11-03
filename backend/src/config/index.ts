@@ -12,7 +12,7 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0073-introduce_foreign_user_in_users_table',
+  DB_VERSION: '0074-add_updated_by_contribution',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
