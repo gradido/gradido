@@ -1,6 +1,6 @@
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(
-    `ALTER TABLE \`contributions\` ADD COLUMN \`updated_by\` boolean NULL DEFAULT false AFTER \`updated_at\`;`,
+    `ALTER TABLE \`contributions\` ADD COLUMN \`updated_by\` int(10) unsigned NULL DEFAULT NULL AFTER \`updated_at\`;`,
   )
 }
 
