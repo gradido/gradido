@@ -13,5 +13,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  await queryFn('')
+  // dummy statement to satisfy linter and queryFn
+  await queryFn('select count(*) from communities')
 }
