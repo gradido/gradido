@@ -18,7 +18,7 @@ export class UnconfirmedContributionAdminRole extends UnconfirmedContributionRol
     super(contribution, updateData.amount, new Date(updateData.creationDate))
   }
 
-  public update(): void {
+  protected update(): void {
     this.self.amount = this.updateData.amount
     this.self.memo = this.updateData.memo
     this.self.contributionDate = new Date(this.updateData.creationDate)
@@ -28,7 +28,7 @@ export class UnconfirmedContributionAdminRole extends UnconfirmedContributionRol
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public checkAuthorization(user: User, role: Role): UnconfirmedContributionRole {
+  protected checkAuthorization(user: User, role: Role): UnconfirmedContributionRole {
     if (
       !role.hasRight(RIGHTS.MODERATOR_UPDATE_CONTRIBUTION_MEMO) &&
       this.self.moderatorId === null

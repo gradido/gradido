@@ -4,6 +4,7 @@ import { Decimal } from 'decimal.js-light'
 
 import { Role } from '@/auth/Role'
 import { ContributionLogic } from '@/data/Contribution.logic'
+import { Context, getClientTimezoneOffset } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
 export abstract class UnconfirmedContributionRole {
@@ -21,9 +22,9 @@ export abstract class UnconfirmedContributionRole {
 
   // steps which return void throw on each error
   // first, check if it can be updated
-  public abstract checkAuthorization(user: User, role: Role): void
+  protected abstract checkAuthorization(user: User, role: Role): void
   // second, check if contribution is still valid after update
-  public async validate(clientTimezoneOffset: number): Promise<void> {
+  protected async validate(clientTimezoneOffset: number): Promise<void> {
     // TODO: remove this restriction
     if (this.self.contributionDate.getMonth() !== this.updatedCreationDate.getMonth()) {
       throw new LogError('Month of contribution can not be changed')
@@ -42,7 +43,16 @@ export abstract class UnconfirmedContributionRole {
   }
 
   // third, actually update entity
-  public abstract update(): void
+  protected abstract update(): void
+
+  public async checkAndUpdate(context: Context): Promise<void> {
+    if (!context.user || !context.role) {
+      throw new LogError('missing user or role on context')
+    }
+    this.checkAuthorization(context.user, context.role)
+    await this.validate(getClientTimezoneOffset(context))
+    this.update()
+  }
 
   public getAvailableCreationSums(): Decimal[] {
     if (!this.availableCreationSums) {

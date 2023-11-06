@@ -70,10 +70,8 @@ export class UpdateUnconfirmedContributionContext {
       throw new LogError("don't recognize input type, maybe not implemented yet?")
     }
     // run steps
-    // all possible cases not to be true are thrown in the next functions
-    unconfirmedContributionRole.checkAuthorization(this.context.user, this.context.role)
-    await unconfirmedContributionRole.validate(getClientTimezoneOffset(this.context))
-    unconfirmedContributionRole.update()
+    // all possible cases not to be true are thrown in the next function
+    await unconfirmedContributionRole.checkAndUpdate(this.context)
 
     return {
       contribution: contributionToUpdate,

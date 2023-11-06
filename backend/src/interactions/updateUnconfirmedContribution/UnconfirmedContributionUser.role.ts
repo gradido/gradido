@@ -12,7 +12,7 @@ export class UnconfirmedContributionUserRole extends UnconfirmedContributionRole
     super(contribution, updateData.amount, new Date(updateData.creationDate))
   }
 
-  public update(): void {
+  protected update(): void {
     this.self.amount = this.updateData.amount
     this.self.memo = this.updateData.memo
     this.self.contributionDate = new Date(this.updateData.creationDate)
@@ -22,7 +22,7 @@ export class UnconfirmedContributionUserRole extends UnconfirmedContributionRole
     this.self.updatedBy = null
   }
 
-  public checkAuthorization(user: User): UnconfirmedContributionRole {
+  protected checkAuthorization(user: User): UnconfirmedContributionRole {
     if (this.self.userId !== user.id) {
       throw new LogError('Can not update contribution of another user', this.self, user.id)
     }
