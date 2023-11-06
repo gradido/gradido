@@ -19,7 +19,7 @@ export class UnconfirmedContributionUserRole extends UnconfirmedContributionRole
     this.self.contributionStatus = ContributionStatus.PENDING
     this.self.updatedAt = new Date()
     // null because updated by user them self
-    this.self.updatedBy = undefined
+    this.self.updatedBy = null
   }
 
   public checkAuthorization(user: User): UnconfirmedContributionRole {

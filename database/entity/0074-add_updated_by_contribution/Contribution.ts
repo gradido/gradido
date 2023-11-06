@@ -85,8 +85,8 @@ export class Contribution extends BaseEntity {
   @Column({ nullable: true, name: 'updated_at' })
   updatedAt: Date
 
-  @Column({ nullable: true, unsigned: true, name: 'updated_by' })
-  updatedBy?: number
+  @Column({ nullable: true, unsigned: true, name: 'updated_by', type: 'int' })
+  updatedBy: number | null
 
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date | null
