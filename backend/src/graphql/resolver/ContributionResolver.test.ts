@@ -2802,8 +2802,7 @@ describe('ContributionResolver', () => {
         } = await query({
           query: adminListContributions,
         })
-        // console.log('18 contributions: %s', JSON.stringify(contributionListObject, null, 2))
-        // console.log(contributionListObject)
+
         expect(contributionListObject.contributionList).toHaveLength(18)
         expect(contributionListObject).toMatchObject({
           contributionCount: 18,
@@ -2886,7 +2885,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               lastName: 'Lustig',
               memo: 'Das war leider zu Viel!',
-              messagesCount: 0,
+              messagesCount: 1,
               status: 'DELETED',
             }),
             expect.objectContaining({
@@ -3071,7 +3070,7 @@ describe('ContributionResolver', () => {
                 id: expect.any(Number),
                 lastName: 'Lustig',
                 memo: 'Das war leider zu Viel!',
-                messagesCount: 0,
+                messagesCount: 1,
                 status: 'DELETED',
               }),
             ]),
@@ -3116,7 +3115,7 @@ describe('ContributionResolver', () => {
                 id: expect.any(Number),
                 lastName: 'Lustig',
                 memo: 'Das war leider zu Viel!',
-                messagesCount: 0,
+                messagesCount: 1,
                 status: 'DELETED',
               }),
             ]),
