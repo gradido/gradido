@@ -36,7 +36,7 @@ export class UnconfirmedContributionUserRole extends UnconfirmedContributionRole
         this.self.contributionStatus,
       )
     }
-    // if a contribution was created from a moderator, user cannot init it
+    // if a contribution was created from a moderator, user cannot edit it
     // TODO: rethink
     if (this.self.moderatorId) {
       throw new LogError('Cannot update contribution of moderator', this.self, user.id)

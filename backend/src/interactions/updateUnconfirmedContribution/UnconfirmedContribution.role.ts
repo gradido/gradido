@@ -45,6 +45,7 @@ export abstract class UnconfirmedContributionRole {
   // third, actually update entity
   protected abstract update(): void
 
+  // call all steps in order
   public async checkAndUpdate(context: Context): Promise<void> {
     if (!context.user || !context.role) {
       throw new LogError('missing user or role on context')

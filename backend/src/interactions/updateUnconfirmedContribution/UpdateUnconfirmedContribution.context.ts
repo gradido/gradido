@@ -6,7 +6,7 @@ import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
 import { ContributionArgs } from '@arg/ContributionArgs'
 
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
-import { Context, getClientTimezoneOffset } from '@/server/context'
+import { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
 import { UnconfirmedContributionRole } from './UnconfirmedContribution.role'
