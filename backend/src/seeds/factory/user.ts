@@ -5,8 +5,8 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { RoleNames } from '@enum/RoleNames'
 
-import { createHomeCommunity, getHomeCommunity } from '@/graphql/resolver/util/communities'
 import { setUserRole } from '@/graphql/resolver/util/modifyUserRole'
+import { writeHomeCommunityEntry } from '@/seeds/community'
 import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { UserInterface } from '@/seeds/users/UserInterface'
 
@@ -16,7 +16,7 @@ export const userFactory = async (
 ): Promise<User> => {
   const { mutate } = client
 
-  await createHomeCommunity()
+  const homeCom = await writeHomeCommunityEntry()
 
   const {
     data: {
@@ -47,7 +47,6 @@ export const userFactory = async (
     await dbUser.save()
   }
   try {
-    const homeCom = await getHomeCommunity()
     if (homeCom.communityUuid) {
       dbUser.communityUuid = homeCom.communityUuid
       await User.save(dbUser)

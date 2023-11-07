@@ -34,6 +34,7 @@ import {
 import { EventType } from '@/event/Events'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'
+import { writeHomeCommunityEntry } from '@/seeds/community'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { userFactory } from '@/seeds/factory/user'
@@ -66,8 +67,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
-
-import { createHomeCommunity } from './util/communities'
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
@@ -131,7 +130,7 @@ describe('UserResolver', () => {
 
     beforeAll(async () => {
       jest.clearAllMocks()
-      homeCom = await createHomeCommunity()
+      homeCom = await writeHomeCommunityEntry()
       result = await mutate({ mutation: createUser, variables })
     })
 
@@ -546,7 +545,7 @@ describe('UserResolver', () => {
       let newUser: User
 
       beforeAll(async () => {
-        await createHomeCommunity()
+        await writeHomeCommunityEntry()
         await mutate({ mutation: createUser, variables: createUserVariables })
         const emailContact = await UserContact.findOneOrFail({
           where: { email: createUserVariables.email },
@@ -591,7 +590,7 @@ describe('UserResolver', () => {
 
     describe('no valid password', () => {
       beforeAll(async () => {
-        await createHomeCommunity()
+        await writeHomeCommunityEntry()
         await mutate({ mutation: createUser, variables: createUserVariables })
         const emailContact = await UserContact.findOneOrFail({
           where: { email: createUserVariables.email },

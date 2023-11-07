@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { CONFIG } from '@/config'
 
-export async function writeHomeCommunityEntry(): Promise<void> {
+export async function writeHomeCommunityEntry(): Promise<DbCommunity> {
   try {
     // check for existing homeCommunity entry
     let homeCom = await DbCommunity.findOne({ where: { foreign: false } })
@@ -28,7 +28,30 @@ export async function writeHomeCommunityEntry(): Promise<void> {
       homeCom.creationDate = new Date()
       await DbCommunity.insert(homeCom)
     }
+    return homeCom
   } catch (err) {
     throw new Error(`Seeding: Error writing HomeCommunity-Entry`) // : ${err}`)
+  }
+}
+
+export async function createHomeCommunity(): Promise<DbCommunity> {
+  let homeCom: DbCommunity
+  try {
+    return await DbCommunity.findOneOrFail({
+      where: [{ foreign: false }],
+    })
+  } catch (err) {
+    homeCom = DbCommunity.create()
+    homeCom.foreign = false
+    homeCom.url = 'http://localhost/api'
+    homeCom.publicKey = Buffer.from('publicKey-HomeCommunity')
+    homeCom.privateKey = Buffer.from('privateKey-HomeCommunity')
+    homeCom.communityUuid = 'HomeCom-UUID'
+    homeCom.authenticatedAt = new Date()
+    homeCom.name = 'HomeCommunity-name'
+    homeCom.description = 'HomeCommunity-description'
+    homeCom.creationDate = new Date()
+    await DbCommunity.insert(homeCom)
+    return homeCom
   }
 }
