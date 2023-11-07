@@ -20,4 +20,24 @@ export const UserRepository = getDataSource()
         return account
       }
     },
+
+    findByGradidoId({ uuid }: UserIdentifier): Promise<User | null> {
+      return User.findOneBy({ gradidoID: uuid })
+    },
+
+    findByPublicKey(publicKey: Buffer): Promise<User | null> {
+      return User.findOneBy({ derive1Pubkey: Buffer.from(publicKey) })
+    },
+
+    // TODO: adjust after implement AccountCommunity
+    findUserByIdentifier({ uuid }: UserIdentifier): Promise<User | null> {
+      return User.findOne({ where: { gradidoID: uuid }, relations: { accounts: true } })
+    },
+
+    findByPublicKeyWithAccount(publicKey: Buffer, derivationIndex: number): Promise<User | null> {
+      return User.findOne({
+        relations: { accounts: true },
+        where: { derive1Pubkey: Buffer.from(publicKey), accounts: { derivationIndex } },
+      })
+    },
   })

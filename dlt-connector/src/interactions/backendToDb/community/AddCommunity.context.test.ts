@@ -8,7 +8,6 @@ import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 import { TestDB } from '@test/TestDB'
 import { getDataSource } from '@/typeorm/DataSource'
 import { Community } from '@entity/Community'
-import { createCommunity } from '@/data/community.factory'
 
 const rootKeysSeed = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899'
 CONFIG.IOTA_HOME_COMMUNITY_SEED = rootKeysSeed

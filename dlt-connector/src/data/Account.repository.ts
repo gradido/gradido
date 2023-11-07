@@ -7,19 +7,16 @@ import { In } from 'typeorm'
 export const AccountRepository = getDataSource()
   .getRepository(Account)
   .extend({
-    findAccountsByPublicKeys(publicKeys: Buffer[]): Promise<Account[]> {
+    findByPublicKeys(publicKeys: Buffer[]): Promise<Account[]> {
       return this.findBy({ derive2Pubkey: In(publicKeys) })
     },
 
-    async findAccountByPublicKey(publicKey: Buffer | undefined): Promise<Account | undefined> {
+    async findByPublicKey(publicKey: Buffer | undefined): Promise<Account | undefined> {
       if (!publicKey) return undefined
       return (await this.findOneBy({ derive2Pubkey: Buffer.from(publicKey) })) ?? undefined
     },
 
-    async findAccountByUserIdentifier({
-      uuid,
-      accountNr,
-    }: UserIdentifier): Promise<Account | undefined> {
+    async findByUserIdentifier({ uuid, accountNr }: UserIdentifier): Promise<Account | undefined> {
       const user = await User.findOne({
         where: { gradidoID: uuid, accounts: { derivationIndex: accountNr ?? 1 } },
         relations: { accounts: true },

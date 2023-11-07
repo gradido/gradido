@@ -35,7 +35,6 @@
     "graphql-scalars": "^1.22.2",
     "jsonrpc-ts-client": "^0.2.3",
     "log4js": "^6.7.1",
-    "long": "^5.2.3",
     "nodemon": "^2.0.20",
     "protobufjs": "^7.2.5",
     "reflect-metadata": "^0.1.13",

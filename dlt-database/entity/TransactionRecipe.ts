@@ -1,1 +1,1 @@
-export { TransactionRecipe } from './0003-refactor_transaction_recipe/TransactionRecipe'
+export { TransactionRecipe } from './0001-init_db/TransactionRecipe'

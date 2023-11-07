@@ -34,49 +34,7 @@ export const getKeyPair = (user: User): KeyPair => {
   return keyPair
 }
 
-export const findByGradidoId = ({ uuid }: UserIdentifier): Promise<User | null> => {
-  return User.findOneBy({ gradidoID: uuid })
-}
 
-export const findByPublicKey = (publicKey: Buffer): Promise<User | null> => {
-  return User.findOneBy({ derive1Pubkey: Buffer.from(publicKey) })
-}
-
-// TODO: adjust after implement AccountCommunity
-export const findUserByIdentifier = ({ uuid }: UserIdentifier): Promise<User | null> => {
-  return User.findOne({ where: { gradidoID: uuid }, relations: { accounts: true } })
-}
-
-export const findByPublicKeyWithAccount = (
-  publicKey: Buffer,
-  derivationIndex: number,
-): Promise<User | null> => {
-  return User.findOne({
-    relations: { accounts: true },
-    where: { derive1Pubkey: Buffer.from(publicKey), accounts: { derivationIndex } },
-  })
-}
-
-export const create = (userAccountDraft: UserAccountDraft): User => {
-  const user = User.create()
-  user.createdAt = new Date(userAccountDraft.createdAt)
-  user.gradidoID = userAccountDraft.user.uuid
-  user.derive1Pubkey = getKeyPair(user).publicKey
-  return user
-}
-
-export const createFromProto = (confirmedTransaction: ConfirmedTransaction): User => {
-  const body = getBody(confirmedTransaction.transaction)
-  const registerAddress = body.registerAddress
-  if (!registerAddress) {
-    throw new LogError('wrong type of transaction, registerAddress expected')
-  }
-  const user = User.create()
-  user.createdAt = timestampToDate(body.createdAt)
-  user.derive1Pubkey = Buffer.from(registerAddress.userPubkey)
-  user.confirmedAt = timestampSecondsToDate(confirmedTransaction.confirmedAt)
-  return user
-}
 
 export const confirm = async (
   registerAddress: RegisterAddress,

@@ -9,6 +9,7 @@ import { LogError } from '@/server/LogError'
 import { Account } from '@entity/Account'
 import { Community } from '@entity/Community'
 import { TransactionBodyBuilder } from './proto/TransactionBody.builder'
+import { ConfirmedTransaction } from './proto/3_3/ConfirmedTransaction'
 
 export class TransactionBuilder {
   private transaction: Transaction
@@ -126,10 +127,8 @@ export class TransactionBuilder {
     // TODO: adapt if transactions with more than one signatures where added
 
     // get recipient and signer accounts if not already set
-    this.transaction.signingAccount ??= await AccountRepository.findAccountByPublicKey(
-      firstSigPair.pubKey,
-    )
-    this.transaction.recipientAccount ??= await AccountRepository.findAccountByPublicKey(
+    this.transaction.signingAccount ??= await AccountRepository.findByPublicKey(firstSigPair.pubKey)
+    this.transaction.recipientAccount ??= await AccountRepository.findByPublicKey(
       transactionBody.getRecipientPublicKey(),
     )
     this.transaction.signature = Buffer.from(firstSigPair.signature)
@@ -167,6 +166,10 @@ export class TransactionBuilder {
       this.setRecipientAccount(recipientAccount)
     }
     this.fromTransactionBody(transactionBodyBuilder.getTransactionBody())
+    return this
+  }
+
+  public fromConfirmedTransaction(confirmedTransaction: ConfirmedTransaction): TransactionBuilder {
     return this
   }
 }

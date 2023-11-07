@@ -10,11 +10,11 @@ import { LogError } from '@/server/LogError'
 import Decimal from 'decimal.js-light'
 import { timestampSecondsToDate } from '@/utils/typeConverter'
 import { logger } from '@/server/logger'
-import { createFromProto } from '@controller/Account'
 import { User } from '@entity/User'
 import { Account } from '@entity/Account'
 import { BackendClient } from '@/client/BackendClient'
 import { TransactionType } from '@/graphql/enum/TransactionType'
+import { AccountFactory } from '@/data/Account.factory'
 
 export const create = (
   confirmedTransactionProto: ConfirmedTransaction,
@@ -160,7 +160,7 @@ export const confirmFromNodeServer = async (
     ) {
       // if transaction came from blockchain, from another Community or backup we don't have account or user and must create them
       if (body.registerAddress) {
-        const newEntity = await createFromProto(confirmedTransaction)
+        const newEntity = await AccountFactory.createFromProto(confirmedTransaction)
         if (newEntity instanceof User) {
           newUsers.push(newEntity)
         } else if (newEntity instanceof Account) {

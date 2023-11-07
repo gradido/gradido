@@ -1,3 +1,4 @@
+import { CommunityArgs } from '@/graphql/arg/CommunityArgs'
 import { FindOptionsWhere } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 
@@ -59,10 +60,10 @@ export async function getCommunityName(communityIdentifier: string): Promise<str
   }
 }
 
-export async function getCommunity(
-  communityUuid?: string | null,
-  foreign?: boolean | null,
-): Promise<DbCommunity | null> {
+export async function getCommunity({
+  communityUuid,
+  foreign,
+}: CommunityArgs): Promise<DbCommunity | null> {
   return await DbCommunity.findOne({
     where: {
       ...(foreign !== null && foreign !== undefined && { foreign }),

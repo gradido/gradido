@@ -4,6 +4,9 @@ import { SignatureMap } from './SignatureMap'
 import { TransactionBody } from './TransactionBody'
 import { SignaturePair } from './SignaturePair'
 import { LogError } from '@/server/LogError'
+import { logger } from '@/server/logger'
+import { TransactionError } from '@/graphql/model/TransactionError'
+import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
@@ -39,5 +42,17 @@ export class GradidoTransaction extends Message<GradidoTransaction> {
       throw new LogError("signature count don't like expected")
     }
     return sigPair[0]
+  }
+
+  getTransactionBody(): TransactionBody {
+    try {
+      return TransactionBody.decode(new Uint8Array(this.bodyBytes))
+    } catch (error) {
+      logger.error('error decoding body from gradido transaction: %s', error)
+      throw new TransactionError(
+        TransactionErrorType.PROTO_DECODE_ERROR,
+        'cannot decode body from gradido transaction',
+      )
+    }
   }
 }

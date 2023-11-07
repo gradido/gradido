@@ -2,6 +2,7 @@ import { Field, Message } from 'protobufjs'
 import { GradidoTransaction } from './GradidoTransaction'
 import { TimestampSeconds } from './TimestampSeconds'
 import { base64ToBuffer } from '@/utils/typeConverter'
+import { TransactionBody } from './TransactionBody'
 
 /*
 	id will be set by Node server
@@ -14,6 +15,10 @@ import { base64ToBuffer } from '@/utils/typeConverter'
 export class ConfirmedTransaction extends Message<ConfirmedTransaction> {
   static fromBase64(base64: string): ConfirmedTransaction {
     return ConfirmedTransaction.decode(new Uint8Array(base64ToBuffer(base64)))
+  }
+
+  getTransactionBody(): TransactionBody {
+    return this.transaction.getTransactionBody()
   }
 
   @Field.d(1, 'uint64')

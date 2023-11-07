@@ -4,11 +4,7 @@ import { GradidoTransfer } from './GradidoTransfer'
 import { TimestampSeconds } from './TimestampSeconds'
 import { TransactionBase } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
-<<<<<<< HEAD:dlt-connector/src/data/proto/3_3/GradidoDeferredTransfer.ts
-import { TransactionRecipe } from '@entity/TransactionRecipe'
-=======
 import { Transaction } from '@entity/Transaction'
->>>>>>> dlt_connector_try_dci:dlt-connector/src/proto/3_3/GradidoDeferredTransfer.ts
 import Decimal from 'decimal.js-light'
 
 // transaction type for chargeable transactions
@@ -45,11 +41,7 @@ export class GradidoDeferredTransfer
     throw new Error('Method not implemented.')
   }
 
-<<<<<<< HEAD:dlt-connector/src/data/proto/3_3/GradidoDeferredTransfer.ts
-  public fillTransactionRecipe(recipe: TransactionRecipe): void {
-=======
   public fillTransactionRecipe(recipe: Transaction): void {
->>>>>>> dlt_connector_try_dci:dlt-connector/src/proto/3_3/GradidoDeferredTransfer.ts
     recipe.amount = new Decimal(this.transfer.sender.amount ?? 0)
   }
 }
