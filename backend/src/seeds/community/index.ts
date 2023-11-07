@@ -33,25 +33,3 @@ export async function writeHomeCommunityEntry(): Promise<DbCommunity> {
     throw new Error(`Seeding: Error writing HomeCommunity-Entry`) // : ${err}`)
   }
 }
-
-export async function createHomeCommunity(): Promise<DbCommunity> {
-  let homeCom: DbCommunity
-  try {
-    return await DbCommunity.findOneOrFail({
-      where: [{ foreign: false }],
-    })
-  } catch (err) {
-    homeCom = DbCommunity.create()
-    homeCom.foreign = false
-    homeCom.url = 'http://localhost/api'
-    homeCom.publicKey = Buffer.from('publicKey-HomeCommunity')
-    homeCom.privateKey = Buffer.from('privateKey-HomeCommunity')
-    homeCom.communityUuid = 'HomeCom-UUID'
-    homeCom.authenticatedAt = new Date()
-    homeCom.name = 'HomeCommunity-name'
-    homeCom.description = 'HomeCommunity-description'
-    homeCom.creationDate = new Date()
-    await DbCommunity.insert(homeCom)
-    return homeCom
-  }
-}
