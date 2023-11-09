@@ -6,6 +6,7 @@ import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
 import { Connection } from '@typeorm/connection'
 
+import { Order } from '@/graphql/enum/Order'
 import { LogError } from '@/server/LogError'
 
 interface Relations {
@@ -28,7 +29,7 @@ function joinRelationsRecursive(
 }
 
 export const findContributions = async (
-  paginate: Paginated,
+  { pageSize = 3, currentPage = 1, order = Order.DESC }: Paginated,
   filter: SearchContributionsFilterArgs,
   withDeleted = false,
   relations: Relations | undefined = undefined,
@@ -61,9 +62,9 @@ export const findContributions = async (
     )
   }
   return queryBuilder
-    .orderBy('Contribution.createdAt', paginate.order)
-    .addOrderBy('Contribution.id', paginate.order)
-    .skip((paginate.currentPage - 1) * paginate.pageSize)
-    .take(paginate.pageSize)
+    .orderBy('Contribution.createdAt', order)
+    .addOrderBy('Contribution.id', order)
+    .skip((currentPage - 1) * pageSize)
+    .take(pageSize)
     .getManyAndCount()
 }
