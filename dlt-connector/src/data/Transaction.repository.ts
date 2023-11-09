@@ -1,4 +1,6 @@
 import { getDataSource } from '@/typeorm/DataSource'
+import { Brackets, In, Not } from '@dbTools/typeorm'
+import { Account } from '@entity/Account'
 import { Transaction } from '@entity/Transaction'
 import { IsNull } from 'typeorm'
 
@@ -30,10 +32,25 @@ export const TransactionRepository = getDataSource()
         .leftJoinAndSelect('SigningAccount.user', 'SigningUser')
         .getMany()
     },
-    async removeConfirmedTransaction(transactions: Transaction[]): Promise<Transaction[]> {
+    removeConfirmedTransaction(transactions: Transaction[]): Transaction[] {
       return transactions.filter(
         (transaction: Transaction) =>
           transaction.runningHash === undefined || transaction.runningHash.length === 0,
       )
     },
+
+    async getLastTransactionForBalanceAccount({ id }: Account): Promise<Transaction | null> {
+      // check TransactionLogic.getBalanceAccount for reference 
+      // TODO: find a war to get the actual logic from TransactionLogic
+      // TODO: update for deferred transfer
+      const queryBuilder = this.createQueryBuilder('transactions')
+      queryBuilder.where({ confirmedAt: Not(IsNull())})
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where({type: 2, recipientAccountId: id })
+          qb.orWhere({type: 1, senderAccountId: id})
+        })
+      )
+      return queryBuilder.getOne()
+    }
   })

@@ -1,24 +1,21 @@
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
+import { LogError } from '@/server/LogError'
+import { timestampSecondsToDate } from '@/utils/typeConverter'
 import { Transaction } from '@entity/Transaction'
+import { Decimal } from 'decimal.js-light'
 
 export class ConfirmedTransactionRole {
   // eslint-disable-next-line no-useless-constructor
   public constructor(private self: Transaction) {}
 
-  public fillFromConfirmedTransaction(confirmedTransactionProto: ConfirmedTransaction) {
-    const confirmedTransaction = ConfirmedTransactionEntity.create()
-    confirmedTransaction.transactionRecipe = transactionRecipe.getTransactionRecipeEntity()
-    confirmedTransaction.nr = confirmedTransactionProto.id.toInt()
-    confirmedTransaction.runningHash = Buffer.from(confirmedTransactionProto.runningHash)
-    const balanceAccount = transactionRecipe.getBalanceAccount()
-    if (balanceAccount === undefined) {
-      throw new LogError('something went wrong with balance account')
+  public async fillFromConfirmedTransaction(confirmedTransactionProto: ConfirmedTransaction) : Promise<void> {
+    
+    this.self.nr = confirmedTransactionProto.id.toInt()
+    if(new Long(this.self.nr) !== confirmedTransactionProto.id) {
+      throw new LogError('datatype overflow, please update transactions.nr data type')
     }
-    if (balanceAccount) {
-      confirmedTransaction.account = balanceAccount
-    }
-    confirmedTransaction.accountBalance = new Decimal(confirmedTransactionProto.accountBalance)
-    confirmedTransaction.confirmedAt = timestampSecondsToDate(confirmedTransactionProto.confirmedAt)
-    return confirmedTransaction
+    this.self.runningHash = Buffer.from(confirmedTransactionProto.runningHash)
+    this.self.accountBalanceConfirmedAt = new Decimal(confirmedTransactionProto.accountBalance)
+    this.self.confirmedAt = timestampSecondsToDate(confirmedTransactionProto.confirmedAt)
   }
 }
