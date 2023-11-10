@@ -136,6 +136,7 @@ export default {
           .then((result) => {
             this.$emit('get-list-contribution-messages', this.contributionId)
             this.$emit('update-status', this.contributionId)
+            this.$emit('reload-contribution', this.contributionId)
             this.toastSuccess(this.$t('message.request'))
             this.loading = false
           })

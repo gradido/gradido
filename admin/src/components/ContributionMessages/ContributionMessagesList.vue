@@ -14,6 +14,7 @@
         :contributionMemo="contributionMemo"
         @get-list-contribution-messages="$apollo.queries.Messages.refetch()"
         @update-status="updateStatus"
+        @reload-contribution="reloadContribution"
       />
     </div>
   </div>
@@ -74,6 +75,9 @@ export default {
   methods: {
     updateStatus(id) {
       this.$emit('update-status', id)
+    },
+    reloadContribution(id) {
+      this.$emit('reload-contribution', id)
     },
   },
 }

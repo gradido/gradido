@@ -45,6 +45,7 @@ import { calculateDecay } from '@/util/decay'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { fullName } from '@/util/utilities'
 
+import { findContribution } from './util/contributions'
 import { getUserCreation, validateContribution, getOpenCreations } from './util/creations'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
@@ -52,6 +53,16 @@ import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConn
 
 @Resolver()
 export class ContributionResolver {
+  @Authorized([RIGHTS.ADMIN_LIST_CONTRIBUTIONS])
+  @Query(() => Contribution)
+  async contribution(@Arg('id', () => Int) id: number): Promise<Contribution> {
+    const contribution = await findContribution(id)
+    if (!contribution) {
+      throw new LogError('Contribution not found', id)
+    }
+    return new Contribution(contribution)
+  }
+
   @Authorized([RIGHTS.CREATE_CONTRIBUTION])
   @Mutation(() => UnconfirmedContribution)
   async createContribution(

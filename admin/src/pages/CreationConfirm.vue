@@ -49,6 +49,7 @@
       :fields="fields"
       @show-overlay="showOverlay"
       @update-status="updateStatus"
+      @reload-contribution="reloadContribution"
       @update-contributions="$apollo.queries.ListAllContributions.refetch()"
     />
 
@@ -95,6 +96,33 @@ import { adminListContributions } from '../graphql/adminListContributions'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
+import gql from 'graphql-tag'
+
+export const getContribution = gql`
+  query ($id: Int!) {
+    contribution(id: $id) {
+      id
+      firstName
+      lastName
+      amount
+      memo
+      createdAt
+      contributionDate
+      confirmedAt
+      confirmedBy
+      updatedAt
+      updatedBy
+      status
+      messagesCount
+      deniedAt
+      deniedBy
+      deletedAt
+      deletedBy
+      moderatorId
+      userId
+    }
+  }
+`
 
 const FILTER_TAB_MAP = [
   ['IN_PROGRESS', 'PENDING'],
@@ -131,6 +159,22 @@ export default {
     },
   },
   methods: {
+    reloadContribution(id) {
+      this.$apollo
+        .query({ query: getContribution, variables: { id } })
+        .then((result) => {
+          const contribution = result.data.contribution
+          this.$set(
+            this.items,
+            this.items.findIndex((obj) => obj.id === contribution.id),
+            contribution,
+          )
+        })
+        .catch((error) => {
+          this.overlay = false
+          this.toastError(error.message)
+        })
+    },
     swapNoHashtag() {
       this.query()
     },

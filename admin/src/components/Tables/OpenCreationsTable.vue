@@ -113,6 +113,7 @@
                 :contributionUserId="row.item.userId"
                 :contributionMemo="row.item.memo"
                 @update-status="updateStatus"
+                @reload-contribution="reloadContribution"
               />
             </div>
           </template>
@@ -171,6 +172,9 @@ export default {
     },
     updateStatus(id) {
       this.$emit('update-status', id)
+    },
+    reloadContribution(id) {
+      this.$emit('reload-contribution', id)
     },
   },
 }
