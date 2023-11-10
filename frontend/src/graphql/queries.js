@@ -197,6 +197,8 @@ export const listContributions = gql`
         messagesCount
         deniedAt
         deniedBy
+        updatedBy
+        updatedAt
         moderatorId
       }
     }
@@ -221,6 +223,8 @@ export const listAllContributions = gql`
         messagesCount
         deniedAt
         deniedBy
+        updatedBy
+        updatedAt
       }
     }
   }

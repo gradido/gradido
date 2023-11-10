@@ -255,7 +255,8 @@
     "title": "Danke!",
     "unsetPassword": "Dein Passwort wurde noch nicht gesetzt. Bitte setze es neu."
   },
-  "moderatorChat": "Moderator Chat",
+  "moderatorChangedMemo": "Memo vom Moderator bearbeitet",
+  "moderatorChat": "Moderator Chat",  
   "navigation": {
     "admin_area": "Adminbereich",
     "community": "Gemeinschaft",
