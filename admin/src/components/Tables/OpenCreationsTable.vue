@@ -24,6 +24,13 @@
           </b-button>
         </div>
       </template>
+      <template #cell(memo)="row">
+        {{ row.value }}
+        <small v-if="row.item.updatedBy > 0">
+          <hr />
+          {{ $t('moderator.memo-modified') }}
+        </small>
+      </template>
       <template #cell(editCreation)="row">
         <div v-if="!myself(row.item)">
           <b-button
@@ -104,6 +111,7 @@
                 :contributionId="row.item.id"
                 :contributionStatus="row.item.status"
                 :contributionUserId="row.item.userId"
+                :contributionMemo="row.item.memo"
                 @update-status="updateStatus"
               />
             </div>

@@ -15,13 +15,17 @@ export class UnconfirmedContributionAdminRole extends UnconfirmedContributionRol
     private updateData: AdminUpdateContributionArgs,
     private moderator: User,
   ) {
-    super(contribution, updateData.amount, new Date(updateData.creationDate))
+    super(
+      contribution,
+      updateData.amount ?? contribution.amount,
+      updateData.creationDate ? new Date(updateData.creationDate) : contribution.contributionDate,
+    )
   }
 
   protected update(): void {
-    this.self.amount = this.updateData.amount
-    this.self.memo = this.updateData.memo
-    this.self.contributionDate = new Date(this.updateData.creationDate)
+    this.self.amount = this.updatedAmount
+    this.self.memo = this.updateData.memo ?? this.self.memo
+    this.self.contributionDate = this.updatedCreationDate
     this.self.contributionStatus = ContributionStatus.PENDING
     this.self.updatedAt = new Date()
     this.self.updatedBy = this.moderator.id

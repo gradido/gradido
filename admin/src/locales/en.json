@@ -109,9 +109,14 @@
     "request": "Request has been sent."
   },
   "moderator": {
+    "chat": "Chat",
     "history": "The data has been changed. This is the old data.",
     "moderator": "Moderator",
     "notice": "Moderator note",
+    "notice_tooltip": "Only moderators can see the message",
+    "memo": "Memo",
+    "memo-modify": "Modify Memo",
+    "memo-modified": "Memo edited by moderator",
     "request": "This message is only visible to the moderators!"
   },
   "name": "Name",

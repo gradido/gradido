@@ -256,10 +256,9 @@ export class ContributionResolver {
       ])
     })
     const moderator = getUser(context)
-    const { amount } = adminUpdateContributionArgs
 
     const result = new AdminUpdateContribution()
-    result.amount = amount
+    result.amount = contribution.amount
     result.memo = contribution.memo
     result.date = contribution.contributionDate
 
@@ -267,7 +266,7 @@ export class ContributionResolver {
       { id: contribution.userId } as DbUser,
       moderator,
       contribution,
-      amount,
+      contribution.amount,
     )
 
     return result

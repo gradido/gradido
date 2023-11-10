@@ -11,6 +11,7 @@
     <div v-if="contributionStatus === 'PENDING' || contributionStatus === 'IN_PROGRESS'">
       <contribution-messages-formular
         :contributionId="contributionId"
+        :contributionMemo="contributionMemo"
         @get-list-contribution-messages="$apollo.queries.Messages.refetch()"
         @update-status="updateStatus"
       />
@@ -31,6 +32,10 @@ export default {
   props: {
     contributionId: {
       type: Number,
+      required: true,
+    },
+    contributionMemo: {
+      type: String,
       required: true,
     },
     contributionStatus: {

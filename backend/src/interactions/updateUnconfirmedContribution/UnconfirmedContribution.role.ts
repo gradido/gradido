@@ -12,8 +12,8 @@ export abstract class UnconfirmedContributionRole {
 
   public constructor(
     protected self: Contribution,
-    private updatedAmount: Decimal,
-    private updatedCreationDate: Date,
+    protected updatedAmount: Decimal,
+    protected updatedCreationDate: Date,
   ) {
     if (self.confirmedAt || self.deniedAt) {
       throw new LogError("this contribution isn't unconfirmed!")
