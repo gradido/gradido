@@ -40,16 +40,19 @@ footer
     .line
     .footer
       div(class="footer_p1")= t("emails.footer.contactOurSupport")
-      div(class="footer_p2")= t("emails.footer.supportEmail")
+      a(
+        class="footer_p2"
+        href='mailto:' + t("emails.footer.supportEmail")
+      )= t("emails.footer.supportEmail")
       img.image(
         alt="Gradido Logo"
         src="https://gdd.gradido.net/img/brand/green.png"
         )
       div
         a(
-        class="terms_of_use"
-        href="https://gradido.net/de/impressum/"
-        target="_blank"
+          class="terms_of_use"
+          href="https://gradido.net/de/impressum/"
+          target="_blank"
         )= t("emails.footer.imprint")
       br
       a(
