@@ -1,4 +1,9 @@
-export const getTimeDurationObject = (time: number): { hours?: number; minutes: number } => {
+export interface TimeDuration {
+  hours?: number
+  minutes: number
+}
+
+export const getTimeDurationObject = (time: number): TimeDuration => {
   if (time > 60) {
     return {
       hours: Math.floor(time / 60),

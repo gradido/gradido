@@ -14,7 +14,7 @@ import { Order } from '@enum/Order'
 import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
 
 import { RIGHTS } from '@/auth/RIGHTS'
-import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
+import { EmailBuilder, EmailType } from '@/emails/Email.builder'
 import {
   EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE,
   EVENT_CONTRIBUTION_MESSAGE_CREATE,
@@ -170,15 +170,13 @@ export class ContributionMessageResolver {
         }
 
         // send email (never for moderator messages)
-        void sendAddedContributionMessageEmail({
-          firstName: contribution.user.firstName,
-          lastName: contribution.user.lastName,
-          email: contribution.user.emailContact.email,
-          language: contribution.user.language,
-          senderFirstName: moderator.firstName,
-          senderLastName: moderator.lastName,
-          contributionMemo: contribution.memo,
-        })
+        const emailBuilder = new EmailBuilder()
+        void emailBuilder
+          .setRecipient(contribution.user)
+          .setSender(moderator)
+          .setContribution(contribution)
+          .setType(EmailType.ADDED_CONTRIBUTION_MESSAGE)
+          .sendEmail()
       }
       await queryRunner.commitTransaction()
       await EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE(

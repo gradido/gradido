@@ -4,6 +4,7 @@ import { User } from '@entity/User'
 
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
+import { TimeDuration } from '@/util/time'
 import { decimalSeparatorByLanguage, resetInterface } from '@/util/utilities'
 
 import { sendEmailTranslated } from './sendEmailTranslated'
@@ -21,12 +22,12 @@ export interface EmailLocals {
   contributionAmount?: string
   overviewURL?: string
   activationLink?: string
-  timeDurationObject?: Date
+  timeDurationObject?: TimeDuration
   resendLink?: string
   resetLink?: string
   transactionMemo?: string
   transactionAmount?: string
-  [key: string]: string | Date | undefined
+  [key: string]: string | TimeDuration | undefined
 }
 
 export enum EmailType {
@@ -159,6 +160,7 @@ export class EmailBuilder {
     this.receiver.to = `${recipient.firstName} ${recipient.lastName} <${recipient.emailContact.email}>`
     this.locals.firstName = recipient.firstName
     this.locals.lastName = recipient.lastName
+    this.locals.locale = recipient.language
     return this
   }
 
@@ -174,11 +176,6 @@ export class EmailBuilder {
     return this
   }
 
-  public setLanguage(locale: string): this {
-    this.locals.locale = locale
-    return this
-  }
-
   public setResetLink(resetLink: string): this {
     this.locals.resentLink = resetLink
     return this
@@ -187,7 +184,7 @@ export class EmailBuilder {
   public setContribution(contribution: Contribution): this {
     this.locals.contributionMemo = contribution.memo
     if (!this.locals.locale || this.locals.locale === '') {
-      throw new LogError('missing locale please call setLanguage before')
+      throw new LogError('missing locale please call setRecipient before')
     }
     this.locals.contributionAmount = decimalSeparatorByLanguage(
       contribution.amount,
@@ -199,7 +196,7 @@ export class EmailBuilder {
   public setTransaction(transaction: Transaction): this {
     this.locals.transactionMemo = transaction.memo
     if (!this.locals.locale || this.locals.locale === '') {
-      throw new LogError('missing locale please call setLanguage before')
+      throw new LogError('missing locale please call setRecipient before')
     }
     this.locals.transactionAmount = decimalSeparatorByLanguage(
       transaction.amount,
@@ -213,7 +210,7 @@ export class EmailBuilder {
     return this
   }
 
-  public setTimeDurationObject(timeDurationObject: Date): this {
+  public setTimeDurationObject(timeDurationObject: TimeDuration): this {
     this.locals.timeDurationObject = timeDurationObject
     return this
   }
