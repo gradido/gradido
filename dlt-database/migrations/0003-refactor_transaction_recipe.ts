@@ -3,8 +3,8 @@
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // write upgrade logic as parameter of queryFn
-  await queryFn(`DROP TABLE \`transaction_recipes\`;`)
   await queryFn(`DROP TABLE \`confirmed_transactions\`;`)
+  await queryFn(`DROP TABLE \`transaction_recipes\`;`)  
 
   await queryFn(
     `ALTER TABLE \`accounts\` MODIFY COLUMN  \`derivation_index\` int(10) unsigned NULL DEFAULT NULL;`,
