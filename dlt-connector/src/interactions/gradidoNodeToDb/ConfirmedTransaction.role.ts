@@ -1,4 +1,5 @@
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
+import { LogError } from '@/server/LogError'
 import { Transaction } from '@entity/Transaction'
 
 export class ConfirmedTransactionRole {
@@ -6,10 +7,11 @@ export class ConfirmedTransactionRole {
   public constructor(private self: Transaction) {}
 
   public fillFromConfirmedTransaction(confirmedTransactionProto: ConfirmedTransaction) {
-    const confirmedTransaction = ConfirmedTransactionEntity.create()
-    confirmedTransaction.transactionRecipe = transactionRecipe.getTransactionRecipeEntity()
-    confirmedTransaction.nr = confirmedTransactionProto.id.toInt()
-    confirmedTransaction.runningHash = Buffer.from(confirmedTransactionProto.runningHash)
+    this.self.nr = confirmedTransactionProto.id.toInt()
+    if (new Long(this.self.nr) !== confirmedTransactionProto.id) {
+      throw new LogError('datatype overflow, please pick a bigger datatype for Transaction.nr')
+    }
+    this.self.runningHash = Buffer.from(confirmedTransactionProto.runningHash)
     const balanceAccount = transactionRecipe.getBalanceAccount()
     if (balanceAccount === undefined) {
       throw new LogError('something went wrong with balance account')
