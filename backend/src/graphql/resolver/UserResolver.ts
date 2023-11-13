@@ -272,6 +272,10 @@ export class UserResolver {
       { id: 0 } as DbUser,
     )
     let dbUser = new DbUser()
+    const homeCom = await getHomeCommunity()
+    if (homeCom.communityUuid) {
+      dbUser.communityUuid = homeCom.communityUuid
+    }
     dbUser.gradidoID = gradidoID
     dbUser.firstName = firstName
     dbUser.lastName = lastName
