@@ -31,11 +31,7 @@ import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
-import {
-  sendAccountActivationEmail,
-  sendAccountMultiRegistrationEmail,
-  sendResetPasswordEmail,
-} from '@/emails/sendEmailVariants'
+import { EmailBuilder, EmailType } from '@/emails/Email.builder'
 import {
   Event,
   EventType,
@@ -248,12 +244,12 @@ export class UserResolver {
         }
         logger.debug('partly faked user', user)
 
-        void sendAccountMultiRegistrationEmail({
-          firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
-          lastName: foundUser.lastName, // this is the real name of the email owner, but just "lastName" would be the name of the new registrant which shall not be passed to the outside
-          email,
-          language: foundUser.language, // use language of the emails owner for sending
-        })
+        const emailBuilder = new EmailBuilder()
+        void emailBuilder
+          .setRecipient(foundUser) // this is the real name of the email owner, but just "firstName" and "lastName" would be the name of the new registrant which shall not be passed to the outside
+          .setType(EmailType.ACCOUNT_MULTI_REGISTRATION)
+          .sendEmail()
+
         await EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION(foundUser)
 
         logger.info(
@@ -332,14 +328,14 @@ export class UserResolver {
         emailContact.emailVerificationCode.toString(),
       ).replace(/{code}/g, redeemCode ? '/' + redeemCode : '')
 
-      void sendAccountActivationEmail({
-        firstName,
-        lastName,
-        email,
-        language,
-        activationLink,
-        timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
-      })
+      const emailBuilder = new EmailBuilder()
+      void emailBuilder
+        .setRecipient(dbUser)
+        .setActivationLink(activationLink)
+        .setTimeDurationObject(getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME))
+        .setType(EmailType.ACCOUNT_ACTIVATION)
+        .sendEmail()
+
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
 
       await EVENT_EMAIL_CONFIRMATION(dbUser)
@@ -394,15 +390,13 @@ export class UserResolver {
     })
 
     logger.info('optInCode for', email, user.emailContact)
-
-    void sendResetPasswordEmail({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email,
-      language: user.language,
-      resetLink: activationLink(user.emailContact.emailVerificationCode),
-      timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
-    })
+    const emailBuilder = new EmailBuilder()
+    void emailBuilder
+      .setRecipient(user)
+      .setResetLink(activationLink(user.emailContact.emailVerificationCode))
+      .setTimeDurationObject(getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME))
+      .setType(EmailType.RESET_PASSWORD)
+      .sendEmail()
 
     logger.info(`forgotPassword(${email}) successful...`)
     await EVENT_EMAIL_FORGOT_PASSWORD(user)
@@ -798,15 +792,13 @@ export class UserResolver {
     user.emailContact.emailResendCount++
     await user.emailContact.save()
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    void sendAccountActivationEmail({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email,
-      language: user.language,
-      activationLink: activationLink(user.emailContact.emailVerificationCode),
-      timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
-    })
+    const emailBuilder = new EmailBuilder()
+    void emailBuilder
+      .setRecipient(user)
+      .setActivationLink(activationLink(user.emailContact.emailVerificationCode))
+      .setTimeDurationObject(getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME))
+      .setType(EmailType.ACCOUNT_ACTIVATION)
+      .sendEmail()
 
     await EVENT_EMAIL_ADMIN_CONFIRMATION(user, getUser(context))
 
