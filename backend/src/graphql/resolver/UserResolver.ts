@@ -387,15 +387,13 @@ export class UserResolver {
     })
 
     logger.info('optInCode for', email, user.emailContact)
-
-    void sendResetPasswordEmail({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email,
-      language: user.language,
-      resetLink: activationLink(user.emailContact.emailVerificationCode),
-      timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
-    })
+    const emailBuilder = new EmailBuilder()
+    void emailBuilder
+      .setRecipient(user)
+      .setResetLink(activationLink(user.emailContact.emailVerificationCode))
+      .setTimeDurationObject(getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME))
+      .setType(EmailType.RESET_PASSWORD)
+      .sendEmail()
 
     logger.info(`forgotPassword(${email}) successful...`)
     await EVENT_EMAIL_FORGOT_PASSWORD(user)

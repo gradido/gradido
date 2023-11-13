@@ -22,11 +22,7 @@ import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 
 import { RIGHTS } from '@/auth/RIGHTS'
-import {
-  sendContributionConfirmedEmail,
-  sendContributionDeletedEmail,
-  sendContributionDeniedEmail,
-} from '@/emails/sendEmailVariants'
+import { EmailBuilder, EmailType } from '@/emails/Email.builder'
 import {
   EVENT_CONTRIBUTION_CREATE,
   EVENT_CONTRIBUTION_DELETE,
@@ -50,7 +46,6 @@ import { getUserCreation, validateContribution, getOpenCreations } from './util/
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
-import { EmailBuilder, EmailType } from '@/emails/Email.builder'
 
 @Resolver()
 export class ContributionResolver {

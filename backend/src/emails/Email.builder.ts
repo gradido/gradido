@@ -1,5 +1,4 @@
 import { Contribution } from '@entity/Contribution'
-import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 
 import { CONFIG } from '@/config'
@@ -8,6 +7,7 @@ import { TimeDuration } from '@/util/time'
 import { decimalSeparatorByLanguage, resetInterface } from '@/util/utilities'
 
 import { sendEmailTranslated } from './sendEmailTranslated'
+import { Decimal } from 'decimal.js-light'
 
 export interface EmailLocals {
   firstName: string
@@ -27,6 +27,7 @@ export interface EmailLocals {
   resetLink?: string
   transactionMemo?: string
   transactionAmount?: string
+  contributionMemoUpdated?: string
   [key: string]: string | TimeDuration | undefined
 }
 
@@ -109,7 +110,12 @@ export class EmailBuilder {
         this.checkIfFieldsSet(['senderFirstName', 'senderLastName', 'contributionMemo'])
         break
       case EmailType.CONTRIBUTION_CHANGED_BY_MODERATOR:
-        // this.checkIfFieldsSet([''])
+        this.checkIfFieldsSet([
+          'contributionMemoUpdated',
+          'senderFirstName',
+          'senderLastName',
+          'contributionMemo',
+        ])
         break
       case EmailType.RESET_PASSWORD:
         this.checkIfFieldsSet(['resetLink', 'timeDurationObject', 'resendLink'])
@@ -193,15 +199,27 @@ export class EmailBuilder {
     return this
   }
 
-  public setTransaction(transaction: Transaction): this {
-    this.locals.transactionMemo = transaction.memo
+  public setUpdatedContributionMemo(updatedMemo: string): this {
+    this.locals.contributionMemoUpdated = updatedMemo
+    return this
+  }
+
+  public setTransaction(amount: Decimal, memo: string): this {
+    this.setTransactionMemo(memo)
+    this.setTransactionAmount(amount)
+    return this
+  }
+
+  public setTransactionAmount(amount: Decimal): this {
     if (!this.locals.locale || this.locals.locale === '') {
       throw new LogError('missing locale please call setRecipient before')
     }
-    this.locals.transactionAmount = decimalSeparatorByLanguage(
-      transaction.amount,
-      this.locals.locale,
-    )
+    this.locals.transactionAmount = decimalSeparatorByLanguage(amount, this.locals.locale)
+    return this
+  }
+
+  public setTransactionMemo(memo: string): this {
+    this.locals.transactionMemo = memo
     return this
   }
 
