@@ -22,10 +22,7 @@ import { User } from '@model/User'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
-import {
-  sendTransactionLinkRedeemedEmail,
-  sendTransactionReceivedEmail,
-} from '@/emails/sendEmailVariants'
+import { EmailBuilder, EmailType } from '@/emails/Email.builder'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 import { Context, getUser } from '@/server/context'
@@ -180,28 +177,21 @@ export const executeTransaction = async (
     } finally {
       await queryRunner.release()
     }
-    void sendTransactionReceivedEmail({
-      firstName: recipient.firstName,
-      lastName: recipient.lastName,
-      email: recipient.emailContact.email,
-      language: recipient.language,
-      senderFirstName: sender.firstName,
-      senderLastName: sender.lastName,
-      senderEmail: sender.emailContact.email,
-      transactionAmount: amount,
-    })
+    const emailBuilder = new EmailBuilder()
+    void emailBuilder
+      .setRecipient(recipient)
+      .setSender(sender)
+      .setTransactionAmount(amount)
+      .setType(EmailType.TRANSACTION_RECEIVED)
+      .sendEmail()
+    
     if (transactionLink) {
-      void sendTransactionLinkRedeemedEmail({
-        firstName: sender.firstName,
-        lastName: sender.lastName,
-        email: sender.emailContact.email,
-        language: sender.language,
-        senderFirstName: recipient.firstName,
-        senderLastName: recipient.lastName,
-        senderEmail: recipient.emailContact.email,
-        transactionAmount: amount,
-        transactionMemo: memo,
-      })
+      void emailBuilder
+        .setRecipient(sender)
+        .setSender(recipient)
+        .setTransaction(amount, memo)
+        .setType(EmailType.TRANSACTION_LINK_REDEEMED)
+        .sendEmail()      
     }
     logger.info(`finished executeTransaction successfully`)
   } finally {
