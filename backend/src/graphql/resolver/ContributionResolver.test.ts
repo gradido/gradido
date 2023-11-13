@@ -497,6 +497,28 @@ describe('ContributionResolver', () => {
           })
         })
 
+        it('throws an error', async () => {
+          jest.clearAllMocks()
+          const { errors: errorObjects } = await mutate({
+            mutation: adminUpdateContribution,
+            variables: {
+              id: pendingContribution.data.createContribution.id,
+              amount: 10.0,
+              memo: 'Test env contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+          expect(errorObjects).toEqual([
+            new GraphQLError('An admin is not allowed to update an user contribution'),
+          ])
+        })
+
+        it('logs the error "An admin is not allowed to update an user contribution"', () => {
+          expect(logger.error).toBeCalledWith(
+            'An admin is not allowed to update an user contribution',
+          )
+        })
+
         describe('contribution has wrong status', () => {
           beforeAll(async () => {
             const contribution = await Contribution.findOneOrFail({
@@ -2802,7 +2824,7 @@ describe('ContributionResolver', () => {
         } = await query({
           query: adminListContributions,
         })
-
+        // console.log('17 contributions: %s', JSON.stringify(contributionListObject, null, 2))
         expect(contributionListObject.contributionList).toHaveLength(18)
         expect(contributionListObject).toMatchObject({
           contributionCount: 18,
@@ -2885,7 +2907,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               lastName: 'Lustig',
               memo: 'Das war leider zu Viel!',
-              messagesCount: 1,
+              messagesCount: 0,
               status: 'DELETED',
             }),
             expect.objectContaining({
@@ -3070,7 +3092,7 @@ describe('ContributionResolver', () => {
                 id: expect.any(Number),
                 lastName: 'Lustig',
                 memo: 'Das war leider zu Viel!',
-                messagesCount: 1,
+                messagesCount: 0,
                 status: 'DELETED',
               }),
             ]),
@@ -3115,7 +3137,7 @@ describe('ContributionResolver', () => {
                 id: expect.any(Number),
                 lastName: 'Lustig',
                 memo: 'Das war leider zu Viel!',
-                messagesCount: 1,
+                messagesCount: 0,
                 status: 'DELETED',
               }),
             ]),

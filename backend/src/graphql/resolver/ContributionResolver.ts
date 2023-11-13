@@ -22,7 +22,6 @@ import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 
 import { RIGHTS } from '@/auth/RIGHTS'
-import { EmailBuilder, EmailType } from '@/emails/Email.builder'
 import {
   EVENT_CONTRIBUTION_CREATE,
   EVENT_CONTRIBUTION_DELETE,
@@ -46,6 +45,7 @@ import { getUserCreation, validateContribution, getOpenCreations } from './util/
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
+import { sendContributionConfirmedEmail, sendContributionDeletedEmail, sendContributionDeniedEmail } from '@/emails/sendEmailVariants'
 
 @Resolver()
 export class ContributionResolver {
@@ -332,13 +332,15 @@ export class ContributionResolver {
       contribution,
       contribution.amount,
     )
-    const emailBuilder = new EmailBuilder()
-    void emailBuilder
-      .setRecipient(user)
-      .setSender(moderator)
-      .setContribution(contribution)
-      .setType(EmailType.CONTRIBUTION_DELETED)
-      .sendEmail()
+    void sendContributionDeletedEmail({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.emailContact.email,
+      language: user.language,
+      senderFirstName: moderator.firstName,
+      senderLastName: moderator.lastName,
+      contributionMemo: contribution.memo,
+    })
 
     return !!res
   }
@@ -431,13 +433,16 @@ export class ContributionResolver {
         void sendTransactionsToDltConnector()
 
         logger.info('creation commited successfuly.')
-        const emailBuilder = new EmailBuilder()
-        void emailBuilder
-          .setRecipient(user)
-          .setSender(moderatorUser)
-          .setContribution(contribution)
-          .setType(EmailType.CONTRIBUTION_CONFIRMED)
-          .sendEmail()
+        void sendContributionConfirmedEmail({
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.emailContact.email,
+          language: user.language,
+          senderFirstName: moderatorUser.firstName,
+          senderLastName: moderatorUser.lastName,
+          contributionMemo: contribution.memo,
+          contributionAmount: contribution.amount,
+        })
       } catch (e) {
         await queryRunner.rollbackTransaction()
         throw new LogError('Creation was not successful', e)
@@ -511,13 +516,15 @@ export class ContributionResolver {
       contributionToUpdate.amount,
     )
 
-    const emailBuilder = new EmailBuilder()
-    void emailBuilder
-      .setRecipient(user)
-      .setSender(moderator)
-      .setContribution(contributionToUpdate)
-      .setType(EmailType.CONTRIBUTION_DENIED)
-      .sendEmail()
+    void sendContributionDeniedEmail({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.emailContact.email,
+      language: user.language,
+      senderFirstName: moderator.firstName,
+      senderLastName: moderator.lastName,
+      contributionMemo: contributionToUpdate.memo,
+    })
 
     return !!res
   }

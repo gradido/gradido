@@ -2,17 +2,43 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { Connection } from '@dbTools/typeorm'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
 
+import { testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 
 import { sendEmailTranslated } from './sendEmailTranslated'
-import { User } from '@entity/User'
-import { UserContact } from '@entity/UserContact'
-import { Contribution } from '@entity/Contribution'
-import { EmailBuilder, EmailType } from './Email.builder'
+import {
+  sendAddedContributionMessageEmail,
+  sendAccountActivationEmail,
+  sendAccountMultiRegistrationEmail,
+  sendContributionConfirmedEmail,
+  sendContributionDeniedEmail,
+  sendContributionDeletedEmail,
+  sendResetPasswordEmail,
+  sendTransactionLinkRedeemedEmail,
+  sendTransactionReceivedEmail,
+} from './sendEmailVariants'
+
+let con: Connection
+let testEnv: {
+  mutate: ApolloServerTestClient['mutate']
+  query: ApolloServerTestClient['query']
+  con: Connection
+}
+
+beforeAll(async () => {
+  testEnv = await testEnvironment(logger, localization)
+  con = testEnv.con
+})
+
+afterAll(async () => {
+  await con.close()
+})
 
 jest.mock('./sendEmailTranslated', () => {
   const originalModule = jest.requireActual('./sendEmailTranslated')
@@ -25,34 +51,18 @@ jest.mock('./sendEmailTranslated', () => {
 describe('sendEmailVariants', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let result: any
-  const recipientUser = User.create()
-  recipientUser.firstName = 'Peter'
-  recipientUser.lastName = 'Lustig'
-  recipientUser.language = 'en'
-  const recipientUserContact = UserContact.create()
-  recipientUserContact.email = 'peter@lustig.de'
-  recipientUser.emailContact = recipientUserContact
-
-  const senderUser = User.create()
-  senderUser.firstName = 'Bibi'
-  senderUser.lastName = 'Bloxberg'
-  const senderUserContact = UserContact.create()
-  senderUserContact.email = 'bibi@bloxberg.de'
-
-  const contribution = Contribution.create()
-  contribution.memo = 'My contribution.'
-  contribution.amount = new Decimal(23.54)
-
-  const emailBuilder = new EmailBuilder()
 
   describe('sendAddedContributionMessageEmail', () => {
     beforeAll(async () => {
-      result = await emailBuilder
-        .setSender(senderUser)
-        .setRecipient(recipientUser)
-        .setContribution(contribution)
-        .setType(EmailType.ADDED_CONTRIBUTION_MESSAGE)
-        .sendEmail()
+      result = await sendAddedContributionMessageEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderFirstName: 'Bibi',
+        senderLastName: 'Bloxberg',
+        contributionMemo: 'My contribution.',
+      })
     })
 
     describe('calls "sendEmailTranslated"', () => {
@@ -104,13 +114,14 @@ describe('sendEmailVariants', () => {
 
   describe('sendAccountActivationEmail', () => {
     beforeAll(async () => {
-      result = await emailBuilder
-        .setRecipient(recipientUser)
-        .setSender(senderUser)
-        .setActivationLink('http://localhost/checkEmail/6627633878930542284')
-        .setTimeDurationObject({ hours: 23, minutes: 30 })
-        .setType(EmailType.ACCOUNT_ACTIVATION)
-        .sendEmail()
+      result = await sendAccountActivationEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        activationLink: 'http://localhost/checkEmail/6627633878930542284',
+        timeDurationObject: { hours: 23, minutes: 30 },
+      })
     })
 
     describe('calls "sendEmailTranslated"', () => {
@@ -161,10 +172,12 @@ describe('sendEmailVariants', () => {
 
   describe('sendAccountMultiRegistrationEmail', () => {
     beforeAll(async () => {
-      result = await emailBuilder
-        .setRecipient(recipientUser)
-        .setType(EmailType.ACCOUNT_MULTI_REGISTRATION)
-        .sendEmail()
+      result = await sendAccountMultiRegistrationEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+      })
     })
 
     describe('calls "sendEmailTranslated"', () => {
@@ -213,12 +226,16 @@ describe('sendEmailVariants', () => {
 
   describe('sendContributionConfirmedEmail', () => {
     beforeAll(async () => {
-      result = await emailBuilder
-        .setRecipient(recipientUser)
-        .setSender(senderUser)
-        .setContribution(contribution)
-        .setType(EmailType.CONTRIBUTION_CONFIRMED)
-        .sendEmail()
+      result = await sendContributionConfirmedEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderFirstName: 'Bibi',
+        senderLastName: 'Bloxberg',
+        contributionMemo: 'My contribution.',
+        contributionAmount: new Decimal(23.54),
+      })
     })
 
     describe('calls "sendEmailTranslated"', () => {
@@ -271,12 +288,15 @@ describe('sendEmailVariants', () => {
 
   describe('sendContributionDeniedEmail', () => {
     beforeAll(async () => {
-      result = await emailBuilder
-        .setRecipient(recipientUser)
-        .setSender(senderUser)
-        .setContribution(contribution)
-        .setType(EmailType.CONTRIBUTION_DENIED)
-        .sendEmail()
+      result = await sendContributionDeniedEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderFirstName: 'Bibi',
+        senderLastName: 'Bloxberg',
+        contributionMemo: 'My contribution.',
+      })
     })
 
     describe('calls "sendEmailTranslated"', () => {
@@ -328,12 +348,15 @@ describe('sendEmailVariants', () => {
 
   describe('sendContributionDeletedEmail', () => {
     beforeAll(async () => {
-      result = await emailBuilder
-        .setRecipient(recipientUser)
-        .setSender(senderUser)
-        .setContribution(contribution)
-        .setType(EmailType.CONTRIBUTION_DELETED)
-        .sendEmail()
+      result = await sendContributionDeletedEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderFirstName: 'Bibi',
+        senderLastName: 'Bloxberg',
+        contributionMemo: 'My contribution.',
+      })
     })
 
     describe('calls "sendEmailTranslated"', () => {
@@ -385,12 +408,14 @@ describe('sendEmailVariants', () => {
 
   describe('sendResetPasswordEmail', () => {
     beforeAll(async () => {
-      result = await emailBuilder
-        .setRecipient(recipientUser)
-        .setResetLink('http://localhost/reset-password/3762660021544901417')
-        .setTimeDurationObject({ hours: 23, minutes: 30 })
-        .setType(EmailType.RESET_PASSWORD)
-        .sendEmail()
+      result = await sendResetPasswordEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        resetLink: 'http://localhost/reset-password/3762660021544901417',
+        timeDurationObject: { hours: 23, minutes: 30 },
+      })
     })
 
     describe('calls "sendEmailTranslated"', () => {
@@ -441,12 +466,17 @@ describe('sendEmailVariants', () => {
 
   describe('sendTransactionLinkRedeemedEmail', () => {
     beforeAll(async () => {
-      result = await emailBuilder
-        .setRecipient(recipientUser)
-        .setSender(senderUser)
-        .setTransaction(new Decimal(17.65), 'You deserve it! 🙏🏼')
-        .setType(EmailType.TRANSACTION_LINK_REDEEMED)
-        .sendEmail()
+      result = await sendTransactionLinkRedeemedEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderFirstName: 'Bibi',
+        senderLastName: 'Bloxberg',
+        senderEmail: 'bibi@bloxberg.de',
+        transactionMemo: 'You deserve it! 🙏🏼',
+        transactionAmount: new Decimal(17.65),
+      })
     })
 
     describe('calls "sendEmailTranslated"', () => {
@@ -500,12 +530,16 @@ describe('sendEmailVariants', () => {
 
   describe('sendTransactionReceivedEmail', () => {
     beforeAll(async () => {
-      result = await emailBuilder
-        .setRecipient(recipientUser)
-        .setSender(senderUser)
-        .setTransactionAmount(new Decimal(37.4))
-        .setType(EmailType.TRANSACTION_RECEIVED)
-        .sendEmail()
+      result = await sendTransactionReceivedEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderFirstName: 'Bibi',
+        senderLastName: 'Bloxberg',
+        senderEmail: 'bibi@bloxberg.de',
+        transactionAmount: new Decimal(37.4),
+      })
     })
 
     describe('calls "sendEmailTranslated"', () => {
