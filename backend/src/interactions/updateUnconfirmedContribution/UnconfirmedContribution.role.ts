@@ -61,4 +61,8 @@ export abstract class UnconfirmedContributionRole {
     }
     return this.availableCreationSums
   }
+
+  public isCreatedFromUser(): boolean {
+    return !this.self.moderatorId
+  }
 }

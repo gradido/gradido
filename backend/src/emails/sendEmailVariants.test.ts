@@ -11,6 +11,8 @@ import { logger, i18n as localization } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 
+CONFIG.EMAIL_SENDER = 'info@gradido.net'
+
 import { sendEmailTranslated } from './sendEmailTranslated'
 import {
   sendAddedContributionMessageEmail,
@@ -22,6 +24,7 @@ import {
   sendResetPasswordEmail,
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
+  sendContributionChangedByModeratorEmail,
 } from './sendEmailVariants'
 
 let con: Connection
@@ -276,6 +279,69 @@ describe('sendEmailVariants', () => {
             subject: 'Your contribution to the common good was confirmed',
             html: expect.any(String),
             text: expect.stringContaining('YOUR CONTRIBUTION TO THE COMMON GOOD WAS CONFIRMED'),
+          }),
+        })
+      })
+
+      it('has the correct html as snapshot', () => {
+        expect(result.originalMessage.html).toMatchSnapshot()
+      })
+    })
+  })
+
+  describe('sendContributionChangedByModeratorEmail', () => {
+    beforeAll(async () => {
+      result = await sendContributionChangedByModeratorEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderFirstName: 'Bibi',
+        senderLastName: 'Bloxberg',
+        contributionMemo: 'My contribution.',
+        contributionMemoUpdated: 'This is a better contribution memo.'
+      })
+    })
+
+    describe('calls "sendEmailTranslated"', () => {
+      it('with expected parameters', () => {
+        expect(sendEmailTranslated).toBeCalledWith({
+          receiver: {
+            to: 'Peter Lustig <peter@lustig.de>',
+          },
+          template: 'contributionChangedByModerator',
+          locals: {
+            firstName: 'Peter',
+            lastName: 'Lustig',
+            locale: 'en',
+            senderFirstName: 'Bibi',
+            senderLastName: 'Bloxberg',
+            contributionMemo: 'My contribution.',
+            contributionMemoUpdated: 'This is a better contribution memo.',
+            overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+            supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+            communityURL: CONFIG.COMMUNITY_URL,
+          },
+        })
+      })
+    })
+
+    describe('result', () => {
+      it('is the expected object', () => {
+        console.log(result.originalMessage.text)
+        expect(result).toMatchObject({
+          envelope: {
+            from: 'info@gradido.net',
+            to: ['peter@lustig.de'],
+          },
+          message: expect.any(String),
+          originalMessage: expect.objectContaining({
+            to: 'Peter Lustig <peter@lustig.de>',
+            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
+            attachments: expect.any(Array),
+            subject: 'Your common good contribution has been changed',
+            html: expect.any(String),
+            text: expect.stringContaining('YOUR COMMON GOOD CONTRIBUTION HAS BEEN CHANGED'),
           }),
         })
       })

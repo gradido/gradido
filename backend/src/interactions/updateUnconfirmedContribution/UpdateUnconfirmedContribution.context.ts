@@ -33,8 +33,10 @@ export class UpdateUnconfirmedContributionContext {
   public async run(): Promise<{
     contribution: Contribution
     contributionMessage: ContributionMessage
-    availableCreationSums: Decimal[]
+    availableCreationSums: Decimal[],
+    createdByUserChangedByModerator: boolean
   }> {
+    let createdByUserChangedByModerator = false
     if (!this.context.role || !this.context.user) {
       throw new LogError("context didn't contain role or user")
     }
@@ -64,6 +66,9 @@ export class UpdateUnconfirmedContributionContext {
         this.input,
         this.context.user,
       )
+      if (unconfirmedContributionRole.isCreatedFromUser()) {
+        createdByUserChangedByModerator = true
+      }
       contributionMessageBuilder.setIsModerator(true)
     }
     if (!unconfirmedContributionRole) {
@@ -77,6 +82,7 @@ export class UpdateUnconfirmedContributionContext {
       contribution: contributionToUpdate,
       contributionMessage: contributionMessageBuilder.build(),
       availableCreationSums: unconfirmedContributionRole.getAvailableCreationSums(),
+      createdByUserChangedByModerator
     }
   }
 }

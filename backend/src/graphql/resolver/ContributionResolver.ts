@@ -45,7 +45,7 @@ import { getUserCreation, validateContribution, getOpenCreations } from './util/
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
-import { sendContributionConfirmedEmail, sendContributionDeletedEmail, sendContributionDeniedEmail } from '@/emails/sendEmailVariants'
+import { sendContributionChangedByModeratorEmail, sendContributionConfirmedEmail, sendContributionDeletedEmail, sendContributionDeniedEmail } from '@/emails/sendEmailVariants'
 
 @Resolver()
 export class ContributionResolver {
@@ -255,7 +255,7 @@ export class ContributionResolver {
       adminUpdateContributionArgs,
       context,
     )
-    const { contribution, contributionMessage } = await updateUnconfirmedContributionContext.run()
+    const { contribution, contributionMessage, createdByUserChangedByModerator } = await updateUnconfirmedContributionContext.run()
     await getConnection().transaction(async (transactionalEntityManager: EntityManager) => {
       await Promise.all([
         transactionalEntityManager.save(contribution),
@@ -275,9 +275,31 @@ export class ContributionResolver {
       contribution,
       contribution.amount,
     )
+    if (createdByUserChangedByModerator && adminUpdateContributionArgs.memo) {
+      void sendContributionChangedByModeratorEmail({
+        firstName: contribution.user.firstName,
+        lastName: contribution.user.lastName,
+        email: contribution.user.emailContact.email,
+        language: contribution.user.language,
+        senderFirstName: moderator.firstName,
+        senderLastName: moderator.lastName,
+        contributionMemo: contribution.memo,
+        contributionMemoUpdated: adminUpdateContributionArgs.memo
+      })
+    }
 
     return result
   }
+  /*
+  firstName: string
+  lastName: string
+  email: string
+  language: string
+  senderFirstName: string
+  senderLastName: string
+  contributionMemo: string
+  contributionMemoUpdated: string
+  */
 
   @Authorized([RIGHTS.ADMIN_LIST_CONTRIBUTIONS])
   @Query(() => ContributionListResult)
