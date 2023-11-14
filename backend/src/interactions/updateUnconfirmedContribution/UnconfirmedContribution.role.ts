@@ -25,6 +25,11 @@ export abstract class UnconfirmedContributionRole {
   protected abstract checkAuthorization(user: User, role: Role): void
   // second, check if contribution is still valid after update
   protected async validate(clientTimezoneOffset: number): Promise<void> {
+    // TODO: refactor frontend and remove this restriction
+    if (this.self.contributionDate.getMonth() !== this.updatedCreationDate.getMonth()) {
+      throw new LogError('Month of contribution can not be changed')
+    }
+
     const contributionLogic = new ContributionLogic(this.self)
     this.availableCreationSums = await contributionLogic.getAvailableCreationSums(
       clientTimezoneOffset,
