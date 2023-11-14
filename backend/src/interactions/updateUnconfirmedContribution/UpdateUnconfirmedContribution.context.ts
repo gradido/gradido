@@ -14,6 +14,7 @@ import { UnconfirmedContributionAdminRole } from './UnconfirmedContributionAdmin
 import { UnconfirmedContributionUserRole } from './UnconfirmedContributionUser.role'
 
 export class UpdateUnconfirmedContributionContext {
+  private oldMemoText: string
   /**
    *
    * @param id contribution id for update
@@ -46,6 +47,7 @@ export class UpdateUnconfirmedContributionContext {
     if (!contributionToUpdate) {
       throw new LogError('Contribution not found', this.id)
     }
+    this.oldMemoText = contributionToUpdate.memo
     const contributionMessageBuilder = new ContributionMessageBuilder()
     contributionMessageBuilder
       .setParentContribution(contributionToUpdate)
@@ -84,5 +86,9 @@ export class UpdateUnconfirmedContributionContext {
       availableCreationSums: unconfirmedContributionRole.getAvailableCreationSums(),
       createdByUserChangedByModerator
     }
+  }
+
+  public getOldMemo(): string {
+    return this.oldMemoText
   }
 }

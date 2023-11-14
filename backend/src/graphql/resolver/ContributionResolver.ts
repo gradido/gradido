@@ -263,6 +263,10 @@ export class ContributionResolver {
       ])
     })
     const moderator = getUser(context)
+    const user = await DbUser.findOneOrFail({
+      where: { id: contribution.userId },
+      relations: ['emailContact'],
+    })
 
     const result = new AdminUpdateContribution()
     result.amount = contribution.amount
@@ -277,14 +281,14 @@ export class ContributionResolver {
     )
     if (createdByUserChangedByModerator && adminUpdateContributionArgs.memo) {
       void sendContributionChangedByModeratorEmail({
-        firstName: contribution.user.firstName,
-        lastName: contribution.user.lastName,
-        email: contribution.user.emailContact.email,
-        language: contribution.user.language,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.emailContact.email,
+        language: user.language,
         senderFirstName: moderator.firstName,
         senderLastName: moderator.lastName,
-        contributionMemo: contribution.memo,
-        contributionMemoUpdated: adminUpdateContributionArgs.memo
+        contributionMemo: updateUnconfirmedContributionContext.getOldMemo(),
+        contributionMemoUpdated: contribution.memo
       })
     }
 
