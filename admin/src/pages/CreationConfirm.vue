@@ -3,7 +3,7 @@
   <div class="creation-confirm">
     <user-query class="mb-2 mt-2" v-model="query" :placeholder="$t('user_memo_search')" />
     <label class="mb-4">
-      <input type="checkbox" class="noHashtag" v-model="noHashtag" @change="swapNoHashtag" />
+      <input type="checkbox" class="noHashtag" v-model="noHashtag" />
       <span class="ml-2" v-b-tooltip="$t('no_hashtag_tooltip')">{{ $t('no_hashtag') }}</span>
     </label>
     <div>
@@ -96,33 +96,7 @@ import { adminListContributions } from '../graphql/adminListContributions'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
-import gql from 'graphql-tag'
-
-export const getContribution = gql`
-  query ($id: Int!) {
-    contribution(id: $id) {
-      id
-      firstName
-      lastName
-      amount
-      memo
-      createdAt
-      contributionDate
-      confirmedAt
-      confirmedBy
-      updatedAt
-      updatedBy
-      status
-      messagesCount
-      deniedAt
-      deniedBy
-      deletedAt
-      deletedBy
-      moderatorId
-      userId
-    }
-  }
-`
+import { getContribution } from '../graphql/getContribution'
 
 const FILTER_TAB_MAP = [
   ['IN_PROGRESS', 'PENDING'],
@@ -174,9 +148,6 @@ export default {
           this.overlay = false
           this.toastError(error.message)
         })
-    },
-    swapNoHashtag() {
-      this.query()
     },
     deleteCreation() {
       this.$apollo

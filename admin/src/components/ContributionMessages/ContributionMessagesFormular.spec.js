@@ -12,6 +12,7 @@ describe('ContributionMessagesFormular', () => {
 
   const propsData = {
     contributionId: 42,
+    contributionMemo: 'It is a test memo',
   }
 
   const mocks = {
@@ -52,9 +53,10 @@ describe('ContributionMessagesFormular', () => {
         await wrapper.find('form').trigger('reset')
       })
 
-      it('form has empty text', () => {
+      it('form has empty text and memo reset to contribution memo input', () => {
         expect(wrapper.vm.form).toEqual({
           text: '',
+          memo: 'It is a test memo',
         })
       })
     })

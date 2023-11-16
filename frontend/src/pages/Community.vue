@@ -91,6 +91,7 @@ export default {
         hours: 0,
         amount: '',
       },
+      originalContributionDate: '',
       updateAmount: '',
       maximalDate: new Date(),
       openCreations: [],
@@ -183,10 +184,10 @@ export default {
       return 0
     },
     maxForMonths() {
-      const formDate = new Date(this.form.date)
+      const originalContributionDate = new Date(this.originalContributionDate)
       if (this.openCreations && this.openCreations.length)
         return this.openCreations.slice(1).map((creation) => {
-          if (creation.year === formDate.getFullYear() && creation.month === formDate.getMonth())
+          if (creation.year === originalContributionDate.getFullYear() && creation.month === originalContributionDate.getMonth())
             return parseInt(creation.amount) + this.amountToAdd
           return parseInt(creation.amount)
         })
@@ -280,6 +281,7 @@ export default {
     updateContributionForm(item) {
       this.form.id = item.id
       this.form.date = item.contributionDate
+      this.originalContributionDate = item.contributionDate
       this.form.memo = item.memo
       this.form.amount = item.amount
       this.form.hours = item.amount / 20

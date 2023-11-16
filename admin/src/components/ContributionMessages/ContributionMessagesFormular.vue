@@ -148,6 +148,7 @@ export default {
     },
     onReset(event) {
       this.form.text = ''
+      this.form.memo = this.contributionMemo 
     },
     enableMemo() {
       this.chatOrMemo = 1
