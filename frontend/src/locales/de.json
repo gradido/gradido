@@ -5,6 +5,9 @@
   "1000thanks": "1000 Dank, weil du bei uns bist!",
   "125": "125%",
   "85": "85%",
+  "GDD": "GDD",
+  "GDT": "GDT",
+  "PersonalDetails": "Persönliche Angaben",
   "advanced-calculation": "Vorausberechnung",
   "asterisks": "****",
   "auth": {
@@ -179,7 +182,6 @@
     },
     "your_amount": "Dein Betrag"
   },
-  "GDD": "GDD",
   "gddKonto": "GDD Konto",
   "gdd_per_link": {
     "choose-amount": "Wähle einen Betrag aus, welchen du per Link versenden möchtest, und trage eine Nachricht ein. Die Nachricht ist ein Pflichtfeld.",
@@ -214,7 +216,6 @@
     "validUntil": "Gültig bis",
     "validUntilDate": "Der Link ist bis zum {date} gültig."
   },
-  "GDT": "GDT",
   "gdt": {
     "calculation": "Berechnung der Gradido Transform",
     "contribution": "Beitrag",
@@ -278,7 +279,6 @@
     "settings": "Einstellungen",
     "transactions": "Deine Transaktionen"
   },
-  "PersonalDetails": "Persönliche Angaben",
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
