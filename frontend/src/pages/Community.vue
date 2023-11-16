@@ -187,7 +187,10 @@ export default {
       const originalContributionDate = new Date(this.originalContributionDate)
       if (this.openCreations && this.openCreations.length)
         return this.openCreations.slice(1).map((creation) => {
-          if (creation.year === originalContributionDate.getFullYear() && creation.month === originalContributionDate.getMonth())
+          if (
+            creation.year === originalContributionDate.getFullYear() &&
+            creation.month === originalContributionDate.getMonth()
+          )
             return parseInt(creation.amount) + this.amountToAdd
           return parseInt(creation.amount)
         })

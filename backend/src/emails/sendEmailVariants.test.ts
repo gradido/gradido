@@ -11,8 +11,6 @@ import { logger, i18n as localization } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 
-CONFIG.EMAIL_SENDER = 'info@gradido.net'
-
 import { sendEmailTranslated } from './sendEmailTranslated'
 import {
   sendAddedContributionMessageEmail,
@@ -26,6 +24,8 @@ import {
   sendTransactionReceivedEmail,
   sendContributionChangedByModeratorEmail,
 } from './sendEmailVariants'
+
+CONFIG.EMAIL_SENDER = 'info@gradido.net'
 
 let con: Connection
 let testEnv: {
@@ -299,7 +299,7 @@ describe('sendEmailVariants', () => {
         senderFirstName: 'Bibi',
         senderLastName: 'Bloxberg',
         contributionMemo: 'My contribution.',
-        contributionMemoUpdated: 'This is a better contribution memo.'
+        contributionMemoUpdated: 'This is a better contribution memo.',
       })
     })
 
@@ -328,7 +328,6 @@ describe('sendEmailVariants', () => {
 
     describe('result', () => {
       it('is the expected object', () => {
-        console.log(result.originalMessage.text)
         expect(result).toMatchObject({
           envelope: {
             from: 'info@gradido.net',

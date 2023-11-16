@@ -23,6 +23,12 @@ import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
+  sendContributionChangedByModeratorEmail,
+  sendContributionConfirmedEmail,
+  sendContributionDeletedEmail,
+  sendContributionDeniedEmail,
+} from '@/emails/sendEmailVariants'
+import {
   EVENT_CONTRIBUTION_CREATE,
   EVENT_CONTRIBUTION_DELETE,
   EVENT_CONTRIBUTION_UPDATE,
@@ -45,7 +51,6 @@ import { getUserCreation, validateContribution, getOpenCreations } from './util/
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
-import { sendContributionChangedByModeratorEmail, sendContributionConfirmedEmail, sendContributionDeletedEmail, sendContributionDeniedEmail } from '@/emails/sendEmailVariants'
 
 @Resolver()
 export class ContributionResolver {
@@ -255,7 +260,8 @@ export class ContributionResolver {
       adminUpdateContributionArgs,
       context,
     )
-    const { contribution, contributionMessage, createdByUserChangedByModerator } = await updateUnconfirmedContributionContext.run()
+    const { contribution, contributionMessage, createdByUserChangedByModerator } =
+      await updateUnconfirmedContributionContext.run()
     await getConnection().transaction(async (transactionalEntityManager: EntityManager) => {
       await Promise.all([
         transactionalEntityManager.save(contribution),
@@ -288,7 +294,7 @@ export class ContributionResolver {
         senderFirstName: moderator.firstName,
         senderLastName: moderator.lastName,
         contributionMemo: updateUnconfirmedContributionContext.getOldMemo(),
-        contributionMemoUpdated: contribution.memo
+        contributionMemoUpdated: contribution.memo,
       })
     }
 
