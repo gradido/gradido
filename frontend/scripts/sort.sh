@@ -2,24 +2,23 @@
 
 ROOT_DIR=$(dirname "$0")/..
 
-tmp=$(mktemp)
 exit_code=0
 
 for locale_file in $ROOT_DIR/src/locales/*.json
 do
-  jq -f $(dirname "$0")/sort_filter.jq $locale_file > "$tmp"
+  jq -M 'to_entries | sort_by(.key) | from_entries' "$locale_file" > tmp.json
+
   if [ "$*" == "--fix" ]
   then
-    mv "$tmp" $locale_file
+    mv tmp.json "$locale_file"
   else
-    if diff -q "$tmp" $locale_file > /dev/null ;
+    if ! diff -q tmp.json "$locale_file" > /dev/null ;
     then
-      : # all good
-    else
-      exit_code=$?
-      echo "$(basename -- $locale_file) is not sorted by keys"
+      exit_code=1
+      echo "$(basename -- "$locale_file") is not sorted by keys"
     fi
   fi
 done
 
+rm -f tmp.json
 exit $exit_code
