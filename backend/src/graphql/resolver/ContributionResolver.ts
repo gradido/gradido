@@ -294,16 +294,6 @@ export class ContributionResolver {
 
     return result
   }
-  /*
-  firstName: string
-  lastName: string
-  email: string
-  language: string
-  senderFirstName: string
-  senderLastName: string
-  contributionMemo: string
-  contributionMemoUpdated: string
-  */
 
   @Authorized([RIGHTS.ADMIN_LIST_CONTRIBUTIONS])
   @Query(() => ContributionListResult)
