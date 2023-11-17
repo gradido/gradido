@@ -9,7 +9,7 @@ import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
-import { AbstractUnconfirmedContribution } from './AbstractUnconfirmedContribution.role'
+import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'
 import { UnconfirmedContributionAdminRole } from './UnconfirmedContributionAdmin.role'
 import { UnconfirmedContributionUserRole } from './UnconfirmedContributionUser.role'
 
@@ -55,7 +55,7 @@ export class UpdateUnconfirmedContributionContext {
       .setUser(this.context.user)
 
     // choose correct role
-    let unconfirmedContributionRole: AbstractUnconfirmedContribution | null = null
+    let unconfirmedContributionRole: AbstractUnconfirmedContributionRole | null = null
     if (this.input instanceof ContributionArgs) {
       unconfirmedContributionRole = new UnconfirmedContributionUserRole(
         contributionToUpdate,
