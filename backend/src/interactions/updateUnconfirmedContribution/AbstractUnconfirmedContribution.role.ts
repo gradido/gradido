@@ -7,7 +7,7 @@ import { ContributionLogic } from '@/data/Contribution.logic'
 import { Context, getClientTimezoneOffset } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
-export abstract class UnconfirmedContributionRole {
+export abstract class AbstractUnconfirmedContributionRole {
   private availableCreationSums?: Decimal[]
 
   public constructor(
