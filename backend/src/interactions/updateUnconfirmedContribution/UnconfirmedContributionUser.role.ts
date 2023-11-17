@@ -5,9 +5,9 @@ import { ContributionArgs } from '@/graphql/arg/ContributionArgs'
 import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { LogError } from '@/server/LogError'
 
-import { UnconfirmedContributionRole } from './UnconfirmedContribution.role'
+import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'
 
-export class UnconfirmedContributionUserRole extends UnconfirmedContributionRole {
+export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContributionRole {
   public constructor(contribution: Contribution, private updateData: ContributionArgs) {
     super(contribution, updateData.amount, new Date(updateData.creationDate))
   }
@@ -22,7 +22,7 @@ export class UnconfirmedContributionUserRole extends UnconfirmedContributionRole
     this.self.updatedBy = null
   }
 
-  protected checkAuthorization(user: User): UnconfirmedContributionRole {
+  protected checkAuthorization(user: User): AbstractUnconfirmedContributionRole {
     if (this.self.userId !== user.id) {
       throw new LogError('Can not update contribution of another user', this.self, user.id)
     }

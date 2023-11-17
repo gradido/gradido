@@ -7,9 +7,9 @@ import { AdminUpdateContributionArgs } from '@/graphql/arg/AdminUpdateContributi
 import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { LogError } from '@/server/LogError'
 
-import { UnconfirmedContributionRole } from './UnconfirmedContribution.role'
+import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'
 
-export class UnconfirmedContributionAdminRole extends UnconfirmedContributionRole {
+export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContributionRole {
   public constructor(
     contribution: Contribution,
     private updateData: AdminUpdateContributionArgs,
@@ -32,7 +32,7 @@ export class UnconfirmedContributionAdminRole extends UnconfirmedContributionRol
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected checkAuthorization(user: User, role: Role): UnconfirmedContributionRole {
+  protected checkAuthorization(user: User, role: Role): AbstractUnconfirmedContributionRole {
     if (
       !role.hasRight(RIGHTS.MODERATOR_UPDATE_CONTRIBUTION_MEMO) &&
       this.self.moderatorId === null
