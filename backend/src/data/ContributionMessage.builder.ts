@@ -46,7 +46,6 @@ export class ContributionMessageBuilder {
     this.contributionMessage.createdAt = contribution.updatedAt
       ? contribution.updatedAt
       : contribution.createdAt
-    this.contributionMessage.isModerator = false
     return this
   }
 
