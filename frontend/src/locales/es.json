@@ -3,6 +3,7 @@
   "1000thanks": "1000 Gracias, por estar con nosotros!",
   "125": "125%",
   "85": "85%",
+  "GDD": "GDD",
   "advanced-calculation": "Proyección",
   "asterisks": "****",
   "auth": {
@@ -157,7 +158,6 @@
     },
     "your_amount": "Tu importe"
   },
-  "GDD": "GDD",
   "gdd_per_link": {
     "choose-amount": "Selecciona una cantidad que te gustaría enviar a través de un enlace. También puedes ingresar un mensaje. Cuando haces clic en 'Generar ahora', se crea un enlace que puedes enviar.",
     "copy-link": "Copiar enlace",

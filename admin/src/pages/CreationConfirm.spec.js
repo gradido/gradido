@@ -127,10 +127,7 @@ describe('CreationConfirm', () => {
     confirmContributionMock.mockResolvedValue({ data: { confirmContribution: true } }),
   )
 
-  mockClient.setRequestHandler(
-    getContribution,
-    getContributionMock.mockResolvedValue({ data: {} }),
-  )
+  mockClient.setRequestHandler(getContribution, getContributionMock.mockResolvedValue({ data: {} }))
 
   const Wrapper = () => {
     return mount(CreationConfirm, { localVue, mocks, apolloProvider })
@@ -161,7 +158,7 @@ describe('CreationConfirm', () => {
         expect(wrapper.find('tbody').findAll('tr')).toHaveLength(2)
       })
     })
-    
+
     describe('actions in overlay', () => {
       describe('delete creation', () => {
         beforeEach(async () => {
@@ -523,12 +520,14 @@ describe('CreationConfirm', () => {
 
     describe('reload contribution', () => {
       beforeEach(async () => {
-        await wrapper.findComponent({ name: 'OpenCreationsTable' }).vm.$emit('reload-contribution', 1)
+        await wrapper
+          .findComponent({ name: 'OpenCreationsTable' })
+          .vm.$emit('reload-contribution', 1)
       })
 
       it('reloaded contribution', () => {
         expect(getContributionMock).toBeCalledWith({
-          id: 1
+          id: 1,
         })
       })
     })

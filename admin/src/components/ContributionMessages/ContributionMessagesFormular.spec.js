@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import ContributionMessagesFormular from './ContributionMessagesFormular'
 import { toastErrorSpy, toastSuccessSpy } from '../../../test/testSetup'
 import { adminCreateContributionMessage } from '@/graphql/adminCreateContributionMessage'
+import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
 
 const localVue = global.localVue
 
@@ -127,6 +128,32 @@ describe('ContributionMessagesFormular', () => {
             contributionId: 42,
             message: 'text form message',
             messageType: 'MODERATOR',
+          },
+        })
+      })
+
+      it('toasts an success message', () => {
+        expect(toastSuccessSpy).toBeCalledWith('message.request')
+      })
+    })
+
+    describe('update contribution memo from moderator for user created contributions', () => {
+      beforeEach(async () => {
+        await wrapper.setData({
+          form: {
+            memo: 'changed memo',
+          },
+          chatOrMemo: 1,
+        })
+        await wrapper.find('button[data-test="submit-dialog"]').trigger('click')
+      })
+
+      it('adminUpdateContribution was called with contributionId and updated memo', () => {
+        expect(apolloMutateMock).toBeCalledWith({
+          mutation: adminUpdateContribution,
+          variables: {
+            id: 42,
+            memo: 'changed memo',
           },
         })
       })

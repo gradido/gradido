@@ -64,15 +64,7 @@
 </template>
 <script>
 import { adminCreateContributionMessage } from '@/graphql/adminCreateContributionMessage'
-import gql from 'graphql-tag'
-
-export const adminUpdateContribution = gql`
-  mutation ($id: Int!, $memo: String!) {
-    adminUpdateContribution(id: $id, memo: $memo) {
-      memo
-    }
-  }
-`
+import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
 
 export default {
   name: 'ContributionMessagesFormular',
@@ -148,7 +140,7 @@ export default {
     },
     onReset(event) {
       this.form.text = ''
-      this.form.memo = this.contributionMemo 
+      this.form.memo = this.contributionMemo
     },
     enableMemo() {
       this.chatOrMemo = 1

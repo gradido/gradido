@@ -47,10 +47,12 @@ export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContribu
   protected async validate(clientTimezoneOffset: number): Promise<void> {
     await super.validate(clientTimezoneOffset)
     // creation date is currently not changeable
-    if (this.self.memo === this.updateData.memo && 
-        this.self.amount === this.updatedAmount &&
-        this.self.contributionDate.getTime() === (new Date(this.updatedCreationDate).getTime())) {
-        throw new LogError("the contribution wasn't changed at all")          
+    if (
+      this.self.memo === this.updateData.memo &&
+      this.self.amount === this.updatedAmount &&
+      this.self.contributionDate.getTime() === new Date(this.updatedCreationDate).getTime()
+    ) {
+      throw new LogError("the contribution wasn't changed at all")
     }
   }
 }

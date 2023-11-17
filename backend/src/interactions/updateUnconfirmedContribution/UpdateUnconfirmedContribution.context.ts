@@ -34,7 +34,7 @@ export class UpdateUnconfirmedContributionContext {
   public async run(): Promise<{
     contribution: Contribution
     contributionMessage: ContributionMessage
-    availableCreationSums: Decimal[],
+    availableCreationSums: Decimal[]
     createdByUserChangedByModerator: boolean
   }> {
     let createdByUserChangedByModerator = false
@@ -84,7 +84,7 @@ export class UpdateUnconfirmedContributionContext {
       contribution: contributionToUpdate,
       contributionMessage: contributionMessageBuilder.build(),
       availableCreationSums: unconfirmedContributionRole.getAvailableCreationSums(),
-      createdByUserChangedByModerator
+      createdByUserChangedByModerator,
     }
   }
 

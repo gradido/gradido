@@ -1,4 +1,6 @@
-export const getTimeDurationObject = (time: number): {
+export const getTimeDurationObject = (
+  time: number,
+): {
   hours?: number
   minutes: number
 } => {
