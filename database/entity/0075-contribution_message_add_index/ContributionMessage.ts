@@ -18,10 +18,10 @@ export class ContributionMessage extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
+  @Index()
   @Column({ name: 'contribution_id', unsigned: true, nullable: false })
   contributionId: number
 
-  @Index()
   @ManyToOne(() => Contribution, (contribution) => contribution.messages)
   @JoinColumn({ name: 'contribution_id' })
   contribution: Contribution
