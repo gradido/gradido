@@ -19,7 +19,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v20.2023-09-19',
+    EXPECTED: 'v21.2023-11-15',
     CURRENT: '',
   },
 }
@@ -134,6 +134,12 @@ const federation = {
     process.env.FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS ?? 3,
 }
 
+const gms = {
+  // koordinates of Illuminz-instance of GMS
+  GMS_HOST: process.env.GMS_HOST ?? 'localhost',
+  GMS_PORT: process.env.GMS_PORT ?? '4044',
+}
+
 export const CONFIG = {
   ...constants,
   ...server,
@@ -145,4 +151,5 @@ export const CONFIG = {
   ...loginServer,
   ...webhook,
   ...federation,
+  ...gms,
 }

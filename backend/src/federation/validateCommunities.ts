@@ -12,6 +12,7 @@ import { backendLogger as logger } from '@/server/logger'
 
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { ApiVersionType } from './enum/apiVersionType'
+import { communityList, userList } from '@/apis/gms/GmsClient'
 
 export async function startValidateCommunities(timerInterval: number): Promise<void> {
   logger.info(
@@ -29,6 +30,16 @@ export async function startValidateCommunities(timerInterval: number): Promise<v
 }
 
 export async function validateCommunities(): Promise<void> {
+  // test GMS-Api Client
+  try {
+    const gmsComArray = await communityList()
+    logger.debug('GMS-Community-List:', gmsComArray)
+    const gmsUserArray = await userList()
+    logger.debug('GMS-Community-User-List:', gmsUserArray)
+  } catch (err) {
+    logger.error('Error in GMS-API:', err)
+  }
+
   const dbFederatedCommunities: DbFederatedCommunity[] =
     await DbFederatedCommunity.createQueryBuilder()
       .where({ foreign: true, verifiedAt: IsNull() })
