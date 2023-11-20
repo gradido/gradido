@@ -4,6 +4,15 @@
       <b-form @reset.prevent="onReset" @submit="onSubmit(messageType.DIALOG)">
         <b-tabs content-class="mt-3" v-model="chatOrMemo">
           <b-tab :title="$t('moderator.chat')" active>
+            <b-form-group>
+              <b-form-checkbox v-model="showResubmissionDate">
+                {{ $t('moderator.show-submission-form') }}
+              </b-form-checkbox>
+            </b-form-group>
+            <b-form-group v-if="showResubmissionDate">
+              <b-form-datepicker v-model="resubmissionDate"></b-form-datepicker>
+              <time-picker v-model="resubmissionTime"></time-picker>
+            </b-form-group>
             <b-form-textarea
               id="textarea"
               v-model="form.text"
@@ -65,8 +74,12 @@
 <script>
 import { adminCreateContributionMessage } from '@/graphql/adminCreateContributionMessage'
 import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
+import TimePicker from '@/components/input/TimePicker'
 
 export default {
+  components: {
+    TimePicker,
+  },
   name: 'ContributionMessagesFormular',
   props: {
     contributionId: {
@@ -85,6 +98,9 @@ export default {
         memo: this.contributionMemo,
       },
       loading: false,
+      resubmissionDate: null,
+      resubmissionTime: '00:00',
+      showResubmissionDate: false,
       chatOrMemo: 0, // 0 = Chat, 1 = Memo
       messageType: {
         DIALOG: 'DIALOG',
@@ -93,6 +109,22 @@ export default {
     }
   },
   methods: {
+    combineResubmissionDateAndTime() {
+      if (this.resubmissionDate) {
+        const formattedDate = new Date(this.resubmissionDate)
+        console.log('resubmission time: %s', this.resubmissionTime)
+        const [hours, minutes] = this.resubmissionTime.split(':')
+        console.log('hours: %s, minutes: %s', hours, minutes)
+        formattedDate.setHours(parseInt(hours))
+        console.log('set hours: %d', formattedDate.getHours())
+        formattedDate.setMinutes(parseInt(minutes))
+        console.log('set minutes: %d', formattedDate.getMinutes())
+        console.log('IOS String: %s', formattedDate.toISOString())
+        return formattedDate.toString()
+      } else {
+        return null
+      }
+    },
     onSubmit(mType) {
       this.loading = true
       if (this.chatOrMemo === 0) {
@@ -103,6 +135,9 @@ export default {
               contributionId: this.contributionId,
               message: this.form.text,
               messageType: mType,
+              resubmissionAt: this.showResubmissionDate
+                ? this.combineResubmissionDateAndTime()
+                : null,
             },
           })
           .then((result) => {
@@ -141,6 +176,9 @@ export default {
     onReset(event) {
       this.form.text = ''
       this.form.memo = this.contributionMemo
+      this.showResubmissionDate = false
+      this.resubmissionDate = null
+      this.resubmissionTime = '00:00'
     },
     enableMemo() {
       this.chatOrMemo = 1

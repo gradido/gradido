@@ -99,6 +99,8 @@
     }
   },
   "hide_details": "Hide details",
+  "hide_resubmission": "Hide resubmission",
+  "hide_resubmission_tooltip": "Hides all creations for which a moderator has set a reminder date.",
   "lastname": "Lastname",
   "math": {
     "equals": "=",
@@ -111,6 +113,7 @@
   "moderator": {
     "chat": "Chat",
     "history": "The data has been changed. This is the old data.",
+    "show-submission-form": "wait for reminder?",
     "moderator": "Moderator",
     "notice": "Moderator note",
     "memo": "Memo",

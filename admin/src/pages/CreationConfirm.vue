@@ -2,10 +2,16 @@
 <template>
   <div class="creation-confirm">
     <user-query class="mb-2 mt-2" v-model="query" :placeholder="$t('user_memo_search')" />
-    <label class="mb-4">
+    <p class="mb-2">
       <input type="checkbox" class="noHashtag" v-model="noHashtag" />
       <span class="ml-2" v-b-tooltip="$t('no_hashtag_tooltip')">{{ $t('no_hashtag') }}</span>
-    </label>
+    </p>
+    <p class="mb-4">
+      <input type="checkbox" class="hideResubmission" v-model="hideResubmission" />
+      <span class="ml-2" v-b-tooltip="$t('hide_resubmission_tooltip')">
+        {{ $t('hide_resubmission') }}
+      </span>
+    </p>
     <div>
       <b-tabs v-model="tabIndex" content-class="mt-3" fill>
         <b-tab active :title-link-attributes="{ 'data-test': 'open' }">
@@ -125,6 +131,7 @@ export default {
       pageSize: 25,
       query: '',
       noHashtag: null,
+      hideResubmission: true,
     }
   },
   watch: {
@@ -438,6 +445,7 @@ export default {
           statusFilter: this.statusFilter,
           query: this.query,
           noHashtag: this.noHashtag,
+          hideResubmission: this.hideResubmission,
         }
       },
       fetchPolicy: 'no-cache',

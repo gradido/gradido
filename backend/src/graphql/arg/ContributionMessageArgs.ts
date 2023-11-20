@@ -1,3 +1,4 @@
+import { isValidDateString } from '@/graphql/validator/DateString'
 import { IsInt, IsString, IsEnum } from 'class-validator'
 import { ArgsType, Field, Int, InputType } from 'type-graphql'
 
@@ -17,4 +18,8 @@ export class ContributionMessageArgs {
   @Field(() => ContributionMessageType, { defaultValue: ContributionMessageType.DIALOG })
   @IsEnum(ContributionMessageType)
   messageType: ContributionMessageType
+
+  @Field(() => String, { nullable: true })
+  @isValidDateString()
+  resubmissionAt?: string | null
 }

@@ -1,6 +1,7 @@
 /* eslint-disable security/detect-object-injection */
-import { Brackets, In, Like, Not, SelectQueryBuilder } from '@dbTools/typeorm'
-import { Contribution as DbContribution } from '@entity/Contribution'
+import { Brackets, In, Like, MoreThan, Not, SelectQueryBuilder } from '@dbTools/typeorm'
+import { Contribution, Contribution as DbContribution } from '@entity/Contribution'
+import { ContributionMessage } from '@entity/ContributionMessage'
 
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
@@ -46,6 +47,30 @@ export const findContributions = async (
     ...(filter.userId && { userId: filter.userId }),
     ...(filter.noHashtag && { memo: Not(Like(`%#%`)) }),
   })
+  if (relations?.messages && filter.hideResubmission) {
+    queryBuilder.andWhere((qb: SelectQueryBuilder<Contribution>) => {
+      const newestContributionMessageResubmissionDateSubQuery = qb
+        .subQuery()
+        // .select(['contributionMessage.resubmission_at', 'MAX(contributionMessage.created_at)'])
+        .select('contributionMessage.resubmission_at')
+        .from(ContributionMessage, 'contributionMessage')
+        .where('contributionMessage.contribution_id = Contribution.id')
+        .orderBy('contributionMessage.resubmissionAt', 'DESC')
+        .limit(1)
+        // .andWhere({ resubmissionAt: MoreThan(currentDate) })
+        .getQuery()
+      return (
+        'NOT EXISTS ' +
+        newestContributionMessageResubmissionDateSubQuery +
+        ' OR ' +
+        newestContributionMessageResubmissionDateSubQuery +
+        ' IS NULL ' +
+        ' OR ' +
+        newestContributionMessageResubmissionDateSubQuery +
+        ' <= NOW()'
+      )
+    })
+  }
   queryBuilder.printSql()
   if (filter.query) {
     const queryString = '%' + filter.query + '%'
