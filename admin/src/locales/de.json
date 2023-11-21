@@ -1,4 +1,5 @@
 {
+  "GDD": "GDD",
   "all_emails": "Alle Nutzer",
   "back": "zurück",
   "change_user_role": "Nutzerrolle ändern",
@@ -42,6 +43,7 @@
   "createdAt": "Angelegt",
   "creation": "Schöpfung",
   "creationList": "Schöpfungsliste",
+  "creation_for_month": "Schöpfung für Monat",
   "creation_form": {
     "creation_for": "Aktives Grundeinkommen für",
     "enter_text": "Text eintragen",
@@ -58,16 +60,15 @@
     "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
     "update_creation": "Schöpfung aktualisieren"
   },
-  "creation_for_month": "Schöpfung für Monat",
   "delete": "Löschen",
+  "delete_user": "Nutzer löschen",
   "deleted": "gelöscht",
   "deleted_user": "Alle gelöschten Nutzer",
-  "delete_user": "Nutzer löschen",
   "deny": "Ablehnen",
+  "e_mail": "E-Mail",
   "enabled": "aktiviert",
   "error": "Fehler",
   "expired": "abgelaufen",
-  "e_mail": "E-Mail",
   "federation": {
     "createdAt": "Erstellt am",
     "gradidoInstances": "Gradido Instanzen",
@@ -88,7 +89,6 @@
     "cancel": "Abbrechen",
     "submit": "Senden"
   },
-  "GDD": "GDD",
   "help": {
     "help": "Hilfe",
     "transactionlist": {
@@ -109,9 +109,13 @@
     "request": "Die Anfrage wurde gesendet."
   },
   "moderator": {
+    "chat": "Chat",
     "history": "Die Daten wurden geändert. Dies sind die alten Daten.",
     "moderator": "Moderator",
     "notice": "Moderator Notiz",
+    "memo": "Memo",
+    "memo-modify": "Memo bearbeiten",
+    "memo-modified": "Memo vom Moderator bearbeitet",
     "request": "Diese Nachricht ist nur für die Moderatoren sichtbar!"
   },
   "name": "Name",
@@ -123,9 +127,9 @@
     "statistic": "Statistik",
     "user_search": "Nutzersuche"
   },
-  "not_open_creations": "Keine offenen Schöpfungen",
   "no_hashtag": "#Hashtags verbergen",
   "no_hashtag_tooltip": "Zeigt nur Beiträge ohne Hashtag im Text",
+  "not_open_creations": "Keine offenen Schöpfungen",
   "open": "offen",
   "open_creations": "Offene Schöpfungen",
   "overlay": {
@@ -196,7 +200,6 @@
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },
   "undelete_user": "Nutzer wiederherstellen",
-  "unregistered_emails": "Nur unregistrierte Nutzer",
   "unregister_mail": {
     "button": "Registrierungs-Email bestätigen, jetzt senden",
     "error": "Fehler beim Senden des Bestätigungs-Links an den Benutzer: {message}",
@@ -206,6 +209,7 @@
     "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({email}) gesendet.",
     "text_true": " Die Email wurde bestätigt."
   },
+  "unregistered_emails": "Nur unregistrierte Nutzer",
   "userRole": {
     "notChangeYourSelf": "Als Admin/Moderator kannst du nicht selber deine Rolle ändern.",
     "selectLabel": "Rolle:",

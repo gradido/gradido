@@ -30,6 +30,8 @@ export const adminListContributions = gql`
         contributionDate
         confirmedAt
         confirmedBy
+        updatedAt
+        updatedBy
         status
         messagesCount
         deniedAt

@@ -1,5 +1,5 @@
 <template>
-  <div class="contribution-messages-list-item">
+  <div class="contribution-messages-list-item clearfix">
     <div v-if="isModeratorMessage" class="text-right p-2 rounded-sm mb-3" :class="boxClass">
       <small class="ml-4" data-test="moderator-label">
         {{ $t('moderator.moderator') }}
@@ -11,7 +11,11 @@
         {{ message.userFirstName }} {{ message.userLastName }}
       </span>
       <b-avatar square variant="warning"></b-avatar>
-
+      <small v-if="isHistory">
+        <hr />
+        {{ $t('moderator.history') }}
+        <hr />
+      </small>
       <parse-message v-bind="message" data-test="moderator-message"></parse-message>
       <small v-if="isModeratorHiddenMessage">
         <hr />

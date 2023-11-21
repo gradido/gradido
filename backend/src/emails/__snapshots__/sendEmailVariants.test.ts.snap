@@ -506,6 +506,173 @@ exports[`sendEmailVariants sendAddedContributionMessageEmail result has the corr
 </html>"
 `;
 
+exports[`sendEmailVariants sendContributionChangedByModeratorEmail result has the correct html as snapshot 1`] = `
+"<!DOCTYPE html>
+<html lang=\\"en\\">
+  <head>
+    <meta content=\\"multipart/html; charset=UTF-8\\" http-equiv=\\"content-type\\">
+    <meta name=\\"viewport\\" content=\\"width=device-width, initial-scale=1\\">
+    <style>
+.wf-force-outline-none[tabindex=\\"-1\\"]:focus {
+  outline: none;
+}
+</style>
+    <style>
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_cqDpp_k.woff2) format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_fKDp.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 200;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_cqDpp_k.woff2) format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 200;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_fKDp.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 300;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_cqDpp_k.woff2) format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 300;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_fKDp.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_cqDpp_k.woff2) format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_fKDp.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 500;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_cqDpp_k.woff2) format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 500;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_fKDp.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_cqDpp_k.woff2) format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_fKDp.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_cqDpp_k.woff2) format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_fKDp.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 800;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_cqDpp_k.woff2) format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 800;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_fKDp.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 900;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_cqDpp_k.woff2) format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 900;
+  src: url(https://fonts.gstatic.com/s/worksans/v18/QGYsz_wNahGAdqQ43Rh_fKDp.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+.clink {
+  line-break: anywhere;
+  margin-bottom: 40px;
+}
+.slink {
+  width: 150px;
+}
+</style>
+  </head>
+  <body style=\\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\\">
+    <div class=\\"container\\" style=\\"max-width: 680px; margin: 0 auto; display: block;\\">
+      <header>
+        <div class=\\"head\\"><img class=\\"head-logo\\" alt=\\"Gradido Logo\\" loading=\\"lazy\\" src=\\"cid:gradidoheader\\" style=\\"width: 100%; height: auto;\\"></div>
+      </header>
+      <div class=\\"wrapper\\">
+        <h2 style=\\"margin-top: 15px; color: #383838;\\">Your common good contribution has been changed</h2>
+        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+          <p>Hello Peter Lustig,</p>
+          <p>your common good contribution 'My contribution.' has just been changed by Bibi Bloxberg and now reads as 'This is a better contribution memo.'</p>
+        </div>
+        <div class=\\"content\\" style=\\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\\">
+          <h2 style=\\"margin-top: 15px; color: #383838;\\">Contribution details</h2>
+          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #9ca0a8;\\">To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.</div><a class=\\"button-3\\" href=\\"http://localhost/community/contributions\\" style=\\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\\">To account</a>
+          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #9ca0a8;\\">Or copy the link into your browser window.</div><a class=\\"clink\\" href=\\"http://localhost/community/contributions\\" style=\\"line-break: anywhere; margin-bottom: 40px;\\">http://localhost/community/contributions</a>
+          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #9ca0a8;\\">Please do not reply to this email.</div>
+        </div>
+        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+          <p>Kind regards,<br>your Gradido team
+          </p>
+        </div>
+      </div>
+      <footer>
+        <div class=\\"w-container footer_01\\">
+          <div class=\\"socialmedia\\" style=\\"display: flex; margin-top: 40px; max-width: 600px;\\"><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.facebook.com/groups/Gradido/\\" style=\\"width: 150px;\\"><img class=\\"bi-facebook\\" alt=\\"facebook\\" loading=\\"lazy\\" src=\\"cid:facebookicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://t.me/GradidoGruppe\\" style=\\"width: 150px;\\"><img class=\\"bi-telegram\\" alt=\\"Telegram\\" loading=\\"lazy\\" src=\\"cid:telegramicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://twitter.com/gradido\\" style=\\"width: 150px;\\"><img class=\\"bi-twitter\\" alt=\\"Twitter\\" loading=\\"lazy\\" src=\\"cid:twittericon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.youtube.com/c/GradidoNet\\" style=\\"width: 150px;\\"><img class=\\"bi-youtube\\" alt=\\"youtube\\" loading=\\"lazy\\" src=\\"cid:youtubeicon\\"></a></div>
+          <div class=\\"line\\" style=\\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\\"></div>
+          <div class=\\"footer\\" style=\\"padding-bottom: 20px;\\">
+            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">If you have any further questions, please contact our support.</div><a class=\\"footer_p2\\" href=\\"mailto:support@gradido.net\\" style=\\"color: #383838; font-weight: bold;\\">support@gradido.net</a><img class=\\"image\\" alt=\\"Gradido Logo\\" src=\\"https://gdd.gradido.net/img/brand/green.png\\" style=\\"width: 200px; margin-top: 30px; margin-bottom: 30px;\\" width=\\"200\\">
+            <div><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/impressum/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Impressum</a></div><br><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/datenschutz/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Privacy Policy</a>
+            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>"
+`;
+
 exports[`sendEmailVariants sendContributionConfirmedEmail result has the correct html as snapshot 1`] = `
 "<!DOCTYPE html>
 <html lang=\\"en\\">

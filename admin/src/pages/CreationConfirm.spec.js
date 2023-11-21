@@ -4,6 +4,7 @@ import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { denyContribution } from '../graphql/denyContribution'
 import { adminListContributions } from '../graphql/adminListContributions'
 import { confirmContribution } from '../graphql/confirmContribution'
+import { getContribution } from '../graphql/getContribution'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 import VueApollo from 'vue-apollo'
 import { createMockClient } from 'mock-apollo-client'
@@ -61,6 +62,8 @@ const defaultData = () => {
           contributionDate: new Date(),
           deletedBy: null,
           deletedAt: null,
+          updatedAt: null,
+          updatedBy: null,
           createdAt: new Date(),
         },
         {
@@ -83,6 +86,8 @@ const defaultData = () => {
           contributionDate: new Date(),
           deletedBy: null,
           deletedAt: null,
+          updatedAt: null,
+          updatedBy: null,
           createdAt: new Date(),
         },
       ],
@@ -96,6 +101,7 @@ describe('CreationConfirm', () => {
   const adminDeleteContributionMock = jest.fn()
   const adminDenyContributionMock = jest.fn()
   const confirmContributionMock = jest.fn()
+  const getContributionMock = jest.fn()
 
   mockClient.setRequestHandler(
     adminListContributions,
@@ -121,6 +127,8 @@ describe('CreationConfirm', () => {
     confirmContributionMock.mockResolvedValue({ data: { confirmContribution: true } }),
   )
 
+  mockClient.setRequestHandler(getContribution, getContributionMock.mockResolvedValue({ data: {} }))
+
   const Wrapper = () => {
     return mount(CreationConfirm, { localVue, mocks, apolloProvider })
   }
@@ -141,7 +149,7 @@ describe('CreationConfirm', () => {
       })
     })
 
-    describe('server response is succes', () => {
+    describe('server response is success', () => {
       it('has a DIV element with the class.creation-confirm', () => {
         expect(wrapper.find('div.creation-confirm').exists()).toBeTruthy()
       })
@@ -219,7 +227,7 @@ describe('CreationConfirm', () => {
           expect(wrapper.find('#overlay').isVisible()).toBeTruthy()
         })
 
-        describe('with succes', () => {
+        describe('with success', () => {
           describe('cancel confirmation', () => {
             beforeEach(async () => {
               await wrapper.find('#overlay').findAll('button').at(0).trigger('click')
@@ -278,7 +286,7 @@ describe('CreationConfirm', () => {
           expect(wrapper.find('#overlay').isVisible()).toBeTruthy()
         })
 
-        describe('with succes', () => {
+        describe('with success', () => {
           describe('cancel deny', () => {
             beforeEach(async () => {
               await wrapper.find('#overlay').findAll('button').at(0).trigger('click')
@@ -507,6 +515,20 @@ describe('CreationConfirm', () => {
       it('updates the status', () => {
         expect(wrapper.vm.items.find((obj) => obj.id === 2).messagesCount).toBe(1)
         expect(wrapper.vm.items.find((obj) => obj.id === 2).status).toBe('IN_PROGRESS')
+      })
+    })
+
+    describe('reload contribution', () => {
+      beforeEach(async () => {
+        await wrapper
+          .findComponent({ name: 'OpenCreationsTable' })
+          .vm.$emit('reload-contribution', 1)
+      })
+
+      it('reloaded contribution', () => {
+        expect(getContributionMock).toBeCalledWith({
+          id: 1,
+        })
       })
     })
 
