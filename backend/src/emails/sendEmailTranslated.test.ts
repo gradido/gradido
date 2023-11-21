@@ -10,6 +10,7 @@ import { sendEmailTranslated } from './sendEmailTranslated'
 CONFIG.EMAIL = false
 CONFIG.EMAIL_SMTP_URL = 'EMAIL_SMTP_URL'
 CONFIG.EMAIL_SMTP_PORT = 1234
+CONFIG.EMAIL_SENDER = 'info@gradido.net'
 CONFIG.EMAIL_USERNAME = 'user'
 CONFIG.EMAIL_PASSWORD = 'pwd'
 CONFIG.EMAIL_TLS = true

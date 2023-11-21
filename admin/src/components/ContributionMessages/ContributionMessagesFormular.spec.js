@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import ContributionMessagesFormular from './ContributionMessagesFormular'
 import { toastErrorSpy, toastSuccessSpy } from '../../../test/testSetup'
 import { adminCreateContributionMessage } from '@/graphql/adminCreateContributionMessage'
+import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
 
 const localVue = global.localVue
 
@@ -12,6 +13,7 @@ describe('ContributionMessagesFormular', () => {
 
   const propsData = {
     contributionId: 42,
+    contributionMemo: 'It is a test memo',
   }
 
   const mocks = {
@@ -52,9 +54,10 @@ describe('ContributionMessagesFormular', () => {
         await wrapper.find('form').trigger('reset')
       })
 
-      it('form has empty text', () => {
+      it('form has empty text and memo reset to contribution memo input', () => {
         expect(wrapper.vm.form).toEqual({
           text: '',
+          memo: 'It is a test memo',
         })
       })
     })
@@ -125,6 +128,32 @@ describe('ContributionMessagesFormular', () => {
             contributionId: 42,
             message: 'text form message',
             messageType: 'MODERATOR',
+          },
+        })
+      })
+
+      it('toasts an success message', () => {
+        expect(toastSuccessSpy).toBeCalledWith('message.request')
+      })
+    })
+
+    describe('update contribution memo from moderator for user created contributions', () => {
+      beforeEach(async () => {
+        await wrapper.setData({
+          form: {
+            memo: 'changed memo',
+          },
+          chatOrMemo: 1,
+        })
+        await wrapper.find('button[data-test="submit-dialog"]').trigger('click')
+      })
+
+      it('adminUpdateContribution was called with contributionId and updated memo', () => {
+        expect(apolloMutateMock).toBeCalledWith({
+          mutation: adminUpdateContribution,
+          variables: {
+            id: 42,
+            memo: 'changed memo',
           },
         })
       })

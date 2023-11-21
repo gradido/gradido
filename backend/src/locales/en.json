@@ -26,6 +26,11 @@
     "contribution": {
       "toSeeContributionsAndMessages": "To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab."
     },
+    "contributionChangedByModerator": {
+      "subject": "Your common good contribution has been changed",
+      "text": "your common good contribution '{contributionMemo}' has just been changed by {senderFirstName} {senderLastName} and now reads as '{contributionMemoUpdated}'",
+      "title": "Your common good contribution has been changed"
+    },
     "contributionConfirmed": {
       "commonGoodContributionConfirmed": "Your common good contribution “{contributionMemo}” has just been approved by {senderFirstName} {senderLastName}. Your Gradido account has been credited with {amountGDD} GDD.",
       "subject": "Your contribution to the common good was confirmed",

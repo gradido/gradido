@@ -53,6 +53,8 @@ const defaultData = () => {
           contributionDate: new Date(),
           deletedBy: null,
           deletedAt: null,
+          updatedAt: null,
+          updatedBy: null,
           createdAt: new Date(),
         },
         {
@@ -75,6 +77,8 @@ const defaultData = () => {
           contributionDate: new Date(),
           deletedBy: null,
           deletedAt: null,
+          updatedAt: null,
+          updatedBy: null,
           createdAt: new Date(),
         },
       ],

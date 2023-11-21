@@ -3,6 +3,9 @@
   "1000thanks": "Bizimle olduğun için 1000lerce teşekkür!",
   "125": "%125",
   "85": "%85",
+  "GDD": "GDD",
+  "GDT": "GDT",
+  "PersonalDetails": "Kişisel bilgiler",
   "advanced-calculation": "Önceden hesaplama",
   "auth": {
     "left": {
@@ -148,7 +151,6 @@
     },
     "your_amount": "Sendeki tutar"
   },
-  "GDD": "GDD",
   "gdd_per_link": {
     "choose-amount": "Linke tıklayıp göndermek istediğiniz tutarı seç. Ayrıca bir mesaj da girebilirsin. Paylaşabileceğin bir bağlantı oluşturmak için 'Şimdi oluştur'a tıkla.",
     "copy-link": "Linki kopyala ",
