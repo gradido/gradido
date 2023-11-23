@@ -43,9 +43,7 @@ export class ContributionMessageBuilder {
 
   public setParentContribution(contribution: Contribution): this {
     this.contributionMessage.contributionId = contribution.id
-    this.contributionMessage.createdAt = contribution.updatedAt
-      ? contribution.updatedAt
-      : contribution.createdAt
+    this.contributionMessage.contribution = contribution
     return this
   }
 

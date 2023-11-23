@@ -1,12 +1,14 @@
 import {
   BaseEntity,
   Column,
+  CreateDateColumn,
   DeleteDateColumn,
   Entity,
   Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm'
 import { Contribution } from '../Contribution'
 import { User } from '../User'
@@ -36,9 +38,11 @@ export class ContributionMessage extends BaseEntity {
   @Column({ length: 2000, nullable: false, collation: 'utf8mb4_unicode_ci' })
   message: string
 
+  @CreateDateColumn()
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', name: 'created_at' })
   createdAt: Date
 
+  @UpdateDateColumn()
   @Column({ type: 'datetime', default: null, nullable: true, name: 'updated_at' })
   updatedAt: Date
 

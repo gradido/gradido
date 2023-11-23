@@ -1,5 +1,5 @@
 /* eslint-disable security/detect-object-injection */
-import { Brackets, In, Like, MoreThan, Not, SelectQueryBuilder } from '@dbTools/typeorm'
+import { Brackets, In, IsNull, LessThanOrEqual, Like, MoreThan, Not, SelectQueryBuilder } from '@dbTools/typeorm'
 import { Contribution, Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage } from '@entity/ContributionMessage'
 
@@ -47,29 +47,30 @@ export const findContributions = async (
     ...(filter.userId && { userId: filter.userId }),
     ...(filter.noHashtag && { memo: Not(Like(`%#%`)) }),
   })
-  if (relations?.messages && filter.hideResubmission) {
-    queryBuilder.andWhere((qb: SelectQueryBuilder<Contribution>) => {
-      const newestContributionMessageResubmissionDateSubQuery = qb
-        .subQuery()
-        // .select(['contributionMessage.resubmission_at', 'MAX(contributionMessage.created_at)'])
-        .select('contributionMessage.resubmission_at')
-        .from(ContributionMessage, 'contributionMessage')
-        .where('contributionMessage.contribution_id = Contribution.id')
-        .orderBy('contributionMessage.resubmissionAt', 'DESC')
-        .limit(1)
-        // .andWhere({ resubmissionAt: MoreThan(currentDate) })
-        .getQuery()
-      return (
-        'NOT EXISTS ' +
-        newestContributionMessageResubmissionDateSubQuery +
-        ' OR ' +
-        newestContributionMessageResubmissionDateSubQuery +
-        ' IS NULL ' +
-        ' OR ' +
-        newestContributionMessageResubmissionDateSubQuery +
-        ' <= NOW()'
+  if (filter.hideResubmission) {
+    queryBuilder
+      .leftJoinAndSelect(
+        (qb: SelectQueryBuilder<ContributionMessage>) => {
+          return qb
+            .select('resubmission_at', 'resubmissionAt')
+            .addSelect('id', 'latestMessageId')
+            .addSelect('contribution_id', 'latestMessageContributionId')
+            .addSelect(
+              'ROW_NUMBER() OVER (PARTITION BY latestMessageContributionId ORDER BY created_at DESC)',
+              'rn',
+            )
+            .from(ContributionMessage, 'contributionMessage')
+        },
+        'latestContributionMessage',
+        'latestContributionMessage.latestMessageContributionId = Contribution.id AND latestContributionMessage.rn = 1',
       )
-    })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('latestContributionMessage.resubmissionAt IS NULL').orWhere(
+            'latestContributionMessage.resubmissionAt <= NOW()',
+          )
+        }),
+      )
   }
   queryBuilder.printSql()
   if (filter.query) {
