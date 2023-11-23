@@ -112,15 +112,10 @@ export default {
     combineResubmissionDateAndTime() {
       if (this.resubmissionDate) {
         const formattedDate = new Date(this.resubmissionDate)
-        console.log('resubmission time: %s', this.resubmissionTime)
         const [hours, minutes] = this.resubmissionTime.split(':')
-        console.log('hours: %s, minutes: %s', hours, minutes)
         formattedDate.setHours(parseInt(hours))
-        console.log('set hours: %d', formattedDate.getHours())
         formattedDate.setMinutes(parseInt(minutes))
-        console.log('set minutes: %d', formattedDate.getMinutes())
-        console.log('IOS String: %s', formattedDate.toISOString())
-        return formattedDate.toString()
+        return formattedDate
       } else {
         return null
       }
@@ -136,14 +131,18 @@ export default {
               message: this.form.text,
               messageType: mType,
               resubmissionAt: this.showResubmissionDate
-                ? this.combineResubmissionDateAndTime()
+                ? this.combineResubmissionDateAndTime().toString()
                 : null,
             },
           })
           .then((result) => {
-            this.$emit('get-list-contribution-messages', this.contributionId)
-            this.$emit('update-status', this.contributionId)
-            this.form.text = ''
+            if (this.showResubmissionDate && this.combineResubmissionDateAndTime() > new Date()) {
+              this.$emit('update-contributions')
+            } else {
+              this.$emit('get-list-contribution-messages', this.contributionId)
+              this.$emit('update-status', this.contributionId)
+            }
+            this.onReset()
             this.toastSuccess(this.$t('message.request'))
             this.loading = false
           })

@@ -49,6 +49,7 @@ export default {
         // may be at some point we need a pagination here
         return {
           statusFilter: this.statusFilter,
+          hideResubmission: true,
         }
       },
       update({ adminListContributions }) {
