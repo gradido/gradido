@@ -6,8 +6,8 @@
       <input type="checkbox" class="noHashtag" v-model="noHashtag" />
       <span class="ml-2" v-b-tooltip="$t('no_hashtag_tooltip')">{{ $t('no_hashtag') }}</span>
     </p>
-    <p class="mb-4">
-      <input type="checkbox" class="hideResubmission" v-model="hideResubmission" />
+    <p class="mb-4" v-if="showResubmissionCheckbox">
+      <input type="checkbox" class="hideResubmission" v-model="hideResubmissionModel" />
       <span class="ml-2" v-b-tooltip="$t('hide_resubmission_tooltip')">
         {{ $t('hide_resubmission') }}
       </span>
@@ -132,7 +132,7 @@ export default {
       pageSize: 25,
       query: '',
       noHashtag: null,
-      hideResubmission: true,
+      hideResubmissionModel: true,
     }
   },
   watch: {
@@ -432,6 +432,12 @@ export default {
         default:
           return 'info'
       }
+    },
+    showResubmissionCheckbox() {
+      return this.tabIndex === 0
+    },
+    hideResubmission() {
+      return this.showResubmissionCheckbox ? this.hideResubmissionModel : false
     },
   },
   apollo: {
