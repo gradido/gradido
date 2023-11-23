@@ -1,6 +1,6 @@
 /* eslint-disable security/detect-object-injection */
-import { Brackets, In, IsNull, LessThanOrEqual, Like, MoreThan, Not, SelectQueryBuilder } from '@dbTools/typeorm'
-import { Contribution, Contribution as DbContribution } from '@entity/Contribution'
+import { Brackets, In, Like, Not, SelectQueryBuilder } from '@dbTools/typeorm'
+import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage } from '@entity/ContributionMessage'
 
 import { Paginated } from '@arg/Paginated'
@@ -20,7 +20,6 @@ function joinRelationsRecursive(
   currentPath: string,
 ): void {
   for (const key in relations) {
-    // console.log('leftJoin: %s, %s', `${currentPath}.${key}`, key)
     queryBuilder.leftJoinAndSelect(`${currentPath}.${key}`, key)
     if (typeof relations[key] === 'object') {
       // If it's a nested relation

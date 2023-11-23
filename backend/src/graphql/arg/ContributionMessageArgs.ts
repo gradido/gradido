@@ -1,8 +1,9 @@
-import { isValidDateString } from '@/graphql/validator/DateString'
 import { IsInt, IsString, IsEnum } from 'class-validator'
 import { ArgsType, Field, Int, InputType } from 'type-graphql'
 
 import { ContributionMessageType } from '@enum/ContributionMessageType'
+
+import { isValidDateString } from '@/graphql/validator/DateString'
 
 @InputType()
 @ArgsType()
