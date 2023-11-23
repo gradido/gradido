@@ -53,6 +53,7 @@
       class="mt-4"
       :items="items"
       :fields="fields"
+      :hideResubmission="hideResubmission"
       @show-overlay="showOverlay"
       @update-status="updateStatus"
       @reload-contribution="reloadContribution"

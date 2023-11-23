@@ -90,6 +90,10 @@ export default {
       type: String,
       required: true,
     },
+    hideResubmission: {
+      type: Boolean,
+      required: true,
+    },
   },
   data() {
     return {
@@ -136,7 +140,11 @@ export default {
             },
           })
           .then((result) => {
-            if (this.showResubmissionDate && this.combineResubmissionDateAndTime() > new Date()) {
+            if (
+              this.hideResubmission &&
+              this.showResubmissionDate &&
+              this.combineResubmissionDateAndTime() > new Date()
+            ) {
               this.$emit('update-contributions')
             } else {
               this.$emit('get-list-contribution-messages', this.contributionId)

@@ -112,6 +112,7 @@
                 :contributionStatus="row.item.status"
                 :contributionUserId="row.item.userId"
                 :contributionMemo="row.item.memo"
+                :hideResubmission="hideResubmission"
                 @update-status="updateStatus"
                 @reload-contribution="reloadContribution"
                 @update-contributions="updateContributions"
@@ -153,6 +154,10 @@ export default {
     },
     fields: {
       type: Array,
+      required: true,
+    },
+    hideResubmission: {
+      type: Boolean,
       required: true,
     },
   },
