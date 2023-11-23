@@ -347,6 +347,7 @@ describe('CreationConfirm', () => {
         it('refetches contributions with proper filter', () => {
           expect(adminListContributionsMock).toBeCalledWith({
             currentPage: 1,
+            hideResubmission: false,
             noHashtag: null,
             order: 'DESC',
             pageSize: 25,
@@ -364,6 +365,7 @@ describe('CreationConfirm', () => {
           it('refetches contributions with proper filter', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
+              hideResubmission: true,
               noHashtag: null,
               order: 'DESC',
               pageSize: 25,
@@ -382,6 +384,7 @@ describe('CreationConfirm', () => {
           it('refetches contributions with proper filter', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
+              hideResubmission: false,
               noHashtag: null,
               order: 'DESC',
               pageSize: 25,
@@ -400,6 +403,7 @@ describe('CreationConfirm', () => {
           it('refetches contributions with proper filter', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
+              hideResubmission: false,
               noHashtag: null,
               order: 'DESC',
               pageSize: 25,
@@ -418,6 +422,7 @@ describe('CreationConfirm', () => {
           it('refetches contributions with proper filter', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
+              hideResubmission: false,
               noHashtag: null,
               order: 'DESC',
               pageSize: 25,
@@ -440,6 +445,7 @@ describe('CreationConfirm', () => {
               it('calls the API again', () => {
                 expect(adminListContributionsMock).toBeCalledWith({
                   currentPage: 2,
+                  hideResubmission: false,
                   noHashtag: null,
                   order: 'DESC',
                   pageSize: 25,
@@ -457,6 +463,7 @@ describe('CreationConfirm', () => {
                 it('refetches contributions with proper filter and current page = 1', () => {
                   expect(adminListContributionsMock).toBeCalledWith({
                     currentPage: 1,
+                    hideResubmission: true,
                     noHashtag: null,
                     order: 'DESC',
                     pageSize: 25,
@@ -480,6 +487,7 @@ describe('CreationConfirm', () => {
         it('calls the API with query', () => {
           expect(adminListContributionsMock).toBeCalledWith({
             currentPage: 1,
+            hideResubmission: true,
             noHashtag: null,
             order: 'DESC',
             pageSize: 25,
@@ -496,6 +504,7 @@ describe('CreationConfirm', () => {
           it('calls the API with empty query', () => {
             expect(adminListContributionsMock).toBeCalledWith({
               currentPage: 1,
+              hideResubmission: true,
               noHashtag: null,
               order: 'DESC',
               pageSize: 25,

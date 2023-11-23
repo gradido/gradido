@@ -36,8 +36,8 @@ export default {
       let [hours, minutes] = this.timeValue.split(':')
 
       // Validate hours and minutes
-      hours = Math.min(Math.max(parseInt(hours) || 0, 0), 23)
-      minutes = Math.min(Math.max(parseInt(minutes) || 0, 0), 59)
+      hours = Math.min(parseInt(hours) || 0, 23)
+      minutes = Math.min(parseInt(minutes) || 0, 59)
 
       // Update the value with correct format
       this.timeValue = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`

@@ -114,15 +114,11 @@ export default {
   },
   methods: {
     combineResubmissionDateAndTime() {
-      if (this.resubmissionDate) {
-        const formattedDate = new Date(this.resubmissionDate)
-        const [hours, minutes] = this.resubmissionTime.split(':')
-        formattedDate.setHours(parseInt(hours))
-        formattedDate.setMinutes(parseInt(minutes))
-        return formattedDate
-      } else {
-        return null
-      }
+      const formattedDate = new Date(this.resubmissionDate)
+      const [hours, minutes] = this.resubmissionTime.split(':')
+      formattedDate.setHours(parseInt(hours))
+      formattedDate.setMinutes(parseInt(minutes))
+      return formattedDate
     },
     onSubmit(mType) {
       this.loading = true
@@ -196,7 +192,8 @@ export default {
       return (
         (this.chatOrMemo === 0 && this.form.text === '') ||
         this.loading ||
-        (this.chatOrMemo === 1 && this.form.memo.length < 5)
+        (this.chatOrMemo === 1 && this.form.memo.length < 5) ||
+        (this.showResubmissionDate && !this.resubmissionDate)
       )
     },
     moderatorDisabled() {

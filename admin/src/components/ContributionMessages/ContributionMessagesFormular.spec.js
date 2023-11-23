@@ -14,6 +14,7 @@ describe('ContributionMessagesFormular', () => {
   const propsData = {
     contributionId: 42,
     contributionMemo: 'It is a test memo',
+    hideResubmission: true,
   }
 
   const mocks = {
@@ -95,13 +96,14 @@ describe('ContributionMessagesFormular', () => {
         await wrapper.find('button[data-test="submit-dialog"]').trigger('click')
       })
 
-      it('moderatorMesage has `DIALOG`', () => {
+      it('moderatorMessage has `DIALOG`', () => {
         expect(apolloMutateMock).toBeCalledWith({
           mutation: adminCreateContributionMessage,
           variables: {
             contributionId: 42,
             message: 'text form message',
             messageType: 'DIALOG',
+            resubmissionAt: null,
           },
         })
       })
@@ -128,12 +130,60 @@ describe('ContributionMessagesFormular', () => {
             contributionId: 42,
             message: 'text form message',
             messageType: 'MODERATOR',
+            resubmissionAt: null,
           },
         })
       })
 
       it('toasts an success message', () => {
         expect(toastSuccessSpy).toBeCalledWith('message.request')
+      })
+    })
+
+    describe('send resubmission contribution message with success', () => {
+      const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days in milliseconds
+
+      beforeEach(async () => {
+        await wrapper.setData({
+          form: {
+            text: 'text form message',
+          },
+          showResubmissionDate: true,
+          resubmissionDate: futureDate,
+          resubmissionTime: '08:46',
+        })
+        await wrapper.find('button[data-test="submit-moderator"]').trigger('click')
+      })
+
+      it('graphql payload contain resubmission date', () => {
+        const futureDateExactTime = futureDate
+        futureDateExactTime.setHours(8)
+        futureDateExactTime.setMinutes(46)
+        expect(apolloMutateMock).toBeCalledWith({
+          mutation: adminCreateContributionMessage,
+          variables: {
+            contributionId: 42,
+            message: 'text form message',
+            messageType: 'MODERATOR',
+            resubmissionAt: futureDateExactTime.toString(),
+          },
+        })
+      })
+
+      it('toasts an success message', () => {
+        expect(toastSuccessSpy).toBeCalledWith('message.request')
+      })
+    })
+
+    describe('set memo', () => {
+      beforeEach(async () => {
+        await wrapper.setData({
+          chatOrMemo: 0,
+        })
+        await wrapper.find('button[data-test="submit-memo"]').trigger('click')
+      })
+      it('check chatOrMemo value is 1', () => {
+        expect(wrapper.vm.chatOrMemo).toBe(1)
       })
     })
 
