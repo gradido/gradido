@@ -99,6 +99,8 @@
     }
   },
   "hide_details": "Details verbergen",
+  "hide_resubmission": "Wiedervorlage verbergen",
+  "hide_resubmission_tooltip": "Verbirgt alle Schöpfungen für die ein Moderator ein Erinnerungsdatum festgelegt hat.",
   "lastname": "Nachname",
   "math": {
     "equals": "=",
@@ -111,6 +113,7 @@
   "moderator": {
     "chat": "Chat",
     "history": "Die Daten wurden geändert. Dies sind die alten Daten.",
+    "show-submission-form": "warten auf Erinnerung?",
     "moderator": "Moderator",
     "notice": "Moderator Notiz",
     "memo": "Memo",

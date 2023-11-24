@@ -70,6 +70,7 @@ const propsData = {
     { key: 'confirm', label: 'save' },
   ],
   toggleDetails: false,
+  hideResubmission: true,
 }
 
 const mocks = {

@@ -89,6 +89,7 @@ describe('ContributionMessagesList', () => {
     contributionMemo: 'test memo',
     contributionUserId: 108,
     contributionStatus: 'PENDING',
+    hideResubmission: true,
   }
 
   const mocks = {
@@ -153,6 +154,16 @@ describe('ContributionMessagesList', () => {
       it('emits reload-contribution', () => {
         expect(wrapper.emitted('reload-contribution')).toBeTruthy()
         expect(wrapper.emitted('reload-contribution')[0]).toEqual([3])
+      })
+    })
+
+    describe('test update-contributions', () => {
+      beforeEach(() => {
+        wrapper.vm.updateContributions()
+      })
+
+      it('emits update-contributions', () => {
+        expect(wrapper.emitted('update-contributions')).toBeTruthy()
       })
     })
   })
