@@ -50,6 +50,10 @@ const communityDbUser: dbUser = {
   },
   foreign: false,
   communityUuid: '55555555-4444-4333-2222-11111111',
+  gmsPublishName: 0,
+  gmsAllowed: false,
+  gmsRegistered: false,
+  gmsRegisteredAt: null,
 }
 const communityUser = new User(communityDbUser)
 
