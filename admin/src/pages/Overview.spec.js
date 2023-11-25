@@ -116,6 +116,7 @@ describe('Overview', () => {
     it('calls the adminListContributions query', () => {
       expect(adminListContributionsMock).toBeCalledWith({
         currentPage: 1,
+        hideResubmission: true,
         order: 'DESC',
         pageSize: 25,
         statusFilter: ['IN_PROGRESS', 'PENDING'],

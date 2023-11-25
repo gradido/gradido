@@ -112,8 +112,10 @@
                 :contributionStatus="row.item.status"
                 :contributionUserId="row.item.userId"
                 :contributionMemo="row.item.memo"
+                :hideResubmission="hideResubmission"
                 @update-status="updateStatus"
                 @reload-contribution="reloadContribution"
+                @update-contributions="updateContributions"
               />
             </div>
           </template>
@@ -154,6 +156,10 @@ export default {
       type: Array,
       required: true,
     },
+    hideResubmission: {
+      type: Boolean,
+      required: true,
+    },
   },
   methods: {
     myself(item) {
@@ -175,6 +181,9 @@ export default {
     },
     reloadContribution(id) {
       this.$emit('reload-contribution', id)
+    },
+    updateContributions() {
+      this.$emit('update-contributions')
     },
   },
 }

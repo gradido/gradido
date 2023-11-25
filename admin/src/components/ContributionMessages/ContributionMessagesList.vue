@@ -12,9 +12,11 @@
       <contribution-messages-formular
         :contributionId="contributionId"
         :contributionMemo="contributionMemo"
+        :hideResubmission="hideResubmission"
         @get-list-contribution-messages="$apollo.queries.Messages.refetch()"
         @update-status="updateStatus"
         @reload-contribution="reloadContribution"
+        @update-contributions="updateContributions"
       />
     </div>
   </div>
@@ -45,6 +47,10 @@ export default {
     },
     contributionUserId: {
       type: Number,
+      required: true,
+    },
+    hideResubmission: {
+      type: Boolean,
       required: true,
     },
   },
@@ -78,6 +84,9 @@ export default {
     },
     reloadContribution(id) {
       this.$emit('reload-contribution', id)
+    },
+    updateContributions() {
+      this.$emit('update-contributions')
     },
   },
 }
