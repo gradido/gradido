@@ -1,5 +1,5 @@
 /* eslint-disable security/detect-object-injection */
-import { Brackets, In, Like, Not, SelectQueryBuilder } from '@dbTools/typeorm'
+import { Brackets, In, IsNull, LessThanOrEqual, Like, Not, SelectQueryBuilder } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage } from '@entity/ContributionMessage'
 
@@ -47,29 +47,12 @@ export const findContributions = async (
     ...(filter.noHashtag && { memo: Not(Like(`%#%`)) }),
   })
   if (filter.hideResubmission) {
-    queryBuilder
-      .leftJoinAndSelect(
-        (qb: SelectQueryBuilder<ContributionMessage>) => {
-          return qb
-            .select('resubmission_at', 'resubmissionAt')
-            .addSelect('id', 'latestMessageId')
-            .addSelect('contribution_id', 'latestMessageContributionId')
-            .addSelect(
-              'ROW_NUMBER() OVER (PARTITION BY latestMessageContributionId ORDER BY created_at DESC)',
-              'rn',
-            )
-            .from(ContributionMessage, 'contributionMessage')
-        },
-        'latestContributionMessage',
-        'latestContributionMessage.latestMessageContributionId = Contribution.id AND latestContributionMessage.rn = 1',
-      )
-      .andWhere(
-        new Brackets((qb) => {
-          qb.where('latestContributionMessage.resubmissionAt IS NULL').orWhere(
-            'latestContributionMessage.resubmissionAt <= NOW()',
-          )
-        }),
-      )
+    const now = new Date()
+    queryBuilder.andWhere(
+      new Brackets((qb) => {
+        qb.where({ resubmissionAt: IsNull() }).orWhere({ resubmissionAt: LessThanOrEqual(now) })
+      }),
+    )
   }
   queryBuilder.printSql()
   if (filter.query) {
