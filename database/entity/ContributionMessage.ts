@@ -1,1 +1,1 @@
-export { ContributionMessage } from './0077-add_resubmission_date_contribution_message/ContributionMessage'
+export { ContributionMessage } from './0078-move_resubmission_date/ContributionMessage'
