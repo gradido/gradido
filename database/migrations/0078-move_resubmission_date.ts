@@ -2,10 +2,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  await queryFn(`ALTER TABLE \`contribution_messages\` DROP COLUMN \`resubmission_at\`;`)
   await queryFn(
-    `ALTER TABLE \`contributions\` ADD COLUMN \`resubmission_at\` datetime NULL DEFAULT NULL AFTER \`created_at \`;`,
+    `ALTER TABLE \`contributions\` ADD COLUMN \`resubmission_at\` datetime NULL DEFAULT NULL AFTER \`created_at\`;`,
   )
+  await queryFn(`ALTER TABLE \`contribution_messages\` DROP COLUMN \`resubmission_at\`;`)
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {

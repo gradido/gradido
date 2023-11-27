@@ -1,6 +1,7 @@
 import { Contribution } from '@entity/Contribution'
 import { User } from '@entity/User'
 
+import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { ContributionArgs } from '@/graphql/arg/ContributionArgs'
 import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { LogError } from '@/server/LogError'
@@ -20,6 +21,7 @@ export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContribu
     this.self.updatedAt = new Date()
     // null because updated by user them self
     this.self.updatedBy = null
+    this.self.resubmissionAt = null
   }
 
   protected checkAuthorization(user: User): AbstractUnconfirmedContributionRole {
@@ -54,5 +56,9 @@ export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContribu
     ) {
       throw new LogError("the contribution wasn't changed at all")
     }
+  }
+
+  public createContributionMessage(): ContributionMessageBuilder {
+    return super.createContributionMessage().setIsModerator(false)
   }
 }

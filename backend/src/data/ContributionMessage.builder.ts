@@ -63,6 +63,24 @@ export class ContributionMessageBuilder {
     return this
   }
 
+  /**
+   * set contribution message type dialog and copy message
+   * @param contribution
+   * @param message
+   * @returns
+   */
+  public setDialogType(message: string): this {
+    this.contributionMessage.message = message
+    this.contributionMessage.type = ContributionMessageType.DIALOG
+    return this
+  }
+
+  public setMessageAndType(message: string, type: ContributionMessageType): this {
+    this.contributionMessage.message = message
+    this.contributionMessage.type = type
+    return this
+  }
+
   public setUser(user: User): this {
     this.contributionMessage.user = user
     this.contributionMessage.userId = user.id

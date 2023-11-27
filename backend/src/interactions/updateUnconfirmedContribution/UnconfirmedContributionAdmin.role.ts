@@ -3,6 +3,7 @@ import { User } from '@entity/User'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Role } from '@/auth/Role'
+import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { AdminUpdateContributionArgs } from '@/graphql/arg/AdminUpdateContributionArgs'
 import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { LogError } from '@/server/LogError'
@@ -29,6 +30,11 @@ export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContrib
     this.self.contributionStatus = ContributionStatus.PENDING
     this.self.updatedAt = new Date()
     this.self.updatedBy = this.moderator.id
+    if (this.updateData.resubmissionAt) {
+      this.self.resubmissionAt = new Date(this.updateData.resubmissionAt)
+    } else {
+      this.self.resubmissionAt = null
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -52,5 +58,9 @@ export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContrib
     ) {
       throw new LogError("the contribution wasn't changed at all")
     }
+  }
+
+  public createContributionMessage(): ContributionMessageBuilder {
+    return super.createContributionMessage().setIsModerator(true)
   }
 }

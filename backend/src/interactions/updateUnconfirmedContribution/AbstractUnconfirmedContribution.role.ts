@@ -4,11 +4,14 @@ import { Decimal } from 'decimal.js-light'
 
 import { Role } from '@/auth/Role'
 import { ContributionLogic } from '@/data/Contribution.logic'
+import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
+import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { Context, getClientTimezoneOffset } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
 export abstract class AbstractUnconfirmedContributionRole {
   private availableCreationSums?: Decimal[]
+  protected changed = true
 
   public constructor(
     protected self: Contribution,
@@ -20,6 +23,10 @@ export abstract class AbstractUnconfirmedContributionRole {
     }
   }
 
+  public isChanged(): boolean {
+    return this.changed
+  }
+
   // steps which return void throw on each error
   // first, check if it can be updated
   protected abstract checkAuthorization(user: User, role: Role): void
@@ -28,6 +35,10 @@ export abstract class AbstractUnconfirmedContributionRole {
     // TODO: refactor frontend and remove this restriction
     if (this.self.contributionDate.getMonth() !== this.updatedCreationDate.getMonth()) {
       throw new LogError('Month of contribution can not be changed')
+    }
+
+    if (this.self.contributionStatus === ContributionStatus.CONFIRMED) {
+      throw new LogError('the contribution is already confirmed, cannot be changed anymore')
     }
 
     const contributionLogic = new ContributionLogic(this.self)
@@ -53,6 +64,11 @@ export abstract class AbstractUnconfirmedContributionRole {
     this.checkAuthorization(context.user, context.role)
     await this.validate(getClientTimezoneOffset(context))
     this.update()
+  }
+
+  public createContributionMessage(): ContributionMessageBuilder {
+    const contributionMessageBuilder = new ContributionMessageBuilder()
+    return contributionMessageBuilder.setParentContribution(this.self).setHistoryType(this.self)
   }
 
   public getAvailableCreationSums(): Decimal[] {
