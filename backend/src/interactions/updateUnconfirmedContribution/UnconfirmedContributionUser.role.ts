@@ -58,7 +58,10 @@ export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContribu
     }
   }
 
-  public createContributionMessage(): ContributionMessageBuilder {
-    return super.createContributionMessage().setIsModerator(false)
+  public createContributionMessage(): ContributionMessageBuilder | undefined {
+    const builder = super.createContributionMessage()
+    if (builder) {
+      return builder.setIsModerator(false)
+    }
   }
 }

@@ -54,7 +54,9 @@ export class ContributionMessageResolver {
               contribution,
             )
           }
-          await transactionalEntityManager.insert(ContributionMessage, contributionMessage)
+          if (contributionMessage) {
+            await transactionalEntityManager.insert(ContributionMessage, contributionMessage)
+          }
 
           finalContribution = contribution
           finalContributionMessage = contributionMessage
@@ -154,8 +156,9 @@ export class ContributionMessageResolver {
               contribution,
             )
           }
-          await transactionalEntityManager.insert(ContributionMessage, contributionMessage)
-
+          if (contributionMessage) {
+            await transactionalEntityManager.insert(ContributionMessage, contributionMessage)
+          }
           finalContribution = contribution
           finalContributionMessage = contributionMessage
         },

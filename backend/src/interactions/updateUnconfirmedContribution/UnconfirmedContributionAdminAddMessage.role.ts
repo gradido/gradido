@@ -20,9 +20,15 @@ export class UnconfirmedContributionAdminAddMessageRole extends AbstractUnconfir
     if (this.updateData.messageType !== ContributionMessageType.MODERATOR) {
       newStatus = ContributionStatus.IN_PROGRESS
     }
-    if (this.self.contributionStatus !== newStatus || this.self.resubmissionAt != null) {
+    const resubmissionDate: Date | null = this.updateData.resubmissionAt
+      ? new Date(this.updateData.resubmissionAt)
+      : null
+    if (
+      this.self.contributionStatus !== newStatus ||
+      this.self.resubmissionAt !== resubmissionDate
+    ) {
       this.self.contributionStatus = newStatus
-      this.self.resubmissionAt = null
+      this.self.resubmissionAt = resubmissionDate
     } else {
       this.changed = false
     }
@@ -46,10 +52,12 @@ export class UnconfirmedContributionAdminAddMessageRole extends AbstractUnconfir
     await super.validate(clientTimezoneOffset)
   }
 
-  public createContributionMessage(): ContributionMessageBuilder {
-    return super
-      .createContributionMessage()
-      .setIsModerator(true)
-      .setMessageAndType(this.updateData.message, this.updateData.messageType)
+  public createContributionMessage(): ContributionMessageBuilder | undefined {
+    const builder = super.createContributionMessage()
+    if (builder) {
+      return builder
+        .setIsModerator(true)
+        .setMessageAndType(this.updateData.message, this.updateData.messageType)
+    }
   }
 }

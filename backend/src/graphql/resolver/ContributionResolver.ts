@@ -187,10 +187,10 @@ export class ContributionResolver {
     const { contribution, contributionMessage, availableCreationSums } =
       await updateUnconfirmedContributionContext.run()
     await getConnection().transaction(async (transactionalEntityManager: EntityManager) => {
-      await Promise.all([
-        transactionalEntityManager.save(contribution),
-        transactionalEntityManager.save(contributionMessage),
-      ])
+      await transactionalEntityManager.save(contribution)
+      if (contributionMessage) {
+        await transactionalEntityManager.save(contributionMessage)
+      }
     })
     const user = getUser(context)
     await EVENT_CONTRIBUTION_UPDATE(user, contribution, contributionArgs.amount)
@@ -263,10 +263,11 @@ export class ContributionResolver {
     const { contribution, contributionMessage, createdByUserChangedByModerator } =
       await updateUnconfirmedContributionContext.run()
     await getConnection().transaction(async (transactionalEntityManager: EntityManager) => {
-      await Promise.all([
-        transactionalEntityManager.save(contribution),
-        transactionalEntityManager.save(contributionMessage),
-      ])
+      await transactionalEntityManager.save(contribution)
+      console.log('saved changed contribution: %o', JSON.stringify(contribution, null, 2))
+      if (contributionMessage) {
+        await transactionalEntityManager.save(contributionMessage)
+      }
     })
     const moderator = getUser(context)
 

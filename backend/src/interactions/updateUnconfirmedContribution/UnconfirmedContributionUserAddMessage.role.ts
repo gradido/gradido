@@ -42,10 +42,10 @@ export class UnconfirmedContributionUserAddMessageRole extends AbstractUnconfirm
     return this
   }
 
-  public createContributionMessage(): ContributionMessageBuilder {
-    return super
-      .createContributionMessage()
-      .setIsModerator(false)
-      .setDialogType(this.updateData.message)
+  public createContributionMessage(): ContributionMessageBuilder | undefined {
+    const builder = super.createContributionMessage()
+    if (builder) {
+      return builder.setIsModerator(false).setDialogType(this.updateData.message)
+    }
   }
 }

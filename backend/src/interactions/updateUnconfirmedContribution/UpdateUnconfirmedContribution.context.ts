@@ -39,7 +39,7 @@ export class UpdateUnconfirmedContributionContext {
     relations?: FindOptionsRelations<Contribution>,
   ): Promise<{
     contribution: Contribution
-    contributionMessage: ContributionMessage
+    contributionMessage: ContributionMessage | undefined
     availableCreationSums: Decimal[]
     createdByUserChangedByModerator: boolean
     contributionChanged: boolean
@@ -73,6 +73,7 @@ export class UpdateUnconfirmedContributionContext {
         this.input,
         this.context.user,
       )
+
       if (unconfirmedContributionRole.isCreatedFromUser()) {
         createdByUserChangedByModerator = true
       }
@@ -92,16 +93,20 @@ export class UpdateUnconfirmedContributionContext {
     if (!unconfirmedContributionRole) {
       throw new LogError("don't recognize input type, maybe not implemented yet?")
     }
+
+    const contributionMessageBuilder = unconfirmedContributionRole.createContributionMessage()
+    if (contributionMessageBuilder) {
+      contributionMessageBuilder.setUser(this.context.user)
+    }
     // run steps
     // all possible cases not to be true are thrown in the next function
     await unconfirmedContributionRole.checkAndUpdate(this.context)
 
     return {
       contribution: contributionToUpdate,
-      contributionMessage: unconfirmedContributionRole
-        .createContributionMessage()
-        .setUser(this.context.user)
-        .build(),
+      contributionMessage: contributionMessageBuilder
+        ? contributionMessageBuilder.build()
+        : undefined,
       availableCreationSums: unconfirmedContributionRole.getAvailableCreationSums(),
       createdByUserChangedByModerator,
       contributionChanged: unconfirmedContributionRole.isChanged(),
