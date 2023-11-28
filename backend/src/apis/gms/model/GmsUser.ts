@@ -1,9 +1,6 @@
 import { User as dbUser } from '@entity/User'
 
 import { GmsPublishNameType, GmsPublishPhoneType, GmsPublishPostType } from './GmsEnums'
-import { GmsRole } from './GmsRoles'
-import { GmsUserAccount } from './GmsUserAccount'
-import { GmsUserProfile } from './GmsUserProfile'
 
 export class GmsUser {
   constructor(user: dbUser) {
@@ -15,11 +12,11 @@ export class GmsUser {
     this.firstName = this.getGmsFirstName(user)
     this.lastName = this.getGmsLastName(user)
     this.alias = user.alias ? user.alias : undefined
-    this.address = this.getGmsAddress(user)
+    this.address = this.getGmsAddress(user) ?? 'Deutschland'
     this.zipCode = this.getGmsZipCode(user)
     this.city = this.getGmsCity(user)
     this.country = this.getGmsCountry(user)
-    this.type = 1
+    this.type = 2
     this.location = null
   }
 
