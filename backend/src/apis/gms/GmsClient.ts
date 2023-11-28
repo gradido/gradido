@@ -134,10 +134,10 @@ export async function createGmsUser(apiKey: string, user: GmsUser): Promise<bool
     if (result.status !== 200) {
       throw new LogError('HTTP Status Error in community-user:', result.status, result.statusText)
     }
-    logger.debug('responseData:', result.data.responseData.data)
+    logger.debug('responseData:', result.data.responseData)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const gmsUser = JSON.parse(result.data.responseData)
-    logger.debug('gmsUser:', gmsUser)
+    // const gmsUser = JSON.parse(result.data.responseData)
+    // logger.debug('gmsUser:', gmsUser)
     return true
   } catch (error: any) {
     logger.error('Error in Get community-user:', error)
