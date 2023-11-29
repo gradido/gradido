@@ -29,8 +29,10 @@ export class UnconfirmedContributionAdminAddMessageRole extends AbstractUnconfir
     ) {
       this.self.contributionStatus = newStatus
       this.self.resubmissionAt = resubmissionDate
+      console.log('update, change status and/or resubmissionAt')
     } else {
       this.changed = false
+      console.log('no changes, resubmission date: %s', resubmissionDate?.toString())
     }
   }
 

@@ -142,6 +142,7 @@ export default {
   },
   methods: {
     reloadContribution(id) {
+      console.log('reload contribution with id: %d', id)
       this.$apollo
         .query({ query: getContribution, variables: { id } })
         .then((result) => {

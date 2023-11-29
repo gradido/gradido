@@ -148,13 +148,14 @@ export class ContributionMessageResolver {
         async (transactionalEntityManager: EntityManager) => {
           const { contribution, contributionMessage, contributionChanged } =
             await updateUnconfirmedContributionContext.run(transactionalEntityManager, relations)
-
+          console.log('contribution changed: %d', contributionChanged)
           if (contributionChanged) {
             await transactionalEntityManager.update(
-              Contribution,
+              DbContribution,
               { id: contributionId },
               contribution,
             )
+            console.log('new contribution resubmission at: %s, status: %s', contribution.resubmissionAt, contribution.contributionStatus)
           }
           if (contributionMessage) {
             await transactionalEntityManager.insert(DbContributionMessage, contributionMessage)
