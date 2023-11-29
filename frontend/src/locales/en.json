@@ -5,6 +5,9 @@
   "1000thanks": "1000 thanks for being with us!",
   "125": "125%",
   "85": "85%",
+  "GDD": "GDD",
+  "GDT": "GDT",
+  "PersonalDetails": "Personal details",
   "advanced-calculation": "Advanced calculation",
   "asterisks": "****",
   "auth": {
@@ -179,7 +182,6 @@
     },
     "your_amount": "Your amount"
   },
-  "GDD": "GDD",
   "gddKonto": "GDD Konto",
   "gdd_per_link": {
     "choose-amount": "Select an amount you want to send via link and enter a message. The message is mandatory.",
@@ -214,7 +216,6 @@
     "validUntil": "Valid until",
     "validUntilDate": "The link is valid until {date}."
   },
-  "GDT": "GDT",
   "gdt": {
     "calculation": "Calculation of Gradido Transform",
     "contribution": "Contribution",
@@ -255,6 +256,7 @@
     "title": "Thank you!",
     "unsetPassword": "Your password has not been set yet. Please set it again."
   },
+  "moderatorChangedMemo": "Memo edited by moderator",
   "moderatorChat": "Moderator Chat",
   "navigation": {
     "admin_area": "Admin Area",
@@ -277,7 +279,6 @@
     "settings": "Settings",
     "transactions": "Your transactions"
   },
-  "PersonalDetails": "Personal details",
   "qrCode": "QR Code",
   "send_gdd": "Send GDD",
   "send_per_link": "Send GDD via Link",

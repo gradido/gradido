@@ -2,10 +2,16 @@
 <template>
   <div class="creation-confirm">
     <user-query class="mb-2 mt-2" v-model="query" :placeholder="$t('user_memo_search')" />
-    <label class="mb-4">
-      <input type="checkbox" class="noHashtag" v-model="noHashtag" @change="swapNoHashtag" />
+    <p class="mb-2">
+      <input type="checkbox" class="noHashtag" v-model="noHashtag" />
       <span class="ml-2" v-b-tooltip="$t('no_hashtag_tooltip')">{{ $t('no_hashtag') }}</span>
-    </label>
+    </p>
+    <p class="mb-4" v-if="showResubmissionCheckbox">
+      <input type="checkbox" class="hideResubmission" v-model="hideResubmissionModel" />
+      <span class="ml-2" v-b-tooltip="$t('hide_resubmission_tooltip')">
+        {{ $t('hide_resubmission') }}
+      </span>
+    </p>
     <div>
       <b-tabs v-model="tabIndex" content-class="mt-3" fill>
         <b-tab active :title-link-attributes="{ 'data-test': 'open' }">
@@ -47,8 +53,10 @@
       class="mt-4"
       :items="items"
       :fields="fields"
+      :hideResubmission="hideResubmission"
       @show-overlay="showOverlay"
       @update-status="updateStatus"
+      @reload-contribution="reloadContribution"
       @update-contributions="$apollo.queries.ListAllContributions.refetch()"
     />
 
@@ -95,6 +103,7 @@ import { adminListContributions } from '../graphql/adminListContributions'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
+import { getContribution } from '../graphql/getContribution'
 
 const FILTER_TAB_MAP = [
   ['IN_PROGRESS', 'PENDING'],
@@ -123,6 +132,7 @@ export default {
       pageSize: 25,
       query: '',
       noHashtag: null,
+      hideResubmissionModel: true,
     }
   },
   watch: {
@@ -131,8 +141,21 @@ export default {
     },
   },
   methods: {
-    swapNoHashtag() {
-      this.query()
+    reloadContribution(id) {
+      this.$apollo
+        .query({ query: getContribution, variables: { id } })
+        .then((result) => {
+          const contribution = result.data.contribution
+          this.$set(
+            this.items,
+            this.items.findIndex((obj) => obj.id === contribution.id),
+            contribution,
+          )
+        })
+        .catch((error) => {
+          this.overlay = false
+          this.toastError(error.message)
+        })
     },
     deleteCreation() {
       this.$apollo
@@ -410,6 +433,12 @@ export default {
           return 'info'
       }
     },
+    showResubmissionCheckbox() {
+      return this.tabIndex === 0
+    },
+    hideResubmission() {
+      return this.showResubmissionCheckbox ? this.hideResubmissionModel : false
+    },
   },
   apollo: {
     ListAllContributions: {
@@ -423,6 +452,7 @@ export default {
           statusFilter: this.statusFilter,
           query: this.query,
           noHashtag: this.noHashtag,
+          hideResubmission: this.hideResubmission,
         }
       },
       fetchPolicy: 'no-cache',
