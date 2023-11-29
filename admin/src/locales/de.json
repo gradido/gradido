@@ -119,7 +119,7 @@
     "notice-tooltip": "Die Notiz ist nur für Moderatoren sichtbar",
     "memo": "Text ändern",
     "memo-tooltip": "Den Beitragstext bearbeiten",
-    "memo-modified": "Memo vom Moderator bearbeitet",
+    "memo-modified": "Text vom Moderator bearbeitet.",
     "message": "Nachricht",
     "message-tooltip": "Nachricht an Benutzer schreiben",
     "request": "Diese Nachricht ist nur für die Moderatoren sichtbar!"

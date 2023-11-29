@@ -25,7 +25,7 @@ export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContrib
 
   /**
    *
-   * @returns true if memo, amount and creation date are not changed at all
+   * @returns true if memo, amount or creation date are changed
    */
   private isContributionChanging(): boolean {
     if (this.wasUpdateAlreadyCalled()) {
@@ -80,7 +80,7 @@ export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContrib
 
     // creation date is currently not changeable
     if (
-      this.isContributionChanging() &&
+      !this.isContributionChanging() &&
       ((this.self.resubmissionAt === null && newResubmissionDate === null) ||
         resubmissionNotChanged)
     ) {

@@ -157,7 +157,7 @@ export class ContributionMessageResolver {
             )
           }
           if (contributionMessage) {
-            await transactionalEntityManager.insert(ContributionMessage, contributionMessage)
+            await transactionalEntityManager.insert(DbContributionMessage, contributionMessage)
           }
           finalContribution = contribution
           finalContributionMessage = contributionMessage

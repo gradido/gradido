@@ -36,7 +36,7 @@
             <b-form-textarea
               id="textarea"
               v-model="form.text"
-              :placeholder="$t('contributionLink.memo')"
+              :placeholder="$t('moderator.notice')"
               rows="3"
             ></b-form-textarea>
           </b-tab>
@@ -138,7 +138,6 @@ export default {
       this.loading = true
       let mutation
       const variables = {
-        id: this.contributionId,
         resubmissionAt: this.showResubmissionDate
           ? this.combineResubmissionDateAndTime().toString()
           : null,
@@ -146,6 +145,7 @@ export default {
       // update only resubmission date?
       if (this.form.text === '' && this.form.memo === this.contributionMemo) {
         mutation = adminUpdateContribution
+        variables.id = this.contributionId
       }
       // update tabindex 0 = dialog or 1 = moderator
       else if (this.tabindex !== 2) {
@@ -153,10 +153,12 @@ export default {
         variables.message = this.form.text
         variables.messageType =
           this.tabindex === 0 ? this.messageType.DIALOG : this.messageType.MODERATOR
+        variables.contributionId = this.contributionId
         // update contribution memo
       } else {
         mutation = adminUpdateContribution
         variables.memo = this.form.memo
+        variables.id = this.contributionId
       }
       this.$apollo
         .mutate({ mutation, variables })
