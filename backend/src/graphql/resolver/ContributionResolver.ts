@@ -264,9 +264,24 @@ export class ContributionResolver {
       await updateUnconfirmedContributionContext.run()
     await getConnection().transaction(async (transactionalEntityManager: EntityManager) => {
       await transactionalEntityManager.save(contribution)
-      console.log('saved changed contribution: %o', JSON.stringify(contribution, null, 2))
+      // TODO: move into specialized view or formatting for logging class
+      logger.debug('saved changed contribution', {
+        id: contribution.id,
+        amount: contribution.amount.toString(),
+        memo: contribution.memo,
+        contributionDate: contribution.contributionDate.toString(),
+        resubmissionAt: contribution.resubmissionAt?.toString(),
+        status: contribution.contributionStatus.toString(),
+      })
       if (contributionMessage) {
         await transactionalEntityManager.save(contributionMessage)
+        // TODO: move into specialized view or formatting for logging class
+        logger.debug('save new contributionMessage', {
+          contributionId: contributionMessage.contributionId,
+          type: contributionMessage.type,
+          message: contributionMessage.message,
+          isModerator: contributionMessage.isModerator,
+        })
       }
     })
     const moderator = getUser(context)

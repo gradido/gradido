@@ -10,6 +10,10 @@ import { LogError } from '@/server/LogError'
 
 import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'
 
+/**
+ * This role will be used for Moderators and Admins which want to edit a contribution
+ * Admins and Moderators are currently not allowed to edit her own contributions with the admin/moderator role
+ */
 export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContributionRole {
   public constructor(
     contribution: Contribution,
@@ -78,7 +82,8 @@ export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContrib
       newResubmissionDate !== null &&
       +this.self.resubmissionAt === +newResubmissionDate
 
-    // creation date is currently not changeable
+    // check if at least one value of contribution was changed and if not, throw an exception
+    // frontend and admin frontend should only call with at least some changes in the args
     if (
       !this.isContributionChanging() &&
       ((this.self.resubmissionAt === null && newResubmissionDate === null) ||

@@ -9,6 +9,10 @@ import { LogError } from '@/server/LogError'
 
 import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'
 
+/**
+ * This role will be used for Moderators and Admins which want to comment a contribution
+ * Admins and Moderators are currently not allowed to comment her own contributions with the admin/moderator role
+ */
 export class UnconfirmedContributionAdminAddMessageRole extends AbstractUnconfirmedContributionRole {
   public constructor(contribution: Contribution, private updateData: ContributionMessageArgs) {
     super(contribution, contribution.amount, contribution.contributionDate)
@@ -29,10 +33,8 @@ export class UnconfirmedContributionAdminAddMessageRole extends AbstractUnconfir
     ) {
       this.self.contributionStatus = newStatus
       this.self.resubmissionAt = resubmissionDate
-      console.log('update, change status and/or resubmissionAt')
     } else {
       this.changed = false
-      console.log('no changes, resubmission date: %s', resubmissionDate?.toString())
     }
   }
 

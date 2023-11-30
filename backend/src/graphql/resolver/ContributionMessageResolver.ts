@@ -20,6 +20,7 @@ import {
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
 
 import { findContributionMessages } from './util/findContributionMessages'
 
@@ -148,14 +149,17 @@ export class ContributionMessageResolver {
         async (transactionalEntityManager: EntityManager) => {
           const { contribution, contributionMessage, contributionChanged } =
             await updateUnconfirmedContributionContext.run(transactionalEntityManager, relations)
-          console.log('contribution changed: %d', contributionChanged)
           if (contributionChanged) {
             await transactionalEntityManager.update(
               DbContribution,
               { id: contributionId },
               contribution,
             )
-            console.log('new contribution resubmission at: %s, status: %s', contribution.resubmissionAt, contribution.contributionStatus)
+            logger.debug(
+              'contribution changed, resubmission at: %s, status: %s',
+              contribution.resubmissionAt,
+              contribution.contributionStatus,
+            )
           }
           if (contributionMessage) {
             await transactionalEntityManager.insert(DbContributionMessage, contributionMessage)

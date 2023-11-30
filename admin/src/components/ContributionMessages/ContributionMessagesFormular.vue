@@ -163,18 +163,15 @@ export default {
       this.$apollo
         .mutate({ mutation, variables })
         .then((result) => {
-          this.$el.ownerDocument.defaultView.console.log('after calling mutation')
           if (
             this.hideResubmission &&
             this.showResubmissionDate &&
             this.combineResubmissionDateAndTime() > new Date()
           ) {
-            this.$el.ownerDocument.defaultView.console.log('before update-contributions')
             this.$emit('update-contributions')
           } else {
-            this.$el.ownerDocument.defaultView.console.log('before reload contribution')
             this.$emit('reload-contribution', this.contributionId)
-          }          
+          }
           this.toastSuccess(this.$t('message.request'))
           this.loading = false
         })

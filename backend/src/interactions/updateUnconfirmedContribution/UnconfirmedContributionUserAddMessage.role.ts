@@ -8,6 +8,10 @@ import { LogError } from '@/server/LogError'
 
 import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'
 
+/**
+ * This role will be used if a User comment his contribution, for example as answer to a moderator question
+ * independent from there role, because the own contribution can only be commented in user role
+ */
 export class UnconfirmedContributionUserAddMessageRole extends AbstractUnconfirmedContributionRole {
   public constructor(contribution: Contribution, private updateData: ContributionMessageArgs) {
     super(contribution, contribution.amount, contribution.contributionDate)
