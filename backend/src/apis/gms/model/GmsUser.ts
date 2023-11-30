@@ -1,6 +1,11 @@
 import { User as dbUser } from '@entity/User'
 
-import { GmsPublishNameType, GmsPublishPhoneType, GmsPublishPostType } from './GmsEnums'
+import {
+  GmsLocationType,
+  GmsPublishNameType,
+  GmsPublishPhoneType,
+  GmsPublishPostType,
+} from './GmsEnums'
 
 export class GmsUser {
   constructor(user: dbUser) {
@@ -12,11 +17,11 @@ export class GmsUser {
     this.firstName = this.getGmsFirstName(user)
     this.lastName = this.getGmsLastName(user)
     this.alias = user.alias ? user.alias : undefined
-    this.address = this.getGmsAddress(user) ?? 'Deutschland'
-    this.zipCode = this.getGmsZipCode(user)
-    this.city = this.getGmsCity(user)
-    this.country = this.getGmsCountry(user)
-    this.type = 2
+    this.address = this.getGmsAddress(user)
+    // this.zipCode = this.getGmsZipCode(user)
+    // this.city = this.getGmsCity(user)
+    // this.country = this.getGmsCountry(user)
+    this.type = GmsLocationType.GMS_LOCATION_TYPE_RANDOM
     this.location = null
   }
 
@@ -45,15 +50,12 @@ export class GmsUser {
     if (
       user.gmsAllowed &&
       (user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FIRST ||
+        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL ||
         user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FULL)
     ) {
       return user.firstName
     }
-    if (
-      user.gmsAllowed &&
-      (user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL ||
-        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_INITIALS)
-    ) {
+    if (user.gmsAllowed && user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_INITIALS) {
       return user.firstName.substring(0, 1) + '.'
     }
   }
@@ -72,7 +74,7 @@ export class GmsUser {
   }
 
   private getGmsEmail(user: dbUser): string | undefined {
-    if (user.gmsAllowed && user.emailContact.gmsPublishEmail === true) {
+    if (user.gmsAllowed && user.emailContact.gmsPublishEmail) {
       return user.emailContact.email
     }
   }
@@ -97,11 +99,19 @@ export class GmsUser {
   }
 
   private getGmsAddress(user: dbUser): string | undefined {
-    if (
-      user.gmsAllowed &&
-      user.emailContact.gmsPublishPost === GmsPublishPostType.GMS_PUBLISH_POST_FULL
-    ) {
-      return user.emailContact.address
+    if (user.gmsAllowed) {
+      if (user.emailContact.gmsPublishPost === GmsPublishPostType.GMS_PUBLISH_POST_FULL) {
+        const address = [
+          '' + user.emailContact.country,
+          ...(user.emailContact.zipCode ? user.emailContact.zipCode : ' '),
+          user.emailContact.city ? user.emailContact.city : ' ',
+          user.emailContact.address ? user.emailContact.address : ' ',
+        ]
+          .map((a) => a.trim())
+          .filter(Boolean)
+          .join(', ')
+        return address
+      }
     }
   }
 

@@ -35,3 +35,15 @@ registerEnumType(GmsPublishPostType, {
   name: 'GmsPublishPostType', // this one is mandatory
   description: 'Type of name publishing', // this one is optional
 })
+
+export enum GmsLocationType {
+  GMS_LOCATION_TYPE_EXACT = 0,
+  GMS_LOCATION_TYPE_APPROXIMATE = 1,
+  GMS_LOCATION_TYPE_RANDOM = 2,
+}
+
+registerEnumType(GmsLocationType, {
+  name: 'GmsLocationType', // this one is mandatory
+  description: 'Type of location treatment in GMS', // this one is optional
+})
+

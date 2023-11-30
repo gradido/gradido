@@ -135,6 +135,7 @@ const federation = {
 }
 
 const gms = {
+  GMS_ACTIVE: process.env.GMS_ACTIVE === 'true' || false,
   // koordinates of Illuminz-instance of GMS
   GMS_HOST: process.env.GMS_HOST ?? 'localhost',
   GMS_PORT: process.env.GMS_PORT ?? '4044',

@@ -5,15 +5,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
 import { entities } from '@entity/index'
-import { User as DbUser } from '@entity/User'
 import { createTestClient } from 'apollo-server-testing'
 
-import { communityList, createGmsUser, userList } from '@/apis/gms/GmsClient'
-import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { CONFIG } from '@/config'
-import { getHomeCommunity } from '@/graphql/resolver/util/communities'
 import { createServer } from '@/server/createServer'
-import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 CONFIG.EMAIL = false
@@ -52,10 +47,10 @@ const run = async () => {
 
   // test GMS-Api Client
   try {
-    const gmsComArray = await communityList()
-    logger.debug('GMS-Community-List:', gmsComArray)
-    const gmsUserArray = await userList()
-    logger.debug('GMS-Community-User-List:', gmsUserArray)
+    // const gmsComArray = await communityList()
+    // logger.debug('GMS-Community-List:', gmsComArray)
+    // const gmsUserArray = await userList()
+    // logger.debug('GMS-Community-User-List:', gmsUserArray)
   } catch (err) {
     logger.error('Error in GMS-API:', err)
   }
