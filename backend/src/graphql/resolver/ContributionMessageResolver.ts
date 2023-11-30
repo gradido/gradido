@@ -50,13 +50,13 @@ export class ContributionMessageResolver {
 
           if (contributionChanged) {
             await transactionalEntityManager.update(
-              Contribution,
+              DbContribution,
               { id: contributionId },
               contribution,
             )
           }
           if (contributionMessage) {
-            await transactionalEntityManager.insert(ContributionMessage, contributionMessage)
+            await transactionalEntityManager.insert(DbContributionMessage, contributionMessage)
           }
 
           finalContribution = contribution
