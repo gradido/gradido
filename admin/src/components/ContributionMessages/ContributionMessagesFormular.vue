@@ -11,7 +11,7 @@
           <b-form-datepicker v-model="resubmissionDate" :min="now"></b-form-datepicker>
           <time-picker v-model="resubmissionTime"></time-picker>
         </b-form-group>
-        <b-tabs content-class="mt-3" v-model="tabindex">
+        <b-tabs content-class="mt-3" v-model="tabindex" data-test="message-type-tabs">
           <b-tab active>
             <template #title>
               <span id="message-tab-title">{{ $t('moderator.message') }}</span>
