@@ -1,6 +1,8 @@
 import { Contribution } from '@entity/Contribution'
 import { User } from '@entity/User'
 
+import { RIGHTS } from '@/auth/RIGHTS'
+import { Role } from '@/auth/Role'
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { ContributionMessageArgs } from '@/graphql/arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@/graphql/enum/ContributionMessageType'
@@ -9,10 +11,6 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'
-import { Role } from '@/auth/Role'
-import { RoleNames } from '@/graphql/enum/RoleNames'
-import { RIGHTS } from '@/auth/RIGHTS'
-import { Authorized } from 'type-graphql'
 
 /**
  * This role will be used for Moderators and Admins which want to comment a contribution

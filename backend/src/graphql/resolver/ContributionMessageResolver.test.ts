@@ -373,7 +373,7 @@ describe('ContributionMessageResolver', () => {
 
         it('throws error when other user tries to send createContributionMessage', async () => {
           jest.clearAllMocks()
-          const user = await mutate({
+          await mutate({
             mutation: login,
             variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
           })
