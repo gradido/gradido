@@ -137,6 +137,7 @@ export default {
     onSubmit() {
       this.loading = true
       let mutation
+      let updateOnlyResubmissionAt = false
       const variables = {
         resubmissionAt: this.showResubmissionDate
           ? this.combineResubmissionDateAndTime().toString()
@@ -146,6 +147,7 @@ export default {
       if (this.form.text === '' && this.form.memo === this.contributionMemo) {
         mutation = adminUpdateContribution
         variables.id = this.contributionId
+        updateOnlyResubmissionAt = true
       }
       // update tabindex 0 = dialog or 1 = moderator
       else if (this.tabindex !== 2) {
@@ -154,7 +156,7 @@ export default {
         variables.messageType =
           this.tabindex === 0 ? this.messageType.DIALOG : this.messageType.MODERATOR
         variables.contributionId = this.contributionId
-        // update contribution memo
+        // update contribution memo, tabindex 2
       } else {
         mutation = adminUpdateContribution
         variables.memo = this.form.memo
@@ -170,7 +172,16 @@ export default {
           ) {
             this.$emit('update-contributions')
           } else {
-            this.$emit('reload-contribution', this.contributionId)
+            this.$emit('get-list-contribution-messages', this.contributionId)
+            // update status increase message count and update chat symbol
+            // if (updateOnlyResubmissionAt === true) no message was created
+            if (!updateOnlyResubmissionAt) {
+              this.$emit('update-status', this.contributionId)
+            }
+            // only by updating memo it make sense to reload contribution
+            if (this.tabindex === 2) {
+              this.$emit('reload-contribution', this.contributionId)
+            }
           }
           this.toastSuccess(this.$t('message.request'))
           this.loading = false
