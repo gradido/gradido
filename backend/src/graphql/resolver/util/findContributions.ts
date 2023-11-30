@@ -1,7 +1,14 @@
 /* eslint-disable security/detect-object-injection */
-import { Brackets, In, IsNull, LessThanOrEqual, Like, Not, SelectQueryBuilder } from '@dbTools/typeorm'
+import {
+  Brackets,
+  In,
+  IsNull,
+  LessThanOrEqual,
+  Like,
+  Not,
+  SelectQueryBuilder,
+} from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
-import { ContributionMessage } from '@entity/ContributionMessage'
 
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'

@@ -86,8 +86,7 @@
     "short_hash": "({shortHash})"
   },
   "form": {
-    "cancel": "Cancel",
-    "submit": "Send"
+    "cancel": "Cancel"
   },
   "help": {
     "help": "Help",
@@ -111,7 +110,6 @@
     "request": "Request has been sent."
   },
   "moderator": {
-    "chat": "Chat",
     "history": "The data has been changed. This is the old data.",
     "show-submission-form": "wait for reminder?",
     "moderator": "Moderator",
