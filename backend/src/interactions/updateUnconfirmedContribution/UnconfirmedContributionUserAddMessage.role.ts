@@ -3,8 +3,10 @@ import { User } from '@entity/User'
 
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { ContributionMessageArgs } from '@/graphql/arg/ContributionMessageArgs'
+import { ContributionMessageType } from '@/graphql/enum/ContributionMessageType'
 import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { LogError } from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
 
 import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'
 
@@ -15,6 +17,7 @@ import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContri
 export class UnconfirmedContributionUserAddMessageRole extends AbstractUnconfirmedContributionRole {
   public constructor(contribution: Contribution, private updateData: ContributionMessageArgs) {
     super(contribution, contribution.amount, contribution.contributionDate)
+    logger.debug('use UnconfirmedContributionUserAddMessageRole')
   }
 
   protected update(): void {
@@ -34,6 +37,7 @@ export class UnconfirmedContributionUserAddMessageRole extends AbstractUnconfirm
       throw new LogError('Can not update contribution of another user', this.self, user.id)
     }
     // only admins and moderators can update it when status is other than progress or pending
+    // but we are in the user add message role.. we are currently not admin or moderator
     if (
       this.self.contributionStatus !== ContributionStatus.IN_PROGRESS &&
       this.self.contributionStatus !== ContributionStatus.PENDING
@@ -42,6 +46,9 @@ export class UnconfirmedContributionUserAddMessageRole extends AbstractUnconfirm
         'Contribution can not be updated due to status',
         this.self.contributionStatus,
       )
+    }
+    if (this.updateData.messageType !== ContributionMessageType.DIALOG) {
+      throw new LogError('unexpected contribution message type, only dialog is allowed for user')
     }
     return this
   }

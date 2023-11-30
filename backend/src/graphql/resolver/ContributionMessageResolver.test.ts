@@ -24,6 +24,7 @@ import {
 } from '@/seeds/graphql/mutations'
 import { listContributionMessages, adminListContributionMessages } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
 jest.mock('@/emails/sendEmailVariants', () => {
@@ -78,6 +79,7 @@ describe('ContributionMessageResolver', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
         await userFactory(testEnv, peterLustig)
+        await userFactory(testEnv, bobBaumeister)
         await mutate({
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -129,7 +131,7 @@ describe('ContributionMessageResolver', () => {
           )
         })
 
-        it('throws error when contribution.userId equals user.id', async () => {
+        it('treat the logged-in user as a normal user, not as a moderator or admin if contribution.userId equals user.id', async () => {
           jest.clearAllMocks()
           await mutate({
             mutation: login,
@@ -143,29 +145,30 @@ describe('ContributionMessageResolver', () => {
               creationDate: new Date().toString(),
             },
           })
-          await expect(
-            mutate({
-              mutation: adminCreateContributionMessage,
-              variables: {
-                contributionId: result2.data.createContribution.id,
-                message: 'Test',
+          const mutationResult = await mutate({
+            mutation: adminCreateContributionMessage,
+            variables: {
+              contributionId: result2.data.createContribution.id,
+              message: 'Test',
+            },
+          })
+          expect(logger.debug).toBeCalledTimes(4)
+          expect(logger.debug).toHaveBeenNthCalledWith(
+            4,
+            'use UnconfirmedContributionUserAddMessageRole',
+          )
+          expect(mutationResult).toEqual(
+            expect.objectContaining({
+              data: {
+                adminCreateContributionMessage: expect.objectContaining({
+                  id: expect.any(Number),
+                  message: 'Test',
+                  type: 'DIALOG',
+                  userFirstName: 'Peter',
+                  userLastName: 'Lustig',
+                }),
               },
             }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [
-                new GraphQLError(
-                  'ContributionMessage was not sent successfully: Error: Admin can not answer on his own contribution',
-                ),
-              ],
-            }),
-          )
-        })
-
-        it('logs the error "ContributionMessage was not sent successfully: Error: Admin can not answer on his own contribution"', () => {
-          expect(logger.error).toBeCalledWith(
-            'ContributionMessage was not sent successfully: Error: Admin can not answer on his own contribution',
-            new Error('Admin can not answer on his own contribution'),
           )
         })
       })
@@ -332,35 +335,84 @@ describe('ContributionMessageResolver', () => {
           )
         })
 
-        it('throws error when other user tries to send createContributionMessage', async () => {
+        it('other user tries to send createContributionMessage but is also moderator or admin so it is allowed', async () => {
           jest.clearAllMocks()
           await mutate({
             mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
-          await expect(
-            mutate({
-              mutation: createContributionMessage,
-              variables: {
-                contributionId: result.data.createContribution.id,
-                message: 'Test',
+
+          const mutationResult = await mutate({
+            mutation: createContributionMessage,
+            variables: {
+              contributionId: result.data.createContribution.id,
+              message: 'Test',
+            },
+          })
+
+          expect(logger.debug).toBeCalledTimes(4)
+          expect(logger.debug).toHaveBeenNthCalledWith(
+            4,
+            'use UnconfirmedContributionAdminAddMessageRole',
+          )
+
+          expect(mutationResult).toEqual(
+            expect.objectContaining({
+              data: {
+                createContributionMessage: expect.objectContaining({
+                  id: expect.any(Number),
+                  message: 'Test',
+                  type: 'DIALOG',
+                  userFirstName: 'Peter',
+                  userLastName: 'Lustig',
+                }),
               },
             }),
-          ).resolves.toEqual(
+          )
+        })
+
+        it('throws error when other user tries to send createContributionMessage', async () => {
+          jest.clearAllMocks()
+          const user = await mutate({
+            mutation: login,
+            variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+          })
+          const mutationResult = await mutate({
+            mutation: createContributionMessage,
+            variables: {
+              contributionId: result.data.createContribution.id,
+              message: 'Test',
+            },
+          })
+
+          expect(logger.debug).toBeCalledTimes(4)
+          expect(logger.debug).toHaveBeenNthCalledWith(
+            4,
+            'use UnconfirmedContributionAdminAddMessageRole',
+          )
+
+          expect(mutationResult).toEqual(
             expect.objectContaining({
               errors: [
                 new GraphQLError(
-                  'ContributionMessage was not sent successfully: Error: Can not send message to contribution of another user',
+                  'ContributionMessage was not sent successfully: Error: missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user',
                 ),
               ],
             }),
           )
         })
 
-        it('logs the error "ContributionMessage was not sent successfully: Error: Can not send message to contribution of another user"', () => {
-          expect(logger.error).toBeCalledWith(
-            'ContributionMessage was not sent successfully: Error: Can not send message to contribution of another user',
-            new Error('Can not send message to contribution of another user'),
+        it('logs the error "ContributionMessage was not sent successfully: Error: missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user"', () => {
+          expect(logger.debug).toBeCalledTimes(4)
+          expect(logger.error).toHaveBeenNthCalledWith(
+            1,
+            'missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user',
+            expect.any(Number),
+          )
+          expect(logger.error).toHaveBeenNthCalledWith(
+            2,
+            'ContributionMessage was not sent successfully: Error: missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user',
+            new Error('missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user'),
           )
         })
       })
@@ -450,13 +502,22 @@ describe('ContributionMessageResolver', () => {
           expect.objectContaining({
             data: {
               listContributionMessages: {
-                count: 2,
+                count: 3,
                 messages: expect.arrayContaining([
                   expect.objectContaining({
                     id: expect.any(Number),
                     message: 'Admin Test',
                     type: 'DIALOG',
                     userFirstName: 'Peter',
+                    userId: expect.any(Number),
+                    userLastName: 'Lustig',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    message: 'Test',
+                    type: 'DIALOG',
+                    userFirstName: 'Peter',
+                    userId: expect.any(Number),
                     userLastName: 'Lustig',
                   }),
                   expect.objectContaining({
@@ -464,6 +525,7 @@ describe('ContributionMessageResolver', () => {
                     message: 'User Test',
                     type: 'DIALOG',
                     userFirstName: 'Bibi',
+                    userId: expect.any(Number),
                     userLastName: 'Bloxberg',
                   }),
                 ]),
@@ -535,13 +597,22 @@ describe('ContributionMessageResolver', () => {
           expect.objectContaining({
             data: {
               adminListContributionMessages: {
-                count: 3,
+                count: 4,
                 messages: expect.arrayContaining([
                   expect.objectContaining({
                     id: expect.any(Number),
                     message: 'Admin Test',
                     type: 'DIALOG',
                     userFirstName: 'Peter',
+                    userId: expect.any(Number),
+                    userLastName: 'Lustig',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    message: 'Test',
+                    type: 'DIALOG',
+                    userFirstName: 'Peter',
+                    userId: expect.any(Number),
                     userLastName: 'Lustig',
                   }),
                   expect.objectContaining({
@@ -549,6 +620,7 @@ describe('ContributionMessageResolver', () => {
                     message: 'User Test',
                     type: 'DIALOG',
                     userFirstName: 'Bibi',
+                    userId: expect.any(Number),
                     userLastName: 'Bloxberg',
                   }),
                   expect.objectContaining({
@@ -556,6 +628,7 @@ describe('ContributionMessageResolver', () => {
                     message: 'Internal moderator communication',
                     type: 'MODERATOR',
                     userFirstName: 'Peter',
+                    userId: expect.any(Number),
                     userLastName: 'Lustig',
                   }),
                 ]),

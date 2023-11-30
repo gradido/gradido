@@ -6,8 +6,13 @@ import { ContributionMessageArgs } from '@/graphql/arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@/graphql/enum/ContributionMessageType'
 import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { LogError } from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
 
 import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'
+import { Role } from '@/auth/Role'
+import { RoleNames } from '@/graphql/enum/RoleNames'
+import { RIGHTS } from '@/auth/RIGHTS'
+import { Authorized } from 'type-graphql'
 
 /**
  * This role will be used for Moderators and Admins which want to comment a contribution
@@ -16,6 +21,7 @@ import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContri
 export class UnconfirmedContributionAdminAddMessageRole extends AbstractUnconfirmedContributionRole {
   public constructor(contribution: Contribution, private updateData: ContributionMessageArgs) {
     super(contribution, contribution.amount, contribution.contributionDate)
+    logger.debug('use UnconfirmedContributionAdminAddMessageRole')
   }
 
   protected update(): void {
@@ -38,7 +44,11 @@ export class UnconfirmedContributionAdminAddMessageRole extends AbstractUnconfir
     }
   }
 
-  protected checkAuthorization(user: User): AbstractUnconfirmedContributionRole {
+  protected checkAuthorization(user: User, role: Role): AbstractUnconfirmedContributionRole {
+    if (!role.hasRight(RIGHTS.ADMIN_CREATE_CONTRIBUTION_MESSAGE)) {
+      throw new LogError('missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user', user.id)
+    }
+
     // TODO: think if there are cases in which admin comment his own contribution
     if (
       this.self.userId === user.id &&
