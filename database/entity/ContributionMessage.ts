@@ -1,1 +1,1 @@
-export { ContributionMessage } from './0048-add_is_moderator_to_contribution_messages/ContributionMessage'
+export { ContributionMessage } from './0077-add_resubmission_date_contribution_message/ContributionMessage'

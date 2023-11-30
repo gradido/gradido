@@ -26,6 +26,11 @@
     "contribution": {
       "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“."
     },
+    "contributionChangedByModerator": {
+      "subject": "Dein Gemeinwohl-Beitrag wurde geändert",
+      "text": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde soeben von {senderFirstName} {senderLastName} geändert und lautet jetzt „{contributionMemoUpdated}“",
+      "title": "Dein Gemeinwohl-Beitrag wurde geändert"
+    },
     "contributionConfirmed": {
       "commonGoodContributionConfirmed": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde soeben von {senderFirstName} {senderLastName} bestätigt. Es wurden deinem Gradido-Konto {amountGDD} GDD gutgeschrieben.",
       "subject": "Dein Gemeinwohl-Beitrag wurde bestätigt",

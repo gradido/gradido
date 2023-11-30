@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0075-introduce_gms_registration',
+  DB_VERSION: '0078-introduce_gms_registration',
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',

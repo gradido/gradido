@@ -46,4 +46,3 @@ registerEnumType(GmsLocationType, {
   name: 'GmsLocationType', // this one is mandatory
   description: 'Type of location treatment in GMS', // this one is optional
 })
-

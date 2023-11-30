@@ -125,7 +125,7 @@ export class ContributionMessageResolver {
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION_MESSAGE])
   @Mutation(() => ContributionMessage)
   async adminCreateContributionMessage(
-    @Args() { contributionId, message, messageType }: ContributionMessageArgs,
+    @Args() { contributionId, message, messageType, resubmissionAt }: ContributionMessageArgs,
     @Ctx() context: Context,
   ): Promise<ContributionMessage> {
     const moderator = getUser(context)
@@ -156,6 +156,9 @@ export class ContributionMessageResolver {
       contributionMessage.userId = moderator.id
       contributionMessage.type = messageType
       contributionMessage.isModerator = true
+      if (resubmissionAt) {
+        contributionMessage.resubmissionAt = new Date(resubmissionAt)
+      }
       await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
 
       if (messageType !== ContributionMessageType.MODERATOR) {

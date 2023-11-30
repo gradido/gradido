@@ -3,6 +3,9 @@
   "1000thanks": "1000 dank, omdat je bij ons bent!",
   "125": "125%",
   "85": "85%",
+  "GDD": "GDD",
+  "GDT": "GDT",
+  "PersonalDetails": "Persoonlijke gegevens",
   "advanced-calculation": "Voorcalculatie",
   "asterisks": "****",
   "auth": {
@@ -157,7 +160,6 @@
     },
     "your_amount": "Jouw bijdrage"
   },
-  "GDD": "GDD",
   "gdd_per_link": {
     "choose-amount": "Kies een bedrag dat je per link versturen wil. Je kunt ook nog een bericht invullen. Wanneer je „Nu genereren“ klikt, wordt er een link gecreëerd die je kunt versturen.",
     "copy-link": "Link kopiëren",

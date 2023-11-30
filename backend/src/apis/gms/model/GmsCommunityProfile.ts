@@ -1,3 +1,4 @@
+/*
 export class GmsCommunityProfile {
   name: string
   location: {
@@ -14,3 +15,4 @@ export class GmsCommunityProfile {
   communityAuthUrl: unknown
   profileImage: unknown
 }
+*/

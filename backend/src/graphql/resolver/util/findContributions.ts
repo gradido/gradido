@@ -1,6 +1,7 @@
 /* eslint-disable security/detect-object-injection */
 import { Brackets, In, Like, Not, SelectQueryBuilder } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
+import { ContributionMessage } from '@entity/ContributionMessage'
 
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
@@ -19,7 +20,6 @@ function joinRelationsRecursive(
   currentPath: string,
 ): void {
   for (const key in relations) {
-    // console.log('leftJoin: %s, %s', `${currentPath}.${key}`, key)
     queryBuilder.leftJoinAndSelect(`${currentPath}.${key}`, key)
     if (typeof relations[key] === 'object') {
       // If it's a nested relation
@@ -46,6 +46,31 @@ export const findContributions = async (
     ...(filter.userId && { userId: filter.userId }),
     ...(filter.noHashtag && { memo: Not(Like(`%#%`)) }),
   })
+  if (filter.hideResubmission) {
+    queryBuilder
+      .leftJoinAndSelect(
+        (qb: SelectQueryBuilder<ContributionMessage>) => {
+          return qb
+            .select('resubmission_at', 'resubmissionAt')
+            .addSelect('id', 'latestMessageId')
+            .addSelect('contribution_id', 'latestMessageContributionId')
+            .addSelect(
+              'ROW_NUMBER() OVER (PARTITION BY latestMessageContributionId ORDER BY created_at DESC)',
+              'rn',
+            )
+            .from(ContributionMessage, 'contributionMessage')
+        },
+        'latestContributionMessage',
+        'latestContributionMessage.latestMessageContributionId = Contribution.id AND latestContributionMessage.rn = 1',
+      )
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('latestContributionMessage.resubmissionAt IS NULL').orWhere(
+            'latestContributionMessage.resubmissionAt <= NOW()',
+          )
+        }),
+      )
+  }
   queryBuilder.printSql()
   if (filter.query) {
     const queryString = '%' + filter.query + '%'

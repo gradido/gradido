@@ -105,7 +105,7 @@ describe('ContentFooter', () => {
 
       it('links to the support', () => {
         expect(wrapper.findAll('a.nav-link').at(3).attributes('href')).toEqual(
-          'https://gradido.net/en/contact/',
+          'mailto:support@supportmail.com',
         )
       })
 
@@ -135,12 +135,6 @@ describe('ContentFooter', () => {
         it('links to the German whitepaper when locale is de', () => {
           expect(wrapper.findAll('a.nav-link').at(2).attributes('href')).toEqual(
             'https://docs.google.com/document/d/1jZp-DiiMPI9ZPNXmjsvOQ1BtnfDFfx8BX7CDmA8KKjY/edit?usp=sharing',
-          )
-        })
-
-        it('links to the German support-page when locale is de', () => {
-          expect(wrapper.findAll('a.nav-link').at(3).attributes('href')).toEqual(
-            'https://gradido.net/de/contact/',
           )
         })
       })

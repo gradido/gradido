@@ -1,3 +1,4 @@
+/*
 import { Decimal } from 'decimal.js-light'
 
 export class GmsUserProfile {
@@ -20,3 +21,4 @@ export class GmsUserProfile {
   language: string
   profileImage: unknown
 }
+*/

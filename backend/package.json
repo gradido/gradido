@@ -1,6 +1,6 @@
 {
   "name": "gradido-backend",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Gradido unified backend providing an API-Service for Gradido Transactions",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/backend",
@@ -8,7 +8,7 @@
   "license": "Apache-2.0",
   "private": false,
   "scripts": {
-    "build": "tsc --build && mkdir -p build/src/emails/templates/ && cp -r src/emails/templates/* build/src/emails/templates/ && mkdir -p build/src/locales/ && cp -r src/locales/*.json build/src/locales/",
+    "build": "tsc --build && mkdirp build/src/emails/templates/ && ncp src/emails/templates build/src/emails/templates && mkdirp build/src/locales/ && ncp src/locales build/src/locales",
     "clean": "tsc --build --clean",
     "start": "cross-env TZ=UTC TS_NODE_BASEURL=./build node -r tsconfig-paths/register build/src/index.js",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts,pug,json,css --exec ts-node -r tsconfig-paths/register src/index.ts",
@@ -82,7 +82,9 @@
     "ts-jest": "^27.0.5",
     "ts-node": "^10.0.0",
     "tsconfig-paths": "^3.14.0",
-    "typescript": "^4.3.4"
+    "typescript": "^4.3.4",
+    "mkdirp": "^3.0.1",
+    "ncp": "^2.0.0"
   },
   "nodemonConfig": {
     "ignore": [

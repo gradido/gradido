@@ -1,1 +1,1 @@
-export { User } from './0075-introduce_gms_registration/User'
+export { User } from './0078-introduce_gms_registration/User'

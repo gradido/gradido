@@ -1,3 +1,4 @@
+/*
 import { GmsCommunityProfile } from './GmsCommunityProfile'
 import { GmsRole } from './GmsRoles'
 
@@ -15,3 +16,4 @@ export class GmsCommunity {
   communityProfile: GmsCommunityProfile
   roles: GmsRole[]
 }
+*/

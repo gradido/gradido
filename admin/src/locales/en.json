@@ -1,4 +1,5 @@
 {
+  "GDD": "GDD",
   "all_emails": "All users",
   "back": "back",
   "change_user_role": "Change user role",
@@ -42,6 +43,7 @@
   "createdAt": "Created at",
   "creation": "Creation",
   "creationList": "Creation list",
+  "creation_for_month": "Creation for month",
   "creation_form": {
     "creation_for": "Active Basic Income for",
     "enter_text": "Enter text",
@@ -58,16 +60,15 @@
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
   },
-  "creation_for_month": "Creation for month",
   "delete": "Delete",
+  "delete_user": "Delete user",
   "deleted": "deleted",
   "deleted_user": "All deleted user",
-  "delete_user": "Delete user",
   "deny": "Reject",
+  "e_mail": "E-mail",
   "enabled": "enabled",
   "error": "Error",
   "expired": "expired",
-  "e_mail": "E-mail",
   "federation": {
     "createdAt": "Created At ",
     "gradidoInstances": "Gradido Instances",
@@ -88,7 +89,6 @@
     "cancel": "Cancel",
     "submit": "Send"
   },
-  "GDD": "GDD",
   "help": {
     "help": "Help",
     "transactionlist": {
@@ -99,6 +99,8 @@
     }
   },
   "hide_details": "Hide details",
+  "hide_resubmission": "Hide resubmission",
+  "hide_resubmission_tooltip": "Hides all creations for which a moderator has set a reminder date.",
   "lastname": "Lastname",
   "math": {
     "equals": "=",
@@ -109,9 +111,14 @@
     "request": "Request has been sent."
   },
   "moderator": {
+    "chat": "Chat",
     "history": "The data has been changed. This is the old data.",
+    "show-submission-form": "wait for reminder?",
     "moderator": "Moderator",
     "notice": "Moderator note",
+    "memo": "Memo",
+    "memo-modify": "Modify Memo",
+    "memo-modified": "Memo edited by moderator",
     "request": "This message is only visible to the moderators!"
   },
   "name": "Name",
@@ -123,9 +130,9 @@
     "statistic": "Statistic",
     "user_search": "User search"
   },
-  "not_open_creations": "No open creations",
   "no_hashtag": "Hide #hashtags",
   "no_hashtag_tooltip": "Shows only contributions without hashtag in text",
+  "not_open_creations": "No open creations",
   "open": "open",
   "open_creations": "Open creations",
   "overlay": {
@@ -196,7 +203,6 @@
     "title": "All creation-transactions for the user"
   },
   "undelete_user": "Undelete User",
-  "unregistered_emails": "Only unregistered users",
   "unregister_mail": {
     "button": "Confirm registration email, send now",
     "error": "Error sending the confirmation link to the user: {message}",
@@ -206,6 +212,7 @@
     "text_false": "The last email was sent to the member ({email}) on {date}.",
     "text_true": "The email was confirmed."
   },
+  "unregistered_emails": "Only unregistered users",
   "userRole": {
     "notChangeYourSelf": "As an admin/moderator, you cannot change your own role.",
     "selectLabel": "Role:",

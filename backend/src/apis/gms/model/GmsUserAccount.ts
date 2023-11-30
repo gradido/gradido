@@ -1,3 +1,4 @@
+/*
 import { Decimal } from 'decimal.js-light'
 
 export class GmsUserAccount {
@@ -14,3 +15,4 @@ export class GmsUserAccount {
   api_key: string
   profileImage: unknown
 }
+*/

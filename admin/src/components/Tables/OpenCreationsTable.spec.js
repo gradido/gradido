@@ -70,6 +70,7 @@ const propsData = {
     { key: 'confirm', label: 'save' },
   ],
   toggleDetails: false,
+  hideResubmission: true,
 }
 
 const mocks = {
@@ -138,6 +139,17 @@ describe('OpenCreationsTable', () => {
 
       it('emits update-status', () => {
         expect(wrapper.vm.$root.$emit('update-status', 4)).toBeTruthy()
+      })
+    })
+
+    describe('test reload-contribution', () => {
+      beforeEach(() => {
+        wrapper.vm.reloadContribution(3)
+      })
+
+      it('emits reload-contribution', () => {
+        expect(wrapper.emitted('reload-contribution')).toBeTruthy()
+        expect(wrapper.emitted('reload-contribution')[0]).toEqual([3])
       })
     })
   })
