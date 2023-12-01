@@ -6,7 +6,7 @@
 
 import { entities } from '@entity/index'
 import { User as DbUser } from '@entity/User'
-import { createTestClient } from 'apollo-server-testing'
+// import { createTestClient } from 'apollo-server-testing'
 
 import { createGmsUser } from '@/apis/gms/GmsClient'
 import { GmsUser } from '@/apis/gms/model/GmsUser'
@@ -47,7 +47,7 @@ const resetEntity = async (entity: any) => {
 
 const run = async () => {
   const server = await createServer(context)
-  const seedClient = createTestClient(server.apollo)
+  // const seedClient = createTestClient(server.apollo)
   const { con } = server
 
   const homeCom = await getHomeCommunity()

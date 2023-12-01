@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
 import { entities } from '@entity/index'
-import { createTestClient } from 'apollo-server-testing'
+// import { createTestClient } from 'apollo-server-testing'
 
 import { CONFIG } from '@/config'
 import { createServer } from '@/server/createServer'
@@ -42,7 +42,7 @@ const resetEntity = async (entity: any) => {
 
 const run = async () => {
   const server = await createServer(context)
-  const seedClient = createTestClient(server.apollo)
+  // const seedClient = createTestClient(server.apollo)
   const { con } = server
 
   // test GMS-Api Client
