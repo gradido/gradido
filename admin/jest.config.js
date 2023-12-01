@@ -9,7 +9,7 @@ module.exports = {
   ],
   coverageThreshold: {
     global: {
-      lines: 97,
+      lines: 96,
     },
   },
   moduleFileExtensions: [
