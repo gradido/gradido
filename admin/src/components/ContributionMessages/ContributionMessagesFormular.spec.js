@@ -120,7 +120,18 @@ describe('ContributionMessagesFormular', () => {
             text: 'text form message',
           },
         })
-        await wrapper.find('button[data-test="submit-moderator"]').trigger('click')
+
+        // choose tab
+        // tabs: text | moderator | memo
+        //         0  |     1     |  2
+        await wrapper
+          .find('div[data-test="message-type-tabs"]')
+          .findAll('.nav-item a')
+          .at(1)
+          .trigger('click')
+
+        // click save
+        await wrapper.find('button[data-test="submit-dialog"]').trigger('click')
       })
 
       it('moderatorMesage has `MODERATOR`', () => {
@@ -152,7 +163,7 @@ describe('ContributionMessagesFormular', () => {
           resubmissionDate: futureDate,
           resubmissionTime: '08:46',
         })
-        await wrapper.find('button[data-test="submit-moderator"]').trigger('click')
+        await wrapper.find('button[data-test="submit-dialog"]').trigger('click')
       })
 
       it('graphql payload contain resubmission date', () => {
@@ -164,7 +175,7 @@ describe('ContributionMessagesFormular', () => {
           variables: {
             contributionId: 42,
             message: 'text form message',
-            messageType: 'MODERATOR',
+            messageType: 'DIALOG',
             resubmissionAt: futureDateExactTime.toString(),
           },
         })
@@ -177,13 +188,20 @@ describe('ContributionMessagesFormular', () => {
 
     describe('set memo', () => {
       beforeEach(async () => {
-        await wrapper.setData({
-          chatOrMemo: 0,
-        })
-        await wrapper.find('button[data-test="submit-memo"]').trigger('click')
+        // choose tab
+        // tabs: text | moderator | memo
+        //         0  |     1     |  2
+        await wrapper
+          .find('div[data-test="message-type-tabs"]')
+          .findAll('.nav-item a')
+          .at(2)
+          .trigger('click')
+
+        // click save
+        await wrapper.find('button[data-test="submit-dialog"]').trigger('click')
       })
-      it('check chatOrMemo value is 1', () => {
-        expect(wrapper.vm.chatOrMemo).toBe(1)
+      it('check tabindex value is 2', () => {
+        expect(wrapper.vm.tabindex).toBe(2)
       })
     })
 
@@ -193,7 +211,7 @@ describe('ContributionMessagesFormular', () => {
           form: {
             memo: 'changed memo',
           },
-          chatOrMemo: 1,
+          tabindex: 2,
         })
         await wrapper.find('button[data-test="submit-dialog"]').trigger('click')
       })
@@ -204,6 +222,7 @@ describe('ContributionMessagesFormular', () => {
           variables: {
             id: 42,
             memo: 'changed memo',
+            resubmissionAt: null,
           },
         })
       })
