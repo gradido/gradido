@@ -54,7 +54,7 @@ export const findContributions = async (
     ...(filter.noHashtag && { memo: Not(Like(`%#%`)) }),
   })
   if (filter.hideResubmission) {
-    const now = new Date()
+    const now = new Date(new Date().toUTCString())
     queryBuilder.andWhere(
       new Brackets((qb) => {
         qb.where({ resubmissionAt: IsNull() }).orWhere({ resubmissionAt: LessThanOrEqual(now) })

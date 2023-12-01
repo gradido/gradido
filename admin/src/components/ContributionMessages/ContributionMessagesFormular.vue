@@ -104,21 +104,24 @@ export default {
     },
   },
   data() {
+    const localInputResubmissionDate = this.inputResubmissionDate
+      ? new Date(this.inputResubmissionDate)
+      : null
+
     return {
       form: {
         text: '',
         memo: this.contributionMemo,
       },
       loading: false,
-      resubmissionDate: this.inputResubmissionDate,
-      resubmissionTime: this.inputResubmissionDate
-        ? new Date(this.inputResubmissionDate).toLocaleTimeString('de-DE', {
+      resubmissionDate: localInputResubmissionDate,
+      resubmissionTime: localInputResubmissionDate
+        ? localInputResubmissionDate.toLocaleTimeString('de-DE', {
             hour: '2-digit',
             minute: '2-digit',
           })
         : '00:00',
-      showResubmissionDate:
-        this.inputResubmissionDate !== undefined && this.inputResubmissionDate !== null,
+      showResubmissionDate: localInputResubmissionDate !== null,
       tabindex: 0, // 0 = Chat, 1 = Notice, 2 = Memo
       messageType: {
         DIALOG: 'DIALOG',
@@ -128,20 +131,30 @@ export default {
   },
   methods: {
     combineResubmissionDateAndTime() {
+      // getTimezoneOffset
       const formattedDate = new Date(this.resubmissionDate)
       const [hours, minutes] = this.resubmissionTime.split(':')
       formattedDate.setHours(parseInt(hours))
       formattedDate.setMinutes(parseInt(minutes))
       return formattedDate
     },
+    utcResubmissionDateTime() {
+      if (!this.resubmissionDate) return null
+      const localResubmissionDateAndTime = this.combineResubmissionDateAndTime()
+      return new Date(
+        localResubmissionDateAndTime.getTime() +
+          localResubmissionDateAndTime.getTimezoneOffset() * 60000,
+      )
+    },
     onSubmit() {
       this.loading = true
       let mutation
       let updateOnlyResubmissionAt = false
+      const resubmissionAtDate = this.showResubmissionDate
+        ? this.combineResubmissionDateAndTime()
+        : null
       const variables = {
-        resubmissionAt: this.showResubmissionDate
-          ? this.combineResubmissionDateAndTime().toString()
-          : null,
+        resubmissionAt: resubmissionAtDate ? resubmissionAtDate.toString() : null,
       }
       // update only resubmission date?
       if (this.form.text === '' && this.form.memo === this.contributionMemo) {
@@ -162,13 +175,19 @@ export default {
         variables.memo = this.form.memo
         variables.id = this.contributionId
       }
+      if (this.showResubmissionDate && resubmissionAtDate < new Date()) {
+        this.toastError(this.$t('contributionMessagesForm.resubmissionDateInPast'))
+        this.loading = false
+        return
+      }
       this.$apollo
         .mutate({ mutation, variables })
         .then((result) => {
           if (
-            this.hideResubmission &&
-            this.showResubmissionDate &&
-            this.combineResubmissionDateAndTime() > new Date()
+            (this.hideResubmission &&
+              this.showResubmissionDate &&
+              resubmissionAtDate > new Date()) ||
+            this.tabindex === 2
           ) {
             this.$emit('update-contributions')
           } else {
@@ -177,10 +196,6 @@ export default {
             // if (updateOnlyResubmissionAt === true) no message was created
             if (!updateOnlyResubmissionAt) {
               this.$emit('update-status', this.contributionId)
-            }
-            // only by updating memo it make sense to reload contribution
-            if (this.tabindex === 2) {
-              this.$emit('reload-contribution', this.contributionId)
             }
           }
           this.toastSuccess(this.$t('message.request'))

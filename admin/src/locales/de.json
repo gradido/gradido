@@ -32,6 +32,9 @@
     "validFrom": "Startdatum",
     "validTo": "Enddatum"
   },
+  "contributionMessagesForm": {
+    "resubmissionDateInPast": "Wiedervorlage Datum befindet sich in der Vergangenheit!"
+  },
   "contributions": {
     "all": "Alle",
     "confirms": "Bestätigt",
