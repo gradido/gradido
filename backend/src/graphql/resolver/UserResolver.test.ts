@@ -177,6 +177,10 @@ describe('UserResolver', () => {
               passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
               communityUuid: homeCom.communityUuid,
               foreign: false,
+              gmsAllowed: true,
+              gmsPublishName: 3,
+              gmsRegistered: false,
+              gmsRegisteredAt: null,
             },
           ])
           const valUUID = validateUUID(user[0].gradidoID)
@@ -199,6 +203,14 @@ describe('UserResolver', () => {
             createdAt: expect.any(Date),
             deletedAt: null,
             updatedAt: null,
+            gmsPublishEmail: false,
+            gmsPublishPhone: 0,
+            gmsPublishPost: 0,
+            address: null,
+            city: null,
+            country: null,
+            countryCode: null,
+            zipCode: null,
           })
         })
       })
