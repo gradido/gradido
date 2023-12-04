@@ -34,6 +34,7 @@ import {
 import { EventType } from '@/event/Events'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'
+import { writeHomeCommunityEntry } from '@/seeds/community'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { userFactory } from '@/seeds/factory/user'
@@ -125,9 +126,11 @@ describe('UserResolver', () => {
     let result: any
     let emailVerificationCode: string
     let user: User[]
+    let homeCom: DbCommunity
 
     beforeAll(async () => {
       jest.clearAllMocks()
+      homeCom = await writeHomeCommunityEntry()
       result = await mutate({ mutation: createUser, variables })
     })
 
@@ -172,7 +175,7 @@ describe('UserResolver', () => {
               referrerId: null,
               contributionLinkId: null,
               passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
-              communityUuid: null,
+              communityUuid: homeCom.communityUuid,
               foreign: false,
             },
           ])
@@ -542,6 +545,7 @@ describe('UserResolver', () => {
       let newUser: User
 
       beforeAll(async () => {
+        await writeHomeCommunityEntry()
         await mutate({ mutation: createUser, variables: createUserVariables })
         const emailContact = await UserContact.findOneOrFail({
           where: { email: createUserVariables.email },
@@ -586,6 +590,7 @@ describe('UserResolver', () => {
 
     describe('no valid password', () => {
       beforeAll(async () => {
+        await writeHomeCommunityEntry()
         await mutate({ mutation: createUser, variables: createUserVariables })
         const emailContact = await UserContact.findOneOrFail({
           where: { email: createUserVariables.email },

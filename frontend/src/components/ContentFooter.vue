@@ -44,7 +44,7 @@
           >
             {{ $t('footer.whitepaper') }}
           </b-nav-item>
-          <b-nav-item :href="`https://gradido.net/${$i18n.locale}/contact/`" target="_blank">
+          <b-nav-item :href="`mailto:${supportEmail}`" target="_blank">
             {{ $t('navigation.support') }}
           </b-nav-item>
         </b-nav>
@@ -62,6 +62,7 @@ export default {
       version: CONFIG.APP_VERSION,
       hash: CONFIG.BUILD_COMMIT,
       shortHash: CONFIG.BUILD_COMMIT_SHORT,
+      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
     }
   },
 }

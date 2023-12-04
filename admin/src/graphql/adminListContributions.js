@@ -9,6 +9,7 @@ export const adminListContributions = gql`
     $userId: Int
     $query: String
     $noHashtag: Boolean
+    $hideResubmission: Boolean
   ) {
     adminListContributions(
       currentPage: $currentPage
@@ -18,6 +19,7 @@ export const adminListContributions = gql`
       userId: $userId
       query: $query
       noHashtag: $noHashtag
+      hideResubmission: $hideResubmission
     ) {
       contributionCount
       contributionList {
@@ -30,6 +32,8 @@ export const adminListContributions = gql`
         contributionDate
         confirmedAt
         confirmedBy
+        updatedAt
+        updatedBy
         status
         messagesCount
         deniedAt
@@ -38,6 +42,7 @@ export const adminListContributions = gql`
         deletedBy
         moderatorId
         userId
+        resubmissionAt
       }
     }
   }

@@ -24,6 +24,13 @@
           </b-button>
         </div>
       </template>
+      <template #cell(memo)="row">
+        {{ row.value }}
+        <small v-if="row.item.updatedBy > 0">
+          <hr />
+          {{ $t('moderator.memo-modified') }}
+        </small>
+      </template>
       <template #cell(editCreation)="row">
         <div v-if="!myself(row.item)">
           <b-button
@@ -104,7 +111,12 @@
                 :contributionId="row.item.id"
                 :contributionStatus="row.item.status"
                 :contributionUserId="row.item.userId"
+                :contributionMemo="row.item.memo"
+                :resubmissionAt="row.item.resubmissionAt"
+                :hideResubmission="hideResubmission"
                 @update-status="updateStatus"
+                @reload-contribution="reloadContribution"
+                @update-contributions="updateContributions"
               />
             </div>
           </template>
@@ -145,6 +157,14 @@ export default {
       type: Array,
       required: true,
     },
+    hideResubmission: {
+      type: Boolean,
+      required: true,
+    },
+    resubmissionAt: {
+      type: Date,
+      required: false,
+    },
   },
   methods: {
     myself(item) {
@@ -163,6 +183,12 @@ export default {
     },
     updateStatus(id) {
       this.$emit('update-status', id)
+    },
+    reloadContribution(id) {
+      this.$emit('reload-contribution', id)
+    },
+    updateContributions() {
+      this.$emit('update-contributions')
     },
   },
 }

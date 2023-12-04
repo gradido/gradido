@@ -4,8 +4,11 @@
       <b-row class="mb-3 border border-197 p-1">
         <b-col cols="10">
           <small>{{ $d(new Date(message.createdAt), 'short') }}</small>
-          <div class="font-weight-bold" data-test="username">
+          <div class="font-weight-bold" data-test="username" v-if="isNotModerator">
             {{ storeName.username }} {{ $t('contribution.isEdited') }}
+          </div>
+          <div class="font-weight-bold" data-test="moderator-name" v-else>
+            {{ $t('community.moderator') }} {{ $t('contribution.isEdited') }}
           </div>
           <div class="small">
             {{ $t('contribution.oldContribution') }}

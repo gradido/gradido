@@ -21,8 +21,11 @@ export class Contribution {
     this.deniedBy = contribution.deniedBy
     this.deletedAt = contribution.deletedAt
     this.deletedBy = contribution.deletedBy
+    this.updatedAt = contribution.updatedAt
+    this.updatedBy = contribution.updatedBy
     this.moderatorId = contribution.moderatorId
     this.userId = contribution.userId
+    this.resubmissionAt = contribution.resubmissionAt
   }
 
   @Field(() => Int)
@@ -61,6 +64,12 @@ export class Contribution {
   @Field(() => Int, { nullable: true })
   deletedBy: number | null
 
+  @Field(() => Date, { nullable: true })
+  updatedAt: Date | null
+
+  @Field(() => Int, { nullable: true })
+  updatedBy: number | null
+
   @Field(() => Date)
   contributionDate: Date
 
@@ -75,6 +84,9 @@ export class Contribution {
 
   @Field(() => Int, { nullable: true })
   userId: number | null
+
+  @Field(() => Date, { nullable: true })
+  resubmissionAt: Date | null
 }
 
 @ObjectType()

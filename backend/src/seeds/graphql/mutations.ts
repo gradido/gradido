@@ -262,6 +262,7 @@ export const createContribution = gql`
       id
       amount
       memo
+      userId
     }
   }
 `
