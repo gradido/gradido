@@ -22,6 +22,7 @@ export const getContribution = gql`
       deletedBy
       moderatorId
       userId
+      resubmissionAt
     }
   }
 `

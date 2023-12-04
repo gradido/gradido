@@ -187,10 +187,10 @@ export class ContributionResolver {
     const { contribution, contributionMessage, availableCreationSums } =
       await updateUnconfirmedContributionContext.run()
     await getConnection().transaction(async (transactionalEntityManager: EntityManager) => {
-      await Promise.all([
-        transactionalEntityManager.save(contribution),
-        transactionalEntityManager.save(contributionMessage),
-      ])
+      await transactionalEntityManager.save(contribution)
+      if (contributionMessage) {
+        await transactionalEntityManager.save(contributionMessage)
+      }
     })
     const user = getUser(context)
     await EVENT_CONTRIBUTION_UPDATE(user, contribution, contributionArgs.amount)
@@ -263,16 +263,28 @@ export class ContributionResolver {
     const { contribution, contributionMessage, createdByUserChangedByModerator } =
       await updateUnconfirmedContributionContext.run()
     await getConnection().transaction(async (transactionalEntityManager: EntityManager) => {
-      await Promise.all([
-        transactionalEntityManager.save(contribution),
-        transactionalEntityManager.save(contributionMessage),
-      ])
+      await transactionalEntityManager.save(contribution)
+      // TODO: move into specialized view or formatting for logging class
+      logger.debug('saved changed contribution', {
+        id: contribution.id,
+        amount: contribution.amount.toString(),
+        memo: contribution.memo,
+        contributionDate: contribution.contributionDate.toString(),
+        resubmissionAt: contribution.resubmissionAt?.toString(),
+        status: contribution.contributionStatus.toString(),
+      })
+      if (contributionMessage) {
+        await transactionalEntityManager.save(contributionMessage)
+        // TODO: move into specialized view or formatting for logging class
+        logger.debug('save new contributionMessage', {
+          contributionId: contributionMessage.contributionId,
+          type: contributionMessage.type,
+          message: contributionMessage.message,
+          isModerator: contributionMessage.isModerator,
+        })
+      }
     })
     const moderator = getUser(context)
-    const user = await DbUser.findOneOrFail({
-      where: { id: contribution.userId },
-      relations: ['emailContact'],
-    })
 
     const result = new AdminUpdateContribution()
     result.amount = contribution.amount
@@ -286,6 +298,11 @@ export class ContributionResolver {
       contribution.amount,
     )
     if (createdByUserChangedByModerator && adminUpdateContributionArgs.memo) {
+      const user = await DbUser.findOneOrFail({
+        where: { id: contribution.userId },
+        relations: ['emailContact'],
+      })
+
       void sendContributionChangedByModeratorEmail({
         firstName: user.firstName,
         lastName: user.lastName,

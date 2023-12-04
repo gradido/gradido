@@ -32,6 +32,9 @@
     "validFrom": "Startdatum",
     "validTo": "Enddatum"
   },
+  "contributionMessagesForm": {
+    "resubmissionDateInPast": "Wiedervorlage Datum befindet sich in der Vergangenheit!"
+  },
   "contributions": {
     "all": "Alle",
     "confirms": "Bestätigt",
@@ -86,8 +89,7 @@
     "short_hash": "({shortHash})"
   },
   "form": {
-    "cancel": "Abbrechen",
-    "submit": "Senden"
+    "cancel": "Abbrechen"
   },
   "help": {
     "help": "Hilfe",
@@ -111,14 +113,16 @@
     "request": "Die Anfrage wurde gesendet."
   },
   "moderator": {
-    "chat": "Chat",
     "history": "Die Daten wurden geändert. Dies sind die alten Daten.",
     "show-submission-form": "warten auf Erinnerung?",
     "moderator": "Moderator",
-    "notice": "Moderator Notiz",
-    "memo": "Memo",
-    "memo-modify": "Memo bearbeiten",
-    "memo-modified": "Memo vom Moderator bearbeitet",
+    "notice": "Notiz",
+    "notice-tooltip": "Die Notiz ist nur für Moderatoren sichtbar",
+    "memo": "Text ändern",
+    "memo-tooltip": "Den Beitragstext bearbeiten",
+    "memo-modified": "Text vom Moderator bearbeitet.",
+    "message": "Nachricht",
+    "message-tooltip": "Nachricht an Benutzer schreiben",
     "request": "Diese Nachricht ist nur für die Moderatoren sichtbar!"
   },
   "name": "Name",

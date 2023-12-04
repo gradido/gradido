@@ -1,15 +1,22 @@
 import { Contribution } from '@entity/Contribution'
 import { User } from '@entity/User'
 
+import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { ContributionArgs } from '@/graphql/arg/ContributionArgs'
 import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { LogError } from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
 
 import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'
 
+/**
+ * This role will be used for Users which want to edit there own contribution,
+ * independent from there role, because the own contribution can only be edited in user role
+ */
 export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContributionRole {
   public constructor(contribution: Contribution, private updateData: ContributionArgs) {
     super(contribution, updateData.amount, new Date(updateData.creationDate))
+    logger.debug('use UnconfirmedContributionUserRole')
   }
 
   protected update(): void {
@@ -20,6 +27,7 @@ export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContribu
     this.self.updatedAt = new Date()
     // null because updated by user them self
     this.self.updatedBy = null
+    this.self.resubmissionAt = null
   }
 
   protected checkAuthorization(user: User): AbstractUnconfirmedContributionRole {
@@ -53,6 +61,13 @@ export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContribu
       this.self.contributionDate.getTime() === new Date(this.updatedCreationDate).getTime()
     ) {
       throw new LogError("the contribution wasn't changed at all")
+    }
+  }
+
+  public createContributionMessage(): ContributionMessageBuilder | undefined {
+    const builder = super.createContributionMessage()
+    if (builder) {
+      return builder.setIsModerator(false)
     }
   }
 }

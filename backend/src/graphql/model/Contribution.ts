@@ -25,6 +25,7 @@ export class Contribution {
     this.updatedBy = contribution.updatedBy
     this.moderatorId = contribution.moderatorId
     this.userId = contribution.userId
+    this.resubmissionAt = contribution.resubmissionAt
   }
 
   @Field(() => Int)
@@ -83,6 +84,9 @@ export class Contribution {
 
   @Field(() => Int, { nullable: true })
   userId: number | null
+
+  @Field(() => Date, { nullable: true })
+  resubmissionAt: Date | null
 }
 
 @ObjectType()
