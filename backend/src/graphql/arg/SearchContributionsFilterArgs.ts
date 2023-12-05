@@ -22,4 +22,8 @@ export class SearchContributionsFilterArgs {
   @Field(() => Boolean, { nullable: true })
   @IsBoolean()
   noHashtag?: boolean | null
+
+  @Field(() => Boolean, { nullable: true })
+  @IsBoolean()
+  hideResubmission?: boolean | null
 }

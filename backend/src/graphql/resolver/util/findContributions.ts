@@ -1,11 +1,20 @@
 /* eslint-disable security/detect-object-injection */
-import { Brackets, In, Like, Not, SelectQueryBuilder } from '@dbTools/typeorm'
+import {
+  Brackets,
+  In,
+  IsNull,
+  LessThanOrEqual,
+  Like,
+  Not,
+  SelectQueryBuilder,
+} from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
 import { Connection } from '@typeorm/connection'
 
+import { Order } from '@/graphql/enum/Order'
 import { LogError } from '@/server/LogError'
 
 interface Relations {
@@ -18,7 +27,6 @@ function joinRelationsRecursive(
   currentPath: string,
 ): void {
   for (const key in relations) {
-    // console.log('leftJoin: %s, %s', `${currentPath}.${key}`, key)
     queryBuilder.leftJoinAndSelect(`${currentPath}.${key}`, key)
     if (typeof relations[key] === 'object') {
       // If it's a nested relation
@@ -28,7 +36,7 @@ function joinRelationsRecursive(
 }
 
 export const findContributions = async (
-  paginate: Paginated,
+  { pageSize = 3, currentPage = 1, order = Order.DESC }: Paginated,
   filter: SearchContributionsFilterArgs,
   withDeleted = false,
   relations: Relations | undefined = undefined,
@@ -45,6 +53,14 @@ export const findContributions = async (
     ...(filter.userId && { userId: filter.userId }),
     ...(filter.noHashtag && { memo: Not(Like(`%#%`)) }),
   })
+  if (filter.hideResubmission) {
+    const now = new Date(new Date().toUTCString())
+    queryBuilder.andWhere(
+      new Brackets((qb) => {
+        qb.where({ resubmissionAt: IsNull() }).orWhere({ resubmissionAt: LessThanOrEqual(now) })
+      }),
+    )
+  }
   queryBuilder.printSql()
   if (filter.query) {
     const queryString = '%' + filter.query + '%'
@@ -61,9 +77,9 @@ export const findContributions = async (
     )
   }
   return queryBuilder
-    .orderBy('Contribution.createdAt', paginate.order)
-    .addOrderBy('Contribution.id', paginate.order)
-    .skip((paginate.currentPage - 1) * paginate.pageSize)
-    .take(paginate.pageSize)
+    .orderBy('Contribution.createdAt', order)
+    .addOrderBy('Contribution.id', order)
+    .skip((currentPage - 1) * pageSize)
+    .take(pageSize)
     .getManyAndCount()
 }
