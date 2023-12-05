@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CONFIG } from '@/config'
-import createServer from './server/createServer'
-import { stop as stopTransmitToIota, transmitToIota } from './tasks/transmitToIota'
-import { TransactionsManager } from './controller/TransactionsManager'
-import { KeyManager } from './controller/KeyManager'
+import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
+
 import { BackendClient } from './client/BackendClient'
+import { KeyManager } from './controller/KeyManager'
+import { TransactionsManager } from './controller/TransactionsManager'
+import createServer from './server/createServer'
 import { LogError } from './server/LogError'
-import { addCommunity } from '@/interactions/backendToDb/community/community.context'
+import { stop as stopTransmitToIota, transmitToIota } from './tasks/transmitToIota'
 
 async function main() {
   // eslint-disable-next-line no-console
@@ -24,7 +25,8 @@ async function main() {
       throw new LogError('cannot connect to backend')
     }
     const communityDraft = await backend.homeCommunityUUid()
-    addCommunity(communityDraft)
+    const addCommunityContext = new AddCommunityContext(communityDraft)
+    await addCommunityContext.run()
   }
 
   await TransactionsManager.getInstance().init()

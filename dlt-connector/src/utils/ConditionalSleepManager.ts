@@ -1,4 +1,5 @@
 import { LogError } from '@/server/LogError'
+
 import { ConditionalSleep } from './ConditionalSleep'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example

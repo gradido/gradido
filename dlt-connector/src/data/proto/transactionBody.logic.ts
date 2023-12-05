@@ -1,8 +1,9 @@
-import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { CrossGroupType } from './3_3/enum/CrossGroupType'
 import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
-import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { TransactionError } from '@/graphql/model/TransactionError'
+
+import { CrossGroupType } from './3_3/enum/CrossGroupType'
 
 export const determineCrossGroupType = ({
   senderUser,

@@ -1,15 +1,17 @@
+import { Account } from '@entity/Account'
+import { Transaction } from '@entity/Transaction'
+import Decimal from 'decimal.js-light'
 import { Field, Message } from 'protobufjs'
+
+import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
+import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { TransactionError } from '@/graphql/model/TransactionError'
+
+import { TransactionBase } from '../TransactionBase'
 
 import { TimestampSeconds } from './TimestampSeconds'
 import { TransferAmount } from './TransferAmount'
-import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { TransactionError } from '@/graphql/model/TransactionError'
-import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
-import { TransactionBase } from '../TransactionBase'
-import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
-import { Transaction } from '@entity/Transaction'
-import Decimal from 'decimal.js-light'
-import { Account } from '@entity/Account'
 
 // need signature from group admin or
 // percent of group users another than the receiver

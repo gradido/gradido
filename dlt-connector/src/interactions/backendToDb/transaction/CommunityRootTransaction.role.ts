@@ -1,9 +1,11 @@
-import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import { TransactionRecipeRole } from './TransactionRecipe.role'
 import { Community } from '@entity/Community'
-import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
+
 import { KeyPair } from '@/data/KeyPair'
+import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
+import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { sign } from '@/utils/cryptoHelper'
+
+import { TransactionRecipeRole } from './TransactionRecipe.role'
 
 export class CommunityRootTransactionRole extends TransactionRecipeRole {
   public createFromCommunityRoot(

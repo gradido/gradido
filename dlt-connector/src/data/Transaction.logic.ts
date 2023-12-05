@@ -1,9 +1,11 @@
-import { TransactionType, getTransactionTypeEnumValue } from '@/graphql/enum/TransactionType'
-import { LogError } from '@/server/LogError'
 import { Account } from '@entity/Account'
 import { Transaction } from '@entity/Transaction'
-import { TransactionRepository } from './Transaction.repository'
 import { Decimal } from 'decimal.js-light'
+
+import { TransactionType, getTransactionTypeEnumValue } from '@/graphql/enum/TransactionType'
+import { LogError } from '@/server/LogError'
+
+import { TransactionRepository } from './Transaction.repository'
 
 export class TransactionLogic {
   // eslint-disable-next-line no-useless-constructor
@@ -11,7 +13,7 @@ export class TransactionLogic {
 
   public getTransactionType(): TransactionType {
     const type = getTransactionTypeEnumValue(this.transaction.type)
-    if (type === undefined){
+    if (type === undefined) {
       throw new LogError('invalid transaction type stored in transaction')
     }
     return type
@@ -44,7 +46,7 @@ export class TransactionLogic {
     )
     let balance = new Decimal(0)
     if (prevTransaction) {
-        balance = prevTransaction.accountBalanceCreatedAt
+      balance = prevTransaction.accountBalanceCreatedAt
     }
   }
 }

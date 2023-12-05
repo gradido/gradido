@@ -1,7 +1,9 @@
 import { Field, Message } from 'protobufjs'
+
+import { base64ToBuffer } from '@/utils/typeConverter'
+
 import { GradidoTransaction } from './GradidoTransaction'
 import { TimestampSeconds } from './TimestampSeconds'
-import { base64ToBuffer } from '@/utils/typeConverter'
 import { TransactionBody } from './TransactionBody'
 
 /*

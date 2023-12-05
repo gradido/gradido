@@ -20,7 +20,6 @@ module.exports = {
     '@model/(.*)': '<rootDir>/src/graphql/model/$1',
     '@resolver/(.*)': '<rootDir>/src/graphql/resolver/$1',
     '@input/(.*)': '<rootDir>/src/graphql/input/$1',
-    '@model/(.*)': '<rootDir>/src/graphql/model/$1',
     '@proto/(.*)': '<rootDir>/src/proto/$1',
     '@test/(.*)': '<rootDir>/test/$1',
     '@typeorm/(.*)': '<rootDir>/src/typeorm/$1',

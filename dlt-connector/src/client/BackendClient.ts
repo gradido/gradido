@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { CONFIG } from '@/config'
+import { Transaction } from '@entity/Transaction'
 import { gql, GraphQLClient } from 'graphql-request'
 
-import { LogError } from '@/server/LogError'
-
-import { logger } from '@/server/logger'
-import { ConfirmedTransaction } from '@entity/ConfirmedTransaction'
+import { CONFIG } from '@/config'
+import { TransactionLogic } from '@/data/Transaction.logic'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
+import { LogError } from '@/server/LogError'
+import { logger } from '@/server/logger'
 
 const confirmTransaction = gql`
   mutation ($input: ConfirmedTransactionInput!) {
@@ -79,22 +79,32 @@ export class BackendClient {
     return BackendClient.instance
   }
 
-  public async confirmTransaction(confirmedTransaction: ConfirmedTransaction): Promise<void> {
+  public async confirmTransaction(confirmedTransaction: Transaction): Promise<void> {
+    // TODO: use view or logging print class
     logger.info('confirmTransaction to backend', confirmedTransaction)
-    const transactionRecipe = confirmedTransaction.transactionRecipe
     // force parse to int, typeorm return id as string even it is typed as numeric
-    let transactionId = transactionRecipe.backendTransactionId
-    if (typeof transactionRecipe.backendTransactionId === 'string') {
-      transactionId = parseInt(transactionRecipe.backendTransactionId)
+    let transactionId = confirmedTransaction.backendTransactionId
+    if (typeof confirmedTransaction.backendTransactionId === 'string') {
+      transactionId = parseInt(confirmedTransaction.backendTransactionId)
     }
+    if (
+      (!transactionId || transactionId <= 0) &&
+      (!confirmedTransaction.iotaMessageId || confirmedTransaction.iotaMessageId.length !== 32)
+    ) {
+      throw new LogError(
+        'need at least iota message id or backend transaction id for matching transaction in backend',
+      )
+    }
+    const transactionLogic = new TransactionLogic(confirmedTransaction)
+    const balanceAccount = transactionLogic.getBalanceAccount()
     const input = {
       transactionId,
-      iotaMessageId: transactionRecipe.iotaMessageId?.toString('hex'),
-      gradidoId: confirmedTransaction.account?.user?.gradidoID,
-      balance: confirmedTransaction.accountBalance,
-      balanceDate: confirmedTransaction.confirmedAt.toString(),
+      iotaMessageId: confirmedTransaction.iotaMessageId?.toString('hex'),
+      gradidoId: balanceAccount?.user?.gradidoID,
+      balance: confirmedTransaction.accountBalanceCreatedAt,
+      balanceDate: confirmedTransaction.confirmedAt?.toString(),
     }
-    console.log("input: %o", input)
+    logger.debug('call confirmTransaction with parameter', input)
     const { errors } = await this.client.rawRequest<boolean>(confirmTransaction, { input })
     if (errors) {
       throw new LogError('error confirm transaction with: %s, details: %s', errors)

@@ -1,10 +1,11 @@
+import JsonRpcClient from 'jsonrpc-ts-client'
+import { JsonRpcEitherResponse } from 'jsonrpc-ts-client/dist/types/utils/jsonrpc'
+
 import { CONFIG } from '@/config'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { AddressType, getAddressTypeEnumValue } from '@/data/proto/3_3/enum/AddressType'
 import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
-import JsonRpcClient from 'jsonrpc-ts-client'
-import { JsonRpcEitherResponse } from 'jsonrpc-ts-client/dist/types/utils/jsonrpc'
 
 const client = new JsonRpcClient({
   url: CONFIG.NODE_SERVER_URL,

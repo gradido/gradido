@@ -14,16 +14,17 @@ registerEnumType(TransactionType, {
   description: 'Type of the transaction', // this one is optional
 })
 
-
-export function getTransactionTypeEnumValue(typeValue: number | string): TransactionType | undefined {
+export function getTransactionTypeEnumValue(
+  typeValue: number | string,
+): TransactionType | undefined {
   if (typeof typeValue === 'number') {
     return TransactionType[typeValue] as unknown as TransactionType
-  } else if(typeof typeValue === 'string') {
+  } else if (typeof typeValue === 'string') {
     for (const key in TransactionType) {
       if (TransactionType[key] === typeValue) {
         return TransactionType[key] as unknown as TransactionType
       }
     }
-    return undefined // If the string is not found  
+    return undefined // If the string is not found
   }
 }

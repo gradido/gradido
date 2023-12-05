@@ -1,8 +1,9 @@
-import { getDataSource } from '@/typeorm/DataSource'
 import { Brackets, In, Not } from '@dbTools/typeorm'
 import { Account } from '@entity/Account'
 import { Transaction } from '@entity/Transaction'
 import { IsNull } from 'typeorm'
+
+import { getDataSource } from '@/typeorm/DataSource'
 
 // https://www.artima.com/articles/the-dci-architecture-a-new-vision-of-object-oriented-programming
 export const TransactionRepository = getDataSource()
@@ -40,17 +41,16 @@ export const TransactionRepository = getDataSource()
     },
 
     async getLastTransactionForBalanceAccount({ id }: Account): Promise<Transaction | null> {
-      // check TransactionLogic.getBalanceAccount for reference 
+      // check TransactionLogic.getBalanceAccount for reference
       // TODO: find a war to get the actual logic from TransactionLogic
       // TODO: update for deferred transfer
       const queryBuilder = this.createQueryBuilder('transactions')
-      queryBuilder.where({ confirmedAt: Not(IsNull())})
-      .andWhere(
+      queryBuilder.where({ confirmedAt: Not(IsNull()) }).andWhere(
         new Brackets((qb) => {
-          qb.where({type: 2, recipientAccountId: id })
-          qb.orWhere({type: 1, senderAccountId: id})
-        })
+          qb.where({ type: 2, recipientAccountId: id })
+          qb.orWhere({ type: 1, senderAccountId: id })
+        }),
       )
       return queryBuilder.getOne()
-    }
+    },
   })

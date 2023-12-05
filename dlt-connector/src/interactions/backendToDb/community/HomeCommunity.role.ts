@@ -1,14 +1,17 @@
-import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { Community } from '@entity/Community'
-import { CommunityRole } from './Community.role'
 import { Transaction } from '@entity/Transaction'
-import { KeyManager } from '@/manager/KeyManager'
+
 import { AccountFactory } from '@/data/Account.factory'
-import { CreateTransactionRecipeContext } from '../transaction/CreateTransationRecipe.context'
-import { logger } from '@/server/logger'
-import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { CommunityDraft } from '@/graphql/input/CommunityDraft'
+import { TransactionError } from '@/graphql/model/TransactionError'
+import { KeyManager } from '@/manager/KeyManager'
+import { logger } from '@/server/logger'
 import { getDataSource } from '@/typeorm/DataSource'
+
+import { CreateTransactionRecipeContext } from '../transaction/CreateTransationRecipe.context'
+
+import { CommunityRole } from './Community.role'
 
 export class HomeCommunityRole extends CommunityRole {
   private transactionRecipe: Transaction

@@ -1,15 +1,20 @@
 // eslint-disable-next-line camelcase
-import { randombytes_buf } from 'sodium-native'
-import { CONFIG } from '../config'
 import { entropyToMnemonic, mnemonicToSeedSync } from 'bip39'
-// https://www.npmjs.com/package/bip32-ed25519?activeTab=code
-import { generateFromSeed, derivePrivate } from 'bip32-ed25519'
-import { logger } from '@/server/logger'
-import { loadHomeCommunityKeyPair } from './Community'
-import { LogError } from '@/server/LogError'
-import { KeyPair } from '../model/KeyPair'
-import { sign as signGradidoTransaction } from './GradidoTransaction'
+import { randombytes_buf } from 'sodium-native'
+
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
+import { LogError } from '@/server/LogError'
+import { logger } from '@/server/logger'
+
+import { generateFromSeed, derivePrivate } from 'bip32-ed25519'
+
+import { CONFIG } from '../config'
+// https://www.npmjs.com/package/bip32-ed25519?activeTab=code
+
+import { KeyPair } from '../model/KeyPair'
+
+import { loadHomeCommunityKeyPair } from './Community'
+import { sign as signGradidoTransaction } from './GradidoTransaction'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts

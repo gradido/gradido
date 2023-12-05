@@ -1,8 +1,10 @@
 import 'reflect-metadata'
-import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { GradidoCreation } from './GradidoCreation'
-import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionErrorType } from '@enum/TransactionErrorType'
+
+import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { TransactionError } from '@/graphql/model/TransactionError'
+
+import { GradidoCreation } from './GradidoCreation'
 
 describe('proto/3.3/GradidoCreation', () => {
   it('test with missing targetDate', () => {

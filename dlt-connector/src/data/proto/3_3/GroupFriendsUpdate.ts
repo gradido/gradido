@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { TransactionBase } from '../TransactionBase'
-import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
-import { Field, Message } from 'protobufjs'
 import { Transaction } from '@entity/Transaction'
+import { Field, Message } from 'protobufjs'
+
+import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
+
+import { TransactionBase } from '../TransactionBase'
 
 // connect group together
 // only CrossGroupType CROSS (in TransactionBody)

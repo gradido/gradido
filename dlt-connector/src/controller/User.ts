@@ -1,16 +1,20 @@
-import { User } from '@entity/User'
-import { KeyPair } from '../model/KeyPair'
-import { LogError } from '@/server/LogError'
-import { KeyManager } from './KeyManager'
-import { timestampSecondsToDate, timestampToDate, uuid4ToBuffer } from '@/utils/typeConverter'
-import { hardenDerivationIndex } from '@/utils/derivationHelper'
-import { UserIdentifier } from '@/graphql/input/UserIdentifier'
-import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
-import { RegisterAddress } from '@/data/proto/3_3/RegisterAddress'
-import { getDataSource } from '@/typeorm/DataSource'
-import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
-import { getBody } from './GradidoTransaction'
 import { Account } from '@entity/Account'
+import { User } from '@entity/User'
+
+import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
+import { RegisterAddress } from '@/data/proto/3_3/RegisterAddress'
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
+import { UserIdentifier } from '@/graphql/input/UserIdentifier'
+import { LogError } from '@/server/LogError'
+import { getDataSource } from '@/typeorm/DataSource'
+import { hardenDerivationIndex } from '@/utils/derivationHelper'
+import { timestampSecondsToDate, timestampToDate, uuid4ToBuffer } from '@/utils/typeConverter'
+
+import { KeyPair } from '../model/KeyPair'
+
+import { getBody } from './GradidoTransaction'
+import { KeyManager } from './KeyManager'
+
 
 export const getKeyPair = (user: User): KeyPair => {
   if (!user.gradidoID) {
@@ -33,8 +37,6 @@ export const getKeyPair = (user: User): KeyPair => {
   }
   return keyPair
 }
-
-
 
 export const confirm = async (
   registerAddress: RegisterAddress,

@@ -1,12 +1,13 @@
 import { Field, Message } from 'protobufjs'
 
-import { SignatureMap } from './SignatureMap'
-import { TransactionBody } from './TransactionBody'
-import { SignaturePair } from './SignaturePair'
+import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { TransactionError } from '@/graphql/model/TransactionError'
 import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
-import { TransactionError } from '@/graphql/model/TransactionError'
-import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+
+import { SignatureMap } from './SignatureMap'
+import { SignaturePair } from './SignaturePair'
+import { TransactionBody } from './TransactionBody'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define

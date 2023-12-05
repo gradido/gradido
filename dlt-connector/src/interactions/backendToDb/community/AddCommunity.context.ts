@@ -1,8 +1,9 @@
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
+import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
+
+import { CommunityRole } from './Community.role'
 import { ForeignCommunityRole } from './ForeignCommunity.role'
 import { HomeCommunityRole } from './HomeCommunity.role'
-import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
-import { CommunityRole } from './Community.role'
 
 /**
  * @DCI-Context

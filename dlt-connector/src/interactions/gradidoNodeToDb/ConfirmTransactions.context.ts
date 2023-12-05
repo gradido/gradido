@@ -10,18 +10,32 @@
  *  - trigger backend for verify
  */
 
-import { TransactionRepository } from '@/data/Transaction.repository'
+import { Account } from '@entity/Account'
+import { Community } from '@entity/Community'
+import { User } from '@entity/User'
+
+import { AccountRepository } from '@/data/Account.repository'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
-import { logger } from '@/server/logger'
-import { TransactionRecipeRole } from './TransactionRecipe.role'
-import { LogError } from '@/server/LogError'
-import { BackendClient } from '@/client/BackendClient'
+import { TransactionRepository } from '@/data/Transaction.repository'
 import { TransactionType } from '@/graphql/enum/TransactionType'
-import { TransactionRecipe } from '@entity/TransactionRecipe'
+import { LogError } from '@/server/LogError'
+import { logger } from '@/server/logger'
+
+import { AbstractConfirm } from './AbstractConfirm.role'
+import { ConfirmAccountRole } from './ConfirmAccount.role'
+import { ConfirmBackendRole } from './ConfirmBackend.role'
+import { ConfirmCommunityRole } from './ConfirmCommunity.role'
+import { ConfirmedTransactionRole } from './ConfirmedTransaction.role'
+import { ExistingTransactionRole } from './ExistingTransactions.role'
+import { UpdateBalanceRole } from './UpdateBalance.role'
 
 export class ConfirmTransactionsContext {
   // confirmed transactions put into map with message id (hex) as key for faster work access
   private transactionsByMessageId: Map<string, ConfirmedTransaction>
+  // entities which could be updated for storing as bulk
+  private users: User[]
+  private accounts: Account[]
+  private communities: Community[]
 
   public constructor(private transactions: ConfirmedTransaction[], private iotaTopic: string) {
     // create map with message ids as key
@@ -30,18 +44,58 @@ export class ConfirmTransactionsContext {
     }, new Map<string, ConfirmedTransaction>())
   }
 
+  public async run(): Promise<void> {
+    if (!this.transactions.length) {
+      return
+    }
+
+    // load existing transaction from db
+    const { existingTransaction, missingMessageIdsHex } =
+      await this.findExistingTransactionsAndMissingMessageIds(
+        Array.from(this.transactionsByMessageId.keys()),
+      )
+    // create non existing transaction from ConfirmedTransaction Protobuf Object
+    const newTransactions = await Promise.all(
+      missingMessageIdsHex.map(this.createMissingTransaction),
+    )
+    // remove confirmed existing transactions, upgrade existing Transactions to ConfirmedTransactions, fuse arrays together
+    const allTransactionRecipe = newTransactions.concat(
+      existingTransaction.filter(this.isNotConfirmed).map(this.updateExistingTransactions),
+    )
+    // update accounts, user, communities and send backend confirmation requests
+    // updateAffectedTablesAndBackend must be called in order, no parallelization here
+    allTransactionRecipe.forEach(async (value: ConfirmedTransactionRole, index: number) => {
+      logger.debug('foreach transactions index: ', index)
+      await this.updateAffectedTablesAndBackend(value)
+    })
+  }
+
+  public addForSave(entity: User | Account | Community) {
+    if (entity instanceof User) {
+      this.users.push(entity)
+    } else if (entity instanceof Account) {
+      this.accounts.push(entity)
+    } else if (entity instanceof Community) {
+      this.communities.push(entity)
+    } else {
+      throw new LogError('entity type not implemented yet')
+    }
+  }
+
+  public getIotaTopic(): string {
+    return this.iotaTopic
+  }
+
   /**
    * load already existing transactions from db and filter out message ids from not loaded transactions
    * @param messageIdsHex
-   * @returns {existingTransactionRoles: TransactionRecipeRole[], missingMessageIdsHex: string[]}
+   * @returns {existingTransactionRoles: ExistingTransactionRole[], missingMessageIdsHex: string[]}
    */
-  private async findExistingTransactionRecipeAndMissingMessageIds(
-    messageIdsHex: string[],
-  ): Promise<{
-    existingTransaction: TransactionRecipeRole[]
+  private async findExistingTransactionsAndMissingMessageIds(messageIdsHex: string[]): Promise<{
+    existingTransaction: ExistingTransactionRole[]
     missingMessageIdsHex: string[]
   }> {
-    logger.info('load transaction recipes for iota message ids:', messageIdsHex)
+    logger.debug('load transaction recipes for iota message ids:', messageIdsHex)
     const existingTransactions = await TransactionRepository.findExistingTransactions(messageIdsHex)
     const foundMessageIds = existingTransactions
       .map((transaction) => transaction.iotaMessageId?.toString('hex'))
@@ -50,92 +104,105 @@ export class ConfirmTransactionsContext {
     const missingMessageIdsHex = messageIdsHex.filter((id: string) => !foundMessageIds.includes(id))
     return {
       existingTransaction: existingTransactions.map(
-        (transaction) => new TransactionRecipeRole(transaction),
+        (transaction) => new ExistingTransactionRole(transaction),
       ),
       missingMessageIdsHex,
     }
   }
 
-  private async createMissingTransactionRecipe(
-    messageIdHex: string,
-  ): Promise<TransactionRecipeRole> {
+  private getConfirmedTransaction(messageIdHex: string): ConfirmedTransaction {
     const confirmedTransaction = this.transactionsByMessageId.get(messageIdHex)
     if (!confirmedTransaction) {
       throw new LogError('transaction for message id not longer exist')
     }
-    const recipe = await TransactionRecipeRole.createFromGradidoTransaction(
-      confirmedTransaction.transaction,
-    )
-    if (
-      confirmedTransaction.transaction.parentMessageId &&
-      confirmedTransaction.transaction.parentMessageId.length === 32
-    ) {
-      throw new LogError(
-        'cross group paring transaction found, please add code for handling it properly!',
-      )
-    }
-    recipe.setIotaMessageId(messageIdHex)
-    return recipe
+    return confirmedTransaction
   }
 
-  public async run(): Promise<void> {
-    if (!this.transactions.length) {
-      return
-    }
-
-    let { existingTransaction, missingMessageIdsHex } =
-      await this.findExistingTransactionRecipeAndMissingMessageIds(
-        Array.from(this.transactionsByMessageId.keys()),
-      )
-    const newTransactions = await Promise.all(
-      missingMessageIdsHex.map(this.createMissingTransactionRecipe),
+  /**
+   * create transaction complete from ConfirmedTransaction protobuf Object
+   * load accounts from db
+   * @param messageIdHex
+   * @returns ConfirmedTransactionRole
+   */
+  private async createMissingTransaction(messageIdHex: string): Promise<ConfirmedTransactionRole> {
+    logger.info('create transaction from confirmed transaction proto object', {
+      iotaMessageId: messageIdHex,
+    })
+    return await ConfirmedTransactionRole.createFromConfirmedTransaction(
+      this.getConfirmedTransaction(messageIdHex),
     )
-    let allTransactionRecipe: TransactionRecipeRole[] = []
-    try {
-      // remove all confirmed transactions from array
-      existingTransaction = existingTransaction.filter(
-        (transaction: TransactionRecipeRole) => !transaction.isAlreadyConfirmed(),
-      )
-      // fuse arrays together
-      allTransactionRecipe = existingTransaction.concat(newTransactions)
+  }
 
-      const backend = BackendClient.getInstance()
-      if (!backend) {
-        throw new LogError('error instancing backend client')
-      }
-      const confirmedTransactionEntities = await Promise.all(
-        allTransactionRecipe.map(async (transaction: TransactionRecipeRole) => {
-          const confirmedTransaction = this.transactionsByMessageId.get(
-            transaction.getIotaMessageIdHex(),
-          )
-          if (!confirmedTransaction) {
-            throw new LogError('transaction for message id not longer exist')
-          }
-          // confirm backend
-          const confirmedTransactionEntity = create(
-            confirmedTransaction,
-            new TransactionRecipe(recipe),
-          )
-          if (
-            [
-              TransactionType.GRADIDO_CREATION,
-              TransactionType.GRADIDO_TRANSFER,
-              TransactionType.GRADIDO_DEFERRED_TRANSFER,
-            ].includes(recipe.type)
-          ) {
-            try {
-              await backend.confirmTransaction(confirmedTransactionEntity)
-            } catch (error) {
-              logger.error(error)
-            }
-          }
-          return confirmedTransactionEntity
-        }),
-      )
-      await ConfirmedTransactionEntity.save(confirmedTransactionEntities)
-      logger.info('saved confirmed transactions', confirmedTransactionEntities.length)
-    } catch (error) {
-      throw new LogError('Error saving new recipes or confirmed transactions', error)
+  private isNotConfirmed(transaction: ExistingTransactionRole): boolean {
+    return !transaction.isConfirmed()
+  }
+
+  /**
+   * upgrade existing transactions to confirmed transactions, fill the missing fields
+   * @param existingTransaction
+   * @returns ConfirmedTransactionRole
+   */
+  private updateExistingTransactions(
+    existingTransaction: ExistingTransactionRole,
+  ): ConfirmedTransactionRole {
+    const messageIdHex = existingTransaction.getIotaMessageIdHex()
+    logger.debug('update transaction to confirmed transaction', { iotaMessageId: messageIdHex })
+    return existingTransaction.setOrCheck(this.getConfirmedTransaction(messageIdHex))
+  }
+
+  private async updateAffectedTablesAndBackend(
+    confirmedTransactionRole: ConfirmedTransactionRole,
+  ): Promise<void> {
+    const messageIdHex = confirmedTransactionRole.getIotaMessageIdHex()
+    const confirmedTransaction = this.getConfirmedTransaction(messageIdHex)
+    const gradidoTransaction = confirmedTransaction.transaction
+    const transactionBody = gradidoTransaction.getTransactionBody()
+    const transactionType = transactionBody.getTransactionType()
+    const account = await AccountRepository.findByPublicKey(transactionBody.getRecipientPublicKey())
+    if (!transactionType) {
+      throw new LogError('transaction type not set')
     }
+    // tell backend that transaction is confirmed
+    if (
+      [
+        TransactionType.GRADIDO_CREATION,
+        TransactionType.GRADIDO_TRANSFER,
+        TransactionType.GRADIDO_DEFERRED_TRANSFER,
+      ].includes(transactionType)
+    ) {
+      const confirmBackend = new ConfirmBackendRole(confirmedTransactionRole, this)
+      await confirmBackend.confirm()
+    }
+    // confirm other tables, depending on transaction type
+    let abstractConfirm: AbstractConfirm | null = null
+    switch (transactionType) {
+      case TransactionType.GRADIDO_CREATION:
+      case TransactionType.GRADIDO_TRANSFER:
+        if (!account) {
+          throw new LogError('missing recipient account for creation or transfer transaction')
+        }
+        this.addForSave(account)
+        abstractConfirm = new UpdateBalanceRole(confirmedTransactionRole, this, account)
+        break
+      case TransactionType.COMMUNITY_ROOT:
+        abstractConfirm = new ConfirmCommunityRole(confirmedTransactionRole, this)
+        break
+      case TransactionType.REGISTER_ADDRESS:
+        // will also confirm user
+        if (!transactionBody.registerAddress) {
+          throw new LogError(
+            "mal formatted transaction, type registerAddress but don't contain registerAddress Transaction",
+          )
+        }
+        abstractConfirm = new ConfirmAccountRole(
+          confirmedTransactionRole,
+          this,
+          transactionBody.registerAddress,
+        )
+        break
+      default:
+        throw new LogError('not implemented yet')
+    }
+    await abstractConfirm.confirm()
   }
 }

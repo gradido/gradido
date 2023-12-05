@@ -5,13 +5,14 @@
  * the unique singleton instance.
  */
 
-import { receiveAllMessagesForTopic } from '@/client/IotaClient'
 import { getTransactions } from '@/client/GradidoNode'
-import { confirmFromNodeServer } from './ConfirmedTransaction'
-import { logger } from '@/server/logger'
-import { TransactionError } from '@/graphql/model/TransactionError'
-import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { receiveAllMessagesForTopic } from '@/client/IotaClient'
 import { CommunityRepository } from '@/data/Community.repository'
+import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { TransactionError } from '@/graphql/model/TransactionError'
+import { logger } from '@/server/logger'
+
+import { confirmFromNodeServer } from './ConfirmedTransaction'
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class TransactionsManager {

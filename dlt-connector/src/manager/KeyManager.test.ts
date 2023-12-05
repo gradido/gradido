@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 import { entropyToMnemonic, mnemonicToSeedSync } from 'bip39'
+
 import { generateFromSeed, toPublic } from 'bip32-ed25519'
 
 describe('controller/KeyManager', () => {

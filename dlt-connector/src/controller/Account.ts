@@ -1,9 +1,30 @@
-import { AddressType } from '@/data/proto/3_3/enum/AddressType'
+import { In } from '@dbTools/typeorm'
 import { Account } from '@entity/Account'
 import { Community } from '@entity/Community'
-import { KeyManager } from './KeyManager'
+
+
+import { User } from '@entity/User'
+import Decimal from 'decimal.js-light'
+
+import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
+import { AddressType } from '@/data/proto/3_3/enum/AddressType'
+import { getBody } from './GradidoTransaction'
+
+import { RegisterAddress } from '@/data/proto/3_3/RegisterAddress'
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
+import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { LogError } from '@/server/LogError'
+import { getDataSource } from '@/typeorm/DataSource'
+import { hardenDerivationIndex } from '@/utils/derivationHelper'
+import {
+  accountTypeToAddressType,
+  timestampSecondsToDate,
+  timestampToDate,
+} from '@/utils/typeConverter'
+
 import { KeyPair } from '../model/KeyPair'
+
+import { KeyManager } from './KeyManager'
 import {
   getKeyPair as getUserKeyPair,
   confirm as confirmUser,
@@ -11,21 +32,6 @@ import {
   findByPublicKey,
   findByPublicKeyWithAccount,
 } from './User'
-import { hardenDerivationIndex } from '@/utils/derivationHelper'
-import Decimal from 'decimal.js-light'
-import { In } from '@dbTools/typeorm'
-import { UserIdentifier } from '@/graphql/input/UserIdentifier'
-import { User } from '@entity/User'
-import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
-import {
-  accountTypeToAddressType,
-  timestampSecondsToDate,
-  timestampToDate,
-} from '@/utils/typeConverter'
-import { getDataSource } from '@/typeorm/DataSource'
-import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
-import { getBody } from './GradidoTransaction'
-import { RegisterAddress } from '@/data/proto/3_3/RegisterAddress'
 
 const GMW_ACCOUNT_DERIVATION_INDEX = 1
 const AUF_ACCOUNT_DERIVATION_INDEX = 2

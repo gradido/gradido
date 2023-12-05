@@ -1,23 +1,24 @@
+import { Transaction } from '@entity/Transaction'
 import { Field, Message, OneOf } from 'protobufjs'
 
-import { CrossGroupType } from './enum/CrossGroupType'
+import { TransactionType } from '@/graphql/enum/TransactionType'
+import { CommunityDraft } from '@/graphql/input/CommunityDraft'
+import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
+import { LogError } from '@/server/LogError'
+import { timestampToDate } from '@/utils/typeConverter'
 
-import { Timestamp } from './Timestamp'
-import { GradidoTransfer } from './GradidoTransfer'
+import { TransactionBase } from '../TransactionBase'
+import { determineCrossGroupType, determineOtherGroup } from '../transactionBody.logic'
+
+import { CommunityRoot } from './CommunityRoot'
+import { CrossGroupType } from './enum/CrossGroupType'
 import { GradidoCreation } from './GradidoCreation'
 import { GradidoDeferredTransfer } from './GradidoDeferredTransfer'
+import { GradidoTransfer } from './GradidoTransfer'
 import { GroupFriendsUpdate } from './GroupFriendsUpdate'
 import { RegisterAddress } from './RegisterAddress'
-import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { determineCrossGroupType, determineOtherGroup } from '../transactionBody.logic'
-import { CommunityRoot } from './CommunityRoot'
-import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import { TransactionType } from '@/graphql/enum/TransactionType'
-import { TransactionBase } from '../TransactionBase'
-import { Transaction } from '@entity/Transaction'
-import { timestampToDate } from '@/utils/typeConverter'
-import { LogError } from '@/server/LogError'
-import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
+import { Timestamp } from './Timestamp'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define

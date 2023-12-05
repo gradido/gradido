@@ -1,10 +1,14 @@
-import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
+import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
-import { UserLogic } from './User.logic'
-import { KeyPair } from './KeyPair'
-import { ConfirmedTransaction } from './proto/3_3/ConfirmedTransaction'
+
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { LogError } from '@/server/LogError'
 import { timestampSecondsToDate, timestampToDate } from '@/utils/typeConverter'
+
+import { KeyPair } from './KeyPair'
+import { ConfirmedTransaction } from './proto/3_3/ConfirmedTransaction'
+import { RegisterAddress } from './proto/3_3/RegisterAddress'
+import { UserLogic } from './User.logic'
 
 export class UserFactory {
   static create(userAccountDraft: UserAccountDraft, parentKeys?: KeyPair): User {
@@ -27,6 +31,14 @@ export class UserFactory {
     user.createdAt = timestampToDate(body.createdAt)
     user.derive1Pubkey = Buffer.from(registerAddress.userPubkey)
     user.confirmedAt = timestampSecondsToDate(confirmedTransaction.confirmedAt)
+    return user
+  }
+
+  static createFromTransaction(transaction: Transaction, registerAddress: RegisterAddress): User {
+    const user = User.create()
+    user.createdAt = transaction.createdAt
+    user.derive1Pubkey = Buffer.from(registerAddress.userPubkey)
+    user.confirmedAt = transaction.confirmedAt
     return user
   }
 }

@@ -1,13 +1,16 @@
 import 'reflect-metadata'
-import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import { CONFIG } from '@/config'
-import { entropyToMnemonic, mnemonicToSeedSync } from 'bip39'
-import { generateFromSeed, toPublic, derivePrivate } from 'bip32-ed25519'
-import { AddressType } from '@/data/proto/3_3/enum/AddressType'
-import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
-import { TestDB } from '@test/TestDB'
-import { getDataSource } from '@/typeorm/DataSource'
 import { Community } from '@entity/Community'
+import { entropyToMnemonic, mnemonicToSeedSync } from 'bip39'
+
+import { TestDB } from '@test/TestDB'
+
+import { CONFIG } from '@/config'
+import { AddressType } from '@/data/proto/3_3/enum/AddressType'
+import { CommunityDraft } from '@/graphql/input/CommunityDraft'
+import { getDataSource } from '@/typeorm/DataSource'
+import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
+
+import { generateFromSeed, toPublic, derivePrivate } from 'bip32-ed25519'
 
 const rootKeysSeed = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899'
 CONFIG.IOTA_HOME_COMMUNITY_SEED = rootKeysSeed

@@ -1,11 +1,13 @@
+import { Transaction } from '@entity/Transaction'
+import Decimal from 'decimal.js-light'
 import { Field, Message } from 'protobufjs'
+
+import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
+
+import { TransactionBase } from '../TransactionBase'
 
 import { GradidoTransfer } from './GradidoTransfer'
 import { TimestampSeconds } from './TimestampSeconds'
-import { TransactionBase } from '../TransactionBase'
-import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
-import { Transaction } from '@entity/Transaction'
-import Decimal from 'decimal.js-light'
 
 // transaction type for chargeable transactions
 // for transaction for people which haven't a account already

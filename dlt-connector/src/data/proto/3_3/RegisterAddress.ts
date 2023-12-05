@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { Account } from '@entity/Account'
+import { Transaction } from '@entity/Transaction'
+import { User } from '@entity/User'
 import { Field, Message } from 'protobufjs'
 
 import { AddressType } from '@/data/proto/3_3/enum/AddressType'
-import { TransactionBase } from '../TransactionBase'
+import { AccountType } from '@/graphql/enum/AccountType'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
-import { User } from '@entity/User'
 import { accountTypeToAddressType } from '@/utils/typeConverter'
-import { AccountType } from '@/graphql/enum/AccountType'
-import { Account } from '@entity/Account'
-import { Transaction } from '@entity/Transaction'
+
+import { TransactionBase } from '../TransactionBase'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define

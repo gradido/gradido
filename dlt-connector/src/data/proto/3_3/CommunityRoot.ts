@@ -1,8 +1,10 @@
-import { TransactionBase } from '../TransactionBase'
-import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
-import { Field, Message } from 'protobufjs'
 import { Community } from '@entity/Community'
 import { Transaction } from '@entity/Transaction'
+import { Field, Message } from 'protobufjs'
+
+import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
+
+import { TransactionBase } from '../TransactionBase'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define

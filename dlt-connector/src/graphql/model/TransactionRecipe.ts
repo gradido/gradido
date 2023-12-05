@@ -1,6 +1,7 @@
-import { Field, Int, ObjectType } from 'type-graphql'
-import { TransactionType } from '@enum/TransactionType'
 import { Transaction } from '@entity/Transaction'
+import { Field, Int, ObjectType } from 'type-graphql'
+
+import { TransactionType } from '@enum/TransactionType'
 
 @ObjectType()
 export class TransactionRecipe {

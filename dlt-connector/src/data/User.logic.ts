@@ -1,9 +1,11 @@
 import { User } from '@entity/User'
-import { KeyPair } from './KeyPair'
-import { LogError } from '@/server/LogError'
-import { uuid4ToBuffer } from '@/utils/typeConverter'
-import { hardenDerivationIndex } from '@/utils/derivationHelper'
+
 import { KeyManager } from '@/manager/KeyManager'
+import { LogError } from '@/server/LogError'
+import { hardenDerivationIndex } from '@/utils/derivationHelper'
+import { uuid4ToBuffer } from '@/utils/typeConverter'
+
+import { KeyPair } from './KeyPair'
 
 export class UserLogic {
   // eslint-disable-next-line no-useless-constructor

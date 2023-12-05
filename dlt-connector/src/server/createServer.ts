@@ -1,18 +1,18 @@
 import 'reflect-metadata'
-import { DataSource as DBDataSource } from '@dbTools/typeorm'
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
+import { DataSource as DBDataSource } from '@dbTools/typeorm'
+import bodyParser from 'body-parser'
+import cors from 'cors'
 import express, { Express } from 'express'
 
 // graphql
+import { Logger } from 'log4js'
+
 import { schema } from '@/graphql/schema'
-import { getDataSource } from '@/typeorm/DataSource'
+import { getDataSource, Connection } from '@/typeorm/DataSource'
 
 import { logger as dltLogger } from './logger'
-import { Logger } from 'log4js'
-import cors from 'cors'
-import bodyParser from 'body-parser'
-import { Connection } from '@/typeorm/DataSource'
 
 type ServerDef = { apollo: ApolloServer; app: Express; con: DBDataSource }
 

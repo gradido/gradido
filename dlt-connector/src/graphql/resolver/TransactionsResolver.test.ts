@@ -1,19 +1,23 @@
 import 'reflect-metadata'
-import { ApolloServer } from '@apollo/server'
-// must be imported before createApolloTestServer so that TestDB was created before createApolloTestServer imports repositories
-import { TestDB } from '@test/TestDB'
-import { createApolloTestServer } from '@test/ApolloServerMock'
 import assert from 'assert'
+
+import { ApolloServer } from '@apollo/server'
+
+// must be imported before createApolloTestServer so that TestDB was created before createApolloTestServer imports repositories
 import { TransactionResult } from '@model/TransactionResult'
-import { AccountFactory } from '@/data/Account.factory'
+import { createApolloTestServer } from '@test/ApolloServerMock'
+import { TestDB } from '@test/TestDB'
+
 import { CONFIG } from '@/config'
+import { AccountFactory } from '@/data/Account.factory'
 import { UserFactory } from '@/data/User.factory'
-import { UserAccountDraft } from '../input/UserAccountDraft'
 import { UserLogic } from '@/data/User.logic'
-import { AccountType } from '../enum/AccountType'
-import { UserIdentifier } from '../input/UserIdentifier'
-import { CommunityDraft } from '../input/CommunityDraft'
 import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
+
+import { AccountType } from '../enum/AccountType'
+import { CommunityDraft } from '../input/CommunityDraft'
+import { UserAccountDraft } from '../input/UserAccountDraft'
+import { UserIdentifier } from '../input/UserIdentifier'
 
 CONFIG.IOTA_HOME_COMMUNITY_SEED = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899'
 
