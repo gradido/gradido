@@ -24,4 +24,8 @@ export class AdminUpdateContributionArgs {
   @Field(() => String, { nullable: true })
   @isValidDateString()
   creationDate?: string | null
+
+  @Field(() => String, { nullable: true })
+  @isValidDateString()
+  resubmissionAt?: string | null
 }

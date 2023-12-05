@@ -42,6 +42,7 @@ export const adminListContributions = gql`
         deletedBy
         moderatorId
         userId
+        resubmissionAt
       }
     }
   }
