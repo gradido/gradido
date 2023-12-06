@@ -2,7 +2,7 @@ import { Field, Message } from 'protobufjs'
 
 import { GradidoTransfer } from './GradidoTransfer'
 import { TimestampSeconds } from './TimestampSeconds'
-import { TransactionBase } from '../TransactionBase'
+import { AbstractTransaction } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Transaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
@@ -17,7 +17,7 @@ import Decimal from 'decimal.js-light'
 export class GradidoDeferredTransfer
   // eslint-disable-next-line no-use-before-define
   extends Message<GradidoDeferredTransfer>
-  implements TransactionBase
+  implements AbstractTransaction
 {
   // amount is amount with decay for time span between transaction was received and timeout
   // useable amount can be calculated

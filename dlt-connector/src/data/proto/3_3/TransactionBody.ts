@@ -13,7 +13,7 @@ import { determineCrossGroupType, determineOtherGroup } from '../transactionBody
 import { CommunityRoot } from './CommunityRoot'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { TransactionType } from '@/graphql/enum/TransactionType'
-import { TransactionBase } from '../TransactionBase'
+import { AbstractTransaction } from '../TransactionBase'
 import { Transaction } from '@entity/Transaction'
 import { timestampToDate } from '@/utils/typeConverter'
 import { LogError } from '@/server/LogError'
@@ -95,7 +95,7 @@ export class TransactionBody extends Message<TransactionBody> {
     else if (this.communityRoot) return TransactionType.COMMUNITY_ROOT
   }
 
-  public getTransactionBase(): TransactionBase | undefined {
+  public getTransactionDetails(): AbstractTransaction | undefined {
     if (this.transfer) return this.transfer
     if (this.creation) return this.creation
     if (this.groupFriendsUpdate) return this.groupFriendsUpdate
@@ -112,7 +112,7 @@ export class TransactionBody extends Message<TransactionBody> {
       throw new LogError("invalid TransactionBody couldn't determine transaction type")
     }
     recipe.type = transactionType.valueOf()
-    this.getTransactionBase()?.fillTransactionRecipe(recipe)
+    this.getTransactionDetails()?.fillTransactionRecipe(recipe)
   }
 
   public getRecipientPublicKey(): Buffer | undefined {

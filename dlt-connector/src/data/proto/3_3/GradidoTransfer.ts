@@ -2,7 +2,7 @@ import { Field, Message } from 'protobufjs'
 
 import { TransferAmount } from './TransferAmount'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { TransactionBase } from '../TransactionBase'
+import { AbstractTransaction } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Transaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
@@ -10,7 +10,7 @@ import { Account } from '@entity/Account'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
-export class GradidoTransfer extends Message<GradidoTransfer> implements TransactionBase {
+export class GradidoTransfer extends Message<GradidoTransfer> implements AbstractTransaction {
   constructor(
     transaction?: TransactionDraft,
     signingAccount?: Account,
