@@ -112,6 +112,7 @@
                 :contributionStatus="row.item.status"
                 :contributionUserId="row.item.userId"
                 :contributionMemo="row.item.memo"
+                :resubmissionAt="row.item.resubmissionAt"
                 :hideResubmission="hideResubmission"
                 @update-status="updateStatus"
                 @reload-contribution="reloadContribution"
@@ -159,6 +160,10 @@ export default {
     hideResubmission: {
       type: Boolean,
       required: true,
+    },
+    resubmissionAt: {
+      type: Date,
+      required: false,
     },
   },
   methods: {
