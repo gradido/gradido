@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { TransactionBase } from '../TransactionBase'
+import { AbstractTransaction } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Field, Message } from 'protobufjs'
 import { Transaction } from '@entity/Transaction'
@@ -8,7 +8,7 @@ import { Transaction } from '@entity/Transaction'
 // only CrossGroupType CROSS (in TransactionBody)
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
-export class GroupFriendsUpdate extends Message<GroupFriendsUpdate> implements TransactionBase {
+export class GroupFriendsUpdate extends Message<GroupFriendsUpdate> implements AbstractTransaction {
   // if set to true, colors of this both groups are trait as the same
   // on creation user get coins still in there color
   // on transfer into another group which a connection exist,

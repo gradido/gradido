@@ -3,13 +3,13 @@
 import { Field, Message } from 'protobufjs'
 
 import { AddressType } from '@/data/proto/3_3/enum/AddressType'
-import { TransactionBase } from '../TransactionBase'
+import { AbstractTransaction } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Transaction } from '@entity/Transaction'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
-export class RegisterAddress extends Message<RegisterAddress> implements TransactionBase {
+export class RegisterAddress extends Message<RegisterAddress> implements AbstractTransaction {
   @Field.d(1, 'bytes')
   public userPubkey: Buffer
 

@@ -1,4 +1,4 @@
-import { TransactionBase } from '../TransactionBase'
+import { AbstractTransaction } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Field, Message } from 'protobufjs'
 import { Community } from '@entity/Community'
@@ -6,7 +6,7 @@ import { Transaction } from '@entity/Transaction'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
-export class CommunityRoot extends Message<CommunityRoot> implements TransactionBase {
+export class CommunityRoot extends Message<CommunityRoot> implements AbstractTransaction {
   public constructor(community?: Community) {
     if (community) {
       super({

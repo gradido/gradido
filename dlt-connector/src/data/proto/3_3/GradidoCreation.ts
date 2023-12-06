@@ -5,7 +5,7 @@ import { TransferAmount } from './TransferAmount'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
-import { TransactionBase } from '../TransactionBase'
+import { AbstractTransaction } from '../TransactionBase'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Transaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
@@ -15,7 +15,7 @@ import { Account } from '@entity/Account'
 // percent of group users another than the receiver
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
-export class GradidoCreation extends Message<GradidoCreation> implements TransactionBase {
+export class GradidoCreation extends Message<GradidoCreation> implements AbstractTransaction {
   constructor(transaction?: TransactionDraft, recipientAccount?: Account) {
     if (transaction) {
       if (!transaction.targetDate) {
