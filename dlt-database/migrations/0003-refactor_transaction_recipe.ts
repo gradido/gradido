@@ -5,15 +5,21 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   // write upgrade logic as parameter of queryFn
   await queryFn(`DROP TABLE \`confirmed_transactions\`;`)
   await queryFn(`DROP TABLE \`transaction_recipes\`;`)
-  
+
+  await queryFn(`
+    ALTER TABLE \`accounts\` 
+      RENAME COLUMN \`balance\` TO \`balance_confirmed_at\`,
+      RENAME COLUMN \`balance_date\` TO \`balance_confirmed_at_date\`,
+  `)
+
   await queryFn(
     `ALTER TABLE \`accounts\` MODIFY COLUMN  \`derivation_index\` int(10) unsigned NULL DEFAULT NULL;`,
   )
   await queryFn(
-    `ALTER TABLE \`accounts\` ADD COLUMN \`account_balance_created_at\` decimal(40,20) NOT NULL DEFAULT 0 AFTER \`balance_date\`;`,
+    `ALTER TABLE \`accounts\` ADD COLUMN \`balance_created_at\` decimal(40,20) NOT NULL DEFAULT 0 AFTER \`balance_date\`;`,
   )
   await queryFn(
-    `ALTER TABLE \`accounts\` ADD COLUMN \`balance_created_at_date\` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) AFTER \`account_balance_created_at\`;`,
+    `ALTER TABLE \`accounts\` ADD COLUMN \`balance_created_at_date\` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) AFTER \`balance_created_at\`;`,
   )
 
   await queryFn(
@@ -35,7 +41,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`protocol_version\` varchar(255) NOT NULL DEFAULT '1',
         \`nr\` bigint NULL DEFAULT NULL,
         \`running_hash\` varbinary(48) NULL DEFAULT NULL,
-        \`account_balance\` decimal(40, 20) NULL DEFAULT 0.00000000000000000000,
+        \`account_balance_confirmed_at\` decimal(40, 20) NULL DEFAULT 0.00000000000000000000,
         \`iota_milestone\` bigint  NULL DEFAULT NULL,
         \`confirmed_at\` datetime NULL DEFAULT NULL,
         PRIMARY KEY (\`id\`),
@@ -88,10 +94,16 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
       FOREIGN KEY (\`account_id\`) REFERENCES accounts(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`)
 
+  await queryFn(`
+    ALTER TABLE \`accounts\` 
+      RENAME COLUMN \`balance_confirmed_at\` TO \`balance\`,
+      RENAME COLUMN \`balance_confirmed_at_date\` TO \`balance_date\`,
+  `)
+
   await queryFn(
     `ALTER TABLE \`accounts\` MODIFY COLUMN  \`derivation_index\` int(10) unsigned NOT NULL;`,
   )
-  await queryFn(`ALTER TABLE \`accounts\` DROP COLUMN \`account_balance_created_at\`;`)
+  await queryFn(`ALTER TABLE \`accounts\` DROP COLUMN \`balance_created_at\`;`)
   await queryFn(`ALTER TABLE \`accounts\` DROP COLUMN \`balance_created_at_date\`;`)
   await queryFn(`DROP TABLE \`transactions\`;`)
 }

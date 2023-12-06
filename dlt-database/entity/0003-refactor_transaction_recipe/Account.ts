@@ -18,7 +18,7 @@ export class Account extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @ManyToOne(() => User, (user) => user.accounts, { cascade: ['insert'], eager: true }) // Assuming you have a User entity with 'accounts' relation
+  @ManyToOne(() => User, (user) => user.accounts, { cascade: ['insert', 'update'], eager: true }) // Assuming you have a User entity with 'accounts' relation
   @JoinColumn({ name: 'user_id' })
   user?: User
 
@@ -47,20 +47,21 @@ export class Account extends BaseEntity {
   confirmedAt?: Date
 
   @Column({
+    name: 'balance_confirmed_at',
     type: 'decimal',
     precision: 40,
     scale: 20,
     default: 0,
     transformer: DecimalTransformer,
   })
-  balance: Decimal
+  balanceConfirmedAt: Decimal
 
   @Column({
-    name: 'balance_date',
+    name: 'balance_confirmed_at_date',
     type: 'datetime',
     default: () => 'CURRENT_TIMESTAMP()',
   })
-  balanceDate: Date
+  balanceConfirmedAtDate: Date
 
   @Column({
     name: 'balance_created_at',
