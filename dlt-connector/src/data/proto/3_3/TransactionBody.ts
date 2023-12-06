@@ -17,6 +17,7 @@ import { TransactionBase } from '../TransactionBase'
 import { Transaction } from '@entity/Transaction'
 import { timestampToDate } from '@/utils/typeConverter'
 import { LogError } from '@/server/LogError'
+import { PROTO_TRANSACTION_BODY_VERSION_NUMBER } from './const'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
@@ -33,7 +34,7 @@ export class TransactionBody extends Message<TransactionBody> {
       super({
         memo: 'Not implemented yet',
         createdAt: new Timestamp(new Date(transaction.createdAt)),
-        versionNumber: '3.3',
+        versionNumber: PROTO_TRANSACTION_BODY_VERSION_NUMBER,
         type,
         otherGroup,
       })
