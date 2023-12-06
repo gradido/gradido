@@ -117,7 +117,7 @@ export async function userByUuid(uuid: string): Promise<GmsUser[] | string | und
 */
 
 export async function createGmsUser(apiKey: string, user: GmsUser): Promise<boolean> {
-  const baseUrl = 'https://'.concat(CONFIG.GMS_HOST).concat(':').concat(CONFIG.GMS_PORT).concat('/')
+  const baseUrl = 'http://'.concat(CONFIG.GMS_HOST).concat(':').concat(CONFIG.GMS_PORT).concat('/')
   const service = 'community-user'
   const config = {
     headers: {
