@@ -14,6 +14,7 @@ import { AccountType } from '../enum/AccountType'
 import { UserIdentifier } from '../input/UserIdentifier'
 import { CommunityDraft } from '../input/CommunityDraft'
 import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
+import { InputTransactionType } from '../enum/InputTransactionType'
 
 CONFIG.IOTA_HOME_COMMUNITY_SEED = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899'
 
@@ -81,7 +82,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: 'SEND',
+          type: InputTransactionType.SEND,
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
           backendTransactionId: 1,
@@ -129,7 +130,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: 'SEND',
+          type: InputTransactionType.SEND,
           amount: 'no number',
           createdAt: '2012-04-17T17:12:00Z',
           backendTransactionId: 1,
@@ -155,7 +156,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: 'SEND',
+          type: InputTransactionType.SEND,
           amount: '10',
           createdAt: 'not valid',
           backendTransactionId: 1,
@@ -191,7 +192,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: 'CREATION',
+          type: InputTransactionType.CREATION,
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
           backendTransactionId: 1,
