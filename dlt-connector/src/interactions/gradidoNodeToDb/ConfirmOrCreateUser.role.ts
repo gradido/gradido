@@ -7,8 +7,9 @@ import { UserRepository } from '@/data/User.repository'
 import { AbstractConfirm } from './AbstractConfirm.role'
 import { ConfirmedTransactionRole } from './ConfirmedTransaction.role'
 import { ConfirmTransactionsContext } from './ConfirmTransactions.context'
+import { LogError } from '@/server/LogError'
 
-export class ConfirmUserRole extends AbstractConfirm {
+export class ConfirmOrCreateUserRole extends AbstractConfirm {
   private user: User | null
   public constructor(
     confirmedTransactionRole: ConfirmedTransactionRole,
@@ -39,7 +40,10 @@ export class ConfirmUserRole extends AbstractConfirm {
     }
   }
 
-  public getUser(): User | null {
+  public getUser(): User {
+    if (!this.user) {
+      throw new LogError('missing user, please call confirm before')
+    }
     return this.user
   }
 }

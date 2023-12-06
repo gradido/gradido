@@ -22,7 +22,7 @@ import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
 
 import { AbstractConfirm } from './AbstractConfirm.role'
-import { ConfirmAccountRole } from './ConfirmAccount.role'
+import { ConfirmOrCreateAccountRole } from './ConfirmOrCreateAccount.role'
 import { ConfirmBackendRole } from './ConfirmBackend.role'
 import { ConfirmCommunityRole } from './ConfirmCommunity.role'
 import { ConfirmedTransactionRole } from './ConfirmedTransaction.role'
@@ -33,9 +33,7 @@ export class ConfirmTransactionsContext {
   // confirmed transactions put into map with message id (hex) as key for faster work access
   private transactionsByMessageId: Map<string, ConfirmedTransaction>
   // entities which could be updated for storing as bulk
-  private users: User[]
   private accounts: Account[]
-  private communities: Community[]
 
   public constructor(private transactions: ConfirmedTransaction[], private iotaTopic: string) {
     // create map with message ids as key
@@ -68,18 +66,12 @@ export class ConfirmTransactionsContext {
       logger.debug('foreach transactions index: ', index)
       await this.updateAffectedTablesAndBackend(value)
     })
+    // save changed accounts and users (via cascading) with one db query
+    await Account.save(this.accounts)
   }
 
-  public addForSave(entity: User | Account | Community) {
-    if (entity instanceof User) {
-      this.users.push(entity)
-    } else if (entity instanceof Account) {
-      this.accounts.push(entity)
-    } else if (entity instanceof Community) {
-      this.communities.push(entity)
-    } else {
-      throw new LogError('entity type not implemented yet')
-    }
+  public addForSave(entity: Account) {
+    this.accounts.push(entity)
   }
 
   public getIotaTopic(): string {
@@ -158,9 +150,20 @@ export class ConfirmTransactionsContext {
     const gradidoTransaction = confirmedTransaction.transaction
     const transactionBody = gradidoTransaction.getTransactionBody()
     const transactionType = transactionBody.getTransactionType()
-    const account = await AccountRepository.findByPublicKey(transactionBody.getRecipientPublicKey())
+    let account = confirmedTransactionRole.getTransaction().signingAccount
+    // try to load account if not already loaded with transaction
+    if (!account) { 
+      account = await AccountRepository.findByPublicKey(gradidoTransaction.sigMap.sigPair[0].pubKey)
+      confirmedTransactionRole.getTransaction().signingAccount = account
+    }
     if (!transactionType) {
       throw new LogError('transaction type not set')
+    }
+    // calculate balance based on creation date
+    // balance based on confirmation date already calculated on GradidoNode
+    // update always if account exist, even for transaction which don't move gradidos around
+    if (account) {
+      confirmedTransactionRole.calculateCreatedAtBalance(account)
     }
     // tell backend that transaction is confirmed
     if (
@@ -181,10 +184,11 @@ export class ConfirmTransactionsContext {
         if (!account) {
           throw new LogError('missing recipient account for creation or transfer transaction')
         }
-        this.addForSave(account)
+        // update balance fields in account entity
         abstractConfirm = new UpdateBalanceRole(confirmedTransactionRole, this, account)
         break
       case TransactionType.COMMUNITY_ROOT:
+        // update confirmation date of Community, AUF Account and GMW Account
         abstractConfirm = new ConfirmCommunityRole(confirmedTransactionRole, this)
         break
       case TransactionType.REGISTER_ADDRESS:
@@ -194,7 +198,10 @@ export class ConfirmTransactionsContext {
             "mal formatted transaction, type registerAddress but don't contain registerAddress Transaction",
           )
         }
-        abstractConfirm = new ConfirmAccountRole(
+        // update confirmation date of account and user,
+        // create account and/or user if missing
+        // possible if listen to a topic from a new community and get transaction from them via GradidoNode
+        abstractConfirm = new ConfirmOrCreateAccountRole(
           confirmedTransactionRole,
           this,
           transactionBody.registerAddress,

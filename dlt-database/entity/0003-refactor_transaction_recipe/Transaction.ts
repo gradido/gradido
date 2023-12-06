@@ -71,6 +71,7 @@ export class Transaction extends BaseEntity {
   })
   amount?: Decimal
 
+  // account balance for sender based on creation date
   @Column({
     name: 'account_balance_created_at',
     type: 'decimal',
@@ -102,8 +103,9 @@ export class Transaction extends BaseEntity {
   @Column({ name: 'running_hash', type: 'binary', length: 48, nullable: true })
   runningHash?: Buffer
 
+  // account balance for sender based on confirmation date (iota milestone)
   @Column({
-    name: 'account_balance',
+    name: 'account_balance_confirmed_at',
     type: 'decimal',
     precision: 40,
     scale: 20,

@@ -525,6 +525,9 @@ export class TransactionResolver {
   async confirmTransaction(
     @Arg('data') confirmedTransactionInput: ConfirmedTransactionInput,
   ): Promise<boolean> {
+    // TODO: by local transactions resolver will be called only once, 
+    // because dlt-connector store only the sending transaction
+    // confirm both parts stored here in backend db, sending and receiving, linked together by id
     logger.debug('confirmTransaction', confirmedTransactionInput)
     const transaction = await dbTransaction.findOne({
       where: { id: confirmedTransactionInput.transactionId },

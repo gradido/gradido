@@ -27,5 +27,6 @@ export class UpdateBalanceRole extends AbstractConfirm {
     this.account.balanceConfirmedAtDate = transaction.confirmedAt
     this.account.balanceCreatedAt = transaction.accountBalanceCreatedAt
     this.account.balanceCreatedAtDate = transaction.createdAt
+    this.confirmTransactionsContext.addForSave(this.account)
   }
 }

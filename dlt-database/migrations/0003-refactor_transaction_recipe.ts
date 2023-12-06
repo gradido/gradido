@@ -41,7 +41,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`protocol_version\` varchar(255) NOT NULL DEFAULT '1',
         \`nr\` bigint NULL DEFAULT NULL,
         \`running_hash\` varbinary(48) NULL DEFAULT NULL,
-        \`account_balance\` decimal(40, 20) NULL DEFAULT 0.00000000000000000000,
+        \`account_balance_confirmed_at\` decimal(40, 20) NULL DEFAULT 0.00000000000000000000,
         \`iota_milestone\` bigint  NULL DEFAULT NULL,
         \`confirmed_at\` datetime NULL DEFAULT NULL,
         PRIMARY KEY (\`id\`),

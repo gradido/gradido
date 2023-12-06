@@ -15,6 +15,7 @@ import { KeyPair } from '../model/KeyPair'
 
 import { loadHomeCommunityKeyPair } from './Community'
 import { sign as signGradidoTransaction } from './GradidoTransaction'
+import { CommunityRepository } from '@/data/Community.repository'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts
@@ -50,7 +51,7 @@ export class KeyManager {
 
   public async init(): Promise<boolean> {
     try {
-      this.homeCommunityRootKeys = await loadHomeCommunityKeyPair()
+      this.homeCommunityRootKeys = await CommunityRepository.loadHomeCommunityKeyPair()
       return true
     } catch (error) {
       logger.error('error by init key manager', error)

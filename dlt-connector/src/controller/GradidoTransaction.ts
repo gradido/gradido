@@ -9,22 +9,6 @@ import { logger } from '@/server/logger'
 
 import { sign as ed25519Sign, verify as ed25519Verify } from 'bip32-ed25519'
 
-export const create = (body: TransactionBody): GradidoTransaction => {
-  try {
-    const error = TransactionBody.verify(body)
-    if (error) {
-      logger.error('error verify TransactionBody with', error)
-      throw new TransactionError(TransactionErrorType.PROTO_DECODE_ERROR, 'body verifying failed')
-    }
-  } catch (err) {
-    if (err instanceof TransactionError) {
-      throw err
-    }
-    logger.error('exception verify TransactionBody', err)
-    throw new TransactionError(TransactionErrorType.PROTO_DECODE_ERROR, 'body verifying failed')
-  }
-  return new GradidoTransaction(body)
-}
 
 export const sign = (transaction: GradidoTransaction, signer: KeyPair): void => {
   const signature = ed25519Sign(transaction.bodyBytes, signer.getExtendPrivateKey())
@@ -47,11 +31,3 @@ export const verify = ({ sigMap, bodyBytes }: GradidoTransaction): boolean => {
   return ed25519Verify(bodyBytes, signature, pubKey)
 }
 
-export const getBody = (gradidoTransaction: GradidoTransaction): TransactionBody => {
-  try {
-    return TransactionBody.decode(new Uint8Array(gradidoTransaction.bodyBytes))
-  } catch (error) {
-    logger.error('error decoding body from gradido transaction: %s', error)
-    throw new LogError('cannot decode body from gradido transaction')
-  }
-}

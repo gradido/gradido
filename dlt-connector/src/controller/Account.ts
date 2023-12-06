@@ -16,136 +16,15 @@ import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { LogError } from '@/server/LogError'
 import { getDataSource } from '@/typeorm/DataSource'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
-import {
-  accountTypeToAddressType,
-  timestampSecondsToDate,
-  timestampToDate,
-} from '@/utils/typeConverter'
+import {accountTypeToAddressType} from '@/utils/typeConverter'
 
 import { KeyPair } from '../model/KeyPair'
 
 import { KeyManager } from './KeyManager'
-import {
-  getKeyPair as getUserKeyPair,
-  confirm as confirmUser,
-  createFromProto as createUserFromProto,
-  findByPublicKey,
-  findByPublicKeyWithAccount,
-} from './User'
+import {getKeyPair as getUserKeyPair} from './User'
 
 const GMW_ACCOUNT_DERIVATION_INDEX = 1
 const AUF_ACCOUNT_DERIVATION_INDEX = 2
-
-export const create = (
-  derive2Pubkey: Buffer,
-  type: AddressType,
-  createdAt: Date,
-  derivationIndex?: number,
-): Account => {
-  if (derive2Pubkey.length !== 32) {
-    throw new LogError('invalid public key size')
-  }
-  const account = Account.create()
-  account.derivationIndex = derivationIndex
-  account.derive2Pubkey = derive2Pubkey
-  account.type = type.valueOf()
-  account.createdAt = createdAt
-  account.balance = new Decimal(0)
-  return account
-}
-
-export const createFromProto = async (
-  confirmedTransaction: ConfirmedTransaction,
-): Promise<Account | User> => {
-  const body = getBody(confirmedTransaction.transaction)
-  const registerAddress = body.registerAddress
-  if (!registerAddress) {
-    throw new LogError('wrong type of transaction, registerAddress expected')
-  }
-  const account = Account.create()
-  let user: User | null = null
-  if (registerAddress.userPubkey && registerAddress.userPubkey.length === 32) {
-    if (registerAddress.addressType === AddressType.COMMUNITY_HUMAN) {
-      user = createUserFromProto(confirmedTransaction)
-    } else {
-      user = await findByPublicKey(registerAddress.userPubkey)
-    }
-  }
-
-  if (registerAddress.accountPubkey && registerAddress.accountPubkey.length === 32) {
-    account.derive2Pubkey = Buffer.from(registerAddress.accountPubkey)
-  }
-  account.type = registerAddress.addressType.valueOf()
-  account.createdAt = timestampToDate(body.createdAt)
-  account.confirmedAt = timestampSecondsToDate(confirmedTransaction.confirmedAt)
-  account.balance = new Decimal(confirmedTransaction.accountBalance)
-  account.balanceDate = account.confirmedAt
-  if (user) {
-    account.user = user
-  }
-  return account
-}
-
-export const confirm = async (
-  registerAddress: RegisterAddress,
-  confirmedAt: Date,
-): Promise<boolean> => {
-  let publicKey: Buffer | undefined
-
-  if (registerAddress.userPubkey && registerAddress.userPubkey.length === 32) {
-    if (registerAddress.addressType === AddressType.COMMUNITY_HUMAN) {
-      if (!(await confirmUser(registerAddress, confirmedAt))) {
-        throw new LogError("couldn't confirm User")
-      }
-      const user = await findByPublicKeyWithAccount(registerAddress.userPubkey, 1)
-      if (!user || user.accounts?.length !== 1) {
-        console.log(JSON.stringify(user, null, 2))
-        throw new LogError(
-          "couldn't find first (contribution) account for user in db!",
-          Buffer.from(registerAddress.userPubkey).toString('hex'),
-        )
-      }
-      user.accounts[0].confirmedAt = confirmedAt
-      user.accounts[0].save()
-      return true
-    }
-    publicKey = Buffer.from(registerAddress.userPubkey)
-  }
-  if (registerAddress.accountPubkey && registerAddress.accountPubkey.length === 32) {
-    publicKey = Buffer.from(registerAddress.accountPubkey)
-  }
-  if (!publicKey) {
-    throw new LogError("invalid Register Address, could't find a public key")
-  }
-  const result = await getDataSource()
-    .createQueryBuilder()
-    .update(Account)
-    .set({ confirmedAt })
-    .where('derive2Pubkey = :publicKey', { publicKey })
-    .execute()
-  if (result.affected && result.affected > 1) {
-    throw new LogError('more than one account matched by publicKey: %s', publicKey.toString('hex'))
-  }
-  return result.affected === 1
-}
-
-export const updateBalance = async (
-  publicKey: Buffer,
-  balance: Decimal,
-  balanceDate: Date,
-): Promise<boolean> => {
-  const result = await getDataSource()
-    .createQueryBuilder()
-    .update(Account)
-    .set({
-      balance,
-      balanceDate,
-    })
-    .where('derive2Pubkey = :publicKey', { publicKey: Buffer.from(publicKey) })
-    .andWhere('balanceDate < :balanceDate', { balanceDate })
-    .execute()
-  return result.affected === 1
-}
 
 export const createFromUserAccountDraft = (
   userAccountDraft: UserAccountDraft,
@@ -165,37 +44,12 @@ export const createFromUserAccountDraft = (
   return account
 }
 
-export const findAccountsByPublicKeys = (publicKeys: Buffer[]): Promise<Account[]> => {
-  return Account.findBy({ derive2Pubkey: In(publicKeys) })
-}
 
 export const findAccountByPublicKey = async (
   publicKey: Buffer | undefined,
 ): Promise<Account | undefined> => {
   if (!publicKey) return undefined
   return (await Account.findOneBy({ derive2Pubkey: Buffer.from(publicKey) })) ?? undefined
-}
-
-export const createCommunitySpecialAccounts = (community: Community): void => {
-  const km = KeyManager.getInstance()
-
-  // create account for gmw account
-  const gmwDerivationIndex = hardenDerivationIndex(GMW_ACCOUNT_DERIVATION_INDEX)
-  community.gmwAccount = create(
-    km.derive([gmwDerivationIndex]).publicKey,
-    AddressType.COMMUNITY_GMW,
-    community.createdAt,
-    gmwDerivationIndex,
-  )
-
-  // create account for auf account
-  const aufDerivationIndex = hardenDerivationIndex(AUF_ACCOUNT_DERIVATION_INDEX)
-  community.aufAccount = create(
-    km.derive([aufDerivationIndex]).publicKey,
-    AddressType.COMMUNITY_AUF,
-    community.createdAt,
-    aufDerivationIndex,
-  )
 }
 
 export const findAccountByUserIdentifier = async ({

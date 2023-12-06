@@ -3,7 +3,6 @@ import { Resolver, Arg, Mutation } from 'type-graphql'
 
 import { TransactionDraft } from '@input/TransactionDraft'
 
-import { confirmFromNodeServer } from '@/controller/ConfirmedTransaction'
 import { findByMessageId } from '@/controller/TransactionRecipe'
 import { TransactionsManager } from '@/controller/TransactionsManager'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
@@ -23,6 +22,7 @@ import { ConfirmedTransactionInput } from '../input/ConfirmedTransactionInput'
 
 import { InvalidTransactionInput } from '../input/InvalidTransactionInput'
 import { TransactionResult } from '../model/TransactionResult'
+import { ConfirmTransactionsContext } from '@/interactions/gradidoNodeToDb/ConfirmTransactions.context'
 
 @Resolver()
 export class TransactionResolver {
@@ -73,7 +73,7 @@ export class TransactionResolver {
       logger.debug('transaction in base64', transactionBase64)
       const confirmedTransaction = ConfirmedTransaction.fromBase64(transactionBase64)
       logger.debug('confirmed Transaction from NodeServer', confirmedTransaction.toJSON())
-      await confirmFromNodeServer([confirmedTransaction], iotaTopic)
+      await (new ConfirmTransactionsContext([confirmedTransaction], iotaTopic)).run()
     } catch (error) {
       if (error instanceof TransactionError) {
         return new TransactionResult(error)

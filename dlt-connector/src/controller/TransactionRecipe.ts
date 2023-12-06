@@ -163,33 +163,6 @@ export class TransactionRecipe {
     }
   }
 
-  public async confirm(
-    confirmedAt: Date,
-    iotaTopic: string,
-    accountBalance: Decimal,
-  ): Promise<boolean> {
-    const body = this.getBody()
-    let publicKey: Buffer | undefined
-    switch (body.getTransactionType()) {
-      case TransactionType.GRADIDO_CREATION:
-      case TransactionType.GRADIDO_TRANSFER:
-        publicKey = body.getRecipientPublicKey()
-        if (publicKey && publicKey.length === 32) {
-          return await updateBalance(publicKey, accountBalance, confirmedAt)
-        }
-        return false
-      case TransactionType.COMMUNITY_ROOT:
-        return await confirmCommunity(iotaTopic, confirmedAt)
-      case TransactionType.REGISTER_ADDRESS:
-        if (!body.registerAddress) {
-          throw new LogError('missing RegisterAddress in ConfirmedTransaction')
-        }
-        return await confirmAccount(body.registerAddress, confirmedAt)
-      default:
-        throw new LogError('not implemented yet')
-    }
-  }
-
   public getMessageIdHex(): string | undefined {
     return this.recipeEntity.iotaMessageId?.toString('hex')
   }

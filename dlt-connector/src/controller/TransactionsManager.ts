@@ -10,9 +10,8 @@ import { receiveAllMessagesForTopic } from '@/client/IotaClient'
 import { CommunityRepository } from '@/data/Community.repository'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionError } from '@/graphql/model/TransactionError'
+import { ConfirmTransactionsContext } from '@/interactions/gradidoNodeToDb/ConfirmTransactions.context'
 import { logger } from '@/server/logger'
-
-import { confirmFromNodeServer } from './ConfirmedTransaction'
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class TransactionsManager {
@@ -70,9 +69,9 @@ export class TransactionsManager {
         const confirmedTransactions = await getTransactions(cursor, 100, newTopic)
         count = confirmedTransactions.length
         cursor += count
-        await confirmFromNodeServer(confirmedTransactions, newTopic)
+        await (new ConfirmTransactionsContext(confirmedTransactions, newTopic)).run()
       } catch (error) {
-        logger.error('cannot get transactions from node server')
+        logger.error('cannot load or confirm transactions from node server')
         throw error
       }
     } while (count === 100)
