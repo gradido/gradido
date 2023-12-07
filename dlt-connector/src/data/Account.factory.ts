@@ -27,6 +27,7 @@ export class AccountFactory {
     account.createdAt = createdAt
     account.balanceConfirmedAt = new Decimal(0)
     account.balanceCreatedAt = new Decimal(0)
+    account.balanceCreatedAtDate = createdAt
     return account
   }
 

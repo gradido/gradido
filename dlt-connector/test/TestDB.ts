@@ -6,6 +6,7 @@ import { entities } from '@entity/index'
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
 
+// TODO: maybe use in memory db like here: https://dkzeb.medium.com/unit-testing-in-ts-jest-with-typeorm-entities-ad5de5f95438
 export class TestDB {
   // eslint-disable-next-line no-use-before-define
   private static _instance: TestDB
