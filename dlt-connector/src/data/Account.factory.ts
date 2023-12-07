@@ -25,7 +25,7 @@ export class AccountFactory {
     ).publicKey
     account.type = type.valueOf()
     account.createdAt = createdAt
-    account.balance = new Decimal(0)
+    account.balanceConfirmedAt = new Decimal(0)
     account.balanceCreatedAt = new Decimal(0)
     return account
   }
