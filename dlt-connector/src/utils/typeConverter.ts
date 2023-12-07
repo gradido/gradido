@@ -7,8 +7,8 @@ import { logger } from '@/server/logger'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { AccountType } from '@/graphql/enum/AccountType'
-import { AddressType } from '@/graphql/enum/AddressType'
 import { LogError } from '@/server/LogError'
+import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 
 export const uuid4ToBuffer = (uuid: string): Buffer => {
   // Remove dashes from the UUIDv4 string

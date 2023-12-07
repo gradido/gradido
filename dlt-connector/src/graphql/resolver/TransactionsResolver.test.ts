@@ -10,11 +10,11 @@ import { CONFIG } from '@/config'
 import { UserFactory } from '@/data/User.factory'
 import { UserAccountDraft } from '../input/UserAccountDraft'
 import { UserLogic } from '@/data/User.logic'
-import { AccountType } from '../enum/AccountType'
+import { AccountType } from '@enum/AccountType'
 import { UserIdentifier } from '../input/UserIdentifier'
 import { CommunityDraft } from '../input/CommunityDraft'
 import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
-import { InputTransactionType } from '../enum/InputTransactionType'
+import { InputTransactionType, getTransactionTypeString } from '../enum/InputTransactionType'
 
 CONFIG.IOTA_HOME_COMMUNITY_SEED = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899'
 
@@ -82,7 +82,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: InputTransactionType.SEND,
+          type: getTransactionTypeString(InputTransactionType.SEND),
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
           backendTransactionId: 1,
@@ -130,7 +130,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: InputTransactionType.SEND,
+          type: getTransactionTypeString(InputTransactionType.SEND),
           amount: 'no number',
           createdAt: '2012-04-17T17:12:00Z',
           backendTransactionId: 1,
@@ -156,7 +156,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: InputTransactionType.SEND,
+          type: getTransactionTypeString(InputTransactionType.SEND),
           amount: '10',
           createdAt: 'not valid',
           backendTransactionId: 1,
@@ -192,7 +192,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: InputTransactionType.CREATION,
+          type: getTransactionTypeString(InputTransactionType.CREATION),
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
           backendTransactionId: 1,
