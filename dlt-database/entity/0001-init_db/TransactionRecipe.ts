@@ -12,7 +12,7 @@ import { Decimal } from 'decimal.js-light'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Account } from './Account'
 import { Community } from './Community'
-import { ConfirmedTransaction } from '../ConfirmedTransaction'
+import { ConfirmedTransaction } from './ConfirmedTransaction'
 
 @Entity('transaction_recipes')
 export class TransactionRecipe extends BaseEntity {

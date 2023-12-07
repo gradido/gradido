@@ -9,17 +9,21 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(`
     ALTER TABLE \`accounts\` 
       RENAME COLUMN \`balance\` TO \`balance_confirmed_at\`,
-      RENAME COLUMN \`balance_date\` TO \`balance_confirmed_at_date\`,
+      RENAME COLUMN \`balance_date\` TO \`balance_confirmed_at_date\`
+    ;
   `)
 
   await queryFn(
     `ALTER TABLE \`accounts\` MODIFY COLUMN  \`derivation_index\` int(10) unsigned NULL DEFAULT NULL;`,
   )
   await queryFn(
-    `ALTER TABLE \`accounts\` ADD COLUMN \`balance_created_at\` decimal(40,20) NOT NULL DEFAULT 0 AFTER \`balance_date\`;`,
+    `ALTER TABLE \`accounts\` ADD COLUMN \`balance_created_at\` decimal(40,20) NOT NULL DEFAULT 0 AFTER \`balance_confirmed_at_date\`;`,
   )
   await queryFn(
-    `ALTER TABLE \`accounts\` ADD COLUMN \`balance_created_at_date\` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) AFTER \`balance_created_at\`;`,
+    `ALTER TABLE \`accounts\` ADD COLUMN \`balance_created_at_date\` datetime(3) NOT NULL AFTER \`balance_created_at\`;`,
+  )
+  await queryFn(
+    `ALTER TABLE \`accounts\` MODIFY COLUMN \`balance_confirmed_at_date\` datetime NULL DEFAULT NULL;`,
   )
 
   await queryFn(
@@ -55,6 +59,14 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   )
 
   await queryFn(`ALTER TABLE \`communities\` ADD UNIQUE(\`iota_topic\`);`)
+
+  await queryFn(`ALTER TABLE \`users\` CHANGE \`created_at\` \`created_at\` DATETIME(3) NOT NULL;`)
+  await queryFn(
+    `ALTER TABLE \`communities\` CHANGE \`created_at\` \`created_at\` DATETIME(3) NOT NULL;`,
+  )
+  await queryFn(
+    `ALTER TABLE \`accounts\` CHANGE \`created_at\` \`created_at\` DATETIME(3) NOT NULL;`,
+  )
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
@@ -94,10 +106,14 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
       FOREIGN KEY (\`account_id\`) REFERENCES accounts(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`)
 
+  await queryFn(
+    `ALTER TABLE \`accounts\` MODIFY COLUMN \`balance_confirmed_at_date\` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);`,
+  )
   await queryFn(`
     ALTER TABLE \`accounts\` 
       RENAME COLUMN \`balance_confirmed_at\` TO \`balance\`,
-      RENAME COLUMN \`balance_confirmed_at_date\` TO \`balance_date\`,
+      RENAME COLUMN \`balance_confirmed_at_date\` TO \`balance_date\`
+    ;
   `)
 
   await queryFn(
@@ -106,4 +122,14 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn(`ALTER TABLE \`accounts\` DROP COLUMN \`balance_created_at\`;`)
   await queryFn(`ALTER TABLE \`accounts\` DROP COLUMN \`balance_created_at_date\`;`)
   await queryFn(`DROP TABLE \`transactions\`;`)
+
+  await queryFn(
+    `ALTER TABLE \`users\` CHANGE \`created_at\` \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);`,
+  )
+  await queryFn(
+    `ALTER TABLE \`communities\` CHANGE \`created_at\` \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);`,
+  )
+  await queryFn(
+    `ALTER TABLE \`accounts\` CHANGE \`created_at\` \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);`,
+  )
 }

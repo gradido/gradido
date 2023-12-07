@@ -8,8 +8,8 @@ import {
   BaseEntity,
 } from 'typeorm'
 import { User } from '../User'
-import { TransactionRecipe } from '../TransactionRecipe'
-import { ConfirmedTransaction } from '../ConfirmedTransaction'
+import { TransactionRecipe } from '../0001-init_db/TransactionRecipe'
+import { ConfirmedTransaction } from './ConfirmedTransaction'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Decimal } from 'decimal.js-light'
 import { AccountCommunity } from '../AccountCommunity'

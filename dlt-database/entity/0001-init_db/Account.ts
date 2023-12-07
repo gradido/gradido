@@ -9,7 +9,7 @@ import {
 } from 'typeorm'
 import { User } from '../User'
 import { TransactionRecipe } from './TransactionRecipe'
-import { ConfirmedTransaction } from '../ConfirmedTransaction'
+import { ConfirmedTransaction } from './ConfirmedTransaction'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Decimal } from 'decimal.js-light'
 import { AccountCommunity } from '../AccountCommunity'

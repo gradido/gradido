@@ -117,6 +117,7 @@ export class Transaction extends BaseEntity {
   @Column({ name: 'iota_milestone', type: 'bigint', nullable: true })
   iotaMilestone?: number
 
+  // use timestamp from iota milestone which is only in seconds precision, so no need to use 3 Bytes extra here
   @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })
   confirmedAt?: Date
 }
