@@ -1,27 +1,16 @@
 import { Account } from '@entity/Account'
-import { User } from '@entity/User'
+import { Transaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
 
 import { KeyPair } from '@/data/KeyPair'
 import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { KeyManager } from '@/manager/KeyManager'
-import { LogError } from '@/server/LogError'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
-import {
-  accountTypeToAddressType,
-  timestampSecondsToDate,
-  timestampToDate,
-} from '@/utils/typeConverter'
+import { accountTypeToAddressType } from '@/utils/typeConverter'
 
-import { ConfirmedTransaction } from './proto/3_3/ConfirmedTransaction'
-import { UserFactory } from './User.factory'
-import { UserRepository } from './User.repository'
+import { AUF_ACCOUNT_DERIVATION_INDEX, GMW_ACCOUNT_DERIVATION_INDEX } from './const'
 import { RegisterAddress } from './proto/3_3/RegisterAddress'
-import { Transaction } from '@entity/Transaction'
-
-const GMW_ACCOUNT_DERIVATION_INDEX = 1
-const AUF_ACCOUNT_DERIVATION_INDEX = 2
 
 export class AccountFactory {
   public static create(
@@ -38,8 +27,9 @@ export class AccountFactory {
     ).publicKey
     account.type = type.valueOf()
     account.createdAt = createdAt
-    account.balance = new Decimal(0)
+    account.balanceConfirmedAt = new Decimal(0)
     account.balanceCreatedAt = new Decimal(0)
+    account.balanceCreatedAtDate = createdAt
     return account
   }
 

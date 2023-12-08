@@ -1,0 +1,3 @@
+export const GMW_ACCOUNT_DERIVATION_INDEX = 1
+export const AUF_ACCOUNT_DERIVATION_INDEX = 2
+export const TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY = 'transmitToIota'

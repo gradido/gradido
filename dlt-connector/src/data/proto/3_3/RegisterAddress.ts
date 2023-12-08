@@ -11,11 +11,11 @@ import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidation
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { accountTypeToAddressType } from '@/utils/typeConverter'
 
-import { TransactionBase } from '../TransactionBase'
+import { AbstractTransaction } from '../AbstractTransaction'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
-export class RegisterAddress extends Message<RegisterAddress> implements TransactionBase {
+export class RegisterAddress extends Message<RegisterAddress> implements AbstractTransaction {
   constructor(transaction?: UserAccountDraft, user?: User, account?: Account) {
     if (transaction) {
       super({ addressType: accountTypeToAddressType(transaction.accountType) })

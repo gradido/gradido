@@ -11,7 +11,7 @@ import { Decimal } from 'decimal.js-light'
 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Account } from './Account'
-import { TransactionRecipe } from '../TransactionRecipe'
+import { TransactionRecipe } from '../0001-init_db/TransactionRecipe'
 
 @Entity('confirmed_transactions')
 export class ConfirmedTransaction extends BaseEntity {

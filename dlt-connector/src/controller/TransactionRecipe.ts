@@ -1,9 +1,8 @@
 import { Account } from '@entity/Account'
-import { ConfirmedTransaction } from '@entity/ConfirmedTransaction'
-import { TransactionRecipe as TransactionRecipeEntity } from '@entity/TransactionRecipe'
-import Decimal from 'decimal.js-light'
+import { Transaction } from '@entity/Transaction'
 import { In, IsNull } from 'typeorm'
 
+import { AccountRepository } from '@/data/Account.repository'
 import { CommunityRepository } from '@/data/Community.repository'
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { SignaturePair } from '@/data/proto/3_3/SignaturePair'
@@ -15,10 +14,7 @@ import { TransactionError } from '@/graphql/model/TransactionError'
 import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
 
-import { confirm as confirmAccount, findAccountByPublicKey, updateBalance } from './Account'
-import { confirm as confirmCommunity } from './Community'
 import { verify } from './GradidoTransaction'
-
 
 interface CreateTransactionRecipeOptions {
   transaction: GradidoTransaction
@@ -30,12 +26,10 @@ interface CreateTransactionRecipeOptions {
 }
 
 export class TransactionRecipe {
-  private recipeEntity: TransactionRecipeEntity
   private body: TransactionBody | undefined = undefined
 
-  public constructor(recipe: TransactionRecipeEntity) {
-    this.recipeEntity = recipe
-  }
+  // eslint-disable-next-line no-useless-constructor
+  public constructor(private recipeEntity: Transaction) {}
 
   public getBody(): TransactionBody {
     if (!this.body) {
@@ -52,7 +46,7 @@ export class TransactionRecipe {
     return this.body
   }
 
-  public getTransactionRecipeEntity(): TransactionRecipeEntity {
+  public getTransactionRecipeEntity(): Transaction {
     return this.recipeEntity
   }
 
@@ -64,7 +58,7 @@ export class TransactionRecipe {
     recipientAccount,
     backendTransactionId,
   }: CreateTransactionRecipeOptions): Promise<TransactionRecipe> {
-    const recipeEntity = TransactionRecipeEntity.create()
+    const recipeEntity = Transaction.create()
     const recipe = new TransactionRecipe(recipeEntity)
     if (backendTransactionId) {
       recipeEntity.backendTransactionId = backendTransactionId
@@ -78,10 +72,10 @@ export class TransactionRecipe {
 
     // get recipient and signer accounts if not already set
     recipeEntity.signingAccount =
-      signingAccount ?? (await findAccountByPublicKey(firstSigPair.pubKey))
+      signingAccount ?? (await AccountRepository.findByPublicKey(firstSigPair.pubKey))
     recipeEntity.signature = Buffer.from(firstSigPair.signature)
     recipeEntity.recipientAccount =
-      recipientAccount ?? (await findAccountByPublicKey(body.getRecipientPublicKey()))
+      recipientAccount ?? (await AccountRepository.findByPublicKey(body.getRecipientPublicKey()))
 
     if (senderUser) {
       // get recipient and sender community
@@ -144,7 +138,7 @@ export class TransactionRecipe {
     if (!verify(transaction)) {
       throw new TransactionError(TransactionErrorType.INVALID_SIGNATURE, 'signature is invalid')
     }
-    transaction.parentMessageId = this.recipeEntity.paringTransactionRecipe?.iotaMessageId
+    transaction.parentMessageId = this.recipeEntity.iotaMessageId
     return { transaction, body }
   }
 
@@ -168,29 +162,29 @@ export class TransactionRecipe {
   }
 }
 
-export const getNextPendingTransaction = async (): Promise<TransactionRecipeEntity | null> => {
-  return await TransactionRecipeEntity.findOne({
+export const getNextPendingTransaction = async (): Promise<Transaction | null> => {
+  return await Transaction.findOne({
     where: { iotaMessageId: IsNull() },
     order: { createdAt: 'ASC' },
     relations: { signingAccount: true },
   })
 }
 
-export const findBySignature = (signature: Buffer): Promise<TransactionRecipeEntity | null> => {
-  return TransactionRecipeEntity.findOneBy({ signature: Buffer.from(signature) })
+export const findBySignature = (signature: Buffer): Promise<Transaction | null> => {
+  return Transaction.findOneBy({ signature: Buffer.from(signature) })
 }
 
-export const findByMessageId = (iotaMessageId: string): Promise<TransactionRecipeEntity | null> => {
-  return TransactionRecipeEntity.findOneBy({ iotaMessageId: Buffer.from(iotaMessageId, 'hex') })
+export const findByMessageId = (iotaMessageId: string): Promise<Transaction | null> => {
+  return Transaction.findOneBy({ iotaMessageId: Buffer.from(iotaMessageId, 'hex') })
 }
 
 export const findExistingTransactionRecipeAndMissingMessageIds = async (
   messageIDsHex: string[],
 ): Promise<{
-  existingTransactionRecipes: TransactionRecipeEntity[]
+  existingTransactionRecipes: Transaction[]
   missingMessageIdsHex: string[]
 }> => {
-  const existingTransactionRecipes = await TransactionRecipeEntity.getRepository()
+  const existingTransactionRecipes = await Transaction.getRepository()
     .createQueryBuilder('TransactionRecipe')
     .where('HEX(TransactionRecipe.iota_message_id) IN (:...messageIDs)', {
       messageIDs: messageIDsHex,
@@ -203,31 +197,16 @@ export const findExistingTransactionRecipeAndMissingMessageIds = async (
     .getMany()
 
   const foundMessageIds = existingTransactionRecipes
-    .map((recipe) => recipe.iotaMessageId?.toString('hex'))
+    .map((recipe: Transaction) => recipe.iotaMessageId?.toString('hex'))
     .filter((messageId) => !!messageId)
   // find message ids for which we don't already have a transaction recipe
   const missingMessageIdsHex = messageIDsHex.filter((id: string) => !foundMessageIds.includes(id))
   return { existingTransactionRecipes, missingMessageIdsHex }
 }
 
-export const removeConfirmedTransactionRecipes = async (
-  transactionRecipes: TransactionRecipeEntity[],
-): Promise<TransactionRecipeEntity[]> => {
-  const confirmedTransactions = await ConfirmedTransaction.find({
-    where: {
-      transactionRecipeId: In(
-        transactionRecipes.map(
-          (transactionRecipe: TransactionRecipeEntity) => transactionRecipe.id,
-        ),
-      ),
-    },
-    select: { transactionRecipeId: true },
-  })
-  const confirmedTransactionRecipeIds = confirmedTransactions.map(
-    (confirmedTransaction: ConfirmedTransaction) => confirmedTransaction.transactionRecipeId,
-  )
-  return transactionRecipes.filter(
-    (transactionRecipe: TransactionRecipeEntity) =>
-      !confirmedTransactionRecipeIds.includes(transactionRecipe.id),
+export const removeConfirmedTransactionRecipes = (transactions: Transaction[]): Transaction[] => {
+  return transactions.filter(
+    (transaction: Transaction) =>
+      transaction.runningHash === undefined || transaction.runningHash.length === 0,
   )
 }

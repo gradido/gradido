@@ -35,14 +35,10 @@ export class Account extends BaseEntity {
   @Column({ type: 'tinyint', unsigned: true })
   type: number
 
-  @Column({
-    name: 'created_at',
-    type: 'datetime',
-    precision: 3,
-    default: () => 'CURRENT_TIMESTAMP(3)',
-  })
+  @Column({ name: 'created_at', type: 'datetime', precision: 3 })
   createdAt: Date
 
+  // use timestamp from iota milestone which is only in seconds precision, so no need to use 3 Bytes extra here
   @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })
   confirmedAt?: Date
 
@@ -56,10 +52,11 @@ export class Account extends BaseEntity {
   })
   balanceConfirmedAt: Decimal
 
+  // use timestamp from iota milestone which is only in seconds precision, so no need to use 3 Bytes extra here
   @Column({
     name: 'balance_confirmed_at_date',
     type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP()',
+    nullable: true,
   })
   balanceConfirmedAtDate: Date
 
@@ -77,7 +74,6 @@ export class Account extends BaseEntity {
     name: 'balance_created_at_date',
     type: 'datetime',
     precision: 3,
-    default: () => 'CURRENT_TIMESTAMP(3)',
   })
   balanceCreatedAtDate: Date
 

@@ -1,21 +1,19 @@
 // eslint-disable-next-line camelcase
+import { generateFromSeed, derivePrivate } from 'bip32-ed25519'
 import { entropyToMnemonic, mnemonicToSeedSync } from 'bip39'
+// eslint-disable-next-line camelcase
 import { randombytes_buf } from 'sodium-native'
 
+import { CommunityRepository } from '@/data/Community.repository'
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
 
-import { generateFromSeed, derivePrivate } from 'bip32-ed25519'
-
 import { CONFIG } from '../config'
 // https://www.npmjs.com/package/bip32-ed25519?activeTab=code
-
 import { KeyPair } from '../model/KeyPair'
 
-import { loadHomeCommunityKeyPair } from './Community'
 import { sign as signGradidoTransaction } from './GradidoTransaction'
-import { CommunityRepository } from '@/data/Community.repository'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts

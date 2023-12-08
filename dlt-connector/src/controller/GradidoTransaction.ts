@@ -1,14 +1,9 @@
-import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
-import { SignaturePair } from '@/data/proto/3_3/SignaturePair'
-import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
-import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
-import { TransactionError } from '@/graphql/model/TransactionError'
-import { KeyPair } from '@/model/KeyPair'
-import { LogError } from '@/server/LogError'
-import { logger } from '@/server/logger'
-
 import { sign as ed25519Sign, verify as ed25519Verify } from 'bip32-ed25519'
 
+import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
+import { SignaturePair } from '@/data/proto/3_3/SignaturePair'
+import { KeyPair } from '@/model/KeyPair'
+import { logger } from '@/server/logger'
 
 export const sign = (transaction: GradidoTransaction, signer: KeyPair): void => {
   const signature = ed25519Sign(transaction.bodyBytes, signer.getExtendPrivateKey())
@@ -30,4 +25,3 @@ export const verify = ({ sigMap, bodyBytes }: GradidoTransaction): boolean => {
   })
   return ed25519Verify(bodyBytes, signature, pubKey)
 }
-

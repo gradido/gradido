@@ -1,14 +1,17 @@
 import { Account } from '@entity/Account'
 import { Community } from '@entity/Community'
+import { User } from '@entity/User'
 
 import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { LogError } from '@/server/LogError'
 
 import { CommunityRoot } from './3_3/CommunityRoot'
 import { GradidoCreation } from './3_3/GradidoCreation'
 import { GradidoTransfer } from './3_3/GradidoTransfer'
+import { RegisterAddress } from './3_3/RegisterAddress'
 import { TransactionBody } from './3_3/TransactionBody'
 
 export class TransactionBodyBuilder {
@@ -68,17 +71,28 @@ export class TransactionBodyBuilder {
     return this.recipientAccount
   }
 
-  public setSigningAccount(signingAccount: Account): TransactionBodyBuilder {
+  public setSigningAccount(signingAccount: Account): this {
     this.signingAccount = signingAccount
     return this
   }
 
-  public setRecipientAccount(recipientAccount: Account): TransactionBodyBuilder {
+  public setRecipientAccount(recipientAccount: Account): this {
     this.recipientAccount = recipientAccount
     return this
   }
 
-  public fromTransactionDraft(transactionDraft: TransactionDraft): TransactionBodyBuilder {
+  public fromUserAccountDraft(
+    userAccountDraft: UserAccountDraft,
+    user: User,
+    account: Account,
+  ): this {
+    this.body = new TransactionBody(userAccountDraft)
+    this.body.registerAddress = new RegisterAddress(userAccountDraft, user, account)
+    this.body.data = 'registerAddress'
+    return this
+  }
+
+  public fromTransactionDraft(transactionDraft: TransactionDraft): this {
     this.body = new TransactionBody(transactionDraft)
     // TODO: load pubkeys for sender and recipient user from db
     switch (transactionDraft.type) {
@@ -105,10 +119,7 @@ export class TransactionBodyBuilder {
     return this
   }
 
-  public fromCommunityDraft(
-    communityDraft: CommunityDraft,
-    community: Community,
-  ): TransactionBodyBuilder {
+  public fromCommunityDraft(communityDraft: CommunityDraft, community: Community): this {
     this.body = new TransactionBody(communityDraft)
     this.body.communityRoot = new CommunityRoot(community)
     this.body.data = 'communityRoot'

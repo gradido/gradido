@@ -47,7 +47,7 @@ export class TransactionRecipeRole {
       .fromTransactionBodyBuilder(transactionBodyBuilder)
       .setBackendTransactionId(transactionDraft.backendTransactionId)
     await this.transactionBuilder.setSenderCommunityFromSenderUser(senderUser)
-    if (recipientUser.uuid !== senderUser.uuid) {
+    if (recipientUser.communityUuid !== senderUser.communityUuid) {
       await this.transactionBuilder.setRecipientCommunityFromRecipientUser(recipientUser)
     }
     const transaction = this.transactionBuilder.getTransaction()

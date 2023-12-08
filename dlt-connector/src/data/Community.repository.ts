@@ -7,12 +7,11 @@ import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { LogError } from '@/server/LogError'
+import { logger } from '@/server/logger'
 import { getDataSource } from '@/typeorm/DataSource'
 import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 
 import { KeyPair } from './KeyPair'
-import { Account } from '@entity/Account'
-import { logger } from '@/server/logger'
 
 export const CommunityRepository = getDataSource()
   .getRepository(Community)

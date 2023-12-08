@@ -45,14 +45,10 @@ export class Community extends BaseEntity {
   @JoinColumn({ name: 'auf_account_id' })
   aufAccount?: Account
 
-  @Column({
-    name: 'created_at',
-    type: 'datetime',
-    precision: 3,
-    default: () => 'CURRENT_TIMESTAMP(3)',
-  })
+  @Column({ name: 'created_at', type: 'datetime', precision: 3 })
   createdAt: Date
 
+  // use timestamp from iota milestone which is only in seconds precision, so no need to use 3 Bytes extra here
   @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })
   confirmedAt?: Date
 

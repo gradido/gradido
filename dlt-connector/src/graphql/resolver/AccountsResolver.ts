@@ -1,30 +1,23 @@
-import { create as createGradidoTransaction } from '@controller/GradidoTransaction'
-import { create as createTransactionBody } from '@controller/TransactionBody'
 import { Account } from '@entity/Account'
+import { TransactionRecipe as TransactionRecipeOutput } from '@model/TransactionRecipe'
 import { Arg, Mutation, Query, Resolver } from 'type-graphql'
 
-import { TransactionRecipe as TransactionRecipeOutput } from '@model/TransactionRecipe'
-
-import {
-  createFromUserAccountDraft,
-  findAccountByUserIdentifier,
-  getKeyPair,
-} from '@/controller/Account'
-import { KeyManager } from '@/controller/KeyManager'
-import { TransactionRecipe } from '@/controller/TransactionRecipe'
-import { create as createUser, findByGradidoId, findUserByIdentifier } from '@/controller/User'
+import { AccountFactory } from '@/data/Account.factory'
+import { AccountLogic } from '@/data/Account.logic'
+import { AccountRepository } from '@/data/Account.repository'
+import { TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY } from '@/data/const'
+import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
+import { TransactionBuilder } from '@/data/Transaction.builder'
+import { UserFactory } from '@/data/User.factory'
+import { UserRepository } from '@/data/User.repository'
+import { logger } from '@/server/logger'
+import { getDataSource } from '@/typeorm/DataSource'
+import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
 
 import { TransactionErrorType } from '../enum/TransactionErrorType'
 import { UserAccountDraft } from '../input/UserAccountDraft'
-
 import { UserIdentifier } from '../input/UserIdentifier'
 import { TransactionError } from '../model/TransactionError'
-
-import { getDataSource } from '@/typeorm/DataSource'
-import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
-import { TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY } from '@/tasks/transmitToIota'
-import { logger } from '@/server/logger'
-
 import { TransactionResult } from '../model/TransactionResult'
 
 @Resolver()
@@ -32,7 +25,7 @@ export class AccountResolver {
   @Query(() => Boolean)
   async isAccountExist(@Arg('data') userIdentifier: UserIdentifier): Promise<boolean> {
     logger.info('isAccountExist', userIdentifier)
-    const user = await findUserByIdentifier(userIdentifier)
+    const user = await UserRepository.findByIdentifier(userIdentifier)
     if (user) {
       if (user.accounts) {
         return (
@@ -51,11 +44,11 @@ export class AccountResolver {
     userAccountDraft: UserAccountDraft,
   ): Promise<TransactionResult> {
     try {
-      let user = await findByGradidoId(userAccountDraft.user)
+      let user = await UserRepository.findByGradidoId(userAccountDraft.user)
       if (!user) {
-        user = createUser(userAccountDraft)
+        user = UserFactory.create(userAccountDraft)
       } else {
-        const account = await findAccountByUserIdentifier(userAccountDraft.user)
+        const account = await AccountRepository.findByUserIdentifier(userAccountDraft.user)
         if (account) {
           return new TransactionResult(
             new TransactionError(
@@ -66,23 +59,24 @@ export class AccountResolver {
         }
       }
       logger.info('add user and account', userAccountDraft)
-      const account = createFromUserAccountDraft(userAccountDraft, user)
-      const body = createTransactionBody(userAccountDraft, account)
-      const gradidoTransaction = createGradidoTransaction(body)
-      const signingKeyPair = getKeyPair(account)
+      const account = AccountFactory.createFromUserAccountDraft(userAccountDraft)
+      const bodyBuilder = new TransactionBodyBuilder()
+      const transactionBuilder = new TransactionBuilder()
+      const signingKeyPair = new AccountLogic(account).getKeyPair()
       if (!signingKeyPair) {
         throw new TransactionError(
           TransactionErrorType.NOT_FOUND,
           "couldn't found signing key pair",
         )
       }
-      KeyManager.getInstance().sign(gradidoTransaction, [signingKeyPair])
-      const recipeTransactionController = await TransactionRecipe.create({
-        transaction: gradidoTransaction,
-        senderUser: userAccountDraft.user,
-        signingAccount: account,
-      })
-      const recipeTransaction = recipeTransactionController.getTransactionRecipeEntity()
+      transactionBuilder
+        .fromTransactionBodyBuilder(
+          bodyBuilder.fromUserAccountDraft(userAccountDraft, user, account),
+        )
+        .sign(signingKeyPair)
+        .setSigningAccount(account)
+      await transactionBuilder.setSenderCommunityFromSenderUser(userAccountDraft.user)
+      const transaction = transactionBuilder.build()
       const queryRunner = getDataSource().createQueryRunner()
       await queryRunner.connect()
       await queryRunner.startTransaction()
@@ -93,11 +87,11 @@ export class AccountResolver {
           await queryRunner.manager.save(user)
         }
         await queryRunner.manager.save(account)
-        await queryRunner.manager.save(recipeTransaction)
+        await queryRunner.manager.save(transaction)
         await queryRunner.commitTransaction()
         logger.info('new user/account and transactionRecipe written into db')
         ConditionalSleepManager.getInstance().signal(TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY)
-        result = new TransactionResult(new TransactionRecipeOutput(recipeTransaction))
+        result = new TransactionResult(new TransactionRecipeOutput(transaction))
       } catch (err) {
         logger.error('error saving user or new account into db: %s', err)
         result = new TransactionResult(

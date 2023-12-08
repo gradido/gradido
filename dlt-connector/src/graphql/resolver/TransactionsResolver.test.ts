@@ -2,8 +2,8 @@ import 'reflect-metadata'
 import assert from 'assert'
 
 import { ApolloServer } from '@apollo/server'
-
 // must be imported before createApolloTestServer so that TestDB was created before createApolloTestServer imports repositories
+import { AccountType } from '@enum/AccountType'
 import { TransactionResult } from '@model/TransactionResult'
 import { createApolloTestServer } from '@test/ApolloServerMock'
 import { TestDB } from '@test/TestDB'
@@ -12,12 +12,11 @@ import { CONFIG } from '@/config'
 import { AccountFactory } from '@/data/Account.factory'
 import { UserFactory } from '@/data/User.factory'
 import { UserLogic } from '@/data/User.logic'
+import { InputTransactionType, getTransactionTypeString } from '@/graphql/enum/InputTransactionType'
+import { CommunityDraft } from '@/graphql/input/CommunityDraft'
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
+import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
-
-import { AccountType } from '../enum/AccountType'
-import { CommunityDraft } from '../input/CommunityDraft'
-import { UserAccountDraft } from '../input/UserAccountDraft'
-import { UserIdentifier } from '../input/UserIdentifier'
 
 CONFIG.IOTA_HOME_COMMUNITY_SEED = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899'
 
@@ -46,7 +45,7 @@ const createUserStoreAccount = async (uuid: string): Promise<UserIdentifier> => 
   userAccountDraft.user.communityUuid = communityUUID
   const user = UserFactory.create(userAccountDraft)
   const userLogic = new UserLogic(user)
-  const account = AccountFactory.createAccountFromUserAccountDraft(
+  const account = AccountFactory.createFromUserAccountDraft(
     userAccountDraft,
     userLogic.calculateKeyPair(),
   )
@@ -84,7 +83,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: 'SEND',
+          type: getTransactionTypeString(InputTransactionType.SEND),
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
           backendTransactionId: 1,
@@ -132,7 +131,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: 'SEND',
+          type: getTransactionTypeString(InputTransactionType.SEND),
           amount: 'no number',
           createdAt: '2012-04-17T17:12:00Z',
           backendTransactionId: 1,
@@ -158,7 +157,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: 'SEND',
+          type: getTransactionTypeString(InputTransactionType.SEND),
           amount: '10',
           createdAt: 'not valid',
           backendTransactionId: 1,
@@ -194,7 +193,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: 'CREATION',
+          type: getTransactionTypeString(InputTransactionType.CREATION),
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
           backendTransactionId: 1,

@@ -8,10 +8,11 @@ import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { LogError } from '@/server/LogError'
 import { timestampToDate } from '@/utils/typeConverter'
 
-import { TransactionBase } from '../TransactionBase'
+import { AbstractTransaction } from '../AbstractTransaction'
 import { determineCrossGroupType, determineOtherGroup } from '../transactionBody.logic'
 
 import { CommunityRoot } from './CommunityRoot'
+import { PROTO_TRANSACTION_BODY_VERSION_NUMBER } from './const'
 import { CrossGroupType } from './enum/CrossGroupType'
 import { GradidoCreation } from './GradidoCreation'
 import { GradidoDeferredTransfer } from './GradidoDeferredTransfer'
@@ -35,7 +36,7 @@ export class TransactionBody extends Message<TransactionBody> {
       super({
         memo: 'Not implemented yet',
         createdAt: new Timestamp(new Date(transaction.createdAt)),
-        versionNumber: '3.3',
+        versionNumber: PROTO_TRANSACTION_BODY_VERSION_NUMBER,
         type,
         otherGroup,
       })
@@ -96,7 +97,7 @@ export class TransactionBody extends Message<TransactionBody> {
     else if (this.communityRoot) return TransactionType.COMMUNITY_ROOT
   }
 
-  public getTransactionBase(): TransactionBase | undefined {
+  public getTransactionDetails(): AbstractTransaction | undefined {
     if (this.transfer) return this.transfer
     if (this.creation) return this.creation
     if (this.groupFriendsUpdate) return this.groupFriendsUpdate
@@ -113,7 +114,7 @@ export class TransactionBody extends Message<TransactionBody> {
       throw new LogError("invalid TransactionBody couldn't determine transaction type")
     }
     recipe.type = transactionType.valueOf()
-    this.getTransactionBase()?.fillTransactionRecipe(recipe)
+    this.getTransactionDetails()?.fillTransactionRecipe(recipe)
   }
 
   public getRecipientPublicKey(): Buffer | undefined {

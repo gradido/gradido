@@ -4,11 +4,11 @@ import { Field, Message } from 'protobufjs'
 
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 
-import { TransactionBase } from '../TransactionBase'
+import { AbstractTransaction } from '../AbstractTransaction'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
-export class CommunityRoot extends Message<CommunityRoot> implements TransactionBase {
+export class CommunityRoot extends Message<CommunityRoot> implements AbstractTransaction {
   public constructor(community?: Community) {
     if (community) {
       super({

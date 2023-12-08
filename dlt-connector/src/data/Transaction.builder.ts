@@ -6,11 +6,12 @@ import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { LogError } from '@/server/LogError'
+import { sign } from '@/utils/cryptoHelper'
 import { bodyBytesToTransactionBody, transactionBodyToBodyBytes } from '@/utils/typeConverter'
 
 import { AccountRepository } from './Account.repository'
 import { CommunityRepository } from './Community.repository'
-import { ConfirmedTransaction } from './proto/3_3/ConfirmedTransaction'
+import { KeyPair } from './KeyPair'
 import { TransactionBodyBuilder } from './proto/TransactionBody.builder'
 
 export class TransactionBuilder {
@@ -92,6 +93,14 @@ export class TransactionBuilder {
     return this
   }
 
+  public sign(keyPair: KeyPair): TransactionBuilder {
+    if (!this.transaction.bodyBytes || this.transaction.bodyBytes.length === 0) {
+      throw new LogError('body bytes is empty')
+    }
+    this.transaction.signature = sign(this.transaction.bodyBytes, keyPair)
+    return this
+  }
+
   public setBackendTransactionId(backendTransactionId: number): TransactionBuilder {
     this.transaction.backendTransactionId = backendTransactionId
     return this
@@ -168,10 +177,6 @@ export class TransactionBuilder {
       this.setRecipientAccount(recipientAccount)
     }
     this.fromTransactionBody(transactionBodyBuilder.getTransactionBody())
-    return this
-  }
-
-  public fromConfirmedTransaction(confirmedTransaction: ConfirmedTransaction): TransactionBuilder {
     return this
   }
 }
