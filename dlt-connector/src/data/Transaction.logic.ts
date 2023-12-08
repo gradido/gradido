@@ -4,6 +4,7 @@ import { Decimal } from 'decimal.js-light'
 
 import { TransactionType, getTransactionTypeEnumValue } from '@/graphql/enum/TransactionType'
 import { LogError } from '@/server/LogError'
+import { calculateDecay } from '@/utils/decay'
 
 import { TransactionRepository } from './Transaction.repository'
 
@@ -34,7 +35,7 @@ export class TransactionLogic {
     }
   }
 
-  public async calculateBalanceCreatedAt(): Promise<number> {
+  public async calculateBalanceCreatedAt(): Promise<Decimal> {
     // find last transaction for this balance account
     // take value + decay + value
     const balanceAccount = this.getBalanceAccount()
@@ -44,9 +45,17 @@ export class TransactionLogic {
     const prevTransaction = await TransactionRepository.getLastTransactionForBalanceAccount(
       balanceAccount,
     )
-    let balance = new Decimal(0)
-    if (prevTransaction) {
-      balance = prevTransaction.accountBalanceCreatedAt
+    if (prevTransaction && prevTransaction.accountBalanceCreatedAt) {
+      const decay = calculateDecay(
+        prevTransaction.accountBalanceCreatedAt,
+        prevTransaction.createdAt,
+        this.transaction.createdAt,
+      )
+      if (this.transaction.amount) {
+        return decay.balance.add(this.transaction.amount)
+      }
+      return decay.balance
     }
+    return new Decimal(0)
   }
 }

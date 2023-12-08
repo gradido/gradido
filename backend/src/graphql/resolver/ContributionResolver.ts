@@ -464,7 +464,7 @@ export class ContributionResolver {
         contribution.confirmedBy = moderatorUser.id
         contribution.transactionId = transaction.id
         contribution.contributionStatus = ContributionStatus.CONFIRMED
-        await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)  
+        await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
         await queryRunner.commitTransaction()
 

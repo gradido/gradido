@@ -1,6 +1,12 @@
 /* eslint-disable n/no-process-env */
+import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
 dotenv.config()
+
+Decimal.set({
+  precision: 25,
+  rounding: Decimal.ROUND_HALF_UP,
+})
 
 const constants = {
   LOG4JS_CONFIG: 'log4js-config.json',

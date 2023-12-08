@@ -43,6 +43,13 @@ export const CommunityRepository = getDataSource()
       return await this.findOneBy({ iotaTopic })
     },
 
+    async findByIotaTopicWithAccounts(iotaTopic: string): Promise<Community | null> {
+      return await this.findOne({
+        where: { iotaTopic },
+        relations: { aufAccount: true, gmwAccount: true },
+      })
+    },
+
     findCommunitiesByTopics(topics: string[]): Promise<Community[]> {
       return this.findBy({ iotaTopic: In(topics) })
     },

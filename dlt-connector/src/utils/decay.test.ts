@@ -15,14 +15,14 @@ describe('utils/decay', () => {
       const seconds = -1
       expect(decayFormula(amount, seconds).toString()).toBe('1.000000021964959992727444')
     })
-    // we get pretty close, but not exact here, skipping
+    // we get pretty close, but not exact here
     // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('has correct forward calculation', () => {
+    it('has correct forward calculation', () => {
       const amount = new Decimal(1.0).div(
         new Decimal('0.99999997803504048973201202316767079413460520837376'),
       )
       const seconds = 1
-      expect(decayFormula(amount, seconds).toString()).toBe('1.0')
+      expect(decayFormula(amount, seconds).toString()).toBe('0.9999999999999999999999991')
     })
   })
   it('has base 0.99999997802044727', () => {

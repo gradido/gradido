@@ -9,21 +9,10 @@ import { SignaturePair } from '@/data/proto/3_3/SignaturePair'
 import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionType } from '@/graphql/enum/TransactionType'
-import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { TransactionError } from '@/graphql/model/TransactionError'
-import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
 
 import { verify } from './GradidoTransaction'
-
-interface CreateTransactionRecipeOptions {
-  transaction: GradidoTransaction
-  senderUser?: UserIdentifier
-  recipientUser?: UserIdentifier
-  signingAccount?: Account
-  recipientAccount?: Account
-  backendTransactionId?: number
-}
 
 export class TransactionRecipe {
   private body: TransactionBody | undefined = undefined
@@ -48,50 +37,6 @@ export class TransactionRecipe {
 
   public getTransactionRecipeEntity(): Transaction {
     return this.recipeEntity
-  }
-
-  public static async create({
-    transaction,
-    senderUser,
-    recipientUser,
-    signingAccount,
-    recipientAccount,
-    backendTransactionId,
-  }: CreateTransactionRecipeOptions): Promise<TransactionRecipe> {
-    const recipeEntity = Transaction.create()
-    const recipe = new TransactionRecipe(recipeEntity)
-    if (backendTransactionId) {
-      recipeEntity.backendTransactionId = backendTransactionId
-    }
-    recipeEntity.bodyBytes = Buffer.from(transaction.bodyBytes)
-    const body = recipe.getBody()
-    body.fillTransactionRecipe(recipeEntity)
-
-    const firstSigPair = transaction.getFirstSignature()
-    // TODO: adapt if transactions with more than one signatures where added
-
-    // get recipient and signer accounts if not already set
-    recipeEntity.signingAccount =
-      signingAccount ?? (await AccountRepository.findByPublicKey(firstSigPair.pubKey))
-    recipeEntity.signature = Buffer.from(firstSigPair.signature)
-    recipeEntity.recipientAccount =
-      recipientAccount ?? (await AccountRepository.findByPublicKey(body.getRecipientPublicKey()))
-
-    if (senderUser) {
-      // get recipient and sender community
-      const senderCommunity = await CommunityRepository.getCommunityForUserIdentifier(senderUser)
-      if (!senderCommunity) {
-        throw new LogError("couldn't find sender community for transaction")
-      }
-      recipeEntity.senderCommunity = senderCommunity
-    }
-    if (recipientUser) {
-      recipeEntity.recipientCommunity = await CommunityRepository.getCommunityForUserIdentifier(
-        recipientUser,
-      )
-    }
-
-    return recipe
   }
 
   public getGradidoTransaction(): { transaction: GradidoTransaction; body: TransactionBody } {
@@ -170,43 +115,6 @@ export const getNextPendingTransaction = async (): Promise<Transaction | null> =
   })
 }
 
-export const findBySignature = (signature: Buffer): Promise<Transaction | null> => {
-  return Transaction.findOneBy({ signature: Buffer.from(signature) })
-}
-
 export const findByMessageId = (iotaMessageId: string): Promise<Transaction | null> => {
   return Transaction.findOneBy({ iotaMessageId: Buffer.from(iotaMessageId, 'hex') })
-}
-
-export const findExistingTransactionRecipeAndMissingMessageIds = async (
-  messageIDsHex: string[],
-): Promise<{
-  existingTransactionRecipes: Transaction[]
-  missingMessageIdsHex: string[]
-}> => {
-  const existingTransactionRecipes = await Transaction.getRepository()
-    .createQueryBuilder('TransactionRecipe')
-    .where('HEX(TransactionRecipe.iota_message_id) IN (:...messageIDs)', {
-      messageIDs: messageIDsHex,
-    })
-    .leftJoinAndSelect('TransactionRecipe.confirmedTransaction', 'ConfirmedTransaction')
-    .leftJoinAndSelect('TransactionRecipe.recipientAccount', 'RecipientAccount')
-    .leftJoinAndSelect('RecipientAccount.user', 'RecipientUser')
-    .leftJoinAndSelect('TransactionRecipe.signingAccount', 'SigningAccount')
-    .leftJoinAndSelect('SigningAccount.user', 'SigningUser')
-    .getMany()
-
-  const foundMessageIds = existingTransactionRecipes
-    .map((recipe: Transaction) => recipe.iotaMessageId?.toString('hex'))
-    .filter((messageId) => !!messageId)
-  // find message ids for which we don't already have a transaction recipe
-  const missingMessageIdsHex = messageIDsHex.filter((id: string) => !foundMessageIds.includes(id))
-  return { existingTransactionRecipes, missingMessageIdsHex }
-}
-
-export const removeConfirmedTransactionRecipes = (transactions: Transaction[]): Transaction[] => {
-  return transactions.filter(
-    (transaction: Transaction) =>
-      transaction.runningHash === undefined || transaction.runningHash.length === 0,
-  )
 }

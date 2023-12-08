@@ -1,3 +1,5 @@
+// eslint-disable-next-line n/no-extraneous-import
+import Long from 'long'
 import { Field, Message } from 'protobufjs'
 
 import { base64ToBuffer } from '@/utils/typeConverter'

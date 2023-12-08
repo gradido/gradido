@@ -1,16 +1,16 @@
 import 'reflect-metadata'
 import { Community } from '@entity/Community'
+import { TestDB } from '@test/TestDB'
+import { generateFromSeed, toPublic, derivePrivate } from 'bip32-ed25519'
 import { entropyToMnemonic, mnemonicToSeedSync } from 'bip39'
 
-import { TestDB } from '@test/TestDB'
-
 import { CONFIG } from '@/config'
+import { CommunityRepository } from '@/data/Community.repository'
 import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import { getDataSource } from '@/typeorm/DataSource'
 import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 
-import { generateFromSeed, toPublic, derivePrivate } from 'bip32-ed25519'
+import { AddCommunityContext } from './AddCommunity.context'
 
 const rootKeysSeed = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899'
 CONFIG.IOTA_HOME_COMMUNITY_SEED = rootKeysSeed
@@ -19,7 +19,7 @@ jest.mock('@typeorm/DataSource', () => ({
   getDataSource: () => TestDB.instance.dbConnect,
 }))
 
-describe('controller/Community', () => {
+describe('interactions/backendToDb/community/AddCommunity.context', () => {
   beforeAll(async () => {
     await TestDB.instance.setupTestDB()
     // apolloTestServer = await createApolloTestServer()
@@ -82,11 +82,13 @@ describe('controller/Community', () => {
       expect(iotaTopic).toEqual('204ef6aed15fbf0f9da5819e88f8eea8e3adbe1e2c2d43280780a4b8c2d32b56')
 
       const createdAtDate = new Date(communityDraft.createdAt)
-      const communityEntity = createCommunity(communityDraft)
-      expect(communityEntity).toMatchObject({
+      const addCommunityContext = new AddCommunityContext(communityDraft, iotaTopic)
+      await addCommunityContext.run()
+      const community = await CommunityRepository.findByIotaTopicWithAccounts(iotaTopic)
+      expect(community).toMatchObject({
         iotaTopic,
         createdAt: createdAtDate,
-        foreign: false,
+        foreign: 0, // db return 0 for boolean false
         rootPubkey: publicKey,
         rootPrivkey: privateKey,
         rootChaincode: chainCode,
@@ -103,7 +105,6 @@ describe('controller/Community', () => {
           createdAt: createdAtDate,
         },
       })
-      await getDataSource().manager.save(communityEntity)
     })
   })
 

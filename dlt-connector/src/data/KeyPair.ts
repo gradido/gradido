@@ -1,9 +1,8 @@
 // https://www.npmjs.com/package/bip32-ed25519?activeTab=code
 import { Community } from '@entity/Community'
+import { toPublic } from 'bip32-ed25519'
 
 import { LogError } from '@/server/LogError'
-
-import { toPublic } from 'bip32-ed25519'
 
 export class KeyPair {
   /**

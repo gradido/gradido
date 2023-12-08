@@ -1,7 +1,7 @@
-import { FindOptionsWhere, IsNull, Not } from '@dbTools/typeorm'
+import { IsNull, Not } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
-import { Resolver, Query, Authorized, Arg, Args } from 'type-graphql'
+import { Resolver, Query, Authorized, Args } from 'type-graphql'
 
 import { CommunityArgs } from '@arg/CommunityArgs'
 import { Community } from '@model/Community'

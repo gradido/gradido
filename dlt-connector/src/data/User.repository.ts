@@ -31,7 +31,7 @@ export const UserRepository = getDataSource()
     },
 
     // TODO: adjust after implement AccountCommunity
-    findUserByIdentifier({ uuid }: UserIdentifier): Promise<User | null> {
+    findByIdentifier({ uuid }: UserIdentifier): Promise<User | null> {
       return User.findOne({ where: { gradidoID: uuid }, relations: { accounts: true } })
     },
 

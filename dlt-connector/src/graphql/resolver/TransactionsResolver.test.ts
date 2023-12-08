@@ -2,11 +2,12 @@ import 'reflect-metadata'
 import assert from 'assert'
 
 import { ApolloServer } from '@apollo/server'
-// must be imported before createApolloTestServer so that TestDB was created before createApolloTestServer imports repositories
 import { AccountType } from '@enum/AccountType'
 import { TransactionResult } from '@model/TransactionResult'
-import { createApolloTestServer } from '@test/ApolloServerMock'
+// must be imported before createApolloTestServer so that TestDB was created before createApolloTestServer imports repositories
 import { TestDB } from '@test/TestDB'
+// eslint-disable-next-line import/order
+import { createApolloTestServer } from '@test/ApolloServerMock'
 
 import { CONFIG } from '@/config'
 import { AccountFactory } from '@/data/Account.factory'

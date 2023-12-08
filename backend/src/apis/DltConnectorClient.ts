@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { CONFIG } from '@/config'
 import { Community } from '@entity/Community'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User as DbUser } from '@entity/User'
 import { gql, GraphQLClient } from 'graphql-request'
 
+import { CONFIG } from '@/config'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'
-
 import { backendLogger as logger } from '@/server/logger'
 
 const sendTransaction = gql`

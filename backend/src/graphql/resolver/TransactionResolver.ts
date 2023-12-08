@@ -11,6 +11,7 @@ import { User as dbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation, Arg } from 'type-graphql'
 
+import { ConfirmedTransactionInput } from '@arg/ConfirmTransactionInput'
 import { Paginated } from '@arg/Paginated'
 import { TransactionSendArgs } from '@arg/TransactionSendArgs'
 import { Order } from '@enum/Order'
@@ -32,10 +33,12 @@ import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { communityUser } from '@/util/communityUser'
+import { calculateDecay } from '@/util/decay'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
+
 
 import { BalanceResolver } from './BalanceResolver'
 import { getCommunity, getCommunityName, isHomeCommunity } from './util/communities'
@@ -49,9 +52,6 @@ import {
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { storeForeignUser } from './util/storeForeignUser'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
-import { ConfirmedTransactionInput } from '../arg/ConfirmTransactionInput'
-import { calculateDecay } from '@/util/decay'
-import { CommunityArgs } from '../arg/CommunityArgs'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -525,7 +525,7 @@ export class TransactionResolver {
   async confirmTransaction(
     @Arg('data') confirmedTransactionInput: ConfirmedTransactionInput,
   ): Promise<boolean> {
-    // TODO: by local transactions resolver will be called only once, 
+    // TODO: by local transactions resolver will be called only once,
     // because dlt-connector store only the sending transaction
     // confirm both parts stored here in backend db, sending and receiving, linked together by id
     logger.debug('confirmTransaction', confirmedTransactionInput)
