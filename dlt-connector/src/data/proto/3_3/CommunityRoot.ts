@@ -1,4 +1,4 @@
-import { AbstractTransaction } from '../TransactionBase'
+import { AbstractTransaction } from '../AbstractTransaction'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Field, Message } from 'protobufjs'
 import { Community } from '@entity/Community'

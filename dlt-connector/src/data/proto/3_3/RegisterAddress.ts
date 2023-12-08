@@ -3,7 +3,7 @@
 import { Field, Message } from 'protobufjs'
 
 import { AddressType } from '@/data/proto/3_3/enum/AddressType'
-import { AbstractTransaction } from '../TransactionBase'
+import { AbstractTransaction } from '../AbstractTransaction'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Transaction } from '@entity/Transaction'
 

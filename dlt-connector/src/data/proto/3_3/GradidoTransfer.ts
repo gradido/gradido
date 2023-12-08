@@ -2,7 +2,7 @@ import { Field, Message } from 'protobufjs'
 
 import { TransferAmount } from './TransferAmount'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { AbstractTransaction } from '../TransactionBase'
+import { AbstractTransaction } from '../AbstractTransaction'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Transaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'

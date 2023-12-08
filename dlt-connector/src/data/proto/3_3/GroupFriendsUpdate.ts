@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { AbstractTransaction } from '../TransactionBase'
+import { AbstractTransaction } from '../AbstractTransaction'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Field, Message } from 'protobufjs'
 import { Transaction } from '@entity/Transaction'

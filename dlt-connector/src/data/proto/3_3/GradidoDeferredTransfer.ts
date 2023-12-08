@@ -2,7 +2,7 @@ import { Field, Message } from 'protobufjs'
 
 import { GradidoTransfer } from './GradidoTransfer'
 import { TimestampSeconds } from './TimestampSeconds'
-import { AbstractTransaction } from '../TransactionBase'
+import { AbstractTransaction } from '../AbstractTransaction'
 import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { Transaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
