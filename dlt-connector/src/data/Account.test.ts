@@ -9,8 +9,6 @@ import { AccountType } from '@/graphql/enum/AccountType'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { AccountRepository } from './Account.repository'
 import { UserFactory } from './User.factory'
-// eslint-disable-next-line n/no-extraneous-import
-import { v4 as uuidv4 } from 'uuid'
 import { UserLogic } from './User.logic'
 
 const con = TestDB.instance
