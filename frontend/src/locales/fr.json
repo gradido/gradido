@@ -251,6 +251,7 @@
     "support": "Aide",
     "transactions": "Transactions"
   },
+  "moderatorChangedMemo": "Texte édité par le modérateur",
   "openHours": "Heures ouverte",
   "pageTitle": {
     "community": "Ma communauté",

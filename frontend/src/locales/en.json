@@ -256,7 +256,7 @@
     "title": "Thank you!",
     "unsetPassword": "Your password has not been set yet. Please set it again."
   },
-  "moderatorChangedMemo": "Memo edited by moderator",
+  "moderatorChangedMemo": "Text edited by moderator",
   "moderatorChat": "Moderator Chat",
   "navigation": {
     "admin_area": "Admin Area",
