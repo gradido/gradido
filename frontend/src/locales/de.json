@@ -1,0 +1,385 @@
+{
+  "(": "(",
+  ")": ")",
+  "100": "100%",
+  "1000thanks": "1000 Dank, weil du bei uns bist!",
+  "125": "125%",
+  "85": "85%",
+  "GDD": "GDD",
+  "GDT": "GDT",
+  "PersonalDetails": "Persönliche Angaben",
+  "advanced-calculation": "Vorausberechnung",
+  "asterisks": "****",
+  "auth": {
+    "left": {
+      "dignity": "Würde",
+      "donation": "Gabe",
+      "gratitude": "Dankbarkeit",
+      "learnMore": "Erfahre mehr …",
+      "oneDignity": "Wir schenken einander und danken mit Gradido.",
+      "oneDonation": "Du bist ein Geschenk für die Gemeinschaft. 1000 Dank, weil du bei uns bist.",
+      "oneGratitude": "Für einander, für alle Menschen, für die Natur."
+    }
+  },
+  "back": "Zurück",
+  "community": {
+    "admins": "Administratoren",
+    "choose-another-community": "Eine andere Gemeinschaft auswählen",
+    "community": "Gemeinschaft",
+    "communityMember": "Du bist aktives Mitglied",
+    "continue-to-registration": "Weiter zur Registrierung",
+    "moderator": "Moderator",
+    "moderators": "Moderatoren",
+    "myContributions": "Meine Beiträge",
+    "startNewsButton": "Gradidos versenden",
+    "submitContribution": "Schreiben"
+  },
+  "communityInfo": "Gemeinschaft Information",
+  "contact": "Kontakt",
+  "contribution": {
+    "activity": "Tätigkeit",
+    "alert": {
+      "answerQuestion": "Bitte beantworte diese Rückfrage.",
+      "answerQuestionToast": "Du hast eine Rückfrage auf einen Beitrag. Bitte antworte auf diese.",
+      "communityNoteList": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
+      "confirm": "bestätigt",
+      "deleted": "gelöscht",
+      "denied": "abgelehnt",
+      "in_progress": "Es gibt eine Rückfrage der Moderatoren.",
+      "myContributionNoteList": "Eingereichte Beiträge, die noch nicht bestätigt wurden, kannst du jederzeit bearbeiten oder löschen.",
+      "pending": "Eingereicht und wartet auf Bestätigung"
+    },
+    "delete": "Beitrag löschen! Bist du sicher?",
+    "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
+    "formText": {
+      "bringYourTalentsTo": "Bring dich mit deinen Talenten in die Gemeinschaft ein! Dein freiwilliges Engagement honorieren wir mit 20 GDD pro Stunde bis maximal 1.000 GDD im Monat.",
+      "describeYourCommunity": "Beschreibe deine Gemeinwohl-Tätigkeit und gib die Anzahl der Stunden an! Der Betrag von 20 GDD pro Stunde wird automatisch berechnet. Nach Bestätigung durch einen Moderator wird der Betrag deinem Konto gutgeschrieben.",
+      "maxGDDforMonth": "Du kannst für den ausgewählten Monat nur noch maximal {amount} GDD einreichen.",
+      "openAmountForMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen.",
+      "yourContribution": "Dein Beitrag zum Gemeinwohl"
+    },
+    "isEdited": "hat den Beitrag bearbeitet",
+    "lastContribution": "Letzte Beiträge",
+    "noContributions": {
+      "allContributions": "Es wurden noch keine Beiträge eingereicht.",
+      "myContributions": "Du hast noch keine Beiträge eingereicht."
+    },
+    "noDateSelected": "Wähle irgendein Datum im Monat",
+    "noOpenCreation": {
+      "allMonth": "Für alle beiden Monate ist dein Schöpfungslimit erreicht. Den Nächsten Monat kannst du wieder 1000 GDD Schöpfen.",
+      "lastMonth": "Für den ausgewählten Monat ist das Schöpfungslimit erreicht.",
+      "thisMonth": "Für den aktuellen Monat ist das Schöpfungslimit erreicht."
+    },
+    "oldContribution": "Vorherige Version",
+    "selectDate": "Wann war dein Beitrag?",
+    "submit": "Einreichen",
+    "submitted": "Der Beitrag wurde eingereicht.",
+    "updated": "Der Beitrag wurde geändert.",
+    "yourActivity": "Bitte trage eine Tätigkeit ein!"
+  },
+  "contribution-link": {
+    "thanksYouWith": "dankt dir mit"
+  },
+  "contributionText": "Beitragstext",
+  "creation": "Schöpfen",
+  "decay": {
+    "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
+    "calculation_decay": "Berechnung der Vergänglichkeit",
+    "calculation_total": "Berechnung der Gesamtsumme",
+    "decay": "Vergänglichkeit",
+    "decay_introduced": "Die Vergänglichkeit wurde eingeführt am:",
+    "decay_since_last_transaction": "Vergänglichkeit seit der letzten Transaktion",
+    "last_transaction": "Letzte Transaktion",
+    "new_balance": "Neuer Kontostand",
+    "old_balance": "Vorheriger Kontostand",
+    "past_time": "Vergangene Zeit",
+    "Starting_block_decay": "Startblock Vergänglichkeit",
+    "total": "Gesamt",
+    "types": {
+      "creation": "Geschöpft",
+      "noDecay": "Keine Vergänglichkeit",
+      "receive": "Empfangen",
+      "send": "Gesendet"
+    }
+  },
+  "delete": "Löschen",
+  "download": "Herunterladen",
+  "edit": "bearbeiten",
+  "em-dash": "—",
+  "error": {
+    "email-already-sent": "Wir haben dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",
+    "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
+    "error": "Fehler!",
+    "no-account": "Leider konnten wir keinen (aktivierten) Account mit diesen Daten finden.",
+    "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt.",
+    "no-user": "Kein Benutzer mit diesen Anmeldedaten.",
+    "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet.",
+    "unknown-error": "Unbekannter Fehler: "
+  },
+  "followUs": "folge uns:",
+  "footer": {
+    "app_version": "App version {version}",
+    "copyright": {
+      "link": "Gradido-Akademie",
+      "year": "© {year}"
+    },
+    "imprint": "Impressum",
+    "privacy_policy": "Datenschutzerklärung",
+    "short_hash": "({shortHash})",
+    "whitepaper": "Whitepaper"
+  },
+  "form": {
+    "amount": "Betrag",
+    "at": "am",
+    "cancel": "Abbrechen",
+    "change": "Ändern",
+    "check_now": "Jetzt prüfen",
+    "close": "Schließen",
+    "current_balance": "Aktueller Kontostand",
+    "date": "Datum",
+    "description": "Beschreibung",
+    "email": "E-Mail",
+    "firstname": "Vorname",
+    "from": "Von",
+    "generate_now": "Jetzt generieren",
+    "hours": "Stunden",
+    "identifier": "Email, Nutzername oder Gradido ID",
+    "lastname": "Nachname",
+    "memo": "Nachricht",
+    "message": "Nachricht",
+    "new_balance": "Neuer Kontostand nach Bestätigung",
+    "no_gdd_available": "Du hast keine GDD zum versenden.",
+    "password": "Passwort",
+    "passwordRepeat": "Passwort wiederholen",
+    "password_new": "Neues Passwort",
+    "password_new_repeat": "Neues Passwort wiederholen",
+    "password_old": "Altes Passwort",
+    "recipient": "Empfänger",
+    "recipientCommunity": "Gemeinschaft des Empfängers",
+    "reply": "Antworten",
+    "reset": "Zurücksetzen",
+    "save": "Speichern",
+    "scann_code": "<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
+    "sender": "Absender",
+    "send_check": "Bestätige deine Transaktion. Prüfe bitte nochmal alle Angaben!",
+    "send_now": "Jetzt senden",
+    "send_transaction_error": "Leider konnte die Transaktion nicht ausgeführt werden!",
+    "send_transaction_success": "Deine Transaktion wurde erfolgreich ausgeführt",
+    "sorry": "Entschuldigung",
+    "thx": "Danke",
+    "to": "bis",
+    "to1": "an",
+    "username": "Benutzername",
+    "username-placeholder": "Wähle deinen Benutzernamen",
+    "validation": {
+      "gddCreationTime": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens einer Nachkommastelle sein",
+      "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
+      "is-not": "Du kannst dir selbst keine Gradidos überweisen",
+      "username-allowed-chars": "Der Nutzername darf nur aus Buchstaben (ohne Umlaute), Zahlen, Binde- oder Unterstrichen bestehen.",
+      "username-hyphens": "Binde- oder Unterstriche müssen zwischen Buchstaben oder Zahlen stehen.",
+      "username-unique": "Der Nutzername ist bereits vergeben.",
+      "valid-identifier": "Muss eine Email, ein Nutzernamen oder eine gradido ID sein."
+    },
+    "your_amount": "Dein Betrag"
+  },
+  "gddKonto": "GDD Konto",
+  "gdd_per_link": {
+    "choose-amount": "Wähle einen Betrag aus, welchen du per Link versenden möchtest, und trage eine Nachricht ein. Die Nachricht ist ein Pflichtfeld.",
+    "copy-link": "Link kopieren",
+    "copy-link-with-text": "Link und Text kopieren",
+    "created": "Der Link wurde erstellt!",
+    "credit-your-gradido": "Damit die Gradido gutgeschrieben werden können, klicke auf den Link!",
+    "delete-the-link": "Den Link löschen?",
+    "deleted": "Der Link wurde gelöscht!",
+    "expiredOn": "Abgelaufen am",
+    "has-account": "Du besitzt bereits ein Gradido Konto?",
+    "header": "Gradidos versenden per Link",
+    "isFree": "Gradido ist weltweit kostenfrei.",
+    "link-and-text-copied": "Der Link und deine Nachricht wurden in die Zwischenablage kopiert. Du kannst ihn jetzt in eine E-Mail oder Nachricht einfügen.",
+    "link-copied": "Link wurde in die Zwischenablage kopiert. Du kannst ihn jetzt in eine E-Mail oder Nachricht einfügen.",
+    "link-deleted": "Der Link wurde am {date} gelöscht.",
+    "link-expired": "Der Link ist nicht mehr gültig. Die Gültigkeit ist am {date} abgelaufen.",
+    "link-hint": "Achtung: Jeder kann diesen Link einlösen. Bitte geh achtsam mit ihm um!",
+    "link-overview": "Linkübersicht",
+    "links_count": "Aktive Links",
+    "links_sum": "Offene Links und QR-Codes",
+    "no-account": "Du besitzt noch kein Gradido Konto?",
+    "no-redeem": "Du darfst deinen eigenen Link nicht einlösen!",
+    "not-copied": "Dein Gerät lässt das Kopieren leider nicht zu! Bitte kopiere den Link von Hand!",
+    "redeem": "Einlösen",
+    "redeemed": "Erfolgreich eingelöst! Deinem Konto wurden {n} GDD gutgeschrieben.",
+    "redeemed-at": "Der Link wurde bereits am {date} eingelöst.",
+    "redeemed-title": "eingelöst",
+    "redeemlink-error": "Dieser Einlöse-Link ist nicht vollständig.",
+    "to-login": "Log dich ein",
+    "to-register": "Registriere ein neues Konto.",
+    "validUntil": "Gültig bis",
+    "validUntilDate": "Der Link ist bis zum {date} gültig."
+  },
+  "gdt": {
+    "calculation": "Berechnung der Gradido Transform",
+    "contribution": "Beitrag",
+    "conversion": "Umrechnung",
+    "conversion-gdt-euro": "Umrechnung Euro / Gradido Transform (GDT)",
+    "credit": "Gutschrift",
+    "factor": "Faktor",
+    "formula": "Berechnungsformel",
+    "funding": "Zu den Förderbeiträgen",
+    "gdt-received": "Gradido Transform (GDT) erhalten",
+    "gdtKonto": "GDT Konto",
+    "no-transactions": "Du hast noch keine Gradido Transform (GDT).",
+    "not-reachable": "Der GDT Server ist nicht erreichbar.",
+    "publisher": "Dein geworbenes Mitglied hat einen Beitrag bezahlt",
+    "raise": "Erhöhung",
+    "recruited-member": "Eingeladenes Mitglied"
+  },
+  "h": "h",
+  "language": "Sprache",
+  "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
+  "login": "Anmelden",
+  "math": {
+    "asterisk": "*",
+    "equal": "=",
+    "minus": "−",
+    "pipe": "|"
+  },
+  "maxReached": "Max. erreicht",
+  "member": "Mitglied",
+  "message": {
+    "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite an.",
+    "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.",
+    "email": "Wir haben dir eine E-Mail gesendet.",
+    "errorTitle": "Achtung!",
+    "register": "Du bist jetzt registriert, bitte überprüfe deine Emails und klicke auf den Aktivierungslink.",
+    "reply": "Danke, Deine Antwort wurde abgesendet.",
+    "reset": "Dein Passwort wurde geändert.",
+    "title": "Danke!",
+    "unsetPassword": "Dein Passwort wurde noch nicht gesetzt. Bitte setze es neu."
+  },
+  "moderatorChangedMemo": "Text vom Moderator bearbeitet",
+  "moderatorChat": "Moderator Chat",
+  "navigation": {
+    "admin_area": "Adminbereich",
+    "community": "Gemeinschaft",
+    "info": "Information",
+    "logout": "Abmelden",
+    "overview": "Übersicht",
+    "send": "Senden",
+    "settings": "Einstellung",
+    "support": "Support",
+    "transactions": "Transaktionen"
+  },
+  "openHours": "Offene Stunden",
+  "pageTitle": {
+    "community": "Gradido schöpfen",
+    "gdt": "Deine GDT Transaktionen",
+    "information": "{community}",
+    "overview": "Willkommen {name}",
+    "send": "Sende Gradidos",
+    "settings": "Einstellungen",
+    "transactions": "Deine Transaktionen"
+  },
+  "qrCode": "QR Code",
+  "send_gdd": "GDD versenden",
+  "send_per_link": "GDD versenden per Link",
+  "session": {
+    "automaticallyLoggedOut": "Du wurdest automatisch abgemeldet",
+    "extend": "Angemeldet bleiben",
+    "lightText": "Wenn du länger als 10 Minuten keine Aktion getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
+    "logoutIn": "Abmelden in ",
+    "warningText": "Bist du noch da?"
+  },
+  "settings": {
+    "emailInfo": "Kann aktuell noch nicht geändert werden.",
+    "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
+    "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
+    "info": "Transaktionen können nun per Benutzername oder E-Mail-Adresse getätigt werden.",
+    "language": {
+      "changeLanguage": "Sprache ändern",
+      "de": "Deutsch",
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "nl": "Nederlands",
+      "success": "Deine Sprache wurde erfolgreich geändert."
+    },
+    "name": {
+      "change-name": "Name ändern",
+      "change-success": "Dein Name wurde erfolgreich geändert.",
+      "enterFirstname": "Vorname eingeben",
+      "enterLastname": "Nachname eingeben"
+    },
+    "newSettings": "Neue Einstellungen",
+    "newsletter": {
+      "newsletter": "Informationen per E-Mail",
+      "newsletterFalse": "Du erhältst keine Informationen per E-Mail.",
+      "newsletterTrue": "Du erhältst Informationen per E-Mail."
+    },
+    "password": {
+      "change-password": "Passwort ändern",
+      "forgot_pwd": "Passwort vergessen?",
+      "resend_subtitle": "Dein Aktivierungslink ist abgelaufen. Du kannst hier ein neuen anfordern.",
+      "reset": "Passwort zurücksetzen",
+      "reset-password": {
+        "text": "Gib nun ein neues Passwort ein, mit dem du dich zukünftig in deinem Gradido-Konto anmelden willst."
+      },
+      "send_now": "Jetzt senden",
+      "set": "Passwort festlegen",
+      "set-password": {
+        "text": "Speichere nun dein neues Passwort, mit dem du dich zukünftig in deinem Gradido-Konto anmelden kannst."
+      },
+      "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
+    },
+    "showAmountGDD": "Dein GDD Betrag ist sichtbar.",
+    "showAmountGDT": "Dein GDT Betrag ist sichtbar.",
+    "username": {
+      "change-success": "Dein Nutzername wurde erfolgreich geändert.",
+      "no-username": "Bitte gib einen Benutzernamen ein. Damit hilfst du anderen Benutzern dich zu finden, ohne deine E-Mail-Adresse preisgeben zu müssen."
+    },
+    "usernameInfo": "Kann nach dem Speichern nicht mehr geändert werden!"
+  },
+  "signin": "Anmelden",
+  "signup": "Registrieren",
+  "site": {
+    "forgotPassword": {
+      "heading": "Bitte gib deine E-Mail an mit der du bei Gradido angemeldet bist."
+    },
+    "resetPassword": {
+      "heading": "Trage bitte dein Passwort ein und wiederhole es."
+    },
+    "signup": {
+      "agree": "Ich stimme der <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a> zu.",
+      "dont_match": "Die Passwörter stimmen nicht überein.",
+      "lowercase": "Ein Kleinbuchstabe erforderlich.",
+      "minimum": "Mindestens 8 Zeichen.",
+      "no-whitespace": "Keine Leerzeichen und Tabulatoren",
+      "one_number": "Zahl erforderlich.",
+      "special-char": "Sonderzeichen erforderlich (z.B. _ oder ä)",
+      "uppercase": "Großbuchstabe erforderlich."
+    }
+  },
+  "status": "Status",
+  "submitted": "Eingereicht",
+  "success": "Erfolg",
+  "time": {
+    "days": "Tage",
+    "hours": "Stunden",
+    "minutes": "Minuten",
+    "month": "Monat",
+    "months": "Monate",
+    "seconds": "Sekunden",
+    "years": "Jahr"
+  },
+  "transaction": {
+    "lastTransactions": "Letzte Transaktionen",
+    "nullTransactions": "Du hast noch keine Transaktionen auf deinem Konto.",
+    "receiverDeleted": "Das Empfängerkonto wurde gelöscht",
+    "receiverNotFound": "Empfänger nicht gefunden",
+    "show_all": "Alle <strong>{count}</strong> Transaktionen ansehen"
+  },
+  "transaction-link": {
+    "send_you": "sendet dir"
+  },
+  "via_link": "über einen Link",
+  "welcome": "Willkommen in der Gemeinschaft"
+}
