@@ -46,21 +46,21 @@ export class Transaction extends BaseEntity {
   @Column({ name: 'recipient_account_id', type: 'int', unsigned: true, nullable: true })
   recipientAccountId?: number
 
-  @ManyToOne(() => Community, (community) => community.transactionSender, {
+  @ManyToOne(() => Community, (community) => community.transactions, {
     eager: true,
   })
-  @JoinColumn({ name: 'sender_community_id' })
-  senderCommunity: Community
+  @JoinColumn({ name: 'community_id' })
+  community: Community
 
-  @Column({ name: 'sender_community_id', type: 'int', unsigned: true })
-  senderCommunityId: number
+  @Column({ name: 'community_id', type: 'int', unsigned: true })
+  communityId: number
 
-  @ManyToOne(() => Community, (community) => community.transactionRecipient)
-  @JoinColumn({ name: 'recipient_community_id' })
-  recipientCommunity?: Community
+  @ManyToOne(() => Community, (community) => community.friendCommunitiesTransactions)
+  @JoinColumn({ name: 'other_community_id' })
+  otherCommunity?: Community
 
-  @Column({ name: 'recipient_community_id', type: 'int', unsigned: true, nullable: true })
-  recipientCommunityId?: number
+  @Column({ name: 'other_community_id', type: 'int', unsigned: true, nullable: true })
+  otherCommunityId?: number
 
   @Column({
     type: 'decimal',

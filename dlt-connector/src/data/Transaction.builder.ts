@@ -51,8 +51,8 @@ export class TransactionBuilder {
     return this.transaction
   }
 
-  public getSenderCommunity(): Community {
-    return this.transaction.senderCommunity
+  public getCommunity(): Community {
+    return this.transaction.community
   }
 
   public setSigningAccount(signingAccount: Account): TransactionBuilder {
@@ -65,21 +65,21 @@ export class TransactionBuilder {
     return this
   }
 
-  public setSenderCommunity(senderCommunity: Community): TransactionBuilder {
-    this.transaction.senderCommunity = senderCommunity
+  public setCommunity(community: Community): TransactionBuilder {
+    this.transaction.community = community
     return this
   }
 
-  public setRecipientCommunity(recipientCommunity?: Community): TransactionBuilder {
-    if (!this.transaction.senderCommunity) {
-      throw new LogError('Please set sender community first!')
+  public setOtherCommunity(otherCommunity?: Community): TransactionBuilder {
+    if (!this.transaction.community) {
+      throw new LogError('Please set community first!')
     }
 
-    this.transaction.recipientCommunity =
-      recipientCommunity &&
-      this.transaction.senderCommunity &&
-      this.transaction.senderCommunity.id !== recipientCommunity.id
-        ? recipientCommunity
+    this.transaction.otherCommunity =
+      otherCommunity &&
+      this.transaction.community &&
+      this.transaction.community.id !== otherCommunity.id
+        ? otherCommunity
         : undefined
     return this
   }
@@ -98,21 +98,19 @@ export class TransactionBuilder {
     senderUser: UserIdentifier,
   ): Promise<TransactionBuilder> {
     // get sender community
-    const senderCommunity = await CommunityRepository.getCommunityForUserIdentifier(senderUser)
-    if (!senderCommunity) {
-      throw new LogError("couldn't find sender community for transaction")
+    const community = await CommunityRepository.getCommunityForUserIdentifier(senderUser)
+    if (!community) {
+      throw new LogError("couldn't find community for transaction")
     }
-    return this.setSenderCommunity(senderCommunity)
+    return this.setCommunity(community)
   }
 
-  public async setRecipientCommunityFromRecipientUser(
+  public async setOtherCommunityFromRecipientUser(
     recipientUser: UserIdentifier,
   ): Promise<TransactionBuilder> {
     // get recipient community
-    const recipientCommunity = await CommunityRepository.getCommunityForUserIdentifier(
-      recipientUser,
-    )
-    return this.setRecipientCommunity(recipientCommunity)
+    const otherCommunity = await CommunityRepository.getCommunityForUserIdentifier(recipientUser)
+    return this.setOtherCommunity(otherCommunity)
   }
 
   public async fromGradidoTransactionSearchForAccounts(

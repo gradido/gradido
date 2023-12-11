@@ -4,11 +4,11 @@ import { Transaction } from '@entity/Transaction'
 
 @ObjectType()
 export class TransactionRecipe {
-  public constructor({ id, createdAt, type, senderCommunity }: Transaction) {
+  public constructor({ id, createdAt, type, community }: Transaction) {
     this.id = id
     this.createdAt = createdAt.toString()
     this.type = type
-    this.topic = senderCommunity.iotaTopic
+    this.topic = community.iotaTopic
   }
 
   @Field(() => Int)

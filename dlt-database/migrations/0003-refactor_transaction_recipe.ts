@@ -34,8 +34,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`paring_transaction_id\` bigint unsigned NULL DEFAULT NULL,
         \`signing_account_id\` int unsigned NULL DEFAULT NULL,
         \`recipient_account_id\` int unsigned NULL DEFAULT NULL,
-        \`sender_community_id\` int unsigned NOT NULL,
-        \`recipient_community_id\` int unsigned NULL DEFAULT NULL,
+        \`community_id\` int unsigned NOT NULL,
+        \`other_community_id\` int unsigned NULL DEFAULT NULL,
         \`amount\` decimal(40, 20) NULL DEFAULT NULL,
         \`account_balance_created_at\` decimal(40, 20) NOT NULL,
         \`type\` tinyint NOT NULL,
@@ -52,8 +52,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         UNIQUE KEY \`signature\` (\`signature\`),
         FOREIGN KEY (\`signing_account_id\`) REFERENCES accounts(id),
         FOREIGN KEY (\`recipient_account_id\`) REFERENCES accounts(id),
-        FOREIGN KEY (\`sender_community_id\`) REFERENCES communities(id),
-        FOREIGN KEY (\`recipient_community_id\`) REFERENCES communities(id)
+        FOREIGN KEY (\`community_id\`) REFERENCES communities(id),
+        FOREIGN KEY (\`other_community_id\`) REFERENCES communities(id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `,
   )

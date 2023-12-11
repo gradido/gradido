@@ -47,12 +47,12 @@ export class TransactionRecipeRole {
       .setBackendTransactionId(transactionDraft.backendTransactionId)
     await this.transactionBuilder.setSenderCommunityFromSenderUser(senderUser)
     if (recipientUser.communityUuid !== senderUser.communityUuid) {
-      await this.transactionBuilder.setRecipientCommunityFromRecipientUser(recipientUser)
+      await this.transactionBuilder.setOtherCommunityFromRecipientUser(recipientUser)
     }
     const transaction = this.transactionBuilder.getTransaction()
     // sign
     this.transactionBuilder.setSignature(
-      sign(transaction.bodyBytes, new KeyPair(this.transactionBuilder.getSenderCommunity())),
+      sign(transaction.bodyBytes, new KeyPair(this.transactionBuilder.getCommunity())),
     )
     return this
   }
