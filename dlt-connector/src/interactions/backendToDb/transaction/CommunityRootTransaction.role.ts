@@ -17,7 +17,7 @@ export class CommunityRootTransactionRole extends TransactionRecipeRole {
       .fromCommunityDraft(communityDraft, community)
       .build()
     // build transaction entity
-    this.transactionBuilder.fromTransactionBody(transactionBody).setSenderCommunity(community)
+    this.transactionBuilder.fromTransactionBody(transactionBody).setCommunity(community)
     const transaction = this.transactionBuilder.getTransaction()
     // sign
     this.transactionBuilder.setSignature(sign(transaction.bodyBytes, new KeyPair(community)))

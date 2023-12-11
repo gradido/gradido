@@ -56,9 +56,9 @@ export class Community extends BaseEntity {
   @JoinColumn({ name: 'community_id' })
   accountCommunities: AccountCommunity[]
 
-  @OneToMany(() => Transaction, (recipe) => recipe.senderCommunity)
-  transactionSender?: Transaction[]
+  @OneToMany(() => Transaction, (transaction) => transaction.community)
+  transactions?: Transaction[]
 
-  @OneToMany(() => Transaction, (recipe) => recipe.recipientCommunity)
-  transactionRecipient?: Transaction[]
+  @OneToMany(() => Transaction, (transaction) => transaction.otherCommunity)
+  friendCommunitiesTransactions?: Transaction[]
 }

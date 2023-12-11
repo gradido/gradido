@@ -79,7 +79,7 @@ export class Connection {
     if (!dbVersion[0].fileName.includes(DB_VERSION)) {
       throw new LogError(
         `Wrong database version detected - the backend requires '${DB_VERSION}' but found '${
-          dbVersion[0] ?? 'None'
+          dbVersion[0].fileName ?? 'None'
         }`,
       )
     }

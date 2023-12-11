@@ -10,7 +10,7 @@ Decimal.set({
 
 const constants = {
   LOG4JS_CONFIG: 'log4js-config.json',
-  DB_VERSION: '0003-refactor_transaction_recipe.js',
+  DB_VERSION: '0003-refactor_transaction_recipe',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
