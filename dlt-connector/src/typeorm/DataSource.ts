@@ -75,7 +75,6 @@ export class Connection {
     if (!dbVersion || dbVersion.length < 1) {
       throw new LogError('found no db version in migrations, could dlt-database run successfully?')
     }
-    console.log(dbVersion[0].fileName)
     //  return dbVersion ? dbVersion.fileName : null
     if (!dbVersion[0].fileName.includes(DB_VERSION)) {
       throw new LogError(
