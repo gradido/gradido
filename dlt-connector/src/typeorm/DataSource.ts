@@ -71,12 +71,15 @@ export class Connection {
   }
 
   async checkDBVersion(DB_VERSION: string): Promise<void> {
-    const dbVersion = await Migration.findOneOrFail({ order: { version: 'DESC' } })
+    const dbVersion = await Migration.find({ order: { version: 'DESC' }, take: 1 })
+    if (!dbVersion || dbVersion.length < 1) {
+      throw new LogError('found no db version in migrations, could dlt-database run successfully?')
+    }
     //  return dbVersion ? dbVersion.fileName : null
-    if (!dbVersion.fileName.includes(DB_VERSION)) {
+    if (!dbVersion[0].fileName.includes(DB_VERSION)) {
       throw new LogError(
         `Wrong database version detected - the backend requires '${DB_VERSION}' but found '${
-          dbVersion ?? 'None'
+          dbVersion[0] ?? 'None'
         }`,
       )
     }

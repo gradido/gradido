@@ -92,6 +92,19 @@ async function getTransaction(
   )
 }
 
+async function getLastTransaction(iotaTopic: string): Promise<ConfirmedTransaction | undefined> {
+  logger.info('call getlasttransaction on Node Server via jsonrpc 2.0')
+  const response = await client.exec<ConfirmedTransactionResponse>('getlasttransaction', {
+    format: 'base64',
+    communityId: iotaTopic,
+  })
+  return resolveResponse(response, (result: ConfirmedTransactionResponse) =>
+    result.transaction && result.transaction !== ''
+      ? ConfirmedTransaction.fromBase64(result.transaction)
+      : undefined,
+  )
+}
+
 async function getAddressType(pubkey: Buffer, iotaTopic: string): Promise<AddressType | undefined> {
   logger.info('call getaddresstype on Node Server via jsonrpc 2.0')
   const response = await client.exec<AddressTypeResult>('getaddresstype', {
@@ -103,4 +116,4 @@ async function getAddressType(pubkey: Buffer, iotaTopic: string): Promise<Addres
   )
 }
 
-export { getTransaction, getTransactions, getAddressType }
+export { getTransaction, getLastTransaction, getTransactions, getAddressType }

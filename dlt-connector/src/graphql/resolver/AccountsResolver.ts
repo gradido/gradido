@@ -83,9 +83,6 @@ export class AccountResolver {
 
       let result: TransactionResult
       try {
-        if (!user.hasId()) {
-          await queryRunner.manager.save(user)
-        }
         await queryRunner.manager.save(account)
         await queryRunner.manager.save(transaction)
         await queryRunner.commitTransaction()

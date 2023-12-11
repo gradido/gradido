@@ -5,7 +5,6 @@ import { DataSource as DBDataSource } from '@dbTools/typeorm'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import express, { Express } from 'express'
-
 // graphql
 import { Logger } from 'log4js'
 

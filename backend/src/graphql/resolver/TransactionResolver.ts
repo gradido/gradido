@@ -560,6 +560,12 @@ export class TransactionResolver {
         balance,
         decay.balance.sub(balance).abs(),
       )
+    } else {
+      console.log(
+        'input balance: %s, calculated balance: %s',
+        confirmedTransactionInput.balance.toString(),
+        decay.balance.toString(),
+      )
     }
     if (transaction.dltTransaction) {
       const dltTx = transaction.dltTransaction

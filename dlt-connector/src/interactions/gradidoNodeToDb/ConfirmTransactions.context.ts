@@ -11,8 +11,7 @@
  */
 
 import { Account } from '@entity/Account'
-import { Community } from '@entity/Community'
-import { User } from '@entity/User'
+import { Transaction } from '@entity/Transaction'
 
 import { AccountRepository } from '@/data/Account.repository'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
@@ -22,10 +21,10 @@ import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
 
 import { AbstractConfirm } from './AbstractConfirm.role'
-import { ConfirmOrCreateAccountRole } from './ConfirmOrCreateAccount.role'
 import { ConfirmBackendRole } from './ConfirmBackend.role'
 import { ConfirmCommunityRole } from './ConfirmCommunity.role'
 import { ConfirmedTransactionRole } from './ConfirmedTransaction.role'
+import { ConfirmOrCreateAccountRole } from './ConfirmOrCreateAccount.role'
 import { ExistingTransactionRole } from './ExistingTransactions.role'
 import { UpdateBalanceRole } from './UpdateBalance.role'
 
@@ -42,9 +41,13 @@ export class ConfirmTransactionsContext {
     }, new Map<string, ConfirmedTransaction>())
   }
 
-  public async run(): Promise<void> {
+  /**
+   *
+   * @returns last stored transaction nr
+   */
+  public async run(): Promise<number> {
     if (!this.transactions.length) {
-      return
+      return -1
     }
 
     // load existing transaction from db
@@ -54,20 +57,31 @@ export class ConfirmTransactionsContext {
       )
     // create non existing transaction from ConfirmedTransaction Protobuf Object
     const newTransactions = await Promise.all(
-      missingMessageIdsHex.map(this.createMissingTransaction),
+      missingMessageIdsHex.map(this.createMissingTransaction.bind(this)),
     )
     // remove confirmed existing transactions, upgrade existing Transactions to ConfirmedTransactions, fuse arrays together
-    const allTransactionRecipe = newTransactions.concat(
+    const allTransactions = newTransactions.concat(
       existingTransaction.filter(this.isNotConfirmed).map(this.updateExistingTransactions),
     )
     // update accounts, user, communities and send backend confirmation requests
     // updateAffectedTablesAndBackend must be called in order, no parallelization here
-    allTransactionRecipe.forEach(async (value: ConfirmedTransactionRole, index: number) => {
+    allTransactions.forEach(async (value: ConfirmedTransactionRole, index: number) => {
       logger.debug('foreach transactions index: ', index)
       await this.updateAffectedTablesAndBackend(value)
     })
     // save changed accounts and users (via cascading) with one db query
     await Account.save(this.accounts)
+    // finally save changed and new transactions
+    await Transaction.save(
+      allTransactions.map((value: ConfirmedTransactionRole) => value.getTransaction()),
+    )
+    const lastTransactionNr = allTransactions[allTransactions.length - 1].getTransaction().nr
+    if (!lastTransactionNr) {
+      throw new LogError(
+        'something went wrong, transaction nr missing, but it should been checked before',
+      )
+    }
+    return lastTransactionNr
   }
 
   public addForSave(entity: Account) {
@@ -120,9 +134,8 @@ export class ConfirmTransactionsContext {
     logger.info('create transaction from confirmed transaction proto object', {
       iotaMessageId: messageIdHex,
     })
-    return await ConfirmedTransactionRole.createFromConfirmedTransaction(
-      this.getConfirmedTransaction(messageIdHex),
-    )
+    const confirmedTransaction = this.getConfirmedTransaction(messageIdHex)
+    return await ConfirmedTransactionRole.createFromConfirmedTransaction(confirmedTransaction)
   }
 
   private isNotConfirmed(transaction: ExistingTransactionRole): boolean {
@@ -152,7 +165,7 @@ export class ConfirmTransactionsContext {
     const transactionType = transactionBody.getTransactionType()
     let account = confirmedTransactionRole.getTransaction().signingAccount
     // try to load account if not already loaded with transaction
-    if (!account) { 
+    if (!account) {
       account = await AccountRepository.findByPublicKey(gradidoTransaction.sigMap.sigPair[0].pubKey)
       confirmedTransactionRole.getTransaction().signingAccount = account
     }

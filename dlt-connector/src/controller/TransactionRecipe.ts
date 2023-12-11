@@ -1,9 +1,7 @@
 import { Account } from '@entity/Account'
 import { Transaction } from '@entity/Transaction'
-import { In, IsNull } from 'typeorm'
+import { IsNull } from 'typeorm'
 
-import { AccountRepository } from '@/data/Account.repository'
-import { CommunityRepository } from '@/data/Community.repository'
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { SignaturePair } from '@/data/proto/3_3/SignaturePair'
 import { TransactionBody } from '@/data/proto/3_3/TransactionBody'

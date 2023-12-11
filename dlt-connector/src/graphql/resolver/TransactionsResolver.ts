@@ -1,28 +1,21 @@
 import { InvalidTransaction } from '@entity/InvalidTransaction'
-import { Resolver, Arg, Mutation } from 'type-graphql'
-
 import { TransactionDraft } from '@input/TransactionDraft'
+import { Resolver, Arg, Mutation } from 'type-graphql'
 
 import { findByMessageId } from '@/controller/TransactionRecipe'
 import { TransactionsManager } from '@/controller/TransactionsManager'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { TransactionRepository } from '@/data/Transaction.repository'
 import { CreateTransactionRecipeContext } from '@/interactions/backendToDb/transaction/CreateTransationRecipe.context'
-
+import { ConfirmTransactionsContext } from '@/interactions/gradidoNodeToDb/ConfirmTransactions.context'
 import { logger } from '@/server/logger'
+
 import { TransactionErrorType } from '../enum/TransactionErrorType'
+import { ConfirmedTransactionInput } from '../input/ConfirmedTransactionInput'
+import { InvalidTransactionInput } from '../input/InvalidTransactionInput'
 import { TransactionError } from '../model/TransactionError'
 import { TransactionRecipe } from '../model/TransactionRecipe'
-
-
-
-
-import { ConfirmedTransactionInput } from '../input/ConfirmedTransactionInput'
-
-
-import { InvalidTransactionInput } from '../input/InvalidTransactionInput'
 import { TransactionResult } from '../model/TransactionResult'
-import { ConfirmTransactionsContext } from '@/interactions/gradidoNodeToDb/ConfirmTransactions.context'
 
 @Resolver()
 export class TransactionResolver {
@@ -64,7 +57,8 @@ export class TransactionResolver {
   async newGradidoBlock(
     @Arg('data') { transactionBase64, iotaTopic }: ConfirmedTransactionInput,
   ): Promise<TransactionResult> {
-    if (!TransactionsManager.getInstance().isTopicExist(iotaTopic)) {
+    const transactionsManager = TransactionsManager.getInstance()
+    if (!transactionsManager.isTopicExist(iotaTopic)) {
       return new TransactionResult(
         new TransactionError(TransactionErrorType.NOT_FOUND, 'topic not found'),
       )
@@ -73,7 +67,13 @@ export class TransactionResolver {
       logger.debug('transaction in base64', transactionBase64)
       const confirmedTransaction = ConfirmedTransaction.fromBase64(transactionBase64)
       logger.debug('confirmed Transaction from NodeServer', confirmedTransaction.toJSON())
-      await (new ConfirmTransactionsContext([confirmedTransaction], iotaTopic)).run()
+      if (!transactionsManager.lockTopic(iotaTopic)) {
+        transactionsManager.addPendingConfirmedTransaction(iotaTopic, confirmedTransaction)
+        return new TransactionResult()
+      } else {
+        await new ConfirmTransactionsContext([confirmedTransaction], iotaTopic).run()
+        transactionsManager.unlockTopic(iotaTopic)
+      }
     } catch (error) {
       if (error instanceof TransactionError) {
         return new TransactionResult(error)

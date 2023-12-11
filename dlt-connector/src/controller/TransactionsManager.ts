@@ -5,19 +5,26 @@
  * the unique singleton instance.
  */
 
-import { getTransactions } from '@/client/GradidoNode'
+import { getLastTransaction, getTransactions } from '@/client/GradidoNode'
 import { receiveAllMessagesForTopic } from '@/client/IotaClient'
 import { CommunityRepository } from '@/data/Community.repository'
+import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { ConfirmTransactionsContext } from '@/interactions/gradidoNodeToDb/ConfirmTransactions.context'
+import { LogError } from '@/server/LogError'
 import { logger } from '@/server/logger'
+import { Mutex } from '@/utils/Mutex'
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class TransactionsManager {
   // eslint-disable-next-line no-use-before-define
   private static instance: TransactionsManager
   private topicsForListening: string[] = []
+  private topicsLocked: Set<string> = new Set<string>()
+  private lockTopicMutex = new Mutex()
+  private pendingConfirmedTransactions: { [key: string]: ConfirmedTransaction[] } = {}
+  private pendingConfirmedTransactionsMutex = new Mutex()
   private homeCommunityTopic: string
 
   /**
@@ -51,6 +58,47 @@ export class TransactionsManager {
     )
   }
 
+  public isTopicLocked(topic: string): boolean {
+    return this.topicsLocked.has(topic)
+  }
+
+  /**
+   *
+   * @param topic
+   * @returns true if lock was successful and false if already locked
+   */
+  public async lockTopic(topic: string): Promise<boolean> {
+    await this.lockTopicMutex.lock()
+    try {
+      if (this.topicsLocked.has(topic)) {
+        return false
+      }
+      this.topicsLocked.add(topic)
+    } finally {
+      this.lockTopicMutex.unlock()
+    }
+    return true
+  }
+
+  public unlockTopic(topic: string): void {
+    this.topicsLocked.delete(topic)
+  }
+
+  public async addPendingConfirmedTransaction(
+    topic: string,
+    confirmedTransaction: ConfirmedTransaction,
+  ): Promise<void> {
+    await this.pendingConfirmedTransactionsMutex.lock()
+    try {
+      if (!this.pendingConfirmedTransactions[topic]) {
+        this.pendingConfirmedTransactions[topic] = []
+      }
+      this.pendingConfirmedTransactions[topic].push(confirmedTransaction)
+    } finally {
+      this.pendingConfirmedTransactionsMutex.unlock()
+    }
+  }
+
   /**
    * add topic to list and warmup, load transaction from node server (he must already listen to this topic)
    * TODO: implement logic in node js rather than using GradidoNode
@@ -62,19 +110,59 @@ export class TransactionsManager {
       throw new TransactionError(TransactionErrorType.ALREADY_EXIST, 'topic already exist')
     }
     this.topicsForListening.push(newTopic)
+    // transactions must be processed in order so we make sure only one process is currently importing transactions for this topic
+    // we cannot move this mechanisms into ConfirmTransactionsContext because between importing batch of transactions a future transaction
+    // could be slip by
+    this.lockTopic(newTopic)
     let count = 0
     let cursor = 0
-    do {
-      try {
-        const confirmedTransactions = await getTransactions(cursor, 100, newTopic)
-        count = confirmedTransactions.length
-        cursor += count
-        await (new ConfirmTransactionsContext(confirmedTransactions, newTopic)).run()
-      } catch (error) {
-        logger.error('cannot load or confirm transactions from node server')
-        throw error
+    let lastStoredTransactionNr = 0
+    let lastTransactionOnNodeNr = 0
+    try {
+      do {
+        try {
+          const confirmedTransactions = await getTransactions(cursor, 100, newTopic)
+          count = confirmedTransactions.length
+          cursor += count
+          lastStoredTransactionNr = await new ConfirmTransactionsContext(
+            confirmedTransactions,
+            newTopic,
+          ).run()
+          const lastTransactionOnNode = await getLastTransaction(newTopic)
+          if (lastTransactionOnNode) {
+            lastTransactionOnNodeNr = lastTransactionOnNode.id.toNumber()
+            // comp return 0 if identical
+            if (lastTransactionOnNode.id.comp(lastTransactionOnNodeNr) !== 0) {
+              throw new LogError('type overflow, number is not longer enough for transaction nr')
+            }
+          }
+        } catch (error) {
+          logger.error('cannot load or confirm transactions from node server')
+          throw error
+        }
+      } while (count === 100 || lastTransactionOnNodeNr > lastStoredTransactionNr)
+      // check and maybe proceed transaction which where added while we were busy importing transactions from node server
+      let pendingConfirmedTransaction: ConfirmedTransaction | undefined
+      await this.pendingConfirmedTransactionsMutex.lock()
+      while (this.pendingConfirmedTransactions[newTopic].length) {
+        try {
+          pendingConfirmedTransaction = this.pendingConfirmedTransactions[newTopic].shift()
+        } finally {
+          this.pendingConfirmedTransactionsMutex.unlock()
+        }
+        if (!pendingConfirmedTransaction) {
+          throw new LogError('empty confirmed transaction in pending array')
+        }
+        if (pendingConfirmedTransaction.id.toNumber() <= lastStoredTransactionNr) {
+          continue
+        }
+        await new ConfirmTransactionsContext([pendingConfirmedTransaction], newTopic).run()
+        await this.pendingConfirmedTransactionsMutex.lock()
       }
-    } while (count === 100)
+    } finally {
+      this.unlockTopic(newTopic)
+      this.pendingConfirmedTransactionsMutex.unlock()
+    }
   }
 
   public async isTopicIsEmpty(iotaTopic: Buffer): Promise<boolean> {

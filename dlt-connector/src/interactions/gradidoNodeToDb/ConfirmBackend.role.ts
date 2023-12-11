@@ -5,7 +5,6 @@ import { logger } from '@/server/logger'
 import { AbstractConfirm } from './AbstractConfirm.role'
 
 export class ConfirmBackendRole extends AbstractConfirm {
-  
   public async confirm(): Promise<void> {
     const backend = BackendClient.getInstance()
     if (!backend) {
@@ -13,7 +12,6 @@ export class ConfirmBackendRole extends AbstractConfirm {
     }
     try {
       await backend.confirmTransaction(this.confirmedTransactionRole.getTransaction())
-      
     } catch (error) {
       logger.error(error)
     }

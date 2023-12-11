@@ -1,14 +1,15 @@
+import { Account } from '@entity/Account'
+import { User } from '@entity/User'
+
+import { AccountFactory } from '@/data/Account.factory'
 import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { RegisterAddress } from '@/data/proto/3_3/RegisterAddress'
 import { LogError } from '@/server/LogError'
 
 import { AbstractConfirm } from './AbstractConfirm.role'
 import { ConfirmedTransactionRole } from './ConfirmedTransaction.role'
-import { ConfirmTransactionsContext } from './ConfirmTransactions.context'
 import { ConfirmOrCreateUserRole } from './ConfirmOrCreateUser.role'
-import { Account } from '@entity/Account'
-import { AccountFactory } from '@/data/Account.factory'
-import { User } from '@entity/User'
+import { ConfirmTransactionsContext } from './ConfirmTransactions.context'
 
 export class ConfirmOrCreateAccountRole extends AbstractConfirm {
   public constructor(
