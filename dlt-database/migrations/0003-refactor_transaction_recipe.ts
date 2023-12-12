@@ -37,7 +37,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`community_id\` int unsigned NOT NULL,
         \`other_community_id\` int unsigned NULL DEFAULT NULL,
         \`amount\` decimal(40, 20) NULL DEFAULT NULL,
-        \`account_balance_created_at\` decimal(40, 20) NOT NULL,
+        \`account_balance_created_at\` decimal(40, 20) NULL DEFAULT 0.00000000000000000000,
         \`type\` tinyint NOT NULL,
         \`created_at\` datetime(3) NOT NULL,
         \`body_bytes\` blob NOT NULL,
