@@ -62,6 +62,7 @@ export class ConfirmOrCreateAccountRole extends AbstractConfirm {
       throw new LogError('Missing Account')
     }
     account.confirmedAt = transaction.confirmedAt
+    transaction.signingAccount = account
     this.confirmTransactionsContext.addForSave(account)
   }
 }

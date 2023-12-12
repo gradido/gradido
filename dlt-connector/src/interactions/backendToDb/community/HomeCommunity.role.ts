@@ -5,15 +5,15 @@ import { AccountFactory } from '@/data/Account.factory'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
+import { CommunityLoggingView } from '@/logging/CommunityLogging.view'
 import { logger } from '@/logging/logger'
+import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { KeyManager } from '@/manager/KeyManager'
 import { getDataSource } from '@/typeorm/DataSource'
 
 import { CreateTransactionRecipeContext } from '../transaction/CreateTransationRecipe.context'
 
 import { CommunityRole } from './Community.role'
-import { CommunityLoggingView } from '@/logging/CommunityLogging.view'
-import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 
 export class HomeCommunityRole extends CommunityRole {
   private transactionRecipe: Transaction

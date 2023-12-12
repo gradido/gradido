@@ -1,6 +1,6 @@
 import { Transaction } from '@entity/Transaction'
 
-import { TransactionType, getTransactionTypeEnumValue } from '@/graphql/enum/TransactionType'
+import { TransactionType } from '@/graphql/enum/TransactionType'
 import { logger } from '@/logging/logger'
 import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
@@ -17,9 +17,19 @@ export abstract class AbstractTransactionRole {
     // community root hasn't signing account, because it is his self signing account
     if (
       this.self.type !== TransactionType.COMMUNITY_ROOT &&
-      (!this.self.signingAccountId || this.self.signingAccountId === 0)
+      (!this.self.signingAccountId || this.self.signingAccountId === 0) &&
+      !this.self.signingAccount
     ) {
       throw new LogError('missing singing account')
+    }
+    if (
+      [TransactionType.GRADIDO_CREATION, TransactionType.GRADIDO_TRANSFER].includes(
+        this.self.type,
+      ) &&
+      (!this.self.recipientAccountId || this.self.recipientAccountId === 0) &&
+      !this.self.recipientAccount
+    ) {
+      throw new LogError('missing recipient account')
     }
     if (!this.self.communityId || this.self.communityId === 0) {
       throw new LogError('missing community id')
@@ -41,5 +51,12 @@ export abstract class AbstractTransactionRole {
 
   public getTransaction(): Transaction {
     return this.self
+  }
+
+  public sortByNr(other: AbstractTransactionRole): number {
+    if (!this.self.nr || !other.self.nr) {
+      throw new LogError('missing nr for sorting')
+    }
+    return this.self.nr - other.self.nr
   }
 }

@@ -6,6 +6,7 @@ import { Decimal } from 'decimal.js-light'
 import { TransactionsManager } from '@/controller/TransactionsManager'
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
+import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
 import { sign } from '@/utils/cryptoHelper'
 import {
@@ -141,6 +142,12 @@ export class TransactionBuilder {
     this.transaction.recipientAccount ??= await AccountRepository.findByPublicKey(
       transactionBody.getRecipientPublicKey(),
     )
+    if (transactionBody.creation && this.transaction.recipientAccount) {
+      logger.error(
+        'missing recipient account',
+        transactionBody.getRecipientPublicKey()?.toString('hex'),
+      )
+    }
     this.transaction.signature = Buffer.from(firstSigPair.signature)
 
     return this

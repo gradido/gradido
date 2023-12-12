@@ -3,11 +3,11 @@ import { User } from '@entity/User'
 import { RegisterAddress } from '@/data/proto/3_3/RegisterAddress'
 import { UserFactory } from '@/data/User.factory'
 import { UserRepository } from '@/data/User.repository'
+import { LogError } from '@/server/LogError'
 
 import { AbstractConfirm } from './AbstractConfirm.role'
 import { ConfirmedTransactionRole } from './ConfirmedTransaction.role'
 import { ConfirmTransactionsContext } from './ConfirmTransactions.context'
-import { LogError } from '@/server/LogError'
 
 export class ConfirmOrCreateUserRole extends AbstractConfirm {
   private user: User | null

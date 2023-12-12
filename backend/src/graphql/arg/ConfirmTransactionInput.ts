@@ -7,9 +7,9 @@ import { IsPositiveDecimal } from '@/graphql/validator/Decimal'
 
 @InputType()
 export class ConfirmedTransactionInput {
-  @Field(() => Int)
+  @Field(() => Int, { nullable: true })
   @IsInt()
-  transactionId: number
+  transactionId?: number | null
 
   @Field(() => String)
   @IsString()

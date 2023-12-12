@@ -42,12 +42,16 @@ export class ConfirmedTransactionRole extends AbstractTransactionRole {
     return new ConfirmedTransactionRole(transaction)
   }
 
-  public async calculateCreatedAtBalance(account: Account): Promise<void> {
-    const accountLogic = new AccountLogic(account)
-    this.self.accountBalanceCreatedAt = accountLogic.calculateBalanceCreatedAt(
-      this.self.createdAt,
-      this.self.amount ?? new Decimal(0),
-    )
+  public async calculateCreatedAtBalance(account?: Account): Promise<void> {
+    if (account) {
+      const accountLogic = new AccountLogic(account)
+      this.self.accountBalanceCreatedAt = accountLogic.calculateBalanceCreatedAt(
+        this.self.createdAt,
+        this.self.amount ?? new Decimal(0),
+      )
+    } else {
+      this.self.accountBalanceCreatedAt = new Decimal(0)
+    }
   }
 
   // check if it is really a valid confirmed transaction
@@ -61,9 +65,6 @@ export class ConfirmedTransactionRole extends AbstractTransactionRole {
     }
     if (!this.self.nr || this.self.nr <= 0) {
       throw new LogError('nr is missing')
-    }
-    if (!this.self.iotaMilestone || this.self.iotaMilestone === 0) {
-      throw new LogError('missing iota milestone')
     }
     if (!this.self.confirmedAt) {
       throw new LogError('missing confirmed at date')

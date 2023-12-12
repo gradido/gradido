@@ -51,6 +51,7 @@ import {
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { storeForeignUser } from './util/storeForeignUser'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
+import { DltTransaction } from '@entity/DltTransaction'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -528,14 +529,31 @@ export class TransactionResolver {
     // because dlt-connector store only the sending transaction
     // confirm both parts stored here in backend db, sending and receiving, linked together by id
     logger.debug('confirmTransaction', confirmedTransactionInput)
-    const transaction = await dbTransaction.findOne({
-      where: { id: confirmedTransactionInput.transactionId },
-      relations: {
-        dltTransaction: true,
-      },
-    })
+    let transaction: dbTransaction | null = null
+    if (confirmedTransactionInput.transactionId) {
+      transaction = await dbTransaction.findOne({
+        where: { id: confirmedTransactionInput.transactionId },
+        relations: {
+          dltTransaction: true,
+        },
+      })
+    } else if (confirmedTransactionInput.iotaMessageId) {
+      const dltTransaction = await DltTransaction.findOne({
+        where: { messageId: confirmedTransactionInput.iotaMessageId },
+        relations: {
+          transaction: true,
+        },
+      })
+      if (dltTransaction?.transaction) {
+        transaction = dltTransaction.transaction
+        transaction.dltTransaction = dltTransaction
+      }
+    }
     if (!transaction) {
-      throw new LogError('transaction with id not found', confirmedTransactionInput.transactionId)
+      throw new LogError('transaction not found', {
+        id: confirmedTransactionInput.transactionId,
+        messageId: confirmedTransactionInput.iotaMessageId,
+      })
     }
     if (confirmedTransactionInput.gradidoId !== transaction.userGradidoID) {
       throw new LogError('user gradido id differ')

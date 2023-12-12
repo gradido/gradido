@@ -6,8 +6,9 @@ import { gql, GraphQLClient } from 'graphql-request'
 import { CONFIG } from '@/config'
 import { TransactionLogic } from '@/data/Transaction.logic'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import { LogError } from '@/server/LogError'
 import { logger } from '@/logging/logger'
+import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
+import { LogError } from '@/server/LogError'
 
 const confirmTransaction = gql`
   mutation ($input: ConfirmedTransactionInput!) {
@@ -80,8 +81,7 @@ export class BackendClient {
   }
 
   public async confirmTransaction(confirmedTransaction: Transaction): Promise<void> {
-    // TODO: use view or logging print class
-    logger.info('confirmTransaction to backend', confirmedTransaction)
+    logger.debug('confirmTransaction to backend', new TransactionLoggingView(confirmedTransaction))
     // force parse to int, typeorm return id as string even it is typed as numeric
     let transactionId = confirmedTransaction.backendTransactionId
     if (typeof confirmedTransaction.backendTransactionId === 'string') {
@@ -99,12 +99,22 @@ export class BackendClient {
     const balanceAccount = transactionLogic.getBalanceAccount()
     const input = {
       transactionId,
-      iotaMessageId: confirmedTransaction.iotaMessageId?.toString('hex'),
+      iotaMessageId: confirmedTransaction.iotaMessageId
+        ? Buffer.from(confirmedTransaction.iotaMessageId).toString('hex')
+        : undefined,
       gradidoId: balanceAccount?.user?.gradidoID,
       balance: confirmedTransaction.accountBalanceCreatedAt,
       balanceDate: confirmedTransaction.confirmedAt?.toString(),
     }
-    logger.debug('call confirmTransaction with parameter', input)
+    logger.debug('call confirmTransaction with parameter', {
+      transactionId,
+      iotaMessageId: confirmedTransaction.iotaMessageId
+        ? Buffer.from(confirmedTransaction.iotaMessageId).toString('hex')
+        : undefined,
+      gradidoId: balanceAccount?.user?.gradidoID,
+      balance: confirmedTransaction.accountBalanceCreatedAt?.toString(),
+      balanceDate: confirmedTransaction.confirmedAt?.toISOString(),
+    })
     const { errors } = await this.client.rawRequest<boolean>(confirmTransaction, { input })
     if (errors) {
       throw new LogError('error confirm transaction with: %s, details: %s', errors)

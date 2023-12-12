@@ -19,8 +19,8 @@ import { CommunityRepository } from '@/data/Community.repository'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { TransactionRepository } from '@/data/Transaction.repository'
 import { TransactionType } from '@/graphql/enum/TransactionType'
+import { AccountLoggingView } from '@/logging/AccountLogging.view'
 import { logger } from '@/logging/logger'
-import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
 
 import { AbstractConfirm } from './AbstractConfirm.role'
@@ -31,9 +31,16 @@ import { ConfirmOrCreateAccountRole } from './ConfirmOrCreateAccount.role'
 import { ExistingTransactionRole } from './ExistingTransactions.role'
 import { UpdateBalanceRole } from './UpdateBalance.role'
 
+export interface TransactionSet {
+  protoConfirmedTransaction: ConfirmedTransaction
+  confirmedTransactionRole: ConfirmedTransactionRole
+}
+
 export class ConfirmTransactionsContext {
   // confirmed transactions put into map with message id (hex) as key for faster work access
   private transactionsByMessageId: Map<string, ConfirmedTransaction>
+
+  private transactionSets: TransactionSet[] = []
   // entities which could be updated for storing as bulk
   private accounts: Account[] = []
 
@@ -73,12 +80,28 @@ export class ConfirmTransactionsContext {
     const allTransactions = newTransactions.concat(
       existingTransaction.filter(this.isNotConfirmed).map(this.updateExistingTransactions),
     )
+    // make sure, order is correct, transactions must be proceed in sequence
+    allTransactions.sort((a, b) => a.sortByNr(b))
+    this.transactionSets = allTransactions.map((value) => {
+      return {
+        protoConfirmedTransaction: this.getConfirmedTransaction(value.getIotaMessageIdHex()),
+        confirmedTransactionRole: value,
+      }
+    })
+
     // update accounts, user, communities and send backend confirmation requests
     // updateAffectedTablesAndBackend must be called in order, no parallelization here
-    allTransactions.forEach(async (value: ConfirmedTransactionRole, index: number) => {
-      logger.debug('foreach transactions ', { index, nr: value.getTransaction().nr })
+    // use for loop because needs to run in sequence
+    let index = 0
+    for await (const value of this.transactionSets) {
+      logger.debug('foreach transactions ', {
+        index,
+        nr: value.confirmedTransactionRole.getTransaction().nr,
+      })
       await this.updateAffectedTablesAndBackend(value)
-    })
+      index++
+    }
+
     // save changed accounts and users (via cascading) with one db query
     if (this.accounts.length) {
       await Account.save(this.accounts)
@@ -93,6 +116,7 @@ export class ConfirmTransactionsContext {
   }
 
   public addForSave(entity: Account) {
+    logger.debug('add new or changed account for saving', new AccountLoggingView(entity))
     this.accounts.push(entity)
   }
 
@@ -200,11 +224,9 @@ export class ConfirmTransactionsContext {
     return existingTransaction.setOrCheck(this.getConfirmedTransaction(messageIdHex))
   }
 
-  private async updateAffectedTablesAndBackend(
-    confirmedTransactionRole: ConfirmedTransactionRole,
-  ): Promise<void> {
-    const messageIdHex = confirmedTransactionRole.getIotaMessageIdHex()
-    const confirmedTransaction = this.getConfirmedTransaction(messageIdHex)
+  private async updateAffectedTablesAndBackend(transactionSet: TransactionSet): Promise<void> {
+    const confirmedTransaction = transactionSet.protoConfirmedTransaction
+    const confirmedTransactionRole = transactionSet.confirmedTransactionRole
     const gradidoTransaction = confirmedTransaction.transaction
     const transactionBody = gradidoTransaction.getTransactionBody()
     const transactionType = transactionBody.getTransactionType()
@@ -220,10 +242,7 @@ export class ConfirmTransactionsContext {
     // calculate balance based on creation date
     // balance based on confirmation date already calculated on GradidoNode
     // update always if account exist, even for transaction which don't move gradidos around
-    if (account) {
-      confirmedTransactionRole.calculateCreatedAtBalance(account)
-    }
-    confirmedTransactionRole.validate()
+    confirmedTransactionRole.calculateCreatedAtBalance(account)
     // tell backend that transaction is confirmed
     if (
       [
@@ -239,9 +258,13 @@ export class ConfirmTransactionsContext {
     let abstractConfirm: AbstractConfirm | null = null
     switch (transactionType) {
       case TransactionType.GRADIDO_CREATION:
+        // use recipient account for creation
+        account = confirmedTransactionRole.getTransaction().recipientAccount
+      // eslint-disable-next-line no-fallthrough
       case TransactionType.GRADIDO_TRANSFER:
+        // use signer/sender account for transfer transaction, balance in confirmedTransaction is only for sender
         if (!account) {
-          throw new LogError('missing recipient account for creation or transfer transaction')
+          throw new LogError('missing account for creation or transfer transaction')
         }
         // update balance fields in account entity
         abstractConfirm = new UpdateBalanceRole(confirmedTransactionRole, this, account)
@@ -270,5 +293,6 @@ export class ConfirmTransactionsContext {
         throw new LogError('not implemented yet')
     }
     await abstractConfirm.confirm()
+    confirmedTransactionRole.validate()
   }
 }
