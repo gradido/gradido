@@ -8,11 +8,15 @@ export enum AddressType {
   CRYPTO_ACCOUNT = 6, // user control his keys, no creations
 }
 
-export function getAddressTypeEnumValue(typeString: string): AddressType | undefined {
-  // Iterate through all enum values
-  for (const key in AddressType) {
-    if (AddressType[key] === typeString) {
-      return AddressType[key] as unknown as AddressType
+export function getAddressTypeEnumValue(typeValue: number | string): AddressType | undefined {
+  if (typeof typeValue === 'number') {
+    return AddressType[typeValue] as unknown as AddressType
+  } else if (typeof typeValue === 'string') {
+    // Iterate through all enum values
+    for (const key in AddressType) {
+      if (AddressType[key] === typeValue) {
+        return AddressType[key] as unknown as AddressType
+      }
     }
   }
   return undefined // If the string is not found

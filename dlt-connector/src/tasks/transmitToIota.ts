@@ -6,7 +6,7 @@ import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
 
 import { sendMessage as iotaSendMessage } from '../client/IotaClient'
 import { TransactionRecipe, getNextPendingTransaction } from '../controller/TransactionRecipe'
-import { logger } from '../server/logger'
+import { logger } from '../logging/logger'
 import { getDataSource } from '../typeorm/DataSource'
 
 function sleep(ms: number) {
@@ -45,7 +45,7 @@ export const transmitToIota = async (): Promise<void> => {
       if (body.type === CrossGroupType.LOCAL) {
         const resultMessage = await iotaSendMessage(
           messageBuffer,
-          Buffer.from(recipe.senderCommunity.iotaTopic, 'hex'),
+          Buffer.from(recipe.community.iotaTopic, 'hex'),
         )
         recipe.iotaMessageId = Buffer.from(resultMessage.messageId, 'hex')
         logger.info('transmitted Gradido Transaction to Iota', {

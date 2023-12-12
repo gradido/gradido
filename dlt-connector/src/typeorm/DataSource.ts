@@ -6,7 +6,7 @@ import { Migration } from '@entity/Migration'
 
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
-import { logger } from '@/server/logger'
+import { logger } from '@/logging/logger'
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class Connection {

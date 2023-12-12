@@ -1,5 +1,8 @@
 import { Transaction } from '@entity/Transaction'
 
+import { TransactionType, getTransactionTypeEnumValue } from '@/graphql/enum/TransactionType'
+import { logger } from '@/logging/logger'
+import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
 
 export abstract class AbstractTransactionRole {
@@ -7,14 +10,19 @@ export abstract class AbstractTransactionRole {
   constructor(protected self: Transaction) {}
 
   public validate(): void {
+    logger.debug('validate transaction', new TransactionLoggingView(this.getTransaction()))
     if (!this.self.iotaMessageId || this.self.iotaMessageId.length !== 32) {
       throw new LogError('missing or invalid iota message id')
     }
-    if (!this.self.signingAccountId || this.self.signingAccountId === 0) {
+    // community root hasn't signing account, because it is his self signing account
+    if (
+      this.self.type !== TransactionType.COMMUNITY_ROOT &&
+      (!this.self.signingAccountId || this.self.signingAccountId === 0)
+    ) {
       throw new LogError('missing singing account')
     }
-    if (!this.self.senderCommunityId || this.self.senderCommunityId === 0) {
-      throw new LogError('missing sender community id')
+    if (!this.self.communityId || this.self.communityId === 0) {
+      throw new LogError('missing community id')
     }
   }
 
@@ -28,7 +36,7 @@ export abstract class AbstractTransactionRole {
     if (!this.self.iotaMessageId || !this.hasIotaMessageId()) {
       throw new LogError('missing iota message id')
     }
-    return this.self.iotaMessageId.toString('hex')
+    return Buffer.from(this.self.iotaMessageId).toString('hex')
   }
 
   public getTransaction(): Transaction {

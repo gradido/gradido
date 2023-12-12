@@ -128,7 +128,7 @@ export class DltConnectorClient {
    */
   public async transmitTransaction(
     transaction: DbTransaction,
-    senderCommunityUuid?: string,
+    senderCommunityUuid: string,
     recipientCommunityUuid?: string,
   ): Promise<string> {
     const typeString = getTransactionTypeString(transaction.typeId)

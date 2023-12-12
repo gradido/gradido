@@ -5,6 +5,8 @@
  * the unique singleton instance.
  */
 
+import { Community } from '@entity/Community'
+
 import { getLastTransaction, getTransactions } from '@/client/GradidoNode'
 import { receiveAllMessagesForTopic } from '@/client/IotaClient'
 import { CommunityRepository } from '@/data/Community.repository'
@@ -13,7 +15,7 @@ import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { ConfirmTransactionsContext } from '@/interactions/gradidoNodeToDb/ConfirmTransactions.context'
 import { LogError } from '@/server/LogError'
-import { logger } from '@/server/logger'
+import { logger } from '@/logging/logger'
 import { Mutex } from '@/utils/Mutex'
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -25,7 +27,7 @@ export class TransactionsManager {
   private lockTopicMutex = new Mutex()
   private pendingConfirmedTransactions: { [key: string]: ConfirmedTransaction[] } = {}
   private pendingConfirmedTransactionsMutex = new Mutex()
-  private homeCommunityTopic: string
+  private homeCommunity: Community
 
   /**
    * The Singleton's constructor should always be private to prevent direct
@@ -51,7 +53,7 @@ export class TransactionsManager {
     return Promise.all(
       (await CommunityRepository.findAll({ iotaTopic: true, foreign: true })).map((community) => {
         if (community.foreign) {
-          this.homeCommunityTopic = community.iotaTopic
+          this.homeCommunity = community
         }
         return this.addTopic(community.iotaTopic)
       }),
@@ -175,6 +177,10 @@ export class TransactionsManager {
   }
 
   public getHomeCommunityTopic(): string {
-    return this.homeCommunityTopic
+    return this.homeCommunity.iotaTopic
+  }
+
+  public getHomeCommunity(): Community {
+    return this.homeCommunity
   }
 }

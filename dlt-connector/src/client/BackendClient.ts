@@ -7,7 +7,7 @@ import { CONFIG } from '@/config'
 import { TransactionLogic } from '@/data/Transaction.logic'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { LogError } from '@/server/LogError'
-import { logger } from '@/server/logger'
+import { logger } from '@/logging/logger'
 
 const confirmTransaction = gql`
   mutation ($input: ConfirmedTransactionInput!) {

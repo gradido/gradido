@@ -3,7 +3,7 @@ import { Community } from '@entity/Community'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
-import { logger } from '@/server/logger'
+import { logger } from '@/logging/logger'
 
 export abstract class CommunityRole {
   protected self: Community

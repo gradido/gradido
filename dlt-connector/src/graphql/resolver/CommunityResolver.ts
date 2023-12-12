@@ -9,7 +9,7 @@ import { Resolver, Query, Arg, Mutation, Args } from 'type-graphql'
 import { CommunityRepository } from '@/data/Community.repository'
 import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
 import { LogError } from '@/server/LogError'
-import { logger } from '@/server/logger'
+import { logger } from '@/logging/logger'
 import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 
 @Resolver()

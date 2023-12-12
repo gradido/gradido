@@ -3,7 +3,7 @@ import { Field, Message } from 'protobufjs'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { LogError } from '@/server/LogError'
-import { logger } from '@/server/logger'
+import { logger } from '@/logging/logger'
 
 import { SignatureMap } from './SignatureMap'
 import { SignaturePair } from './SignaturePair'

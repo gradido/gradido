@@ -11,7 +11,7 @@ import { Logger } from 'log4js'
 import { schema } from '@/graphql/schema'
 import { getDataSource, Connection } from '@/typeorm/DataSource'
 
-import { logger as dltLogger } from './logger'
+import { logger as dltLogger } from '../logging/logger'
 
 type ServerDef = { apollo: ApolloServer; app: Express; con: DBDataSource }
 

@@ -1,5 +1,6 @@
 import { Transaction } from '@entity/Transaction'
 
+import { CommunityRepository } from '@/data/Community.repository'
 import { KeyPair } from '@/data/KeyPair'
 import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
 import { TransactionBuilder } from '@/data/Transaction.builder'
@@ -7,6 +8,7 @@ import { UserRepository } from '@/data/User.repository'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
+import { LogError } from '@/server/LogError'
 import { sign } from '@/utils/cryptoHelper'
 
 export class TransactionRecipeRole {
@@ -43,12 +45,28 @@ export class TransactionRecipeRole {
       .fromTransactionDraft(transactionDraft)
     // build transaction entity
 
+    const community = await CommunityRepository.findByCommunityUuid(senderUser.communityUuid)
+    if (!community) {
+      throw new LogError('cannot find community', {
+        communityUUID: senderUser.communityUuid,
+      })
+    }
+
     this.transactionBuilder
       .fromTransactionBodyBuilder(transactionBodyBuilder)
       .setBackendTransactionId(transactionDraft.backendTransactionId)
-    await this.transactionBuilder.setSenderCommunityFromSenderUser(senderUser)
-    if (recipientUser.communityUuid !== senderUser.communityUuid) {
-      await this.transactionBuilder.setOtherCommunityFromRecipientUser(recipientUser)
+      .setCommunity(community)
+
+    if (recipientUser.communityUuid && recipientUser.communityUuid !== senderUser.communityUuid) {
+      const otherCommunity = await CommunityRepository.findByCommunityUuid(
+        recipientUser.communityUuid,
+      )
+      if (!otherCommunity) {
+        throw new LogError('cannot find community', {
+          communityUUID: recipientUser.communityUuid,
+        })
+      }
+      await this.transactionBuilder.setOtherCommunity(otherCommunity)
     }
     const transaction = this.transactionBuilder.getTransaction()
     // sign

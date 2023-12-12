@@ -1,6 +1,6 @@
 import { BackendClient } from '@/client/BackendClient'
+import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
-import { logger } from '@/server/logger'
 
 import { AbstractConfirm } from './AbstractConfirm.role'
 

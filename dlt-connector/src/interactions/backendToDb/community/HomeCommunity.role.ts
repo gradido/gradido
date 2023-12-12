@@ -5,13 +5,15 @@ import { AccountFactory } from '@/data/Account.factory'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
+import { logger } from '@/logging/logger'
 import { KeyManager } from '@/manager/KeyManager'
-import { logger } from '@/server/logger'
 import { getDataSource } from '@/typeorm/DataSource'
 
 import { CreateTransactionRecipeContext } from '../transaction/CreateTransationRecipe.context'
 
 import { CommunityRole } from './Community.role'
+import { CommunityLoggingView } from '@/logging/CommunityLogging.view'
+import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 
 export class HomeCommunityRole extends CommunityRole {
   private transactionRecipe: Transaction
@@ -39,7 +41,12 @@ export class HomeCommunityRole extends CommunityRole {
   public async store(): Promise<Community> {
     try {
       return await getDataSource().transaction(async (transactionalEntityManager) => {
+        logger.debug('store new home community', new CommunityLoggingView(this.self))
         const community = await transactionalEntityManager.save(this.self)
+        logger.debug(
+          'store community root transaction',
+          new TransactionLoggingView(this.transactionRecipe),
+        )
         await transactionalEntityManager.save(this.transactionRecipe)
         return community
       })

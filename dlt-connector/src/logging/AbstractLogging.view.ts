@@ -1,3 +1,5 @@
+import util from 'util'
+
 import { Decimal } from 'decimal.js-light'
 
 export abstract class AbstractLoggingView {
@@ -7,20 +9,25 @@ export abstract class AbstractLoggingView {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public abstract toJSON(): any
   public toString(): string {
-    return JSON.stringify(this, null, 2)
+    return JSON.stringify(this.toJSON(), null, 2)
   }
 
-  public dateToString(date: Date | undefined | null): string | null {
+  // called form console.log or log4js logging functions
+  [util.inspect.custom](): string {
+    return this.toString()
+  }
+
+  public dateToString(date: Date | undefined | null): string | undefined {
     if (date) {
       return date.toISOString()
     }
-    return null
+    return undefined
   }
 
-  public decimalToString(number: Decimal | undefined | null): string | null {
+  public decimalToString(number: Decimal | undefined | null): string | undefined {
     if (number) {
       return number.toString()
     }
-    return null
+    return undefined
   }
 }

@@ -19,10 +19,10 @@ export class CommunityLoggingView extends AbstractLoggingView {
       confirmedAt: this.dateToString(this.community.confirmedAt),
       aufAccount: this.community.aufAccount
         ? new AccountLoggingView(this.community.aufAccount)
-        : null,
+        : undefined,
       gmwAccount: this.community.gmwAccount
         ? new AccountLoggingView(this.community.gmwAccount)
-        : null,
+        : undefined,
     }
   }
 }

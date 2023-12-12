@@ -8,7 +8,7 @@ import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionType } from '@/graphql/enum/TransactionType'
 import { TransactionError } from '@/graphql/model/TransactionError'
-import { logger } from '@/server/logger'
+import { logger } from '@/logging/logger'
 
 import { verify } from './GradidoTransaction'
 
@@ -52,7 +52,7 @@ export class TransactionRecipe {
     }
     signaturePair.signature = this.recipeEntity.signature
     if (body.communityRoot) {
-      const publicKey = this.recipeEntity.senderCommunity.rootPubkey
+      const publicKey = this.recipeEntity.community.rootPubkey
       if (!publicKey) {
         throw new TransactionError(
           TransactionErrorType.MISSING_PARAMETER,

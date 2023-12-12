@@ -39,7 +39,6 @@ import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
-
 import { BalanceResolver } from './BalanceResolver'
 import { getCommunity, getCommunityName, isHomeCommunity } from './util/communities'
 import { findUserByIdentifier } from './util/findUserByIdentifier'

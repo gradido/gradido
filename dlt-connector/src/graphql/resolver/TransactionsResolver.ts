@@ -8,7 +8,7 @@ import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { TransactionRepository } from '@/data/Transaction.repository'
 import { CreateTransactionRecipeContext } from '@/interactions/backendToDb/transaction/CreateTransationRecipe.context'
 import { ConfirmTransactionsContext } from '@/interactions/gradidoNodeToDb/ConfirmTransactions.context'
-import { logger } from '@/server/logger'
+import { logger } from '@/logging/logger'
 
 import { TransactionErrorType } from '../enum/TransactionErrorType'
 import { ConfirmedTransactionInput } from '../input/ConfirmedTransactionInput'

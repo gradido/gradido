@@ -11,14 +11,17 @@
  */
 
 import { Account } from '@entity/Account'
+import { Community } from '@entity/Community'
 import { Transaction } from '@entity/Transaction'
 
 import { AccountRepository } from '@/data/Account.repository'
+import { CommunityRepository } from '@/data/Community.repository'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { TransactionRepository } from '@/data/Transaction.repository'
 import { TransactionType } from '@/graphql/enum/TransactionType'
+import { logger } from '@/logging/logger'
+import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
-import { logger } from '@/server/logger'
 
 import { AbstractConfirm } from './AbstractConfirm.role'
 import { ConfirmBackendRole } from './ConfirmBackend.role'
@@ -32,7 +35,9 @@ export class ConfirmTransactionsContext {
   // confirmed transactions put into map with message id (hex) as key for faster work access
   private transactionsByMessageId: Map<string, ConfirmedTransaction>
   // entities which could be updated for storing as bulk
-  private accounts: Account[]
+  private accounts: Account[] = []
+
+  private community: Community
 
   public constructor(private transactions: ConfirmedTransaction[], private iotaTopic: string) {
     // create map with message ids as key
@@ -49,7 +54,12 @@ export class ConfirmTransactionsContext {
     if (!this.transactions.length) {
       return -1
     }
-
+    const community = await CommunityRepository.findByIotaTopic(this.iotaTopic)
+    if (community) {
+      this.community = community
+    } else {
+      throw new LogError('cannot find community for iota topic ', this.iotaTopic)
+    }
     // load existing transaction from db
     const { existingTransaction, missingMessageIdsHex } =
       await this.findExistingTransactionsAndMissingMessageIds(
@@ -66,21 +76,19 @@ export class ConfirmTransactionsContext {
     // update accounts, user, communities and send backend confirmation requests
     // updateAffectedTablesAndBackend must be called in order, no parallelization here
     allTransactions.forEach(async (value: ConfirmedTransactionRole, index: number) => {
-      logger.debug('foreach transactions index: ', index)
+      logger.debug('foreach transactions ', { index, nr: value.getTransaction().nr })
       await this.updateAffectedTablesAndBackend(value)
     })
     // save changed accounts and users (via cascading) with one db query
-    await Account.save(this.accounts)
-    // finally save changed and new transactions
-    await Transaction.save(
-      allTransactions.map((value: ConfirmedTransactionRole) => value.getTransaction()),
-    )
-    const lastTransactionNr = allTransactions[allTransactions.length - 1].getTransaction().nr
-    if (!lastTransactionNr) {
-      throw new LogError(
-        'something went wrong, transaction nr missing, but it should been checked before',
-      )
+    if (this.accounts.length) {
+      await Account.save(this.accounts)
     }
+
+    // check if we have skip a transaction
+    // return last transaction nr
+    const lastTransactionNr = await this.checkTransactionNrsReturnLast(allTransactions)
+    // finally save changed and new transactions
+    await Transaction.save(allTransactions.map((value) => value.getTransaction()))
     return lastTransactionNr
   }
 
@@ -90,6 +98,37 @@ export class ConfirmTransactionsContext {
 
   public getIotaTopic(): string {
     return this.iotaTopic
+  }
+
+  private async checkTransactionNrsReturnLast(
+    confirmedTransactionRoles: ConfirmedTransactionRole[],
+  ): Promise<number> {
+    const allTransactionEntities = confirmedTransactionRoles.map(
+      (value: ConfirmedTransactionRole) => value.getTransaction(),
+    )
+    // check if we don't miss a transaction in between
+    let lastTransactionNr = 0
+    const lastTransaction = await TransactionRepository.getLastConfirmedTransactionForCommunity(
+      this.community.id,
+    )
+    if (lastTransaction) {
+      if (!lastTransaction.nr) {
+        throw new LogError('missing transaction nr')
+      }
+      lastTransactionNr = lastTransaction.nr
+    }
+    return allTransactionEntities.reduce<number>(
+      (lastTransactionNr: number, currentTransaction: Transaction): number => {
+        if (!currentTransaction.nr || lastTransactionNr + 1 !== currentTransaction.nr) {
+          throw new LogError('error, missing transaction nr', {
+            lastKnown: lastTransactionNr,
+            new: currentTransaction.nr,
+          })
+        }
+        return currentTransaction.nr
+      },
+      lastTransactionNr,
+    )
   }
 
   /**
@@ -119,7 +158,10 @@ export class ConfirmTransactionsContext {
   private getConfirmedTransaction(messageIdHex: string): ConfirmedTransaction {
     const confirmedTransaction = this.transactionsByMessageId.get(messageIdHex)
     if (!confirmedTransaction) {
-      throw new LogError('transaction for message id not longer exist')
+      throw new LogError('transaction for message id not longer exist', {
+        key: messageIdHex,
+        keys: this.transactionsByMessageId.keys(),
+      })
     }
     return confirmedTransaction
   }
@@ -135,7 +177,10 @@ export class ConfirmTransactionsContext {
       iotaMessageId: messageIdHex,
     })
     const confirmedTransaction = this.getConfirmedTransaction(messageIdHex)
-    return await ConfirmedTransactionRole.createFromConfirmedTransaction(confirmedTransaction)
+    return await ConfirmedTransactionRole.createFromConfirmedTransaction(
+      confirmedTransaction,
+      this.community,
+    )
   }
 
   private isNotConfirmed(transaction: ExistingTransactionRole): boolean {
@@ -178,6 +223,7 @@ export class ConfirmTransactionsContext {
     if (account) {
       confirmedTransactionRole.calculateCreatedAtBalance(account)
     }
+    confirmedTransactionRole.validate()
     // tell backend that transaction is confirmed
     if (
       [

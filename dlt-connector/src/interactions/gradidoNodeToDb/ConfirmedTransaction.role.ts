@@ -1,10 +1,13 @@
 import { Account } from '@entity/Account'
+import { Community } from '@entity/Community'
 import { Transaction } from '@entity/Transaction'
 import { Decimal } from 'decimal.js-light'
 
 import { AccountLogic } from '@/data/Account.logic'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { TransactionBuilder } from '@/data/Transaction.builder'
+import { ConfirmedTransactionLoggingView } from '@/logging/ConfirmedTransactionLogging.view'
+import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
 
 import { AbstractTransactionRole } from './AbstractTransaction.role'
@@ -13,12 +16,16 @@ export class ConfirmedTransactionRole extends AbstractTransactionRole {
   // eslint-disable-next-line no-useless-constructor
   public constructor(transaction: Transaction) {
     super(transaction)
-    this.validate()
   }
 
   static async createFromConfirmedTransaction(
     confirmedTransaction: ConfirmedTransaction,
+    community: Community,
   ): Promise<ConfirmedTransactionRole> {
+    logger.debug(
+      'create from confirmed transaction',
+      new ConfirmedTransactionLoggingView(confirmedTransaction),
+    )
     const transactionBuilder = new TransactionBuilder()
     const gradidoTransaction = confirmedTransaction.transaction
     if (gradidoTransaction.parentMessageId && gradidoTransaction.parentMessageId.length === 32) {
@@ -27,7 +34,10 @@ export class ConfirmedTransactionRole extends AbstractTransactionRole {
       )
     }
     await transactionBuilder.fromGradidoTransactionSearchForAccounts(gradidoTransaction)
-    const transaction = transactionBuilder.build()
+    const transaction = transactionBuilder
+      .fromConfirmedTransaction(confirmedTransaction)
+      .setCommunity(community)
+      .build()
     transaction.iotaMessageId = confirmedTransaction.messageId
     return new ConfirmedTransactionRole(transaction)
   }

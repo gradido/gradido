@@ -6,8 +6,8 @@ import { randombytes_buf } from 'sodium-native'
 
 import { CommunityRepository } from '@/data/Community.repository'
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
+import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
-import { logger } from '@/server/logger'
 
 import { CONFIG } from '../config'
 // https://www.npmjs.com/package/bip32-ed25519?activeTab=code

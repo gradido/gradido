@@ -1,6 +1,7 @@
 import { Account } from '@entity/Account'
 import { Decimal } from 'decimal.js-light'
 
+import { logger } from '@/logging/logger'
 import { KeyManager } from '@/manager/KeyManager'
 import { LogError } from '@/server/LogError'
 import { calculateDecay } from '@/utils/decay'
@@ -16,6 +17,11 @@ export class AccountLogic {
   constructor(private account: Account) {}
 
   public calculateBalanceCreatedAt(newCreateAtDate: Date, amount: Decimal): Decimal {
+    logger.debug('calculate decay with', {
+      amount: this.account.balanceCreatedAt.toString(),
+      from: this.account.balanceCreatedAtDate.toISOString(),
+      to: newCreateAtDate.toISOString(),
+    })
     const decay = calculateDecay(
       this.account.balanceCreatedAt,
       this.account.balanceCreatedAtDate,

@@ -8,7 +8,7 @@ import { KeyPair } from '@/data/KeyPair'
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { SignaturePair } from '@/data/proto/3_3/SignaturePair'
 import { LogError } from '@/server/LogError'
-import { logger } from '@/server/logger'
+import { logger } from '@/logging/logger'
 
 import { generateFromSeed, derivePrivate, sign as ed25519Sign } from 'bip32-ed25519'
 

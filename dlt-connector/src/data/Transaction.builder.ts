@@ -1,17 +1,22 @@
 import { Account } from '@entity/Account'
 import { Community } from '@entity/Community'
 import { Transaction } from '@entity/Transaction'
+import { Decimal } from 'decimal.js-light'
 
+import { TransactionsManager } from '@/controller/TransactionsManager'
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
-import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { LogError } from '@/server/LogError'
 import { sign } from '@/utils/cryptoHelper'
-import { bodyBytesToTransactionBody, transactionBodyToBodyBytes } from '@/utils/typeConverter'
+import {
+  bodyBytesToTransactionBody,
+  timestampSecondsToDate,
+  transactionBodyToBodyBytes,
+} from '@/utils/typeConverter'
 
 import { AccountRepository } from './Account.repository'
-import { CommunityRepository } from './Community.repository'
 import { KeyPair } from './KeyPair'
+import { ConfirmedTransaction } from './proto/3_3/ConfirmedTransaction'
 import { TransactionBodyBuilder } from './proto/TransactionBody.builder'
 
 export class TransactionBuilder {
@@ -59,22 +64,34 @@ export class TransactionBuilder {
     return this.transaction.community
   }
 
-  public setSigningAccount(signingAccount: Account): TransactionBuilder {
+  public setSigningAccount(signingAccount: Account): this {
     this.transaction.signingAccount = signingAccount
     return this
   }
 
-  public setRecipientAccount(recipientAccount: Account): TransactionBuilder {
+  public setRecipientAccount(recipientAccount: Account): this {
     this.transaction.recipientAccount = recipientAccount
     return this
   }
 
-  public setCommunity(community: Community): TransactionBuilder {
+  public setCommunity(community: Community): this {
     this.transaction.community = community
+    if (community.id) {
+      this.transaction.communityId = community.id
+    }
     return this
   }
 
-  public setOtherCommunity(otherCommunity?: Community): TransactionBuilder {
+  public setHomeCommunityAsCommunity(): this {
+    const homeCommunity = TransactionsManager.getInstance().getHomeCommunity()
+    this.transaction.community = homeCommunity
+    if (homeCommunity.id) {
+      this.transaction.communityId = homeCommunity.id
+    }
+    return this
+  }
+
+  public setOtherCommunity(otherCommunity?: Community): this {
     if (!this.transaction.community) {
       throw new LogError('Please set community first!')
     }
@@ -85,15 +102,18 @@ export class TransactionBuilder {
       this.transaction.community.id !== otherCommunity.id
         ? otherCommunity
         : undefined
+    if (this.transaction.otherCommunity && this.transaction.otherCommunity.id) {
+      this.transaction.otherCommunityId = this.transaction.otherCommunity.id
+    }
     return this
   }
 
-  public setSignature(signature: Buffer): TransactionBuilder {
+  public setSignature(signature: Buffer): this {
     this.transaction.signature = signature
     return this
   }
 
-  public sign(keyPair: KeyPair): TransactionBuilder {
+  public sign(keyPair: KeyPair): this {
     if (!this.transaction.bodyBytes || this.transaction.bodyBytes.length === 0) {
       throw new LogError('body bytes is empty')
     }
@@ -101,33 +121,14 @@ export class TransactionBuilder {
     return this
   }
 
-  public setBackendTransactionId(backendTransactionId: number): TransactionBuilder {
+  public setBackendTransactionId(backendTransactionId: number): this {
     this.transaction.backendTransactionId = backendTransactionId
     return this
   }
 
-  public async setSenderCommunityFromSenderUser(
-    senderUser: UserIdentifier,
-  ): Promise<TransactionBuilder> {
-    // get sender community
-    const community = await CommunityRepository.getCommunityForUserIdentifier(senderUser)
-    if (!community) {
-      throw new LogError("couldn't find community for transaction")
-    }
-    return this.setCommunity(community)
-  }
-
-  public async setOtherCommunityFromRecipientUser(
-    recipientUser: UserIdentifier,
-  ): Promise<TransactionBuilder> {
-    // get recipient community
-    const otherCommunity = await CommunityRepository.getCommunityForUserIdentifier(recipientUser)
-    return this.setOtherCommunity(otherCommunity)
-  }
-
   public async fromGradidoTransactionSearchForAccounts(
     gradidoTransaction: GradidoTransaction,
-  ): Promise<TransactionBuilder> {
+  ): Promise<this> {
     this.transaction.bodyBytes = Buffer.from(gradidoTransaction.bodyBytes)
     const transactionBody = bodyBytesToTransactionBody(this.transaction.bodyBytes)
     this.fromTransactionBody(transactionBody)
@@ -145,7 +146,7 @@ export class TransactionBuilder {
     return this
   }
 
-  public fromGradidoTransaction(gradidoTransaction: GradidoTransaction): TransactionBuilder {
+  public fromGradidoTransaction(gradidoTransaction: GradidoTransaction): this {
     this.transaction.bodyBytes = Buffer.from(gradidoTransaction.bodyBytes)
     const transactionBody = bodyBytesToTransactionBody(this.transaction.bodyBytes)
     this.fromTransactionBody(transactionBody)
@@ -157,15 +158,27 @@ export class TransactionBuilder {
     return this
   }
 
-  public fromTransactionBody(transactionBody: TransactionBody): TransactionBuilder {
+  public fromTransactionBody(transactionBody: TransactionBody): this {
     transactionBody.fillTransactionRecipe(this.transaction)
     this.transaction.bodyBytes ??= transactionBodyToBodyBytes(transactionBody)
     return this
   }
 
-  public fromTransactionBodyBuilder(
-    transactionBodyBuilder: TransactionBodyBuilder,
-  ): TransactionBuilder {
+  public fromConfirmedTransaction(confirmedTransaction: ConfirmedTransaction): this {
+    this.transaction.runningHash = confirmedTransaction.runningHash
+    this.transaction.nr = confirmedTransaction.id.toNumber()
+    if (confirmedTransaction.id.comp(this.transaction.nr) !== 0) {
+      throw new LogError(
+        "datatype overflow, number isn't enough for transaction nr",
+        confirmedTransaction.id.toString(),
+      )
+    }
+    this.transaction.accountBalanceConfirmedAt = new Decimal(confirmedTransaction.accountBalance)
+    this.transaction.confirmedAt = timestampSecondsToDate(confirmedTransaction.confirmedAt)
+    return this
+  }
+
+  public fromTransactionBodyBuilder(transactionBodyBuilder: TransactionBodyBuilder): this {
     const signingAccount = transactionBodyBuilder.getSigningAccount()
     if (signingAccount) {
       this.setSigningAccount(signingAccount)

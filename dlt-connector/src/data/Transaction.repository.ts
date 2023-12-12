@@ -40,6 +40,15 @@ export const TransactionRepository = getDataSource()
       )
     },
 
+    async getLastConfirmedTransactionForCommunity(
+      communityId: number,
+    ): Promise<Transaction | null> {
+      return this.findOne({
+        where: { communityId, runningHash: Not(IsNull()) },
+        order: { nr: 'DESC' },
+      })
+    },
+
     async getLastTransactionForBalanceAccount({ id }: Account): Promise<Transaction | null> {
       // check TransactionLogic.getBalanceAccount for reference
       // TODO: find a war to get the actual logic from TransactionLogic

@@ -10,7 +10,7 @@ import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
 import { TransactionBuilder } from '@/data/Transaction.builder'
 import { UserFactory } from '@/data/User.factory'
 import { UserRepository } from '@/data/User.repository'
-import { logger } from '@/server/logger'
+import { logger } from '@/logging/logger'
 import { getDataSource } from '@/typeorm/DataSource'
 import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
 
@@ -69,14 +69,14 @@ export class AccountResolver {
           "couldn't found signing key pair",
         )
       }
-      transactionBuilder
+      const transaction = transactionBuilder
         .fromTransactionBodyBuilder(
           bodyBuilder.fromUserAccountDraft(userAccountDraft, user, account),
         )
         .sign(signingKeyPair)
         .setSigningAccount(account)
-      await transactionBuilder.setSenderCommunityFromSenderUser(userAccountDraft.user)
-      const transaction = transactionBuilder.build()
+        .setHomeCommunityAsCommunity()
+        .build()
       const queryRunner = getDataSource().createQueryRunner()
       await queryRunner.connect()
       await queryRunner.startTransaction()
