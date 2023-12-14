@@ -27,7 +27,7 @@ import { AbstractConfirm } from './AbstractConfirm.role'
 import { ConfirmBackendRole } from './ConfirmBackend.role'
 import { ConfirmCommunityRole } from './ConfirmCommunity.role'
 import { ConfirmedTransactionRole } from './ConfirmedTransaction.role'
-import { ConfirmOrCreateAccountRole } from './ConfirmOrCreateAccount.role'
+import { ConfirmAccountRole } from './ConfirmAccount.role'
 import { ExistingTransactionRole } from './ExistingTransactions.role'
 import { UpdateBalanceRole } from './UpdateBalance.role'
 
@@ -283,7 +283,7 @@ export class ConfirmTransactionsContext {
         // update confirmation date of account and user,
         // create account and/or user if missing
         // possible if listen to a topic from a new community and get transaction from them via GradidoNode
-        abstractConfirm = new ConfirmOrCreateAccountRole(
+        abstractConfirm = new ConfirmAccountRole(
           confirmedTransactionRole,
           this,
           transactionBody.registerAddress,

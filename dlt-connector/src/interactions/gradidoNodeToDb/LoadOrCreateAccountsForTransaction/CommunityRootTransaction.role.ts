@@ -22,16 +22,29 @@ export class CommunityRootTransactionRole extends AbstractTransactionRole {
     return [this.communityRoot.aufPubkey, this.communityRoot.gmwPubkey]
   }
 
+  protected addAccountToTransaction(foundedAccount: Account): void {
+    const community = this.self.community
+    if (foundedAccount.derive2Pubkey.equals(this.communityRoot.aufPubkey)) {
+      community.aufAccount = foundedAccount
+      community.aufAccountId = foundedAccount.id
+    } else if (foundedAccount.derive2Pubkey.equals(this.communityRoot.gmwPubkey)) {
+      community.gmwAccount = foundedAccount
+      community.gmwAccountId = foundedAccount.id
+    } else {
+      throw new LogError("account don't belong to community")
+    }
+  }
+
   protected async createMissingAccount(missingAccountPublicKey: Buffer): Promise<Account> {
     const community = this.self.community
-    if (this.communityRoot.aufPubkey === missingAccountPublicKey) {
+    if (this.communityRoot.aufPubkey.equals(missingAccountPublicKey)) {
       const aufAccount = AccountFactory.createAufAccount(
         new KeyPair(community),
         this.self.createdAt,
       )
       community.aufAccount = aufAccount
       return aufAccount
-    } else if (this.communityRoot.gmwPubkey === missingAccountPublicKey) {
+    } else if (this.communityRoot.gmwPubkey.equals(missingAccountPublicKey)) {
       const gmwAccount = AccountFactory.createGmwAccount(
         new KeyPair(community),
         this.self.createdAt,

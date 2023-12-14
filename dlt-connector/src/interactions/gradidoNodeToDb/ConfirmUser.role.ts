@@ -9,7 +9,7 @@ import { AbstractConfirm } from './AbstractConfirm.role'
 import { ConfirmedTransactionRole } from './ConfirmedTransaction.role'
 import { ConfirmTransactionsContext } from './ConfirmTransactions.context'
 
-export class ConfirmOrCreateUserRole extends AbstractConfirm {
+export class ConfirmUserRole extends AbstractConfirm {
   private user: User | null
   public constructor(
     confirmedTransactionRole: ConfirmedTransactionRole,

@@ -23,6 +23,15 @@ export class RegisterAddressTransactionRole extends AbstractTransactionRole {
     return [this.registerAddress.accountPubkey]
   }
 
+  protected addAccountToTransaction(foundedAccount: Account): void {
+    if (foundedAccount.derive2Pubkey.equals(this.registerAddress.accountPubkey)) {
+      this.self.signingAccount = foundedAccount
+      this.self.signingAccountId = foundedAccount.id
+    } else {
+      throw new LogError("account don't belong to register address")
+    }
+  }
+
   protected async createMissingAccount(missingAccountPublicKey: Buffer): Promise<Account> {
     if (missingAccountPublicKey !== this.registerAddress.accountPubkey) {
       throw new LogError('unknown public key')
@@ -37,6 +46,7 @@ export class RegisterAddressTransactionRole extends AbstractTransactionRole {
       // will be stored together with account (cascading insert)
       account.user = user
     }
+    this.self.signingAccount = account
     return account
   }
 }

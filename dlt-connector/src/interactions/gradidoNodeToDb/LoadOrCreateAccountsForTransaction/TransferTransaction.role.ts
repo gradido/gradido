@@ -19,6 +19,18 @@ export class TransferTransactionRole extends AbstractTransactionRole {
     return [this.transferTransaction.recipient, this.transferTransaction.sender.pubkey]
   }
 
+  protected addAccountToTransaction(foundedAccount: Account): void {
+    if (foundedAccount.derive2Pubkey.equals(this.transferTransaction.recipient)) {
+      this.self.recipientAccount = foundedAccount
+      this.self.recipientAccountId = foundedAccount.id
+    } else if (foundedAccount.derive2Pubkey.equals(this.transferTransaction.sender.pubkey)) {
+      this.self.signingAccount = foundedAccount
+      this.self.signingAccountId = foundedAccount.id
+    } else {
+      throw new LogError("account don't belong to transfer transaction")
+    }
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected createMissingAccount(missingAccountPublicKey: Buffer): Promise<Account> {
     throw new LogError(

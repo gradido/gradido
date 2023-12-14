@@ -19,6 +19,15 @@ export class CreationTransactionRole extends AbstractTransactionRole {
     return [this.creationTransaction.recipient.pubkey]
   }
 
+  protected addAccountToTransaction(foundedAccount: Account): void {
+    if (foundedAccount.derive2Pubkey.equals(this.creationTransaction.recipient.pubkey)) {
+      this.self.recipientAccount = foundedAccount
+      this.self.recipientAccountId = foundedAccount.id
+    } else {
+      throw new LogError("account don't belong to creation transaction")
+    }
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected createMissingAccount(missingAccountPublicKey: Buffer): Promise<Account> {
     throw new LogError(

@@ -8,10 +8,10 @@ import { LogError } from '@/server/LogError'
 
 import { AbstractConfirm } from './AbstractConfirm.role'
 import { ConfirmedTransactionRole } from './ConfirmedTransaction.role'
-import { ConfirmOrCreateUserRole } from './ConfirmOrCreateUser.role'
 import { ConfirmTransactionsContext } from './ConfirmTransactions.context'
+import { ConfirmUserRole } from './ConfirmUser.role'
 
-export class ConfirmOrCreateAccountRole extends AbstractConfirm {
+export class ConfirmAccountRole extends AbstractConfirm {
   public constructor(
     confirmedTransactionRole: ConfirmedTransactionRole,
     confirmTransactionsContext: ConfirmTransactionsContext,
@@ -24,8 +24,8 @@ export class ConfirmOrCreateAccountRole extends AbstractConfirm {
    * load user from transaction, db or create if not exist
    * @returns {User}
    */
-  private async confirmOrCreateUser(): Promise<User> {
-    const confirmUser = new ConfirmOrCreateUserRole(
+  private async confirmUser(): Promise<User> {
+    const confirmUser = new ConfirmUserRole(
       this.confirmedTransactionRole,
       this.confirmTransactionsContext,
       this.registerAddress,
@@ -46,7 +46,7 @@ export class ConfirmOrCreateAccountRole extends AbstractConfirm {
 
     if (this.registerAddress.userPubkey && this.registerAddress.userPubkey.length === 32) {
       if (this.registerAddress.addressType === AddressType.COMMUNITY_HUMAN) {
-        const user = await this.confirmOrCreateUser()
+        const user = await this.confirmUser()
         // was account already loaded with user?
         if (!account && user && user.accounts?.length === 1) {
           account = user.accounts[0]

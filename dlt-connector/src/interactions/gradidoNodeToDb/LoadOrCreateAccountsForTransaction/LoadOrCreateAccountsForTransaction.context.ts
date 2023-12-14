@@ -59,13 +59,13 @@ export class LoadOrCreateAccountsForTransactionContext {
   public async run(): Promise<void> {
     // map for fast accessing loaded accounts
     // key is account public key
-    const accountPublicKeys: Map<Buffer, Account> = new Map()
+    const accountPublicKeys: Map<string, Account> = new Map()
 
     // load all existing accounts from db
     const accounts = await AccountRepository.findByPublicKeys(this.collectAllAccountPublicKeys())
     // fill into map
     accounts.forEach((account: Account) => {
-      accountPublicKeys.set(account.derive2Pubkey, account)
+      accountPublicKeys.set(account.derive2Pubkey.toString('hex'), account)
     })
     let newAccountPromises: Promise<Account>[] = []
     // create missing accounts
