@@ -104,7 +104,6 @@ The gradido database layer has to be modified in the following tables:
 | location             | geometry     | null    | location of the user                                                                                                                                             |
 | gms_publish_location | int          | 2       | Location type (0: exact, 1: approximate, 2: random)                                                                                                              |
 
-
 #### table communities
 
 
@@ -114,14 +113,37 @@ The gradido database layer has to be modified in the following tables:
 
 This value must be set before the user data migration to gms could be started - see description in chapter "Exchange of community data" above.
 
-
 ### Database modifications in GMS (gms efforts)
 
-A review of the database model and the used sql-statements in gms during testing the api and the gui motivates us to require a basic refactoring to bring a more domain-driven aspect in the gms-system.
+A review of the database model and the used sql-statements in gms during testing the api and the gui motivates us to require a basic refactoring to bring a more domain-driven aspect in the gms-system. It will support a easier maintenance by reducing the complexity, enable a more efficient runtime behaviour on big data and allow easier to comprehend on implementation level.
 
-The focus of this factoring is to devide a community from a user, which leads to clean separation of business domains. In consequence the used sql-statements to select user-data or community-data will decrease their complexity a lot.
+The focus of this factoring is to devide a **community** from a **user**, which leads to clean separation of business domains. In consequence the used sql-statements to select user-data or community-data will decrease their complexity a lot, especially on reducing the amount of outer- and innerjoints.
 
-The GMS database layer should be modified in the following manner, before the first rollout with real user data will take place:
+The GMS database layer should be modified in the following manner, before the first rollout for real productive user data will take place to avoid an afterwards productive data-migration:
+
+#### table communities
+
+rename the table **community_profile** to **communities** and modify the columns as follow:
+
+
+| modification                              | attribute    | type        | description          |
+| ------------------------------------------- | -------------- | ------------- | ---------------------- |
+| add                                       | uuid         | varchar(36) | business primary key |
+| delete after all data migrations finished | community_id | int(11)     | User's ref id        |
+
+* select **users**.commmunity_uuid from **users** where **users**.id = **communities**.community_id and write the *users.commmunity_uuid* in *communities.uuid*
+
+#### table user_communities
+
+create the new table **user_communities** as n:m-mapping table between **users** and **communities**:
+
+
+|  attribute  |   type   | description              |
+| :------------: | :--------: | -------------------------- |
+| community_id |   int   | FK to communities table  |
+|   user_id   |   int   | FK to users table        |
+|  created_at  | datetime | timestamp of creation    |
+|  updated_at  | datetime | timestamp of last update |
 
 #### table users
 
@@ -137,35 +159,11 @@ The GMS database layer should be modified in the following manner, before the fi
 | modification | attribute | type         | description                                                           |
 | :------------: | ----------- | -------------- | ----------------------------------------------------------------------- |
 |     add     | movement  | varchar(512) | comma separated string for_fields of interrest_ or_social plattforms_ |
-|    delete    | city      | varchar(255) | User's  city                                                          |
-|    delete    | state     | varchar(255) | User's state                                                          |
-|    delete    | country   | varchar(255) | User's country                                                        |
-|    delete    | zipcode   | varchar(255) | User's zipcode                                                        |
-|    delete    | address   | varchar(255) | User's address                                                        |
-
-#### table communities
-
-rename the table **community_profile** to **communities** and modify the columns as follow:
-
-
-| modification                     | attribute    | type        | description          |
-| ---------------------------------- | -------------- | ------------- | ---------------------- |
-| add                              | uuid         | varchar(36) | business primary key |
-| delete after all data migrations | community_id | int(11)     | User's ref id        |
-
-* select **users**.community_uuid from **users** where **users**.id = **communities**.community_id and write the *users.commmunity_uuid* in *communities.uuid*
-
-#### table user_communities
-
-create the new table **user_communities** as n:m-mapping table between **users** and **communities**:
-
-
-|  attribute  |   type   | description              |
-| :------------: | :--------: | -------------------------- |
-| community_id |   int   | FK to communities table  |
-|   user_id   |   int   | FK to users table        |
-|  created_at  | datetime | timestamp of creation    |
-|  updated_at  | datetime | timestamp of last update |
+|    delete    | city      | varchar(255) | User's  city will never be captured in gms                            |
+|    delete    | state     | varchar(255) | User's state will never be captured in gms                            |
+|    delete    | country   | varchar(255) | User's country will never be captured in gms                          |
+|    delete    | zipcode   | varchar(255) | User's zipcode will never be captured in gms                          |
+|   (delete)   | address   | varchar(255) | User's address (unclear, perhaps to display user details as tool-tip) |
 
 #### migrate community-data by:
 
@@ -176,25 +174,25 @@ create the new table **user_communities** as n:m-mapping table between **users**
 * delete **user**-entries from **users**-table where **user**.role = community
 * delete **user_roles**-entries from **user_roles**-table where **user**.role = community
 * delete **role**-entry from **roles**-table where **role**.code = community
-
+* delete column **community_id** from **communities**-table
 
 ### Authentication and Autorization
 
 For a secured communication between gradido and gms we need mechanism for authentication and autorisation.
 
-As described in chapter "Exchange community data" above, on creating a gms community in the gms-dashboard the gms creates a community `apiKey`, which will be manually transferred per copy-paste by the admin/devop. In the other direction the admin/devop has to transfer per copy-paste the *uuid* of the gradido home-commuity in the gms _create-community-dialog_.
+As described in chapter "Exchange community data" above, on creating a gms community in the gms-dashboard the gms creates a community `apiKey`, which will be manually transferred per copy-paste by the admin/devop. In the other direction the admin/devop has to transfer per copy-paste the `uuid` of the gradido home-commuity in the gms _create-community-dialog_.
 
-Additionally for authentication of user-specific gms api-invocations the admin/devop has to transfer the gradido _home-community.publicKey_ to the gms-community too.
+Additionally for authentication of user-specific gms api-invocations the admin/devop has to transfer the gradido `home-community.publicKey` to the gms-community too. This `publicKey` could be used on gms-side for decryption of user specific values, which are encrypted on gradido-side per `privateKey` only known from the users home community.
 
 #### Gradido communities-dialog (gradido efforts)
 
-The communities dialog in the gradido admin interface have to be changed by presenting the entries of the table _communities_. This can be
+The communities dialog in the gradido admin interface have to be changed by presenting the entries of the table _communities_. This can be done
 
-* done by replacing the existing list of _federated communities_ with the list of _communities_
+* by replacing the existing list of _federated communities_ with the list of _communities_
 * or by adding the list of _communities_ over the top of the list of _federated communities_
 * or by adding a new dialog to present the list of _communities_
 
-In any case the list of _commmunities_ must show the columns:
+In any case the list of _commmunities_ must show the following columns:
 
 * id
 * foreign
@@ -207,28 +205,23 @@ In any case the list of _commmunities_ must show the columns:
 * gmsApiKey
 * createdAt
 
-Only for the _home-community_ entry and only for the role "Admin" the column *gmsApiKey* is editable. All other columns or at least the _communityUuid_ and the _publicKey_ must be able to be copied for transfering them to the GMS.
-
+Only for the _home-community_ entry and only for the role "Admin" the column *gmsApiKey* is editable. All other columns or at least the _communityUuid_ and the _publicKey_ must be able to be copied for transfering and paste them in the GMS *createCommunity*-dialog.
 
 #### GMS communities-dialog (gms efforts)
 
-In GMS the _create community_-dialog have to be extended by capturing the manually transferred gradido _publicKey_ in a new input field and to store the community in database.
-
+In GMS the _createCommunity_-dialog have to be extended by capturing the manually transferred gradido _publicKey_ in a new input field and to store it in the *communities*-table in the gms-database.
 
 ### GMS api connection in gradido (gradido efforts)
 
-In the gradido _backend modul_ a new GMS-client has to be introduced using REST protocoll. This new client must read the GMS connecting configuration from the gradido-system configuration by the property `GMS_URL`.
+In the gradido _backend modul_ a new GMS-client has to be introduced using REST protocoll to invoke gms-api-requests. This new client must read the GMS connecting configuration from the gradido-system configuration by the property `GMS_URL`.
 
 At the first step the `GmsClient` have to implement the invokation of the GMS-api with the servicename `community-user`, which is used to create a new user in GMS. In the request-header the community's `apiKey` must be set for authentication and to connect the new GMS user to the GMS community. The user data is set as parameter like described on the GMS-api docu [POST community user](http://54.176.169.179:3071/documentation#/Community%20User/postCommunityuser).
 
-This `GmsClient`have to be used from the migration job of existing users and after the registration of a new gradido user.
-
-
+This `GmsClient`have to be used for each gms api invocation like from the migration job of existing users, after the registration of a new gradido user and after updating the user settings.
 
 ### GMS api connection in GMS (gradido + gms efforts)
 
 The GMS api has to be changed to enable a secured communication on switching the protocol from `HTTP` to `HTTPS`.
-
 
 ### Migration process in gradido (gradido efforts)
 
@@ -238,34 +231,33 @@ This job reads at first the home-community's *apiKey* to set it as parameter in 
 
 In a loop the migration job will invoke for each found gradido-user the `GmsClient` method `createGmsUser`. After each successful user creation in the GMS system, the gradido-user is updated in the gradido-database with the columns `gms_registered = true` and `gms_registered_at = NOW`.
 
-
 ### Update user settings (gradido efforts)
 
 #### Gradido-Frontend
 
 To allow a gradido-user to change his publishing grants for the GMS the gradido _settings-dialog_ has to be extended. As shown in the screenshot above in the chapter "Capture and change user settings for GMS publishing" the settings-dialog needs additional capturing components for the following attributes:
 
-* GMS-Publishing main-switch as a boolean: GMS communication enabled (default) or disabled
+* GMS-Publishing main-switch as a boolean: GMS publishing enabled (default) or disabled
 * Naming format as a selection box:
   * 0 = *username* if exists or Initials of *firstname* and *lastname* (default)
   * 1 = Initials of *firstname* and *lastname* independent if *username* exists
   * 2 = *firstname* only
   * 3 = *firstname* plus initial of *lastname*
   * 4 = fullname: *firstname* plus *lastname*
-* *Location* as a link or button to open a popup or new window to capture the users *location* by entering postal address in a *map component*, which returns only the location as geo-coordinates. The gradido-settings-dialog will never capture or store any details of the users postal address but only the geo-coordinates, which will be returned from the *map component*-dialog or captured manually by the user in the new geo-coordinate input-fields.
+* *Location* as a link or button to open a popup or new window to capture the users *location* by entering postal address in a *map component*, which returns only the location as geo-coordinates. The gradido-user-settings-dialog will never capture or store any details of the users postal address but only the geo-coordinates, which will be returned from the *map component*-dialog or captured manually by the user in the new geo-coordinate input-fields of the user-settings-dialog.
 * *Movement* as a text input field to capture the users _fields of interest_ or _social plattforms_ as a comma-separated list.
 
-If the user switch-off the GMS main-switch, his user data will be deleted in the GMS system and in the gradido frontend the menu "user-search" will be disabled.
-
+If the user switch-off the GMS main-switch, his published user data will be deleted in the GMS system and in the gradido frontend the menu *"user-search"* will be disabled.
 
 #### Gradido-Backend
 
-The gradido backend modul have to support to store the new *user settings* attributes by extending the service `updateUserInfos`. As soon as the user change his user settings, which has an effect on the GMS published data, the user attribute `gms_registered` have to be set to `false`.
+The gradido backend modul have to support to store the new *user settings* attributes by extending the service `UserResolver.updateUserInfos`. As soon as the user change his user settings, which has an effect on the GMS published data, the user attribute `gms_registered` have to be set to `false` to force a GMS user update.
 
-After successful storing the *gradido users settings* the gms-published user data have to be updated in GMS. For this update the `GmsClient` service `updateGmsUser` have to be called with the current valid user data.
+After successful storing the *gradido users settings* and if the *gms-published user data* have been changed the GMS invokation to update the GMS-user data must be processed. For this update the `GmsClient` service `updateGmsUser` have to be called with the current valid user data.
 
-If the user switch off the whole publishing for the GMS system in the user settings dialog by disable the general `gms_allowed` publishing switch the `GmsClient`service `deleteGmsUser` have to be invoked.
+If the user switch-off the whole publishing for the GMS system in the user settings dialog by disable the general `gms_allowed` publishing switch the `GmsClient`service `deleteGmsUser` have to be invoked.
 
+To control the en/disable state of the menu-entry *"user search"* in the frontend, the backend must extend the *user-graphql-model* used by the frontend to transfer the current state of the `gms-allowed` user settings.
 
 ### GMS-api: update user in GMS (gms efforts)
 
@@ -273,31 +265,38 @@ The GMS api has to be extended to update an existing GMS user. An existing GMS u
 
 The existing api `community-user` could be modified to be reused for updating a still existing user or a new api `commuity-user-update` could be created.
 
-
 ### GMS user location capture dialog (gms efforts)
 
-As described in the chapter "Capture and change user settings for GMS publishing" we need a dialog in GMS to capture the users location. This dialog must be invocable from the gradido-system 
+As described in the chapter "Capture and change user settings for GMS publishing" we need a dialog in GMS to capture the users location. This dialog must be invocable from the gradido-system and opened as a popup-window or a new browser-window or -tab like the following mockup shows:
+
+![](./image/UserLocationDialog.svg)
+
+It contains a map-component of the leaflet library and offers to capture the users postal address. After entering the address the map will show the location with a needle. The user-location capturing could be canceled with the cancel-button or confirmed with the ok-button, where both will close the opened window. Confirming the dialog will also return the entered user-location per geo-coordinates, which could be used in further processings by the invoker.
+
+There is no user-specific authentication nor autorization necessary for this dialog as mentioned above.
 
 ### GMS user playground dialog (gms efforts)
 
+As described in the chapter "User search" above, we need a dialog in GMS to display in a graphical map:
+
+* the location of the user as a red needle, who opens the user search-dialog
+* the location of his community as a circle, the invoker belongs to
+* the locations of all other users as white needles, belonging to the same community
+* circles and needles of all other communities and users, which are nearby the requesting user and community location
+
+There is no user-specific authentication nor autorization necessary for this dialog as mentioned above.
+
+Which (filter-)components this playground-dialog should have next to the graphical location map is not clear at the moment. In the first run to display the above mentioned locations of users and communities with circles and needles will be sufficient.
+
+The detailed requirements will come up as soon as we get some user expiriences and feedbacks.
+
+
 ### GMS Offer Capture dialog (gms efforts)
+
+will come later...
+
+
 
 ### GMS Need Capture dialog (gms efforts)
 
-
-
-
-
-- **Bewegung** als zusätzliches Komma-separiertes Attribut mit ToolTip oder Hilfstext: "Gib hier deine Interessensgebiete bzw. Bewegungsplattformen (wie z.B. Gradido, Helfa, Minuto, ...) ein"
-
-Dies sollte mit "Gradido" vorausgefüllt sein.
-
-Der Nutzer kann ändern oder ergänzen, z.B.: Helfa, Minuto, Ubunto, Talente, Regiogeld, Momo, Lieblingsstadt etc.
-
-Damit sind wir offen auch für andere Modelle bzw. Bewegungen und erreichen möglicherweise ein größeres Netzwerk.
-
-DE: Bewegung
-EN: Movement
-FR: Mouvement
-ES:  Movimiento
-NL: Beweging
+will come later...
