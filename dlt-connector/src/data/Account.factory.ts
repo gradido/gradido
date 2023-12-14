@@ -11,6 +11,7 @@ import { accountTypeToAddressType } from '@/utils/typeConverter'
 
 import { AUF_ACCOUNT_DERIVATION_INDEX, GMW_ACCOUNT_DERIVATION_INDEX } from './const'
 import { RegisterAddress } from './proto/3_3/RegisterAddress'
+import { ConfirmedTransaction } from './proto/3_3/ConfirmedTransaction'
 
 export class AccountFactory {
   public static create(
