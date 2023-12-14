@@ -12,15 +12,15 @@ Introducing the _GMS user search_ in the existing gradido application it is nece
 
 The first step to start with this migration is to define in the GMS dashboard a community by capturing the community name, radius and description, transfering the existing community UUID from the gradido system and entering the location in the map-view of the GMS-community dialog as shown in the picture below.
 
-![](assets\20231212_214411_image.png)
+![](./assets/20231212_214411_image.png)
 
 After saving the new community the GMS dashboard shows the new community data in the community-list. The column UUID of this list is presented as a link, which opens a popup window on activation.
 
-![](assets\20231212_214742_image.png)
+![](./assets/20231212_214742_image.png)
 
 In this popup window the internally generated _apiKey_ of this community is shown. This _apiKey_ has to be copied in the gradido-system, which allows it to communicate over the GMS-api with the GMS system.
 
-![](assets\20231212_214836_image.png)
+![](./assets/20231212_214836_image.png)
 
 The gradido-system has to be extended by a migration job to transfer for each existing user his publishable data to GMS. With each transfered set of user data the GMS system will create a GMS-user, which belongs to the community with the given community-_apiKey_ as part of the transferred userdata. After successful user transfer to the GMS the gradido-system marks the user as _gms-published_. The migration job must be invoked manually in response of the gradido-admin or devop.
 
@@ -44,7 +44,7 @@ As the above described transfer of user data from the _gradido-system_ to the _G
 
 The current existing dialog of the user settings looks like the following screenshot.
 
-![](assets\20231207_012647_image.png)
+![](./assets/20231207_012647_image.png)
 
 The user settings dialog have to be extended to allow capturing and changing the following attributes:
 
@@ -59,7 +59,7 @@ The user settings dialog have to be extended to allow capturing and changing the
 
 The capturing of the new attribute _Location_ will use a special component, which allows to enter a postal address in a graphical map. The following screenshot shows an example how this could looks like:
 
-![](assets\20231207_015930_image.png)
+![](./assets/20231207_015930_image.png)
 
 * location accuracy - as a select box with the following entries:
 
