@@ -19,6 +19,7 @@ import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { TransactionRepository } from '@/data/Transaction.repository'
 import { TransactionType } from '@/graphql/enum/TransactionType'
 import { AccountLoggingView } from '@/logging/AccountLogging.view'
+import { ConfirmedTransactionLoggingView } from '@/logging/ConfirmedTransactionLogging.view'
 import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
 
@@ -101,14 +102,12 @@ export class ConfirmTransactionsContext {
     // update accounts, user, communities and send backend confirmation requests
     // updateAffectedTablesAndBackend must be called in order, no parallelization here
     // use for loop because needs to run in sequence
-    let index = 0
     for await (const value of this.transactionSets) {
-      logger.debug('foreach transactions ', {
-        index,
-        nr: value.confirmedTransactionRole.getTransaction().nr,
-      })
+      logger.debug(
+        'confirm transaction: ',
+        new ConfirmedTransactionLoggingView(value.protoConfirmedTransaction),
+      )
       await this.updateAffectedTablesAndBackend(value)
-      index++
     }
 
     // save changed accounts and users (via cascading) with one db query

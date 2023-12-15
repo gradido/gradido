@@ -3,7 +3,8 @@ import util from 'util'
 import { Decimal } from 'decimal.js-light'
 
 import { TimestampSeconds } from '@/data/proto/3_3/TimestampSeconds'
-import { timestampSecondsToDate } from '@/utils/typeConverter'
+import { timestampSecondsToDate, timestampToDate } from '@/utils/typeConverter'
+import { Timestamp } from '@/data/proto/3_3/Timestamp'
 
 export abstract class AbstractLoggingView {
   protected bufferStringFormat: BufferEncoding = 'hex'
@@ -37,6 +38,12 @@ export abstract class AbstractLoggingView {
   public timestampSecondsToDateString(timestamp: TimestampSeconds): string | undefined {
     if (timestamp && timestamp.seconds) {
       return timestampSecondsToDate(timestamp).toISOString()
+    }
+  }
+
+  public timestampToDateString(timestamp: Timestamp): string | undefined {
+    if (timestamp && (timestamp.seconds || timestamp.nanoSeconds)) {
+      return timestampToDate(timestamp).toISOString()
     }
   }
 }

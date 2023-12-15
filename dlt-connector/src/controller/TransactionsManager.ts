@@ -14,8 +14,8 @@ import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { ConfirmTransactionsContext } from '@/interactions/gradidoNodeToDb/ConfirmTransactions.context'
-import { LogError } from '@/server/LogError'
 import { logger } from '@/logging/logger'
+import { LogError } from '@/server/LogError'
 import { Mutex } from '@/utils/Mutex'
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -146,7 +146,10 @@ export class TransactionsManager {
       // check and maybe proceed transaction which where added while we were busy importing transactions from node server
       let pendingConfirmedTransaction: ConfirmedTransaction | undefined
       await this.pendingConfirmedTransactionsMutex.lock()
-      while (this.pendingConfirmedTransactions[newTopic].length) {
+      while (
+        this.pendingConfirmedTransactions[newTopic] &&
+        this.pendingConfirmedTransactions[newTopic].length
+      ) {
         try {
           pendingConfirmedTransaction = this.pendingConfirmedTransactions[newTopic].shift()
         } finally {

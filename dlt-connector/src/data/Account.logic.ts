@@ -30,7 +30,7 @@ export class AccountLogic {
     if (amount.isZero()) {
       return decay.balance
     }
-    return decay.balance.add(amount)
+    return decay.balance.add(amount.toString())
   }
 
   /**

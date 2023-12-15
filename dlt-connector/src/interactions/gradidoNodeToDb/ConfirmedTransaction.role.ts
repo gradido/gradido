@@ -6,13 +6,9 @@ import { Decimal } from 'decimal.js-light'
 import { AccountLogic } from '@/data/Account.logic'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { TransactionBuilder } from '@/data/Transaction.builder'
-import { ConfirmedTransactionLoggingView } from '@/logging/ConfirmedTransactionLogging.view'
-import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
 
 import { AbstractTransactionRole } from './AbstractTransaction.role'
-import { AccountLoggingView } from '@/logging/AccountLogging.view'
-import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 
 export class ConfirmedTransactionRole extends AbstractTransactionRole {
   // eslint-disable-next-line no-useless-constructor
@@ -24,10 +20,6 @@ export class ConfirmedTransactionRole extends AbstractTransactionRole {
     confirmedTransaction: ConfirmedTransaction,
     community: Community,
   ): Promise<ConfirmedTransactionRole> {
-    logger.debug(
-      'create from confirmed transaction',
-      new ConfirmedTransactionLoggingView(confirmedTransaction),
-    )
     const transactionBuilder = new TransactionBuilder()
     const gradidoTransaction = confirmedTransaction.transaction
     if (gradidoTransaction.parentMessageId && gradidoTransaction.parentMessageId.length === 32) {
@@ -45,9 +37,6 @@ export class ConfirmedTransactionRole extends AbstractTransactionRole {
   }
 
   public calculateCreatedAtBalance(account?: Account): void {
-    logger.debug('calculateCreatedAtBalance', {
-      account: account ? new AccountLoggingView(account) : 'no account',
-    })
     if (account) {
       const accountLogic = new AccountLogic(account)
       this.self.accountBalanceCreatedAt = accountLogic.calculateBalanceCreatedAt(
@@ -57,7 +46,6 @@ export class ConfirmedTransactionRole extends AbstractTransactionRole {
     } else {
       this.self.accountBalanceCreatedAt = new Decimal(0)
     }
-    logger.debug('transaction after update', new TransactionLoggingView(this.self))
   }
 
   // check if it is really a valid confirmed transaction
