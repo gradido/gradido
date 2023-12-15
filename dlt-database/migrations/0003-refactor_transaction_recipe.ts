@@ -27,6 +27,10 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   )
 
   await queryFn(
+    `ALTER TABLE \`invalid_transactions\` ADD COLUMN \`error_message\` varchar(255) NOT NULL;`,
+  )
+
+  await queryFn(
     `CREATE TABLE \`transactions\` (
         \`id\` bigint unsigned NOT NULL AUTO_INCREMENT,
         \`iota_message_id\` varbinary(32) NULL DEFAULT NULL,
@@ -127,6 +131,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   )
   await queryFn(`ALTER TABLE \`accounts\` DROP COLUMN \`balance_created_at\`;`)
   await queryFn(`ALTER TABLE \`accounts\` DROP COLUMN \`balance_created_at_date\`;`)
+  await queryFn(`ALTER TABLE \`invalid_transactions\` DROP COLUMN \`error_message\`;`)
   await queryFn(`DROP TABLE \`transactions\`;`)
 
   await queryFn(
