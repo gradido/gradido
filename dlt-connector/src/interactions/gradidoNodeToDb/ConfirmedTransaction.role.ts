@@ -11,6 +11,8 @@ import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
 
 import { AbstractTransactionRole } from './AbstractTransaction.role'
+import { AccountLoggingView } from '@/logging/AccountLogging.view'
+import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 
 export class ConfirmedTransactionRole extends AbstractTransactionRole {
   // eslint-disable-next-line no-useless-constructor
@@ -38,11 +40,14 @@ export class ConfirmedTransactionRole extends AbstractTransactionRole {
       .fromConfirmedTransaction(confirmedTransaction)
       .setCommunity(community)
       .build()
-    transaction.iotaMessageId = confirmedTransaction.messageId
+    transaction.iotaMessageId = Buffer.from(confirmedTransaction.messageId)
     return new ConfirmedTransactionRole(transaction)
   }
 
-  public async calculateCreatedAtBalance(account?: Account): Promise<void> {
+  public calculateCreatedAtBalance(account?: Account): void {
+    logger.debug('calculateCreatedAtBalance', {
+      account: account ? new AccountLoggingView(account) : 'no account',
+    })
     if (account) {
       const accountLogic = new AccountLogic(account)
       this.self.accountBalanceCreatedAt = accountLogic.calculateBalanceCreatedAt(
@@ -52,6 +57,7 @@ export class ConfirmedTransactionRole extends AbstractTransactionRole {
     } else {
       this.self.accountBalanceCreatedAt = new Decimal(0)
     }
+    logger.debug('transaction after update', new TransactionLoggingView(this.self))
   }
 
   // check if it is really a valid confirmed transaction

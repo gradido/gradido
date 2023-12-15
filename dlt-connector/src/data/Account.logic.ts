@@ -27,6 +27,9 @@ export class AccountLogic {
       this.account.balanceCreatedAtDate,
       newCreateAtDate,
     )
+    if (amount.isZero()) {
+      return decay.balance
+    }
     return decay.balance.add(amount)
   }
 

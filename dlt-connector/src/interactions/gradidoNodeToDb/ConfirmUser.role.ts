@@ -1,8 +1,8 @@
 import { User } from '@entity/User'
 
 import { RegisterAddress } from '@/data/proto/3_3/RegisterAddress'
-import { UserFactory } from '@/data/User.factory'
 import { UserRepository } from '@/data/User.repository'
+import { RegisterAddressLoggingView } from '@/logging/RegisterAddressLogging.view'
 import { LogError } from '@/server/LogError'
 
 import { AbstractConfirm } from './AbstractConfirm.role'
@@ -35,14 +35,13 @@ export class ConfirmUserRole extends AbstractConfirm {
     if (this.user) {
       this.user.confirmedAt = transaction.confirmedAt
     } else {
-      // no user found, create new one
-      this.user = UserFactory.createFromTransaction(transaction, this.registerAddress)
+      throw new LogError('missing user', new RegisterAddressLoggingView(this.registerAddress))
     }
   }
 
   public getUser(): User {
     if (!this.user) {
-      throw new LogError('missing user, please call confirm before')
+      throw new LogError('missing user')
     }
     return this.user
   }

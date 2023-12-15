@@ -20,10 +20,12 @@ export class TransferTransactionRole extends AbstractTransactionRole {
   }
 
   protected addAccountToTransaction(foundedAccount: Account): void {
-    if (foundedAccount.derive2Pubkey.equals(this.transferTransaction.recipient)) {
+    if (this.keyCompare(foundedAccount.derive2Pubkey, this.transferTransaction.recipient)) {
       this.self.recipientAccount = foundedAccount
       this.self.recipientAccountId = foundedAccount.id
-    } else if (foundedAccount.derive2Pubkey.equals(this.transferTransaction.sender.pubkey)) {
+    } else if (
+      this.keyCompare(foundedAccount.derive2Pubkey, this.transferTransaction.sender.pubkey)
+    ) {
       this.self.signingAccount = foundedAccount
       this.self.signingAccountId = foundedAccount.id
     } else {

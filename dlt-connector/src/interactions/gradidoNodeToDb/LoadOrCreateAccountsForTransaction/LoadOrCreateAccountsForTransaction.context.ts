@@ -1,6 +1,7 @@
 import { Account } from '@entity/Account'
 
 import { AccountRepository } from '@/data/Account.repository'
+import { LogError } from '@/server/LogError'
 
 import { TransactionSet } from '../ConfirmTransactions.context'
 
@@ -11,7 +12,8 @@ import { DeferredTransferTransactionRole } from './DeferredTransferTransaction.r
 import { RegisterAddressTransactionRole } from './RegisterAddressTransaction.role'
 import { TransferTransactionRole } from './TransferTransaction.role'
 
-export interface ExtendedTransactionSet extends TransactionSet {
+export interface ExtendedTransactionSet {
+  transactionSet: TransactionSet
   transactionRole: AbstractTransactionRole
 }
 
@@ -20,63 +22,78 @@ export interface ExtendedTransactionSet extends TransactionSet {
  * Create Account and/or User for it if not in db
  */
 export class LoadOrCreateAccountsForTransactionContext {
+  private extendedTransactionSets: ExtendedTransactionSet[] = []
+
   // eslint-disable-next-line no-useless-constructor
-  public constructor(private transactionSets: ExtendedTransactionSet[]) {
+  public constructor(transactionSets: TransactionSet[]) {
     // load correct roles for all transactions
-    for (const transactionSet of this.transactionSets) {
+    for (const transactionSet of transactionSets) {
       const transaction = transactionSet.confirmedTransactionRole.getTransaction()
       const transactionBody = transactionSet.protoConfirmedTransaction.getTransactionBody()
+      let transactionRole: AbstractTransactionRole
 
       if (transactionBody.communityRoot) {
-        transactionSet.transactionRole = new CommunityRootTransactionRole(
+        transactionRole = new CommunityRootTransactionRole(
           transaction,
           transactionBody.communityRoot,
         )
       } else if (transactionBody.registerAddress) {
-        transactionSet.transactionRole = new RegisterAddressTransactionRole(
+        transactionRole = new RegisterAddressTransactionRole(
           transaction,
           transactionBody.registerAddress,
         )
       } else if (transactionBody.transfer) {
-        transactionSet.transactionRole = new TransferTransactionRole(
-          transaction,
-          transactionBody.transfer,
-        )
+        transactionRole = new TransferTransactionRole(transaction, transactionBody.transfer)
       } else if (transactionBody.creation) {
-        transactionSet.transactionRole = new CreationTransactionRole(
+        transactionRole = new CreationTransactionRole(
           transaction,
-          transactionBody.creation,
+          transactionSet.protoConfirmedTransaction.transaction,
         )
       } else if (transactionBody.deferredTransfer) {
-        transactionSet.transactionRole = new DeferredTransferTransactionRole(
+        transactionRole = new DeferredTransferTransactionRole(
           transaction,
           transactionBody.deferredTransfer,
         )
+      } else {
+        throw new LogError('unhandled transaction type')
       }
+      this.extendedTransactionSets.push({ transactionSet, transactionRole })
     }
   }
 
-  public async run(): Promise<void> {
+  /**
+   *
+   * @returns new created accounts
+   */
+  public async run(): Promise<Account[]> {
     // map for fast accessing loaded accounts
     // key is account public key
     const accountPublicKeys: Map<string, Account> = new Map()
 
     // load all existing accounts from db
-    const accounts = await AccountRepository.findByPublicKeys(this.collectAllAccountPublicKeys())
+    const accounts = await AccountRepository.findByPublicKeys(
+      // convert to buffer, because coming from protobuf it is a Uint8Array
+      this.collectAllAccountPublicKeys().map((value: Buffer) => Buffer.from(value)),
+    )
     // fill into map
     accounts.forEach((account: Account) => {
-      accountPublicKeys.set(account.derive2Pubkey.toString('hex'), account)
+      accountPublicKeys.set(Buffer.from(account.derive2Pubkey).toString('hex'), account)
     })
-    let newAccountPromises: Promise<Account>[] = []
+
+    const newAccounts: Account[] = []
     // create missing accounts
-    this.transactionSets.forEach(async (transactionSet) => {
-      if (!transactionSet.transactionRole.alreadyLoaded()) {
-        newAccountPromises = newAccountPromises.concat(
-          transactionSet.transactionRole.checkAndCreateMissingAccounts(accountPublicKeys),
+    for (const extendedTransactionSet of this.extendedTransactionSets) {
+      if (!extendedTransactionSet.transactionRole.alreadyLoaded()) {
+        const accounts = await extendedTransactionSet.transactionRole.checkAndCreateMissingAccounts(
+          accountPublicKeys,
         )
+        accounts.forEach((newAccount: Account) => {
+          accountPublicKeys.set(Buffer.from(newAccount.derive2Pubkey).toString('hex'), newAccount)
+          newAccounts.push(newAccount)
+        })
       }
-    })
-    await Account.save(await Promise.all(newAccountPromises))
+    }
+    return newAccounts
   }
 
   /**
@@ -87,7 +104,7 @@ export class LoadOrCreateAccountsForTransactionContext {
   private collectAllAccountPublicKeys(): Buffer[] {
     return Array.from(
       new Set(
-        this.transactionSets.flatMap((value: ExtendedTransactionSet) => {
+        this.extendedTransactionSets.flatMap((value: ExtendedTransactionSet) => {
           if (!value.transactionRole.alreadyLoaded()) {
             return value.transactionRole.getAccountPublicKeys()
           }

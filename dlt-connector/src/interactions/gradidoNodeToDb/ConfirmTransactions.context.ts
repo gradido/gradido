@@ -14,7 +14,6 @@ import { Account } from '@entity/Account'
 import { Community } from '@entity/Community'
 import { Transaction } from '@entity/Transaction'
 
-import { AccountRepository } from '@/data/Account.repository'
 import { CommunityRepository } from '@/data/Community.repository'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { TransactionRepository } from '@/data/Transaction.repository'
@@ -24,11 +23,12 @@ import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
 
 import { AbstractConfirm } from './AbstractConfirm.role'
+import { ConfirmAccountRole } from './ConfirmAccount.role'
 import { ConfirmBackendRole } from './ConfirmBackend.role'
 import { ConfirmCommunityRole } from './ConfirmCommunity.role'
 import { ConfirmedTransactionRole } from './ConfirmedTransaction.role'
-import { ConfirmAccountRole } from './ConfirmAccount.role'
 import { ExistingTransactionRole } from './ExistingTransactions.role'
+import { LoadOrCreateAccountsForTransactionContext } from './LoadOrCreateAccountsForTransaction/LoadOrCreateAccountsForTransaction.context'
 import { UpdateBalanceRole } from './UpdateBalance.role'
 
 export interface TransactionSet {
@@ -42,7 +42,10 @@ export class ConfirmTransactionsContext {
 
   private transactionSets: TransactionSet[] = []
   // entities which could be updated for storing as bulk
-  private accounts: Account[] = []
+  // use map to make sure accounts are unique, no need to store accounts more than one time
+  // don't use set because I don't know if ordering is working with higher order objects without operator overloading like in C++
+  // use account public key hex as key
+  private accounts: Map<string, Account> = new Map()
 
   private community: Community
 
@@ -89,6 +92,12 @@ export class ConfirmTransactionsContext {
       }
     })
 
+    // load all accounts and create missing
+    const loadOrCreateAccounts = new LoadOrCreateAccountsForTransactionContext(this.transactionSets)
+    const createdAccounts = await loadOrCreateAccounts.run()
+    // put accounts into storing array
+    createdAccounts.forEach(this.addForSave.bind(this))
+
     // update accounts, user, communities and send backend confirmation requests
     // updateAffectedTablesAndBackend must be called in order, no parallelization here
     // use for loop because needs to run in sequence
@@ -103,8 +112,8 @@ export class ConfirmTransactionsContext {
     }
 
     // save changed accounts and users (via cascading) with one db query
-    if (this.accounts.length) {
-      await Account.save(this.accounts)
+    if (this.accounts.size) {
+      await Account.save(Array.from(this.accounts.values()))
     }
 
     // check if we have skip a transaction
@@ -116,8 +125,13 @@ export class ConfirmTransactionsContext {
   }
 
   public addForSave(entity: Account) {
-    logger.debug('add new or changed account for saving', new AccountLoggingView(entity))
-    this.accounts.push(entity)
+    const publicKey = entity.derive2Pubkey.toString('hex')
+    if (!this.accounts.has(publicKey)) {
+      logger.debug('add new or changed account for saving', new AccountLoggingView(entity))
+      this.accounts.set(entity.derive2Pubkey.toString('hex'), entity)
+    } else {
+      logger.debug('skip already existing account', { publicKey })
+    }
   }
 
   public getIotaTopic(): string {
@@ -230,15 +244,23 @@ export class ConfirmTransactionsContext {
     const gradidoTransaction = confirmedTransaction.transaction
     const transactionBody = gradidoTransaction.getTransactionBody()
     const transactionType = transactionBody.getTransactionType()
-    let account = confirmedTransactionRole.getTransaction().signingAccount
-    // try to load account if not already loaded with transaction
-    if (!account) {
-      account = await AccountRepository.findByPublicKey(gradidoTransaction.sigMap.sigPair[0].pubKey)
-      confirmedTransactionRole.getTransaction().signingAccount = account
-    }
+
     if (!transactionType) {
       throw new LogError('transaction type not set')
     }
+    // community root transaction is a bit special because it didn't has an account for singing because the community is the signing account
+    if (transactionType === TransactionType.COMMUNITY_ROOT) {
+      // update confirmation date of Community, AUF Account and GMW Account
+      await new ConfirmCommunityRole(confirmedTransactionRole, this).confirm()
+      confirmedTransactionRole.calculateCreatedAtBalance()
+      confirmedTransactionRole.validate()
+      return
+    }
+    let account = confirmedTransactionRole.getTransaction().signingAccount
+    if (!account) {
+      throw new LogError('missing singing account')
+    }
+
     // calculate balance based on creation date
     // balance based on confirmation date already calculated on GradidoNode
     // update always if account exist, even for transaction which don't move gradidos around
@@ -269,10 +291,6 @@ export class ConfirmTransactionsContext {
         // update balance fields in account entity
         abstractConfirm = new UpdateBalanceRole(confirmedTransactionRole, this, account)
         break
-      case TransactionType.COMMUNITY_ROOT:
-        // update confirmation date of Community, AUF Account and GMW Account
-        abstractConfirm = new ConfirmCommunityRole(confirmedTransactionRole, this)
-        break
       case TransactionType.REGISTER_ADDRESS:
         // will also confirm user
         if (!transactionBody.registerAddress) {
@@ -281,8 +299,6 @@ export class ConfirmTransactionsContext {
           )
         }
         // update confirmation date of account and user,
-        // create account and/or user if missing
-        // possible if listen to a topic from a new community and get transaction from them via GradidoNode
         abstractConfirm = new ConfirmAccountRole(
           confirmedTransactionRole,
           this,

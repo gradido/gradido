@@ -22,14 +22,13 @@ export class TransactionLoggingView extends AbstractLoggingView {
       confirmedAt: this.dateToString(this.self.confirmedAt),
       protocolVersion: this.self.protocolVersion,
       type: getTransactionTypeEnumValue(this.self.type),
-      signature:
-        Buffer.from(this.self.signature).subarray(0, 31).toString(this.bufferStringFormat) + '..',
+      signature: this.self.signature.subarray(0, 31).toString(this.bufferStringFormat) + '..',
       community: new CommunityLoggingView(this.self.community).toJSON(),
       otherCommunity: this.self.otherCommunity
         ? new CommunityLoggingView(this.self.otherCommunity)
         : undefined,
       iotaMessageId: this.self.iotaMessageId
-        ? Buffer.from(this.self.iotaMessageId).toString(this.bufferStringFormat)
+        ? this.self.iotaMessageId.toString(this.bufferStringFormat)
         : undefined,
       signingAccount: this.self.signingAccount
         ? new AccountLoggingView(this.self.signingAccount)
@@ -41,7 +40,7 @@ export class TransactionLoggingView extends AbstractLoggingView {
       accountBalanceCreatedAt: this.decimalToString(this.self.accountBalanceCreatedAt),
       accountBalanceConfirmedAt: this.decimalToString(this.self.accountBalanceConfirmedAt),
       runningHash: this.self.runningHash
-        ? Buffer.from(this.self.runningHash).toString(this.bufferStringFormat)
+        ? this.self.runningHash.toString(this.bufferStringFormat)
         : undefined,
       iotaMilestone: this.self.iotaMilestone,
     }

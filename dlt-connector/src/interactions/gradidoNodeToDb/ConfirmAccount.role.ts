@@ -1,9 +1,8 @@
-import { Account } from '@entity/Account'
 import { User } from '@entity/User'
 
-import { AccountFactory } from '@/data/Account.factory'
 import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { RegisterAddress } from '@/data/proto/3_3/RegisterAddress'
+import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
 
 import { AbstractConfirm } from './AbstractConfirm.role'
@@ -42,24 +41,16 @@ export class ConfirmAccountRole extends AbstractConfirm {
   public async confirm(): Promise<void> {
     const transaction = this.confirmedTransactionRole.getTransaction()
     // was account already loaded with transaction?
-    let account: Account | undefined = transaction.signingAccount
+    const account = transaction.signingAccount
+    if (!account) {
+      throw new LogError('missing account for transaction', new TransactionLoggingView(transaction))
+    }
 
     if (this.registerAddress.userPubkey && this.registerAddress.userPubkey.length === 32) {
       if (this.registerAddress.addressType === AddressType.COMMUNITY_HUMAN) {
         const user = await this.confirmUser()
-        // was account already loaded with user?
-        if (!account && user && user.accounts?.length === 1) {
-          account = user.accounts[0]
-        }
-        // we create a new one
-        if (!account) {
-          account = AccountFactory.createFromTransaction(transaction, this.registerAddress)
-        }
         account.user = user
       }
-    }
-    if (!account) {
-      throw new LogError('Missing Account')
     }
     account.confirmedAt = transaction.confirmedAt
     transaction.signingAccount = account

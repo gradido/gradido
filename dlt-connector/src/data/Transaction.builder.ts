@@ -143,9 +143,10 @@ export class TransactionBuilder {
       transactionBody.getRecipientPublicKey(),
     )
     if (transactionBody.creation && this.transaction.recipientAccount) {
-      logger.error(
+      const recipientPublicKey = transactionBody.getRecipientPublicKey()
+      logger.warn(
         'missing recipient account',
-        transactionBody.getRecipientPublicKey()?.toString('hex'),
+        recipientPublicKey ? Buffer.from(recipientPublicKey).toString('hex') : null,
       )
     }
     this.transaction.signature = Buffer.from(firstSigPair.signature)
@@ -172,7 +173,7 @@ export class TransactionBuilder {
   }
 
   public fromConfirmedTransaction(confirmedTransaction: ConfirmedTransaction): this {
-    this.transaction.runningHash = confirmedTransaction.runningHash
+    this.transaction.runningHash = Buffer.from(confirmedTransaction.runningHash)
     this.transaction.nr = confirmedTransaction.id.toNumber()
     if (confirmedTransaction.id.comp(this.transaction.nr) !== 0) {
       throw new LogError(

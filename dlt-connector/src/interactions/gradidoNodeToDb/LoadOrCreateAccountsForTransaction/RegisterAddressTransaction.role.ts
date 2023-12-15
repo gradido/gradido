@@ -6,6 +6,9 @@ import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { RegisterAddress } from '@/data/proto/3_3/RegisterAddress'
 import { UserFactory } from '@/data/User.factory'
 import { UserRepository } from '@/data/User.repository'
+import { AccountLoggingView } from '@/logging/AccountLogging.view'
+import { logger } from '@/logging/logger'
+import { RegisterAddressLoggingView } from '@/logging/RegisterAddressLogging.view'
 import { LogError } from '@/server/LogError'
 
 import { AbstractTransactionRole } from './AbstractTransaction.role'
@@ -24,7 +27,7 @@ export class RegisterAddressTransactionRole extends AbstractTransactionRole {
   }
 
   protected addAccountToTransaction(foundedAccount: Account): void {
-    if (foundedAccount.derive2Pubkey.equals(this.registerAddress.accountPubkey)) {
+    if (this.keyCompare(foundedAccount.derive2Pubkey, this.registerAddress.accountPubkey)) {
       this.self.signingAccount = foundedAccount
       this.self.signingAccountId = foundedAccount.id
     } else {
@@ -47,6 +50,10 @@ export class RegisterAddressTransactionRole extends AbstractTransactionRole {
       account.user = user
     }
     this.self.signingAccount = account
+    logger.debug('create account', {
+      registerAddress: new RegisterAddressLoggingView(this.registerAddress),
+      account: new AccountLoggingView(account),
+    })
     return account
   }
 }

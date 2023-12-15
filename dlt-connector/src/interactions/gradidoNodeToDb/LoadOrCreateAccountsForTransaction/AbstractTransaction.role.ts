@@ -6,6 +6,16 @@ export abstract class AbstractTransactionRole {
   public constructor(protected self: Transaction) {}
 
   /**
+   * check if key1 and key2 has the same content
+   * use Buffer.from because Buffer from Protobuf are Uint8Arrays
+   * @param key1
+   * @param key2
+   */
+  public keyCompare(key1: Buffer, key2: Buffer): boolean {
+    return Buffer.from(key1).equals(Buffer.from(key2))
+  }
+
+  /**
    * check if accounts from this transaction already exist on transaction entity
    * @return true if acccount(s) already loaded, then this transaction can be skipped
    */
@@ -33,17 +43,19 @@ export abstract class AbstractTransactionRole {
    * check if transaction account is in map, if not create it and return it in account array
    * @param existingAccounts
    */
-  public checkAndCreateMissingAccounts(existingAccounts: Map<string, Account>): Promise<Account>[] {
+  public async checkAndCreateMissingAccounts(
+    existingAccounts: Map<string, Account>,
+  ): Promise<Account[]> {
     const localPublicKeys = this.getAccountPublicKeys()
-    return localPublicKeys
-      .filter((publicKey: Buffer) => {
-        const account = existingAccounts.get(publicKey.toString('hex'))
-        if (account) {
-          this.addAccountToTransaction(account)
-          return false
-        }
-        return true
-      })
-      .map((publicKey: Buffer) => this.createMissingAccount(publicKey))
+    const newAccounts: Account[] = []
+    for (const localPublicKey of localPublicKeys) {
+      let account = existingAccounts.get(Buffer.from(localPublicKey).toString('hex'))
+      if (!account) {
+        account = await this.createMissingAccount(localPublicKey)
+        newAccounts.push(account)
+      }
+      this.addAccountToTransaction(account)
+    }
+    return newAccounts
   }
 }

@@ -4,6 +4,8 @@ import { Transaction } from '@entity/Transaction'
 import { AccountFactory } from '@/data/Account.factory'
 import { KeyPair } from '@/data/KeyPair'
 import { CommunityRoot } from '@/data/proto/3_3/CommunityRoot'
+import { CommunityRootLoggingView } from '@/logging/CommunityRootLogging.view'
+import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
 
 import { AbstractTransactionRole } from './AbstractTransaction.role'
@@ -24,10 +26,10 @@ export class CommunityRootTransactionRole extends AbstractTransactionRole {
 
   protected addAccountToTransaction(foundedAccount: Account): void {
     const community = this.self.community
-    if (foundedAccount.derive2Pubkey.equals(this.communityRoot.aufPubkey)) {
+    if (this.keyCompare(foundedAccount.derive2Pubkey, this.communityRoot.aufPubkey)) {
       community.aufAccount = foundedAccount
       community.aufAccountId = foundedAccount.id
-    } else if (foundedAccount.derive2Pubkey.equals(this.communityRoot.gmwPubkey)) {
+    } else if (this.keyCompare(foundedAccount.derive2Pubkey, this.communityRoot.gmwPubkey)) {
       community.gmwAccount = foundedAccount
       community.gmwAccountId = foundedAccount.id
     } else {
@@ -37,14 +39,18 @@ export class CommunityRootTransactionRole extends AbstractTransactionRole {
 
   protected async createMissingAccount(missingAccountPublicKey: Buffer): Promise<Account> {
     const community = this.self.community
-    if (this.communityRoot.aufPubkey.equals(missingAccountPublicKey)) {
+    logger.debug('create missing account for communityRoot Transaction', {
+      publicKey: Buffer.from(missingAccountPublicKey).toString('hex'),
+      communityRoot: new CommunityRootLoggingView(this.communityRoot),
+    })
+    if (this.keyCompare(this.communityRoot.aufPubkey, missingAccountPublicKey)) {
       const aufAccount = AccountFactory.createAufAccount(
         new KeyPair(community),
         this.self.createdAt,
       )
       community.aufAccount = aufAccount
       return aufAccount
-    } else if (this.communityRoot.gmwPubkey.equals(missingAccountPublicKey)) {
+    } else if (this.keyCompare(this.communityRoot.gmwPubkey, missingAccountPublicKey)) {
       const gmwAccount = AccountFactory.createGmwAccount(
         new KeyPair(community),
         this.self.createdAt,
