@@ -5,7 +5,7 @@ export class InvalidTransaction extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true, type: 'bigint' })
   id: number
 
-  @Column({ name: 'iota_message_id', type: 'binary', length: 32 })
+  @Column({ name: 'iota_message_id', type: 'binary', length: 32, unique: true })
   iotaMessageId: Buffer
 
   @Column({ name: 'error_message', type: 'varchar', length: 255 })

@@ -26,8 +26,8 @@ export class Account extends BaseEntity {
   @Column({ name: 'user_id', type: 'int', unsigned: true, nullable: true })
   userId?: number
 
-  @Column({ name: 'derivation_index', type: 'int', unsigned: true, nullable: true })
-  derivationIndex?: number
+  @Column({ name: 'derivation_index', type: 'int', unsigned: true })
+  derivationIndex: number
 
   @Column({ name: 'derive2_pubkey', type: 'binary', length: 32, unique: true })
   derive2Pubkey: Buffer
