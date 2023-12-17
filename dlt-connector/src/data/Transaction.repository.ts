@@ -27,6 +27,8 @@ export const TransactionRepository = getDataSource()
         .where('HEX(Transaction.iota_message_id) IN (:...messageIDs)', {
           messageIDs: messageIDsHex,
         })
+        .leftJoinAndSelect('Transaction.community', 'Community')
+        .leftJoinAndSelect('Transaction.otherCommunity', 'OtherCommunity')
         .leftJoinAndSelect('Transaction.recipientAccount', 'RecipientAccount')
         .leftJoinAndSelect('RecipientAccount.user', 'RecipientUser')
         .leftJoinAndSelect('Transaction.signingAccount', 'SigningAccount')

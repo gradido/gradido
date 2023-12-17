@@ -4,8 +4,8 @@ import { JsonRpcEitherResponse } from 'jsonrpc-ts-client/dist/types/utils/jsonrp
 import { CONFIG } from '@/config'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { AddressType, getAddressTypeEnumValue } from '@/data/proto/3_3/enum/AddressType'
-import { LogError } from '@/server/LogError'
 import { logger } from '@/logging/logger'
+import { LogError } from '@/server/LogError'
 
 const client = new JsonRpcClient({
   url: CONFIG.NODE_SERVER_URL,
@@ -39,6 +39,7 @@ interface ConfirmedTransactionList {
 
 interface ConfirmedTransactionResponse {
   transaction: string
+  timeUsed: string
 }
 
 interface AddressTypeResult {
@@ -67,11 +68,12 @@ async function getTransactions(
   }
   logger.info('call getTransactions on Node Server via jsonrpc 2.0 with ', parameter)
   const response = await client.exec<ConfirmedTransactionList>('getTransactions', parameter) // sends payload {jsonrpc: '2.0',  params: ...}
-  return resolveResponse(response, (result: ConfirmedTransactionList) =>
-    result.transactions.map((transactionBase64) =>
+  return resolveResponse(response, (result: ConfirmedTransactionList) => {
+    logger.debug('GradidoNode used time', result.timeUsed)
+    return result.transactions.map((transactionBase64) =>
       ConfirmedTransaction.fromBase64(transactionBase64),
-    ),
-  )
+    )
+  })
 }
 
 async function getTransaction(
@@ -85,11 +87,12 @@ async function getTransaction(
     transactionId: typeof transactionId === 'number' ? transactionId : undefined,
     iotaMessageId: transactionId instanceof Buffer ? transactionId.toString('hex') : undefined,
   })
-  return resolveResponse(response, (result: ConfirmedTransactionResponse) =>
-    result.transaction && result.transaction !== ''
+  return resolveResponse(response, (result: ConfirmedTransactionResponse) => {
+    logger.debug('GradidoNode used time', result.timeUsed)
+    return result.transaction && result.transaction !== ''
       ? ConfirmedTransaction.fromBase64(result.transaction)
-      : undefined,
-  )
+      : undefined
+  })
 }
 
 async function getLastTransaction(iotaTopic: string): Promise<ConfirmedTransaction | undefined> {
@@ -98,11 +101,12 @@ async function getLastTransaction(iotaTopic: string): Promise<ConfirmedTransacti
     format: 'base64',
     communityId: iotaTopic,
   })
-  return resolveResponse(response, (result: ConfirmedTransactionResponse) =>
-    result.transaction && result.transaction !== ''
+  return resolveResponse(response, (result: ConfirmedTransactionResponse) => {
+    logger.debug('GradidoNode used time', result.timeUsed)
+    return result.transaction && result.transaction !== ''
       ? ConfirmedTransaction.fromBase64(result.transaction)
-      : undefined,
-  )
+      : undefined
+  })
 }
 
 async function getAddressType(pubkey: Buffer, iotaTopic: string): Promise<AddressType | undefined> {

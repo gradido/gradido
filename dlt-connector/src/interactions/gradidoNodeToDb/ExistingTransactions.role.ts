@@ -1,11 +1,9 @@
 import { Transaction } from '@entity/Transaction'
 import { Decimal } from 'decimal.js-light'
-// eslint-disable-next-line n/no-extraneous-import
-import Long from 'long'
 
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { LogError } from '@/server/LogError'
-import { timestampSecondsToDate } from '@/utils/typeConverter'
+import { longToNumber, timestampSecondsToDate } from '@/utils/typeConverter'
 
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 import { ConfirmedTransactionRole } from './ConfirmedTransaction.role'
@@ -17,7 +15,9 @@ export class ExistingTransactionRole extends AbstractTransactionRole {
   }
 
   public isConfirmed(): boolean {
-    return !this.self.runningHash || this.self.runningHash.length === 32
+    // Checks if runningHash exists and has a length of 32
+    // The !! operator converts the value to a boolean, ensuring it is not null or undefined before proceeding to check its length
+    return !!this.self.runningHash && this.self.runningHash.length === 32
   }
 
   /**
@@ -30,7 +30,7 @@ export class ExistingTransactionRole extends AbstractTransactionRole {
   public setOrCheck(confirmedTransactionProto: ConfirmedTransaction): ConfirmedTransactionRole {
     // set or check nr
     if (!this.self.nr) {
-      this.self.nr = confirmedTransactionProto.id.toInt()
+      this.self.nr = longToNumber(confirmedTransactionProto.id)
     } else {
       if (this.self.nr.toString() !== confirmedTransactionProto.id.toString()) {
         throw new LogError('existing transaction has deviating nr', {
@@ -38,9 +38,6 @@ export class ExistingTransactionRole extends AbstractTransactionRole {
           incoming: confirmedTransactionProto.id,
         })
       }
-    }
-    if (new Long(this.self.nr) !== confirmedTransactionProto.id) {
-      throw new LogError('datatype overflow, please update transactions.nr data type')
     }
 
     // set or check running hash

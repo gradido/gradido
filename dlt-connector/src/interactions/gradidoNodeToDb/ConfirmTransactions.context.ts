@@ -21,6 +21,7 @@ import { TransactionType } from '@/graphql/enum/TransactionType'
 import { AccountLoggingView } from '@/logging/AccountLogging.view'
 import { ConfirmedTransactionLoggingView } from '@/logging/ConfirmedTransactionLogging.view'
 import { logger } from '@/logging/logger'
+import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
 
 import { AbstractConfirm } from './AbstractConfirm.role'
@@ -82,8 +83,12 @@ export class ConfirmTransactionsContext {
     )
     // remove confirmed existing transactions, upgrade existing Transactions to ConfirmedTransactions, fuse arrays together
     const allTransactions = newTransactions.concat(
-      existingTransaction.filter(this.isNotConfirmed).map(this.updateExistingTransactions),
+      existingTransaction
+        .filter(this.isNotConfirmed)
+        .map(this.updateExistingTransactions.bind(this)),
     )
+
+    // logger.debug('after removing confirmed transactions', [obj])
     // make sure, order is correct, transactions must be proceed in sequence
     allTransactions.sort((a, b) => a.sortByNr(b))
     this.transactionSets = allTransactions.map((value) => {
@@ -120,7 +125,7 @@ export class ConfirmTransactionsContext {
     const lastTransactionNr = await this.checkTransactionNrsReturnLast(allTransactions)
     // finally save changed and new transactions
     await Transaction.save(allTransactions.map((value) => value.getTransaction()))
-    return lastTransactionNr
+    return Number(lastTransactionNr)
   }
 
   public addForSave(entity: Account) {
@@ -152,14 +157,14 @@ export class ConfirmTransactionsContext {
       if (!lastTransaction.nr) {
         throw new LogError('missing transaction nr')
       }
-      lastTransactionNr = lastTransaction.nr
+      lastTransactionNr = Number(lastTransaction.nr)
     }
     return allTransactionEntities.reduce<number>(
       (lastTransactionNr: number, currentTransaction: Transaction): number => {
-        if (!currentTransaction.nr || lastTransactionNr + 1 !== currentTransaction.nr) {
+        if (!currentTransaction.nr || lastTransactionNr + 1 !== Number(currentTransaction.nr)) {
           throw new LogError('error, missing transaction nr', {
             lastKnown: lastTransactionNr,
-            new: currentTransaction.nr,
+            new: Number(currentTransaction.nr),
           })
         }
         return currentTransaction.nr
@@ -185,9 +190,9 @@ export class ConfirmTransactionsContext {
     // find message ids for which we don't already have a transaction recipe
     const missingMessageIdsHex = messageIdsHex.filter((id: string) => !foundMessageIds.includes(id))
     return {
-      existingTransaction: existingTransactions.map(
-        (transaction) => new ExistingTransactionRole(transaction),
-      ),
+      existingTransaction: existingTransactions.map((transaction) => {
+        return new ExistingTransactionRole(transaction)
+      }),
       missingMessageIdsHex,
     }
   }

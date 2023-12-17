@@ -6,9 +6,12 @@
  */
 
 import { Community } from '@entity/Community'
+// eslint-disable-next-line n/no-extraneous-import
+import Long from 'long'
 
 import { getLastTransaction, getTransactions } from '@/client/GradidoNode'
 import { receiveAllMessagesForTopic } from '@/client/IotaClient'
+import { CONFIG } from '@/config'
 import { CommunityRepository } from '@/data/Community.repository'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
@@ -17,6 +20,7 @@ import { ConfirmTransactionsContext } from '@/interactions/gradidoNodeToDb/Confi
 import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
 import { Mutex } from '@/utils/Mutex'
+import { longToNumber } from '@/utils/typeConverter'
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class TransactionsManager {
@@ -116,33 +120,72 @@ export class TransactionsManager {
     // we cannot move this mechanisms into ConfirmTransactionsContext because between importing batch of transactions a future transaction
     // could be slip by
     this.lockTopic(newTopic)
+    const startTime = performance.now()
     let count = 0
-    let cursor = 0
+    let sumCount = 0
     let lastStoredTransactionNr = 0
     let lastTransactionOnNodeNr = 0
     try {
       do {
         try {
-          const confirmedTransactions = await getTransactions(cursor, 100, newTopic)
+          let requestTimeStart = performance.now()
+          const fromTransactionId: number = lastStoredTransactionNr + 1
+          const confirmedTransactions = await getTransactions(
+            fromTransactionId,
+            CONFIG.TRANSACTION_MANAGER_BATCH_SIZE,
+            newTopic,
+          )
           count = confirmedTransactions.length
-          cursor += count
+          if (!count) {
+            throw new LogError('get 0 transactions from Gradido Node', {
+              fromTransactionId,
+              maxResultCount: CONFIG.TRANSACTION_MANAGER_BATCH_SIZE,
+              iotaTopic: newTopic,
+              lastStoredTransactionNr,
+              lastTransactionOnNodeNr,
+            })
+          }
+          sumCount += count
+          let requestTime = performance.now() - requestTimeStart
+          logger.info(
+            `Gradido Node Request Time for requesting ${count} transactions: ${requestTime} milliseconds`,
+          )
+          requestTimeStart = performance.now()
           lastStoredTransactionNr = await new ConfirmTransactionsContext(
             confirmedTransactions,
             newTopic,
           ).run()
+          if (
+            new Long(lastStoredTransactionNr) <
+            confirmedTransactions[confirmedTransactions.length - 1].id
+          ) {
+            throw new LogError("ConfirmTransactionsContext don't process all transactions", {
+              fromTransactionId,
+              count,
+              lastStoredTransactionNr,
+              expectedLastStoredTransactionNr: fromTransactionId + count - 1,
+            })
+          }
+          requestTime = performance.now() - requestTimeStart
+          logger.debug(`ConfirmTransactionsContext runtime: ${requestTime} milliseconds`)
+
+          requestTimeStart = performance.now()
           const lastTransactionOnNode = await getLastTransaction(newTopic)
+          requestTime = performance.now() - requestTimeStart
+          logger.debug(
+            `Gradido Node Request Time for requesting last transaction: ${requestTime} milliseconds`,
+          )
           if (lastTransactionOnNode) {
-            lastTransactionOnNodeNr = lastTransactionOnNode.id.toNumber()
-            // comp return 0 if identical
-            if (lastTransactionOnNode.id.comp(lastTransactionOnNodeNr) !== 0) {
-              throw new LogError('type overflow, number is not longer enough for transaction nr')
-            }
+            lastTransactionOnNodeNr = longToNumber(lastTransactionOnNode.id)
           }
         } catch (error) {
           logger.error('cannot load or confirm transactions from node server')
           throw error
         }
-      } while (count === 100 || lastTransactionOnNodeNr > lastStoredTransactionNr)
+      } while (
+        count === CONFIG.TRANSACTION_MANAGER_BATCH_SIZE ||
+        lastTransactionOnNodeNr > lastStoredTransactionNr
+      )
       // check and maybe proceed transaction which where added while we were busy importing transactions from node server
       let pendingConfirmedTransaction: ConfirmedTransaction | undefined
       await this.pendingConfirmedTransactionsMutex.lock()
@@ -164,9 +207,19 @@ export class TransactionsManager {
         await new ConfirmTransactionsContext([pendingConfirmedTransaction], newTopic).run()
         await this.pendingConfirmedTransactionsMutex.lock()
       }
+    } catch (e) {
+      logger.error('exception', e)
+      throw e
     } finally {
       this.unlockTopic(newTopic)
       this.pendingConfirmedTransactionsMutex.unlock()
+      const endTime = performance.now()
+      const duration = endTime - startTime
+      const durationPerTransaction = duration / sumCount
+      logger.info(
+        `time need for importing ${sumCount} transactions from Gradido Node: ${duration} milliseconds,` +
+          `that's ${durationPerTransaction} milliseconds per Transaction`,
+      )
     }
   }
 

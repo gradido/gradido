@@ -8,8 +8,12 @@ import { UserRepository } from '@/data/User.repository'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
+import { AccountLoggingView } from '@/logging/AccountLogging.view'
+import { logger } from '@/logging/logger'
+import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
 import { sign } from '@/utils/cryptoHelper'
+import { AccountLogic } from '@/data/Account.logic'
 
 export class TransactionRecipeRole {
   protected transactionBuilder: TransactionBuilder
@@ -19,6 +23,7 @@ export class TransactionRecipeRole {
   }
 
   public async create(transactionDraft: TransactionDraft): Promise<TransactionRecipeRole> {
+    logger.debug('start creating transaction receipt')
     const senderUser = transactionDraft.senderUser
     const recipientUser = transactionDraft.recipientUser
 
@@ -66,13 +71,25 @@ export class TransactionRecipeRole {
           communityUUID: recipientUser.communityUuid,
         })
       }
-      await this.transactionBuilder.setOtherCommunity(otherCommunity)
+      this.transactionBuilder.setOtherCommunity(otherCommunity)
     }
     const transaction = this.transactionBuilder.getTransaction()
     // sign
-    this.transactionBuilder.setSignature(
-      sign(transaction.bodyBytes, new KeyPair(this.transactionBuilder.getCommunity())),
-    )
+    const accountLogic = new AccountLogic(signingAccount)
+    const keyPair = accountLogic.getKeyPair(new KeyPair(this.transactionBuilder.getCommunity()))
+    if (!keyPair) {
+      throw new LogError('cannot generate key pair, belong user to home community?')
+    }
+    const signature = sign(transaction.bodyBytes, keyPair)
+    logger.debug('sign transaction', {
+      signature: signature.toString('hex'),
+      publicKey: keyPair.publicKey.toString('hex'),
+      bodyBytes: transaction.bodyBytes.toString('hex'),
+    })
+
+    this.transactionBuilder.setSignature(signature)
+
+    logger.debug('create transaction receipt', new TransactionLoggingView(transaction))
     return this
   }
 

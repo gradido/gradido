@@ -9,6 +9,8 @@ import { TransactionRepository } from '@/data/Transaction.repository'
 import { CreateTransactionRecipeContext } from '@/interactions/backendToDb/transaction/CreateTransationRecipe.context'
 import { ConfirmTransactionsContext } from '@/interactions/gradidoNodeToDb/ConfirmTransactions.context'
 import { logger } from '@/logging/logger'
+import { TransactionDraftLoggingView } from '@/logging/TransactionDraftLogging.view'
+import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 
 import { TransactionErrorType } from '../enum/TransactionErrorType'
 import { ConfirmedTransactionInput } from '../input/ConfirmedTransactionInput'
@@ -24,6 +26,7 @@ export class TransactionResolver {
     @Arg('data')
     transactionDraft: TransactionDraft,
   ): Promise<TransactionResult> {
+    logger.debug('sendTransaction', new TransactionDraftLoggingView(transactionDraft))
     const createTransactionRecipeContext = new CreateTransactionRecipeContext(transactionDraft)
     try {
       await createTransactionRecipeContext.run()
@@ -32,6 +35,7 @@ export class TransactionResolver {
       return new TransactionResult(new TransactionRecipe(transactionRecipe))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
+      logger.error('error with transaction from backend', error)
       if (error.code === 'ER_DUP_ENTRY') {
         const existingRecipe = await TransactionRepository.findBySignature(
           createTransactionRecipeContext.getTransactionRecipe().signature,
@@ -85,6 +89,8 @@ export class TransactionResolver {
           'not expected error, see dlt-connector log for further details',
         ),
       )
+    } finally {
+      transactionsManager.unlockTopic(iotaTopic)
     }
     return new TransactionResult()
   }
@@ -95,12 +101,17 @@ export class TransactionResolver {
   ): Promise<TransactionResult> {
     const transactionReceipt = await findByMessageId(iotaMessageId)
     if (transactionReceipt) {
-      logger.error('invalid transaction', errorMessage, transactionReceipt)
+      logger.error(
+        'invalid transaction',
+        errorMessage,
+        new TransactionLoggingView(transactionReceipt),
+      )
     } else {
       logger.info("invalid transaction (but we haven't create it)", errorMessage, iotaMessageId)
     }
     const invalidTransaction = InvalidTransaction.create()
     invalidTransaction.iotaMessageId = Buffer.from(iotaMessageId, 'hex')
+    invalidTransaction.errorMessage = errorMessage
     try {
       invalidTransaction.save()
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

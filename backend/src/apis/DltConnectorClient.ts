@@ -24,6 +24,46 @@ const sendTransaction = gql`
     }
   }
 `
+enum TransactionType {
+  GRADIDO_TRANSFER = 1,
+  GRADIDO_CREATION = 2,
+  GROUP_FRIENDS_UPDATE = 3,
+  REGISTER_ADDRESS = 4,
+  GRADIDO_DEFERRED_TRANSFER = 5,
+  COMMUNITY_ROOT = 6,
+}
+
+enum TransactionErrorType {
+  NOT_IMPLEMENTED_YET = 'Not Implemented yet',
+  MISSING_PARAMETER = 'Missing parameter',
+  ALREADY_EXIST = 'Already exist',
+  DB_ERROR = 'DB Error',
+  PROTO_DECODE_ERROR = 'Proto Decode Error',
+  PROTO_ENCODE_ERROR = 'Proto Encode Error',
+  INVALID_SIGNATURE = 'Invalid Signature',
+  LOGIC_ERROR = 'Logic Error',
+  NOT_FOUND = 'Not found',
+}
+
+interface TransactionError {
+  type: TransactionErrorType
+  message: string
+  name: string
+}
+
+interface TransactionRecipe {
+  id: number
+  createdAt: string
+  type: TransactionType
+  topic: string
+}
+
+interface TransactionResult {
+  error?: TransactionError
+  recipe?: TransactionRecipe
+  succeed: boolean
+}
+
 const isCommunityExist = gql`
   query ($uuid: String) {
     isCommunityExist(uuid: $uuid)
@@ -129,10 +169,11 @@ export class DltConnectorClient {
   public async transmitTransaction(
     transaction: DbTransaction,
     senderCommunityUuid: string,
-    recipientCommunityUuid?: string,
-  ): Promise<string> {
+    recipientCommunityUuid: string,
+  ): Promise<boolean> {
     const typeString = getTransactionTypeString(transaction.typeId)
-    const amountString = transaction.amount.toString()
+    // no negative values in dlt connector, gradido concept don't use negative values so the code don't use it too
+    const amountString = transaction.amount.abs().toString()
     const params = {
       input: {
         senderUser: {
@@ -141,13 +182,13 @@ export class DltConnectorClient {
         },
         recipientUser: {
           uuid: transaction.linkedUserGradidoID,
-          communityUuid: recipientCommunityUuid,
+          communityUuid: recipientCommunityUuid ?? senderCommunityUuid,
         },
         amount: amountString,
         type: typeString,
-        createdAt: transaction.balanceDate.toString(),
+        createdAt: transaction.balanceDate.toISOString(),
         backendTransactionId: transaction.id,
-        targetDate: transaction.creationDate?.toString(),
+        targetDate: transaction.creationDate?.toISOString(),
       },
     }
     if (transaction.typeId === TransactionTypeId.CREATION) {
@@ -168,15 +209,19 @@ export class DltConnectorClient {
     }
     try {
       // TODO: add account nr for user after they have also more than one account in backend
-      const { data } = await this.client.rawRequest(sendTransaction, params)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      if (data.sendTransaction.succeed) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-        return data.sendTransaction.recipe.id.toString()
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        throw new Error(data.sendTransaction.error.message)
+      logger.debug('transmit transaction to dlt connector', params)
+      const {
+        data: {
+          sendTransaction: { error, succeed },
+        },
+      } = await this.client.rawRequest<{ sendTransaction: TransactionResult }>(
+        sendTransaction,
+        params,
+      )
+      if (error) {
+        throw new Error(error.message)
       }
+      return succeed
     } catch (e) {
       throw new LogError('Error send sending transaction to dlt-connector: ', e)
     }

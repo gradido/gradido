@@ -15,9 +15,9 @@ export class ConfirmedTransactionInput {
   @IsString()
   iotaMessageId: string
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @IsString()
-  gradidoId: string
+  gradidoId?: string | null
 
   @Field(() => Decimal)
   @IsPositiveDecimal()

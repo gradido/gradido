@@ -2,8 +2,8 @@ import { sign as ed25519Sign, verify as ed25519Verify } from 'bip32-ed25519'
 
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { SignaturePair } from '@/data/proto/3_3/SignaturePair'
-import { KeyPair } from '@/model/KeyPair'
 import { logger } from '@/logging/logger'
+import { KeyPair } from '@/model/KeyPair'
 
 export const sign = (transaction: GradidoTransaction, signer: KeyPair): void => {
   const signature = ed25519Sign(transaction.bodyBytes, signer.getExtendPrivateKey())

@@ -2,6 +2,7 @@ import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionError } from '@/graphql/model/TransactionError'
+import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { ConditionalSleepManager } from '@/utils/ConditionalSleepManager'
 
 import { sendMessage as iotaSendMessage } from '../client/IotaClient'
@@ -33,11 +34,11 @@ export const transmitToIota = async (): Promise<void> => {
         await ConditionalSleepManager.getInstance().sleep(
           TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY,
           // 1000,
-          100000,
+          1000,
         )
         continue
       }
-      logger.info('transmit to iota', recipe)
+      logger.info('transmit to iota', new TransactionLoggingView(recipe))
       const recipeController = new TransactionRecipe(recipe)
       const { transaction, body } = recipeController.getGradidoTransaction()
       const messageBuffer = GradidoTransaction.encode(transaction).finish()
@@ -61,7 +62,8 @@ export const transmitToIota = async (): Promise<void> => {
       }
     } catch (error) {
       logger.error('error while transmitting to iota ', error)
-      await sleep(10000)
+      break
+      // await sleep(10000)
     }
   }
   logger.info(

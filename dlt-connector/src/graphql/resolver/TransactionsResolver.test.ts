@@ -13,11 +13,12 @@ import { CONFIG } from '@/config'
 import { AccountFactory } from '@/data/Account.factory'
 import { UserFactory } from '@/data/User.factory'
 import { UserLogic } from '@/data/User.logic'
-import { InputTransactionType, getTransactionTypeString } from '@/graphql/enum/InputTransactionType'
+import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
+import { getEnumValue } from '@/utils/typeConverter'
 
 CONFIG.IOTA_HOME_COMMUNITY_SEED = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899'
 
@@ -84,7 +85,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: getTransactionTypeString(InputTransactionType.SEND),
+          type: getEnumValue(InputTransactionType, InputTransactionType.SEND),
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
           backendTransactionId: 1,
@@ -132,7 +133,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: getTransactionTypeString(InputTransactionType.SEND),
+          type: getEnumValue(InputTransactionType, InputTransactionType.SEND),
           amount: 'no number',
           createdAt: '2012-04-17T17:12:00Z',
           backendTransactionId: 1,
@@ -158,7 +159,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: getTransactionTypeString(InputTransactionType.SEND),
+          type: getEnumValue(InputTransactionType, InputTransactionType.SEND),
           amount: '10',
           createdAt: 'not valid',
           backendTransactionId: 1,
@@ -194,7 +195,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: getTransactionTypeString(InputTransactionType.CREATION),
+          type: getEnumValue(InputTransactionType, InputTransactionType.CREATION),
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
           backendTransactionId: 1,

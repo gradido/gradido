@@ -103,21 +103,13 @@ export class BackendClient {
         ? Buffer.from(confirmedTransaction.iotaMessageId).toString('hex')
         : undefined,
       gradidoId: balanceAccount?.user?.gradidoID,
-      balance: confirmedTransaction.accountBalanceCreatedAt,
-      balanceDate: confirmedTransaction.confirmedAt?.toString(),
-    }
-    logger.debug('call confirmTransaction with parameter', {
-      transactionId,
-      iotaMessageId: confirmedTransaction.iotaMessageId
-        ? Buffer.from(confirmedTransaction.iotaMessageId).toString('hex')
-        : undefined,
-      gradidoId: balanceAccount?.user?.gradidoID,
       balance: confirmedTransaction.accountBalanceCreatedAt?.toString(),
-      balanceDate: confirmedTransaction.confirmedAt?.toISOString(),
-    })
+      balanceDate: confirmedTransaction.createdAt.toISOString(),
+    }
+    logger.debug('call confirmTransaction with parameter', input)
     const { errors } = await this.client.rawRequest<boolean>(confirmTransaction, { input })
     if (errors) {
-      throw new LogError('error confirm transaction with: %s, details: %s', errors)
+      throw new LogError('error confirm transaction with: %s', errors)
     }
   }
 

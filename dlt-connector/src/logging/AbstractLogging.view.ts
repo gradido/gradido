@@ -2,9 +2,9 @@ import util from 'util'
 
 import { Decimal } from 'decimal.js-light'
 
+import { Timestamp } from '@/data/proto/3_3/Timestamp'
 import { TimestampSeconds } from '@/data/proto/3_3/TimestampSeconds'
 import { timestampSecondsToDate, timestampToDate } from '@/utils/typeConverter'
-import { Timestamp } from '@/data/proto/3_3/Timestamp'
 
 export abstract class AbstractLoggingView {
   protected bufferStringFormat: BufferEncoding = 'hex'

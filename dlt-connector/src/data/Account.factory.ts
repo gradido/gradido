@@ -11,7 +11,6 @@ import { accountTypeToAddressType } from '@/utils/typeConverter'
 
 import { AUF_ACCOUNT_DERIVATION_INDEX, GMW_ACCOUNT_DERIVATION_INDEX } from './const'
 import { RegisterAddress } from './proto/3_3/RegisterAddress'
-import { ConfirmedTransaction } from './proto/3_3/ConfirmedTransaction'
 
 export class AccountFactory {
   public static create(
@@ -60,6 +59,7 @@ export class AccountFactory {
     account.balanceCreatedAt = transaction.accountBalanceCreatedAt ?? new Decimal(0)
     account.balanceCreatedAtDate = transaction.createdAt
     account.balanceConfirmedAt = transaction.accountBalanceConfirmedAt ?? new Decimal(0)
+    account.derivationIndex = registerAddress.derivationIndex ?? 1
     return account
   }
 

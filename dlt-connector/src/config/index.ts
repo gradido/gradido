@@ -45,6 +45,10 @@ const dltConnector = {
   DLT_CONNECTOR_PORT: process.env.DLT_CONNECTOR_PORT || 6010,
 }
 
+const transactionManager = {
+  TRANSACTION_MANAGER_BATCH_SIZE: Number(process.env.TRANSACTION_MANAGER_BATCH_SIZE || 100),
+}
+
 const nodeServer = {
   NODE_SERVER_URL: process.env.NODE_SERVER_URL ?? 'http://localhost:8340',
 }
@@ -71,6 +75,7 @@ export const CONFIG = {
   ...database,
   ...iota,
   ...dltConnector,
+  ...transactionManager,
   ...nodeServer,
   ...backendServer,
 }

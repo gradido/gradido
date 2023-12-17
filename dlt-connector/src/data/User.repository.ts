@@ -7,10 +7,10 @@ import { getDataSource } from '@/typeorm/DataSource'
 export const UserRepository = getDataSource()
   .getRepository(User)
   .extend({
-    async findAccountByUserIdentifier({
-      uuid,
-      accountNr,
-    }: UserIdentifier): Promise<Account | undefined> {
+    async findAccountByUserIdentifier(
+      userIdentifier: UserIdentifier,
+    ): Promise<Account | undefined> {
+      const { uuid, accountNr } = userIdentifier
       const user = await this.findOne({
         where: { gradidoID: uuid, accounts: { derivationIndex: accountNr ?? 1 } },
         relations: { accounts: true },

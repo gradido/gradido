@@ -4,6 +4,7 @@
 
 import { getConnection, In, IsNull } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
+import { DltTransaction } from '@entity/DltTransaction'
 import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
@@ -51,7 +52,6 @@ import {
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { storeForeignUser } from './util/storeForeignUser'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
-import { DltTransaction } from '@entity/DltTransaction'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -547,6 +547,8 @@ export class TransactionResolver {
       if (dltTransaction?.transaction) {
         transaction = dltTransaction.transaction
         transaction.dltTransaction = dltTransaction
+        // prevent recursion
+        transaction.dltTransaction.transaction = undefined
       }
     }
     if (!transaction) {
@@ -555,7 +557,10 @@ export class TransactionResolver {
         messageId: confirmedTransactionInput.iotaMessageId,
       })
     }
-    if (confirmedTransactionInput.gradidoId !== transaction.userGradidoID) {
+    if (
+      confirmedTransactionInput.gradidoId &&
+      confirmedTransactionInput.gradidoId !== transaction.userGradidoID
+    ) {
       throw new LogError('user gradido id differ')
     }
     const confirmedBalanceDate = new Date(confirmedTransactionInput.balanceDate)

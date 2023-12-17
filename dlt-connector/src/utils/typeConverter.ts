@@ -1,3 +1,5 @@
+// eslint-disable-next-line n/no-extraneous-import
+import Long from 'long'
 import { crypto_generichash as cryptoHash } from 'sodium-native'
 
 import { AddressType } from '@/data/proto/3_3/enum/AddressType'
@@ -7,8 +9,8 @@ import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
 import { AccountType } from '@/graphql/enum/AccountType'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionError } from '@/graphql/model/TransactionError'
-import { LogError } from '@/server/LogError'
 import { logger } from '@/logging/logger'
+import { LogError } from '@/server/LogError'
 
 export const uuid4ToBuffer = (uuid: string): Buffer => {
   // Remove dashes from the UUIDv4 string
@@ -104,4 +106,34 @@ export const addressTypeToAccountType = (addressType: AddressType): AccountType 
     default:
       throw new LogError(`Unsupported AddressType: ${addressType}`)
   }
+}
+
+export function getEnumValue<T extends Record<string, unknown>>(
+  enumType: T,
+  value: number | string,
+): T[keyof T] | undefined {
+  if (typeof value === 'number' && typeof enumType === 'object') {
+    return enumType[value as keyof T] as T[keyof T]
+  } else if (typeof value === 'string') {
+    for (const key in enumType) {
+      if (enumType[key as keyof T] === value) {
+        return enumType[key as keyof T] as T[keyof T]
+      }
+    }
+  }
+  return undefined
+}
+
+export function longToNumber(longNumber: Long): number {
+  const n = longNumber.toInt()
+  // check for type overflow
+  const verify = new Long(n, undefined, longNumber.unsigned)
+  if (!verify.equals(longNumber)) {
+    throw new LogError('datatype overflow', {
+      number: n,
+      Long_number: verify,
+      inputNumber: longNumber,
+    })
+  }
+  return n
 }

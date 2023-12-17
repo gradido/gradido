@@ -11,6 +11,7 @@ import { TransactionError } from '@/graphql/model/TransactionError'
 import { logger } from '@/logging/logger'
 
 import { verify } from './GradidoTransaction'
+import { GradidoTransactionLoggingView } from '@/logging/GradidoTransactionLogging.view'
 
 export class TransactionRecipe {
   private body: TransactionBody | undefined = undefined
@@ -79,6 +80,7 @@ export class TransactionRecipe {
       transaction.sigMap.sigPair.push(signaturePair)
     }
     if (!verify(transaction)) {
+      logger.debug('invalid signature', new GradidoTransactionLoggingView(transaction))
       throw new TransactionError(TransactionErrorType.INVALID_SIGNATURE, 'signature is invalid')
     }
     transaction.parentMessageId = this.recipeEntity.iotaMessageId

@@ -14,9 +14,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   `)
 
   await queryFn(
-    `ALTER TABLE \`accounts\` MODIFY COLUMN  \`derivation_index\` int(10) unsigned NULL DEFAULT NULL;`,
-  )
-  await queryFn(
     `ALTER TABLE \`accounts\` ADD COLUMN \`balance_created_at\` decimal(40,20) NOT NULL DEFAULT 0 AFTER \`balance_confirmed_at_date\`;`,
   )
   await queryFn(
@@ -29,6 +26,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(
     `ALTER TABLE \`invalid_transactions\` ADD COLUMN \`error_message\` varchar(255) NOT NULL;`,
   )
+
+  await queryFn(`ALTER TABLE \`invalid_transactions\` DROP INDEX \`iota_message_id\`;`)
+  await queryFn(`ALTER TABLE \`invalid_transactions\` ADD UNIQUE(\`iota_message_id\`);`)
 
   await queryFn(
     `CREATE TABLE \`transactions\` (
@@ -126,12 +126,11 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
     ;
   `)
 
-  await queryFn(
-    `ALTER TABLE \`accounts\` MODIFY COLUMN  \`derivation_index\` int(10) unsigned NOT NULL;`,
-  )
   await queryFn(`ALTER TABLE \`accounts\` DROP COLUMN \`balance_created_at\`;`)
   await queryFn(`ALTER TABLE \`accounts\` DROP COLUMN \`balance_created_at_date\`;`)
   await queryFn(`ALTER TABLE \`invalid_transactions\` DROP COLUMN \`error_message\`;`)
+  await queryFn(`ALTER TABLE \`invalid_transactions\` DROP INDEX \`iota_message_id\`;`)
+  await queryFn(`ALTER TABLE \`invalid_transactions\` ADD INDEX(\`iota_message_id\`); `)
   await queryFn(`DROP TABLE \`transactions\`;`)
 
   await queryFn(

@@ -1,4 +1,4 @@
-import { sign as ed25519Sign, generateFromSeed } from 'bip32-ed25519'
+import { sign as ed25519Sign, verify as ed25519Verify, generateFromSeed } from 'bip32-ed25519'
 import { entropyToMnemonic, mnemonicToSeedSync } from 'bip39'
 // eslint-disable-next-line camelcase
 import { randombytes_buf } from 'sodium-native'
@@ -7,6 +7,10 @@ import { KeyPair } from '@/data/KeyPair'
 
 export const sign = (message: Buffer, keyPair: KeyPair): Buffer => {
   return ed25519Sign(message, keyPair.getExtendPrivateKey())
+}
+
+export const verify = (message: Buffer, signature: Buffer, keyPair: KeyPair): boolean => {
+  return ed25519Verify(message, signature, keyPair.getExtendPublicKey())
 }
 
 export const generateKeyPair = (mnemonic: string): KeyPair => {

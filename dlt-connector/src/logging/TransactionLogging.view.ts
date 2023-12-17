@@ -1,6 +1,7 @@
 import { Transaction } from '@entity/Transaction'
 
 import { getTransactionTypeEnumValue } from '@/graphql/enum/TransactionType'
+import { LogError } from '@/server/LogError'
 
 import { AbstractLoggingView } from './AbstractLogging.view'
 import { AccountLoggingView } from './AccountLogging.view'
@@ -9,6 +10,9 @@ import { CommunityLoggingView } from './CommunityLogging.view'
 export class TransactionLoggingView extends AbstractLoggingView {
   public constructor(private self: Transaction) {
     super()
+    if (this.self.community === undefined) {
+      throw new LogError('sender community is zero')
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
