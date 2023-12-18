@@ -240,6 +240,7 @@
     "title": "Merci!",
     "unsetPassword": "Votre mot de passe n'a pas été accepté. Merci de le réinitialiser."
   },
+  "moderatorChangedMemo": "Texte édité par le modérateur",
   "navigation": {
     "admin_area": "Partie administrative",
     "community": "Communauté",

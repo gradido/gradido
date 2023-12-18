@@ -231,6 +231,7 @@
     "title": "Gracias!",
     "unsetPassword": "Tu contraseña aún no ha sido configurada. Por favor reinícialo."
   },
+  "moderatorChangedMemo": "Texto editado por el moderador",
   "navigation": {
     "admin_area": "Área de administración",
     "community": "Comunidad",
