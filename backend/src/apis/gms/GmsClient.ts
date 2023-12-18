@@ -12,7 +12,7 @@ import { GmsUser } from './model/GmsUser'
 
 /*
 export async function communityList(): Promise<GmsCommunity[] | string | undefined> {
-  const baseUrl = 'https://'.concat(CONFIG.GMS_HOST).concat(':').concat(CONFIG.GMS_PORT).concat('/')
+  const baseUrl = CONFIG.GMS_URL.endsWith('/') ? CONFIG.GMS_URL : CONFIG.GMS_URL.concat('/')
   const service = 'community/list?page=1&perPage=20'
   const config = {
     headers: {
@@ -44,7 +44,7 @@ export async function communityList(): Promise<GmsCommunity[] | string | undefin
 }
 
 export async function userList(): Promise<GmsUser[] | string | undefined> {
-  const baseUrl = 'https://'.concat(CONFIG.GMS_HOST).concat(':').concat(CONFIG.GMS_PORT).concat('/')
+  const baseUrl = CONFIG.GMS_URL.endsWith('/') ? CONFIG.GMS_URL : CONFIG.GMS_URL.concat('/')
   const service = 'community-user/list?page=1&perPage=20'
   const config = {
     headers: {
@@ -80,7 +80,7 @@ export async function userList(): Promise<GmsUser[] | string | undefined> {
 }
 
 export async function userByUuid(uuid: string): Promise<GmsUser[] | string | undefined> {
-  const baseUrl = 'https://'.concat(CONFIG.GMS_HOST).concat(':').concat(CONFIG.GMS_PORT).concat('/')
+  const baseUrl = CONFIG.GMS_URL.endsWith('/') ? CONFIG.GMS_URL : CONFIG.GMS_URL.concat('/')
   const service = 'community-user/list?page=1&perPage=20'
   const config = {
     headers: {
@@ -117,7 +117,7 @@ export async function userByUuid(uuid: string): Promise<GmsUser[] | string | und
 */
 
 export async function createGmsUser(apiKey: string, user: GmsUser): Promise<boolean> {
-  const baseUrl = 'http://'.concat(CONFIG.GMS_HOST).concat(':').concat(CONFIG.GMS_PORT).concat('/')
+  const baseUrl = CONFIG.GMS_URL.endsWith('/') ? CONFIG.GMS_URL : CONFIG.GMS_URL.concat('/')
   const service = 'community-user'
   const config = {
     headers: {
