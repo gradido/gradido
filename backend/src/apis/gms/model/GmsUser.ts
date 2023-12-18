@@ -1,11 +1,6 @@
 import { User as dbUser } from '@entity/User'
 
-import {
-  GmsLocationType,
-  GmsPublishNameType,
-  GmsPublishPhoneType,
-  GmsPublishPostType,
-} from './GmsEnums'
+import { GmsLocationType, GmsPublishNameType, GmsPublishPhoneType } from './GmsEnums'
 
 export class GmsUser {
   constructor(user: dbUser) {
@@ -17,10 +12,6 @@ export class GmsUser {
     this.firstName = this.getGmsFirstName(user)
     this.lastName = this.getGmsLastName(user)
     this.alias = user.alias ? user.alias : undefined
-    this.address = this.getGmsAddress(user)
-    // this.zipCode = this.getGmsZipCode(user)
-    // this.city = this.getGmsCity(user)
-    // this.country = this.getGmsCountry(user)
     this.type = GmsLocationType.GMS_LOCATION_TYPE_RANDOM
     this.location = null
   }
@@ -95,53 +86,6 @@ export class GmsUser {
       user.emailContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL
     ) {
       return user.emailContact.phone
-    }
-  }
-
-  private getGmsAddress(user: dbUser): string | undefined {
-    if (user.gmsAllowed) {
-      if (user.emailContact.gmsPublishPost === GmsPublishPostType.GMS_PUBLISH_POST_FULL) {
-        const address = [
-          '' + user.emailContact.country,
-          ...(user.emailContact.zipCode ? user.emailContact.zipCode : ' '),
-          user.emailContact.city ? user.emailContact.city : ' ',
-          user.emailContact.address ? user.emailContact.address : ' ',
-        ]
-          .map((a) => a.trim())
-          .filter(Boolean)
-          .join(', ')
-        return address
-      }
-    }
-  }
-
-  private getGmsZipCode(user: dbUser): string | undefined {
-    if (
-      user.gmsAllowed &&
-      (user.emailContact.gmsPublishPost === GmsPublishPostType.GMS_PUBLISH_POST_CITY ||
-        user.emailContact.gmsPublishPost === GmsPublishPostType.GMS_PUBLISH_POST_FULL)
-    ) {
-      return user.emailContact.zipCode
-    }
-  }
-
-  private getGmsCity(user: dbUser): string | undefined {
-    if (
-      user.gmsAllowed &&
-      (user.emailContact.gmsPublishPost === GmsPublishPostType.GMS_PUBLISH_POST_CITY ||
-        user.emailContact.gmsPublishPost === GmsPublishPostType.GMS_PUBLISH_POST_FULL)
-    ) {
-      return user.emailContact.city
-    }
-  }
-
-  private getGmsCountry(user: dbUser): string | undefined {
-    if (
-      user.gmsAllowed &&
-      (user.emailContact.gmsPublishPost === GmsPublishPostType.GMS_PUBLISH_POST_COUNTRY ||
-        user.emailContact.gmsPublishPost === GmsPublishPostType.GMS_PUBLISH_POST_FULL)
-    ) {
-      return user.emailContact.country
     }
   }
 }

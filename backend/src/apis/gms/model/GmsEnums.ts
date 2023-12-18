@@ -24,18 +24,6 @@ registerEnumType(GmsPublishPhoneType, {
   description: 'Type of Phone publishing', // this one is optional
 })
 
-export enum GmsPublishPostType {
-  GMS_PUBLISH_POST_NOTHING = 0,
-  GMS_PUBLISH_POST_COUNTRY = 1,
-  GMS_PUBLISH_POST_CITY = 2,
-  GMS_PUBLISH_POST_FULL = 3,
-}
-
-registerEnumType(GmsPublishPostType, {
-  name: 'GmsPublishPostType', // this one is mandatory
-  description: 'Type of name publishing', // this one is optional
-})
-
 export enum GmsLocationType {
   GMS_LOCATION_TYPE_EXACT = 0,
   GMS_LOCATION_TYPE_APPROXIMATE = 1,

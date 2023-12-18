@@ -5,6 +5,8 @@ import {
   Column,
   DeleteDateColumn,
   OneToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm'
 import { User } from '../User'
 
@@ -61,31 +63,14 @@ export class UserContact extends BaseEntity {
   @Column({ name: 'gms_publish_phone', type: 'int', unsigned: true, nullable: false, default: 0 })
   gmsPublishPhone: number
 
-  @Column({ length: 255, unique: false, nullable: true, collation: 'utf8mb4_unicode_ci' })
-  address: string
-
-  @Column({ length: 255, unique: false, nullable: true, collation: 'utf8mb4_unicode_ci' })
-  city: string
-
-  @Column({
-    name: 'zip_code',
-    length: 255,
-    unique: false,
-    nullable: true,
-    collation: 'utf8mb4_unicode_ci',
-  })
-  zipCode: string
-
-  @Column({ length: 255, unique: false, nullable: true, collation: 'utf8mb4_unicode_ci' })
-  country: string
-
-  @Column({ name: 'gms_publish_post', type: 'int', unsigned: true, nullable: false, default: 0 })
-  gmsPublishPost: number
-
-  @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP', nullable: false })
+  @CreateDateColumn({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP(3)', nullable: false })
   createdAt: Date
 
-  @Column({ name: 'updated_at', nullable: true, default: null, type: 'datetime' })
+  @UpdateDateColumn({
+    name: 'updated_at',
+    nullable: true,
+    onUpdate: 'CURRENT_TIMESTAMP(3)',
+  })
   updatedAt: Date | null
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })

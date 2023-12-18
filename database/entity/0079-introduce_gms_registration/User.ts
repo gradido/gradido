@@ -7,6 +7,7 @@ import {
   OneToMany,
   JoinColumn,
   OneToOne,
+  Geometry,
 } from 'typeorm'
 import { Contribution } from '../Contribution'
 import { ContributionMessage } from '../ContributionMessage'
@@ -123,6 +124,18 @@ export class User extends BaseEntity {
 
   @Column({ name: 'gms_allowed', type: 'bool', default: true })
   gmsAllowed: boolean
+
+  @Column({ name: 'location', type: 'geometry', default: null, nullable: true })
+  location: Geometry | null
+
+  @Column({
+    name: 'gms_publish_location',
+    type: 'int',
+    unsigned: true,
+    nullable: false,
+    default: 2,
+  })
+  gmsPublishLocation: number
 
   @Column({ name: 'gms_registered', type: 'bool', default: false })
   gmsRegistered: boolean
