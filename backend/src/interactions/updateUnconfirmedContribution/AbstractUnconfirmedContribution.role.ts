@@ -4,11 +4,15 @@ import { Decimal } from 'decimal.js-light'
 
 import { Role } from '@/auth/Role'
 import { ContributionLogic } from '@/data/Contribution.logic'
+import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
+import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { Context, getClientTimezoneOffset } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
 export abstract class AbstractUnconfirmedContributionRole {
   private availableCreationSums?: Decimal[]
+  protected changed = true
+  private currentStep = 0
 
   public constructor(
     protected self: Contribution,
@@ -20,6 +24,10 @@ export abstract class AbstractUnconfirmedContributionRole {
     }
   }
 
+  public isChanged(): boolean {
+    return this.changed
+  }
+
   // steps which return void throw on each error
   // first, check if it can be updated
   protected abstract checkAuthorization(user: User, role: Role): void
@@ -28,6 +36,10 @@ export abstract class AbstractUnconfirmedContributionRole {
     // TODO: refactor frontend and remove this restriction
     if (this.self.contributionDate.getMonth() !== this.updatedCreationDate.getMonth()) {
       throw new LogError('Month of contribution can not be changed')
+    }
+
+    if (this.self.contributionStatus === ContributionStatus.CONFIRMED) {
+      throw new LogError('the contribution is already confirmed, cannot be changed anymore')
     }
 
     const contributionLogic = new ContributionLogic(this.self)
@@ -45,14 +57,31 @@ export abstract class AbstractUnconfirmedContributionRole {
   // third, actually update entity
   protected abstract update(): void
 
+  protected wasUpdateAlreadyCalled(): boolean {
+    return this.currentStep > 3
+  }
+
   // call all steps in order
   public async checkAndUpdate(context: Context): Promise<void> {
     if (!context.user || !context.role) {
       throw new LogError('missing user or role on context')
     }
+    this.currentStep = 1
     this.checkAuthorization(context.user, context.role)
+    this.currentStep = 2
     await this.validate(getClientTimezoneOffset(context))
+    this.currentStep = 3
     this.update()
+    this.currentStep = 4
+  }
+
+  public createContributionMessage(): ContributionMessageBuilder | undefined {
+    // must be called before call at update
+    if (this.wasUpdateAlreadyCalled()) {
+      throw new LogError('please call before call of checkAndUpdate')
+    }
+    const contributionMessageBuilder = new ContributionMessageBuilder()
+    return contributionMessageBuilder.setParentContribution(this.self).setHistoryType(this.self)
   }
 
   public getAvailableCreationSums(): Decimal[] {

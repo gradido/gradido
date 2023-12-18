@@ -13,6 +13,7 @@
         :contributionId="contributionId"
         :contributionMemo="contributionMemo"
         :hideResubmission="hideResubmission"
+        :inputResubmissionDate="resubmissionAt"
         @get-list-contribution-messages="$apollo.queries.Messages.refetch()"
         @update-status="updateStatus"
         @reload-contribution="reloadContribution"
@@ -52,6 +53,10 @@ export default {
     hideResubmission: {
       type: Boolean,
       required: true,
+    },
+    resubmissionAt: {
+      type: String,
+      required: false,
     },
   },
   data() {
