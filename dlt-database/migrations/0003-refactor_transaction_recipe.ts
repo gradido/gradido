@@ -8,19 +8,19 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 
   await queryFn(`
     ALTER TABLE \`accounts\` 
-      RENAME COLUMN \`balance\` TO \`balance_confirmed_at\`,
-      RENAME COLUMN \`balance_date\` TO \`balance_confirmed_at_date\`
+      RENAME COLUMN \`balance\` TO \`balance_on_confirmation\`,
+      RENAME COLUMN \`balance_date\` TO \`balance_confirmed_at\`
     ;
   `)
 
   await queryFn(
-    `ALTER TABLE \`accounts\` ADD COLUMN \`balance_created_at\` decimal(40,20) NOT NULL DEFAULT 0 AFTER \`balance_confirmed_at_date\`;`,
+    `ALTER TABLE \`accounts\` ADD COLUMN \`balance_on_creation\` decimal(40,20) NOT NULL DEFAULT 0 AFTER \`balance_confirmed_at\`;`,
   )
   await queryFn(
-    `ALTER TABLE \`accounts\` ADD COLUMN \`balance_created_at_date\` datetime(3) NOT NULL AFTER \`balance_created_at\`;`,
+    `ALTER TABLE \`accounts\` ADD COLUMN \`balance_created_at\` datetime(3) NOT NULL AFTER \`balance_on_creation\`;`,
   )
   await queryFn(
-    `ALTER TABLE \`accounts\` MODIFY COLUMN \`balance_confirmed_at_date\` datetime NULL DEFAULT NULL;`,
+    `ALTER TABLE \`accounts\` MODIFY COLUMN \`balance_confirmed_at\` datetime NULL DEFAULT NULL;`,
   )
 
   await queryFn(
@@ -41,7 +41,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`community_id\` int unsigned NOT NULL,
         \`other_community_id\` int unsigned NULL DEFAULT NULL,
         \`amount\` decimal(40, 20) NULL DEFAULT NULL,
-        \`account_balance_created_at\` decimal(40, 20) NULL DEFAULT 0.00000000000000000000,
+        \`account_balance_on_creation\` decimal(40, 20) NULL DEFAULT 0.00000000000000000000,
         \`type\` tinyint NOT NULL,
         \`created_at\` datetime(3) NOT NULL,
         \`body_bytes\` blob NOT NULL,
@@ -49,7 +49,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`protocol_version\` varchar(255) NOT NULL DEFAULT '1',
         \`nr\` bigint NULL DEFAULT NULL,
         \`running_hash\` varbinary(48) NULL DEFAULT NULL,
-        \`account_balance_confirmed_at\` decimal(40, 20) NULL DEFAULT 0.00000000000000000000,
+        \`account_balance_on_confirmation\` decimal(40, 20) NULL DEFAULT 0.00000000000000000000,
         \`iota_milestone\` bigint  NULL DEFAULT NULL,
         \`confirmed_at\` datetime NULL DEFAULT NULL,
         PRIMARY KEY (\`id\`),
@@ -115,13 +115,13 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   )
   await queryFn(`
     ALTER TABLE \`accounts\` 
-      RENAME COLUMN \`balance_confirmed_at\` TO \`balance\`,
-      RENAME COLUMN \`balance_confirmed_at_date\` TO \`balance_date\`
+      RENAME COLUMN \`balance_on_confirmation\` TO \`balance\`,
+      RENAME COLUMN \`balance_confirmed_at\` TO \`balance_date\`
     ;
   `)
 
+  await queryFn(`ALTER TABLE \`accounts\` DROP COLUMN \`balance_on_creation\`;`)
   await queryFn(`ALTER TABLE \`accounts\` DROP COLUMN \`balance_created_at\`;`)
-  await queryFn(`ALTER TABLE \`accounts\` DROP COLUMN \`balance_created_at_date\`;`)
   await queryFn(`ALTER TABLE \`invalid_transactions\` DROP COLUMN \`error_message\`;`)
   await queryFn(`ALTER TABLE \`invalid_transactions\` DROP INDEX \`iota_message_id\`;`)
   await queryFn(`ALTER TABLE \`invalid_transactions\` ADD INDEX(\`iota_message_id\`); `)

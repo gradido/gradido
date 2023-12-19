@@ -22,9 +22,9 @@ export class AccountFactory {
     account.derive2Pubkey = parentKeyPair.derive([derivationIndex]).publicKey
     account.type = type.valueOf()
     account.createdAt = createdAt
-    account.balanceConfirmedAt = new Decimal(0)
-    account.balanceCreatedAt = new Decimal(0)
-    account.balanceCreatedAtDate = createdAt
+    account.balanceOnConfirmation = new Decimal(0)
+    account.balanceOnCreation = new Decimal(0)
+    account.balanceCreatedAt = createdAt
     return account
   }
 

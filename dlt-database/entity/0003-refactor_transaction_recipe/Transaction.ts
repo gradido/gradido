@@ -73,14 +73,14 @@ export class Transaction extends BaseEntity {
 
   // account balance for sender based on creation date
   @Column({
-    name: 'account_balance_created_at',
+    name: 'account_balance_on_creation',
     type: 'decimal',
     precision: 40,
     scale: 20,
     nullable: true,
     transformer: DecimalTransformer,
   })
-  accountBalanceCreatedAt?: Decimal
+  accountBalanceOnCreation?: Decimal
 
   @Column({ type: 'tinyint' })
   type: number
@@ -105,14 +105,14 @@ export class Transaction extends BaseEntity {
 
   // account balance for sender based on confirmation date (iota milestone)
   @Column({
-    name: 'account_balance_confirmed_at',
+    name: 'account_balance_on_confirmation',
     type: 'decimal',
     precision: 40,
     scale: 20,
     nullable: true,
     transformer: DecimalTransformer,
   })
-  accountBalanceConfirmedAt?: Decimal
+  accountBalanceOnConfirmation?: Decimal
 
   @Column({ name: 'iota_milestone', type: 'bigint', nullable: true })
   iotaMilestone?: number

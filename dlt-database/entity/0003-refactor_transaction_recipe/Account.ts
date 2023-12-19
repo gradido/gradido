@@ -43,39 +43,39 @@ export class Account extends BaseEntity {
   confirmedAt?: Date
 
   @Column({
-    name: 'balance_confirmed_at',
+    name: 'balance_on_confirmation',
     type: 'decimal',
     precision: 40,
     scale: 20,
     default: 0,
     transformer: DecimalTransformer,
   })
-  balanceConfirmedAt: Decimal
+  balanceOnConfirmation: Decimal
 
   // use timestamp from iota milestone which is only in seconds precision, so no need to use 3 Bytes extra here
   @Column({
-    name: 'balance_confirmed_at_date',
+    name: 'balance_confirmed_at',
     type: 'datetime',
     nullable: true,
   })
-  balanceConfirmedAtDate: Date
+  balanceConfirmedAt: Date
 
   @Column({
-    name: 'balance_created_at',
+    name: 'balance_on_creation',
     type: 'decimal',
     precision: 40,
     scale: 20,
     default: 0,
     transformer: DecimalTransformer,
   })
-  balanceCreatedAt: Decimal
+  balanceOnCreation: Decimal
 
   @Column({
-    name: 'balance_created_at_date',
+    name: 'balance_created_at',
     type: 'datetime',
     precision: 3,
   })
-  balanceCreatedAtDate: Date
+  balanceCreatedAt: Date
 
   @OneToMany(() => AccountCommunity, (accountCommunity) => accountCommunity.account)
   @JoinColumn({ name: 'account_id' })

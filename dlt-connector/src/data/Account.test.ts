@@ -46,9 +46,9 @@ describe('data/Account test factory and repository', () => {
         ),
         type: AddressType.COMMUNITY_HUMAN,
         createdAt: now,
-        balanceCreatedAtDate: now,
-        balanceConfirmedAt: new Decimal(0),
-        balanceCreatedAt: new Decimal(0),
+        balanceCreatedAt: now,
+        balanceOnConfirmation: new Decimal(0),
+        balanceOnCreation: new Decimal(0),
       })
     })
 
@@ -67,9 +67,9 @@ describe('data/Account test factory and repository', () => {
         ),
         type: AddressType.COMMUNITY_HUMAN,
         createdAt: now,
-        balanceCreatedAtDate: now,
-        balanceConfirmedAt: new Decimal(0),
-        balanceCreatedAt: new Decimal(0),
+        balanceCreatedAt: now,
+        balanceOnConfirmation: new Decimal(0),
+        balanceOnCreation: new Decimal(0),
       })
     })
 
@@ -83,9 +83,9 @@ describe('data/Account test factory and repository', () => {
         ),
         type: AddressType.COMMUNITY_GMW,
         createdAt: now,
-        balanceCreatedAtDate: now,
-        balanceConfirmedAt: new Decimal(0),
-        balanceCreatedAt: new Decimal(0),
+        balanceCreatedAt: now,
+        balanceOnConfirmation: new Decimal(0),
+        balanceOnCreation: new Decimal(0),
       })
     })
 
@@ -99,9 +99,9 @@ describe('data/Account test factory and repository', () => {
         ),
         type: AddressType.COMMUNITY_AUF,
         createdAt: now,
-        balanceCreatedAtDate: now,
-        balanceConfirmedAt: new Decimal(0),
-        balanceCreatedAt: new Decimal(0),
+        balanceCreatedAt: now,
+        balanceOnConfirmation: new Decimal(0),
+        balanceOnCreation: new Decimal(0),
       })
     })
   })
