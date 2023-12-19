@@ -1,13 +1,15 @@
-import { TransactionBody } from './3_3/TransactionBody'
 import { Account } from '@entity/Account'
-import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { CommunityDraft } from '@/graphql/input/CommunityDraft'
+import { Community } from '@entity/Community'
+
 import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
+import { CommunityDraft } from '@/graphql/input/CommunityDraft'
+import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { LogError } from '@/server/LogError'
+
+import { CommunityRoot } from './3_3/CommunityRoot'
 import { GradidoCreation } from './3_3/GradidoCreation'
 import { GradidoTransfer } from './3_3/GradidoTransfer'
-import { Community } from '@entity/Community'
-import { CommunityRoot } from './3_3/CommunityRoot'
-import { LogError } from '@/server/LogError'
+import { TransactionBody } from './3_3/TransactionBody'
 
 export class TransactionBodyBuilder {
   private signingAccount?: Account

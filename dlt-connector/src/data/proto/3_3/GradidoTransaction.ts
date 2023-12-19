@@ -1,9 +1,10 @@
 import { Field, Message } from 'protobufjs'
 
-import { SignatureMap } from './SignatureMap'
-import { TransactionBody } from './TransactionBody'
-import { SignaturePair } from './SignaturePair'
 import { LogError } from '@/server/LogError'
+
+import { SignatureMap } from './SignatureMap'
+import { SignaturePair } from './SignaturePair'
+import { TransactionBody } from './TransactionBody'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define

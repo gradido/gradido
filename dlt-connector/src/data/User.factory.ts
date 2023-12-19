@@ -1,10 +1,12 @@
-import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { User } from '@entity/User'
-import { UserLogic } from './User.logic'
+
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
+
 import { KeyPair } from './KeyPair'
+import { UserLogic } from './User.logic'
 
 export class UserFactory {
-  static create(userAccountDraft: UserAccountDraft, parentKeys?: KeyPair): User {
+  static create(userAccountDraft: UserAccountDraft, parentKeys: KeyPair): User {
     const user = User.create()
     user.createdAt = new Date(userAccountDraft.createdAt)
     user.gradidoID = userAccountDraft.user.uuid

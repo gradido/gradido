@@ -1,8 +1,9 @@
-import { UserIdentifier } from '@/graphql/input/UserIdentifier'
-import { getDataSource } from '@/typeorm/DataSource'
 import { Account } from '@entity/Account'
 import { User } from '@entity/User'
 import { In } from 'typeorm'
+
+import { UserIdentifier } from '@/graphql/input/UserIdentifier'
+import { getDataSource } from '@/typeorm/DataSource'
 
 export const AccountRepository = getDataSource()
   .getRepository(Account)

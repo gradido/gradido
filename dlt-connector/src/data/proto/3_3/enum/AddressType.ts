@@ -1,3 +1,8 @@
+/**
+ * Enum for protobuf
+ * used from RegisterAddress to determine account type
+ * master implementation: https://github.com/gradido/gradido_protocol/blob/master/proto/gradido/register_address.proto
+ */
 export enum AddressType {
   NONE = 0, // if no address was found
   COMMUNITY_HUMAN = 1, // creation account for human
@@ -6,14 +11,4 @@ export enum AddressType {
   COMMUNITY_PROJECT = 4, // no creations allowed
   SUBACCOUNT = 5, // no creations allowed
   CRYPTO_ACCOUNT = 6, // user control his keys, no creations
-}
-
-export function getAddressTypeEnumValue(typeString: string): AddressType | undefined {
-  // Iterate through all enum values
-  for (const key in AddressType) {
-    if (AddressType[key] === typeString) {
-      return AddressType[key] as unknown as AddressType
-    }
-  }
-  return undefined // If the string is not found
 }

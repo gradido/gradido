@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { AbstractTransaction } from '../AbstractTransaction'
-import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
-import { Field, Message } from 'protobufjs'
 import { Transaction } from '@entity/Transaction'
+import { Field, Message } from 'protobufjs'
+
+import { AbstractTransaction } from '../AbstractTransaction'
 
 // connect group together
 // only CrossGroupType CROSS (in TransactionBody)
@@ -16,10 +16,6 @@ export class GroupFriendsUpdate extends Message<GroupFriendsUpdate> implements A
   // (if fusion between src coin and dst coin is enabled)
   @Field.d(1, 'bool')
   public colorFusion: boolean
-
-  public validate(level: TransactionValidationLevel): boolean {
-    throw new Error('Method not implemented.')
-  }
 
   public fillTransactionRecipe(recipe: Transaction): void {
     throw new Error('Method not implemented.')

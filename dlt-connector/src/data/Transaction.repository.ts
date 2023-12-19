@@ -1,6 +1,7 @@
-import { getDataSource } from '@/typeorm/DataSource'
 import { Transaction } from '@entity/Transaction'
 import { IsNull } from 'typeorm'
+
+import { getDataSource } from '@/typeorm/DataSource'
 
 // https://www.artima.com/articles/the-dci-architecture-a-new-vision-of-object-oriented-programming
 export const TransactionRepository = getDataSource()

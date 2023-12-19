@@ -1,14 +1,19 @@
-import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { Community } from '@entity/Community'
-import { CommunityRole } from './Community.role'
 import { Transaction } from '@entity/Transaction'
-import { KeyManager } from '@/manager/KeyManager'
+
+import { CONFIG } from '@/config'
 import { AccountFactory } from '@/data/Account.factory'
-import { CreateTransactionRecipeContext } from '../transaction/CreateTransationRecipe.context'
-import { logger } from '@/server/logger'
-import { TransactionError } from '@/graphql/model/TransactionError'
+import { KeyPair } from '@/data/KeyPair'
+import { Mnemonic } from '@/data/Mnemonic'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { CommunityDraft } from '@/graphql/input/CommunityDraft'
+import { TransactionError } from '@/graphql/model/TransactionError'
+import { logger } from '@/server/logger'
 import { getDataSource } from '@/typeorm/DataSource'
+
+import { CreateTransactionRecipeContext } from '../transaction/CreateTransationRecipe.context'
+
+import { CommunityRole } from './Community.role'
 
 export class HomeCommunityRole extends CommunityRole {
   private transactionRecipe: Transaction
@@ -16,12 +21,8 @@ export class HomeCommunityRole extends CommunityRole {
   public async create(communityDraft: CommunityDraft, topic: string): Promise<void> {
     super.create(communityDraft, topic)
     // generate key pair for signing transactions and deriving all keys for community
-    const keyPair = KeyManager.generateKeyPair()
-    this.self.rootPubkey = keyPair.publicKey
-    this.self.rootPrivkey = keyPair.privateKey
-    this.self.rootChaincode = keyPair.chainCode
-    // we should only have one home community per server
-    KeyManager.getInstance().setHomeCommunityKeyPair(keyPair)
+    const keyPair = new KeyPair(new Mnemonic(CONFIG.IOTA_HOME_COMMUNITY_SEED ?? undefined))
+    keyPair.fillInCommunityKeys(this.self)
 
     // create auf account and gmw account
     this.self.aufAccount = AccountFactory.createAufAccount(keyPair, this.self.createdAt)

@@ -1,9 +1,10 @@
 import { User } from '@entity/User'
-import { KeyPair } from './KeyPair'
+
 import { LogError } from '@/server/LogError'
-import { uuid4ToBuffer } from '@/utils/typeConverter'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
-import { KeyManager } from '@/manager/KeyManager'
+import { uuid4ToBuffer } from '@/utils/typeConverter'
+
+import { KeyPair } from './KeyPair'
 
 export class UserLogic {
   // eslint-disable-next-line no-useless-constructor
@@ -15,7 +16,7 @@ export class UserLogic {
    * @returns
    */
 
-  calculateKeyPair = (parentKeys?: KeyPair): KeyPair => {
+  calculateKeyPair = (parentKeys: KeyPair): KeyPair => {
     if (!this.user.gradidoID) {
       throw new LogError('missing GradidoID for user.', { id: this.user.id })
     }
@@ -27,7 +28,7 @@ export class UserLogic {
       parts[i] = hardenDerivationIndex(wholeHex.subarray(i * 4, (i + 1) * 4).readUInt32BE())
     }
     // parts: [2206563009, 2629978174, 2324817329, 2405141782]
-    const keyPair = KeyManager.getInstance().derive(parts, parentKeys)
+    const keyPair = parentKeys.derive(parts)
     if (this.user.derive1Pubkey && this.user.derive1Pubkey.compare(keyPair.publicKey) !== 0) {
       throw new LogError(
         'The freshly derived public key does not correspond to the stored public key',

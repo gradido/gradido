@@ -1,7 +1,6 @@
 import { DataSource, FileLogger } from '@dbTools/typeorm'
-import { createDatabase } from 'typeorm-extension'
-
 import { entities } from '@entity/index'
+import { createDatabase } from 'typeorm-extension'
 
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'

@@ -1,14 +1,14 @@
 import { crypto_generichash as cryptoHash } from 'sodium-native'
 
+import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { Timestamp } from '@/data/proto/3_3/Timestamp'
 import { TimestampSeconds } from '@/data/proto/3_3/TimestampSeconds'
 import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
-import { logger } from '@/server/logger'
-import { TransactionError } from '@/graphql/model/TransactionError'
-import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { AccountType } from '@/graphql/enum/AccountType'
+import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { TransactionError } from '@/graphql/model/TransactionError'
 import { LogError } from '@/server/LogError'
-import { AddressType } from '@/data/proto/3_3/enum/AddressType'
+import { logger } from '@/server/logger'
 
 export const uuid4ToBuffer = (uuid: string): Buffer => {
   // Remove dashes from the UUIDv4 string
@@ -64,44 +64,44 @@ export const transactionBodyToBodyBytes = (transactionBody: TransactionBody): Bu
   }
 }
 
-export const accountTypeToAddressType = (accountType: AccountType): AddressType => {
-  switch (accountType) {
-    case AccountType.NONE:
-      return AddressType.NONE
-    case AccountType.COMMUNITY_HUMAN:
-      return AddressType.COMMUNITY_HUMAN
-    case AccountType.COMMUNITY_GMW:
-      return AddressType.COMMUNITY_GMW
-    case AccountType.COMMUNITY_AUF:
-      return AddressType.COMMUNITY_AUF
-    case AccountType.COMMUNITY_PROJECT:
-      return AddressType.COMMUNITY_PROJECT
-    case AccountType.SUBACCOUNT:
-      return AddressType.SUBACCOUNT
-    case AccountType.CRYPTO_ACCOUNT:
-      return AddressType.CRYPTO_ACCOUNT
-    default:
-      throw new LogError(`Unsupported AccountType: ${accountType}`)
+export function getEnumValue<T extends Record<string, unknown>>(
+  enumType: T,
+  value: number | string,
+): T[keyof T] | undefined {
+  if (typeof value === 'number' && typeof enumType === 'object') {
+    return enumType[value as keyof T] as T[keyof T]
+  } else if (typeof value === 'string') {
+    for (const key in enumType) {
+      if (enumType[key as keyof T] === value) {
+        return enumType[key as keyof T] as T[keyof T]
+      }
+    }
   }
+  return undefined
 }
 
-export const addressTypeToAccountType = (addressType: AddressType): AccountType => {
-  switch (addressType) {
-    case AddressType.NONE:
-      return AccountType.NONE
-    case AddressType.COMMUNITY_HUMAN:
-      return AccountType.COMMUNITY_HUMAN
-    case AddressType.COMMUNITY_GMW:
-      return AccountType.COMMUNITY_GMW
-    case AddressType.COMMUNITY_AUF:
-      return AccountType.COMMUNITY_AUF
-    case AddressType.COMMUNITY_PROJECT:
-      return AccountType.COMMUNITY_PROJECT
-    case AddressType.SUBACCOUNT:
-      return AccountType.SUBACCOUNT
-    case AddressType.CRYPTO_ACCOUNT:
-      return AccountType.CRYPTO_ACCOUNT
-    default:
-      throw new LogError(`Unsupported AddressType: ${addressType}`)
+export const accountTypeToAddressType = (type: AccountType): AddressType => {
+  const typeString: string = AccountType[type]
+  const addressType: AddressType = AddressType[typeString as keyof typeof AddressType]
+
+  if (!addressType) {
+    throw new LogError("couldn't find corresponding AddressType for AccountType", {
+      accountType: type,
+      addressTypes: Object.keys(AddressType),
+    })
   }
+  return addressType
+}
+
+export const addressTypeToAccountType = (type: AddressType): AccountType => {
+  const typeString: string = AddressType[type]
+  const accountType: AccountType = AccountType[typeString as keyof typeof AccountType]
+
+  if (!accountType) {
+    throw new LogError("couldn't find corresponding AccountType for AddressType", {
+      addressTypes: type,
+      accountType: Object.keys(AccountType),
+    })
+  }
+  return accountType
 }

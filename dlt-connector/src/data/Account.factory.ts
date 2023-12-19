@@ -1,10 +1,10 @@
-import { KeyManager } from '@/manager/KeyManager'
-import { KeyPair } from '@/data/KeyPair'
-import { AddressType } from '@/data/proto/3_3/enum/AddressType'
-import { hardenDerivationIndex } from '@/utils/derivationHelper'
 import { Account } from '@entity/Account'
 import Decimal from 'decimal.js-light'
+
+import { KeyPair } from '@/data/KeyPair'
+import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
+import { hardenDerivationIndex } from '@/utils/derivationHelper'
 import { accountTypeToAddressType } from '@/utils/typeConverter'
 
 const GMW_ACCOUNT_DERIVATION_INDEX = 1
@@ -15,14 +15,11 @@ export class AccountFactory {
     createdAt: Date,
     derivationIndex: number,
     type: AddressType,
-    parentKeyPair?: KeyPair,
+    parentKeyPair: KeyPair,
   ): Account {
     const account = Account.create()
     account.derivationIndex = derivationIndex
-    account.derive2Pubkey = KeyManager.getInstance().derive(
-      [derivationIndex],
-      parentKeyPair,
-    ).publicKey
+    account.derive2Pubkey = parentKeyPair.derive([derivationIndex]).publicKey
     account.type = type.valueOf()
     account.createdAt = createdAt
     account.balanceConfirmedAt = new Decimal(0)
@@ -33,7 +30,7 @@ export class AccountFactory {
 
   public static createAccountFromUserAccountDraft(
     { createdAt, accountType, user }: UserAccountDraft,
-    parentKeyPair?: KeyPair,
+    parentKeyPair: KeyPair,
   ): Account {
     return AccountFactory.createAccount(
       new Date(createdAt),

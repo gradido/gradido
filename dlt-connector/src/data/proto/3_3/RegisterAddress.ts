@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { Transaction } from '@entity/Transaction'
 import { Field, Message } from 'protobufjs'
 
 import { AddressType } from '@/data/proto/3_3/enum/AddressType'
+
 import { AbstractTransaction } from '../AbstractTransaction'
-import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
-import { Transaction } from '@entity/Transaction'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
@@ -24,10 +24,6 @@ export class RegisterAddress extends Message<RegisterAddress> implements Abstrac
 
   @Field.d(5, 'uint32')
   public derivationIndex?: number
-
-  public validate(level: TransactionValidationLevel): boolean {
-    throw new Error('Method not implemented.')
-  }
 
   public fillTransactionRecipe(_recipe: Transaction): void {}
 }

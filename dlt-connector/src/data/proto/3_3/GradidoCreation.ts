@@ -1,15 +1,16 @@
+import { Account } from '@entity/Account'
+import { Transaction } from '@entity/Transaction'
+import { Decimal } from 'decimal.js-light'
 import { Field, Message } from 'protobufjs'
+
+import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { TransactionError } from '@/graphql/model/TransactionError'
+
+import { AbstractTransaction } from '../AbstractTransaction'
 
 import { TimestampSeconds } from './TimestampSeconds'
 import { TransferAmount } from './TransferAmount'
-import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { TransactionError } from '@/graphql/model/TransactionError'
-import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
-import { AbstractTransaction } from '../AbstractTransaction'
-import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
-import { Transaction } from '@entity/Transaction'
-import Decimal from 'decimal.js-light'
-import { Account } from '@entity/Account'
 
 // need signature from group admin or
 // percent of group users another than the receiver
@@ -36,16 +37,15 @@ export class GradidoCreation extends Message<GradidoCreation> implements Abstrac
     }
   }
 
+  // recipient: TransferAmount contain
+  // - recipient public key
+  // - amount
+  // - communityId // only set if not the same as recipient community
   @Field.d(1, TransferAmount)
   public recipient: TransferAmount
 
   @Field.d(3, 'TimestampSeconds')
   public targetDate: TimestampSeconds
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public validate(level: TransactionValidationLevel): boolean {
-    throw new Error('Method not implemented.')
-  }
 
   public fillTransactionRecipe(recipe: Transaction): void {
     recipe.amount = new Decimal(this.recipient.amount ?? 0)

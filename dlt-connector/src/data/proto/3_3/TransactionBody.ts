@@ -1,23 +1,24 @@
+import { Transaction } from '@entity/Transaction'
 import { Field, Message, OneOf } from 'protobufjs'
 
-import { CrossGroupType } from './enum/CrossGroupType'
+import { CommunityDraft } from '@/graphql/input/CommunityDraft'
+import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { LogError } from '@/server/LogError'
+import { timestampToDate } from '@/utils/typeConverter'
 
-import { Timestamp } from './Timestamp'
-import { GradidoTransfer } from './GradidoTransfer'
+import { AbstractTransaction } from '../AbstractTransaction'
+import { determineCrossGroupType, determineOtherGroup } from '../transactionBody.logic'
+
+import { CommunityRoot } from './CommunityRoot'
+import { PROTO_TRANSACTION_BODY_VERSION_NUMBER } from './const'
+import { CrossGroupType } from './enum/CrossGroupType'
+import { TransactionType } from './enum/TransactionType'
 import { GradidoCreation } from './GradidoCreation'
 import { GradidoDeferredTransfer } from './GradidoDeferredTransfer'
+import { GradidoTransfer } from './GradidoTransfer'
 import { GroupFriendsUpdate } from './GroupFriendsUpdate'
 import { RegisterAddress } from './RegisterAddress'
-import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { determineCrossGroupType, determineOtherGroup } from '../transactionBody.logic'
-import { CommunityRoot } from './CommunityRoot'
-import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import { TransactionType } from '@/graphql/enum/TransactionType'
-import { AbstractTransaction } from '../AbstractTransaction'
-import { Transaction } from '@entity/Transaction'
-import { timestampToDate } from '@/utils/typeConverter'
-import { LogError } from '@/server/LogError'
-import { PROTO_TRANSACTION_BODY_VERSION_NUMBER } from './const'
+import { Timestamp } from './Timestamp'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
@@ -95,6 +96,14 @@ export class TransactionBody extends Message<TransactionBody> {
     else if (this.communityRoot) return TransactionType.COMMUNITY_ROOT
   }
 
+  // The `TransactionBody` class utilizes Protobuf's `OneOf` field structure which, according to Protobuf documentation
+  // (https://protobuf.dev/programming-guides/proto3/#oneof), allows only one field within the group to be set at a time.
+  // Therefore, accessing the `getTransactionDetails()` method returns the first initialized value among the defined fields,
+  // each of which should be of type AbstractTransaction. It's important to note that due to the nature of Protobuf's `OneOf`,
+  // only one type from the defined options can be set within the object obtained from Protobuf.
+  //
+  // If multiple fields are set in a single object, the method `getTransactionDetails()` will return the first defined value
+  // based on the order of checks. Developers should handle this behavior according to the expected Protobuf structure.
   public getTransactionDetails(): AbstractTransaction | undefined {
     if (this.transfer) return this.transfer
     if (this.creation) return this.creation

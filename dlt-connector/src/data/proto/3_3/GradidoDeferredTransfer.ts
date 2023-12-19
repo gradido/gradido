@@ -1,11 +1,11 @@
+import { Transaction } from '@entity/Transaction'
+import Decimal from 'decimal.js-light'
 import { Field, Message } from 'protobufjs'
+
+import { AbstractTransaction } from '../AbstractTransaction'
 
 import { GradidoTransfer } from './GradidoTransfer'
 import { TimestampSeconds } from './TimestampSeconds'
-import { AbstractTransaction } from '../AbstractTransaction'
-import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
-import { Transaction } from '@entity/Transaction'
-import Decimal from 'decimal.js-light'
 
 // transaction type for chargeable transactions
 // for transaction for people which haven't a account already
@@ -35,11 +35,6 @@ export class GradidoDeferredTransfer
 
   // split for n recipient
   // max gradido per recipient? or per transaction with cool down?
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public validate(level: TransactionValidationLevel): boolean {
-    throw new Error('Method not implemented.')
-  }
 
   public fillTransactionRecipe(recipe: Transaction): void {
     recipe.amount = new Decimal(this.transfer.sender.amount ?? 0)

@@ -1,13 +1,20 @@
-import { Field, Int, ObjectType } from 'type-graphql'
-import { TransactionType } from '@enum/TransactionType'
 import { Transaction } from '@entity/Transaction'
+import { Field, Int, ObjectType } from 'type-graphql'
+
+import { TransactionType } from '@/data/proto/3_3/enum/TransactionType'
+import { LogError } from '@/server/LogError'
+import { getEnumValue } from '@/utils/typeConverter'
 
 @ObjectType()
 export class TransactionRecipe {
   public constructor({ id, createdAt, type, community }: Transaction) {
+    const transactionType = getEnumValue(TransactionType, type)
+    if (!transactionType) {
+      throw new LogError('invalid transaction, type is missing')
+    }
     this.id = id
     this.createdAt = createdAt.toString()
-    this.type = type
+    this.type = transactionType.toString()
     this.topic = community.iotaTopic
   }
 
@@ -17,8 +24,8 @@ export class TransactionRecipe {
   @Field(() => String)
   createdAt: string
 
-  @Field(() => TransactionType)
-  type: TransactionType
+  @Field(() => String)
+  type: string
 
   @Field(() => String)
   topic: string

@@ -1,22 +1,28 @@
 import 'reflect-metadata'
-import { ApolloServer } from '@apollo/server'
-// must be imported before createApolloTestServer so that TestDB was created before createApolloTestServer imports repositories
-import { TestDB } from '@test/TestDB'
-import { createApolloTestServer } from '@test/ApolloServerMock'
 import assert from 'assert'
-import { TransactionResult } from '@model/TransactionResult'
-import { AccountFactory } from '@/data/Account.factory'
-import { CONFIG } from '@/config'
-import { UserFactory } from '@/data/User.factory'
-import { UserAccountDraft } from '../input/UserAccountDraft'
-import { UserLogic } from '@/data/User.logic'
-import { AccountType } from '@enum/AccountType'
-import { UserIdentifier } from '../input/UserIdentifier'
-import { CommunityDraft } from '../input/CommunityDraft'
-import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
-import { InputTransactionType, getTransactionTypeString } from '../enum/InputTransactionType'
 
-CONFIG.IOTA_HOME_COMMUNITY_SEED = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899'
+import { ApolloServer } from '@apollo/server'
+
+// must be imported before createApolloTestServer so that TestDB was created before createApolloTestServer imports repositories
+// eslint-disable-next-line import/order
+import { TestDB } from '@test/TestDB'
+import { AccountType } from '@enum/AccountType'
+import { TransactionResult } from '@model/TransactionResult'
+import { createApolloTestServer } from '@test/ApolloServerMock'
+
+import { CONFIG } from '@/config'
+import { AccountFactory } from '@/data/Account.factory'
+import { KeyPair } from '@/data/KeyPair'
+import { Mnemonic } from '@/data/Mnemonic'
+import { UserFactory } from '@/data/User.factory'
+import { UserLogic } from '@/data/User.logic'
+import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
+import { getEnumValue } from '@/utils/typeConverter'
+
+import { InputTransactionType } from '../enum/InputTransactionType'
+import { CommunityDraft } from '../input/CommunityDraft'
+import { UserAccountDraft } from '../input/UserAccountDraft'
+import { UserIdentifier } from '../input/UserIdentifier'
 
 let apolloTestServer: ApolloServer
 
@@ -32,7 +38,9 @@ jest.mock('@typeorm/DataSource', () => ({
   getDataSource: jest.fn(() => TestDB.instance.dbConnect),
 }))
 
+CONFIG.IOTA_HOME_COMMUNITY_SEED = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899'
 const communityUUID = '3d813cbb-37fb-42ba-91df-831e1593ac29'
+const communityKeyPair = new KeyPair(new Mnemonic(CONFIG.IOTA_HOME_COMMUNITY_SEED))
 
 const createUserStoreAccount = async (uuid: string): Promise<UserIdentifier> => {
   const userAccountDraft = new UserAccountDraft()
@@ -41,11 +49,11 @@ const createUserStoreAccount = async (uuid: string): Promise<UserIdentifier> => 
   userAccountDraft.user = new UserIdentifier()
   userAccountDraft.user.uuid = uuid
   userAccountDraft.user.communityUuid = communityUUID
-  const user = UserFactory.create(userAccountDraft)
+  const user = UserFactory.create(userAccountDraft, communityKeyPair)
   const userLogic = new UserLogic(user)
   const account = AccountFactory.createAccountFromUserAccountDraft(
     userAccountDraft,
-    userLogic.calculateKeyPair(),
+    userLogic.calculateKeyPair(communityKeyPair),
   )
   account.user = user
   // user is set to cascade: ['insert'] will be saved together with account
@@ -82,7 +90,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: getTransactionTypeString(InputTransactionType.SEND),
+          type: getEnumValue(InputTransactionType, InputTransactionType.SEND),
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
           backendTransactionId: 1,
@@ -130,7 +138,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: getTransactionTypeString(InputTransactionType.SEND),
+          type: getEnumValue(InputTransactionType, InputTransactionType.SEND),
           amount: 'no number',
           createdAt: '2012-04-17T17:12:00Z',
           backendTransactionId: 1,
@@ -156,7 +164,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: getTransactionTypeString(InputTransactionType.SEND),
+          type: getEnumValue(InputTransactionType, InputTransactionType.SEND),
           amount: '10',
           createdAt: 'not valid',
           backendTransactionId: 1,
@@ -192,7 +200,7 @@ describe('Transaction Resolver Test', () => {
         input: {
           senderUser,
           recipientUser,
-          type: getTransactionTypeString(InputTransactionType.CREATION),
+          type: getEnumValue(InputTransactionType, InputTransactionType.CREATION),
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
           backendTransactionId: 1,

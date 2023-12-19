@@ -1,8 +1,8 @@
-import { AbstractTransaction } from '../AbstractTransaction'
-import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
-import { Field, Message } from 'protobufjs'
 import { Community } from '@entity/Community'
 import { Transaction } from '@entity/Transaction'
+import { Field, Message } from 'protobufjs'
+
+import { AbstractTransaction } from '../AbstractTransaction'
 
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
@@ -29,11 +29,6 @@ export class CommunityRoot extends Message<CommunityRoot> implements AbstractTra
   // community compensation and environment founds account
   @Field.d(3, 'bytes')
   public aufPubkey: Buffer
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public validate(_level: TransactionValidationLevel): boolean {
-    throw new Error('Method not implemented.')
-  }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
   public fillTransactionRecipe(recipe: Transaction): void {}

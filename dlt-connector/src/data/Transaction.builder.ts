@@ -1,13 +1,15 @@
-import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
-import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
-import { bodyBytesToTransactionBody, transactionBodyToBodyBytes } from '@/utils/typeConverter'
-import { Transaction } from '@entity/Transaction'
-import { AccountRepository } from './Account.repository'
-import { UserIdentifier } from '@/graphql/input/UserIdentifier'
-import { CommunityRepository } from './Community.repository'
-import { LogError } from '@/server/LogError'
 import { Account } from '@entity/Account'
 import { Community } from '@entity/Community'
+import { Transaction } from '@entity/Transaction'
+
+import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
+import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
+import { UserIdentifier } from '@/graphql/input/UserIdentifier'
+import { LogError } from '@/server/LogError'
+import { bodyBytesToTransactionBody, transactionBodyToBodyBytes } from '@/utils/typeConverter'
+
+import { AccountRepository } from './Account.repository'
+import { CommunityRepository } from './Community.repository'
 import { TransactionBodyBuilder } from './proto/TransactionBody.builder'
 
 export class TransactionBuilder {
