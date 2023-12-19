@@ -6,10 +6,11 @@ import { Decimal } from 'decimal.js-light'
 import { AccountLogic } from '@/data/Account.logic'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { TransactionBuilder } from '@/data/Transaction.builder'
+import { AccountLoggingView } from '@/logging/AccountLogging.view'
+import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
 
 import { AbstractTransactionRole } from './AbstractTransaction.role'
-
 export class ConfirmedTransactionRole extends AbstractTransactionRole {
   // eslint-disable-next-line no-useless-constructor
   public constructor(transaction: Transaction) {
@@ -37,7 +38,9 @@ export class ConfirmedTransactionRole extends AbstractTransactionRole {
   }
 
   public calculateCreatedAtBalance(account?: Account): void {
+    logger.info('calculateCreatedAtBalance for transaction nr', this.self.nr)
     if (account) {
+      logger.debug('calculate account balance for account', new AccountLoggingView(account))
       const accountLogic = new AccountLogic(account)
       this.self.accountBalanceCreatedAt = accountLogic.calculateBalanceCreatedAt(
         this.self.createdAt,
@@ -45,6 +48,20 @@ export class ConfirmedTransactionRole extends AbstractTransactionRole {
       )
     } else {
       this.self.accountBalanceCreatedAt = new Decimal(0)
+    }
+    if (
+      this.self.accountBalanceConfirmedAt
+        ?.minus(this.self.accountBalanceCreatedAt.toString())
+        .abs()
+        .greaterThan(1)
+    ) {
+      throw new LogError('account balances to far apart, is the calculation correct?', {
+        calculated: this.self.accountBalanceCreatedAt.toString(),
+        fromNodeSr: this.self.accountBalanceConfirmedAt.toString(),
+        diff: this.self.accountBalanceConfirmedAt
+          ?.minus(this.self.accountBalanceCreatedAt.toString())
+          .toString(),
+      })
     }
   }
 

@@ -8,10 +8,10 @@ import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionType } from '@/graphql/enum/TransactionType'
 import { TransactionError } from '@/graphql/model/TransactionError'
+import { GradidoTransactionLoggingView } from '@/logging/GradidoTransactionLogging.view'
 import { logger } from '@/logging/logger'
 
 import { verify } from './GradidoTransaction'
-import { GradidoTransactionLoggingView } from '@/logging/GradidoTransactionLogging.view'
 
 export class TransactionRecipe {
   private body: TransactionBody | undefined = undefined

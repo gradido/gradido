@@ -1,6 +1,7 @@
 import { Account } from '@entity/Account'
 import { Decimal } from 'decimal.js-light'
 
+import { DecayLoggingView } from '@/logging/DecayLogging.view'
 import { logger } from '@/logging/logger'
 import { KeyManager } from '@/manager/KeyManager'
 import { LogError } from '@/server/LogError'
@@ -27,6 +28,7 @@ export class AccountLogic {
       this.account.balanceCreatedAtDate,
       newCreateAtDate,
     )
+    logger.debug('calculated decay', new DecayLoggingView(decay))
     if (amount.isZero()) {
       return decay.balance
     }
