@@ -10,7 +10,9 @@ import {
 import { Decimal } from 'decimal.js-light'
 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
+// the relation in future account don't match which this any longer, so we can only link with the local account here
 import { Account } from './Account'
+// TransactionRecipe was removed in newer migrations, so only the version from this folder can be linked
 import { TransactionRecipe } from './TransactionRecipe'
 
 @Entity('confirmed_transactions')
