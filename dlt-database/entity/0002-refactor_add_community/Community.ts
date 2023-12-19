@@ -8,6 +8,7 @@ import {
   BaseEntity,
 } from 'typeorm'
 import { Account } from '../Account'
+// TransactionRecipe was removed in newer migrations, so only the version from this folder can be linked
 import { TransactionRecipe } from '../0001-init_db/TransactionRecipe'
 import { AccountCommunity } from '../AccountCommunity'
 
