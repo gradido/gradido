@@ -12,6 +12,7 @@ import { createGmsUser } from '@/apis/gms/GmsClient'
 import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { CONFIG } from '@/config'
 import { getHomeCommunity } from '@/graphql/resolver/util/communities'
+import { sendUserToGms } from '@/graphql/resolver/util/sendUserToGms'
 import { createServer } from '@/server/createServer'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
@@ -73,6 +74,8 @@ const run = async () => {
       logger.debug('found local User:', user)
       if (user.gmsAllowed) {
         const gmsUser = new GmsUser(user)
+        await sendUserToGms(user, homeCom)
+        /*
         try {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           if (await createGmsUser(homeCom.gmsApiKey, gmsUser)) {
@@ -85,6 +88,7 @@ const run = async () => {
         } catch (err) {
           logger.warn('publishing user fails with ', err)
         }
+        */
       } else {
         logger.debug('GMS-Publishing not allowed by user settings:', user)
       }
