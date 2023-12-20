@@ -3,7 +3,6 @@ import { Transaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
 import { Field, Message } from 'protobufjs'
 
-import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 
 import { AbstractTransaction } from '../AbstractTransaction'
@@ -33,16 +32,16 @@ export class GradidoTransfer extends Message<GradidoTransfer> implements Abstrac
     }
   }
 
+  // sender: TransferAmount contain
+  // - sender public key
+  // - amount
+  // - communityId // only set if not the same as sender and recipient community
   @Field.d(1, TransferAmount)
   public sender: TransferAmount
 
+  // the recipient public key
   @Field.d(2, 'bytes')
   public recipient: Buffer
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public validate(level: TransactionValidationLevel): boolean {
-    throw new Error('Method not implemented.')
-  }
 
   public fillTransactionRecipe(recipe: Transaction): void {
     recipe.amount = new Decimal(this.sender?.amount ?? 0)

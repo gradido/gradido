@@ -11,7 +11,7 @@ import { RegisterAddress } from './proto/3_3/RegisterAddress'
 import { UserLogic } from './User.logic'
 
 export class UserFactory {
-  static create(userAccountDraft: UserAccountDraft, parentKeys?: KeyPair): User {
+  static create(userAccountDraft: UserAccountDraft, parentKeys: KeyPair): User {
     const user = User.create()
     user.createdAt = new Date(userAccountDraft.createdAt)
     user.gradidoID = userAccountDraft.user.uuid

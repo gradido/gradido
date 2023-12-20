@@ -3,8 +3,8 @@ import { CONFIG } from '@/config'
 import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
 
 import { BackendClient } from './client/BackendClient'
-import { KeyManager } from './controller/KeyManager'
-import { TransactionsManager } from './controller/TransactionsManager'
+import { CommunityRepository } from './data/Community.repository'
+import { TransactionsManager } from './manager/TransactionsManager'
 import createServer from './server/createServer'
 import { LogError } from './server/LogError'
 import { stop as stopTransmitToIota, transmitToIota } from './tasks/transmitToIota'
@@ -14,11 +14,9 @@ async function main() {
   console.log(`DLT_CONNECTOR_PORT=${CONFIG.DLT_CONNECTOR_PORT}`)
   const { app } = await createServer()
   const startTime = Date.now()
-  const keyManager = KeyManager.getInstance()
-  await keyManager.init()
 
   // ask backend for home community if we haven't one
-  const homeCommunityPublicKey = keyManager.getHomeCommunityPublicKey()
+  const homeCommunityPublicKey = CommunityRepository.loadHomeCommunityKeyPair()
   if (!homeCommunityPublicKey) {
     const backend = BackendClient.getInstance()
     if (!backend) {

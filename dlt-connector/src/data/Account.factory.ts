@@ -5,7 +5,6 @@ import Decimal from 'decimal.js-light'
 import { KeyPair } from '@/data/KeyPair'
 import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
-import { KeyManager } from '@/manager/KeyManager'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
 import { accountTypeToAddressType } from '@/utils/typeConverter'
 
@@ -17,25 +16,22 @@ export class AccountFactory {
     createdAt: Date,
     derivationIndex: number,
     type: AddressType,
-    parentKeyPair?: KeyPair,
+    parentKeyPair: KeyPair,
   ): Account {
     const account = Account.create()
     account.derivationIndex = derivationIndex
-    account.derive2Pubkey = KeyManager.getInstance().derive(
-      [derivationIndex],
-      parentKeyPair,
-    ).publicKey
+    account.derive2Pubkey = parentKeyPair.derive([derivationIndex]).publicKey
     account.type = type.valueOf()
     account.createdAt = createdAt
-    account.balanceConfirmedAt = new Decimal(0)
-    account.balanceCreatedAt = new Decimal(0)
-    account.balanceCreatedAtDate = createdAt
+    account.balanceOnConfirmation = new Decimal(0)
+    account.balanceOnCreation = new Decimal(0)
+    account.balanceCreatedAt = createdAt
     return account
   }
 
   public static createFromUserAccountDraft(
     { createdAt, accountType, user }: UserAccountDraft,
-    parentKeyPair?: KeyPair,
+    parentKeyPair: KeyPair,
   ): Account {
     return AccountFactory.create(
       new Date(createdAt),
@@ -56,9 +52,9 @@ export class AccountFactory {
     account.type = registerAddress.addressType.valueOf()
     account.createdAt = transaction.createdAt
     account.confirmedAt = transaction.confirmedAt
-    account.balanceCreatedAt = transaction.accountBalanceCreatedAt ?? new Decimal(0)
-    account.balanceCreatedAtDate = transaction.createdAt
-    account.balanceConfirmedAt = transaction.accountBalanceConfirmedAt ?? new Decimal(0)
+    account.balanceOnCreation = transaction.accountBalanceOnCreation ?? new Decimal(0)
+    account.balanceCreatedAt = transaction.createdAt
+    account.balanceOnConfirmation = transaction.accountBalanceOnConfirmation ?? new Decimal(0)
     account.derivationIndex = registerAddress.derivationIndex ?? 1
     return account
   }

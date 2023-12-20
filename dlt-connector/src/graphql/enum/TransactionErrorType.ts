@@ -1,5 +1,7 @@
 import { registerEnumType } from 'type-graphql'
 
+// enum for graphql
+// error groups for resolver answers
 export enum TransactionErrorType {
   NOT_IMPLEMENTED_YET = 'Not Implemented yet',
   MISSING_PARAMETER = 'Missing parameter',

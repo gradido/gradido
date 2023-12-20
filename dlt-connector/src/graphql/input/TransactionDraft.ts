@@ -1,5 +1,4 @@
 // https://www.npmjs.com/package/@apollo/protobufjs
-
 import { IsEnum, IsObject, IsPositive, ValidateNested } from 'class-validator'
 import { Decimal } from 'decimal.js-light'
 import { InputType, Field, Int } from 'type-graphql'

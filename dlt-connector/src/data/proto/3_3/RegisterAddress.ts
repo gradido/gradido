@@ -7,7 +7,6 @@ import { Field, Message } from 'protobufjs'
 
 import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { AccountType } from '@/graphql/enum/AccountType'
-import { TransactionValidationLevel } from '@/graphql/enum/TransactionValidationLevel'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { accountTypeToAddressType } from '@/utils/typeConverter'
 
@@ -48,10 +47,6 @@ export class RegisterAddress extends Message<RegisterAddress> implements Abstrac
 
   @Field.d(5, 'uint32')
   public derivationIndex?: number
-
-  public validate(level: TransactionValidationLevel): boolean {
-    throw new Error('Method not implemented.')
-  }
 
   public fillTransactionRecipe(_recipe: Transaction): void {}
 }

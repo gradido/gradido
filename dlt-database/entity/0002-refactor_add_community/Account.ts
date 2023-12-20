@@ -8,7 +8,9 @@ import {
   BaseEntity,
 } from 'typeorm'
 import { User } from '../User'
+// TransactionRecipe was removed in newer migrations, so only the version from this folder can be linked
 import { TransactionRecipe } from '../0001-init_db/TransactionRecipe'
+// ConfirmedTransaction was removed in newer migrations, so only the version from this folder can be linked
 import { ConfirmedTransaction } from './ConfirmedTransaction'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Decimal } from 'decimal.js-light'

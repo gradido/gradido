@@ -51,5 +51,7 @@ export const determineOtherGroup = (
         )
       }
       return senderUser.communityUuid
+    case CrossGroupType.CROSS:
+      throw new TransactionError(TransactionErrorType.NOT_IMPLEMENTED_YET, 'not implemented yet')
   }
 }

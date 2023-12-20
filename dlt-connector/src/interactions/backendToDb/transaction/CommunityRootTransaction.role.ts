@@ -3,7 +3,6 @@ import { Community } from '@entity/Community'
 import { KeyPair } from '@/data/KeyPair'
 import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import { sign } from '@/utils/cryptoHelper'
 
 import { TransactionRecipeRole } from './TransactionRecipe.role'
 
@@ -20,7 +19,7 @@ export class CommunityRootTransactionRole extends TransactionRecipeRole {
     this.transactionBuilder.fromTransactionBody(transactionBody).setCommunity(community)
     const transaction = this.transactionBuilder.getTransaction()
     // sign
-    this.transactionBuilder.setSignature(sign(transaction.bodyBytes, new KeyPair(community)))
+    this.transactionBuilder.setSignature(new KeyPair(community).sign(transaction.bodyBytes))
     return this
   }
 }

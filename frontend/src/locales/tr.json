@@ -221,6 +221,7 @@
     "title": "Teşekkürler!",
     "unsetPassword": "Şifre henüz olışturulmadı. Lütfen tekrar ayarla."
   },
+  "moderatorChangedMemo": "Metin moderatör tarafından düzenlendi",
   "navigation": {
     "admin_area": "Yönetici Alanı",
     "community": "Topluluk",

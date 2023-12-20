@@ -11,6 +11,7 @@ import { Decimal } from 'decimal.js-light'
 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Account } from './Account'
+// TransactionRecipe was removed in newer migrations, so only the version from this folder can be linked
 import { TransactionRecipe } from '../0001-init_db/TransactionRecipe'
 
 @Entity('confirmed_transactions')

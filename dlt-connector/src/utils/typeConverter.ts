@@ -66,48 +66,6 @@ export const transactionBodyToBodyBytes = (transactionBody: TransactionBody): Bu
   }
 }
 
-export const accountTypeToAddressType = (accountType: AccountType): AddressType => {
-  switch (accountType) {
-    case AccountType.NONE:
-      return AddressType.NONE
-    case AccountType.COMMUNITY_HUMAN:
-      return AddressType.COMMUNITY_HUMAN
-    case AccountType.COMMUNITY_GMW:
-      return AddressType.COMMUNITY_GMW
-    case AccountType.COMMUNITY_AUF:
-      return AddressType.COMMUNITY_AUF
-    case AccountType.COMMUNITY_PROJECT:
-      return AddressType.COMMUNITY_PROJECT
-    case AccountType.SUBACCOUNT:
-      return AddressType.SUBACCOUNT
-    case AccountType.CRYPTO_ACCOUNT:
-      return AddressType.CRYPTO_ACCOUNT
-    default:
-      throw new LogError(`Unsupported AccountType: ${accountType}`)
-  }
-}
-
-export const addressTypeToAccountType = (addressType: AddressType): AccountType => {
-  switch (addressType) {
-    case AddressType.NONE:
-      return AccountType.NONE
-    case AddressType.COMMUNITY_HUMAN:
-      return AccountType.COMMUNITY_HUMAN
-    case AddressType.COMMUNITY_GMW:
-      return AccountType.COMMUNITY_GMW
-    case AddressType.COMMUNITY_AUF:
-      return AccountType.COMMUNITY_AUF
-    case AddressType.COMMUNITY_PROJECT:
-      return AccountType.COMMUNITY_PROJECT
-    case AddressType.SUBACCOUNT:
-      return AccountType.SUBACCOUNT
-    case AddressType.CRYPTO_ACCOUNT:
-      return AccountType.CRYPTO_ACCOUNT
-    default:
-      throw new LogError(`Unsupported AddressType: ${addressType}`)
-  }
-}
-
 export function getEnumValue<T extends Record<string, unknown>>(
   enumType: T,
   value: number | string,
@@ -122,6 +80,32 @@ export function getEnumValue<T extends Record<string, unknown>>(
     }
   }
   return undefined
+}
+
+export const accountTypeToAddressType = (type: AccountType): AddressType => {
+  const typeString: string = AccountType[type]
+  const addressType: AddressType = AddressType[typeString as keyof typeof AddressType]
+
+  if (!addressType) {
+    throw new LogError("couldn't find corresponding AddressType for AccountType", {
+      accountType: type,
+      addressTypes: Object.keys(AddressType),
+    })
+  }
+  return addressType
+}
+
+export const addressTypeToAccountType = (type: AddressType): AccountType => {
+  const typeString: string = AddressType[type]
+  const accountType: AccountType = AccountType[typeString as keyof typeof AccountType]
+
+  if (!accountType) {
+    throw new LogError("couldn't find corresponding AccountType for AddressType", {
+      addressTypes: type,
+      accountType: Object.keys(AccountType),
+    })
+  }
+  return accountType
 }
 
 export function longToNumber(longNumber: Long): number {

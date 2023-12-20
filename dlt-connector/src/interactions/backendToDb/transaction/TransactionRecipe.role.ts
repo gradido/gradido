@@ -12,7 +12,6 @@ import { TransactionError } from '@/graphql/model/TransactionError'
 import { logger } from '@/logging/logger'
 import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
-import { sign } from '@/utils/cryptoHelper'
 
 export class TransactionRecipeRole {
   protected transactionBuilder: TransactionBuilder
@@ -79,7 +78,7 @@ export class TransactionRecipeRole {
     if (!keyPair) {
       throw new LogError('cannot generate key pair, belong user to home community?')
     }
-    const signature = sign(transaction.bodyBytes, keyPair)
+    const signature = keyPair.sign(transaction.bodyBytes)
     logger.debug('sign transaction', {
       signature: signature.toString('hex'),
       publicKey: keyPair.publicKey.toString('hex'),

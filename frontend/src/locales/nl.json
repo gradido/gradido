@@ -231,6 +231,7 @@
     "title": "Dankjewel!",
     "unsetPassword": "Jouw wachtwoord werd nog niet ingesteld. Doe het alsjeblieft opnieuw."
   },
+  "moderatorChangedMemo": "Tekst bewerkt door moderator",
   "navigation": {
     "admin_area": "Beheerder",
     "community": "Gemeenschap",

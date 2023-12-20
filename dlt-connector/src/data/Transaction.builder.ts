@@ -3,12 +3,11 @@ import { Community } from '@entity/Community'
 import { Transaction } from '@entity/Transaction'
 import { Decimal } from 'decimal.js-light'
 
-import { TransactionsManager } from '@/controller/TransactionsManager'
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
 import { logger } from '@/logging/logger'
+import { TransactionsManager } from '@/manager/TransactionsManager'
 import { LogError } from '@/server/LogError'
-import { sign } from '@/utils/cryptoHelper'
 import {
   bodyBytesToTransactionBody,
   timestampSecondsToDate,
@@ -118,7 +117,7 @@ export class TransactionBuilder {
     if (!this.transaction.bodyBytes || this.transaction.bodyBytes.length === 0) {
       throw new LogError('body bytes is empty')
     }
-    this.transaction.signature = sign(this.transaction.bodyBytes, keyPair)
+    this.transaction.signature = keyPair.sign(this.transaction.bodyBytes)
     return this
   }
 
@@ -181,7 +180,7 @@ export class TransactionBuilder {
         confirmedTransaction.id.toString(),
       )
     }
-    this.transaction.accountBalanceConfirmedAt = new Decimal(confirmedTransaction.accountBalance)
+    this.transaction.accountBalanceOnConfirmation = new Decimal(confirmedTransaction.accountBalance)
     this.transaction.confirmedAt = timestampSecondsToDate(confirmedTransaction.confirmedAt)
     return this
   }
