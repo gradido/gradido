@@ -492,13 +492,13 @@ export class UserResolver {
     // send user to dlt-connector
     const dltConnectorClient = DltConnectorClient.getInstance()
     if (dltConnectorClient) {
-      const homeCommunity = await DbCommunity.findOneOrFail({ where: { foreign: false } })
-      if (homeCommunity.communityUuid) {
+      const homeCommunity = await DbCommunity.findOne({ where: { foreign: false } })
+      if (homeCommunity?.communityUuid) {
         dltConnectorClient
           .checkAccount(user, homeCommunity.communityUuid)
-          .then((isAccountExist) => {
+          .then(async (isAccountExist) => {
             if (!isAccountExist && homeCommunity.communityUuid) {
-              void dltConnectorClient.addUser(user, homeCommunity.communityUuid)
+              await dltConnectorClient.addUser(user, homeCommunity.communityUuid)
             }
             return true
           })

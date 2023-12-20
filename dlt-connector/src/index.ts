@@ -16,8 +16,9 @@ async function main() {
   const startTime = Date.now()
 
   // ask backend for home community if we haven't one
-  const homeCommunityPublicKey = CommunityRepository.loadHomeCommunityKeyPair()
-  if (!homeCommunityPublicKey) {
+  try {
+    await CommunityRepository.loadHomeCommunityKeyPair()
+  } catch (e) {
     const backend = BackendClient.getInstance()
     if (!backend) {
       throw new LogError('cannot connect to backend')

@@ -1,16 +1,16 @@
-import { Account } from '@entity/Account'
 import { Community } from '@entity/Community'
 import { Transaction } from '@entity/Transaction'
 import { Decimal } from 'decimal.js-light'
 
-import { AccountLogic } from '@/data/Account.logic'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
+import { TransactionType } from '@/data/proto/3_3/enum/TransactionType'
 import { TransactionBuilder } from '@/data/Transaction.builder'
-import { AccountLoggingView } from '@/logging/AccountLogging.view'
 import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
 
 import { AbstractTransactionRole } from './AbstractTransaction.role'
+import { BalanceType, CalculateBalanceContext } from './CalculateBalance/CalculateBalance.context'
+
 export class ConfirmedTransactionRole extends AbstractTransactionRole {
   // eslint-disable-next-line no-useless-constructor
   public constructor(transaction: Transaction) {
@@ -37,15 +37,15 @@ export class ConfirmedTransactionRole extends AbstractTransactionRole {
     return new ConfirmedTransactionRole(transaction)
   }
 
-  public calculateCreatedAtBalance(account?: Account): void {
+  public calculateCreatedAtBalance(): void {
     logger.info('calculateCreatedAtBalance for transaction nr', this.self.nr)
-    if (account) {
-      logger.debug('calculate account balance for account', new AccountLoggingView(account))
-      const accountLogic = new AccountLogic(account)
-      this.self.accountBalanceOnCreation = accountLogic.calculateBalanceCreatedAt(
-        this.self.createdAt,
-        this.self.amount ?? new Decimal(0),
-      )
+    const { senderBalance, recipientBalance } = new CalculateBalanceContext(this.self).run(
+      BalanceType.ON_CREATION,
+    )
+    if (this.self.type === TransactionType.GRADIDO_CREATION && recipientBalance) {
+      this.self.accountBalanceOnCreation = recipientBalance
+    } else if (senderBalance) {
+      this.self.accountBalanceOnCreation = senderBalance
     } else {
       this.self.accountBalanceOnCreation = new Decimal(0)
     }
@@ -53,14 +53,18 @@ export class ConfirmedTransactionRole extends AbstractTransactionRole {
       this.self.accountBalanceOnConfirmation
         ?.minus(this.self.accountBalanceOnCreation.toString())
         .abs()
-        .greaterThan(1)
+        .greaterThan(2)
     ) {
+      if (!this.self.confirmedAt) {
+        throw new LogError('missing confirmedAt')
+      }
       throw new LogError('account balances to far apart, is the calculation correct?', {
         calculated: this.self.accountBalanceOnCreation.toString(),
         fromNodeSr: this.self.accountBalanceOnConfirmation.toString(),
         diff: this.self.accountBalanceOnConfirmation
-          ?.minus(this.self.accountBalanceOnCreation.toString())
+          ?.minus(this.self.accountBalanceOnConfirmation.toString())
           .toString(),
+        timeDiff: (this.self.confirmedAt.getTime() - this.self.createdAt.getTime()) / 1000,
       })
     }
   }

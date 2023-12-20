@@ -1,3 +1,4 @@
+import 'reflect-metadata'
 import { registerEnumType } from 'type-graphql'
 
 // enum for graphql but with int because it is the same in backend

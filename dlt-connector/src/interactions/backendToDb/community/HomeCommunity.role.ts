@@ -11,6 +11,7 @@ import { TransactionError } from '@/graphql/model/TransactionError'
 import { CommunityLoggingView } from '@/logging/CommunityLogging.view'
 import { logger } from '@/logging/logger'
 import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
+import { TransactionsManager } from '@/manager/TransactionsManager'
 import { getDataSource } from '@/typeorm/DataSource'
 
 import { CreateTransactionRecipeContext } from '../transaction/CreateTransationRecipe.context'
@@ -46,6 +47,8 @@ export class HomeCommunityRole extends CommunityRole {
           new TransactionLoggingView(this.transactionRecipe),
         )
         await transactionalEntityManager.save(this.transactionRecipe)
+        TransactionsManager.getInstance().setHomeCommunity(community)
+        await TransactionsManager.getInstance().addTopic(community.iotaTopic)
         return community
       })
     } catch (error) {

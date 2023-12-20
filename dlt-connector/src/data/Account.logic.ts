@@ -16,7 +16,7 @@ export class AccountLogic {
   // eslint-disable-next-line no-useless-constructor
   constructor(private account: Account) {}
 
-  public calculateBalanceCreatedAt(newCreateAtDate: Date, amount: Decimal): Decimal {
+  public calculateBalanceCreatedAt(newCreateAtDate: Date): Decimal {
     logger.debug('calculate decay with', {
       amount: this.account.balanceOnCreation.toString(),
       from: this.account.balanceCreatedAt.toISOString(),
@@ -27,11 +27,7 @@ export class AccountLogic {
       this.account.balanceCreatedAt,
       newCreateAtDate,
     )
-    logger.debug('calculated decay', new DecayLoggingView(decay))
-    if (amount.isZero()) {
-      return decay.balance
-    }
-    return decay.balance.add(amount.toString())
+    return decay.balance
   }
 
   /**

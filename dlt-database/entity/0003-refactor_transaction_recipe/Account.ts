@@ -58,7 +58,7 @@ export class Account extends BaseEntity {
     type: 'datetime',
     nullable: true,
   })
-  balanceConfirmedAt: Date
+  balanceConfirmedAt?: Date
 
   @Column({
     name: 'balance_on_creation',

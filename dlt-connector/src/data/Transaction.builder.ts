@@ -18,6 +18,7 @@ import { AccountRepository } from './Account.repository'
 import { KeyPair } from './KeyPair'
 import { ConfirmedTransaction } from './proto/3_3/ConfirmedTransaction'
 import { TransactionBodyBuilder } from './proto/TransactionBody.builder'
+import { CommunityLoggingView } from '@/logging/CommunityLogging.view'
 
 export class TransactionBuilder {
   private transaction: Transaction
@@ -84,6 +85,10 @@ export class TransactionBuilder {
 
   public setHomeCommunityAsCommunity(): this {
     const homeCommunity = TransactionsManager.getInstance().getHomeCommunity()
+    if (!homeCommunity) {
+      throw new LogError('missing home community on transaction manager')
+    }
+    logger.debug('home community', new CommunityLoggingView(homeCommunity))
     this.transaction.community = homeCommunity
     if (homeCommunity.id) {
       this.transaction.communityId = homeCommunity.id

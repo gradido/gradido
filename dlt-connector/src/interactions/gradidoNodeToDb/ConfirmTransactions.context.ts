@@ -30,7 +30,8 @@ import { ConfirmCommunityRole } from './ConfirmCommunity.role'
 import { ConfirmedTransactionRole } from './ConfirmedTransaction.role'
 import { ExistingTransactionRole } from './ExistingTransactions.role'
 import { LoadOrCreateAccountsForTransactionContext } from './LoadOrCreateAccountsForTransaction/LoadOrCreateAccountsForTransaction.context'
-import { UpdateBalanceRole } from './UpdateBalance.role'
+import { UpdateBalanceCreationRole } from './UpdateBalanceCreation.role'
+import { UpdateBalanceTransferRole } from './UpdateBalanceTransfer.role'
 
 export interface TransactionSet {
   protoConfirmedTransaction: ConfirmedTransaction
@@ -251,23 +252,18 @@ export class ConfirmTransactionsContext {
     if (!transactionType) {
       throw new LogError('transaction type not set')
     }
+    // calculate balance based on creation date
+    // balance based on confirmation date already calculated on GradidoNode
+    // update always if account exist, even for transaction which don't move gradidos around
+    confirmedTransactionRole.calculateCreatedAtBalance()
+
     // community root transaction is a bit special because it didn't has an account for singing because the community is the signing account
     if (transactionType === TransactionType.COMMUNITY_ROOT) {
       // update confirmation date of Community, AUF Account and GMW Account
       await new ConfirmCommunityRole(confirmedTransactionRole, this).confirm()
-      confirmedTransactionRole.calculateCreatedAtBalance()
       confirmedTransactionRole.validate()
       return
     }
-    let account = confirmedTransactionRole.getTransaction().signingAccount
-    if (!account) {
-      throw new LogError('missing singing account')
-    }
-
-    // calculate balance based on creation date
-    // balance based on confirmation date already calculated on GradidoNode
-    // update always if account exist, even for transaction which don't move gradidos around
-    confirmedTransactionRole.calculateCreatedAtBalance(account)
     // tell backend that transaction is confirmed
     if (
       [
@@ -283,16 +279,12 @@ export class ConfirmTransactionsContext {
     let abstractConfirm: AbstractConfirm | null = null
     switch (transactionType) {
       case TransactionType.GRADIDO_CREATION:
-        // use recipient account for creation
-        account = confirmedTransactionRole.getTransaction().recipientAccount
-      // eslint-disable-next-line no-fallthrough
-      case TransactionType.GRADIDO_TRANSFER:
-        // use signer/sender account for transfer transaction, balance in confirmedTransaction is only for sender
-        if (!account) {
-          throw new LogError('missing account for creation or transfer transaction')
-        }
         // update balance fields in account entity
-        abstractConfirm = new UpdateBalanceRole(confirmedTransactionRole, this, account)
+        abstractConfirm = new UpdateBalanceCreationRole(confirmedTransactionRole, this)
+        break
+      case TransactionType.GRADIDO_TRANSFER:
+        // update balance fields in account entity
+        abstractConfirm = new UpdateBalanceTransferRole(confirmedTransactionRole, this)
         break
       case TransactionType.REGISTER_ADDRESS:
         // will also confirm user
@@ -309,7 +301,7 @@ export class ConfirmTransactionsContext {
         )
         break
       default:
-        throw new LogError('not implemented yet')
+        throw new LogError('not implemented yet', transactionType)
     }
     await abstractConfirm.confirm()
     confirmedTransactionRole.validate()

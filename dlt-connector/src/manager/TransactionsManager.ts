@@ -31,7 +31,7 @@ export class TransactionsManager {
   private lockTopicMutex = new Mutex()
   private pendingConfirmedTransactions: { [key: string]: ConfirmedTransaction[] } = {}
   private pendingConfirmedTransactionsMutex = new Mutex()
-  private homeCommunity: Community
+  private homeCommunity?: Community
 
   /**
    * The Singleton's constructor should always be private to prevent direct
@@ -55,8 +55,8 @@ export class TransactionsManager {
 
   public async init(): Promise<void[]> {
     return Promise.all(
-      (await CommunityRepository.findAll({ iotaTopic: true, foreign: true })).map((community) => {
-        if (community.foreign) {
+      (await CommunityRepository.findAll({ id: true, iotaTopic: true, foreign: true })).map((community) => {
+        if (!community.foreign) {
           this.homeCommunity = community
         }
         return this.addTopic(community.iotaTopic)
@@ -232,11 +232,15 @@ export class TransactionsManager {
     return this.topicsForListening.indexOf(iotaTopic) !== -1
   }
 
-  public getHomeCommunityTopic(): string {
-    return this.homeCommunity.iotaTopic
+  public getHomeCommunityTopic(): string | undefined {
+    return this.homeCommunity?.iotaTopic
   }
 
-  public getHomeCommunity(): Community {
+  public getHomeCommunity(): Community | undefined {
     return this.homeCommunity
+  }
+
+  public setHomeCommunity(homeCommunity: Community): void {
+    this.homeCommunity = homeCommunity
   }
 }

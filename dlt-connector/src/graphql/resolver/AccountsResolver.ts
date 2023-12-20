@@ -65,6 +65,7 @@ export class AccountResolver {
       logger.info('add user and account', userAccountDraft)
       const userKeyPair = new UserLogic(user).calculateKeyPair(communityKeyPair)
       const account = AccountFactory.createFromUserAccountDraft(userAccountDraft, userKeyPair)
+      account.user = user
       const bodyBuilder = new TransactionBodyBuilder()
       const transactionBuilder = new TransactionBuilder()
       const signingKeyPair = new AccountLogic(account).getKeyPair(communityKeyPair)
