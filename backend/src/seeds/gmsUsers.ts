@@ -61,9 +61,6 @@ const run = async () => {
     .andWhere('deleted_at is null')
     .andWhere({ gmsRegistered: false })
     .getRawMany()
-  // const userIds = await DbUser.query(
-  //  'SELECT `id` from `users` `u` where `u`.`foreign` = false and `deleted_at` is null and `gms_registered` = false',
-  // )
   logger.debug('userIds:', userIds)
 
   for (const idStr of userIds) {
