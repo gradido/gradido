@@ -42,24 +42,24 @@ export class ConfirmedTransactionRole extends AbstractTransactionRole {
     if (account) {
       logger.debug('calculate account balance for account', new AccountLoggingView(account))
       const accountLogic = new AccountLogic(account)
-      this.self.accountBalanceCreatedAt = accountLogic.calculateBalanceCreatedAt(
+      this.self.accountBalanceOnCreation = accountLogic.calculateBalanceCreatedAt(
         this.self.createdAt,
         this.self.amount ?? new Decimal(0),
       )
     } else {
-      this.self.accountBalanceCreatedAt = new Decimal(0)
+      this.self.accountBalanceOnCreation = new Decimal(0)
     }
     if (
-      this.self.accountBalanceConfirmedAt
-        ?.minus(this.self.accountBalanceCreatedAt.toString())
+      this.self.accountBalanceOnConfirmation
+        ?.minus(this.self.accountBalanceOnCreation.toString())
         .abs()
         .greaterThan(1)
     ) {
       throw new LogError('account balances to far apart, is the calculation correct?', {
-        calculated: this.self.accountBalanceCreatedAt.toString(),
-        fromNodeSr: this.self.accountBalanceConfirmedAt.toString(),
-        diff: this.self.accountBalanceConfirmedAt
-          ?.minus(this.self.accountBalanceCreatedAt.toString())
+        calculated: this.self.accountBalanceOnCreation.toString(),
+        fromNodeSr: this.self.accountBalanceOnConfirmation.toString(),
+        diff: this.self.accountBalanceOnConfirmation
+          ?.minus(this.self.accountBalanceOnCreation.toString())
           .toString(),
       })
     }
@@ -71,7 +71,7 @@ export class ConfirmedTransactionRole extends AbstractTransactionRole {
     if (!this.self.runningHash || this.self.runningHash.length !== 32) {
       throw new LogError('missing or invalid running hash')
     }
-    if (!this.self.accountBalanceConfirmedAt || !this.self.accountBalanceCreatedAt) {
+    if (!this.self.accountBalanceOnConfirmation || !this.self.accountBalanceOnCreation) {
       throw new LogError('at least one account balance missing')
     }
     if (!this.self.nr || this.self.nr <= 0) {

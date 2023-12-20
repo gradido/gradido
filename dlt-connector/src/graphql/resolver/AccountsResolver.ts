@@ -6,10 +6,12 @@ import { TransactionRecipe as TransactionRecipeOutput } from '@model/Transaction
 import { AccountFactory } from '@/data/Account.factory'
 import { AccountLogic } from '@/data/Account.logic'
 import { AccountRepository } from '@/data/Account.repository'
+import { CommunityRepository } from '@/data/Community.repository'
 import { TRANSMIT_TO_IOTA_SLEEP_CONDITION_KEY } from '@/data/const'
 import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
 import { TransactionBuilder } from '@/data/Transaction.builder'
 import { UserFactory } from '@/data/User.factory'
+import { UserLogic } from '@/data/User.logic'
 import { UserRepository } from '@/data/User.repository'
 import { logger } from '@/logging/logger'
 import { getDataSource } from '@/typeorm/DataSource'
@@ -44,10 +46,11 @@ export class AccountResolver {
     @Arg('data')
     userAccountDraft: UserAccountDraft,
   ): Promise<TransactionResult> {
+    const communityKeyPair = await CommunityRepository.loadHomeCommunityKeyPair()
     try {
       let user = await UserRepository.findByGradidoId(userAccountDraft.user)
       if (!user) {
-        user = UserFactory.create(userAccountDraft)
+        user = UserFactory.create(userAccountDraft, communityKeyPair)
       } else {
         const account = await AccountRepository.findByUserIdentifier(userAccountDraft.user)
         if (account) {
@@ -60,10 +63,11 @@ export class AccountResolver {
         }
       }
       logger.info('add user and account', userAccountDraft)
-      const account = AccountFactory.createFromUserAccountDraft(userAccountDraft)
+      const userKeyPair = new UserLogic(user).calculateKeyPair(communityKeyPair)
+      const account = AccountFactory.createFromUserAccountDraft(userAccountDraft, userKeyPair)
       const bodyBuilder = new TransactionBodyBuilder()
       const transactionBuilder = new TransactionBuilder()
-      const signingKeyPair = new AccountLogic(account).getKeyPair()
+      const signingKeyPair = new AccountLogic(account).getKeyPair(communityKeyPair)
       if (!signingKeyPair) {
         throw new TransactionError(
           TransactionErrorType.NOT_FOUND,

@@ -1,7 +1,8 @@
 import { Transaction } from '@entity/Transaction'
 
-import { getTransactionTypeEnumValue } from '@/graphql/enum/TransactionType'
+import { TransactionType } from '@/data/proto/3_3/enum/TransactionType'
 import { LogError } from '@/server/LogError'
+import { getEnumValue } from '@/utils/typeConverter'
 
 import { AbstractLoggingView } from './AbstractLogging.view'
 import { AccountLoggingView } from './AccountLogging.view'
@@ -25,7 +26,7 @@ export class TransactionLoggingView extends AbstractLoggingView {
       createdAt: this.dateToString(this.self.createdAt),
       confirmedAt: this.dateToString(this.self.confirmedAt),
       protocolVersion: this.self.protocolVersion,
-      type: getTransactionTypeEnumValue(this.self.type),
+      type: getEnumValue(TransactionType, this.self.type),
       signature: this.self.signature.subarray(0, 31).toString(this.bufferStringFormat) + '..',
       community: new CommunityLoggingView(this.self.community).toJSON(),
       otherCommunity: this.self.otherCommunity
@@ -41,8 +42,8 @@ export class TransactionLoggingView extends AbstractLoggingView {
         ? new AccountLoggingView(this.self.recipientAccount)
         : undefined,
       amount: this.decimalToString(this.self.amount),
-      accountBalanceCreatedAt: this.decimalToString(this.self.accountBalanceCreatedAt),
-      accountBalanceConfirmedAt: this.decimalToString(this.self.accountBalanceConfirmedAt),
+      accountBalanceOnCreation: this.decimalToString(this.self.accountBalanceOnCreation),
+      accountBalanceOnConfirmation: this.decimalToString(this.self.accountBalanceOnConfirmation),
       runningHash: this.self.runningHash
         ? this.self.runningHash.toString(this.bufferStringFormat)
         : undefined,

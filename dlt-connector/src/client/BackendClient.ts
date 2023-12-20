@@ -103,7 +103,7 @@ export class BackendClient {
         ? Buffer.from(confirmedTransaction.iotaMessageId).toString('hex')
         : undefined,
       gradidoId: balanceAccount?.user?.gradidoID,
-      balance: confirmedTransaction.accountBalanceCreatedAt?.toString(),
+      balance: confirmedTransaction.accountBalanceOnCreation?.toString(),
       balanceDate: confirmedTransaction.createdAt.toISOString(),
     }
     logger.debug('call confirmTransaction with parameter', input)

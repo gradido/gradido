@@ -1,6 +1,6 @@
 import { Transaction } from '@entity/Transaction'
 
-import { TransactionType } from '@/graphql/enum/TransactionType'
+import { TransactionType } from '@/data/proto/3_3/enum/TransactionType'
 import { logger } from '@/logging/logger'
 import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'

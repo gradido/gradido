@@ -3,9 +3,10 @@ import { JsonRpcEitherResponse } from 'jsonrpc-ts-client/dist/types/utils/jsonrp
 
 import { CONFIG } from '@/config'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
-import { AddressType, getAddressTypeEnumValue } from '@/data/proto/3_3/enum/AddressType'
+import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
+import { getEnumValue } from '@/utils/typeConverter'
 
 const client = new JsonRpcClient({
   url: CONFIG.NODE_SERVER_URL,
@@ -116,7 +117,7 @@ async function getAddressType(pubkey: Buffer, iotaTopic: string): Promise<Addres
     communityId: iotaTopic,
   })
   return resolveResponse(response, (result: AddressTypeResult) =>
-    getAddressTypeEnumValue(result.addressType),
+    getEnumValue(AddressType, result.addressType),
   )
 }
 

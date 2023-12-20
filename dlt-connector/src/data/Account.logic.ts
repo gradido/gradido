@@ -3,7 +3,6 @@ import { Decimal } from 'decimal.js-light'
 
 import { DecayLoggingView } from '@/logging/DecayLogging.view'
 import { logger } from '@/logging/logger'
-import { KeyManager } from '@/manager/KeyManager'
 import { LogError } from '@/server/LogError'
 import { calculateDecay } from '@/utils/decay'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
@@ -19,13 +18,13 @@ export class AccountLogic {
 
   public calculateBalanceCreatedAt(newCreateAtDate: Date, amount: Decimal): Decimal {
     logger.debug('calculate decay with', {
-      amount: this.account.balanceCreatedAt.toString(),
-      from: this.account.balanceCreatedAtDate.toISOString(),
+      amount: this.account.balanceOnCreation.toString(),
+      from: this.account.balanceCreatedAt.toISOString(),
       to: newCreateAtDate.toISOString(),
     })
     const decay = calculateDecay(
+      this.account.balanceOnCreation,
       this.account.balanceCreatedAt,
-      this.account.balanceCreatedAtDate,
       newCreateAtDate,
     )
     logger.debug('calculated decay', new DecayLoggingView(decay))
@@ -37,11 +36,10 @@ export class AccountLogic {
 
   /**
    * calculate key pair for this specific account
-   * @param parentKeys if null, use home community key pair as parent key pair
+   * @param
    * @returns
    */
-  public getKeyPair(parentKeys?: KeyPair): KeyPair | null {
-    const km = KeyManager.getInstance()
+  public getKeyPair(communityKeyPair: KeyPair): KeyPair | null {
     switch (this.account.type) {
       case AddressType.NONE:
         return null
@@ -51,14 +49,13 @@ export class AccountLogic {
         if (!this.account.user || !this.account.derivationIndex) {
           throw new LogError('no user or derivation index for account')
         }
-        return km.derive(
-          [this.account.derivationIndex],
-          new UserLogic(this.account.user).calculateKeyPair(parentKeys),
-        )
+        return new UserLogic(this.account.user)
+          .calculateKeyPair(communityKeyPair)
+          .derive([this.account.derivationIndex])
       case AddressType.COMMUNITY_GMW:
-        return km.derive([hardenDerivationIndex(GMW_ACCOUNT_DERIVATION_INDEX)], parentKeys)
+        return communityKeyPair.derive([hardenDerivationIndex(GMW_ACCOUNT_DERIVATION_INDEX)])
       case AddressType.COMMUNITY_AUF:
-        return km.derive([hardenDerivationIndex(AUF_ACCOUNT_DERIVATION_INDEX)], parentKeys)
+        return communityKeyPair.derive([hardenDerivationIndex(AUF_ACCOUNT_DERIVATION_INDEX)])
       default:
         return null
     }

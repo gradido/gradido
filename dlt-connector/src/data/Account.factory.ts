@@ -16,11 +16,11 @@ export class AccountFactory {
     createdAt: Date,
     derivationIndex: number,
     type: AddressType,
-    parentKeyPair: KeyPair,
+    userKeyPair: KeyPair,
   ): Account {
     const account = Account.create()
     account.derivationIndex = derivationIndex
-    account.derive2Pubkey = parentKeyPair.derive([derivationIndex]).publicKey
+    account.derive2Pubkey = userKeyPair.derive([derivationIndex]).publicKey
     account.type = type.valueOf()
     account.createdAt = createdAt
     account.balanceOnConfirmation = new Decimal(0)
@@ -31,13 +31,13 @@ export class AccountFactory {
 
   public static createFromUserAccountDraft(
     { createdAt, accountType, user }: UserAccountDraft,
-    parentKeyPair: KeyPair,
+    userKeyPair: KeyPair,
   ): Account {
     return AccountFactory.create(
       new Date(createdAt),
       user.accountNr ?? 1,
       accountTypeToAddressType(accountType),
-      parentKeyPair,
+      userKeyPair,
     )
   }
 
@@ -59,21 +59,21 @@ export class AccountFactory {
     return account
   }
 
-  public static createGmwAccount(keyPair: KeyPair, createdAt: Date): Account {
+  public static createGmwAccount(communityKeyPair: KeyPair, createdAt: Date): Account {
     return AccountFactory.create(
       createdAt,
       hardenDerivationIndex(GMW_ACCOUNT_DERIVATION_INDEX),
       AddressType.COMMUNITY_GMW,
-      keyPair,
+      communityKeyPair,
     )
   }
 
-  public static createAufAccount(keyPair: KeyPair, createdAt: Date): Account {
+  public static createAufAccount(communityKeyPair: KeyPair, createdAt: Date): Account {
     return AccountFactory.create(
       createdAt,
       hardenDerivationIndex(AUF_ACCOUNT_DERIVATION_INDEX),
       AddressType.COMMUNITY_AUF,
-      keyPair,
+      communityKeyPair,
     )
   }
 }

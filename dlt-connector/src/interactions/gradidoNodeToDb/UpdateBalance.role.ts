@@ -17,16 +17,16 @@ export class UpdateBalanceRole extends AbstractConfirm {
 
   public async confirm(): Promise<void> {
     const transaction = this.confirmedTransactionRole.getTransaction()
-    if (!transaction.accountBalanceConfirmedAt || !transaction.confirmedAt) {
+    if (!transaction.accountBalanceOnConfirmation || !transaction.confirmedAt) {
       throw new LogError('missing balance for confirmation date')
     }
-    if (!transaction.accountBalanceCreatedAt) {
+    if (!transaction.accountBalanceOnCreation) {
       throw new LogError('missing balance for create date')
     }
-    this.account.balanceConfirmedAt = transaction.accountBalanceConfirmedAt
-    this.account.balanceConfirmedAtDate = transaction.confirmedAt
-    this.account.balanceCreatedAt = transaction.accountBalanceCreatedAt
-    this.account.balanceCreatedAtDate = transaction.createdAt
+    this.account.balanceOnConfirmation = transaction.accountBalanceOnConfirmation
+    this.account.balanceConfirmedAt = transaction.confirmedAt
+    this.account.balanceOnCreation = transaction.accountBalanceOnCreation
+    this.account.balanceCreatedAt = transaction.createdAt
     this.confirmTransactionsContext.addForSave(this.account)
   }
 }

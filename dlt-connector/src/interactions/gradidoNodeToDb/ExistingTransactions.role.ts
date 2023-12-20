@@ -53,16 +53,17 @@ export class ExistingTransactionRole extends AbstractTransactionRole {
     }
 
     // set or check account balance based on confirmation date
-    if (!this.self.accountBalanceConfirmedAt) {
-      this.self.accountBalanceConfirmedAt = new Decimal(confirmedTransactionProto.accountBalance)
+    if (!this.self.accountBalanceOnConfirmation) {
+      this.self.accountBalanceOnConfirmation = new Decimal(confirmedTransactionProto.accountBalance)
     } else {
       if (
-        this.self.accountBalanceConfirmedAt.toString() !== confirmedTransactionProto.accountBalance
+        this.self.accountBalanceOnConfirmation.toString() !==
+        confirmedTransactionProto.accountBalance
       ) {
         throw new LogError(
           'existing transaction has deviating account balance based on confirmation date',
           {
-            existing: this.self.accountBalanceConfirmedAt.toString(),
+            existing: this.self.accountBalanceOnConfirmation.toString(),
             incoming: confirmedTransactionProto.accountBalance,
           },
         )
