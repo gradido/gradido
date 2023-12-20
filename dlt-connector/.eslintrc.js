@@ -29,7 +29,7 @@ module.exports = {
   },
   rules: {
     'no-console': 'error',
-    camelcase: 'error',
+    camelcase: 'off',
     'no-debugger': 'error',
     'prettier/prettier': [
       'error',

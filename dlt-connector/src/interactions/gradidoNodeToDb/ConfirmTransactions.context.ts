@@ -21,7 +21,6 @@ import { TransactionType } from '@/graphql/enum/TransactionType'
 import { AccountLoggingView } from '@/logging/AccountLogging.view'
 import { ConfirmedTransactionLoggingView } from '@/logging/ConfirmedTransactionLogging.view'
 import { logger } from '@/logging/logger'
-import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
 
 import { AbstractConfirm } from './AbstractConfirm.role'

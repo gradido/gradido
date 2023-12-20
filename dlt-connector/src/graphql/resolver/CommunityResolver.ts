@@ -1,15 +1,16 @@
+import { Resolver, Query, Arg, Mutation, Args } from 'type-graphql'
+
 import { CommunityArg } from '@arg/CommunityArg'
 import { TransactionErrorType } from '@enum/TransactionErrorType'
 import { CommunityDraft } from '@input/CommunityDraft'
 import { Community } from '@model/Community'
 import { TransactionError } from '@model/TransactionError'
 import { TransactionResult } from '@model/TransactionResult'
-import { Resolver, Query, Arg, Mutation, Args } from 'type-graphql'
 
 import { CommunityRepository } from '@/data/Community.repository'
 import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
-import { LogError } from '@/server/LogError'
 import { logger } from '@/logging/logger'
+import { LogError } from '@/server/LogError'
 import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 
 @Resolver()

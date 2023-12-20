@@ -1,5 +1,6 @@
 import { Transaction } from '@entity/Transaction'
 
+import { AccountLogic } from '@/data/Account.logic'
 import { CommunityRepository } from '@/data/Community.repository'
 import { KeyPair } from '@/data/KeyPair'
 import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
@@ -8,12 +9,10 @@ import { UserRepository } from '@/data/User.repository'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
-import { AccountLoggingView } from '@/logging/AccountLogging.view'
 import { logger } from '@/logging/logger'
 import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
 import { sign } from '@/utils/cryptoHelper'
-import { AccountLogic } from '@/data/Account.logic'
 
 export class TransactionRecipeRole {
   protected transactionBuilder: TransactionBuilder

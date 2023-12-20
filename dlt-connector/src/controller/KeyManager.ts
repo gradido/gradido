@@ -1,13 +1,13 @@
-// eslint-disable-next-line camelcase
-import { generateFromSeed, derivePrivate } from 'bip32-ed25519'
+/* eslint-disable camelcase */
 import { entropyToMnemonic, mnemonicToSeedSync } from 'bip39'
-// eslint-disable-next-line camelcase
-import { randombytes_buf } from 'sodium-native'
+import { randombytes_buf as randombytesBuf } from 'sodium-native'
 
 import { CommunityRepository } from '@/data/Community.repository'
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
+
+import { generateFromSeed, derivePrivate } from 'bip32-ed25519'
 
 import { CONFIG } from '../config'
 // https://www.npmjs.com/package/bip32-ed25519?activeTab=code
@@ -109,7 +109,7 @@ export class KeyManager {
       return entropyToMnemonic(seed)
     }
     const entropy = Buffer.alloc(256)
-    randombytes_buf(entropy)
+    randombytesBuf(entropy)
     return entropyToMnemonic(entropy)
   }
 }

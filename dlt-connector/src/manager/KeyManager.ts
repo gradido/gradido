@@ -7,8 +7,8 @@ import { CommunityRepository } from '@/data/Community.repository'
 import { KeyPair } from '@/data/KeyPair'
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { SignaturePair } from '@/data/proto/3_3/SignaturePair'
-import { LogError } from '@/server/LogError'
 import { logger } from '@/logging/logger'
+import { LogError } from '@/server/LogError'
 
 import { generateFromSeed, derivePrivate, sign as ed25519Sign } from 'bip32-ed25519'
 

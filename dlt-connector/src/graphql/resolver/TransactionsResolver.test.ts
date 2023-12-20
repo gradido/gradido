@@ -2,6 +2,7 @@ import 'reflect-metadata'
 import assert from 'assert'
 
 import { ApolloServer } from '@apollo/server'
+
 import { AccountType } from '@enum/AccountType'
 import { TransactionResult } from '@model/TransactionResult'
 // must be imported before createApolloTestServer so that TestDB was created before createApolloTestServer imports repositories

@@ -61,9 +61,8 @@ export const transmitToIota = async (): Promise<void> => {
         )
       }
     } catch (error) {
-      logger.error('error while transmitting to iota ', error)
-      break
-      // await sleep(10000)
+      logger.error('error while transmitting to iota, retry in 10 seconds ', error)
+      await sleep(10000)
     }
   }
   logger.info(

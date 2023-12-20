@@ -1,6 +1,7 @@
 import { Account } from '@entity/Account'
-import { TransactionRecipe as TransactionRecipeOutput } from '@model/TransactionRecipe'
 import { Arg, Mutation, Query, Resolver } from 'type-graphql'
+
+import { TransactionRecipe as TransactionRecipeOutput } from '@model/TransactionRecipe'
 
 import { AccountFactory } from '@/data/Account.factory'
 import { AccountLogic } from '@/data/Account.logic'

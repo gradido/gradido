@@ -1,11 +1,12 @@
 // https://www.npmjs.com/package/@apollo/protobufjs
 
-import { InputTransactionType } from '@enum/InputTransactionType'
-import { isValidDateString } from '@validator/DateString'
-import { IsPositiveDecimal } from '@validator/Decimal'
 import { IsEnum, IsObject, IsPositive, ValidateNested } from 'class-validator'
 import { Decimal } from 'decimal.js-light'
 import { InputType, Field, Int } from 'type-graphql'
+
+import { InputTransactionType } from '@enum/InputTransactionType'
+import { isValidDateString } from '@validator/DateString'
+import { IsPositiveDecimal } from '@validator/Decimal'
 
 import { UserIdentifier } from './UserIdentifier'
 

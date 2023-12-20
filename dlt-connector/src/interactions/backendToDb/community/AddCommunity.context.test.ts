@@ -1,14 +1,16 @@
 import 'reflect-metadata'
 import { Community } from '@entity/Community'
-import { TestDB } from '@test/TestDB'
-import { generateFromSeed, toPublic, derivePrivate } from 'bip32-ed25519'
 import { entropyToMnemonic, mnemonicToSeedSync } from 'bip39'
+
+import { TestDB } from '@test/TestDB'
 
 import { CONFIG } from '@/config'
 import { CommunityRepository } from '@/data/Community.repository'
 import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
+
+import { generateFromSeed, toPublic, derivePrivate } from 'bip32-ed25519'
 
 import { AddCommunityContext } from './AddCommunity.context'
 

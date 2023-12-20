@@ -1,6 +1,7 @@
 import 'reflect-metadata'
-import { TestDB } from '@test/TestDB'
 import { Decimal } from 'decimal.js-light'
+
+import { TestDB } from '@test/TestDB'
 
 import { AccountType } from '@/graphql/enum/AccountType'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
