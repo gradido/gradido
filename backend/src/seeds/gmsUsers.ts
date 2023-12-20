@@ -8,8 +8,8 @@ import { entities } from '@entity/index'
 import { User as DbUser } from '@entity/User'
 // import { createTestClient } from 'apollo-server-testing'
 
-import { createGmsUser } from '@/apis/gms/GmsClient'
-import { GmsUser } from '@/apis/gms/model/GmsUser'
+// import { createGmsUser } from '@/apis/gms/GmsClient'
+// import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { CONFIG } from '@/config'
 import { getHomeCommunity } from '@/graphql/resolver/util/communities'
 import { sendUserToGms } from '@/graphql/resolver/util/sendUserToGms'
@@ -73,9 +73,9 @@ const run = async () => {
     if (user) {
       logger.debug('found local User:', user)
       if (user.gmsAllowed) {
-        const gmsUser = new GmsUser(user)
         await sendUserToGms(user, homeCom)
         /*
+        const gmsUser = new GmsUser(user)
         try {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           if (await createGmsUser(homeCom.gmsApiKey, gmsUser)) {
