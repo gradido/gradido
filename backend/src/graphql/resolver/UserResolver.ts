@@ -363,7 +363,7 @@ export class UserResolver {
       await EVENT_USER_REGISTER(dbUser)
     }
 
-    if (CONFIG.GMS_ACTIVE) {
+    if (!CONFIG.GMS_ACTIVE) {
       logger.info('GMS deactivated per configuration! New user is not published to GMS.')
     } else {
       try {
