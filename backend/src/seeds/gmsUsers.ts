@@ -55,9 +55,15 @@ const run = async () => {
     throw new LogError('HomeCommunity needs GMS-ApiKey to publish user data to GMS.')
   }
   // read the ids of all local users, which are still not gms registered
-  const userIds = await DbUser.query(
-    'SELECT `id` from `users` `u` where `u`.`foreign` = false and `deleted_at` is null and `gms_registered` = false',
-  )
+  const userIds = await DbUser.createQueryBuilder()
+    .select('id')
+    .where({ foreign: false })
+    .andWhere('deleted_at is null')
+    .andWhere({ gmsRegistered: false })
+    .getRawMany()
+  // const userIds = await DbUser.query(
+  //  'SELECT `id` from `users` `u` where `u`.`foreign` = false and `deleted_at` is null and `gms_registered` = false',
+  // )
   logger.debug('userIds:', userIds)
 
   for (const idStr of userIds) {
@@ -68,18 +74,22 @@ const run = async () => {
     })
     if (user) {
       logger.debug('found local User:', user)
-      const gmsUser = new GmsUser(user)
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        if (await createGmsUser(homeCom.gmsApiKey, gmsUser)) {
-          logger.debug('GMS user published successfully:', gmsUser)
-          user.gmsRegistered = true
-          user.gmsRegisteredAt = new Date()
-          await DbUser.save(user)
-          logger.debug('mark user as gms published:', user)
+      if (user.gmsAllowed) {
+        const gmsUser = new GmsUser(user)
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          if (await createGmsUser(homeCom.gmsApiKey, gmsUser)) {
+            logger.debug('GMS user published successfully:', gmsUser)
+            user.gmsRegistered = true
+            user.gmsRegisteredAt = new Date()
+            await DbUser.save(user)
+            logger.debug('mark user as gms published:', user)
+          }
+        } catch (err) {
+          logger.warn('publishing user fails with ', err)
         }
-      } catch (err) {
-        logger.warn('publishing user fails with ', err)
+      } else {
+        logger.debug('GMS-Publishing not allowed by user settings:', user)
       }
     }
   }

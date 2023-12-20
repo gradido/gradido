@@ -11,7 +11,7 @@ export class GmsUser {
     this.mobile = this.getGmsPhone(user)
     this.firstName = this.getGmsFirstName(user)
     this.lastName = this.getGmsLastName(user)
-    this.alias = user.alias ? user.alias : undefined
+    this.alias = this.getGmsAlias(user)
     this.type = GmsLocationType.GMS_LOCATION_TYPE_RANDOM
     this.location = null
   }
@@ -37,6 +37,16 @@ export class GmsUser {
   language: string
   location: unknown
 
+  private getGmsAlias(user: dbUser): string | undefined {
+    if (
+      user.gmsAllowed &&
+      user.alias &&
+      user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS
+    ) {
+      return user.alias
+    }
+  }
+
   private getGmsFirstName(user: dbUser): string | undefined {
     if (
       user.gmsAllowed &&
@@ -46,8 +56,13 @@ export class GmsUser {
     ) {
       return user.firstName
     }
-    if (user.gmsAllowed && user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_INITIALS) {
-      return user.firstName.substring(0, 1) + '.'
+    if (
+      user.gmsAllowed &&
+      ((!user.alias &&
+        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS) ||
+        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_INITIALS)
+    ) {
+      return user.firstName.substring(0, 1)
     }
   }
 
@@ -57,10 +72,12 @@ export class GmsUser {
     }
     if (
       user.gmsAllowed &&
-      (user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL ||
+      ((!user.alias &&
+        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS) ||
+        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL ||
         user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_INITIALS)
     ) {
-      return user.lastName.substring(0, 1) + '.'
+      return user.lastName.substring(0, 1)
     }
   }
 
