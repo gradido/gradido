@@ -4,7 +4,6 @@ import { DltTransaction } from '@entity/DltTransaction'
 import { Transaction } from '@entity/Transaction'
 
 import { DltConnectorClient } from '@/apis/DltConnectorClient'
-import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { Monitor, MonitorNames } from '@/util/Monitor'
 
@@ -21,15 +20,13 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
       // TODO: get actual communities from users
       const homeCommunity = await Community.findOneOrFail({ where: { foreign: false } })
       const senderCommunityUuid = homeCommunity.communityUuid
-      const recipientCommunityUuid = senderCommunityUuid
-
+      if (!senderCommunityUuid) {
+        throw new Error('Cannot find community uuid of home community')
+      }
       if (dltConnector) {
         logger.debug('with sending to DltConnector...')
         if (!senderCommunityUuid || senderCommunityUuid === '') {
           throw new Error('missing sender community')
-        }
-        if (!recipientCommunityUuid || recipientCommunityUuid === '') {
-          throw new LogError('missing recipient community')
         }
 
         const dltTransactions = await DltTransaction.find({
@@ -49,22 +46,19 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
             const result = await dltConnector.transmitTransaction(
               dltTx.transaction,
               senderCommunityUuid,
-              recipientCommunityUuid,
             )
+            // message id isn't known at this point of time, because transaction will not direct sended to iota,
+            // it will first go to db and then sended, if no transaction is in db before
             if (result) {
               dltTx.messageId = 'sended'
               await DltTransaction.save(dltTx)
               logger.info('store messageId=%s in dltTx=%d', dltTx.messageId, dltTx.id)
-            } else {
-              logger.error('transmit transaction to dlt-connector failed')
-              break
             }
           } catch (e) {
             logger.error(
               `error while sending to dlt-connector or writing messageId of dltTx=${dltTx.id}`,
               e,
             )
-            break
           }
         }
       } else {

@@ -24,6 +24,15 @@ import { CONFIG } from '@/config'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 
 import { sendTransactionsToDltConnector } from './sendTransactionsToDltConnector'
+import { Contribution } from '@entity/Contribution'
+import { User } from '@entity/User'
+import { userFactory } from '@/seeds/factory/user'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { creations } from '@/seeds/creation'
+import { creationFactory } from '@/seeds/factory/creation'
+import { peterLustig } from '@/seeds/users/peter-lustig'
+import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 
 /*
 // Mock the GraphQLClient
@@ -423,9 +432,17 @@ describe('create and send Transactions to DltConnector', () => {
 
   describe('with 3 creations and active dlt-connector', () => {
     it('found 3 dlt-transactions', async () => {
-      txCREATION1 = await createTxCREATION1(false)
-      txCREATION2 = await createTxCREATION2(false)
-      txCREATION3 = await createTxCREATION3(false)
+      await userFactory(testEnv, bibiBloxberg)
+      await userFactory(testEnv, peterLustig)
+      await userFactory(testEnv, raeuberHotzenplotz)
+      await userFactory(testEnv, bobBaumeister)
+      let count = 0
+      for (const creation of creations) {
+        await creationFactory(testEnv, creation)
+        count++
+        // we need only 3 for testing
+        if (count >= 3) break
+      }
       await createHomeCommunity()
 
       CONFIG.DLT_CONNECTOR = true
@@ -435,10 +452,7 @@ describe('create and send Transactions to DltConnector', () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return {
           data: {
-            sendTransaction: {
-              dltTransactionIdHex:
-                '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc51621',
-            },
+            sendTransaction: { succeed: true },
           },
         } as Response<unknown>
       })
@@ -464,7 +478,7 @@ describe('create and send Transactions to DltConnector', () => {
           expect.objectContaining({
             id: expect.any(Number),
             transactionId: transactions[0].id,
-            messageId: '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc51621',
+            messageId: 'sended',
             verified: false,
             createdAt: expect.any(Date),
             verifiedAt: null,
@@ -472,7 +486,7 @@ describe('create and send Transactions to DltConnector', () => {
           expect.objectContaining({
             id: expect.any(Number),
             transactionId: transactions[1].id,
-            messageId: '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc51621',
+            messageId: 'sended',
             verified: false,
             createdAt: expect.any(Date),
             verifiedAt: null,
@@ -480,7 +494,7 @@ describe('create and send Transactions to DltConnector', () => {
           expect.objectContaining({
             id: expect.any(Number),
             transactionId: transactions[2].id,
-            messageId: '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc51621',
+            messageId: 'sended',
             verified: false,
             createdAt: expect.any(Date),
             verifiedAt: null,
@@ -514,10 +528,7 @@ describe('create and send Transactions to DltConnector', () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return {
           data: {
-            sendTransaction: {
-              dltTransactionIdHex:
-                '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc51621',
-            },
+            sendTransaction: { succeed: true },
           },
         } as Response<unknown>
       })
@@ -569,7 +580,7 @@ describe('create and send Transactions to DltConnector', () => {
           expect.objectContaining({
             id: expect.any(Number),
             transactionId: txSEND1to2.id,
-            messageId: '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc51621',
+            messageId: 'sended',
             verified: false,
             createdAt: expect.any(Date),
             verifiedAt: null,
@@ -577,7 +588,7 @@ describe('create and send Transactions to DltConnector', () => {
           expect.objectContaining({
             id: expect.any(Number),
             transactionId: txRECEIVE2From1.id,
-            messageId: '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc51621',
+            messageId: 'sended',
             verified: false,
             createdAt: expect.any(Date),
             verifiedAt: null,

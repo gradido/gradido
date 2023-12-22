@@ -6,12 +6,14 @@ import {
   OneToOne,
   JoinColumn,
   BaseEntity,
+  OneToMany,
 } from 'typeorm'
 import { Decimal } from 'decimal.js-light'
 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Account } from '../Account'
 import { Community } from '../Community'
+import { BackendTransaction } from '../BackendTransaction'
 
 @Entity('transactions')
 export class Transaction extends BaseEntity {
@@ -20,9 +22,6 @@ export class Transaction extends BaseEntity {
 
   @Column({ name: 'iota_message_id', type: 'binary', length: 32, nullable: true })
   iotaMessageId?: Buffer
-
-  @Column({ name: 'backend_transaction_id', type: 'bigint', unsigned: true, nullable: true })
-  backendTransactionId?: number
 
   @OneToOne(() => Transaction)
   // eslint-disable-next-line no-use-before-define
@@ -120,4 +119,10 @@ export class Transaction extends BaseEntity {
   // use timestamp from iota milestone which is only in seconds precision, so no need to use 3 Bytes extra here
   @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })
   confirmedAt?: Date
+
+  @OneToMany(() => BackendTransaction, (backendTransaction) => backendTransaction.transaction, {
+    cascade: ['insert', 'update'],
+  })
+  @JoinColumn({ name: 'transaction_id' })
+  backendTransactions: BackendTransaction[]
 }

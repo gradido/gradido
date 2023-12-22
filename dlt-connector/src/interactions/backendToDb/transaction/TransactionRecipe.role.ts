@@ -46,7 +46,6 @@ export class TransactionRecipeRole {
       .setSigningAccount(signingAccount)
       .setRecipientAccount(recipientAccount)
       .fromTransactionDraft(transactionDraft)
-    // build transaction entity
 
     const community = await CommunityRepository.findByCommunityUuid(senderUser.communityUuid)
     if (!community) {
@@ -57,7 +56,7 @@ export class TransactionRecipeRole {
 
     this.transactionBuilder
       .fromTransactionBodyBuilder(transactionBodyBuilder)
-      .setBackendTransactionId(transactionDraft.backendTransactionId)
+      .addBackendTransaction(transactionDraft)
       .setCommunity(community)
 
     if (recipientUser.communityUuid && recipientUser.communityUuid !== senderUser.communityUuid) {

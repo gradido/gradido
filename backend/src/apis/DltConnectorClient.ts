@@ -9,6 +9,7 @@ import { gql, GraphQLClient } from 'graphql-request'
 
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'
+import { Contribution } from '@entity/Contribution'
 
 const sendTransaction = gql`
   mutation ($input: TransactionDraft!) {
@@ -99,6 +100,12 @@ const registerAddress = gql`
   }
 `
 
+interface UserIdentifier {
+  uuid: string
+  communityUuid: string
+  accountNr?: number
+}
+
 // from ChatGPT
 function getTransactionTypeString(id: TransactionTypeId): string {
   const key = Object.keys(TransactionTypeId).find(
@@ -162,6 +169,72 @@ export class DltConnectorClient {
     return DltConnectorClient.instance
   }
 
+  protected async getCorrectUserUUID(
+    transaction: DbTransaction,
+    type: 'sender' | 'recipient',
+  ): Promise<string> {
+    let confirmingUserId: number | undefined
+    logger.info('confirming user id', confirmingUserId)
+    switch (transaction.typeId) {
+      case TransactionTypeId.CREATION:
+        confirmingUserId = (
+          await Contribution.findOneOrFail({ where: { transactionId: transaction.id } })
+        ).confirmedBy
+        if (!confirmingUserId) {
+          throw new LogError(
+            "couldn't find id of confirming moderator for contribution transaction!",
+          )
+        }
+        if (type === 'sender') {
+          return (await DbUser.findOneOrFail({ where: { id: confirmingUserId } })).gradidoID
+        } else if (type === 'recipient') {
+          return transaction.userGradidoID
+        }
+        break
+      case TransactionTypeId.SEND:
+        if (type === 'sender') {
+          return transaction.userGradidoID
+        } else if (type === 'recipient') {
+          if (!transaction.linkedUserGradidoID) {
+            throw new LogError('missing linked user gradido id')
+          }
+          return transaction.linkedUserGradidoID
+        }
+        break
+      case TransactionTypeId.RECEIVE:
+        if (type === 'sender') {
+          if (!transaction.linkedUserGradidoID) {
+            throw new LogError('missing linked user gradido id')
+          }
+          return transaction.linkedUserGradidoID
+        } else if (type === 'recipient') {
+          return transaction.userGradidoID
+        }
+    }
+    throw new LogError('unhandled case')
+  }
+
+  protected async getCorrectUserIdentifier(
+    transaction: DbTransaction,
+    senderCommunityUuid: string,
+    type: 'sender' | 'recipient',
+    recipientCommunityUuid?: string,
+  ): Promise<UserIdentifier> {
+    // sender and receiver user on creation transaction
+    // sender user on send transaction (SEND and RECEIVE)
+    if (type === 'sender' || transaction.typeId === TransactionTypeId.CREATION) {
+      return {
+        uuid: await this.getCorrectUserUUID(transaction, type),
+        communityUuid: senderCommunityUuid,
+      }
+    }
+    // recipient user on SEND and RECEIVE transactions
+    return {
+      uuid: await this.getCorrectUserUUID(transaction, type),
+      communityUuid: recipientCommunityUuid ?? senderCommunityUuid,
+    }
+  }
+
   /**
    * transmit transaction via dlt-connector to iota
    * and update dltTransactionId of transaction in db with iota message id
@@ -169,43 +242,31 @@ export class DltConnectorClient {
   public async transmitTransaction(
     transaction: DbTransaction,
     senderCommunityUuid: string,
-    recipientCommunityUuid: string,
+    recipientCommunityUuid?: string,
   ): Promise<boolean> {
     const typeString = getTransactionTypeString(transaction.typeId)
     // no negative values in dlt connector, gradido concept don't use negative values so the code don't use it too
     const amountString = transaction.amount.abs().toString()
     const params = {
       input: {
-        senderUser: {
-          uuid: transaction.userGradidoID,
-          communityUuid: senderCommunityUuid,
-        },
-        recipientUser: {
-          uuid: transaction.linkedUserGradidoID,
-          communityUuid: recipientCommunityUuid ?? senderCommunityUuid,
-        },
+        senderUser: await this.getCorrectUserIdentifier(
+          transaction,
+          senderCommunityUuid,
+          'sender',
+          recipientCommunityUuid,
+        ),
+        recipientUser: await this.getCorrectUserIdentifier(
+          transaction,
+          senderCommunityUuid,
+          'recipient',
+          recipientCommunityUuid,
+        ),
         amount: amountString,
         type: typeString,
         createdAt: transaction.balanceDate.toISOString(),
         backendTransactionId: transaction.id,
         targetDate: transaction.creationDate?.toISOString(),
       },
-    }
-    if (transaction.typeId === TransactionTypeId.CREATION) {
-      const confirmingUserId = transaction.contribution?.confirmedBy
-      logger.info('confirming user id', confirmingUserId)
-      if (!confirmingUserId) {
-        throw new LogError("couldn't find id of confirming moderator for contribution transaction!")
-      }
-      const confirmingUser = await DbUser.findOneOrFail({ where: { id: confirmingUserId } })
-      params.input.senderUser = {
-        uuid: confirmingUser.gradidoID,
-        communityUuid: senderCommunityUuid,
-      }
-      params.input.recipientUser = {
-        uuid: transaction.userGradidoID,
-        communityUuid: senderCommunityUuid,
-      }
     }
     try {
       // TODO: add account nr for user after they have also more than one account in backend

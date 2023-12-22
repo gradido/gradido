@@ -5,6 +5,8 @@ import { Decimal } from 'decimal.js-light'
 
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
+import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { CommunityLoggingView } from '@/logging/CommunityLogging.view'
 import { logger } from '@/logging/logger'
 import { TransactionsManager } from '@/manager/TransactionsManager'
 import { LogError } from '@/server/LogError'
@@ -15,10 +17,10 @@ import {
 } from '@/utils/typeConverter'
 
 import { AccountRepository } from './Account.repository'
+import { BackendTransactionFactory } from './BackendTransaction.factory'
 import { KeyPair } from './KeyPair'
 import { ConfirmedTransaction } from './proto/3_3/ConfirmedTransaction'
 import { TransactionBodyBuilder } from './proto/TransactionBody.builder'
-import { CommunityLoggingView } from '@/logging/CommunityLogging.view'
 
 export class TransactionBuilder {
   private transaction: Transaction
@@ -126,8 +128,13 @@ export class TransactionBuilder {
     return this
   }
 
-  public setBackendTransactionId(backendTransactionId: number): this {
-    this.transaction.backendTransactionId = backendTransactionId
+  public addBackendTransaction(transactionDraft: TransactionDraft): TransactionBuilder {
+    if (!this.transaction.backendTransactions) {
+      this.transaction.backendTransactions = []
+    }
+    this.transaction.backendTransactions.push(
+      BackendTransactionFactory.createFromTransactionDraft(transactionDraft),
+    )
     return this
   }
 

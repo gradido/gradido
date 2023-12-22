@@ -25,8 +25,6 @@ let testEnv: {
 jest.mock('graphql-request', () => {
   const originalModule = jest.requireActual('graphql-request')
 
-  let testCursor = 0
-
   return {
     __esModule: true,
     ...originalModule,
@@ -38,30 +36,11 @@ jest.mock('graphql-request', () => {
         // why not using mockResolvedValueOnce or mockReturnValueOnce?
         // I have tried, but it didn't work and return every time the first value
         request: jest.fn().mockImplementation(() => {
-          testCursor++
-          if (testCursor === 4) {
-            return Promise.resolve(
-              // invalid, is 33 Bytes long as binary
-              {
-                transmitTransaction: {
-                  dltTransactionIdHex:
-                    '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc516212A',
-                },
-              },
-            )
-          } else if (testCursor === 5) {
-            throw Error('Connection error')
-          } else {
-            return Promise.resolve(
-              // valid, is 32 Bytes long as binary
-              {
-                transmitTransaction: {
-                  dltTransactionIdHex:
-                    '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc51621',
-                },
-              },
-            )
-          }
+          return Promise.resolve({
+            transmitTransaction: {
+              succeed: true,
+            },
+          })
         }),
       }
     }),
@@ -134,7 +113,10 @@ describe('transmitTransaction', () => {
     const localTransaction = new DbTransaction()
     localTransaction.typeId = 12
     try {
-      await DltConnectorClient.getInstance()?.transmitTransaction(localTransaction)
+      await DltConnectorClient.getInstance()?.transmitTransaction(
+        localTransaction,
+        'senderCommunityUUID',
+      )
     } catch (e) {
       expect(e).toMatchObject(
         new LogError('invalid transaction type id: ' + localTransaction.typeId.toString()),

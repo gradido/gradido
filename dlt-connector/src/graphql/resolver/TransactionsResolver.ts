@@ -1,7 +1,6 @@
 import { InvalidTransaction } from '@entity/InvalidTransaction'
-import { Resolver, Arg, Mutation } from 'type-graphql'
-
 import { TransactionDraft } from '@input/TransactionDraft'
+import { Resolver, Arg, Mutation } from 'type-graphql'
 
 import { findByMessageId } from '@/controller/TransactionRecipe'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
@@ -12,6 +11,7 @@ import { logger } from '@/logging/logger'
 import { TransactionDraftLoggingView } from '@/logging/TransactionDraftLogging.view'
 import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { TransactionsManager } from '@/manager/TransactionsManager'
+import { LogError } from '@/server/LogError'
 
 import { TransactionErrorType } from '../enum/TransactionErrorType'
 import { ConfirmedTransactionInput } from '../input/ConfirmedTransactionInput'
@@ -32,23 +32,28 @@ export class TransactionResolver {
     try {
       await createTransactionRecipeContext.run()
       const transactionRecipe = createTransactionRecipeContext.getTransactionRecipe()
-      await transactionRecipe.save()
+      // check if a transaction with this signature already exist
+      const existingRecipe = await TransactionRepository.findBySignature(
+        transactionRecipe.signature,
+      )
+      if (existingRecipe) {
+        // transaction recipe with this signature already exist, we need only to store the backendTransaction
+        if (transactionRecipe.backendTransactions.length !== 1) {
+          throw new LogError('unexpected backend transaction count', {
+            count: transactionRecipe.backendTransactions.length,
+            transactionId: transactionRecipe.id,
+          })
+        }
+        const backendTransaction = transactionRecipe.backendTransactions[0]
+        backendTransaction.transactionId = transactionRecipe.id
+        await backendTransaction.save()
+      } else {
+        // we can store the transaction and with that automatic the backend transaction
+        await transactionRecipe.save()
+      }
       return new TransactionResult(new TransactionRecipe(transactionRecipe))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logger.error('error with transaction from backend', error)
-      if (error.code === 'ER_DUP_ENTRY') {
-        const existingRecipe = await TransactionRepository.findBySignature(
-          createTransactionRecipeContext.getTransactionRecipe().signature,
-        )
-        if (!existingRecipe) {
-          throw new TransactionError(
-            TransactionErrorType.LOGIC_ERROR,
-            "recipe cannot be added because signature exist but couldn't load this existing receipt",
-          )
-        }
-        return new TransactionResult(new TransactionRecipe(existingRecipe))
-      }
       if (error instanceof TransactionError) {
         return new TransactionResult(error)
       } else {

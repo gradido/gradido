@@ -34,7 +34,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     `CREATE TABLE \`transactions\` (
         \`id\` bigint unsigned NOT NULL AUTO_INCREMENT,
         \`iota_message_id\` varbinary(32) NULL DEFAULT NULL,
-        \`backend_transaction_id\` bigint unsigned NULL DEFAULT NULL,
         \`paring_transaction_id\` bigint unsigned NULL DEFAULT NULL,
         \`signing_account_id\` int unsigned NULL DEFAULT NULL,
         \`recipient_account_id\` int unsigned NULL DEFAULT NULL,
@@ -58,6 +57,22 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         FOREIGN KEY (\`recipient_account_id\`) REFERENCES accounts(id),
         FOREIGN KEY (\`community_id\`) REFERENCES communities(id),
         FOREIGN KEY (\`other_community_id\`) REFERENCES communities(id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `,
+  )
+
+  await queryFn(
+    `CREATE TABLE \`backend_transactions\` (
+        \`id\` BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
+        \`backend_transaction_id\` BIGINT UNSIGNED NOT NULL,
+        \`transaction_id\` BIGINT UNSIGNED NULL DEFAULT NULL,
+        \`type_id\` INT UNSIGNED NOT NULL,
+        \`balance\` DECIMAL(40, 20) NULL DEFAULT NULL,
+        \`created_at\` DATETIME(3) NOT NULL,
+        \`confirmed_at\` DATETIME NULL DEFAULT NULL,
+        \`verifiedOnBackend\` TINYINT NOT NULL DEFAULT 0,
+        PRIMARY KEY (\`id\`),
+        FOREIGN KEY (\`transaction_id\`) REFERENCES transactions(id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `,
   )
@@ -132,6 +147,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn(`ALTER TABLE \`invalid_transactions\` DROP INDEX \`iota_message_id\`;`)
   await queryFn(`ALTER TABLE \`invalid_transactions\` ADD INDEX(\`iota_message_id\`); `)
   await queryFn(`DROP TABLE \`transactions\`;`)
+  await queryFn(`DROP TABLE \`backend_transactions\`;`)
 
   await queryFn(
     `ALTER TABLE \`users\` CHANGE \`created_at\` \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);`,
