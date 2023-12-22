@@ -1,4 +1,5 @@
 import { Transaction as DbTransaction } from '@entity/Transaction'
+import { User as DbUser } from '@entity/User'
 import { gql, GraphQLClient } from 'graphql-request'
 
 import { CONFIG } from '@/config'
@@ -13,6 +14,52 @@ const sendTransaction = gql`
     }
   }
 `
+
+enum TransactionType {
+  GRADIDO_TRANSFER = 1,
+  GRADIDO_CREATION = 2,
+  GROUP_FRIENDS_UPDATE = 3,
+  REGISTER_ADDRESS = 4,
+  GRADIDO_DEFERRED_TRANSFER = 5,
+  COMMUNITY_ROOT = 6,
+}
+
+enum TransactionErrorType {
+  NOT_IMPLEMENTED_YET = 'Not Implemented yet',
+  MISSING_PARAMETER = 'Missing parameter',
+  ALREADY_EXIST = 'Already exist',
+  DB_ERROR = 'DB Error',
+  PROTO_DECODE_ERROR = 'Proto Decode Error',
+  PROTO_ENCODE_ERROR = 'Proto Encode Error',
+  INVALID_SIGNATURE = 'Invalid Signature',
+  LOGIC_ERROR = 'Logic Error',
+  NOT_FOUND = 'Not found',
+}
+
+interface TransactionError {
+  type: TransactionErrorType
+  message: string
+  name: string
+}
+
+interface TransactionRecipe {
+  id: number
+  createdAt: string
+  type: TransactionType
+  topic: string
+}
+
+interface TransactionResult {
+  error?: TransactionError
+  recipe?: TransactionRecipe
+  succeed: boolean
+}
+
+interface UserIdentifier {
+  uuid: string
+  communityUuid: string
+  accountNr?: number
+}
 
 // from ChatGPT
 function getTransactionTypeString(id: TransactionTypeId): string {
@@ -74,36 +121,121 @@ export class DltConnectorClient {
     return DltConnectorClient.instance
   }
 
+  protected async getCorrectUserUUID(
+    transaction: DbTransaction,
+    type: 'sender' | 'recipient',
+  ): Promise<string> {
+    const confirmingUserId = transaction.contribution?.confirmedBy
+    let confirmingUser: DbUser | undefined
+    logger.info('confirming user id', confirmingUserId)
+    if (confirmingUserId) {
+      confirmingUser = await DbUser.findOneOrFail({ where: { id: confirmingUserId } })
+    }
+    switch (transaction.typeId) {
+      case TransactionTypeId.CREATION:
+        if (!confirmingUserId || !confirmingUser) {
+          throw new LogError(
+            "couldn't find id of confirming moderator for contribution transaction!",
+          )
+        }
+        if (type === 'sender') {
+          return (await DbUser.findOneOrFail({ where: { id: confirmingUserId } })).gradidoID
+        } else if (type === 'recipient') {
+          return transaction.userGradidoID
+        }
+        break
+      case TransactionTypeId.SEND:
+        if (type === 'sender') {
+          return transaction.userGradidoID
+        } else if (type === 'recipient') {
+          if (!transaction.linkedUserGradidoID) {
+            throw new LogError('missing linked user gradido id')
+          }
+          return transaction.linkedUserGradidoID
+        }
+        break
+      case TransactionTypeId.RECEIVE:
+        if (type === 'sender') {
+          if (!transaction.linkedUserGradidoID) {
+            throw new LogError('missing linked user gradido id')
+          }
+          return transaction.linkedUserGradidoID
+        } else if (type === 'recipient') {
+          return transaction.userGradidoID
+        }
+    }
+    throw new LogError('unhandled case')
+  }
+
+  protected async getCorrectUserIdentifier(
+    transaction: DbTransaction,
+    senderCommunityUuid: string,
+    recipientCommunityUuid: string,
+    type: 'sender' | 'recipient',
+  ): Promise<UserIdentifier> {
+    // sender and receiver user on creation transaction
+    // sender user on send transaction (SEND and RECEIVE)
+    if (type === 'sender' || transaction.typeId === TransactionTypeId.CREATION) {
+      return {
+        uuid: await this.getCorrectUserUUID(transaction, type),
+        communityUuid: senderCommunityUuid,
+      }
+    }
+    // recipient user on SEND and RECEIVE transactions
+    return {
+      uuid: await this.getCorrectUserUUID(transaction, type),
+      communityUuid: recipientCommunityUuid ?? senderCommunityUuid,
+    }
+  }
+
   /**
    * transmit transaction via dlt-connector to iota
    * and update dltTransactionId of transaction in db with iota message id
    */
   public async transmitTransaction(
     transaction: DbTransaction,
-    senderCommunityUuid?: string,
-    recipientCommunityUuid?: string,
-  ): Promise<string> {
+    senderCommunityUuid: string,
+    recipientCommunityUuid: string,
+  ): Promise<boolean> {
     const typeString = getTransactionTypeString(transaction.typeId)
-    const amountString = transaction.amount.toString()
+    // no negative values in dlt connector, gradido concept don't use negative values so the code don't use it too
+    const amountString = transaction.amount.abs().toString()
+    const params = {
+      input: {
+        senderUser: await this.getCorrectUserIdentifier(
+          transaction,
+          senderCommunityUuid,
+          recipientCommunityUuid,
+          'sender',
+        ),
+        recipientUser: await this.getCorrectUserIdentifier(
+          transaction,
+          senderCommunityUuid,
+          recipientCommunityUuid,
+          'recipient',
+        ),
+        amount: amountString,
+        type: typeString,
+        createdAt: transaction.balanceDate.toISOString(),
+        backendTransactionId: transaction.id,
+        targetDate: transaction.creationDate?.toISOString(),
+      },
+    }
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const { data } = await this.client.rawRequest(sendTransaction, {
-        input: {
-          senderUser: {
-            uuid: transaction.userGradidoID,
-            communityUuid: senderCommunityUuid,
-          },
-          recipientUser: {
-            uuid: transaction.linkedUserGradidoID,
-            communityUuid: recipientCommunityUuid,
-          },
-          amount: amountString,
-          type: typeString,
-          createdAt: transaction.balanceDate.toString(),
+      // TODO: add account nr for user after they have also more than one account in backend
+      logger.debug('transmit transaction to dlt connector', params)
+      const {
+        data: {
+          sendTransaction: { error, succeed },
         },
-      })
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-      return data.sendTransaction.dltTransactionIdHex
+      } = await this.client.rawRequest<{ sendTransaction: TransactionResult }>(
+        sendTransaction,
+        params,
+      )
+      if (error) {
+        throw new Error(error.message)
+      }
+      return succeed
     } catch (e) {
       throw new LogError('Error send sending transaction to dlt-connector: ', e)
     }
