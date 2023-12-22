@@ -4,11 +4,13 @@ import { Transaction } from '@entity/Transaction'
 
 import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
 import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
+import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { LogError } from '@/server/LogError'
 import { bodyBytesToTransactionBody, transactionBodyToBodyBytes } from '@/utils/typeConverter'
 
 import { AccountRepository } from './Account.repository'
+import { BackendTransactionFactory } from './BackendTransaction.factory'
 import { CommunityRepository } from './Community.repository'
 import { TransactionBodyBuilder } from './proto/TransactionBody.builder'
 
@@ -91,8 +93,13 @@ export class TransactionBuilder {
     return this
   }
 
-  public setBackendTransactionId(backendTransactionId: number): TransactionBuilder {
-    this.transaction.backendTransactionId = backendTransactionId
+  public addBackendTransaction(transactionDraft: TransactionDraft): TransactionBuilder {
+    if (!this.transaction.backendTransactions) {
+      this.transaction.backendTransactions = []
+    }
+    this.transaction.backendTransactions.push(
+      BackendTransactionFactory.createFromTransactionDraft(transactionDraft),
+    )
     return this
   }
 

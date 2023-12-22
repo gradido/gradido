@@ -40,11 +40,11 @@ export class TransactionRecipeRole {
       .setSigningAccount(signingAccount)
       .setRecipientAccount(recipientAccount)
       .fromTransactionDraft(transactionDraft)
-    // build transaction entity
 
+    // build transaction entity
     this.transactionBuilder
       .fromTransactionBodyBuilder(transactionBodyBuilder)
-      .setBackendTransactionId(transactionDraft.backendTransactionId)
+      .addBackendTransaction(transactionDraft)
     await this.transactionBuilder.setSenderCommunityFromSenderUser(senderUser)
     if (recipientUser.communityUuid !== senderUser.communityUuid) {
       await this.transactionBuilder.setOtherCommunityFromRecipientUser(recipientUser)

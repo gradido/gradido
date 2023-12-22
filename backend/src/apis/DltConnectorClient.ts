@@ -6,6 +6,7 @@ import { CONFIG } from '@/config'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
+import { Contribution } from '@entity/Contribution'
 
 const sendTransaction = gql`
   mutation ($input: TransactionInput!) {
@@ -125,15 +126,14 @@ export class DltConnectorClient {
     transaction: DbTransaction,
     type: 'sender' | 'recipient',
   ): Promise<string> {
-    const confirmingUserId = transaction.contribution?.confirmedBy
-    let confirmingUser: DbUser | undefined
+    let confirmingUserId: number | undefined
     logger.info('confirming user id', confirmingUserId)
-    if (confirmingUserId) {
-      confirmingUser = await DbUser.findOneOrFail({ where: { id: confirmingUserId } })
-    }
     switch (transaction.typeId) {
       case TransactionTypeId.CREATION:
-        if (!confirmingUserId || !confirmingUser) {
+        confirmingUserId = (
+          await Contribution.findOneOrFail({ where: { transactionId: transaction.id } })
+        ).confirmedBy
+        if (!confirmingUserId) {
           throw new LogError(
             "couldn't find id of confirming moderator for contribution transaction!",
           )
@@ -170,8 +170,8 @@ export class DltConnectorClient {
   protected async getCorrectUserIdentifier(
     transaction: DbTransaction,
     senderCommunityUuid: string,
-    recipientCommunityUuid: string,
     type: 'sender' | 'recipient',
+    recipientCommunityUuid?: string,
   ): Promise<UserIdentifier> {
     // sender and receiver user on creation transaction
     // sender user on send transaction (SEND and RECEIVE)
@@ -195,7 +195,7 @@ export class DltConnectorClient {
   public async transmitTransaction(
     transaction: DbTransaction,
     senderCommunityUuid: string,
-    recipientCommunityUuid: string,
+    recipientCommunityUuid?: string,
   ): Promise<boolean> {
     const typeString = getTransactionTypeString(transaction.typeId)
     // no negative values in dlt connector, gradido concept don't use negative values so the code don't use it too
@@ -205,14 +205,14 @@ export class DltConnectorClient {
         senderUser: await this.getCorrectUserIdentifier(
           transaction,
           senderCommunityUuid,
-          recipientCommunityUuid,
           'sender',
+          recipientCommunityUuid,
         ),
         recipientUser: await this.getCorrectUserIdentifier(
           transaction,
           senderCommunityUuid,
-          recipientCommunityUuid,
           'recipient',
+          recipientCommunityUuid,
         ),
         amount: amountString,
         type: typeString,

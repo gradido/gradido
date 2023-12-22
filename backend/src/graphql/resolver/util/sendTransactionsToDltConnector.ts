@@ -23,7 +23,6 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
       if (!senderCommunityUuid) {
         throw new Error('Cannot find community uuid of home community')
       }
-      const recipientCommunityUuid = ''
       if (dltConnector) {
         logger.debug('with sending to DltConnector...')
         const dltTransactions = await DltTransaction.find({
@@ -37,27 +36,23 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
             continue
           }
           try {
-            const messageId = await dltConnector.transmitTransaction(
+            const result = await dltConnector.transmitTransaction(
               dltTx.transaction,
               senderCommunityUuid,
-              recipientCommunityUuid,
             )
-            const dltMessageId = Buffer.from(messageId, 'hex')
-            if (dltMessageId.length !== 32) {
-              logger.error(
-                'Error dlt message id is invalid: %s, should by 32 Bytes long in binary after converting from hex',
-                dltMessageId,
-              )
-              return
+            // message id isn't known at this point of time, because transaction will not direct sended to iota,
+            // it will first go to db and then sended, if no transaction is in db before
+            if (result) {
+              dltTx.messageId = 'sended'
+              await DltTransaction.save(dltTx)
+              logger.info('store messageId=%s in dltTx=%d', dltTx.messageId, dltTx.id)
             }
-            dltTx.messageId = dltMessageId.toString('hex')
-            await DltTransaction.save(dltTx)
-            logger.info('store messageId=%s in dltTx=%d', dltTx.messageId, dltTx.id)
           } catch (e) {
             logger.error(
               `error while sending to dlt-connector or writing messageId of dltTx=${dltTx.id}`,
               e,
             )
+            console.log('error', e)
           }
         }
       } else {
