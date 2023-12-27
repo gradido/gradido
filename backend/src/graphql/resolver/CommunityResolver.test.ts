@@ -9,21 +9,38 @@ import { Connection } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { GraphQLError } from 'graphql/error/GraphQLError'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
 
-import { getCommunities, communities } from '@/seeds/graphql/queries'
+import { userFactory } from '@/seeds/factory/user'
+import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
+import { getCommunities, communitiesQuery, getCommunityByUuidQuery } from '@/seeds/graphql/queries'
+import { peterLustig } from '@/seeds/users/peter-lustig'
+
+import { getCommunityByUuid } from './util/communities'
 
 // to do: We need a setup for the tests that closes the connection
-let query: ApolloServerTestClient['query'], con: Connection
+let mutate: ApolloServerTestClient['mutate'],
+  query: ApolloServerTestClient['query'],
+  con: Connection
+
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: Connection
 }
 
+const peterLoginData = {
+  email: 'peter@lustig.de',
+  password: 'Aa12345_',
+  publisherId: 1234,
+}
+
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(logger, localization)
+  mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
   await DbFederatedCommunity.clear()
@@ -248,7 +265,7 @@ describe('CommunityResolver', () => {
       it('returns no community entry', async () => {
         // const result: Community[] = await query({ query: getCommunities })
         // expect(result.length).toEqual(0)
-        await expect(query({ query: communities })).resolves.toMatchObject({
+        await expect(query({ query: communitiesQuery })).resolves.toMatchObject({
           data: {
             communities: [],
           },
@@ -275,7 +292,7 @@ describe('CommunityResolver', () => {
       })
 
       it('returns 1 home-community entry', async () => {
-        await expect(query({ query: communities })).resolves.toMatchObject({
+        await expect(query({ query: communitiesQuery })).resolves.toMatchObject({
           data: {
             communities: [
               {
@@ -337,7 +354,7 @@ describe('CommunityResolver', () => {
       })
 
       it('returns 2 community entries', async () => {
-        await expect(query({ query: communities })).resolves.toMatchObject({
+        await expect(query({ query: communitiesQuery })).resolves.toMatchObject({
           data: {
             communities: [
               {
@@ -375,6 +392,130 @@ describe('CommunityResolver', () => {
             ],
           },
         })
+      })
+    })
+
+    describe('search community by uuid', () => {
+      let homeCom: DbCommunity | null
+      beforeEach(async () => {
+        await cleanDB()
+        jest.clearAllMocks()
+        const admin = await userFactory(testEnv, peterLustig)
+        // login as admin
+        await mutate({ mutation: login, variables: peterLoginData })
+
+        // HomeCommunity is still created in userFactory
+        homeCom = await getCommunityByUuid(admin.communityUuid)
+
+        foreignCom1 = DbCommunity.create()
+        foreignCom1.foreign = true
+        foreignCom1.url = 'http://stage-2.gradido.net/api'
+        foreignCom1.publicKey = Buffer.from('publicKey-stage-2_Community')
+        foreignCom1.privateKey = Buffer.from('privateKey-stage-2_Community')
+        // foreignCom1.communityUuid = 'Stage2-Com-UUID'
+        // foreignCom1.authenticatedAt = new Date()
+        foreignCom1.name = 'Stage-2_Community-name'
+        foreignCom1.description = 'Stage-2_Community-description'
+        foreignCom1.creationDate = new Date()
+        await DbCommunity.insert(foreignCom1)
+
+        foreignCom2 = DbCommunity.create()
+        foreignCom2.foreign = true
+        foreignCom2.url = 'http://stage-3.gradido.net/api'
+        foreignCom2.publicKey = Buffer.from('publicKey-stage-3_Community')
+        foreignCom2.privateKey = Buffer.from('privateKey-stage-3_Community')
+        foreignCom2.communityUuid = 'Stage3-Com-UUID'
+        foreignCom2.authenticatedAt = new Date()
+        foreignCom2.name = 'Stage-3_Community-name'
+        foreignCom2.description = 'Stage-3_Community-description'
+        foreignCom2.creationDate = new Date()
+        await DbCommunity.insert(foreignCom2)
+      })
+
+      it('finds the home-community', async () => {
+        await expect(
+          query({
+            query: getCommunityByUuidQuery,
+            variables: { communityUuid: homeCom?.communityUuid },
+          }),
+        ).resolves.toMatchObject({
+          data: {
+            getCommunityByUuid: {
+              id: homeCom?.id,
+              foreign: homeCom?.foreign,
+              name: homeCom?.name,
+              description: homeCom?.description,
+              url: homeCom?.url,
+              creationDate: homeCom?.creationDate?.toISOString(),
+              uuid: homeCom?.communityUuid,
+              authenticatedAt: homeCom?.authenticatedAt,
+            },
+          },
+        })
+      })
+
+      it('updates the home-community gmsApiKey', async () => {
+        await expect(
+          mutate({
+            mutation: updateHomeCommunityQuery,
+            variables: { uuid: homeCom?.communityUuid, gmsApiKey: 'gmsApiKey' },
+          }),
+        ).resolves.toMatchObject({
+          data: {
+            updateHomeCommunity: {
+              id: expect.any(Number),
+              foreign: homeCom?.foreign,
+              name: homeCom?.name,
+              description: homeCom?.description,
+              url: homeCom?.url,
+              creationDate: homeCom?.creationDate?.toISOString(),
+              uuid: homeCom?.communityUuid,
+              authenticatedAt: homeCom?.authenticatedAt,
+              gmsApiKey: 'gmsApiKey',
+            },
+          },
+        })
+      })
+
+      it('throws error on updating a foreign-community', async () => {
+        expect(
+          await mutate({
+            mutation: updateHomeCommunityQuery,
+            variables: { uuid: foreignCom2.communityUuid, gmsApiKey: 'gmsApiKey' },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('Error: Only the HomeCommunity could be modified!')],
+          }),
+        )
+      })
+
+      it('throws error on updating a community without uuid', async () => {
+        expect(
+          await mutate({
+            mutation: updateHomeCommunityQuery,
+            variables: { uuid: null, gmsApiKey: 'gmsApiKey' },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            errors: [
+              new GraphQLError(`Variable "$uuid" of non-null type "String!" must not be null.`),
+            ],
+          }),
+        )
+      })
+
+      it('throws error on updating a community with not existing uuid', async () => {
+        expect(
+          await mutate({
+            mutation: updateHomeCommunityQuery,
+            variables: { uuid: 'unknownUuid', gmsApiKey: 'gmsApiKey' },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('HomeCommunity with uuid not found: ')],
+          }),
+        )
       })
     })
   })

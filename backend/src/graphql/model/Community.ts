@@ -12,6 +12,7 @@ export class Community {
     this.creationDate = dbCom.creationDate
     this.uuid = dbCom.communityUuid
     this.authenticatedAt = dbCom.authenticatedAt
+    this.gmsApiKey = dbCom.gmsApiKey
   }
 
   @Field(() => Int)
@@ -37,4 +38,7 @@ export class Community {
 
   @Field(() => Date, { nullable: true })
   authenticatedAt: Date | null
+
+  @Field(() => String, { nullable: true })
+  gmsApiKey: string | null
 }

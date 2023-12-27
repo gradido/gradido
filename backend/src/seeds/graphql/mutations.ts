@@ -354,3 +354,19 @@ export const logout = gql`
     logout
   }
 `
+
+export const updateHomeCommunityQuery = gql`
+  mutation ($uuid: String!, $gmsApiKey: String!) {
+    updateHomeCommunity(uuid: $uuid, gmsApiKey: $gmsApiKey) {
+      id
+      foreign
+      name
+      description
+      url
+      creationDate
+      uuid
+      authenticatedAt
+      gmsApiKey
+    }
+  }
+`
