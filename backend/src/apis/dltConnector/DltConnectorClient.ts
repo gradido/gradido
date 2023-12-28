@@ -1,3 +1,4 @@
+import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User as DbUser } from '@entity/User'
 import { gql, GraphQLClient } from 'graphql-request'
@@ -6,7 +7,9 @@ import { CONFIG } from '@/config'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
-import { Contribution } from '@entity/Contribution'
+
+import { TransactionResult } from './model/TransactionResult'
+import { UserIdentifier } from './model/UserIdentifier'
 
 const sendTransaction = gql`
   mutation ($input: TransactionInput!) {
@@ -15,52 +18,6 @@ const sendTransaction = gql`
     }
   }
 `
-
-enum TransactionType {
-  GRADIDO_TRANSFER = 1,
-  GRADIDO_CREATION = 2,
-  GROUP_FRIENDS_UPDATE = 3,
-  REGISTER_ADDRESS = 4,
-  GRADIDO_DEFERRED_TRANSFER = 5,
-  COMMUNITY_ROOT = 6,
-}
-
-enum TransactionErrorType {
-  NOT_IMPLEMENTED_YET = 'Not Implemented yet',
-  MISSING_PARAMETER = 'Missing parameter',
-  ALREADY_EXIST = 'Already exist',
-  DB_ERROR = 'DB Error',
-  PROTO_DECODE_ERROR = 'Proto Decode Error',
-  PROTO_ENCODE_ERROR = 'Proto Encode Error',
-  INVALID_SIGNATURE = 'Invalid Signature',
-  LOGIC_ERROR = 'Logic Error',
-  NOT_FOUND = 'Not found',
-}
-
-interface TransactionError {
-  type: TransactionErrorType
-  message: string
-  name: string
-}
-
-interface TransactionRecipe {
-  id: number
-  createdAt: string
-  type: TransactionType
-  topic: string
-}
-
-interface TransactionResult {
-  error?: TransactionError
-  recipe?: TransactionRecipe
-  succeed: boolean
-}
-
-interface UserIdentifier {
-  uuid: string
-  communityUuid: string
-  accountNr?: number
-}
 
 // from ChatGPT
 function getTransactionTypeString(id: TransactionTypeId): string {

@@ -3,7 +3,8 @@ import { Community } from '@entity/Community'
 import { DltTransaction } from '@entity/DltTransaction'
 import { Transaction } from '@entity/Transaction'
 
-import { DltConnectorClient } from '@/apis/DltConnectorClient'
+import { DltConnectorClient } from '@dltConnector/DltConnectorClient'
+
 import { backendLogger as logger } from '@/server/logger'
 import { Monitor, MonitorNames } from '@/util/Monitor'
 
@@ -52,7 +53,6 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
               `error while sending to dlt-connector or writing messageId of dltTx=${dltTx.id}`,
               e,
             )
-            console.log('error', e)
           }
         }
       } else {

@@ -37,10 +37,14 @@ export class CreateTransactionRecipeContext {
     return this.transactionRecipeRole.getTransaction()
   }
 
-  public async run(): Promise<void> {
+  /**
+   * @returns true if a transaction recipe was created and false if it wasn't necessary
+   */
+  public async run(): Promise<boolean> {
     if (this.draft instanceof TransactionDraft) {
       this.transactionRecipeRole = new TransactionRecipeRole()
       await this.transactionRecipeRole.create(this.draft)
+      return true
     } else if (this.draft instanceof CommunityDraft) {
       if (!this.community) {
         throw new TransactionError(TransactionErrorType.MISSING_PARAMETER, 'community was not set')
@@ -49,6 +53,8 @@ export class CreateTransactionRecipeContext {
         this.draft,
         this.community,
       )
+      return true
     }
+    return false
   }
 }

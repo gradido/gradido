@@ -22,17 +22,15 @@ import { logger, i18n as localization } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
-
-import { sendTransactionsToDltConnector } from './sendTransactionsToDltConnector'
-import { Contribution } from '@entity/Contribution'
-import { User } from '@entity/User'
-import { userFactory } from '@/seeds/factory/user'
-import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { creations } from '@/seeds/creation'
 import { creationFactory } from '@/seeds/factory/creation'
+import { userFactory } from '@/seeds/factory/user'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
-import { bobBaumeister } from '@/seeds/users/bob-baumeister'
+
+import { sendTransactionsToDltConnector } from './sendTransactionsToDltConnector'
 
 /*
 // Mock the GraphQLClient
