@@ -143,7 +143,15 @@ export class TransactionResolver {
   async failedGradidoBlock(
     @Arg('data') { iotaMessageId, errorMessage }: InvalidTransactionInput,
   ): Promise<TransactionResult> {
-    const transactionReceipt = await findByMessageId(iotaMessageId)
+    const iotaMessageIdBuffer = Buffer.from(iotaMessageId, 'hex')
+    const existingInvalidTransaction = await InvalidTransaction.findBy({
+      iotaMessageId: iotaMessageIdBuffer,
+    })
+    if (existingInvalidTransaction) {
+      logger.info('invalid transaction already exist', iotaMessageId)
+      return new TransactionResult()
+    }
+    const transactionReceipt = await TransactionRepository.findByMessageId(iotaMessageId)
     if (transactionReceipt) {
       logger.error(
         'invalid transaction',

@@ -15,6 +15,8 @@ async function main() {
   const { app } = await createServer()
   const startTime = Date.now()
 
+  await TransactionsManager.getInstance().init()
+
   // ask backend for home community if we haven't one
   try {
     await CommunityRepository.loadHomeCommunityKeyPair()
@@ -27,8 +29,6 @@ async function main() {
     const addCommunityContext = new AddCommunityContext(communityDraft)
     await addCommunityContext.run()
   }
-
-  await TransactionsManager.getInstance().init()
 
   // loop run all the time, check for new transaction for sending to iota
   void transmitToIota()

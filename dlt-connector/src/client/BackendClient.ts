@@ -10,6 +10,7 @@ import { ConfirmBackendTransaction } from '@/graphql/model/ConfirmBackendTransac
 import { logger } from '@/logging/logger'
 import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
+import { ConfirmBackendTransactionView } from '@/logging/ConfirmBackendTransaction.view'
 
 const confirmTransaction = gql`
   mutation ($input: ConfirmedTransactionInput!) {
@@ -87,7 +88,7 @@ export class BackendClient {
   ): Promise<void> {
     logger.debug('confirmTransaction to backend', new TransactionLoggingView(confirmedTransaction))
     const input = new ConfirmBackendTransaction(confirmedTransaction, backendTransaction)
-    logger.debug('call confirmTransaction with parameter', input)
+    logger.debug('call confirmTransaction with parameter', new ConfirmBackendTransactionView(input))
     const { errors, data } = await this.client.rawRequest<{ confirmTransaction: boolean }>(
       confirmTransaction,
       { input },

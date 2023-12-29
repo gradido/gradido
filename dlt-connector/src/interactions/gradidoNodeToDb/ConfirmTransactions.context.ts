@@ -11,7 +11,6 @@
  */
 
 import { Account } from '@entity/Account'
-import { BackendTransaction } from '@entity/BackendTransaction'
 import { Community } from '@entity/Community'
 import { Transaction } from '@entity/Transaction'
 
@@ -20,7 +19,6 @@ import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
 import { TransactionType } from '@/data/proto/3_3/enum/TransactionType'
 import { TransactionRepository } from '@/data/Transaction.repository'
 import { AccountLoggingView } from '@/logging/AccountLogging.view'
-import { BackendTransactionLoggingView } from '@/logging/BackendTransactionLogging.view'
 import { ConfirmedTransactionLoggingView } from '@/logging/ConfirmedTransactionLogging.view'
 import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
@@ -51,7 +49,6 @@ export class ConfirmTransactionsContext {
   // don't use set because I don't know if ordering is working with higher order objects without operator overloading like in C++
   // use account public key hex as key
   private accounts: Map<string, Account> = new Map()
-  private backendTransactions: Map<number, BackendTransaction> = new Map()
 
   private community: Community
 
@@ -123,10 +120,6 @@ export class ConfirmTransactionsContext {
     if (this.accounts.size) {
       await Account.save(Array.from(this.accounts.values()))
     }
-    // save changed backend transactions
-    if (this.backendTransactions.size) {
-      await BackendTransaction.save(Array.from(this.backendTransactions.values()))
-    }
 
     // check if we have skip a transaction
     // return last transaction nr
@@ -136,7 +129,7 @@ export class ConfirmTransactionsContext {
     return Number(lastTransactionNr)
   }
 
-  public addForSave(entity: Account | BackendTransaction) {
+  public addForSave(entity: Account) {
     if (entity instanceof Account) {
       const publicKey = entity.derive2Pubkey.toString('hex')
       if (!this.accounts.has(publicKey)) {
@@ -144,16 +137,6 @@ export class ConfirmTransactionsContext {
         this.accounts.set(entity.derive2Pubkey.toString('hex'), entity)
       } else {
         logger.debug('skip already existing account', { publicKey })
-      }
-    } else if (entity instanceof BackendTransaction) {
-      if (!this.backendTransactions.has(entity.id)) {
-        logger.debug(
-          'add changed backend transaction for saving',
-          new BackendTransactionLoggingView(entity).toJSON(false),
-        )
-        this.backendTransactions.set(entity.id, entity)
-      } else {
-        throw new LogError('backend transaction was updated multiple times', entity.id)
       }
     }
   }
@@ -284,20 +267,6 @@ export class ConfirmTransactionsContext {
       confirmedTransactionRole.validate()
       return
     }
-    // tell backend that transaction is confirmed
-    if (
-      [
-        TransactionType.GRADIDO_CREATION,
-        TransactionType.GRADIDO_TRANSFER,
-        TransactionType.GRADIDO_DEFERRED_TRANSFER,
-      ].includes(transactionType)
-    ) {
-      // update also balance and confirmation date on backend transactions entry
-      await new UpdateBalanceBackendTransactionRole(confirmedTransactionRole, this).confirm()
-
-      const confirmBackend = new ConfirmBackendRole(confirmedTransactionRole, this)
-      await confirmBackend.confirm()
-    }
     // confirm other tables, depending on transaction type
     let abstractConfirm: AbstractConfirm | null = null
     switch (transactionType) {
@@ -328,5 +297,21 @@ export class ConfirmTransactionsContext {
     }
     await abstractConfirm.confirm()
     confirmedTransactionRole.validate()
+
+    // tell backend that transaction is confirmed
+    if (
+      [
+        TransactionType.GRADIDO_CREATION,
+        TransactionType.GRADIDO_TRANSFER,
+        TransactionType.GRADIDO_DEFERRED_TRANSFER,
+      ].includes(transactionType)
+    ) {
+      // update also balance and confirmation date on backend transactions entry
+      logger.info('update balance at backend transaction for type: %o', transactionType)
+      await new UpdateBalanceBackendTransactionRole(confirmedTransactionRole, this).confirm()
+
+      const confirmBackend = new ConfirmBackendRole(confirmedTransactionRole, this)
+      await confirmBackend.confirm()
+    }
   }
 }

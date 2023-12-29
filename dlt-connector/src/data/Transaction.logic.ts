@@ -31,32 +31,36 @@ export class TransactionLogic {
 
   // if updated, update also TransactionRepository.getLastTransactionForBalanceAccount
   public getBalanceAccount(
-    transactionType: InputTransactionType | undefined = undefined,
+    inputTransactionType: InputTransactionType | undefined = undefined,
   ): Account | undefined | null {
-    logger.info(
-      'called with transaction type',
-      transactionType ? getEnumValue(InputTransactionType, transactionType) : transactionType,
-    )
-    switch (this.getTransactionType()) {
+    const transactionType = this.getTransactionType()
+    logger.info('called with transaction type', {
+      inputTransactionType: inputTransactionType
+        ? getEnumValue(InputTransactionType, inputTransactionType)
+        : inputTransactionType,
+      transactionType,
+    })
+
+    switch (this.transaction.type as TransactionType) {
       case TransactionType.GRADIDO_CREATION:
-        if (transactionType && transactionType !== InputTransactionType.CREATION) {
+        if (inputTransactionType && inputTransactionType !== InputTransactionType.CREATION) {
           throw new LogError(
             'wrong InputTransactionType %s for transaction with type: %s',
-            getEnumValue(InputTransactionType, transactionType),
+            getEnumValue(InputTransactionType, inputTransactionType),
             getEnumValue(TransactionType, this.getTransactionType()),
           )
         }
         return this.transaction.recipientAccount
       case TransactionType.GRADIDO_TRANSFER:
       case TransactionType.GRADIDO_DEFERRED_TRANSFER:
-        if (!transactionType || transactionType === InputTransactionType.SEND) {
+        if (!inputTransactionType || inputTransactionType === InputTransactionType.SEND) {
           return this.transaction.signingAccount
-        } else if (transactionType === InputTransactionType.RECEIVE) {
+        } else if (inputTransactionType === InputTransactionType.RECEIVE) {
           return this.transaction.recipientAccount
         } else {
           throw new LogError(
             'wrong InputTransactionType %s for transaction with type: %s',
-            getEnumValue(InputTransactionType, transactionType),
+            getEnumValue(InputTransactionType, inputTransactionType),
             getEnumValue(TransactionType, this.getTransactionType()),
           )
         }
@@ -64,6 +68,8 @@ export class TransactionLogic {
       case TransactionType.COMMUNITY_ROOT:
       case TransactionType.GROUP_FRIENDS_UPDATE:
         return null
+      default:
+        throw new LogError('not handled', transactionType)
     }
   }
 
