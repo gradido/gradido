@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { BackendTransaction } from '@entity/BackendTransaction'
 import { Transaction } from '@entity/Transaction'
 import { gql, GraphQLClient } from 'graphql-request'
 
 import { CONFIG } from '@/config'
-import { TransactionLogic } from '@/data/Transaction.logic'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
+import { ConfirmBackendTransaction } from '@/graphql/model/ConfirmBackendTransaction'
 import { logger } from '@/logging/logger'
 import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
@@ -80,37 +81,22 @@ export class BackendClient {
     return BackendClient.instance
   }
 
-  public async confirmTransaction(confirmedTransaction: Transaction): Promise<void> {
+  public async confirmTransaction(
+    confirmedTransaction: Transaction,
+    backendTransaction: BackendTransaction,
+  ): Promise<void> {
     logger.debug('confirmTransaction to backend', new TransactionLoggingView(confirmedTransaction))
-    // force parse to int, typeorm return id as string even it is typed as numeric
-    let transactionId = confirmedTransaction.backendTransactionId
-    if (typeof confirmedTransaction.backendTransactionId === 'string') {
-      transactionId = parseInt(confirmedTransaction.backendTransactionId)
-    }
-    if (
-      (!transactionId || transactionId <= 0) &&
-      (!confirmedTransaction.iotaMessageId || confirmedTransaction.iotaMessageId.length !== 32)
-    ) {
-      throw new LogError(
-        'need at least iota message id or backend transaction id for matching transaction in backend',
-      )
-    }
-    const transactionLogic = new TransactionLogic(confirmedTransaction)
-    const balanceAccount = transactionLogic.getBalanceAccount()
-    const input = {
-      transactionId,
-      iotaMessageId: confirmedTransaction.iotaMessageId
-        ? Buffer.from(confirmedTransaction.iotaMessageId).toString('hex')
-        : undefined,
-      gradidoId: balanceAccount?.user?.gradidoID,
-      balance: confirmedTransaction.accountBalanceOnCreation?.toString(),
-      balanceDate: confirmedTransaction.createdAt.toISOString(),
-    }
+    const input = new ConfirmBackendTransaction(confirmedTransaction, backendTransaction)
     logger.debug('call confirmTransaction with parameter', input)
-    const { errors } = await this.client.rawRequest<boolean>(confirmTransaction, { input })
+    const { errors, data } = await this.client.rawRequest<{ confirmTransaction: boolean }>(
+      confirmTransaction,
+      { input },
+    )
     if (errors) {
       throw new LogError('error confirm transaction with: %s', errors)
     }
+    backendTransaction.verifiedOnBackend = data.confirmTransaction
+    backendTransaction.save()
   }
 
   public async homeCommunityUUid(): Promise<CommunityDraft> {

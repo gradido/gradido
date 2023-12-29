@@ -55,12 +55,14 @@ export class TransactionsManager {
 
   public async init(): Promise<void[]> {
     return Promise.all(
-      (await CommunityRepository.findAll({ id: true, iotaTopic: true, foreign: true })).map((community) => {
-        if (!community.foreign) {
-          this.homeCommunity = community
-        }
-        return this.addTopic(community.iotaTopic)
-      }),
+      (await CommunityRepository.findAll({ id: true, iotaTopic: true, foreign: true })).map(
+        (community) => {
+          if (!community.foreign) {
+            this.homeCommunity = community
+          }
+          return this.addTopic(community.iotaTopic)
+        },
+      ),
     )
   }
 
@@ -137,13 +139,18 @@ export class TransactionsManager {
           )
           count = confirmedTransactions.length
           if (!count) {
-            throw new LogError('get 0 transactions from Gradido Node', {
-              fromTransactionId,
-              maxResultCount: CONFIG.TRANSACTION_MANAGER_BATCH_SIZE,
-              iotaTopic: newTopic,
-              lastStoredTransactionNr,
-              lastTransactionOnNodeNr,
-            })
+            if (lastStoredTransactionNr) {
+              throw new LogError('get 0 transactions from Gradido Node', {
+                fromTransactionId,
+                maxResultCount: CONFIG.TRANSACTION_MANAGER_BATCH_SIZE,
+                iotaTopic: newTopic,
+                lastStoredTransactionNr,
+                lastTransactionOnNodeNr,
+              })
+            } else {
+              logger.info('empty blockchain, maybe it was created just now?')
+              return
+            }
           }
           sumCount += count
           let requestTime = performance.now() - requestTimeStart

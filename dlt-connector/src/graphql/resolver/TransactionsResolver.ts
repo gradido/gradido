@@ -3,10 +3,14 @@ import { TransactionDraft } from '@input/TransactionDraft'
 import { Resolver, Arg, Mutation } from 'type-graphql'
 
 import { findByMessageId } from '@/controller/TransactionRecipe'
+import { BackendTransactionRepository } from '@/data/BackendTransaction.repository'
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
+import { TransactionLogic } from '@/data/Transaction.logic'
 import { TransactionRepository } from '@/data/Transaction.repository'
 import { CreateTransactionRecipeContext } from '@/interactions/backendToDb/transaction/CreateTransationRecipe.context'
 import { ConfirmTransactionsContext } from '@/interactions/gradidoNodeToDb/ConfirmTransactions.context'
+import { BackendTransactionLoggingView } from '@/logging/BackendTransactionLogging.view'
+import { ConfirmedTransactionLoggingView } from '@/logging/ConfirmedTransactionLogging.view'
 import { logger } from '@/logging/logger'
 import { TransactionDraftLoggingView } from '@/logging/TransactionDraftLogging.view'
 import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
@@ -16,6 +20,7 @@ import { LogError } from '@/server/LogError'
 import { TransactionErrorType } from '../enum/TransactionErrorType'
 import { ConfirmedTransactionInput } from '../input/ConfirmedTransactionInput'
 import { InvalidTransactionInput } from '../input/InvalidTransactionInput'
+import { ConfirmBackendTransaction } from '../model/ConfirmBackendTransaction'
 import { TransactionError } from '../model/TransactionError'
 import { TransactionRecipe } from '../model/TransactionRecipe'
 import { TransactionResult } from '../model/TransactionResult'
@@ -29,6 +34,34 @@ export class TransactionResolver {
   ): Promise<TransactionResult> {
     logger.debug('sendTransaction', new TransactionDraftLoggingView(transactionDraft))
     const createTransactionRecipeContext = new CreateTransactionRecipeContext(transactionDraft)
+    let transactionRecipeOutput: TransactionRecipe | undefined
+    // check if backend transaction id was already stored in db
+    const existingBackendTransaction = await BackendTransactionRepository.getByBackendTransactionId(
+      transactionDraft.backendTransactionId,
+      {
+        transaction: {
+          signingAccount: { user: true },
+          recipientAccount: { user: true },
+        },
+      },
+    )
+    if (existingBackendTransaction) {
+      // transaction was already confirmed, so we can tell backend the confirmation information's directly
+      logger.debug(
+        'transaction was already sended',
+        new BackendTransactionLoggingView(existingBackendTransaction).toJSON(),
+      )
+      if (new TransactionLogic(existingBackendTransaction.transaction).isConfirmed()) {
+        return new TransactionResult(
+          new ConfirmBackendTransaction(
+            existingBackendTransaction.transaction,
+            existingBackendTransaction,
+          ),
+        )
+      } else {
+        return new TransactionResult(new TransactionRecipe(existingBackendTransaction.transaction))
+      }
+    }
     try {
       await createTransactionRecipeContext.run()
       const transactionRecipe = createTransactionRecipeContext.getTransactionRecipe()
@@ -45,13 +78,15 @@ export class TransactionResolver {
           })
         }
         const backendTransaction = transactionRecipe.backendTransactions[0]
-        backendTransaction.transactionId = transactionRecipe.id
+        backendTransaction.transactionId = existingRecipe.id
         await backendTransaction.save()
+        transactionRecipeOutput = new TransactionRecipe(existingRecipe)
       } else {
         // we can store the transaction and with that automatic the backend transaction
         await transactionRecipe.save()
+        transactionRecipeOutput = new TransactionRecipe(transactionRecipe)
       }
-      return new TransactionResult(new TransactionRecipe(transactionRecipe))
+      return new TransactionResult(transactionRecipeOutput)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error instanceof TransactionError) {
@@ -76,7 +111,10 @@ export class TransactionResolver {
     try {
       logger.debug('transaction in base64', transactionBase64)
       const confirmedTransaction = ConfirmedTransaction.fromBase64(transactionBase64)
-      logger.debug('confirmed Transaction from NodeServer', confirmedTransaction.toJSON())
+      logger.debug(
+        'confirmed Transaction from NodeServer',
+        new ConfirmedTransactionLoggingView(confirmedTransaction).toJSON(),
+      )
       if (!transactionsManager.lockTopic(iotaTopic)) {
         transactionsManager.addPendingConfirmedTransaction(iotaTopic, confirmedTransaction)
         return new TransactionResult()

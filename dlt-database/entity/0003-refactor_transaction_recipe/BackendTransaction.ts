@@ -9,15 +9,15 @@ export class BackendTransaction extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true, type: 'bigint' })
   id: number
 
-  @Column({ name: 'backend_transaction_id', type: 'bigint', unsigned: true, nullable: true })
-  backendTransactionId?: number
+  @Column({ name: 'backend_transaction_id', type: 'bigint', unsigned: true, unique: true })
+  backendTransactionId: number
 
   @ManyToOne(() => Transaction, (transaction) => transaction.backendTransactions)
   @JoinColumn({ name: 'transaction_id' })
-  transaction?: Transaction
+  transaction: Transaction
 
-  @Column({ name: 'transaction_id', type: 'bigint', unsigned: true, nullable: true })
-  transactionId?: number
+  @Column({ name: 'transaction_id', type: 'bigint', unsigned: true })
+  transactionId: number
 
   @Column({ name: 'type_id', unsigned: true, nullable: false })
   typeId: number

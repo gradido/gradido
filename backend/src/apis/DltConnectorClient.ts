@@ -3,13 +3,14 @@
 import { CONFIG } from '@/config'
 import { backendLogger as logger } from '@/server/logger'
 import { Community } from '@entity/Community'
+import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User as DbUser } from '@entity/User'
 import { gql, GraphQLClient } from 'graphql-request'
 
+import { ConfirmedTransactionInput } from '@/graphql/arg/ConfirmTransactionInput'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'
-import { Contribution } from '@entity/Contribution'
 
 const sendTransaction = gql`
   mutation ($input: TransactionDraft!) {
@@ -62,6 +63,7 @@ interface TransactionRecipe {
 interface TransactionResult {
   error?: TransactionError
   recipe?: TransactionRecipe
+  confirmed?: ConfirmedTransactionInput
   succeed: boolean
 }
 
@@ -243,7 +245,7 @@ export class DltConnectorClient {
     transaction: DbTransaction,
     senderCommunityUuid: string,
     recipientCommunityUuid?: string,
-  ): Promise<boolean> {
+  ): Promise<boolean | ConfirmedTransactionInput> {
     const typeString = getTransactionTypeString(transaction.typeId)
     // no negative values in dlt connector, gradido concept don't use negative values so the code don't use it too
     const amountString = transaction.amount.abs().toString()
@@ -273,7 +275,7 @@ export class DltConnectorClient {
       logger.debug('transmit transaction to dlt connector', params)
       const {
         data: {
-          sendTransaction: { error, succeed },
+          sendTransaction: { error, succeed, confirmed },
         },
       } = await this.client.rawRequest<{ sendTransaction: TransactionResult }>(
         sendTransaction,
@@ -281,6 +283,10 @@ export class DltConnectorClient {
       )
       if (error) {
         throw new Error(error.message)
+      }
+      // transaction was already confirmed so we can update it directly
+      if (confirmed) {
+        return confirmed
       }
       return succeed
     } catch (e) {

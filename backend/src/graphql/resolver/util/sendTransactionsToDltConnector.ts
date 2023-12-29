@@ -1,11 +1,13 @@
+import { backendLogger as logger } from '@/server/logger'
 import { IsNull } from '@dbTools/typeorm'
 import { Community } from '@entity/Community'
 import { DltTransaction } from '@entity/DltTransaction'
 import { Transaction } from '@entity/Transaction'
 
 import { DltConnectorClient } from '@/apis/DltConnectorClient'
-import { backendLogger as logger } from '@/server/logger'
 import { Monitor, MonitorNames } from '@/util/Monitor'
+import { ConfirmedTransactionInput } from '@/graphql/arg/ConfirmTransactionInput'
+import { ConfirmTransactionContext } from '@/interactions/confirmTransaction/ConfirmTransaction.context'
 
 export async function sendTransactionsToDltConnector(): Promise<void> {
   logger.info('sendTransactionsToDltConnector...')
@@ -50,9 +52,14 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
             // message id isn't known at this point of time, because transaction will not direct sended to iota,
             // it will first go to db and then sended, if no transaction is in db before
             if (result) {
-              dltTx.messageId = 'sended'
-              await DltTransaction.save(dltTx)
-              logger.info('store messageId=%s in dltTx=%d', dltTx.messageId, dltTx.id)
+              // maybe the transaction was already confirmed
+              if (result instanceof ConfirmedTransactionInput) {
+                await new ConfirmTransactionContext(result).run()
+              } else {
+                dltTx.messageId = 'sended'
+                await DltTransaction.save(dltTx)
+                logger.info('store messageId=%s in dltTx=%d', dltTx.messageId, dltTx.id)
+              }
             }
           } catch (e) {
             logger.error(

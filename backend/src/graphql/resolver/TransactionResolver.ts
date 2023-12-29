@@ -4,7 +4,6 @@
 
 import { getConnection, In, IsNull } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
-import { DltTransaction } from '@entity/DltTransaction'
 import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
@@ -30,11 +29,11 @@ import {
 } from '@/emails/sendEmailVariants'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
+import { ConfirmTransactionContext } from '@/interactions/confirmTransaction/ConfirmTransaction.context'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { communityUser } from '@/util/communityUser'
-import { calculateDecay } from '@/util/decay'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
@@ -525,77 +524,7 @@ export class TransactionResolver {
   async confirmTransaction(
     @Arg('data') confirmedTransactionInput: ConfirmedTransactionInput,
   ): Promise<boolean> {
-    // TODO: by local transactions resolver will be called only once,
-    // because dlt-connector store only the sending transaction
-    // confirm both parts stored here in backend db, sending and receiving, linked together by id
-    logger.debug('confirmTransaction', confirmedTransactionInput)
-    let transaction: dbTransaction | null = null
-    if (confirmedTransactionInput.transactionId) {
-      transaction = await dbTransaction.findOne({
-        where: { id: confirmedTransactionInput.transactionId },
-        relations: {
-          dltTransaction: true,
-        },
-      })
-    } else if (confirmedTransactionInput.iotaMessageId) {
-      const dltTransaction = await DltTransaction.findOne({
-        where: { messageId: confirmedTransactionInput.iotaMessageId },
-        relations: {
-          transaction: true,
-        },
-      })
-      if (dltTransaction?.transaction) {
-        transaction = dltTransaction.transaction
-        transaction.dltTransaction = dltTransaction
-        // prevent recursion
-        transaction.dltTransaction.transaction = undefined
-      }
-    }
-    if (!transaction) {
-      throw new LogError('transaction not found', {
-        id: confirmedTransactionInput.transactionId,
-        messageId: confirmedTransactionInput.iotaMessageId,
-      })
-    }
-    if (
-      confirmedTransactionInput.gradidoId &&
-      confirmedTransactionInput.gradidoId !== transaction.userGradidoID
-    ) {
-      throw new LogError('user gradido id differ')
-    }
-    const confirmedBalanceDate = new Date(confirmedTransactionInput.balanceDate)
-    if (transaction.balanceDate > confirmedBalanceDate) {
-      throw new LogError('backend balanceDate is newer as dlt connector confirmed balance date')
-    }
-    // convert to string because as Decimal subtraction didn't work
-    const balance = confirmedTransactionInput.balance.toString()
-    const decay = calculateDecay(transaction.balance, transaction.balanceDate, confirmedBalanceDate)
-    if (decay.balance.sub(balance).abs().greaterThan('0.0000001')) {
-      console.log(
-        'time diff: %d ms',
-        transaction.balanceDate.getTime() - confirmedBalanceDate.getTime(),
-      )
-      console.log('diff: %s', decay.balance.sub(balance).toString())
-      throw new LogError(
-        'balances differ to much',
-        decay.balance,
-        balance,
-        decay.balance.sub(balance).abs(),
-      )
-    } else {
-      console.log(
-        'input balance: %s, calculated balance: %s',
-        confirmedTransactionInput.balance.toString(),
-        decay.balance.toString(),
-      )
-    }
-    if (transaction.dltTransaction) {
-      const dltTx = transaction.dltTransaction
-      dltTx.verified = true
-      dltTx.verifiedAt = new Date(confirmedTransactionInput.balanceDate)
-      dltTx.messageId = confirmedTransactionInput.iotaMessageId
-      await dltTx.save()
-    }
+    await new ConfirmTransactionContext(confirmedTransactionInput).run()
     return true
   }
 }

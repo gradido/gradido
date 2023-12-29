@@ -11,7 +11,14 @@ export class ConfirmBackendRole extends AbstractConfirm {
       throw new LogError('error instancing backend client')
     }
     try {
-      await backend.confirmTransaction(this.confirmedTransactionRole.getTransaction())
+      const transaction = this.confirmedTransactionRole.getTransaction()
+      if (transaction.backendTransactions.length === 0) {
+        logger.info('missing backend transactions for confirming transaction at backend')
+        return
+      }
+      for (const backendTransaction of transaction.backendTransactions) {
+        await backend.confirmTransaction(transaction, backendTransaction)
+      }
     } catch (error) {
       logger.error(error)
     }

@@ -6,6 +6,7 @@ import { getEnumValue } from '@/utils/typeConverter'
 
 import { AbstractLoggingView } from './AbstractLogging.view'
 import { AccountLoggingView } from './AccountLogging.view'
+import { BackendTransactionLoggingView } from './BackendTransactionLogging.view'
 import { CommunityLoggingView } from './CommunityLogging.view'
 
 export class TransactionLoggingView extends AbstractLoggingView {
@@ -17,11 +18,10 @@ export class TransactionLoggingView extends AbstractLoggingView {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public toJSON(): any {
+  public toJSON(showBackendTransactions = true): any {
     return {
       id: this.self.id,
       nr: this.self.nr,
-      backendTransactionId: this.self.backendTransactionId,
       bodyBytesLength: this.self.bodyBytes.length,
       createdAt: this.dateToString(this.self.createdAt),
       confirmedAt: this.dateToString(this.self.confirmedAt),
@@ -48,6 +48,12 @@ export class TransactionLoggingView extends AbstractLoggingView {
         ? this.self.runningHash.toString(this.bufferStringFormat)
         : undefined,
       iotaMilestone: this.self.iotaMilestone,
+      backendTransactions:
+        showBackendTransactions && this.self.backendTransactions
+          ? this.self.backendTransactions.map((backendTransaction) =>
+              new BackendTransactionLoggingView(backendTransaction).toJSON(false),
+            )
+          : undefined,
     }
   }
 }

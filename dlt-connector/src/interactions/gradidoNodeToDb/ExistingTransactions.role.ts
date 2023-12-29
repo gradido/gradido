@@ -2,6 +2,7 @@ import { Transaction } from '@entity/Transaction'
 import { Decimal } from 'decimal.js-light'
 
 import { ConfirmedTransaction } from '@/data/proto/3_3/ConfirmedTransaction'
+import { TransactionLogic } from '@/data/Transaction.logic'
 import { LogError } from '@/server/LogError'
 import { longToNumber, timestampSecondsToDate } from '@/utils/typeConverter'
 
@@ -15,9 +16,7 @@ export class ExistingTransactionRole extends AbstractTransactionRole {
   }
 
   public isConfirmed(): boolean {
-    // Checks if runningHash exists and has a length of 32
-    // The !! operator converts the value to a boolean, ensuring it is not null or undefined before proceeding to check its length
-    return !!this.self.runningHash && this.self.runningHash.length === 32
+    return new TransactionLogic(this.self).isConfirmed()
   }
 
   /**
