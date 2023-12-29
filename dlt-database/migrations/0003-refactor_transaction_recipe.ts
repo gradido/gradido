@@ -72,6 +72,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`confirmed_at\` DATETIME NULL DEFAULT NULL,
         \`verifiedOnBackend\` TINYINT NOT NULL DEFAULT 0,
         PRIMARY KEY (\`id\`),
+        UNIQUE (\`backend_transaction_id\`),
         FOREIGN KEY (\`transaction_id\`) REFERENCES transactions(id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `,
