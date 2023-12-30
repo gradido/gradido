@@ -4,5 +4,6 @@
 /build/
 package-json.lock
 coverage
+log.txt
 # emacs
 *~

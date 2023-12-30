@@ -59,7 +59,7 @@ export class Connection {
   public async init(): Promise<void> {
     await this.connection.initialize()
     try {
-      await Connection.getInstance()
+      Connection.getInstance()
     } catch (error) {
       // try and catch for logging
       logger.fatal(`Couldn't open connection to database!`)

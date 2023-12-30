@@ -126,12 +126,14 @@ export class TransactionBody extends Message<TransactionBody> {
 
   public getRecipientPublicKey(): Buffer | undefined {
     if (this.transfer) {
+      // this.transfer.recipient contains the publicKey of the recipient 
       return this.transfer.recipient
     }
     if (this.creation) {
       return this.creation.recipient.pubkey
     }
     if (this.deferredTransfer) {
+      // this.deferredTransfer.transfer.recipient contains the publicKey of the recipient 
       return this.deferredTransfer.transfer.recipient
     }
     return undefined
