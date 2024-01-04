@@ -1,5 +1,5 @@
 server {
-    server_name $NGINX_SERVER_NAME;
+    server_name $COMMUNITY_URL;
 
     listen 80;
     listen [::]:80;

@@ -100,8 +100,8 @@ export FEDERATION_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-federation.conf.locat
 
 # *** 3rd generate gradido nginx config including federation modules per api-version
 echo 'Generate new gradido nginx config' >> $UPDATE_HTML
-case "$NGINX_SSL" in
- true) TEMPLATE_FILE="gradido.conf.ssl.template" ;;
+case "$URL_PROTOCOL" in
+ 'https') TEMPLATE_FILE="gradido.conf.ssl.template" ;;
     *) TEMPLATE_FILE="gradido.conf.template" ;;
 esac
 envsubst '$FEDERATION_NGINX_CONF' < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf.tmp
@@ -112,8 +112,8 @@ rm $NGINX_CONFIG_DIR/gradido-federation.conf.locations
 
 # Generate update-page.conf from template
 echo 'Generate new update-page nginx config' >> $UPDATE_HTML
-case "$NGINX_SSL" in
- true) TEMPLATE_FILE="update-page.conf.ssl.template" ;;
+case "$URL_PROTOCOL" in
+ 'https') TEMPLATE_FILE="update-page.conf.ssl.template" ;;
     *) TEMPLATE_FILE="update-page.conf.template" ;;
 esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/update-page.conf
