@@ -255,7 +255,7 @@ export class TransactionResolver {
     // use normal for loop because of timing problems with await in forEach-loop
     for (const transaction of userTransactions) {
       if (transaction.typeId === TransactionTypeId.CREATION) {
-        continue;
+        continue
       }
       if (transaction.linkedUserId && !involvedUserIds.includes(transaction.linkedUserId)) {
         involvedUserIds.push(transaction.linkedUserId)
