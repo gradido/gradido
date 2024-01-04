@@ -1,5 +1,5 @@
 server {
-    server_name $COMMUNITY_URL;
+    server_name $COMMUNITY_HOST;
 
     listen 80;
     listen [::]:80;

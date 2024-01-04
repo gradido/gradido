@@ -7,7 +7,7 @@ const pkg = require('../../package')
 const constants = {
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v1.2022-03-18',
+    EXPECTED: 'v2.2024-01-04',
     CURRENT: '',
   },
 }
@@ -26,10 +26,18 @@ const environment = {
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
 }
 
+const COMMUNITY_HOST = process.env.COMMUNITY_HOST || undefined
+const URL_PROTOCOL = process.env.URL_PROTOCOL || 'http'
+const COMMUNITY_URL =
+  COMMUNITY_HOST && URL_PROTOCOL ? URL_PROTOCOL + '://' + COMMUNITY_HOST : undefined
+const WALLET_URL = process.env.WALLET_URL || COMMUNITY_URL || 'http://localhost'
+
 const endpoints = {
-  GRAPHQL_URI: process.env.GRAPHQL_URI || 'http://localhost:4000/graphql',
-  WALLET_AUTH_URL: process.env.WALLET_AUTH_URL || 'http://localhost/authenticate?token={token}',
-  WALLET_URL: process.env.WALLET_URL || 'http://localhost/login',
+  GRAPHQL_URL:
+    (process.env.GRAPHQL_URL || COMMUNITY_URL || 'http://localhost:4000') +
+      process.env.GRAPHQL_PATH || '/graphql',
+  WALLET_AUTH_URL: WALLET_URL + (process.env.WALLET_AUTH_PATH || '/authenticate?token={token}'),
+  WALLET_LOGIN_URL: WALLET_URL + (process.env.WALLET_LOGIN_PATH || '/login'),
 }
 
 const debug = {

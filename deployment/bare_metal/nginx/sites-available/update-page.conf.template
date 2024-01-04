@@ -1,6 +1,6 @@
 
 server {
-    server_name _;
+    server_name $COMMUNITY_HOST;
     listen 80;
     listen [::]:80;
 
