@@ -14,8 +14,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   // fill user community uuid fields in transactions
   await queryFn(
     `UPDATE \`transactions\` AS t
-     JOIN \`users\` AS u ON u.id = t.user_id,
-     JOIN \`users\` AS lu ON lu.id = t.linked_user_id,
+     JOIN \`users\` AS u ON u.id = t.user_id
+     JOIN \`users\` AS lu ON lu.id = t.linked_user_id
      SET 
        t.user_community_uuid = u.community_uuid,
        t.linked_user_community_uuid = lu.community_uuid`,
