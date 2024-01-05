@@ -451,7 +451,9 @@ export class ContributionResolver {
         transaction.userId = contribution.userId
         transaction.userGradidoID = user.gradidoID
         transaction.userName = fullName(user.firstName, user.lastName)
-        transaction.linkedUserId = contribution.moderatorId
+        transaction.linkedUserId = moderatorUser.id
+        transaction.linkedUserGradidoID = moderatorUser.gradidoID
+        transaction.linkedUserName = fullName(moderatorUser.firstName, moderatorUser.lastName)
         transaction.previous = lastTransaction ? lastTransaction.id : null
         transaction.amount = contribution.amount
         transaction.creationDate = contribution.contributionDate
