@@ -62,8 +62,8 @@ const createUserStoreAccount = async (uuid: string): Promise<UserIdentifier> => 
 }
 
 describe('Transaction Resolver Test', () => {
-  let senderUser: UserIdentifier
-  let recipientUser: UserIdentifier
+  let user: UserIdentifier
+  let linkedUser: UserIdentifier
   beforeAll(async () => {
     await TestDB.instance.setupTestDB()
     apolloTestServer = await createApolloTestServer()
@@ -74,8 +74,8 @@ describe('Transaction Resolver Test', () => {
     communityDraft.createdAt = new Date().toString()
     const addCommunityContext = new AddCommunityContext(communityDraft)
     await addCommunityContext.run()
-    senderUser = await createUserStoreAccount('0ec72b74-48c2-446f-91ce-31ad7d9f4d65')
-    recipientUser = await createUserStoreAccount('ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe')
+    user = await createUserStoreAccount('0ec72b74-48c2-446f-91ce-31ad7d9f4d65')
+    linkedUser = await createUserStoreAccount('ddc8258e-fcb5-4e48-8d1d-3a07ec371dbe')
   })
 
   afterAll(async () => {
@@ -88,8 +88,8 @@ describe('Transaction Resolver Test', () => {
         'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {succeed, recipe { id, topic }} }',
       variables: {
         input: {
-          senderUser,
-          recipientUser,
+          user,
+          linkedUser,
           type: getEnumValue(InputTransactionType, InputTransactionType.SEND),
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
@@ -110,8 +110,8 @@ describe('Transaction Resolver Test', () => {
         'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, succeed} }',
       variables: {
         input: {
-          senderUser,
-          recipientUser,
+          user,
+          linkedUser,
           type: 'INVALID',
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',
@@ -136,8 +136,8 @@ describe('Transaction Resolver Test', () => {
         'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, succeed} }',
       variables: {
         input: {
-          senderUser,
-          recipientUser,
+          user,
+          linkedUser,
           type: getEnumValue(InputTransactionType, InputTransactionType.SEND),
           amount: 'no number',
           createdAt: '2012-04-17T17:12:00Z',
@@ -162,8 +162,8 @@ describe('Transaction Resolver Test', () => {
         'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, succeed} }',
       variables: {
         input: {
-          senderUser,
-          recipientUser,
+          user,
+          linkedUser,
           type: getEnumValue(InputTransactionType, InputTransactionType.SEND),
           amount: '10',
           createdAt: 'not valid',
@@ -198,8 +198,8 @@ describe('Transaction Resolver Test', () => {
         'mutation ($input: TransactionDraft!) { sendTransaction(data: $input) {error {type, message}, succeed} }',
       variables: {
         input: {
-          senderUser,
-          recipientUser,
+          user,
+          linkedUser,
           type: getEnumValue(InputTransactionType, InputTransactionType.CREATION),
           amount: '10',
           createdAt: '2012-04-17T17:12:00Z',

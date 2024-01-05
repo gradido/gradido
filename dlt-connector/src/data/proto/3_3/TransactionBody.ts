@@ -7,7 +7,6 @@ import { LogError } from '@/server/LogError'
 import { timestampToDate } from '@/utils/typeConverter'
 
 import { AbstractTransaction } from '../AbstractTransaction'
-import { determineCrossGroupType, determineOtherGroup } from '../transactionBody.logic'
 
 import { CommunityRoot } from './CommunityRoot'
 import { PROTO_TRANSACTION_BODY_VERSION_NUMBER } from './const'
@@ -25,19 +24,12 @@ import { Timestamp } from './Timestamp'
 export class TransactionBody extends Message<TransactionBody> {
   public constructor(transaction?: TransactionDraft | CommunityDraft) {
     if (transaction) {
-      let type = CrossGroupType.LOCAL
-      let otherGroup = ''
-      if (transaction instanceof TransactionDraft) {
-        type = determineCrossGroupType(transaction)
-        otherGroup = determineOtherGroup(type, transaction)
-      }
-
       super({
         memo: 'Not implemented yet',
         createdAt: new Timestamp(new Date(transaction.createdAt)),
         versionNumber: PROTO_TRANSACTION_BODY_VERSION_NUMBER,
-        type,
-        otherGroup,
+        type: CrossGroupType.LOCAL,
+        otherGroup: '',
       })
     } else {
       super()
@@ -126,14 +118,12 @@ export class TransactionBody extends Message<TransactionBody> {
 
   public getRecipientPublicKey(): Buffer | undefined {
     if (this.transfer) {
-      // this.transfer.recipient contains the publicKey of the recipient
       return this.transfer.recipient
     }
     if (this.creation) {
       return this.creation.recipient.pubkey
     }
     if (this.deferredTransfer) {
-      // this.deferredTransfer.transfer.recipient contains the publicKey of the recipient
       return this.deferredTransfer.transfer.recipient
     }
     return undefined

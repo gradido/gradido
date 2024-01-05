@@ -14,12 +14,12 @@ export class TransactionDraft {
   @Field(() => UserIdentifier)
   @IsObject()
   @ValidateNested()
-  senderUser: UserIdentifier
+  user: UserIdentifier
 
   @Field(() => UserIdentifier)
   @IsObject()
   @ValidateNested()
-  recipientUser: UserIdentifier
+  linkedUser: UserIdentifier
 
   @Field(() => Int)
   @IsPositive()

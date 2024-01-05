@@ -8,6 +8,8 @@ import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
 
+import { AbstractTransactionRole } from './AbstractTransaction.role'
+
 export class TransactionRecipeRole {
   protected transactionBuilder: TransactionBuilder
 
@@ -15,13 +17,16 @@ export class TransactionRecipeRole {
     this.transactionBuilder = new TransactionBuilder()
   }
 
-  public async create(transactionDraft: TransactionDraft): Promise<TransactionRecipeRole> {
-    const senderUser = transactionDraft.senderUser
-    const recipientUser = transactionDraft.recipientUser
+  public async create(
+    transactionDraft: TransactionDraft,
+    transactionTypeRole: AbstractTransactionRole,
+  ): Promise<TransactionRecipeRole> {
+    const signingUser = transactionTypeRole.getSigningUser()
+    const recipientUser = transactionTypeRole.getRecipientUser()
 
     // loading signing and recipient account
     // TODO: look for ways to use only one db call for both
-    const signingAccount = await UserRepository.findAccountByUserIdentifier(senderUser)
+    const signingAccount = await UserRepository.findAccountByUserIdentifier(signingUser)
     if (!signingAccount) {
       throw new TransactionError(
         TransactionErrorType.NOT_FOUND,
@@ -40,13 +45,15 @@ export class TransactionRecipeRole {
       .setSigningAccount(signingAccount)
       .setRecipientAccount(recipientAccount)
       .fromTransactionDraft(transactionDraft)
+      .setCrossGroupType(transactionTypeRole.getCrossGroupType())
+      .setOtherGroup(transactionTypeRole.getOtherGroup())
 
     // build transaction entity
     this.transactionBuilder
       .fromTransactionBodyBuilder(transactionBodyBuilder)
       .addBackendTransaction(transactionDraft)
-    await this.transactionBuilder.setSenderCommunityFromSenderUser(senderUser)
-    if (recipientUser.communityUuid !== senderUser.communityUuid) {
+    await this.transactionBuilder.setSenderCommunityFromSenderUser(signingUser)
+    if (recipientUser.communityUuid !== signingUser.communityUuid) {
       await this.transactionBuilder.setOtherCommunityFromRecipientUser(recipientUser)
     }
     const transaction = this.transactionBuilder.getTransaction()

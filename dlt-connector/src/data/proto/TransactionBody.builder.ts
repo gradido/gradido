@@ -7,6 +7,7 @@ import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { LogError } from '@/server/LogError'
 
 import { CommunityRoot } from './3_3/CommunityRoot'
+import { CrossGroupType } from './3_3/enum/CrossGroupType'
 import { GradidoCreation } from './3_3/GradidoCreation'
 import { GradidoTransfer } from './3_3/GradidoTransfer'
 import { TransactionBody } from './3_3/TransactionBody'
@@ -75,6 +76,26 @@ export class TransactionBodyBuilder {
 
   public setRecipientAccount(recipientAccount: Account): TransactionBodyBuilder {
     this.recipientAccount = recipientAccount
+    return this
+  }
+
+  public setCrossGroupType(type: CrossGroupType): this {
+    if (!this.body) {
+      throw new LogError(
+        'body is undefined, please call fromTransactionDraft or fromCommunityDraft before',
+      )
+    }
+    this.body.type = type
+    return this
+  }
+
+  public setOtherGroup(otherGroup: string): this {
+    if (!this.body) {
+      throw new LogError(
+        'body is undefined, please call fromTransactionDraft or fromCommunityDraft before',
+      )
+    }
+    this.body.otherGroup = otherGroup
     return this
   }
 

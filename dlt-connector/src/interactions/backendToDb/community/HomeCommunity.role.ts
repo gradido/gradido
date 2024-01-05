@@ -28,8 +28,7 @@ export class HomeCommunityRole extends CommunityRole {
     this.self.aufAccount = AccountFactory.createAufAccount(keyPair, this.self.createdAt)
     this.self.gmwAccount = AccountFactory.createGmwAccount(keyPair, this.self.createdAt)
 
-    const transactionRecipeContext = new CreateTransactionRecipeContext(communityDraft)
-    transactionRecipeContext.setCommunity(this.self)
+    const transactionRecipeContext = new CreateTransactionRecipeContext(communityDraft, this.self)
     await transactionRecipeContext.run()
     this.transactionRecipe = transactionRecipeContext.getTransactionRecipe()
   }
