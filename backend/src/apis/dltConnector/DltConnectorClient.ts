@@ -1,6 +1,4 @@
-import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
-import { User as DbUser } from '@entity/User'
 import { gql, GraphQLClient } from 'graphql-request'
 
 import { CONFIG } from '@/config'
@@ -79,98 +77,24 @@ export class DltConnectorClient {
     return DltConnectorClient.instance
   }
 
-  protected async getCorrectUserUUID(
-    transaction: DbTransaction,
-    type: 'sender' | 'recipient',
-  ): Promise<string> {
-    let confirmingUserId: number | undefined
-    logger.info('confirming user id', confirmingUserId)
-    switch (transaction.typeId) {
-      case TransactionTypeId.CREATION:
-        confirmingUserId = (
-          await Contribution.findOneOrFail({ where: { transactionId: transaction.id } })
-        ).confirmedBy
-        if (!confirmingUserId) {
-          throw new LogError(
-            "couldn't find id of confirming moderator for contribution transaction!",
-          )
-        }
-        if (type === 'sender') {
-          return (await DbUser.findOneOrFail({ where: { id: confirmingUserId } })).gradidoID
-        } else if (type === 'recipient') {
-          return transaction.userGradidoID
-        }
-        break
-      case TransactionTypeId.SEND:
-        if (type === 'sender') {
-          return transaction.userGradidoID
-        } else if (type === 'recipient') {
-          if (!transaction.linkedUserGradidoID) {
-            throw new LogError('missing linked user gradido id')
-          }
-          return transaction.linkedUserGradidoID
-        }
-        break
-      case TransactionTypeId.RECEIVE:
-        if (type === 'sender') {
-          if (!transaction.linkedUserGradidoID) {
-            throw new LogError('missing linked user gradido id')
-          }
-          return transaction.linkedUserGradidoID
-        } else if (type === 'recipient') {
-          return transaction.userGradidoID
-        }
-    }
-    throw new LogError('unhandled case')
-  }
-
-  protected async getCorrectUserIdentifier(
-    transaction: DbTransaction,
-    senderCommunityUuid: string,
-    type: 'sender' | 'recipient',
-    recipientCommunityUuid?: string,
-  ): Promise<UserIdentifier> {
-    // sender and receiver user on creation transaction
-    // sender user on send transaction (SEND and RECEIVE)
-    if (type === 'sender' || transaction.typeId === TransactionTypeId.CREATION) {
-      return {
-        uuid: await this.getCorrectUserUUID(transaction, type),
-        communityUuid: senderCommunityUuid,
-      }
-    }
-    // recipient user on SEND and RECEIVE transactions
-    return {
-      uuid: await this.getCorrectUserUUID(transaction, type),
-      communityUuid: recipientCommunityUuid ?? senderCommunityUuid,
-    }
-  }
-
   /**
    * transmit transaction via dlt-connector to iota
    * and update dltTransactionId of transaction in db with iota message id
    */
-  public async transmitTransaction(
-    transaction: DbTransaction,
-    senderCommunityUuid: string,
-    recipientCommunityUuid?: string,
-  ): Promise<boolean> {
+  public async transmitTransaction(transaction: DbTransaction): Promise<boolean> {
     const typeString = getTransactionTypeString(transaction.typeId)
     // no negative values in dlt connector, gradido concept don't use negative values so the code don't use it too
     const amountString = transaction.amount.abs().toString()
     const params = {
       input: {
-        senderUser: await this.getCorrectUserIdentifier(
-          transaction,
-          senderCommunityUuid,
-          'sender',
-          recipientCommunityUuid,
-        ),
-        recipientUser: await this.getCorrectUserIdentifier(
-          transaction,
-          senderCommunityUuid,
-          'recipient',
-          recipientCommunityUuid,
-        ),
+        user: {
+          uuid: transaction.userGradidoID,
+          communityUuid: transaction.userCommunityUuid,
+        } as UserIdentifier,
+        linkedUser: {
+          uuid: transaction.linkedUserGradidoID,
+          communityUuid: transaction.linkedUserCommunityUuid,
+        } as UserIdentifier,
         amount: amountString,
         type: typeString,
         createdAt: transaction.balanceDate.toISOString(),
