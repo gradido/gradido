@@ -9,7 +9,7 @@ systemctl start systemd-timesyncd
 set -o allexport
 SCRIPT_PATH=$(realpath ../bare_metal)
 SCRIPT_DIR=$(dirname $SCRIPT_PATH)
-PROJECT_ROOT=$SCRIPT_DIR/../..
+PROJECT_ROOT=$SCRIPT_DIR/..
 set +o allexport
 
 # Load .env or .env.dist if not present
@@ -17,11 +17,11 @@ set +o allexport
 # the services and will therefore take precedence over the .env
 if [ -f "./.env" ]; then
     set -o allexport
-    source $SCRIPT_DIR/.env
+    source $SCRIPT_PATH/.env
     set +o allexport
 else
     set -o allexport
-    source $SCRIPT_DIR/.env.dist
+    source $SCRIPT_PATH/.env.dist
     set +o allexport
 fi
 
@@ -61,13 +61,13 @@ echo "$SECURE_MYSQL"
 
 # Configure nginx
 rm /etc/nginx/sites-enabled/default
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_DIR/nginx/sites-available/gradido.conf.template > $SCRIPT_DIR/nginx/sites-available/gradido.conf
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/nginx/sites-available/gradido.conf.template > $SCRIPT_PATH/nginx/sites-available/gradido.conf
 ln -s $SCRIPT_DIR/nginx/sites-available/gradido.conf /etc/nginx/sites-available
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_DIR/nginx/sites-available/update-page.conf.template > $SCRIPT_DIR/nginx/sites-available/update-page.conf
-ln -s $SCRIPT_DIR/nginx/sites-available/update-page.conf /etc/nginx/sites-available
-ln -s $SCRIPT_DIR/nginx/common /etc/nginx/
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/nginx/sites-available/update-page.conf.template > $SCRIPT_PATH/nginx/sites-available/update-page.conf
+ln -s $SCRIPT_PATH/nginx/sites-available/update-page.conf /etc/nginx/sites-available
+ln -s $SCRIPT_PATH/nginx/common /etc/nginx/
 rmdir /etc/nginx/conf.d
-ln -s $SCRIPT_DIR/nginx/conf.d /etc/nginx/
+ln -s $SCRIPT_PATH/nginx/conf.d /etc/nginx/
 
 # setup https with certbot
 certbot --nginx --non-interactive --agree-tos --domains $COMMUNITY_HOST --email $COMMUNITY_SUPPORT_MAIL
@@ -87,8 +87,8 @@ yarn global add pm2
 pm2 startup
 
 # Install logrotate
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_DIR/logrotate/gradido.conf.template > $SCRIPT_DIR/logrotate/gradido.conf
-cp $SCRIPT_DIR/logrotate/gradido.conf /etc/logrotate.d/gradido.conf
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/logrotate/gradido.conf.template > $SCRIPT_PATH/logrotate/gradido.conf
+cp $SCRIPT_PATH/logrotate/gradido.conf /etc/logrotate.d/gradido.conf
 chown root:root /etc/logrotate.d/gradido.conf
 
 # create db user
@@ -96,7 +96,7 @@ export DB_USER=gradido
 export DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
 mysql <<EOFMYSQL
     CREATE USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';
-    GRANT ALL PRIVILEGES ON 'gradido_community'.* TO '$DB_USER'@'localhost';
+    GRANT ALL PRIVILEGES ON *.* TO '$DB_USER'@'localhost';
     FLUSH PRIVILEGES;
 EOFMYSQL
 
