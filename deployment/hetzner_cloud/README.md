@@ -106,5 +106,4 @@ will remove it and ln ../bare_metal/nginx/conf.d
 
 ```bash
 cd ~/gradido/deployment/hetzner_cloud
-sudo chmod +x ./install.sh
 sudo ./install.sh
