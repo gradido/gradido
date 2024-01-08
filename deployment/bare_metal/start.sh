@@ -65,7 +65,7 @@ ln -s /etc/nginx/sites-available/update-page.conf /etc/nginx/sites-enabled/
 sudo /etc/init.d/nginx restart
 # enable https if env variable has value https
 if [ "$URL_PROTOCOL" = "https" ]; then
-    certbot --nginx --non-interactive
+    certbot --nginx --non-interactive --domains $COMMUNITY_HOST
 fi
 
 # stop all services
@@ -265,7 +265,7 @@ ln -s /etc/nginx/sites-available/gradido.conf /etc/nginx/sites-enabled/
 rm /etc/nginx/sites-enabled/update-page.conf
 sudo /etc/init.d/nginx restart
 if [ "$URL_PROTOCOL" = "https" ]; then
-    certbot --nginx --non-interactive
+    certbot --nginx --non-interactive --domains $COMMUNITY_HOST
 fi
 
 # keep the update log
