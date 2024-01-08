@@ -15,7 +15,7 @@ set +o allexport
 # Load .env or .env.dist if not present
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
-if [ -f "./.env" ]; then
+if [ -f "$SCRIPT_PATH/.env" ]; then
     set -o allexport
     source $SCRIPT_PATH/.env
     set +o allexport
