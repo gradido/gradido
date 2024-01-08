@@ -92,10 +92,10 @@ All your following installations in `install.sh` will fail!*
 #### Create `.env` and set values
 
 ```bash
-cd ~/gradido/deployment
-cp ./bare_metal/.env.dist ./hetzner_cloud/.env
-cd hetzner_cloud/
+cd ~/gradido/deployment/bare_metal
+cp .env.dist .env
 nano .env
+
 # adjust values accordingly
 ```
 
@@ -105,5 +105,6 @@ Don't use this script if you have custom config in /etc/nginx/conf.d, because th
 will remove it and ln ../bare_metal/nginx/conf.d
 
 ```bash
+cd ~/gradido/deployment/hetzner_cloud
 sudo chmod +x ./install.sh
 sudo ./install.sh

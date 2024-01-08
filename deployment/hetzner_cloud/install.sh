@@ -17,7 +17,7 @@ set +o allexport
 # the services and will therefore take precedence over the .env
 if [ -f "./.env" ]; then
     set -o allexport
-    source ./.env
+    source $SCRIPT_DIR/.env
     set +o allexport
 else
     set -o allexport
