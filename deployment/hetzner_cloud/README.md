@@ -76,7 +76,34 @@ $ ssh -i /path/to/privKey gradido@gddhost.tld
 cd ~
 git clone https://github.com/gradido/gradido.git
 ```
-### Edit Config 
+
+### Adjust the values in `.env`
+
+***!!! Attention !!!***
+
+*Don't forget this step!
+All your following installations in `install.sh` will fail!*
+
+*Notes:*
+
+- *`;` cannot be part of any value!*
+- *The GitHub secret is created on GitHub in Settings -> Webhooks.*
+
+#### Create `.env` and set values
+
 ```bash
 cd ~/gradido/deployment
 cp ./bare_metal/.env.dist ./hetzner_cloud/.env
+cd hetzner_cloud/
+nano .env
+# adjust values accordingly
+```
+
+### Run `install.sh`
+***!!! Attention !!!***
+Don't use this script if you have custom config in /etc/nginx/conf.d, because this script
+will remove it and ln ../bare_metal/nginx/conf.d
+
+```bash
+sudo chmod +x ./install.sh
+sudo ./install.sh

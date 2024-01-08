@@ -14,14 +14,20 @@ set +o allexport
 # the services and will therefore take precedence over the .env
 
 # We have to load the backend .env to get DB_USERNAME, DB_PASSWORD AND JWT_SECRET
+# and the dht-node .env to get FEDERATION_DHT_SEED
 export_var(){
   export $1=$(grep -v '^#' $PROJECT_ROOT/backend/.env | grep -e "$1" | sed -e 's/.*=//')
+  export $1=$(grep -v '^#' $PROJECT_ROOT/dht-node/.env | grep -e "$1" | sed -e 's/.*=//')
 }
 
 if [ -f "$PROJECT_ROOT/backend/.env" ]; then
     export_var 'DB_USER'
     export_var 'DB_PASSWORD'
     export_var 'JWT_SECRET'
+fi
+
+if [ -f "$PROJECT_ROOT/dht-node/.env" ]; then
+    export_var 'FEDERATION_DHT_SEED'
 fi
 
 # Load .env or .env.dist if not present
@@ -57,6 +63,10 @@ echo 'Configuring nginx to serve the update-page' >> $UPDATE_HTML
 rm /etc/nginx/sites-enabled/gradido.conf
 ln -s /etc/nginx/sites-available/update-page.conf /etc/nginx/sites-enabled/
 sudo /etc/init.d/nginx restart
+# enable https if env variable has value https
+if [ "$URL_PROTOCOL" = "https" ]; then
+    certbot --nginx --non-interactive
+fi
 
 # stop all services
 echo 'Stop and delete all Gradido services' >> $UPDATE_HTML
@@ -100,11 +110,7 @@ export FEDERATION_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-federation.conf.locat
 
 # *** 3rd generate gradido nginx config including federation modules per api-version
 echo 'Generate new gradido nginx config' >> $UPDATE_HTML
-case "$URL_PROTOCOL" in
- 'https') TEMPLATE_FILE="gradido.conf.ssl.template" ;;
-    *) TEMPLATE_FILE="gradido.conf.template" ;;
-esac
-envsubst '$FEDERATION_NGINX_CONF' < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf.tmp
+envsubst '$FEDERATION_NGINX_CONF' < $NGINX_CONFIG_DIR/gradido.conf.template > $NGINX_CONFIG_DIR/gradido.conf.tmp
 unset FEDERATION_NGINX_CONF
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/gradido.conf.tmp > $NGINX_CONFIG_DIR/gradido.conf
 rm $NGINX_CONFIG_DIR/gradido.conf.tmp
@@ -112,11 +118,7 @@ rm $NGINX_CONFIG_DIR/gradido-federation.conf.locations
 
 # Generate update-page.conf from template
 echo 'Generate new update-page nginx config' >> $UPDATE_HTML
-case "$URL_PROTOCOL" in
- 'https') TEMPLATE_FILE="update-page.conf.ssl.template" ;;
-    *) TEMPLATE_FILE="update-page.conf.template" ;;
-esac
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/update-page.conf
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/update-page.conf.template > $NGINX_CONFIG_DIR/update-page.conf
 
 # Clean tmp folder - remove yarn files
 find /tmp -name "yarn--*" -exec rm -r {} \;
@@ -262,6 +264,9 @@ echo 'Configuring nginx to serve gradido again' >> $UPDATE_HTML
 ln -s /etc/nginx/sites-available/gradido.conf /etc/nginx/sites-enabled/
 rm /etc/nginx/sites-enabled/update-page.conf
 sudo /etc/init.d/nginx restart
+if [ "$URL_PROTOCOL" = "https" ]; then
+    certbot --nginx --non-interactive
+fi
 
 # keep the update log
 cat $UPDATE_HTML >> $GRADIDO_LOG_PATH/update.$TODAY.log
