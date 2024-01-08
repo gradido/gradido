@@ -73,11 +73,14 @@ rmdir /etc/nginx/conf.d
 ln -s $SCRIPT_PATH/nginx/conf.d /etc/nginx/
 
 # setup https with certbot
-certbot --nginx --non-interactive --agree-tos --domains $COMMUNITY_HOST --email $COMMUNITY_SUPPORT_MAIL
+certbot certonly --nginx --non-interactive --agree-tos --domains $COMMUNITY_HOST --email $COMMUNITY_SUPPORT_MAIL
 
-# Install node 16.x
-curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-apt-get install -y nodejs
+# Install node 16. with nvm, with nodesource is depracted
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+# Close and reopen your terminal to start using nvm or run the following to use it now:
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+nvm install 16 # first installed version will be set to default automatic
 
 # Install yarn
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -

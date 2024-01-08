@@ -41,6 +41,10 @@ else
     set +o allexport
 fi
 
+# set env variables dynamic if not already set in .env or .env.dist
+: ${NGINX_SSL_CERTIFICATE:=/etc/letsencrypt/live/$COMMUNITY_HOST/fullchain.pem}
+: ${NGINX_SSL_CERTIFICATE_KEY:=/etc/letsencrypt/live/$COMMUNITY_HOST/privkey.pem}
+
 # lock start
 if [ -f $LOCK_FILE ] ; then
   echo "Already building!"
@@ -60,13 +64,8 @@ exec > >(tee -a $UPDATE_HTML) 2>&1
 
 # configure nginx for the update-page
 echo 'Configuring nginx to serve the update-page' >> $UPDATE_HTML
-
-ln -s $SCRIPT_PATH/nginx/sites-available/update-page.conf $SCRIPT_PATH/nginx/sites-enabled/default
+ln -sf $SCRIPT_DIR/nginx/sites-available/update-page.conf $SCRIPT_DIR/nginx/sites-enabled/default
 sudo /etc/init.d/nginx restart
-# enable https if env variable has value https
-if [ "$URL_PROTOCOL" = "https" ]; then
-    certbot install --nginx --non-interactive --cert-name $COMMUNITY_HOST --logs-dir ./log/ --work-dir . --config-dir .
-fi
 
 # stop all services
 echo 'Stop and delete all Gradido services' >> $UPDATE_HTML
@@ -110,7 +109,11 @@ export FEDERATION_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-federation.conf.locat
 
 # *** 3rd generate gradido nginx config including federation modules per api-version
 echo 'Generate new gradido nginx config' >> $UPDATE_HTML
-envsubst '$FEDERATION_NGINX_CONF' < $NGINX_CONFIG_DIR/gradido.conf.template > $NGINX_CONFIG_DIR/gradido.conf.tmp
+case "$URL_PROTOCOL" in
+ 'https') TEMPLATE_FILE="gradido.conf.ssl.template" ;;
+       *) TEMPLATE_FILE="gradido.conf.template" ;;
+esac
+envsubst '$FEDERATION_NGINX_CONF' < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf.tmp
 unset FEDERATION_NGINX_CONF
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/gradido.conf.tmp > $NGINX_CONFIG_DIR/gradido.conf
 rm $NGINX_CONFIG_DIR/gradido.conf.tmp
@@ -118,7 +121,11 @@ rm $NGINX_CONFIG_DIR/gradido-federation.conf.locations
 
 # Generate update-page.conf from template
 echo 'Generate new update-page nginx config' >> $UPDATE_HTML
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/update-page.conf.template > $NGINX_CONFIG_DIR/update-page.conf
+case "$URL_PROTOCOL" in
+ 'https') TEMPLATE_FILE="update-page.conf.ssl.template" ;;
+       *) TEMPLATE_FILE="update-page.conf.template" ;;
+esac
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/update-page.conf
 
 # Clean tmp folder - remove yarn files
 find /tmp -name "yarn--*" -exec rm -r {} \;
@@ -261,11 +268,8 @@ done
 
 # let nginx showing gradido
 echo 'Configuring nginx to serve gradido again' >> $UPDATE_HTML
-ln -s $SCRIPT_PATH/nginx/sites-available/gradido.conf $SCRIPT_PATH/nginx/sites-enabled/default
+ln -sf $SCRIPT_DIR/nginx/sites-available/gradido.conf $SCRIPT_DIR/nginx/sites-enabled/default
 sudo /etc/init.d/nginx restart
-if [ "$URL_PROTOCOL" = "https" ]; then
-    certbot install --nginx --non-interactive --cert-name $COMMUNITY_HOST --logs-dir ./log/ --work-dir . --config-dir .
-fi
 
 # keep the update log
 cat $UPDATE_HTML >> $GRADIDO_LOG_PATH/update.$TODAY.log
