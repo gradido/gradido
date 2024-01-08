@@ -19,7 +19,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v20.2023-09-19',
+    EXPECTED: 'v21.2024-01-06',
     CURRENT: '',
   },
 }
@@ -51,18 +51,23 @@ const klicktipp = {
   KLICKTIPP_APIKEY_EN: process.env.KLICKTIPP_APIKEY_EN ?? 'SomeFakeKeyEN',
 }
 
+const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
+const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
+const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${URL_PROTOCOL}://${COMMUNITY_HOST}`
+const DLT_CONNECTOR_PORT = process.env.DLT_CONNECTOR_PORT ?? 6010
+
 const dltConnector = {
   DLT_CONNECTOR: process.env.DLT_CONNECTOR === 'true' || false,
-  DLT_CONNECTOR_URL: process.env.DLT_CONNECTOR_URL ?? 'http://localhost:6010',
+  DLT_CONNECTOR_URL: process.env.DLT_CONNECTOR_URL ?? `${COMMUNITY_URL}:${DLT_CONNECTOR_PORT}`,
 }
 
 const community = {
   COMMUNITY_NAME: process.env.COMMUNITY_NAME ?? 'Gradido Entwicklung',
-  COMMUNITY_URL: process.env.COMMUNITY_URL ?? 'http://localhost/',
-  COMMUNITY_REGISTER_URL: process.env.COMMUNITY_REGISTER_URL ?? 'http://localhost/register',
-  COMMUNITY_REDEEM_URL: process.env.COMMUNITY_REDEEM_URL ?? 'http://localhost/redeem/{code}',
+  COMMUNITY_URL,
+  COMMUNITY_REGISTER_URL: COMMUNITY_URL + (process.env.COMMUNITY_REGISTER_PATH ?? '/register'),
+  COMMUNITY_REDEEM_URL: COMMUNITY_URL + (process.env.COMMUNITY_REDEEM_PATH ?? '/redeem/{code}'),
   COMMUNITY_REDEEM_CONTRIBUTION_URL:
-    process.env.COMMUNITY_REDEEM_CONTRIBUTION_URL ?? 'http://localhost/redeem/CL-{code}',
+    COMMUNITY_URL + (process.env.COMMUNITY_REDEEM_CONTRIBUTION_PATH ?? '/redeem/CL-{code}'),
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION ?? 'Die lokale Entwicklungsumgebung von Gradido.',
   COMMUNITY_SUPPORT_MAIL: process.env.COMMUNITY_SUPPORT_MAIL ?? 'support@supportmail.com',
@@ -74,8 +79,8 @@ const loginServer = {
 }
 
 const email = {
-  EMAIL: process.env.EMAIL === 'true' || false,
-  EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true' || false,
+  EMAIL: process.env.EMAIL === 'true' ?? false,
+  EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true' ?? false,
   EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER ?? 'stage1@gradido.net',
   EMAIL_USERNAME: process.env.EMAIL_USERNAME ?? '',
   EMAIL_SENDER: process.env.EMAIL_SENDER ?? 'info@gradido.net',
@@ -85,19 +90,19 @@ const email = {
   // eslint-disable-next-line no-unneeded-ternary
   EMAIL_TLS: process.env.EMAIL_TLS === 'false' ? false : true,
   EMAIL_LINK_VERIFICATION:
-    process.env.EMAIL_LINK_VERIFICATION ?? 'http://localhost/checkEmail/{optin}{code}',
+    COMMUNITY_URL + (process.env.EMAIL_LINK_VERIFICATION_PATH ?? '/checkEmail/{optin}{code}'),
   EMAIL_LINK_SETPASSWORD:
-    process.env.EMAIL_LINK_SETPASSWORD ?? 'http://localhost/reset-password/{optin}',
+    COMMUNITY_URL + (process.env.EMAIL_LINK_SETPASSWORD_PATH ?? '/reset-password/{optin}'),
   EMAIL_LINK_FORGOTPASSWORD:
-    process.env.EMAIL_LINK_FORGOTPASSWORD ?? 'http://localhost/forgot-password',
-  EMAIL_LINK_OVERVIEW: process.env.EMAIL_LINK_OVERVIEW ?? 'http://localhost/overview',
+    COMMUNITY_URL + (process.env.EMAIL_LINK_FORGOTPASSWORD_PATH ?? '/forgot-password'),
+  EMAIL_LINK_OVERVIEW: COMMUNITY_URL + (process.env.EMAIL_LINK_OVERVIEW_PATH ?? '/overview'),
   // time in minutes a optin code is valid
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
-    ? parseInt(process.env.EMAIL_CODE_VALID_TIME) || 1440
+    ? parseInt(process.env.EMAIL_CODE_VALID_TIME) ?? 1440
     : 1440,
   // time in minutes that must pass to request a new optin code
   EMAIL_CODE_REQUEST_TIME: process.env.EMAIL_CODE_REQUEST_TIME
-    ? parseInt(process.env.EMAIL_CODE_REQUEST_TIME) || 10
+    ? parseInt(process.env.EMAIL_CODE_REQUEST_TIME) ?? 10
     : 10,
 }
 
@@ -124,9 +129,9 @@ if (
 const federation = {
   FEDERATION_BACKEND_SEND_ON_API: process.env.FEDERATION_BACKEND_SEND_ON_API ?? '1_0',
   FEDERATION_VALIDATE_COMMUNITY_TIMER:
-    Number(process.env.FEDERATION_VALIDATE_COMMUNITY_TIMER) || 60000,
+    Number(process.env.FEDERATION_VALIDATE_COMMUNITY_TIMER) ?? 60000,
   FEDERATION_XCOM_SENDCOINS_ENABLED:
-    process.env.FEDERATION_XCOM_SENDCOINS_ENABLED === 'true' || false,
+    process.env.FEDERATION_XCOM_SENDCOINS_ENABLED === 'true' ?? false,
   // default value for community-uuid is equal uuid of stage-3
   FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID:
     process.env.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID ?? '56a55482-909e-46a4-bfa2-cd025e894ebc',
