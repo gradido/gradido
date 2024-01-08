@@ -9,6 +9,8 @@ systemctl start systemd-timesyncd
 set -o allexport
 SCRIPT_PATH=$(realpath ../bare_metal)
 SCRIPT_DIR=$(dirname $SCRIPT_PATH)
+LOCAL_SCRIPT_PATH=$(realpath $0)
+LOCAL_SCRIPT_DIR=$(dirname $SCRIPT_PATH)
 PROJECT_ROOT=$SCRIPT_DIR/..
 set +o allexport
 
@@ -121,12 +123,9 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env
 # Configure federation
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.env.template > $PROJECT_ROOT/federation/.env
 
-# create cronjob to delete yarn output in /tmp
-# crontab -e
-# hourly job: 0 * * * * find /tmp -name "yarn--*" -cmin +60 -exec rm -r {} \; > /dev/null
-crontab -l | { cat; echo "0 * * * * find /tmp -name "yarn--*" -cmin +60 -exec rm -r {} \; > /dev/null"; } | crontab -
-# daily job:  0 4 * * * find /tmp -name "yarn--*" -ctime +1 -exec rm -r {} \; > /dev/null
-crontab -l | { cat; echo "0 4 * * * find /tmp -name "yarn--*" -ctime +1 -exec rm -r {} \; > /dev/null"; } | crontab -
+# create cronjob to delete yarn output in /tmp and for making backups regulary
+sudo -u gradido crontab < $LOCAL_SCRIPT_PATH/crontabs.txt
+
 # Start gradido
 # Note: on first startup some errors will occur - nothing serious
 sudo -u gradido $SCRIPT_PATH/start.sh 
