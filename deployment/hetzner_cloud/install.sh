@@ -62,9 +62,10 @@ echo "$SECURE_MYSQL"
 # Configure nginx
 rm /etc/nginx/sites-enabled/default
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/nginx/sites-available/gradido.conf.template > $SCRIPT_PATH/nginx/sites-available/gradido.conf
-ln -s $SCRIPT_DIR/nginx/sites-available/gradido.conf /etc/nginx/sites-available
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/nginx/sites-available/update-page.conf.template > $SCRIPT_PATH/nginx/sites-available/update-page.conf
-ln -s $SCRIPT_PATH/nginx/sites-available/update-page.conf /etc/nginx/sites-available
+mkdir $SCRIPT_PATH/nginx/sites-enabled
+ln -s $SCRIPT_PATH/nginx/sites-available/update-page.conf $SCRIPT_PATH/nginx/sites-enabled/default
+ln -s $SCRIPT_PATH/nginx/sites-enabled/default /etc/nginx/sites-enabled
 ln -s $SCRIPT_PATH/nginx/common /etc/nginx/
 rmdir /etc/nginx/conf.d
 ln -s $SCRIPT_PATH/nginx/conf.d /etc/nginx/
@@ -128,4 +129,4 @@ crontab -l | { cat; echo "0 * * * * find /tmp -name "yarn--*" -cmin +60 -exec rm
 crontab -l | { cat; echo "0 4 * * * find /tmp -name "yarn--*" -ctime +1 -exec rm -r {} \; > /dev/null"; } | crontab -
 # Start gradido
 # Note: on first startup some errors will occur - nothing serious
-$SCRIPT_PATH/start.sh
+sudo -u gradido $SCRIPT_PATH/start.sh 

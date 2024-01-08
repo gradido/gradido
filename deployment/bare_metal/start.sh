@@ -60,12 +60,12 @@ exec > >(tee -a $UPDATE_HTML) 2>&1
 
 # configure nginx for the update-page
 echo 'Configuring nginx to serve the update-page' >> $UPDATE_HTML
-rm /etc/nginx/sites-enabled/gradido.conf
-ln -s /etc/nginx/sites-available/update-page.conf /etc/nginx/sites-enabled/
+
+ln -s $SCRIPT_PATH/nginx/sites-available/update-page.conf $SCRIPT_PATH/nginx/sites-enabled/default
 sudo /etc/init.d/nginx restart
 # enable https if env variable has value https
 if [ "$URL_PROTOCOL" = "https" ]; then
-    certbot --nginx --non-interactive --domains $COMMUNITY_HOST
+    certbot install --nginx --non-interactive --cert-name $COMMUNITY_HOST --logs-dir ./log/ --work-dir . --config-dir .
 fi
 
 # stop all services
@@ -261,11 +261,10 @@ done
 
 # let nginx showing gradido
 echo 'Configuring nginx to serve gradido again' >> $UPDATE_HTML
-ln -s /etc/nginx/sites-available/gradido.conf /etc/nginx/sites-enabled/
-rm /etc/nginx/sites-enabled/update-page.conf
+ln -s $SCRIPT_PATH/nginx/sites-available/gradido.conf $SCRIPT_PATH/nginx/sites-enabled/default
 sudo /etc/init.d/nginx restart
 if [ "$URL_PROTOCOL" = "https" ]; then
-    certbot --nginx --non-interactive --domains $COMMUNITY_HOST
+    certbot install --nginx --non-interactive --cert-name $COMMUNITY_HOST --logs-dir ./log/ --work-dir . --config-dir .
 fi
 
 # keep the update log
