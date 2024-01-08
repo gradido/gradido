@@ -547,10 +547,16 @@ export class UserResolver {
       passwordNew,
       hideAmountGDD,
       hideAmountGDT,
+      gmsAllowed,
+      gmsPublishName,
+      gmsLocation,
+      gmsPublishLocation,
     }: UpdateUserInfosArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.info(`updateUserInfos(${firstName}, ${lastName}, ${language}, ***, ***)...`)
+    logger.info(
+      `updateUserInfos(${firstName}, ${lastName}, ${language}, ***, ***, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})...`,
+    )
     const user = getUser(context)
 
     if (firstName) {
@@ -598,6 +604,13 @@ export class UserResolver {
     if (hideAmountGDT !== undefined) {
       user.hideAmountGDT = hideAmountGDT
     }
+
+    user.gmsAllowed = gmsAllowed
+    user.gmsPublishName = gmsPublishName
+    if (gmsLocation) {
+      user.location = gmsLocation.getPoint()
+    }
+    user.gmsPublishLocation = gmsPublishLocation
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()

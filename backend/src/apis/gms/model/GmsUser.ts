@@ -1,6 +1,8 @@
 import { User as dbUser } from '@entity/User'
 
-import { GmsLocationType, GmsPublishNameType, GmsPublishPhoneType } from './GmsEnums'
+import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
+import { GmsPublishNameType } from '@/graphql/enum/GmsPublishNameType'
+import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
 
 export class GmsUser {
   constructor(user: dbUser) {
@@ -12,7 +14,7 @@ export class GmsUser {
     this.firstName = this.getGmsFirstName(user)
     this.lastName = this.getGmsLastName(user)
     this.alias = this.getGmsAlias(user)
-    this.type = GmsLocationType.GMS_LOCATION_TYPE_RANDOM
+    this.type = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
     this.location = null
   }
 

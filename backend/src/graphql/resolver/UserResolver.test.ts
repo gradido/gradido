@@ -16,6 +16,8 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 
+import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
+import { GmsPublishNameType } from '@enum/GmsPublishNameType'
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { RoleNames } from '@enum/RoleNames'
@@ -1165,7 +1167,16 @@ describe('UserResolver', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
         resetToken()
-        await expect(mutate({ mutation: updateUserInfos })).resolves.toEqual(
+        await expect(
+          mutate({
+            mutation: updateUserInfos,
+            variables: {
+              gmsAllowed: true,
+              gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+              gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+            },
+          }),
+        ).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('401 Unauthorized')],
           }),
@@ -1190,7 +1201,16 @@ describe('UserResolver', () => {
       })
 
       it('returns true', async () => {
-        await expect(mutate({ mutation: updateUserInfos })).resolves.toEqual(
+        await expect(
+          mutate({
+            mutation: updateUserInfos,
+            variables: {
+              gmsAllowed: true,
+              gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+              gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+            },
+          }),
+        ).resolves.toEqual(
           expect.objectContaining({
             data: {
               updateUserInfos: true,
@@ -1207,6 +1227,9 @@ describe('UserResolver', () => {
               firstName: 'Benjamin',
               lastName: 'Blümchen',
               locale: 'en',
+              gmsAllowed: true,
+              gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+              gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
             },
           })
           await expect(User.find()).resolves.toEqual([
@@ -1244,6 +1267,9 @@ describe('UserResolver', () => {
               mutation: updateUserInfos,
               variables: {
                 alias: 'bibi_Bloxberg',
+                gmsAllowed: true,
+                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               },
             })
             await expect(User.find()).resolves.toEqual([
@@ -1263,6 +1289,9 @@ describe('UserResolver', () => {
               mutation: updateUserInfos,
               variables: {
                 locale: 'not-valid',
+                gmsAllowed: true,
+                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               },
             }),
           ).resolves.toEqual(
@@ -1287,6 +1316,9 @@ describe('UserResolver', () => {
                 variables: {
                   password: 'wrong password',
                   passwordNew: 'Aa12345_',
+                  gmsAllowed: true,
+                  gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                  gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
                 },
               }),
             ).resolves.toEqual(
@@ -1310,6 +1342,9 @@ describe('UserResolver', () => {
                 variables: {
                   password: 'Aa12345_',
                   passwordNew: 'Aa12345',
+                  gmsAllowed: true,
+                  gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                  gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
                 },
               }),
             ).resolves.toEqual(
@@ -1338,6 +1373,9 @@ describe('UserResolver', () => {
                 variables: {
                   password: 'Aa12345_',
                   passwordNew: 'Bb12345_',
+                  gmsAllowed: true,
+                  gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                  gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
                 },
               }),
             ).resolves.toEqual(
@@ -2585,6 +2623,9 @@ describe('UserResolver', () => {
           mutation: updateUserInfos,
           variables: {
             alias: 'bibi',
+            gmsAllowed: true,
+            gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+            gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
           },
         })
       })
