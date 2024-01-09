@@ -14,6 +14,25 @@ LOCAL_SCRIPT_DIR=$(dirname $SCRIPT_PATH)
 PROJECT_ROOT=$SCRIPT_DIR/..
 set +o allexport
 
+# If install.sh will be called more than once
+# We have to load the backend .env to get DB_USERNAME, DB_PASSWORD AND JWT_SECRET
+# and the dht-node .env to get FEDERATION_DHT_SEED
+export_var(){
+  export $1=$(grep -v '^#' $PROJECT_ROOT/backend/.env | grep -e "$1" | sed -e 's/.*=//')
+  export $1=$(grep -v '^#' $PROJECT_ROOT/dht-node/.env | grep -e "$1" | sed -e 's/.*=//')
+}
+
+if [ -f "$PROJECT_ROOT/backend/.env" ]; then
+    export_var 'DB_USER'
+    export_var 'DB_PASSWORD'
+    export_var 'JWT_SECRET'
+fi
+
+if [ -f "$PROJECT_ROOT/dht-node/.env" ]; then
+    export_var 'FEDERATION_DHT_SEED'
+fi
+
+
 # Load .env or .env.dist if not present
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
@@ -78,19 +97,14 @@ certbot certonly --nginx --non-interactive --agree-tos --domains $COMMUNITY_HOST
 # Install node 16. with nvm, with nodesource is depracted
 sudo -u gradido bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash'
 # Close and reopen your terminal to start using nvm or run the following to use it now:
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-sudo -u gradido nvm install 16 # first installed version will be set to default automatic
+sudo -u gradido bash -c 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
+sudo -u gradido bash -c '. $HOME/.nvm/nvm.sh && nvm install 16' # first installed version will be set to default automatic
 
 # Install yarn
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-apt-get update
-apt-get install -y yarn
+sudo -u gradido bash -c '. $HOME/.nvm/nvm.sh && npm i -g yarn'
 
 # Install pm2
-yarn global add pm2
-pm2 startup
+sudo -u gradido bash -c '. $HOME/.nvm/nvm.sh && npm i -g pm2 && pm2 startup'
 
 # Install logrotate
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/logrotate/gradido.conf.template > $SCRIPT_PATH/logrotate/gradido.conf

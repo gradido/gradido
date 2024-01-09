@@ -10,6 +10,9 @@ PROJECT_ROOT=$SCRIPT_DIR/../..
 NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
 set +o allexport
 
+# enable nvm 
+export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
 
