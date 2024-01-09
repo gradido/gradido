@@ -76,7 +76,7 @@ ln -s $SCRIPT_PATH/nginx/conf.d /etc/nginx/
 certbot certonly --nginx --non-interactive --agree-tos --domains $COMMUNITY_HOST --email $COMMUNITY_SUPPORT_MAIL
 
 # Install node 16. with nvm, with nodesource is depracted
-sudo -u gradido curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+sudo -u gradido bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash'
 # Close and reopen your terminal to start using nvm or run the following to use it now:
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
