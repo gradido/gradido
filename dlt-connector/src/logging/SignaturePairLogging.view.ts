@@ -7,7 +7,8 @@ export class SignaturePairLoggingView extends AbstractLoggingView {
     super()
   }
 
-  public toJSON() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public toJSON(): any {
     return {
       pubkey: Buffer.from(this.self.pubKey).toString(this.bufferStringFormat),
       signature:

@@ -8,7 +8,8 @@ export class SignatureMapLoggingView extends AbstractLoggingView {
     super()
   }
 
-  public toJSON() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public toJSON(): any {
     return {
       sigPair: this.self.sigPair.map((value) => new SignaturePairLoggingView(value).toJSON()),
     }

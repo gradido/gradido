@@ -21,27 +21,27 @@ export abstract class AbstractLoggingView {
     return this.toString()
   }
 
-  public dateToString(date: Date | undefined | null): string | undefined {
+  protected dateToString(date: Date | undefined | null): string | undefined {
     if (date) {
       return date.toISOString()
     }
     return undefined
   }
 
-  public decimalToString(number: Decimal | undefined | null): string | undefined {
+  protected decimalToString(number: Decimal | undefined | null): string | undefined {
     if (number) {
       return number.toString()
     }
     return undefined
   }
 
-  public timestampSecondsToDateString(timestamp: TimestampSeconds): string | undefined {
+  protected timestampSecondsToDateString(timestamp: TimestampSeconds): string | undefined {
     if (timestamp && timestamp.seconds) {
       return timestampSecondsToDate(timestamp).toISOString()
     }
   }
 
-  public timestampToDateString(timestamp: Timestamp): string | undefined {
+  protected timestampToDateString(timestamp: Timestamp): string | undefined {
     if (timestamp && (timestamp.seconds || timestamp.nanoSeconds)) {
       return timestampToDate(timestamp).toISOString()
     }

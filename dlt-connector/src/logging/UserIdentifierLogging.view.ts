@@ -7,7 +7,8 @@ export class UserIdentifierLoggingView extends AbstractLoggingView {
     super()
   }
 
-  public toJSON() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public toJSON(): any {
     return {
       uuid: this.self.uuid,
       communityUuid: this.self.communityUuid,

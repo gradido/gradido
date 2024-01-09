@@ -11,8 +11,7 @@ export class AccountLoggingView extends AbstractLoggingView {
     super()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public toJSON(): any {
+  public toJSON() {
     return {
       id: this.account.id,
       user: this.account.user ? new UserLoggingView(this.account.user).toJSON() : null,

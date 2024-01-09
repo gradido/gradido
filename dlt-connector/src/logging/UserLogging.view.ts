@@ -7,7 +7,8 @@ export class UserLoggingView extends AbstractLoggingView {
     super()
   }
 
-  public toJSON() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public toJSON(): any {
     return {
       id: this.user.id,
       gradidoId: this.user.gradidoID,

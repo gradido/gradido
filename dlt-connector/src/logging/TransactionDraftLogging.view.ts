@@ -10,7 +10,8 @@ export class TransactionDraftLoggingView extends AbstractLoggingView {
     super()
   }
 
-  public toJSON() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public toJSON(): any {
     return {
       user: new UserIdentifierLoggingView(this.self.user).toJSON(),
       linkedUser: new UserIdentifierLoggingView(this.self.linkedUser).toJSON(),
