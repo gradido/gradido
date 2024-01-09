@@ -1,5 +1,6 @@
-import { getCrossGroupTypeEnumValue } from '@/data/proto/3_3/enum/CrossGroupType'
+import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
 import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
+import { getEnumValue } from '@/utils/typeConverter'
 
 import { AbstractLoggingView } from './AbstractLogging.view'
 import { CommunityRootLoggingView } from './CommunityRootLogging.view'
@@ -20,7 +21,7 @@ export class TransactionBodyLoggingView extends AbstractLoggingView {
       memo: this.self.memo,
       createdAt: this.timestampToDateString(this.self.createdAt),
       versionNumber: this.self.versionNumber,
-      type: getCrossGroupTypeEnumValue(this.self.type),
+      type: getEnumValue(CrossGroupType, this.self.type),
       otherGroup: this.self.otherGroup,
       transfer: this.self.transfer
         ? new GradidoTransferLoggingView(this.self.transfer).toJSON()
