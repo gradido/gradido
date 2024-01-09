@@ -1,4 +1,4 @@
-import { logger } from '@/server/logger'
+import { logger } from '@/logging/logger'
 
 jest.setTimeout(1000000)
 

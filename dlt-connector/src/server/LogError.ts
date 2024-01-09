@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { logger } from './logger'
+import { logger } from '@/logging/logger'
 
 export class LogError extends Error {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

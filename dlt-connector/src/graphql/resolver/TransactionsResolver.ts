@@ -1,9 +1,11 @@
-import { Resolver, Arg, Mutation } from 'type-graphql'
-
 import { TransactionDraft } from '@input/TransactionDraft'
+import { Resolver, Arg, Mutation } from 'type-graphql'
 
 import { TransactionRepository } from '@/data/Transaction.repository'
 import { CreateTransactionRecipeContext } from '@/interactions/backendToDb/transaction/CreateTransationRecipe.context'
+import { BackendTransactionLoggingView } from '@/logging/BackendTransactionLogging.view'
+import { logger } from '@/logging/logger'
+import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
 
 import { TransactionError } from '../model/TransactionError'
@@ -35,8 +37,13 @@ export class TransactionResolver {
         }
         const backendTransaction = transactionRecipe.backendTransactions[0]
         backendTransaction.transactionId = transactionRecipe.id
+        logger.debug(
+          'store backendTransaction',
+          new BackendTransactionLoggingView(backendTransaction),
+        )
         await backendTransaction.save()
       } else {
+        logger.debug('store transaction recipe', new TransactionLoggingView(transactionRecipe))
         // we can store the transaction and with that automatic the backend transaction
         await transactionRecipe.save()
       }
