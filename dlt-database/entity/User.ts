@@ -1,1 +1,1 @@
-export { User } from './0002-refactor_add_community/User'
+export { User } from './0003-refactor_transaction_recipe/User'

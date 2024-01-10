@@ -1,5 +1,6 @@
 import { ApolloServer } from '@apollo/server'
 import { addMocksToSchema } from '@graphql-tools/mock'
+
 import { schema } from '@/graphql/schema'
 
 let apolloTestServer: ApolloServer

@@ -8,7 +8,8 @@ import {
   BaseEntity,
 } from 'typeorm'
 import { Account } from '../Account'
-import { TransactionRecipe } from '../TransactionRecipe'
+// TransactionRecipe was removed in newer migrations, so only the version from this folder can be linked
+import { TransactionRecipe } from '../0001-init_db/TransactionRecipe'
 import { AccountCommunity } from '../AccountCommunity'
 
 @Entity('communities')
@@ -34,14 +35,14 @@ export class Community extends BaseEntity {
   @Column({ name: 'gmw_account_id', type: 'int', unsigned: true, nullable: true })
   gmwAccountId?: number
 
-  @OneToOne(() => Account)
+  @OneToOne(() => Account, { cascade: true })
   @JoinColumn({ name: 'gmw_account_id' })
   gmwAccount?: Account
 
   @Column({ name: 'auf_account_id', type: 'int', unsigned: true, nullable: true })
   aufAccountId?: number
 
-  @OneToOne(() => Account)
+  @OneToOne(() => Account, { cascade: true })
   @JoinColumn({ name: 'auf_account_id' })
   aufAccount?: Account
 

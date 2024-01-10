@@ -1,8 +1,9 @@
 import { IsNull, Not } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
-import { Resolver, Query, Authorized, Arg } from 'type-graphql'
+import { Resolver, Query, Authorized, Args } from 'type-graphql'
 
+import { CommunityArgs } from '@arg/CommunityArgs'
 import { Community } from '@model/Community'
 import { FederatedCommunity } from '@model/FederatedCommunity'
 
@@ -42,10 +43,10 @@ export class CommunityResolver {
 
   @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => Community)
-  async community(@Arg('communityUuid') communityUuid: string): Promise<Community> {
-    const community = await getCommunity(communityUuid)
+  async community(@Args() communityArgs: CommunityArgs): Promise<Community> {
+    const community = await getCommunity(communityArgs)
     if (!community) {
-      throw new LogError('community not found', communityUuid)
+      throw new LogError('community not found', communityArgs.communityUuid, communityArgs.foreign)
     }
     return new Community(community)
   }

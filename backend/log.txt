@@ -1,0 +1,2533 @@
+[0m[7m[1m[31m FAIL [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/graphql/resolver/ContributionResolver.test.ts[2msrc/graphql/resolver/[22m[1mContributionResolver.test.ts[22m]8;; ([0m[1m[41m9.447 s[49m[22m[0m)
+  ContributionResolver
+    createContribution
+      unauthenticated
+        [32m✓[39m [2mreturns an error (8 ms)[22m
+      authenticated with valid user
+        input not valid
+          [32m✓[39m [2mthrows error when memo length smaller than 5 chars (7 ms)[22m
+          [32m✓[39m [2mthrows error when memo length greater than 255 chars (5 ms)[22m
+          [32m✓[39m [2mthrows error when creationDate not-valid (4 ms)[22m
+          [32m✓[39m [2mthrows error when creationDate 3 month behind (13 ms)[22m
+          [32m✓[39m [2mlogs the error "No information for available creations for the given date" again (1 ms)[22m
+        valid input
+          [32m✓[39m [2mcreates contribution[22m
+          [32m✓[39m [2mstores the CONTRIBUTION_CREATE event in the database (4 ms)[22m
+    updateContribution
+      unauthenticated
+        [32m✓[39m [2mreturns an error (2 ms)[22m
+      authenticated
+        Memo length smaller than 5 chars
+          [32m✓[39m [2mthrows error (5 ms)[22m
+        Memo length greater than 255 chars
+          [32m✓[39m [2mthrows error (6 ms)[22m
+        wrong contribution id
+          [32m✓[39m [2mthrows an error (8 ms)[22m
+          [32m✓[39m [2mlogs the error "Contribution not found"[22m
+        wrong user tries to update the contribution
+          [32m✓[39m [2mthrows an error (10 ms)[22m
+          [32m✓[39m [2mlogs the error "Can not update contribution of another user" (1 ms)[22m
+        admin tries to update a user contribution
+          [31m✕[39m [2mthrows an error (24 ms)[22m
+          [31m✕[39m [2mlogs the error "An admin is not allowed to update an user contribution" (1 ms)[22m
+          contribution has wrong status
+            [32m✓[39m [2mthrows an error (9 ms)[22m
+            [32m✓[39m [2mlogs the error "Contribution can not be updated due to status" (1 ms)[22m
+        update too much so that the limit is exceeded
+          [32m✓[39m [2mthrows an error (10 ms)[22m
+          [32m✓[39m [2mlogs the error "The amount to be created exceeds the amount still available for this month" (1 ms)[22m
+        update creation to a date that is older than 3 months
+          [32m✓[39m [2mthrows an error (6 ms)[22m
+          [32m✓[39m [2mlogs the error "Month of contribution can not be changed" (1 ms)[22m
+        valid input
+          [32m✓[39m [2mupdates contribution (19 ms)[22m
+          [32m✓[39m [2mstores the CONTRIBUTION_UPDATE event in the database (97 ms)[22m
+    denyContribution
+      unauthenticated
+        [32m✓[39m [2mreturns an error (2 ms)[22m
+      authenticated without admin rights
+        [32m✓[39m [2mreturns an error (6 ms)[22m
+      authenticated with admin rights
+        wrong contribution id
+          [32m✓[39m [2mthrows an error (6 ms)[22m
+          [32m✓[39m [2mlogs the error "Contribution not found" (1 ms)[22m
+        deny contribution that is already confirmed
+          [32m✓[39m [2mthrows an error (218 ms)[22m
+          [32m✓[39m [2mlogs the error "Contribution not found"[22m
+        deny contribution that is already deleted
+          [32m✓[39m [2mthrows an error (216 ms)[22m
+          [32m✓[39m [2mlogs the error "Contribution not found" (1 ms)[22m
+        deny contribution that is already denied
+          [32m✓[39m [2mthrows an error (211 ms)[22m
+          [32m✓[39m [2mlogs the error "Contribution not found" (1 ms)[22m
+        valid input
+          [32m✓[39m [2mdeny contribution (103 ms)[22m
+          [32m✓[39m [2mstores the ADMIN_CONTRIBUTION_DENY event in the database (2 ms)[22m
+          [32m✓[39m [2mcalls sendContributionDeniedEmail[22m
+    deleteContribution
+      unauthenticated
+        [32m✓[39m [2mreturns an error (1 ms)[22m
+      authenticated
+        wrong contribution id
+          [32m✓[39m [2mreturns an error (7 ms)[22m
+          [32m✓[39m [2mlogs the error "Contribution not found" (1 ms)[22m
+        other user sends a deleteContribution
+          [32m✓[39m [2mreturns an error (5 ms)[22m
+          [32m✓[39m [2mlogs the error "Can not delete contribution of another user" (1 ms)[22m
+        User deletes own contribution
+          [32m✓[39m [2mdeletes successfully (20 ms)[22m
+          [32m✓[39m [2mstores the CONTRIBUTION_DELETE event in the database (2 ms)[22m
+        User deletes already confirmed contribution
+          [32m✓[39m [2mthrows an error (199 ms)[22m
+          [32m✓[39m [2mlogs the error "A confirmed contribution can not be deleted" (1 ms)[22m
+    listContributions
+      unauthenticated
+        [32m✓[39m [2mreturns an error (2 ms)[22m
+      authenticated
+        no status filter
+          [31m✕[39m [2mreturns creations (15 ms)[22m
+        with status filter [PENDING, IN_PROGRESS, DENIED, DELETED]
+          [31m✕[39m [2mreturns only unconfirmed creations (9 ms)[22m
+    listAllContribution
+      unauthenticated
+        [32m✓[39m [2mreturns an error (1 ms)[22m
+      authenticated
+        [32m✓[39m [2mthrows an error with "NOT_VALID" in statusFilter (6 ms)[22m
+        [32m✓[39m [2mthrows an error with a null in statusFilter (2 ms)[22m
+        [32m✓[39m [2mthrows an error with null and "NOT_VALID" in statusFilter (2 ms)[22m
+        [32m✓[39m [2mreturns all contributions without statusFilter (8 ms)[22m
+        [32m✓[39m [2mreturns all contributions for statusFilter = null (8 ms)[22m
+        [32m✓[39m [2mreturns all contributions for statusFilter = [] (7 ms)[22m
+        [32m✓[39m [2mreturns all CONFIRMED contributions (6 ms)[22m
+        [32m✓[39m [2mreturns all PENDING contributions (6 ms)[22m
+        [32m✓[39m [2mreturns all IN_PROGRESS Creation (6 ms)[22m
+        [32m✓[39m [2mreturns all DENIED Creation (6 ms)[22m
+        [32m✓[39m [2mdoes not return any DELETED Creation (6 ms)[22m
+        [32m✓[39m [2mreturns all CONFIRMED and PENDING Creation (7 ms)[22m
+    contributions
+      unauthenticated
+        adminCreateContribution
+          [32m✓[39m [2mreturns an error (2 ms)[22m
+        adminUpdateContribution
+          [32m✓[39m [2mreturns an error (1 ms)[22m
+        adminDeleteContribution
+          [32m✓[39m [2mreturns an error (1 ms)[22m
+        confirmContribution
+          [32m✓[39m [2mreturns an error (1 ms)[22m
+      authenticated
+        without admin rights
+          adminCreateContribution
+            [32m✓[39m [2mreturns an error (7 ms)[22m
+          adminUpdateContribution
+            [32m✓[39m [2mreturns an error (4 ms)[22m
+          adminDeleteContribution
+            [32m✓[39m [2mreturns an error (3 ms)[22m
+          confirmContribution
+            [32m✓[39m [2mreturns an error (3 ms)[22m
+        with admin rights
+          adminCreateContribution
+            user to create for does not exist
+              [32m✓[39m [2mthrows an error (7 ms)[22m
+              [32m✓[39m [2mlogs the error "Could not find user" (1 ms)[22m
+            user to create for is deleted
+              [32m✓[39m [2mthrows an error (6 ms)[22m
+              [32m✓[39m [2mlogs the error "Cannot create contribution since the user was deleted" (1 ms)[22m
+            user to create for has email not confirmed
+              [32m✓[39m [2mthrows an error (7 ms)[22m
+              [32m✓[39m [2mlogs the error "Cannot create contribution since the users email is not activated" (1 ms)[22m
+            valid user to create for
+              date of creation is not a date string
+                [32m✓[39m [2mthrows an error (4 ms)[22m
+              date of creation is four months ago
+                [32m✓[39m [2mthrows an error (7 ms)[22m
+                [32m✓[39m [2mlogs the error "No information for available creations for the given date"[22m
+              date of creation is in the future
+                [32m✓[39m [2mthrows an error (7 ms)[22m
+                [32m✓[39m [2mlogs the error "No information for available creations for the given date"[22m
+              amount of creation is too high
+                [32m✓[39m [2mthrows an error (7 ms)[22m
+                [32m✓[39m [2mlogs the error "The amount to be created exceeds the amount still available for this month" (1 ms)[22m
+              creation is valid
+                [32m✓[39m [2mreturns an array of the open creations for the last three months (18 ms)[22m
+                [32m✓[39m [2mstores the ADMIN_CONTRIBUTION_CREATE event in the database (5 ms)[22m
+                user tries to update admin contribution
+                  [32m✓[39m [2mlogs and throws "Cannot update contribution of moderator" error (8 ms)[22m
+              second creation surpasses the available amount 
+                [32m✓[39m [2mreturns an array of the open creations for the last three months (9 ms)[22m
+                [32m✓[39m [2mlogs the error "The amount to be created exceeds the amount still available for this month" (1 ms)[22m
+          adminUpdateContribution
+            creation does not exist
+              [32m✓[39m [2mthrows an error (5 ms)[22m
+              [32m✓[39m [2mlogs the error "Contribution not found"[22m
+            creation update is not valid
+              [32m✓[39m [2mthrows an error (8 ms)[22m
+              [32m✓[39m [2mlogs the error "The amount to be created exceeds the amount still available for this month" (1 ms)[22m
+            creation update is successful changing month
+              [33m○[39m [2mskipped returns update creation object[22m
+              [33m○[39m [2mskipped stores the ADMIN_CONTRIBUTION_UPDATE event in the database[22m
+            creation update is successful without changing month
+              [32m✓[39m [2mreturns update creation object (16 ms)[22m
+              [32m✓[39m [2mstores the ADMIN_CONTRIBUTION_UPDATE event in the database (3 ms)[22m
+          adminDeleteContribution
+            creation id does not exist
+              [32m✓[39m [2mthrows an error (8 ms)[22m
+              [32m✓[39m [2mlogs the error "Contribution not found"[22m
+            admin deletes own user contribution
+              [32m✓[39m [2mthrows an error (5 ms)[22m
+            creation id does exist
+              [32m✓[39m [2mreturns true (25 ms)[22m
+              [32m✓[39m [2mstores the ADMIN_CONTRIBUTION_DELETE event in the database (4 ms)[22m
+              [32m✓[39m [2mcalls sendContributionDeletedEmail[22m
+            creation already confirmed
+              [32m✓[39m [2mthrows an error (350 ms)[22m
+          confirmContribution
+            creation does not exits
+              [32m✓[39m [2mthrows an error (5 ms)[22m
+              [32m✓[39m [2mlogs the error "Contribution not found" (1 ms)[22m
+            confirm own creation
+              [32m✓[39m [2mthows an error (5 ms)[22m
+              [32m✓[39m [2mlogs the error "Moderator can not confirm own contribution" (1 ms)[22m
+            confirm creation for other user
+              [32m✓[39m [2mreturns true (21 ms)[22m
+              [32m✓[39m [2mstores the ADMIN_CONTRIBUTION_CONFIRM event in the database (4 ms)[22m
+              [32m✓[39m [2mcreates a transaction (3 ms)[22m
+              [32m✓[39m [2mcalls sendContributionConfirmedEmail[22m
+              [32m✓[39m [2mstores the EMAIL_CONFIRMATION event in the database (4 ms)[22m
+              [32m✓[39m [2mlogs the error "Contribution already confirmed" (1 ms)[22m
+              confirm same contribution again
+                [32m✓[39m [2mthrows an error (6 ms)[22m
+            confirm two creations one after the other quickly
+              [32m✓[39m [2mthrows no error for the second confirmation (43 ms)[22m
+    adminListContributions
+      unauthenticated
+        [32m✓[39m [2mreturns an error (2 ms)[22m
+      authenticated as user
+        [32m✓[39m [2mreturns an error (4 ms)[22m
+      authenticated as admin
+        [32m✓[39m [2mthrow error for invalid ContributionStatus in statusFilter array (1 ms)[22m
+        [31m✕[39m [2mreturns 18 creations in total (20 ms)[22m
+        [32m✓[39m [2mreturns two pending creations with page size set to 2 (9 ms)[22m
+        with user query
+          [31m✕[39m [2mreturns only contributions of the queried user (10 ms)[22m
+          [31m✕[39m [2mreturns only contributions of the queried user without hashtags (10 ms)[22m
+          [32m✓[39m [2mreturns only contributions with #firefighter (7 ms)[22m
+          [32m✓[39m [2mreturns no contributions with #firefighter and no hashtag (6 ms)[22m
+          [32m✓[39m [2mreturns only contributions of the queried user email (8 ms)[22m
+
+[1m[31m  [1m● [22m[1mContributionResolver › updateContribution › authenticated › admin tries to update a user contribution › throws an error[39m[22m
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    Expected: [32m[[GraphQLError: An admin is not allowed to update an user contribution]][39m
+    Received: [31mundefined[39m
+[2m[22m
+[2m    [0m [90m 509 |[39m             }[33m,[39m[0m[22m
+[2m    [0m [90m 510 |[39m           })[0m[22m
+[2m    [0m[31m[1m>[22m[2m[39m[90m 511 |[39m           expect(errorObjects)[33m.[39mtoEqual([[0m[22m
+[2m    [0m [90m     |[39m                                [31m[1m^[22m[2m[39m[0m[22m
+[2m    [0m [90m 512 |[39m             [36mnew[39m [33mGraphQLError[39m([32m'An admin is not allowed to update an user contribution'[39m)[33m,[39m[0m[22m
+[2m    [0m [90m 513 |[39m           ])[0m[22m
+[2m    [0m [90m 514 |[39m         })[0m[22m
+[2m[22m
+[2m      [2mat [22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:511:32[22m[2m[22m
+[2m      [2mat fulfilled ([22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:5:58)[22m[2m[22m
+
+[1m[31m  [1m● [22m[1mContributionResolver › updateContribution › authenticated › admin tries to update a user contribution › logs the error "An admin is not allowed to update an user contribution"[39m[22m
+
+    [2mexpect([22m[31mjest.fn()[39m[2m).[22mtoBeCalledWith[2m([22m[32m...expected[39m[2m)[22m
+
+    Expected: [32m"An admin is not allowed to update an user contribution"[39m
+
+    Number of calls: [31m0[39m
+[2m[22m
+[2m    [0m [90m 515 |[39m[0m[22m
+[2m    [0m [90m 516 |[39m         it([32m'logs the error "An admin is not allowed to update an user contribution"'[39m[33m,[39m () [33m=>[39m {[0m[22m
+[2m    [0m[31m[1m>[22m[2m[39m[90m 517 |[39m           expect(logger[33m.[39merror)[33m.[39mtoBeCalledWith([0m[22m
+[2m    [0m [90m     |[39m                                [31m[1m^[22m[2m[39m[0m[22m
+[2m    [0m [90m 518 |[39m             [32m'An admin is not allowed to update an user contribution'[39m[33m,[39m[0m[22m
+[2m    [0m [90m 519 |[39m           )[0m[22m
+[2m    [0m [90m 520 |[39m         })[0m[22m
+[2m[22m
+[2m      [2mat Object.<anonymous> ([22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:517:32)[22m[2m[22m
+
+[1m[31m  [1m● [22m[1mContributionResolver › listContributions › authenticated › no status filter › returns creations[39m[22m
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoMatchObject[2m([22m[32mexpected[39m[2m)[22m
+
+    [32m- Expected  - 16[39m
+    [31m+ Received  + 64[39m
+
+    [2m  Object {[22m
+    [2m    "contributionCount": 6,[22m
+    [32m-   "contributionList": ArrayContaining [[39m
+    [32m-     ObjectContaining {[39m
+    [31m+   "contributionList": Array [[39m
+    [31m+     Object {[39m
+    [2m        "amount": "100",[22m
+    [32m-       "id": 25,[39m
+    [32m-       "memo": "Test contribution to confirm",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": "2023-11-06T08:36:49.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [31m+       "id": 27,[39m
+    [31m+       "memo": "Test contribution to delete",[39m
+    [2m        "messagesCount": 0,[22m
+    [32m-     },[39m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": "10",[39m
+    [32m-       "id": 23,[39m
+    [32m-       "memo": "Test PENDING contribution update",[39m
+    [32m-       "messagesCount": 1,[39m
+    [31m+       "status": "DELETED",[39m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [31m+     Object {[39m
+    [2m        "amount": "100",[22m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "deniedBy": 283,[39m
+    [2m        "id": 26,[22m
+    [2m        "memo": "Test contribution to deny",[22m
+    [2m        "messagesCount": 0,[22m
+    [31m+       "status": "DENIED",[39m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [31m+     Object {[39m
+    [2m        "amount": "100",[22m
+    [32m-       "id": 27,[39m
+    [32m-       "memo": "Test contribution to delete",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:49.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [31m+       "id": 25,[39m
+    [31m+       "memo": "Test contribution to confirm",[39m
+    [2m        "messagesCount": 0,[22m
+    [31m+       "status": "CONFIRMED",[39m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [31m+     Object {[39m
+    [2m        "amount": "100",[22m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "id": 24,[22m
+    [2m        "memo": "Test IN_PROGRESS contribution",[22m
+    [2m        "messagesCount": 1,[22m
+    [31m+       "status": "IN_PROGRESS",[39m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "10",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:47.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [31m+       "id": 23,[39m
+    [31m+       "memo": "Test PENDING contribution update",[39m
+    [31m+       "messagesCount": 2,[39m
+    [31m+       "status": "PENDING",[39m
+    [31m+     },[39m
+    [31m+     Object {[39m
+    [2m        "amount": "1000",[22m
+    [31m+       "confirmedAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2022-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "id": 22,[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido!",[22m
+    [2m        "messagesCount": 0,[22m
+    [31m+       "status": "CONFIRMED",[39m
+    [2m      },[22m
+    [2m    ],[22m
+    [2m  }[22m
+[2m[22m
+[2m    [0m [90m 1103 |[39m             }[33m,[39m[0m[22m
+[2m    [0m [90m 1104 |[39m           })[0m[22m
+[2m    [0m[31m[1m>[22m[2m[39m[90m 1105 |[39m           expect(contributionListResult)[33m.[39mtoMatchObject({[0m[22m
+[2m    [0m [90m      |[39m                                          [31m[1m^[22m[2m[39m[0m[22m
+[2m    [0m [90m 1106 |[39m             contributionCount[33m:[39m [35m6[39m[33m,[39m[0m[22m
+[2m    [0m [90m 1107 |[39m             contributionList[33m:[39m expect[33m.[39marrayContaining([[0m[22m
+[2m    [0m [90m 1108 |[39m               expect[33m.[39mobjectContaining({[0m[22m
+[2m[22m
+[2m      [2mat [22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:1105:42[22m[2m[22m
+[2m      [2mat fulfilled ([22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:5:58)[22m[2m[22m
+
+[1m[31m  [1m● [22m[1mContributionResolver › listContributions › authenticated › with status filter [PENDING, IN_PROGRESS, DENIED, DELETED] › returns only unconfirmed creations[39m[22m
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoMatchObject[2m([22m[32mexpected[39m[2m)[22m
+
+    [32m- Expected  - 19[39m
+    [31m+ Received  + 44[39m
+
+    [2m  Object {[22m
+    [2m    "contributionCount": 4,[22m
+    [32m-   "contributionList": ArrayContaining [[39m
+    [32m-     ObjectNotContaining {[39m
+    [32m-       "status": "CONFIRMED",[39m
+    [31m+   "contributionList": Array [[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": "2023-11-06T08:36:49.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [31m+       "id": 27,[39m
+    [31m+       "memo": "Test contribution to delete",[39m
+    [31m+       "messagesCount": 0,[39m
+    [31m+       "status": "DELETED",[39m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": "10",[39m
+    [32m-       "id": 23,[39m
+    [32m-       "memo": "Test PENDING contribution update",[39m
+    [32m-       "messagesCount": 1,[39m
+    [32m-       "status": "PENDING",[39m
+    [32m-     },[39m
+    [32m-     ObjectContaining {[39m
+    [31m+     Object {[39m
+    [2m        "amount": "100",[22m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "deniedBy": 283,[39m
+    [2m        "id": 26,[22m
+    [2m        "memo": "Test contribution to deny",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "DENIED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [31m+     Object {[39m
+    [2m        "amount": "100",[22m
+    [32m-       "id": 27,[39m
+    [32m-       "memo": "Test contribution to delete",[39m
+    [32m-       "messagesCount": 0,[39m
+    [32m-       "status": "DELETED",[39m
+    [32m-     },[39m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "id": 24,[22m
+    [2m        "memo": "Test IN_PROGRESS contribution",[22m
+    [2m        "messagesCount": 1,[22m
+    [2m        "status": "IN_PROGRESS",[22m
+    [31m+     },[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "10",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:47.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [31m+       "id": 23,[39m
+    [31m+       "memo": "Test PENDING contribution update",[39m
+    [31m+       "messagesCount": 2,[39m
+    [31m+       "status": "PENDING",[39m
+    [2m      },[22m
+    [2m    ],[22m
+    [2m  }[22m
+[2m[22m
+[2m    [0m [90m 1161 |[39m             }[33m,[39m[0m[22m
+[2m    [0m [90m 1162 |[39m           })[0m[22m
+[2m    [0m[31m[1m>[22m[2m[39m[90m 1163 |[39m           expect(contributionListResult)[33m.[39mtoMatchObject({[0m[22m
+[2m    [0m [90m      |[39m                                          [31m[1m^[22m[2m[39m[0m[22m
+[2m    [0m [90m 1164 |[39m             contributionCount[33m:[39m [35m4[39m[33m,[39m[0m[22m
+[2m    [0m [90m 1165 |[39m             contributionList[33m:[39m expect[33m.[39marrayContaining([[0m[22m
+[2m    [0m [90m 1166 |[39m               expect[33m.[39mnot[33m.[39mobjectContaining({[0m[22m
+[2m[22m
+[2m      [2mat [22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:1163:42[22m[2m[22m
+[2m      [2mat fulfilled ([22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:5:58)[22m[2m[22m
+
+[1m[31m  [1m● [22m[1mContributionResolver › adminListContributions › authenticated as admin › returns 18 creations in total[39m[22m
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoMatchObject[2m([22m[32mexpected[39m[2m)[22m
+
+    [32m- Expected  -  57[39m
+    [31m+ Received  + 165[39m
+
+    [33m@@ -1,165 +1,273 @@[39m
+    [2m  Object {[22m
+    [2m    "contributionCount": 18,[22m
+    [32m-   "contributionList": ArrayContaining [[39m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+   "contributionList": Array [[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 39,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "#firefighters",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<50>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "50",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2023-09-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 38,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido liebe Bibi!",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "CONFIRMED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<50>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "50",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2023-09-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 37,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido liebe Bibi!",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "CONFIRMED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<450>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "450",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2023-09-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 36,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido liebe Bibi!",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "CONFIRMED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<400>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "400",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 35,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido!",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2023-11-06T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bob",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 34,[39m
+    [2m        "lastName": "der Baumeister",[22m
+    [2m        "memo": "Confirmed Contribution",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "CONFIRMED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 33,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Test env contribution",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<200>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "200",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 32,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Aktives Grundeinkommen",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<200>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "200",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:49.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 31,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Das war leider zu Viel!",[22m
+    [32m-       "messagesCount": 0,[39m
+    [31m+       "messagesCount": 1,[39m
+    [2m        "status": "DELETED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<166>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "166",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "deniedAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "deniedBy": 283,[39m
+    [2m        "firstName": "Räuber",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 30,[39m
+    [2m        "lastName": "Hotzenplotz",[22m
+    [2m        "memo": "Whatever contribution",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "DENIED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<166>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "166",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Räuber",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 29,[39m
+    [2m        "lastName": "Hotzenplotz",[22m
+    [2m        "memo": "Whatever contribution",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "DELETED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<166>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "166",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Räuber",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 28,[39m
+    [2m        "lastName": "Hotzenplotz",[22m
+    [2m        "memo": "Whatever contribution",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "CONFIRMED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 27,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Test contribution to delete",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "DELETED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deniedAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "deniedBy": 283,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 26,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Test contribution to deny",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "DENIED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:49.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 25,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Test contribution to confirm",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "CONFIRMED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 24,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Test IN_PROGRESS contribution",[22m
+    [2m        "messagesCount": 1,[22m
+    [2m        "status": "IN_PROGRESS",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<10>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "10",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:47.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 23,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Test PENDING contribution update",[22m
+    [32m-       "messagesCount": 2,[39m
+    [31m+       "messagesCount": 3,[39m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<1000>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "1000",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2022-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 22,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido!",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "CONFIRMED",[22m
+    [2m      },[22m
+[2m[22m
+[2m    [0m [90m 2827 |[39m         [90m// console.log('17 contributions: %s', JSON.stringify(contributionListObject, null, 2))[39m[0m[22m
+[2m    [0m [90m 2828 |[39m         expect(contributionListObject[33m.[39mcontributionList)[33m.[39mtoHaveLength([35m18[39m)[0m[22m
+[2m    [0m[31m[1m>[22m[2m[39m[90m 2829 |[39m         expect(contributionListObject)[33m.[39mtoMatchObject({[0m[22m
+[2m    [0m [90m      |[39m                                        [31m[1m^[22m[2m[39m[0m[22m
+[2m    [0m [90m 2830 |[39m           contributionCount[33m:[39m [35m18[39m[33m,[39m[0m[22m
+[2m    [0m [90m 2831 |[39m           contributionList[33m:[39m expect[33m.[39marrayContaining([[0m[22m
+[2m    [0m [90m 2832 |[39m             expect[33m.[39mobjectContaining({[0m[22m
+[2m[22m
+[2m      [2mat [22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:2829:40[22m[2m[22m
+[2m      [2mat fulfilled ([22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:5:58)[22m[2m[22m
+
+[1m[31m  [1m● [22m[1mContributionResolver › adminListContributions › authenticated as admin › with user query › returns only contributions of the queried user[39m[22m
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoMatchObject[2m([22m[32mexpected[39m[2m)[22m
+
+    [32m- Expected  - 14[39m
+    [31m+ Received  + 38[39m
+
+    [2m  Object {[22m
+    [2m    "contributionCount": 4,[22m
+    [32m-   "contributionList": ArrayContaining [[39m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+   "contributionList": Array [[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 39,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "#firefighters",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<400>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "400",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 35,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido!",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 33,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Test env contribution",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<200>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "200",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:49.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 31,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Das war leider zu Viel!",[22m
+    [32m-       "messagesCount": 0,[39m
+    [31m+       "messagesCount": 1,[39m
+    [2m        "status": "DELETED",[22m
+    [2m      },[22m
+    [2m    ],[22m
+    [2m  }[22m
+[2m[22m
+[2m    [0m [90m 3057 |[39m           })[0m[22m
+[2m    [0m [90m 3058 |[39m           expect(contributionListObject[33m.[39mcontributionList)[33m.[39mtoHaveLength([35m4[39m)[0m[22m
+[2m    [0m[31m[1m>[22m[2m[39m[90m 3059 |[39m           expect(contributionListObject)[33m.[39mtoMatchObject({[0m[22m
+[2m    [0m [90m      |[39m                                          [31m[1m^[22m[2m[39m[0m[22m
+[2m    [0m [90m 3060 |[39m             contributionCount[33m:[39m [35m4[39m[33m,[39m[0m[22m
+[2m    [0m [90m 3061 |[39m             contributionList[33m:[39m expect[33m.[39marrayContaining([[0m[22m
+[2m    [0m [90m 3062 |[39m               expect[33m.[39mobjectContaining({[0m[22m
+[2m[22m
+[2m      [2mat [22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:3059:42[22m[2m[22m
+[2m      [2mat fulfilled ([22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:5:58)[22m[2m[22m
+
+[1m[31m  [1m● [22m[1mContributionResolver › adminListContributions › authenticated as admin › with user query › returns only contributions of the queried user without hashtags[39m[22m
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoMatchObject[2m([22m[32mexpected[39m[2m)[22m
+
+    [32m- Expected  - 11[39m
+    [31m+ Received  + 29[39m
+
+    [2m  Object {[22m
+    [2m    "contributionCount": 3,[22m
+    [32m-   "contributionList": ArrayContaining [[39m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<400>,[39m
+    [31m+   "contributionList": Array [[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "400",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 35,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido!",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 33,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Test env contribution",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<200>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "200",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:49.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 31,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Das war leider zu Viel!",[22m
+    [32m-       "messagesCount": 0,[39m
+    [31m+       "messagesCount": 1,[39m
+    [2m        "status": "DELETED",[22m
+    [2m      },[22m
+    [2m    ],[22m
+    [2m  }[22m
+[2m[22m
+[2m    [0m [90m 3111 |[39m           })[0m[22m
+[2m    [0m [90m 3112 |[39m           expect(contributionListObject[33m.[39mcontributionList)[33m.[39mtoHaveLength([35m3[39m)[0m[22m
+[2m    [0m[31m[1m>[22m[2m[39m[90m 3113 |[39m           expect(contributionListObject)[33m.[39mtoMatchObject({[0m[22m
+[2m    [0m [90m      |[39m                                          [31m[1m^[22m[2m[39m[0m[22m
+[2m    [0m [90m 3114 |[39m             contributionCount[33m:[39m [35m3[39m[33m,[39m[0m[22m
+[2m    [0m [90m 3115 |[39m             contributionList[33m:[39m expect[33m.[39marrayContaining([[0m[22m
+[2m    [0m [90m 3116 |[39m               expect[33m.[39mobjectContaining({[0m[22m
+[2m[22m
+[2m      [2mat [22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:3113:42[22m[2m[22m
+[2m      [2mat fulfilled ([22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:5:58)[22m[2m[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/graphql/resolver/UserResolver.test.ts[2msrc/graphql/resolver/[22m[1mUserResolver.test.ts[22m]8;; ([0m[1m[41m12.687 s[49m[22m[0m)
+  UserResolver
+    createUser
+      [32m✓[39m [2mreturns success (2 ms)[22m
+      valid input data
+        [32m✓[39m [2mstores the USER_REGISTER event in the database (5 ms)[22m
+        filling all tables
+          [32m✓[39m [2msaves the user in users table (1 ms)[22m
+          [32m✓[39m [2mcreates an email contact[22m
+      account activation email
+        [32m✓[39m [2msends an account activation email (1 ms)[22m
+        [32m✓[39m [2mstores the EMAIL_CONFIRMATION event in the database (2 ms)[22m
+      user already exists
+        [32m✓[39m [2mlogs an info (1 ms)[22m
+        [32m✓[39m [2msends an account multi registration email (1 ms)[22m
+        [32m✓[39m [2mresults with partly faked user with random "id"[22m
+        [32m✓[39m [2mstores the EMAIL_ACCOUNT_MULTIREGISTRATION event in the database (7 ms)[22m
+      unknown language
+        [32m✓[39m [2msets "de" as default language (63 ms)[22m
+      no publisher id
+        [32m✓[39m [2msets publisher id to 0 (55 ms)[22m
+      redeem codes
+        contribution link
+          [32m✓[39m [2msets the contribution link id (4 ms)[22m
+          [32m✓[39m [2mstores the USER_ACTIVATE_ACCOUNT event in the database (2 ms)[22m
+          [32m✓[39m [2mstores the USER_REGISTER_REDEEM event in the database (3 ms)[22m
+        transaction link
+          [32m✓[39m [2msets the referrer id to bob baumeister id (3 ms)[22m
+          [32m✓[39m [2mstores the USER_REGISTER_REDEEM event in the database (2 ms)[22m
+    setPassword
+      valid optin code and valid password
+        [32m✓[39m [2msets email checked to true (1 ms)[22m
+        [32m✓[39m [2mupdates the password (76 ms)[22m
+        [32m✓[39m [2mcalls the klicktipp API[22m
+        [32m✓[39m [2mreturns true (1 ms)[22m
+      no valid password
+        [32m✓[39m [2mthrows an error (21 ms)[22m
+        [32m✓[39m [2mlogs the error thrown (1 ms)[22m
+      no valid optin code
+        [32m✓[39m [2mthrows an error (2 ms)[22m
+        [32m✓[39m [2mlogs the error found[22m
+    login
+      no users in database
+        [32m✓[39m [2mthrows an error (6 ms)[22m
+        [32m✓[39m [2mlogs the error found (1 ms)[22m
+      user is in database and correct login data
+        [32m✓[39m [2mreturns the user object (1 ms)[22m
+        [32m✓[39m [2msets the token in the header (1 ms)[22m
+        [32m✓[39m [2mstores the USER_LOGIN event in the database (4 ms)[22m
+      user is in database and wrong password
+        [32m✓[39m [2mreturns an error (1 ms)[22m
+        [32m✓[39m [2mlogs the error thrown (1 ms)[22m
+      user is in database but deleted
+        [32m✓[39m [2mreturns an error (1 ms)[22m
+        [32m✓[39m [2mlogs the error thrown[22m
+      user is in database but email not confirmed
+        [32m✓[39m [2mreturns an error (1 ms)[22m
+        [32m✓[39m [2mlogs the error thrown[22m
+      user is in database but password is not set
+        [33m○[39m [2mskipped returns an error[22m
+        [33m○[39m [2mskipped logs the error thrown[22m
+    logout
+      unauthenticated
+        [32m✓[39m [2mthrows an error (4 ms)[22m
+      authenticated
+        [32m✓[39m [2mreturns true (10 ms)[22m
+        [32m✓[39m [2mstores the USER_LOGOUT event in the database (6 ms)[22m
+    verifyLogin
+      unauthenticated
+        [32m✓[39m [2mthrows an error (1 ms)[22m
+      user exists but is not logged in
+        [32m✓[39m [2mthrows an error (1 ms)[22m
+        authenticated
+          [32m✓[39m [2mreturns user object (5 ms)[22m
+          [32m✓[39m [2mstores the USER_LOGIN event in the database (4 ms)[22m
+    forgotPassword
+      user is not in DB
+        duration not expired
+          [32m✓[39m [2mreturns true (3 ms)[22m
+      user exists in DB
+        duration not expired
+          [32m✓[39m [2mthrows an error (7 ms)[22m
+        duration reset to 0
+          [32m✓[39m [2mreturns true (36 ms)[22m
+          [32m✓[39m [2msends reset password email (1 ms)[22m
+          [32m✓[39m [2mstores the EMAIL_FORGOT_PASSWORD event in the database (5 ms)[22m
+        request reset password again
+          [32m✓[39m [2mthows an error (6 ms)[22m
+          [32m✓[39m [2mlogs the error found[22m
+    queryOptIn
+      wrong optin code
+        [32m✓[39m [2mthrows an error (8 ms)[22m
+      correct optin code
+        [32m✓[39m [2mreturns true (2 ms)[22m
+    updateUserInfos
+      unauthenticated
+        [32m✓[39m [2mthrows an error (2 ms)[22m
+      authenticated
+        [32m✓[39m [2mreturns true (13 ms)[22m
+        first-name, last-name and language
+          [32m✓[39m [2mupdates the fields in DB (14 ms)[22m
+          [32m✓[39m [2mstores the USER_INFO_UPDATE event in the database (7 ms)[22m
+        alias
+          valid alias
+            [32m✓[39m [2mupdates the user in DB (17 ms)[22m
+        language is not valid
+          [32m✓[39m [2mthrows an error (5 ms)[22m
+          [32m✓[39m [2mlogs the error found[22m
+        password
+          wrong old password
+            [32m✓[39m [2mthrows an error (81 ms)[22m
+            [32m✓[39m [2mlogs the error found[22m
+          invalid new password
+            [32m✓[39m [2mthrows an error (5 ms)[22m
+            [32m✓[39m [2mlogs the error found (1 ms)[22m
+          correct old and new password
+            [32m✓[39m [2mreturns true (166 ms)[22m
+            [32m✓[39m [2mcan login with new password (89 ms)[22m
+            [32m✓[39m [2mcannot login with old password (82 ms)[22m
+            [32m✓[39m [2mlogs the error thrown (1 ms)[22m
+    searchAdminUsers
+      unauthenticated
+        [32m✓[39m [2mthrows an error (3 ms)[22m
+      authenticated
+        [32m✓[39m [2mfinds peter@lustig.de (8 ms)[22m
+    password encryption type
+      user just registered
+        [32m✓[39m [2mhas password type gradido id (79 ms)[22m
+      user has encryption type email
+        [32m✓[39m [2mchanges to gradidoID on login (259 ms)[22m
+        [32m✓[39m [2mcan login after password change (93 ms)[22m
+    set user role
+      unauthenticated
+        [32m✓[39m [2mreturns an error (2 ms)[22m
+      authenticated
+        with user rights
+          [32m✓[39m [2mreturns an error (4 ms)[22m
+        with moderator rights
+          [32m✓[39m [2mreturns an error (4 ms)[22m
+        with admin rights
+          [32m✓[39m [2mreturns user with new moderator-role (18 ms)[22m
+          user to get a new role does not exist
+            [32m✓[39m [2mthrows an error (8 ms)[22m
+            [32m✓[39m [2mlogs the error thrown (1 ms)[22m
+          change role with success
+            user gets new role
+              to admin
+                [32m✓[39m [2mreturns admin-rolename (17 ms)[22m
+                [32m✓[39m [2mstores the ADMIN_USER_ROLE_SET event in the database (5 ms)[22m
+              to moderator
+                [32m✓[39m [2mreturns date string (18 ms)[22m
+                [32m✓[39m [2mstores the ADMIN_USER_ROLE_SET event in the database (2 ms)[22m
+              to usual user
+                [32m✓[39m [2mreturns null (16 ms)[22m
+          change role with error
+            his own role
+              [32m✓[39m [2mthrows an error (7 ms)[22m
+              [32m✓[39m [2mlogs the error thrown[22m
+            to not allowed role
+              [32m✓[39m [2mthrows an error (4 ms)[22m
+            user has already role to be set
+              to admin
+                [32m✓[39m [2mthrows an error (26 ms)[22m
+                [32m✓[39m [2mlogs the error thrown (1 ms)[22m
+              to moderator
+                [32m✓[39m [2mthrows an error (25 ms)[22m
+                [32m✓[39m [2mlogs the error thrown (1 ms)[22m
+              to usual user
+                [32m✓[39m [2mthrows an error (23 ms)[22m
+                [32m✓[39m [2mlogs the error thrown[22m
+    delete user
+      unauthenticated
+        [32m✓[39m [2mreturns an error (2 ms)[22m
+      authenticated
+        without admin rights
+          [32m✓[39m [2mreturns an error (4 ms)[22m
+        with admin rights
+          user to be deleted does not exist
+            [32m✓[39m [2mthrows an error (6 ms)[22m
+            [32m✓[39m [2mlogs the error thrown[22m
+          delete self
+            [32m✓[39m [2mthrows an error (7 ms)[22m
+            [32m✓[39m [2mlogs the error thrown[22m
+          delete with success
+            [32m✓[39m [2mreturns date string (19 ms)[22m
+            [32m✓[39m [2mstores the ADMIN_USER_DELETE event in the database (8 ms)[22m
+            delete deleted user
+              [32m✓[39m [2mthrows an error (6 ms)[22m
+              [32m✓[39m [2mlogs the error thrown[22m
+    sendActivationEmail
+      unauthenticated
+        [32m✓[39m [2mreturns an error (2 ms)[22m
+      authenticated
+        without admin rights
+          [32m✓[39m [2mreturns an error (3 ms)[22m
+        with admin rights
+          user does not exist
+            [32m✓[39m [2mthrows an error (6 ms)[22m
+            [32m✓[39m [2mlogs the error thrown[22m
+          user is deleted
+            [32m✓[39m [2mthrows an error (155 ms)[22m
+            [32m✓[39m [2mlogs the error thrown[22m
+          sendActivationEmail with success
+            [32m✓[39m [2mreturns true (36 ms)[22m
+            [32m✓[39m [2msends an account activation email (4 ms)[22m
+            [32m✓[39m [2mstores the EMAIL_ADMIN_CONFIRMATION event in the database (7 ms)[22m
+    unDelete user
+      unauthenticated
+        [32m✓[39m [2mreturns an error (2 ms)[22m
+      authenticated
+        without admin rights
+          [32m✓[39m [2mreturns an error (4 ms)[22m
+        with admin rights
+          user to be undelete does not exist
+            [32m✓[39m [2mthrows an error (5 ms)[22m
+            [32m✓[39m [2mlogs the error thrown[22m
+          user to undelete is not deleted
+            [32m✓[39m [2mthrows an error (6 ms)[22m
+            [32m✓[39m [2mlogs the error thrown[22m
+            undelete deleted user
+              [32m✓[39m [2mreturns null (14 ms)[22m
+              [32m✓[39m [2mstores the ADMIN_USER_UNDELETE event in the database (8 ms)[22m
+    search users
+      unauthenticated
+        [32m✓[39m [2mreturns an error (4 ms)[22m
+      authenticated
+        without admin rights
+          [32m✓[39m [2mreturns an error (4 ms)[22m
+        with admin rights
+          without any filters
+            [32m✓[39m [2mfinds all users (18 ms)[22m
+          all filters are null
+            [32m✓[39m [2mfinds all users (14 ms)[22m
+          filter by unchecked email
+            [32m✓[39m [2mfinds only users with unchecked email (10 ms)[22m
+          filter by deleted users
+            [32m✓[39m [2mfinds only users with deleted account (9 ms)[22m
+          filter by deleted account and unchecked email
+            [32m✓[39m [2mfinds no users (6 ms)[22m
+    user
+      unauthenticated
+        [32m✓[39m [2mthrows and logs "401 Unauthorized" error (2 ms)[22m
+      authenticated
+        identifier is no gradido ID, no email and no alias
+          [32m✓[39m [2mthrows and logs "Unknown identifier type" error (8 ms)[22m
+        identifier is not found
+          [32m✓[39m [2mthrows and logs "No user found to given identifier" error (8 ms)[22m
+        identifier is found via email, but not matching community
+          [32m✓[39m [2mreturns user (6 ms)[22m
+        identifier is found via email
+          [32m✓[39m [2mreturns user (9 ms)[22m
+        identifier is found via gradidoID
+          [32m✓[39m [2mreturns user (7 ms)[22m
+        identifier is found via alias
+          [32m✓[39m [2mreturns user (7 ms)[22m
+    check username
+      reserved alias
+        [32m✓[39m [2mreturns false (2 ms)[22m
+      valid alias
+        [32m✓[39m [2mreturns true (3 ms)[22m
+  printTimeDuration
+    [32m✓[39m [2mworks with 10 minutes (1 ms)[22m
+    [32m✓[39m [2mworks with 1440 minutes (1 ms)[22m
+    [32m✓[39m [2mworks with 1410 minutes[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/graphql/resolver/TransactionLinkResolver.test.ts[2msrc/graphql/resolver/[22m[1mTransactionLinkResolver.test.ts[22m]8;; ([0m[1m[41m5.288 s[49m[22m[0m)
+  TransactionLinkResolver
+    createTransactionLink
+      unauthenticated
+        [32m✓[39m [2mthrows an error (9 ms)[22m
+      authenticated
+        [32m✓[39m [2mthrows error when amount is zero (6 ms)[22m
+        [32m✓[39m [2mthrows error when amount is negative (4 ms)[22m
+        [32m✓[39m [2mthrows error when memo text is too short (5 ms)[22m
+        [32m✓[39m [2mthrows error when memo text is too long (7 ms)[22m
+        [32m✓[39m [2mthrows error when user has not enough GDD (13 ms)[22m
+        [32m✓[39m [2mlogs the error "User has not enough GDD"[22m
+    redeemTransactionLink
+      unauthenticated
+        [32m✓[39m [2mthrows an error (1 ms)[22m
+      authenticated
+        contributionLink
+          input not valid
+            [32m✓[39m [2mthrows error when link does not exists (14 ms)[22m
+            [32m✓[39m [2mlogs the error "No contribution link found to given code" (1 ms)[22m
+            [32m✓[39m [2mthrows error when link is not valid yet (31 ms)[22m
+            [32m✓[39m [2mlogs the error "Contribution link is not valid yet" (1 ms)[22m
+            [32m✓[39m [2mthrows error when contributionLink cycle is invalid (26 ms)[22m
+            [32m✓[39m [2mlogs the error "Contribution link has unknown cycle"[22m
+            [32m✓[39m [2mthrows error when link is no longer valid (24 ms)[22m
+            [32m✓[39m [2mlogs the error "Contribution link is no longer valid" (1 ms)[22m
+          redeem daily Contribution Link
+            [32m✓[39m [2mhas a daily contribution link in the database (3 ms)[22m
+            user has pending contribution of 1000 GDD
+              [32m✓[39m [2mdoes not allow the user to redeem the contribution link (11 ms)[22m
+              [32m✓[39m [2mlogs the error "Creation from contribution link was not successful" (1 ms)[22m
+            user has no pending contributions that would not allow to redeem the link
+              [32m✓[39m [2mallows the user to redeem the contribution link (24 ms)[22m
+              [32m✓[39m [2mstores the CONTRIBUTION_LINK_REDEEM event in the database (10 ms)[22m
+              [32m✓[39m [2mdoes not allow the user to redeem the contribution link a second time on the same day (8 ms)[22m
+              [32m✓[39m [2mlogs the error "Creation from contribution link was not successful"[22m
+              after one day
+                [32m✓[39m [2mallows the user to redeem the contribution link again (25 ms)[22m
+                [32m✓[39m [2mdoes not allow the user to redeem the contribution link a second time on the same day (15 ms)[22m
+                [32m✓[39m [2mlogs the error "Creation from contribution link was not successful"[22m
+        transaction link
+          link does not exits
+            [32m✓[39m [2mthrows and logs the error (6 ms)[22m
+          link exists
+            [32m✓[39m [2mstores the TRANSACTION_LINK_CREATE event in the database (5 ms)[22m
+            own link
+              [32m✓[39m [2mthrows and logs an error (13 ms)[22m
+              [32m✓[39m [2mdelete own link (16 ms)[22m
+              [32m✓[39m [2mstores the TRANSACTION_LINK_DELETE event in the database (9 ms)[22m
+            other link
+              [32m✓[39m [2msuccessfully redeems link (99 ms)[22m
+              [32m✓[39m [2mstores the TRANSACTION_LINK_REDEEM event in the database (16 ms)[22m
+    listTransactionLinksAdmin
+      unauthenticated
+        [32m✓[39m [2mreturns an error (5 ms)[22m
+      authenticated
+        without admin rights
+          [32m✓[39m [2mreturns an error (4 ms)[22m
+        with admin rights
+            [32m✓[39m [2mthrows error when user does not exists (6 ms)[22m
+            [32m✓[39m [2mlogs the error "Could not find requested User"[22m
+          without any filters
+            [32m✓[39m [2mfinds 6 open transaction links and no deleted or redeemed (14 ms)[22m
+          all filters are null
+            [32m✓[39m [2mfinds 6 open transaction links and no deleted or redeemed (7 ms)[22m
+          filter with deleted
+            [32m✓[39m [2mfinds 6 open transaction links, 1 deleted, and no redeemed (7 ms)[22m
+          filter by expired
+            [32m✓[39m [2mfinds 5 open transaction links, 1 expired, and no redeemed (10 ms)[22m
+          filter by redeemed
+            [33m○[39m [2mskipped finds 6 open transaction links, 1 deleted, and no redeemed[22m
+    transactionLinkCode
+      [32m✓[39m [2mreturns a string of length 24[22m
+      [32m✓[39m [2mreturns a string that ends with the hex value of date[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/graphql/resolver/ContributionMessageResolver.test.ts[2msrc/graphql/resolver/[22m[1mContributionMessageResolver.test.ts[22m]8;;
+  ContributionMessageResolver
+    adminCreateContributionMessage
+      unauthenticated
+        [32m✓[39m [2mreturns an error (12 ms)[22m
+      authenticated
+        input not valid
+          [32m✓[39m [2mthrows error when contribution does not exist (11 ms)[22m
+          [32m✓[39m [2mlogs the error "ContributionMessage was not sent successfully: Error: Contribution not found" (1 ms)[22m
+          [32m✓[39m [2mthrows error when contribution.userId equals user.id (116 ms)[22m
+          [32m✓[39m [2mlogs the error "ContributionMessage was not sent successfully: Error: Admin can not answer on his own contribution" (1 ms)[22m
+        contribution message type MODERATOR
+          [32m✓[39m [2mcreates ContributionMessage (17 ms)[22m
+          [32m✓[39m [2mdoes not call sendAddedContributionMessageEmail (1 ms)[22m
+          [32m✓[39m [2mdoes not change contribution status (2 ms)[22m
+        valid input
+          [32m✓[39m [2mcreates ContributionMessage (52 ms)[22m
+          [32m✓[39m [2mcalls sendAddedContributionMessageEmail (1 ms)[22m
+          [32m✓[39m [2mchanges contribution status (4 ms)[22m
+          [32m✓[39m [2mstores the ADMIN_CONTRIBUTION_MESSAGE_CREATE event in the database (3 ms)[22m
+    createContributionMessage
+      unauthenticated
+        [32m✓[39m [2mreturns an error (2 ms)[22m
+      authenticated
+        input not valid
+          [32m✓[39m [2mthrows error when contribution does not exist (11 ms)[22m
+          [32m✓[39m [2mlogs the error "ContributionMessage was not sent successfully: Error: Contribution not found"[22m
+          [32m✓[39m [2mthrows error when other user tries to send createContributionMessage (99 ms)[22m
+          [32m✓[39m [2mlogs the error "ContributionMessage was not sent successfully: Error: Can not send message to contribution of another user" (1 ms)[22m
+        valid input
+          [32m✓[39m [2mcreates ContributionMessage (15 ms)[22m
+          [32m✓[39m [2mstores the CONTRIBUTION_MESSAGE_CREATE event in the database (2 ms)[22m
+    listContributionMessages
+      unauthenticated
+        [32m✓[39m [2mreturns an error (2 ms)[22m
+      authenticated
+        [32m✓[39m [2mreturns a list of contributionmessages without type MODERATOR (11 ms)[22m
+    adminListContributionMessages
+      unauthenticated
+        [32m✓[39m [2mreturns an error (2 ms)[22m
+      authenticated as user
+        [32m✓[39m [2mreturns an error (5 ms)[22m
+      authenticated as admin
+        [32m✓[39m [2mreturns a list of contributionmessages with type MODERATOR (11 ms)[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/graphql/resolver/TransactionResolver.test.ts[2msrc/graphql/resolver/[22m[1mTransactionResolver.test.ts[22m]8;;
+  send coins
+    unknown recipient
+      [32m✓[39m [2mthrows an error (106 ms)[22m
+      [32m✓[39m [2mlogs the error thrown (1 ms)[22m
+      deleted recipient
+        [32m✓[39m [2mthrows an error (94 ms)[22m
+        [32m✓[39m [2mlogs the error thrown (1 ms)[22m
+      recipient account not activated
+        [32m✓[39m [2mthrows an error (92 ms)[22m
+        [32m✓[39m [2mlogs the error thrown (1 ms)[22m
+    errors in the transaction itself
+      sender and recipient are the same
+        [32m✓[39m [2mthrows an error (27 ms)[22m
+        [32m✓[39m [2mlogs the error thrown (1 ms)[22m
+      memo text is too short
+        [32m✓[39m [2mthrows an error (4 ms)[22m
+      memo text is too long
+        [32m✓[39m [2mthrows an error (6 ms)[22m
+      user has not enough GDD
+        [32m✓[39m [2mthrows an error (14 ms)[22m
+        [32m✓[39m [2mlogs the error thrown[22m
+    user has some GDD
+      trying to send negative amount
+        [32m✓[39m [2mthrows an error (4 ms)[22m
+      good transaction
+        [32m✓[39m [2msends the coins (37 ms)[22m
+        [32m✓[39m [2mstores the TRANSACTION_SEND event in the database (35 ms)[22m
+        [32m✓[39m [2mstores the TRANSACTION_RECEIVE event in the database (6 ms)[22m
+        sendTransactionsToDltConnector
+          [32m✓[39m [2mhas wait till sendTransactionsToDltConnector created all dlt-transactions (1 ms)[22m
+      send coins via gradido ID
+        [32m✓[39m [2msends the coins (45 ms)[22m
+      send coins via alias
+        [32m✓[39m [2msends the coins (38 ms)[22m
+        peter's transactions
+          [32m✓[39m [2mhas all expected transactions (173 ms)[22m
+      X-Com send coins via gradido ID
+        [32m✓[39m [2msends the coins (52 ms)[22m
+      more transactions to test semaphore
+        [32m✓[39m [2msends the coins four times in a row (251 ms)[22m
+  transactionList
+    unauthenticated
+      [32m✓[39m [2mthrows an error (9 ms)[22m
+    authenticated
+      no transactions
+        [32m✓[39m [2mhas no transactions and balance 0 (82 ms)[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/graphql/resolver/util/creations.test.ts[2msrc/graphql/resolver/util/[22m[1mcreations.test.ts[22m]8;;
+  util/creation
+    getUserCreations
+      [32m✓[39m [2mhas the correct data setup (4 ms)[22m
+      call getUserCreation now
+        [32m✓[39m [2mreturns the expected open contributions (4 ms)[22m
+        run forward in time one hour before next month
+          [32m✓[39m [2mhas the clock set correctly (1 ms)[22m
+          call getUserCreation with UTC
+            [32m✓[39m [2mreturns the expected open contributions (2 ms)[22m
+          call getUserCreation with JST (GMT+0900)
+            [32m✓[39m [2mreturns the expected open contributions (2 ms)[22m
+          call getUserCreation with PST (GMT-0800)
+            [32m✓[39m [2mreturns the expected open contributions (2 ms)[22m
+          run two hours forward to be in the next month in UTC
+            [32m✓[39m [2mhas the clock set correctly[22m
+            call getUserCreation with UTC
+              [32m✓[39m [2mreturns the expected open contributions (2 ms)[22m
+            call getUserCreation with JST (GMT+0900)
+              [32m✓[39m [2mreturns the expected open contributions (2 ms)[22m
+            call getUserCreation with PST (GMT-0800)
+              [32m✓[39m [2mreturns the expected open contributions (3 ms)[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/graphql/resolver/ContributionLinkResolver.test.ts[2msrc/graphql/resolver/[22m[1mContributionLinkResolver.test.ts[22m]8;;
+  Contribution Links
+    unauthenticated
+      createContributionLink
+        [32m✓[39m [2mreturns an error (11 ms)[22m
+      listContributionLinks
+        [32m✓[39m [2mreturns an error (2 ms)[22m
+      updateContributionLink
+        [32m✓[39m [2mreturns an error (3 ms)[22m
+      deleteContributionLink
+        [32m✓[39m [2mreturns an error (2 ms)[22m
+    authenticated
+      without admin rights
+        createContributionLink
+          [32m✓[39m [2mreturns an error (6 ms)[22m
+        listContributionLinks
+          [32m✓[39m [2mreturns an empty object (7 ms)[22m
+        updateContributionLink
+          [32m✓[39m [2mreturns an error (7 ms)[22m
+        deleteContributionLink
+          [32m✓[39m [2mreturns an error (4 ms)[22m
+      with admin rights
+        createContributionLink
+          [32m✓[39m [2mreturns a contribution link object (18 ms)[22m
+          [32m✓[39m [2mhas a contribution link stored in db (4 ms)[22m
+          [32m✓[39m [2mstores the ADMIN_CONTRIBUTION_LINK_CREATE event in the database (5 ms)[22m
+          [32m✓[39m [2mreturns an error if missing startDate (8 ms)[22m
+          [32m✓[39m [2mlogs the error "A Start-Date must be set" (1 ms)[22m
+          [32m✓[39m [2mreturns an error if missing endDate (4 ms)[22m
+          [32m✓[39m [2mlogs the error "An End-Date must be set" (1 ms)[22m
+          [32m✓[39m [2mreturns an error if endDate is before startDate (4 ms)[22m
+          [32m✓[39m [2mlogs the error "The value of validFrom must before or equals the validTo"[22m
+          [32m✓[39m [2mreturns an error if name is shorter than 5 characters (4 ms)[22m
+          [32m✓[39m [2mreturns an error if name is longer than 100 characters (7 ms)[22m
+          [32m✓[39m [2mreturns an error if memo is shorter than 5 characters (4 ms)[22m
+          [32m✓[39m [2mreturns an error if memo is longer than 255 characters (4 ms)[22m
+          [32m✓[39m [2mreturns an error if amount is not positive (4 ms)[22m
+        listContributionLinks
+          one link in DB
+            [32m✓[39m [2mreturns the link and count 1 (6 ms)[22m
+        updateContributionLink
+          [32m✓[39m [2mlogs the error "Contribution Link not found"[22m
+          no valid id
+            [32m✓[39m [2mreturns an error (8 ms)[22m
+          valid id
+            [32m✓[39m [2mreturns updated contribution link object (15 ms)[22m
+            [32m✓[39m [2mupdated the DB record (2 ms)[22m
+            [32m✓[39m [2mstores the ADMIN_CONTRIBUTION_LINK_UPDATE event in the database (2 ms)[22m
+        deleteContributionLink
+          no valid id
+            [32m✓[39m [2mreturns an error (5 ms)[22m
+            [32m✓[39m [2mlogs the error "Contribution Link not found"[22m
+          valid id
+            [32m✓[39m [2mreturns true (18 ms)[22m
+            [32m✓[39m [2mstores the ADMIN_CONTRIBUTION_LINK_DELETE event in the database (5 ms)[22m
+            [32m✓[39m [2mdoes not list this contribution link anymore (8 ms)[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/graphql/resolver/KlicktippResolver.test.ts[2msrc/graphql/resolver/[22m[1mKlicktippResolver.test.ts[22m]8;;
+  KlicktippResolver
+    subscribeNewsletter
+      unauthenticated
+        [32m✓[39m [2mreturns an error (9 ms)[22m
+      authenticated
+        [32m✓[39m [2mcalls API (11 ms)[22m
+        [32m✓[39m [2mstores the NEWSLETTER_SUBSCRIBE event in the database (5 ms)[22m
+    unsubscribeNewsletter
+      unauthenticated
+        [32m✓[39m [2mreturns an error (2 ms)[22m
+      authenticated
+        [32m✓[39m [2mcalls API (11 ms)[22m
+        [32m✓[39m [2mstores the NEWSLETTER_UNSUBSCRIBE event in the database (5 ms)[22m
+
+(node:16141) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 message listeners added to [EventEmitter]. Use emitter.setMaxListeners() to increase limit
+(Use `node --trace-warnings ...` to show where the warning was created)
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/util/klicktipp.test.ts[2msrc/util/[22m[1mklicktipp.test.ts[22m]8;;
+  klicktipp
+    exportEventDataToKlickTipp
+      [32m✓[39m [2mcalls the KlicktippController (13 ms)[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/graphql/resolver/semaphore.test.ts[2msrc/graphql/resolver/[22m[1msemaphore.test.ts[22m]8;;
+  semaphore
+    [32m✓[39m [2mcreates a lot of transactions without errors (772 ms)[22m
+    redeem transaction link twice
+      [32m✓[39m [2mdoes throw error on second redeem call (107 ms)[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/graphql/resolver/util/validateAlias.test.ts[2msrc/graphql/resolver/util/[22m[1mvalidateAlias.test.ts[22m]8;;
+  validate alias
+    alias too short
+      [32m✓[39m [2mthrows and logs an error (1 ms)[22m
+    alias too long
+      [32m✓[39m [2mthrows and logs an error (1 ms)[22m
+    alias contains invalid characters
+      [32m✓[39m [2mthrows and logs an error[22m
+    alias is a reserved word
+      [32m✓[39m [2mthrows and logs an error (1 ms)[22m
+    alias is a reserved word with uppercase characters
+      [32m✓[39m [2mthrows and logs an error (1 ms)[22m
+    hyphens and underscore
+      alias starts with underscore
+        [32m✓[39m [2mthrows and logs an error (3 ms)[22m
+      alias contains two following hyphens
+        [32m✓[39m [2mthrows and logs an error (1 ms)[22m
+    test against existing alias in database
+      alias exists in database
+        [32m✓[39m [2mthrows and logs an error (3 ms)[22m
+      alias exists in database with in lower-case
+        [32m✓[39m [2mthrows and logs an error (3 ms)[22m
+      valid alias
+        [32m✓[39m [2mresolves to true (2 ms)[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/graphql/resolver/CommunityResolver.test.ts[2msrc/graphql/resolver/[22m[1mCommunityResolver.test.ts[22m]8;;
+  CommunityResolver
+    getCommunities
+      with empty list
+        [32m✓[39m [2mreturns no community entry (13 ms)[22m
+      only home-communities entries
+        [32m✓[39m [2mreturns 3 home-community entries (50 ms)[22m
+      plus foreign-communities entries
+        [32m✓[39m [2mreturns 3 home community and 3 foreign community entries (17 ms)[22m
+    communities
+      with empty list
+        [32m✓[39m [2mreturns no community entry (33 ms)[22m
+      with one home-community entry
+        [32m✓[39m [2mreturns 1 home-community entry (29 ms)[22m
+      returns 2 filtered communities even with 3 existing entries
+        [32m✓[39m [2mreturns 2 community entries (43 ms)[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/graphql/resolver/util/sendTransactionsToDltConnector.test.ts[2msrc/graphql/resolver/util/[22m[1msendTransactionsToDltConnector.test.ts[22m]8;;
+  create and send Transactions to DltConnector
+    with 3 creations but inactive dlt-connector
+      [32m✓[39m [2mfound 3 dlt-transactions (102 ms)[22m
+    with 3 creations and active dlt-connector
+      [32m✓[39m [2mfound 3 dlt-transactions (104 ms)[22m
+    with 3 verified creations, 1 sendCoins and active dlt-connector
+      [32m✓[39m [2mfound 3 dlt-transactions (114 ms)[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/graphql/resolver/EmailOptinCodes.test.ts[2msrc/graphql/resolver/[22m[1mEmailOptinCodes.test.ts[22m]8;;
+  EmailOptinCodes
+    queryOptIn
+      [32m✓[39m [2mhas a valid optin code (4 ms)[22m
+      run time forward until code must be expired
+        [32m✓[39m [2mthrows an error (23 ms)[22m
+        [32m✓[39m [2mdoes not allow to set password (11 ms)[22m
+    forgotPassword
+      [32m✓[39m [2mthrows an error (11 ms)[22m
+      run time forward until code can be resent
+        [32m✓[39m [2mcann send email again (17 ms)[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/federation/validateCommunities.test.ts[2msrc/federation/[22m[1mvalidateCommunities.test.ts[22m]8;;
+  validate Communities
+    start validation logic without loop
+      [32m✓[39m [2mlogs zero communities found (13 ms)[22m
+      with one Community of api 1_0 but missing pubKey response
+        [32m✓[39m [2mlogs one community found (25 ms)[22m
+        [32m✓[39m [2mlogs requestGetPublicKey missing response data  (12 ms)[22m
+      with one Community of api 1_0 and not matching pubKey
+        [32m✓[39m [2mlogs one community found (22 ms)[22m
+        [32m✓[39m [2mlogs requestGetPublicKey for community api 1_0  (14 ms)[22m
+        [32m✓[39m [2mlogs not matching publicKeys (14 ms)[22m
+      with one Community of api 1_0 and matching pubKey
+        [32m✓[39m [2mlogs one community found (36 ms)[22m
+        [32m✓[39m [2mlogs requestGetPublicKey for community api 1_0  (24 ms)[22m
+        [32m✓[39m [2mlogs community pubKey verified (65 ms)[22m
+      with two Communities of api 1_0 and 1_1
+        [32m✓[39m [2mlogs two communities found (18 ms)[22m
+        [32m✓[39m [2mlogs requestGetPublicKey for community api 1_0  (19 ms)[22m
+        [32m✓[39m [2mlogs requestGetPublicKey for community api 1_1  (21 ms)[22m
+      with three Communities of api 1_0, 1_1 and 2_0
+        [32m✓[39m [2mlogs three community found (26 ms)[22m
+        [32m✓[39m [2mlogs requestGetPublicKey for community api 1_0  (28 ms)[22m
+        [32m✓[39m [2mlogs requestGetPublicKey for community api 1_1  (17 ms)[22m
+        [32m✓[39m [2mlogs unsupported api for community with api 2_0  (19 ms)[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/apis/DltConnectorClient.test.ts[2msrc/apis/[22m[1mDltConnectorClient.test.ts[22m]8;;
+  undefined DltConnectorClient
+    [32m✓[39m [2minvalid url (2 ms)[22m
+    [32m✓[39m [2mDLT_CONNECTOR is false (1 ms)[22m
+  transmitTransaction
+    [32m✓[39m [2minvalid transaction type (2 ms)[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/emails/sendEmailVariants.test.ts[2msrc/emails/[22m[1msendEmailVariants.test.ts[22m]8;;
+  sendEmailVariants
+    sendAddedContributionMessageEmail
+      calls "sendEmailTranslated"
+        [32m✓[39m [2mwith expected parameters (2 ms)[22m
+      result
+        [32m✓[39m [2mis the expected object (1 ms)[22m
+        [32m✓[39m [2mhas the correct html as snapshot (1 ms)[22m
+    sendAccountActivationEmail
+      calls "sendEmailTranslated"
+        [32m✓[39m [2mwith expected parameters (1 ms)[22m
+      result
+        [32m✓[39m [2mis the expected object (1 ms)[22m
+        [32m✓[39m [2mhas the correct html as snapshot (1 ms)[22m
+    sendAccountMultiRegistrationEmail
+      calls "sendEmailTranslated"
+        [32m✓[39m [2mwith expected parameters[22m
+        result
+          [32m✓[39m [2mis the expected object[22m
+          [32m✓[39m [2mhas the correct html as snapshot (1 ms)[22m
+    sendContributionConfirmedEmail
+      calls "sendEmailTranslated"
+        [32m✓[39m [2mwith expected parameters (1 ms)[22m
+      result
+        [32m✓[39m [2mis the expected object[22m
+        [32m✓[39m [2mhas the correct html as snapshot[22m
+    sendContributionDeniedEmail
+      calls "sendEmailTranslated"
+        [32m✓[39m [2mwith expected parameters[22m
+      result
+        [32m✓[39m [2mhas expected result (1 ms)[22m
+        [32m✓[39m [2mhas the correct html as snapshot (1 ms)[22m
+    sendContributionDeletedEmail
+      calls "sendEmailTranslated"
+        [32m✓[39m [2mwith expected parameters (1 ms)[22m
+      result
+        [32m✓[39m [2mis the expected object (1 ms)[22m
+        [32m✓[39m [2mhas the correct html as snapshot[22m
+    sendResetPasswordEmail
+      calls "sendEmailTranslated"
+        [32m✓[39m [2mwith expected parameters (1 ms)[22m
+      result
+        [32m✓[39m [2mis the expected object (1 ms)[22m
+        [32m✓[39m [2mhas the correct html as snapshot[22m
+    sendTransactionLinkRedeemedEmail
+      calls "sendEmailTranslated"
+        [32m✓[39m [2mwith expected parameters (1 ms)[22m
+      result
+        [32m✓[39m [2mis the expected object (1 ms)[22m
+        [32m✓[39m [2mhas the correct html as snapshot[22m
+    sendTransactionReceivedEmail
+      calls "sendEmailTranslated"
+        [32m✓[39m [2mwith expected parameters (1 ms)[22m
+      result
+        [32m✓[39m [2mis the expected object (1 ms)[22m
+        [32m✓[39m [2mhas the correct html as snapshot[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/test/helpers.test.ts[2mtest/[22m[1mhelpers.test.ts[22m]8;;
+  contributionDateFormatter
+    [32m✓[39m [2mformats the date correctly (2 ms)[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/emails/sendEmailTranslated.test.ts[2msrc/emails/[22m[1msendEmailTranslated.test.ts[22m]8;;
+  sendEmailTranslated
+    config email is false
+      [32m✓[39m [2mlogs warning (2 ms)[22m
+      [32m✓[39m [2mreturns false[22m
+    config email is true
+      [32m✓[39m [2mcalls the transporter (104 ms)[22m
+      [33m○[39m [2mskipped calls "i18n.setLocale" with "en"[22m
+      [33m○[39m [2mskipped calls "i18n.__" for translation[22m
+      call of "sendEmailTranslated"
+        [32m✓[39m [2mhas expected result (50 ms)[22m
+    with email EMAIL_TEST_MODUS true
+      [32m✓[39m [2mcall of "sendEmailTranslated" with faked "to" (39 ms)[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/server/LogError.test.ts[2msrc/server/[22m[1mLogError.test.ts[22m]8;;
+  LogError
+    [32m✓[39m [2mlogs an Error when created (2 ms)[22m
+    [32m✓[39m [2mlogs an Error including additional data when created (1 ms)[22m
+    [32m✓[39m [2mdoes not contain additional data in Error object when thrown (3 ms)[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/util/decay.test.ts[2msrc/util/[22m[1mdecay.test.ts[22m]8;;
+  utils/decay
+    [32m✓[39m [2mhas base 0.99999997802044727[22m
+    [32m✓[39m [2mreturns input amount when from and to is the same (1 ms)[22m
+    decayFormula
+      [32m✓[39m [2mhas base 0.99999997802044727 (1 ms)[22m
+      [32m✓[39m [2mhas correct backward calculation[22m
+      [33m○[39m [2mskipped has correct forward calculation[22m
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/config/index.test.ts[2msrc/config/[22m[1mindex.test.ts[22m]8;;
+  config/index
+    decay start block
+      [32m✓[39m [2mhas the correct date set (2 ms)[22m
+
+[1m[2mRunning coverage on untested files...[22m[22mBrowserslist: caniuse-lite is outdated. Please run:
+  npx browserslist@latest --update-db
+  Why you should do it regularly: https://github.com/browserslist/browserslist#browsers-data-updating
+[1mSummary of all failing tests[22m
+[0m[7m[1m[31m FAIL [39m[22m[27m[0m ]8;;file:///home/einhornimmond/code/gradido_apollo/backend/src/graphql/resolver/ContributionResolver.test.ts[2msrc/graphql/resolver/[22m[1mContributionResolver.test.ts[22m]8;; ([0m[1m[41m9.447 s[49m[22m[0m)
+[1m[31m  [1m● [22m[1mContributionResolver › updateContribution › authenticated › admin tries to update a user contribution › throws an error[39m[22m
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    Expected: [32m[[GraphQLError: An admin is not allowed to update an user contribution]][39m
+    Received: [31mundefined[39m
+[2m[22m
+[2m    [0m [90m 509 |[39m             }[33m,[39m[0m[22m
+[2m    [0m [90m 510 |[39m           })[0m[22m
+[2m    [0m[31m[1m>[22m[2m[39m[90m 511 |[39m           expect(errorObjects)[33m.[39mtoEqual([[0m[22m
+[2m    [0m [90m     |[39m                                [31m[1m^[22m[2m[39m[0m[22m
+[2m    [0m [90m 512 |[39m             [36mnew[39m [33mGraphQLError[39m([32m'An admin is not allowed to update an user contribution'[39m)[33m,[39m[0m[22m
+[2m    [0m [90m 513 |[39m           ])[0m[22m
+[2m    [0m [90m 514 |[39m         })[0m[22m
+[2m[22m
+[2m      [2mat [22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:511:32[22m[2m[22m
+[2m      [2mat fulfilled ([22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:5:58)[22m[2m[22m
+
+[1m[31m  [1m● [22m[1mContributionResolver › updateContribution › authenticated › admin tries to update a user contribution › logs the error "An admin is not allowed to update an user contribution"[39m[22m
+
+    [2mexpect([22m[31mjest.fn()[39m[2m).[22mtoBeCalledWith[2m([22m[32m...expected[39m[2m)[22m
+
+    Expected: [32m"An admin is not allowed to update an user contribution"[39m
+
+    Number of calls: [31m0[39m
+[2m[22m
+[2m    [0m [90m 515 |[39m[0m[22m
+[2m    [0m [90m 516 |[39m         it([32m'logs the error "An admin is not allowed to update an user contribution"'[39m[33m,[39m () [33m=>[39m {[0m[22m
+[2m    [0m[31m[1m>[22m[2m[39m[90m 517 |[39m           expect(logger[33m.[39merror)[33m.[39mtoBeCalledWith([0m[22m
+[2m    [0m [90m     |[39m                                [31m[1m^[22m[2m[39m[0m[22m
+[2m    [0m [90m 518 |[39m             [32m'An admin is not allowed to update an user contribution'[39m[33m,[39m[0m[22m
+[2m    [0m [90m 519 |[39m           )[0m[22m
+[2m    [0m [90m 520 |[39m         })[0m[22m
+[2m[22m
+[2m      [2mat Object.<anonymous> ([22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:517:32)[22m[2m[22m
+
+[1m[31m  [1m● [22m[1mContributionResolver › listContributions › authenticated › no status filter › returns creations[39m[22m
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoMatchObject[2m([22m[32mexpected[39m[2m)[22m
+
+    [32m- Expected  - 16[39m
+    [31m+ Received  + 64[39m
+
+    [2m  Object {[22m
+    [2m    "contributionCount": 6,[22m
+    [32m-   "contributionList": ArrayContaining [[39m
+    [32m-     ObjectContaining {[39m
+    [31m+   "contributionList": Array [[39m
+    [31m+     Object {[39m
+    [2m        "amount": "100",[22m
+    [32m-       "id": 25,[39m
+    [32m-       "memo": "Test contribution to confirm",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": "2023-11-06T08:36:49.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [31m+       "id": 27,[39m
+    [31m+       "memo": "Test contribution to delete",[39m
+    [2m        "messagesCount": 0,[22m
+    [32m-     },[39m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": "10",[39m
+    [32m-       "id": 23,[39m
+    [32m-       "memo": "Test PENDING contribution update",[39m
+    [32m-       "messagesCount": 1,[39m
+    [31m+       "status": "DELETED",[39m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [31m+     Object {[39m
+    [2m        "amount": "100",[22m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "deniedBy": 283,[39m
+    [2m        "id": 26,[22m
+    [2m        "memo": "Test contribution to deny",[22m
+    [2m        "messagesCount": 0,[22m
+    [31m+       "status": "DENIED",[39m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [31m+     Object {[39m
+    [2m        "amount": "100",[22m
+    [32m-       "id": 27,[39m
+    [32m-       "memo": "Test contribution to delete",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:49.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [31m+       "id": 25,[39m
+    [31m+       "memo": "Test contribution to confirm",[39m
+    [2m        "messagesCount": 0,[22m
+    [31m+       "status": "CONFIRMED",[39m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [31m+     Object {[39m
+    [2m        "amount": "100",[22m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "id": 24,[22m
+    [2m        "memo": "Test IN_PROGRESS contribution",[22m
+    [2m        "messagesCount": 1,[22m
+    [31m+       "status": "IN_PROGRESS",[39m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "10",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:47.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [31m+       "id": 23,[39m
+    [31m+       "memo": "Test PENDING contribution update",[39m
+    [31m+       "messagesCount": 2,[39m
+    [31m+       "status": "PENDING",[39m
+    [31m+     },[39m
+    [31m+     Object {[39m
+    [2m        "amount": "1000",[22m
+    [31m+       "confirmedAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2022-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "id": 22,[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido!",[22m
+    [2m        "messagesCount": 0,[22m
+    [31m+       "status": "CONFIRMED",[39m
+    [2m      },[22m
+    [2m    ],[22m
+    [2m  }[22m
+[2m[22m
+[2m    [0m [90m 1103 |[39m             }[33m,[39m[0m[22m
+[2m    [0m [90m 1104 |[39m           })[0m[22m
+[2m    [0m[31m[1m>[22m[2m[39m[90m 1105 |[39m           expect(contributionListResult)[33m.[39mtoMatchObject({[0m[22m
+[2m    [0m [90m      |[39m                                          [31m[1m^[22m[2m[39m[0m[22m
+[2m    [0m [90m 1106 |[39m             contributionCount[33m:[39m [35m6[39m[33m,[39m[0m[22m
+[2m    [0m [90m 1107 |[39m             contributionList[33m:[39m expect[33m.[39marrayContaining([[0m[22m
+[2m    [0m [90m 1108 |[39m               expect[33m.[39mobjectContaining({[0m[22m
+[2m[22m
+[2m      [2mat [22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:1105:42[22m[2m[22m
+[2m      [2mat fulfilled ([22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:5:58)[22m[2m[22m
+
+[1m[31m  [1m● [22m[1mContributionResolver › listContributions › authenticated › with status filter [PENDING, IN_PROGRESS, DENIED, DELETED] › returns only unconfirmed creations[39m[22m
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoMatchObject[2m([22m[32mexpected[39m[2m)[22m
+
+    [32m- Expected  - 19[39m
+    [31m+ Received  + 44[39m
+
+    [2m  Object {[22m
+    [2m    "contributionCount": 4,[22m
+    [32m-   "contributionList": ArrayContaining [[39m
+    [32m-     ObjectNotContaining {[39m
+    [32m-       "status": "CONFIRMED",[39m
+    [31m+   "contributionList": Array [[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": "2023-11-06T08:36:49.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [31m+       "id": 27,[39m
+    [31m+       "memo": "Test contribution to delete",[39m
+    [31m+       "messagesCount": 0,[39m
+    [31m+       "status": "DELETED",[39m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": "10",[39m
+    [32m-       "id": 23,[39m
+    [32m-       "memo": "Test PENDING contribution update",[39m
+    [32m-       "messagesCount": 1,[39m
+    [32m-       "status": "PENDING",[39m
+    [32m-     },[39m
+    [32m-     ObjectContaining {[39m
+    [31m+     Object {[39m
+    [2m        "amount": "100",[22m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "deniedBy": 283,[39m
+    [2m        "id": 26,[22m
+    [2m        "memo": "Test contribution to deny",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "DENIED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [31m+     Object {[39m
+    [2m        "amount": "100",[22m
+    [32m-       "id": 27,[39m
+    [32m-       "memo": "Test contribution to delete",[39m
+    [32m-       "messagesCount": 0,[39m
+    [32m-       "status": "DELETED",[39m
+    [32m-     },[39m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "id": 24,[22m
+    [2m        "memo": "Test IN_PROGRESS contribution",[22m
+    [2m        "messagesCount": 1,[22m
+    [2m        "status": "IN_PROGRESS",[22m
+    [31m+     },[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "10",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:47.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deletedAt": null,[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [31m+       "id": 23,[39m
+    [31m+       "memo": "Test PENDING contribution update",[39m
+    [31m+       "messagesCount": 2,[39m
+    [31m+       "status": "PENDING",[39m
+    [2m      },[22m
+    [2m    ],[22m
+    [2m  }[22m
+[2m[22m
+[2m    [0m [90m 1161 |[39m             }[33m,[39m[0m[22m
+[2m    [0m [90m 1162 |[39m           })[0m[22m
+[2m    [0m[31m[1m>[22m[2m[39m[90m 1163 |[39m           expect(contributionListResult)[33m.[39mtoMatchObject({[0m[22m
+[2m    [0m [90m      |[39m                                          [31m[1m^[22m[2m[39m[0m[22m
+[2m    [0m [90m 1164 |[39m             contributionCount[33m:[39m [35m4[39m[33m,[39m[0m[22m
+[2m    [0m [90m 1165 |[39m             contributionList[33m:[39m expect[33m.[39marrayContaining([[0m[22m
+[2m    [0m [90m 1166 |[39m               expect[33m.[39mnot[33m.[39mobjectContaining({[0m[22m
+[2m[22m
+[2m      [2mat [22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:1163:42[22m[2m[22m
+[2m      [2mat fulfilled ([22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:5:58)[22m[2m[22m
+
+[1m[31m  [1m● [22m[1mContributionResolver › adminListContributions › authenticated as admin › returns 18 creations in total[39m[22m
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoMatchObject[2m([22m[32mexpected[39m[2m)[22m
+
+    [32m- Expected  -  57[39m
+    [31m+ Received  + 165[39m
+
+    [33m@@ -1,165 +1,273 @@[39m
+    [2m  Object {[22m
+    [2m    "contributionCount": 18,[22m
+    [32m-   "contributionList": ArrayContaining [[39m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+   "contributionList": Array [[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 39,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "#firefighters",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<50>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "50",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2023-09-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 38,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido liebe Bibi!",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "CONFIRMED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<50>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "50",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2023-09-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 37,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido liebe Bibi!",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "CONFIRMED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<450>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "450",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2023-09-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 36,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido liebe Bibi!",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "CONFIRMED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<400>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "400",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 35,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido!",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2023-11-06T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bob",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 34,[39m
+    [2m        "lastName": "der Baumeister",[22m
+    [2m        "memo": "Confirmed Contribution",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "CONFIRMED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 33,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Test env contribution",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<200>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "200",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 32,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Aktives Grundeinkommen",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<200>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "200",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:49.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 31,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Das war leider zu Viel!",[22m
+    [32m-       "messagesCount": 0,[39m
+    [31m+       "messagesCount": 1,[39m
+    [2m        "status": "DELETED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<166>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "166",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "deniedAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "deniedBy": 283,[39m
+    [2m        "firstName": "Räuber",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 30,[39m
+    [2m        "lastName": "Hotzenplotz",[22m
+    [2m        "memo": "Whatever contribution",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "DENIED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<166>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "166",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Räuber",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 29,[39m
+    [2m        "lastName": "Hotzenplotz",[22m
+    [2m        "memo": "Whatever contribution",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "DELETED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<166>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "166",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Räuber",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 28,[39m
+    [2m        "lastName": "Hotzenplotz",[22m
+    [2m        "memo": "Whatever contribution",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "CONFIRMED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 27,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Test contribution to delete",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "DELETED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deniedAt": "2023-11-06T08:36:48.000Z",[39m
+    [31m+       "deniedBy": 283,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 26,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Test contribution to deny",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "DENIED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:49.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 25,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Test contribution to confirm",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "CONFIRMED",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 24,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Test IN_PROGRESS contribution",[22m
+    [2m        "messagesCount": 1,[22m
+    [2m        "status": "IN_PROGRESS",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<10>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "10",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:47.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 23,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Test PENDING contribution update",[22m
+    [32m-       "messagesCount": 2,[39m
+    [31m+       "messagesCount": 3,[39m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<1000>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "1000",[39m
+    [31m+       "confirmedAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "confirmedBy": 283,[39m
+    [31m+       "contributionDate": "2022-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:46.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Bibi",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 22,[39m
+    [2m        "lastName": "Bloxberg",[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido!",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "CONFIRMED",[22m
+    [2m      },[22m
+[2m[22m
+[2m    [0m [90m 2827 |[39m         [90m// console.log('17 contributions: %s', JSON.stringify(contributionListObject, null, 2))[39m[0m[22m
+[2m    [0m [90m 2828 |[39m         expect(contributionListObject[33m.[39mcontributionList)[33m.[39mtoHaveLength([35m18[39m)[0m[22m
+[2m    [0m[31m[1m>[22m[2m[39m[90m 2829 |[39m         expect(contributionListObject)[33m.[39mtoMatchObject({[0m[22m
+[2m    [0m [90m      |[39m                                        [31m[1m^[22m[2m[39m[0m[22m
+[2m    [0m [90m 2830 |[39m           contributionCount[33m:[39m [35m18[39m[33m,[39m[0m[22m
+[2m    [0m [90m 2831 |[39m           contributionList[33m:[39m expect[33m.[39marrayContaining([[0m[22m
+[2m    [0m [90m 2832 |[39m             expect[33m.[39mobjectContaining({[0m[22m
+[2m[22m
+[2m      [2mat [22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:2829:40[22m[2m[22m
+[2m      [2mat fulfilled ([22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:5:58)[22m[2m[22m
+
+[1m[31m  [1m● [22m[1mContributionResolver › adminListContributions › authenticated as admin › with user query › returns only contributions of the queried user[39m[22m
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoMatchObject[2m([22m[32mexpected[39m[2m)[22m
+
+    [32m- Expected  - 14[39m
+    [31m+ Received  + 38[39m
+
+    [2m  Object {[22m
+    [2m    "contributionCount": 4,[22m
+    [32m-   "contributionList": ArrayContaining [[39m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+   "contributionList": Array [[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:51.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 39,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "#firefighters",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<400>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "400",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 35,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido!",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 33,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Test env contribution",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<200>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "200",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:49.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 31,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Das war leider zu Viel!",[22m
+    [32m-       "messagesCount": 0,[39m
+    [31m+       "messagesCount": 1,[39m
+    [2m        "status": "DELETED",[22m
+    [2m      },[22m
+    [2m    ],[22m
+    [2m  }[22m
+[2m[22m
+[2m    [0m [90m 3057 |[39m           })[0m[22m
+[2m    [0m [90m 3058 |[39m           expect(contributionListObject[33m.[39mcontributionList)[33m.[39mtoHaveLength([35m4[39m)[0m[22m
+[2m    [0m[31m[1m>[22m[2m[39m[90m 3059 |[39m           expect(contributionListObject)[33m.[39mtoMatchObject({[0m[22m
+[2m    [0m [90m      |[39m                                          [31m[1m^[22m[2m[39m[0m[22m
+[2m    [0m [90m 3060 |[39m             contributionCount[33m:[39m [35m4[39m[33m,[39m[0m[22m
+[2m    [0m [90m 3061 |[39m             contributionList[33m:[39m expect[33m.[39marrayContaining([[0m[22m
+[2m    [0m [90m 3062 |[39m               expect[33m.[39mobjectContaining({[0m[22m
+[2m[22m
+[2m      [2mat [22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:3059:42[22m[2m[22m
+[2m      [2mat fulfilled ([22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:5:58)[22m[2m[22m
+
+[1m[31m  [1m● [22m[1mContributionResolver › adminListContributions › authenticated as admin › with user query › returns only contributions of the queried user without hashtags[39m[22m
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoMatchObject[2m([22m[32mexpected[39m[2m)[22m
+
+    [32m- Expected  - 11[39m
+    [31m+ Received  + 29[39m
+
+    [2m  Object {[22m
+    [2m    "contributionCount": 3,[22m
+    [32m-   "contributionList": ArrayContaining [[39m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<400>,[39m
+    [31m+   "contributionList": Array [[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "400",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 35,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Herzlich Willkommen bei Gradido!",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<100>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "100",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-11-06T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:50.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 33,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Test env contribution",[22m
+    [2m        "messagesCount": 0,[22m
+    [2m        "status": "PENDING",[22m
+    [2m      },[22m
+    [32m-     ObjectContaining {[39m
+    [32m-       "amount": decimalEqual<200>,[39m
+    [31m+     Object {[39m
+    [31m+       "amount": "200",[39m
+    [31m+       "confirmedAt": null,[39m
+    [31m+       "confirmedBy": null,[39m
+    [31m+       "contributionDate": "2023-10-01T00:00:00.000Z",[39m
+    [31m+       "createdAt": "2023-11-06T08:36:49.000Z",[39m
+    [31m+       "deniedAt": null,[39m
+    [31m+       "deniedBy": null,[39m
+    [2m        "firstName": "Peter",[22m
+    [32m-       "id": Any<Number>,[39m
+    [31m+       "id": 31,[39m
+    [2m        "lastName": "Lustig",[22m
+    [2m        "memo": "Das war leider zu Viel!",[22m
+    [32m-       "messagesCount": 0,[39m
+    [31m+       "messagesCount": 1,[39m
+    [2m        "status": "DELETED",[22m
+    [2m      },[22m
+    [2m    ],[22m
+    [2m  }[22m
+[2m[22m
+[2m    [0m [90m 3111 |[39m           })[0m[22m
+[2m    [0m [90m 3112 |[39m           expect(contributionListObject[33m.[39mcontributionList)[33m.[39mtoHaveLength([35m3[39m)[0m[22m
+[2m    [0m[31m[1m>[22m[2m[39m[90m 3113 |[39m           expect(contributionListObject)[33m.[39mtoMatchObject({[0m[22m
+[2m    [0m [90m      |[39m                                          [31m[1m^[22m[2m[39m[0m[22m
+[2m    [0m [90m 3114 |[39m             contributionCount[33m:[39m [35m3[39m[33m,[39m[0m[22m
+[2m    [0m [90m 3115 |[39m             contributionList[33m:[39m expect[33m.[39marrayContaining([[0m[22m
+[2m    [0m [90m 3116 |[39m               expect[33m.[39mobjectContaining({[0m[22m
+[2m[22m
+[2m      [2mat [22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:3113:42[22m[2m[22m
+[2m      [2mat fulfilled ([22m[2m[0m[36msrc/graphql/resolver/ContributionResolver.test.ts[39m[0m[2m:5:58)[22m[2m[22m
+
+
+[1mTest Suites: [22m[1m[31m1 failed[39m[22m, [1m[32m21 passed[39m[22m, 22 total
+[1mTests:       [22m[1m[31m7 failed[39m[22m, [1m[33m8 skipped[39m[22m, [1m[32m482 passed[39m[22m, 497 total
+[1mSnapshots:   [22m[1m[32m9 passed[39m[22m, 9 total
+[1mTime:[22m        [1m[33m59.16 s[39m[22m
+[2mRan all test suites[22m[2m.[22m
+[2K[1G[31merror[39m Command failed with exit code 1.

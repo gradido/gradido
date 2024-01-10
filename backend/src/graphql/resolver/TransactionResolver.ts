@@ -9,8 +9,9 @@ import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as dbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
-import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
+import { Resolver, Query, Args, Authorized, Ctx, Mutation, Arg } from 'type-graphql'
 
+import { ConfirmedTransactionInput } from '@arg/ConfirmTransactionInput'
 import { Paginated } from '@arg/Paginated'
 import { TransactionSendArgs } from '@arg/TransactionSendArgs'
 import { Order } from '@enum/Order'
@@ -28,6 +29,7 @@ import {
 } from '@/emails/sendEmailVariants'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
+import { ConfirmTransactionContext } from '@/interactions/confirmTransaction/ConfirmTransaction.context'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
@@ -448,7 +450,8 @@ export class TransactionResolver {
       if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
         throw new LogError('X-Community sendCoins disabled per configuration!')
       }
-      const recipCom = await getCommunity(recipientCommunityIdentifier)
+      const recipCom = await getCommunity({ communityUuid: recipientCommunityIdentifier })
+
       logger.debug('recipient commuity: ', recipCom)
       if (recipCom === null) {
         throw new LogError(
@@ -517,6 +520,14 @@ export class TransactionResolver {
         )
       }
     }
+    return true
+  }
+
+  @Mutation(() => Boolean)
+  async confirmTransaction(
+    @Arg('data') confirmedTransactionInput: ConfirmedTransactionInput,
+  ): Promise<boolean> {
+    await new ConfirmTransactionContext(confirmedTransactionInput).run()
     return true
   }
 }

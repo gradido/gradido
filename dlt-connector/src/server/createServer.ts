@@ -1,18 +1,19 @@
 import 'reflect-metadata'
-
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
-import express, { Express } from 'express'
-
-// graphql
-import { schema } from '@/graphql/schema'
-
-import { logger as dltLogger } from './logger'
-import { Logger } from 'log4js'
-import cors from 'cors'
+import { DataSource as DBDataSource } from '@dbTools/typeorm'
 import bodyParser from 'body-parser'
+import cors from 'cors'
+import express, { Express } from 'express'
+// graphql
+import { Logger } from 'log4js'
 
-type ServerDef = { apollo: ApolloServer; app: Express }
+import { schema } from '@/graphql/schema'
+import { getDataSource, Connection } from '@/typeorm/DataSource'
+
+import { logger as dltLogger } from '../logging/logger'
+
+type ServerDef = { apollo: ApolloServer; app: Express; con: DBDataSource }
 
 interface MyContext {
   token?: string
@@ -27,6 +28,8 @@ const createServer = async (
   logger.addContext('user', 'unknown')
   logger.debug('createServer...')
 
+  // connect to db and test db version
+  await Connection.getInstance().init()
   // Express Server
   const app = express()
 
@@ -49,7 +52,7 @@ const createServer = async (
   )
   logger.debug('createServer...successful')
 
-  return { apollo, app }
+  return { apollo, app, con: getDataSource() }
 }
 
 export default createServer

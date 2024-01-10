@@ -1,15 +1,47 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CONFIG } from '@/config'
+import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
+
+import { BackendClient } from './client/BackendClient'
+import { CommunityRepository } from './data/Community.repository'
+import { TransactionsManager } from './manager/TransactionsManager'
 import createServer from './server/createServer'
+import { LogError } from './server/LogError'
+import { stop as stopTransmitToIota, transmitToIota } from './tasks/transmitToIota'
 
 async function main() {
   // eslint-disable-next-line no-console
   console.log(`DLT_CONNECTOR_PORT=${CONFIG.DLT_CONNECTOR_PORT}`)
   const { app } = await createServer()
+  const startTime = Date.now()
 
+  await TransactionsManager.getInstance().init()
+
+  // ask backend for home community if we haven't one
+  try {
+    await CommunityRepository.loadHomeCommunityKeyPair()
+  } catch (e) {
+    const backend = BackendClient.getInstance()
+    if (!backend) {
+      throw new LogError('cannot connect to backend')
+    }
+    const communityDraft = await backend.homeCommunityUUid()
+    const addCommunityContext = new AddCommunityContext(communityDraft)
+    await addCommunityContext.run()
+  }
+
+  // loop run all the time, check for new transaction for sending to iota
+  void transmitToIota()
   app.listen(CONFIG.DLT_CONNECTOR_PORT, () => {
     // eslint-disable-next-line no-console
+    console.log(`startup time: ${Date.now() - startTime} ms`)
+    // eslint-disable-next-line no-console
     console.log(`Server is running at http://localhost:${CONFIG.DLT_CONNECTOR_PORT}`)
+  })
+
+  process.on('exit', () => {
+    // Add shutdown logic here.
+    stopTransmitToIota()
   })
 }
 

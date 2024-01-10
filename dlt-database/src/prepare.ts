@@ -2,7 +2,7 @@ import { createConnection } from 'mysql2/promise'
 
 import { CONFIG } from './config'
 
-export const createDatabase = async (): Promise<void> => {
+export const createDatabase = async (database: string): Promise<void> => {
   const con = await createConnection({
     host: CONFIG.DB_HOST,
     port: CONFIG.DB_PORT,
@@ -14,7 +14,7 @@ export const createDatabase = async (): Promise<void> => {
 
   // Create Database `gradido_dlt`
   await con.query(`
-    CREATE DATABASE IF NOT EXISTS ${CONFIG.DB_DATABASE} 
+    CREATE DATABASE IF NOT EXISTS ${database} 
       DEFAULT CHARACTER SET utf8mb4
       DEFAULT COLLATE utf8mb4_unicode_ci;`)
 

@@ -1,15 +1,22 @@
 /* eslint-disable n/no-process-env */
+import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
 dotenv.config()
 
+Decimal.set({
+  precision: 25,
+  rounding: Decimal.ROUND_HALF_UP,
+})
+
 const constants = {
   LOG4JS_CONFIG: 'log4js-config.json',
-  DB_VERSION: '0002-refactor_add_community',
+  DB_VERSION: '0003-refactor_transaction_recipe',
+  DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v4.2023-09-12',
+    EXPECTED: 'v6.2023-10-17',
     CURRENT: '',
   },
 }
@@ -38,6 +45,18 @@ const dltConnector = {
   DLT_CONNECTOR_PORT: process.env.DLT_CONNECTOR_PORT || 6010,
 }
 
+const transactionManager = {
+  TRANSACTION_MANAGER_BATCH_SIZE: Number(process.env.TRANSACTION_MANAGER_BATCH_SIZE || 100),
+}
+
+const nodeServer = {
+  NODE_SERVER_URL: process.env.NODE_SERVER_URL ?? 'http://localhost:8340',
+}
+
+const backendServer = {
+  BACKEND_SERVER_URL: process.env.BACKEND_SERVER_URL ?? 'http://backend:4000',
+}
+
 // Check config version
 constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION || constants.CONFIG_VERSION.DEFAULT
 if (
@@ -56,4 +75,7 @@ export const CONFIG = {
   ...database,
   ...iota,
   ...dltConnector,
+  ...transactionManager,
+  ...nodeServer,
+  ...backendServer,
 }
