@@ -48,6 +48,10 @@ fi
 : ${NGINX_SSL_CERTIFICATE:=/etc/letsencrypt/live/$COMMUNITY_HOST/fullchain.pem}
 : ${NGINX_SSL_CERTIFICATE_KEY:=/etc/letsencrypt/live/$COMMUNITY_HOST/privkey.pem}
 
+# export env variables
+export NGINX_SSL_CERTIFICATE
+export NGINX_SSL_CERTIFICATE_KEY
+
 # lock start
 if [ -f $LOCK_FILE ] ; then
   echo "Already building!"
@@ -189,8 +193,7 @@ if [ "$DEPLOY_SEED_DATA" = "true" ]; then
 fi
 # TODO maybe handle this differently?
 export NODE_ENV=production
-pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-pm2 save
+
 
 # Install & build frontend
 echo 'Updating frontend' >> $UPDATE_HTML
@@ -201,8 +204,6 @@ yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
-pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-pm2 save
 
 # Install & build admin
 echo 'Updating admin' >> $UPDATE_HTML
@@ -213,8 +214,6 @@ yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
-pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-pm2 save
 
 # Install & build dht-node
 echo 'Updating dht-node' >> $UPDATE_HTML
@@ -225,15 +224,6 @@ yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
-if [ ! -z $FEDERATION_DHT_TOPIC ]; then
-  pm2 start --name gradido-dht-node "yarn --cwd $PROJECT_ROOT/dht-node start" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-  pm2 save
-else
-  echo "=====================================================================" >> $UPDATE_HTML
-  echo "WARNING: FEDERATION_DHT_TOPIC not configured. DHT-Node not started..."  >> $UPDATE_HTML
-  echo "=====================================================================" >> $UPDATE_HTML
-fi  
-
 
 # Install & build federation
 echo 'Updating federation' >> $UPDATE_HTML
@@ -244,6 +234,20 @@ yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
+
+# start after building all to use up less ressources
+pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+pm2 save
+if [ ! -z $FEDERATION_DHT_TOPIC ]; then
+  pm2 start --name gradido-dht-node "yarn --cwd $PROJECT_ROOT/dht-node start" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+  pm2 save
+else
+  echo "=====================================================================" >> $UPDATE_HTML
+  echo "WARNING: FEDERATION_DHT_TOPIC not configured. DHT-Node not started..."  >> $UPDATE_HTML
+  echo "=====================================================================" >> $UPDATE_HTML
+fi  
 
 # set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
@@ -265,9 +269,6 @@ do
   pm2 start --name $MODULENAME "yarn --cwd $PROJECT_ROOT/federation start" -l $GRADIDO_LOG_PATH/pm2.$MODULENAME.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
   pm2 save
 done
-
-
-
 
 # let nginx showing gradido
 echo 'Configuring nginx to serve gradido again' >> $UPDATE_HTML
