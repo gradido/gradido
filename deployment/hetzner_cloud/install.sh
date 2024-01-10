@@ -80,12 +80,15 @@ expect eof
 ")
 echo "$SECURE_MYSQL"
 
+# create db user
+export DB_USER=gradido
+export DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
+
+# run all commands which must be called in gradido user space
+sudo -u gradido $LOCAL_SCRIPT_DIR/install_gradido.sh 
+
 # Configure nginx
 rm /etc/nginx/sites-enabled/default
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/nginx/sites-available/gradido.conf.template > $SCRIPT_PATH/nginx/sites-available/gradido.conf
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/nginx/sites-available/update-page.conf.template > $SCRIPT_PATH/nginx/sites-available/update-page.conf
-sudo -u gradido mkdir $SCRIPT_PATH/nginx/sites-enabled
-ln -s $SCRIPT_PATH/nginx/sites-available/update-page.conf $SCRIPT_PATH/nginx/sites-enabled/default
 ln -s $SCRIPT_PATH/nginx/sites-enabled/default /etc/nginx/sites-enabled
 ln -s $SCRIPT_PATH/nginx/common /etc/nginx/
 rmdir /etc/nginx/conf.d
@@ -94,53 +97,15 @@ ln -s $SCRIPT_PATH/nginx/conf.d /etc/nginx/
 # setup https with certbot
 certbot certonly --nginx --non-interactive --agree-tos --domains $COMMUNITY_HOST --email $COMMUNITY_SUPPORT_MAIL
 
-# Install node 16. with nvm, with nodesource is depracted
-sudo -u gradido bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash'
-# Close and reopen your terminal to start using nvm or run the following to use it now:
-sudo -u gradido bash -c 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
-sudo -u gradido bash -c '. $HOME/.nvm/nvm.sh && nvm install 16' # first installed version will be set to default automatic
-
-# Install yarn
-sudo -u gradido bash -c '. $HOME/.nvm/nvm.sh && npm i -g yarn'
-
-# Install pm2
-sudo -u gradido bash -c '. $HOME/.nvm/nvm.sh && npm i -g pm2 && pm2 startup'
-
 # Install logrotate
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/logrotate/gradido.conf.template > $SCRIPT_PATH/logrotate/gradido.conf
 cp $SCRIPT_PATH/logrotate/gradido.conf /etc/logrotate.d/gradido.conf
 
-# create db user
-export DB_USER=gradido
-export DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
+# setup db user
 mysql <<EOFMYSQL
     CREATE USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';
     GRANT ALL PRIVILEGES ON *.* TO '$DB_USER'@'localhost';
     FLUSH PRIVILEGES;
 EOFMYSQL
-
-# Configure database
-sudo -u gradido envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/database/.env.template > $PROJECT_ROOT/database/.env
-
-# Configure backend
-export JWT_SECRET=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
-sudo -u gradido envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/backend/.env.template > $PROJECT_ROOT/backend/.env
-
-# Configure frontend
-sudo -u gradido envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env.template > $PROJECT_ROOT/frontend/.env
-
-# Configure admin
-sudo -u gradido envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
-
-# Configure dht-node
-export FEDERATION_DHT_SEED=$(< /dev/urandom tr -dc a-f0-9 | head -c 32;echo);
-sudo -u gradido envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env.template > $PROJECT_ROOT/dht-node/.env
-
-# Configure federation
-sudo -u gradido envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.env.template > $PROJECT_ROOT/federation/.env
-
-# create cronjob to delete yarn output in /tmp and for making backups regulary
-sudo -u gradido crontab < $LOCAL_SCRIPT_DIR/crontabs.txt
 
 # Start gradido
 # Note: on first startup some errors will occur - nothing serious
