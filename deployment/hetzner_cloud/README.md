@@ -107,3 +107,9 @@ will remove it and ln ../bare_metal/nginx/conf.d
 ```bash
 cd ~/gradido/deployment/hetzner_cloud
 sudo ./install.sh
+
+### Make yourself admin
+
+```mysql 
+insert into user_roles(user_id, role) values(276, 'ADMIN');
+```
