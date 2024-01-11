@@ -5,8 +5,6 @@ import { createServer } from './server/createServer'
 async function main() {
   const { app } = await createServer()
 
-  void startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
-  // app listen don't return as long as the express server is running
   app.listen(CONFIG.PORT, () => {
     // eslint-disable-next-line no-console
     console.log(`Server is running at http://localhost:${CONFIG.PORT}`)
@@ -15,6 +13,7 @@ async function main() {
       console.log(`GraphIQL available at http://localhost:${CONFIG.PORT}`)
     }
   })
+  void startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
 }
 
 main().catch((e) => {
