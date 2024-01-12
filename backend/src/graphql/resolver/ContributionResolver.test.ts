@@ -2609,7 +2609,7 @@ describe('ContributionResolver', () => {
               expect(transaction[0].linkedTransactionId).toEqual(null)
               expect(transaction[0].transactionLinkId).toEqual(null)
               expect(transaction[0].previous).toEqual(null)
-              expect(transaction[0].linkedUserId).toEqual(null)
+              expect(transaction[0].linkedUserId).toEqual(admin.id)
               expect(transaction[0].typeId).toEqual(1)
             })
 
