@@ -7,7 +7,7 @@
           icon="arrow-clockwise"
           font-scale="2"
           :animation="animation"
-          @click="$apollo.queries.GetCommunities.refresh()"
+          @click="$apollo.queries.allCommunities.refresh()"
           data-test="federation-communities-refresh-btn"
         ></b-icon>
       </b-button>
@@ -30,9 +30,9 @@
   </div>
 </template>
 <script>
-import { getCommunities } from '@/graphql/getCommunities'
+import { allCommunities } from '@/graphql/allCommunities'
 
-import FederationVisualizeItem from '../components/Fedaration/FederationVisualizeItem.vue'
+import FederationVisualizeItem from '../components/Federation/FederationVisualizeItem.vue'
 
 export default {
   name: 'FederationVisualize',
@@ -48,17 +48,17 @@ export default {
   },
   computed: {
     animation() {
-      return this.$apollo.queries.GetCommunities.loading ? 'spin' : ''
+      return this.$apollo.queries.allCommunities.loading ? 'spin' : ''
     },
   },
   apollo: {
-    GetCommunities: {
+    allCommunities: {
       fetchPolicy: 'network-only',
       query() {
-        return getCommunities
+        return allCommunities
       },
-      update({ getCommunities }) {
-        this.communities = getCommunities
+      update({ allCommunities }) {
+        this.communities = allCommunities
       },
       error({ message }) {
         this.toastError(message)

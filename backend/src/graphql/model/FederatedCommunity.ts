@@ -6,9 +6,9 @@ export class FederatedCommunity {
   constructor(dbCom: DbFederatedCommunity) {
     this.id = dbCom.id
     this.foreign = dbCom.foreign
-    this.publicKey = dbCom.publicKey.toString()
-    this.url =
-      (dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/') + dbCom.apiVersion
+    this.publicKey = dbCom.publicKey.toString('hex')
+    this.apiVersion = dbCom.apiVersion
+    this.endPoint = dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'
     this.lastAnnouncedAt = dbCom.lastAnnouncedAt
     this.verifiedAt = dbCom.verifiedAt
     this.lastErrorAt = dbCom.lastErrorAt
@@ -26,7 +26,10 @@ export class FederatedCommunity {
   publicKey: string
 
   @Field(() => String)
-  url: string
+  apiVersion: string
+
+  @Field(() => String)
+  endPoint: string
 
   @Field(() => Date, { nullable: true })
   lastAnnouncedAt: Date | null
