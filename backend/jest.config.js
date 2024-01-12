@@ -16,6 +16,7 @@ module.exports = {
   moduleNameMapper: {
     '@/(.*)': '<rootDir>/src/$1',
     '@arg/(.*)': '<rootDir>/src/graphql/arg/$1',
+    '@dltConnector/(.*)': '<rootDir>/src/apis/dltConnector/$1',
     '@enum/(.*)': '<rootDir>/src/graphql/enum/$1',
     '@model/(.*)': '<rootDir>/src/graphql/model/$1',
     '@union/(.*)': '<rootDir>/src/graphql/union/$1',

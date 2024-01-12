@@ -1,19 +1,19 @@
 import { Account } from './Account'
 import { AccountCommunity } from './AccountCommunity'
+import { BackendTransaction } from './BackendTransaction'
 import { Community } from './Community'
-import { ConfirmedTransaction } from './ConfirmedTransaction'
 import { InvalidTransaction } from './InvalidTransaction'
 import { Migration } from './Migration'
-import { TransactionRecipe } from './TransactionRecipe'
+import { Transaction } from './Transaction'
 import { User } from './User'
 
 export const entities = [
   AccountCommunity,
   Account,
+  BackendTransaction,
   Community,
-  ConfirmedTransaction,
   InvalidTransaction,
   Migration,
-  TransactionRecipe,
+  Transaction,
   User,
 ]
