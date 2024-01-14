@@ -2,29 +2,43 @@ import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { ObjectType, Field, Int } from 'type-graphql'
 
+import { backendLogger as logger } from '@/server/logger'
+
 import { FederatedCommunity } from './FederatedCommunity'
 
 @ObjectType()
 export class Community {
   constructor(dbCom: DbCommunity) {
-    this.id = dbCom.id
-    this.foreign = dbCom.foreign
+    if (dbCom.federatedCommunities && dbCom.federatedCommunities.length > 0) {
+      const federatedCommunity = dbCom.federatedCommunities[0]
+      this.foreign = federatedCommunity.foreign
+      const url = new URL(federatedCommunity.endPoint)
+      // use only the host part
+      this.url = url.protocol + '//' + url.host
+      this.publicKey = federatedCommunity.publicKey.toString('hex')
+      this.federatedCommunities = dbCom.federatedCommunities.map(
+        (federatedCom: DbFederatedCommunity) => new FederatedCommunity(federatedCom),
+      )
+    }
+    this.id = dbCom.id ?? 0
+    if (dbCom.foreign !== undefined) {
+      this.foreign = dbCom.foreign
+    }
     this.name = dbCom.name
     this.description = dbCom.description
     this.gmsApiKey = dbCom.gmsApiKey
-    this.url = dbCom.url
-    this.publicKey = dbCom.publicKey.toString('hex')
+    if (dbCom.url) {
+      this.url = dbCom.url
+    }
+    if (dbCom.publicKey && dbCom.publicKey.length === 32) {
+      this.publicKey = dbCom.publicKey.toString('hex')
+    }
     this.communityUuid = dbCom.communityUuid
     this.creationDate = dbCom.creationDate
     this.createdAt = dbCom.createdAt
     this.updatedAt = dbCom.updatedAt
     this.uuid = dbCom.communityUuid
     this.authenticatedAt = dbCom.authenticatedAt
-    if (dbCom.federatedCommunities) {
-      this.federatedCommunities = dbCom.federatedCommunities.map(
-        (federatedCom: DbFederatedCommunity) => new FederatedCommunity(federatedCom),
-      )
-    }
   }
 
   @Field(() => Int)
