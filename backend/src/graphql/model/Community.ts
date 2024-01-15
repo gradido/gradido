@@ -2,8 +2,6 @@ import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { ObjectType, Field, Int } from 'type-graphql'
 
-import { backendLogger as logger } from '@/server/logger'
-
 import { FederatedCommunity } from './FederatedCommunity'
 
 @ObjectType()
@@ -39,6 +37,7 @@ export class Community {
     this.updatedAt = dbCom.updatedAt
     this.uuid = dbCom.communityUuid
     this.authenticatedAt = dbCom.authenticatedAt
+    this.gmsApiKey = dbCom.gmsApiKey
   }
 
   @Field(() => Int)
