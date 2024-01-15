@@ -25,7 +25,7 @@
         :key="item.publicKey"
         :variant="!item.foreign ? 'primary' : 'warning'"
       >
-        <federation-visualize-item :item="item" />
+        <community-visualize-item :item="item" />
       </b-list-group-item>
     </b-list-group>
   </div>
@@ -33,12 +33,12 @@
 <script>
 import { allCommunities } from '@/graphql/allCommunities'
 
-import FederationVisualizeItem from '../components/Federation/FederationVisualizeItem.vue'
+import CommunityVisualizeItem from '../components/Federation/CommunityVisualizeItem.vue'
 
 export default {
   name: 'FederationVisualize',
   components: {
-    FederationVisualizeItem,
+    CommunityVisualizeItem,
   },
   data() {
     return {

@@ -74,6 +74,7 @@
   "error": "Error",
   "expired": "expired",
   "federation": {
+    "apiVersion": "API Version",
     "authenticatedAt": "verified at:",
     "communityUuid": "Community UUID:",
     "createdAt": "Created At ",
@@ -81,10 +82,12 @@
     "toast_gmsApiKeyUpdated": "The GMS Api Key has been successfully updated!",
     "gradidoInstances": "Gradido Instances",
     "lastAnnouncedAt": "Last Announced",
+    "lastErrorAt": "last error at",
     "name": "Name",
     "publicKey": "PublicKey:",
     "url": "Url",
-    "verified": "Verified"
+    "verified": "Verified",
+    "verifiedAt": "Verified at"
   },
   "firstname": "Firstname",
   "footer": {
