@@ -79,7 +79,10 @@ describe('CommunityResolver', () => {
 
         homeCom1 = DbFederatedCommunity.create()
         homeCom1.foreign = false
-        homeCom1.publicKey = Buffer.from('publicKey-HomeCommunity')
+        homeCom1.publicKey = Buffer.from(
+          '8a1f9374b99c30d827b85dcd23f7e50328430d64ef65ef35bf375ea8eb9a2e1d',
+          'hex',
+        )
         homeCom1.apiVersion = '1_0'
         homeCom1.endPoint = 'http://localhost/api'
         homeCom1.createdAt = new Date()
@@ -87,7 +90,10 @@ describe('CommunityResolver', () => {
 
         homeCom2 = DbFederatedCommunity.create()
         homeCom2.foreign = false
-        homeCom2.publicKey = Buffer.from('publicKey-HomeCommunity')
+        homeCom2.publicKey = Buffer.from(
+          '7d849b4b53232ed8f3c913e1944b4a20b1a33e44f65ee56673209c14df0e3252',
+          'hex',
+        )
         homeCom2.apiVersion = '1_1'
         homeCom2.endPoint = 'http://localhost/api'
         homeCom2.createdAt = new Date()
@@ -95,7 +101,10 @@ describe('CommunityResolver', () => {
 
         homeCom3 = DbFederatedCommunity.create()
         homeCom3.foreign = false
-        homeCom3.publicKey = Buffer.from('publicKey-HomeCommunity')
+        homeCom3.publicKey = Buffer.from(
+          'f9a683abf2d1bf265c8dcb543d3674e080db5a5d6976a2dd6ea6969c798f8a8c',
+          'hex',
+        )
         homeCom3.apiVersion = '2_0'
         homeCom3.endPoint = 'http://localhost/api'
         homeCom3.createdAt = new Date()
@@ -109,8 +118,10 @@ describe('CommunityResolver', () => {
               {
                 id: 3,
                 foreign: homeCom3.foreign,
-                publicKey: expect.stringMatching('publicKey-HomeCommunity'),
-                url: expect.stringMatching('http://localhost/api/2_0'),
+                publicKey: expect.stringMatching(
+                  'f9a683abf2d1bf265c8dcb543d3674e080db5a5d6976a2dd6ea6969c798f8a8c',
+                ),
+                endPoint: expect.stringMatching('http://localhost/api/'),
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -120,8 +131,10 @@ describe('CommunityResolver', () => {
               {
                 id: 2,
                 foreign: homeCom2.foreign,
-                publicKey: expect.stringMatching('publicKey-HomeCommunity'),
-                url: expect.stringMatching('http://localhost/api/1_1'),
+                publicKey: expect.stringMatching(
+                  '7d849b4b53232ed8f3c913e1944b4a20b1a33e44f65ee56673209c14df0e3252',
+                ),
+                endPoint: expect.stringMatching('http://localhost/api/'),
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -131,8 +144,10 @@ describe('CommunityResolver', () => {
               {
                 id: 1,
                 foreign: homeCom1.foreign,
-                publicKey: expect.stringMatching('publicKey-HomeCommunity'),
-                url: expect.stringMatching('http://localhost/api/1_0'),
+                publicKey: expect.stringMatching(
+                  '8a1f9374b99c30d827b85dcd23f7e50328430d64ef65ef35bf375ea8eb9a2e1d',
+                ),
+                endPoint: expect.stringMatching('http://localhost/api/'),
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -151,7 +166,10 @@ describe('CommunityResolver', () => {
 
         foreignCom1 = DbFederatedCommunity.create()
         foreignCom1.foreign = true
-        foreignCom1.publicKey = Buffer.from('publicKey-ForeignCommunity')
+        foreignCom1.publicKey = Buffer.from(
+          '2e3c58f8fb7d9e4c1f2e3a9ec51cf4b1473d9b6b422853ac4c28e68ec41db4f3',
+          'hex',
+        )
         foreignCom1.apiVersion = '1_0'
         foreignCom1.endPoint = 'http://remotehost/api'
         foreignCom1.createdAt = new Date()
@@ -159,7 +177,10 @@ describe('CommunityResolver', () => {
 
         foreignCom2 = DbFederatedCommunity.create()
         foreignCom2.foreign = true
-        foreignCom2.publicKey = Buffer.from('publicKey-ForeignCommunity')
+        foreignCom2.publicKey = Buffer.from(
+          '9c74d200b9c8b7210db8e65a58b869e4a8c84eb5b2b8b8e8d1ed74e6d9f5b7a1',
+          'hex',
+        )
         foreignCom2.apiVersion = '1_1'
         foreignCom2.endPoint = 'http://remotehost/api'
         foreignCom2.createdAt = new Date()
@@ -167,7 +188,10 @@ describe('CommunityResolver', () => {
 
         foreignCom3 = DbFederatedCommunity.create()
         foreignCom3.foreign = true
-        foreignCom3.publicKey = Buffer.from('publicKey-ForeignCommunity')
+        foreignCom3.publicKey = Buffer.from(
+          '13fd4edf5b708b5815f8d7d0c0ba34e6aa810f3f187f0bd3d25e0e74315ec16a',
+          'hex',
+        )
         foreignCom3.apiVersion = '1_2'
         foreignCom3.endPoint = 'http://remotehost/api'
         foreignCom3.createdAt = new Date()
@@ -181,8 +205,10 @@ describe('CommunityResolver', () => {
               {
                 id: 3,
                 foreign: homeCom3.foreign,
-                publicKey: expect.stringMatching('publicKey-HomeCommunity'),
-                url: expect.stringMatching('http://localhost/api/2_0'),
+                publicKey: expect.stringMatching(
+                  'f9a683abf2d1bf265c8dcb543d3674e080db5a5d6976a2dd6ea6969c798f8a8c',
+                ),
+                endPoint: expect.stringMatching('http://localhost/api'),
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -192,8 +218,10 @@ describe('CommunityResolver', () => {
               {
                 id: 2,
                 foreign: homeCom2.foreign,
-                publicKey: expect.stringMatching('publicKey-HomeCommunity'),
-                url: expect.stringMatching('http://localhost/api/1_1'),
+                publicKey: expect.stringMatching(
+                  '7d849b4b53232ed8f3c913e1944b4a20b1a33e44f65ee56673209c14df0e3252',
+                ),
+                endPoint: expect.stringMatching('http://localhost/api'),
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -203,8 +231,10 @@ describe('CommunityResolver', () => {
               {
                 id: 1,
                 foreign: homeCom1.foreign,
-                publicKey: expect.stringMatching('publicKey-HomeCommunity'),
-                url: expect.stringMatching('http://localhost/api/1_0'),
+                publicKey: expect.stringMatching(
+                  '8a1f9374b99c30d827b85dcd23f7e50328430d64ef65ef35bf375ea8eb9a2e1d',
+                ),
+                endPoint: expect.stringMatching('http://localhost/api'),
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -214,8 +244,10 @@ describe('CommunityResolver', () => {
               {
                 id: 6,
                 foreign: foreignCom3.foreign,
-                publicKey: expect.stringMatching('publicKey-ForeignCommunity'),
-                url: expect.stringMatching('http://remotehost/api/1_2'),
+                publicKey: expect.stringMatching(
+                  '13fd4edf5b708b5815f8d7d0c0ba34e6aa810f3f187f0bd3d25e0e74315ec16a',
+                ),
+                endPoint: expect.stringMatching('http://remotehost/api'),
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -225,8 +257,10 @@ describe('CommunityResolver', () => {
               {
                 id: 5,
                 foreign: foreignCom2.foreign,
-                publicKey: expect.stringMatching('publicKey-ForeignCommunity'),
-                url: expect.stringMatching('http://remotehost/api/1_1'),
+                publicKey: expect.stringMatching(
+                  '9c74d200b9c8b7210db8e65a58b869e4a8c84eb5b2b8b8e8d1ed74e6d9f5b7a1',
+                ),
+                endPoint: expect.stringMatching('http://remotehost/api'),
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -236,8 +270,10 @@ describe('CommunityResolver', () => {
               {
                 id: 4,
                 foreign: foreignCom1.foreign,
-                publicKey: expect.stringMatching('publicKey-ForeignCommunity'),
-                url: expect.stringMatching('http://remotehost/api/1_0'),
+                publicKey: expect.stringMatching(
+                  '2e3c58f8fb7d9e4c1f2e3a9ec51cf4b1473d9b6b422853ac4c28e68ec41db4f3',
+                ),
+                endPoint: expect.stringMatching('http://remotehost/api'),
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -281,7 +317,10 @@ describe('CommunityResolver', () => {
         homeCom1 = DbCommunity.create()
         homeCom1.foreign = false
         homeCom1.url = 'http://localhost/api'
-        homeCom1.publicKey = Buffer.from('publicKey-HomeCommunity')
+        homeCom1.publicKey = Buffer.from(
+          '8a1f9374b99c30d827b85dcd23f7e50328430d64ef65ef35bf375ea8eb9a2e1d',
+          'hex',
+        )
         homeCom1.privateKey = Buffer.from('privateKey-HomeCommunity')
         homeCom1.communityUuid = 'HomeCom-UUID'
         homeCom1.authenticatedAt = new Date()
@@ -319,7 +358,10 @@ describe('CommunityResolver', () => {
         homeCom1 = DbCommunity.create()
         homeCom1.foreign = false
         homeCom1.url = 'http://localhost/api'
-        homeCom1.publicKey = Buffer.from('publicKey-HomeCommunity')
+        homeCom1.publicKey = Buffer.from(
+          '8a1f9374b99c30d827b85dcd23f7e50328430d64ef65ef35bf375ea8eb9a2e1d',
+          'hex',
+        )
         homeCom1.privateKey = Buffer.from('privateKey-HomeCommunity')
         homeCom1.communityUuid = 'HomeCom-UUID'
         homeCom1.authenticatedAt = new Date()
@@ -331,8 +373,14 @@ describe('CommunityResolver', () => {
         foreignCom1 = DbCommunity.create()
         foreignCom1.foreign = true
         foreignCom1.url = 'http://stage-2.gradido.net/api'
-        foreignCom1.publicKey = Buffer.from('publicKey-stage-2_Community')
-        foreignCom1.privateKey = Buffer.from('privateKey-stage-2_Community')
+        foreignCom1.publicKey = Buffer.from(
+          '8a1f9374b99c30d827b85dcd23f7e50328430d64ef65ef35bf375ea8eb9a2e1d',
+          'hex',
+        )
+        foreignCom1.privateKey = Buffer.from(
+          'f6c2a9d78e20a3c910f35b8ffcf824aa7b37f0d3d81bfc4c0e65e17a194b3a4a',
+          'hex',
+        )
         // foreignCom1.communityUuid = 'Stage2-Com-UUID'
         // foreignCom1.authenticatedAt = new Date()
         foreignCom1.name = 'Stage-2_Community-name'
@@ -343,8 +391,14 @@ describe('CommunityResolver', () => {
         foreignCom2 = DbCommunity.create()
         foreignCom2.foreign = true
         foreignCom2.url = 'http://stage-3.gradido.net/api'
-        foreignCom2.publicKey = Buffer.from('publicKey-stage-3_Community')
-        foreignCom2.privateKey = Buffer.from('privateKey-stage-3_Community')
+        foreignCom2.publicKey = Buffer.from(
+          'e047365a54082e8a7e9273da61b55c8134a2a0c836799ba12b78b9b0c52bc85f',
+          'hex',
+        )
+        foreignCom2.privateKey = Buffer.from(
+          'e047365a54082e8a7e9273da61b55c8134a2a0c836799ba12b78b9b0c52bc85f',
+          'hex',
+        )
         foreignCom2.communityUuid = 'Stage3-Com-UUID'
         foreignCom2.authenticatedAt = new Date()
         foreignCom2.name = 'Stage-3_Community-name'
@@ -410,8 +464,14 @@ describe('CommunityResolver', () => {
         foreignCom1 = DbCommunity.create()
         foreignCom1.foreign = true
         foreignCom1.url = 'http://stage-2.gradido.net/api'
-        foreignCom1.publicKey = Buffer.from('publicKey-stage-2_Community')
-        foreignCom1.privateKey = Buffer.from('privateKey-stage-2_Community')
+        foreignCom1.publicKey = Buffer.from(
+          '8a1f9374b99c30d827b85dcd23f7e50328430d64ef65ef35bf375ea8eb9a2e1d',
+          'hex',
+        )
+        foreignCom1.privateKey = Buffer.from(
+          'f6c2a9d78e20a3c910f35b8ffcf824aa7b37f0d3d81bfc4c0e65e17a194b3a4a',
+          'hex',
+        )
         // foreignCom1.communityUuid = 'Stage2-Com-UUID'
         // foreignCom1.authenticatedAt = new Date()
         foreignCom1.name = 'Stage-2_Community-name'
@@ -422,8 +482,14 @@ describe('CommunityResolver', () => {
         foreignCom2 = DbCommunity.create()
         foreignCom2.foreign = true
         foreignCom2.url = 'http://stage-3.gradido.net/api'
-        foreignCom2.publicKey = Buffer.from('publicKey-stage-3_Community')
-        foreignCom2.privateKey = Buffer.from('privateKey-stage-3_Community')
+        foreignCom2.publicKey = Buffer.from(
+          'e047365a54082e8a7e9273da61b55c8134a2a0c836799ba12b78b9b0c52bc85f',
+          'hex',
+        )
+        foreignCom2.privateKey = Buffer.from(
+          'e047365a54082e8a7e9273da61b55c8134a2a0c836799ba12b78b9b0c52bc85f',
+          'hex',
+        )
         foreignCom2.communityUuid = 'Stage3-Com-UUID'
         foreignCom2.authenticatedAt = new Date()
         foreignCom2.name = 'Stage-3_Community-name'

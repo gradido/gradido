@@ -156,7 +156,7 @@ export const getCommunities = gql`
       id
       foreign
       publicKey
-      url
+      endPoint
       lastAnnouncedAt
       verifiedAt
       lastErrorAt
