@@ -35,7 +35,11 @@ export default {
   methods: {
     distanceDate(dateString) {
       return dateString
-        ? formatDistanceToNow(new Date(dateString), { locale: locales[this.$i18n.locale] })
+        ? formatDistanceToNow(new Date(dateString), {
+            includeSecond: true,
+            addSuffix: true,
+            locale: locales[this.$i18n.locale],
+          })
         : ''
     },
   },

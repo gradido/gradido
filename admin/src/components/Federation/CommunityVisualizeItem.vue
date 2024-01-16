@@ -12,7 +12,7 @@
       <b-col cols="2">{{ lastAnnouncedAt }}</b-col>
       <b-col cols="2">{{ createdAt }}</b-col>
     </b-row>
-    <b-row v-if="details">
+    <b-row v-if="details" class="details">
       <b-col colspan="5">
         <b-list-group>
           <b-list-group-item v-if="item.communityUuid">
@@ -87,6 +87,9 @@ export default {
   },
   computed: {
     verified() {
+      if (!this.item.federatedCommunities || this.item.federatedCommunities.length === 0) {
+        return false
+      }
       return (
         this.item.federatedCommunities.filter(
           (federatedCommunity) =>
@@ -101,6 +104,7 @@ export default {
       return this.verified ? 'success' : 'danger'
     },
     lastAnnouncedAt() {
+      if (!this.item.federatedCommunities || this.item.federatedCommunities.length === 0) return ''
       const minDate = new Date(0)
       const lastAnnouncedAt = this.item.federatedCommunities.reduce(
         (lastAnnouncedAt, federateCommunity) => {

@@ -3,7 +3,6 @@ import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCom
 
 import { Paginated } from '@arg/Paginated'
 
-import { Order } from '@/graphql/enum/Order'
 import { LogError } from '@/server/LogError'
 import { Connection } from '@/typeorm/connection'
 

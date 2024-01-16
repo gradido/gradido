@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import FederationVisualize from './FederationVisualize'
 import VueApollo from 'vue-apollo'
 import { createMockClient } from 'mock-apollo-client'
-import { getCommunities } from '@/graphql/getCommunities'
+import { allCommunities } from '@/graphql/allCommunities'
 import { toastErrorSpy } from '../../test/testSetup'
 
 const mockClient = createMockClient()
@@ -25,42 +25,54 @@ const mocks = {
 
 const defaultData = () => {
   return {
-    getCommunities: [
+    allCommunities: [
       {
-        id: 1776,
-        foreign: true,
-        publicKey: 'c7ca9e742421bb167b8666cb78f90b40c665b8f35db8f001988d44dbb3ce8527',
-        url: 'http://localhost/api/2_0',
-        lastAnnouncedAt: '2023-04-07T12:27:24.037Z',
-        verifiedAt: null,
-        lastErrorAt: null,
-        createdAt: '2023-04-07T11:45:06.254Z',
-        updatedAt: null,
-        __typename: 'Community',
-      },
-      {
-        id: 1775,
-        foreign: true,
-        publicKey: 'c7ca9e742421bb167b8666cb78f90b40c665b8f35db8f001988d44dbb3ce8527',
-        url: 'http://localhost/api/1_1',
-        lastAnnouncedAt: '2023-04-07T12:27:24.023Z',
-        verifiedAt: null,
-        lastErrorAt: null,
-        createdAt: '2023-04-07T11:45:06.234Z',
-        updatedAt: null,
-        __typename: 'Community',
-      },
-      {
-        id: 1774,
-        foreign: true,
-        publicKey: 'c7ca9e742421bb167b8666cb78f90b40c665b8f35db8f001988d44dbb3ce8527',
-        url: 'http://localhost/api/1_0',
-        lastAnnouncedAt: '2023-04-07T12:27:24.009Z',
-        verifiedAt: null,
-        lastErrorAt: null,
-        createdAt: '2023-04-07T11:45:06.218Z',
-        updatedAt: null,
-        __typename: 'Community',
+        id: 1,
+        foreign: false,
+        url: 'http://localhost/api/',
+        publicKey: '4007170edd8d33fb009cd99ee4e87f214e7cd21b668d45540a064deb42e243c2',
+        communityUuid: '5ab0befd-b150-4f31-a631-7f3637e47b21',
+        authenticatedAt: null,
+        name: 'Gradido Test',
+        description: 'Gradido Community zum testen',
+        gmsApiKey: '<api key>',
+        creationDate: '2024-01-09T15:56:40.592Z',
+        createdAt: '2024-01-09T15:56:40.595Z',
+        updatedAt: '2024-01-16T11:17:15.000Z',
+        federatedCommunities: [
+          {
+            id: 2046,
+            apiVersion: '2_0',
+            endPoint: 'http://localhost/api/',
+            lastAnnouncedAt: null,
+            verifiedAt: null,
+            lastErrorAt: null,
+            createdAt: '2024-01-16T10:08:21.544Z',
+            updatedAt: null,
+          },
+          {
+            id: 2045,
+            apiVersion: '1_1',
+            endPoint: 'http://localhost/api/',
+            lastAnnouncedAt: null,
+            verifiedAt: null,
+            lastErrorAt: null,
+            createdAt: '2024-01-16T10:08:21.550Z',
+            updatedAt: null,
+            __typename: 'FederatedCommunity',
+          },
+          {
+            id: 2044,
+            apiVersion: '1_0',
+            endPoint: 'http://localhost/api/',
+            lastAnnouncedAt: null,
+            verifiedAt: null,
+            lastErrorAt: null,
+            createdAt: '2024-01-16T10:08:21.544Z',
+            updatedAt: null,
+            __typename: 'FederatedCommunity',
+          },
+        ],
       },
     ],
   }
@@ -68,11 +80,11 @@ const defaultData = () => {
 
 describe('FederationVisualize', () => {
   let wrapper
-  const getCommunitiesMock = jest.fn()
+  const allCommunitiesMock = jest.fn()
 
   mockClient.setRequestHandler(
-    getCommunities,
-    getCommunitiesMock
+    allCommunities,
+    allCommunitiesMock
       .mockRejectedValueOnce({ message: 'Ouch!' })
       .mockResolvedValue({ data: defaultData() }),
   )
@@ -95,7 +107,7 @@ describe('FederationVisualize', () => {
 
     describe('sever success', () => {
       it('sends query to Apollo when created', () => {
-        expect(getCommunitiesMock).toBeCalled()
+        expect(allCommunitiesMock).toBeCalled()
       })
 
       it('has a DIV element with the class "federation-visualize"', () => {
@@ -106,8 +118,8 @@ describe('FederationVisualize', () => {
         expect(wrapper.find('[data-test="federation-communities-refresh-btn"]').exists()).toBe(true)
       })
 
-      it('renders 3 community list items', () => {
-        expect(wrapper.findAll('.list-group-item').length).toBe(3)
+      it('renders 1 community list item', () => {
+        expect(wrapper.findAll('.list-group-item').length).toBe(1)
       })
 
       describe('cklicking the refresh button', () => {
@@ -117,7 +129,7 @@ describe('FederationVisualize', () => {
         })
 
         it('calls the API', async () => {
-          expect(getCommunitiesMock).toBeCalled()
+          expect(allCommunitiesMock).toBeCalled()
         })
       })
     })

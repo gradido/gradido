@@ -15,6 +15,7 @@
     "lint": "eslint --max-warnings=0 --ext .js,.vue,.json .",
     "stylelint": "stylelint --max-warnings=0 '**/*.{scss,vue}'",
     "test": "cross-env TZ=UTC jest",
+    "test:debug": "node --inspect-brk node_modules/.bin/vue-cli-service test:unit --no-cache --watch --runInBand",
     "locales": "scripts/sort.sh"
   },
   "dependencies": {

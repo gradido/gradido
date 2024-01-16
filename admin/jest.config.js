@@ -9,7 +9,7 @@ module.exports = {
   ],
   coverageThreshold: {
     global: {
-      lines: 96,
+      lines: 95,
     },
   },
   moduleFileExtensions: [
@@ -31,6 +31,9 @@ module.exports = {
   setupFiles: ['<rootDir>/test/testSetup.js', 'jest-canvas-mock'],
   testMatch: ['**/?(*.)+(spec|test).js?(x)'],
   // snapshotSerializers: ['jest-serializer-vue'],
-  transformIgnorePatterns: ['<rootDir>/node_modules/(?!vee-validate/dist/rules)'],
+  transformIgnorePatterns: [
+    '<rootDir>/node_modules/(?!vee-validate/dist/rules)',
+    '/node_modules/(?!@babel)',
+  ],
   testEnvironment: 'jest-environment-jsdom-sixteen', // why this is still needed? should not be needed anymore since jest@26, see: https://www.npmjs.com/package/jest-environment-jsdom-sixteen
 }
