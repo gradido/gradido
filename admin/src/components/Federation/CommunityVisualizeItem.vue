@@ -27,7 +27,7 @@
           <b-list-group-item v-if="!item.foreign">
             {{ $t('federation.gmsApiKey') }}&nbsp;
             <editable-label
-              :value="item.gmsApiKey"
+              :value="gmsApiKey"
               :allowEdit="$store.state.moderator.roles.includes('ADMIN')"
               @save="handleSaveGsmApiKey"
             />
@@ -79,7 +79,11 @@ export default {
       formatDistanceToNow,
       locale: this.$i18n.locale,
       details: false,
+      gmsApiKey: '',
     }
+  },
+  created() {
+    this.gmsApiKey = this.item.gmsApiKey
   },
   computed: {
     verified() {
@@ -131,6 +135,7 @@ export default {
       this.details = !this.details
     },
     handleSaveGsmApiKey(gmsApiKey) {
+      this.gmsApiKey = gmsApiKey
       this.$apollo
         .mutate({
           mutation: updateHomeCommunity,
