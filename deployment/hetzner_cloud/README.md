@@ -107,9 +107,18 @@ will remove it and ln ../bare_metal/nginx/conf.d
 ```bash
 cd ~/gradido/deployment/hetzner_cloud
 sudo ./install.sh
+```
 
 ### Make yourself admin
+- Create an account on your new gradido instance
+- Click the link in the activation email
+- go back to your ssh session and copy this command
 
-```mysql 
-insert into user_roles(user_id, role) values(276, 'ADMIN');
+```bash
+sudo mysql -D gradido_community -e "insert into user_roles(user_id, role) values((select id from users order by id desc limit 1), 'ADMIN');"
 ```
+
+- it will make last registered user admin
+- login with you newly created user
+- if you has a link to `Admin Area` it worked and you are admin
+
