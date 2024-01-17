@@ -112,9 +112,12 @@ cp $SCRIPT_PATH/logrotate/gradido.conf /etc/logrotate.d/gradido.conf
 
 # create db user
 export DB_USER=gradido
-export DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
+# create a new password only if it not already exist
+if [ -z "${DB_PASSWORD}" ]; then
+    export DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
+fi
 mysql <<EOFMYSQL
-    CREATE USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';
+    CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';
     GRANT ALL PRIVILEGES ON *.* TO '$DB_USER'@'localhost';
     FLUSH PRIVILEGES;
 EOFMYSQL
