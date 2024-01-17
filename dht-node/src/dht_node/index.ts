@@ -3,6 +3,7 @@
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import DHT from '@hyperswarm/dht'
+import { CommunityLoggingView } from '@logging/CommunityLogging.view'
 import { v4 as uuidv4 } from 'uuid'
 
 import { CONFIG } from '@/config'
@@ -227,7 +228,7 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
       homeCom.name = CONFIG.COMMUNITY_NAME
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
       await DbCommunity.save(homeCom)
-      logger.info(`home-community updated successfully:`, homeCom)
+      logger.info(`home-community updated successfully:`, new CommunityLoggingView(homeCom))
     } else {
       // insert a new homecommunity entry including a new ID and a new but ensured unique UUID
       homeCom = new DbCommunity()
@@ -240,7 +241,7 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
       homeCom.creationDate = new Date()
       await DbCommunity.insert(homeCom)
-      logger.info(`home-community inserted successfully:`, homeCom)
+      logger.info(`home-community inserted successfully:`, new CommunityLoggingView(homeCom))
     }
   } catch (err) {
     throw new Error(`Federation: Error writing HomeCommunity-Entry: ${err}`)
