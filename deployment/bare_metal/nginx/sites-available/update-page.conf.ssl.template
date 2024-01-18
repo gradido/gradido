@@ -1,16 +1,16 @@
 
 server {
-    if ($host = $NGINX_SERVER_NAME) {
+    if ($host = $COMMUNITY_HOST) {
         return 301 https://$host$request_uri;
     }
 
-    server_name $NGINX_SERVER_NAME;
+    server_name $COMMUNITY_HOST;
     listen 80;
     listen [::]:80;
     return 404;
 }
 server {
-    server_name $NGINX_SERVER_NAME;
+    server_name $COMMUNITY_HOST;
 
     listen [::]:443 ssl ipv6only=on;
     listen 443 ssl;
