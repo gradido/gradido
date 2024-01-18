@@ -14,6 +14,7 @@ import { CONFIG } from '@/config'
 import { startDHT } from './index'
 
 CONFIG.FEDERATION_DHT_SEED = '64ebcb0e3ad547848fef4197c6e2332f'
+CONFIG.FEDERATION_COMMUNITY_APIS = '1_0,1_1,2_0'
 
 jest.mock('@hyperswarm/dht')
 
@@ -248,7 +249,7 @@ describe('federation', () => {
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
-                  new SyntaxError('Unexpected token \'o\', "no-json string" is not valid JSON'),
+                  new SyntaxError('Unexpected token o in JSON at position 1'),
                 )
               })
             })
@@ -267,7 +268,7 @@ describe('federation', () => {
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
-                  new SyntaxError('Unexpected token \'i\', "invalid ty"... is not valid JSON'),
+                  new SyntaxError('Unexpected token i in JSON at position 0'),
                 )
               })
             })
@@ -291,7 +292,7 @@ describe('federation', () => {
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
-                  new SyntaxError('Unexpected token \'a\', "api,url,in"... is not valid JSON'),
+                  new SyntaxError('Unexpected token a in JSON at position 0'),
                 )
               })
             })
