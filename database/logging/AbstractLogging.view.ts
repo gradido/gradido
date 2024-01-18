@@ -3,13 +3,18 @@ import util from 'util'
 import { Decimal } from 'decimal.js-light'
 
 export abstract class AbstractLoggingView {
+  // eslint-disable-next-line no-undef
   protected bufferStringFormat: BufferEncoding = 'hex'
 
   // This function gets called automatically when JSON.stringify() is called on this class instance
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public abstract toJSON(): any
-  public toString(): string {
-    return JSON.stringify(this.toJSON(), null, 2)
+  public toString(compact = false): string {
+    if (compact) {
+      return JSON.stringify(this.toJSON())
+    } else {
+      return JSON.stringify(this.toJSON(), null, 2)
+    }
   }
 
   // called form console.log or log4js logging functions

@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Arg, Args, Mutation, Resolver } from 'type-graphql'
+import { Arg, Mutation, Resolver } from 'type-graphql'
 import { federationLogger as logger } from '@/server/logger'
 import { Community as DbCommunity } from '@entity/Community'
 import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
@@ -16,27 +15,16 @@ import { findUserByIdentifier } from '@/graphql/util/findUserByIdentifier'
 import { SendCoinsResult } from '../model/SendCoinsResult'
 import Decimal from 'decimal.js-light'
 import { storeForeignUser } from '../util/storeForeignUser'
+import { SendCoinsArgsLoggingView } from '../logger/SendCoinsArgsLogging.view'
 
 @Resolver()
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class SendCoinsResolver {
   @Mutation(() => SendCoinsResult)
   async voteForSendCoins(
     @Arg('data')
     args: SendCoinsArgs,
   ): Promise<SendCoinsResult> {
-    logger.debug(
-      `voteForSendCoins() via apiVersion=1_0 ...`,
-      args.recipientCommunityUuid,
-      args.recipientUserIdentifier,
-      args.creationDate,
-      args.amount.toString(),
-      args.memo,
-      args.senderCommunityUuid,
-      args.senderUserUuid,
-      args.senderUserName,
-      args.senderAlias,
-    )
+    logger.debug(`voteForSendCoins() via apiVersion=1_0 ...`, new SendCoinsArgsLoggingView(args))
     const result = new SendCoinsResult()
     // first check if receiver community is correct
     const homeCom = await DbCommunity.findOneBy({
@@ -167,19 +155,11 @@ export class SendCoinsResolver {
           pendingTx?.amount.toString(),
           args.amount.toString(),
         )
-        throw new LogError(
-          `Can't find in revertSendCoins the pending receiver TX for args=`,
-          args.recipientCommunityUuid,
-          args.recipientUserIdentifier,
-          PendingTransactionState.NEW,
-          TransactionTypeId.RECEIVE,
-          args.creationDate,
-          args.amount,
-          args.memo,
-          args.senderCommunityUuid,
-          args.senderUserUuid,
-          args.senderUserName,
-        )
+        throw new LogError(`Can't find in revertSendCoins the pending receiver TX for `, {
+          args: new SendCoinsArgsLoggingView(args),
+          pendingTransactionState: PendingTransactionState.NEW,
+          transactionType: TransactionTypeId.RECEIVE,
+        })
       }
       logger.debug(`revertSendCoins()-1_0... successfull`)
       return true
@@ -193,15 +173,7 @@ export class SendCoinsResolver {
     @Arg('data')
     args: SendCoinsArgs,
   ): Promise<boolean> {
-    logger.debug(
-      `settleSendCoins() via apiVersion=1_0 ...userCommunityUuid=${
-        args.recipientCommunityUuid
-      }, userGradidoID=${args.recipientUserIdentifier}, balanceDate=${
-        args.creationDate
-      },amount=${args.amount.valueOf()}, memo=${args.memo}, linkedUserCommunityUuid = ${
-        args.senderCommunityUuid
-      }, userSenderIdentifier=${args.senderUserUuid}, userSenderName=${args.senderUserName}`,
-    )
+    logger.debug(`settleSendCoins() via apiVersion=1_0 ...`, new SendCoinsArgsLoggingView(args))
     // first check if receiver community is correct
     const homeCom = await DbCommunity.findOneBy({
       communityUuid: args.recipientCommunityUuid,
@@ -256,17 +228,12 @@ export class SendCoinsResolver {
     } else {
       logger.debug('XCom: settlePendingReceiveTransaction NOT matching pendingTX for settlement...')
       throw new LogError(
-        `Can't find in settlePendingReceiveTransaction the pending receiver TX for args=`,
-        args.recipientCommunityUuid,
-        args.recipientUserIdentifier,
-        PendingTransactionState.NEW,
-        TransactionTypeId.RECEIVE,
-        args.creationDate,
-        args.amount,
-        args.memo,
-        args.senderCommunityUuid,
-        args.senderUserUuid,
-        args.senderUserName,
+        `Can't find in settlePendingReceiveTransaction the pending receiver TX for `,
+        {
+          args: new SendCoinsArgsLoggingView(args),
+          pendingTransactionState: PendingTransactionState.NEW,
+          transactionTypeId: TransactionTypeId.RECEIVE,
+        },
       )
     }
   }
@@ -322,19 +289,11 @@ export class SendCoinsResolver {
       }
     } else {
       logger.debug('XCom: revertSettledSendCoins NOT matching pendingTX...')
-      throw new LogError(
-        `Can't find in revertSettledSendCoins the pending receiver TX for args=`,
-        args.recipientCommunityUuid,
-        args.recipientUserIdentifier,
-        PendingTransactionState.SETTLED,
-        TransactionTypeId.RECEIVE,
-        args.creationDate,
-        args.amount,
-        args.memo,
-        args.senderCommunityUuid,
-        args.senderUserUuid,
-        args.senderUserName,
-      )
+      throw new LogError(`Can't find in revertSettledSendCoins the pending receiver TX for `, {
+        args: new SendCoinsArgsLoggingView(args),
+        pendingTransactionState: PendingTransactionState.SETTLED,
+        transactionTypeId: TransactionTypeId.RECEIVE,
+      })
     }
     logger.debug(`revertSendCoins()-1_0... successfull`)
     return true

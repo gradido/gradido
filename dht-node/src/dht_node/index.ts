@@ -18,8 +18,8 @@ const ANNOUNCETIME = 30000
 
 enum ApiVersionType {
   V1_0 = '1_0',
-  V1_1 = '1_1',
-  V2_0 = '2_0',
+  V1_1 = '1_1', // currently no changes
+  V2_0 = '2_0', // not exist
 }
 type CommunityApi = {
   api: string
@@ -191,9 +191,11 @@ export const startDHT = async (topic: string): Promise<void> => {
 }
 
 async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<CommunityApi[]> {
-  const homeApiVersions: CommunityApi[] = Object.values(ApiVersionType).map(function (apiEnum) {
+  const homeApiVersions: CommunityApi[] = CONFIG.FEDERATION_COMMUNITY_APIS.split(',').map(function (
+    api,
+  ) {
     const comApi: CommunityApi = {
-      api: apiEnum,
+      api,
       url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
     }
     return comApi
