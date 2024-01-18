@@ -5,8 +5,8 @@ import { entities } from '@entity/index'
 import { Migration } from '@entity/Migration'
 
 import { CONFIG } from '@/config'
+import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
-import { logger } from '@/server/logger'
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class Connection {

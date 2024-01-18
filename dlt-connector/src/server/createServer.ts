@@ -9,9 +9,8 @@ import express, { Express } from 'express'
 import { Logger } from 'log4js'
 
 import { schema } from '@/graphql/schema'
+import { logger as dltLogger } from '@/logging/logger'
 import { Connection } from '@/typeorm/DataSource'
-
-import { logger as dltLogger } from './logger'
 
 type ServerDef = { apollo: ApolloServer; app: Express }
 

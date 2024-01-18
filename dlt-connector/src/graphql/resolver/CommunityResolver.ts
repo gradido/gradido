@@ -9,8 +9,8 @@ import { TransactionResult } from '@model/TransactionResult'
 
 import { CommunityRepository } from '@/data/Community.repository'
 import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
+import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
-import { logger } from '@/server/logger'
 import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 
 @Resolver()
