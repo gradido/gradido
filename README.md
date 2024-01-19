@@ -131,7 +131,7 @@ Each component (frontend, admin, backend and database) has its own `.env` file. 
 
 Each component has a `.env.dist` file. This file contains all environment variables used by the component and can be used as pattern. If you want to use a local `.env`, copy the `.env.dist` and adjust the variables accordingly.
 
-Each component has a `.env.template` file. These files are very important on deploy.
+Each component has a `.env.template` file. These files are very important on deploy. They use COMMUNITY_HOST instead of different urls for different modules because in deploy using nginx is expected for routing incoming request to the correct module
 
 There is one `.env.dist` in the `deployment/bare_metal/` folder. This `.env.dist` contains all variables used by the components, e.g. unites all `.env.dist` from the components. On deploy, we copy this `.env.dist` to `.env` and set all variables in this new file. The deploy script loads this variables and provides them by the `.env.templates` of each component, creating an `.env` for each component (see in `deployment/bare_metal/start.sh` the `envsubst`).
 

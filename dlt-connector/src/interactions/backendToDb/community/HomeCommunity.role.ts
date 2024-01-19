@@ -8,7 +8,8 @@ import { Mnemonic } from '@/data/Mnemonic'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
-import { logger } from '@/server/logger'
+import { CommunityLoggingView } from '@/logging/CommunityLogging.view'
+import { logger } from '@/logging/logger'
 import { getDataSource } from '@/typeorm/DataSource'
 
 import { CreateTransactionRecipeContext } from '../transaction/CreateTransationRecipe.context'
@@ -38,6 +39,7 @@ export class HomeCommunityRole extends CommunityRole {
       return await getDataSource().transaction(async (transactionalEntityManager) => {
         const community = await transactionalEntityManager.save(this.self)
         await transactionalEntityManager.save(this.transactionRecipe)
+        logger.debug('store home community', new CommunityLoggingView(community))
         return community
       })
     } catch (error) {

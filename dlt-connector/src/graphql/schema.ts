@@ -10,7 +10,6 @@ export const schema = async (): Promise<GraphQLSchema> => {
   return buildSchema({
     resolvers: [TransactionResolver, CommunityResolver],
     scalarsMap: [{ type: Decimal, scalar: DecimalScalar }],
-    emitSchemaFile: true,
     validate: {
       validationError: { target: false },
       skipMissingProperties: true,
