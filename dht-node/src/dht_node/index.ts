@@ -25,6 +25,15 @@ type CommunityApi = {
 
 type KeyPair = { publicKey: Buffer; secretKey: Buffer }
 
+function isAscii(buffer: Buffer): boolean {
+  for (const byte of buffer) {
+    if (byte > 127) {
+      return false
+    }
+  }
+  return true
+}
+
 export const startDHT = async (topic: string): Promise<void> => {
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
@@ -55,6 +64,10 @@ export const startDHT = async (topic: string): Promise<void> => {
             logger.warn(
               `received more than max allowed length of data buffer: ${data.length} against 1141 max allowed`,
             )
+            return
+          }
+          if (!isAscii(data)) {
+            logger.warn(`received non ascii character, content as hex: ${data.toString('hex')}`)
             return
           }
           logger.info(`data: ${data.toString('ascii')}`)

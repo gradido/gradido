@@ -249,7 +249,30 @@ describe('federation', () => {
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
-                  new SyntaxError('Unexpected token o in JSON at position 1'),
+                  new SyntaxError('Unexpected token \'o\', "no-json string" is not valid JSON'),
+                )
+              })
+            })
+
+            describe('with receiving non ascii character', () => {
+              beforeEach(() => {
+                jest.clearAllMocks()
+                // containing non-ascii character copyright symbol, U+00A9
+                socketEventMocks.data(Buffer.from('48656C6C6F2C20C2A92048656C6C6F21', 'hex'))
+                /*
+                const buffer = Buffer.from('48656C6C6F2C20C2A92048656C6C6F21', 'hex')
+                for (const byte of buffer) {
+                  console.log('byte: %o', byte)
+                  if (byte > 127) {
+                    console.log('non ascii char spotted')
+                  }
+                }
+                */
+              })
+
+              it('logs the binary data as hex', () => {
+                expect(logger.warn).toBeCalledWith(
+                  'received non ascii character, content as hex: 48656c6c6f2c20c2a92048656c6c6f21',
                 )
               })
             })
@@ -268,7 +291,7 @@ describe('federation', () => {
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
-                  new SyntaxError('Unexpected token i in JSON at position 0'),
+                  new SyntaxError('Unexpected token \'i\', "invalid ty"... is not valid JSON'),
                 )
               })
             })
@@ -292,7 +315,7 @@ describe('federation', () => {
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
-                  new SyntaxError('Unexpected token a in JSON at position 0'),
+                  new SyntaxError('Unexpected token \'a\', "api,url,in"... is not valid JSON'),
                 )
               })
             })
