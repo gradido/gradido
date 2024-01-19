@@ -24,6 +24,11 @@ module.exports = {
       process.env.NODE_ENV === 'development'
         ? '<rootDir>/../database/entity/$1'
         : '<rootDir>/../database/build/entity/$1',
+    '@logging/(.*)':
+      // eslint-disable-next-line n/no-process-env
+      process.env.NODE_ENV === 'development'
+        ? '<rootDir>/../database/logging/$1'
+        : '<rootDir>/../database/build/logging/$1',
     '@dbTools/(.*)':
       process.env.NODE_ENV === 'development'
         ? '<rootDir>/../database/src/$1'

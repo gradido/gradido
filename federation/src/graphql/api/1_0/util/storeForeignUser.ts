@@ -2,6 +2,8 @@ import { User as DbUser } from '@entity/User'
 
 import { federationLogger as logger } from '@/server/logger'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
+import { UserLoggingView } from '@logging/UserLogging.view'
+import { SendCoinsArgsLoggingView } from '../logger/SendCoinsArgsLogging.view'
 
 export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
   if (args.senderCommunityUuid !== null && args.senderUserUuid !== null) {
@@ -34,7 +36,7 @@ export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
         }
         foreignUser.gradidoID = args.senderUserUuid
         foreignUser = await DbUser.save(foreignUser)
-        logger.debug('X-Com: new foreignUser inserted:', foreignUser)
+        logger.debug('X-Com: new foreignUser inserted:', new UserLoggingView(foreignUser))
 
         return true
       } else if (
@@ -43,14 +45,13 @@ export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
           args.senderUserName.slice(args.senderUserName.indexOf(' '), args.senderUserName.length) ||
         user.alias !== args.senderAlias
       ) {
-        logger.warn(
-          'X-Com: foreignUser still exists, but with different name or alias:',
-          user,
-          args,
-        )
+        logger.warn('X-Com: foreignUser still exists, but with different name or alias:', {
+          user: new UserLoggingView(user),
+          args: new SendCoinsArgsLoggingView(args),
+        })
         return false
       } else {
-        logger.debug('X-Com: foreignUser still exists...:', user)
+        logger.debug('X-Com: foreignUser still exists...:', new UserLoggingView(user))
         return true
       }
     } catch (err) {

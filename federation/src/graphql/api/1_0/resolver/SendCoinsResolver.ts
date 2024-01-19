@@ -1,5 +1,6 @@
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import { federationLogger as logger } from '@/server/logger'
+import { PendingTransactionLoggingView } from '@logging/PendingTransactionLogging.view'
 import { Community as DbCommunity } from '@entity/Community'
 import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
@@ -140,7 +141,10 @@ export class SendCoinsResolver {
         linkedUserCommunityUuid: args.senderCommunityUuid,
         linkedUserGradidoID: args.senderUserUuid,
       })
-      logger.debug('XCom: revertSendCoins found pendingTX=', pendingTx)
+      logger.debug(
+        'XCom: revertSendCoins found pendingTX=',
+        pendingTx ? new PendingTransactionLoggingView(pendingTx) : 'null',
+      )
       if (pendingTx && pendingTx.amount.toString() === args.amount.toString()) {
         logger.debug('XCom: revertSendCoins matching pendingTX for remove...')
         try {
@@ -204,7 +208,10 @@ export class SendCoinsResolver {
       linkedUserCommunityUuid: args.senderCommunityUuid,
       linkedUserGradidoID: args.senderUserUuid,
     })
-    logger.debug('XCom: settleSendCoins found pendingTX=', pendingTx?.toString())
+    logger.debug(
+      'XCom: settleSendCoins found pendingTX=',
+      pendingTx ? new PendingTransactionLoggingView(pendingTx) : 'null',
+    )
     if (
       pendingTx &&
       pendingTx.amount.toString() === args.amount.toString() &&
@@ -274,7 +281,10 @@ export class SendCoinsResolver {
       linkedUserCommunityUuid: args.senderCommunityUuid,
       linkedUserGradidoID: args.senderUserUuid,
     })
-    logger.debug('XCom: revertSettledSendCoins found pendingTX=', pendingTx)
+    logger.debug(
+      'XCom: revertSettledSendCoins found pendingTX=',
+      pendingTx ? new PendingTransactionLoggingView(pendingTx) : 'null',
+    )
     if (
       pendingTx &&
       pendingTx.amount.toString() === args.amount.toString() &&

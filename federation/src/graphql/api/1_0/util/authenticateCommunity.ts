@@ -89,7 +89,7 @@ export async function startAuthentication(
         logger.debug(
           `Authentication: received communityUUid for callbackFedCom:`,
           fedComUuid,
-          fedComB,
+          new FederatedCommunityLoggingView(fedComB),
         )
         const callbackCom = await DbCommunity.findOneByOrFail({
           foreign: true,
