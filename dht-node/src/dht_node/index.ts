@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { CONFIG } from '@/config'
 import { logger } from '@/server/logger'
+
 import { ApiVersionType } from './ApiVersionType'
 
 const KEY_SECRET_SEEDBYTES = 32
