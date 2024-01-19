@@ -68,7 +68,7 @@ describe('validate Communities', () => {
           return { data: {} } as Response<unknown>
         })
         const variables1 = {
-          publicKey: Buffer.from('11111111111111111111111111111111'),
+          publicKey: Buffer.from('11111111111111111111111111111111', 'hex'),
           apiVersion: '1_0',
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
@@ -113,7 +113,7 @@ describe('validate Communities', () => {
           } as Response<unknown>
         })
         const variables1 = {
-          publicKey: Buffer.from('11111111111111111111111111111111'),
+          publicKey: Buffer.from('11111111111111111111111111111111', 'hex'),
           apiVersion: '1_0',
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
@@ -195,7 +195,7 @@ describe('validate Communities', () => {
           } as Response<unknown>
         })
         const variables1 = {
-          publicKey: Buffer.from('11111111111111111111111111111111'),
+          publicKey: Buffer.from('11111111111111111111111111111111', 'hex'),
           apiVersion: '1_0',
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
@@ -315,7 +315,7 @@ describe('validate Communities', () => {
           } as Response<unknown>
         })
         const variables3 = {
-          publicKey: Buffer.from('11111111111111111111111111111111'),
+          publicKey: Buffer.from('11111111111111111111111111111111', 'hex'),
           apiVersion: '2_0',
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
