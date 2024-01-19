@@ -1,9 +1,9 @@
-import { logger } from '@/server/logger'
+import { logger } from '@/logging/logger'
 
 jest.setTimeout(1000000)
 
-jest.mock('@/server/logger', () => {
-  const originalModule = jest.requireActual('@/server/logger')
+jest.mock('@/logging/logger', () => {
+  const originalModule = jest.requireActual('@/logging/logger')
   return {
     __esModule: true,
     ...originalModule,
