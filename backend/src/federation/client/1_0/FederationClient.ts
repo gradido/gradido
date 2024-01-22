@@ -28,6 +28,10 @@ export class FederationClient {
     })
   }
 
+  getEndpoint = () => {
+    return this.endpoint
+  }
+
   getPublicKey = async (): Promise<string | undefined> => {
     logger.debug('Federation: getPublicKey from endpoint', this.endpoint)
     try {
