@@ -23,6 +23,15 @@ server {
     include /etc/nginx/common/protect_add_header.conf;
     include /etc/nginx/common/limit_requests.conf;
 
+    # protect from slow loris
+    client_body_timeout 10s;
+    client_header_timeout 10s;
+    
+    # protect from range attack (in http header)
+    if ($http_range ~ "d{9,}") {
+        return 444;
+    }
+
     gzip on;
 
     root $NGINX_UPDATE_PAGE_ROOT;
@@ -30,6 +39,7 @@ server {
 
     location / {
         limit_req zone=frontend;
+        limit_conn addr 10;
         try_files /updating.html =404;
     }
 
