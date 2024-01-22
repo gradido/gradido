@@ -6,6 +6,7 @@ server {
 
     include /etc/nginx/common/protect.conf;
     include /etc/nginx/common/protect_add_header.conf;
+    include /etc/nginx/common/limit_requests.conf;
 
     gzip on;
 
@@ -13,6 +14,7 @@ server {
     index updating.html;
 
     location / {
+      limit_req zone=frontend;
       try_files /updating.html =404;
     }
 

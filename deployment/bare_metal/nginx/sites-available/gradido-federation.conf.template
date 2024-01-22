@@ -1,5 +1,7 @@
 
     location /api/$FEDERATION_APIVERSION {
+        limit_req zone=api burst=60 nodelay;
+
         proxy_http_version 1.1;
         proxy_set_header   Upgrade $http_upgrade;
         proxy_set_header   Connection 'upgrade';
