@@ -29,6 +29,7 @@
     "dotenv": "^10.0.0",
     "email-templates": "^10.0.1",
     "express": "^4.17.1",
+    "express-slow-down": "^2.0.1",
     "gradido-database": "file:../database",
     "graphql": "^15.5.1",
     "graphql-request": "5.0.0",
