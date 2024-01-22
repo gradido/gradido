@@ -46,7 +46,10 @@ export class FederationClient {
       )
       return data.getPublicKey.publicKey
     } catch (err) {
-      logger.warn('Federation: getPublicKey failed for endpoint', this.endpoint)
+      logger.warn('Federation: getPublicKey failed for endpoint', {
+        endpoint: this.endpoint,
+        err,
+      })
     }
   }
 
@@ -71,7 +74,10 @@ export class FederationClient {
       )
       return data.getPublicCommunityInfo
     } catch (err) {
-      logger.warn('Federation: getPublicCommunityInfo failed for endpoint', this.endpoint)
+      logger.warn('Federation: getPublicCommunityInfo failed for endpoint', {
+        endpoint: this.endpoint,
+        err,
+      })
     }
   }
 }
