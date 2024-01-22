@@ -50,9 +50,10 @@ export class FederationClient {
       )
       return data.getPublicKey.publicKey
     } catch (err) {
+      const errorString = JSON.stringify(err)
       logger.warn('Federation: getPublicKey failed for endpoint', {
         endpoint: this.endpoint,
-        err,
+        err: errorString.length <= 100 ? errorString : errorString.substring(0, 200) + '...',
       })
     }
   }
@@ -78,9 +79,10 @@ export class FederationClient {
       )
       return data.getPublicCommunityInfo
     } catch (err) {
+      const errorString = JSON.stringify(err)
       logger.warn('Federation: getPublicCommunityInfo failed for endpoint', {
         endpoint: this.endpoint,
-        err,
+        err: errorString.length <= 100 ? errorString : errorString.substring(0, 200) + '...',
       })
     }
   }
