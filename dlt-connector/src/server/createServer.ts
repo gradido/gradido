@@ -6,6 +6,7 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 import express, { Express } from 'express'
 // graphql
+import helmet from 'helmet'
 import { Logger } from 'log4js'
 
 import { schema } from '@/graphql/schema'
@@ -40,6 +41,9 @@ const createServer = async (
     // plugins
     logger,
   })
+  // Helmet helps secure Express apps by setting HTTP response headers.
+  app.use(helmet())
+
   await apollo.start()
   app.use(
     '/',

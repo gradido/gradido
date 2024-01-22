@@ -24,6 +24,7 @@ import { Connection } from '@dbTools/typeorm'
 
 import { apolloLogger } from './logger'
 import { Logger } from 'log4js'
+import helmet from 'helmet'
 
 // i18n
 // import { i18n } from './localization'
@@ -61,6 +62,9 @@ export const createServer = async (
 
   // cors
   app.use(cors)
+
+  // Helmet helps secure Express apps by setting HTTP response headers.
+  app.use(helmet())
 
   // bodyparser json
   app.use(express.json())

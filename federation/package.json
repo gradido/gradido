@@ -26,6 +26,7 @@
     "express": "4.17.1",
     "graphql": "15.5.1",
     "graphql-request": "5.0.0",
+    "helmet": "^7.1.0",
     "lodash.clonedeep": "^4.5.0",
     "log4js": "^6.7.1",
     "reflect-metadata": "^0.1.13",

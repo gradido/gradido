@@ -4,6 +4,7 @@
 import { Connection as DbConnection } from '@dbTools/typeorm'
 import { ApolloServer } from 'apollo-server-express'
 import express, { Express, json, urlencoded } from 'express'
+import helmet from 'helmet'
 import { Logger } from 'log4js'
 
 import { CONFIG } from '@/config'
@@ -55,6 +56,10 @@ export const createServer = async (
 
   // cors
   app.use(cors)
+
+  // Helmet helps secure Express apps by setting HTTP response headers.
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  app.use(helmet())
 
   // bodyparser json
   app.use(json())
