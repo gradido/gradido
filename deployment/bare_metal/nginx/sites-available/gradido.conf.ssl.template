@@ -1,16 +1,16 @@
 server {
-    if ($host = $NGINX_SERVER_NAME) {
+    if ($host = $COMMUNITY_HOST) {
         return 301 https://$host$request_uri;
     }
 
-    server_name $NGINX_SERVER_NAME;
+    server_name $COMMUNITY_HOST;
     listen 80;
     listen [::]:80;
     return 404;
 }
 
 server {
-    server_name $NGINX_SERVER_NAME;
+    server_name $COMMUNITY_HOST;
 
     listen [::]:443 ssl ipv6only=on;
     listen 443 ssl;
@@ -21,6 +21,16 @@ server {
 
     include /etc/nginx/common/protect.conf;
     include /etc/nginx/common/protect_add_header.conf;
+    include /etc/nginx/common/limit_requests.conf;
+
+    # protect from slow loris
+    client_body_timeout 10s;
+    client_header_timeout 10s;
+    
+    # protect from range attack (in http header)
+    if ($http_range ~ "d{9,}") {
+        return 444;
+    }
 
     #gzip_static  on;
     gzip on;
@@ -42,6 +52,8 @@ server {
 
     # Frontend (default)
     location / {
+        limit_req zone=frontend burst=40 nodelay;
+        limit_conn addr 40;
         proxy_http_version 1.1;
         proxy_set_header   Upgrade $http_upgrade;
         proxy_set_header   Connection 'upgrade';
@@ -58,6 +70,8 @@ server {
 
     # Backend
     location /graphql {
+        limit_req zone=backend burst=10 nodelay;
+        limit_conn addr 10;
         proxy_http_version 1.1;
         proxy_set_header   Upgrade $http_upgrade;
         proxy_set_header   Connection 'upgrade';
@@ -74,6 +88,8 @@ server {
 
     # Backend webhooks
     location /hook {
+        limit_req zone=backend burst=10;
+        limit_conn addr 10;
         proxy_http_version 1.1;
         proxy_set_header   Upgrade $http_upgrade;
         proxy_set_header   Connection 'upgrade';
@@ -90,6 +106,8 @@ server {
 
     # Webhook reverse proxy
     location /hooks/ {
+        limit_req zone=backend burst=10;
+        limit_conn addr 10;
         proxy_pass http://127.0.0.1:9000/hooks/;
 
         access_log $GRADIDO_LOG_PATH/nginx-access.hooks.log gradido_log;
@@ -98,6 +116,8 @@ server {
 
     # Admin Frontend
     location /admin {
+        limit_req zone=frontend burst=30 nodelay;
+        limit_conn addr 40;
         proxy_http_version 1.1;
         proxy_set_header   Upgrade $http_upgrade;
         proxy_set_header   Connection 'upgrade';

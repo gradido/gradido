@@ -6,7 +6,7 @@ const constants = {
   LOG4JS_CONFIG: 'log4js-config.json',
   DB_VERSION: '0003-refactor_transaction_recipe',
   // default log level on production should be info
-  LOG_LEVEL: process.env.LOG_LEVEL || 'info',
+  LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
     EXPECTED: 'v4.2023-09-12',
@@ -15,7 +15,7 @@ const constants = {
 }
 
 const server = {
-  PRODUCTION: process.env.NODE_ENV === 'production' || false,
+  PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
 }
 
 const database = {
@@ -35,11 +35,11 @@ const iota = {
 }
 
 const dltConnector = {
-  DLT_CONNECTOR_PORT: process.env.DLT_CONNECTOR_PORT || 6010,
+  DLT_CONNECTOR_PORT: process.env.DLT_CONNECTOR_PORT ?? 6010,
 }
 
 // Check config version
-constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION || constants.CONFIG_VERSION.DEFAULT
+constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION ?? constants.CONFIG_VERSION.DEFAULT
 if (
   ![constants.CONFIG_VERSION.EXPECTED, constants.CONFIG_VERSION.DEFAULT].includes(
     constants.CONFIG_VERSION.CURRENT,

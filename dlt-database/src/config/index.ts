@@ -13,19 +13,19 @@ const constants = {
 }
 
 const database = {
-  DB_HOST: process.env.DB_HOST || 'localhost',
+  DB_HOST: process.env.DB_HOST ?? 'localhost',
   DB_PORT: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
-  DB_USER: process.env.DB_USER || 'root',
-  DB_PASSWORD: process.env.DB_PASSWORD || '',
-  DB_DATABASE: process.env.DB_DATABASE || 'gradido_dlt',
+  DB_USER: process.env.DB_USER ?? 'root',
+  DB_PASSWORD: process.env.DB_PASSWORD ?? '',
+  DB_DATABASE: process.env.DB_DATABASE ?? 'gradido_dlt',
 }
 
 const migrations = {
-  MIGRATIONS_TABLE: process.env.MIGRATIONS_TABLE || 'migrations',
+  MIGRATIONS_TABLE: process.env.MIGRATIONS_TABLE ?? 'migrations',
 }
 
 // Check config version
-constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION || constants.CONFIG_VERSION.DEFAULT
+constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION ?? constants.CONFIG_VERSION.DEFAULT
 if (
   ![constants.CONFIG_VERSION.EXPECTED, constants.CONFIG_VERSION.DEFAULT].includes(
     constants.CONFIG_VERSION.CURRENT,
