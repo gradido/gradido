@@ -26,16 +26,7 @@ function receiveMessage(messageId: string): Promise<MessageWrapper> {
   return client.getMessage().data(messageId)
 }
 
-function receiveAllMessagesForTopic(topic: string | Uint8Array): Promise<string[]> {
-  return client.getMessage().index(topic)
-}
-
-async function getIotaMilestone(messageId: string): Promise<number | undefined> {
-  const metadata = await client.getMessage().metadata(messageId)
-  return metadata.referencedByMilestoneIndex
-}
-
-export { sendMessage, receiveMessage, receiveAllMessagesForTopic, getIotaMilestone }
+export { sendMessage, receiveMessage }
 
 /**
  * example for message: 
