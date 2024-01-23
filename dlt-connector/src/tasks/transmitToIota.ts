@@ -1,6 +1,6 @@
 import { TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY } from '@/data/const'
 import { TransactionRepository } from '@/data/Transaction.repository'
-import { TransmitToIotaContext } from '@/interactions/backendToDb/transmitToIota/TransmitToIota.context'
+import { TransmitToIotaContext } from '@/interactions/transmitToIota/TransmitToIota.context'
 import { InterruptiveSleepManager } from '@/manager/InterruptiveSleepManager'
 
 import { logger } from '../logging/logger'
@@ -36,7 +36,6 @@ export const transmitToIota = async (): Promise<void> => {
 
       await InterruptiveSleepManager.getInstance().sleep(
         TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY,
-        // 1000,
         1000,
       )
     } catch (error) {
@@ -44,7 +43,7 @@ export const transmitToIota = async (): Promise<void> => {
       await sleep(10000)
     }
   }
-  logger.info(
+  logger.error(
     'end iota message transmitter, no further transaction will be transmitted. !!! Please restart Server !!!',
   )
 }

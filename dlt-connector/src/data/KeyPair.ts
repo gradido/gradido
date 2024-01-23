@@ -6,6 +6,7 @@ import { LogError } from '@/server/LogError'
 import { toPublic, derivePrivate, sign, verify, generateFromSeed } from 'bip32-ed25519'
 
 import { Mnemonic } from './Mnemonic'
+import { SignaturePair } from './proto/3_3/SignaturePair'
 
 /**
  * Class Managing Key Pair and also generate, sign and verify signature with it
@@ -81,7 +82,7 @@ export class KeyPair {
     return sign(message, this.getExtendPrivateKey())
   }
 
-  public verify(message: Buffer, signature: Buffer): boolean {
-    return verify(message, signature, this.getExtendPublicKey())
+  public static verify(message: Buffer, { signature, pubKey }: SignaturePair): boolean {
+    return verify(message, signature, pubKey)
   }
 }
