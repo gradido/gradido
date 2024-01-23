@@ -1,12 +1,13 @@
+import { TransactionDraft } from '@input/TransactionDraft'
 import { Resolver, Arg, Mutation } from 'type-graphql'
 
-import { TransactionDraft } from '@input/TransactionDraft'
-
+import { TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY } from '@/data/const'
 import { TransactionRepository } from '@/data/Transaction.repository'
 import { CreateTransactionRecipeContext } from '@/interactions/backendToDb/transaction/CreateTransationRecipe.context'
 import { BackendTransactionLoggingView } from '@/logging/BackendTransactionLogging.view'
 import { logger } from '@/logging/logger'
 import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
+import { InterruptiveSleepManager } from '@/manager/InterruptiveSleepManager'
 import { LogError } from '@/server/LogError'
 
 import { TransactionError } from '../model/TransactionError'
@@ -48,6 +49,7 @@ export class TransactionResolver {
         // we can store the transaction and with that automatic the backend transaction
         await transactionRecipe.save()
       }
+      InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
       return new TransactionResult(new TransactionRecipe(transactionRecipe))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {

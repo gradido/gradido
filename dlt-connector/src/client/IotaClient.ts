@@ -2,17 +2,19 @@ import { ClientBuilder } from '@iota/client'
 import { MessageWrapper } from '@iota/client/lib/types'
 
 import { CONFIG } from '@/config'
-
 const client = new ClientBuilder().node(CONFIG.IOTA_API_URL).build()
 
 /**
  * send data message onto iota tangle
- * use CONFIG.IOTA_COMMUNITY_ALIAS for index
  * @param {string | Uint8Array} message - the message as utf based string, will be converted to hex automatically from @iota/client
+ * @param {string | Uint8Array} topic - the iota topic to which the message will be sended
  * @return {Promise<MessageWrapper>} the iota message typed
  */
-function sendMessage(message: string | Uint8Array): Promise<MessageWrapper> {
-  return client.message().index(CONFIG.IOTA_COMMUNITY_ALIAS).data(message).submit()
+function sendMessage(
+  message: string | Uint8Array,
+  topic: string | Uint8Array,
+): Promise<MessageWrapper> {
+  return client.message().index(topic).data(message).submit()
 }
 
 /**
@@ -24,7 +26,16 @@ function receiveMessage(messageId: string): Promise<MessageWrapper> {
   return client.getMessage().data(messageId)
 }
 
-export { sendMessage, receiveMessage }
+function receiveAllMessagesForTopic(topic: string | Uint8Array): Promise<string[]> {
+  return client.getMessage().index(topic)
+}
+
+async function getIotaMilestone(messageId: string): Promise<number | undefined> {
+  const metadata = await client.getMessage().metadata(messageId)
+  return metadata.referencedByMilestoneIndex
+}
+
+export { sendMessage, receiveMessage, receiveAllMessagesForTopic, getIotaMilestone }
 
 /**
  * example for message: 
