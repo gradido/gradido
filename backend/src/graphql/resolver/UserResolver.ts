@@ -24,6 +24,7 @@ import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserContactType } from '@enum/UserContactType'
 import { SearchAdminUsersResult } from '@model/AdminUser'
+import { Location } from '@model/Location'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 
@@ -73,6 +74,7 @@ import { getKlicktippState } from './util/getKlicktippState'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { validateAlias } from './util/validateAlias'
+import { Location2Point } from './util/Location2Point'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -554,75 +556,88 @@ export class UserResolver {
     }: UpdateUserInfosArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    console.log(
+      `updateUserInfos(${firstName}, ${lastName}, ${alias}, ${language}, ${password}, ${passwordNew}, ${hideAmountGDD}, ${hideAmountGDT}, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})`,
+    )
     logger.info(
-      `updateUserInfos(${firstName}, ${lastName}, ${language}, ***, ***, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})...`,
+      `updateUserInfos(${firstName}, ${lastName}, ${alias}, ${language}, ***, ***, ${hideAmountGDD}, ${hideAmountGDT}, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})...`,
     )
     const user = getUser(context)
-
-    if (firstName) {
-      user.firstName = firstName
-    }
-
-    if (lastName) {
-      user.lastName = lastName
-    }
-
-    if (alias && (await validateAlias(alias))) {
-      user.alias = alias
-    }
-
-    if (language) {
-      if (!isLanguage(language)) {
-        throw new LogError('Given language is not a valid language', language)
-      }
-      user.language = language
-      i18n.setLocale(language)
-    }
-
-    if (password && passwordNew) {
-      // Validate Password
-      if (!isValidPassword(passwordNew)) {
-        throw new LogError(
-          'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-        )
+    console.log('getUser:', user)
+    try {
+      if (firstName) {
+        user.firstName = firstName
       }
 
-      if (!verifyPassword(user, password)) {
-        throw new LogError(`Old password is invalid`)
+      if (lastName) {
+        user.lastName = lastName
       }
 
-      // Save new password hash and newly encrypted private key
-      user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      user.password = encryptPassword(user, passwordNew)
-    }
+      if (alias && (await validateAlias(alias))) {
+        user.alias = alias
+      }
 
-    // Save hideAmountGDD value
-    if (hideAmountGDD !== undefined) {
-      user.hideAmountGDD = hideAmountGDD
-    }
-    // Save hideAmountGDT value
-    if (hideAmountGDT !== undefined) {
-      user.hideAmountGDT = hideAmountGDT
-    }
+      if (language) {
+        if (!isLanguage(language)) {
+          throw new LogError('Given language is not a valid language', language)
+        }
+        user.language = language
+        i18n.setLocale(language)
+      }
 
-    user.gmsAllowed = gmsAllowed
-    user.gmsPublishName = gmsPublishName
-    if (gmsLocation) {
-      user.location = gmsLocation.getPoint()
-    }
-    user.gmsPublishLocation = gmsPublishLocation
+      if (password && passwordNew) {
+        // Validate Password
+        if (!isValidPassword(passwordNew)) {
+          throw new LogError(
+            'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+          )
+        }
 
+        if (!verifyPassword(user, password)) {
+          throw new LogError(`Old password is invalid`)
+        }
+
+        // Save new password hash and newly encrypted private key
+        user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+        user.password = encryptPassword(user, passwordNew)
+      }
+
+      // Save hideAmountGDD value
+      if (hideAmountGDD !== undefined) {
+        user.hideAmountGDD = hideAmountGDD
+      }
+      // Save hideAmountGDT value
+      if (hideAmountGDT !== undefined) {
+        user.hideAmountGDT = hideAmountGDT
+      }
+
+      console.log('gmsAllowed:', user.gmsAllowed, gmsAllowed)
+      user.gmsAllowed = gmsAllowed
+      console.log('gmsPublishName:', user.gmsPublishName, gmsPublishName)
+      user.gmsPublishName = gmsPublishName
+      if (gmsLocation) {
+        console.log('1. gmsLocation:', user.location, gmsLocation)
+        user.location = Location2Point(gmsLocation)
+        console.log('2. gmsLocation:', user.location)
+      }
+      console.log('gmsPublishLocation:', user.gmsPublishLocation, gmsPublishLocation)
+      user.gmsPublishLocation = gmsPublishLocation
+      console.log('vor commit user:', user)
+    } catch (err) {
+      console.log('error:', err)
+    }
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
 
     try {
       await queryRunner.manager.save(user).catch((error) => {
+        console.log('Error on saving user:', error)
         throw new LogError('Error saving user', error)
       })
 
       await queryRunner.commitTransaction()
-      logger.debug('writing User data successful...')
+      logger.debug('writing User data successful...', user)
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Error on writing updated user data', e)

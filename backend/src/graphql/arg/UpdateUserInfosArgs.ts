@@ -1,8 +1,13 @@
-import { IsBoolean, IsInt, IsObject, IsString } from 'class-validator'
-import { ArgsType, Field, Int } from 'type-graphql'
+import { IsBoolean, IsInt, IsString } from 'class-validator'
+import { ArgsType, Field, InputType, Int } from 'type-graphql'
 
 import { Location } from '@model/Location'
 
+import { isValidLocation } from '../validator/Location'
+
+// import { isValidLocation } from '../validator/Location'
+
+@InputType()
 @ArgsType()
 export class UpdateUserInfosArgs {
   @Field({ nullable: true })
@@ -50,7 +55,7 @@ export class UpdateUserInfosArgs {
   gmsPublishName: number
 
   @Field(() => Location, { nullable: true })
-  @IsObject()
+  @isValidLocation()
   gmsLocation?: Location | null
 
   @Field(() => Int, { nullable: false })

@@ -23,6 +23,7 @@ import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { RoleNames } from '@enum/RoleNames'
 import { UserContactType } from '@enum/UserContactType'
 import { ContributionLink } from '@model/ContributionLink'
+import { Location } from '@model/Location'
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
@@ -1237,6 +1238,9 @@ describe('UserResolver', () => {
               firstName: 'Benjamin',
               lastName: 'Blümchen',
               language: 'en',
+              gmsAllowed: true,
+              gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+              gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
             }),
           ])
         })
@@ -1275,6 +1279,93 @@ describe('UserResolver', () => {
             await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
                 alias: 'bibi_Bloxberg',
+                gmsAllowed: true,
+                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+              }),
+            ])
+          })
+        })
+      })
+
+      describe('gms attributes', () => {
+        beforeEach(() => {
+          jest.clearAllMocks()
+        })
+
+        describe('default settings', () => {
+          it('updates the user in DB', async () => {
+            await mutate({
+              mutation: updateUserInfos,
+              variables: {
+                gmsAllowed: true,
+                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+              },
+            })
+            await expect(User.find()).resolves.toEqual([
+              expect.objectContaining({
+                gmsAllowed: true,
+                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+              }),
+            ])
+          })
+        })
+
+        describe('individual settings', () => {
+          it('updates the user in DB', async () => {
+            await mutate({
+              mutation: updateUserInfos,
+              variables: {
+                gmsAllowed: false,
+                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
+              },
+            })
+            await expect(User.find()).resolves.toEqual([
+              expect.objectContaining({
+                gmsAllowed: false,
+                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
+              }),
+            ])
+          })
+        })
+
+        describe.only('with gms location', () => {
+          const loc = new Location()
+          loc.longitude = 9.573224
+          loc.latitude = 49.679437
+          console.log('with gms location:', loc)
+          it('updates the user in DB', async () => {
+            const usr = await User.find()
+            console.log('usr=', usr)
+            await mutate({
+              mutation: updateUserInfos,
+              variables: {
+                /*
+                firstName: usr[0].firstName,
+                lastName: usr[0].lastName,
+                alias: usr[0].alias,
+                language: usr[0].language,
+                password: usr[0].password,
+                passwordNew: usr[0].password,
+                hideAmountGDD: usr[0].hideAmountGDD,
+                hideAmountGDT: usr[0].hideAmountGDT,
+                */
+                gmsAllowed: true,
+                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsLocation: loc,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+              },
+            })
+            await expect(User.find()).resolves.toEqual([
+              expect.objectContaining({
+                gmsAllowed: true,
+                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                location: loc,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               }),
             ])
           })
