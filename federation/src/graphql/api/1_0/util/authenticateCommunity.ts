@@ -9,13 +9,18 @@ import { AuthenticationClientFactory } from '@/client/AuthenticationClientFactor
 // eslint-disable-next-line camelcase
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
 import { AuthenticationArgs } from '../model/AuthenticationArgs'
+import { CommunityLoggingView } from '@logging/CommunityLogging.view'
+import { FederatedCommunityLoggingView } from '@logging/FederatedCommunityLogging.view'
 
 export async function startOpenConnectionCallback(
   args: OpenConnectionArgs,
   comA: DbCommunity,
   api: string,
 ): Promise<void> {
-  logger.debug(`Authentication: startOpenConnectionCallback() with:`, args, comA)
+  logger.debug(`Authentication: startOpenConnectionCallback() with:`, {
+    args,
+    comA: new CommunityLoggingView(comA),
+  })
   try {
     const homeFedCom = await DbFedCommunity.findOneByOrFail({
       foreign: false,
@@ -30,7 +35,10 @@ export async function startOpenConnectionCallback(
     // store oneTimeCode in requestedCom.community_uuid as authenticate-request-identifier
     comA.communityUuid = oneTimeCode.toString()
     await DbCommunity.save(comA)
-    logger.debug(`Authentication: stored oneTimeCode in requestedCom:`, comA)
+    logger.debug(
+      `Authentication: stored oneTimeCode in requestedCom:`,
+      new CommunityLoggingView(comA),
+    )
 
     const client = AuthenticationClientFactory.getInstance(fedComA)
     // eslint-disable-next-line camelcase
@@ -57,7 +65,10 @@ export async function startAuthentication(
   oneTimeCode: string,
   fedComB: DbFedCommunity,
 ): Promise<void> {
-  logger.debug(`Authentication: startAuthentication()...`, oneTimeCode, fedComB)
+  logger.debug(`Authentication: startAuthentication()...`, {
+    oneTimeCode,
+    fedComB: new FederatedCommunityLoggingView(fedComB),
+  })
   try {
     const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
 
@@ -78,7 +89,7 @@ export async function startAuthentication(
         logger.debug(
           `Authentication: received communityUUid for callbackFedCom:`,
           fedComUuid,
-          fedComB,
+          new FederatedCommunityLoggingView(fedComB),
         )
         const callbackCom = await DbCommunity.findOneByOrFail({
           foreign: true,
@@ -88,7 +99,10 @@ export async function startAuthentication(
         callbackCom.communityUuid = fedComUuid
         callbackCom.authenticatedAt = new Date()
         await DbCommunity.save(callbackCom)
-        logger.debug('Authentication: Community Authentication successful:', callbackCom)
+        logger.debug(
+          'Authentication: Community Authentication successful:',
+          new CommunityLoggingView(callbackCom),
+        )
       } else {
         logger.error('Authentication: Community Authentication failed:', authenticationArgs)
       }
