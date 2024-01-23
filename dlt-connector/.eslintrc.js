@@ -14,6 +14,7 @@ module.exports = {
     // 'plugin:import/typescript',
     // 'plugin:security/recommended',
     'plugin:@eslint-community/eslint-comments/recommended',
+    'plugin:dci-lint/recommended',
   ],
   settings: {
     'import/parsers': {
@@ -36,6 +37,7 @@ module.exports = {
         htmlWhitespaceSensitivity: 'ignore',
       },
     ],
+    // 'dci-lint/literal-role-contracts': 'off'
     // import
     // 'import/export': 'error',
     // 'import/no-deprecated': 'error',
@@ -75,30 +77,30 @@ module.exports = {
     // 'import/no-named-default': 'error',
     // 'import/no-namespace': 'error',
     // 'import/no-unassigned-import': 'error',
-    // 'import/order': [
-    //   'error',
-    //   {
-    //     groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type'],
-    //     'newlines-between': 'always',
-    //     pathGroups: [
-    //       {
-    //         pattern: '@?*/**',
-    //         group: 'external',
-    //         position: 'after',
-    //       },
-    //       {
-    //         pattern: '@/**',
-    //         group: 'external',
-    //         position: 'after',
-    //       },
-    //     ],
-    //     alphabetize: {
-    //       order: 'asc' /* sort in ascending order. Options: ['ignore', 'asc', 'desc'] */,
-    //       caseInsensitive: true /* ignore case. Options: [true, false] */,
-    //     },
-    //     distinctGroup: true,
-    //   },
-    // ],
+    'import/order': [
+      'error',
+      {
+        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type'],
+        'newlines-between': 'always',
+        pathGroups: [
+          {
+            pattern: '@?*/**',
+            group: 'external',
+            position: 'after',
+          },
+          {
+            pattern: '@/**',
+            group: 'external',
+            position: 'after',
+          },
+        ],
+        alphabetize: {
+          order: 'asc' /* sort in ascending order. Options: ['ignore', 'asc', 'desc'] */,
+          caseInsensitive: true /* ignore case. Options: [true, false] */,
+        },
+        distinctGroup: true,
+      },
+    ],
     // 'import/prefer-default-export': 'off',
     // n
     'n/handle-callback-err': 'error',

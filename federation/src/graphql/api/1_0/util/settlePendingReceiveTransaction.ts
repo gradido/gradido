@@ -17,6 +17,10 @@ import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
 import { calculateRecipientBalance } from './calculateRecipientBalance'
 import Decimal from 'decimal.js-light'
+import { CommunityLoggingView } from '@logging/CommunityLogging.view'
+import { UserLoggingView } from '@logging/UserLogging.view'
+import { PendingTransactionLoggingView } from '@logging/PendingTransactionLogging.view'
+import { TransactionLoggingView } from '@logging/TransactionLogging.view'
 
 export async function settlePendingReceiveTransaction(
   homeCom: DbCommunity,
@@ -32,7 +36,11 @@ export async function settlePendingReceiveTransaction(
   logger.debug(`start Transaction for write-access...`)
 
   try {
-    logger.info('X-Com: settlePendingReceiveTransaction:', homeCom, receiverUser, pendingTx)
+    logger.info('X-Com: settlePendingReceiveTransaction:', {
+      homeCom: new CommunityLoggingView(homeCom),
+      receiverUser: new UserLoggingView(receiverUser),
+      pendingTx: new PendingTransactionLoggingView(pendingTx),
+    })
 
     // ensure that no other pendingTx with the same sender or recipient exists
     const openSenderPendingTx = await DbPendingTransaction.count({
@@ -84,7 +92,7 @@ export async function settlePendingReceiveTransaction(
     transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
     transactionReceive.linkedTransactionId = pendingTx.linkedTransactionId
     await queryRunner.manager.insert(dbTransaction, transactionReceive)
-    logger.debug(`receive Transaction inserted: ${dbTransaction}`)
+    logger.debug(`receive Transaction inserted: ${new TransactionLoggingView(transactionReceive)}`)
 
     // and mark the pendingTx in the pending_transactions table as settled
     pendingTx.state = PendingTransactionState.SETTLED

@@ -16,7 +16,7 @@ const authLink = new ApolloLink((operation, forward) => {
   return forward(operation).map((response) => {
     if (response.errors && response.errors[0].message === '403.13 - Client certificate revoked') {
       store.dispatch('logout', null)
-      window.location.assign(CONFIG.WALLET_URL)
+      window.location.assign(CONFIG.WALLET_LOGIN_URL)
       return response
     }
     const newToken = operation.getContext().response.headers.get('token')

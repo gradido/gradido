@@ -6,7 +6,7 @@ export class FederatedCommunity {
   constructor(dbCom: DbFederatedCommunity) {
     this.id = dbCom.id
     this.foreign = dbCom.foreign
-    this.publicKey = dbCom.publicKey.toString()
+    this.publicKey = dbCom.publicKey.toString('hex')
     this.url =
       (dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/') + dbCom.apiVersion
     this.lastAnnouncedAt = dbCom.lastAnnouncedAt
