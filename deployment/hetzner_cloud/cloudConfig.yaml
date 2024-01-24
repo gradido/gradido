@@ -9,6 +9,7 @@ users:
 
 packages:
   - fail2ban
+  - python3-systemd
   - ufw
   - git
   - mariadb-server

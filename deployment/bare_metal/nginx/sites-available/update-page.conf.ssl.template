@@ -1,3 +1,4 @@
+include /etc/nginx/common/limit_requests.conf;
 
 server {
     if ($host = $COMMUNITY_HOST) {
@@ -21,7 +22,6 @@ server {
 
     include /etc/nginx/common/protect.conf;
     include /etc/nginx/common/protect_add_header.conf;
-    include /etc/nginx/common/limit_requests.conf;
 
     # protect from slow loris
     client_body_timeout 10s;
