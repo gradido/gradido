@@ -54,10 +54,10 @@ export class InterruptiveSleepManager {
     if (!this.interruptiveSleep.has(key)) {
       this.interruptiveSleep.set(key, new InterruptiveSleep(this.stepSizeMilliseconds))
     }
-    const cond = this.interruptiveSleep.get(key)
-    if (!cond) {
+    const interruptiveSleep = this.interruptiveSleep.get(key)
+    if (!interruptiveSleep) {
       throw new LogError('map entry not exist after setting it')
     }
-    return cond.sleep(ms)
+    return interruptiveSleep.sleep(ms)
   }
 }
