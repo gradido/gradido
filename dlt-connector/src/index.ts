@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CONFIG } from '@/config'
 
+import { Mnemonic } from './data/Mnemonic'
 import createServer from './server/createServer'
 import { stopTransmitToIota, transmitToIota } from './tasks/transmitToIota'
 
 async function main() {
+  if (CONFIG.IOTA_HOME_COMMUNITY_SEED) {
+    Mnemonic.validateSeed(CONFIG.IOTA_HOME_COMMUNITY_SEED)
+  }
   // eslint-disable-next-line no-console
   console.log(`DLT_CONNECTOR_PORT=${CONFIG.DLT_CONNECTOR_PORT}`)
   const { app } = await createServer()
