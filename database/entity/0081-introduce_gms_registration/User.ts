@@ -13,6 +13,7 @@ import { Contribution } from '../Contribution'
 import { ContributionMessage } from '../ContributionMessage'
 import { UserContact } from '../UserContact'
 import { UserRole } from '../UserRole'
+import { GeometryTransformer } from '../../src/typeorm/GeometryTransformer'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {
@@ -125,7 +126,13 @@ export class User extends BaseEntity {
   @Column({ name: 'gms_allowed', type: 'bool', default: true })
   gmsAllowed: boolean
 
-  @Column({ name: 'location', type: 'geometry', default: null, nullable: true })
+  @Column({
+    name: 'location',
+    type: 'geometry',
+    default: null,
+    nullable: true,
+    transformer: GeometryTransformer,
+  })
   location: Geometry | null
 
   @Column({

@@ -21,6 +21,7 @@
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^3.2.1",
     "@types/faker": "^5.5.9",
+    "@types/geojson": "^7946.0.13",
     "@types/node": "^16.10.3",
     "@typescript-eslint/eslint-plugin": "^5.57.1",
     "@typescript-eslint/parser": "^5.57.1",
@@ -45,11 +46,13 @@
     "crypto": "^1.0.1",
     "decimal.js-light": "^2.5.1",
     "dotenv": "^10.0.0",
+    "geojson": "^0.5.0",
     "mysql2": "^2.3.0",
     "reflect-metadata": "^0.1.13",
     "ts-mysql-migrate": "^1.0.2",
     "typeorm": "^0.3.16",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "wkx": "^0.5.0"
   },
   "engines": {
     "node": ">=14"
