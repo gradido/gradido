@@ -5,7 +5,7 @@ import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { LogError } from '@/server/LogError'
 import { timestampSecondsToDate, timestampToDate } from '@/utils/typeConverter'
 
-import { KeyPair } from './KeyPair'
+import { KeyPair } from './KeyPair.model'
 import { ConfirmedTransaction } from './proto/3_3/ConfirmedTransaction'
 import { RegisterAddress } from './proto/3_3/RegisterAddress'
 import { UserLogic } from './User.logic'

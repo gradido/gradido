@@ -11,7 +11,7 @@ import { LogError } from '@/server/LogError'
 import { getDataSource } from '@/typeorm/DataSource'
 import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 
-import { KeyPair } from './KeyPair'
+import { KeyPair } from './KeyPair.model'
 
 export const CommunityRepository = getDataSource()
   .getRepository(Community)
@@ -88,7 +88,11 @@ export const CommunityRepository = getDataSource()
      * @param iotaTopic
      * @returns true if update was successful
      */
-    async confirmCommunityAndAccounts(confirmedAt: Date, iotaTopic: string): Promise<boolean> {
+    async confirmCommunityAndAccounts(
+      confirmedAt: Date,
+      iotaTopic: string,
+      rootPublicKey: Buffer | undefined,
+    ): Promise<boolean> {
       /* I don't know how todo it with the query builder
       this.createQueryBuilder()
         .update(Community)
@@ -107,13 +111,19 @@ export const CommunityRepository = getDataSource()
         UPDATE communities c
         LEFT JOIN accounts gmw ON c.gmw_account_id = gmw.id
         LEFT JOIN accounts auf ON c.auf_account_id = auf.id
-        SET c.confirmed_at = ?,
+        SET c.confirmed_at = ?, c.root_publicKey = ?
             gmw.confirmed_at = ?,
             auf.confirmed_at = ?
         WHERE c.iota_topic = ?
       `
       logger.info('confirm community', { topic: iotaTopic, confirmedAt })
-      const result = await this.query(query, [confirmedAt, confirmedAt, confirmedAt, iotaTopic])
+      const result = await this.query(query, [
+        confirmedAt,
+        rootPublicKey,
+        confirmedAt,
+        confirmedAt,
+        iotaTopic,
+      ])
 
       if (result.affected && result.affected > 1) {
         throw new LogError('more than one community matched by topic: %s', iotaTopic)

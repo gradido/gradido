@@ -9,7 +9,7 @@ import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 
 import { AccountFactory } from './Account.factory'
 import { AccountRepository } from './Account.repository'
-import { KeyPair } from './KeyPair'
+import { KeyPair } from './KeyPair.model'
 import { Mnemonic } from './Mnemonic'
 import { AddressType } from './proto/3_3/enum/AddressType'
 import { UserFactory } from './User.factory'

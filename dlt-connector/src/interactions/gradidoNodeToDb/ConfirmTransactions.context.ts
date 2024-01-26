@@ -263,7 +263,7 @@ export class ConfirmTransactionsContext {
     // community root transaction is a bit special because it didn't has an account for singing because the community is the signing account
     if (transactionType === TransactionType.COMMUNITY_ROOT) {
       // update confirmation date of Community, AUF Account and GMW Account
-      await new ConfirmCommunityRole(confirmedTransactionRole, this).confirm()
+      await new ConfirmCommunityRole(confirmedTransactionRole, this, transactionBody).confirm()
       confirmedTransactionRole.validate()
       return
     }

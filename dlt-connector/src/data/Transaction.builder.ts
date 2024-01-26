@@ -18,7 +18,7 @@ import {
 
 import { AccountRepository } from './Account.repository'
 import { BackendTransactionFactory } from './BackendTransaction.factory'
-import { KeyPair } from './KeyPair'
+import { KeyPair } from './KeyPair.model'
 import { ConfirmedTransaction } from './proto/3_3/ConfirmedTransaction'
 import { TransactionBodyBuilder } from './proto/TransactionBody.builder'
 

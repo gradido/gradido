@@ -4,7 +4,7 @@ import { LogError } from '@/server/LogError'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
 import { uuid4ToBuffer } from '@/utils/typeConverter'
 
-import { KeyPair } from './KeyPair'
+import { KeyPair } from './KeyPair.model'
 
 export class UserLogic {
   // eslint-disable-next-line no-useless-constructor

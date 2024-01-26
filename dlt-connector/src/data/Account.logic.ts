@@ -8,7 +8,7 @@ import { calculateDecay } from '@/utils/decay'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
 
 import { AUF_ACCOUNT_DERIVATION_INDEX, GMW_ACCOUNT_DERIVATION_INDEX } from './const'
-import { KeyPair } from './KeyPair'
+import { KeyPair } from './KeyPair.model'
 import { AddressType } from './proto/3_3/enum/AddressType'
 import { UserLogic } from './User.logic'
 
