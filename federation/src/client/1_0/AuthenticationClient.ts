@@ -63,7 +63,10 @@ export class AuthenticationClient {
         return authUuid
       }
     } catch (err) {
-      logger.error('Authentication: authenticate  failed for endpoint', this.endpoint)
+      logger.error('Authentication: authenticate  failed', {
+        endpoint: this.endpoint,
+        err,
+      })
     }
     return null
   }

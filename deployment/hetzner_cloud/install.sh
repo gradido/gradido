@@ -80,6 +80,14 @@ expect eof
 ")
 echo "$SECURE_MYSQL"
 
+# Configure fail2ban, seems to not run out of the box on Debian 12
+echo -e "[sshd]\nbackend = systemd" | tee /etc/fail2ban/jail.d/sshd.conf
+# enable nginx-limit-req filter to block also user which exceed nginx request limiter
+echo -e "[nginx-limit-req]\nenabled = true\nlogpath  = $SCRIPT_PATH/log/nginx-error.*.log" | tee /etc/fail2ban/jail.d/nginx-limit-req.conf
+# enable nginx bad request filter 
+echo -e "[nginx-bad-request]\nenabled = true\nlogpath  = $SCRIPT_PATH/log/nginx-error.*.log" | tee /etc/fail2ban/jail.d/nginx-bad-request.conf
+systemctl restart fail2ban
+
 # Configure nginx
 rm /etc/nginx/sites-enabled/default
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/nginx/sites-available/gradido.conf.template > $SCRIPT_PATH/nginx/sites-available/gradido.conf

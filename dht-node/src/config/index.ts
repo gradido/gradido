@@ -10,7 +10,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v3.2023-04-26',
+    EXPECTED: 'v4.2024-01-17',
     CURRENT: '',
   },
 }
@@ -43,7 +43,7 @@ const federation = {
   FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC ?? 'GRADIDO_HUB',
   FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED ?? null,
   FEDERATION_COMMUNITY_URL: process.env.FEDERATION_COMMUNITY_URL ?? COMMUNITY_URL,
-  FEDERATION_COMMUNITY_API_PORT: process.env.FEDERATION_COMMUNITY_API_PORT ?? '5000',
+  FEDERATION_COMMUNITY_APIS: process.env.FEDERATION_COMMUNITY_APIS ?? '1_0',
 }
 
 // Check config version
