@@ -83,30 +83,26 @@ export class TransactionLogic {
       this.self.recipientAccountId !== otherTransaction.recipientAccountId ||
       this.self.communityId !== otherTransaction.communityId ||
       this.self.otherCommunityId !== otherTransaction.otherCommunityId ||
-      this.self.accountBalanceOnCreation !== otherTransaction.accountBalanceOnCreation ||
       this.self.createdAt.getTime() !== otherTransaction.createdAt.getTime()
     ) {
-      logger.debug('transaction a and b are not pairs', {
-        a: new TransactionLoggingView(this.self),
-        b: new TransactionLoggingView(otherTransaction),
+      logger.info('transaction a and b are not pairs', {
+        a: new TransactionLoggingView(this.self).toJSON(),
+        b: new TransactionLoggingView(otherTransaction).toJSON(),
       })
       return false
     }
     const body = this.getBody()
     const otherBody = TransactionBody.fromBodyBytes(otherTransaction.bodyBytes)
     /**
-     * both can be Cross
+     * both must be Cross or
      * one can be OUTBOUND and one can be INBOUND
      * no one can be LOCAL
      */
-    if (
-      (body.type === otherBody.type && body.type !== CrossGroupType.CROSS) ||
-      body.type === CrossGroupType.LOCAL ||
-      otherBody.type === CrossGroupType.LOCAL
-    ) {
+
+    if (!this.validCrossGroupTypes(body.type, otherBody.type)) {
       logger.info("cross group types don't match", {
-        a: new TransactionBodyLoggingView(body),
-        b: new TransactionBodyLoggingView(otherBody),
+        a: new TransactionBodyLoggingView(body).toJSON(),
+        b: new TransactionBodyLoggingView(otherBody).toJSON(),
       })
       return false
     }
@@ -114,14 +110,14 @@ export class TransactionLogic {
     const otherType = otherBody.getTransactionType()
     if (!type || !otherType) {
       throw new LogError("couldn't determine transaction type", {
-        a: new TransactionBodyLoggingView(body),
-        b: new TransactionBodyLoggingView(otherBody),
+        a: new TransactionBodyLoggingView(body).toJSON(),
+        b: new TransactionBodyLoggingView(otherBody).toJSON(),
       })
     }
     if (type !== otherType) {
       logger.info("transaction types don't match", {
-        a: new TransactionBodyLoggingView(body),
-        b: new TransactionBodyLoggingView(otherBody),
+        a: new TransactionBodyLoggingView(body).toJSON(),
+        b: new TransactionBodyLoggingView(otherBody).toJSON(),
       })
       return false
     }
@@ -132,7 +128,7 @@ export class TransactionLogic {
         TransactionType.GRADIDO_DEFERRED_TRANSFER,
       ].includes(type)
     ) {
-      logger.info(`TransactionType ${type} couldn't be a CrossGroup Transaction`)
+      logger.info(`TransactionType ${TransactionType[type]} couldn't be a CrossGroup Transaction`)
       return false
     }
     if (
@@ -156,19 +152,43 @@ export class TransactionLogic {
     }
     if (body.otherGroup === otherBody.otherGroup) {
       logger.info('otherGroups are the same', {
-        a: new TransactionBodyLoggingView(body),
-        b: new TransactionBodyLoggingView(otherBody),
+        a: new TransactionBodyLoggingView(body).toJSON(),
+        b: new TransactionBodyLoggingView(otherBody).toJSON(),
       })
       return false
     }
     if (body.memo !== otherBody.memo) {
       logger.info('memo differ', {
-        a: new TransactionBodyLoggingView(body),
-        b: new TransactionBodyLoggingView(otherBody),
+        a: new TransactionBodyLoggingView(body).toJSON(),
+        b: new TransactionBodyLoggingView(otherBody).toJSON(),
       })
       return false
     }
     return true
+  }
+
+  /**
+   * both must be CROSS or
+   * one can be OUTBOUND and one can be INBOUND
+   * no one can be LOCAL
+   * @return true if crossGroupTypes are valid
+   */
+  protected validCrossGroupTypes(a: CrossGroupType, b: CrossGroupType): boolean {
+    logger.debug('compare ', {
+      a: CrossGroupType[a],
+      b: CrossGroupType[b],
+    })
+    if (a === CrossGroupType.LOCAL || b === CrossGroupType.LOCAL) {
+      logger.info('no one can be LOCAL')
+      return false
+    }
+    if (
+      (a === CrossGroupType.INBOUND && b === CrossGroupType.OUTBOUND) ||
+      (a === CrossGroupType.OUTBOUND && b === CrossGroupType.INBOUND)
+    ) {
+      return true // One can be INBOUND and one can be OUTBOUND
+    }
+    return a === CrossGroupType.CROSS && b === CrossGroupType.CROSS
   }
 
   public getBody(): TransactionBody {
