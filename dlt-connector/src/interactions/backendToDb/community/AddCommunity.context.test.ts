@@ -1,5 +1,6 @@
 import 'reflect-metadata'
 import { Community } from '@entity/Community'
+
 import { TestDB } from '@test/TestDB'
 
 import { CONFIG } from '@/config'

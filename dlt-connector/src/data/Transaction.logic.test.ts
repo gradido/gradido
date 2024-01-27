@@ -6,12 +6,12 @@ import { logger } from '@/logging/logger'
 
 import { CommunityRoot } from './proto/3_3/CommunityRoot'
 import { CrossGroupType } from './proto/3_3/enum/CrossGroupType'
+import { GradidoCreation } from './proto/3_3/GradidoCreation'
+import { GradidoDeferredTransfer } from './proto/3_3/GradidoDeferredTransfer'
 import { GradidoTransfer } from './proto/3_3/GradidoTransfer'
 import { RegisterAddress } from './proto/3_3/RegisterAddress'
 import { TransactionBody } from './proto/3_3/TransactionBody'
 import { TransactionLogic } from './Transaction.logic'
-import { GradidoCreation } from './proto/3_3/GradidoCreation'
-import { GradidoDeferredTransfer } from './proto/3_3/GradidoDeferredTransfer'
 
 let a: Transaction
 let b: Transaction

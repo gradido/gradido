@@ -1,8 +1,9 @@
 import 'reflect-metadata'
 import { Account } from '@entity/Account'
-import { TestDB } from '@test/TestDB'
 import { Decimal } from 'decimal.js-light'
 import { v4 } from 'uuid'
+
+import { TestDB } from '@test/TestDB'
 
 import { CONFIG } from '@/config'
 import { KeyPair } from '@/data/KeyPair'
