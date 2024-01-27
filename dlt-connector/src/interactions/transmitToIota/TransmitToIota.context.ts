@@ -2,7 +2,10 @@ import { Transaction } from '@entity/Transaction'
 
 import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
 import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
+import { logger } from '@/logging/logger'
+import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
+import { getDataSource } from '@/typeorm/DataSource'
 
 import { AbstractTransactionRecipeRole } from './AbstractTransactionRecipe.role'
 import { InboundTransactionRecipeRole } from './InboundTransactionRecipe.role'
@@ -36,7 +39,19 @@ export class TransmitToIotaContext {
 
   public async run(): Promise<void> {
     const transaction = await this.transactionRecipeRole.transmitToIota()
+    logger.debug('transaction sended via iota', new TransactionLoggingView(transaction))
     // store changes in db
-    await transaction.save()
+    // prevent endless loop
+    const paringTransaction = transaction.paringTransaction
+    if (paringTransaction) {
+      transaction.paringTransaction = undefined
+      await getDataSource().transaction(async (transactionalEntityManager) => {
+        await transactionalEntityManager.save(transaction)
+        await transactionalEntityManager.save(paringTransaction)
+      })
+    } else {
+      await transaction.save()
+    }
+    logger.info('sended transaction successfully updated in db')
   }
 }

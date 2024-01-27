@@ -1,5 +1,6 @@
 import { Transaction } from '@entity/Transaction'
 
+import { AccountLogic } from '@/data/Account.logic'
 import { KeyPair } from '@/data/KeyPair'
 import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
 import { TransactionBuilder } from '@/data/Transaction.builder'
@@ -57,9 +58,11 @@ export class TransactionRecipeRole {
       await this.transactionBuilder.setOtherCommunityFromRecipientUser(recipientUser)
     }
     const transaction = this.transactionBuilder.getTransaction()
+    const communityKeyPair = new KeyPair(this.transactionBuilder.getCommunity())
+    const accountLogic = new AccountLogic(signingAccount)
     // sign
     this.transactionBuilder.setSignature(
-      new KeyPair(this.transactionBuilder.getCommunity()).sign(transaction.bodyBytes),
+      accountLogic.calculateKeyPair(communityKeyPair).sign(transaction.bodyBytes),
     )
     return this
   }

@@ -77,14 +77,14 @@ export class TransactionLogic {
       logger.info('id is the same, it is the same transaction!')
       return false
     }
+
     if (
       this.self.signingAccountId !== otherTransaction.signingAccountId ||
       this.self.recipientAccountId !== otherTransaction.recipientAccountId ||
       this.self.communityId !== otherTransaction.communityId ||
       this.self.otherCommunityId !== otherTransaction.otherCommunityId ||
-      this.self.amount !== otherTransaction.amount ||
       this.self.accountBalanceOnCreation !== otherTransaction.accountBalanceOnCreation ||
-      this.self.createdAt !== otherTransaction.createdAt
+      this.self.createdAt.getTime() !== otherTransaction.createdAt.getTime()
     ) {
       logger.debug('transaction a and b are not pairs', {
         a: new TransactionLoggingView(this.self),
@@ -134,6 +134,25 @@ export class TransactionLogic {
     ) {
       logger.info(`TransactionType ${type} couldn't be a CrossGroup Transaction`)
       return false
+    }
+    if (
+      [
+        TransactionType.GRADIDO_CREATION,
+        TransactionType.GRADIDO_TRANSFER,
+        TransactionType.GRADIDO_DEFERRED_TRANSFER,
+      ].includes(type)
+    ) {
+      if (!this.self.amount || !otherTransaction.amount) {
+        logger.info('missing amount')
+        return false
+      }
+      if (this.self.amount.cmp(otherTransaction.amount.toString())) {
+        logger.info('amounts mismatch', {
+          a: this.self.amount.toString(),
+          b: otherTransaction.amount.toString(),
+        })
+        return false
+      }
     }
     if (body.otherGroup === otherBody.otherGroup) {
       logger.info('otherGroups are the same', {

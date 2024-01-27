@@ -11,14 +11,14 @@ import { GradidoTransactionLoggingView } from '@/logging/GradidoTransactionLoggi
 import { logger } from '@/logging/logger'
 
 export abstract class AbstractTransactionRecipeRole {
-  protected transactionBody: TransactionBody | undefined
-  // eslint-disable-next-line no-useless-constructor
-  public constructor(protected self: Transaction) {}
+  protected transactionBody: TransactionBody
+  public constructor(protected self: Transaction) {
+    this.transactionBody = TransactionBody.fromBodyBytes(this.self.bodyBytes)
+  }
 
   public abstract transmitToIota(): Promise<Transaction>
 
   protected getGradidoTransaction(): GradidoTransaction {
-    this.transactionBody = TransactionBody.fromBodyBytes(this.self.bodyBytes)
     const transaction = new GradidoTransaction(this.transactionBody)
     if (!this.self.signature) {
       throw new TransactionError(
