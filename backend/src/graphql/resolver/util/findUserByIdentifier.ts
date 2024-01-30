@@ -1,3 +1,5 @@
+import { FindOptionsWhere } from '@dbTools/typeorm'
+import { Community } from '@entity/Community'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { validate, version } from 'uuid'
@@ -6,15 +8,26 @@ import { LogError } from '@/server/LogError'
 
 import { VALID_ALIAS_REGEX } from './validateAlias'
 
+/**
+ *
+ * @param identifier could be gradidoID, alias or email of user
+ * @param communityIdentifier could be uuid or name of community
+ * @returns
+ */
 export const findUserByIdentifier = async (
   identifier: string,
-  communityIdentifier?: string,
+  communityIdentifier: string,
 ): Promise<DbUser> => {
   let user: DbUser | null
+  const communityWhere: FindOptionsWhere<Community> =
+    validate(communityIdentifier) && version(communityIdentifier) === 4
+      ? { communityUuid: communityIdentifier }
+      : { name: communityIdentifier }
+
   if (validate(identifier) && version(identifier) === 4) {
     user = await DbUser.findOne({
-      where: { gradidoID: identifier, communityUuid: communityIdentifier },
-      relations: ['emailContact'],
+      where: { gradidoID: identifier, community: communityWhere },
+      relations: ['emailContact', 'community'],
     })
     if (!user) {
       throw new LogError('No user found to given identifier(s)', identifier, communityIdentifier)
@@ -24,28 +37,24 @@ export const findUserByIdentifier = async (
       where: {
         email: identifier,
         emailChecked: true,
+        user: {
+          community: communityWhere,
+        },
       },
-      relations: ['user'],
+      relations: ['user', 'user.community'],
     })
     if (!userContact) {
-      throw new LogError('No user with this credentials', identifier)
+      throw new LogError('No user with this credentials', identifier, communityIdentifier)
     }
     if (!userContact.user) {
-      throw new LogError('No user to given contact', identifier)
-    }
-    if (userContact.user.communityUuid !== communityIdentifier) {
-      throw new LogError(
-        'Found user to given contact, but belongs to other community',
-        identifier,
-        communityIdentifier,
-      )
+      throw new LogError('No user to given contact', identifier, communityIdentifier)
     }
     user = userContact.user
     user.emailContact = userContact
   } else if (VALID_ALIAS_REGEX.exec(identifier)) {
     user = await DbUser.findOne({
-      where: { alias: identifier, communityUuid: communityIdentifier },
-      relations: ['emailContact'],
+      where: { alias: identifier, community: communityWhere },
+      relations: ['emailContact', 'community'],
     })
     if (!user) {
       throw new LogError('No user found to given identifier(s)', identifier, communityIdentifier)

@@ -428,7 +428,7 @@ export class UserResolver {
     const userContact = await DbUserContact.findOneOrFail({
       where: { emailVerificationCode: code },
       relations: ['user'],
-    }).catch(() => {
+    }).catch((e) => {
       throw new LogError('Could not login with emailVerificationCode')
     })
     logger.debug('userContact loaded...')
@@ -821,11 +821,6 @@ export class UserResolver {
   ): Promise<User> {
     const foundDbUser = await findUserByIdentifier(identifier, communityIdentifier)
     const modelUser = new User(foundDbUser)
-    if (!foundDbUser.communityUuid) {
-      modelUser.communityName = (await Promise.resolve(getHomeCommunity())).name
-    } else {
-      modelUser.communityName = await getCommunityName(foundDbUser.communityUuid)
-    }
     return modelUser
   }
 }

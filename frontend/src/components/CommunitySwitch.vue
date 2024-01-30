@@ -1,16 +1,23 @@
 <template>
   <div class="community-switch">
-    <b-dropdown no-flip :text="value.name">
-      <b-dropdown-item
-        v-for="community in communities"
-        @click.prevent="updateCommunity(community)"
-        :key="community.id"
-        :title="community.description"
-        :active="value.uuid === community.uuid"
-      >
-        {{ community.name }}
-      </b-dropdown-item>
-    </b-dropdown>
+    <div v-if="!validCommunityIdentifier">
+      <b-dropdown no-flip :text="value.name">
+        <b-dropdown-item
+          v-for="community in communities"
+          @click.prevent="updateCommunity(community)"
+          :key="community.id"
+          :title="community.description"
+          :active="value.uuid === community.uuid"
+        >
+          {{ community.name }}
+        </b-dropdown-item>
+      </b-dropdown>
+    </div>
+    <div v-else class="mb-4 mt-2">
+      <b-row>
+        <b-col class="font-weight-bold" :title="value.description">{{ value.name }}</b-col>
+      </b-row>
+    </div>
   </div>
 </template>
 <script>
@@ -26,6 +33,7 @@ export default {
   data() {
     return {
       communities: [],
+      validCommunityIdentifier: false,
     }
   },
   methods: {
@@ -33,6 +41,24 @@ export default {
       this.$emit('input', community)
     },
     setDefaultCommunity() {
+      // when we already get an identifier via url we choose this if the community exist
+      if (this.communityIdentifier) {
+        const foundCommunity = this.communities.find((community) => {
+          if (
+            community.uuid === this.communityIdentifier ||
+            community.name === this.communityIdentifier
+          ) {
+            this.validCommunityIdentifier = true
+            return true
+          }
+          return false
+        })
+        if (foundCommunity) {
+          this.updateCommunity(foundCommunity)
+          return
+        }
+        this.toastError('invalid community identifier in url')
+      }
       // set default community, the only one which isn't foreign
       // we assume it is only one entry with foreign = false
       if (this.value.uuid === '' && this.communities.length) {
@@ -48,8 +74,10 @@ export default {
       query: selectCommunities,
     },
   },
-  mounted() {
-    this.setDefaultCommunity()
+  computed: {
+    communityIdentifier() {
+      return this.$route.params && this.$route.params.communityIdentifier
+    },
   },
   updated() {
     this.setDefaultCommunity()
