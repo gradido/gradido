@@ -42,7 +42,7 @@ export default {
     },
     setDefaultCommunity() {
       // when we already get an identifier via url we choose this if the community exist
-      if (this.communityIdentifier) {
+      if (this.communityIdentifier && this.communities.length >= 1) {
         const foundCommunity = this.communities.find((community) => {
           if (
             community.uuid === this.communityIdentifier ||
@@ -80,6 +80,9 @@ export default {
     },
   },
   updated() {
+    this.setDefaultCommunity()
+  },
+  mounted() {
     this.setDefaultCommunity()
   },
 }

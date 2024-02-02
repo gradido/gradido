@@ -58,6 +58,9 @@ export const mutations = {
   setDarkMode: (state, darkMode) => {
     state.darkMode = !!darkMode
   },
+  redirectPath: (state, redirectPath) => {
+    state.redirectPath = redirectPath || '/overview'
+  },
 }
 
 export const actions = {
@@ -89,6 +92,7 @@ export const actions = {
     commit('hideAmountGDT', true)
     commit('email', '')
     commit('setDarkMode', false)
+    commit('redirectPath', '/overview')
     localStorage.clear()
   },
 }
@@ -119,6 +123,7 @@ try {
       hideAmountGDT: null,
       email: '',
       darkMode: false,
+      redirectPath: '/overview',
     },
     getters: {},
     // Syncronous mutation of the state

@@ -38,6 +38,7 @@ describe('Send', () => {
     },
     $route: {
       query: {},
+      params: {},
     },
     $router: {
       push: routerPushMock,
@@ -175,7 +176,9 @@ describe('Send', () => {
 
     describe('with gradidoID query', () => {
       beforeEach(() => {
-        mocks.$route.query.gradidoID = 'gradido-ID'
+        jest.clearAllMocks()
+        mocks.$route.params.userIdentifier = 'gradido-ID'
+        mocks.$route.params.communityIdentifier = 'community-ID'
         wrapper = Wrapper()
       })
 
@@ -226,11 +229,7 @@ describe('Send', () => {
           })
 
           it('resets the gradido ID query in route', () => {
-            expect(routerPushMock).toBeCalledWith({
-              query: {
-                gradidoID: undefined,
-              },
-            })
+            expect(routerPushMock).toBeCalledWith('send')
           })
         })
       })
