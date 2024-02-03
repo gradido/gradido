@@ -42,12 +42,12 @@ export class TransactionLoggingView extends AbstractLoggingView {
         ? new AccountLoggingView(this.self.recipientAccount)
         : { id: this.self.recipientAccountId },
       pairingTransaction:
-        this.self.paringTransaction && deep === 1
-          ? new TransactionLoggingView(this.self.paringTransaction).toJSON(
+        this.self.pairingTransaction && deep === 1
+          ? new TransactionLoggingView(this.self.pairingTransaction).toJSON(
               showBackendTransactions,
               deep + 1,
             )
-          : { id: this.self.paringTransactionId },
+          : { id: this.self.pairingTransaction },
       amount: this.decimalToString(this.self.amount),
       accountBalanceOnCreation: this.decimalToString(this.self.accountBalanceOnCreation),
       accountBalanceOnConfirmation: this.decimalToString(this.self.accountBalanceOnConfirmation),

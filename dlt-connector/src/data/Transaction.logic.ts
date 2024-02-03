@@ -26,13 +26,13 @@ export class TransactionLogic {
       throw new LogError("local transaction don't has a pairing transaction")
     }
 
-    // check if already on entity
-    if (this.self.paringTransaction) {
-      return this.self.paringTransaction
+    // check if already was loaded from db
+    if (this.self.pairingTransaction) {
+      return this.self.pairingTransaction
     }
 
-    if (this.self.paringTransactionId) {
-      const pairingTransaction = await Transaction.findOneBy({ id: this.self.paringTransactionId })
+    if (this.self.pairingTransaction) {
+      const pairingTransaction = await Transaction.findOneBy({ id: this.self.pairingTransaction })
       if (pairingTransaction) {
         return pairingTransaction
       }

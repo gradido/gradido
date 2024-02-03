@@ -42,12 +42,12 @@ export class TransmitToIotaContext {
     logger.debug('transaction sended via iota', new TransactionLoggingView(transaction))
     // store changes in db
     // prevent endless loop
-    const paringTransaction = transaction.paringTransaction
-    if (paringTransaction) {
-      transaction.paringTransaction = undefined
+    const pairingTransaction = transaction.pairingTransaction
+    if (pairingTransaction) {
+      transaction.pairingTransaction = undefined
       await getDataSource().transaction(async (transactionalEntityManager) => {
         await transactionalEntityManager.save(transaction)
-        await transactionalEntityManager.save(paringTransaction)
+        await transactionalEntityManager.save(pairingTransaction)
       })
     } else {
       await transaction.save()

@@ -23,9 +23,9 @@ export class InboundTransactionRecipeRole extends AbstractTransactionRecipeRole 
       )
     }
     gradidoTransaction.parentMessageId = pairingTransaction.iotaMessageId
-    this.self.paringTransactionId = pairingTransaction.id
-    this.self.paringTransaction = pairingTransaction
-    pairingTransaction.paringTransactionId = this.self.id
+    this.self.pairingTransactionId = pairingTransaction.id
+    this.self.pairingTransaction = pairingTransaction
+    pairingTransaction.pairingTransactionId = this.self.id
 
     if (!this.self.otherCommunity) {
       throw new LogError('missing other community')
