@@ -1,5 +1,3 @@
-import { Community } from '@entity/Community'
-
 import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
