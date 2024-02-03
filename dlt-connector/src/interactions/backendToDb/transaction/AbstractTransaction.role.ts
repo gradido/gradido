@@ -1,8 +1,11 @@
+import { Community } from '@entity/Community'
+
 import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { TransactionError } from '@/graphql/model/TransactionError'
+import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 
 export abstract class AbstractTransactionRole {
   // eslint-disable-next-line no-useless-constructor
@@ -26,7 +29,7 @@ export abstract class AbstractTransactionRole {
    * OUTBOUND: stored on 'gdd1', otherGroup: 'gdd2'
    * INBOUND: goes to receiver, stored on receiver community blockchain
    * INBOUND: stored on 'gdd2', otherGroup: 'gdd1'
-   * @returns
+   * @returns iota topic
    */
   public getOtherGroup(): string {
     let user: UserIdentifier
@@ -42,7 +45,7 @@ export abstract class AbstractTransactionRole {
             'missing sender/signing user community id for cross group transaction',
           )
         }
-        return user.communityUuid
+        return iotaTopicFromCommunityUUID(user.communityUuid)
       case CrossGroupType.OUTBOUND:
         user = this.getRecipientUser()
         if (!user.communityUuid) {
@@ -51,7 +54,7 @@ export abstract class AbstractTransactionRole {
             'missing recipient user community id for cross group transaction',
           )
         }
-        return user.communityUuid
+        return iotaTopicFromCommunityUUID(user.communityUuid)
       default:
         throw new TransactionError(
           TransactionErrorType.NOT_IMPLEMENTED_YET,

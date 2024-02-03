@@ -272,6 +272,7 @@ describe('interactions/backendToDb/transaction/Create Transaction Recipe Context
     )
     expect(body).toMatchObject({
       type: CrossGroupType.OUTBOUND,
+      otherGroup: foreignTopic,
       transfer: {
         sender: {
           amount: '100',
@@ -296,14 +297,14 @@ describe('interactions/backendToDb/transaction/Create Transaction Recipe Context
       type: TransactionType.GRADIDO_TRANSFER,
       protocolVersion: '3.3',
       community: {
-        rootPubkey: keyPair.publicKey,
-        foreign: 0,
-        iotaTopic: topic,
-      },
-      otherCommunity: {
         rootPubkey: foreignKeyPair.publicKey,
         foreign: 1,
         iotaTopic: foreignTopic,
+      },
+      otherCommunity: {
+        rootPubkey: keyPair.publicKey,
+        foreign: 0,
+        iotaTopic: topic,
       },
       signingAccount: {
         derive2Pubkey: firstUser.account.derive2Pubkey,
@@ -328,6 +329,7 @@ describe('interactions/backendToDb/transaction/Create Transaction Recipe Context
     )
     expect(body).toMatchObject({
       type: CrossGroupType.INBOUND,
+      otherGroup: topic,
       transfer: {
         sender: {
           amount: '100',

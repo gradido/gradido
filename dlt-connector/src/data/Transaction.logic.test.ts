@@ -44,8 +44,8 @@ describe('data/transaction.logic', () => {
 
       b = new Transaction()
       b.community = new Community()
-      b.communityId = 1
-      b.otherCommunityId = 2
+      b.communityId = 2
+      b.otherCommunityId = 1
       b.id = 2
       b.signingAccountId = 1
       b.recipientAccountId = 2

@@ -81,8 +81,8 @@ export class TransactionLogic {
     if (
       this.self.signingAccountId !== otherTransaction.signingAccountId ||
       this.self.recipientAccountId !== otherTransaction.recipientAccountId ||
-      this.self.communityId !== otherTransaction.communityId ||
-      this.self.otherCommunityId !== otherTransaction.otherCommunityId ||
+      this.self.communityId !== otherTransaction.otherCommunityId ||
+      this.self.otherCommunityId !== otherTransaction.communityId ||
       this.self.createdAt.getTime() !== otherTransaction.createdAt.getTime()
     ) {
       logger.info('transaction a and b are not pairs', {
