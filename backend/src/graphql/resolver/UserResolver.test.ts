@@ -2552,6 +2552,7 @@ describe('UserResolver', () => {
             query: userQuery,
             variables: {
               identifier: 'identifier',
+              communityIdentifier: 'community identifier',
             },
           }),
         ).resolves.toEqual(
@@ -2637,13 +2638,11 @@ describe('UserResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [
-                new GraphQLError('Found user to given contact, but belongs to other community'),
-              ],
+              errors: [new GraphQLError('No user with this credentials')],
             }),
           )
           expect(logger.error).toBeCalledWith(
-            'Found user to given contact, but belongs to other community',
+            'No user with this credentials',
             'bibi@bloxberg.de',
             foreignCom1.communityUuid,
           )

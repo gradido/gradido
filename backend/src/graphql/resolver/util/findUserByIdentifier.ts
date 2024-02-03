@@ -41,13 +41,10 @@ export const findUserByIdentifier = async (
           community: communityWhere,
         },
       },
-      relations: ['user', 'user.community'],
+      relations: { user: { community: true } },
     })
     if (!userContact) {
       throw new LogError('No user with this credentials', identifier, communityIdentifier)
-    }
-    if (!userContact.user) {
-      throw new LogError('No user to given contact', identifier, communityIdentifier)
     }
     user = userContact.user
     user.emailContact = userContact

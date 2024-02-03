@@ -65,7 +65,7 @@ import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
-import { getCommunityName, getHomeCommunity } from './util/communities'
+import { getHomeCommunity } from './util/communities'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
@@ -428,7 +428,7 @@ export class UserResolver {
     const userContact = await DbUserContact.findOneOrFail({
       where: { emailVerificationCode: code },
       relations: ['user'],
-    }).catch((e) => {
+    }).catch(() => {
       throw new LogError('Could not login with emailVerificationCode')
     })
     logger.debug('userContact loaded...')
