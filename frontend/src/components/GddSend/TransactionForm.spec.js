@@ -32,6 +32,9 @@ describe('TransactionForm', () => {
       params: {},
       query: {},
     },
+    $router: {
+      replace: jest.fn(),
+    },
   }
 
   const propsData = {

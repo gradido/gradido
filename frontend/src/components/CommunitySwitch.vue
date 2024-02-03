@@ -59,6 +59,9 @@ export default {
         }
         this.toastError('invalid community identifier in url')
       }
+      if (this.validCommunityIdentifier && !this.communityIdentifier) {
+        this.validCommunityIdentifier = false
+      }
       // set default community, the only one which isn't foreign
       // we assume it is only one entry with foreign = false
       if (this.value.uuid === '' && this.communities.length) {

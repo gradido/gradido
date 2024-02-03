@@ -144,7 +144,6 @@ import InputAmount from '@/components/Inputs/InputAmount'
 import InputTextarea from '@/components/Inputs/InputTextarea'
 import CommunitySwitch from '@/components/CommunitySwitch.vue'
 import { user } from '@/graphql/queries'
-import { isEmpty } from 'lodash'
 import { COMMUNITY_NAME } from '@/config'
 
 export default {
@@ -203,7 +202,7 @@ export default {
       this.form.memo = ''
       this.form.targetCommunity = { uuid: '', name: COMMUNITY_NAME }
       this.$refs.formValidator.validate()
-      if (this.$route.query && !isEmpty(this.$route.query)) this.$router.replace('send')
+      this.$router.replace('/send')
     },
   },
   apollo: {
