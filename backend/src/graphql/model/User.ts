@@ -10,6 +10,9 @@ export class User {
       this.id = user.id
       this.foreign = user.foreign
       this.communityUuid = user.communityUuid
+      if (user.community) {
+        this.communityName = user.community.name
+      }
       this.gradidoID = user.gradidoID
       this.alias = user.alias
       if (user.emailContact) {
