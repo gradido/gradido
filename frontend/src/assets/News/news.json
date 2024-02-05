@@ -1,47 +1,37 @@
 [
   {
     "locale": "de",
-    "date": "30.10.2023",
-    "text": "Gradido wird dezentral (Beta)",
-    "url": "/send",
-    "extra": "Gradido-Communities können nun ihre eigenen dezentralen Gradido-Server betreiben. Transaktionen zwischen den Servern sind möglich. Im Senden-Dialog findest Du ein Auswahl-Menü mit den verfügbaren Communities, um das Ziel für den Empfänger auszuwählen. Bitte beachte, dass diese Funktion sich noch in der Beta-Testphase befindet und die Communities erst nach und nach hinzugefügt werden.",
-    "extra2": "Wenn Ihr als Community Euren eigenen Gradido-Server betreiben wollt, schreibt uns bitte eine E-Mail an ",
-    "email": "support@gradido.net"
+    "text": "Gradido-Kreise – Gemeinsam mit Freunden die Zukunft gestalten",
+    "button": "Mehr erfahren",
+    "url": "https://gradido.net/de/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten",
+    "extra": "Ganz gleich, ob Ihr bereits einer Gruppe zugehörig seid oder ob Ihr Euch über Gradido gefunden habt – wenn Ihr gemeinsam Gradido nutzen wollt, braucht Ihr nicht gleich einen eigenen Gradido-Server."
   },
   {
     "locale": "en",
-    "date": "30.10.2023",
-    "text": "Gradido becomes decentralized (Beta)",
-    "url": "/send",
-    "extra": "Gradido communities can now run their own decentralized Gradido servers. Transactions between the servers are possible. In the send dialog you will find a dropdown menu with the available communities to select the destination for the receiver. Please note that this feature is still in beta testing and communities will be added gradually.",
-    "extra2": "If you want to run your own Gradido server as a community, please send us an email to ",
-    "email": "support@gradido.net"
+    "text": "Gradido circles - Shaping the future together with friends",
+    "button": "Mehr erfahren",
+    "url": "https://gradido.net/en/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
+    "extra": "No matter whether you already belong to a group or whether you found each other via Gradido - if you want to use Gradido together, you don't need your own Gradido server."
   },
   {
     "locale": "fr",
-    "date": "30.10.2023",
-    "text": "Gradido devient décentralisé (Beta)",
-    "url": "/send",
-    "extra": "Les communautés Gradido peuvent désormais gérer leurs propres serveurs Gradido décentralisés. Les transactions entre les serveurs sont possibles. Dans la boîte de dialogue d'envoi, tu trouveras un menu de sélection avec les communautés disponibles pour choisir la destination du destinataire. Veuillez noter que cette fonction est encore en phase de test bêta et que les communautés ne seront ajoutées qu'au fur et à mesure.",
-    "extra2": "Si vous souhaitez exploiter votre propre serveur Gradido en tant que communauté, veuillez nous envoyer un e-mail à ",
-    "email": "support@gradido.net"
+    "text": "Cercles Gradido - Construire l'avenir ensemble avec des amis ",
+    "button": "En savoir plus",
+    "url": "https://gradido.net/fr/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
+    "extra": "Que vous fassiez déjà partie d'un groupe ou que vous vous soyez trouvés par le biais de Gradido, si vous voulez utiliser Gradido ensemble, vous n'avez pas besoin de votre propre serveur Gradido."
   },
   {
     "locale": "es",
-    "date": "30.10.2023",
-    "text": "Gradido se descentraliza (Beta)",
-    "url": "/send",
-    "extra": "Las comunidades de Gradido ya pueden gestionar sus propios servidores descentralizados de Gradido. Las transacciones entre los servidores son posibles. En el diálogo de envío encontrarás un menú desplegable con las comunidades disponibles para seleccionar el destino del destinatario. Ten en cuenta que esta función aún está en fase de pruebas beta y que las comunidades se irán añadiendo poco a poco.",
-    "extra2": "Si quieres gestionar tu propio servidor Gradido como comunidad, envíanos un correo electrónico a ",
-    "email": "support@gradido.net"
+    "text": "Círculos Gradido - Forjar el futuro entre amigos ",
+    "button": "Más información",
+    "url": "https://gradido.net/es/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
+    "extra": "No importa si ya pertenecéis a un grupo o si os habéis encontrado a través de Gradido: si queréis utilizar Gradido juntos, no necesitáis vuestro propio servidor Gradido."
   },
   {
     "locale": "nl",
-    "date": "30.10.2023",
-    "text": "Gradido wordt gedecentraliseerd (Beta)",
-    "url": "/send",
-    "extra": "Gradido-gemeenschappen kunnen nu hun eigen gedecentraliseerde Gradido-servers beheren. Transacties tussen de servers zijn mogelijk. In het verzenddialoogvenster vind je een vervolgkeuzemenu met de beschikbare communities om de bestemming voor de ontvanger te selecteren. Houd er rekening mee dat deze functie zich nog in de beta-testfase bevindt en dat de communities beetje bij beetje zullen worden toegevoegd.",
-    "extra2": "Als je je eigen Gradido server als community wilt gebruiken, stuur ons dan een e-mail naar ",
-    "email": "support@gradido.net"
+    "text": "Gradidokringen - Samen met vrienden de toekomst vormgeven",
+    "button": "Meer informatie",
+    "url": "https://gradido.net/nl/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
+    "extra": "Het maakt niet uit of je al tot een groep behoort of dat je elkaar via Gradido hebt gevonden - als je Gradido samen wilt gebruiken, heb je geen eigen Gradido-server nodig."
   }
 ]
