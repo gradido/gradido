@@ -432,7 +432,7 @@ export class TransactionResolver {
     const senderUser = getUser(context)
 
     if (!recipientCommunityIdentifier || (await isHomeCommunity(recipientCommunityIdentifier))) {
-      // processing sendCoins within sender and recepient are both in home community
+      // processing sendCoins within sender and recipient are both in home community
       const recipientUser = await findUserByIdentifier(
         recipientIdentifier,
         recipientCommunityIdentifier,

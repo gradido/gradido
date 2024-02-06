@@ -36,6 +36,8 @@ const addNavigationGuards = (router, store, apollo) => {
   // handle authentication
   router.beforeEach((to, from, next) => {
     if (to.meta.requiresAuth && !store.state.token) {
+      // store redirect path
+      store.commit('redirectPath', to.path)
       next({ path: '/login' })
     } else {
       next()
