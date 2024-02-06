@@ -21,10 +21,13 @@
             <b-icon :icon="icon" :variant="variant"></b-icon>
           </div>
           <div class="small">
-            {{ $d(new Date(contributionDate), 'monthAndYear') }}
+            {{ $d(new Date(contributionDate), 'short') }}
           </div>
           <div class="mt-3 font-weight-bold">{{ $t('contributionText') }}</div>
           <div class="mb-3 text-break word-break">{{ memo }}</div>
+          <div class="mt-2 mb-2 small" v-if="updatedBy > 0">
+            {{ $t('moderatorChangedMemo') }}
+          </div>
           <div
             v-if="status === 'IN_PROGRESS' && !allContribution"
             class="text-205 pointer hover-font-bold"
@@ -159,6 +162,10 @@ export default {
     },
     deniedAt: {
       type: String,
+      required: false,
+    },
+    updatedBy: {
+      type: Number,
       required: false,
     },
     status: {

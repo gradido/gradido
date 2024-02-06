@@ -1,18 +1,28 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Connection, In } from '@dbTools/typeorm'
+import { Community as DbCommunity } from '@entity/Community'
 import { DltTransaction } from '@entity/DltTransaction'
 import { Event as DbEvent } from '@entity/Event'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
+import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
+import { CONFIG } from '@/config'
 import { EventType } from '@/event/Events'
+import { SendCoinsArgs } from '@/federation/client/1_0/model/SendCoinsArgs'
+import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
+import { SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
@@ -46,7 +56,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy() // close()
 })
 
 let bobData: any
@@ -56,8 +66,35 @@ let user: User[]
 let bob: User
 let peter: User
 
+let homeCom: DbCommunity
+let foreignCom: DbCommunity
+let fedForeignCom: DbFederatedCommunity
+
 describe('send coins', () => {
   beforeAll(async () => {
+    homeCom = DbCommunity.create()
+    homeCom.communityUuid = uuidv4()
+    homeCom.creationDate = new Date('2000-01-01')
+    homeCom.description = 'homeCom description'
+    homeCom.foreign = false
+    homeCom.name = 'homeCom name'
+    homeCom.privateKey = Buffer.from('homeCom privateKey')
+    homeCom.publicKey = Buffer.from('homeCom publicKey')
+    homeCom.url = 'homeCom url'
+    homeCom = await DbCommunity.save(homeCom)
+
+    foreignCom = DbCommunity.create()
+    foreignCom.communityUuid = uuidv4()
+    foreignCom.creationDate = new Date('2000-06-06')
+    foreignCom.description = 'foreignCom description'
+    foreignCom.foreign = true
+    foreignCom.name = 'foreignCom name'
+    foreignCom.privateKey = Buffer.from('foreignCom privateKey')
+    foreignCom.publicKey = Buffer.from('foreignCom publicKey')
+    foreignCom.url = 'foreignCom_url'
+    foreignCom.authenticatedAt = new Date('2000-06-12')
+    foreignCom = await DbCommunity.save(foreignCom)
+
     peter = await userFactory(testEnv, peterLustig)
     bob = await userFactory(testEnv, bobBaumeister)
     await userFactory(testEnv, stephenHawking)
@@ -91,6 +128,7 @@ describe('send coins', () => {
         await mutate({
           mutation: sendCoins,
           variables: {
+            recipientCommunityIdentifier: homeCom.communityUuid,
             recipientIdentifier: 'wrong@email.com',
             amount: 100,
             memo: 'test test',
@@ -104,7 +142,11 @@ describe('send coins', () => {
     })
 
     it('logs the error thrown', () => {
-      expect(logger.error).toBeCalledWith('No user with this credentials', 'wrong@email.com')
+      expect(logger.error).toBeCalledWith(
+        'No user with this credentials',
+        'wrong@email.com',
+        homeCom.communityUuid,
+      )
     })
 
     describe('deleted recipient', () => {
@@ -119,6 +161,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'stephen@hawking.uk',
               amount: 100,
               memo: 'test test',
@@ -126,13 +169,17 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('No user to given contact')],
+            errors: [new GraphQLError('No user with this credentials')],
           }),
         )
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('No user to given contact', 'stephen@hawking.uk')
+        expect(logger.error).toBeCalledWith(
+          'No user with this credentials',
+          'stephen@hawking.uk',
+          homeCom.communityUuid,
+        )
       })
     })
 
@@ -148,6 +195,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'garrick@ollivander.com',
               amount: 100,
               memo: 'test test',
@@ -164,6 +212,7 @@ describe('send coins', () => {
         expect(logger.error).toBeCalledWith(
           'No user with this credentials',
           'garrick@ollivander.com',
+          homeCom.communityUuid,
         )
       })
     })
@@ -184,6 +233,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'bob@baumeister.de',
               amount: 100,
               memo: 'test test',
@@ -207,6 +257,7 @@ describe('send coins', () => {
         const { errors: errorObjects } = await mutate({
           mutation: sendCoins,
           variables: {
+            recipientCommunityIdentifier: homeCom.communityUuid,
             recipientIdentifier: 'peter@lustig.de',
             amount: 100,
             memo: 'Test',
@@ -238,6 +289,7 @@ describe('send coins', () => {
         const { errors: errorObjects } = await mutate({
           mutation: sendCoins,
           variables: {
+            recipientCommunityIdentifier: homeCom.communityUuid,
             recipientIdentifier: 'peter@lustig.de',
             amount: 100,
             memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test t',
@@ -270,6 +322,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
               amount: 100,
               memo: 'testing',
@@ -319,6 +372,7 @@ describe('send coins', () => {
         const { errors: errorObjects } = await mutate({
           mutation: sendCoins,
           variables: {
+            recipientCommunityIdentifier: homeCom.communityUuid,
             recipientIdentifier: 'peter@lustig.de',
             amount: -50,
             memo: 'testing negative',
@@ -350,6 +404,7 @@ describe('send coins', () => {
           await mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
               amount: 50,
               memo: 'unrepeatable memo',
@@ -456,6 +511,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: peter?.gradidoID,
               amount: 10,
               memo: 'send via gradido ID',
@@ -496,6 +552,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'bob',
               amount: 6.66,
               memo: 'send via alias',
@@ -558,12 +615,75 @@ describe('send coins', () => {
       })
     })
 
+    describe('X-Com send coins via gradido ID', () => {
+      beforeAll(async () => {
+        CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED = true
+        fedForeignCom = DbFederatedCommunity.create()
+        fedForeignCom.apiVersion = '1_0'
+        fedForeignCom.foreign = true
+        fedForeignCom.publicKey = Buffer.from('foreignCom publicKey')
+        fedForeignCom.endPoint = 'http://foreignCom_url/api'
+        fedForeignCom.lastAnnouncedAt = new Date('2000-06-09')
+        fedForeignCom.verifiedAt = new Date('2000-06-10')
+        fedForeignCom = await DbFederatedCommunity.save(fedForeignCom)
+
+        jest
+          .spyOn(SendCoinsClient.prototype, 'voteForSendCoins')
+          .mockImplementation(async (args: SendCoinsArgs): Promise<SendCoinsResult> => {
+            logger.debug('mock of voteForSendCoins...', args)
+            return Promise.resolve({
+              vote: true,
+              recipFirstName: peter.firstName,
+              recipLastName: peter.lastName,
+              recipGradidoID: args.recipientUserIdentifier,
+              recipAlias: peter.alias,
+            })
+          })
+
+        jest
+          .spyOn(SendCoinsClient.prototype, 'settleSendCoins')
+          .mockImplementation(async (args: SendCoinsArgs): Promise<boolean> => {
+            logger.debug('mock of settleSendCoins...', args)
+            return Promise.resolve(true)
+          })
+
+        await mutate({
+          mutation: login,
+          variables: bobData,
+        })
+      })
+
+      afterAll(() => {
+        jest.clearAllMocks()
+      })
+
+      it('sends the coins', async () => {
+        await expect(
+          mutate({
+            mutation: sendCoins,
+            variables: {
+              recipientCommunityIdentifier: foreignCom.communityUuid,
+              recipientIdentifier: peter?.gradidoID,
+              amount: 10,
+              memo: 'x-com send via gradido ID',
+            },
+          }),
+        ).resolves.toMatchObject({
+          data: {
+            sendCoins: true,
+          },
+          errors: undefined,
+        })
+      })
+    })
+
     describe('more transactions to test semaphore', () => {
       it('sends the coins four times in a row', async () => {
         await expect(
           mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
               amount: 10,
               memo: 'first transaction',
@@ -580,6 +700,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
               amount: 20,
               memo: 'second transaction',
@@ -596,6 +717,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
               amount: 30,
               memo: 'third transaction',
@@ -612,6 +734,7 @@ describe('send coins', () => {
           mutate({
             mutation: sendCoins,
             variables: {
+              recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
               amount: 40,
               memo: 'fourth transaction',

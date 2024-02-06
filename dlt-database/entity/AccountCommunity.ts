@@ -1,1 +1,1 @@
-export { AccountCommunity } from './0001-init_db/AccountCommunity'
+export { AccountCommunity } from './0002-refactor_add_community/AccountCommunity'

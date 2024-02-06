@@ -3,13 +3,15 @@
 import { IsNull } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { FederatedCommunityLoggingView } from '@logging/FederatedCommunityLogging.view'
 
-// eslint-disable-next-line camelcase
 import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
 import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
 import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
 import { backendLogger as logger } from '@/server/logger'
 
+import { startCommunityAuthentication } from './authenticateCommunities'
+import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
 import { ApiVersionType } from './enum/apiVersionType'
 
 export async function startValidateCommunities(timerInterval: number): Promise<void> {
@@ -36,11 +38,15 @@ export async function validateCommunities(): Promise<void> {
 
   logger.debug(`Federation: found ${dbFederatedCommunities.length} dbCommunities`)
   for (const dbCom of dbFederatedCommunities) {
-    logger.debug('Federation: dbCom', dbCom)
+    logger.debug('Federation: dbCom', new FederatedCommunityLoggingView(dbCom))
     const apiValueStrings: string[] = Object.values(ApiVersionType)
     logger.debug(`suppported ApiVersions=`, apiValueStrings)
     if (!apiValueStrings.includes(dbCom.apiVersion)) {
-      logger.warn('Federation: dbCom with unsupported apiVersion', dbCom.endPoint, dbCom.apiVersion)
+      logger.debug(
+        'Federation: dbCom with unsupported apiVersion',
+        dbCom.endPoint,
+        dbCom.apiVersion,
+      )
       continue
     }
     try {
@@ -48,21 +54,22 @@ export async function validateCommunities(): Promise<void> {
       // eslint-disable-next-line camelcase
       if (client instanceof V1_0_FederationClient) {
         const pubKey = await client.getPublicKey()
-        if (pubKey && pubKey === dbCom.publicKey.toString()) {
+        if (pubKey && pubKey === dbCom.publicKey.toString('hex')) {
           await DbFederatedCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
-          logger.info(`Federation: verified community with:`, dbCom.endPoint)
+          logger.debug(`Federation: verified community with:`, dbCom.endPoint)
           const pubComInfo = await client.getPublicCommunityInfo()
           if (pubComInfo) {
             await writeForeignCommunity(dbCom, pubComInfo)
-            logger.info(`Federation: write publicInfo of community: name=${pubComInfo.name}`)
+            await startCommunityAuthentication(dbCom)
+            logger.debug(`Federation: write publicInfo of community: name=${pubComInfo.name}`)
           } else {
-            logger.warn('Federation: missing result of getPublicCommunityInfo')
+            logger.debug('Federation: missing result of getPublicCommunityInfo')
           }
         } else {
-          logger.warn(
+          logger.debug(
             'Federation: received not matching publicKey:',
             pubKey,
-            dbCom.publicKey.toString(),
+            dbCom.publicKey.toString('hex'),
           )
         }
       }
@@ -76,10 +83,11 @@ async function writeForeignCommunity(
   dbCom: DbFederatedCommunity,
   pubInfo: PublicCommunityInfo,
 ): Promise<void> {
-  if (!dbCom || !pubInfo || !(dbCom.publicKey.toString() === pubInfo.publicKey)) {
+  if (!dbCom || !pubInfo || !(dbCom.publicKey.toString('hex') === pubInfo.publicKey)) {
+    const pubInfoView = new PublicCommunityInfoLoggingView(pubInfo)
     logger.error(
-      `Error in writeForeignCommunity: missmatching parameters or publicKey. pubInfo:${JSON.stringify(
-        pubInfo,
+      `Error in writeForeignCommunity: missmatching parameters or publicKey. pubInfo:${pubInfoView.toString(
+        true,
       )}`,
     )
   } else {

@@ -2,20 +2,23 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   ManyToOne,
   OneToOne,
   JoinColumn,
+  BaseEntity,
 } from 'typeorm'
 import { Decimal } from 'decimal.js-light'
 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
+// the relation in future account don't match which this any longer, so we can only link with the local account here
 import { Account } from './Account'
+// the relation in future community don't match which this any longer, so we can only link with the local account here
 import { Community } from './Community'
+// ConfirmedTransaction was removed in newer migrations, so only the version from this folder can be linked
 import { ConfirmedTransaction } from './ConfirmedTransaction'
 
 @Entity('transaction_recipes')
-export class TransactionRecipe {
+export class TransactionRecipe extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true, type: 'bigint' })
   id: number
 
@@ -48,7 +51,7 @@ export class TransactionRecipe {
   @JoinColumn({ name: 'recipient_community_id' })
   recipientCommunity?: Community
 
-  @Column({ name: 'sender_community_id', type: 'int', unsigned: true, nullable: true })
+  @Column({ name: 'recipient_community_id', type: 'int', unsigned: true, nullable: true })
   recipientCommunityId?: number
 
   @Column({
@@ -63,7 +66,7 @@ export class TransactionRecipe {
   @Column({ type: 'tinyint' })
   type: number
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime' })
+  @Column({ name: 'created_at', type: 'datetime', precision: 3 })
   createdAt: Date
 
   @Column({ name: 'body_bytes', type: 'blob' })

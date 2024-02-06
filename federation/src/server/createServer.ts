@@ -13,7 +13,7 @@ import cors from './cors'
 import plugins from './plugins'
 
 // config
-import CONFIG from '@/config'
+import { CONFIG } from '@/config'
 
 // graphql
 import schema from '@/graphql/schema'
@@ -24,6 +24,8 @@ import { Connection } from '@dbTools/typeorm'
 
 import { apolloLogger } from './logger'
 import { Logger } from 'log4js'
+import helmet from 'helmet'
+import { slowDown } from 'express-slow-down'
 
 // i18n
 // import { i18n } from './localization'
@@ -33,7 +35,7 @@ import { Logger } from 'log4js'
 
 type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
 
-const createServer = async (
+export const createServer = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // context: any = serverContext,
   logger: Logger = apolloLogger,
@@ -61,6 +63,27 @@ const createServer = async (
 
   // cors
   app.use(cors)
+
+  // Helmet helps secure Express apps by setting HTTP response headers.
+  app.use(helmet())
+
+  // rate limiter/ slow down to many requests
+  const limiter = slowDown({
+    windowMs: 1000, // 1 second
+    delayAfter: 10, // Allow 10 requests per 1 second.
+    delayMs: (hits) => hits * 50, // Add 100 ms of delay to every request after the 10th one.
+    /**
+     * So:
+     *
+     * - requests 1-10 are not delayed.
+     * - request 11 is delayed by 550ms
+     * - request 12 is delayed by 600ms
+     * - request 13 is delayed by 650ms
+     *
+     * and so on. After 1 seconds, the delay is reset to 0.
+     */
+  })
+  app.use(limiter)
 
   // bodyparser json
   app.use(express.json())

@@ -8,7 +8,7 @@
 import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
 
-import createServer from '@/server/createServer'
+import { createServer } from '@/server/createServer'
 
 import { logger } from './testSetup'
 
@@ -32,8 +32,8 @@ export const cleanDB = async () => {
   }
 }
 
-export const testEnvironment = async (testLogger = logger) => {
-  const server = await createServer(testLogger) // context, testLogger, testI18n)
+export const testEnvironment = async (testLogger = logger /*, testI18n = i18n */) => {
+  const server = await createServer(/* context, */ testLogger /* , testI18n */)
   const con = server.con
   const testClient = createTestClient(server.apollo)
   const mutate = testClient.mutate

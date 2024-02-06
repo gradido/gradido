@@ -1,15 +1,13 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getConnection } from '@dbTools/typeorm'
+import { EntityManager, FindOptionsRelations, getConnection } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
 import { User as DbUser } from '@entity/User'
-import { UserContact as DbUserContact } from '@entity/UserContact'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 
 import { ContributionMessageArgs } from '@arg/ContributionMessageArgs'
 import { Paginated } from '@arg/Paginated'
 import { ContributionMessageType } from '@enum/ContributionMessageType'
-import { ContributionStatus } from '@enum/ContributionStatus'
 import { Order } from '@enum/Order'
 import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
 
@@ -19,8 +17,10 @@ import {
   EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE,
   EVENT_CONTRIBUTION_MESSAGE_CREATE,
 } from '@/event/Events'
+import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
 
 import { findContributionMessages } from './util/findContributionMessages'
 
@@ -29,52 +29,54 @@ export class ContributionMessageResolver {
   @Authorized([RIGHTS.CREATE_CONTRIBUTION_MESSAGE])
   @Mutation(() => ContributionMessage)
   async createContributionMessage(
-    @Args() { contributionId, message }: ContributionMessageArgs,
+    @Args() contributionMessageArgs: ContributionMessageArgs,
     @Ctx() context: Context,
   ): Promise<ContributionMessage> {
-    const user = getUser(context)
-    const queryRunner = getConnection().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('REPEATABLE READ')
-    const contributionMessage = DbContributionMessage.create()
+    const { contributionId } = contributionMessageArgs
+    const updateUnconfirmedContributionContext = new UpdateUnconfirmedContributionContext(
+      contributionId,
+      contributionMessageArgs,
+      context,
+    )
+    let finalContribution: DbContribution | undefined
+    let finalContributionMessage: DbContributionMessage | undefined
+
     try {
-      const contribution = await DbContribution.findOne({ where: { id: contributionId } })
-      if (!contribution) {
-        throw new LogError('Contribution not found', contributionId)
-      }
-      if (contribution.userId !== user.id) {
-        throw new LogError(
-          'Can not send message to contribution of another user',
-          contribution.userId,
-          user.id,
-        )
-      }
+      await getConnection().transaction(
+        'REPEATABLE READ',
+        async (transactionalEntityManager: EntityManager) => {
+          const { contribution, contributionMessage, contributionChanged } =
+            await updateUnconfirmedContributionContext.run(transactionalEntityManager)
 
-      contributionMessage.contributionId = contributionId
-      contributionMessage.createdAt = new Date()
-      contributionMessage.message = message
-      contributionMessage.userId = user.id
-      contributionMessage.type = ContributionMessageType.DIALOG
-      contributionMessage.isModerator = false
-      await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
+          if (contributionChanged) {
+            await transactionalEntityManager.update(
+              DbContribution,
+              { id: contributionId },
+              contribution,
+            )
+          }
+          if (contributionMessage) {
+            await transactionalEntityManager.insert(DbContributionMessage, contributionMessage)
+          }
 
-      if (contribution.contributionStatus === ContributionStatus.IN_PROGRESS) {
-        contribution.contributionStatus = ContributionStatus.PENDING
-        await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)
-      }
-      await queryRunner.commitTransaction()
-      await EVENT_CONTRIBUTION_MESSAGE_CREATE(
-        user,
-        { id: contributionMessage.contributionId } as DbContribution,
-        contributionMessage,
+          finalContribution = contribution
+          finalContributionMessage = contributionMessage
+        },
       )
     } catch (e) {
-      await queryRunner.rollbackTransaction()
       throw new LogError(`ContributionMessage was not sent successfully: ${e}`, e)
-    } finally {
-      await queryRunner.release()
     }
-    return new ContributionMessage(contributionMessage, user)
+    if (!finalContribution || !finalContributionMessage) {
+      throw new LogError('ContributionMessage was not sent successfully')
+    }
+    const user = getUser(context)
+
+    await EVENT_CONTRIBUTION_MESSAGE_CREATE(
+      user,
+      { id: contributionId } as DbContribution,
+      finalContributionMessage,
+    )
+    return new ContributionMessage(finalContributionMessage, user)
   }
 
   @Authorized([RIGHTS.LIST_ALL_CONTRIBUTION_MESSAGES])
@@ -125,74 +127,73 @@ export class ContributionMessageResolver {
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION_MESSAGE])
   @Mutation(() => ContributionMessage)
   async adminCreateContributionMessage(
-    @Args() { contributionId, message, messageType }: ContributionMessageArgs,
+    @Args() contributionMessageArgs: ContributionMessageArgs,
     @Ctx() context: Context,
   ): Promise<ContributionMessage> {
-    const moderator = getUser(context)
+    const { contributionId, messageType } = contributionMessageArgs
+    const updateUnconfirmedContributionContext = new UpdateUnconfirmedContributionContext(
+      contributionId,
+      contributionMessageArgs,
+      context,
+    )
+    const relations: FindOptionsRelations<DbContribution> =
+      messageType === ContributionMessageType.DIALOG
+        ? { user: { emailContact: true } }
+        : { user: true }
+    let finalContribution: DbContribution | undefined
+    let finalContributionMessage: DbContributionMessage | undefined
 
-    const queryRunner = getConnection().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('REPEATABLE READ')
-    const contributionMessage = DbContributionMessage.create()
     try {
-      const contribution = await DbContribution.findOne({
-        where: { id: contributionId },
-        relations: ['user'],
-      })
-      if (!contribution) {
-        throw new LogError('Contribution not found', contributionId)
-      }
-      if (contribution.userId === moderator.id) {
-        throw new LogError('Admin can not answer on his own contribution', contributionId)
-      }
-      if (!contribution.user.emailContact && contribution.user.emailId) {
-        contribution.user.emailContact = await DbUserContact.findOneOrFail({
-          where: { id: contribution.user.emailId },
-        })
-      }
-      contributionMessage.contributionId = contributionId
-      contributionMessage.createdAt = new Date()
-      contributionMessage.message = message
-      contributionMessage.userId = moderator.id
-      contributionMessage.type = messageType
-      contributionMessage.isModerator = true
-      await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
-
-      if (messageType !== ContributionMessageType.MODERATOR) {
-        // change status (does not apply to moderator messages)
-        if (
-          contribution.contributionStatus === ContributionStatus.DELETED ||
-          contribution.contributionStatus === ContributionStatus.DENIED ||
-          contribution.contributionStatus === ContributionStatus.PENDING
-        ) {
-          contribution.contributionStatus = ContributionStatus.IN_PROGRESS
-          await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)
-        }
-
-        // send email (never for moderator messages)
-        void sendAddedContributionMessageEmail({
-          firstName: contribution.user.firstName,
-          lastName: contribution.user.lastName,
-          email: contribution.user.emailContact.email,
-          language: contribution.user.language,
-          senderFirstName: moderator.firstName,
-          senderLastName: moderator.lastName,
-          contributionMemo: contribution.memo,
-        })
-      }
-      await queryRunner.commitTransaction()
-      await EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE(
-        { id: contribution.userId } as DbUser,
-        moderator,
-        contribution,
-        contributionMessage,
+      await getConnection().transaction(
+        'REPEATABLE READ',
+        async (transactionalEntityManager: EntityManager) => {
+          const { contribution, contributionMessage, contributionChanged } =
+            await updateUnconfirmedContributionContext.run(transactionalEntityManager, relations)
+          if (contributionChanged) {
+            await transactionalEntityManager.update(
+              DbContribution,
+              { id: contributionId },
+              contribution,
+            )
+            logger.debug(
+              'contribution changed, resubmission at: %s, status: %s',
+              contribution.resubmissionAt,
+              contribution.contributionStatus,
+            )
+          }
+          if (contributionMessage) {
+            await transactionalEntityManager.insert(DbContributionMessage, contributionMessage)
+          }
+          finalContribution = contribution
+          finalContributionMessage = contributionMessage
+        },
       )
     } catch (e) {
-      await queryRunner.rollbackTransaction()
       throw new LogError(`ContributionMessage was not sent successfully: ${e}`, e)
-    } finally {
-      await queryRunner.release()
     }
-    return new ContributionMessage(contributionMessage, moderator)
+    if (!finalContribution || !finalContributionMessage) {
+      throw new LogError('ContributionMessage was not sent successfully')
+    }
+    const moderator = getUser(context)
+    if (messageType === ContributionMessageType.DIALOG) {
+      // send email (never for moderator messages)
+      void sendAddedContributionMessageEmail({
+        firstName: finalContribution.user.firstName,
+        lastName: finalContribution.user.lastName,
+        email: finalContribution.user.emailContact.email,
+        language: finalContribution.user.language,
+        senderFirstName: moderator.firstName,
+        senderLastName: moderator.lastName,
+        contributionMemo: finalContribution.memo,
+      })
+    }
+
+    await EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE(
+      { id: finalContribution.userId } as DbUser,
+      moderator,
+      finalContribution,
+      finalContributionMessage,
+    )
+    return new ContributionMessage(finalContributionMessage, moderator)
   }
 }

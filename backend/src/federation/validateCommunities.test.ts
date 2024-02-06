@@ -61,13 +61,14 @@ describe('validate Communities', () => {
 
     describe('with one Community of api 1_0 but missing pubKey response', () => {
       beforeEach(async () => {
+        jest.clearAllMocks()
         // eslint-disable-next-line @typescript-eslint/require-await
         jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           return { data: {} } as Response<unknown>
         })
         const variables1 = {
-          publicKey: Buffer.from('11111111111111111111111111111111'),
+          publicKey: Buffer.from('11111111111111111111111111111111', 'hex'),
           apiVersion: '1_0',
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
@@ -82,7 +83,7 @@ describe('validate Communities', () => {
             overwrite: ['end_point', 'last_announced_at'],
           })
           .execute()
-        jest.clearAllMocks()
+        // jest.clearAllMocks()
         await validateCommunities()
       })
 
@@ -99,6 +100,7 @@ describe('validate Communities', () => {
 
     describe('with one Community of api 1_0 and not matching pubKey', () => {
       beforeEach(async () => {
+        jest.clearAllMocks()
         // eslint-disable-next-line @typescript-eslint/require-await
         jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -111,7 +113,7 @@ describe('validate Communities', () => {
           } as Response<unknown>
         })
         const variables1 = {
-          publicKey: Buffer.from('11111111111111111111111111111111'),
+          publicKey: Buffer.from('11111111111111111111111111111111', 'hex'),
           apiVersion: '1_0',
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
@@ -157,7 +159,7 @@ describe('validate Communities', () => {
           })
           .execute()
         */
-        jest.clearAllMocks()
+        // jest.clearAllMocks()
         await validateCommunities()
       })
 
@@ -171,7 +173,7 @@ describe('validate Communities', () => {
         )
       })
       it('logs not matching publicKeys', () => {
-        expect(logger.warn).toBeCalledWith(
+        expect(logger.debug).toBeCalledWith(
           'Federation: received not matching publicKey:',
           'somePubKey',
           expect.stringMatching('11111111111111111111111111111111'),
@@ -180,6 +182,7 @@ describe('validate Communities', () => {
     })
     describe('with one Community of api 1_0 and matching pubKey', () => {
       beforeEach(async () => {
+        jest.clearAllMocks()
         // eslint-disable-next-line @typescript-eslint/require-await
         jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -192,7 +195,7 @@ describe('validate Communities', () => {
           } as Response<unknown>
         })
         const variables1 = {
-          publicKey: Buffer.from('11111111111111111111111111111111'),
+          publicKey: Buffer.from('11111111111111111111111111111111', 'hex'),
           apiVersion: '1_0',
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
@@ -208,7 +211,7 @@ describe('validate Communities', () => {
           })
           .execute()
         await DbFederatedCommunity.update({}, { verifiedAt: null })
-        jest.clearAllMocks()
+        // jest.clearAllMocks()
         await validateCommunities()
       })
 
@@ -277,7 +280,7 @@ describe('validate Communities', () => {
           .execute()
 
         await DbFederatedCommunity.update({}, { verifiedAt: null })
-        jest.clearAllMocks()
+        // jest.clearAllMocks()
         await validateCommunities()
       })
       it('logs two communities found', () => {
@@ -299,8 +302,20 @@ describe('validate Communities', () => {
     describe('with three Communities of api 1_0, 1_1 and 2_0', () => {
       let dbCom: DbFederatedCommunity
       beforeEach(async () => {
+        jest.clearAllMocks()
+        // eslint-disable-next-line @typescript-eslint/require-await
+        jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+          return {
+            data: {
+              getPublicKey: {
+                publicKey: '11111111111111111111111111111111',
+              },
+            },
+          } as Response<unknown>
+        })
         const variables3 = {
-          publicKey: Buffer.from('11111111111111111111111111111111'),
+          publicKey: Buffer.from('11111111111111111111111111111111', 'hex'),
           apiVersion: '2_0',
           endPoint: 'http//localhost:5001/api/',
           lastAnnouncedAt: new Date(),
@@ -319,7 +334,7 @@ describe('validate Communities', () => {
           where: { publicKey: variables3.publicKey, apiVersion: variables3.apiVersion },
         })
         await DbFederatedCommunity.update({}, { verifiedAt: null })
-        jest.clearAllMocks()
+        // jest.clearAllMocks()
         await validateCommunities()
       })
       it('logs three community found', () => {
@@ -338,7 +353,7 @@ describe('validate Communities', () => {
         )
       })
       it('logs unsupported api for community with api 2_0 ', () => {
-        expect(logger.warn).toBeCalledWith(
+        expect(logger.debug).toBeCalledWith(
           'Federation: dbCom with unsupported apiVersion',
           dbCom.endPoint,
           '2_0',

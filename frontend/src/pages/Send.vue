@@ -172,7 +172,7 @@ export default {
           throw new Error(`undefined transactionData.selected : ${this.transactionData.selected}`)
       }
       this.loading = false
-      this.$router.push({ query: { gradidoID: undefined } })
+      this.$router.push('send')
     },
     onBack() {
       this.currentTransactionStep = TRANSACTION_STEPS.transactionForm

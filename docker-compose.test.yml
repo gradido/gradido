@@ -64,6 +64,7 @@ services:
       - internal-net
     environment:
       - NODE_ENV="test"
+      - DB_HOST=mariadb
 
   ########################################################
   # DATABASE #############################################

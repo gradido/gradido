@@ -40,7 +40,10 @@ export const transactionsQuery = gql`
         linkedUser {
           firstName
           lastName
+          communityUuid
+          communityName
           gradidoID
+          alias
         }
         decay {
           decay
@@ -194,6 +197,8 @@ export const listContributions = gql`
         messagesCount
         deniedAt
         deniedBy
+        updatedBy
+        updatedAt
         moderatorId
       }
     }
@@ -218,6 +223,8 @@ export const listAllContributions = gql`
         messagesCount
         deniedAt
         deniedBy
+        updatedBy
+        updatedAt
       }
     }
   }
@@ -238,6 +245,7 @@ export const searchAdminUsers = gql`
       userList {
         firstName
         lastName
+        role
       }
     }
   }
@@ -277,8 +285,8 @@ export const openCreations = gql`
 `
 
 export const user = gql`
-  query($identifier: String!) {
-    user(identifier: $identifier) {
+  query($identifier: String!, $communityIdentifier: String!) {
+    user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
       firstName
       lastName
     }

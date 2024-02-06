@@ -3,6 +3,9 @@
   "1000thanks": "1000 Gracias, por estar con nosotros!",
   "125": "125%",
   "85": "85%",
+  "GDD": "GDD",
+  "GDT": "GDT",
+  "PersonalDetails": "Datos personales",
   "advanced-calculation": "Proyección",
   "asterisks": "****",
   "auth": {
@@ -18,6 +21,7 @@
   },
   "back": "Volver",
   "community": {
+    "admins": "Administradores",
     "choose-another-community": "Escoger otra comunidad",
     "community": "Comunidad",
     "continue-to-registration": "Continuar con el registro",
@@ -30,7 +34,7 @@
     "openContributionLinks": "Creaciones generadas por enlace",
     "openContributionLinkText": "Para créditos iniciales o fines similares, la comunidad puede crear los llamados enlaces de creación. Éstos activan creaciones automáticas que se acreditan al usuario.\nLa comunidad \"{name}\" admite actualmente {count} creaciones generadas por enlaces:",
     "other-communities": "Otras comunidades",
-    "startNewsButton": "Introducir nombre de usuario",
+    "startNewsButton": "Enviar Gradidos",
     "statistic": "Estadísticas",
     "submitContribution": "escribir",
     "switch-to-this-community": "cambiar a esta comunidad"
@@ -156,7 +160,6 @@
     },
     "your_amount": "Tu importe"
   },
-  "GDD": "GDD",
   "gdd_per_link": {
     "choose-amount": "Selecciona una cantidad que te gustaría enviar a través de un enlace. También puedes ingresar un mensaje. Cuando haces clic en 'Generar ahora', se crea un enlace que puedes enviar.",
     "copy-link": "Copiar enlace",
@@ -228,6 +231,7 @@
     "title": "Gracias!",
     "unsetPassword": "Tu contraseña aún no ha sido configurada. Por favor reinícialo."
   },
+  "moderatorChangedMemo": "Texto editado por el moderador",
   "navigation": {
     "admin_area": "Área de administración",
     "community": "Comunidad",

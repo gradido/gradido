@@ -8,6 +8,7 @@ import { GraphQLError } from 'graphql'
 import { testEnvironment, cleanDB } from '@test/helpers'
 
 import { CONFIG } from '@/config'
+import { writeHomeCommunityEntry } from '@/seeds/community'
 import { createUser, setPassword, forgotPassword } from '@/seeds/graphql/mutations'
 import { queryOptIn } from '@/seeds/graphql/queries'
 
@@ -46,6 +47,7 @@ describe('EmailOptinCodes', () => {
       lastName: 'Lustig',
       language: 'de',
     }
+    await writeHomeCommunityEntry()
     const {
       data: { createUser: user },
     } = await mutate({ mutation: createUser, variables })

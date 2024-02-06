@@ -4,10 +4,10 @@ import { ArgsType, Field } from 'type-graphql'
 @ArgsType()
 export class SendCoinsArgs {
   @Field(() => String)
-  communityReceiverIdentifier: string
+  recipientCommunityUuid: string
 
   @Field(() => String)
-  userReceiverIdentifier: string
+  recipientUserIdentifier: string
 
   @Field(() => String)
   creationDate: string
@@ -19,11 +19,14 @@ export class SendCoinsArgs {
   memo: string
 
   @Field(() => String)
-  communitySenderIdentifier: string
+  senderCommunityUuid: string
 
   @Field(() => String)
-  userSenderIdentifier: string
+  senderUserUuid: string
 
   @Field(() => String)
-  userSenderName: string
+  senderUserName: string
+
+  @Field(() => String, { nullable: true })
+  senderAlias?: string | null
 }

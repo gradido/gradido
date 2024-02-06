@@ -4,11 +4,12 @@ import { createTestClient } from 'apollo-server-testing'
 import createServer from '@/server/createServer'
 import { Community as DbCommunity } from '@entity/Community'
 import CONFIG from '@/config'
+import { Connection } from '@dbTools/typeorm'
 
 let query: any
 
 // to do: We need a setup for the tests that closes the connection
-let con: any
+let con: Connection
 
 CONFIG.FEDERATION_API = '1_0'
 
@@ -45,7 +46,10 @@ describe('PublicCommunityInfoResolver', () => {
       homeCom.name = 'Community-Name'
       homeCom.description = 'Community-Description'
       homeCom.creationDate = new Date()
-      homeCom.publicKey = Buffer.from('homeCommunity-publicKey')
+      homeCom.publicKey = Buffer.from(
+        '316f2951501f27c664e188d5128505917e8673e8bebce141f86e70907e782a08',
+        'hex',
+      )
       await DbCommunity.insert(homeCom)
     })
 
@@ -56,7 +60,7 @@ describe('PublicCommunityInfoResolver', () => {
             name: 'Community-Name',
             description: 'Community-Description',
             creationDate: homeCom.creationDate?.toISOString(),
-            publicKey: expect.stringMatching('homeCommunity-publicKey'),
+            publicKey: '316f2951501f27c664e188d5128505917e8673e8bebce141f86e70907e782a08',
           },
         },
       })

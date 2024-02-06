@@ -12,16 +12,20 @@ export class AdminUpdateContributionArgs {
   @IsPositive()
   id: number
 
-  @Field(() => Decimal)
+  @Field(() => Decimal, { nullable: true })
   @IsPositiveDecimal()
-  amount: Decimal
+  amount?: Decimal | null
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @MaxLength(MEMO_MAX_CHARS)
   @MinLength(MEMO_MIN_CHARS)
-  memo: string
+  memo?: string | null
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @isValidDateString()
-  creationDate: string
+  creationDate?: string | null
+
+  @Field(() => String, { nullable: true })
+  @isValidDateString()
+  resubmissionAt?: string | null
 }

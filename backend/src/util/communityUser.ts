@@ -33,21 +33,24 @@ const communityDbUser: dbUser = {
   hasId: function (): boolean {
     throw new Error('Function not implemented.')
   },
-  save: function (options?: SaveOptions): Promise<dbUser> {
+  save: function (_options?: SaveOptions): Promise<dbUser> {
     throw new Error('Function not implemented.')
   },
-  remove: function (options?: RemoveOptions): Promise<dbUser> {
+  remove: function (_options?: RemoveOptions): Promise<dbUser> {
     throw new Error('Function not implemented.')
   },
-  softRemove: function (options?: SaveOptions): Promise<dbUser> {
+  softRemove: function (_options?: SaveOptions): Promise<dbUser> {
     throw new Error('Function not implemented.')
   },
-  recover: function (options?: SaveOptions): Promise<dbUser> {
+  recover: function (_options?: SaveOptions): Promise<dbUser> {
     throw new Error('Function not implemented.')
   },
   reload: function (): Promise<void> {
     throw new Error('Function not implemented.')
   },
+  foreign: false,
+  communityUuid: '55555555-4444-4333-2222-11111111',
+  community: null,
 }
 const communityUser = new User(communityDbUser)
 

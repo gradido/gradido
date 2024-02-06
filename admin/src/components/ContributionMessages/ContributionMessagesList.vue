@@ -11,8 +11,13 @@
     <div v-if="contributionStatus === 'PENDING' || contributionStatus === 'IN_PROGRESS'">
       <contribution-messages-formular
         :contributionId="contributionId"
+        :contributionMemo="contributionMemo"
+        :hideResubmission="hideResubmission"
+        :inputResubmissionDate="resubmissionAt"
         @get-list-contribution-messages="$apollo.queries.Messages.refetch()"
         @update-status="updateStatus"
+        @reload-contribution="reloadContribution"
+        @update-contributions="updateContributions"
       />
     </div>
   </div>
@@ -33,6 +38,10 @@ export default {
       type: Number,
       required: true,
     },
+    contributionMemo: {
+      type: String,
+      required: true,
+    },
     contributionStatus: {
       type: String,
       required: true,
@@ -40,6 +49,14 @@ export default {
     contributionUserId: {
       type: Number,
       required: true,
+    },
+    hideResubmission: {
+      type: Boolean,
+      required: true,
+    },
+    resubmissionAt: {
+      type: String,
+      required: false,
     },
   },
   data() {
@@ -69,6 +86,12 @@ export default {
   methods: {
     updateStatus(id) {
       this.$emit('update-status', id)
+    },
+    reloadContribution(id) {
+      this.$emit('reload-contribution', id)
+    },
+    updateContributions() {
+      this.$emit('update-contributions')
     },
   },
 }

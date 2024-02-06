@@ -53,6 +53,8 @@ const defaultData = () => {
           contributionDate: new Date(),
           deletedBy: null,
           deletedAt: null,
+          updatedAt: null,
+          updatedBy: null,
           createdAt: new Date(),
         },
         {
@@ -75,6 +77,8 @@ const defaultData = () => {
           contributionDate: new Date(),
           deletedBy: null,
           deletedAt: null,
+          updatedAt: null,
+          updatedBy: null,
           createdAt: new Date(),
         },
       ],
@@ -112,6 +116,7 @@ describe('Overview', () => {
     it('calls the adminListContributions query', () => {
       expect(adminListContributionsMock).toBeCalledWith({
         currentPage: 1,
+        hideResubmission: true,
         order: 'DESC',
         pageSize: 25,
         statusFilter: ['IN_PROGRESS', 'PENDING'],

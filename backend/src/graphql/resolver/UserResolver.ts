@@ -12,6 +12,7 @@ import i18n from 'i18n'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
 import { v4 as uuidv4 } from 'uuid'
 
+import { UserArgs } from '@arg//UserArgs'
 import { CreateUserArgs } from '@arg/CreateUserArgs'
 import { Paginated } from '@arg/Paginated'
 import { SearchUsersFilters } from '@arg/SearchUsersFilters'
@@ -64,6 +65,7 @@ import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
+import { getHomeCommunity } from './util/communities'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
@@ -273,6 +275,10 @@ export class UserResolver {
       { id: 0 } as DbUser,
     )
     let dbUser = new DbUser()
+    const homeCom = await getHomeCommunity()
+    if (homeCom.communityUuid) {
+      dbUser.communityUuid = homeCom.communityUuid
+    }
     dbUser.gradidoID = gradidoID
     dbUser.firstName = firstName
     dbUser.lastName = lastName
@@ -678,18 +684,18 @@ export class UserResolver {
     const adminUsers = await Promise.all(
       users.map(async (user) => {
         let emailConfirmationSend = ''
-        if (!user.emailContact.emailChecked) {
-          if (user.emailContact.updatedAt) {
-            emailConfirmationSend = user.emailContact.updatedAt.toISOString()
+        if (!user.emailContact?.emailChecked) {
+          if (user.emailContact?.updatedAt) {
+            emailConfirmationSend = user.emailContact?.updatedAt.toISOString()
           } else {
-            emailConfirmationSend = user.emailContact.createdAt.toISOString()
+            emailConfirmationSend = user.emailContact?.createdAt.toISOString()
           }
         }
         const userCreations = creations.find((c) => c.id === user.id)
         const adminUser = new UserAdmin(
           user,
           userCreations ? userCreations.creations : FULL_CREATION_AVAILABLE,
-          await hasElopageBuys(user.emailContact.email),
+          await hasElopageBuys(user.emailContact?.email),
           emailConfirmationSend,
         )
         return adminUser
@@ -809,8 +815,13 @@ export class UserResolver {
 
   @Authorized([RIGHTS.USER])
   @Query(() => User)
-  async user(@Arg('identifier') identifier: string): Promise<User> {
-    return new User(await findUserByIdentifier(identifier))
+  async user(
+    @Args()
+    { identifier, communityIdentifier }: UserArgs,
+  ): Promise<User> {
+    const foundDbUser = await findUserByIdentifier(identifier, communityIdentifier)
+    const modelUser = new User(foundDbUser)
+    return modelUser
   }
 }
 

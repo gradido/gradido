@@ -5,28 +5,44 @@ import { KlickTipp } from './KlickTipp'
 
 @ObjectType()
 export class User {
-  constructor(user: dbUser) {
-    this.id = user.id
-    this.gradidoID = user.gradidoID
-    this.alias = user.alias
-    if (user.emailContact) {
-      this.emailChecked = user.emailContact.emailChecked
+  constructor(user: dbUser | null) {
+    if (user) {
+      this.id = user.id
+      this.foreign = user.foreign
+      this.communityUuid = user.communityUuid
+      if (user.community) {
+        this.communityName = user.community.name
+      }
+      this.gradidoID = user.gradidoID
+      this.alias = user.alias
+      if (user.emailContact) {
+        this.emailChecked = user.emailContact.emailChecked
+      }
+      this.firstName = user.firstName
+      this.lastName = user.lastName
+      this.deletedAt = user.deletedAt
+      this.createdAt = user.createdAt
+      this.language = user.language
+      this.publisherId = user.publisherId
+      this.roles = user.userRoles?.map((userRole) => userRole.role) ?? []
+      this.klickTipp = null
+      this.hasElopage = null
+      this.hideAmountGDD = user.hideAmountGDD
+      this.hideAmountGDT = user.hideAmountGDT
     }
-    this.firstName = user.firstName
-    this.lastName = user.lastName
-    this.deletedAt = user.deletedAt
-    this.createdAt = user.createdAt
-    this.language = user.language
-    this.publisherId = user.publisherId
-    this.roles = user.userRoles?.map((userRole) => userRole.role) ?? []
-    this.klickTipp = null
-    this.hasElopage = null
-    this.hideAmountGDD = user.hideAmountGDD
-    this.hideAmountGDT = user.hideAmountGDT
   }
 
   @Field(() => Int)
   id: number
+
+  @Field(() => Boolean)
+  foreign: boolean
+
+  @Field(() => String)
+  communityUuid: string
+
+  @Field(() => String, { nullable: true })
+  communityName: string | null
 
   @Field(() => String)
   gradidoID: string

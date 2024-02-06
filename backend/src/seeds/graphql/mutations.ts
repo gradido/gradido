@@ -78,9 +78,31 @@ export const sendActivationEmail = gql`
   }
 `
 
+/*
 export const sendCoins = gql`
-  mutation ($recipientIdentifier: String!, $amount: Decimal!, $memo: String!) {
-    sendCoins(recipientIdentifier: $recipientIdentifier, amount: $amount, memo: $memo)
+  mutation ($identifier: String!, $amount: Decimal!, $memo: String!, $communityIdentifier: String) {
+    sendCoins(
+      identifier: $identifier
+      amount: $amount
+      memo: $memo
+      communityIdentifier: $communityIdentifier
+    )
+  }
+`
+*/
+export const sendCoins = gql`
+  mutation (
+    $recipientCommunityIdentifier: String!
+    $recipientIdentifier: String!
+    $amount: Decimal!
+    $memo: String!
+  ) {
+    sendCoins(
+      recipientCommunityIdentifier: $recipientCommunityIdentifier
+      recipientIdentifier: $recipientIdentifier
+      amount: $amount
+      memo: $memo
+    )
   }
 `
 
@@ -240,6 +262,7 @@ export const createContribution = gql`
       id
       amount
       memo
+      userId
     }
   }
 `

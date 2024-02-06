@@ -3,6 +3,9 @@
   "1000thanks": "1000 dank, omdat je bij ons bent!",
   "125": "125%",
   "85": "85%",
+  "GDD": "GDD",
+  "GDT": "GDT",
+  "PersonalDetails": "Persoonlijke gegevens",
   "advanced-calculation": "Voorcalculatie",
   "asterisks": "****",
   "auth": {
@@ -18,6 +21,7 @@
   },
   "back": "Terug",
   "community": {
+    "admins": "Beheerders",
     "choose-another-community": "Kies een andere gemeenschap",
     "community": "Gemeenschap",
     "continue-to-registration": "Verder ter registratie",
@@ -30,7 +34,7 @@
     "openContributionLinks": "Creaties gegenereerd door link",
     "openContributionLinkText": "Voor startcredits of soortgelijke doeleinden kan de community zogenaamde creatielinks maken. Deze activeren automatische creaties die worden gecrediteerd aan de gebruiker.\nDe community \"{name}\" ondersteunt momenteel {count} link-gegenereerde creaties:",
     "other-communities": "Verdere gemeenschappen",
-    "startNewsButton": "Gebruikersnaam invoeren",
+    "startNewsButton": "Stuur Gradidos",
     "statistic": "Statistieken",
     "submitContribution": "schrijf",
     "switch-to-this-community": "naar deze gemeenschap wisselen"
@@ -156,7 +160,6 @@
     },
     "your_amount": "Jouw bijdrage"
   },
-  "GDD": "GDD",
   "gdd_per_link": {
     "choose-amount": "Kies een bedrag dat je per link versturen wil. Je kunt ook nog een bericht invullen. Wanneer je „Nu genereren“ klikt, wordt er een link gecreëerd die je kunt versturen.",
     "copy-link": "Link kopiëren",
@@ -228,6 +231,7 @@
     "title": "Dankjewel!",
     "unsetPassword": "Jouw wachtwoord werd nog niet ingesteld. Doe het alsjeblieft opnieuw."
   },
+  "moderatorChangedMemo": "Tekst bewerkt door moderator",
   "navigation": {
     "admin_area": "Beheerder",
     "community": "Gemeenschap",

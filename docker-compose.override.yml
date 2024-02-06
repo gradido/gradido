@@ -105,6 +105,7 @@ services:
       - dlt_connector_modules:/app/node_modules
       # bind the local folder to the docker to allow live reload
       - ./dlt-connector:/app
+      - ./dlt-database:/dlt-database
 
   ########################################################
   # FEDERATION ###########################################

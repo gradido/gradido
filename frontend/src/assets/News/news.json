@@ -1,37 +1,37 @@
 [
   {
     "locale": "de",
-    "date": "4. Juli 2023",
-    "text": "Neue Funktion verfügbar: Jetzt Benutzernamen eintragen!",
-    "url": "/settings",
-    "extra": "Deine persönlichen Daten sind uns wichtig, und wir legen großen Wert auf deren Schutz. Wir wissen, dass nicht jeder seine E-Mail-Adresse anderen Benutzern preisgeben möchte. Aus diesem Grund kannst du nun einen Benutzernamen deiner Wahl in den Einstellungen angeben. Dies ist auch ein wichtiger Bestandteil unserer Vorbereitung für die bevorstehende Einführung unserer dezentralen Community-Server."
+    "text": "Gradido-Kreise – Gemeinsam mit Freunden die Zukunft gestalten",
+    "button": "Mehr erfahren",
+    "url": "https://gradido.net/de/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten",
+    "extra": "Ganz gleich, ob Ihr bereits einer Gruppe zugehörig seid oder ob Ihr Euch über Gradido gefunden habt – wenn Ihr gemeinsam Gradido nutzen wollt, braucht Ihr nicht gleich einen eigenen Gradido-Server."
   },
   {
     "locale": "en",
-    "date": "4 July 2023",
-    "text": "New function available: Enter username now!",
-    "url": "/settings",
-    "extra": "Your personal information is important to us, and we take great care to protect it. We know that not everyone wants to reveal their email address to other users. For this reason, you can now enter a username of your choice in the settings. This is also an important part of our preparation for the upcoming launch of our decentralized community servers."
+    "text": "Gradido circles - Shaping the future together with friends",
+    "button": "Learn more",
+    "url": "https://gradido.net/en/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
+    "extra": "No matter whether you already belong to a group or whether you found each other via Gradido - if you want to use Gradido together, you don't need your own Gradido server."
   },
   {
     "locale": "fr",
-    "date": "4 juillet 2023",
-    "text": "Nouvelle fonction disponible : Saisis ton nom d'utilisateur maintenant !",
-    "url": "/settings",
-    "extra": "Tes données personnelles sont importantes pour nous et nous attachons une grande importance à leur protection. Nous savons que certains ne souhaitent pas divulguer leur adresse e-mail à d'autres utilisateurs. C'est pourquoi tu peux désormais indiquer un nom d'utilisateur de ton choix dans les paramètres. Il s'agit également d'un élément important de notre préparation à l'introduction prochaine de nos serveurs communautaires décentralisés."
+    "text": "Cercles Gradido - Construire l'avenir ensemble avec des amis ",
+    "button": "En savoir plus",
+    "url": "https://gradido.net/fr/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
+    "extra": "Que vous fassiez déjà partie d'un groupe ou que vous vous soyez trouvés par le biais de Gradido, si vous voulez utiliser Gradido ensemble, vous n'avez pas besoin de votre propre serveur Gradido."
   },
   {
     "locale": "es",
-    "date": "4 julio 20233",
-    "text": "Nueva función disponible: Introduzca ahora su nombre de usuario",
-    "url": "/settings",
-    "extra": "Sus datos personales son importantes para nosotros y concedemos gran importancia a su protección. Sabemos que no todo el mundo quiere revelar su dirección de correo electrónico a otros usuarios. Por este motivo, ahora puede introducir un nombre de usuario de su elección en los ajustes. Esto es también una parte importante de nuestra preparación para el próximo lanzamiento de nuestros servidores comunitarios descentralizados."
+    "text": "Círculos Gradido - Forjar el futuro entre amigos ",
+    "button": "Más información",
+    "url": "https://gradido.net/es/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
+    "extra": "No importa si ya pertenecéis a un grupo o si os habéis encontrado a través de Gradido: si queréis utilizar Gradido juntos, no necesitáis vuestro propio servidor Gradido."
   },
   {
     "locale": "nl",
-    "date": "4 juli 2023",
-    "text": "Nieuwe functie beschikbaar: Voer nu je gebruikersnaam in!",
-    "url": "/settings",
-    "extra": "Je persoonlijke gegevens zijn belangrijk voor ons en we hechten veel belang aan de bescherming ervan. We weten dat niet iedereen zijn e-mailadres bekend wil maken aan andere gebruikers. Daarom kun je nu een gebruikersnaam naar keuze invoeren in de instellingen. Dit is ook een belangrijk onderdeel van onze voorbereiding op de komende lancering van onze gedecentraliseerde community servers."
+    "text": "Gradidokringen - Samen met vrienden de toekomst vormgeven",
+    "button": "Meer informatie",
+    "url": "https://gradido.net/nl/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
+    "extra": "Het maakt niet uit of je al tot een groep behoort of dat je elkaar via Gradido hebt gevonden - als je Gradido samen wilt gebruiken, heb je geen eigen Gradido-server nodig."
   }
 ]

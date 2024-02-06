@@ -2,28 +2,28 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   ManyToOne,
   JoinColumn,
   OneToMany,
-  ManyToMany,
-  JoinTable,
+  BaseEntity,
 } from 'typeorm'
-import { User } from './User'
-import { Community } from './Community'
+import { User } from '../User'
+// TransactionRecipe was removed in newer migrations, so only the version from this folder can be linked
 import { TransactionRecipe } from './TransactionRecipe'
+// ConfirmedTransaction was removed in newer migrations, so only the version from this folder can be linked
 import { ConfirmedTransaction } from './ConfirmedTransaction'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Decimal } from 'decimal.js-light'
+import { AccountCommunity } from '../AccountCommunity'
 
 @Entity('accounts')
-export class Account {
+export class Account extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
   @ManyToOne(() => User, (user) => user.accounts) // Assuming you have a User entity with 'accounts' relation
   @JoinColumn({ name: 'user_id' })
-  user: User
+  user?: User
 
   // if user id is null, account belongs to community gmw or auf
   @Column({ name: 'user_id', type: 'int', unsigned: true, nullable: true })
@@ -38,10 +38,15 @@ export class Account {
   @Column({ type: 'tinyint', unsigned: true })
   type: number
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(3)' })
+  @Column({
+    name: 'created_at',
+    type: 'datetime',
+    precision: 3,
+    default: () => 'CURRENT_TIMESTAMP(3)',
+  })
   createdAt: Date
 
-  @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })
+  @Column({ name: 'confirmed_at', type: 'datetime', precision: 3, nullable: true })
   confirmedAt?: Date
 
   @Column({
@@ -56,17 +61,14 @@ export class Account {
   @Column({
     name: 'balance_date',
     type: 'datetime',
+    precision: 3,
     default: () => 'CURRENT_TIMESTAMP(3)',
   })
   balanceDate: Date
 
-  @ManyToMany(() => Community, (community) => community.communityAccounts)
-  @JoinTable({
-    name: 'accounts_communities',
-    joinColumn: { name: 'account_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'community_id', referencedColumnName: 'id' },
-  })
-  accountCommunities: Community[]
+  @OneToMany(() => AccountCommunity, (accountCommunity) => accountCommunity.account)
+  @JoinColumn({ name: 'account_id' })
+  accountCommunities: AccountCommunity[]
 
   @OneToMany(() => TransactionRecipe, (recipe) => recipe.signingAccount)
   transactionRecipesSigning?: TransactionRecipe[]

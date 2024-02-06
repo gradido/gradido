@@ -5,6 +5,9 @@
   "1000thanks": "1000 mercis d'être avec nous!",
   "125": "125%",
   "85": "85%",
+  "GDD": "GDD",
+  "GDT": "GDT",
+  "PersonalDetails": "Informations personnelles",
   "advanced-calculation": "Calcul avancé",
   "asterisks": "****",
   "auth": {
@@ -20,6 +23,7 @@
   },
   "back": "Retour",
   "community": {
+    "admins": "Administrateurs",
     "choose-another-community": "Choisissez une autre communauté",
     "community": "Communauté",
     "communityMember": "Vous etes un membre actif",
@@ -30,7 +34,7 @@
     "noOpenContributionLinkText": "Actuellement, il n'y a pas de créations générées par lien.",
     "openContributionLinks": "Créations générées par lien",
     "openContributionLinkText": "Pour les crédits de départ ou à des fins similaires, la communauté peut créer des \"liens de création\". Ils déclenchent des créations automatiques qui sont créditées à l'utilisateur.\nLa communauté \"{name}\" soutient actuellement {count} créations générées par lien:",
-    "startNewsButton": "Saisir nom d'utilisateur",
+    "startNewsButton": "Envoyer des gradidos",
     "submitContribution": "Contribuer"
   },
   "communityInfo": "Information communauté^^",
@@ -162,7 +166,6 @@
     },
     "your_amount": "Votre montant"
   },
-  "GDD": "GDD",
   "gddKonto": "Compte GDD",
   "gdd_per_link": {
     "choose-amount": "Sélectionnez le montant que vous souhaitez envoyer via lien. Vous pouvez également joindre un message. Cliquez sur ‘créer maintenant’ pour établir un lien que vous pourrez partager.",
@@ -196,7 +199,6 @@
     "validUntil": "Valide jusqu'au",
     "validUntilDate": "Le lien est valide jusqu'au {date}."
   },
-  "GDT": "GDT",
   "gdt": {
     "calculation": "Calcul de Gradido Transform",
     "contribution": "Contribution",
@@ -238,6 +240,7 @@
     "title": "Merci!",
     "unsetPassword": "Votre mot de passe n'a pas été accepté. Merci de le réinitialiser."
   },
+  "moderatorChangedMemo": "Texte édité par le modérateur",
   "navigation": {
     "admin_area": "Partie administrative",
     "community": "Communauté",

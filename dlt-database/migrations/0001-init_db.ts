@@ -23,7 +23,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`confirmed_at\` datetime(3) DEFAULT NULL,
       PRIMARY KEY (\`id\`),
       INDEX \`gradido_id\` (\`gradido_id\`),
-      UNIQUE KEY \`pubkey\` (\`pubkey\`)
+      UNIQUE KEY \`derive1_pubkey\` (\`derive1_pubkey\`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`)
 
   await queryFn(`
@@ -38,7 +38,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`balance\` decimal(40,20) NOT NULL DEFAULT 0,
       \`balance_date\` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), 
       PRIMARY KEY (\`id\`),
-      UNIQUE KEY \`pubkey\` (\`pubkey\`),
+      UNIQUE KEY \`derive2_pubkey\` (\`derive2_pubkey\`),
       FOREIGN KEY (\`user_id\`) REFERENCES users(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `)
@@ -56,7 +56,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`created_at\` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
       \`confirmed_at\` datetime(3) DEFAULT NULL,
       PRIMARY KEY (\`id\`),
-      UNIQUE KEY \`pubkey\` (\`pubkey\`),
+      UNIQUE KEY \`root_pubkey\` (\`root_pubkey\`),
       FOREIGN KEY (\`gmw_account_id\`) REFERENCES accounts(id),
       FOREIGN KEY (\`auf_account_id\`) REFERENCES accounts(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`)
@@ -125,6 +125,6 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn(`DROP TABLE IF EXISTS \`accounts_communities\`;`)
   await queryFn(`DROP TABLE IF EXISTS \`transaction_recipes\`;`)
   await queryFn(`DROP TABLE IF EXISTS \`confirmed_transactions\`;`)
-  await queryFn(`DROP TABLE IF EXISTS \`community\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`communities\`;`)
   await queryFn(`DROP TABLE IF EXISTS \`invalid_transactions\`;`)
 }

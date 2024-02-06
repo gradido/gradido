@@ -2,18 +2,18 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   JoinColumn,
   OneToOne,
   OneToMany,
-  ManyToMany,
-  JoinTable,
+  BaseEntity,
 } from 'typeorm'
-import { Account } from './Account'
+import { Account } from '../Account'
+// TransactionRecipe was removed in newer migrations, so only the version from this folder can be linked
 import { TransactionRecipe } from './TransactionRecipe'
+import { AccountCommunity } from '../AccountCommunity'
 
 @Entity('communities')
-export class Community {
+export class Community extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
@@ -46,19 +46,20 @@ export class Community {
   @JoinColumn({ name: 'auf_account_id' })
   aufAccount?: Account
 
-  @CreateDateColumn({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP(3)' })
+  @Column({
+    name: 'created_at',
+    type: 'datetime',
+    precision: 3,
+    default: () => 'CURRENT_TIMESTAMP(3)',
+  })
   createdAt: Date
 
-  @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })
+  @Column({ name: 'confirmed_at', type: 'datetime', precision: 3, nullable: true })
   confirmedAt?: Date
 
-  @ManyToMany(() => Account, (account) => account.accountCommunities)
-  @JoinTable({
-    name: 'accounts_communities',
-    joinColumn: { name: 'community_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'account_id', referencedColumnName: 'id' },
-  })
-  communityAccounts: Account[]
+  @OneToMany(() => AccountCommunity, (accountCommunity) => accountCommunity.community)
+  @JoinColumn({ name: 'community_id' })
+  accountCommunities: AccountCommunity[]
 
   @OneToMany(() => TransactionRecipe, (recipe) => recipe.senderCommunity)
   transactionRecipesSender?: TransactionRecipe[]

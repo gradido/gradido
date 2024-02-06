@@ -1,6 +1,5 @@
-import { IsNull, getConnection } from '@dbTools/typeorm'
+import { EntityManager, IsNull, getConnection } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
-import { ContributionMessage } from '@entity/ContributionMessage'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User as DbUser } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
@@ -24,6 +23,7 @@ import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
+  sendContributionChangedByModeratorEmail,
   sendContributionConfirmedEmail,
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
@@ -38,6 +38,7 @@ import {
   EVENT_ADMIN_CONTRIBUTION_CONFIRM,
   EVENT_ADMIN_CONTRIBUTION_DENY,
 } from '@/event/Events'
+import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
@@ -45,18 +46,24 @@ import { calculateDecay } from '@/util/decay'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { fullName } from '@/util/utilities'
 
-import {
-  getUserCreation,
-  validateContribution,
-  updateCreations,
-  getOpenCreations,
-} from './util/creations'
+import { findContribution } from './util/contributions'
+import { getUserCreation, validateContribution, getOpenCreations } from './util/creations'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
 @Resolver()
 export class ContributionResolver {
+  @Authorized([RIGHTS.ADMIN_LIST_CONTRIBUTIONS])
+  @Query(() => Contribution)
+  async contribution(@Arg('id', () => Int) id: number): Promise<Contribution> {
+    const contribution = await findContribution(id)
+    if (!contribution) {
+      throw new LogError('Contribution not found', id)
+    }
+    return new Contribution(contribution)
+  }
+
   @Authorized([RIGHTS.CREATE_CONTRIBUTION])
   @Mutation(() => UnconfirmedContribution)
   async createContribution(
@@ -169,75 +176,26 @@ export class ContributionResolver {
   async updateContribution(
     @Arg('contributionId', () => Int)
     contributionId: number,
-    @Args() { amount, memo, creationDate }: ContributionArgs,
+    @Args() contributionArgs: ContributionArgs,
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
-    const clientTimezoneOffset = getClientTimezoneOffset(context)
-
-    const user = getUser(context)
-
-    const contributionToUpdate = await DbContribution.findOne({
-      where: { id: contributionId, confirmedAt: IsNull(), deniedAt: IsNull() },
+    const updateUnconfirmedContributionContext = new UpdateUnconfirmedContributionContext(
+      contributionId,
+      contributionArgs,
+      context,
+    )
+    const { contribution, contributionMessage, availableCreationSums } =
+      await updateUnconfirmedContributionContext.run()
+    await getConnection().transaction(async (transactionalEntityManager: EntityManager) => {
+      await transactionalEntityManager.save(contribution)
+      if (contributionMessage) {
+        await transactionalEntityManager.save(contributionMessage)
+      }
     })
-    if (!contributionToUpdate) {
-      throw new LogError('Contribution not found', contributionId)
-    }
-    if (contributionToUpdate.userId !== user.id) {
-      throw new LogError(
-        'Can not update contribution of another user',
-        contributionToUpdate,
-        user.id,
-      )
-    }
-    if (contributionToUpdate.moderatorId) {
-      throw new LogError('Cannot update contribution of moderator', contributionToUpdate, user.id)
-    }
-    if (
-      contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
-      contributionToUpdate.contributionStatus !== ContributionStatus.PENDING
-    ) {
-      throw new LogError(
-        'Contribution can not be updated due to status',
-        contributionToUpdate.contributionStatus,
-      )
-    }
-    const creationDateObj = new Date(creationDate)
-    let creations = await getUserCreation(user.id, clientTimezoneOffset)
-    if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
-      creations = updateCreations(creations, contributionToUpdate, clientTimezoneOffset)
-    } else {
-      throw new LogError('Month of contribution can not be changed')
-    }
+    const user = getUser(context)
+    await EVENT_CONTRIBUTION_UPDATE(user, contribution, contributionArgs.amount)
 
-    // all possible cases not to be true are thrown in this function
-    validateContribution(creations, amount, creationDateObj, clientTimezoneOffset)
-
-    const contributionMessage = ContributionMessage.create()
-    contributionMessage.contributionId = contributionId
-    contributionMessage.createdAt = contributionToUpdate.updatedAt
-      ? contributionToUpdate.updatedAt
-      : contributionToUpdate.createdAt
-    const changeMessage = `${contributionToUpdate.contributionDate.toString()}
-    ---
-    ${contributionToUpdate.memo}
-    ---
-    ${contributionToUpdate.amount.toString()}`
-    contributionMessage.message = changeMessage
-    contributionMessage.isModerator = false
-    contributionMessage.userId = user.id
-    contributionMessage.type = ContributionMessageType.HISTORY
-    await ContributionMessage.save(contributionMessage)
-
-    contributionToUpdate.amount = amount
-    contributionToUpdate.memo = memo
-    contributionToUpdate.contributionDate = new Date(creationDate)
-    contributionToUpdate.contributionStatus = ContributionStatus.PENDING
-    contributionToUpdate.updatedAt = new Date()
-    await DbContribution.save(contributionToUpdate)
-
-    await EVENT_CONTRIBUTION_UPDATE(user, contributionToUpdate, amount)
-
-    return new UnconfirmedContribution(contributionToUpdate, user, creations)
+    return new UnconfirmedContribution(contribution, user, availableCreationSums)
   }
 
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION])
@@ -294,56 +252,68 @@ export class ContributionResolver {
   @Authorized([RIGHTS.ADMIN_UPDATE_CONTRIBUTION])
   @Mutation(() => AdminUpdateContribution)
   async adminUpdateContribution(
-    @Args() { id, amount, memo, creationDate }: AdminUpdateContributionArgs,
+    @Args() adminUpdateContributionArgs: AdminUpdateContributionArgs,
     @Ctx() context: Context,
   ): Promise<AdminUpdateContribution> {
-    const clientTimezoneOffset = getClientTimezoneOffset(context)
-
+    const updateUnconfirmedContributionContext = new UpdateUnconfirmedContributionContext(
+      adminUpdateContributionArgs.id,
+      adminUpdateContributionArgs,
+      context,
+    )
+    const { contribution, contributionMessage, createdByUserChangedByModerator } =
+      await updateUnconfirmedContributionContext.run()
+    await getConnection().transaction(async (transactionalEntityManager: EntityManager) => {
+      await transactionalEntityManager.save(contribution)
+      // TODO: move into specialized view or formatting for logging class
+      logger.debug('saved changed contribution', {
+        id: contribution.id,
+        amount: contribution.amount.toString(),
+        memo: contribution.memo,
+        contributionDate: contribution.contributionDate.toString(),
+        resubmissionAt: contribution.resubmissionAt?.toString(),
+        status: contribution.contributionStatus.toString(),
+      })
+      if (contributionMessage) {
+        await transactionalEntityManager.save(contributionMessage)
+        // TODO: move into specialized view or formatting for logging class
+        logger.debug('save new contributionMessage', {
+          contributionId: contributionMessage.contributionId,
+          type: contributionMessage.type,
+          message: contributionMessage.message,
+          isModerator: contributionMessage.isModerator,
+        })
+      }
+    })
     const moderator = getUser(context)
 
-    const contributionToUpdate = await DbContribution.findOne({
-      where: { id, confirmedAt: IsNull(), deniedAt: IsNull() },
-    })
-
-    if (!contributionToUpdate) {
-      throw new LogError('Contribution not found', id)
-    }
-
-    if (contributionToUpdate.moderatorId === null) {
-      throw new LogError('An admin is not allowed to update an user contribution')
-    }
-
-    const creationDateObj = new Date(creationDate)
-    let creations = await getUserCreation(contributionToUpdate.userId, clientTimezoneOffset)
-
-    // TODO: remove this restriction
-    if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
-      creations = updateCreations(creations, contributionToUpdate, clientTimezoneOffset)
-    } else {
-      throw new LogError('Month of contribution can not be changed')
-    }
-
-    // all possible cases not to be true are thrown in this function
-    validateContribution(creations, amount, creationDateObj, clientTimezoneOffset)
-    contributionToUpdate.amount = amount
-    contributionToUpdate.memo = memo
-    contributionToUpdate.contributionDate = new Date(creationDate)
-    contributionToUpdate.moderatorId = moderator.id
-    contributionToUpdate.contributionStatus = ContributionStatus.PENDING
-
-    await DbContribution.save(contributionToUpdate)
-
     const result = new AdminUpdateContribution()
-    result.amount = amount
-    result.memo = contributionToUpdate.memo
-    result.date = contributionToUpdate.contributionDate
+    result.amount = contribution.amount
+    result.memo = contribution.memo
+    result.date = contribution.contributionDate
 
     await EVENT_ADMIN_CONTRIBUTION_UPDATE(
-      { id: contributionToUpdate.userId } as DbUser,
+      { id: contribution.userId } as DbUser,
       moderator,
-      contributionToUpdate,
-      amount,
+      contribution,
+      contribution.amount,
     )
+    if (createdByUserChangedByModerator && adminUpdateContributionArgs.memo) {
+      const user = await DbUser.findOneOrFail({
+        where: { id: contribution.userId },
+        relations: ['emailContact'],
+      })
+
+      void sendContributionChangedByModeratorEmail({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.emailContact.email,
+        language: user.language,
+        senderFirstName: moderator.firstName,
+        senderLastName: moderator.lastName,
+        contributionMemo: updateUnconfirmedContributionContext.getOldMemo(),
+        contributionMemoUpdated: contribution.memo,
+      })
+    }
 
     return result
   }
@@ -401,7 +371,6 @@ export class ContributionResolver {
       contribution,
       contribution.amount,
     )
-
     void sendContributionDeletedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
@@ -482,6 +451,11 @@ export class ContributionResolver {
         transaction.userId = contribution.userId
         transaction.userGradidoID = user.gradidoID
         transaction.userName = fullName(user.firstName, user.lastName)
+        transaction.userCommunityUuid = user.communityUuid
+        transaction.linkedUserId = moderatorUser.id
+        transaction.linkedUserGradidoID = moderatorUser.gradidoID
+        transaction.linkedUserName = fullName(moderatorUser.firstName, moderatorUser.lastName)
+        transaction.linkedUserCommunityUuid = moderatorUser.communityUuid
         transaction.previous = lastTransaction ? lastTransaction.id : null
         transaction.amount = contribution.amount
         transaction.creationDate = contribution.contributionDate

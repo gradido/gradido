@@ -13,14 +13,22 @@
           <b-row class="my-5">
             <b-col>
               {{ item.extra }}
+              <br />
+              <br />
+              <span v-if="item.extra2">
+                {{ item.extra2 }}
+              </span>
+              <span v-if="item.email">
+                <a :href="'mailto:' + item.email">{{ item.email }}</a>
+              </span>
             </b-col>
           </b-row>
 
           <b-row class="my-5">
             <b-col cols="12">
               <div class="text-lg-right">
-                <b-button variant="gradido" :to="item.url">
-                  {{ $t('community.startNewsButton') }}
+                <b-button variant="gradido" :href="item.url" target="_blank">
+                  {{ item.button }}
                 </b-button>
               </div>
             </b-col>

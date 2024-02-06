@@ -1,1 +1,1 @@
-export { User } from './0001-init_db/User'
+export { User } from './0003-refactor_transaction_recipe/User'

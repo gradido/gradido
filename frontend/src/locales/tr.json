@@ -3,6 +3,9 @@
   "1000thanks": "Bizimle olduğun için 1000lerce teşekkür!",
   "125": "%125",
   "85": "%85",
+  "GDD": "GDD",
+  "GDT": "GDT",
+  "PersonalDetails": "Kişisel bilgiler",
   "advanced-calculation": "Önceden hesaplama",
   "auth": {
     "left": {
@@ -20,13 +23,14 @@
   },
   "back": "Geri",
   "community": {
+    "admins": "Yöneticiler",
     "choose-another-community": "Başka bir topluluk seçin",
     "community": "Topluluk",
     "continue-to-registration": "Kayıt işlemine devam et",
     "current-community": "Varolan topluluk",
     "myContributions": "Toplum yararına yaptığım hizmetler",
     "other-communities": "Diğer topluluklar",
-    "startNewsButton": "Kullanıcı adı girin",
+    "startNewsButton": "Gradidos gönder",
     "submitContribution": "yaz",
     "switch-to-this-community": "Bu topluluğa giriş yap"
   },
@@ -147,7 +151,6 @@
     },
     "your_amount": "Sendeki tutar"
   },
-  "GDD": "GDD",
   "gdd_per_link": {
     "choose-amount": "Linke tıklayıp göndermek istediğiniz tutarı seç. Ayrıca bir mesaj da girebilirsin. Paylaşabileceğin bir bağlantı oluşturmak için 'Şimdi oluştur'a tıkla.",
     "copy-link": "Linki kopyala ",
@@ -218,6 +221,7 @@
     "title": "Teşekkürler!",
     "unsetPassword": "Şifre henüz olışturulmadı. Lütfen tekrar ayarla."
   },
+  "moderatorChangedMemo": "Metin moderatör tarafından düzenlendi",
   "navigation": {
     "admin_area": "Yönetici Alanı",
     "community": "Topluluk",

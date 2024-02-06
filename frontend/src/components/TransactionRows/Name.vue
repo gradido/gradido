@@ -36,13 +36,24 @@ export default {
   methods: {
     async tunnelEmail() {
       if (this.$route.path !== '/send') await this.$router.push({ path: '/send' })
-      this.$router.push({ query: { gradidoID: this.linkedUser.gradidoID } })
+      this.$router.push({
+        params: {
+          userIdentifier: this.linkedUser.gradidoID,
+          communityIdentifier: this.linkedUser.communityUuid,
+        },
+      })
     },
   },
   computed: {
     itemText() {
       return this.linkedUser
-        ? this.linkedUser.firstName + ' ' + this.linkedUser.lastName
+        ? this.linkedUser.alias
+          ? this.linkedUser.alias +
+            (this.linkedUser.communityName ? ' / ' + this.linkedUser.communityName : '')
+          : this.linkedUser.firstName +
+            ' ' +
+            this.linkedUser.lastName +
+            (this.linkedUser.communityName ? ' / ' + this.linkedUser.communityName : '')
         : this.text
     },
   },

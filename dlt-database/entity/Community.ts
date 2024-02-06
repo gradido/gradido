@@ -1,1 +1,1 @@
-export { Community } from './0001-init_db/Community'
+export { Community } from './0003-refactor_transaction_recipe/Community'

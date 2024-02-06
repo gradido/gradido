@@ -1,14 +1,6 @@
-import {
-  BaseEntity,
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToMany,
-  JoinColumn,
-  CreateDateColumn,
-} from 'typeorm'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinColumn } from 'typeorm'
 
-import { Account } from './Account'
+import { Account } from '../Account'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {
@@ -26,9 +18,10 @@ export class User extends BaseEntity {
   @Column({ name: 'derive1_pubkey', type: 'binary', length: 32, unique: true })
   derive1Pubkey: Buffer
 
-  @CreateDateColumn({
+  @Column({
     name: 'created_at',
     type: 'datetime',
+    precision: 3,
     default: () => 'CURRENT_TIMESTAMP(3)',
   })
   createdAt: Date
@@ -36,6 +29,7 @@ export class User extends BaseEntity {
   @Column({
     name: 'confirmed_at',
     type: 'datetime',
+    precision: 3,
     nullable: true,
   })
   confirmedAt?: Date
