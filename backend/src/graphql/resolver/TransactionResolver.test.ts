@@ -144,7 +144,11 @@ describe('send coins', () => {
     })
 
     it('logs the error thrown', () => {
-      expect(logger.error).toBeCalledWith('No user with this credentials', 'wrong@email.com')
+      expect(logger.error).toBeCalledWith(
+        'No user with this credentials',
+        'wrong@email.com',
+        homeCom.communityUuid,
+      )
     })
 
     describe('deleted recipient', () => {
@@ -167,13 +171,17 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('No user to given contact')],
+            errors: [new GraphQLError('No user with this credentials')],
           }),
         )
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('No user to given contact', 'stephen@hawking.uk')
+        expect(logger.error).toBeCalledWith(
+          'No user with this credentials',
+          'stephen@hawking.uk',
+          homeCom.communityUuid,
+        )
       })
     })
 
@@ -206,6 +214,7 @@ describe('send coins', () => {
         expect(logger.error).toBeCalledWith(
           'No user with this credentials',
           'garrick@ollivander.com',
+          homeCom.communityUuid,
         )
       })
     })
