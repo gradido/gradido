@@ -8,12 +8,14 @@ import {
   JoinColumn,
   OneToOne,
   Geometry,
+  ManyToOne,
 } from 'typeorm'
 import { Contribution } from '../Contribution'
 import { ContributionMessage } from '../ContributionMessage'
 import { UserContact } from '../UserContact'
 import { UserRole } from '../UserRole'
 import { GeometryTransformer } from '../../src/typeorm/GeometryTransformer'
+import { Community } from '../Community'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {
@@ -39,6 +41,10 @@ export class User extends BaseEntity {
     collation: 'utf8mb4_unicode_ci',
   })
   communityUuid: string
+
+  @ManyToOne(() => Community, (community) => community.users)
+  @JoinColumn({ name: 'community_uuid', referencedColumnName: 'communityUuid' })
+  community: Community | null
 
   @Column({
     name: 'alias',

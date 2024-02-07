@@ -5,7 +5,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm'
+import { User } from '../User'
 
 @Entity('communities')
 export class Community extends BaseEntity {
@@ -63,4 +66,8 @@ export class Community extends BaseEntity {
     nullable: true,
   })
   updatedAt: Date | null
+
+  @OneToMany(() => User, (user) => user.community)
+  @JoinColumn({ name: 'community_uuid', referencedColumnName: 'communityUuid' })
+  users: User[]
 }
