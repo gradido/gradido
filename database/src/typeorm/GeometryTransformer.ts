@@ -8,12 +8,9 @@ import { ValueTransformer } from 'typeorm/decorator/options/ValueTransformer'
  */
 export const GeometryTransformer: ValueTransformer = {
   to: (geojson: Geometry): string | null => {
-    console.log('GeometryTransformer to: geojson=', geojson)
     if (geojson) {
       const wkxg = wkx_Geometry.parseGeoJSON(geojson)
-      console.log('GeometryTransformer to: wkxg=', wkxg)
       const str = wkxg.toWkt()
-      console.log('GeometryTransformer to: str=', str)
       return str
     }
     return null
@@ -21,14 +18,11 @@ export const GeometryTransformer: ValueTransformer = {
 
   from: (wkb: string): Record<string, any> | null => {
     // wkb ? wkx_Geometry.parse(wkb).toGeoJSON() : undefined
-    console.log('GeometryTransformer from: wbk=', wkb)
     if (!wkb) {
       return null
     }
     const record = wkx_Geometry.parse(wkb)
-    console.log('GeometryTransformer from: record=', record)
     const str = record.toGeoJSON()
-    console.log('GeometryTransformer from: str=', str)
     return str
   },
 }

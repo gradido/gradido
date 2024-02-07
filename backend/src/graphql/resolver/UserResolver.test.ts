@@ -71,6 +71,8 @@ import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
 
+import { Location2Point } from './util/Location2Point'
+
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
   return {
@@ -1333,27 +1335,15 @@ describe('UserResolver', () => {
           })
         })
 
-        describe.only('with gms location', () => {
+        describe('with gms location', () => {
           const loc = new Location()
           loc.longitude = 9.573224
           loc.latitude = 49.679437
-          console.log('with gms location:', loc)
           it('updates the user in DB', async () => {
             const usr = await User.find()
-            console.log('usr=', usr)
             await mutate({
               mutation: updateUserInfos,
               variables: {
-                /*
-                firstName: usr[0].firstName,
-                lastName: usr[0].lastName,
-                alias: usr[0].alias,
-                language: usr[0].language,
-                password: usr[0].password,
-                passwordNew: usr[0].password,
-                hideAmountGDD: usr[0].hideAmountGDD,
-                hideAmountGDT: usr[0].hideAmountGDT,
-                */
                 gmsAllowed: true,
                 gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
                 gmsLocation: loc,
@@ -1364,7 +1354,7 @@ describe('UserResolver', () => {
               expect.objectContaining({
                 gmsAllowed: true,
                 gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-                location: loc,
+                location: Location2Point(loc),
                 gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               }),
             ])

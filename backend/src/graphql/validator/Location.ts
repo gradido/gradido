@@ -16,10 +16,8 @@ export function isValidLocation(validationOptions?: ValidationOptions) {
         validate(value: Location) {
           // console.log('isValidLocation:', value, value.getPoint())
           if (!value || Location2Point(value).type === 'Point') {
-            console.log('isValidLocation: true')
             return true
           }
-          console.log('isValidLocation: false')
           return false
         },
         defaultMessage(args: ValidationArguments) {
