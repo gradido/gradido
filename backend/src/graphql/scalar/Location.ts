@@ -2,6 +2,7 @@
 import { GraphQLScalarType, Kind } from 'graphql'
 
 import { Location } from '@model/Location'
+
 import { LogError } from '@/server/LogError'
 
 export const LocationScalar = new GraphQLScalarType({

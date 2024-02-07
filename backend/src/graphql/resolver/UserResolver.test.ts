@@ -1340,7 +1340,6 @@ describe('UserResolver', () => {
           loc.longitude = 9.573224
           loc.latitude = 49.679437
           it('updates the user in DB', async () => {
-            const usr = await User.find()
             await mutate({
               mutation: updateUserInfos,
               variables: {

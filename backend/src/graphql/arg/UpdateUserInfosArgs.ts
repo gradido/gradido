@@ -2,10 +2,7 @@ import { IsBoolean, IsInt, IsString } from 'class-validator'
 import { ArgsType, Field, InputType, Int } from 'type-graphql'
 
 import { Location } from '@model/Location'
-
-import { isValidLocation } from '../validator/Location'
-
-// import { isValidLocation } from '../validator/Location'
+import { isValidLocation } from '@validator/Location'
 
 @InputType()
 @ArgsType()
