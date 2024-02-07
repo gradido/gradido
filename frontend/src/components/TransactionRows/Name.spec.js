@@ -47,7 +47,12 @@ describe('Name', () => {
     describe('with linked user', () => {
       beforeEach(async () => {
         await wrapper.setProps({
-          linkedUser: { firstName: 'Bibi', lastName: 'Bloxberg', gradidoID: 'gradido-ID' },
+          linkedUser: {
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+            gradidoID: 'gradido-ID',
+            communityUuid: 'community UUID',
+          },
         })
       })
 
@@ -70,10 +75,11 @@ describe('Name', () => {
           })
         })
 
-        it('pushes query for gradidoID', () => {
+        it('pushes params for gradidoID and community UUID', () => {
           expect(routerPushMock).toBeCalledWith({
-            query: {
-              gradidoID: 'gradido-ID',
+            params: {
+              communityIdentifier: 'community UUID',
+              userIdentifier: 'gradido-ID',
             },
           })
         })

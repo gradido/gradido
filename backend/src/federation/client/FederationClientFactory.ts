@@ -47,15 +47,25 @@ export class FederationClientFactory {
     const instance = FederationClientFactory.instanceArray.find(
       (instance) => instance.id === dbCom.id,
     )
-    if (instance) {
+    // TODO: found a way to prevent double code with FederationClient::constructor
+    const endpoint = `${dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'}${
+      dbCom.apiVersion
+    }/`
+    // check if endpoint is still the same and not changed meanwhile
+    if (instance && instance.client.getEndpoint() === endpoint) {
       return instance.client
     }
     const client = FederationClientFactory.createFederationClient(dbCom)
     if (client) {
-      FederationClientFactory.instanceArray.push({
-        id: dbCom.id,
-        client,
-      } as FederationClientInstance)
+      // only update instance if we already have one
+      if (instance) {
+        instance.client = client
+      } else {
+        FederationClientFactory.instanceArray.push({
+          id: dbCom.id,
+          client,
+        } as FederationClientInstance)
+      }
     }
     return client
   }

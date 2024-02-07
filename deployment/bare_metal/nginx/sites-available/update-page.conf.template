@@ -1,11 +1,21 @@
+include /etc/nginx/common/limit_requests.conf;
 
 server {
-    server_name _;
+    server_name $COMMUNITY_HOST;
     listen 80;
     listen [::]:80;
 
     include /etc/nginx/common/protect.conf;
     include /etc/nginx/common/protect_add_header.conf;
+
+    # protect from slow loris
+    client_body_timeout 10s;
+    client_header_timeout 10s;
+    
+    # protect from range attack (in http header)
+    if ($http_range ~ "d{9,}") {
+        return 444;
+    }
 
     gzip on;
 
@@ -13,6 +23,8 @@ server {
     index updating.html;
 
     location / {
+      limit_req zone=frontend;
+      limit_conn addr 10;
       try_files /updating.html =404;
     }
 

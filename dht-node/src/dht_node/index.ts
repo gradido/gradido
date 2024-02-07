@@ -3,10 +3,13 @@
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import DHT from '@hyperswarm/dht'
+import { CommunityLoggingView } from '@logging/CommunityLogging.view'
 import { v4 as uuidv4 } from 'uuid'
 
 import { CONFIG } from '@/config'
 import { logger } from '@/server/logger'
+
+import { ApiVersionType } from './ApiVersionType'
 
 const KEY_SECRET_SEEDBYTES = 32
 
@@ -15,17 +18,21 @@ const SUCCESSTIME = 120000
 const ERRORTIME = 240000
 const ANNOUNCETIME = 30000
 
-enum ApiVersionType {
-  V1_0 = '1_0',
-  V1_1 = '1_1',
-  V2_0 = '2_0',
-}
 type CommunityApi = {
   api: string
   url: string
 }
 
 type KeyPair = { publicKey: Buffer; secretKey: Buffer }
+
+function isAscii(buffer: Buffer): boolean {
+  for (const byte of buffer) {
+    if (byte > 127) {
+      return false
+    }
+  }
+  return true
+}
 
 export const startDHT = async (topic: string): Promise<void> => {
   try {
@@ -57,6 +64,10 @@ export const startDHT = async (topic: string): Promise<void> => {
             logger.warn(
               `received more than max allowed length of data buffer: ${data.length} against 1141 max allowed`,
             )
+            return
+          }
+          if (!isAscii(data)) {
+            logger.warn(`received non ascii character, content as hex: ${data.toString('hex')}`)
             return
           }
           logger.info(`data: ${data.toString('ascii')}`)
@@ -190,9 +201,14 @@ export const startDHT = async (topic: string): Promise<void> => {
 }
 
 async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<CommunityApi[]> {
-  const homeApiVersions: CommunityApi[] = Object.values(ApiVersionType).map(function (apiEnum) {
+  const homeApiVersions: CommunityApi[] = CONFIG.FEDERATION_COMMUNITY_APIS.split(',').map(function (
+    api,
+  ) {
+    if (!Object.values(ApiVersionType).includes(api as ApiVersionType)) {
+      throw new Error(`Federation: unknown api version: ${api}`)
+    }
     const comApi: CommunityApi = {
-      api: apiEnum,
+      api,
       url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
     }
     return comApi
@@ -227,7 +243,7 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
       homeCom.name = CONFIG.COMMUNITY_NAME
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
       await DbCommunity.save(homeCom)
-      logger.info(`home-community updated successfully:`, homeCom)
+      logger.info(`home-community updated successfully:`, new CommunityLoggingView(homeCom))
     } else {
       // insert a new homecommunity entry including a new ID and a new but ensured unique UUID
       homeCom = new DbCommunity()
@@ -240,7 +256,7 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
       homeCom.creationDate = new Date()
       await DbCommunity.insert(homeCom)
-      logger.info(`home-community inserted successfully:`, homeCom)
+      logger.info(`home-community inserted successfully:`, new CommunityLoggingView(homeCom))
     }
   } catch (err) {
     throw new Error(`Federation: Error writing HomeCommunity-Entry: ${err}`)

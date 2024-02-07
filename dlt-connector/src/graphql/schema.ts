@@ -2,9 +2,9 @@ import { Decimal } from 'decimal.js-light'
 import { GraphQLSchema } from 'graphql'
 import { buildSchema } from 'type-graphql'
 
-import { DecimalScalar } from './scalar/Decimal'
-import { TransactionResolver } from './resolver/TransactionsResolver'
 import { CommunityResolver } from './resolver/CommunityResolver'
+import { TransactionResolver } from './resolver/TransactionsResolver'
+import { DecimalScalar } from './scalar/Decimal'
 
 export const schema = async (): Promise<GraphQLSchema> => {
   return buildSchema({

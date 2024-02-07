@@ -15,6 +15,10 @@ import { federationLogger as logger } from '@/server/logger'
 
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
+import { CommunityLoggingView } from '@logging/CommunityLogging.view'
+import { UserLoggingView } from '@logging/UserLogging.view'
+import { PendingTransactionLoggingView } from '@logging/PendingTransactionLogging.view'
+import { TransactionLoggingView } from '@logging/TransactionLogging.view'
 
 export async function revertSettledReceiveTransaction(
   homeCom: DbCommunity,
@@ -30,7 +34,11 @@ export async function revertSettledReceiveTransaction(
   logger.debug(`start Transaction for write-access...`)
 
   try {
-    logger.info('X-Com: revertSettledReceiveTransaction:', homeCom, receiverUser, pendingTx)
+    logger.info('X-Com: revertSettledReceiveTransaction:', {
+      homeCom: new CommunityLoggingView(homeCom),
+      receiverUser: new UserLoggingView(receiverUser),
+      pendingTx: new PendingTransactionLoggingView(pendingTx),
+    })
 
     // ensure that no other pendingTx with the same sender or recipient exists
     const openSenderPendingTx = await DbPendingTransaction.count({
@@ -68,6 +76,7 @@ export async function revertSettledReceiveTransaction(
       pendingTx.balanceDate.toISOString(),
     )
     logger.debug(`GradidoID:`, lastTransaction?.userGradidoID, pendingTx.userGradidoID)
+    // todo: Data privacy: personal user data in log file?
     logger.debug(`Name:`, lastTransaction?.userName, pendingTx.userName)
     logger.debug(`amount:`, lastTransaction?.amount.toString(), pendingTx.amount.toString())
     logger.debug(`memo:`, lastTransaction?.memo, pendingTx.memo)
@@ -90,7 +99,10 @@ export async function revertSettledReceiveTransaction(
       lastTransaction.linkedUserName === pendingTx.linkedUserName
     ) {
       await queryRunner.manager.remove(dbTransaction, lastTransaction)
-      logger.debug(`X-Com: revert settlement receive Transaction removed:`, lastTransaction)
+      logger.debug(
+        `X-Com: revert settlement receive Transaction removed:`,
+        new TransactionLoggingView(lastTransaction),
+      )
       // and mark the pendingTx in the pending_transactions table as reverted
       pendingTx.state = PendingTransactionState.REVERTED
       await queryRunner.manager.save(DbPendingTransaction, pendingTx)
@@ -98,12 +110,11 @@ export async function revertSettledReceiveTransaction(
       await queryRunner.commitTransaction()
       logger.debug(`commit revert settlement recipient Transaction successful...`)
     } else {
-      // TODO: if the last TX is not equivelant to pendingTX, the transactions must be corrected in EXPERT-MODE
-      throw new LogError(
-        `X-Com: missmatching transaction order for revert settlement!`,
-        lastTransaction,
-        pendingTx,
-      )
+      // TODO: if the last TX is not equivalent to pendingTX, the transactions must be corrected in EXPERT-MODE
+      throw new LogError(`X-Com: mismatching transaction order for revert settlement!`, {
+        lastTransaction: lastTransaction ? new TransactionLoggingView(lastTransaction) : 'null',
+        pendingTx: new PendingTransactionLoggingView(pendingTx),
+      })
     }
 
     /*

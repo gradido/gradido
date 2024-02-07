@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CONFIG } from '@/config'
+
 import createServer from './server/createServer'
 
 async function main() {

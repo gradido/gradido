@@ -2,15 +2,17 @@ import 'reflect-metadata'
 
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
-import express, { Express } from 'express'
-
-// graphql
-import { schema } from '@/graphql/schema'
-
-import { logger as dltLogger } from './logger'
-import { Logger } from 'log4js'
-import cors from 'cors'
 import bodyParser from 'body-parser'
+import cors from 'cors'
+import express, { Express } from 'express'
+// graphql
+import { slowDown } from 'express-slow-down'
+import helmet from 'helmet'
+import { Logger } from 'log4js'
+
+import { schema } from '@/graphql/schema'
+import { logger as dltLogger } from '@/logging/logger'
+import { Connection } from '@/typeorm/DataSource'
 
 type ServerDef = { apollo: ApolloServer; app: Express }
 
@@ -27,6 +29,8 @@ const createServer = async (
   logger.addContext('user', 'unknown')
   logger.debug('createServer...')
 
+  // connect to db and test db version
+  await Connection.getInstance().init()
   // Express Server
   const app = express()
 
@@ -38,6 +42,27 @@ const createServer = async (
     // plugins
     logger,
   })
+  // Helmet helps secure Express apps by setting HTTP response headers.
+  app.use(helmet())
+
+  // rate limiter/ slow down to many requests
+  const limiter = slowDown({
+    windowMs: 1000, // 1 second
+    delayAfter: 10, // Allow 10 requests per 1 second.
+    delayMs: (hits) => hits * 50, // Add 100 ms of delay to every request after the 10th one.
+    /**
+     * So:
+     *
+     * - requests 1-10 are not delayed.
+     * - request 11 is delayed by 550ms
+     * - request 12 is delayed by 600ms
+     * - request 13 is delayed by 650ms
+     *
+     * and so on. After 1 seconds, the delay is reset to 0.
+     */
+  })
+  app.use(limiter)
+
   await apollo.start()
   app.use(
     '/',

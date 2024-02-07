@@ -65,7 +65,7 @@ import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
-import { getCommunityName, getHomeCommunity } from './util/communities'
+import { getHomeCommunity } from './util/communities'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
@@ -834,11 +834,6 @@ export class UserResolver {
   ): Promise<User> {
     const foundDbUser = await findUserByIdentifier(identifier, communityIdentifier)
     const modelUser = new User(foundDbUser)
-    if (!foundDbUser.communityUuid) {
-      modelUser.communityName = (await Promise.resolve(getHomeCommunity())).name
-    } else {
-      modelUser.communityName = await getCommunityName(foundDbUser.communityUuid)
-    }
     return modelUser
   }
 }

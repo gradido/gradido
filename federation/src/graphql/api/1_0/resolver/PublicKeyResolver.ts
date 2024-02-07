@@ -5,7 +5,6 @@ import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCom
 import { GetPublicKeyResult } from '../model/GetPublicKeyResult'
 
 @Resolver()
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class PublicKeyResolver {
   @Query(() => GetPublicKeyResult)
   async getPublicKey(): Promise<GetPublicKeyResult> {
@@ -16,7 +15,8 @@ export class PublicKeyResolver {
         apiVersion: '1_0',
       },
     })
-    logger.debug(`getPublicKey()-1_0... return publicKey=${homeCom.publicKey}`)
-    return new GetPublicKeyResult(homeCom.publicKey.toString())
+    const publicKeyHex = homeCom.publicKey.toString('hex')
+    logger.debug(`getPublicKey()-1_0... return publicKey=${publicKeyHex}`)
+    return new GetPublicKeyResult(publicKeyHex)
   }
 }
