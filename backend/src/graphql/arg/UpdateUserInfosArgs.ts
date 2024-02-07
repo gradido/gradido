@@ -1,4 +1,3 @@
-
 import { IsBoolean, IsInt, IsString } from 'class-validator'
 import { ArgsType, Field, InputType, Int } from 'type-graphql'
 
