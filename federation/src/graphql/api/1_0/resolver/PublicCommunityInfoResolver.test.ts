@@ -46,7 +46,10 @@ describe('PublicCommunityInfoResolver', () => {
       homeCom.name = 'Community-Name'
       homeCom.description = 'Community-Description'
       homeCom.creationDate = new Date()
-      homeCom.publicKey = Buffer.from('homeCommunity-publicKey')
+      homeCom.publicKey = Buffer.from(
+        '316f2951501f27c664e188d5128505917e8673e8bebce141f86e70907e782a08',
+        'hex',
+      )
       await DbCommunity.insert(homeCom)
     })
 
@@ -57,7 +60,7 @@ describe('PublicCommunityInfoResolver', () => {
             name: 'Community-Name',
             description: 'Community-Description',
             creationDate: homeCom.creationDate?.toISOString(),
-            publicKey: expect.stringMatching('homeCommunity-publicKey'),
+            publicKey: '316f2951501f27c664e188d5128505917e8673e8bebce141f86e70907e782a08',
           },
         },
       })

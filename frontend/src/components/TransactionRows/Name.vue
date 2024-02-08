@@ -37,9 +37,9 @@ export default {
     async tunnelEmail() {
       if (this.$route.path !== '/send') await this.$router.push({ path: '/send' })
       this.$router.push({
-        query: {
-          gradidoID: this.linkedUser.gradidoID,
-          communityUuid: this.linkedUser.communityUuid,
+        params: {
+          userIdentifier: this.linkedUser.gradidoID,
+          communityIdentifier: this.linkedUser.communityUuid,
         },
       })
     },

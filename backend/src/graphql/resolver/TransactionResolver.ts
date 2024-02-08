@@ -109,9 +109,11 @@ export const executeTransaction = async (
       transactionSend.userId = sender.id
       transactionSend.userGradidoID = sender.gradidoID
       transactionSend.userName = fullName(sender.firstName, sender.lastName)
+      transactionSend.userCommunityUuid = sender.communityUuid
       transactionSend.linkedUserId = recipient.id
       transactionSend.linkedUserGradidoID = recipient.gradidoID
       transactionSend.linkedUserName = fullName(recipient.firstName, recipient.lastName)
+      transactionSend.linkedUserCommunityUuid = recipient.communityUuid
       transactionSend.amount = amount.mul(-1)
       transactionSend.balance = sendBalance.balance
       transactionSend.balanceDate = receivedCallDate
@@ -129,9 +131,11 @@ export const executeTransaction = async (
       transactionReceive.userId = recipient.id
       transactionReceive.userGradidoID = recipient.gradidoID
       transactionReceive.userName = fullName(recipient.firstName, recipient.lastName)
+      transactionReceive.userCommunityUuid = recipient.communityUuid
       transactionReceive.linkedUserId = sender.id
       transactionReceive.linkedUserGradidoID = sender.gradidoID
       transactionReceive.linkedUserName = fullName(sender.firstName, sender.lastName)
+      transactionReceive.linkedUserCommunityUuid = sender.communityUuid
       transactionReceive.amount = amount
       const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
       transactionReceive.balance = receiveBalance ? receiveBalance.balance : amount
@@ -254,6 +258,9 @@ export class TransactionResolver {
     // userTransactions.forEach((transaction: dbTransaction) => {
     // use normal for loop because of timing problems with await in forEach-loop
     for (const transaction of userTransactions) {
+      if (transaction.typeId === TransactionTypeId.CREATION) {
+        continue
+      }
       if (transaction.linkedUserId && !involvedUserIds.includes(transaction.linkedUserId)) {
         involvedUserIds.push(transaction.linkedUserId)
       }
@@ -425,7 +432,7 @@ export class TransactionResolver {
     const senderUser = getUser(context)
 
     if (!recipientCommunityIdentifier || (await isHomeCommunity(recipientCommunityIdentifier))) {
-      // processing sendCoins within sender and recepient are both in home community
+      // processing sendCoins within sender and recipient are both in home community
       const recipientUser = await findUserByIdentifier(
         recipientIdentifier,
         recipientCommunityIdentifier,

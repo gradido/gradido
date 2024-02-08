@@ -39,7 +39,10 @@ describe('PublicKeyResolver', () => {
       homeCom.foreign = false
       homeCom.apiVersion = '1_0'
       homeCom.endPoint = 'endpoint-url'
-      homeCom.publicKey = Buffer.from('homeCommunity-publicKey')
+      homeCom.publicKey = Buffer.from(
+        '9f6dcd0d985cc7105cd71c3417d9c291b126c8ca90513197de02191f928ef713',
+        'hex',
+      )
       await DbFederatedCommunity.insert(homeCom)
     })
 
@@ -47,7 +50,7 @@ describe('PublicKeyResolver', () => {
       await expect(query({ query: getPublicKeyQuery })).resolves.toMatchObject({
         data: {
           getPublicKey: {
-            publicKey: expect.stringMatching('homeCommunity-publicKey'),
+            publicKey: '9f6dcd0d985cc7105cd71c3417d9c291b126c8ca90513197de02191f928ef713',
           },
         },
       })

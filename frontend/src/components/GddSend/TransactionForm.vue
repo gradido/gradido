@@ -55,22 +55,15 @@
                       </b-row>
                       <b-row>
                         <b-col class="font-weight-bold">
-                          <div v-if="!communityUuid">
-                            <community-switch
-                              v-model="form.targetCommunity"
-                              :disabled="isBalanceDisabled"
-                            />
-                          </div>
-                          <div v-else class="mb-4">
-                            <b-row>
-                              <b-col class="font-weight-bold">{{ recipientCommunity.name }}</b-col>
-                            </b-row>
-                          </div>
+                          <community-switch
+                            v-model="form.targetCommunity"
+                            :disabled="isBalanceDisabled"
+                          />
                         </b-col>
                       </b-row>
                     </b-col>
                     <b-col cols="12" v-if="radioSelected === sendTypes.send">
-                      <div v-if="!gradidoID">
+                      <div v-if="!userIdentifier">
                         <input-identifier
                           :name="$t('form.recipient')"
                           :label="$t('form.recipient')"
@@ -150,8 +143,7 @@ import InputIdentifier from '@/components/Inputs/InputIdentifier'
 import InputAmount from '@/components/Inputs/InputAmount'
 import InputTextarea from '@/components/Inputs/InputTextarea'
 import CommunitySwitch from '@/components/CommunitySwitch.vue'
-import { userAndCommunity } from '@/graphql/queries'
-import { isEmpty } from 'lodash'
+import { user } from '@/graphql/queries'
 import { COMMUNITY_NAME } from '@/config'
 
 export default {
@@ -193,11 +185,7 @@ export default {
       this.$refs.formValidator.validate()
     },
     onSubmit() {
-      if (this.gradidoID) this.form.identifier = this.gradidoID
-      if (this.communityUuid) {
-        this.recipientCommunity.uuid = this.communityUuid
-        this.form.targetCommunity = this.recipientCommunity
-      }
+      if (this.userIdentifier) this.form.identifier = this.userIdentifier.identifier
       this.$emit('set-transaction', {
         selected: this.radioSelected,
         identifier: this.form.identifier,
@@ -214,29 +202,23 @@ export default {
       this.form.memo = ''
       this.form.targetCommunity = { uuid: '', name: COMMUNITY_NAME }
       this.$refs.formValidator.validate()
-      if (this.$route.query && !isEmpty(this.$route.query))
-        this.$router.replace({ query: undefined })
+      this.$router.replace('/send')
     },
   },
   apollo: {
     UserName: {
       query() {
-        return userAndCommunity
+        return user
       },
       fetchPolicy: 'network-only',
       variables() {
-        return {
-          identifier: this.gradidoID,
-          communityUuid: this.communityUuid,
-        }
+        return this.userIdentifier
       },
       skip() {
-        return !this.gradidoID
+        return !this.userIdentifier
       },
-      update({ user, community }) {
+      update({ user }) {
         this.userName = `${user.firstName} ${user.lastName}`
-        this.recipientCommunity.name = community.name
-        this.recipientCommunity.uuid = this.communityUuid
       },
       error({ message }) {
         this.toastError(message)
@@ -261,11 +243,18 @@ export default {
     sendTypes() {
       return SEND_TYPES
     },
-    gradidoID() {
-      return this.$route.query && this.$route.query.gradidoID
-    },
-    communityUuid() {
-      return this.$route.query && this.$route.query.communityUuid
+    userIdentifier() {
+      if (
+        this.$route.params &&
+        this.$route.params.userIdentifier &&
+        this.$route.params.communityIdentifier
+      ) {
+        return {
+          identifier: this.$route.params.userIdentifier,
+          communityIdentifier: this.$route.params.communityIdentifier,
+        }
+      }
+      return null
     },
   },
   mounted() {

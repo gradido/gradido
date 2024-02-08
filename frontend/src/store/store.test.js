@@ -264,7 +264,7 @@ describe('Vuex store', () => {
 
       it('calls twelve commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(13)
+        expect(commit).toHaveBeenCalledTimes(14)
       })
 
       it('commits token', () => {

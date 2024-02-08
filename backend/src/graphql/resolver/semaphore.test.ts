@@ -6,6 +6,7 @@ import { Community as DbCommunity } from '@entity/Community'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment, contributionDateFormatter } from '@test/helpers'
 
@@ -54,7 +55,7 @@ describe('semaphore', () => {
   beforeAll(async () => {
     const now = new Date()
     homeCom = DbCommunity.create()
-    homeCom.communityUuid = 'homeCom-UUID'
+    homeCom.communityUuid = uuidv4()
     homeCom.creationDate = new Date('2000-01-01')
     homeCom.description = 'homeCom description'
     homeCom.foreign = false

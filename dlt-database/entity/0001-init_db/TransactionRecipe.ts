@@ -10,9 +10,12 @@ import {
 import { Decimal } from 'decimal.js-light'
 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
-import { Account } from '../Account'
-import { Community } from '../Community'
-import { ConfirmedTransaction } from '../ConfirmedTransaction'
+// the relation in future account don't match which this any longer, so we can only link with the local account here
+import { Account } from './Account'
+// the relation in future community don't match which this any longer, so we can only link with the local account here
+import { Community } from './Community'
+// ConfirmedTransaction was removed in newer migrations, so only the version from this folder can be linked
+import { ConfirmedTransaction } from './ConfirmedTransaction'
 
 @Entity('transaction_recipes')
 export class TransactionRecipe extends BaseEntity {

@@ -60,7 +60,8 @@
       /* external */
       "@typeorm/*": ["../backend/src/typeorm/*", "../../backend/src/typeorm/*"],
       "@dbTools/*": ["../database/src/*", "../../database/build/src/*"],
-      "@entity/*": ["../database/entity/*", "../../database/build/entity/*"]
+      "@entity/*": ["../database/entity/*", "../../database/build/entity/*"],
+      "@logging/*": ["../database/logging/*", "../../database/build/logging/*"]
     },
     // "rootDirs": [],                              /* List of root folders whose combined content represents the structure of the project at runtime. */
     "typeRoots": ["node_modules/@types"],           /* List of folders to include type definitions from. */

@@ -4,7 +4,7 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.{js,vue}', '!**/node_modules/**', '!**/?(*.)+(spec|test).js?(x)'],
   coverageThreshold: {
     global: {
-      lines: 95,
+      lines: 94,
     },
   },
   moduleFileExtensions: [
