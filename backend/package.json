@@ -16,6 +16,8 @@
     "test": "cross-env TZ=UTC NODE_ENV=development jest --runInBand --forceExit --detectOpenHandles",
     "seed": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/index.ts",
     "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/executeKlicktipp.ts",
+    "gmsusers": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/gmsUsers.ts",
+    "gmsuserList": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/gmsUserList.ts",
     "locales": "scripts/sort.sh"
   },
   "dependencies": {
