@@ -22,9 +22,9 @@ export const schema = async (): Promise<GraphQLSchema> => {
       validationError: { target: false },
       skipMissingProperties: true,
       skipNullProperties: true,
-      skipUndefinedProperties: true,
-      forbidUnknownValues: false,
-      stopAtFirstError: false,
+      skipUndefinedProperties: false,
+      forbidUnknownValues: true,
+      stopAtFirstError: true,
     },
   })
 }
