@@ -14,7 +14,6 @@ import { Contribution } from '../Contribution'
 import { ContributionMessage } from '../ContributionMessage'
 import { UserContact } from '../UserContact'
 import { UserRole } from '../UserRole'
-<<<<<<< HEAD
 import { GeometryTransformer } from '../../src/typeorm/GeometryTransformer'
 import { Community } from '../Community'
 
