@@ -62,6 +62,8 @@ const createServer = async (
      */
   })
   app.use(limiter)
+  // because of nginx proxy, needed for limiter
+  app.set('trust proxy', 1)
 
   await apollo.start()
   app.use(

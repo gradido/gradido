@@ -1,4 +1,9 @@
 #!/bin/bash
+# check for parameter
+if [ -z "$1" ]; then
+    echo "Usage: Please provide a branch name as the first argument."
+    exit 1
+fi
 
 # Note: This is needed - since there is Summer-Time included in the default server Setup - UTC is REQUIRED for production data
 timedatectl set-timezone UTC
