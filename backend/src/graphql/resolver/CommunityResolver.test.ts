@@ -494,7 +494,7 @@ describe('CommunityResolver', () => {
           }),
         ).resolves.toMatchObject({
           data: {
-            getCommunityByUuid: {
+            community: {
               id: homeCom?.id,
               foreign: homeCom?.foreign,
               name: homeCom?.name,
