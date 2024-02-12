@@ -25,25 +25,33 @@ export const forgotPassword = gql`
 `
 
 export const updateUserInfos = gql`
-  mutation(
-    $alias: String
+  mutation (
     $firstName: String
     $lastName: String
+    $alias: String
     $password: String
     $passwordNew: String
     $locale: String
     $hideAmountGDD: Boolean
     $hideAmountGDT: Boolean
+    $gmsAllowed: Boolean
+    $gmsPublishName: Int
+    $gmsLocation: Location
+    $gmsPublishLocation: Int
   ) {
     updateUserInfos(
-      alias: $alias
       firstName: $firstName
       lastName: $lastName
+      alias: $alias
       password: $password
       passwordNew: $passwordNew
       language: $locale
       hideAmountGDD: $hideAmountGDD
       hideAmountGDT: $hideAmountGDT
+      gmsAllowed: $gmsAllowed
+      gmsPublishName: $gmsPublishName
+      gmsLocation: $gmsLocation
+      gmsPublishLocation: $gmsPublishLocation
     )
   }
 `

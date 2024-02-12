@@ -44,19 +44,19 @@ export class UpdateUserInfosArgs {
   @IsBoolean()
   hideAmountGDT?: boolean
 
-  @Field({ nullable: false })
+  @Field({ nullable: true, defaultValue: true })
   @IsBoolean()
-  gmsAllowed: boolean
+  gmsAllowed?: boolean
 
-  @Field(() => Int, { nullable: false })
+  @Field(() => Int, { nullable: true, defaultValue: 0 })
   @IsInt()
-  gmsPublishName: number
+  gmsPublishName?: number | null
 
   @Field(() => Location, { nullable: true })
   @isValidLocation()
   gmsLocation?: Location | null
 
-  @Field(() => Int, { nullable: false })
+  @Field(() => Int, { nullable: true, defaultValue: 2 })
   @IsInt()
-  gmsPublishLocation: number
+  gmsPublishLocation?: number | null
 }
