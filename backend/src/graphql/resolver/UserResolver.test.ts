@@ -1173,11 +1173,7 @@ describe('UserResolver', () => {
         await expect(
           mutate({
             mutation: updateUserInfos,
-            variables: {
-              gmsAllowed: true,
-              gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-              gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
-            },
+            variables: {},
           }),
         ).resolves.toEqual(
           expect.objectContaining({
@@ -1207,11 +1203,7 @@ describe('UserResolver', () => {
         await expect(
           mutate({
             mutation: updateUserInfos,
-            variables: {
-              gmsAllowed: true,
-              gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-              gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
-            },
+            variables: {},
           }),
         ).resolves.toEqual(
           expect.objectContaining({
@@ -1230,9 +1222,6 @@ describe('UserResolver', () => {
               firstName: 'Benjamin',
               lastName: 'Blümchen',
               locale: 'en',
-              gmsAllowed: true,
-              gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-              gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
             },
           })
           await expect(User.find()).resolves.toEqual([
@@ -1273,9 +1262,6 @@ describe('UserResolver', () => {
               mutation: updateUserInfos,
               variables: {
                 alias: 'bibi_Bloxberg',
-                gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               },
             })
             await expect(User.find()).resolves.toEqual([
@@ -1299,11 +1285,7 @@ describe('UserResolver', () => {
           it('updates the user in DB', async () => {
             await mutate({
               mutation: updateUserInfos,
-              variables: {
-                gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
-              },
+              variables: {},
             })
             await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
@@ -1369,9 +1351,6 @@ describe('UserResolver', () => {
               mutation: updateUserInfos,
               variables: {
                 locale: 'not-valid',
-                gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               },
             }),
           ).resolves.toEqual(
@@ -1396,9 +1375,6 @@ describe('UserResolver', () => {
                 variables: {
                   password: 'wrong password',
                   passwordNew: 'Aa12345_',
-                  gmsAllowed: true,
-                  gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-                  gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
                 },
               }),
             ).resolves.toEqual(
@@ -1422,9 +1398,6 @@ describe('UserResolver', () => {
                 variables: {
                   password: 'Aa12345_',
                   passwordNew: 'Aa12345',
-                  gmsAllowed: true,
-                  gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-                  gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
                 },
               }),
             ).resolves.toEqual(
@@ -1453,9 +1426,6 @@ describe('UserResolver', () => {
                 variables: {
                   password: 'Aa12345_',
                   passwordNew: 'Bb12345_',
-                  gmsAllowed: true,
-                  gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-                  gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
                 },
               }),
             ).resolves.toEqual(
