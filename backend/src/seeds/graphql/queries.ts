@@ -118,7 +118,7 @@ export const listGDTEntriesQuery = gql`
   }
 `
 
-export const communities = gql`
+export const communitiesQuery = gql`
   query {
     communities {
       id
@@ -129,6 +129,23 @@ export const communities = gql`
       creationDate
       uuid
       authenticatedAt
+      gmsApiKey
+    }
+  }
+`
+
+export const getCommunityByUuidQuery = gql`
+  query ($communityUuid: String!) {
+    community(communityUuid: $communityUuid) {
+      id
+      foreign
+      name
+      description
+      url
+      creationDate
+      uuid
+      authenticatedAt
+      gmsApiKey
     }
   }
 `
