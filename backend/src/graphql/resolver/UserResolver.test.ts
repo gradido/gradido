@@ -177,6 +177,12 @@ describe('UserResolver', () => {
               passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
               communityUuid: homeCom.communityUuid,
               foreign: false,
+              gmsAllowed: true,
+              gmsPublishName: 0,
+              gmsPublishLocation: 2,
+              location: null,
+              gmsRegistered: false,
+              gmsRegisteredAt: null,
             },
           ])
           const valUUID = validateUUID(user[0].gradidoID)
@@ -195,10 +201,13 @@ describe('UserResolver', () => {
             emailVerificationCode: expect.any(String),
             emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
             emailResendCount: 0,
+            countryCode: null,
             phone: null,
             createdAt: expect.any(Date),
             deletedAt: null,
             updatedAt: null,
+            gmsPublishEmail: false,
+            gmsPublishPhone: 0,
           })
         })
       })

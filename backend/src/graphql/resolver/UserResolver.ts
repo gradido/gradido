@@ -71,6 +71,7 @@ import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
+import { sendUserToGms } from './util/sendUserToGms'
 import { validateAlias } from './util/validateAlias'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
@@ -360,6 +361,18 @@ export class UserResolver {
       await eventRegisterRedeem.save()
     } else {
       await EVENT_USER_REGISTER(dbUser)
+    }
+
+    if (!CONFIG.GMS_ACTIVE) {
+      logger.info('GMS deactivated per configuration! New user is not published to GMS.')
+    } else {
+      try {
+        if (dbUser.gmsAllowed && !dbUser.gmsRegistered) {
+          await sendUserToGms(dbUser, homeCom)
+        }
+      } catch (err) {
+        logger.error('Error publishing new created user to GMS:', err)
+      }
     }
     return new User(dbUser)
   }
