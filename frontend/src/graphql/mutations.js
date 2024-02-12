@@ -25,7 +25,7 @@ export const forgotPassword = gql`
 `
 
 export const updateUserInfos = gql`
-  mutation (
+  mutation(
     $firstName: String
     $lastName: String
     $alias: String
