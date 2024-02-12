@@ -19,11 +19,14 @@ import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { SetUserRoleArgs } from '@arg/SetUserRoleArgs'
 import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
 import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
+import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
+import { GmsPublishNameType } from '@enum/GmsPublishNameType'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserContactType } from '@enum/UserContactType'
 import { SearchAdminUsersResult } from '@model/AdminUser'
+// import { Location } from '@model/Location'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 
@@ -70,6 +73,7 @@ import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
+import { Location2Point } from './util/Location2Point'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { validateAlias } from './util/validateAlias'
@@ -547,12 +551,29 @@ export class UserResolver {
       passwordNew,
       hideAmountGDD,
       hideAmountGDT,
+      gmsAllowed,
+      gmsPublishName,
+      gmsLocation,
+      gmsPublishLocation,
     }: UpdateUserInfosArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.info(`updateUserInfos(${firstName}, ${lastName}, ${language}, ***, ***)...`)
-    const user = getUser(context)
+    logger.info(
+      `updateUserInfos(${firstName}, ${lastName}, ${alias}, ${language}, ***, ***, ${hideAmountGDD}, ${hideAmountGDT}, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})...`,
+    )
+    // check default arg settings
+    if (gmsAllowed === null || gmsAllowed === undefined) {
+      gmsAllowed = true
+    }
+    if (!gmsPublishName) {
+      gmsPublishName = GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS
+    }
+    if (!gmsPublishLocation) {
+      gmsPublishLocation = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
+    }
 
+    const user = getUser(context)
+    // try {
     if (firstName) {
       user.firstName = firstName
     }
@@ -599,6 +620,15 @@ export class UserResolver {
       user.hideAmountGDT = hideAmountGDT
     }
 
+    user.gmsAllowed = gmsAllowed
+    user.gmsPublishName = gmsPublishName
+    if (gmsLocation) {
+      user.location = Location2Point(gmsLocation)
+    }
+    user.gmsPublishLocation = gmsPublishLocation
+    // } catch (err) {
+    //   console.log('error:', err)
+    // }
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
@@ -609,7 +639,7 @@ export class UserResolver {
       })
 
       await queryRunner.commitTransaction()
-      logger.debug('writing User data successful...')
+      logger.debug('writing User data successful...', user)
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Error on writing updated user data', e)
