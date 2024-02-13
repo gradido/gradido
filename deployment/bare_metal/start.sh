@@ -1,5 +1,9 @@
 #!/bin/bash
-
+# check for parameter
+if [ -z "$1" ]; then
+    echo "Usage: Please provide a branch name as the first argument."
+    exit 1
+fi
 # Find current directory & configure paths
 set -o allexport
 SCRIPT_PATH=$(realpath $0)
@@ -80,7 +84,7 @@ pm2 delete all
 pm2 save
 
 # git
-BRANCH=${1:-master}
+BRANCH=$1
 echo "Starting with git pull - branch:$BRANCH" >> $UPDATE_HTML
 cd $PROJECT_ROOT
 # TODO: this overfetches alot, but ensures we can use start.sh with tags

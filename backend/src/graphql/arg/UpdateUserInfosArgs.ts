@@ -1,6 +1,11 @@
 import { IsBoolean, IsInt, IsString } from 'class-validator'
-import { ArgsType, Field, Int } from 'type-graphql'
+import { ArgsType, Field, InputType, Int } from 'type-graphql'
 
+import { Location } from '@model/Location'
+
+import { isValidLocation } from '@/graphql/validator/Location'
+
+@InputType()
 @ArgsType()
 export class UpdateUserInfosArgs {
   @Field({ nullable: true })
@@ -38,4 +43,20 @@ export class UpdateUserInfosArgs {
   @Field({ nullable: true })
   @IsBoolean()
   hideAmountGDT?: boolean
+
+  @Field({ nullable: true, defaultValue: true })
+  @IsBoolean()
+  gmsAllowed?: boolean
+
+  @Field(() => Int, { nullable: true, defaultValue: 0 })
+  @IsInt()
+  gmsPublishName?: number | null
+
+  @Field(() => Location, { nullable: true })
+  @isValidLocation()
+  gmsLocation?: Location | null
+
+  @Field(() => Int, { nullable: true, defaultValue: 2 })
+  @IsInt()
+  gmsPublishLocation?: number | null
 }

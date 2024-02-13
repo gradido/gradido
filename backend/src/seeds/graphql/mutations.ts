@@ -34,6 +34,10 @@ export const updateUserInfos = gql`
     $locale: String
     $hideAmountGDD: Boolean
     $hideAmountGDT: Boolean
+    $gmsAllowed: Boolean
+    $gmsPublishName: Int
+    $gmsLocation: Location
+    $gmsPublishLocation: Int
   ) {
     updateUserInfos(
       firstName: $firstName
@@ -44,6 +48,10 @@ export const updateUserInfos = gql`
       language: $locale
       hideAmountGDD: $hideAmountGDD
       hideAmountGDT: $hideAmountGDT
+      gmsAllowed: $gmsAllowed
+      gmsPublishName: $gmsPublishName
+      gmsLocation: $gmsLocation
+      gmsPublishLocation: $gmsPublishLocation
     )
   }
 `
@@ -352,5 +360,21 @@ export const login = gql`
 export const logout = gql`
   mutation {
     logout
+  }
+`
+
+export const updateHomeCommunityQuery = gql`
+  mutation ($uuid: String!, $gmsApiKey: String!) {
+    updateHomeCommunity(uuid: $uuid, gmsApiKey: $gmsApiKey) {
+      id
+      foreign
+      name
+      description
+      url
+      creationDate
+      uuid
+      authenticatedAt
+      gmsApiKey
+    }
   }
 `

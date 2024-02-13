@@ -12,7 +12,7 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0081-user_join_community',
+  DB_VERSION: '0082-introduce_gms_registration',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
@@ -139,6 +139,12 @@ const federation = {
     process.env.FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS ?? 3,
 }
 
+const gms = {
+  GMS_ACTIVE: process.env.GMS_ACTIVE === 'true' || false,
+  // koordinates of Illuminz-instance of GMS
+  GMS_URL: process.env.GMS_HOST ?? 'http://localhost:4044/',
+}
+
 export const CONFIG = {
   ...constants,
   ...server,
@@ -150,4 +156,5 @@ export const CONFIG = {
   ...loginServer,
   ...webhook,
   ...federation,
+  ...gms,
 }
