@@ -7,12 +7,13 @@ import {
   OneToMany,
   JoinColumn,
   OneToOne,
-  Geometry,
+  ManyToOne,
 } from 'typeorm'
 import { Contribution } from '../Contribution'
 import { ContributionMessage } from '../ContributionMessage'
 import { UserContact } from '../UserContact'
 import { UserRole } from '../UserRole'
+import { Community } from '../Community'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {
@@ -38,6 +39,10 @@ export class User extends BaseEntity {
     collation: 'utf8mb4_unicode_ci',
   })
   communityUuid: string
+
+  @ManyToOne(() => Community, (community) => community.users)
+  @JoinColumn({ name: 'community_uuid', referencedColumnName: 'communityUuid' })
+  community: Community | null
 
   @Column({
     name: 'alias',
@@ -72,9 +77,6 @@ export class User extends BaseEntity {
     collation: 'utf8mb4_unicode_ci',
   })
   lastName: string
-
-  @Column({ name: 'gms_publish_name', type: 'int', unsigned: true, nullable: false, default: 0 })
-  gmsPublishName: number
 
   @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP(3)', nullable: false })
   createdAt: Date
@@ -121,27 +123,6 @@ export class User extends BaseEntity {
 
   @Column({ name: 'publisher_id', default: 0 })
   publisherId: number
-
-  @Column({ name: 'gms_allowed', type: 'bool', default: true })
-  gmsAllowed: boolean
-
-  @Column({ name: 'location', type: 'geometry', default: null, nullable: true })
-  location: Geometry | null
-
-  @Column({
-    name: 'gms_publish_location',
-    type: 'int',
-    unsigned: true,
-    nullable: false,
-    default: 2,
-  })
-  gmsPublishLocation: number
-
-  @Column({ name: 'gms_registered', type: 'bool', default: false })
-  gmsRegistered: boolean
-
-  @Column({ name: 'gms_registered_at', type: 'datetime', default: null, nullable: true })
-  gmsRegisteredAt: Date | null
 
   @OneToMany(() => Contribution, (contribution) => contribution.user)
   @JoinColumn({ name: 'user_id' })

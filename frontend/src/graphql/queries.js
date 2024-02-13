@@ -285,23 +285,10 @@ export const openCreations = gql`
 `
 
 export const user = gql`
-  query($identifier: String!) {
-    user(identifier: $identifier) {
+  query($identifier: String!, $communityIdentifier: String!) {
+    user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
       firstName
       lastName
-      communityName
-    }
-  }
-`
-
-export const userAndCommunity = gql`
-  query($identifier: String!, $communityUuid: String!) {
-    user(identifier: $identifier) {
-      firstName
-      lastName
-    }
-    community(communityUuid: $communityUuid) {
-      name
     }
   }
 `

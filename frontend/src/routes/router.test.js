@@ -66,11 +66,11 @@ describe('router', () => {
 
       describe('send', () => {
         it('requires authorization', () => {
-          expect(routes.find((r) => r.path === '/send').meta.requiresAuth).toBeTruthy()
+          expect(routes.find((r) => r.path.startsWith('/send')).meta.requiresAuth).toBeTruthy()
         })
 
         it('loads the "Send" page', async () => {
-          const component = await routes.find((r) => r.path === '/send').component()
+          const component = await routes.find((r) => r.path.startsWith('/send')).component()
           expect(component.default.name).toBe('Send')
         })
       })

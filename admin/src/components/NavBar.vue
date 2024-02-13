@@ -38,8 +38,8 @@ export default {
   name: 'navbar',
   methods: {
     async logout() {
-      window.location.assign(CONFIG.WALLET_URL)
-      // window.location = CONFIG.WALLET_URL
+      window.location.assign(CONFIG.WALLET_LOGIN_URL)
+      // window.location = CONFIG.WALLET_LOGIN_URL
       this.$store.dispatch('logout')
       await this.$apollo.mutate({
         mutation: logout,

@@ -28,9 +28,9 @@ export class AuthenticationClient {
   async openConnection(args: OpenConnectionArgs): Promise<boolean | undefined> {
     logger.debug(`Authentication: openConnection at ${this.endpoint} for args:`, args)
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const { data } = await this.client.rawRequest(openConnection, { args })
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const { data } = await this.client.rawRequest<{ openConnection: boolean }>(openConnection, {
+        args,
+      })
       if (!data?.openConnection) {
         logger.warn(
           'Authentication: openConnection without response data from endpoint',

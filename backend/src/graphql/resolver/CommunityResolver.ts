@@ -50,7 +50,7 @@ export class CommunityResolver {
 
   @Authorized([RIGHTS.COMMUNITY_BY_UUID])
   @Query(() => Community)
-  async getCommunityByUuid(@Arg('communityUuid') communityUuid: string): Promise<Community> {
+  async community(@Arg('communityUuid') communityUuid: string): Promise<Community> {
     const com: DbCommunity | null = await getCommunityByUuid(communityUuid)
     if (!com) {
       throw new LogError('community not found', communityUuid)

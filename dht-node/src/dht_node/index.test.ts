@@ -14,6 +14,7 @@ import { CONFIG } from '@/config'
 import { startDHT } from './index'
 
 CONFIG.FEDERATION_DHT_SEED = '64ebcb0e3ad547848fef4197c6e2332f'
+CONFIG.FEDERATION_COMMUNITY_APIS = '1_0,1_1,2_0'
 
 jest.mock('@hyperswarm/dht')
 
@@ -249,6 +250,29 @@ describe('federation', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
                   new SyntaxError('Unexpected token \'o\', "no-json string" is not valid JSON'),
+                )
+              })
+            })
+
+            describe('with receiving non ascii character', () => {
+              beforeEach(() => {
+                jest.clearAllMocks()
+                // containing non-ascii character copyright symbol, U+00A9
+                socketEventMocks.data(Buffer.from('48656C6C6F2C20C2A92048656C6C6F21', 'hex'))
+                /*
+                const buffer = Buffer.from('48656C6C6F2C20C2A92048656C6C6F21', 'hex')
+                for (const byte of buffer) {
+                  console.log('byte: %o', byte)
+                  if (byte > 127) {
+                    console.log('non ascii char spotted')
+                  }
+                }
+                */
+              })
+
+              it('logs the binary data as hex', () => {
+                expect(logger.warn).toBeCalledWith(
+                  'received non ascii character, content as hex: 48656c6c6f2c20c2a92048656c6c6f21',
                 )
               })
             })

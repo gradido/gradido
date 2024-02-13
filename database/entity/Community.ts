@@ -1,1 +1,1 @@
-export { Community } from './0082-join_community_federated_communities/Community'
+export { Community } from './0083-join_community_federated_communities/Community'

@@ -3,11 +3,11 @@ import { ArgsType, Field } from 'type-graphql'
 
 @ArgsType()
 export class UserArgs {
-  @Field({ nullable: false })
+  @Field()
   @IsString()
   identifier: string
 
-  @Field({ nullable: true })
+  @Field()
   @IsString()
-  communityIdentifier?: string
+  communityIdentifier: string
 }

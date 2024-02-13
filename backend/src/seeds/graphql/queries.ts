@@ -136,7 +136,7 @@ export const communitiesQuery = gql`
 
 export const getCommunityByUuidQuery = gql`
   query ($communityUuid: String!) {
-    getCommunityByUuid(communityUuid: $communityUuid) {
+    community(communityUuid: $communityUuid) {
       id
       foreign
       name
@@ -387,7 +387,7 @@ export const adminListContributionMessages = gql`
 `
 
 export const user = gql`
-  query ($identifier: String!, $communityIdentifier: String) {
+  query ($identifier: String!, $communityIdentifier: String!) {
     user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
       firstName
       lastName

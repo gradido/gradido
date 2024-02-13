@@ -15,6 +15,8 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 import { v4 as uuidv4 } from 'uuid'
 
+import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
+import { GmsPublishNameType } from '@enum/GmsPublishNameType'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
@@ -142,7 +144,11 @@ describe('send coins', () => {
     })
 
     it('logs the error thrown', () => {
-      expect(logger.error).toBeCalledWith('No user with this credentials', 'wrong@email.com')
+      expect(logger.error).toBeCalledWith(
+        'No user with this credentials',
+        'wrong@email.com',
+        homeCom.communityUuid,
+      )
     })
 
     describe('deleted recipient', () => {
@@ -165,13 +171,17 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('No user to given contact')],
+            errors: [new GraphQLError('No user with this credentials')],
           }),
         )
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('No user to given contact', 'stephen@hawking.uk')
+        expect(logger.error).toBeCalledWith(
+          'No user with this credentials',
+          'stephen@hawking.uk',
+          homeCom.communityUuid,
+        )
       })
     })
 
@@ -204,6 +214,7 @@ describe('send coins', () => {
         expect(logger.error).toBeCalledWith(
           'No user with this credentials',
           'garrick@ollivander.com',
+          homeCom.communityUuid,
         )
       })
     })
@@ -523,6 +534,9 @@ describe('send coins', () => {
           mutation: updateUserInfos,
           variables: {
             alias: 'bob',
+            gmsAllowed: true,
+            gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+            gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
           },
         })
         await mutate({

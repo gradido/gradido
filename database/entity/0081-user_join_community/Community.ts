@@ -8,7 +8,7 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm'
-import { FederatedCommunity } from '../FederatedCommunity'
+import { User } from '../User'
 
 @Entity('communities')
 export class Community extends BaseEntity {
@@ -48,9 +48,6 @@ export class Community extends BaseEntity {
   @CreateDateColumn({ name: 'creation_date', type: 'datetime', nullable: true })
   creationDate: Date | null
 
-  @Column({ name: 'gms_api_key', type: 'varchar', length: 512, nullable: true, default: null })
-  gmsApiKey: string | null
-
   @CreateDateColumn({
     name: 'created_at',
     type: 'datetime',
@@ -67,7 +64,7 @@ export class Community extends BaseEntity {
   })
   updatedAt: Date | null
 
-  @OneToMany(() => FederatedCommunity, (federatedCommunity) => federatedCommunity.community)
-  @JoinColumn({ name: 'public_key', referencedColumnName: 'publicKey' })
-  federatedCommunities?: FederatedCommunity[]
+  @OneToMany(() => User, (user) => user.community)
+  @JoinColumn({ name: 'community_uuid', referencedColumnName: 'communityUuid' })
+  users: User[]
 }

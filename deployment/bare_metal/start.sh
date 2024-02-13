@@ -1,5 +1,9 @@
 #!/bin/bash
-
+# check for parameter
+if [ -z "$1" ]; then
+    echo "Usage: Please provide a branch name as the first argument."
+    exit 1
+fi
 # Find current directory & configure paths
 set -o allexport
 SCRIPT_PATH=$(realpath $0)
@@ -10,18 +14,27 @@ PROJECT_ROOT=$SCRIPT_DIR/../..
 NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
 set +o allexport
 
+# enable nvm 
+export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
 
 # We have to load the backend .env to get DB_USERNAME, DB_PASSWORD AND JWT_SECRET
+# and the dht-node .env to get FEDERATION_DHT_SEED
 export_var(){
   export $1=$(grep -v '^#' $PROJECT_ROOT/backend/.env | grep -e "$1" | sed -e 's/.*=//')
+  export $1=$(grep -v '^#' $PROJECT_ROOT/dht-node/.env | grep -e "$1" | sed -e 's/.*=//')
 }
 
 if [ -f "$PROJECT_ROOT/backend/.env" ]; then
     export_var 'DB_USER'
     export_var 'DB_PASSWORD'
     export_var 'JWT_SECRET'
+fi
+
+if [ -f "$PROJECT_ROOT/dht-node/.env" ]; then
+    export_var 'FEDERATION_DHT_SEED'
 fi
 
 # Load .env or .env.dist if not present
@@ -34,6 +47,14 @@ else
     source $SCRIPT_DIR/.env.dist
     set +o allexport
 fi
+
+# set env variables dynamic if not already set in .env or .env.dist
+: ${NGINX_SSL_CERTIFICATE:=/etc/letsencrypt/live/$COMMUNITY_HOST/fullchain.pem}
+: ${NGINX_SSL_CERTIFICATE_KEY:=/etc/letsencrypt/live/$COMMUNITY_HOST/privkey.pem}
+
+# export env variables
+export NGINX_SSL_CERTIFICATE
+export NGINX_SSL_CERTIFICATE_KEY
 
 # lock start
 if [ -f $LOCK_FILE ] ; then
@@ -54,8 +75,7 @@ exec > >(tee -a $UPDATE_HTML) 2>&1
 
 # configure nginx for the update-page
 echo 'Configuring nginx to serve the update-page' >> $UPDATE_HTML
-rm /etc/nginx/sites-enabled/gradido.conf
-ln -s /etc/nginx/sites-available/update-page.conf /etc/nginx/sites-enabled/
+ln -sf $SCRIPT_DIR/nginx/sites-available/update-page.conf $SCRIPT_DIR/nginx/sites-enabled/default
 sudo /etc/init.d/nginx restart
 
 # stop all services
@@ -64,7 +84,7 @@ pm2 delete all
 pm2 save
 
 # git
-BRANCH=${1:-master}
+BRANCH=$1
 echo "Starting with git pull - branch:$BRANCH" >> $UPDATE_HTML
 cd $PROJECT_ROOT
 # TODO: this overfetches alot, but ensures we can use start.sh with tags
@@ -100,9 +120,9 @@ export FEDERATION_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-federation.conf.locat
 
 # *** 3rd generate gradido nginx config including federation modules per api-version
 echo 'Generate new gradido nginx config' >> $UPDATE_HTML
-case "$NGINX_SSL" in
- true) TEMPLATE_FILE="gradido.conf.ssl.template" ;;
-    *) TEMPLATE_FILE="gradido.conf.template" ;;
+case "$URL_PROTOCOL" in
+ 'https') TEMPLATE_FILE="gradido.conf.ssl.template" ;;
+       *) TEMPLATE_FILE="gradido.conf.template" ;;
 esac
 envsubst '$FEDERATION_NGINX_CONF' < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf.tmp
 unset FEDERATION_NGINX_CONF
@@ -112,9 +132,9 @@ rm $NGINX_CONFIG_DIR/gradido-federation.conf.locations
 
 # Generate update-page.conf from template
 echo 'Generate new update-page nginx config' >> $UPDATE_HTML
-case "$NGINX_SSL" in
- true) TEMPLATE_FILE="update-page.conf.ssl.template" ;;
-    *) TEMPLATE_FILE="update-page.conf.template" ;;
+case "$URL_PROTOCOL" in
+ 'https') TEMPLATE_FILE="update-page.conf.ssl.template" ;;
+       *) TEMPLATE_FILE="update-page.conf.template" ;;
 esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/update-page.conf
 
@@ -177,8 +197,7 @@ if [ "$DEPLOY_SEED_DATA" = "true" ]; then
 fi
 # TODO maybe handle this differently?
 export NODE_ENV=production
-pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-pm2 save
+
 
 # Install & build frontend
 echo 'Updating frontend' >> $UPDATE_HTML
@@ -189,8 +208,6 @@ yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
-pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-pm2 save
 
 # Install & build admin
 echo 'Updating admin' >> $UPDATE_HTML
@@ -201,8 +218,6 @@ yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
-pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-pm2 save
 
 # Install & build dht-node
 echo 'Updating dht-node' >> $UPDATE_HTML
@@ -213,15 +228,6 @@ yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
-if [ ! -z $FEDERATION_DHT_TOPIC ]; then
-  pm2 start --name gradido-dht-node "yarn --cwd $PROJECT_ROOT/dht-node start" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-  pm2 save
-else
-  echo "=====================================================================" >> $UPDATE_HTML
-  echo "WARNING: FEDERATION_DHT_TOPIC not configured. DHT-Node not started..."  >> $UPDATE_HTML
-  echo "=====================================================================" >> $UPDATE_HTML
-fi  
-
 
 # Install & build federation
 echo 'Updating federation' >> $UPDATE_HTML
@@ -232,6 +238,20 @@ yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
+
+# start after building all to use up less ressources
+pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+pm2 save
+if [ ! -z $FEDERATION_DHT_TOPIC ]; then
+  pm2 start --name gradido-dht-node "yarn --cwd $PROJECT_ROOT/dht-node start" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+  pm2 save
+else
+  echo "=====================================================================" >> $UPDATE_HTML
+  echo "WARNING: FEDERATION_DHT_TOPIC not configured. DHT-Node not started..."  >> $UPDATE_HTML
+  echo "=====================================================================" >> $UPDATE_HTML
+fi  
 
 # set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
@@ -254,13 +274,9 @@ do
   pm2 save
 done
 
-
-
-
 # let nginx showing gradido
 echo 'Configuring nginx to serve gradido again' >> $UPDATE_HTML
-ln -s /etc/nginx/sites-available/gradido.conf /etc/nginx/sites-enabled/
-rm /etc/nginx/sites-enabled/update-page.conf
+ln -sf $SCRIPT_DIR/nginx/sites-available/gradido.conf $SCRIPT_DIR/nginx/sites-enabled/default
 sudo /etc/init.d/nginx restart
 
 # keep the update log
