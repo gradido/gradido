@@ -34,6 +34,10 @@ export const updateUserInfos = gql`
     $locale: String
     $hideAmountGDD: Boolean
     $hideAmountGDT: Boolean
+    $gmsAllowed: Boolean
+    $gmsPublishName: Int
+    $gmsLocation: Location
+    $gmsPublishLocation: Int
   ) {
     updateUserInfos(
       firstName: $firstName
@@ -44,6 +48,10 @@ export const updateUserInfos = gql`
       language: $locale
       hideAmountGDD: $hideAmountGDD
       hideAmountGDT: $hideAmountGDT
+      gmsAllowed: $gmsAllowed
+      gmsPublishName: $gmsPublishName
+      gmsLocation: $gmsLocation
+      gmsPublishLocation: $gmsPublishLocation
     )
   }
 `
