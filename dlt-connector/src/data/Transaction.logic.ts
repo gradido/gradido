@@ -60,7 +60,7 @@ export class TransactionLogic {
         return nextTransaction
       }
     }
-    throw new LogError("couldn't find valid paring transaction", {
+    throw new LogError("couldn't find valid pairing transaction", {
       id: this.self.id,
       type: CrossGroupType[type],
       transactionCountWithSameCreatedAt: sameCreationDateTransactions.length,
