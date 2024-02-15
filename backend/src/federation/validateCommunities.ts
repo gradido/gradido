@@ -8,12 +8,12 @@ import { FederatedCommunityLoggingView } from '@logging/FederatedCommunityLoggin
 import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
 import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
 import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
+import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
 import { ApiVersionType } from './enum/apiVersionType'
-import { LogError } from '@/server/LogError'
 
 export async function startValidateCommunities(timerInterval: number): Promise<void> {
   if (Number.isNaN(timerInterval) || timerInterval <= 0) {
