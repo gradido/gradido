@@ -49,6 +49,7 @@
     "paths": {                                      /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
       "@/*": ["src/*"],
       "@arg/*": ["src/graphql/arg/*"],
+      "@input/*": ["src/graphql/input/*"],
       "@dltConnector/*": ["src/apis/dltConnector/*"],
       "@enum/*": ["src/graphql/enum/*"],
       "@model/*": ["src/graphql/model/*"],

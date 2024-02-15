@@ -1,16 +1,17 @@
 import { IsNull, Not } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
-import { Resolver, Query, Authorized, Arg, Mutation, Args } from 'type-graphql'
+import { Resolver, Query, Authorized, Mutation, Args } from 'type-graphql'
 
 import { CommunityArgs } from '@arg//CommunityArgs'
+import { EditCommunityInput } from '@input/EditCommunityInput'
 import { Community } from '@model/Community'
 import { FederatedCommunity } from '@model/FederatedCommunity'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LogError } from '@/server/LogError'
 
-import { getCommunityByUuid } from './util/communities'
+import { getCommunity } from './util/communities'
 
 @Resolver()
 export class CommunityResolver {
@@ -41,41 +42,30 @@ export class CommunityResolver {
     return dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
   }
 
-  @Authorized([RIGHTS.COMMUNITY_BY_UUID])
+  @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => Community)
-  async community(@Arg('communityUuid') communityUuid: string): Promise<Community> {
-    const com: DbCommunity | null = await getCommunityByUuid(communityUuid)
-    if (!com) {
-      throw new LogError('community not found', communityUuid)
+  async community(@Args() { communityIdentifier, foreign }: CommunityArgs): Promise<Community> {
+    const community = await getCommunity(communityIdentifier, foreign)
+    if (!community) {
+      throw new LogError('community not found', communityIdentifier, foreign)
     }
-    return new Community(com)
+    return new Community(community)
   }
 
   @Authorized([RIGHTS.COMMUNITY_UPDATE])
   @Mutation(() => Community)
-  async updateHomeCommunity(@Args() { uuid, gmsApiKey }: CommunityArgs): Promise<Community> {
-    let homeCom: DbCommunity | null
-    let com: Community
-    if (uuid) {
-      let toUpdate = false
-      homeCom = await getCommunityByUuid(uuid)
-      if (!homeCom) {
-        throw new LogError('HomeCommunity with uuid not found: ', uuid)
-      }
-      if (homeCom.foreign) {
-        throw new LogError('Error: Only the HomeCommunity could be modified!')
-      }
-      if (homeCom.gmsApiKey !== gmsApiKey) {
-        homeCom.gmsApiKey = gmsApiKey
-        toUpdate = true
-      }
-      if (toUpdate) {
-        await DbCommunity.save(homeCom)
-      }
-      com = new Community(homeCom)
-    } else {
-      throw new LogError(`HomeCommunity without an uuid can't be modified!`)
+  async updateHomeCommunity(@Args() { uuid, gmsApiKey }: EditCommunityInput): Promise<Community> {
+    const homeCom = await getCommunity(uuid)
+    if (!homeCom) {
+      throw new LogError('HomeCommunity with uuid not found: ', uuid)
     }
-    return com
+    if (homeCom.foreign) {
+      throw new LogError('Error: Only the HomeCommunity could be modified!')
+    }
+    if (homeCom.gmsApiKey !== gmsApiKey) {
+      homeCom.gmsApiKey = gmsApiKey
+      await DbCommunity.save(homeCom)
+    }
+    return new Community(homeCom)
   }
 }

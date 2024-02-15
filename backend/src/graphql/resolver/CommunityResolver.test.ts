@@ -10,6 +10,7 @@ import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql/error/GraphQLError'
+import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
@@ -19,7 +20,7 @@ import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
 import { getCommunities, communitiesQuery, getCommunityByUuidQuery } from '@/seeds/graphql/queries'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
-import { getCommunityByUuid } from './util/communities'
+import { getCommunity } from './util/communities'
 
 // to do: We need a setup for the tests that closes the connection
 let mutate: ApolloServerTestClient['mutate'],
@@ -459,7 +460,7 @@ describe('CommunityResolver', () => {
         await mutate({ mutation: login, variables: peterLoginData })
 
         // HomeCommunity is still created in userFactory
-        homeCom = await getCommunityByUuid(admin.communityUuid)
+        homeCom = await getCommunity(admin.communityUuid)
 
         foreignCom1 = DbCommunity.create()
         foreignCom1.foreign = true
@@ -478,7 +479,7 @@ describe('CommunityResolver', () => {
         foreignCom2.url = 'http://stage-3.gradido.net/api'
         foreignCom2.publicKey = Buffer.from('publicKey-stage-3_Community')
         foreignCom2.privateKey = Buffer.from('privateKey-stage-3_Community')
-        foreignCom2.communityUuid = 'Stage3-Com-UUID'
+        foreignCom2.communityUuid = uuidv4()
         foreignCom2.authenticatedAt = new Date()
         foreignCom2.name = 'Stage-3_Community-name'
         foreignCom2.description = 'Stage-3_Community-description'
@@ -490,7 +491,7 @@ describe('CommunityResolver', () => {
         await expect(
           query({
             query: getCommunityByUuidQuery,
-            variables: { communityUuid: homeCom?.communityUuid },
+            variables: { communityIdentifier: homeCom?.communityUuid },
           }),
         ).resolves.toMatchObject({
           data: {
@@ -563,7 +564,7 @@ describe('CommunityResolver', () => {
         expect(
           await mutate({
             mutation: updateHomeCommunityQuery,
-            variables: { uuid: 'unknownUuid', gmsApiKey: 'gmsApiKey' },
+            variables: { uuid: uuidv4(), gmsApiKey: 'gmsApiKey' },
           }),
         ).toEqual(
           expect.objectContaining({
