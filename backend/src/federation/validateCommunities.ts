@@ -13,8 +13,12 @@ import { backendLogger as logger } from '@/server/logger'
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
 import { ApiVersionType } from './enum/apiVersionType'
+import { LogError } from '@/server/LogError'
 
 export async function startValidateCommunities(timerInterval: number): Promise<void> {
+  if (Number.isNaN(timerInterval) || timerInterval <= 0) {
+    throw new LogError('FEDERATION_VALIDATE_COMMUNITY_TIMER is not a positive number')
+  }
   logger.info(
     `Federation: startValidateCommunities loop with an interval of ${timerInterval} ms...`,
   )

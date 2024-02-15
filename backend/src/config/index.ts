@@ -128,8 +128,8 @@ if (
 
 const federation = {
   FEDERATION_BACKEND_SEND_ON_API: process.env.FEDERATION_BACKEND_SEND_ON_API ?? '1_0',
-  FEDERATION_VALIDATE_COMMUNITY_TIMER:
-    Number(process.env.FEDERATION_VALIDATE_COMMUNITY_TIMER) ?? 60000,
+  FEDERATION_VALIDATE_COMMUNITY_TIMER: // ?? operator don't work here as expected
+    Number(process.env.FEDERATION_VALIDATE_COMMUNITY_TIMER) || 60000,
   FEDERATION_XCOM_SENDCOINS_ENABLED:
     process.env.FEDERATION_XCOM_SENDCOINS_ENABLED === 'true' ?? false,
   // default value for community-uuid is equal uuid of stage-3
