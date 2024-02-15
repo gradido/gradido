@@ -1,7 +1,4 @@
 # Setup on Hetzner Cloud Server
-Suggested minimal Plan: CX41
-4x vCPU, 16 GB Ram, 160 GB Disk Space, 20.71 € per month (04.01.2024) 
-
 Suggested OS:
 Debian 12
 
@@ -14,6 +11,10 @@ like this:
 ssh_authorized_keys:
   - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAkLGbzbG7KIGfkssKJBkc/0EVAzQ/8vjvVHzNdxhK8J yourname
 ```
+
+I made a (german) video to show it to you:
+
+[![Video](https://img.youtube.com/vi/fORK3Bt3lPw/hqdefault.jpg)](https://www.youtube.com/watch?v=fORK3Bt3lPw)
 
 ## After Setup Cloud Server with cloudConfig.yaml
 ### setup your domain pointing on server ip address 
@@ -99,15 +100,19 @@ nano .env
 # adjust values accordingly
 ```
 
-### Run `install.sh`
+### Run `install.sh` with branch name
 ***!!! Attention !!!***
 Don't use this script if you have custom config in /etc/nginx/conf.d, because this script
 will remove it and ln ../bare_metal/nginx/conf.d
 
 ```bash
 cd ~/gradido/deployment/hetzner_cloud
-sudo ./install.sh
+sudo ./install.sh release-2_2_0
 ```
+
+I made a (german) video to show it to you:
+
+[![Video](https://img.youtube.com/vi/9h-55Si6bMk/hqdefault.jpg)](https://www.youtube.com/watch?v=9h-55Si6bMk)
 
 ### Make yourself admin
 - Create an account on your new gradido instance
@@ -122,3 +127,6 @@ sudo mysql -D gradido_community -e "insert into user_roles(user_id, role) values
 - login with you newly created user
 - if you has a link to `Admin Area` it worked and you are admin
 
+I made a (german) video to show it to you:
+
+[![Video](https://img.youtube.com/vi/xVQ5t4MnLrE/hqdefault.jpg)](https://www.youtube.com/watch?v=xVQ5t4MnLrE)
