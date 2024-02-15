@@ -3,7 +3,6 @@ import gql from 'graphql-tag'
 export const allCommunities = gql`
   query {
     allCommunities {
-      id
       foreign
       url
       publicKey

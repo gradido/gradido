@@ -44,7 +44,7 @@
               </b-row>
               <b-list-group-item
                 v-for="federation in item.federatedCommunities"
-                :key="federation.publicKey"
+                :key="federation.id"
                 :variant="!item.foreign ? 'primary' : 'warning'"
               >
                 <federation-visualize-item :item="federation" />
