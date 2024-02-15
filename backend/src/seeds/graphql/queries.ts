@@ -157,6 +157,7 @@ export const getCommunities = gql`
       foreign
       publicKey
       endPoint
+      apiVersion
       lastAnnouncedAt
       verifiedAt
       lastErrorAt

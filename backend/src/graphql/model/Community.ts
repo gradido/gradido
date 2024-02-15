@@ -31,7 +31,6 @@ export class Community {
     if (dbCom.publicKey && dbCom.publicKey.length === 32) {
       this.publicKey = dbCom.publicKey.toString('hex')
     }
-    this.communityUuid = dbCom.communityUuid
     this.creationDate = dbCom.creationDate
     this.createdAt = dbCom.createdAt
     this.updatedAt = dbCom.updatedAt
@@ -60,9 +59,6 @@ export class Community {
 
   @Field(() => String)
   publicKey: string
-
-  @Field(() => String, { nullable: true })
-  communityUuid: string | null
 
   @Field(() => Date, { nullable: true })
   creationDate: Date | null

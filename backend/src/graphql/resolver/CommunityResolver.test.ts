@@ -165,6 +165,7 @@ describe('CommunityResolver', () => {
                 foreign: homeCom3.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[2].public),
                 endPoint: expect.stringMatching('http://localhost/api/'),
+                apiVersion: '2_0',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -176,6 +177,7 @@ describe('CommunityResolver', () => {
                 foreign: homeCom2.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[1].public),
                 endPoint: expect.stringMatching('http://localhost/api/'),
+                apiVersion: '1_1',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -187,6 +189,7 @@ describe('CommunityResolver', () => {
                 foreign: homeCom1.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[0].public),
                 endPoint: expect.stringMatching('http://localhost/api/'),
+                apiVersion: '1_0',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -222,7 +225,7 @@ describe('CommunityResolver', () => {
         foreignCom3 = DbFederatedCommunity.create()
         foreignCom3.foreign = true
         foreignCom3.publicKey = Buffer.from(ed25519KeyPairStaticHex[5].public, 'hex')
-        foreignCom3.apiVersion = '1_2'
+        foreignCom3.apiVersion = '2_0'
         foreignCom3.endPoint = 'http://remotehost/api'
         foreignCom3.createdAt = new Date()
         await DbFederatedCommunity.insert(foreignCom3)
@@ -237,6 +240,7 @@ describe('CommunityResolver', () => {
                 foreign: homeCom3.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[2].public),
                 endPoint: expect.stringMatching('http://localhost/api/'),
+                apiVersion: '2_0',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -248,6 +252,7 @@ describe('CommunityResolver', () => {
                 foreign: homeCom2.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[1].public),
                 endPoint: expect.stringMatching('http://localhost/api/'),
+                apiVersion: '1_1',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -259,6 +264,7 @@ describe('CommunityResolver', () => {
                 foreign: homeCom1.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[0].public),
                 endPoint: expect.stringMatching('http://localhost/api/'),
+                apiVersion: '1_0',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -270,6 +276,7 @@ describe('CommunityResolver', () => {
                 foreign: foreignCom3.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[5].public),
                 endPoint: expect.stringMatching('http://remotehost/api/'),
+                apiVersion: '2_0',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -281,6 +288,7 @@ describe('CommunityResolver', () => {
                 foreign: foreignCom2.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[4].public),
                 endPoint: expect.stringMatching('http://remotehost/api/'),
+                apiVersion: '1_1',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -292,6 +300,7 @@ describe('CommunityResolver', () => {
                 foreign: foreignCom1.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[3].public),
                 endPoint: expect.stringMatching('http://remotehost/api/'),
+                apiVersion: '1_0',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,

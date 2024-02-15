@@ -15,8 +15,8 @@
     <b-row v-if="details" class="details">
       <b-col colspan="5">
         <b-list-group>
-          <b-list-group-item v-if="item.communityUuid">
-            {{ $t('federation.communityUuid') }}&nbsp;{{ item.communityUuid }}
+          <b-list-group-item v-if="item.uuid">
+            {{ $t('federation.communityUuid') }}&nbsp;{{ item.uuid }}
           </b-list-group-item>
           <b-list-group-item v-if="item.authenticatedAt">
             {{ $t('federation.authenticatedAt') }}&nbsp;{{ item.authenticatedAt }}
@@ -144,7 +144,7 @@ export default {
         .mutate({
           mutation: updateHomeCommunity,
           variables: {
-            uuid: this.item.communityUuid,
+            uuid: this.item.uuid,
             gmsApiKey: gmsApiKey,
           },
         })

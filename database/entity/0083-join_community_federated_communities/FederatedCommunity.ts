@@ -52,7 +52,7 @@ export class FederatedCommunity extends BaseEntity {
   })
   updatedAt: Date | null
 
-  @ManyToOne(() => Community, (community) => community.federatedCommunities) // Assuming you have a User entity with 'accounts' relation
+  @ManyToOne(() => Community, (community) => community.federatedCommunities)
   @JoinColumn({ name: 'public_key', referencedColumnName: 'publicKey' })
   community?: Community
 }

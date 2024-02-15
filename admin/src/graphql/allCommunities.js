@@ -6,7 +6,7 @@ export const allCommunities = gql`
       foreign
       url
       publicKey
-      communityUuid
+      uuid
       authenticatedAt
       name
       description
