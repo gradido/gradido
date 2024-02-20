@@ -452,7 +452,7 @@ export class TransactionResolver {
       if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
         throw new LogError('X-Community sendCoins disabled per configuration!')
       }
-      const recipCom = await getCommunity(recipientCommunityIdentifier)
+      const recipCom = await getCommunity({ communityIdentifier: recipientCommunityIdentifier })
       logger.debug('recipient commuity: ', recipCom)
       if (recipCom === null) {
         throw new LogError(

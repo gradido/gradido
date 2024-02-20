@@ -44,10 +44,10 @@ export class CommunityResolver {
 
   @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => Community)
-  async community(@Args() { communityIdentifier, foreign }: CommunityArgs): Promise<Community> {
-    const community = await getCommunity(communityIdentifier, foreign)
+  async community(@Args() communityArgs: CommunityArgs): Promise<Community> {
+    const community = await getCommunity(communityArgs)
     if (!community) {
-      throw new LogError('community not found', communityIdentifier, foreign)
+      throw new LogError('community not found', communityArgs)
     }
     return new Community(community)
   }
@@ -55,7 +55,7 @@ export class CommunityResolver {
   @Authorized([RIGHTS.COMMUNITY_UPDATE])
   @Mutation(() => Community)
   async updateHomeCommunity(@Args() { uuid, gmsApiKey }: EditCommunityInput): Promise<Community> {
-    const homeCom = await getCommunity(uuid)
+    const homeCom = await getCommunity({ communityIdentifier: uuid })
     if (!homeCom) {
       throw new LogError('HomeCommunity with uuid not found: ', uuid)
     }

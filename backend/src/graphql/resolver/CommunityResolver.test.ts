@@ -460,7 +460,7 @@ describe('CommunityResolver', () => {
         await mutate({ mutation: login, variables: peterLoginData })
 
         // HomeCommunity is still created in userFactory
-        homeCom = await getCommunity(admin.communityUuid)
+        homeCom = await getCommunity({ communityIdentifier: admin.communityUuid })
 
         foreignCom1 = DbCommunity.create()
         foreignCom1.foreign = true
