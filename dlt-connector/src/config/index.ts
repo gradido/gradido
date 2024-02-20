@@ -9,13 +9,14 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v5.2024-02-24',
+    EXPECTED: 'v6.2024-02-20',
     CURRENT: '',
   },
 }
 
 const server = {
   PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
+  JWT_SECRET: process.env.JWT_SECRET ?? 'secret123',
 }
 
 const database = {

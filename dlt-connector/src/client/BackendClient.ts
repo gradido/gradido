@@ -6,6 +6,7 @@ import { CONFIG } from '@/config'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
+import { SignJWT } from 'jose'
 
 const communityByForeign = gql`
   query ($foreign: Boolean) {
@@ -73,6 +74,7 @@ export class BackendClient {
 
   public async homeCommunityUUid(): Promise<CommunityDraft> {
     logger.info('check home community on backend')
+    this.client.setHeader('token', await this.createJWTToken())
     const { data, errors } = await this.client.rawRequest<Community>(communityByForeign, {
       foreign: false,
     })
@@ -84,5 +86,17 @@ export class BackendClient {
     communityDraft.foreign = data.community.foreign
     communityDraft.createdAt = data.community.creationDate
     return communityDraft
+  }
+
+  private async createJWTToken(): Promise<string> {
+    const secret = new TextEncoder().encode(CONFIG.JWT_SECRET)
+    const token = await new SignJWT({ gradidoID: 'dlt-connector', 'urn:gradido:claim': true })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setIssuer('urn:gradido:issuer')
+      .setAudience('urn:gradido:audience')
+      .setExpirationTime('1m')
+      .sign(secret)
+    return token
   }
 }
