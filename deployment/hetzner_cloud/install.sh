@@ -127,7 +127,13 @@ cp $SCRIPT_PATH/logrotate/gradido.conf /etc/logrotate.d/gradido.conf
 export DB_USER=gradido
 # create a new password only if it not already exist
 if [ -z "${DB_PASSWORD}" ]; then
-    export DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
+    export DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c 32; echo);
+fi
+
+# Check if DB_PASSWORD is still empty, then exit with an error
+if [ -z "${DB_PASSWORD}" ]; then
+    echo "Error: Failed to generate DB_PASSWORD."
+    exit 1
 fi
 mysql <<EOFMYSQL
     CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';
@@ -139,7 +145,7 @@ EOFMYSQL
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/database/.env.template > $PROJECT_ROOT/database/.env
 
 # Configure backend
-export JWT_SECRET=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
+export JWT_SECRET=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c 32; echo);
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/backend/.env.template > $PROJECT_ROOT/backend/.env
 
 # Configure frontend
@@ -149,7 +155,7 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
 
 # Configure dht-node
-export FEDERATION_DHT_SEED=$(< /dev/urandom tr -dc a-f0-9 | head -c 32;echo);
+export FEDERATION_DHT_SEED=$(< /dev/urandom tr -dc a-f0-9 | head -c 32; echo);
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env.template > $PROJECT_ROOT/dht-node/.env
 
 # Configure federation
@@ -163,4 +169,4 @@ sudo -u gradido crontab < $LOCAL_SCRIPT_DIR/crontabs.txt
 
 # Start gradido
 # Note: on first startup some errors will occur - nothing serious
-sudo -u gradido $SCRIPT_PATH/start.sh 
+sudo -u gradido $SCRIPT_PATH/start.sh $1
