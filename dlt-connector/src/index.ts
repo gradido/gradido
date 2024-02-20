@@ -22,7 +22,7 @@ async function waitForServer(
 
     try {
       // Make a HEAD request to the server
-      return await backend.homeCommunityUUid()
+      return await backend.getHomeCommunityDraft()
     } catch (error) {
       logger.info('Server is not reachable: ', error)
     }
@@ -51,7 +51,7 @@ async function main() {
     // wait for backend server to be ready
     await waitForServer(backend, 1000, 8)
 
-    const communityDraft = await backend.homeCommunityUUid()
+    const communityDraft = await backend.getHomeCommunityDraft()
     const addCommunityContext = new AddCommunityContext(communityDraft)
     await addCommunityContext.run()
   }

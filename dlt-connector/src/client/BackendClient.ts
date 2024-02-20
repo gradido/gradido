@@ -58,7 +58,7 @@ export class BackendClient {
           headers: {
             'content-type': 'application/json',
           },
-          method: 'POST',
+          method: 'GET',
           jsonSerializer: {
             parse: JSON.parse,
             stringify: JSON.stringify,
@@ -72,12 +72,15 @@ export class BackendClient {
     return BackendClient.instance
   }
 
-  public async homeCommunityUUid(): Promise<CommunityDraft> {
+  public async getHomeCommunityDraft(): Promise<CommunityDraft> {
     logger.info('check home community on backend')
-    this.client.setHeader('token', await this.createJWTToken())
-    const { data, errors } = await this.client.rawRequest<Community>(communityByForeign, {
-      foreign: false,
-    })
+    const { data, errors } = await this.client.rawRequest<Community>(
+      communityByForeign,
+      {
+        foreign: false,
+      },
+      { authorization: 'Bearer ' + (await this.createJWTToken()) },
+    )
     if (errors) {
       throw new LogError('error getting home community from backend', errors)
     }
