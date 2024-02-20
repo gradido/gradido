@@ -17,7 +17,7 @@ import { logger, i18n as localization } from '@test/testSetup'
 
 import { userFactory } from '@/seeds/factory/user'
 import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
-import { getCommunities, communitiesQuery, getCommunityByUuidQuery } from '@/seeds/graphql/queries'
+import { getCommunities, communitiesQuery, getCommunityQuery } from '@/seeds/graphql/queries'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
 import { getCommunity } from './util/communities'
@@ -487,11 +487,33 @@ describe('CommunityResolver', () => {
         await DbCommunity.insert(foreignCom2)
       })
 
-      it('finds the home-community', async () => {
+      it('finds the home-community by uuid', async () => {
         await expect(
           query({
-            query: getCommunityByUuidQuery,
+            query: getCommunityQuery,
             variables: { communityIdentifier: homeCom?.communityUuid },
+          }),
+        ).resolves.toMatchObject({
+          data: {
+            community: {
+              id: homeCom?.id,
+              foreign: homeCom?.foreign,
+              name: homeCom?.name,
+              description: homeCom?.description,
+              url: homeCom?.url,
+              creationDate: homeCom?.creationDate?.toISOString(),
+              uuid: homeCom?.communityUuid,
+              authenticatedAt: homeCom?.authenticatedAt,
+            },
+          },
+        })
+      })
+
+      it('finds the home-community by foreign', async () => {
+        await expect(
+          query({
+            query: getCommunityQuery,
+            variables: { foreign: false },
           }),
         ).resolves.toMatchObject({
           data: {

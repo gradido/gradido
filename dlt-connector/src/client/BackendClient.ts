@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { gql, GraphQLClient } from 'graphql-request'
+import { SignJWT } from 'jose'
 
 import { CONFIG } from '@/config'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
-import { SignJWT } from 'jose'
 
 const communityByForeign = gql`
   query ($foreign: Boolean) {

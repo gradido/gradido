@@ -134,9 +134,9 @@ export const communitiesQuery = gql`
   }
 `
 
-export const getCommunityByUuidQuery = gql`
-  query ($communityIdentifier: String!) {
-    community(communityIdentifier: $communityIdentifier) {
+export const getCommunityQuery = gql`
+  query ($communityIdentifier: String, $foreign: Boolean) {
+    community(communityIdentifier: $communityIdentifier, foreign: $foreign) {
       id
       foreign
       name

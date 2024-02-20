@@ -42,7 +42,7 @@ export class CommunityResolver {
     return dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
   }
 
-  @Authorized([RIGHTS.COMMUNITIES])
+  @Authorized([RIGHTS.COMMUNITY_BY_IDENTIFIER])
   @Query(() => Community)
   async community(@Args() communityArgs: CommunityArgs): Promise<Community> {
     const community = await getCommunity(communityArgs)
