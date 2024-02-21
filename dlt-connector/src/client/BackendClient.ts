@@ -8,9 +8,9 @@ import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
 
-const communityByForeign = gql`
-  query ($foreign: Boolean) {
-    community(foreign: $foreign) {
+const homeCommunity = gql`
+  query {
+    homeCommunity {
       uuid
       foreign
       creationDate
@@ -18,7 +18,7 @@ const communityByForeign = gql`
   }
 `
 interface Community {
-  community: {
+  homeCommunity: {
     uuid: string
     foreign: boolean
     creationDate: string
@@ -75,19 +75,19 @@ export class BackendClient {
   public async getHomeCommunityDraft(): Promise<CommunityDraft> {
     logger.info('check home community on backend')
     const { data, errors } = await this.client.rawRequest<Community>(
-      communityByForeign,
+      homeCommunity,
+      {},
       {
-        foreign: false,
+        authorization: 'Bearer ' + (await this.createJWTToken()),
       },
-      { authorization: 'Bearer ' + (await this.createJWTToken()) },
     )
     if (errors) {
       throw new LogError('error getting home community from backend', errors)
     }
     const communityDraft = new CommunityDraft()
-    communityDraft.uuid = data.community.uuid
-    communityDraft.foreign = data.community.foreign
-    communityDraft.createdAt = data.community.creationDate
+    communityDraft.uuid = data.homeCommunity.uuid
+    communityDraft.foreign = data.homeCommunity.foreign
+    communityDraft.createdAt = data.homeCommunity.creationDate
     return communityDraft
   }
 

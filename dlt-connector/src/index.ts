@@ -49,7 +49,7 @@ async function main() {
       throw new LogError('cannot create backend client')
     }
     // wait for backend server to be ready
-    await waitForServer(backend, 1000, 8)
+    await waitForServer(backend, 2500, 10)
 
     const communityDraft = await backend.getHomeCommunityDraft()
     const addCommunityContext = new AddCommunityContext(communityDraft)

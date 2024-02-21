@@ -1,9 +1,8 @@
 import { IsNull, Not } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
-import { Resolver, Query, Authorized, Mutation, Args } from 'type-graphql'
+import { Resolver, Query, Authorized, Mutation, Args, Arg } from 'type-graphql'
 
-import { CommunityArgs } from '@arg//CommunityArgs'
 import { EditCommunityInput } from '@input/EditCommunityInput'
 import { Community } from '@model/Community'
 import { FederatedCommunity } from '@model/FederatedCommunity'
@@ -11,7 +10,7 @@ import { FederatedCommunity } from '@model/FederatedCommunity'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LogError } from '@/server/LogError'
 
-import { getCommunity } from './util/communities'
+import { getCommunityByIdentifier, getCommunityByUuid, getHomeCommunity } from './util/communities'
 
 @Resolver()
 export class CommunityResolver {
@@ -44,10 +43,20 @@ export class CommunityResolver {
 
   @Authorized([RIGHTS.COMMUNITY_BY_IDENTIFIER])
   @Query(() => Community)
-  async community(@Args() communityArgs: CommunityArgs): Promise<Community> {
-    const community = await getCommunity(communityArgs)
+  async communityByIdentifier(@Arg('communityIdentifier') communityIdentifier: string): Promise<Community> {
+    const community = await getCommunityByIdentifier(communityIdentifier)
     if (!community) {
-      throw new LogError('community not found', communityArgs)
+      throw new LogError('community not found', communityIdentifier)
+    }
+    return new Community(community)
+  }
+
+  @Authorized([RIGHTS.HOME_COMMUNITY])
+  @Query(() => Community)
+  async homeCommunity(): Promise<Community> {
+    const community = await getHomeCommunity()
+    if (!community) {
+      throw new LogError('no home community exist')
     }
     return new Community(community)
   }
@@ -55,7 +64,7 @@ export class CommunityResolver {
   @Authorized([RIGHTS.COMMUNITY_UPDATE])
   @Mutation(() => Community)
   async updateHomeCommunity(@Args() { uuid, gmsApiKey }: EditCommunityInput): Promise<Community> {
-    const homeCom = await getCommunity({ communityIdentifier: uuid })
+    const homeCom = await getCommunityByUuid(uuid)
     if (!homeCom) {
       throw new LogError('HomeCommunity with uuid not found: ', uuid)
     }

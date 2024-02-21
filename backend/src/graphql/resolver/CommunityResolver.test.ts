@@ -17,10 +17,10 @@ import { logger, i18n as localization } from '@test/testSetup'
 
 import { userFactory } from '@/seeds/factory/user'
 import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
-import { getCommunities, communitiesQuery, getCommunityQuery } from '@/seeds/graphql/queries'
+import { getCommunities, communitiesQuery, getHomeCommunityQuery, getCommunityByIdentifierQuery } from '@/seeds/graphql/queries'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
-import { getCommunity } from './util/communities'
+import { getCommunityByUuid } from './util/communities'
 
 // to do: We need a setup for the tests that closes the connection
 let mutate: ApolloServerTestClient['mutate'],
@@ -460,7 +460,7 @@ describe('CommunityResolver', () => {
         await mutate({ mutation: login, variables: peterLoginData })
 
         // HomeCommunity is still created in userFactory
-        homeCom = await getCommunity({ communityIdentifier: admin.communityUuid })
+        homeCom = await getCommunityByUuid(admin.communityUuid)
 
         foreignCom1 = DbCommunity.create()
         foreignCom1.foreign = true
@@ -490,12 +490,12 @@ describe('CommunityResolver', () => {
       it('finds the home-community by uuid', async () => {
         await expect(
           query({
-            query: getCommunityQuery,
+            query: getCommunityByIdentifierQuery,
             variables: { communityIdentifier: homeCom?.communityUuid },
           }),
         ).resolves.toMatchObject({
           data: {
-            community: {
+            communityByIdentifier: {
               id: homeCom?.id,
               foreign: homeCom?.foreign,
               name: homeCom?.name,
@@ -509,15 +509,14 @@ describe('CommunityResolver', () => {
         })
       })
 
-      it('finds the home-community by foreign', async () => {
+      it('finds the home-community', async () => {
         await expect(
           query({
-            query: getCommunityQuery,
-            variables: { foreign: false },
+            query: getHomeCommunityQuery,
           }),
         ).resolves.toMatchObject({
           data: {
-            community: {
+            homeCommunity: {
               id: homeCom?.id,
               foreign: homeCom?.foreign,
               name: homeCom?.name,
