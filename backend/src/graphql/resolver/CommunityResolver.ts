@@ -5,6 +5,7 @@ import { Resolver, Query, Authorized, Arg, Mutation, Args } from 'type-graphql'
 
 import { CommunityArgs } from '@arg//CommunityArgs'
 import { Paginated } from '@arg/Paginated'
+import { AdminCommunityView } from '@model/AdminCommunityView'
 import { Community } from '@model/Community'
 import { FederatedCommunity } from '@model/FederatedCommunity'
 
@@ -31,9 +32,9 @@ export class CommunityResolver {
   }
 
   @Authorized([RIGHTS.COMMUNITIES])
-  @Query(() => [Community])
-  async allCommunities(@Args() paginated: Paginated): Promise<Community[]> {
-    return (await getAllCommunities(paginated)).map((dbCom) => new Community(dbCom))
+  @Query(() => [AdminCommunityView])
+  async allCommunities(@Args() paginated: Paginated): Promise<AdminCommunityView[]> {
+    return (await getAllCommunities(paginated)).map((dbCom) => new AdminCommunityView(dbCom))
   }
 
   @Authorized([RIGHTS.COMMUNITIES])
