@@ -43,7 +43,9 @@ export class CommunityResolver {
 
   @Authorized([RIGHTS.COMMUNITY_BY_IDENTIFIER])
   @Query(() => Community)
-  async communityByIdentifier(@Arg('communityIdentifier') communityIdentifier: string): Promise<Community> {
+  async communityByIdentifier(
+    @Arg('communityIdentifier') communityIdentifier: string,
+  ): Promise<Community> {
     const community = await getCommunityByIdentifier(communityIdentifier)
     if (!community) {
       throw new LogError('community not found', communityIdentifier)

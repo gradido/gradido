@@ -17,7 +17,12 @@ import { logger, i18n as localization } from '@test/testSetup'
 
 import { userFactory } from '@/seeds/factory/user'
 import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
-import { getCommunities, communitiesQuery, getHomeCommunityQuery, getCommunityByIdentifierQuery } from '@/seeds/graphql/queries'
+import {
+  getCommunities,
+  communitiesQuery,
+  getHomeCommunityQuery,
+  getCommunityByIdentifierQuery,
+} from '@/seeds/graphql/queries'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
 import { getCommunityByUuid } from './util/communities'
