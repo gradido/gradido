@@ -398,7 +398,6 @@ export class UserResolver {
       logger.warn(`no user found with ${email}`)
       return true
     }
-
     if (!canEmailResend(user.emailContact.updatedAt || user.emailContact.createdAt)) {
       throw new LogError(
         `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
