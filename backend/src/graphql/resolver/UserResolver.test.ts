@@ -1043,12 +1043,6 @@ describe('UserResolver', () => {
 
       describe('duration not expired', () => {
         it('throws an error', async () => {
-          // TODO: because of confusing time settings in user.createdAt and user.updatedAt increases duration a lot more than 10min necessary
-          // example: user directly created in userFactory for the testcase
-          // user.emailContacts.updatedAt=2024-02-21T12:18:30.000Z createdAt=2024-02-21T12:18:30.382Z
-          // timeElapsed = Date.now() - new Date(updatedAt).getTime()
-          // BUT HERE: Date.now=2024-02-21T13:18:30.889Z differs one hour from the user date settings !?!?!?!?!?!?!
-          CONFIG.EMAIL_CODE_REQUEST_TIME = 1000
           await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
             expect.objectContaining({
               errors: [
