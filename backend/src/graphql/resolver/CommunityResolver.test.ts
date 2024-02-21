@@ -16,7 +16,12 @@ import { logger, i18n as localization } from '@test/testSetup'
 
 import { userFactory } from '@/seeds/factory/user'
 import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
-import { getCommunities, communitiesQuery, getCommunityByUuidQuery } from '@/seeds/graphql/queries'
+import {
+  getCommunities,
+  communitiesQuery,
+  getCommunityByUuidQuery,
+  allCommunities,
+} from '@/seeds/graphql/queries'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
 import { getCommunityByUuid } from './util/communities'
@@ -306,6 +311,229 @@ describe('CommunityResolver', () => {
                 lastErrorAt: null,
                 createdAt: foreignCom1.createdAt.toISOString(),
                 updatedAt: null,
+              },
+            ],
+          },
+        })
+      })
+    })
+
+    describe('with 6 federated community entries', () => {
+      let comHomeCom1: DbCommunity
+      let comForeignCom1: DbCommunity
+      let comForeignCom2: DbCommunity
+      let foreignCom4: DbFederatedCommunity
+
+      beforeEach(async () => {
+        jest.clearAllMocks()
+        comHomeCom1 = DbCommunity.create()
+        comHomeCom1.foreign = false
+        comHomeCom1.url = 'http://localhost'
+        comHomeCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex')
+        comHomeCom1.privateKey = Buffer.from(ed25519KeyPairStaticHex[0].private, 'hex')
+        comHomeCom1.communityUuid = 'HomeCom-UUID'
+        comHomeCom1.authenticatedAt = new Date()
+        comHomeCom1.name = 'HomeCommunity-name'
+        comHomeCom1.description = 'HomeCommunity-description'
+        comHomeCom1.creationDate = new Date()
+        await DbCommunity.insert(comHomeCom1)
+
+        comForeignCom1 = DbCommunity.create()
+        comForeignCom1.foreign = true
+        comForeignCom1.url = 'http://stage-2.gradido.net'
+        comForeignCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[3].public, 'hex')
+        comForeignCom1.privateKey = Buffer.from(ed25519KeyPairStaticHex[3].private, 'hex')
+        // foreignCom1.communityUuid = 'Stage2-Com-UUID'
+        // foreignCom1.authenticatedAt = new Date()
+        comForeignCom1.name = 'Stage-2_Community-name'
+        comForeignCom1.description = 'Stage-2_Community-description'
+        comForeignCom1.creationDate = new Date()
+        await DbCommunity.insert(comForeignCom1)
+
+        comForeignCom2 = DbCommunity.create()
+        comForeignCom2.foreign = true
+        comForeignCom2.url = 'http://stage-3.gradido.net'
+        comForeignCom2.publicKey = Buffer.from(ed25519KeyPairStaticHex[4].public, 'hex')
+        comForeignCom2.privateKey = Buffer.from(ed25519KeyPairStaticHex[4].private, 'hex')
+        comForeignCom2.communityUuid = 'Stage3-Com-UUID'
+        comForeignCom2.authenticatedAt = new Date()
+        comForeignCom2.name = 'Stage-3_Community-name'
+        comForeignCom2.description = 'Stage-3_Community-description'
+        comForeignCom2.creationDate = new Date()
+        await DbCommunity.insert(comForeignCom2)
+
+        foreignCom4 = DbFederatedCommunity.create()
+        foreignCom4.foreign = true
+        foreignCom4.publicKey = Buffer.from(ed25519KeyPairStaticHex[5].public, 'hex')
+        foreignCom4.apiVersion = '1_0'
+        foreignCom4.endPoint = 'http://remotehost/api'
+        foreignCom4.createdAt = new Date()
+        await DbFederatedCommunity.insert(foreignCom4)
+      })
+
+      it('return communities structured for admin ', async () => {
+        await expect(query({ query: allCommunities })).resolves.toMatchObject({
+          data: {
+            allCommunities: [
+              {
+                foreign: false,
+                url: 'http://localhost',
+                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[2].public),
+                authenticatedAt: null,
+                createdAt: null,
+                creationDate: null,
+                description: null,
+                gmsApiKey: null,
+                name: null,
+                updatedAt: null,
+                uuid: null,
+                federatedCommunities: [
+                  {
+                    id: 3,
+                    apiVersion: '2_0',
+                    endPoint: 'http://localhost/api/',
+                    createdAt: homeCom3.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                ],
+              },
+              {
+                foreign: false,
+                url: 'http://localhost',
+                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[1].public),
+                authenticatedAt: null,
+                createdAt: null,
+                creationDate: null,
+                description: null,
+                gmsApiKey: null,
+                name: null,
+                updatedAt: null,
+                uuid: null,
+                federatedCommunities: [
+                  {
+                    id: 2,
+                    apiVersion: '1_1',
+                    endPoint: 'http://localhost/api/',
+                    createdAt: homeCom2.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                ],
+              },
+              {
+                foreign: false,
+                url: 'http://localhost',
+                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[0].public),
+                authenticatedAt: comHomeCom1.authenticatedAt?.toISOString(),
+                createdAt: comHomeCom1.createdAt.toISOString(),
+                creationDate: comHomeCom1.creationDate?.toISOString(),
+                description: comHomeCom1.description,
+                gmsApiKey: null,
+                name: comHomeCom1.name,
+                updatedAt: null,
+                uuid: comHomeCom1.communityUuid,
+                federatedCommunities: [
+                  {
+                    id: 1,
+                    apiVersion: '1_0',
+                    endPoint: 'http://localhost/api/',
+                    createdAt: homeCom1.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                ],
+              },
+              {
+                foreign: true,
+                url: 'http://remotehost',
+                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[5].public),
+                authenticatedAt: null,
+                createdAt: null,
+                creationDate: null,
+                description: null,
+                gmsApiKey: null,
+                name: null,
+                updatedAt: null,
+                uuid: null,
+                federatedCommunities: [
+                  {
+                    id: 7,
+                    apiVersion: '1_0',
+                    endPoint: 'http://remotehost/api/',
+                    createdAt: foreignCom4.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                  {
+                    id: 6,
+                    apiVersion: '2_0',
+                    endPoint: 'http://remotehost/api/',
+                    createdAt: foreignCom3.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                ],
+              },
+              {
+                foreign: true,
+                url: 'http://stage-3.gradido.net',
+                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[4].public),
+                authenticatedAt: comForeignCom2.authenticatedAt?.toISOString(),
+                createdAt: comForeignCom2.createdAt.toISOString(),
+                creationDate: comForeignCom2.creationDate?.toISOString(),
+                description: comForeignCom2.description,
+                gmsApiKey: null,
+                name: comForeignCom2.name,
+                updatedAt: null,
+                uuid: comForeignCom2.communityUuid,
+                federatedCommunities: [
+                  {
+                    id: 5,
+                    apiVersion: '1_1',
+                    endPoint: 'http://remotehost/api/',
+                    createdAt: foreignCom2.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                ],
+              },
+              {
+                foreign: true,
+                url: 'http://stage-2.gradido.net',
+                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[3].public),
+                authenticatedAt: null,
+                createdAt: comForeignCom1.createdAt.toISOString(),
+                creationDate: comForeignCom1.creationDate?.toISOString(),
+                description: comForeignCom1.description,
+                gmsApiKey: null,
+                name: comForeignCom1.name,
+                updatedAt: null,
+                uuid: null,
+                federatedCommunities: [
+                  {
+                    id: 4,
+                    apiVersion: '1_0',
+                    endPoint: 'http://remotehost/api/',
+                    createdAt: foreignCom1.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                ],
               },
             ],
           },
