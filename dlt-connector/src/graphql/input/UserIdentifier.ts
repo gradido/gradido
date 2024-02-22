@@ -9,9 +9,9 @@ export class UserIdentifier {
   @IsUUID('4')
   uuid: string
 
-  @Field(() => String, { nullable: true })
+  @Field(() => String)
   @IsUUID('4')
-  communityUuid?: string
+  communityUuid: string
 
   @Field(() => Int, { defaultValue: 1, nullable: true })
   @IsPositive()

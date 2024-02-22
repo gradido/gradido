@@ -59,6 +59,10 @@ export class TransactionBuilder {
     return this.transaction.community
   }
 
+  public getOtherCommunity(): Community | undefined {
+    return this.transaction.otherCommunity
+  }
+
   public setSigningAccount(signingAccount: Account): TransactionBuilder {
     this.transaction.signingAccount = signingAccount
     return this
@@ -103,22 +107,18 @@ export class TransactionBuilder {
     return this
   }
 
-  public async setSenderCommunityFromSenderUser(
-    senderUser: UserIdentifier,
-  ): Promise<TransactionBuilder> {
+  public async setCommunityFromUser(user: UserIdentifier): Promise<TransactionBuilder> {
     // get sender community
-    const community = await CommunityRepository.getCommunityForUserIdentifier(senderUser)
+    const community = await CommunityRepository.getCommunityForUserIdentifier(user)
     if (!community) {
       throw new LogError("couldn't find community for transaction")
     }
     return this.setCommunity(community)
   }
 
-  public async setOtherCommunityFromRecipientUser(
-    recipientUser: UserIdentifier,
-  ): Promise<TransactionBuilder> {
+  public async setOtherCommunityFromUser(user: UserIdentifier): Promise<TransactionBuilder> {
     // get recipient community
-    const otherCommunity = await CommunityRepository.getCommunityForUserIdentifier(recipientUser)
+    const otherCommunity = await CommunityRepository.getCommunityForUserIdentifier(user)
     return this.setOtherCommunity(otherCommunity)
   }
 

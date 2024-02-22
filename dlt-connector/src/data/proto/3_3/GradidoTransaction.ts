@@ -1,8 +1,5 @@
 import { Field, Message } from 'protobufjs'
 
-import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
-import { TransactionError } from '@/graphql/model/TransactionError'
-import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
 
 import { SignatureMap } from './SignatureMap'
@@ -46,14 +43,6 @@ export class GradidoTransaction extends Message<GradidoTransaction> {
   }
 
   getTransactionBody(): TransactionBody {
-    try {
-      return TransactionBody.decode(new Uint8Array(this.bodyBytes))
-    } catch (error) {
-      logger.error('error decoding body from gradido transaction: %s', error)
-      throw new TransactionError(
-        TransactionErrorType.PROTO_DECODE_ERROR,
-        'cannot decode body from gradido transaction',
-      )
-    }
+    return TransactionBody.fromBodyBytes(this.bodyBytes)
   }
 }
