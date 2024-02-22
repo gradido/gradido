@@ -1,8 +1,11 @@
 import { Transaction } from '@entity/Transaction'
 import { Field, Message, OneOf } from 'protobufjs'
 
+import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { TransactionError } from '@/graphql/model/TransactionError'
+import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
 import { timestampToDate } from '@/utils/typeConverter'
 
@@ -33,6 +36,18 @@ export class TransactionBody extends Message<TransactionBody> {
       })
     } else {
       super()
+    }
+  }
+
+  public static fromBodyBytes(bodyBytes: Buffer) {
+    try {
+      return TransactionBody.decode(new Uint8Array(bodyBytes))
+    } catch (error) {
+      logger.error('error decoding body from gradido transaction: %s', error)
+      throw new TransactionError(
+        TransactionErrorType.PROTO_DECODE_ERROR,
+        'cannot decode body from gradido transaction',
+      )
     }
   }
 
