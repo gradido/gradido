@@ -3,6 +3,7 @@ import { Transaction } from '@entity/Transaction'
 
 import { CONFIG } from '@/config'
 import { AccountFactory } from '@/data/Account.factory'
+import { TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY } from '@/data/const'
 import { KeyPair } from '@/data/KeyPair'
 import { Mnemonic } from '@/data/Mnemonic'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
@@ -10,6 +11,7 @@ import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { CommunityLoggingView } from '@/logging/CommunityLogging.view'
 import { logger } from '@/logging/logger'
+import { InterruptiveSleepManager } from '@/manager/InterruptiveSleepManager'
 import { getDataSource } from '@/typeorm/DataSource'
 
 import { CreateTransactionRecipeContext } from '../transaction/CreateTransationRecipe.context'
@@ -36,12 +38,14 @@ export class HomeCommunityRole extends CommunityRole {
 
   public async store(): Promise<Community> {
     try {
-      return await getDataSource().transaction(async (transactionalEntityManager) => {
+      const community = await getDataSource().transaction(async (transactionalEntityManager) => {
         const community = await transactionalEntityManager.save(this.self)
         await transactionalEntityManager.save(this.transactionRecipe)
         logger.debug('store home community', new CommunityLoggingView(community))
         return community
       })
+      InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
+      return community
     } catch (error) {
       logger.error('error saving home community into db: %s', error)
       throw new TransactionError(

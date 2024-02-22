@@ -25,10 +25,10 @@ export class Transaction extends BaseEntity {
 
   @OneToOne(() => Transaction, { cascade: ['update'] })
   // eslint-disable-next-line no-use-before-define
-  paringTransaction?: Transaction
+  pairingTransaction?: Transaction
 
-  @Column({ name: 'paring_transaction_id', type: 'bigint', unsigned: true, nullable: true })
-  paringTransactionId?: number
+  @Column({ name: 'pairing_transaction_id', type: 'bigint', unsigned: true, nullable: true })
+  pairingTransactionId?: number
 
   // if transaction has a sender than it is also the sender account
   @ManyToOne(() => Account, (account) => account.transactionSigning)
