@@ -5,12 +5,12 @@ import { CONFIG } from '@/config'
 
 import { BackendClient } from './client/BackendClient'
 import { CommunityRepository } from './data/Community.repository'
+import { Mnemonic } from './data/Mnemonic'
 import { CommunityDraft } from './graphql/input/CommunityDraft'
 import { AddCommunityContext } from './interactions/backendToDb/community/AddCommunity.context'
 import { logger } from './logging/logger'
 import createServer from './server/createServer'
 import { LogError } from './server/LogError'
-import { Mnemonic } from './data/Mnemonic'
 import { stopTransmitToIota, transmitToIota } from './tasks/transmitToIota'
 
 async function waitForServer(

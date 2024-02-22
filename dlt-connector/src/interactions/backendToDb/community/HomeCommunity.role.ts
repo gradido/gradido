@@ -12,12 +12,12 @@ import { TransactionError } from '@/graphql/model/TransactionError'
 import { CommunityLoggingView } from '@/logging/CommunityLogging.view'
 import { logger } from '@/logging/logger'
 import { InterruptiveSleepManager } from '@/manager/InterruptiveSleepManager'
+import { LogError } from '@/server/LogError'
 import { getDataSource } from '@/typeorm/DataSource'
 
 import { CreateTransactionRecipeContext } from '../transaction/CreateTransationRecipe.context'
 
 import { CommunityRole } from './Community.role'
-import { LogError } from '@/server/LogError'
 
 export class HomeCommunityRole extends CommunityRole {
   private transactionRecipe: Transaction
