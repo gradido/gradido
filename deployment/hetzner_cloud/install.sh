@@ -104,6 +104,23 @@ ln -s $SCRIPT_PATH/nginx/common /etc/nginx/
 rmdir /etc/nginx/conf.d
 ln -s $SCRIPT_PATH/nginx/conf.d /etc/nginx/
 
+# Make nginx restart automatic
+mkdir /etc/systemd/system/nginx.service.d
+# Define the content to be put into the override.conf file
+CONFIG_CONTENT="[Unit]
+StartLimitIntervalSec=500
+StartLimitBurst=5
+
+[Service]
+Restart=on-failure
+RestartSec=5s"
+
+# Write the content to the override.conf file
+echo "$CONFIG_CONTENT" | sudo tee /etc/systemd/system/nginx.service.d/override.conf >/dev/null
+
+# Reload systemd to apply the changes
+sudo systemctl daemon-reload
+
 # setup https with certbot
 certbot certonly --nginx --non-interactive --agree-tos --domains $COMMUNITY_HOST --email $COMMUNITY_SUPPORT_MAIL
 
