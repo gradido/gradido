@@ -10,7 +10,7 @@ SCRIPT_PATH=$(realpath ../../../bare_metal)
 SCRIPT_DIR=$(dirname $SCRIPT_PATH)
 LOCAL_SCRIPT_PATH=$(realpath $0)
 LOCAL_SCRIPT_DIR=$(dirname $LOCAL_SCRIPT_PATH)
-PROJECT_ROOT=$SCRIPT_DIR/../../..
+PROJECT_ROOT=$SCRIPT_DIR/..
 set +o allexport
 
 
