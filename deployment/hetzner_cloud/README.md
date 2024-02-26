@@ -1,7 +1,7 @@
-# Setup on Hetzner Cloud Server
-Suggested minimal Plan: CX41
-4x vCPU, 16 GB Ram, 160 GB Disk Space, 20.71 € per month (04.01.2024) 
+# Migration
+[Migration from 2.2.0 to 2.2.1](migration/2_2_0-2_2_1/README.md)
 
+# Setup on Hetzner Cloud Server
 Suggested OS:
 Debian 12
 
