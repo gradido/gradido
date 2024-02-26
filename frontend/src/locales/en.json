@@ -295,13 +295,28 @@
     "GMS": {
       "disabled": "Data not exported to GMS",
       "enabled": "Data exported to GMS",
+      "location": {
+        "label": "pinpoint location",
+        "button": "click me!"
+      },
+      "location-format": "location type",
       "naming-format": "Format of name in GMS",
+      "publish-location": {
+        "exact": "exact position",
+        "approximate": "approximate position",
+        "random": "random position"
+      },
       "publish-name": {
-        "alias-or-initials": "username if exists or Initials of firstname and lastname",
-        "first": "firstname only",
-        "first-initial": "firstname plus initial of lastname",
+        "alias-or-initials": "Username or initials",
+        "alias-or-initials-tooltip": "username if exists or Initials of firstname and lastname",
+        "first": "firstname",
+        "first-tooltip": "the firstname only",
+        "first-initial": "firstname and initial",
+        "first-initial-tooltip": "firstname plus initial of lastname",
         "initials": "Initials of firstname and lastname independent if username exists",
-        "name-full": "fullname: firstname plus lastname",
+        "initials-tooltip": "Initials of firstname and lastname independent if username exists",
+        "name-full": "fullname",
+        "name-full-tooltip": "fullname: firstname plus lastname",
         "updated": "format of name for GMS updated"
       },
       "switch": "Allow data export to GMS"      

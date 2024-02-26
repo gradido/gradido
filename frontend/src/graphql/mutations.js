@@ -37,7 +37,7 @@ export const updateUserInfos = gql`
     $gmsAllowed: Boolean
     $gmsPublishName: GmsPublishNameType
     $gmsLocation: Location
-    $gmsPublishLocation: Int
+    $gmsPublishLocation: GmsPublishLocationType
   ) {
     updateUserInfos(
       firstName: $firstName
@@ -174,6 +174,7 @@ export const login = gql`
       }
       gmsAllowed
       gmsPublishName
+      gmsPublishLocation
       hasElopage
       publisherId
       roles

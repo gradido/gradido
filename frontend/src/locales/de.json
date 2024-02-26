@@ -295,13 +295,29 @@
     "GMS": {
       "disabled": "Daten werden nicht nach GMS exportiert",
       "enabled": "Daten werden nach GMS exportiert",      
+      "location": {
+        "label": "Positionsbestimmung",
+        "button": "Klick mich!"
+      },
+      "location-format": "Positionstyp",
       "naming-format": "Namensformat im GMS",
+      "publish-location": {
+        "exact": "Genaue Position",
+        "approximate": "Ungefähre Position",
+        "random": "Zufallsposition",
+        "updated":"Positionstyp für GMS aktualisiert"
+      },
       "publish-name": {
-        "alias-or-initials": "Benutzername, falls vorhanden, oder die Initialen von Vorname und Nachname",
-        "first": "nur Vornamen",
-        "first-initial": "Vorname plus Anfangsbuchstabe des Nachnamens",
-        "initials": "Initialen von Vor- und Nachname unabhängig von der Existenz des Benutzernamens",
-        "name-full": "vollständiger Name: Vorname plus Nachname",
+        "alias-or-initials": "Benutzername oder Initialen",
+        "alias-or-initials-tooltip": "Benutzername, falls vorhanden, oder die Initialen von Vorname und Nachname",
+        "first": "Vorname",
+        "first-tooltip": "Nur der Vornamen",
+        "first-initial": "Vorname und Initiale",
+        "first-initial-tooltip": "Vornamen plus Anfangsbuchstabe des Nachnamens",
+        "initials": "Initialen",
+        "initials-tooltip": "Initialen von Vor- und Nachname unabhängig von der Existenz des Benutzernamens",
+        "name-full": "Ganzer Name",
+        "name-full-tooltip": "Vollständiger Name: Vorname plus Nachname",
         "updated": "Namensformat für GMS aktualisiert"
       },
       "switch": "Erlaubnis Daten nach GMS zu exportieren."

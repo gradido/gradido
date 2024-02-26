@@ -7,6 +7,7 @@
         @click.prevent="update(option)"
         :key="option.value"
         :value="option.value"
+        :title="option.title"
       >
         {{ option.label }}
       </b-dropdown-item>
@@ -24,29 +25,43 @@ export default {
       dropdownOptions: [
         {
           label: this.$t('settings.GMS.publish-name.alias-or-initials'),
+          title: this.$t('settings.GMS.publish-name.alias-or-initials-tooltip'),
           value: 'GMS_PUBLISH_NAME_ALIAS_OR_INITALS',
         },
         {
           label: this.$t('settings.GMS.publish-name.initials'),
+          title: this.$t('settings.GMS.publish-name.initials-tooltip'),
           value: 'GMS_PUBLISH_NAME_INITIALS',
         },
-        { label: this.$t('settings.GMS.publish-name.first'), value: 'GMS_PUBLISH_NAME_FIRST' },
+        {
+          label: this.$t('settings.GMS.publish-name.first'),
+          title: this.$t('settings.GMS.publish-name.first-tooltip'),
+          value: 'GMS_PUBLISH_NAME_FIRST',
+        },
         {
           label: this.$t('settings.GMS.publish-name.first-initial'),
+          title: this.$t('settings.GMS.publish-name.first-initial-tooltip'),
           value: 'GMS_PUBLISH_NAME_FIRST_INITIAL',
         },
-        { label: this.$t('settings.GMS.publish-name.name-full'), value: 'GMS_PUBLISH_NAME_FULL' },
+        {
+          label: this.$t('settings.GMS.publish-name.name-full'),
+          title: this.$t('settings.GMS.publish-name.name-full-tooltip'),
+          value: 'GMS_PUBLISH_NAME_FULL',
+        },
       ],
     }
   },
   computed: {
     selectedOptionLabel() {
       const selected = this.dropdownOptions.find((option) => option.value === this.selectedOption)
-      return selected ? selected.label : 'Select Option'
+      return selected ? selected.label : this.selectedOption
     },
   },
   methods: {
     async update(option) {
+      if (option === this.selectedOption) {
+        return
+      }
       try {
         await this.$apollo.mutate({
           mutation: updateUserInfos,

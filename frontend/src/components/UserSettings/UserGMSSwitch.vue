@@ -2,7 +2,7 @@
   <div class="form-user-gms-switch">
     <b-form-checkbox
       test="BFormCheckbox"
-      v-model="gmsState"
+      v-model="gmsAllowed"
       name="check-button"
       switch
       @change="onSubmit"
@@ -16,7 +16,7 @@ export default {
   name: 'UserGMSSwitch',
   data() {
     return {
-      gmsState: this.$store.state.gmsState,
+      gmsAllowed: this.$store.state.gmsAllowed,
     }
   },
   methods: {
@@ -25,18 +25,18 @@ export default {
         .mutate({
           mutation: updateUserInfos,
           variables: {
-            gmsAllowed: this.gmsState,
+            gmsAllowed: this.gmsAllowed,
           },
         })
         .then(() => {
-          this.$store.commit('gmsState', this.gmsState)
-          this.$emit('gmsStateSwitch', this.gmsState)
+          this.$store.commit('gmsState', this.gmsAllowed)
+          this.$emit('gmsStateSwitch', this.gmsAllowed)
           this.toastSuccess(
-            this.gmsState ? this.$t('settings.GMS.enabled') : this.$t('settings.GMS.disabled'),
+            this.gmsAllowed ? this.$t('settings.GMS.enabled') : this.$t('settings.GMS.disabled'),
           )
         })
         .catch((error) => {
-          this.gmsState = this.$store.state.gmsState
+          this.gmsAllowed = this.$store.state.gmsAllowed
           this.toastError(error.message)
         })
     },

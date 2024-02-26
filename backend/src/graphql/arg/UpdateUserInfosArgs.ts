@@ -1,6 +1,7 @@
 import { IsBoolean, IsEnum, IsInt, IsString } from 'class-validator'
 import { ArgsType, Field, InputType, Int } from 'type-graphql'
 
+import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { GmsPublishNameType } from '@enum/GmsPublishNameType'
 import { Location } from '@model/Location'
 
@@ -49,10 +50,7 @@ export class UpdateUserInfosArgs {
   @IsBoolean()
   gmsAllowed?: boolean
 
-  @Field(() => GmsPublishNameType, {
-    nullable: true,
-    defaultValue: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-  })
+  @Field(() => GmsPublishNameType, { nullable: true })
   @IsEnum(GmsPublishNameType)
   gmsPublishName?: GmsPublishNameType | null
 
@@ -60,7 +58,7 @@ export class UpdateUserInfosArgs {
   @isValidLocation()
   gmsLocation?: Location | null
 
-  @Field(() => Int, { nullable: true, defaultValue: 2 })
-  @IsInt()
-  gmsPublishLocation?: number | null
+  @Field(() => GmsPublishLocationType, { nullable: true })
+  @IsEnum(GmsPublishLocationType)
+  gmsPublishLocation?: GmsPublishLocationType | null
 }

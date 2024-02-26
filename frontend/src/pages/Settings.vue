@@ -86,22 +86,36 @@
           <b-col cols="12" md="6" lg="6">
             {{ $t('settings.GMS.switch') }}
             <div class="text-small">
-              {{ gmsState ? $t('settings.GMS.enabled') : $t('settings.GMS.disabled') }}
+              {{ gmsAllowed ? $t('settings.GMS.enabled') : $t('settings.GMS.disabled') }}
             </div>
           </b-col>
           <b-col cols="12" md="6" lg="6" class="text-right">
             <user-g-m-s-switch @gmsStateSwitch="gmsStateSwitch" />
           </b-col>
         </b-row>
-        <div v-if="gmsState">
-          <b-row class="mb-2">
+        <div v-if="gmsAllowed">
+          <b-row class="mb-4">
             <b-col cols="12" md="6" lg="6">
               {{ $t('settings.GMS.naming-format') }}
             </b-col>
-          </b-row>
-          <b-row :style="{ marginBottom: '200px' }">
-            <b-col cols="24" md="12" lg="12">
+            <b-col cols="12" md="6" lg="6">
               <user-g-m-s-naming-format />
+            </b-col>
+          </b-row>
+          <b-row class="mb-4">
+            <b-col cols="12" md="6" lg="6">
+              {{ $t('settings.GMS.location-format') }}
+            </b-col>
+            <b-col cols="12" md="6" lg="6">
+              <user-g-m-s-location-format />
+            </b-col>
+          </b-row>
+          <b-row class="mb-5">
+            <b-col cols="12" md="6" lg="6">
+              {{ $t('settings.GMS.location.label') }}
+            </b-col>
+            <b-col cols="12" md="6" lg="6">
+              <user-g-m-s-location />
             </b-col>
           </b-row>
         </div>
@@ -119,6 +133,8 @@
 <script>
 import UserGMSSwitch from '@/components/UserSettings/UserGMSSwitch'
 import UserGMSNamingFormat from '@/components/UserSettings/UserGMSNamingFormat'
+import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
+import UserGMSLocation from '@/components/UserSettings/UserGMSLocation'
 import UserName from '@/components/UserSettings/UserName.vue'
 import UserPassword from '@/components/UserSettings/UserPassword'
 import UserLanguage from '@/components/LanguageSwitch2.vue'
@@ -130,6 +146,8 @@ export default {
   components: {
     UserGMSSwitch,
     UserGMSNamingFormat,
+    UserGMSLocationFormat,
+    UserGMSLocation,
     UserName,
     UserPassword,
     UserLanguage,
@@ -142,7 +160,7 @@ export default {
 
   data() {
     const { state } = this.$store
-    const { darkMode, firstName, lastName, email, newsletterState, gmsState } = state
+    const { darkMode, firstName, lastName, email, newsletterState, gmsAllowed } = state
 
     return {
       darkMode,
@@ -151,7 +169,7 @@ export default {
       lastName,
       email,
       newsletterState,
-      gmsState,
+      gmsAllowed,
       mutation: '',
       variables: {},
     }
