@@ -561,17 +561,6 @@ export class UserResolver {
     logger.info(
       `updateUserInfos(${firstName}, ${lastName}, ${alias}, ${language}, ***, ***, ${hideAmountGDD}, ${hideAmountGDT}, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})...`,
     )
-    // check default arg settings
-    if (gmsAllowed === null || gmsAllowed === undefined) {
-      gmsAllowed = true
-    }
-    if (!gmsPublishName) {
-      gmsPublishName = GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS
-    }
-    if (!gmsPublishLocation) {
-      gmsPublishLocation = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
-    }
-
     const user = getUser(context)
     // try {
     if (firstName) {
@@ -620,12 +609,18 @@ export class UserResolver {
       user.hideAmountGDT = hideAmountGDT
     }
 
-    user.gmsAllowed = gmsAllowed
-    user.gmsPublishName = gmsPublishName
+    if (gmsAllowed) {
+      user.gmsAllowed = gmsAllowed
+    }
+    if (gmsPublishName) {
+      user.gmsPublishName = gmsPublishName
+    }
     if (gmsLocation) {
       user.location = Location2Point(gmsLocation)
     }
-    user.gmsPublishLocation = gmsPublishLocation
+    if (gmsPublishLocation) {
+      user.gmsPublishLocation = gmsPublishLocation
+    }
     // } catch (err) {
     //   console.log('error:', err)
     // }

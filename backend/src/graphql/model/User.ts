@@ -29,6 +29,8 @@ export class User {
       this.hasElopage = null
       this.hideAmountGDD = user.hideAmountGDD
       this.hideAmountGDT = user.hideAmountGDT
+      this.gmsAllowed = user.gmsAllowed
+      this.gmsPublishName = user.gmsPublishName
     }
   }
 
@@ -73,6 +75,12 @@ export class User {
 
   @Field(() => Boolean)
   hideAmountGDT: boolean
+
+  @Field(() => Boolean)
+  gmsAllowed: boolean
+
+  @Field(() => Int, { nullable: true })
+  gmsPublishName: number | null
 
   // This is not the users publisherId, but the one of the users who recommend him
   @Field(() => Int, { nullable: true })

@@ -35,6 +35,12 @@ export const mutations = {
   newsletterState: (state, newsletterState) => {
     state.newsletterState = newsletterState
   },
+  gmsState: (state, gmsState) => {
+    state.gmsState = gmsState
+  },
+  gmsPublishName: (state, gmsPublishName) => {
+    state.gmsPublishName = gmsPublishName
+  },
   publisherId: (state, publisherId) => {
     let pubId = parseInt(publisherId)
     if (isNaN(pubId)) pubId = null
@@ -71,6 +77,8 @@ export const actions = {
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
     commit('newsletterState', data.klickTipp.newsletterState)
+    commit('gmsState', data.gmsAllowed)
+    commit('gmsPublishName', data.gmsPublishName)
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
     commit('roles', data.roles)
@@ -85,6 +93,8 @@ export const actions = {
     commit('firstName', '')
     commit('lastName', '')
     commit('newsletterState', null)
+    commit('gmsState', null)
+    commit('gmsPublishName', null)
     commit('hasElopage', false)
     commit('publisherId', null)
     commit('roles', null)
@@ -117,6 +127,8 @@ try {
       tokenTime: null,
       roles: [],
       newsletterState: null,
+      gmsAllowed: null,
+      gmsPublishName: null,
       hasElopage: false,
       publisherId: null,
       hideAmountGDD: null,
