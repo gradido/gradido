@@ -30,6 +30,7 @@ export class Connection {
       Connection.instance = await createConnection({
         name: 'default',
         type: 'mysql',
+        legacySpatialSupport: false,
         host: CONFIG.DB_HOST,
         port: CONFIG.DB_PORT,
         username: CONFIG.DB_USER,

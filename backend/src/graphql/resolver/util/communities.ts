@@ -58,7 +58,7 @@ export async function getCommunityName(communityIdentifier: string): Promise<str
   }
 }
 
-export async function getCommunity(communityUuid: string): Promise<DbCommunity | null> {
+export async function getCommunityByUuid(communityUuid: string): Promise<DbCommunity | null> {
   return await DbCommunity.findOne({
     where: [{ communityUuid }],
   })

@@ -12,7 +12,7 @@ export class UserLogic {
 
   /**
    *
-   * @param parentKeys if undefined use home community key pair
+   * @param parentKeys from home community for own user
    * @returns
    */
 

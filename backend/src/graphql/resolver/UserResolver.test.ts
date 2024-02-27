@@ -16,11 +16,14 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 
+import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
+import { GmsPublishNameType } from '@enum/GmsPublishNameType'
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { RoleNames } from '@enum/RoleNames'
 import { UserContactType } from '@enum/UserContactType'
 import { ContributionLink } from '@model/ContributionLink'
+import { Location } from '@model/Location'
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
@@ -67,6 +70,8 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
+
+import { Location2Point } from './util/Location2Point'
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
@@ -177,6 +182,12 @@ describe('UserResolver', () => {
               passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
               communityUuid: homeCom.communityUuid,
               foreign: false,
+              gmsAllowed: true,
+              gmsPublishName: 0,
+              gmsPublishLocation: 2,
+              location: null,
+              gmsRegistered: false,
+              gmsRegisteredAt: null,
             },
           ])
           const valUUID = validateUUID(user[0].gradidoID)
@@ -195,10 +206,13 @@ describe('UserResolver', () => {
             emailVerificationCode: expect.any(String),
             emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
             emailResendCount: 0,
+            countryCode: null,
             phone: null,
             createdAt: expect.any(Date),
             deletedAt: null,
             updatedAt: null,
+            gmsPublishEmail: false,
+            gmsPublishPhone: 0,
           })
         })
       })
@@ -1156,7 +1170,12 @@ describe('UserResolver', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
         resetToken()
-        await expect(mutate({ mutation: updateUserInfos })).resolves.toEqual(
+        await expect(
+          mutate({
+            mutation: updateUserInfos,
+            variables: {},
+          }),
+        ).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('401 Unauthorized')],
           }),
@@ -1181,7 +1200,12 @@ describe('UserResolver', () => {
       })
 
       it('returns true', async () => {
-        await expect(mutate({ mutation: updateUserInfos })).resolves.toEqual(
+        await expect(
+          mutate({
+            mutation: updateUserInfos,
+            variables: {},
+          }),
+        ).resolves.toEqual(
           expect.objectContaining({
             data: {
               updateUserInfos: true,
@@ -1205,6 +1229,9 @@ describe('UserResolver', () => {
               firstName: 'Benjamin',
               lastName: 'Blümchen',
               language: 'en',
+              gmsAllowed: true,
+              gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+              gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
             }),
           ])
         })
@@ -1240,6 +1267,76 @@ describe('UserResolver', () => {
             await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
                 alias: 'bibi_Bloxberg',
+                gmsAllowed: true,
+                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+              }),
+            ])
+          })
+        })
+      })
+
+      describe('gms attributes', () => {
+        beforeEach(() => {
+          jest.clearAllMocks()
+        })
+
+        describe('default settings', () => {
+          it('updates the user in DB', async () => {
+            await mutate({
+              mutation: updateUserInfos,
+              variables: {},
+            })
+            await expect(User.find()).resolves.toEqual([
+              expect.objectContaining({
+                gmsAllowed: true,
+                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+              }),
+            ])
+          })
+        })
+
+        describe('individual settings', () => {
+          it('updates the user in DB', async () => {
+            await mutate({
+              mutation: updateUserInfos,
+              variables: {
+                gmsAllowed: false,
+                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
+              },
+            })
+            await expect(User.find()).resolves.toEqual([
+              expect.objectContaining({
+                gmsAllowed: false,
+                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
+              }),
+            ])
+          })
+        })
+
+        describe('with gms location', () => {
+          const loc = new Location()
+          loc.longitude = 9.573224
+          loc.latitude = 49.679437
+          it('updates the user in DB', async () => {
+            await mutate({
+              mutation: updateUserInfos,
+              variables: {
+                gmsAllowed: true,
+                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsLocation: loc,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+              },
+            })
+            await expect(User.find()).resolves.toEqual([
+              expect.objectContaining({
+                gmsAllowed: true,
+                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                location: Location2Point(loc),
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               }),
             ])
           })
@@ -2577,6 +2674,9 @@ describe('UserResolver', () => {
           mutation: updateUserInfos,
           variables: {
             alias: 'bibi',
+            gmsAllowed: true,
+            gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+            gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
           },
         })
       })

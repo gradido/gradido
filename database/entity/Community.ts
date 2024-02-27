@@ -1,1 +1,1 @@
-export { Community } from './0081-user_join_community/Community'
+export { Community } from './0082-introduce_gms_registration/Community'

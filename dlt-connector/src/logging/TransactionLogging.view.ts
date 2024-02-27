@@ -18,7 +18,7 @@ export class TransactionLoggingView extends AbstractLoggingView {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public toJSON(showBackendTransactions = true): any {
+  public toJSON(showBackendTransactions = true, deep = 1): any {
     return {
       id: this.self.id,
       nr: this.self.nr,
@@ -31,16 +31,23 @@ export class TransactionLoggingView extends AbstractLoggingView {
       community: new CommunityLoggingView(this.self.community).toJSON(),
       otherCommunity: this.self.otherCommunity
         ? new CommunityLoggingView(this.self.otherCommunity)
-        : undefined,
+        : { id: this.self.otherCommunityId },
       iotaMessageId: this.self.iotaMessageId
         ? this.self.iotaMessageId.toString(this.bufferStringFormat)
         : undefined,
       signingAccount: this.self.signingAccount
         ? new AccountLoggingView(this.self.signingAccount)
-        : undefined,
+        : { id: this.self.signingAccountId },
       recipientAccount: this.self.recipientAccount
         ? new AccountLoggingView(this.self.recipientAccount)
-        : undefined,
+        : { id: this.self.recipientAccountId },
+      pairingTransaction:
+        this.self.pairingTransaction && deep === 1
+          ? new TransactionLoggingView(this.self.pairingTransaction).toJSON(
+              showBackendTransactions,
+              deep + 1,
+            )
+          : { id: this.self.pairingTransaction },
       amount: this.decimalToString(this.self.amount),
       accountBalanceOnCreation: this.decimalToString(this.self.accountBalanceOnCreation),
       accountBalanceOnConfirmation: this.decimalToString(this.self.accountBalanceOnConfirmation),

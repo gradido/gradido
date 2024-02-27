@@ -10,7 +10,7 @@ export class TransferAmountLoggingView extends AbstractLoggingView {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public toJSON(): any {
     return {
-      publicKey: Buffer.from(this.self.pubkey).toString(this.bufferStringFormat),
+      pubkey: Buffer.from(this.self.pubkey).toString(this.bufferStringFormat),
       amount: this.self.amount,
       communityId: this.self.communityId,
     }
