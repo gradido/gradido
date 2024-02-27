@@ -53,13 +53,12 @@ export default {
   },
   computed: {
     selectedOptionLabel() {
-      const selected = this.dropdownOptions.find((option) => option.value === this.selectedOption)
-      return selected ? selected.label : this.selectedOption
+      return this.dropdownOptions.find((option) => option.value === this.selectedOption).label
     },
   },
   methods: {
     async update(option) {
-      if (option === this.selectedOption) {
+      if (option.value === this.selectedOption) {
         return
       }
       try {
@@ -81,19 +80,8 @@ export default {
 }
 </script>
 <style>
-.user-gms-naming-format > div,
-.user-gms-naming-format ul.dropdown-menu {
+.user-gms-naming-format > .dropdown,
+.user-gms-naming-format > .dropdown > .dropdown-toggle > ul.dropdown-menu {
   width: 100%;
-}
-.user-gms-naming-format > div > button {
-  border-radius: 17px;
-  height: 50px;
-  text-align: left;
-}
-.user-gms-naming-format .dropdown-toggle::after {
-  float: right;
-  top: 50%;
-  transform: translateY(-50%);
-  position: relative;
 }
 </style>

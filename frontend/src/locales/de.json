@@ -294,7 +294,7 @@
     "emailInfo": "Kann aktuell noch nicht geändert werden.",
     "GMS": {
       "disabled": "Daten werden nicht nach GMS exportiert",
-      "enabled": "Daten werden nach GMS exportiert",      
+      "enabled": "Daten werden nach GMS exportiert",
       "location": {
         "label": "Positionsbestimmung",
         "button": "Klick mich!"
@@ -305,7 +305,7 @@
         "exact": "Genaue Position",
         "approximate": "Ungefähre Position",
         "random": "Zufallsposition",
-        "updated":"Positionstyp für GMS aktualisiert"
+        "updated": "Positionstyp für GMS aktualisiert"
       },
       "publish-name": {
         "alias-or-initials": "Benutzername oder Initialen",

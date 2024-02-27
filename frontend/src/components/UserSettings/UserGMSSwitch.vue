@@ -29,8 +29,8 @@ export default {
           },
         })
         .then(() => {
-          this.$store.commit('gmsState', this.gmsAllowed)
-          this.$emit('gmsStateSwitch', this.gmsAllowed)
+          this.$store.commit('gmsAllowed', this.gmsAllowed)
+          this.$emit('gmsAllowed', this.gmsAllowed)
           this.toastSuccess(
             this.gmsAllowed ? this.$t('settings.GMS.enabled') : this.$t('settings.GMS.disabled'),
           )

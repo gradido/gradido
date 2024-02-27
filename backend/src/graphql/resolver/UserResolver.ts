@@ -609,16 +609,16 @@ export class UserResolver {
       user.hideAmountGDT = hideAmountGDT
     }
 
-    if (gmsAllowed) {
+    if (gmsAllowed !== undefined) {
       user.gmsAllowed = gmsAllowed
     }
-    if (gmsPublishName) {
+    if (gmsPublishName !== null && gmsPublishName !== undefined) {
       user.gmsPublishName = gmsPublishName
     }
     if (gmsLocation) {
       user.location = Location2Point(gmsLocation)
     }
-    if (gmsPublishLocation) {
+    if (gmsPublishLocation !== null && gmsPublishLocation !== undefined) {
       user.gmsPublishLocation = gmsPublishLocation
     }
     // } catch (err) {

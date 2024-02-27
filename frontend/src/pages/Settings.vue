@@ -90,7 +90,7 @@
             </div>
           </b-col>
           <b-col cols="12" md="6" lg="6" class="text-right">
-            <user-g-m-s-switch @gmsStateSwitch="gmsStateSwitch" />
+            <user-g-m-s-switch @gmsAllowed="gmsStateSwitch" />
           </b-col>
         </b-row>
         <div v-if="gmsAllowed">
@@ -206,7 +206,7 @@ export default {
       } catch (error) {}
     },
     gmsStateSwitch(eventData) {
-      this.gmsState = eventData
+      this.gmsAllowed = eventData
     },
   },
 }
