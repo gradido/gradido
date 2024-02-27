@@ -46,7 +46,7 @@ export class UpdateUserInfosArgs {
   @IsBoolean()
   hideAmountGDT?: boolean
 
-  @Field({ nullable: true, defaultValue: true })
+  @Field({ nullable: true })
   @IsBoolean()
   gmsAllowed?: boolean
 
