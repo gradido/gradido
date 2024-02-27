@@ -79,47 +79,49 @@
           </b-col>
         </b-row>
       </b-tab>
-      <b-tab :title="$t('ExternServices')">
-        <div class="h2">{{ $t('ExternServices') }}</div>
-        <div class="h3">{{ $t('GMS') }}</div>
-        <b-row class="mb-3">
-          <b-col cols="12" md="6" lg="6">
-            {{ $t('settings.GMS.switch') }}
-            <div class="text-small">
-              {{ gmsAllowed ? $t('settings.GMS.enabled') : $t('settings.GMS.disabled') }}
-            </div>
-          </b-col>
-          <b-col cols="12" md="6" lg="6" class="text-right">
-            <user-g-m-s-switch @gmsAllowed="gmsStateSwitch" />
-          </b-col>
-        </b-row>
-        <div v-if="gmsAllowed">
-          <b-row class="mb-4">
+      <div v-if="isGMS">
+        <b-tab :title="$t('ExternServices')">
+          <div class="h2">{{ $t('ExternServices') }}</div>
+          <div class="h3">{{ $t('GMS') }}</div>
+          <b-row class="mb-3">
             <b-col cols="12" md="6" lg="6">
-              {{ $t('settings.GMS.naming-format') }}
+              {{ $t('settings.GMS.switch') }}
+              <div class="text-small">
+                {{ gmsAllowed ? $t('settings.GMS.enabled') : $t('settings.GMS.disabled') }}
+              </div>
             </b-col>
-            <b-col cols="12" md="6" lg="6">
-              <user-g-m-s-naming-format />
+            <b-col cols="12" md="6" lg="6" class="text-right">
+              <user-g-m-s-switch @gmsAllowed="gmsStateSwitch" />
             </b-col>
           </b-row>
-          <b-row class="mb-4">
-            <b-col cols="12" md="6" lg="6">
-              {{ $t('settings.GMS.location-format') }}
-            </b-col>
-            <b-col cols="12" md="6" lg="6">
-              <user-g-m-s-location-format />
-            </b-col>
-          </b-row>
-          <b-row class="mb-5">
-            <b-col cols="12" md="6" lg="6">
-              {{ $t('settings.GMS.location.label') }}
-            </b-col>
-            <b-col cols="12" md="6" lg="6">
-              <user-g-m-s-location />
-            </b-col>
-          </b-row>
-        </div>
-      </b-tab>
+          <div v-if="gmsAllowed">
+            <b-row class="mb-4">
+              <b-col cols="12" md="6" lg="6">
+                {{ $t('settings.GMS.naming-format') }}
+              </b-col>
+              <b-col cols="12" md="6" lg="6">
+                <user-g-m-s-naming-format />
+              </b-col>
+            </b-row>
+            <b-row class="mb-4">
+              <b-col cols="12" md="6" lg="6">
+                {{ $t('settings.GMS.location-format') }}
+              </b-col>
+              <b-col cols="12" md="6" lg="6">
+                <user-g-m-s-location-format />
+              </b-col>
+            </b-row>
+            <b-row class="mb-5">
+              <b-col cols="12" md="6" lg="6">
+                {{ $t('settings.GMS.location.label') }}
+              </b-col>
+              <b-col cols="12" md="6" lg="6">
+                <user-g-m-s-location />
+              </b-col>
+            </b-row>
+          </div>
+        </b-tab>
+      </div>
     </b-tabs>
 
     <!-- TODO<b-row>
@@ -140,6 +142,7 @@ import UserPassword from '@/components/UserSettings/UserPassword'
 import UserLanguage from '@/components/LanguageSwitch2.vue'
 import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
 import { updateUserInfos } from '@/graphql/mutations'
+import CONFIG from '../config'
 
 export default {
   name: 'Profile',
@@ -179,6 +182,9 @@ export default {
     isDisabled() {
       const { firstName, lastName } = this.$store.state
       return firstName === this.firstName && lastName === this.lastName
+    },
+    isGMS() {
+      return CONFIG.GMS
     },
   },
   // TODO: watch: {
