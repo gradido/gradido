@@ -134,9 +134,25 @@ export const communitiesQuery = gql`
   }
 `
 
-export const getCommunityByUuidQuery = gql`
-  query ($communityUuid: String!) {
-    community(communityUuid: $communityUuid) {
+export const getCommunityByIdentifierQuery = gql`
+  query ($communityIdentifier: String!) {
+    communityByIdentifier(communityIdentifier: $communityIdentifier) {
+      id
+      foreign
+      name
+      description
+      url
+      creationDate
+      uuid
+      authenticatedAt
+      gmsApiKey
+    }
+  }
+`
+
+export const getHomeCommunityQuery = gql`
+  query {
+    homeCommunity {
       id
       foreign
       name
