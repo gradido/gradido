@@ -21,7 +21,7 @@ export const ROLE_ADMIN = new Role(RoleNames.ADMIN, [
   ...ADMIN_RIGHTS,
 ])
 
-export const ROLE_DLT_CONNECTOR = new Role(RoleNames.DLT_CONNECTOR_ROLE, DLT_CONNECTOR_RIGHTS)
+export const ROLE_DLT_CONNECTOR = new Role(RoleNames.DLT_CONNECTOR, DLT_CONNECTOR_RIGHTS)
 
 // TODO from database
 export const ROLES = [ROLE_UNAUTHORIZED, ROLE_USER, ROLE_MODERATOR, ROLE_ADMIN]

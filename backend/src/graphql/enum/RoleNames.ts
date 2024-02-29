@@ -5,7 +5,7 @@ export enum RoleNames {
   USER = 'USER',
   MODERATOR = 'MODERATOR',
   ADMIN = 'ADMIN',
-  DLT_CONNECTOR_ROLE = 'DLT_CONNECTOR_ROLE',
+  DLT_CONNECTOR = 'DLT_CONNECTOR_ROLE',
 }
 
 registerEnumType(RoleNames, {
