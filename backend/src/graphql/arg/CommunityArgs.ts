@@ -1,14 +1,13 @@
-import { IsString } from 'class-validator'
-import { Field, ArgsType, InputType } from 'type-graphql'
+import { IsBoolean, IsString } from 'class-validator'
+import { ArgsType, Field } from 'type-graphql'
 
-@InputType()
 @ArgsType()
 export class CommunityArgs {
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @IsString()
-  uuid: string
+  communityIdentifier?: string | null
 
-  @Field(() => String)
-  @IsString()
-  gmsApiKey: string
+  @Field(() => Boolean, { nullable: true })
+  @IsBoolean()
+  foreign?: boolean | null
 }

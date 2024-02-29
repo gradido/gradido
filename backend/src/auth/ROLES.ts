@@ -1,6 +1,7 @@
 import { RoleNames } from '@/graphql/enum/RoleNames'
 
 import { ADMIN_RIGHTS } from './ADMIN_RIGHTS'
+import { DLT_CONNECTOR_RIGHTS } from './DLT_CONNECTOR_RIGHTS'
 import { INALIENABLE_RIGHTS } from './INALIENABLE_RIGHTS'
 import { MODERATOR_RIGHTS } from './MODERATOR_RIGHTS'
 import { Role } from './Role'
@@ -19,6 +20,8 @@ export const ROLE_ADMIN = new Role(RoleNames.ADMIN, [
   ...MODERATOR_RIGHTS,
   ...ADMIN_RIGHTS,
 ])
+
+export const ROLE_DLT_CONNECTOR = new Role(RoleNames.DLT_CONNECTOR, DLT_CONNECTOR_RIGHTS)
 
 // TODO from database
 export const ROLES = [ROLE_UNAUTHORIZED, ROLE_USER, ROLE_MODERATOR, ROLE_ADMIN]

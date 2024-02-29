@@ -10,6 +10,7 @@ import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql/error/GraphQLError'
+import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
@@ -17,10 +18,11 @@ import { logger, i18n as localization } from '@test/testSetup'
 import { userFactory } from '@/seeds/factory/user'
 import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
 import {
+  allCommunities,
   getCommunities,
   communitiesQuery,
-  getCommunityByUuidQuery,
-  allCommunities,
+  getHomeCommunityQuery,
+  getCommunityByIdentifierQuery,
 } from '@/seeds/graphql/queries'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
@@ -735,15 +737,36 @@ describe('CommunityResolver', () => {
         await DbCommunity.insert(foreignCom2)
       })
 
-      it('finds the home-community', async () => {
+      it('finds the home-community by uuid', async () => {
         await expect(
           query({
-            query: getCommunityByUuidQuery,
-            variables: { communityUuid: homeCom?.communityUuid },
+            query: getCommunityByIdentifierQuery,
+            variables: { communityIdentifier: homeCom?.communityUuid },
           }),
         ).resolves.toMatchObject({
           data: {
-            community: {
+            communityByIdentifier: {
+              id: homeCom?.id,
+              foreign: homeCom?.foreign,
+              name: homeCom?.name,
+              description: homeCom?.description,
+              url: homeCom?.url,
+              creationDate: homeCom?.creationDate?.toISOString(),
+              uuid: homeCom?.communityUuid,
+              authenticatedAt: homeCom?.authenticatedAt,
+            },
+          },
+        })
+      })
+
+      it('finds the home-community', async () => {
+        await expect(
+          query({
+            query: getHomeCommunityQuery,
+          }),
+        ).resolves.toMatchObject({
+          data: {
+            homeCommunity: {
               id: homeCom?.id,
               foreign: homeCom?.foreign,
               name: homeCom?.name,
@@ -812,7 +835,7 @@ describe('CommunityResolver', () => {
         expect(
           await mutate({
             mutation: updateHomeCommunityQuery,
-            variables: { uuid: 'unknownUuid', gmsApiKey: 'gmsApiKey' },
+            variables: { uuid: uuidv4(), gmsApiKey: 'gmsApiKey' },
           }),
         ).toEqual(
           expect.objectContaining({
