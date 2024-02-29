@@ -17,6 +17,11 @@ function isStringBoolean(value: string): boolean {
   return false
 }
 
+const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
+export const isLanguage = (language: string): boolean => {
+  return LANGUAGES.includes(language)
+}
+
 function isUUID4(value: string): boolean {
   return validate(value) && version(value) === 4
 }

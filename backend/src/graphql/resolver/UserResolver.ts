@@ -19,8 +19,6 @@ import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { SetUserRoleArgs } from '@arg/SetUserRoleArgs'
 import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
 import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
-import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
-import { GmsPublishNameType } from '@enum/GmsPublishNameType'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
@@ -55,6 +53,8 @@ import {
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Events'
+import { UpdateUserInfoArgsLoggingView } from '@/graphql/logging/UpdateUserInfoArgsLogging.view'
+import { UpdateUserContext } from '@/interactions/updateUser/UpdateUser.context'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
@@ -73,7 +73,6 @@ import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
-import { Location2Point } from './util/Location2Point'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { validateAlias } from './util/validateAlias'
@@ -541,111 +540,22 @@ export class UserResolver {
   @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
   async updateUserInfos(
-    @Args()
-    {
-      firstName,
-      lastName,
-      alias,
-      language,
-      password,
-      passwordNew,
-      hideAmountGDD,
-      hideAmountGDT,
-      gmsAllowed,
-      gmsPublishName,
-      gmsLocation,
-      gmsPublishLocation,
-    }: UpdateUserInfosArgs,
+    @Args() updateUserInfos: UpdateUserInfosArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.info(
-      `updateUserInfos(${firstName}, ${lastName}, ${alias}, ${language}, ***, ***, ${hideAmountGDD}, ${hideAmountGDT}, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})...`,
-    )
-    // check default arg settings
-    if (gmsAllowed === null || gmsAllowed === undefined) {
-      gmsAllowed = true
-    }
-    if (!gmsPublishName) {
-      gmsPublishName = GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS
-    }
-    if (!gmsPublishLocation) {
-      gmsPublishLocation = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
-    }
+    logger.info({ updateUserInfos: new UpdateUserInfoArgsLoggingView(updateUserInfos) })
+    // console.log('user before', context.user)
+    const updateUserContext = new UpdateUserContext(updateUserInfos, context)
+    const user = await updateUserContext.run()
 
-    const user = getUser(context)
-    // try {
-    if (firstName) {
-      user.firstName = firstName
-    }
-
-    if (lastName) {
-      user.lastName = lastName
-    }
-
-    if (alias && (await validateAlias(alias))) {
-      user.alias = alias
-    }
-
-    if (language) {
-      if (!isLanguage(language)) {
-        throw new LogError('Given language is not a valid language', language)
-      }
-      user.language = language
-      i18n.setLocale(language)
-    }
-
-    if (password && passwordNew) {
-      // Validate Password
-      if (!isValidPassword(passwordNew)) {
-        throw new LogError(
-          'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-        )
-      }
-
-      if (!verifyPassword(user, password)) {
-        throw new LogError(`Old password is invalid`)
-      }
-
-      // Save new password hash and newly encrypted private key
-      user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      user.password = encryptPassword(user, passwordNew)
-    }
-
-    // Save hideAmountGDD value
-    if (hideAmountGDD !== undefined) {
-      user.hideAmountGDD = hideAmountGDD
-    }
-    // Save hideAmountGDT value
-    if (hideAmountGDT !== undefined) {
-      user.hideAmountGDT = hideAmountGDT
-    }
-
-    user.gmsAllowed = gmsAllowed
-    user.gmsPublishName = gmsPublishName
-    if (gmsLocation) {
-      user.location = Location2Point(gmsLocation)
-    }
-    user.gmsPublishLocation = gmsPublishLocation
-    // } catch (err) {
-    //   console.log('error:', err)
-    // }
-    const queryRunner = getConnection().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('REPEATABLE READ')
-
+    // only one mysql query so no need for a transaction
     try {
-      await queryRunner.manager.save(user).catch((error) => {
-        throw new LogError('Error saving user', error)
-      })
-
-      await queryRunner.commitTransaction()
+      await user.save()
       logger.debug('writing User data successful...', user)
     } catch (e) {
-      await queryRunner.rollbackTransaction()
       throw new LogError('Error on writing updated user data', e)
-    } finally {
-      await queryRunner.release()
     }
+
     logger.info('updateUserInfos() successfully finished...')
     await EVENT_USER_INFO_UPDATE(user)
 
