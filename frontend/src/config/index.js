@@ -21,7 +21,7 @@ const version = {
 }
 
 const features = {
-  GMS: process.env.GMS ?? false,
+  GMS_ACTIVE: process.env.GMS_ACTIVE ?? false,
 }
 
 const environment = {
