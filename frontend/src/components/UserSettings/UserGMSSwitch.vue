@@ -5,7 +5,7 @@
       v-model="gmsAllowed"
       name="check-button"
       switch
-      @change="onSubmit"
+      @change="onChange"
     ></b-form-checkbox>
   </div>
 </template>
@@ -20,7 +20,7 @@ export default {
     }
   },
   methods: {
-    async onSubmit() {
+    async onChange() {
       this.$apollo
         .mutate({
           mutation: updateUserInfos,

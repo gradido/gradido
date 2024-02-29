@@ -184,7 +184,7 @@ export default {
       return firstName === this.firstName && lastName === this.lastName
     },
     isGMS() {
-      return CONFIG.GMS
+      return CONFIG.GMS_ACTIVE
     },
   },
   // TODO: watch: {
