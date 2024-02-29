@@ -18,23 +18,75 @@ example: `https://gdd.gradido.net`/redeem/`3a5839be29f1`
 
 In consequence how the transaction-link is created the recipient will be routed on activation to the community of the sender.
 
-With receiving a redeem-link request the payload of this link will be validated. If the code of this link exists in database, the associated transaction is still open and the expiration time is not exceeded, the community will start the _disbursement process_.
+With receiving a redeem-link request the payload of this link will be validated:
+
+* If the code of this link exists in database
+* If the associated transaction is still open and
+* If the expiration time of the code is not exceeded
+
+Only if all validation checks are successful the community will start the _disbursement process_ with the 1st step to identify the recipient.
 
 ### Identification of the recipient
 
-At this point of time the recipient of the redeem-link is totaly unkown, which means it is not clear if he will be a user of the same community as the sender or be a user of a foreign community, if the recipient still has a gradido account or if he still have to register as a new gradido user.
+At this point of time the recipient of the redeem-link is totaly unkown, which means it is not clear:
 
-In consequence the first page the user will see must offer a community-selection. This UI-component will present a list of all known, verified and authenticated communities the sender's home-community is connected over the federation.
+1. if the recipient will be a user of
+   a. the same community as the sender or
+   b. be a user of a foreign community
+2. if the recipient still has a gradido account or
+3. if he still have to register as a new gradido user
 
-With the selection of a community from this list the user must confirm his selection and will be routed on a following page for login or registration. But before this next-page-routing the system will check the community-selection if the recipient-community will be the same as the sender-community or a foreign-community.
+#### Community-Selection
 
-In case of the same community there are no additional system actions for processing the transaction as a local send-coin-transaction necessary.
+In consequence the first shown page for the recipient-user must offer a community-selection to yield the decision for the recipient community. On this page an UI-component will present a list of all known, verified and authenticated communities the sender's home-community is connected over the federation.
 
-In case the user has selected a foreign community the system will create a new token, which contains all necessary information to start a _disbursement process_ from the foreign community after the user has done a successful login or registration there. The payload of this token must contain
+The backend offers for the requirements of this community-list the graphql query:
 
-* the url of the sender-community
+```
+CommunityResolver.authenticatedCommunities :Promise Community[] 
+```
+
+returning only Community-Entities with a defined `uuid` and a given `authenticatedAt` Date by the following type definition:
+
+```
+Community {
+  id: number
+  foreign: boolean
+  name: string
+  description: string
+  url: string
+  creationDate: Date
+  uuid: string
+  authenticatedAt: Date
+  gmsApiKey: string
+}
+```
+
+With the selection of a community-entry from this list the recipient-user must confirm his selection by closing the dialog with the `confirm` or `next`-button.
+
+After confirming the community-selection the system will check if the selected community of the recipient-user is
+
+* the same community of the sender-user or
+* a different and foreign community
+
+In the first case the system goes on with the local login or registration page for a local `redeem-link activation`.
+
+In case of the recipient community will be a foreign community, the system has to prepare a request with a securitykey to invoke on the foreign community the login- or register-page.
+
+#### Redeem-Activation JWT-Token
+
+This securityKey will be created as a JWT-token, which contains all necessary information to start a _disbursement process_ from the foreign community after the user has done a successful login or registration there. The payload of this token must contain:
+
 * the community-uuid of the sender-community
 * the gradidoID of the sender
 * the code of the redeem-link
 
-The whole token have to be decrypted by the publicKey of the recipient-community and signed by the privateKey of the sender-community.
+The payload of token have to be decrypted by the _publicKey of the recipient-community_ and signed by the _privateKey of the sender-community_.
+
+The header of the JWT-Token will additionaly contain:
+
+* type of JWT-Token - here `redeem-activation`
+* the alias if exists or the firstname of the sender
+* the amount of gradidos the sender will send
+
+to show without deeper token validation on the login or registerpage on the foreign community the message about the redeem-link activation like it is done currently by a local redeem-link activation.
