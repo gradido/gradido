@@ -38,7 +38,7 @@ import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
 import { BalanceResolver } from './BalanceResolver'
-import { getCommunityByUuid, getCommunityName, isHomeCommunity } from './util/communities'
+import { getCommunityByIdentifier, getCommunityName, isHomeCommunity } from './util/communities'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
@@ -452,7 +452,7 @@ export class TransactionResolver {
       if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
         throw new LogError('X-Community sendCoins disabled per configuration!')
       }
-      const recipCom = await getCommunityByUuid(recipientCommunityIdentifier)
+      const recipCom = await getCommunityByIdentifier(recipientCommunityIdentifier)
       logger.debug('recipient commuity: ', recipCom)
       if (recipCom === null) {
         throw new LogError(
