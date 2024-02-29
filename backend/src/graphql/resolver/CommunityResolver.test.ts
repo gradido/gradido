@@ -729,7 +729,7 @@ describe('CommunityResolver', () => {
           'e047365a54082e8a7e9273da61b55c8134a2a0c836799ba12b78b9b0c52bc85f',
           'hex',
         )
-        foreignCom2.communityUuid = 'Stage3-Com-UUID'
+        foreignCom2.communityUuid = uuidv4()
         foreignCom2.authenticatedAt = new Date()
         foreignCom2.name = 'Stage-3_Community-name'
         foreignCom2.description = 'Stage-3_Community-description'
