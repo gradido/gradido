@@ -1,5 +1,6 @@
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { Decimal } from 'decimal.js-light'
+import { validate, version } from 'uuid'
 
 import { Decay } from '@model/Decay'
 
@@ -19,6 +20,14 @@ function isStringBoolean(value: string): boolean {
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 export const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)
+}
+
+function isUUID4(value: string): boolean {
+  return validate(value) && version(value) === 4
+}
+
+function isEMail(value: string): boolean {
+  return /^.{2,}@.{2,}\..{2,}$/.exec(value) !== null
 }
 
 async function calculateBalance(
@@ -47,4 +56,4 @@ async function calculateBalance(
   return { balance, lastTransactionId: lastTransaction.id, decay }
 }
 
-export { calculateBalance, isStringBoolean }
+export { calculateBalance, isStringBoolean, isUUID4, isEMail }

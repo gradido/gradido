@@ -12,6 +12,7 @@ import { TransactionError } from '@/graphql/model/TransactionError'
 import { CommunityLoggingView } from '@/logging/CommunityLogging.view'
 import { logger } from '@/logging/logger'
 import { InterruptiveSleepManager } from '@/manager/InterruptiveSleepManager'
+import { LogError } from '@/server/LogError'
 import { getDataSource } from '@/typeorm/DataSource'
 
 import { CreateTransactionRecipeContext } from '../transaction/CreateTransationRecipe.context'
@@ -24,7 +25,19 @@ export class HomeCommunityRole extends CommunityRole {
   public async create(communityDraft: CommunityDraft, topic: string): Promise<void> {
     super.create(communityDraft, topic)
     // generate key pair for signing transactions and deriving all keys for community
-    const keyPair = new KeyPair(new Mnemonic(CONFIG.IOTA_HOME_COMMUNITY_SEED ?? undefined))
+    let mnemonic: Mnemonic
+    try {
+      mnemonic = new Mnemonic(CONFIG.IOTA_HOME_COMMUNITY_SEED ?? undefined)
+    } catch (e) {
+      throw new LogError(
+        'error creating mnemonic for home community, please fill IOTA_HOME_COMMUNITY_SEED in .env',
+        {
+          IOTA_HOME_COMMUNITY_SEED: CONFIG.IOTA_HOME_COMMUNITY_SEED,
+          error: e,
+        },
+      )
+    }
+    const keyPair = new KeyPair(mnemonic)
     keyPair.fillInCommunityKeys(this.self)
 
     // create auf account and gmw account
