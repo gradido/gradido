@@ -3,14 +3,21 @@ import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { Resolver, Query, Authorized, Mutation, Args, Arg } from 'type-graphql'
 
+import { Paginated } from '@arg/Paginated'
 import { EditCommunityInput } from '@input/EditCommunityInput'
+import { AdminCommunityView } from '@model/AdminCommunityView'
 import { Community } from '@model/Community'
 import { FederatedCommunity } from '@model/FederatedCommunity'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LogError } from '@/server/LogError'
 
-import { getCommunityByIdentifier, getCommunityByUuid, getHomeCommunity } from './util/communities'
+import {
+  getAllCommunities,
+  getCommunityByIdentifier,
+  getCommunityByUuid,
+  getHomeCommunity,
+} from './util/communities'
 
 @Resolver()
 export class CommunityResolver {
@@ -27,6 +34,12 @@ export class CommunityResolver {
     return dbFederatedCommunities.map(
       (dbCom: DbFederatedCommunity) => new FederatedCommunity(dbCom),
     )
+  }
+
+  @Authorized([RIGHTS.COMMUNITIES])
+  @Query(() => [AdminCommunityView])
+  async allCommunities(@Args() paginated: Paginated): Promise<AdminCommunityView[]> {
+    return (await getAllCommunities(paginated)).map((dbCom) => new AdminCommunityView(dbCom))
   }
 
   @Authorized([RIGHTS.COMMUNITIES])

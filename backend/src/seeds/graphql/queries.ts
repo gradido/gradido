@@ -172,12 +172,41 @@ export const getCommunities = gql`
       id
       foreign
       publicKey
-      url
+      endPoint
+      apiVersion
       lastAnnouncedAt
       verifiedAt
       lastErrorAt
       createdAt
       updatedAt
+    }
+  }
+`
+
+export const allCommunities = gql`
+  query {
+    allCommunities {
+      foreign
+      url
+      publicKey
+      uuid
+      authenticatedAt
+      name
+      description
+      gmsApiKey
+      creationDate
+      createdAt
+      updatedAt
+      federatedCommunities {
+        id
+        apiVersion
+        endPoint
+        lastAnnouncedAt
+        verifiedAt
+        lastErrorAt
+        createdAt
+        updatedAt
+      }
     }
   }
 `
