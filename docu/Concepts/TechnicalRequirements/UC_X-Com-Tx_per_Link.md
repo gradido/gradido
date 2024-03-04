@@ -16,7 +16,7 @@ After a user has created a `redeem-Link` to send an other user an amount of grad
 
 example: `https://gdd.gradido.net`/redeem/`3a5839be29f1`
 
-In consequence how the transaction-link is created the recipient will be routed on activation to the community of the sender.
+In consequence of these technical details the transaction-link is created, the recipient will be routed on activation to the community of the sender. 
 
 With receiving a redeem-link request the payload of this link will be validated:
 
@@ -24,23 +24,19 @@ With receiving a redeem-link request the payload of this link will be validated:
 * If the associated transaction is still open and
 * If the expiration time of the code is not exceeded
 
-Only if all validation checks are successful the community will start the _disbursement process_ with the 1st step to identify the recipient.
-
-### Identification of the recipient
-
-At this point of time the recipient of the redeem-link is totaly unkown, which means it is not clear:
-
-1. if the recipient will be a user of
-   a. the same community as the sender or
-   b. be a user of a foreign community
-2. if the recipient still has a gradido account or
-3. if he still have to register as a new gradido user
+Only if all validation checks are successful the community will start the _disbursement process_ with the 1st step to select the recipient's community.
 
 #### Community-Selection
 
-In consequence the first shown page for the recipient-user must offer a community-selection to yield the decision for the recipient community. On this page an UI-component will present a list of all known, verified and authenticated communities the sender's home-community is connected over the federation.
+In consequence the first shown page for the recipient-user must offer a community-selection to yield the decision for the recipient community.
 
-The backend offers for the requirements of this community-list the graphql query:
+The current first page the user will see on activating the redeem-link looks like the following page:
+
+![](./image/redeemlink-page_without-comunity-selection.png)
+
+To support a cross community redeem-link activation this page have to be extended with the possibility to select a community. An UI-component will present a list of all known, verified and authenticated communities the sender's home-community is connected over the federation.
+
+The backend offers for the initialization of this community-list the graphql query:
 
 ```
 CommunityResolver.authenticatedCommunities :Promise Community[] 
@@ -71,11 +67,11 @@ After confirming the community-selection the system will check if the selected c
 
 In the first case the system goes on with the local login or registration page for a local `redeem-link activation`.
 
-In case of the recipient community will be a foreign community, the system has to prepare a request with a securitykey to invoke on the foreign community the login- or register-page.
+In case of the recipient community will be a foreign community, the system has to prepare a request with a _securitykey_ to invoke on the foreign community the login- or register-page.
 
 #### Redeem-Activation JWT-Token
 
-This securityKey will be created as a JWT-token, which contains all necessary information to start a _disbursement process_ from the foreign community after the user has done a successful login or registration there. The payload of this token must contain:
+This _securityKey_ will be created as a JWT-token, which contains all necessary information to start a _disbursement process_ from the foreign community after the user has done a successful login or registration there. The payload of this token must contain:
 
 * the community-uuid of the sender-community
 * the gradidoID of the sender
@@ -83,7 +79,7 @@ This securityKey will be created as a JWT-token, which contains all necessary in
 
 The payload of token have to be decrypted by the _publicKey of the recipient-community_ and signed by the _privateKey of the sender-community_.
 
-The header of the JWT-Token will additionaly contain:
+The JWT-Token will additionaly contain:
 
 * type of JWT-Token - here `redeem-activation`
 * the alias if exists or the firstname of the sender
