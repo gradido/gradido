@@ -1,49 +1,28 @@
-import { Point } from '@dbTools/typeorm'
-import { User as DbUser } from '@entity/User'
-
-import { LogError } from '@/server/LogError'
+import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { backendLogger as logger } from '@/server/logger'
 
-import { Point2Location } from './Location2Point'
-
-export function compareGmsRelevantUserSettings(orgUser: DbUser, changedUser: DbUser): boolean {
-  if (!orgUser && !changedUser) {
-    throw new LogError('comparison without any user is impossible')
-  }
-  logger.debug('compareGmsRelevantUserSettings:', orgUser, changedUser)
-  if (orgUser.alias !== changedUser.alias) {
+export function compareGmsRelevantUserSettings(input: UpdateUserInfosArgs): boolean {
+  logger.debug('compareGmsRelevantUserSettings:', input)
+  if (input.alias) {
     return true
   }
-  if (orgUser.firstName !== changedUser.firstName || orgUser.lastName !== changedUser.lastName) {
+  if (input.firstName || input.lastName) {
     return true
   }
-  if (orgUser.gmsAllowed !== changedUser.gmsAllowed) {
+  if (input.gmsAllowed) {
     return true
   }
-  if (orgUser.gmsPublishLocation !== changedUser.gmsPublishLocation) {
+  if (input.gmsPublishLocation) {
     return true
   }
-  if (orgUser.gmsPublishName !== changedUser.gmsPublishName) {
+  if (input.gmsPublishName) {
     return true
   }
-  if (orgUser.language !== changedUser.language) {
+  if (input.language) {
     return true
   }
-  if (orgUser.location === null && changedUser.location !== null) {
+  if (input.gmsLocation) {
     return true
-  }
-  if (orgUser.location !== null && changedUser.location === null) {
-    return true
-  }
-  if (orgUser.location !== null && changedUser.location !== null) {
-    const orgLocation = Point2Location(orgUser.location as Point)
-    const changedLocation = Point2Location(changedUser.location as Point)
-    if (
-      orgLocation.latitude !== changedLocation.latitude ||
-      orgLocation.longitude !== changedLocation.longitude
-    ) {
-      return true
-    }
   }
   return false
 }
