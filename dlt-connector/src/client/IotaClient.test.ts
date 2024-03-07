@@ -50,7 +50,7 @@ jest.mock('@iota/client', () => {
 
 describe('Iota Tests', () => {
   it('test mocked sendDataMessage', async () => {
-    const result = await sendMessage('Test Message')
+    const result = await sendMessage('Test Message', 'topic')
     expect(result).toBe('5498130bc3918e1a7143969ce05805502417e3e1bd596d3c44d6a0adeea22710')
   })
 
