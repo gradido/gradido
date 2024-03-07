@@ -1,43 +1,68 @@
 import { Point } from '@dbTools/typeorm'
 import { User as DbUser } from '@entity/User'
 
+import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import { Point2Location } from './Location2Point'
 
-export function compareGmsRelevantUserSettings(orgUser: DbUser, changedUser: DbUser): boolean {
-  if (!orgUser && !changedUser) {
+export function compareGmsRelevantUserSettings(
+  orgUser: DbUser,
+  updateUserInfosArgs: UpdateUserInfosArgs,
+): boolean {
+  if (!orgUser) {
     throw new LogError('comparison without any user is impossible')
   }
-  logger.debug('compareGmsRelevantUserSettings:', orgUser, changedUser)
-  if (orgUser.alias !== changedUser.alias) {
+  logger.debug('compareGmsRelevantUserSettings:', orgUser, updateUserInfosArgs)
+  if (updateUserInfosArgs.alias && orgUser.alias !== updateUserInfosArgs.alias) {
     return true
   }
-  if (orgUser.firstName !== changedUser.firstName || orgUser.lastName !== changedUser.lastName) {
+  if (
+    (updateUserInfosArgs.firstName && orgUser.firstName !== updateUserInfosArgs.firstName) ||
+    (updateUserInfosArgs.lastName && orgUser.lastName !== updateUserInfosArgs.lastName)
+  ) {
     return true
   }
-  if (orgUser.gmsAllowed !== changedUser.gmsAllowed) {
+  if (updateUserInfosArgs.gmsAllowed && orgUser.gmsAllowed !== updateUserInfosArgs.gmsAllowed) {
     return true
   }
-  if (orgUser.gmsPublishLocation !== changedUser.gmsPublishLocation) {
+  if (
+    updateUserInfosArgs.gmsPublishLocation &&
+    orgUser.gmsPublishLocation !== updateUserInfosArgs.gmsPublishLocation
+  ) {
     return true
   }
-  if (orgUser.gmsPublishName !== changedUser.gmsPublishName) {
+  if (
+    updateUserInfosArgs.gmsPublishName &&
+    orgUser.gmsPublishName !== updateUserInfosArgs.gmsPublishName
+  ) {
     return true
   }
-  if (orgUser.language !== changedUser.language) {
+  if (updateUserInfosArgs.language && orgUser.language !== updateUserInfosArgs.language) {
     return true
   }
-  if (orgUser.location === null && changedUser.location !== null) {
+  if (
+    updateUserInfosArgs.gmsLocation &&
+    orgUser.location === null &&
+    updateUserInfosArgs.gmsLocation !== null
+  ) {
     return true
   }
-  if (orgUser.location !== null && changedUser.location === null) {
+  if (
+    updateUserInfosArgs.gmsLocation &&
+    orgUser.location !== null &&
+    updateUserInfosArgs.gmsLocation === null
+  ) {
     return true
   }
-  if (orgUser.location !== null && changedUser.location !== null) {
+  if (
+    updateUserInfosArgs.gmsLocation &&
+    orgUser.location !== null &&
+    updateUserInfosArgs.gmsLocation !== null
+  ) {
     const orgLocation = Point2Location(orgUser.location as Point)
-    const changedLocation = Point2Location(changedUser.location as Point)
+    const changedLocation = updateUserInfosArgs.gmsLocation
     if (
       orgLocation.latitude !== changedLocation.latitude ||
       orgLocation.longitude !== changedLocation.longitude

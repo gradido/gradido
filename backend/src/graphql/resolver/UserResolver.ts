@@ -541,8 +541,10 @@ export class UserResolver {
   @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
   async updateUserInfos(
-    @Args()
-    {
+    @Args() updateUserInfosArgs: UpdateUserInfosArgs,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const {
       firstName,
       lastName,
       alias,
@@ -555,14 +557,11 @@ export class UserResolver {
       gmsPublishName,
       gmsLocation,
       gmsPublishLocation,
-    }: UpdateUserInfosArgs,
-    @Ctx() context: Context,
-  ): Promise<boolean> {
+    } = updateUserInfosArgs
     logger.info(
       `updateUserInfos(${firstName}, ${lastName}, ${alias}, ${language}, ***, ***, ${hideAmountGDD}, ${hideAmountGDT}, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})...`,
     )
     const user = getUser(context)
-    const backupOriginalUser = user
 
     // try {
     if (firstName) {
@@ -646,7 +645,7 @@ export class UserResolver {
     await EVENT_USER_INFO_UPDATE(user)
 
     // validate if user settings are changed with relevance to update gms-user
-    if (compareGmsRelevantUserSettings(user, backupOriginalUser)) {
+    if (compareGmsRelevantUserSettings(user, updateUserInfosArgs)) {
       logger.debug(`changed user-settings relevant for gms-user update...`)
       const homeCom = await getHomeCommunity()
       if (homeCom.gmsApiKey !== null) {
