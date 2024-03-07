@@ -28,6 +28,9 @@ const {
   lastName,
   username,
   newsletterState,
+  gmsAllowed,
+  gmsPublishName,
+  gmsPublishLocation,
   publisherId,
   roles,
   hasElopage,
@@ -122,6 +125,30 @@ describe('Vuex store', () => {
       })
     })
 
+    describe('gmsAllowed', () => {
+      it('sets the state of gmsAllowed', () => {
+        const state = { gmsAllowed: null }
+        gmsAllowed(state, true)
+        expect(state.gmsAllowed).toEqual(true)
+      })
+    })
+
+    describe('gmsPublishName', () => {
+      it('sets gmsPublishName', () => {
+        const state = { gmsPublishName: null }
+        gmsPublishName(state, 'GMS_PUBLISH_NAME_INITIALS')
+        expect(state.gmsPublishName).toEqual('GMS_PUBLISH_NAME_INITIALS')
+      })
+    })
+
+    describe('gmsPublishLocation', () => {
+      it('sets gmsPublishLocation', () => {
+        const state = { gmsPublishLocation: null }
+        gmsPublishLocation(state, 'GMS_LOCATION_TYPE_APPROXIMATE')
+        expect(state.gmsPublishLocation).toEqual('GMS_LOCATION_TYPE_APPROXIMATE')
+      })
+    })
+
     describe('publisherId', () => {
       it('sets the state of publisherId', () => {
         const state = {}
@@ -190,6 +217,9 @@ describe('Vuex store', () => {
         klickTipp: {
           newsletterState: true,
         },
+        gmsAllowed: true,
+        gmsPublishName: 'GMS_PUBLISH_NAME_FULL',
+        gmsPublishLocation: 'GMS_LOCATION_TYPE_EXACT',
         hasElopage: false,
         publisherId: 1234,
         roles: ['admin'],
@@ -197,9 +227,9 @@ describe('Vuex store', () => {
         hideAmountGDT: true,
       }
 
-      it('calls eleven commits', () => {
+      it('calls fifteen commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(12)
+        expect(commit).toHaveBeenCalledTimes(15)
       })
 
       it('commits gradidoID', () => {
@@ -232,29 +262,44 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(6, 'newsletterState', true)
       })
 
+      it('commits gmsAllowed', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(7, 'gmsAllowed', true)
+      })
+
+      it('commits gmsPublishName', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(8, 'gmsPublishName', 'GMS_PUBLISH_NAME_FULL')
+      })
+
+      it('commits gmsPublishLocation', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(9, 'gmsPublishLocation', 'GMS_LOCATION_TYPE_EXACT')
+      })
+
       it('commits hasElopage', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(7, 'hasElopage', false)
+        expect(commit).toHaveBeenNthCalledWith(10, 'hasElopage', false)
       })
 
       it('commits publisherId', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(8, 'publisherId', 1234)
+        expect(commit).toHaveBeenNthCalledWith(11, 'publisherId', 1234)
       })
 
       it('commits roles', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(9, 'roles', ['admin'])
+        expect(commit).toHaveBeenNthCalledWith(12, 'roles', ['admin'])
       })
 
       it('commits hideAmountGDD', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(10, 'hideAmountGDD', false)
+        expect(commit).toHaveBeenNthCalledWith(13, 'hideAmountGDD', false)
       })
 
       it('commits hideAmountGDT', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(11, 'hideAmountGDT', true)
+        expect(commit).toHaveBeenNthCalledWith(14, 'hideAmountGDT', true)
       })
     })
 
@@ -262,9 +307,9 @@ describe('Vuex store', () => {
       const commit = jest.fn()
       const state = {}
 
-      it('calls twelve commits', () => {
+      it('calls seventeen commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(14)
+        expect(commit).toHaveBeenCalledTimes(17)
       })
 
       it('commits token', () => {
@@ -297,34 +342,49 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(6, 'newsletterState', null)
       })
 
+      it('commits gmsAllowed', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(7, 'gmsAllowed', null)
+      })
+
+      it('commits gmsPublishName', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(8, 'gmsPublishName', null)
+      })
+
+      it('commits gmsPublishLocation', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(9, 'gmsPublishLocation', null)
+      })
+
       it('commits hasElopage', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(7, 'hasElopage', false)
+        expect(commit).toHaveBeenNthCalledWith(10, 'hasElopage', false)
       })
 
       it('commits publisherId', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(8, 'publisherId', null)
+        expect(commit).toHaveBeenNthCalledWith(11, 'publisherId', null)
       })
 
       it('commits roles', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(9, 'roles', null)
+        expect(commit).toHaveBeenNthCalledWith(12, 'roles', null)
       })
 
       it('commits hideAmountGDD', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(10, 'hideAmountGDD', false)
+        expect(commit).toHaveBeenNthCalledWith(13, 'hideAmountGDD', false)
       })
 
       it('commits hideAmountGDT', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(11, 'hideAmountGDT', true)
+        expect(commit).toHaveBeenNthCalledWith(14, 'hideAmountGDT', true)
       })
 
       it('commits email', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(12, 'email', '')
+        expect(commit).toHaveBeenNthCalledWith(15, 'email', '')
       })
 
       // how to get this working?

@@ -35,6 +35,15 @@ export const mutations = {
   newsletterState: (state, newsletterState) => {
     state.newsletterState = newsletterState
   },
+  gmsAllowed: (state, gmsAllowed) => {
+    state.gmsAllowed = gmsAllowed
+  },
+  gmsPublishName: (state, gmsPublishName) => {
+    state.gmsPublishName = gmsPublishName
+  },
+  gmsPublishLocation: (state, gmsPublishLocation) => {
+    state.gmsPublishLocation = gmsPublishLocation
+  },
   publisherId: (state, publisherId) => {
     let pubId = parseInt(publisherId)
     if (isNaN(pubId)) pubId = null
@@ -71,6 +80,9 @@ export const actions = {
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
     commit('newsletterState', data.klickTipp.newsletterState)
+    commit('gmsAllowed', data.gmsAllowed)
+    commit('gmsPublishName', data.gmsPublishName)
+    commit('gmsPublishLocation', data.gmsPublishLocation)
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
     commit('roles', data.roles)
@@ -85,6 +97,9 @@ export const actions = {
     commit('firstName', '')
     commit('lastName', '')
     commit('newsletterState', null)
+    commit('gmsAllowed', null)
+    commit('gmsPublishName', null)
+    commit('gmsPublishLocation', null)
     commit('hasElopage', false)
     commit('publisherId', null)
     commit('roles', null)
@@ -117,6 +132,9 @@ try {
       tokenTime: null,
       roles: [],
       newsletterState: null,
+      gmsAllowed: null,
+      gmsPublishName: null,
+      gmsPublishLocation: null,
       hasElopage: false,
       publisherId: null,
       hideAmountGDD: null,
@@ -126,7 +144,7 @@ try {
       redirectPath: '/overview',
     },
     getters: {},
-    // Syncronous mutation of the state
+    // Synchronous mutation of the state
     mutations,
     actions,
   })
