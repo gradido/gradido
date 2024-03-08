@@ -645,12 +645,13 @@ export class UserResolver {
     await EVENT_USER_INFO_UPDATE(user)
 
     // validate if user settings are changed with relevance to update gms-user
-    if (compareGmsRelevantUserSettings(user, updateUserInfosArgs)) {
+    const gmsUser = new GmsUser(user)
+    if (compareGmsRelevantUserSettings(gmsUser, updateUserInfosArgs)) {
       logger.debug(`changed user-settings relevant for gms-user update...`)
       const homeCom = await getHomeCommunity()
       if (homeCom.gmsApiKey !== null) {
         logger.debug(`gms-user update...`, user)
-        await updateGmsUser(homeCom.gmsApiKey, new GmsUser(user))
+        await updateGmsUser(homeCom.gmsApiKey, gmsUser)
         logger.debug(`gms-user update successfully.`)
       }
     }

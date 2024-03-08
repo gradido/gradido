@@ -1,12 +1,12 @@
-import { User as DbUser } from '@entity/User'
-
 import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { backendLogger as logger } from '@/server/logger'
 
-export function compareGmsRelevantUserSettings(user: DbUser, input: UpdateUserInfosArgs): boolean {
+export function compareGmsRelevantUserSettings(
+  gmsUser: GmsUser,
+  input: UpdateUserInfosArgs,
+): boolean {
   logger.debug('compareGmsRelevantUserSettings:', input)
-  const gmsUser = new GmsUser(user)
 
   if (input.alias && gmsUser.alias) {
     return true
