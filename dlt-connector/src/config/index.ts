@@ -9,13 +9,14 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v4.2023-09-12',
+    EXPECTED: 'v6.2024-02-20',
     CURRENT: '',
   },
 }
 
 const server = {
   PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
+  JWT_SECRET: process.env.JWT_SECRET ?? 'secret123',
 }
 
 const database = {
@@ -31,11 +32,15 @@ const database = {
 const iota = {
   IOTA_API_URL: process.env.IOTA_API_URL ?? 'https://chrysalis-nodes.iota.org',
   IOTA_COMMUNITY_ALIAS: process.env.IOTA_COMMUNITY_ALIAS ?? 'GRADIDO: TestHelloWelt2',
-  IOTA_HOME_COMMUNITY_SEED: process.env.IOTA_HOME_COMMUNITY_SEED ?? null,
+  IOTA_HOME_COMMUNITY_SEED: process.env.IOTA_HOME_COMMUNITY_SEED?.substring(0, 32) ?? null,
 }
 
 const dltConnector = {
   DLT_CONNECTOR_PORT: process.env.DLT_CONNECTOR_PORT ?? 6010,
+}
+
+const backendServer = {
+  BACKEND_SERVER_URL: process.env.BACKEND_SERVER_URL ?? 'http://backend:4000',
 }
 
 // Check config version
@@ -56,4 +61,5 @@ export const CONFIG = {
   ...database,
   ...iota,
   ...dltConnector,
+  ...backendServer,
 }

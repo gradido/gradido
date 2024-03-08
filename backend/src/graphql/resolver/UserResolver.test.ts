@@ -1303,8 +1303,10 @@ describe('UserResolver', () => {
               mutation: updateUserInfos,
               variables: {
                 gmsAllowed: false,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL,
-                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
+                gmsPublishName:
+                  GmsPublishNameType[GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL],
+                gmsPublishLocation:
+                  GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE],
               },
             })
             await expect(User.find()).resolves.toEqual([
@@ -1326,9 +1328,11 @@ describe('UserResolver', () => {
               mutation: updateUserInfos,
               variables: {
                 gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishName:
+                  GmsPublishNameType[GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS],
                 gmsLocation: loc,
-                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+                gmsPublishLocation:
+                  GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM],
               },
             })
             await expect(User.find()).resolves.toEqual([
@@ -2674,9 +2678,6 @@ describe('UserResolver', () => {
           mutation: updateUserInfos,
           variables: {
             alias: 'bibi',
-            gmsAllowed: true,
-            gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-            gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
           },
         })
       })

@@ -19,8 +19,6 @@ import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { SetUserRoleArgs } from '@arg/SetUserRoleArgs'
 import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
 import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
-import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
-import { GmsPublishNameType } from '@enum/GmsPublishNameType'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
@@ -563,17 +561,6 @@ export class UserResolver {
     logger.info(
       `updateUserInfos(${firstName}, ${lastName}, ${alias}, ${language}, ***, ***, ${hideAmountGDD}, ${hideAmountGDT}, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})...`,
     )
-    // check default arg settings
-    if (gmsAllowed === null || gmsAllowed === undefined) {
-      gmsAllowed = true
-    }
-    if (!gmsPublishName) {
-      gmsPublishName = GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS
-    }
-    if (!gmsPublishLocation) {
-      gmsPublishLocation = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
-    }
-
     const user = getUser(context)
 
     // try {
@@ -622,13 +609,18 @@ export class UserResolver {
     if (hideAmountGDT !== undefined) {
       user.hideAmountGDT = hideAmountGDT
     }
-
-    user.gmsAllowed = gmsAllowed
-    user.gmsPublishName = gmsPublishName
+    if (gmsAllowed !== undefined) {
+      user.gmsAllowed = gmsAllowed
+    }
+    if (gmsPublishName !== null && gmsPublishName !== undefined) {
+      user.gmsPublishName = gmsPublishName
+    }
     if (gmsLocation) {
       user.location = Location2Point(gmsLocation)
     }
-    user.gmsPublishLocation = gmsPublishLocation
+    if (gmsPublishLocation !== null && gmsPublishLocation !== undefined) {
+      user.gmsPublishLocation = gmsPublishLocation
+    }
     // } catch (err) {
     //   console.log('error:', err)
     // }

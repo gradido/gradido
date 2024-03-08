@@ -5,8 +5,10 @@
   "1000thanks": "1000 Dank, weil du bei uns bist!",
   "125": "125%",
   "85": "85%",
+  "ExternServices": "Verknüpfte Dienste",
   "GDD": "GDD",
   "GDT": "GDT",
+  "GMS": "Gradido Karte",
   "PersonalDetails": "Persönliche Angaben",
   "advanced-calculation": "Vorausberechnung",
   "asterisks": "****",
@@ -290,6 +292,36 @@
   },
   "settings": {
     "emailInfo": "Kann aktuell noch nicht geändert werden.",
+    "GMS": {
+      "disabled": "Daten werden nicht nach GMS exportiert",
+      "enabled": "Daten werden nach GMS exportiert",
+      "location": {
+        "label": "Positionsbestimmung",
+        "button": "Klick mich!"
+      },
+      "location-format": "Positionstyp",
+      "naming-format": "Namensformat im GMS",
+      "publish-location": {
+        "exact": "Genaue Position",
+        "approximate": "Ungefähre Position",
+        "random": "Zufallsposition",
+        "updated": "Positionstyp für GMS aktualisiert"
+      },
+      "publish-name": {
+        "alias-or-initials": "Benutzername oder Initialen",
+        "alias-or-initials-tooltip": "Benutzername, falls vorhanden, oder die Initialen von Vorname und Nachname",
+        "first": "Vorname",
+        "first-tooltip": "Nur der Vornamen",
+        "first-initial": "Vorname und Initiale",
+        "first-initial-tooltip": "Vornamen plus Anfangsbuchstabe des Nachnamens",
+        "initials": "Initialen",
+        "initials-tooltip": "Initialen von Vor- und Nachname unabhängig von der Existenz des Benutzernamens",
+        "name-full": "Ganzer Name",
+        "name-full-tooltip": "Vollständiger Name: Vorname plus Nachname",
+        "updated": "Namensformat für GMS aktualisiert"
+      },
+      "switch": "Erlaubnis Daten nach GMS zu exportieren."
+    },
     "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
     "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
     "info": "Transaktionen können nun per Benutzername oder E-Mail-Adresse getätigt werden.",

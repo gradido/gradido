@@ -7,7 +7,7 @@
           icon="arrow-clockwise"
           font-scale="2"
           :animation="animation"
-          @click="$apollo.queries.GetCommunities.refresh()"
+          @click="$apollo.queries.allCommunities.refresh()"
           data-test="federation-communities-refresh-btn"
         ></b-icon>
       </b-button>
@@ -16,28 +16,29 @@
       <b-row>
         <b-col cols="1" class="ml-1">{{ $t('federation.verified') }}</b-col>
         <b-col class="ml-3">{{ $t('federation.url') }}</b-col>
+        <b-col class="ml-3">{{ $t('federation.name') }}</b-col>
         <b-col cols="2">{{ $t('federation.lastAnnouncedAt') }}</b-col>
         <b-col cols="2">{{ $t('federation.createdAt') }}</b-col>
       </b-row>
       <b-list-group-item
         v-for="item in communities"
-        :key="item.id"
+        :key="item.publicKey"
         :variant="!item.foreign ? 'primary' : 'warning'"
       >
-        <federation-visualize-item :item="item" />
+        <community-visualize-item :item="item" />
       </b-list-group-item>
     </b-list-group>
   </div>
 </template>
 <script>
-import { getCommunities } from '@/graphql/getCommunities'
+import { allCommunities } from '@/graphql/allCommunities'
 
-import FederationVisualizeItem from '../components/Fedaration/FederationVisualizeItem.vue'
+import CommunityVisualizeItem from '../components/Federation/CommunityVisualizeItem.vue'
 
 export default {
   name: 'FederationVisualize',
   components: {
-    FederationVisualizeItem,
+    CommunityVisualizeItem,
   },
   data() {
     return {
@@ -48,17 +49,17 @@ export default {
   },
   computed: {
     animation() {
-      return this.$apollo.queries.GetCommunities.loading ? 'spin' : ''
+      return this.$apollo.queries.allCommunities.loading ? 'spin' : ''
     },
   },
   apollo: {
-    GetCommunities: {
+    allCommunities: {
       fetchPolicy: 'network-only',
       query() {
-        return getCommunities
+        return allCommunities
       },
-      update({ getCommunities }) {
-        this.communities = getCommunities
+      update({ allCommunities }) {
+        this.communities = allCommunities
       },
       error({ message }) {
         this.toastError(message)

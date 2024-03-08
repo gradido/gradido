@@ -16,7 +16,7 @@ export class AccountLoggingView extends AbstractLoggingView {
       id: this.account.id,
       user: this.account.user ? new UserLoggingView(this.account.user).toJSON() : null,
       derivationIndex: this.account.derivationIndex,
-      derive2pubkey: this.account.derive2Pubkey.toString(this.bufferStringFormat),
+      derive2Pubkey: this.account.derive2Pubkey.toString(this.bufferStringFormat),
       type: getEnumValue(AddressType, this.account.type),
       createdAt: this.dateToString(this.account.createdAt),
       confirmedAt: this.dateToString(this.account.confirmedAt),

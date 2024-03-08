@@ -1,6 +1,9 @@
+import { Community } from '@entity/Community'
 import { Transaction } from '@entity/Transaction'
 
+import { AccountLogic } from '@/data/Account.logic'
 import { KeyPair } from '@/data/KeyPair'
+import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
 import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
 import { TransactionBuilder } from '@/data/Transaction.builder'
 import { UserRepository } from '@/data/User.repository'
@@ -52,16 +55,32 @@ export class TransactionRecipeRole {
     this.transactionBuilder
       .fromTransactionBodyBuilder(transactionBodyBuilder)
       .addBackendTransaction(transactionDraft)
-    await this.transactionBuilder.setSenderCommunityFromSenderUser(signingUser)
+
+    await this.transactionBuilder.setCommunityFromUser(transactionDraft.user)
     if (recipientUser.communityUuid !== signingUser.communityUuid) {
-      await this.transactionBuilder.setOtherCommunityFromRecipientUser(recipientUser)
+      await this.transactionBuilder.setOtherCommunityFromUser(transactionDraft.linkedUser)
     }
     const transaction = this.transactionBuilder.getTransaction()
+    const communityKeyPair = new KeyPair(
+      this.getSigningCommunity(transactionTypeRole.getCrossGroupType()),
+    )
+    const accountLogic = new AccountLogic(signingAccount)
     // sign
     this.transactionBuilder.setSignature(
-      new KeyPair(this.transactionBuilder.getCommunity()).sign(transaction.bodyBytes),
+      accountLogic.calculateKeyPair(communityKeyPair).sign(transaction.bodyBytes),
     )
     return this
+  }
+
+  public getSigningCommunity(crossGroupType: CrossGroupType): Community {
+    if (crossGroupType === CrossGroupType.INBOUND) {
+      const otherCommunity = this.transactionBuilder.getOtherCommunity()
+      if (!otherCommunity) {
+        throw new TransactionError(TransactionErrorType.NOT_FOUND, 'missing other community')
+      }
+      return otherCommunity
+    }
+    return this.transactionBuilder.getCommunity()
   }
 
   public getTransaction(): Transaction {

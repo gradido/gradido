@@ -23,7 +23,7 @@ export class Transaction extends BaseEntity {
   @Column({ name: 'iota_message_id', type: 'binary', length: 32, nullable: true })
   iotaMessageId?: Buffer
 
-  @OneToOne(() => Transaction)
+  @OneToOne(() => Transaction, { cascade: ['update'] })
   // eslint-disable-next-line no-use-before-define
   paringTransaction?: Transaction
 
