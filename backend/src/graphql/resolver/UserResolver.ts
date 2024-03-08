@@ -544,7 +544,7 @@ export class UserResolver {
     @Args() updateUserInfosArgs: UpdateUserInfosArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    let {
+    const {
       firstName,
       lastName,
       alias,
@@ -645,7 +645,7 @@ export class UserResolver {
     await EVENT_USER_INFO_UPDATE(user)
 
     // validate if user settings are changed with relevance to update gms-user
-    if (compareGmsRelevantUserSettings(updateUserInfosArgs)) {
+    if (compareGmsRelevantUserSettings(user, updateUserInfosArgs)) {
       logger.debug(`changed user-settings relevant for gms-user update...`)
       const homeCom = await getHomeCommunity()
       if (homeCom.gmsApiKey !== null) {

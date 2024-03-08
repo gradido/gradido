@@ -1,15 +1,23 @@
+import { User as DbUser } from '@entity/User'
+
+import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { backendLogger as logger } from '@/server/logger'
 
-export function compareGmsRelevantUserSettings(input: UpdateUserInfosArgs): boolean {
+export function compareGmsRelevantUserSettings(user: DbUser, input: UpdateUserInfosArgs): boolean {
   logger.debug('compareGmsRelevantUserSettings:', input)
-  if (input.alias) {
+  const gmsUser = new GmsUser(user)
+
+  if (input.alias && gmsUser.alias) {
     return true
   }
-  if (input.firstName || input.lastName) {
+  if (input.firstName && gmsUser.firstName) {
     return true
   }
-  if (input.gmsAllowed) {
+  if (input.lastName && gmsUser.lastName) {
+    return true
+  }
+  if (input.gmsAllowed !== undefined) {
     return true
   }
   if (input.gmsPublishLocation) {
