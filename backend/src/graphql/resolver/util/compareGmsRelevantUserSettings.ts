@@ -2,6 +2,7 @@ import { Point } from '@dbTools/typeorm'
 import { User as DbUser } from '@entity/User'
 
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
+import { GmsPublishNameType } from '@/graphql/enum/GmsPublishNameType'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
@@ -15,7 +16,18 @@ export function compareGmsRelevantUserSettings(
     throw new LogError('comparison without any user is impossible')
   }
   logger.debug('compareGmsRelevantUserSettings:', orgUser, updateUserInfosArgs)
-  if (updateUserInfosArgs.alias && orgUser.alias !== updateUserInfosArgs.alias) {
+  // nach GMS updaten, wenn alias gesetzt wird oder ist und PublishLevel die alias-Übermittlung erlaubt
+  if (
+    updateUserInfosArgs.alias &&
+    orgUser.alias !== updateUserInfosArgs.alias &&
+    ((updateUserInfosArgs.gmsPublishName &&
+      updateUserInfosArgs.gmsPublishName.valueOf ===
+        GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS.valueOf) ||
+      (!updateUserInfosArgs.gmsPublishName &&
+        orgUser.gmsPublishName &&
+        orgUser.gmsPublishName.valueOf ===
+          GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS.valueOf))
+  ) {
     return true
   }
   if (
@@ -24,7 +36,11 @@ export function compareGmsRelevantUserSettings(
   ) {
     return true
   }
-  if (updateUserInfosArgs.gmsAllowed && orgUser.gmsAllowed !== updateUserInfosArgs.gmsAllowed) {
+  if (
+    updateUserInfosArgs.gmsAllowed !== undefined &&
+    updateUserInfosArgs.gmsAllowed &&
+    orgUser.gmsAllowed !== updateUserInfosArgs.gmsAllowed
+  ) {
     return true
   }
   if (
