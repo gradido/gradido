@@ -284,7 +284,7 @@ As described in the chapter "User search" above, we need a dialog in GMS to disp
 * the locations of all other users belonging to the same community as white/gray or black needles - depending on the location-type of the user
 * circles and needles of all other communities and users, which are nearby the requesting user and community location
 
-On activation of the menu-entry _user-search_ a technical flow in the background have to prepare the connection between the gradido-system and the gms-komponent. The following list will describe the necessary steps of all involved komponents:
+On activation of the menu-entry _user-search_ a technical flow in the background have to prepare the connection between the gradido-system and the gms-component. The following list will describe the necessary steps of all involved components:
 
 * **gradido-frontend:** user press the menu entry _user search_
 * **(1.a) gradido-frontend:** invokes the gradido-backend `authUserForGmsUserSearch`
