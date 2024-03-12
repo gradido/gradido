@@ -275,7 +275,7 @@ It contains a map-component of the leaflet library and offers to capture the use
 
 There is no user-specific authentication nor autorization necessary for this dialog as mentioned above.
 
-### GMS user playground dialog (gms efforts)
+### GMS user playground dialog
 
 As described in the chapter "User search" above, we need a dialog in GMS to display in a graphical map:
 
@@ -284,18 +284,31 @@ As described in the chapter "User search" above, we need a dialog in GMS to disp
 * the locations of all other users as white needles, belonging to the same community
 * circles and needles of all other communities and users, which are nearby the requesting user and community location
 
-There is no user-specific authentication nor autorization necessary for this dialog as mentioned above.
+On activation of the user-search a technical flow in the background have to prepare the connection between the gradido-system and the gms-komponent. The following list will describe the necessary steps of all involved komponents:
+
+* **gradido-frontend:** user press the menu entry "user search"
+* **graodio-frontend:** invokes the gradido-graphql backend "authUserForGmsUserSearch"
+* **gradido-backend:** reads the context-user and the uuid of the home-community to prepare the invokation of the gms.verifyAuthToken with the uuid of the community and a token with the encrypted and signed user-uuid
+* **gradido-backend:** invokes the gms.verifyAuthToken following the api specification of the gms backend
+* **gms-backend:** recieving the request verifyAuthToken with the community-uuid and the encrypted token. After searching and verifing the given community-uuid the gms decrypts the token to get and validate the user-uuid if the user still exists in gms. If the user is valid for the community the gms will create an authentication token and return it by invoking the endpoint given in the communities "community-Auth-Url".
+* **gradido-backend:** receives the request "communityAuthUrl" with the access-token to enter the gms-frontend user-playground dialog. The gradido-backend will return as response of "authUserForGmsUserSearch" a String with a complete uri for the gms user-playground and the access-token as parameter.
+* **gradido-frontend:** receives the uri-string with the access-token as response of the "authUserForGmsUserSearch" request
+* **gradido-frontend:** opens a new browser-window with the received uri and access-token
+* **gms-frontend:** receiving the request for the user-playground with an access-token. After verifying the access-token the gms-frontend will read the data for the user given by the access-token and loads all necessary data to render the users playground
+
+The following picture shows the logical flow and interaction between the two systems:
+
+![](./image/usecase-user_search.svg)
+
+
 
 Which (filter-)components this playground-dialog should have next to the graphical location map is not clear at the moment. In the first run to display the above mentioned locations of users and communities with circles and needles will be sufficient.
 
 The detailed requirements will come up as soon as we get some user expiriences and feedbacks.
 
-
 ### GMS Offer Capture dialog (gms efforts)
 
 will come later...
-
-
 
 ### GMS Need Capture dialog (gms efforts)
 
