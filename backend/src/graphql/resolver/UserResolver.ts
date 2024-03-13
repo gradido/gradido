@@ -573,7 +573,8 @@ export class UserResolver {
       user.lastName = lastName
     }
 
-    if (alias && (await validateAlias(alias))) {
+    // currently alias can only be set, not updated
+    if (alias && !user.alias && (await validateAlias(alias))) {
       user.alias = alias
     }
 
