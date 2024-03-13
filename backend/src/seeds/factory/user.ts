@@ -39,8 +39,12 @@ export const userFactory = async (
   dbUser = await User.findOneOrFail({ where: { id }, relations: ['userRoles'] })
 
   if (user.createdAt || user.deletedAt || user.role) {
-    if (user.createdAt) dbUser.createdAt = user.createdAt
-    if (user.deletedAt) dbUser.deletedAt = user.deletedAt
+    if (user.createdAt) {
+      dbUser.createdAt = user.createdAt
+    }
+    if (user.deletedAt) {
+      dbUser.deletedAt = user.deletedAt
+    }
     if (user.role && (user.role === RoleNames.ADMIN || user.role === RoleNames.MODERATOR)) {
       await setUserRole(dbUser, user.role)
     }
