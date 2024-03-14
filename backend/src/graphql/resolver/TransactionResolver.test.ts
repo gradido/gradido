@@ -15,8 +15,6 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 import { v4 as uuidv4 } from 'uuid'
 
-import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
-import { GmsPublishNameType } from '@enum/GmsPublishNameType'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
@@ -530,13 +528,12 @@ describe('send coins', () => {
 
     describe('send coins via alias', () => {
       beforeAll(async () => {
+        // first set alias to null, because updating alias isn't allowed
+        await User.update({ alias: 'MeisterBob' }, { alias: () => 'NULL' })
         await mutate({
           mutation: updateUserInfos,
           variables: {
             alias: 'bob',
-            gmsAllowed: true,
-            gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-            gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
           },
         })
         await mutate({

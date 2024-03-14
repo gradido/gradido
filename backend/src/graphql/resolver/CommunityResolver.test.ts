@@ -10,13 +10,20 @@ import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql/error/GraphQLError'
+import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
 
 import { userFactory } from '@/seeds/factory/user'
 import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
-import { getCommunities, communitiesQuery, getCommunityByUuidQuery } from '@/seeds/graphql/queries'
+import {
+  allCommunities,
+  getCommunities,
+  communitiesQuery,
+  getHomeCommunityQuery,
+  getCommunityByIdentifierQuery,
+} from '@/seeds/graphql/queries'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
 import { getCommunityByUuid } from './util/communities'
@@ -164,7 +171,8 @@ describe('CommunityResolver', () => {
                 id: 3,
                 foreign: homeCom3.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[2].public),
-                url: expect.stringMatching('http://localhost/api/2_0'),
+                endPoint: expect.stringMatching('http://localhost/api/'),
+                apiVersion: '2_0',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -175,7 +183,8 @@ describe('CommunityResolver', () => {
                 id: 2,
                 foreign: homeCom2.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[1].public),
-                url: expect.stringMatching('http://localhost/api/1_1'),
+                endPoint: expect.stringMatching('http://localhost/api/'),
+                apiVersion: '1_1',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -186,7 +195,8 @@ describe('CommunityResolver', () => {
                 id: 1,
                 foreign: homeCom1.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[0].public),
-                url: expect.stringMatching('http://localhost/api/1_0'),
+                endPoint: expect.stringMatching('http://localhost/api/'),
+                apiVersion: '1_0',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -222,7 +232,7 @@ describe('CommunityResolver', () => {
         foreignCom3 = DbFederatedCommunity.create()
         foreignCom3.foreign = true
         foreignCom3.publicKey = Buffer.from(ed25519KeyPairStaticHex[5].public, 'hex')
-        foreignCom3.apiVersion = '1_2'
+        foreignCom3.apiVersion = '2_0'
         foreignCom3.endPoint = 'http://remotehost/api'
         foreignCom3.createdAt = new Date()
         await DbFederatedCommunity.insert(foreignCom3)
@@ -236,7 +246,8 @@ describe('CommunityResolver', () => {
                 id: 3,
                 foreign: homeCom3.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[2].public),
-                url: expect.stringMatching('http://localhost/api/2_0'),
+                endPoint: expect.stringMatching('http://localhost/api/'),
+                apiVersion: '2_0',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -247,7 +258,8 @@ describe('CommunityResolver', () => {
                 id: 2,
                 foreign: homeCom2.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[1].public),
-                url: expect.stringMatching('http://localhost/api/1_1'),
+                endPoint: expect.stringMatching('http://localhost/api/'),
+                apiVersion: '1_1',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -258,7 +270,8 @@ describe('CommunityResolver', () => {
                 id: 1,
                 foreign: homeCom1.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[0].public),
-                url: expect.stringMatching('http://localhost/api/1_0'),
+                endPoint: expect.stringMatching('http://localhost/api/'),
+                apiVersion: '1_0',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -269,7 +282,8 @@ describe('CommunityResolver', () => {
                 id: 6,
                 foreign: foreignCom3.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[5].public),
-                url: expect.stringMatching('http://remotehost/api/1_2'),
+                endPoint: expect.stringMatching('http://remotehost/api/'),
+                apiVersion: '2_0',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -280,7 +294,8 @@ describe('CommunityResolver', () => {
                 id: 5,
                 foreign: foreignCom2.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[4].public),
-                url: expect.stringMatching('http://remotehost/api/1_1'),
+                endPoint: expect.stringMatching('http://remotehost/api/'),
+                apiVersion: '1_1',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
@@ -291,12 +306,236 @@ describe('CommunityResolver', () => {
                 id: 4,
                 foreign: foreignCom1.foreign,
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[3].public),
-                url: expect.stringMatching('http://remotehost/api/1_0'),
+                endPoint: expect.stringMatching('http://remotehost/api/'),
+                apiVersion: '1_0',
                 lastAnnouncedAt: null,
                 verifiedAt: null,
                 lastErrorAt: null,
                 createdAt: foreignCom1.createdAt.toISOString(),
                 updatedAt: null,
+              },
+            ],
+          },
+        })
+      })
+    })
+
+    describe('with 6 federated community entries', () => {
+      let comHomeCom1: DbCommunity
+      let comForeignCom1: DbCommunity
+      let comForeignCom2: DbCommunity
+      let foreignCom4: DbFederatedCommunity
+
+      beforeEach(async () => {
+        jest.clearAllMocks()
+        comHomeCom1 = DbCommunity.create()
+        comHomeCom1.foreign = false
+        comHomeCom1.url = 'http://localhost'
+        comHomeCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex')
+        comHomeCom1.privateKey = Buffer.from(ed25519KeyPairStaticHex[0].private, 'hex')
+        comHomeCom1.communityUuid = 'HomeCom-UUID'
+        comHomeCom1.authenticatedAt = new Date()
+        comHomeCom1.name = 'HomeCommunity-name'
+        comHomeCom1.description = 'HomeCommunity-description'
+        comHomeCom1.creationDate = new Date()
+        await DbCommunity.insert(comHomeCom1)
+
+        comForeignCom1 = DbCommunity.create()
+        comForeignCom1.foreign = true
+        comForeignCom1.url = 'http://stage-2.gradido.net'
+        comForeignCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[3].public, 'hex')
+        comForeignCom1.privateKey = Buffer.from(ed25519KeyPairStaticHex[3].private, 'hex')
+        // foreignCom1.communityUuid = 'Stage2-Com-UUID'
+        // foreignCom1.authenticatedAt = new Date()
+        comForeignCom1.name = 'Stage-2_Community-name'
+        comForeignCom1.description = 'Stage-2_Community-description'
+        comForeignCom1.creationDate = new Date()
+        await DbCommunity.insert(comForeignCom1)
+
+        comForeignCom2 = DbCommunity.create()
+        comForeignCom2.foreign = true
+        comForeignCom2.url = 'http://stage-3.gradido.net'
+        comForeignCom2.publicKey = Buffer.from(ed25519KeyPairStaticHex[4].public, 'hex')
+        comForeignCom2.privateKey = Buffer.from(ed25519KeyPairStaticHex[4].private, 'hex')
+        comForeignCom2.communityUuid = 'Stage3-Com-UUID'
+        comForeignCom2.authenticatedAt = new Date()
+        comForeignCom2.name = 'Stage-3_Community-name'
+        comForeignCom2.description = 'Stage-3_Community-description'
+        comForeignCom2.creationDate = new Date()
+        await DbCommunity.insert(comForeignCom2)
+
+        foreignCom4 = DbFederatedCommunity.create()
+        foreignCom4.foreign = true
+        foreignCom4.publicKey = Buffer.from(ed25519KeyPairStaticHex[5].public, 'hex')
+        foreignCom4.apiVersion = '1_0'
+        foreignCom4.endPoint = 'http://remotehost/api'
+        foreignCom4.createdAt = new Date()
+        await DbFederatedCommunity.insert(foreignCom4)
+      })
+
+      it('return communities structured for admin ', async () => {
+        await expect(query({ query: allCommunities })).resolves.toMatchObject({
+          data: {
+            allCommunities: [
+              {
+                foreign: false,
+                url: 'http://localhost',
+                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[2].public),
+                authenticatedAt: null,
+                createdAt: null,
+                creationDate: null,
+                description: null,
+                gmsApiKey: null,
+                name: null,
+                updatedAt: null,
+                uuid: null,
+                federatedCommunities: [
+                  {
+                    id: 3,
+                    apiVersion: '2_0',
+                    endPoint: 'http://localhost/api/',
+                    createdAt: homeCom3.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                ],
+              },
+              {
+                foreign: false,
+                url: 'http://localhost',
+                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[1].public),
+                authenticatedAt: null,
+                createdAt: null,
+                creationDate: null,
+                description: null,
+                gmsApiKey: null,
+                name: null,
+                updatedAt: null,
+                uuid: null,
+                federatedCommunities: [
+                  {
+                    id: 2,
+                    apiVersion: '1_1',
+                    endPoint: 'http://localhost/api/',
+                    createdAt: homeCom2.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                ],
+              },
+              {
+                foreign: false,
+                url: 'http://localhost',
+                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[0].public),
+                authenticatedAt: comHomeCom1.authenticatedAt?.toISOString(),
+                createdAt: comHomeCom1.createdAt.toISOString(),
+                creationDate: comHomeCom1.creationDate?.toISOString(),
+                description: comHomeCom1.description,
+                gmsApiKey: null,
+                name: comHomeCom1.name,
+                updatedAt: null,
+                uuid: comHomeCom1.communityUuid,
+                federatedCommunities: [
+                  {
+                    id: 1,
+                    apiVersion: '1_0',
+                    endPoint: 'http://localhost/api/',
+                    createdAt: homeCom1.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                ],
+              },
+              {
+                foreign: true,
+                url: 'http://remotehost',
+                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[5].public),
+                authenticatedAt: null,
+                createdAt: null,
+                creationDate: null,
+                description: null,
+                gmsApiKey: null,
+                name: null,
+                updatedAt: null,
+                uuid: null,
+                federatedCommunities: [
+                  {
+                    id: 7,
+                    apiVersion: '1_0',
+                    endPoint: 'http://remotehost/api/',
+                    createdAt: foreignCom4.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                  {
+                    id: 6,
+                    apiVersion: '2_0',
+                    endPoint: 'http://remotehost/api/',
+                    createdAt: foreignCom3.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                ],
+              },
+              {
+                foreign: true,
+                url: 'http://stage-3.gradido.net',
+                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[4].public),
+                authenticatedAt: comForeignCom2.authenticatedAt?.toISOString(),
+                createdAt: comForeignCom2.createdAt.toISOString(),
+                creationDate: comForeignCom2.creationDate?.toISOString(),
+                description: comForeignCom2.description,
+                gmsApiKey: null,
+                name: comForeignCom2.name,
+                updatedAt: null,
+                uuid: comForeignCom2.communityUuid,
+                federatedCommunities: [
+                  {
+                    id: 5,
+                    apiVersion: '1_1',
+                    endPoint: 'http://remotehost/api/',
+                    createdAt: foreignCom2.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                ],
+              },
+              {
+                foreign: true,
+                url: 'http://stage-2.gradido.net',
+                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[3].public),
+                authenticatedAt: null,
+                createdAt: comForeignCom1.createdAt.toISOString(),
+                creationDate: comForeignCom1.creationDate?.toISOString(),
+                description: comForeignCom1.description,
+                gmsApiKey: null,
+                name: comForeignCom1.name,
+                updatedAt: null,
+                uuid: null,
+                federatedCommunities: [
+                  {
+                    id: 4,
+                    apiVersion: '1_0',
+                    endPoint: 'http://remotehost/api/',
+                    createdAt: foreignCom1.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                ],
               },
             ],
           },
@@ -464,8 +703,14 @@ describe('CommunityResolver', () => {
         foreignCom1 = DbCommunity.create()
         foreignCom1.foreign = true
         foreignCom1.url = 'http://stage-2.gradido.net/api'
-        foreignCom1.publicKey = Buffer.from('publicKey-stage-2_Community')
-        foreignCom1.privateKey = Buffer.from('privateKey-stage-2_Community')
+        foreignCom1.publicKey = Buffer.from(
+          '8a1f9374b99c30d827b85dcd23f7e50328430d64ef65ef35bf375ea8eb9a2e1d',
+          'hex',
+        )
+        foreignCom1.privateKey = Buffer.from(
+          'f6c2a9d78e20a3c910f35b8ffcf824aa7b37f0d3d81bfc4c0e65e17a194b3a4a',
+          'hex',
+        )
         // foreignCom1.communityUuid = 'Stage2-Com-UUID'
         // foreignCom1.authenticatedAt = new Date()
         foreignCom1.name = 'Stage-2_Community-name'
@@ -476,9 +721,15 @@ describe('CommunityResolver', () => {
         foreignCom2 = DbCommunity.create()
         foreignCom2.foreign = true
         foreignCom2.url = 'http://stage-3.gradido.net/api'
-        foreignCom2.publicKey = Buffer.from('publicKey-stage-3_Community')
-        foreignCom2.privateKey = Buffer.from('privateKey-stage-3_Community')
-        foreignCom2.communityUuid = 'Stage3-Com-UUID'
+        foreignCom2.publicKey = Buffer.from(
+          'e047365a54082e8a7e9273da61b55c8134a2a0c836799ba12b78b9b0c52bc85f',
+          'hex',
+        )
+        foreignCom2.privateKey = Buffer.from(
+          'e047365a54082e8a7e9273da61b55c8134a2a0c836799ba12b78b9b0c52bc85f',
+          'hex',
+        )
+        foreignCom2.communityUuid = uuidv4()
         foreignCom2.authenticatedAt = new Date()
         foreignCom2.name = 'Stage-3_Community-name'
         foreignCom2.description = 'Stage-3_Community-description'
@@ -486,15 +737,36 @@ describe('CommunityResolver', () => {
         await DbCommunity.insert(foreignCom2)
       })
 
-      it('finds the home-community', async () => {
+      it('finds the home-community by uuid', async () => {
         await expect(
           query({
-            query: getCommunityByUuidQuery,
-            variables: { communityUuid: homeCom?.communityUuid },
+            query: getCommunityByIdentifierQuery,
+            variables: { communityIdentifier: homeCom?.communityUuid },
           }),
         ).resolves.toMatchObject({
           data: {
-            community: {
+            communityByIdentifier: {
+              id: homeCom?.id,
+              foreign: homeCom?.foreign,
+              name: homeCom?.name,
+              description: homeCom?.description,
+              url: homeCom?.url,
+              creationDate: homeCom?.creationDate?.toISOString(),
+              uuid: homeCom?.communityUuid,
+              authenticatedAt: homeCom?.authenticatedAt,
+            },
+          },
+        })
+      })
+
+      it('finds the home-community', async () => {
+        await expect(
+          query({
+            query: getHomeCommunityQuery,
+          }),
+        ).resolves.toMatchObject({
+          data: {
+            homeCommunity: {
               id: homeCom?.id,
               foreign: homeCom?.foreign,
               name: homeCom?.name,
@@ -563,7 +835,7 @@ describe('CommunityResolver', () => {
         expect(
           await mutate({
             mutation: updateHomeCommunityQuery,
-            variables: { uuid: 'unknownUuid', gmsApiKey: 'gmsApiKey' },
+            variables: { uuid: uuidv4(), gmsApiKey: 'gmsApiKey' },
           }),
         ).toEqual(
           expect.objectContaining({

@@ -90,20 +90,3 @@ export default {
   },
 }
 </script>
-<style>
-.community-switch > div,
-.community-switch ul.dropdown-menu {
-  width: 100%;
-}
-.community-switch > div > button {
-  border-radius: 17px;
-  height: 50px;
-  text-align: left;
-}
-.community-switch .dropdown-toggle::after {
-  float: right;
-  top: 50%;
-  transform: translateY(-50%);
-  position: relative;
-}
-</style>
