@@ -376,7 +376,11 @@ export class UserResolver {
           await sendUserToGms(dbUser, homeCom)
         }
       } catch (err) {
-        logger.error('Error publishing new created user to GMS:', err)
+        if (CONFIG.GMS_CREATE_USER_THROW_ERRORS) {
+          throw new LogError('Error publishing new created user to GMS:', err)
+        } else {
+          logger.error('Error publishing new created user to GMS:', err)
+        }
       }
     }
     return new User(dbUser)
