@@ -1258,6 +1258,8 @@ describe('UserResolver', () => {
 
         describe('valid alias', () => {
           it('updates the user in DB', async () => {
+            // first empty alias, because currently updating alias isn't allowed
+            await User.update({ alias: 'BBB' }, { alias: () => 'NULL' })
             await mutate({
               mutation: updateUserInfos,
               variables: {
@@ -2674,6 +2676,8 @@ describe('UserResolver', () => {
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
+        // first set alias to null, because updating alias isn't currently allowed
+        await User.update({ alias: 'BBB' }, { alias: () => 'NULL' })
         await mutate({
           mutation: updateUserInfos,
           variables: {
