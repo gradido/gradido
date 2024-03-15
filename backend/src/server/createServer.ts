@@ -13,6 +13,7 @@ import { schema } from '@/graphql/schema'
 import { Connection } from '@/typeorm/connection'
 import { checkDBVersion } from '@/typeorm/DBVersion'
 import { elopageWebhook } from '@/webhook/elopage'
+import { gmsWebhook } from '@/webhook/gms'
 
 import { context as serverContext } from './context'
 import { cors } from './cors'
@@ -93,6 +94,10 @@ export const createServer = async (
   // Elopage Webhook
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
+
+  // GMS Webhook
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  app.post('/hook/gms/' + CONFIG.GMS_WEBHOOK_SECRET, gmsWebhook)
 
   // Apollo Server
   const apollo = new ApolloServer({

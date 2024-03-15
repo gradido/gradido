@@ -144,3 +144,44 @@ export async function createGmsUser(apiKey: string, user: GmsUser): Promise<bool
     throw new LogError(error.message)
   }
 }
+
+export async function verifyAuthToken(
+  // apiKey: string,
+  communityUuid: string,
+  token: string,
+): Promise<string> {
+  const baseUrl = CONFIG.GMS_URL.endsWith('/') ? CONFIG.GMS_URL : CONFIG.GMS_URL.concat('/')
+  const service = 'verify-auth-token'
+  const config = {
+    headers: {
+      accept: 'application/json',
+      language: 'en',
+      timezone: 'UTC',
+      connection: 'keep-alive',
+      // authorization: apiKey,
+    },
+  }
+  const data = {
+    uuid: communityUuid,
+    token: token,
+  }
+  try {
+    const result = await axios.get(baseUrl.concat(service), data, config)
+    logger.debug('GET-Response of verify-auth-token:', result)
+    if (result.status !== 200) {
+      throw new LogError(
+        'HTTP Status Error in verify-auth-token:',
+        result.status,
+        result.statusText,
+      )
+    }
+    logger.debug('responseData:', result.data.responseData)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    const playgroundUri: string = JSON.parse(result.data.responseData.data)
+    logger.debug('verifyAuthToken=', playgroundUri)
+    return playgroundUri
+  } catch (error: any) {
+    logger.error('Error in verifyAuthToken:', error)
+    throw new LogError(error.message)
+  }
+}

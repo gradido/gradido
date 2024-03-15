@@ -75,6 +75,7 @@ import { Location2Point } from './util/Location2Point'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { validateAlias } from './util/validateAlias'
+import { authenticateGmsUserSearch } from './util/authenticateGmsUserSearch'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -653,6 +654,21 @@ export class UserResolver {
     const elopageBuys = hasElopageBuys(userEntity.emailContact.email)
     logger.debug('has ElopageBuys', elopageBuys)
     return elopageBuys
+  }
+
+  @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
+  @Query(() => String)
+  async authUserForGmsUserSearch(@Ctx() context: Context): Promise<string> {
+    logger.info(`authUserForGmsUserSearch()...`)
+    const dbUser = getUser(context)
+    let gmsPlaygroundUri: string
+    if (context.token) {
+      gmsPlaygroundUri = await authenticateGmsUserSearch(context.token, dbUser)
+      logger.debug('authUserForGmsUserSearch=', gmsPlaygroundUri)
+    } else {
+      throw new LogError('authUserForGmsUserSearch without token')
+    }
+    return gmsPlaygroundUri
   }
 
   @Authorized([RIGHTS.SEARCH_ADMIN_USERS])
