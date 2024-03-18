@@ -28,6 +28,8 @@ import { SearchAdminUsersResult } from '@model/AdminUser'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 
+import { updateGmsUser } from '@/apis/gms/GmsClient'
+import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -67,6 +69,7 @@ import { randombytes_random } from 'sodium-native'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { getHomeCommunity } from './util/communities'
+import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
@@ -374,7 +377,11 @@ export class UserResolver {
           await sendUserToGms(dbUser, homeCom)
         }
       } catch (err) {
-        logger.error('Error publishing new created user to GMS:', err)
+        if (CONFIG.GMS_CREATE_USER_THROW_ERRORS) {
+          throw new LogError('Error publishing new created user to GMS:', err)
+        } else {
+          logger.error('Error publishing new created user to GMS:', err)
+        }
       }
     }
     return new User(dbUser)
@@ -394,7 +401,6 @@ export class UserResolver {
       logger.warn(`no user found with ${email}`)
       return true
     }
-
     if (!canEmailResend(user.emailContact.updatedAt || user.emailContact.createdAt)) {
       throw new LogError(
         `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
@@ -540,8 +546,10 @@ export class UserResolver {
   @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
   async updateUserInfos(
-    @Args()
-    {
+    @Args() updateUserInfosArgs: UpdateUserInfosArgs,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const {
       firstName,
       lastName,
       alias,
@@ -554,13 +562,13 @@ export class UserResolver {
       gmsPublishName,
       gmsLocation,
       gmsPublishLocation,
-    }: UpdateUserInfosArgs,
-    @Ctx() context: Context,
-  ): Promise<boolean> {
+    } = updateUserInfosArgs
     logger.info(
       `updateUserInfos(${firstName}, ${lastName}, ${alias}, ${language}, ***, ***, ${hideAmountGDD}, ${hideAmountGDT}, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})...`,
     )
     const user = getUser(context)
+    const updateUserInGMS = compareGmsRelevantUserSettings(user, updateUserInfosArgs)
+
     // try {
     if (firstName) {
       user.firstName = firstName
@@ -642,6 +650,17 @@ export class UserResolver {
     }
     logger.info('updateUserInfos() successfully finished...')
     await EVENT_USER_INFO_UPDATE(user)
+
+    // validate if user settings are changed with relevance to update gms-user
+    if (CONFIG.GMS_ACTIVE && updateUserInGMS) {
+      logger.debug(`changed user-settings relevant for gms-user update...`)
+      const homeCom = await getHomeCommunity()
+      if (homeCom.gmsApiKey !== null) {
+        logger.debug(`gms-user update...`, user)
+        await updateGmsUser(homeCom.gmsApiKey, new GmsUser(user))
+        logger.debug(`gms-user update successfully.`)
+      }
+    }
 
     return true
   }

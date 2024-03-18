@@ -143,6 +143,7 @@ const federation = {
 
 const gms = {
   GMS_ACTIVE: process.env.GMS_ACTIVE === 'true' || false,
+  GMS_CREATE_USER_THROW_ERRORS: process.env.GMS_CREATE_USER_THROW_ERRORS === 'true' || false,
   // koordinates of Illuminz-instance of GMS
   GMS_URL: process.env.GMS_HOST ?? 'http://localhost:4044/',
   // used as secret postfix attached at the gms community-auth-url endpoint ('/hook/gms/' + 'secret')

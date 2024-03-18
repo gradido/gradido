@@ -3,6 +3,7 @@ import { User as DbUser } from '@entity/User'
 
 import { createGmsUser } from '@/apis/gms/GmsClient'
 import { GmsUser } from '@/apis/gms/model/GmsUser'
+import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
@@ -22,6 +23,10 @@ export async function sendUserToGms(user: DbUser, homeCom: DbCommunity): Promise
       logger.debug('mark user as gms published:', user)
     }
   } catch (err) {
-    logger.warn('publishing user fails with ', err)
+    if (CONFIG.GMS_CREATE_USER_THROW_ERRORS) {
+      throw new LogError('publishing user fails with ', err)
+    } else {
+      logger.warn('publishing user fails with ', err)
+    }
   }
 }

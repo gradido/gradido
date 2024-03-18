@@ -117,31 +117,70 @@ export async function userByUuid(uuid: string): Promise<GmsUser[] | string | und
 */
 
 export async function createGmsUser(apiKey: string, user: GmsUser): Promise<boolean> {
-  const baseUrl = CONFIG.GMS_URL.endsWith('/') ? CONFIG.GMS_URL : CONFIG.GMS_URL.concat('/')
-  const service = 'community-user'
-  const config = {
-    headers: {
-      accept: 'application/json',
-      language: 'en',
-      timezone: 'UTC',
-      connection: 'keep-alive',
-      authorization: apiKey,
-    },
-  }
-  try {
-    const result = await axios.post(baseUrl.concat(service), user, config)
-    logger.debug('POST-Response of community-user:', result)
-    if (result.status !== 200) {
-      throw new LogError('HTTP Status Error in community-user:', result.status, result.statusText)
+  if (CONFIG.GMS_ACTIVE) {
+    const baseUrl = CONFIG.GMS_URL.endsWith('/') ? CONFIG.GMS_URL : CONFIG.GMS_URL.concat('/')
+    const service = 'community-user'
+    const config = {
+      headers: {
+        accept: 'application/json',
+        language: 'en',
+        timezone: 'UTC',
+        connection: 'keep-alive',
+        authorization: apiKey,
+      },
     }
-    logger.debug('responseData:', result.data.responseData)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    // const gmsUser = JSON.parse(result.data.responseData)
-    // logger.debug('gmsUser:', gmsUser)
-    return true
-  } catch (error: any) {
-    logger.error('Error in Get community-user:', error)
-    throw new LogError(error.message)
+    try {
+      const result = await axios.post(baseUrl.concat(service), user, config)
+      logger.debug('POST-Response of community-user:', result)
+      if (result.status !== 200) {
+        throw new LogError('HTTP Status Error in community-user:', result.status, result.statusText)
+      }
+      logger.debug('responseData:', result.data.responseData)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      // const gmsUser = JSON.parse(result.data.responseData)
+      // logger.debug('gmsUser:', gmsUser)
+      return true
+    } catch (error: any) {
+      logger.error('Error in post community-user:', error)
+      throw new LogError(error.message)
+    }
+  } else {
+    logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
+    return false
+  }
+}
+
+export async function updateGmsUser(apiKey: string, user: GmsUser): Promise<boolean> {
+  if (CONFIG.GMS_ACTIVE) {
+    const baseUrl = CONFIG.GMS_URL.endsWith('/') ? CONFIG.GMS_URL : CONFIG.GMS_URL.concat('/')
+    const service = 'community-user'
+    const config = {
+      headers: {
+        accept: 'application/json',
+        language: 'en',
+        timezone: 'UTC',
+        connection: 'keep-alive',
+        authorization: apiKey,
+      },
+    }
+    try {
+      const result = await axios.patch(baseUrl.concat(service), user, config)
+      logger.debug('PATCH-Response of community-user:', result)
+      if (result.status !== 200) {
+        throw new LogError('HTTP Status Error in community-user:', result.status, result.statusText)
+      }
+      logger.debug('responseData:', result.data.responseData)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      // const gmsUser = JSON.parse(result.data.responseData)
+      // logger.debug('gmsUser:', gmsUser)
+      return true
+    } catch (error: any) {
+      logger.error('Error in patch community-user:', error)
+      throw new LogError(error.message)
+    }
+  } else {
+    logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
+    return false
   }
 }
 
