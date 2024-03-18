@@ -6,27 +6,32 @@
 import { User as DbUser } from '@entity/User'
 
 import { decode } from '@/auth/JWT'
-import { backendLogger as logger } from '@/server/logger'
+// import { backendLogger as logger } from '@/server/logger'
 
 export const gmsWebhook = async (req: any, res: any): Promise<void> => {
-  logger.info('GMS Hook received', req.body)
-  const { token } = req.body
+  console.log('GMS Hook received', req)
+  const { token } = req.query
 
   if (!token) {
-    logger.warn('gmsWebhook: missing token')
+    console.log('gmsWebhook: missing token')
     res.status(400).json({ message: 'false' })
     return
   }
+  console.log('gmsWebhook: found token=', token)
   const payload = await decode(token)
-  if (payload) {
-    const user = await DbUser.findOne({ where: { gradidoID: payload.gradidoID } })
-    if (!user) {
-      logger.warn('gmsWebhook: missing user')
-      res.status(400).json({ message: 'false' })
-      return
-    }
-    logger.info('gmsWebhook: authenticate user=', user)
+  console.log('gmsWebhook: decoded token=', payload)
+  if (!payload) {
+    console.log('gmsWebhook: invalid token')
+    res.status(400).json({ message: 'false' })
+    return
   }
-  logger.info('gmsWebhook: authentication successful')
-  res.status(200).json({ message: 'true' })
+  const user = await DbUser.findOne({ where: { gradidoID: payload.gradidoID } })
+  if (!user) {
+    console.log('gmsWebhook: missing user')
+    res.status(400).json({ message: 'false' })
+    return
+  }
+  console.log('gmsWebhook: authenticate user=', user)
+  console.log('gmsWebhook: authentication successful')
+  res.status(200).json({ userUuid: user.gradidoID })
 }

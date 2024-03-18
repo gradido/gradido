@@ -151,7 +151,7 @@ export async function verifyAuthToken(
   token: string,
 ): Promise<string> {
   const baseUrl = CONFIG.GMS_URL.endsWith('/') ? CONFIG.GMS_URL : CONFIG.GMS_URL.concat('/')
-  const service = 'verify-auth-token'
+  const service = 'verify-auth-token?token='.concat(token).concat('&uuid=').concat(communityUuid)
   const config = {
     headers: {
       accept: 'application/json',
@@ -161,12 +161,14 @@ export async function verifyAuthToken(
       // authorization: apiKey,
     },
   }
+  /*
   const data = {
     uuid: communityUuid,
     token: token,
   }
+  */
   try {
-    const result = await axios.get(baseUrl.concat(service), data, config)
+    const result = await axios.get(baseUrl.concat(service), config)
     logger.debug('GET-Response of verify-auth-token:', result)
     if (result.status !== 200) {
       throw new LogError(

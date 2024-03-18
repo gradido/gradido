@@ -97,7 +97,7 @@ export const createServer = async (
 
   // GMS Webhook
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  app.post('/hook/gms/' + CONFIG.GMS_WEBHOOK_SECRET, gmsWebhook)
+  app.get('/hook/gms/' + CONFIG.GMS_WEBHOOK_SECRET, gmsWebhook)
 
   // Apollo Server
   const apollo = new ApolloServer({
