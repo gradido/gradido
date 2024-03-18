@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -6,10 +7,9 @@
 import { User as DbUser } from '@entity/User'
 
 import { decode } from '@/auth/JWT'
-// import { backendLogger as logger } from '@/server/logger'
 
 export const gmsWebhook = async (req: any, res: any): Promise<void> => {
-  console.log('GMS Hook received', req)
+  console.log('GMS Hook received', req.query)
   const { token } = req.query
 
   if (!token) {
@@ -17,7 +17,6 @@ export const gmsWebhook = async (req: any, res: any): Promise<void> => {
     res.status(400).json({ message: 'false' })
     return
   }
-  console.log('gmsWebhook: found token=', token)
   const payload = await decode(token)
   console.log('gmsWebhook: decoded token=', payload)
   if (!payload) {
@@ -31,7 +30,7 @@ export const gmsWebhook = async (req: any, res: any): Promise<void> => {
     res.status(400).json({ message: 'false' })
     return
   }
-  console.log('gmsWebhook: authenticate user=', user)
+  console.log('gmsWebhook: authenticate user=', user.gradidoID, user.firstName, user.lastName)
   console.log('gmsWebhook: authentication successful')
   res.status(200).json({ userUuid: user.gradidoID })
 }
