@@ -68,6 +68,7 @@ import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
+import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
 import { getHomeCommunity } from './util/communities'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getUserCreations } from './util/creations'
@@ -672,6 +673,21 @@ export class UserResolver {
     const elopageBuys = hasElopageBuys(userEntity.emailContact.email)
     logger.debug('has ElopageBuys', elopageBuys)
     return elopageBuys
+  }
+
+  @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
+  @Query(() => String)
+  async authenticateGmsUserSearch(@Ctx() context: Context): Promise<string> {
+    logger.info(`authUserForGmsUserSearch()...`)
+    const dbUser = getUser(context)
+    let gmsPlaygroundUri: string
+    if (context.token) {
+      gmsPlaygroundUri = await authenticateGmsUserPlayground(context.token, dbUser)
+      logger.debug('authUserForGmsUserSearch=', gmsPlaygroundUri)
+    } else {
+      throw new LogError('authUserForGmsUserSearch without token')
+    }
+    return gmsPlaygroundUri
   }
 
   @Authorized([RIGHTS.SEARCH_ADMIN_USERS])

@@ -15,6 +15,13 @@ export const verifyLogin = gql`
     }
   }
 `
+export const authenticateGmsUserSearch = gql`
+  query {
+    authenticateGmsUserSearch {
+      gmsPlaygroundUri
+    }
+  }
+`
 
 export const queryOptIn = gql`
   query ($optIn: String!) {
