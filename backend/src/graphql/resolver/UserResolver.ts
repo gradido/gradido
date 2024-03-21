@@ -68,6 +68,7 @@ import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
+import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
 import { getHomeCommunity } from './util/communities'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getUserCreations } from './util/creations'
@@ -78,7 +79,6 @@ import { Location2Point } from './util/Location2Point'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { validateAlias } from './util/validateAlias'
-import { authenticateGmsUserSearch } from './util/authenticateGmsUserSearch'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -677,12 +677,12 @@ export class UserResolver {
 
   @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
   @Query(() => String)
-  async authUserForGmsUserSearch(@Ctx() context: Context): Promise<string> {
+  async authenticateGmsUserSearch(@Ctx() context: Context): Promise<string> {
     logger.info(`authUserForGmsUserSearch()...`)
     const dbUser = getUser(context)
     let gmsPlaygroundUri: string
     if (context.token) {
-      gmsPlaygroundUri = await authenticateGmsUserSearch(context.token, dbUser)
+      gmsPlaygroundUri = await authenticateGmsUserPlayground(context.token, dbUser)
       logger.debug('authUserForGmsUserSearch=', gmsPlaygroundUri)
     } else {
       throw new LogError('authUserForGmsUserSearch without token')

@@ -200,12 +200,6 @@ export async function verifyAuthToken(
       // authorization: apiKey,
     },
   }
-  /*
-  const data = {
-    uuid: communityUuid,
-    token: token,
-  }
-  */
   try {
     const result = await axios.get(baseUrl.concat(service), config)
     logger.debug('GET-Response of verify-auth-token:', result)
