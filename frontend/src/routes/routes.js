@@ -80,6 +80,12 @@ const routes = [
       pageTitle: 'information',
     },
   },
+  {
+    path: '/usersearch',
+    redirect: (to) => {
+      return { path: '/login' }
+    },
+  },
   // {
   //   path: '/storys',
   //   component: () => import('@/pages/TopStorys'),
