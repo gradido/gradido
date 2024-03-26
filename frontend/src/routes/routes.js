@@ -82,9 +82,16 @@ const routes = [
   },
   {
     path: '/usersearch',
+    component: () => import('@/pages/UserSearch'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'user search',
+    },
+    /*
     redirect: (to) => {
       return { path: '/login' }
     },
+    */
   },
   // {
   //   path: '/storys',
