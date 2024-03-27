@@ -87,11 +87,6 @@ const routes = [
       requiresAuth: true,
       pageTitle: 'user search',
     },
-    /*
-    redirect: (to) => {
-      return { path: '/login' }
-    },
-    */
   },
   // {
   //   path: '/storys',

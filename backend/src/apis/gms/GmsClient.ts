@@ -202,7 +202,7 @@ export async function verifyAuthToken(
   }
   try {
     const result = await axios.get(baseUrl.concat(service), config)
-    logger.debug('GET-Response of verify-auth-token:', result)
+    console.log('GET-Response of verify-auth-token:', result)
     if (result.status !== 200) {
       throw new LogError(
         'HTTP Status Error in verify-auth-token:',
@@ -210,11 +210,11 @@ export async function verifyAuthToken(
         result.statusText,
       )
     }
-    logger.debug('responseData:', result.data.responseData)
+    console.log('responseData:', result.data.responseData)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const playgroundUri: string = JSON.parse(result.data.responseData.data)
-    logger.debug('verifyAuthToken=', playgroundUri)
-    return playgroundUri
+    const token: string = result.data.responseData.token
+    console.log('verifyAuthToken=', token)
+    return token
   } catch (error: any) {
     logger.error('Error in verifyAuthToken:', error)
     throw new LogError(error.message)

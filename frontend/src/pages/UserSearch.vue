@@ -10,18 +10,10 @@ export default {
   name: 'GMS User Playground',
   data() {
     return {
-      gmsPlaygroundUri: '',
+      gmsPlaygroundUrl: 'unknown',
+      gmsAuthToken: '',
     }
   },
-  /*
-  async mounted() {
-    let query = `{
-      authenticateGmsUserSearch() {
-        gmsPlaygroundUri
-      }
-    }`;
-  },
-  */
   methods: {
     authenticateGmsUserPlayground() {
       this.$apollo
@@ -29,13 +21,23 @@ export default {
           query: authenticateGmsUserSearch,
         })
         .then((result) => {
-          this.gmsPlaygroundUri = result.data.authenticateGmsUserSearch.gmsPlaygroundUri
+          this.gmsPlaygroundUrl = result.data.url,
+          this.gmsAuthToken = result.data.token
         })
         .catch(() => {
           this.toastError('listContributionLinks has no result, use default data')
         })
     },
   },
+  /*
+  openGmsUserPlayground: function () {
+    // window.open(this.gmsPlaygroundUrl + '?' + this.gmsAuthToken, '_blank')
+    let uri = this.gmsPlaygroundUrl + '?' + this.gmsAuthToken
+    let route = this.$router.resolve({path: uri});
+    // let route = this.$router.resolve('/link/to/page'); // This also works.
+    window.open(route.href, '_blank');
+  },
+  */
   created() {
     this.authenticateGmsUserPlayground()
   },

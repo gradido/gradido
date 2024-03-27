@@ -250,7 +250,8 @@
     "send": "Envoyer",
     "settings": "Configuration",
     "support": "Aide",
-    "transactions": "Transactions"
+    "transactions": "Transactions",
+    "usersearch": "Recherche d'Utilisateur"
   },
   "openHours": "Heures ouverte",
   "pageTitle": {

@@ -79,6 +79,7 @@ import { Location2Point } from './util/Location2Point'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { validateAlias } from './util/validateAlias'
+import { GmsUserAuthenticationResult } from '../model/GmsUserAuthenticationResult'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -676,18 +677,18 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
-  @Query(() => String)
-  async authenticateGmsUserSearch(@Ctx() context: Context): Promise<string> {
+  @Query(() => GmsUserAuthenticationResult)
+  async authenticateGmsUserSearch(@Ctx() context: Context): Promise<GmsUserAuthenticationResult> {
     logger.info(`authUserForGmsUserSearch()...`)
     const dbUser = getUser(context)
-    let gmsPlaygroundUri: string
+    let result: GmsUserAuthenticationResult
     if (context.token) {
-      gmsPlaygroundUri = await authenticateGmsUserPlayground(context.token, dbUser)
-      logger.debug('authUserForGmsUserSearch=', gmsPlaygroundUri)
+      result = await authenticateGmsUserPlayground(context.token, dbUser)
+      console.log('authUserForGmsUserSearch=', result)
     } else {
       throw new LogError('authUserForGmsUserSearch without token')
     }
-    return gmsPlaygroundUri
+    return result
   }
 
   @Authorized([RIGHTS.SEARCH_ADMIN_USERS])
