@@ -25,6 +25,7 @@ import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserContactType } from '@enum/UserContactType'
 import { SearchAdminUsersResult } from '@model/AdminUser'
 // import { Location } from '@model/Location'
+import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 
@@ -676,18 +677,18 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
-  @Query(() => String)
-  async authenticateGmsUserSearch(@Ctx() context: Context): Promise<string> {
+  @Query(() => GmsUserAuthenticationResult)
+  async authenticateGmsUserSearch(@Ctx() context: Context): Promise<GmsUserAuthenticationResult> {
     logger.info(`authUserForGmsUserSearch()...`)
     const dbUser = getUser(context)
-    let gmsPlaygroundUri: string
+    let result: GmsUserAuthenticationResult
     if (context.token) {
-      gmsPlaygroundUri = await authenticateGmsUserPlayground(context.token, dbUser)
-      logger.debug('authUserForGmsUserSearch=', gmsPlaygroundUri)
+      result = await authenticateGmsUserPlayground(context.token, dbUser)
+      logger.info('authUserForGmsUserSearch=', result)
     } else {
       throw new LogError('authUserForGmsUserSearch without token')
     }
-    return gmsPlaygroundUri
+    return result
   }
 
   @Authorized([RIGHTS.SEARCH_ADMIN_USERS])

@@ -18,7 +18,8 @@ export const verifyLogin = gql`
 export const authenticateGmsUserSearch = gql`
   query {
     authenticateGmsUserSearch {
-      gmsPlaygroundUri
+      url
+      token
     }
   }
 `

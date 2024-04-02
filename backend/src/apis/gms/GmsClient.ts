@@ -212,9 +212,9 @@ export async function verifyAuthToken(
     }
     logger.debug('responseData:', result.data.responseData)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const playgroundUri: string = JSON.parse(result.data.responseData.data)
-    logger.debug('verifyAuthToken=', playgroundUri)
-    return playgroundUri
+    const token: string = result.data.responseData.token
+    logger.debug('verifyAuthToken=', token)
+    return token
   } catch (error: any) {
     logger.error('Error in verifyAuthToken:', error)
     throw new LogError(error.message)
