@@ -1,3 +1,6 @@
+# Migration
+[Migration from 2.2.0 to 2.2.1](migration/2_2_0-2_2_1/README.md)
+
 # Setup on Hetzner Cloud Server
 Suggested OS:
 Debian 12
