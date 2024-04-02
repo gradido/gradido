@@ -11,6 +11,7 @@ export async function authenticateGmsUserPlayground(
   const result = new GmsUserAuthenticationResult()
   result.url = CONFIG.GMS_URL.concat('/playground')
   result.token = await verifyAuthToken(dbUser.communityUuid, token)
+  // eslint-disable-next-line no-console
   console.log('GmsUserAuthenticationResult:', result)
   return result
 }
