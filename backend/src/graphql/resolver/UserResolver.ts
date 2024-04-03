@@ -25,6 +25,7 @@ import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserContactType } from '@enum/UserContactType'
 import { SearchAdminUsersResult } from '@model/AdminUser'
 // import { Location } from '@model/Location'
+import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 
@@ -79,7 +80,6 @@ import { Location2Point } from './util/Location2Point'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { validateAlias } from './util/validateAlias'
-import { GmsUserAuthenticationResult } from '../model/GmsUserAuthenticationResult'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -684,7 +684,7 @@ export class UserResolver {
     let result: GmsUserAuthenticationResult
     if (context.token) {
       result = await authenticateGmsUserPlayground(context.token, dbUser)
-      console.log('authUserForGmsUserSearch=', result)
+      logger.info('authUserForGmsUserSearch=', result)
     } else {
       throw new LogError('authUserForGmsUserSearch without token')
     }
