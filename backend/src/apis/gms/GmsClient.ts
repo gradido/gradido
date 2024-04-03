@@ -183,3 +183,40 @@ export async function updateGmsUser(apiKey: string, user: GmsUser): Promise<bool
     return false
   }
 }
+
+export async function verifyAuthToken(
+  // apiKey: string,
+  communityUuid: string,
+  token: string,
+): Promise<string> {
+  const baseUrl = CONFIG.GMS_URL.endsWith('/') ? CONFIG.GMS_URL : CONFIG.GMS_URL.concat('/')
+  const service = 'verify-auth-token?token='.concat(token).concat('&uuid=').concat(communityUuid)
+  const config = {
+    headers: {
+      accept: 'application/json',
+      language: 'en',
+      timezone: 'UTC',
+      connection: 'keep-alive',
+      // authorization: apiKey,
+    },
+  }
+  try {
+    const result = await axios.get(baseUrl.concat(service), config)
+    logger.debug('GET-Response of verify-auth-token:', result)
+    if (result.status !== 200) {
+      throw new LogError(
+        'HTTP Status Error in verify-auth-token:',
+        result.status,
+        result.statusText,
+      )
+    }
+    logger.debug('responseData:', result.data.responseData)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    const token: string = result.data.responseData.token
+    logger.debug('verifyAuthToken=', token)
+    return token
+  } catch (error: any) {
+    logger.error('Error in verifyAuthToken:', error)
+    throw new LogError(error.message)
+  }
+}
