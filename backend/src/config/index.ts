@@ -19,11 +19,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-<<<<<<< HEAD
-    EXPECTED: 'v22.2024-03-06',
-=======
     EXPECTED: 'v22.2024-03-14',
->>>>>>> master
     CURRENT: '',
   },
 }
