@@ -1258,6 +1258,8 @@ describe('UserResolver', () => {
 
         describe('valid alias', () => {
           it('updates the user in DB', async () => {
+            // first empty alias, because currently updating alias isn't allowed
+            await User.update({ alias: 'BBB' }, { alias: () => 'NULL' })
             await mutate({
               mutation: updateUserInfos,
               variables: {
@@ -1303,8 +1305,10 @@ describe('UserResolver', () => {
               mutation: updateUserInfos,
               variables: {
                 gmsAllowed: false,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL,
-                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
+                gmsPublishName:
+                  GmsPublishNameType[GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL],
+                gmsPublishLocation:
+                  GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE],
               },
             })
             await expect(User.find()).resolves.toEqual([
@@ -1326,9 +1330,11 @@ describe('UserResolver', () => {
               mutation: updateUserInfos,
               variables: {
                 gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishName:
+                  GmsPublishNameType[GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS],
                 gmsLocation: loc,
-                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+                gmsPublishLocation:
+                  GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM],
               },
             })
             await expect(User.find()).resolves.toEqual([
@@ -2670,13 +2676,12 @@ describe('UserResolver', () => {
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
+        // first set alias to null, because updating alias isn't currently allowed
+        await User.update({ alias: 'BBB' }, { alias: () => 'NULL' })
         await mutate({
           mutation: updateUserInfos,
           variables: {
             alias: 'bibi',
-            gmsAllowed: true,
-            gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-            gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
           },
         })
       })

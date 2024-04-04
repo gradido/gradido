@@ -19,17 +19,18 @@ import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { SetUserRoleArgs } from '@arg/SetUserRoleArgs'
 import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
 import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
-import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
-import { GmsPublishNameType } from '@enum/GmsPublishNameType'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserContactType } from '@enum/UserContactType'
 import { SearchAdminUsersResult } from '@model/AdminUser'
 // import { Location } from '@model/Location'
+import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 
+import { updateGmsUser } from '@/apis/gms/GmsClient'
+import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -68,7 +69,9 @@ import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
+import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
 import { getHomeCommunity } from './util/communities'
+import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
@@ -375,7 +378,11 @@ export class UserResolver {
           await sendUserToGms(dbUser, homeCom)
         }
       } catch (err) {
-        logger.error('Error publishing new created user to GMS:', err)
+        if (CONFIG.GMS_CREATE_USER_THROW_ERRORS) {
+          throw new LogError('Error publishing new created user to GMS:', err)
+        } else {
+          logger.error('Error publishing new created user to GMS:', err)
+        }
       }
     }
     return new User(dbUser)
@@ -395,7 +402,6 @@ export class UserResolver {
       logger.warn(`no user found with ${email}`)
       return true
     }
-
     if (!canEmailResend(user.emailContact.updatedAt || user.emailContact.createdAt)) {
       throw new LogError(
         `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
@@ -541,8 +547,10 @@ export class UserResolver {
   @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
   async updateUserInfos(
-    @Args()
-    {
+    @Args() updateUserInfosArgs: UpdateUserInfosArgs,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const {
       firstName,
       lastName,
       alias,
@@ -555,24 +563,13 @@ export class UserResolver {
       gmsPublishName,
       gmsLocation,
       gmsPublishLocation,
-    }: UpdateUserInfosArgs,
-    @Ctx() context: Context,
-  ): Promise<boolean> {
+    } = updateUserInfosArgs
     logger.info(
       `updateUserInfos(${firstName}, ${lastName}, ${alias}, ${language}, ***, ***, ${hideAmountGDD}, ${hideAmountGDT}, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})...`,
     )
-    // check default arg settings
-    if (gmsAllowed === null || gmsAllowed === undefined) {
-      gmsAllowed = true
-    }
-    if (!gmsPublishName) {
-      gmsPublishName = GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS
-    }
-    if (!gmsPublishLocation) {
-      gmsPublishLocation = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
-    }
-
     const user = getUser(context)
+    const updateUserInGMS = compareGmsRelevantUserSettings(user, updateUserInfosArgs)
+
     // try {
     if (firstName) {
       user.firstName = firstName
@@ -582,7 +579,8 @@ export class UserResolver {
       user.lastName = lastName
     }
 
-    if (alias && (await validateAlias(alias))) {
+    // currently alias can only be set, not updated
+    if (alias && !user.alias && (await validateAlias(alias))) {
       user.alias = alias
     }
 
@@ -619,13 +617,18 @@ export class UserResolver {
     if (hideAmountGDT !== undefined) {
       user.hideAmountGDT = hideAmountGDT
     }
-
-    user.gmsAllowed = gmsAllowed
-    user.gmsPublishName = gmsPublishName
+    if (gmsAllowed !== undefined) {
+      user.gmsAllowed = gmsAllowed
+    }
+    if (gmsPublishName !== null && gmsPublishName !== undefined) {
+      user.gmsPublishName = gmsPublishName
+    }
     if (gmsLocation) {
       user.location = Location2Point(gmsLocation)
     }
-    user.gmsPublishLocation = gmsPublishLocation
+    if (gmsPublishLocation !== null && gmsPublishLocation !== undefined) {
+      user.gmsPublishLocation = gmsPublishLocation
+    }
     // } catch (err) {
     //   console.log('error:', err)
     // }
@@ -649,6 +652,17 @@ export class UserResolver {
     logger.info('updateUserInfos() successfully finished...')
     await EVENT_USER_INFO_UPDATE(user)
 
+    // validate if user settings are changed with relevance to update gms-user
+    if (CONFIG.GMS_ACTIVE && updateUserInGMS) {
+      logger.debug(`changed user-settings relevant for gms-user update...`)
+      const homeCom = await getHomeCommunity()
+      if (homeCom.gmsApiKey !== null) {
+        logger.debug(`gms-user update...`, user)
+        await updateGmsUser(homeCom.gmsApiKey, new GmsUser(user))
+        logger.debug(`gms-user update successfully.`)
+      }
+    }
+
     return true
   }
 
@@ -660,6 +674,21 @@ export class UserResolver {
     const elopageBuys = hasElopageBuys(userEntity.emailContact.email)
     logger.debug('has ElopageBuys', elopageBuys)
     return elopageBuys
+  }
+
+  @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
+  @Query(() => GmsUserAuthenticationResult)
+  async authenticateGmsUserSearch(@Ctx() context: Context): Promise<GmsUserAuthenticationResult> {
+    logger.info(`authUserForGmsUserSearch()...`)
+    const dbUser = getUser(context)
+    let result: GmsUserAuthenticationResult
+    if (context.token) {
+      result = await authenticateGmsUserPlayground(context.token, dbUser)
+      logger.info('authUserForGmsUserSearch=', result)
+    } else {
+      throw new LogError('authUserForGmsUserSearch without token')
+    }
+    return result
   }
 
   @Authorized([RIGHTS.SEARCH_ADMIN_USERS])

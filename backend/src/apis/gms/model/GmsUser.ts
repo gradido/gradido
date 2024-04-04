@@ -8,6 +8,7 @@ export class GmsUser {
   constructor(user: dbUser) {
     this.userUuid = user.gradidoID
     // this.communityUuid = user.communityUuid
+    this.language = user.language
     this.email = this.getGmsEmail(user)
     this.countryCode = this.getGmsCountryCode(user)
     this.mobile = this.getGmsPhone(user)

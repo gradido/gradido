@@ -19,7 +19,11 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
+<<<<<<< HEAD
     EXPECTED: 'v22.2024-03-06',
+=======
+    EXPECTED: 'v22.2024-03-14',
+>>>>>>> master
     CURRENT: '',
   },
 }
@@ -143,8 +147,11 @@ const federation = {
 
 const gms = {
   GMS_ACTIVE: process.env.GMS_ACTIVE === 'true' || false,
+  GMS_CREATE_USER_THROW_ERRORS: process.env.GMS_CREATE_USER_THROW_ERRORS === 'true' || false,
   // koordinates of Illuminz-instance of GMS
   GMS_URL: process.env.GMS_HOST ?? 'http://localhost:4044/',
+  // used as secret postfix attached at the gms community-auth-url endpoint ('/hook/gms/' + 'secret')
+  GMS_WEBHOOK_SECRET: process.env.GMS_WEBHOOK_SECRET ?? 'secret',
 }
 
 const humhub = {
