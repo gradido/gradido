@@ -279,7 +279,8 @@
     "overview": "Welcome {name}",
     "send": "Send Gradidos",
     "settings": "Settings",
-    "transactions": "Your transactions"
+    "transactions": "Your transactions",
+    "usersearch": "GMS User-Search"
   },
   "qrCode": "QR Code",
   "send_gdd": "Send GDD",
@@ -411,6 +412,11 @@
   },
   "transaction-link": {
     "send_you": "wants to send you"
+  },
+  "usersearch": {
+    "headline": "Gradido GMS-UserSearch",
+    "text": "Ganz gleich zu welcher Community du gehörst, über die Gradido-Nutzersuche kannst du in einer geographischen Karte deine Community-Mitglieder als auch andere Communities und deren Mitglieder finden.",
+    "button": "Start the User-Search..."
   },
   "via_link": "via Link",
   "welcome": "Welcome to the community"

@@ -261,7 +261,8 @@
     "overview": "Bienvenue {name}",
     "send": "Envoyé Gradidos",
     "settings": "Configuration",
-    "transactions": "Vos transactions"
+    "transactions": "Vos transactions",
+    "usersearch": "GMS Recherche d'Utilisateur"
   },
   "qrCode": "QR Code",
   "send_gdd": "Envoyer GDD",
@@ -352,6 +353,11 @@
   },
   "transaction-link": {
     "send_you": "veut vous envoyer"
+  },
+  "usersearch": {
+    "headline": "Gradido GMS-Recherche d'Utilisateur",
+    "text": "Ganz gleich zu welcher Community du gehörst, über die Gradido-Nutzersuche kannst du in einer geographischen Karte deine Community-Mitglieder als auch andere Communities und deren Mitglieder finden.",
+    "button": "Lancer le Recherche d'Utilisateur..."
   },
   "via_link": "par lien",
   "welcome": "Bienvenu dans la communauté"

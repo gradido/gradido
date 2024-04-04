@@ -85,7 +85,7 @@ const routes = [
     component: () => import('@/pages/UserSearch'),
     meta: {
       requiresAuth: true,
-      pageTitle: 'user search',
+      pageTitle: 'usersearch',
     },
   },
   // {
