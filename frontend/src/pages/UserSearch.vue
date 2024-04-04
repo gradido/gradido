@@ -5,9 +5,6 @@
       <div class="my-4 text-small">
         {{ $t('usersearch.text') }}
       </div>
-      <!-- div class="my-4 text-small">
-        {{ this.gmsUri }}
-      </div -->
       <b-row class="my-5">
         <b-col cols="12">
           <div class="text-lg-right">
@@ -22,13 +19,11 @@
 </template>
 <script>
 import { authenticateGmsUserSearch } from '@/graphql/queries'
-// import GmsInfo from '@/assets/UserSearch/usersearchinfo.json'
 export default {
   name: 'UserSearch',
   data() {
     return {
       gmsUri: 'not initialized',
-      // 'http://localhost:8080/playground?access_token=pk.eyJ1IjoidmlrYXNpbG16IiwiYSI6ImNsbG03NzNkNTFwZXMzbHQ2bTV6NHA0ZjgifQ.knlN4jnVdmhDkJTaka5RoQ&coords=[9.620812595440933,49.695725844876904]',
     }
   },
   methods: {
@@ -48,21 +43,8 @@ export default {
         })
     },
   },
-  /*
-  openGmsUserPlayground: function () {
-    window.open(this.gmsPlaygroundUrl + '?' + this.gmsAuthToken, '_blank')
-    // let uri = this.gmsPlaygroundUrl + '?' + this.gmsAuthToken
-    // let route = this.$router.resolve({path: uri});
-    /// / let route = this.$router.resolve('/link/to/page'); // This also works.
-    // window.open(route.href, '_blank');
-  },
-  beforeCreate() {
-    this.authenticateGmsUserPlayground()
-  },
-  */
   created() {
     this.authenticateGmsUserPlayground()
-    // this.openGmsUserPlayground()
   },
 }
 </script>
