@@ -50,6 +50,7 @@ export class Connection {
     } catch (error) {
       // eslint-disable-next-line no-console
       console.log(error)
+      console.log('catch from createConnection')
       return null
     }
   }

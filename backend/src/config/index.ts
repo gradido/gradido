@@ -19,7 +19,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v21.2024-01-06',
+    EXPECTED: 'v22.2024-03-06',
     CURRENT: '',
   },
 }
@@ -147,6 +147,12 @@ const gms = {
   GMS_URL: process.env.GMS_HOST ?? 'http://localhost:4044/',
 }
 
+const humhub = {
+  HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE === 'true' || false,
+  HUMHUB_API_URL: process.env.HUMHUB_API_URL ?? COMMUNITY_URL + '/community/',
+  HUMHUB_JWT_KEY: process.env.HUMHUB_JWT_KEY ?? '',
+}
+
 export const CONFIG = {
   ...constants,
   ...server,
@@ -159,4 +165,5 @@ export const CONFIG = {
   ...webhook,
   ...federation,
   ...gms,
+  ...humhub,
 }
