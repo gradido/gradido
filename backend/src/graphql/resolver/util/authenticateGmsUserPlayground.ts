@@ -10,7 +10,11 @@ export async function authenticateGmsUserPlayground(
   dbUser: DbUser,
 ): Promise<GmsUserAuthenticationResult> {
   const result = new GmsUserAuthenticationResult()
-  result.url = CONFIG.GMS_URL.concat('/playground')
+  const dashboardUrl = CONFIG.GMS_DASHBOARD_URL.endsWith('/')
+    ? CONFIG.GMS_DASHBOARD_URL
+    : CONFIG.GMS_DASHBOARD_URL.concat('/')
+
+  result.url = dashboardUrl.concat('playground')
   result.token = await verifyAuthToken(dbUser.communityUuid, token)
   logger.info('GmsUserAuthenticationResult:', result)
   return result
