@@ -415,7 +415,7 @@
   },
   "usersearch": {
     "headline": "Gradido GMS-UserSearch",
-    "text": "Ganz gleich zu welcher Community du gehörst, über die Gradido-Nutzersuche kannst du in einer geographischen Karte deine Community-Mitglieder als auch andere Communities und deren Mitglieder finden.",
+    "text": "Ganz gleich zu welcher Community du gehörst, über die Gradido-Nutzersuche kannst du in einer geographischen Karte deine Community-Mitglieder als auch andere Communities und deren Mitglieder finden. Mit dem Button wird ein neues Browser-Fenster geöffnet und dir direkt die Nutzer in deinem Umfeld auf einer Karte angezeigt.",
     "button": "Start the User-Search..."
   },
   "via_link": "via Link",
