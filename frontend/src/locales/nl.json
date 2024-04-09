@@ -242,7 +242,19 @@
     "profile": "Mijn profiel",
     "send": "Sturen",
     "support": "Support",
-    "transactions": "Transacties"
+    "transactions": "Transacties",
+    "usersearch": "Gebruiker zoeken"
+  },
+  "openHours": "Open Hours",
+  "pageTitle": {
+    "community": "Create Gradido",
+    "gdt": "Your GDT transactions",
+    "information": "{community}",
+    "overview": "Welcome {name}",
+    "send": "Send Gradidos",
+    "settings": "Settings",
+    "transactions": "Your transactions",
+    "usersearch": "Geografisch zoeken naar gebruikers"
   },
   "qrCode": "QR Code",
   "send_gdd": "GDD sturen",
@@ -333,6 +345,11 @@
   },
   "transaction-link": {
     "send_you": "stuurt jou"
+  },
+  "usersearch": {
+    "headline": "Geografisch zoeken naar gebruikers",
+    "text": "Het maakt niet uit tot welke community je behoort, met het Geo Matching System kun je leden van alle communities vinden op een kaart. Je kunt filteren op aanbiedingen en vereisten en de gebruikers weergeven die aan je profiel voldoen.\n\nDe knop opent een nieuw browservenster waarin de gebruikers in je omgeving op een kaart worden weergegeven.",
+    "button": "Start het zoeken naar gebruikers..."
   },
   "via_link": "via een link",
   "welcome": "Welkom in de gemeenschap"

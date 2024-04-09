@@ -3,7 +3,13 @@
     <b-container class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
       <div class="h3">{{ $t('usersearch.headline') }}</div>
       <div class="my-4 text-small">
-        {{ $t('usersearch.text') }}
+        <span
+          v-for="(line, lineNumber) of $t('usersearch.text').split('\n')"
+          v-bind:key="lineNumber"
+        >
+          {{ line }}
+          <br />
+        </span>
       </div>
       <b-row class="my-5">
         <b-col cols="12">

@@ -269,7 +269,7 @@
     "settings": "Settings",
     "support": "Support",
     "transactions": "Transactions",
-    "usersearch": "User Search"
+    "usersearch": "Geographical User Search"
   },
   "openHours": "Open Hours",
   "pageTitle": {
@@ -280,7 +280,7 @@
     "send": "Send Gradidos",
     "settings": "Settings",
     "transactions": "Your transactions",
-    "usersearch": "GMS User-Search"
+    "usersearch": "User search"
   },
   "qrCode": "QR Code",
   "send_gdd": "Send GDD",
@@ -414,9 +414,9 @@
     "send_you": "wants to send you"
   },
   "usersearch": {
-    "headline": "Gradido GMS-UserSearch",
-    "text": "Ganz gleich zu welcher Community du gehörst, über die Gradido-Nutzersuche kannst du in einer geographischen Karte deine Community-Mitglieder als auch andere Communities und deren Mitglieder finden. Mit dem Button wird ein neues Browser-Fenster geöffnet und dir direkt die Nutzer in deinem Umfeld auf einer Karte angezeigt.",
-    "button": "Start the User-Search..."
+    "headline": "Geographical User Search",
+    "text": "No matter which community you belong to, with the Geo Matching System you can find members of all communities on a map. You can filter according to offers and needs and display the users that match you.\n\nThe button opens a new browser window in which the users in your area are displayed on a map.",
+    "button": "Start user search... "
   },
   "via_link": "via Link",
   "welcome": "Welcome to the community"

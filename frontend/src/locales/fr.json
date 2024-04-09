@@ -251,7 +251,7 @@
     "settings": "Configuration",
     "support": "Aide",
     "transactions": "Transactions",
-    "usersearch": "Recherche d'Utilisateur"
+    "usersearch": "Recherche d'utilisateurs"
   },
   "openHours": "Heures ouverte",
   "pageTitle": {
@@ -262,7 +262,7 @@
     "send": "Envoyé Gradidos",
     "settings": "Configuration",
     "transactions": "Vos transactions",
-    "usersearch": "GMS Recherche d'Utilisateur"
+    "usersearch": "Recherche géographique d'utilisateurs"
   },
   "qrCode": "QR Code",
   "send_gdd": "Envoyer GDD",
@@ -355,9 +355,9 @@
     "send_you": "veut vous envoyer"
   },
   "usersearch": {
-    "headline": "Gradido GMS-Recherche d'Utilisateur",
-    "text": "Ganz gleich zu welcher Community du gehörst, über die Gradido-Nutzersuche kannst du in einer geographischen Karte deine Community-Mitglieder als auch andere Communities und deren Mitglieder finden. Mit dem Button wird ein neues Browser-Fenster geöffnet und dir direkt die Nutzer in deinem Umfeld auf einer Karte angezeigt.",
-    "button": "Lancer le Recherche d'Utilisateur..."
+    "headline": "Recherche géographique d'utilisateurs",
+    "text": "Quelle que soit la communauté à laquelle tu appartiens, le système de géo-matching te permet de trouver des membres de toutes les communautés sur une carte géographique. Tu peux filtrer selon les offres et les besoins et afficher les utilisateurs qui te correspondent.\n\nEn cliquant sur le bouton, une nouvelle fenêtre de navigateur s'ouvre et t'affiche les utilisateurs de ton entourage sur une carte.",
+    "button": "Commence la recherche d'utilisateurs..."
   },
   "via_link": "par lien",
   "welcome": "Bienvenu dans la communauté"
