@@ -248,12 +248,12 @@
   "openHours": "Open Hours",
   "pageTitle": {
     "community": "Create Gradido",
-    "gdt": "Your GDT transactions",
+    "gdt": "Tu GDT Transacciones",
     "information": "{community}",
     "overview": "Welcome {name}",
     "send": "Enviar Gradidos",
-    "settings": "Settings",
-    "transactions": "Your transactions",
+    "settings": "Soporte",
+    "transactions": "Tu Transacciones",
     "usersearch": "Búsqueda geográfica de usuarios"
   },
   "qrCode": "Código QR",
