@@ -33,7 +33,7 @@
             <span class="ml-2">{{ $t('navigation.info') }}</span>
           </b-nav-item>
           <b-nav-item to="/usersearch" active-class="activeRoute">
-            <b-img src="/img/svg/loupe.png" height="20" class="svg-icon" />
+            <b-img src="/img/loupe.png" height="20" />
             <span class="ml-2">{{ $t('navigation.usersearch') }}</span>
           </b-nav-item>
         </b-nav>

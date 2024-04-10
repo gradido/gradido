@@ -9,10 +9,11 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import { GmsUser } from './model/GmsUser'
+import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
 /*
 export async function communityList(): Promise<GmsCommunity[] | string | undefined> {
-  const baseUrl = CONFIG.GMS_URL.endsWith('/') ? CONFIG.GMS_URL : CONFIG.GMS_URL.concat('/')
+  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_URL)
   const service = 'community/list?page=1&perPage=20'
   const config = {
     headers: {
@@ -44,7 +45,7 @@ export async function communityList(): Promise<GmsCommunity[] | string | undefin
 }
 
 export async function userList(): Promise<GmsUser[] | string | undefined> {
-  const baseUrl = CONFIG.GMS_URL.endsWith('/') ? CONFIG.GMS_URL : CONFIG.GMS_URL.concat('/')
+  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_URL)
   const service = 'community-user/list?page=1&perPage=20'
   const config = {
     headers: {
@@ -80,7 +81,7 @@ export async function userList(): Promise<GmsUser[] | string | undefined> {
 }
 
 export async function userByUuid(uuid: string): Promise<GmsUser[] | string | undefined> {
-  const baseUrl = CONFIG.GMS_URL.endsWith('/') ? CONFIG.GMS_URL : CONFIG.GMS_URL.concat('/')
+  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_URL)
   const service = 'community-user/list?page=1&perPage=20'
   const config = {
     headers: {
@@ -118,9 +119,7 @@ export async function userByUuid(uuid: string): Promise<GmsUser[] | string | und
 
 export async function createGmsUser(apiKey: string, user: GmsUser): Promise<boolean> {
   if (CONFIG.GMS_ACTIVE) {
-    const baseUrl = CONFIG.GMS_API_URL.endsWith('/')
-      ? CONFIG.GMS_API_URL
-      : CONFIG.GMS_API_URL.concat('/')
+    const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
     const service = 'community-user'
     const config = {
       headers: {
@@ -154,9 +153,7 @@ export async function createGmsUser(apiKey: string, user: GmsUser): Promise<bool
 
 export async function updateGmsUser(apiKey: string, user: GmsUser): Promise<boolean> {
   if (CONFIG.GMS_ACTIVE) {
-    const baseUrl = CONFIG.GMS_API_URL.endsWith('/')
-      ? CONFIG.GMS_API_URL
-      : CONFIG.GMS_API_URL.concat('/')
+    const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
     const service = 'community-user'
     const config = {
       headers: {
@@ -193,9 +190,7 @@ export async function verifyAuthToken(
   communityUuid: string,
   token: string,
 ): Promise<string> {
-  const baseUrl = CONFIG.GMS_API_URL.endsWith('/')
-    ? CONFIG.GMS_API_URL
-    : CONFIG.GMS_API_URL.concat('/')
+  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
   const service = 'verify-auth-token?token='.concat(token).concat('&uuid=').concat(communityUuid)
   const config = {
     headers: {
