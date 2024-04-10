@@ -1,4 +1,4 @@
-import { mount, RouterLinkStub } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import UserSearch from './UserSearch'
 import { toastErrorSpy } from '../../test/testSetup'
 import { authenticateGmsUserSearch } from '@/graphql/queries'
@@ -6,10 +6,6 @@ import { authenticateGmsUserSearch } from '@/graphql/queries'
 const localVue = global.localVue
 
 window.scrollTo = jest.fn()
-
-const stubs = {
-  RouterLink: RouterLinkStub,
-}
 
 const apolloQueryMock = jest
   .fn()
@@ -21,7 +17,6 @@ const apolloQueryMock = jest
     },
   })
   .mockResolvedValue('default')
-
 
 describe('UserSearch', () => {
   let wrapper
@@ -71,9 +66,7 @@ describe('UserSearch', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith(
-          'authenticateGmsUserSearch failed!',
-        )
+        expect(toastErrorSpy).toBeCalledWith('authenticateGmsUserSearch failed!')
       })
     })
   })
