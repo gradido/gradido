@@ -17,7 +17,7 @@ export class FederationClient {
 
   constructor(dbCom: DbFederatedCommunity) {
     this.dbCom = dbCom
-    this.endpoint = ensureUrlEndsWithSlash(dbCom.endPoint).concat(dbCom.apiVersion)
+    this.endpoint = ensureUrlEndsWithSlash(dbCom.endPoint).concat(dbCom.apiVersion).concat('/')
     this.client = new GraphQLClient(this.endpoint, {
       method: 'GET',
       jsonSerializer: {
