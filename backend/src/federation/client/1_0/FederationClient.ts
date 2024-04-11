@@ -4,6 +4,7 @@ import { GraphQLClient } from 'graphql-request'
 import { getPublicCommunityInfo } from '@/federation/client/1_0/query/getPublicCommunityInfo'
 import { getPublicKey } from '@/federation/client/1_0/query/getPublicKey'
 import { backendLogger as logger } from '@/server/logger'
+import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
 import { PublicCommunityInfoLoggingView } from './logging/PublicCommunityInfoLogging.view'
 import { GetPublicKeyResult } from './model/GetPublicKeyResult'
@@ -16,9 +17,7 @@ export class FederationClient {
 
   constructor(dbCom: DbFederatedCommunity) {
     this.dbCom = dbCom
-    this.endpoint = `${dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'}${
-      dbCom.apiVersion
-    }/`
+    this.endpoint = ensureUrlEndsWithSlash(dbCom.endPoint).concat(dbCom.apiVersion)
     this.client = new GraphQLClient(this.endpoint, {
       method: 'GET',
       jsonSerializer: {
