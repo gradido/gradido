@@ -19,7 +19,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v22.2024-03-14',
+    EXPECTED: 'v23.2024-04-04',
     CURRENT: '',
   },
 }
@@ -145,7 +145,8 @@ const gms = {
   GMS_ACTIVE: process.env.GMS_ACTIVE === 'true' || false,
   GMS_CREATE_USER_THROW_ERRORS: process.env.GMS_CREATE_USER_THROW_ERRORS === 'true' || false,
   // koordinates of Illuminz-instance of GMS
-  GMS_URL: process.env.GMS_HOST ?? 'http://localhost:4044/',
+  GMS_API_URL: process.env.GMS_API_URL ?? 'http://localhost:4044/',
+  GMS_DASHBOARD_URL: process.env.GMS_DASHBOARD_URL ?? 'http://localhost:8080/',
   // used as secret postfix attached at the gms community-auth-url endpoint ('/hook/gms/' + 'secret')
   GMS_WEBHOOK_SECRET: process.env.GMS_WEBHOOK_SECRET ?? 'secret',
 }
