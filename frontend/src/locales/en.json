@@ -9,6 +9,7 @@
   "GDD": "GDD",
   "GDT": "GDT",
   "GMS": "Gradido Map",
+  "Humhub": "Gradido Community",
   "PersonalDetails": "Personal details",
   "advanced-calculation": "Advanced calculation",
   "asterisks": "****",
@@ -324,6 +325,16 @@
     },
     "hideAmountGDD": "Your GDD amount is hidden.",
     "hideAmountGDT": "Your GDT amount is hidden.",
+    "humhub": {
+      "disabled": "Data not exported into the Gradido Community",
+      "enabled": "Data exported into the Gradido Community",
+      "export-consequences": "In the Gradido Community, all users can find you by your first and last name.",
+      "naming-format": "Format of name in the Gradido Community",
+      "publish-name": {
+        "updated": "Format of name for the Gradido Community updated."
+      },
+      "switch": "Allow data export into the Gradido Community."
+    },
     "info": "Transactions can now be made by username or email address.",
     "language": {
       "changeLanguage": "Change language",

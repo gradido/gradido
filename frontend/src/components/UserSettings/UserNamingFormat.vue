@@ -1,5 +1,5 @@
 <template>
-  <div class="user-gms-naming-format">
+  <div class="user-naming-format">
     <b-dropdown v-model="selectedOption">
       <template slot="button-content">{{ selectedOptionLabel }}</template>
       <b-dropdown-item
@@ -18,10 +18,15 @@
 import { updateUserInfos } from '@/graphql/mutations'
 
 export default {
-  name: 'UserGMSNamingFormat',
+  name: 'UserNamingFormat',
+  props: {
+    initialValue: { type: String, default: 'GMS_PUBLISH_NAME_ALIAS_OR_INITALS' },
+    attrName: { type: String },
+    successMessage: { type: String },
+  },
   data() {
     return {
-      selectedOption: this.$store.state.gmsPublishName ?? 'GMS_PUBLISH_NAME_ALIAS_OR_INITALS',
+      selectedOption: this.initialValue,
       dropdownOptions: [
         {
           label: this.$t('settings.GMS.publish-name.alias-or-initials'),
@@ -62,16 +67,16 @@ export default {
         return
       }
       try {
+        const variables = []
+        variables[this.attrName] = option.value
         await this.$apollo.mutate({
           mutation: updateUserInfos,
-          variables: {
-            gmsPublishName: option.value,
-          },
+          variables,
         })
-        this.toastSuccess(this.$t('settings.GMS.publish-name.updated'))
+        this.toastSuccess(this.successMessage)
         this.selectedOption = option.value
-        this.$store.commit('gmsPublishName', option.value)
-        this.$emit('gmsPublishName', option.value)
+        this.$store.commit(this.attrName, option.value)
+        this.$emit('valueChanged', option.value)
       } catch (error) {
         this.toastError(error.message)
       }
@@ -80,8 +85,8 @@ export default {
 }
 </script>
 <style>
-.user-gms-naming-format > .dropdown,
-.user-gms-naming-format > .dropdown > .dropdown-toggle > ul.dropdown-menu {
+.user-naming-format > .dropdown,
+.user-naming-format > .dropdown > .dropdown-toggle > ul.dropdown-menu {
   width: 100%;
 }
 </style>

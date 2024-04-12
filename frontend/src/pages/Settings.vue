@@ -79,44 +79,91 @@
           </b-col>
         </b-row>
       </b-tab>
-      <div v-if="isGMS">
+      <div v-if="isExternService">
         <b-tab :title="$t('ExternServices')">
           <div class="h2">{{ $t('ExternServices') }}</div>
-          <div class="h3">{{ $t('GMS') }}</div>
-          <b-row class="mb-3">
-            <b-col cols="12" md="6" lg="6">
-              {{ $t('settings.GMS.switch') }}
-              <div class="text-small">
-                {{ gmsAllowed ? $t('settings.GMS.enabled') : $t('settings.GMS.disabled') }}
-              </div>
-            </b-col>
-            <b-col cols="12" md="6" lg="6" class="text-right">
-              <user-g-m-s-switch @gmsAllowed="gmsStateSwitch" />
-            </b-col>
-          </b-row>
-          <div v-if="gmsAllowed">
-            <b-row class="mb-4">
+          <div v-if="isGMS">
+            <div class="h3">{{ $t('GMS') }}</div>
+            <b-row class="mb-3">
               <b-col cols="12" md="6" lg="6">
-                {{ $t('settings.GMS.naming-format') }}
+                {{ $t('settings.GMS.switch') }}
+                <div class="text-small">
+                  {{ gmsAllowed ? $t('settings.GMS.enabled') : $t('settings.GMS.disabled') }}
+                </div>
               </b-col>
-              <b-col cols="12" md="6" lg="6">
-                <user-g-m-s-naming-format />
+              <b-col cols="12" md="6" lg="6" class="text-right">
+                <user-settings-switch
+                  @valueChanged="gmsStateSwitch"
+                  :initialValue="$store.state.gmsAllowed"
+                  :attrName="'gmsAllowed'"
+                  :enabledText="$t('settings.GMS.enabled')"
+                  :disabledText="$t('settings.GMS.disabled')"
+                />
               </b-col>
             </b-row>
-            <b-row class="mb-4">
+            <div v-if="gmsAllowed">
+              <b-row class="mb-4">
+                <b-col cols="12" md="6" lg="6">
+                  {{ $t('settings.GMS.naming-format') }}
+                </b-col>
+                <b-col cols="12" md="6" lg="6">
+                  <user-naming-format
+                    :initialValue="$store.state.gmsPublishName"
+                    :attrName="'gmsPublishName'"
+                    :successMessage="$t('settings.GMS.publish-name.updated')"
+                  />
+                </b-col>
+              </b-row>
+              <b-row class="mb-4">
+                <b-col cols="12" md="6" lg="6">
+                  {{ $t('settings.GMS.location-format') }}
+                </b-col>
+                <b-col cols="12" md="6" lg="6">
+                  <user-g-m-s-location-format />
+                </b-col>
+              </b-row>
+              <b-row class="mb-5">
+                <b-col cols="12" md="6" lg="6">
+                  {{ $t('settings.GMS.location.label') }}
+                </b-col>
+                <b-col cols="12" md="6" lg="6">
+                  <user-g-m-s-location />
+                </b-col>
+              </b-row>
+            </div>
+          </div>
+          <div v-if="isHumhub">
+            <div class="h3">{{ $t('Humhub') }}</div>
+            {{ $t('settings.humhub.export-consequences') }}
+            <b-row class="mb-3">
               <b-col cols="12" md="6" lg="6">
-                {{ $t('settings.GMS.location-format') }}
+                {{ $t('settings.humhub.switch') }}
+                <div class="text-small">
+                  {{
+                    humhubAllowed ? $t('settings.humhub.enabled') : $t('settings.humhub.disabled')
+                  }}
+                </div>
               </b-col>
-              <b-col cols="12" md="6" lg="6">
-                <user-g-m-s-location-format />
+              <b-col cols="12" md="6" lg="6" class="text-right">
+                <user-settings-switch
+                  @valueChanged="humhubStateSwitch"
+                  :initialValue="$store.state.humhubAllowed"
+                  :attrName="'humhubAllowed'"
+                  :enabledText="$t('settings.humhub.enabled')"
+                  :disabledText="$t('settings.humhub.disabled')"
+                />
               </b-col>
             </b-row>
-            <b-row class="mb-5">
+            <b-row v-if="humhubAllowed" class="mb-4">
               <b-col cols="12" md="6" lg="6">
-                {{ $t('settings.GMS.location.label') }}
+                {{ $t('settings.humhub.naming-format') }}
               </b-col>
               <b-col cols="12" md="6" lg="6">
-                <user-g-m-s-location />
+                <user-naming-format
+                  :initialValue="$store.state.humhubPublishName"
+                  :attrName="'humhubPublishName'"
+                  :successMessage="$t('settings.humhub.publish-name.updated')"
+                />
               </b-col>
             </b-row>
           </div>
@@ -133,28 +180,28 @@
   </div>
 </template>
 <script>
-import UserGMSSwitch from '@/components/UserSettings/UserGMSSwitch'
-import UserGMSNamingFormat from '@/components/UserSettings/UserGMSNamingFormat'
+import UserNamingFormat from '@/components/UserSettings/UserNamingFormat'
 import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
 import UserGMSLocation from '@/components/UserSettings/UserGMSLocation'
 import UserName from '@/components/UserSettings/UserName.vue'
 import UserPassword from '@/components/UserSettings/UserPassword'
 import UserLanguage from '@/components/LanguageSwitch2.vue'
 import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
+import UserSettingsSwitch from '../components/UserSettings/UserSettingsSwitch.vue'
 import { updateUserInfos } from '@/graphql/mutations'
 import CONFIG from '../config'
 
 export default {
   name: 'Profile',
   components: {
-    UserGMSSwitch,
-    UserGMSNamingFormat,
+    UserNamingFormat,
     UserGMSLocationFormat,
     UserGMSLocation,
     UserName,
     UserPassword,
     UserLanguage,
     UserNewsletter,
+    UserSettingsSwitch,
   },
   props: {
     balance: { type: Number, default: 0 },
@@ -163,7 +210,15 @@ export default {
 
   data() {
     const { state } = this.$store
-    const { darkMode, firstName, lastName, email, newsletterState, gmsAllowed } = state
+    const {
+      darkMode,
+      firstName,
+      lastName,
+      email,
+      newsletterState,
+      gmsAllowed,
+      humhubAllowed,
+    } = state
 
     return {
       darkMode,
@@ -173,6 +228,7 @@ export default {
       email,
       newsletterState,
       gmsAllowed,
+      humhubAllowed,
       mutation: '',
       variables: {},
     }
@@ -183,8 +239,14 @@ export default {
       const { firstName, lastName } = this.$store.state
       return firstName === this.firstName && lastName === this.lastName
     },
+    isExternService() {
+      return this.isGMS || this.isHumhub
+    },
     isGMS() {
       return CONFIG.GMS_ACTIVE
+    },
+    isHumhub() {
+      return CONFIG.HUMHUB_ACTIVE
     },
   },
   // TODO: watch: {
@@ -213,6 +275,9 @@ export default {
     },
     gmsStateSwitch(eventData) {
       this.gmsAllowed = eventData
+    },
+    humhubStateSwitch(eventData) {
+      this.humhubAllowed = eventData
     },
   },
 }

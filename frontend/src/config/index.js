@@ -22,6 +22,7 @@ const version = {
 
 const features = {
   GMS_ACTIVE: process.env.GMS_ACTIVE ?? false,
+  HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE ?? false,
 }
 
 const environment = {

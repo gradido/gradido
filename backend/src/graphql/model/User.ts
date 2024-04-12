@@ -32,8 +32,10 @@ export class User {
       this.hasElopage = null
       this.hideAmountGDD = user.hideAmountGDD
       this.hideAmountGDT = user.hideAmountGDT
+      this.humhubAllowed = user.humhubAllowed
       this.gmsAllowed = user.gmsAllowed
       this.gmsPublishName = user.gmsPublishName
+      this.humhubPublishName = user.humhubPublishName
       this.gmsPublishLocation = user.gmsPublishLocation
     }
   }
@@ -81,10 +83,16 @@ export class User {
   hideAmountGDT: boolean
 
   @Field(() => Boolean)
+  humhubAllowed: boolean
+
+  @Field(() => Boolean)
   gmsAllowed: boolean
 
   @Field(() => GmsPublishNameType, { nullable: true })
   gmsPublishName: GmsPublishNameType | null
+
+  @Field(() => GmsPublishNameType, { nullable: true })
+  humhubPublishName: GmsPublishNameType | null
 
   @Field(() => GmsPublishLocationType, { nullable: true })
   gmsPublishLocation: GmsPublishLocationType | null
