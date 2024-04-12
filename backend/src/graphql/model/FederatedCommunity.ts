@@ -1,6 +1,8 @@
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { ObjectType, Field, Int } from 'type-graphql'
 
+import { ensureUrlEndsWithSlash } from '@/util/utilities'
+
 @ObjectType()
 export class FederatedCommunity {
   constructor(dbCom: DbFederatedCommunity) {
@@ -8,7 +10,7 @@ export class FederatedCommunity {
     this.foreign = dbCom.foreign
     this.publicKey = dbCom.publicKey.toString('hex')
     this.apiVersion = dbCom.apiVersion
-    this.endPoint = dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'
+    this.endPoint = ensureUrlEndsWithSlash(dbCom.endPoint)
     this.lastAnnouncedAt = dbCom.lastAnnouncedAt
     this.verifiedAt = dbCom.verifiedAt
     this.lastErrorAt = dbCom.lastErrorAt

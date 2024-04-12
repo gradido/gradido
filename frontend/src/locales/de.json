@@ -269,7 +269,8 @@
     "send": "Senden",
     "settings": "Einstellung",
     "support": "Support",
-    "transactions": "Transaktionen"
+    "transactions": "Transaktionen",
+    "usersearch": "Nutzersuche"
   },
   "openHours": "Offene Stunden",
   "pageTitle": {
@@ -279,7 +280,8 @@
     "overview": "Willkommen {name}",
     "send": "Sende Gradidos",
     "settings": "Einstellungen",
-    "transactions": "Deine Transaktionen"
+    "transactions": "Deine Transaktionen",
+    "usersearch": "Geografische Nutzersuche"
   },
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
@@ -421,6 +423,11 @@
   },
   "transaction-link": {
     "send_you": "sendet dir"
+  },
+  "usersearch": {
+    "headline": "Geografische Nutzersuche",
+    "text": "Ganz gleich zu welcher Community du gehörst, mit dem Geo Matching System findest du Mitglieder aller Communities auf einer Landkarte. Du kannst nach  Angeboten und Bedürfnissen filtern und dir die Nutzer anzeigen lassen, die zu Dir passen.\n\nMit dem Button wird ein neues Browser-Fenster geöffnet, in dem dir die Nutzer in deinem Umfeld auf einer Karte angezeigt werden.",
+    "button": "Starte die Nutzersuche..."
   },
   "via_link": "über einen Link",
   "welcome": "Willkommen in der Gemeinschaft"

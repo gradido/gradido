@@ -242,7 +242,19 @@
     "profile": "Mi Perfil",
     "send": "Enviar",
     "support": "Soporte",
-    "transactions": "Transacciones"
+    "transactions": "Transacciones",
+    "usersearch": "Buscar usuarios"
+  },
+  "openHours": "Open Hours",
+  "pageTitle": {
+    "community": "Create Gradido",
+    "gdt": "Tu GDT Transacciones",
+    "information": "{community}",
+    "overview": "Welcome {name}",
+    "send": "Enviar Gradidos",
+    "settings": "Soporte",
+    "transactions": "Tu Transacciones",
+    "usersearch": "Búsqueda geográfica de usuarios"
   },
   "qrCode": "Código QR",
   "send_gdd": "Enviar GDD",
@@ -333,6 +345,11 @@
   },
   "transaction-link": {
     "send_you": "te envía"
+  },
+  "usersearch": {
+    "headline": "Búsqueda geográfica de usuarios",
+    "text": "No importa a qué comunidad pertenezcas, con el Geo Matching System puedes encontrar miembros de todas las comunidades en un mapa. Puedes filtrar según ofertas y requisitos y visualizar los usuarios que coinciden con tu perfil.\n\nEl botón abre una nueva ventana del navegador en la que se muestran en un mapa los usuarios de tu zona.",
+    "button": "Iniciar la búsqueda de usuarios..."
   },
   "via_link": "atraves de un enlace",
   "welcome": "Bienvenido a la comunidad."

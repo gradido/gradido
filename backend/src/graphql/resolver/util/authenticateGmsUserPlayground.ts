@@ -4,13 +4,16 @@ import { verifyAuthToken } from '@/apis/gms/GmsClient'
 import { CONFIG } from '@/config'
 import { GmsUserAuthenticationResult } from '@/graphql/model/GmsUserAuthenticationResult'
 import { backendLogger as logger } from '@/server/logger'
+import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
 export async function authenticateGmsUserPlayground(
   token: string,
   dbUser: DbUser,
 ): Promise<GmsUserAuthenticationResult> {
   const result = new GmsUserAuthenticationResult()
-  result.url = CONFIG.GMS_URL.concat('/playground')
+  const dashboardUrl = ensureUrlEndsWithSlash(CONFIG.GMS_DASHBOARD_URL)
+
+  result.url = dashboardUrl.concat('playground')
   result.token = await verifyAuthToken(dbUser.communityUuid, token)
   logger.info('GmsUserAuthenticationResult:', result)
   return result

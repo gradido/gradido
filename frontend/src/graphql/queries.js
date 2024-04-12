@@ -19,6 +19,14 @@ export const verifyLogin = gql`
     }
   }
 `
+export const authenticateGmsUserSearch = gql`
+  query {
+    authenticateGmsUserSearch {
+      url
+      token
+    }
+  }
+`
 
 export const transactionsQuery = gql`
   query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {

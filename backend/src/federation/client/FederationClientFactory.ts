@@ -5,6 +5,7 @@ import { FederationClient as V1_0_FederationClient } from '@/federation/client/1
 // eslint-disable-next-line camelcase
 import { FederationClient as V1_1_FederationClient } from '@/federation/client/1_1/FederationClient'
 import { ApiVersionType } from '@/federation/enum/apiVersionType'
+import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
 // eslint-disable-next-line camelcase
 type FederationClient = V1_0_FederationClient | V1_1_FederationClient
@@ -47,10 +48,7 @@ export class FederationClientFactory {
     const instance = FederationClientFactory.instanceArray.find(
       (instance) => instance.id === dbCom.id,
     )
-    // TODO: found a way to prevent double code with FederationClient::constructor
-    const endpoint = `${dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'}${
-      dbCom.apiVersion
-    }/`
+    const endpoint = ensureUrlEndsWithSlash(dbCom.endPoint).concat(dbCom.apiVersion)
     // check if endpoint is still the same and not changed meanwhile
     if (instance && instance.client.getEndpoint() === endpoint) {
       return instance.client
