@@ -7,10 +7,7 @@ export class Account {
     if (user.alias && user.alias.length > 2) {
       this.username = user.alias
     } else {
-      // Use the replace method to remove the part after '+' and before '@'
-      // source: https://people.cs.rutgers.edu/~watrous/plus-signs-in-email-addresses.html
-      // email address with + exist but humhub doesn't allow username with +
-      this.username = user.emailContact.email.replace(/\+(.*)@/, '@')
+      this.username = user.gradidoID
     }
 
     this.email = user.emailContact.email
