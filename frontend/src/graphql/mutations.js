@@ -37,7 +37,7 @@ export const updateUserInfos = gql`
     $gmsAllowed: Boolean
     $humhubAllowed: Boolean
     $gmsPublishName: GmsPublishNameType
-    $humhubPublishName: GmsPublishNameType
+    $humhubPublishName: PublishNameType
     $gmsLocation: Location
     $gmsPublishLocation: GmsPublishLocationType
   ) {

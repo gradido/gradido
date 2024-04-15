@@ -3,6 +3,7 @@ import { ObjectType, Field, Int } from 'type-graphql'
 
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { GmsPublishNameType } from '@enum/GmsPublishNameType'
+import { PublishNameType } from '@enum/PublishNameType'
 
 import { KlickTipp } from './KlickTipp'
 
@@ -91,8 +92,8 @@ export class User {
   @Field(() => GmsPublishNameType, { nullable: true })
   gmsPublishName: GmsPublishNameType | null
 
-  @Field(() => GmsPublishNameType, { nullable: true })
-  humhubPublishName: GmsPublishNameType | null
+  @Field(() => PublishNameType, { nullable: true })
+  humhubPublishName: PublishNameType | null
 
   @Field(() => GmsPublishLocationType, { nullable: true })
   gmsPublishLocation: GmsPublishLocationType | null

@@ -107,7 +107,7 @@
                   {{ $t('settings.GMS.naming-format') }}
                 </b-col>
                 <b-col cols="12" md="6" lg="6">
-                  <user-naming-format
+                  <user-g-m-s-naming-format
                     :initialValue="$store.state.gmsPublishName"
                     :attrName="'gmsPublishName'"
                     :successMessage="$t('settings.GMS.publish-name.updated')"
@@ -134,7 +134,6 @@
           </div>
           <div v-if="isHumhub">
             <div class="h3">{{ $t('Humhub') }}</div>
-            {{ $t('settings.humhub.export-consequences') }}
             <b-row class="mb-3">
               <b-col cols="12" md="6" lg="6">
                 {{ $t('settings.humhub.switch') }}
@@ -181,6 +180,7 @@
 </template>
 <script>
 import UserNamingFormat from '@/components/UserSettings/UserNamingFormat'
+import UserGMSNamingFormat from '@/components/UserSettings/UserGMSNamingFormat'
 import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
 import UserGMSLocation from '@/components/UserSettings/UserGMSLocation'
 import UserName from '@/components/UserSettings/UserName.vue'
@@ -195,6 +195,7 @@ export default {
   name: 'Profile',
   components: {
     UserNamingFormat,
+    UserGMSNamingFormat,
     UserGMSLocationFormat,
     UserGMSLocation,
     UserName,
@@ -220,9 +221,11 @@ export default {
       humhubAllowed,
     } = state
 
+    const username = this.$store.state.username || ''
+
     return {
       darkMode,
-      username: '',
+      username,
       firstName,
       lastName,
       email,
@@ -246,7 +249,7 @@ export default {
       return CONFIG.GMS_ACTIVE
     },
     isHumhub() {
-      return CONFIG.HUMHUB_ACTIVE
+      return CONFIG.HUMHUB_ACTIVE && this.username
     },
   },
   // TODO: watch: {
