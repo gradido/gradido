@@ -2,6 +2,7 @@ import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCom
 import { GraphQLClient } from 'graphql-request'
 
 import { backendLogger as logger } from '@/server/logger'
+import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
 import { OpenConnectionArgs } from './model/OpenConnectionArgs'
 import { openConnection } from './query/openConnection'
@@ -13,9 +14,7 @@ export class AuthenticationClient {
 
   constructor(dbCom: DbFederatedCommunity) {
     this.dbCom = dbCom
-    this.endpoint = `${dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'}${
-      dbCom.apiVersion
-    }/`
+    this.endpoint = ensureUrlEndsWithSlash(dbCom.endPoint).concat(dbCom.apiVersion).concat('/')
     this.client = new GraphQLClient(this.endpoint, {
       method: 'POST',
       jsonSerializer: {

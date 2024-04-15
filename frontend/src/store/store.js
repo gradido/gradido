@@ -38,8 +38,14 @@ export const mutations = {
   gmsAllowed: (state, gmsAllowed) => {
     state.gmsAllowed = gmsAllowed
   },
+  humhubAllowed: (state, humhubAllowed) => {
+    state.humhubAllowed = humhubAllowed
+  },
   gmsPublishName: (state, gmsPublishName) => {
     state.gmsPublishName = gmsPublishName
+  },
+  humhubPublishName: (state, humhubPublishName) => {
+    state.humhubPublishName = humhubPublishName
   },
   gmsPublishLocation: (state, gmsPublishLocation) => {
     state.gmsPublishLocation = gmsPublishLocation
@@ -81,7 +87,9 @@ export const actions = {
     commit('lastName', data.lastName)
     commit('newsletterState', data.klickTipp.newsletterState)
     commit('gmsAllowed', data.gmsAllowed)
+    commit('humhubAllowed', data.humhubAllowed)
     commit('gmsPublishName', data.gmsPublishName)
+    commit('humhubPublishName', data.humhubPublishName)
     commit('gmsPublishLocation', data.gmsPublishLocation)
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
@@ -98,7 +106,9 @@ export const actions = {
     commit('lastName', '')
     commit('newsletterState', null)
     commit('gmsAllowed', null)
+    commit('humhubAllowed', null)
     commit('gmsPublishName', null)
+    commit('humhubPublishName', null)
     commit('gmsPublishLocation', null)
     commit('hasElopage', false)
     commit('publisherId', null)
@@ -133,7 +143,9 @@ try {
       roles: [],
       newsletterState: null,
       gmsAllowed: null,
+      humhubAllowed: null,
       gmsPublishName: null,
+      humhubPublishName: null,
       gmsPublishLocation: null,
       hasElopage: false,
       publisherId: null,

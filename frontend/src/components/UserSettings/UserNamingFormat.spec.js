@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import UserGMSNamingFormat from './UserGMSNamingFormat.vue'
+import UserNamingFormat from './UserNamingFormat.vue'
 import { toastErrorSpy } from '@test/testSetup'
 
 const mockAPIcall = jest.fn()
@@ -8,10 +8,10 @@ const storeCommitMock = jest.fn()
 
 const localVue = global.localVue
 
-describe('UserGMSNamingFormat', () => {
+describe('UserNamingFormat', () => {
   let wrapper
   beforeEach(() => {
-    wrapper = mount(UserGMSNamingFormat, {
+    wrapper = mount(UserNamingFormat, {
       mocks: {
         $t: (key) => key, // Mocking the translation function
         $store: {
@@ -27,6 +27,9 @@ describe('UserGMSNamingFormat', () => {
       localVue,
       propsData: {
         selectedOption: 'GMS_PUBLISH_NAME_ALIAS_OR_INITALS',
+        initialValue: 'GMS_PUBLISH_NAME_ALIAS_OR_INITALS',
+        attrName: 'gmsPublishName',
+        successMessage: 'success message',
       },
     })
   })
@@ -53,16 +56,16 @@ describe('UserGMSNamingFormat', () => {
     const dropdownItem = wrapper.findAll('.dropdown-item').at(3) // Click the fourth item
     await dropdownItem.trigger('click')
 
-    expect(wrapper.emitted().gmsPublishName).toBeTruthy()
-    expect(wrapper.emitted().gmsPublishName.length).toBe(1)
-    expect(wrapper.emitted().gmsPublishName[0]).toEqual(['GMS_PUBLISH_NAME_FIRST_INITIAL'])
+    expect(wrapper.emitted().valueChanged).toBeTruthy()
+    expect(wrapper.emitted().valueChanged.length).toBe(1)
+    expect(wrapper.emitted().valueChanged[0]).toEqual(['GMS_PUBLISH_NAME_FIRST_INITIAL'])
   })
 
   it('does not update when clicking on already selected option', async () => {
     const dropdownItem = wrapper.findAll('.dropdown-item').at(0) // Click the first item (which is already selected)
     await dropdownItem.trigger('click')
 
-    expect(wrapper.emitted().gmsPublishName).toBeFalsy()
+    expect(wrapper.emitted().valueChanged).toBeFalsy()
   })
 
   describe('update with error', () => {

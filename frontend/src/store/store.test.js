@@ -29,7 +29,9 @@ const {
   username,
   newsletterState,
   gmsAllowed,
+  humhubAllowed,
   gmsPublishName,
+  humhubPublishName,
   gmsPublishLocation,
   publisherId,
   roles,
@@ -133,11 +135,27 @@ describe('Vuex store', () => {
       })
     })
 
+    describe('humhubAllowed', () => {
+      it('sets the state of humhubAllowed', () => {
+        const state = { humhubAllowed: null }
+        humhubAllowed(state, true)
+        expect(state.humhubAllowed).toEqual(true)
+      })
+    })
+
     describe('gmsPublishName', () => {
       it('sets gmsPublishName', () => {
         const state = { gmsPublishName: null }
         gmsPublishName(state, 'GMS_PUBLISH_NAME_INITIALS')
         expect(state.gmsPublishName).toEqual('GMS_PUBLISH_NAME_INITIALS')
+      })
+    })
+
+    describe('humhubPublishName', () => {
+      it('sets humhubPublishName', () => {
+        const state = { humhubPublishName: null }
+        humhubPublishName(state, 'GMS_PUBLISH_NAME_INITIALS')
+        expect(state.humhubPublishName).toEqual('GMS_PUBLISH_NAME_INITIALS')
       })
     })
 
@@ -218,7 +236,9 @@ describe('Vuex store', () => {
           newsletterState: true,
         },
         gmsAllowed: true,
+        humhubAllowed: false,
         gmsPublishName: 'GMS_PUBLISH_NAME_FULL',
+        humhubPublishName: 'GMS_PUBLISH_NAME_FULL',
         gmsPublishLocation: 'GMS_LOCATION_TYPE_EXACT',
         hasElopage: false,
         publisherId: 1234,
@@ -227,9 +247,9 @@ describe('Vuex store', () => {
         hideAmountGDT: true,
       }
 
-      it('calls fifteen commits', () => {
+      it('calls seventeen commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(15)
+        expect(commit).toHaveBeenCalledTimes(17)
       })
 
       it('commits gradidoID', () => {
@@ -267,39 +287,49 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(7, 'gmsAllowed', true)
       })
 
+      it('commits humhubAllowed', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(8, 'humhubAllowed', false)
+      })
+
       it('commits gmsPublishName', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(8, 'gmsPublishName', 'GMS_PUBLISH_NAME_FULL')
+        expect(commit).toHaveBeenNthCalledWith(9, 'gmsPublishName', 'GMS_PUBLISH_NAME_FULL')
+      })
+
+      it('commits humhubPublishName', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(10, 'humhubPublishName', 'GMS_PUBLISH_NAME_FULL')
       })
 
       it('commits gmsPublishLocation', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(9, 'gmsPublishLocation', 'GMS_LOCATION_TYPE_EXACT')
+        expect(commit).toHaveBeenNthCalledWith(11, 'gmsPublishLocation', 'GMS_LOCATION_TYPE_EXACT')
       })
 
       it('commits hasElopage', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(10, 'hasElopage', false)
+        expect(commit).toHaveBeenNthCalledWith(12, 'hasElopage', false)
       })
 
       it('commits publisherId', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(11, 'publisherId', 1234)
+        expect(commit).toHaveBeenNthCalledWith(13, 'publisherId', 1234)
       })
 
       it('commits roles', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(12, 'roles', ['admin'])
+        expect(commit).toHaveBeenNthCalledWith(14, 'roles', ['admin'])
       })
 
       it('commits hideAmountGDD', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(13, 'hideAmountGDD', false)
+        expect(commit).toHaveBeenNthCalledWith(15, 'hideAmountGDD', false)
       })
 
       it('commits hideAmountGDT', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(14, 'hideAmountGDT', true)
+        expect(commit).toHaveBeenNthCalledWith(16, 'hideAmountGDT', true)
       })
     })
 
@@ -307,9 +337,9 @@ describe('Vuex store', () => {
       const commit = jest.fn()
       const state = {}
 
-      it('calls seventeen commits', () => {
+      it('calls nineteen commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(17)
+        expect(commit).toHaveBeenCalledTimes(19)
       })
 
       it('commits token', () => {
@@ -347,44 +377,54 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(7, 'gmsAllowed', null)
       })
 
+      it('commits humhubAllowed', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(8, 'humhubAllowed', null)
+      })
+
       it('commits gmsPublishName', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(8, 'gmsPublishName', null)
+        expect(commit).toHaveBeenNthCalledWith(9, 'gmsPublishName', null)
+      })
+
+      it('commits humhubPublishName', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(10, 'humhubPublishName', null)
       })
 
       it('commits gmsPublishLocation', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(9, 'gmsPublishLocation', null)
+        expect(commit).toHaveBeenNthCalledWith(11, 'gmsPublishLocation', null)
       })
 
       it('commits hasElopage', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(10, 'hasElopage', false)
+        expect(commit).toHaveBeenNthCalledWith(12, 'hasElopage', false)
       })
 
       it('commits publisherId', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(11, 'publisherId', null)
+        expect(commit).toHaveBeenNthCalledWith(13, 'publisherId', null)
       })
 
       it('commits roles', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(12, 'roles', null)
+        expect(commit).toHaveBeenNthCalledWith(14, 'roles', null)
       })
 
       it('commits hideAmountGDD', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(13, 'hideAmountGDD', false)
+        expect(commit).toHaveBeenNthCalledWith(15, 'hideAmountGDD', false)
       })
 
       it('commits hideAmountGDT', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(14, 'hideAmountGDT', true)
+        expect(commit).toHaveBeenNthCalledWith(16, 'hideAmountGDT', true)
       })
 
       it('commits email', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(15, 'email', '')
+        expect(commit).toHaveBeenNthCalledWith(17, 'email', '')
       })
 
       // how to get this working?

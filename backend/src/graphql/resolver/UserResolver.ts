@@ -394,8 +394,8 @@ export class UserResolver {
     logger.addContext('user', 'unknown')
     logger.info(`forgotPassword(${email})...`)
     email = email.trim().toLowerCase()
-    const user = await findUserByEmail(email).catch(() => {
-      logger.warn(`fail on find UserContact per ${email}`)
+    const user = await findUserByEmail(email).catch((error) => {
+      logger.warn(`fail on find UserContact per ${email} because: ${error}`)
     })
 
     if (!user || user.deletedAt) {
@@ -559,8 +559,10 @@ export class UserResolver {
       passwordNew,
       hideAmountGDD,
       hideAmountGDT,
+      humhubAllowed,
       gmsAllowed,
       gmsPublishName,
+      humhubPublishName,
       gmsLocation,
       gmsPublishLocation,
     } = updateUserInfosArgs
@@ -617,11 +619,17 @@ export class UserResolver {
     if (hideAmountGDT !== undefined) {
       user.hideAmountGDT = hideAmountGDT
     }
+    if (humhubAllowed !== undefined) {
+      user.humhubAllowed = humhubAllowed
+    }
     if (gmsAllowed !== undefined) {
       user.gmsAllowed = gmsAllowed
     }
     if (gmsPublishName !== null && gmsPublishName !== undefined) {
       user.gmsPublishName = gmsPublishName
+    }
+    if (humhubPublishName !== null && humhubPublishName !== undefined) {
+      user.humhubPublishName = humhubPublishName
     }
     if (gmsLocation) {
       user.location = Location2Point(gmsLocation)

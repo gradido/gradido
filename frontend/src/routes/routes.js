@@ -80,6 +80,14 @@ const routes = [
       pageTitle: 'information',
     },
   },
+  {
+    path: '/usersearch',
+    component: () => import('@/pages/UserSearch'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'usersearch',
+    },
+  },
   // {
   //   path: '/storys',
   //   component: () => import('@/pages/TopStorys'),

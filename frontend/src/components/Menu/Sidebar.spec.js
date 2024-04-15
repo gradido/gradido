@@ -34,7 +34,7 @@ describe('Sidebar', () => {
 
     describe('the genaral section', () => {
       it('has six nav-items', () => {
-        expect(wrapper.findAll('ul').at(0).findAll('.nav-item')).toHaveLength(6)
+        expect(wrapper.findAll('ul').at(0).findAll('.nav-item')).toHaveLength(7)
       })
 
       it('has nav-item "navigation.overview" in navbar', () => {
@@ -59,6 +59,10 @@ describe('Sidebar', () => {
 
       it('has nav-item "navigation.info" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(5).text()).toContain('navigation.info')
+      })
+
+      it('has nav-item "usersearch" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(6).text()).toContain('navigation.usersearch')
       })
     })
 

@@ -48,11 +48,19 @@ export class UpdateUserInfosArgs {
 
   @Field({ nullable: true })
   @IsBoolean()
+  humhubAllowed?: boolean
+
+  @Field({ nullable: true })
+  @IsBoolean()
   gmsAllowed?: boolean
 
   @Field(() => GmsPublishNameType, { nullable: true })
   @IsEnum(GmsPublishNameType)
   gmsPublishName?: GmsPublishNameType | null
+
+  @Field(() => GmsPublishNameType, { nullable: true })
+  @IsEnum(GmsPublishNameType)
+  humhubPublishName?: GmsPublishNameType | null
 
   @Field(() => Location, { nullable: true })
   @isValidLocation()
