@@ -7,7 +7,7 @@ import { backendLogger as logger } from '@/server/logger'
 import { Connection } from '@/typeorm/connection'
 import { checkDBVersion } from '@/typeorm/DBVersion'
 
-import { checkForChanges } from './checkForChanges'
+import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
 import { HumHubClient } from './HumHubClient'
 import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'
@@ -18,6 +18,7 @@ enum ExecutedHumhubAction {
   UPDATE,
   CREATE,
   SKIP,
+  DELETE,
 }
 
 function getUsersPage(page: number, limit: number): Promise<[User[], number]> {
@@ -29,23 +30,44 @@ function getUsersPage(page: number, limit: number): Promise<[User[], number]> {
   })
 }
 
-async function createOrUpdateOrSkipUser(
+/**
+ * Trigger action according to conditions
+ * | User exist on humhub | export to humhub allowed | changes in user data | ACTION
+ * |      true            |         false            |       ignored        | DELETE
+ * |      true            |         true             |        true          | UPDATE
+ * |      true            |         true             |        false         | SKIP
+ * |      false           |         false            |       ignored        | SKIP
+ * |      false           |         true             |       ignored        | CREATE
+ * @param user
+ * @param humHubClient
+ * @param humhubUsers
+ * @returns
+ */
+async function syncUser(
   user: User,
   humHubClient: HumHubClient,
   humhubUsers: Map<string, GetUser>,
 ): Promise<ExecutedHumhubAction> {
   const postUser = new PostUser(user)
   const humhubUser = humhubUsers.get(user.emailContact.email.trim())
+
   if (humhubUser) {
-    if (checkForChanges(humhubUser, user)) {
-      return ExecutedHumhubAction.SKIP
+    if (!user.humhubAllowed) {
+      await humHubClient.deleteUser(humhubUser.id)
+      return ExecutedHumhubAction.DELETE
     }
-    await humHubClient.updateUser(postUser, humhubUser.id)
-    return ExecutedHumhubAction.UPDATE
+    if (!isHumhubUserIdenticalToDbUser(humhubUser, user)) {
+      // if humhub allowed
+      await humHubClient.updateUser(postUser, humhubUser.id)
+      return ExecutedHumhubAction.UPDATE
+    }
   } else {
-    await humHubClient.createUser(postUser)
-    return ExecutedHumhubAction.CREATE
+    if (user.humhubAllowed) {
+      await humHubClient.createUser(postUser)
+      return ExecutedHumhubAction.CREATE
+    }
   }
+  return ExecutedHumhubAction.SKIP
 }
 
 /**
@@ -107,9 +129,7 @@ async function main() {
   const humhubUsers = await loadUsersFromHumHub(humHubClient)
 
   let dbUserCount = 0
-  let updatedUserCount = 0
-  let createdUserCount = 0
-  let skippedUserCount = 0
+  const executedHumhubActionsCount = [0, 0, 0, 0]
 
   do {
     const [users, totalUsers] = await getUsersPage(page, USER_BULK_SIZE)
@@ -117,14 +137,10 @@ async function main() {
     userCount = users.length
     page++
     const promises: Promise<ExecutedHumhubAction>[] = []
-    users.forEach((user: User) =>
-      promises.push(createOrUpdateOrSkipUser(user, humHubClient, humhubUsers)),
-    )
+    users.forEach((user: User) => promises.push(syncUser(user, humHubClient, humhubUsers)))
     const executedActions = await Promise.all(promises)
     executedActions.forEach((executedAction: ExecutedHumhubAction) => {
-      if (executedAction === ExecutedHumhubAction.CREATE) createdUserCount++
-      else if (executedAction === ExecutedHumhubAction.UPDATE) updatedUserCount++
-      else if (executedAction === ExecutedHumhubAction.SKIP) skippedUserCount++
+      executedHumhubActionsCount[executedAction as number]++
     })
     // using process.stdout.write here so that carriage-return is working analog to c
     // printf("\rchecked user: %d/%d", dbUserCount, totalUsers);
@@ -136,9 +152,10 @@ async function main() {
   logger.info('export user to humhub, statistics:', {
     timeSeconds: elapsed / 1000.0,
     gradidoUserCount: dbUserCount,
-    updatedUserCount,
-    createdUserCount,
-    skippedUserCount,
+    createdCount: executedHumhubActionsCount[ExecutedHumhubAction.CREATE],
+    updatedCount: executedHumhubActionsCount[ExecutedHumhubAction.UPDATE],
+    skippedCount: executedHumhubActionsCount[ExecutedHumhubAction.SKIP],
+    deletedCount: executedHumhubActionsCount[ExecutedHumhubAction.DELETE],
   })
 }
 

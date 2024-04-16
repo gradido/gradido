@@ -24,8 +24,9 @@ function accountIsTheSame(account: Account, user: User): boolean {
  * compare if gradido user (db entity) differ from humhub user
  * @param humhubUser
  * @param gradidoUse
+ * @return true if no differences
  */
-export function checkForChanges(humhubUser: GetUser, gradidoUser: User): boolean {
+export function isHumhubUserIdenticalToDbUser(humhubUser: GetUser, gradidoUser: User): boolean {
   return (
     profileIsTheSame(humhubUser.profile, gradidoUser) &&
     accountIsTheSame(humhubUser.account, gradidoUser)

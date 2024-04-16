@@ -132,6 +132,18 @@ export class HumHubClient {
     }
     return response.result
   }
+
+  public async deleteUser(humhubUserId: number): Promise<void> {
+    const options = await this.createRequestOptions()
+    const response = await this.restClient.del(`/api/v1/user/${humhubUserId}`, options)
+    if (response.statusCode === 400) {
+      throw new LogError('invalid user supplied', { userId: humhubUserId, response })
+    } else if (response.statusCode === 404) {
+      throw new LogError('User not found', { userId: humhubUserId, response })
+    } else if (response.statusCode !== 200) {
+      throw new LogError('error deleting user', { userId: humhubUserId, response })
+    }
+  }
 }
 
 // new RestClient('gradido', 'api/v1/')
