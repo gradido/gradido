@@ -3,6 +3,7 @@ import { ArgsType, Field, InputType, Int } from 'type-graphql'
 
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { GmsPublishNameType } from '@enum/GmsPublishNameType'
+import { PublishNameType } from '@enum/PublishNameType'
 import { Location } from '@model/Location'
 
 import { isValidLocation } from '@/graphql/validator/Location'
@@ -58,9 +59,9 @@ export class UpdateUserInfosArgs {
   @IsEnum(GmsPublishNameType)
   gmsPublishName?: GmsPublishNameType | null
 
-  @Field(() => GmsPublishNameType, { nullable: true })
-  @IsEnum(GmsPublishNameType)
-  humhubPublishName?: GmsPublishNameType | null
+  @Field(() => PublishNameType, { nullable: true })
+  @IsEnum(PublishNameType)
+  humhubPublishName?: PublishNameType | null
 
   @Field(() => Location, { nullable: true })
   @isValidLocation()

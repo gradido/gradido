@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import UserNamingFormat from './UserNamingFormat.vue'
+import UserGMSNamingFormat from './UserGMSNamingFormat.vue'
 import { toastErrorSpy } from '@test/testSetup'
 
 const mockAPIcall = jest.fn()
@@ -11,7 +11,7 @@ const localVue = global.localVue
 describe('UserNamingFormat', () => {
   let wrapper
   beforeEach(() => {
-    wrapper = mount(UserNamingFormat, {
+    wrapper = mount(UserGMSNamingFormat, {
       mocks: {
         $t: (key) => key, // Mocking the translation function
         $store: {
@@ -26,9 +26,9 @@ describe('UserNamingFormat', () => {
       },
       localVue,
       propsData: {
-        selectedOption: 'PUBLISH_NAME_NONE',
-        initialValue: 'PUBLISH_NAME_NONE',
-        attrName: 'publishName',
+        selectedOption: 'GMS_PUBLISH_NAME_ALIAS_OR_INITALS',
+        initialValue: 'GMS_PUBLISH_NAME_ALIAS_OR_INITALS',
+        attrName: 'gmsPublishName',
         successMessage: 'success message',
       },
     })
@@ -40,17 +40,15 @@ describe('UserNamingFormat', () => {
 
   it('renders the correct dropdown options', () => {
     const dropdownItems = wrapper.findAll('.dropdown-item')
-    expect(dropdownItems.length).toBe(7)
+    expect(dropdownItems.length).toBe(5)
 
     const labels = dropdownItems.wrappers.map((item) => item.text())
     expect(labels).toEqual([
-      'settings.publish-name.none',
-      'settings.publish-name.initials',
-      'settings.publish-name.first',
-      'settings.publish-name.first-initial',
-      'settings.publish-name.last',
-      'settings.publish-name.last-initial',
-      'settings.publish-name.full',
+      'settings.GMS.publish-name.alias-or-initials',
+      'settings.GMS.publish-name.initials',
+      'settings.GMS.publish-name.first',
+      'settings.GMS.publish-name.first-initial',
+      'settings.GMS.publish-name.name-full',
     ])
   })
 
@@ -60,7 +58,7 @@ describe('UserNamingFormat', () => {
 
     expect(wrapper.emitted().valueChanged).toBeTruthy()
     expect(wrapper.emitted().valueChanged.length).toBe(1)
-    expect(wrapper.emitted().valueChanged[0]).toEqual(['PUBLISH_NAME_FIRST_INITIAL'])
+    expect(wrapper.emitted().valueChanged[0]).toEqual(['GMS_PUBLISH_NAME_FIRST_INITIAL'])
   })
 
   it('does not update when clicking on already selected option', async () => {

@@ -330,7 +330,6 @@
     "humhub": {
       "disabled": "Daten werden nicht in die Gradido Community exportiert",
       "enabled": "Daten werden in die Gradido Community exportiert",
-      "export-consequences": "In der Gradido Community können dich alle Benutzer mit deinem Vor- und Nachnamen finden.",
       "naming-format": "Namensformat in der Gradido Community",
       "publish-name": {
         "updated": "Namensformat für die Gradido Community aktualisiert."
@@ -373,6 +372,22 @@
         "text": "Speichere nun dein neues Passwort, mit dem du dich zukünftig in deinem Gradido-Konto anmelden kannst."
       },
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
+    },
+    "publish-name": {
+      "none": "Keine",
+      "none-tooltip": "Vorname und Nachname bleiben leer",
+      "first": "Vorname",
+      "first-tooltip": "Nur der Vornamen, z.B. Max",
+      "first-initial": "Vorname und Initiale",
+      "first-initial-tooltip": "Vornamen plus Anfangsbuchstabe des Nachnamens, z.B. Max M.",
+      "last": "Nachname",
+      "last-tooltip": "Nur der Nachname, z.B. Mustermann",
+      "last-initial": "Initiale und Nachname",
+      "last-initial-tooltip": "Anfangsbuchstabe des Vornamen plus Nachname, z.B. M. Mustermann",
+      "initials": "Initialen",
+      "initials-tooltip": "Nur die Initialen von Vor- und Nachname, z.B. M. M.",
+      "full": "Ganzer Name",
+      "full-tooltip": "Vollständiger Name: Vorname plus Nachname, z.B. Max Mustermann"
     },
     "showAmountGDD": "Dein GDD Betrag ist sichtbar.",
     "showAmountGDT": "Dein GDT Betrag ist sichtbar.",
