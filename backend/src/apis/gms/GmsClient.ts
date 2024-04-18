@@ -192,6 +192,7 @@ export async function verifyAuthToken(
 ): Promise<string> {
   const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
   const service = 'verify-auth-token?token='.concat(token).concat('&uuid=').concat(communityUuid)
+  logger.debug('verifyAuthToken: service=', service)
   const config = {
     headers: {
       accept: 'application/json',
