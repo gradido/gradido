@@ -107,5 +107,4 @@ describe('syncUser function', () => {
 
     expect(result).toBe(ExecutedHumhubAction.CREATE)
   })
-  
 })
