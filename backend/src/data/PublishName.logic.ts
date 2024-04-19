@@ -22,10 +22,9 @@ export class PublishNameLogic {
       return this.user.firstName
     }
     if (
-      [
-        PublishNameType.PUBLISH_NAME_INITIALS,
-        PublishNameType.PUBLISH_NAME_INITIAL_LAST,
-      ].includes(publishNameType)
+      [PublishNameType.PUBLISH_NAME_INITIALS, PublishNameType.PUBLISH_NAME_INITIAL_LAST].includes(
+        publishNameType,
+      )
     ) {
       return this.user.firstName.substring(0, 1)
     }
@@ -48,10 +47,9 @@ export class PublishNameLogic {
       return this.user.lastName
     }
     if (
-      [ 
-        PublishNameType.PUBLISH_NAME_FIRST_INITIAL,
-        PublishNameType.PUBLISH_NAME_INITIALS,
-      ].includes(publishNameType)
+      [PublishNameType.PUBLISH_NAME_FIRST_INITIAL, PublishNameType.PUBLISH_NAME_INITIALS].includes(
+        publishNameType,
+      )
     ) {
       return this.user.lastName.substring(0, 1)
     }

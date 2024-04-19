@@ -7,19 +7,11 @@ import { backendLogger as logger } from '@/server/logger'
 import { Connection } from '@/typeorm/connection'
 import { checkDBVersion } from '@/typeorm/DBVersion'
 
-import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
 import { HumHubClient } from './HumHubClient'
 import { GetUser } from './model/GetUser'
-import { PostUser } from './model/PostUser'
+import { ExecutedHumhubAction, syncUser } from './syncUser'
 
 const USER_BULK_SIZE = 20
-
-enum ExecutedHumhubAction {
-  UPDATE,
-  CREATE,
-  SKIP,
-  DELETE,
-}
 
 function getUsersPage(page: number, limit: number): Promise<[User[], number]> {
   return User.findAndCount({
@@ -28,46 +20,6 @@ function getUsersPage(page: number, limit: number): Promise<[User[], number]> {
     take: limit,
     where: { emailContact: { email: Not(IsNull()) } },
   })
-}
-
-/**
- * Trigger action according to conditions
- * | User exist on humhub | export to humhub allowed | changes in user data | ACTION
- * |      true            |         false            |       ignored        | DELETE
- * |      true            |         true             |        true          | UPDATE
- * |      true            |         true             |        false         | SKIP
- * |      false           |         false            |       ignored        | SKIP
- * |      false           |         true             |       ignored        | CREATE
- * @param user
- * @param humHubClient
- * @param humhubUsers
- * @returns
- */
-async function syncUser(
-  user: User,
-  humHubClient: HumHubClient,
-  humhubUsers: Map<string, GetUser>,
-): Promise<ExecutedHumhubAction> {
-  const postUser = new PostUser(user)
-  const humhubUser = humhubUsers.get(user.emailContact.email.trim())
-
-  if (humhubUser) {
-    if (!user.humhubAllowed) {
-      await humHubClient.deleteUser(humhubUser.id)
-      return ExecutedHumhubAction.DELETE
-    }
-    if (!isHumhubUserIdenticalToDbUser(humhubUser, user)) {
-      // if humhub allowed
-      await humHubClient.updateUser(postUser, humhubUser.id)
-      return ExecutedHumhubAction.UPDATE
-    }
-  } else {
-    if (user.humhubAllowed) {
-      await humHubClient.createUser(postUser)
-      return ExecutedHumhubAction.CREATE
-    }
-  }
-  return ExecutedHumhubAction.SKIP
 }
 
 /**

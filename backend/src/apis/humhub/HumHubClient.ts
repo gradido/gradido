@@ -7,7 +7,6 @@ import { backendLogger as logger } from '@/server/logger'
 
 import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'
-import { PostUserError } from './model/PostUserError'
 import { UsersResponse } from './model/UsersResponse'
 
 /**
