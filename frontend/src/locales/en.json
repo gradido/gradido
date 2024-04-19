@@ -9,6 +9,7 @@
   "GDD": "GDD",
   "GDT": "GDT",
   "GMS": "Gradido Map",
+  "Humhub": "Gradido Community",
   "PersonalDetails": "Personal details",
   "advanced-calculation": "Advanced calculation",
   "asterisks": "****",
@@ -326,6 +327,15 @@
     },
     "hideAmountGDD": "Your GDD amount is hidden.",
     "hideAmountGDT": "Your GDT amount is hidden.",
+    "humhub": {
+      "disabled": "Data not exported into the Gradido Community",
+      "enabled": "Data exported into the Gradido Community",
+      "naming-format": "Format of name in the Gradido Community",
+      "publish-name": {
+        "updated": "Format of name for the Gradido Community updated."
+      },
+      "switch": "Allow data export into the Gradido Community."
+    },
     "info": "Transactions can now be made by username or email address.",
     "language": {
       "changeLanguage": "Change language",
@@ -362,6 +372,22 @@
         "text": "Now save your new password, which you can use to log in to your Gradido account in the future."
       },
       "subtitle": "If you have forgotten your password, you can reset it here."
+    },
+    "publish-name": {
+      "none": "None",
+      "none-tooltip": "first name and last name are empty",
+      "first": "first name",
+      "first-tooltip": "the first name only",
+      "first-initial": "first name and initial",
+      "first-initial-tooltip": "first name plus initial of last name",
+      "last": "last name",
+      "last-tooltip": "last name only",
+      "last-initial": "initial and last name",
+      "last-initial-tooltip": "First letter of the first name plus last name",
+      "initials": "initials",
+      "initials-tooltip": "Initials of first name and last name",
+      "full": "full name",
+      "full-tooltip": "full name: firstname plus lastname"
     },
     "showAmountGDD": "Your GDD amount is visible.",
     "showAmountGDT": "Your GDT amount is visible.",

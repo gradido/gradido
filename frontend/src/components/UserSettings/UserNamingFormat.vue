@@ -1,5 +1,5 @@
 <template>
-  <div class="user-g-m-s-naming-format">
+  <div class="user-naming-format">
     <b-dropdown v-model="selectedOption">
       <template slot="button-content">{{ selectedOptionLabel }}</template>
       <b-dropdown-item
@@ -18,9 +18,9 @@
 import { updateUserInfos } from '@/graphql/mutations'
 
 export default {
-  name: 'UserGMSNamingFormat',
+  name: 'UserNamingFormat',
   props: {
-    initialValue: { type: String, default: 'GMS_PUBLISH_NAME_ALIAS_OR_INITALS' },
+    initialValue: { type: String, default: 'PUBLISH_NAME_NONE' },
     attrName: { type: String },
     successMessage: { type: String },
   },
@@ -29,29 +29,39 @@ export default {
       selectedOption: this.initialValue,
       dropdownOptions: [
         {
-          label: this.$t('settings.GMS.publish-name.alias-or-initials'),
-          title: this.$t('settings.GMS.publish-name.alias-or-initials-tooltip'),
-          value: 'GMS_PUBLISH_NAME_ALIAS_OR_INITALS',
+          label: this.$t('settings.publish-name.none'),
+          title: this.$t('settings.publish-name.none-tooltip'),
+          value: 'PUBLISH_NAME_NONE',
         },
         {
-          label: this.$t('settings.GMS.publish-name.initials'),
-          title: this.$t('settings.GMS.publish-name.initials-tooltip'),
-          value: 'GMS_PUBLISH_NAME_INITIALS',
+          label: this.$t('settings.publish-name.initials'),
+          title: this.$t('settings.publish-name.initials-tooltip'),
+          value: 'PUBLISH_NAME_INITIALS',
         },
         {
-          label: this.$t('settings.GMS.publish-name.first'),
-          title: this.$t('settings.GMS.publish-name.first-tooltip'),
-          value: 'GMS_PUBLISH_NAME_FIRST',
+          label: this.$t('settings.publish-name.first'),
+          title: this.$t('settings.publish-name.first-tooltip'),
+          value: 'PUBLISH_NAME_FIRST',
         },
         {
-          label: this.$t('settings.GMS.publish-name.first-initial'),
-          title: this.$t('settings.GMS.publish-name.first-initial-tooltip'),
-          value: 'GMS_PUBLISH_NAME_FIRST_INITIAL',
+          label: this.$t('settings.publish-name.first-initial'),
+          title: this.$t('settings.publish-name.first-initial-tooltip'),
+          value: 'PUBLISH_NAME_FIRST_INITIAL',
         },
         {
-          label: this.$t('settings.GMS.publish-name.name-full'),
-          title: this.$t('settings.GMS.publish-name.name-full-tooltip'),
-          value: 'GMS_PUBLISH_NAME_FULL',
+          label: this.$t('settings.publish-name.last'),
+          title: this.$t('settings.publish-name.last-tooltip'),
+          value: 'PUBLISH_NAME_LAST',
+        },
+        {
+          label: this.$t('settings.publish-name.last-initial'),
+          title: this.$t('settings.publish-name.last-initial-tooltip'),
+          value: 'PUBLISH_NAME_INITIAL_LAST',
+        },
+        {
+          label: this.$t('settings.publish-name.full'),
+          title: this.$t('settings.publish-name.full-tooltip'),
+          value: 'PUBLISH_NAME_FULL',
         },
       ],
     }
@@ -85,8 +95,8 @@ export default {
 }
 </script>
 <style>
-.user-g-m-s-naming-format > .dropdown,
-.user-g-m-s-naming-format > .dropdown > .dropdown-toggle > ul.dropdown-menu {
+.user-naming-format > .dropdown,
+.user-naming-format > .dropdown > .dropdown-toggle > ul.dropdown-menu {
   width: 100%;
 }
 </style>

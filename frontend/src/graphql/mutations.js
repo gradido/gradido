@@ -35,7 +35,9 @@ export const updateUserInfos = gql`
     $hideAmountGDD: Boolean
     $hideAmountGDT: Boolean
     $gmsAllowed: Boolean
+    $humhubAllowed: Boolean
     $gmsPublishName: GmsPublishNameType
+    $humhubPublishName: PublishNameType
     $gmsLocation: Location
     $gmsPublishLocation: GmsPublishLocationType
   ) {
@@ -49,7 +51,9 @@ export const updateUserInfos = gql`
       hideAmountGDD: $hideAmountGDD
       hideAmountGDT: $hideAmountGDT
       gmsAllowed: $gmsAllowed
+      humhubAllowed: $humhubAllowed
       gmsPublishName: $gmsPublishName
+      humhubPublishName: $humhubPublishName
       gmsLocation: $gmsLocation
       gmsPublishLocation: $gmsPublishLocation
     )
@@ -173,7 +177,9 @@ export const login = gql`
         newsletterState
       }
       gmsAllowed
+      humhubAllowed
       gmsPublishName
+      humhubPublishName
       gmsPublishLocation
       hasElopage
       publisherId
