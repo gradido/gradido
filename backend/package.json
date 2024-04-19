@@ -18,7 +18,7 @@
     "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/executeKlicktipp.ts",
     "gmsusers": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/gmsUsers.ts",
     "gmsuserList": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/gmsUserList.ts",
-    "humhubUserExport": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/apis/humhub/ImportUsers.ts",
+    "humhubUserExport": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/apis/humhub/ExportUsers.ts",
     "locales": "scripts/sort.sh"
   },
   "dependencies": {
