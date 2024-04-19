@@ -16,6 +16,5 @@ export class Account {
 
   username: string
   email: string
-  tags: string[]
   language: string
 }

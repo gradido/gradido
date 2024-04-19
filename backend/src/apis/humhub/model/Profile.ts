@@ -2,11 +2,14 @@
 import { User } from '@entity/User'
 
 import { CONFIG } from '@/config'
+import { PublishNameLogic } from '@/data/PublishName.logic'
+import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
 export class Profile {
   public constructor(user: User) {
-    this.firstname = user.firstName
-    this.lastname = user.lastName
+    const publishNameLogic = new PublishNameLogic(user)
+    this.firstname = publishNameLogic.getFirstName(user.humhubPublishName as PublishNameType)
+    this.lastname = publishNameLogic.getLastName(user.humhubPublishName as PublishNameType)
     if (user.alias && user.alias.length > 2) {
       this.gradido_address = CONFIG.COMMUNITY_NAME + '/' + user.alias
     } else {
@@ -17,5 +20,4 @@ export class Profile {
   firstname: string
   lastname: string
   gradido_address: string
-  about: string
 }

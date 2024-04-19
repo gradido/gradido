@@ -89,7 +89,7 @@ async function main() {
     userCount = users.length
     page++
     const promises: Promise<ExecutedHumhubAction>[] = []
-    users.forEach((user: User) => promises.push(syncUser(user, humHubClient, humhubUsers)))
+    users.forEach((user: User) => promises.push(syncUser(user, humhubUsers)))
     const executedActions = await Promise.all(promises)
     executedActions.forEach((executedAction: ExecutedHumhubAction) => {
       executedHumhubActionsCount[executedAction as number]++

@@ -1,5 +1,7 @@
 import { User } from '@entity/User'
 
+import { LogError } from '@/server/LogError'
+
 import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
 import { HumHubClient } from './HumHubClient'
 import { GetUser } from './model/GetUser'
@@ -26,11 +28,14 @@ export enum ExecutedHumhubAction {
  */
 export async function syncUser(
   user: User,
-  humHubClient: HumHubClient,
   humhubUsers: Map<string, GetUser>,
 ): Promise<ExecutedHumhubAction> {
   const postUser = new PostUser(user)
   const humhubUser = humhubUsers.get(user.emailContact.email.trim())
+  const humHubClient = HumHubClient.getInstance()
+  if (!humHubClient) {
+    throw new LogError('Error creating humhub client')
+  }
 
   if (humhubUser) {
     if (!user.humhubAllowed) {
