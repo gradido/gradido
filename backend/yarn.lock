@@ -3696,7 +3696,7 @@ graceful-fs@^4.1.6, graceful-fs@^4.2.0:
   integrity sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==
 
 "gradido-database@file:../database":
-  version "2.1.1"
+  version "2.2.1"
   dependencies:
     "@types/uuid" "^8.3.4"
     cross-env "^7.0.3"
@@ -6070,6 +6070,13 @@ qs@^6.11.0:
   dependencies:
     side-channel "^1.0.4"
 
+qs@^6.9.1:
+  version "6.11.2"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.11.2.tgz#64bea51f12c1f5da1bc01496f48ffcff7c69d7d9"
+  integrity sha512-tDNIz22aBzCDxLtVH++VnTfzxlfeK5CbqohpSqpJgj1Wg/cQbStNAz3NuqCs5vV+pjBsK4x4pN9HlVh7rcYRiA==
+  dependencies:
+    side-channel "^1.0.4"
+
 queue-microtask@^1.2.2:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/queue-microtask/-/queue-microtask-1.2.3.tgz#4929228bbc724dfac43e0efb058caf7b6cfb6243"
@@ -6916,6 +6923,11 @@ tsutils@^3.21.0:
   dependencies:
     tslib "^1.8.1"
 
+tunnel@0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/tunnel/-/tunnel-0.0.6.tgz#72f1314b34a5b192db012324df2cc587ca47f92c"
+  integrity sha512-1h/Lnq9yajKY2PEbBadPXj3VxsDDu844OnaAo52UVmIzIvwwtBPIuNvkjuzBlTWpfJyUbG3ez0KSBibQkj4ojg==
+
 type-check@^0.4.0, type-check@~0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/type-check/-/type-check-0.4.0.tgz#07b8203bfa7056c0657050e3ccd2c37730bab8f1"
@@ -6980,6 +6992,15 @@ typed-array-length@^1.0.4:
     call-bind "^1.0.2"
     for-each "^0.3.3"
     is-typed-array "^1.1.9"
+
+typed-rest-client@^1.8.11:
+  version "1.8.11"
+  resolved "https://registry.yarnpkg.com/typed-rest-client/-/typed-rest-client-1.8.11.tgz#6906f02e3c91e8d851579f255abf0fd60800a04d"
+  integrity sha512-5UvfMpd1oelmUPRbbaVnq+rHP7ng2cE4qoQkQeAqxRL6PklkxsM0g32/HL0yfvruK6ojQ5x8EE+HF4YV6DtuCA==
+  dependencies:
+    qs "^6.9.1"
+    tunnel "0.0.6"
+    underscore "^1.12.1"
 
 typedarray-to-buffer@^3.1.5:
   version "3.1.5"
@@ -7050,6 +7071,11 @@ underscore.deep@~0.5.1:
   version "0.5.3"
   resolved "https://registry.yarnpkg.com/underscore.deep/-/underscore.deep-0.5.3.tgz#210969d58025339cecabd2a2ad8c3e8925e5c095"
   integrity sha512-4OuSOlFNkiVFVc3khkeG112Pdu1gbitMj7t9B9ENb61uFmN70Jq7Iluhi3oflcSgexkKfDdJ5XAJET2gEq6ikA==
+
+underscore@^1.12.1:
+  version "1.13.6"
+  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.13.6.tgz#04786a1f589dc6c09f761fc5f45b89e935136441"
+  integrity sha512-+A5Sja4HP1M08MaXya7p5LvjuM7K6q/2EaC0+iovj/wOcMsTzMvDFbasi/oSapiwOlt252IqsKqPjCl7huKS0A==
 
 underscore@~1.13.1:
   version "1.13.4"

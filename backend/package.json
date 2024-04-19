@@ -18,6 +18,7 @@
     "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/executeKlicktipp.ts",
     "gmsusers": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/gmsUsers.ts",
     "gmsuserList": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/gmsUserList.ts",
+    "humhubUserExport": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/apis/humhub/ExportUsers.ts",
     "locales": "scripts/sort.sh"
   },
   "dependencies": {
@@ -47,6 +48,7 @@
     "reflect-metadata": "^0.1.13",
     "sodium-native": "^3.3.0",
     "type-graphql": "^1.1.1",
+    "typed-rest-client": "^1.8.11",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
