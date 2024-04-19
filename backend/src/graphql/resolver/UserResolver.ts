@@ -79,6 +79,7 @@ import { getKlicktippState } from './util/getKlicktippState'
 import { Location2Point } from './util/Location2Point'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
+import { syncHumhub } from './util/syncHumhub'
 import { validateAlias } from './util/validateAlias'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
@@ -669,6 +670,9 @@ export class UserResolver {
         await updateGmsUser(homeCom.gmsApiKey, new GmsUser(user))
         logger.debug(`gms-user update successfully.`)
       }
+    }
+    if (CONFIG.HUMHUB_ACTIVE) {
+      await syncHumhub(updateUserInfosArgs, user)
     }
 
     return true

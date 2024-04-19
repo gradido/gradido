@@ -24,7 +24,7 @@ function getUsersPage(page: number, limit: number): Promise<[User[], number]> {
 
 /**
  * @param client
- * @returns user map indiced with email
+ * @returns user map indices with email
  */
 async function loadUsersFromHumHub(client: HumHubClient): Promise<Map<string, GetUser>> {
   const start = new Date().getTime()
