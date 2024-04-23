@@ -1,32 +1,64 @@
 <script>
+import htmlImport from './build/js/MapTiler_WithApiKey.js'
 export default {
   name: 'UserGMSLocationCapturing',
+  data() {
+    return {}
+  },
+  components: { htmlImport },
   methods: {
     close() {
       this.$emit('close')
     },
+    /*
+    onMounted() {
+      const key = 'THpEFO62ipFK9OLk8OOx'
+      const map = L.map('map').setView([49.280377, 9.690151], 14) // starting position
+      L.tileLayer(`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${key}`, {
+        // style URL
+        tileSize: 512,
+        zoomOffset: -1,
+        minZoom: 1,
+        attribution:
+          '\u003ca href="https://www.maptiler.com/copyright/" target="_blank"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href="https://www.openstreetmap.org/copyright" target="_blank"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e',
+        crossOrigin: true,
+      }).addTo(map)
+      L.control.maptilerGeocoding({ apiKey: key }).addTo(map)
+    },
+    */
   },
 }
 </script>
 
 <template>
-  <div class="modal-backdrop">
-    <div class="modal">
-      <header class="modal-header">
-        <slot name="header">This is the default title!</slot>
-        <button type="button" class="btn-close" @click="close">x</button>
-      </header>
+  <transition name="modal-fade">
+    <div class="modal-backdrop">
+      <div class="modal">
+        <b-container class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
+          <button type="button" class="btn-close" @click="close">x</button>
+          <div class="h3">{{ $t('userlocationcapturing.headline') }}</div>
+          <div class="my-4 text-small">
+            <html-import></html-import>
+          </div>
+          <b-row class="my-5">
+            <b-col cols="12">
+              <div class="text-lg-right">
+                <!-- button type="button" class="btn-green" @click="close">Close Modal</button -->
+                <b-button variant="gradido" @click="close">
+                  {{ $t('userlocationcapturing.button') }}
+                </b-button>
+              </div>
+            </b-col>
+          </b-row>
+        </b-container>
 
-      <section class="modal-body">
-        <slot name="body">This is the default body!</slot>
-      </section>
-
-      <footer class="modal-footer">
-        <slot name="footer">This is the default footer!</slot>
-        <button type="button" class="btn-green" @click="close">Close Modal</button>
-      </footer>
+        <!-- footer class="modal-footer">
+          <slot name="footer">This is the default footer!</slot>
+          <button type="button" class="btn-green" @click="close">Close Modal</button>
+        </footer -->
+      </div>
     </div>
-  </div>
+  </transition>
 </template>
 
 <style>
@@ -37,6 +69,7 @@ export default {
   left: 0;
   right: 0;
   background-color: rgba(0, 0, 0, 0.5);
+  opacity: 1;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -92,5 +125,14 @@ export default {
   background: #088000;
   border: 1px solid #4aae9b;
   border-radius: 2px;
+}
+.modal-fade-enter,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.5s ease;
 }
 </style>

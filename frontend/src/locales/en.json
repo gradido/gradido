@@ -439,6 +439,10 @@
   "transaction-link": {
     "send_you": "wants to send you"
   },
+  "userlocationcapturing": {
+    "headline": "Geografische Koordinaten-Erfassung des Nutzers",
+    "button": "Koordinaten übernehmen"
+  },
   "usersearch": {
     "headline": "Geographical User Search",
     "text": "No matter which community you belong to, with the Geo Matching System you can find members of all communities on a map. You can filter according to offers and needs and display the users that match you.\n\nThe button opens a new browser window in which the users in your area are displayed on a map.",
