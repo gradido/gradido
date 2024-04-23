@@ -88,6 +88,14 @@ const routes = [
       pageTitle: 'usersearch',
     },
   },
+  {
+    path: '/social-network',
+    component: () => import('@/pages/SocialNetwork'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'social-network',
+    },
+  },
   // {
   //   path: '/storys',
   //   component: () => import('@/pages/TopStorys'),

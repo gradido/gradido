@@ -268,6 +268,7 @@
     "overview": "Overview",
     "send": "Send",
     "settings": "Settings",
+    "social_network": "Circle",
     "support": "Support",
     "transactions": "Transactions",
     "usersearch": "Geographical User Search"
@@ -416,6 +417,11 @@
       "special-char": "One special character required (e.g. _ or ä)",
       "uppercase": "One uppercase letter required."
     }
+  },
+  "social-network": {
+    "headline": "Gradido Circle",
+    "text": "Placeholder",
+    "button": "Start to connect..."
   },
   "status": "Status",
   "submitted": "Submitted",

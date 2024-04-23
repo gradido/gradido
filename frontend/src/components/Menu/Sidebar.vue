@@ -32,6 +32,10 @@
             <b-img src="/img/svg/info.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.info') }}</span>
           </b-nav-item>
+          <b-nav-item to="/social-network" class="mb-3" active-class="activeRoute">
+            <b-img src="/img/svg/social_network.svg" height="20" class="svg-icon" />
+            <span class="ml-2">{{ $t('navigation.social_network') }}</span>
+          </b-nav-item>
           <b-nav-item to="/usersearch" active-class="activeRoute">
             <b-img src="/img/loupe.png" height="20" />
             <span class="ml-2">{{ $t('navigation.usersearch') }}</span>
