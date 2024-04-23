@@ -2,47 +2,16 @@
 import { User } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
 
-import { CONFIG } from '@/config'
-
-import { HumHubClient } from './HumHubClient'
 import { GetUser } from './model/GetUser'
 import { syncUser, ExecutedHumhubAction } from './syncUser'
+
+jest.mock('@/apis/humhub/HumHubClient')
 
 const defaultUser = new User()
 defaultUser.emailContact = new UserContact()
 defaultUser.emailContact.email = 'email@gmail.com'
 
-CONFIG.HUMHUB_ACTIVE = true
-CONFIG.HUMHUB_API_URL = 'http://localhost'
-
-let humhubClient: HumHubClient | undefined
-let humhubClientSpy: {
-  createUser: jest.SpyInstance
-  updateUser: jest.SpyInstance
-  deleteUser: jest.SpyInstance
-}
-
 describe('syncUser function', () => {
-  beforeAll(() => {
-    humhubClient = HumHubClient.getInstance()
-    if (!humhubClient) {
-      throw new Error('error creating humhub client')
-    }
-    humhubClientSpy = {
-      createUser: jest.spyOn(humhubClient, 'createUser'),
-      updateUser: jest.spyOn(humhubClient, 'updateUser'),
-      deleteUser: jest.spyOn(humhubClient, 'deleteUser'),
-    }
-    humhubClientSpy.createUser.mockImplementation(() => Promise.resolve())
-    humhubClientSpy.updateUser.mockImplementation(() => Promise.resolve())
-    humhubClientSpy.deleteUser.mockImplementation(() => Promise.resolve())
-  })
-
-  afterEach(() => {
-    humhubClientSpy.createUser.mockClear()
-    humhubClientSpy.updateUser.mockClear()
-    humhubClientSpy.deleteUser.mockClear()
-  })
   afterAll(() => {
     jest.resetAllMocks()
   })
