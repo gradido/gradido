@@ -440,8 +440,14 @@
     "send_you": "wants to send you"
   },
   "userlocationcapturing": {
-    "headline": "Geografische Koordinaten-Erfassung des Nutzers",
-    "button": "Koordinaten übernehmen"
+    "headline": "Geografic Location-Capturing of the User",
+    "mapheadline": "Your Location",
+    "currentkoordinates": "Your current Coordinates:",
+    "mapswitch": "On/Off-Switch Map",
+    "fixkoordswitch": "fix your Location",
+    "userlocationlabel": "Your Location",
+    "communitylocationlabel": "Your Community-Location",
+    "button": "take Location"
   },
   "usersearch": {
     "headline": "Geographical User Search",

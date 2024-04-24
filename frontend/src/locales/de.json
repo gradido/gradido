@@ -442,6 +442,11 @@
   "userlocationcapturing": {
     "headline": "Geografische Koordinaten-Erfassung des Nutzers",
     "mapheadline": "Deine Position",
+    "currentkoordinates": "Deine aktuellen Koordinaten:",
+    "mapswitch": "Ein/Aus-Schalter Karte",
+    "fixkoordswitch": "fixiere deinen Standort",
+    "userlocationlabel": "Dein Standort",
+    "communitylocationlabel": "Dein Community-Standort",
     "button": "Koordinaten übernehmen"
   },
   "usersearch": {
