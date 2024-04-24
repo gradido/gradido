@@ -441,6 +441,7 @@
   },
   "userlocationcapturing": {
     "headline": "Geografische Koordinaten-Erfassung des Nutzers",
+    "mapheadline": "Deine Position",
     "button": "Koordinaten übernehmen"
   },
   "usersearch": {

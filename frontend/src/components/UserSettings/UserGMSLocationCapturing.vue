@@ -1,20 +1,31 @@
 <script>
-import htmlImport from './build/js/MapTiler_WithApiKey.js'
+// import { L } from 'leaflet'
+// import { GeocodingControl } from "@maptiler/geocoding-control/leaflet";
+// import "@maptiler/geocoding-control/style.css";
+import LocMap from './UserGMSLocationMap.vue'
+
+/*
+const apiKey = 'THpEFO62ipFK9OLk8OOx';
+
+const map = L.map(document.getElementById("map")).fitBounds([[-65, -160], [65, 160]]);
+
+const scale = devicePixelRatio > 1.5 ? "@2x" : "";
+*/
 export default {
   name: 'UserGMSLocationCapturing',
   data() {
     return {}
   },
-  components: { htmlImport },
+  components: { LocMap },
   methods: {
     close() {
       this.$emit('close')
     },
     /*
     onMounted() {
-      const key = 'THpEFO62ipFK9OLk8OOx'
+      // const key = 'THpEFO62ipFK9OLk8OOx'
       const map = L.map('map').setView([49.280377, 9.690151], 14) // starting position
-      L.tileLayer(`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${key}`, {
+      L.tileLayer(`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${apiKey}`, {
         // style URL
         tileSize: 512,
         zoomOffset: -1,
@@ -23,7 +34,7 @@ export default {
           '\u003ca href="https://www.maptiler.com/copyright/" target="_blank"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href="https://www.openstreetmap.org/copyright" target="_blank"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e',
         crossOrigin: true,
       }).addTo(map)
-      L.control.maptilerGeocoding({ apiKey: key }).addTo(map)
+      L.control.maptilerGeocoding({ apiKey }).addTo(map)
     },
     */
   },
@@ -38,7 +49,8 @@ export default {
           <button type="button" class="btn-close" @click="close">x</button>
           <div class="h3">{{ $t('userlocationcapturing.headline') }}</div>
           <div class="my-4 text-small">
-            <html-import></html-import>
+            <!-- html-import></html-import -->
+            <loc-map></loc-map>
           </div>
           <b-row class="my-5">
             <b-col cols="12">
