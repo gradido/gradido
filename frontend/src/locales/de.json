@@ -268,7 +268,7 @@
     "overview": "Übersicht",
     "send": "Senden",
     "settings": "Einstellung",
-    "social_network": "Kreise",
+    "circles": "Kreise",
     "support": "Support",
     "transactions": "Transaktionen",
     "usersearch": "Nutzersuche"
@@ -281,6 +281,7 @@
     "overview": "Willkommen {name}",
     "send": "Sende Gradidos",
     "settings": "Einstellungen",
+    "circles": "Gradido Kreise",
     "transactions": "Deine Transaktionen",
     "usersearch": "Geografische Nutzersuche"
   },
@@ -418,7 +419,7 @@
       "uppercase": "Großbuchstabe erforderlich."
     }
   },
-  "social-network": {
+  "circles": {
     "headline": "Gradido Kreise",
     "text": "Was soll hier für ein Text rein?",
     "button": "Beginne dich zu vernetzen..."

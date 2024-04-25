@@ -29,7 +29,6 @@ export default {
     async onChange() {
       const variables = []
       variables[this.attrName] = this.value
-
       this.$apollo
         .mutate({
           mutation: updateUserInfos,

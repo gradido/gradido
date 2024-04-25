@@ -89,11 +89,11 @@ const routes = [
     },
   },
   {
-    path: '/social-network',
-    component: () => import('@/pages/SocialNetwork'),
+    path: '/circles',
+    component: () => import('@/pages/Circles'),
     meta: {
       requiresAuth: true,
-      pageTitle: 'social-network',
+      pageTitle: 'circles',
     },
   },
   // {
@@ -111,7 +111,7 @@ const routes = [
   //   },
   // },
   {
-    path: '/settings',
+    path: '/settings/:tabAlias?',
     component: () => import('@/pages/Settings'),
     meta: {
       requiresAuth: true,

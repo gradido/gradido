@@ -81,6 +81,7 @@ import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 import { validateAlias } from './util/validateAlias'
+import { HumHubClient } from '@/apis/humhub/HumHubClient'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -701,6 +702,14 @@ export class UserResolver {
       throw new LogError('authUserForGmsUserSearch without token')
     }
     return result
+  }
+
+  @Authorized([RIGHTS.CIRCLES_AUTO_LOGIN])
+  @Query(() => String)
+  async authenticateCirclesAutoLogin(@Ctx() context: Context): Promise<string> {
+    logger.info(`authenticateCirclesAutoLogin()...`)
+    const dbUser = getUser(context)
+    return await HumHubClient.createAutoLoginUrl(dbUser)
   }
 
   @Authorized([RIGHTS.SEARCH_ADMIN_USERS])

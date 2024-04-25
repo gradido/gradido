@@ -268,7 +268,7 @@
     "overview": "Overview",
     "send": "Send",
     "settings": "Settings",
-    "social_network": "Circle",
+    "circles": "Circle",
     "support": "Support",
     "transactions": "Transactions",
     "usersearch": "Geographical User Search"
@@ -282,6 +282,7 @@
     "send": "Send Gradidos",
     "settings": "Settings",
     "transactions": "Your transactions",
+    "circles": "Gradido Circles",
     "usersearch": "Geographical User Search"
   },
   "qrCode": "QR Code",
@@ -418,7 +419,7 @@
       "uppercase": "One uppercase letter required."
     }
   },
-  "social-network": {
+  "circles": {
     "headline": "Gradido Circle",
     "text": "Placeholder",
     "button": "Start to connect..."

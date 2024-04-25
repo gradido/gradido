@@ -8,6 +8,7 @@ import { backendLogger as logger } from '@/server/logger'
 import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'
 import { UsersResponse } from './model/UsersResponse'
+import { User } from '@entity/User'
 
 /**
  * HumHubClient as singleton class
@@ -56,6 +57,18 @@ export class HumHubClient {
       .setExpirationTime('5m')
       .sign(secret)
     return token
+  }
+
+  public static async createAutoLoginUrl(user: User) {
+    const secret = new TextEncoder().encode(CONFIG.HUMHUB_JWT_KEY)
+    const username = user.alias ?? user.gradidoID
+    logger.info(`user ${username} as username for humhub auto-login`)
+    const token = await new SignJWT({ username })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('2m')
+      .sign(secret)
+    return `${CONFIG.HUMHUB_API_URL}user/auth/login?jwt=${token}`
   }
 
   /**

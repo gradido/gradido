@@ -1,7 +1,7 @@
 <template>
   <div class="card bg-white gradido-border-radius appBoxShadow p-4 mt--3">
-    <b-tabs content-class="mt-3">
-      <b-tab :title="$t('PersonalDetails')" active>
+    <b-tabs v-model="tabIndex" content-class="mt-3">
+      <b-tab :title="$t('PersonalDetails')">
         <div class="h2">{{ $t('PersonalDetails') }}</div>
         <div class="my-4 text-small">
           {{ $t('settings.info') }}
@@ -222,6 +222,10 @@ export default {
     } = state
 
     const username = this.$store.state.username || ''
+    let tabIndex = 0
+    if (this.$route.params.tabAlias === 'extern') {
+      tabIndex = 1
+    }
 
     return {
       darkMode,
@@ -234,6 +238,7 @@ export default {
       humhubAllowed,
       mutation: '',
       variables: {},
+      tabIndex,
     }
   },
 
@@ -249,7 +254,7 @@ export default {
       return CONFIG.GMS_ACTIVE
     },
     isHumhub() {
-      return CONFIG.HUMHUB_ACTIVE && this.username
+      return CONFIG.HUMHUB_ACTIVE
     },
   },
   // TODO: watch: {

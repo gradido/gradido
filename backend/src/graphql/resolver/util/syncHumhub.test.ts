@@ -22,10 +22,6 @@ const mockUpdateUserInfosArg = new UpdateUserInfosArgs()
 const mockHumHubUser = new GetUser(mockUser, 1)
 
 describe('syncHumhub', () => {
-  beforeAll(() => {
-    // humhubClientMockbBeforeAll()
-  })
-
   beforeEach(() => {
     jest.spyOn(logger, 'debug').mockImplementation()
     jest.spyOn(logger, 'info').mockImplementation()
