@@ -1,16 +1,45 @@
 <template>
-
   <div style="height: 400px; width: 100%">
-    <div style="height: 100px; overflow: auto;">
-      <p>{{ $t('userlocationcapturing.currentkoordinates') }} {{ withPopup }} </p>
-      <button @click="showMap = !showMap">
-        {{ $t('userlocationcapturing.mapswitch') }}
-      </button>
-      <button @click="fixYourKoord = !fixYourKoord">
-        {{ $t('userlocationcapturing.fixkoordswitch') }}
-      </button>
+    <div style="height: 100px">
+      <b-row class="test-buttons mt-3">
+        <b-col cols="12" md="3" lg="3">
+          <b-button
+            block
+            type="reset"
+            variant="secondary"
+            @click="showMap = !showMap"
+            class="mb-3 mb-md-0 mb-lg-0"
+          >
+            {{ $t('userlocationcapturing.mapswitch') }}
+          </b-button>
+        </b-col>
+        <b-col cols="12" md="5" lg="5">
+          <b-button
+            block
+            type="reset"
+            variant="secondary"
+            @click="fixYourKoord = !fixYourKoord"
+            class="mb-3 mb-md-0 mb-lg-0"
+          >
+            {{ $t('userlocationcapturing.fixkoordswitch') }}
+          </b-button>
+        </b-col>
+        <b-col cols="12" md="3" lg="3" class="text-lg-left">
+          <p>
+            {{
+              fixYourKoord
+                ? $t('userlocationcapturing.fixedkoordinates')
+                : $t('userlocationcapturing.currentkoordinates')
+            }}
+          </p>
+          <p>{{ userLocation }}</p>
+        </b-col>
+      </b-row>
     </div>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-geosearch@2.6.0/assets/css/leaflet.css">
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-geosearch@2.6.0/assets/css/leaflet.css"
+    />
     <l-map
       v-if="showMap"
       :zoom="zoom"
@@ -20,32 +49,19 @@
       @update:center="centerUpdate"
       @update:zoom="zoomUpdate"
     >
-      <l-tile-layer
-        :url="url"
-        :attribution="attribution"
-      />
-      <l-geosearch :options="geosearchOptions"/>
-      <l-marker :lat-lng="withPopup">
+      <l-tile-layer :url="url" :attribution="attribution" />
+      <l-geosearch :options="geosearchOptions" />
+      <l-marker :lat-lng="userLocation">
         <l-tooltip :options="{ permanent: true, interactive: true }">
           <div @click="fixLocation">
             {{ $t('userlocationcapturing.userlocationlabel') }}
-            <p v-show="showParagraph">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque
-              sed pretium nisl, ut sagittis sapien. Sed vel sollicitudin nisi.
-              Donec finibus semper metus id malesuada.
-            </p>
           </div>
         </l-tooltip>
       </l-marker>
-      <l-marker :lat-lng="withTooltip">
-        <l-tooltip :options="{ permanent: true, interactive: true }">
-          <div @click="innerClick">
+      <l-marker :lat-lng="comLocation">
+        <l-tooltip :options="{ permanent: true }">
+          <div>
             {{ $t('userlocationcapturing.communitylocationlabel') }}
-            <p v-show="showParagraph">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque
-              sed pretium nisl, ut sagittis sapien. Sed vel sollicitudin nisi.
-              Donec finibus semper metus id malesuada.
-            </p>
           </div>
         </l-tooltip>
       </l-marker>
@@ -54,69 +70,68 @@
 </template>
 
 <script>
-import { latLng, Icon } from "leaflet";
-import { LMap, LTileLayer, LMarker, LPopup, LTooltip } from "vue2-leaflet";
-import { OpenStreetMapProvider } from "leaflet-geosearch";
-import LGeosearch from "vue2-leaflet-geosearch";
+import { latLng, Icon } from 'leaflet'
+import { LMap, LTileLayer, LMarker, LTooltip } from 'vue2-leaflet'
+import { OpenStreetMapProvider } from 'leaflet-geosearch'
+import LGeosearch from 'vue2-leaflet-geosearch'
 
-delete Icon.Default.prototype._getIconUrl;
+delete Icon.Default.prototype._getIconUrl
 Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
   iconUrl: require('leaflet/dist/images/marker-icon.png'),
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
-});
+})
 
 export default {
-  name: "UserGMSLocationMap",
+  name: 'UserGMSLocationMap',
   components: {
     LMap,
     LTileLayer,
     LMarker,
-    LPopup,
     LTooltip,
-    LGeosearch
+    LGeosearch,
   },
   data() {
     return {
       zoom: 13,
       center: latLng(49.280377, 9.690151),
       url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      attribution:
-        '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
-      withPopup: latLng(49.280377, 9.690151),
-      withTooltip: latLng(49.280377, 9.690151),
+      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+      userLocation: latLng(49.280377, 9.690151),
+      comLocation: latLng(49.280377, 9.690151),
       currentZoom: 11.5,
       currentCenter: latLng(49.280377, 9.690151),
       showParagraph: false,
       mapOptions: {
-        zoomSnap: 0.5
+        zoomSnap: 0.5,
       },
       showMap: true,
       fixYourKoord: false,
       geosearchOptions: {
-          provider: new OpenStreetMapProvider()
-      }
-    };
+        provider: new OpenStreetMapProvider(),
+      },
+    }
   },
   methods: {
     zoomUpdate(zoom) {
-      this.currentZoom = zoom;
+      this.currentZoom = zoom
     },
     centerUpdate(center) {
-      this.currentCenter = center;
-      if(!this.fixYourKoord) {
-        this.withPopup = center;
+      this.currentCenter = center
+      if (!this.fixYourKoord) {
+        this.userLocation = center
       }
     },
-    showLongText() {
-      this.showParagraph = !this.showParagraph;
-    },
-    innerClick() {
-      // alert("Click!");
-    },
     fixLocation() {
-      this.fixYourKoord = !this.fixYourKoord;
-    }
-  }
-};
+      this.fixYourKoord = !this.fixYourKoord
+    },
+    async onChange() {
+      this.fixYourKoord = !this.fixYourKoord
+    },
+    beforeClose(event) {
+      console.log('beforeClose:', this.modal.data, event, this.userLocation)
+      this.$emit(this.userLocation)
+    },
+  },
+}
 </script>

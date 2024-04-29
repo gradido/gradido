@@ -325,14 +325,15 @@
     "send_you": "sana gönderiyor"
   },
   "userlocationcapturing": {
-    "headline": "Geografische Koordinaten-Erfassung des Nutzers",
-    "mapheadline": "Deine Position",
-    "currentkoordinates": "Deine aktuellen Koordinaten:",
-    "mapswitch": "Ein/Aus-Schalter Karte",
-    "fixkoordswitch": "fixiere dein Standort",
-    "userlocationlabel": "Dein Standort",
-    "communitylocationlabel": "Dein Community-Standort",
-    "button": "Koordinaten übernehmen"
+    "headline": "Geografic Location-Capturing of the User",
+    "mapheadline": "Your Location",
+    "currentkoordinates": "Your current Coordinates:",
+    "fixedkoordinates": "Your fixed Coordinates:",
+    "mapswitch": "On/Off-Switch Map",
+    "fixkoordswitch": "On/Off-Switch Location-fixing",
+    "userlocationlabel": "Your Location",
+    "communitylocationlabel": "Your Community-Location",
+    "button": "take Location"
   },
   "via_link": "link yoluyla",
   "welcome": "Topluluğa hoşgeldin"

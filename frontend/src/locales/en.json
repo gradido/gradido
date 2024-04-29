@@ -443,8 +443,9 @@
     "headline": "Geografic Location-Capturing of the User",
     "mapheadline": "Your Location",
     "currentkoordinates": "Your current Coordinates:",
+    "fixedkoordinates": "Your fixed Coordinates:",
     "mapswitch": "On/Off-Switch Map",
-    "fixkoordswitch": "fix your Location",
+    "fixkoordswitch": "On/Off-Switch Location-fixing",
     "userlocationlabel": "Your Location",
     "communitylocationlabel": "Your Community-Location",
     "button": "take Location"
