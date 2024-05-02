@@ -14,7 +14,7 @@
             <b-button
               v-if="this.humhubAllowed"
               variant="gradido"
-              :href="this.humhubUri"
+              @click="authenticateCirclesAutoLogin"
               target="_blank"
             >
               {{ $t('circles.button') }}
@@ -36,7 +36,7 @@ export default {
   name: 'Circles',
   data() {
     return {
-      humhubUri: 'not initialized',
+      humhubUri: null,
     }
   },
   computed: {
@@ -46,20 +46,19 @@ export default {
   },
   methods: {
     async authenticateCirclesAutoLogin() {
+      this.humhubUri = null
       this.$apollo
         .query({
           query: authenticateCirclesAutoLogin,
+          fetchPolicy: 'network-only',
         })
         .then(async (result) => {
-          this.humhubUri = result.data.authenticateCirclesAutoLogin
+          window.open(result.data.authenticateCirclesAutoLogin, '_blank')
         })
         .catch(() => {
           this.toastError('authenticateCirclesAutoLogin failed!')
         })
     },
-  },
-  created() {
-    this.authenticateCirclesAutoLogin()
   },
 }
 </script>

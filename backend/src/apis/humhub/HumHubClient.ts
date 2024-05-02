@@ -1,3 +1,4 @@
+import { User } from '@entity/User'
 import { SignJWT } from 'jose'
 import { IRequestOptions, RestClient } from 'typed-rest-client'
 
@@ -8,7 +9,6 @@ import { backendLogger as logger } from '@/server/logger'
 import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'
 import { UsersResponse } from './model/UsersResponse'
-import { User } from '@entity/User'
 
 /**
  * HumHubClient as singleton class
@@ -59,7 +59,7 @@ export class HumHubClient {
     return token
   }
 
-  public static async createAutoLoginUrl(user: User) {
+  public async createAutoLoginUrl(user: User) {
     const secret = new TextEncoder().encode(CONFIG.HUMHUB_JWT_KEY)
     const username = user.alias ?? user.gradidoID
     logger.info(`user ${username} as username for humhub auto-login`)
@@ -68,7 +68,8 @@ export class HumHubClient {
       .setIssuedAt()
       .setExpirationTime('2m')
       .sign(secret)
-    return `${CONFIG.HUMHUB_API_URL}user/auth/login?jwt=${token}`
+
+    return `${CONFIG.HUMHUB_API_URL}user/auth/external?authclient=jwt&jwt=${token}`
   }
 
   /**
@@ -97,6 +98,21 @@ export class HumHubClient {
     const options = await this.createRequestOptions({ email })
     const response = await this.restClient.get<GetUser>('/api/v1/user/get-by-email', options)
     // 404 = user not found
+    if (response.statusCode === 404) {
+      return null
+    }
+    return response.result
+  }
+
+  /**
+   * get user by username
+   * https://marketplace.humhub.com/module/rest/docs/html/user.html#tag/User/paths/~1user~1get-by-username/get
+   * @param username for user search
+   * @returns user object if found
+   */
+  public async userByUsername(username: string): Promise<GetUser | null> {
+    const options = await this.createRequestOptions({ username })
+    const response = await this.restClient.get<GetUser>('/api/v1/user/get-by-username', options)
     if (response.statusCode === 404) {
       return null
     }

@@ -709,7 +709,11 @@ export class UserResolver {
   async authenticateCirclesAutoLogin(@Ctx() context: Context): Promise<string> {
     logger.info(`authenticateCirclesAutoLogin()...`)
     const dbUser = getUser(context)
-    return await HumHubClient.createAutoLoginUrl(dbUser)
+    const humhubClient = HumHubClient.getInstance()
+    if (!humhubClient) {
+      throw new LogError('cannot create humhub client')
+    }
+    return await humhubClient.createAutoLoginUrl(dbUser)
   }
 
   @Authorized([RIGHTS.SEARCH_ADMIN_USERS])
