@@ -25,6 +25,11 @@
     }
   },
   "back": "Zurück",
+  "circles": {
+    "headline": "Gradido Kreise",
+    "text": "Was soll hier für ein Text rein?",
+    "button": "Beginne dich zu vernetzen..."
+  },
   "community": {
     "admins": "Administratoren",
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
@@ -418,11 +423,6 @@
       "special-char": "Sonderzeichen erforderlich (z.B. _ oder ä)",
       "uppercase": "Großbuchstabe erforderlich."
     }
-  },
-  "circles": {
-    "headline": "Gradido Kreise",
-    "text": "Was soll hier für ein Text rein?",
-    "button": "Beginne dich zu vernetzen..."
   },
   "status": "Status",
   "submitted": "Eingereicht",

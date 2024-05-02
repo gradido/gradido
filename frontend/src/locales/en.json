@@ -25,6 +25,11 @@
     }
   },
   "back": "Back",
+  "circles": {
+    "headline": "Gradido Circle",
+    "text": "Placeholder",
+    "button": "Start to connect..."
+  },
   "community": {
     "admins": "Administrators",
     "choose-another-community": "Choose another community",
@@ -418,11 +423,6 @@
       "special-char": "One special character required (e.g. _ or ä)",
       "uppercase": "One uppercase letter required."
     }
-  },
-  "circles": {
-    "headline": "Gradido Circle",
-    "text": "Placeholder",
-    "button": "Start to connect..."
   },
   "status": "Status",
   "submitted": "Submitted",
