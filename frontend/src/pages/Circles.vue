@@ -14,6 +14,7 @@
             <b-button
               v-if="this.humhubAllowed"
               variant="gradido"
+              :disabled="this.enableButton === false"
               @click="authenticateCirclesAutoLogin"
               target="_blank"
             >
@@ -36,7 +37,7 @@ export default {
   name: 'Circles',
   data() {
     return {
-      humhubUri: null,
+      enableButton: true,
     }
   },
   computed: {
@@ -46,6 +47,7 @@ export default {
   },
   methods: {
     async authenticateCirclesAutoLogin() {
+      this.enableButton = false
       this.humhubUri = null
       this.$apollo
         .query({
@@ -54,9 +56,11 @@ export default {
         })
         .then(async (result) => {
           window.open(result.data.authenticateCirclesAutoLogin, '_blank')
+          this.enableButton = true
         })
         .catch(() => {
           this.toastError('authenticateCirclesAutoLogin failed!')
+          this.enableButton = true
         })
     },
   },
