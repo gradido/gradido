@@ -22,11 +22,16 @@ describe('Settings', () => {
         email: 'john.doe@test.com',
         language: 'en',
         newsletterState: false,
+        gmsAllowed: false,
+        humhubAllowed: false,
       },
       commit: storeCommitMock,
     },
     $apollo: {
       mutate: mockAPIcall,
+    },
+    $route: {
+      params: {},
     },
   }
 
@@ -42,7 +47,7 @@ describe('Settings', () => {
     it('has a user change language form', () => {
       expect(wrapper.findComponent({ name: 'LanguageSwitch' }).exists()).toBeTruthy()
     })
-
+    
     it('has a user change password form', () => {
       expect(wrapper.findComponent({ name: 'UserPassword' }).exists()).toBeTruthy()
     })
