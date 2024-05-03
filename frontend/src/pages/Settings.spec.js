@@ -47,7 +47,7 @@ describe('Settings', () => {
     it('has a user change language form', () => {
       expect(wrapper.findComponent({ name: 'LanguageSwitch' }).exists()).toBeTruthy()
     })
-    
+
     it('has a user change password form', () => {
       expect(wrapper.findComponent({ name: 'UserPassword' }).exists()).toBeTruthy()
     })
