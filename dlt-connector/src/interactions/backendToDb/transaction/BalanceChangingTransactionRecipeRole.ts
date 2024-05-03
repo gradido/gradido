@@ -1,29 +1,22 @@
 import { Community } from '@entity/Community'
-import { Transaction } from '@entity/Transaction'
 
 import { AccountLogic } from '@/data/Account.logic'
 import { KeyPair } from '@/data/KeyPair'
 import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
 import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
-import { TransactionBuilder } from '@/data/Transaction.builder'
 import { UserRepository } from '@/data/User.repository'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
 
 import { AbstractTransactionRole } from './AbstractTransaction.role'
+import { AbstractTransactionRecipeRole } from './AbstractTransactionRecipeRole'
 
-export class TransactionRecipeRole {
-  protected transactionBuilder: TransactionBuilder
-
-  public constructor() {
-    this.transactionBuilder = new TransactionBuilder()
-  }
-
+export class BalanceChangingTransactionRecipeRole extends AbstractTransactionRecipeRole {
   public async create(
     transactionDraft: TransactionDraft,
     transactionTypeRole: AbstractTransactionRole,
-  ): Promise<TransactionRecipeRole> {
+  ): Promise<BalanceChangingTransactionRecipeRole> {
     const signingUser = transactionTypeRole.getSigningUser()
     const recipientUser = transactionTypeRole.getRecipientUser()
 
@@ -81,9 +74,5 @@ export class TransactionRecipeRole {
       return otherCommunity
     }
     return this.transactionBuilder.getCommunity()
-  }
-
-  public getTransaction(): Transaction {
-    return this.transactionBuilder.getTransaction()
   }
 }

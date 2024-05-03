@@ -15,7 +15,7 @@ import { InterruptiveSleepManager } from '@/manager/InterruptiveSleepManager'
 import { LogError } from '@/server/LogError'
 import { getDataSource } from '@/typeorm/DataSource'
 
-import { CreateTransactionRecipeContext } from '../transaction/CreateTransationRecipe.context'
+import { CreateTransactionRecipeContext } from '../transaction/CreateTransactionRecipe.context'
 
 import { CommunityRole } from './Community.role'
 
@@ -44,7 +44,9 @@ export class HomeCommunityRole extends CommunityRole {
     this.self.aufAccount = AccountFactory.createAufAccount(keyPair, this.self.createdAt)
     this.self.gmwAccount = AccountFactory.createGmwAccount(keyPair, this.self.createdAt)
 
-    const transactionRecipeContext = new CreateTransactionRecipeContext(communityDraft, this.self)
+    const transactionRecipeContext = new CreateTransactionRecipeContext(communityDraft, {
+      community: this.self,
+    })
     await transactionRecipeContext.run()
     this.transactionRecipe = transactionRecipeContext.getTransactionRecipe()
   }

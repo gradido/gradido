@@ -4,13 +4,13 @@ import { KeyPair } from '@/data/KeyPair'
 import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 
-import { TransactionRecipeRole } from './TransactionRecipe.role'
+import { AbstractTransactionRecipeRole } from './AbstractTransactionRecipeRole'
 
-export class CommunityRootTransactionRole extends TransactionRecipeRole {
-  public createFromCommunityRoot(
+export class CommunityRootTransactionRole extends AbstractTransactionRecipeRole {
+  public create(
     communityDraft: CommunityDraft,
     community: Community,
-  ): CommunityRootTransactionRole {
+  ): AbstractTransactionRecipeRole {
     // create proto transaction body
     const transactionBody = new TransactionBodyBuilder()
       .fromCommunityDraft(communityDraft, community)

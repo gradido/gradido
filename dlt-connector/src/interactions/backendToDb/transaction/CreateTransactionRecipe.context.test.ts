@@ -15,7 +15,7 @@ import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 
-import { CreateTransactionRecipeContext } from './CreateTransationRecipe.context'
+import { CreateTransactionRecipeContext } from './CreateTransactionRecipe.context'
 
 // eslint-disable-next-line import/order
 import { communitySeed } from '@test/seeding/Community.seed'

@@ -14,7 +14,7 @@ import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { logger } from '@/logging/logger'
 
-import { CreateTransactionRecipeContext } from '../backendToDb/transaction/CreateTransationRecipe.context'
+import { CreateTransactionRecipeContext } from '../backendToDb/transaction/CreateTransactionRecipe.context'
 
 import { TransmitToIotaContext } from './TransmitToIota.context'
 

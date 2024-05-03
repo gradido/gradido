@@ -1,3 +1,4 @@
+import { Account } from '@entity/Account'
 import { Community } from '@entity/Community'
 import { Transaction } from '@entity/Transaction'
 
@@ -5,30 +6,38 @@ import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
 
 import { AbstractTransactionRole } from './AbstractTransaction.role'
+import { AbstractTransactionRecipeRole } from './AbstractTransactionRecipeRole'
+import { BalanceChangingTransactionRecipeRole } from './BalanceChangingTransactionRecipeRole'
 import { CommunityRootTransactionRole } from './CommunityRootTransaction.role'
 import { CreationTransactionRole } from './CreationTransaction.role'
 import { ReceiveTransactionRole } from './ReceiveTransaction.role'
+import { RegisterAddressTransactionRole } from './RegisterAddressTransaction.role'
 import { SendTransactionRole } from './SendTransaction.role'
-import { TransactionRecipeRole } from './TransactionRecipe.role'
 
 /**
  * @DCI-Context
  * Context for create and add Transaction Recipe to DB
  */
 
+export interface AdditionalData {
+  community?: Community
+  account?: Account
+}
+
 export class CreateTransactionRecipeContext {
-  private transactionRecipeRole: TransactionRecipeRole
+  private transactionRecipe: AbstractTransactionRecipeRole
   // eslint-disable-next-line no-useless-constructor
   public constructor(
-    private draft: CommunityDraft | TransactionDraft,
-    private community?: Community,
+    private draft: CommunityDraft | TransactionDraft | UserAccountDraft,
+    private data?: AdditionalData,
   ) {}
 
   public getTransactionRecipe(): Transaction {
-    return this.transactionRecipeRole.getTransaction()
+    return this.transactionRecipe.getTransaction()
   }
 
   /**
@@ -36,7 +45,7 @@ export class CreateTransactionRecipeContext {
    */
   public async run(): Promise<boolean> {
     if (this.draft instanceof TransactionDraft) {
-      this.transactionRecipeRole = new TransactionRecipeRole()
+      const transactionRecipeRole = new BalanceChangingTransactionRecipeRole()
       // contain logic for translation from backend to dlt-connector format
       let transactionTypeRole: AbstractTransactionRole
       switch (this.draft.type) {
@@ -50,15 +59,24 @@ export class CreateTransactionRecipeContext {
           transactionTypeRole = new ReceiveTransactionRole(this.draft)
           break
       }
-      await this.transactionRecipeRole.create(this.draft, transactionTypeRole)
+      await transactionRecipeRole.create(this.draft, transactionTypeRole)
       return true
     } else if (this.draft instanceof CommunityDraft) {
-      if (!this.community) {
+      if (!this.data?.community) {
         throw new TransactionError(TransactionErrorType.MISSING_PARAMETER, 'community was not set')
       }
-      this.transactionRecipeRole = new CommunityRootTransactionRole().createFromCommunityRoot(
+      this.transactionRecipe = new CommunityRootTransactionRole().create(
         this.draft,
-        this.community,
+        this.data.community,
+      )
+      return true
+    } else if (this.draft instanceof UserAccountDraft) {
+      if (!this.data?.account) {
+        throw new TransactionError(TransactionErrorType.MISSING_PARAMETER, 'account was not set')
+      }
+      this.transactionRecipe = await new RegisterAddressTransactionRole().create(
+        this.draft,
+        this.data.account,
       )
       return true
     }
