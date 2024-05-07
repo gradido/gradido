@@ -79,11 +79,12 @@
           </b-col>
         </b-row>
       </b-tab>
-      <div v-if="isExternService">
-        <b-tab :title="$t('ExternServices')">
-          <div class="h2">{{ $t('ExternServices') }}</div>
+      <div v-if="isCommunityService">
+        <b-tab :title="$t('settings.community')">
+          <div class="h2">{{ $t('settings.allow-community-services') }}</div>
           <div v-if="isGMS">
-            <div class="h3">{{ $t('GMS') }}</div>
+            <div class="h3">{{ $t('GMS.title') }}</div>
+            <div class="h4">{{ $t('GMS.desc') }}</div>
             <b-row class="mb-3">
               <b-col cols="12" md="6" lg="6">
                 {{ $t('settings.GMS.switch') }}
@@ -133,7 +134,8 @@
             </div>
           </div>
           <div v-if="isHumhub">
-            <div class="h3">{{ $t('Humhub') }}</div>
+            <div class="h3">{{ $t('Humhub.title') }}</div>
+            <div class="h4">{{ $t('Humhub.desc') }}</div>
             <b-row class="mb-3">
               <b-col cols="12" md="6" lg="6">
                 {{ $t('settings.humhub.switch') }}
@@ -247,7 +249,7 @@ export default {
       const { firstName, lastName } = this.$store.state
       return firstName === this.firstName && lastName === this.lastName
     },
-    isExternService() {
+    isCommunityService() {
       return this.isGMS || this.isHumhub
     },
     isGMS() {

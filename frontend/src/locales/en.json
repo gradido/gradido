@@ -5,11 +5,16 @@
   "1000thanks": "1000 thanks for being with us!",
   "125": "125%",
   "85": "85%",
-  "ExternServices": "Extern Services",
   "GDD": "GDD",
   "GDT": "GDT",
-  "GMS": "Gradido Map",
-  "Humhub": "Gradido Community",
+  "GMS": {
+    "title": "Geo Matching System GMS",
+    "desc": "Find members of all communities on a map."
+  },
+  "Humhub": {
+    "title": "Gradido-circles",
+    "desc": "Together we support each other - mindful in circle culture."
+  },
   "PersonalDetails": "Personal details",
   "advanced-calculation": "Advanced calculation",
   "asterisks": "****",
@@ -26,9 +31,9 @@
   },
   "back": "Back",
   "circles": {
-    "headline": "Gradido Circle",
-    "text": "Placeholder",
-    "button": "Start to connect..."
+    "headline": "Together we support each other - mindful in circle culture.",
+    "text": "We can communicate and collaborate freely in protected spaces without having to rely on social media. Click on the button to open the collaboration platform in a new browser window.",
+    "button": "Gradido circles start..."
   },
   "community": {
     "admins": "Administrators",
@@ -287,7 +292,7 @@
     "send": "Send Gradidos",
     "settings": "Settings",
     "transactions": "Your transactions",
-    "circles": "Gradido Circles",
+    "circles": "Gradido Circles (Beta)",
     "usersearch": "Geographical User Search"
   },
   "qrCode": "QR Code",
@@ -301,6 +306,8 @@
     "warningText": "Are you still there?"
   },
   "settings": {
+    "allow-community-services": "Allow Community Services",
+    "community": "Community",
     "emailInfo": "Cannot be changed at this time.",
     "GMS": {
       "disabled": "Data not exported to GMS",
