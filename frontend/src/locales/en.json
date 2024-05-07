@@ -325,16 +325,6 @@
         "updated": "format of location for GMS updated"
       },
       "publish-name": {
-        "alias-or-initials": "Username or initials",
-        "alias-or-initials-tooltip": "username if exists or Initials of firstname and lastname",
-        "first": "firstname",
-        "first-tooltip": "the firstname only",
-        "first-initial": "firstname and initial",
-        "first-initial-tooltip": "firstname plus initial of lastname",
-        "initials": "Initials of firstname and lastname independent if username exists",
-        "initials-tooltip": "Initials of firstname and lastname independent if username exists",
-        "name-full": "fullname",
-        "name-full-tooltip": "fullname: firstname plus lastname",
         "updated": "format of name for GMS updated"
       },
       "switch": "Allow data export to GMS"
@@ -388,20 +378,16 @@
       "subtitle": "If you have forgotten your password, you can reset it here."
     },
     "publish-name": {
-      "none": "None",
-      "none-tooltip": "first name and last name are empty",
-      "first": "first name",
-      "first-tooltip": "the first name only",
-      "first-initial": "first name and initial",
-      "first-initial-tooltip": "first name plus initial of last name",
-      "last": "last name",
-      "last-tooltip": "last name only",
-      "last-initial": "initial and last name",
-      "last-initial-tooltip": "First letter of the first name plus last name",
-      "initials": "initials",
-      "initials-tooltip": "Initials of first name and last name",
-      "full": "full name",
-      "full-tooltip": "full name: firstname plus lastname"
+      "alias-or-initials": "Username or initials (Default)",
+      "alias-or-initials-tooltip": "username if exists or Initials of firstname and lastname",
+      "first": "firstname",
+      "first-tooltip": "the firstname only",
+      "first-initial": "firstname and initial",
+      "first-initial-tooltip": "firstname plus initial of lastname",
+      "initials": "Initials",
+      "initials-tooltip": "Initials of firstname and lastname independent if username exists",
+      "name-full": "firstname and lastname",
+      "name-full-tooltip": "fullname: firstname plus lastname"
     },
     "showAmountGDD": "Your GDD amount is visible.",
     "showAmountGDT": "Your GDT amount is visible.",

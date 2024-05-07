@@ -1,8 +1,8 @@
 import { User as dbUser } from '@entity/User'
 
 import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
-import { GmsPublishNameType } from '@/graphql/enum/GmsPublishNameType'
 import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
+import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
 export class GmsUser {
   constructor(user: dbUser) {
@@ -44,7 +44,7 @@ export class GmsUser {
     if (
       user.gmsAllowed &&
       user.alias &&
-      user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS
+      user.gmsPublishName === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS
     ) {
       return user.alias
     }
@@ -53,32 +53,30 @@ export class GmsUser {
   private getGmsFirstName(user: dbUser): string | undefined {
     if (
       user.gmsAllowed &&
-      (user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FIRST ||
-        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL ||
-        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FULL)
+      (user.gmsPublishName === PublishNameType.PUBLISH_NAME_FIRST ||
+        user.gmsPublishName === PublishNameType.PUBLISH_NAME_FIRST_INITIAL ||
+        user.gmsPublishName === PublishNameType.PUBLISH_NAME_FULL)
     ) {
       return user.firstName
     }
     if (
       user.gmsAllowed &&
-      ((!user.alias &&
-        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS) ||
-        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_INITIALS)
+      ((!user.alias && user.gmsPublishName === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS) ||
+        user.gmsPublishName === PublishNameType.PUBLISH_NAME_INITIALS)
     ) {
       return user.firstName.substring(0, 1)
     }
   }
 
   private getGmsLastName(user: dbUser): string | undefined {
-    if (user.gmsAllowed && user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FULL) {
+    if (user.gmsAllowed && user.gmsPublishName === PublishNameType.PUBLISH_NAME_FULL) {
       return user.lastName
     }
     if (
       user.gmsAllowed &&
-      ((!user.alias &&
-        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS) ||
-        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL ||
-        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_INITIALS)
+      ((!user.alias && user.gmsPublishName === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS) ||
+        user.gmsPublishName === PublishNameType.PUBLISH_NAME_FIRST_INITIAL ||
+        user.gmsPublishName === PublishNameType.PUBLISH_NAME_INITIALS)
     ) {
       return user.lastName.substring(0, 1)
     }

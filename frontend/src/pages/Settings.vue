@@ -108,7 +108,7 @@
                   {{ $t('settings.GMS.naming-format') }}
                 </b-col>
                 <b-col cols="12" md="6" lg="6">
-                  <user-g-m-s-naming-format
+                  <user-naming-format
                     :initialValue="$store.state.gmsPublishName"
                     :attrName="'gmsPublishName'"
                     :successMessage="$t('settings.GMS.publish-name.updated')"
@@ -155,7 +155,7 @@
                 />
               </b-col>
             </b-row>
-            <b-row v-if="humhubAllowed" class="mb-4">
+            <b-row v-if="humhubAllowed" class="mb-4 humhub-publish-name-row">
               <b-col cols="12" md="6" lg="6">
                 {{ $t('settings.humhub.naming-format') }}
               </b-col>
@@ -182,7 +182,6 @@
 </template>
 <script>
 import UserNamingFormat from '@/components/UserSettings/UserNamingFormat'
-import UserGMSNamingFormat from '@/components/UserSettings/UserGMSNamingFormat'
 import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
 import UserGMSLocation from '@/components/UserSettings/UserGMSLocation'
 import UserName from '@/components/UserSettings/UserName.vue'
@@ -197,7 +196,6 @@ export default {
   name: 'Profile',
   components: {
     UserNamingFormat,
-    UserGMSNamingFormat,
     UserGMSLocationFormat,
     UserGMSLocation,
     UserName,
@@ -293,6 +291,9 @@ export default {
 }
 </script>
 <style>
+.humhub-publish-name-row {
+  min-height: 200px;
+}
 .card-border-radius {
   border-radius: 0px 5px 5px 0px !important;
 }

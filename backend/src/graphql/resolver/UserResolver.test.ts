@@ -17,7 +17,6 @@ import { GraphQLError } from 'graphql'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
-import { GmsPublishNameType } from '@enum/GmsPublishNameType'
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { RoleNames } from '@enum/RoleNames'
@@ -35,6 +34,7 @@ import {
   sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Events'
+import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { writeHomeCommunityEntry } from '@/seeds/community'
@@ -1232,7 +1232,7 @@ describe('UserResolver', () => {
               lastName: 'Blümchen',
               language: 'en',
               gmsAllowed: true,
-              gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+              gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
               gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
             }),
           ])
@@ -1272,7 +1272,7 @@ describe('UserResolver', () => {
               expect.objectContaining({
                 alias: 'bibi_Bloxberg',
                 gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
                 gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               }),
             ])
@@ -1294,7 +1294,7 @@ describe('UserResolver', () => {
             await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
                 gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
                 gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               }),
             ])
@@ -1307,8 +1307,7 @@ describe('UserResolver', () => {
               mutation: updateUserInfos,
               variables: {
                 gmsAllowed: false,
-                gmsPublishName:
-                  GmsPublishNameType[GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL],
+                gmsPublishName: PublishNameType[PublishNameType.PUBLISH_NAME_FIRST_INITIAL],
                 gmsPublishLocation:
                   GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE],
               },
@@ -1316,7 +1315,7 @@ describe('UserResolver', () => {
             await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
                 gmsAllowed: false,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL,
+                gmsPublishName: PublishNameType.PUBLISH_NAME_FIRST_INITIAL,
                 gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
               }),
             ])
@@ -1332,8 +1331,7 @@ describe('UserResolver', () => {
               mutation: updateUserInfos,
               variables: {
                 gmsAllowed: true,
-                gmsPublishName:
-                  GmsPublishNameType[GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS],
+                gmsPublishName: PublishNameType[PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS],
                 gmsLocation: loc,
                 gmsPublishLocation:
                   GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM],
@@ -1342,7 +1340,7 @@ describe('UserResolver', () => {
             await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
                 gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
                 location: Location2Point(loc),
                 gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               }),

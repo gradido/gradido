@@ -20,7 +20,7 @@ import { updateUserInfos } from '@/graphql/mutations'
 export default {
   name: 'UserNamingFormat',
   props: {
-    initialValue: { type: String, default: 'PUBLISH_NAME_NONE' },
+    initialValue: { type: String, default: 'PUBLISH_NAME_ALIAS_OR_INITALS' },
     attrName: { type: String },
     successMessage: { type: String },
   },
@@ -29,9 +29,9 @@ export default {
       selectedOption: this.initialValue,
       dropdownOptions: [
         {
-          label: this.$t('settings.publish-name.none'),
-          title: this.$t('settings.publish-name.none-tooltip'),
-          value: 'PUBLISH_NAME_NONE',
+          label: this.$t('settings.publish-name.alias-or-initials'),
+          title: this.$t('settings.publish-name.alias-or-initials-tooltip'),
+          value: 'PUBLISH_NAME_ALIAS_OR_INITALS',
         },
         {
           label: this.$t('settings.publish-name.initials'),
@@ -49,18 +49,8 @@ export default {
           value: 'PUBLISH_NAME_FIRST_INITIAL',
         },
         {
-          label: this.$t('settings.publish-name.last'),
-          title: this.$t('settings.publish-name.last-tooltip'),
-          value: 'PUBLISH_NAME_LAST',
-        },
-        {
-          label: this.$t('settings.publish-name.last-initial'),
-          title: this.$t('settings.publish-name.last-initial-tooltip'),
-          value: 'PUBLISH_NAME_INITIAL_LAST',
-        },
-        {
-          label: this.$t('settings.publish-name.full'),
-          title: this.$t('settings.publish-name.full-tooltip'),
+          label: this.$t('settings.publish-name.name-full'),
+          title: this.$t('settings.publish-name.name-full-tooltip'),
           value: 'PUBLISH_NAME_FULL',
         },
       ],
