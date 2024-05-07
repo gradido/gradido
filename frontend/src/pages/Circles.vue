@@ -15,7 +15,7 @@
               v-if="this.humhubAllowed"
               variant="gradido"
               :disabled="this.enableButton === false"
-              @click="authenticateCirclesAutoLogin"
+              @click="authenticateHumhubAutoLogin"
               target="_blank"
             >
               {{ $t('circles.button') }}
@@ -32,7 +32,7 @@
   </div>
 </template>
 <script>
-import { authenticateCirclesAutoLogin } from '@/graphql/queries'
+import { authenticateHumhubAutoLogin } from '@/graphql/queries'
 export default {
   name: 'Circles',
   data() {
@@ -46,20 +46,20 @@ export default {
     },
   },
   methods: {
-    async authenticateCirclesAutoLogin() {
+    async authenticateHumhubAutoLogin() {
       this.enableButton = false
       this.humhubUri = null
       this.$apollo
         .query({
-          query: authenticateCirclesAutoLogin,
+          query: authenticateHumhubAutoLogin,
           fetchPolicy: 'network-only',
         })
         .then(async (result) => {
-          window.open(result.data.authenticateCirclesAutoLogin, '_blank')
+          window.open(result.data.authenticateHumhubAutoLogin, '_blank')
           this.enableButton = true
         })
         .catch(() => {
-          this.toastError('authenticateCirclesAutoLogin failed!')
+          this.toastError('authenticateHumhubAutoLogin failed!')
           this.enableButton = true
         })
     },

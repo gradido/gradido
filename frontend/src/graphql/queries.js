@@ -28,9 +28,9 @@ export const authenticateGmsUserSearch = gql`
   }
 `
 
-export const authenticateCirclesAutoLogin = gql`
+export const authenticateHumhubAutoLogin = gql`
   query {
-    authenticateCirclesAutoLogin
+    authenticateHumhubAutoLogin
   }
 `
 

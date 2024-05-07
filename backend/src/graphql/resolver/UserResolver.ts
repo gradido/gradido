@@ -704,10 +704,10 @@ export class UserResolver {
     return result
   }
 
-  @Authorized([RIGHTS.CIRCLES_AUTO_LOGIN])
+  @Authorized([RIGHTS.HUMHUB_AUTO_LOGIN])
   @Query(() => String)
-  async authenticateCirclesAutoLogin(@Ctx() context: Context): Promise<string> {
-    logger.info(`authenticateCirclesAutoLogin()...`)
+  async authenticateHumhubAutoLogin(@Ctx() context: Context): Promise<string> {
+    logger.info(`authenticateHumhubAutoLogin()...`)
     const dbUser = getUser(context)
     const humhubClient = HumHubClient.getInstance()
     if (!humhubClient) {
