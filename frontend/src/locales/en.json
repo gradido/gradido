@@ -8,7 +8,7 @@
   "GDD": "GDD",
   "GDT": "GDT",
   "GMS": {
-    "title": "Geo Matching System GMS",
+    "title": "Geo Matching System GMS (in develop)",
     "desc": "Find members of all communities on a map."
   },
   "Humhub": {
@@ -316,8 +316,8 @@
         "label": "pinpoint location",
         "button": "click me!"
       },
-      "location-format": "location type",
-      "naming-format": "Format of name in GMS",
+      "location-format": "Show position on map:",
+      "naming-format": "Show Name:",
       "publish-location": {
         "exact": "exact position",
         "approximate": "approximate position",
@@ -326,19 +326,17 @@
       },
       "publish-name": {
         "updated": "format of name for GMS updated"
-      },
-      "switch": "Allow data export to GMS"
+      }
     },
     "hideAmountGDD": "Your GDD amount is hidden.",
     "hideAmountGDT": "Your GDT amount is hidden.",
     "humhub": {
       "disabled": "Data not exported into the Gradido Community",
       "enabled": "Data exported into the Gradido Community",
-      "naming-format": "Format of name in the Gradido Community",
+      "naming-format": "Show Name:",
       "publish-name": {
         "updated": "Format of name for the Gradido Community updated."
-      },
-      "switch": "Allow data export into the Gradido Community."
+      }
     },
     "info": "Transactions can now be made by username or email address.",
     "language": {

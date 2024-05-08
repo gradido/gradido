@@ -125,6 +125,7 @@ export class HumHubClient {
    * @param user for saving on humhub instance
    */
   public async createUser(user: PostUser): Promise<void> {
+    logger.info('create new humhub user', user)
     const options = await this.createRequestOptions()
     try {
       const response = await this.restClient.create('/api/v1/user', user, options)
@@ -147,6 +148,7 @@ export class HumHubClient {
    * @returns updated user object on success
    */
   public async updateUser(user: PostUser, humhubUserId: number): Promise<GetUser | null> {
+    logger.info('update humhub user', user)
     const options = await this.createRequestOptions()
     const response = await this.restClient.update<GetUser>(
       `/api/v1/user/${humhubUserId}`,
@@ -162,6 +164,7 @@ export class HumHubClient {
   }
 
   public async deleteUser(humhubUserId: number): Promise<void> {
+    logger.info('delete humhub user', { userId: humhubUserId })
     const options = await this.createRequestOptions()
     const response = await this.restClient.del(`/api/v1/user/${humhubUserId}`, options)
     if (response.statusCode === 400) {

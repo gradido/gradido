@@ -4,6 +4,7 @@
       test="BFormCheckbox"
       v-model="value"
       name="check-button"
+      :disabled="disabled"
       switch
       @change="onChange"
     ></b-form-checkbox>
@@ -19,6 +20,7 @@ export default {
     attrName: { type: String },
     enabledText: { type: String },
     disabledText: { type: String },
+    disabled: { type: Boolean, default: false },
   },
   data() {
     return {
@@ -27,6 +29,7 @@ export default {
   },
   methods: {
     async onChange() {
+      if (this.isDisabled) return
       const variables = []
       variables[this.attrName] = this.value
       this.$apollo

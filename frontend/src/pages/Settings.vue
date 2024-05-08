@@ -82,26 +82,52 @@
       <div v-if="isCommunityService">
         <b-tab :title="$t('settings.community')">
           <div class="h2">{{ $t('settings.allow-community-services') }}</div>
-          <div v-if="isGMS">
-            <div class="h3">{{ $t('GMS.title') }}</div>
-            <div class="h4">{{ $t('GMS.desc') }}</div>
-            <b-row class="mb-3">
+          <div v-if="isHumhub" class="mt-4">
+            <b-row>
               <b-col cols="12" md="6" lg="6">
-                {{ $t('settings.GMS.switch') }}
-                <div class="text-small">
-                  {{ gmsAllowed ? $t('settings.GMS.enabled') : $t('settings.GMS.disabled') }}
-                </div>
+                <div class="h3">{{ $t('Humhub.title') }}</div>
+              </b-col>
+              <b-col cols="12" md="6" lg="6" class="text-right">
+                <user-settings-switch
+                  @valueChanged="humhubStateSwitch"
+                  :initialValue="$store.state.humhubAllowed"
+                  :attrName="'humhubAllowed'"
+                  :enabledText="$t('settings.humhub.enabled')"
+                  :disabledText="$t('settings.humhub.disabled')"
+                />
+              </b-col>
+            </b-row>
+            <div class="h4">{{ $t('Humhub.desc') }}</div>
+            <b-row v-if="humhubAllowed" class="mt-4 humhub-publish-name-row">
+              <b-col cols="12" md="6" lg="6">
+                {{ $t('settings.humhub.naming-format') }}
+              </b-col>
+              <b-col cols="12" md="6" lg="6">
+                <user-naming-format
+                  :initialValue="$store.state.humhubPublishName"
+                  :attrName="'humhubPublishName'"
+                  :successMessage="$t('settings.humhub.publish-name.updated')"
+                />
+              </b-col>
+            </b-row>
+          </div>
+          <div v-if="isGMS">
+            <b-row>
+              <b-col cols="12" md="6" lg="6">
+                <div class="h3 text-muted">{{ $t('GMS.title') }}</div>
               </b-col>
               <b-col cols="12" md="6" lg="6" class="text-right">
                 <user-settings-switch
                   @valueChanged="gmsStateSwitch"
                   :initialValue="$store.state.gmsAllowed"
                   :attrName="'gmsAllowed'"
+                  :disabled="true"
                   :enabledText="$t('settings.GMS.enabled')"
                   :disabledText="$t('settings.GMS.disabled')"
                 />
               </b-col>
             </b-row>
+            <div class="h4 mb-3">{{ $t('GMS.desc') }}</div>
             <div v-if="gmsAllowed">
               <b-row class="mb-4">
                 <b-col cols="12" md="6" lg="6">
@@ -132,41 +158,6 @@
                 </b-col>
               </b-row>
             </div>
-          </div>
-          <div v-if="isHumhub">
-            <div class="h3">{{ $t('Humhub.title') }}</div>
-            <div class="h4">{{ $t('Humhub.desc') }}</div>
-            <b-row class="mb-3">
-              <b-col cols="12" md="6" lg="6">
-                {{ $t('settings.humhub.switch') }}
-                <div class="text-small">
-                  {{
-                    humhubAllowed ? $t('settings.humhub.enabled') : $t('settings.humhub.disabled')
-                  }}
-                </div>
-              </b-col>
-              <b-col cols="12" md="6" lg="6" class="text-right">
-                <user-settings-switch
-                  @valueChanged="humhubStateSwitch"
-                  :initialValue="$store.state.humhubAllowed"
-                  :attrName="'humhubAllowed'"
-                  :enabledText="$t('settings.humhub.enabled')"
-                  :disabledText="$t('settings.humhub.disabled')"
-                />
-              </b-col>
-            </b-row>
-            <b-row v-if="humhubAllowed" class="mb-4 humhub-publish-name-row">
-              <b-col cols="12" md="6" lg="6">
-                {{ $t('settings.humhub.naming-format') }}
-              </b-col>
-              <b-col cols="12" md="6" lg="6">
-                <user-naming-format
-                  :initialValue="$store.state.humhubPublishName"
-                  :attrName="'humhubPublishName'"
-                  :successMessage="$t('settings.humhub.publish-name.updated')"
-                />
-              </b-col>
-            </b-row>
           </div>
         </b-tab>
       </div>
@@ -292,7 +283,7 @@ export default {
 </script>
 <style>
 .humhub-publish-name-row {
-  min-height: 200px;
+  min-height: 210px;
 }
 .card-border-radius {
   border-radius: 0px 5px 5px 0px !important;

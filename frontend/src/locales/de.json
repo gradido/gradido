@@ -8,7 +8,7 @@
   "GDD": "GDD",
   "GDT": "GDT",
   "GMS": {
-    "title": "Geo Matching System GMS",
+    "title": "Geo Matching System GMS (in Entwicklung)",
     "desc": "Finde Mitglieder aller Communities auf einer Landkarte."
   },
   "Humhub": {
@@ -316,8 +316,8 @@
         "label": "Positionsbestimmung",
         "button": "Klick mich!"
       },
-      "location-format": "Positionstyp",
-      "naming-format": "Namensformat im GMS",
+      "location-format": "Position auf Karte anzeigen:",
+      "naming-format": "Namen anzeigen:",
       "publish-location": {
         "exact": "Genaue Position",
         "approximate": "Ungefähre Position",
@@ -326,19 +326,17 @@
       },
       "publish-name": {
         "updated": "Namensformat für GMS aktualisiert"
-      },
-      "switch": "Erlaubnis Daten nach GMS zu exportieren."
+      }
     },
     "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
     "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
     "humhub": {
       "disabled": "Daten werden nicht in die Gradido Community exportiert",
       "enabled": "Daten werden in die Gradido Community exportiert",
-      "naming-format": "Namensformat in der Gradido Community",
+      "naming-format": "Namen anzeigen:",
       "publish-name": {
         "updated": "Namensformat für die Gradido Community aktualisiert."
-      },
-      "switch": "Erlaubnis Daten in die Gradido Community zu exportieren."
+      }
     },
     "info": "Transaktionen können nun per Benutzername oder E-Mail-Adresse getätigt werden.",
     "language": {
@@ -378,7 +376,7 @@
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
     },
     "publish-name": {
-      "alias-or-initials": "Benutzername oder Initialen (Default)",
+      "alias-or-initials": "Benutzername oder Initialen",
       "alias-or-initials-tooltip": "Benutzername, falls vorhanden, oder die Initialen von Vorname und Nachname",
       "first": "Vorname",
       "first-tooltip": "Nur der Vornamen",

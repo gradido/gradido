@@ -58,7 +58,10 @@ export default {
   },
   computed: {
     selectedOptionLabel() {
-      return this.dropdownOptions.find((option) => option.value === this.selectedOption).label
+      const selected = this.dropdownOptions.find((option) => option.value === this.selectedOption)
+        .label
+      return selected || this.$t('settings.publish-name.alias-or-initials')
+      // return this.dropdownOptions.find((option) => option.value === this.selectedOption).label
     },
   },
   methods: {
