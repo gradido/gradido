@@ -331,6 +331,7 @@
     "hideAmountGDD": "Your GDD amount is hidden.",
     "hideAmountGDT": "Your GDT amount is hidden.",
     "humhub": {
+      "delete-disabled": "The user account can only be deleted in the profile menu of the cooperation platform.",
       "disabled": "Data not exported into the Gradido Community",
       "enabled": "Data exported into the Gradido Community",
       "naming-format": "Show Name:",

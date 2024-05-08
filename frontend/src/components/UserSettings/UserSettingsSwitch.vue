@@ -1,5 +1,5 @@
 <template>
-  <div class="form-user-switch">
+  <div class="form-user-switch" @click="onClick">
     <b-form-checkbox
       test="BFormCheckbox"
       v-model="value"
@@ -21,6 +21,7 @@ export default {
     enabledText: { type: String },
     disabledText: { type: String },
     disabled: { type: Boolean, default: false },
+    notAllowedText: { type: String, default: undefined },
   },
   data() {
     return {
@@ -46,6 +47,11 @@ export default {
           this.value = this.initialValue
           this.toastError(error.message)
         })
+    },
+    onClick() {
+      if (this.notAllowedText && this.disabled) {
+        this.toastError(this.notAllowedText)
+      }
     },
   },
 }

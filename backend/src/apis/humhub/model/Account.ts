@@ -13,9 +13,11 @@ export class Account {
 
     this.email = user.emailContact.email
     this.language = convertGradidoLanguageToHumhub(user.language)
+    this.status = 1
   }
 
   username: string
   email: string
   language: string
+  status: number
 }

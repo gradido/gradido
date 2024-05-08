@@ -331,7 +331,8 @@
     "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
     "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
     "humhub": {
-      "disabled": "Daten werden nicht in die Gradido Community exportiert",
+      "delete-disabled": "Das Benutzerkonto kann nur im Profil-Menü der Kooperationsplattform gelöscht werden.",
+      "disabled": "Daten werden nicht in die Gradido Community exportiert",      
       "enabled": "Daten werden in die Gradido Community exportiert",
       "naming-format": "Namen anzeigen:",
       "publish-name": {

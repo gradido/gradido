@@ -1,6 +1,6 @@
 import { User } from '@entity/User'
 import { SignJWT } from 'jose'
-import { IRequestOptions, RestClient } from 'typed-rest-client'
+import { IRequestOptions, IRestResponse, RestClient } from 'typed-rest-client'
 
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
@@ -102,6 +102,11 @@ export class HumHubClient {
       return null
     }
     return response.result
+  }
+
+  public async userByEmailAsync(email: string): Promise<IRestResponse<GetUser>> {
+    const options = await this.createRequestOptions({ email })
+    return this.restClient.get<GetUser>('/api/v1/user/get-by-email', options)
   }
 
   /**

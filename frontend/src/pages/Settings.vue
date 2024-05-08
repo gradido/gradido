@@ -82,7 +82,7 @@
       <div v-if="isCommunityService">
         <b-tab :title="$t('settings.community')">
           <div class="h2">{{ $t('settings.allow-community-services') }}</div>
-          <div v-if="isHumhub" class="mt-4">
+          <div v-if="isHumhub" class="">
             <b-row>
               <b-col cols="12" md="6" lg="6">
                 <div class="h3">{{ $t('Humhub.title') }}</div>
@@ -92,13 +92,15 @@
                   @valueChanged="humhubStateSwitch"
                   :initialValue="$store.state.humhubAllowed"
                   :attrName="'humhubAllowed'"
+                  :disabled="isHumhubActivated"
                   :enabledText="$t('settings.humhub.enabled')"
                   :disabledText="$t('settings.humhub.disabled')"
+                  :notAllowedText="$t('settings.humhub.delete-disabled')"
                 />
               </b-col>
             </b-row>
             <div class="h4">{{ $t('Humhub.desc') }}</div>
-            <b-row v-if="humhubAllowed" class="mt-4 humhub-publish-name-row">
+            <b-row v-if="humhubAllowed" class="mb-4 humhub-publish-name-row">
               <b-col cols="12" md="6" lg="6">
                 {{ $t('settings.humhub.naming-format') }}
               </b-col>
@@ -127,7 +129,7 @@
                 />
               </b-col>
             </b-row>
-            <div class="h4 mb-3">{{ $t('GMS.desc') }}</div>
+            <div class="h4 mt-3">{{ $t('GMS.desc') }}</div>
             <div v-if="gmsAllowed">
               <b-row class="mb-4">
                 <b-col cols="12" md="6" lg="6">
@@ -238,6 +240,9 @@ export default {
       const { firstName, lastName } = this.$store.state
       return firstName === this.firstName && lastName === this.lastName
     },
+    isHumhubActivated() {
+      return this.humhubAllowed
+    },
     isCommunityService() {
       return this.isGMS || this.isHumhub
     },
@@ -282,9 +287,6 @@ export default {
 }
 </script>
 <style>
-.humhub-publish-name-row {
-  min-height: 210px;
-}
 .card-border-radius {
   border-radius: 0px 5px 5px 0px !important;
 }

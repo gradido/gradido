@@ -82,6 +82,8 @@ import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 import { validateAlias } from './util/validateAlias'
+import { GetUser } from '@/apis/humhub/model/GetUser'
+import { IRestResponse } from 'typed-rest-client'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -144,6 +146,10 @@ export class UserResolver {
     @Args() { email, password, publisherId }: UnsecureLoginArgs,
     @Ctx() context: Context,
   ): Promise<User> {
+    let humhubUserPromise: Promise<IRestResponse<GetUser>> | undefined
+    if (CONFIG.HUMHUB_ACTIVE && HumHubClient.getInstance()) {
+      humhubUserPromise = HumHubClient.getInstance()?.userByEmailAsync(email)
+    }
     logger.info(`login with ${email}, ***, ${publisherId} ...`)
     email = email.trim().toLowerCase()
     const dbUser = await findUserByEmail(email)
@@ -192,6 +198,11 @@ export class UserResolver {
     })
 
     await EVENT_USER_LOGIN(dbUser)
+    // load humhub state
+    if (CONFIG.HUMHUB_ACTIVE && user.humhubAllowed) {
+      const result = await humhubUserPromise
+      user.humhubAllowed = result?.result?.account.status === 1
+    }
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
     return user
   }
