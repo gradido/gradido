@@ -28,12 +28,14 @@ export function compareGmsRelevantUserSettings(
         orgUser.gmsPublishName.valueOf ===
           GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS.valueOf))
   ) {
+    logger.debug('changed GmsPublishNameType')
     return true
   }
   if (
     (updateUserInfosArgs.firstName && orgUser.firstName !== updateUserInfosArgs.firstName) ||
     (updateUserInfosArgs.lastName && orgUser.lastName !== updateUserInfosArgs.lastName)
   ) {
+    logger.debug('changed User-Name')
     return true
   }
   if (
@@ -41,21 +43,25 @@ export function compareGmsRelevantUserSettings(
     updateUserInfosArgs.gmsAllowed &&
     orgUser.gmsAllowed !== updateUserInfosArgs.gmsAllowed
   ) {
+    logger.debug('changed gmsAllowed')
     return true
   }
   if (
     updateUserInfosArgs.gmsPublishLocation &&
     orgUser.gmsPublishLocation !== updateUserInfosArgs.gmsPublishLocation
   ) {
+    logger.debug('changed gmsPublishLocation')
     return true
   }
   if (
     updateUserInfosArgs.gmsPublishName &&
     orgUser.gmsPublishName !== updateUserInfosArgs.gmsPublishName
   ) {
+    logger.debug('changed gmsPublishName')
     return true
   }
   if (updateUserInfosArgs.language && orgUser.language !== updateUserInfosArgs.language) {
+    logger.debug('changed language')
     return true
   }
   if (
@@ -63,6 +69,7 @@ export function compareGmsRelevantUserSettings(
     orgUser.location === null &&
     updateUserInfosArgs.gmsLocation !== null
   ) {
+    logger.debug('changed gmsLocation1')
     return true
   }
   if (
@@ -70,6 +77,7 @@ export function compareGmsRelevantUserSettings(
     orgUser.location !== null &&
     updateUserInfosArgs.gmsLocation === null
   ) {
+    logger.debug('changed gmsLocation2')
     return true
   }
   if (
@@ -83,8 +91,10 @@ export function compareGmsRelevantUserSettings(
       orgLocation.latitude !== changedLocation.latitude ||
       orgLocation.longitude !== changedLocation.longitude
     ) {
+      logger.debug('changed location')
       return true
     }
   }
+  logger.debug('nothing changed')
   return false
 }

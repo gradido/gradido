@@ -28,6 +28,15 @@ export const authenticateGmsUserSearch = gql`
   }
 `
 
+export const userLocationQuery = gql`
+  query {
+    userLocation {
+      userLocation
+      communityLocation
+    }
+  }
+`
+
 export const transactionsQuery = gql`
   query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {

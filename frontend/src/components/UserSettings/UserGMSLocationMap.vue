@@ -70,10 +70,12 @@
 </template>
 
 <script>
+import CONFIG from '@/config'
 import { latLng, Icon } from 'leaflet'
 import { LMap, LTileLayer, LMarker, LTooltip } from 'vue2-leaflet'
 import { OpenStreetMapProvider } from 'leaflet-geosearch'
 import LGeosearch from 'vue2-leaflet-geosearch'
+import { userLocationQuery } from '@/graphql/queries'
 
 delete Icon.Default.prototype._getIconUrl
 Icon.Default.mergeOptions({
@@ -94,13 +96,13 @@ export default {
   data() {
     return {
       zoom: 13,
-      center: latLng(49.280377, 9.690151),
+      center: null, // : latLng(49.280377, 9.690151),
       url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
-      userLocation: latLng(49.280377, 9.690151),
-      comLocation: latLng(49.280377, 9.690151),
+      userLocation: null, // latLng(49.280377, 9.690151),
+      comLocation: null, // : latLng(49.280377, 9.690151),
       currentZoom: 11.5,
-      currentCenter: latLng(49.280377, 9.690151),
+      currentCenter: null, // : latLng(49.280377, 9.690151),
       showParagraph: false,
       mapOptions: {
         zoomSnap: 0.5,
@@ -127,6 +129,29 @@ export default {
     },
     async onChange() {
       this.fixYourKoord = !this.fixYourKoord
+    },
+    getUserLocation() {
+      this.$apollo
+        .query({
+          query: userLocationQuery,
+        })
+        .then((result) => {
+          this.userLocation = result.data.userLocation.userLocation
+          this.currentCenter = this.userLocation
+          this.center = this.userLocation
+          this.comLocation = result.data.userLocation.communityLocation
+        })
+        .catch(() => {
+          this.toastError('userLocation has no result, use default data')
+          this.comLocation = CONFIG.COMMUNITY_LOCATION
+          this.userLocation = this.comLocation
+          this.currentCenter = this.comLocation
+          this.center = this.comLocation
+        })
+    },
+
+    beforeCreated() {
+      this.getUserLocation()
     },
     beforeClose(event) {
       console.log('beforeClose:', this.modal.data, event, this.userLocation)
