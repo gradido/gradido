@@ -667,7 +667,7 @@ export class UserResolver {
       logger.debug(`changed user-settings relevant for gms-user update...`)
       const homeCom = await getHomeCommunity()
       if (homeCom.gmsApiKey !== null) {
-        if (!user.gmsRegistered) {
+        if (!user.gmsRegistered && user.gmsRegisteredAt === null) {
           logger.debug(`gms-user create...`, user)
           await sendUserToGms(user, homeCom)
           logger.debug(`gms-user create successfully.`)
