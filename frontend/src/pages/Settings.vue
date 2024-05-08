@@ -241,7 +241,7 @@ export default {
       return firstName === this.firstName && lastName === this.lastName
     },
     isHumhubActivated() {
-      return this.humhubAllowed
+      return false // this.humhubAllowed
     },
     isCommunityService() {
       return this.isGMS || this.isHumhub
