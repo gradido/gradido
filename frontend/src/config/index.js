@@ -8,7 +8,7 @@ const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v6.2024-02-27',
+    EXPECTED: 'v7.2024-05-08',
     CURRENT: '',
   },
 }
@@ -50,6 +50,7 @@ const community = {
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION ?? 'Die lokale Entwicklungsumgebung von Gradido.',
   COMMUNITY_SUPPORT_MAIL: process.env.COMMUNITY_SUPPORT_MAIL ?? 'support@supportmail.com',
+  COMMUNITY_LOCATION: process.env.COMMUNITY_LOCATION ?? '[49.280377, 9.690151]'
 }
 
 const meta = {
