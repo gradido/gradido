@@ -105,10 +105,7 @@ export class HumHubClient {
   }
 
   public async userByEmailAsync(email: string): Promise<IRestResponse<GetUser>> {
-    const startTime = new Date()
     const options = await this.createRequestOptions({ email })
-    const endTime = new Date()
-    console.log("time for prepare connection: ", endTime.getTime() - startTime.getTime())
     return this.restClient.get<GetUser>('/api/v1/user/get-by-email', options)
   }
 

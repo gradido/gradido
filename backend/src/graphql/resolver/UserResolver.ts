@@ -10,6 +10,7 @@ import { UserContact as DbUserContact } from '@entity/UserContact'
 import { UserRole } from '@entity/UserRole'
 import i18n from 'i18n'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
+import { IRestResponse } from 'typed-rest-client'
 import { v4 as uuidv4 } from 'uuid'
 
 import { UserArgs } from '@arg//UserArgs'
@@ -32,6 +33,7 @@ import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 import { updateGmsUser } from '@/apis/gms/GmsClient'
 import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
+import { GetUser } from '@/apis/humhub/model/GetUser'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -82,8 +84,6 @@ import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 import { validateAlias } from './util/validateAlias'
-import { GetUser } from '@/apis/humhub/model/GetUser'
-import { IRestResponse } from 'typed-rest-client'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -146,10 +146,6 @@ export class UserResolver {
     @Args() { email, password, publisherId }: UnsecureLoginArgs,
     @Ctx() context: Context,
   ): Promise<User> {
-    let humhubUserPromise: Promise<IRestResponse<GetUser>> | undefined
-    if (CONFIG.HUMHUB_ACTIVE && HumHubClient.getInstance()) {
-      humhubUserPromise = HumHubClient.getInstance()?.userByEmailAsync(email)
-    }
     logger.info(`login with ${email}, ***, ${publisherId} ...`)
     email = email.trim().toLowerCase()
     const dbUser = await findUserByEmail(email)
@@ -164,9 +160,15 @@ export class UserResolver {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new LogError('The User has not set a password yet', dbUser)
     }
-
     if (!verifyPassword(dbUser, password)) {
       throw new LogError('No user with this credentials', dbUser)
+    }
+
+    // request to humhub and klicktipp run in parallel
+    let humhubUserPromise: Promise<IRestResponse<GetUser>> | undefined
+    const klicktippStatePromise = getKlicktippState(dbUser.emailContact.email)
+    if (CONFIG.HUMHUB_ACTIVE && dbUser.humhubAllowed) {
+      humhubUserPromise = HumHubClient.getInstance()?.userByEmailAsync(email)
     }
 
     if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
@@ -190,7 +192,6 @@ export class UserResolver {
       dbUser.publisherId = publisherId
       await DbUser.save(dbUser)
     }
-    user.klickTipp = await getKlicktippState(dbUser.emailContact.email)
 
     context.setHeaders.push({
       key: 'token',
@@ -199,13 +200,11 @@ export class UserResolver {
 
     await EVENT_USER_LOGIN(dbUser)
     // load humhub state
-    if (CONFIG.HUMHUB_ACTIVE && user.humhubAllowed) {
-      const startTime = new Date()
+    if (humhubUserPromise) {
       const result = await humhubUserPromise
-      const endTime = new Date()
-      console.log("wait for humhub at login ", endTime.getTime() - startTime.getTime())
       user.humhubAllowed = result?.result?.account.status === 1
     }
+    user.klickTipp = await klicktippStatePromise
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
     return user
   }
