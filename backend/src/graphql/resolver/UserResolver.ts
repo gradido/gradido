@@ -200,7 +200,10 @@ export class UserResolver {
     await EVENT_USER_LOGIN(dbUser)
     // load humhub state
     if (CONFIG.HUMHUB_ACTIVE && user.humhubAllowed) {
+      const startTime = new Date()
       const result = await humhubUserPromise
+      const endTime = new Date()
+      console.log("wait for humhub at login ", endTime.getTime() - startTime.getTime())
       user.humhubAllowed = result?.result?.account.status === 1
     }
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)

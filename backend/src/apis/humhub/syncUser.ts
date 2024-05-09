@@ -39,8 +39,7 @@ export async function syncUser(
 
   if (humhubUser) {
     if (!user.humhubAllowed) {
-      postUser.account.status = 0
-      await humHubClient.updateUser(postUser, humhubUser.id)
+      await humHubClient.deleteUser(humhubUser.id)
       return ExecutedHumhubAction.DELETE
     }
     if (!isHumhubUserIdenticalToDbUser(humhubUser, user)) {
