@@ -59,8 +59,11 @@ export default {
           this.enableButton = true
         })
         .catch(() => {
-          this.toastError('authenticateHumhubAutoLogin failed!')
+          // this.toastError('authenticateHumhubAutoLogin failed!')
           this.enableButton = true
+          // something went wrong with login link so we disable humhub
+          this.$store.commit('humhubAllowed', false)
+          this.$router.push('/settings/extern')
         })
     },
   },

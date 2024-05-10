@@ -80,9 +80,9 @@
         </b-row>
       </b-tab>
       <div v-if="isCommunityService">
-        <b-tab :title="$t('settings.community')">
+        <b-tab class="community-service-tabs" :title="$t('settings.community')">
           <div class="h2">{{ $t('settings.allow-community-services') }}</div>
-          <div v-if="isHumhub" class="">
+          <div v-if="isHumhub" class="mt-3">
             <b-row>
               <b-col cols="12" md="6" lg="6">
                 <div class="h3">{{ $t('Humhub.title') }}</div>
@@ -113,7 +113,7 @@
               </b-col>
             </b-row>
           </div>
-          <div v-if="isGMS">
+          <div v-if="isGMS" class="mt-3">
             <b-row>
               <b-col cols="12" md="6" lg="6">
                 <div class="h3 text-muted">{{ $t('GMS.title') }}</div>
@@ -129,7 +129,7 @@
                 />
               </b-col>
             </b-row>
-            <div class="h4 mt-3">{{ $t('GMS.desc') }}</div>
+            <div class="h4 mt-3 text-muted">{{ $t('GMS.desc') }}</div>
             <div v-if="gmsAllowed">
               <b-row class="mb-4">
                 <b-col cols="12" md="6" lg="6">
@@ -287,6 +287,9 @@ export default {
 }
 </script>
 <style>
+.community-service-tabs {
+  min-height: 315px;
+}
 .card-border-radius {
   border-radius: 0px 5px 5px 0px !important;
 }
