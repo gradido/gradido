@@ -2,7 +2,7 @@ import { Point } from '@dbTools/typeorm'
 import { User as DbUser } from '@entity/User'
 
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
-import { GmsPublishNameType } from '@/graphql/enum/GmsPublishNameType'
+import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
@@ -22,11 +22,10 @@ export function compareGmsRelevantUserSettings(
     orgUser.alias !== updateUserInfosArgs.alias &&
     ((updateUserInfosArgs.gmsPublishName &&
       updateUserInfosArgs.gmsPublishName.valueOf ===
-        GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS.valueOf) ||
+        PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS.valueOf) ||
       (!updateUserInfosArgs.gmsPublishName &&
         orgUser.gmsPublishName &&
-        orgUser.gmsPublishName.valueOf ===
-          GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS.valueOf))
+        orgUser.gmsPublishName.valueOf === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS.valueOf))
   ) {
     logger.debug('changed GmsPublishNameType')
     return true

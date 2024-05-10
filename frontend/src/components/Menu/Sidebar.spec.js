@@ -17,6 +17,9 @@ describe('Sidebar', () => {
         roles: [],
       },
     },
+    $route: {
+      path: '/',
+    },
   }
 
   const Wrapper = () => {
@@ -32,8 +35,8 @@ describe('Sidebar', () => {
       expect(wrapper.find('div#component-sidebar').exists()).toBe(true)
     })
 
-    describe('the genaral section', () => {
-      it('has six nav-items', () => {
+    describe('the general section', () => {
+      it('has seven nav-items', () => {
         expect(wrapper.findAll('ul').at(0).findAll('.nav-item')).toHaveLength(7)
       })
 
@@ -53,15 +56,15 @@ describe('Sidebar', () => {
         expect(wrapper.findAll('.nav-item').at(3).text()).toEqual('creation')
       })
 
-      it('has nav-item "GDT" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(4).text()).toContain('GDT')
-      })
-
       it('has nav-item "navigation.info" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(5).text()).toContain('navigation.info')
+        expect(wrapper.findAll('.nav-item').at(4).text()).toContain('navigation.info')
       })
 
-      it('has nav-item "usersearch" in navbar', () => {
+      it('has nav-item "navigation.circles" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(5).text()).toContain('navigation.circles')
+      })
+
+      it('has nav-item "navigation.usersearch" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(6).text()).toContain('navigation.usersearch')
       })
     })

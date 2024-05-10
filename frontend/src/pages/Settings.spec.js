@@ -22,11 +22,16 @@ describe('Settings', () => {
         email: 'john.doe@test.com',
         language: 'en',
         newsletterState: false,
+        gmsAllowed: false,
+        humhubAllowed: false,
       },
       commit: storeCommitMock,
     },
     $apollo: {
       mutate: mockAPIcall,
+    },
+    $route: {
+      params: {},
     },
   }
 

@@ -3,7 +3,6 @@ import { UserContact } from '@entity/UserContact'
 
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { GetUser } from '@/apis/humhub/model/GetUser'
-import { ExecutedHumhubAction } from '@/apis/humhub/syncUser'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { backendLogger as logger } from '@/server/logger'
@@ -22,19 +21,12 @@ const mockUpdateUserInfosArg = new UpdateUserInfosArgs()
 const mockHumHubUser = new GetUser(mockUser, 1)
 
 describe('syncHumhub', () => {
-  beforeAll(() => {
-    // humhubClientMockbBeforeAll()
-  })
-
   beforeEach(() => {
     jest.spyOn(logger, 'debug').mockImplementation()
     jest.spyOn(logger, 'info').mockImplementation()
     jest.spyOn(HumHubClient, 'getInstance')
   })
 
-  afterEach(() => {
-    // humhubClientMockbAfterEach()
-  })
   afterAll(() => {
     jest.resetAllMocks()
   })
@@ -43,7 +35,7 @@ describe('syncHumhub', () => {
     await syncHumhub(mockUpdateUserInfosArg, new User())
     expect(HumHubClient.getInstance).not.toBeCalled()
     // language logging from some other place
-    expect(logger.debug).toBeCalledTimes(4)
+    expect(logger.debug).toBeCalledTimes(5)
     expect(logger.info).toBeCalledTimes(0)
   })
 
@@ -51,11 +43,11 @@ describe('syncHumhub', () => {
     mockUpdateUserInfosArg.firstName = 'New' // Relevant changes
     mockUser.firstName = 'New'
     await syncHumhub(mockUpdateUserInfosArg, mockUser)
-    expect(logger.debug).toHaveBeenCalledTimes(7) // Four language logging calls, two debug calls in function, one for not syncing
+    expect(logger.debug).toHaveBeenCalledTimes(8) // Four language logging calls, two debug calls in function, one for not syncing
     expect(logger.info).toHaveBeenLastCalledWith('finished sync user with humhub', {
       localId: mockUser.id,
       externId: mockHumHubUser.id,
-      result: ExecutedHumhubAction.UPDATE,
+      result: 'UPDATE',
     })
   })
 

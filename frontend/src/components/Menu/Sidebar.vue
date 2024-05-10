@@ -16,7 +16,7 @@
             <b-icon icon="cash" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('navigation.send') }}</span>
           </b-nav-item>
-          <b-nav-item to="/transactions" class="mb-3" active-class="activeRoute">
+          <b-nav-item to="/transactions" :class="transactionClass" active-class="activeRoute">
             <b-img src="/img/svg/transaction.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.transactions') }}</span>
           </b-nav-item>
@@ -24,13 +24,13 @@
             <b-img src="/img/svg/community.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('creation') }}</span>
           </b-nav-item>
-          <b-nav-item to="/gdt" class="mb-3" active-class="activeRoute">
-            <b-icon icon="layers" aria-hidden="true"></b-icon>
-            <span class="ml-2">{{ $t('GDT') }}</span>
-          </b-nav-item>
           <b-nav-item to="/information" class="mb-3" active-class="activeRoute">
             <b-img src="/img/svg/info.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.info') }}</span>
+          </b-nav-item>
+          <b-nav-item to="/circles" class="mb-3" active-class="activeRoute">
+            <b-img src="/img/svg/circles.svg" height="20" class="svg-icon" />
+            <span class="ml-2">{{ $t('navigation.circles') }}</span>
           </b-nav-item>
           <b-nav-item to="/usersearch" active-class="activeRoute">
             <b-img src="/img/loupe.png" height="20" />
@@ -81,6 +81,14 @@ export default {
   name: 'Sidebar',
   props: {
     shadow: { type: Boolean, required: false, default: true },
+  },
+  computed: {
+    transactionClass() {
+      if (this.$route.path === '/gdt') {
+        return 'mb-3 activeRoute'
+      }
+      return 'mb-3'
+    },
   },
 }
 </script>

@@ -1,10 +1,11 @@
 import { SignJWT } from 'jose'
-import { IRequestOptions, RestClient } from 'typed-rest-client'
+import { IRequestOptions, IRestResponse, RestClient } from 'typed-rest-client'
 
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
+import { PostUserLoggingView } from './logging/PostUserLogging.view'
 import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'
 import { UsersResponse } from './model/UsersResponse'
@@ -58,6 +59,18 @@ export class HumHubClient {
     return token
   }
 
+  public async createAutoLoginUrl(username: string) {
+    const secret = new TextEncoder().encode(CONFIG.HUMHUB_JWT_KEY)
+    logger.info(`user ${username} as username for humhub auto-login`)
+    const token = await new SignJWT({ username })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('2m')
+      .sign(secret)
+
+    return `${CONFIG.HUMHUB_API_URL}user/auth/external?authclient=jwt&jwt=${token}`
+  }
+
   /**
    * Get all users from humhub
    * https://marketplace.humhub.com/module/rest/docs/html/user.html#tag/User/paths/~1user/get
@@ -90,12 +103,38 @@ export class HumHubClient {
     return response.result
   }
 
+  public async userByEmailAsync(email: string): Promise<IRestResponse<GetUser>> {
+    const options = await this.createRequestOptions({ email })
+    return this.restClient.get<GetUser>('/api/v1/user/get-by-email', options)
+  }
+
+  public async userByUsernameAsync(username: string): Promise<IRestResponse<GetUser>> {
+    const options = await this.createRequestOptions({ username })
+    return this.restClient.get<GetUser>('/api/v1/user/get-by-username', options)
+  }
+
+  /**
+   * get user by username
+   * https://marketplace.humhub.com/module/rest/docs/html/user.html#tag/User/paths/~1user~1get-by-username/get
+   * @param username for user search
+   * @returns user object if found
+   */
+  public async userByUsername(username: string): Promise<GetUser | null> {
+    const options = await this.createRequestOptions({ username })
+    const response = await this.restClient.get<GetUser>('/api/v1/user/get-by-username', options)
+    if (response.statusCode === 404) {
+      return null
+    }
+    return response.result
+  }
+
   /**
    * create user
    * https://marketplace.humhub.com/module/rest/docs/html/user.html#tag/User/paths/~1user/post
    * @param user for saving on humhub instance
    */
   public async createUser(user: PostUser): Promise<void> {
+    logger.info('create new humhub user', new PostUserLoggingView(user))
     const options = await this.createRequestOptions()
     try {
       const response = await this.restClient.create('/api/v1/user', user, options)
@@ -118,6 +157,7 @@ export class HumHubClient {
    * @returns updated user object on success
    */
   public async updateUser(user: PostUser, humhubUserId: number): Promise<GetUser | null> {
+    logger.info('update humhub user', new PostUserLoggingView(user))
     const options = await this.createRequestOptions()
     const response = await this.restClient.update<GetUser>(
       `/api/v1/user/${humhubUserId}`,
@@ -133,6 +173,7 @@ export class HumHubClient {
   }
 
   public async deleteUser(humhubUserId: number): Promise<void> {
+    logger.info('delete humhub user', { userId: humhubUserId })
     const options = await this.createRequestOptions()
     const response = await this.restClient.del(`/api/v1/user/${humhubUserId}`, options)
     if (response.statusCode === 400) {

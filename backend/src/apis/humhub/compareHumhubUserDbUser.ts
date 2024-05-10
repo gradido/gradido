@@ -17,6 +17,7 @@ function accountIsTheSame(account: Account, user: User): boolean {
   if (account.username !== gradidoUserAccount.username) return false
   if (account.email !== gradidoUserAccount.email) return false
   if (account.language !== gradidoUserAccount.language) return false
+  if (account.status !== gradidoUserAccount.status) return false
   return true
 }
 

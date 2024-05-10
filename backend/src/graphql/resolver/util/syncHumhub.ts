@@ -2,7 +2,7 @@ import { User } from '@entity/User'
 
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { GetUser } from '@/apis/humhub/model/GetUser'
-import { syncUser } from '@/apis/humhub/syncUser'
+import { ExecutedHumhubAction, syncUser } from '@/apis/humhub/syncUser'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { backendLogger as logger } from '@/server/logger'
 
@@ -12,13 +12,14 @@ export async function syncHumhub(
 ): Promise<void> {
   // check for humhub relevant changes
   if (
-    !updateUserInfosArg.alias &&
-    !updateUserInfosArg.firstName &&
-    !updateUserInfosArg.lastName &&
-    !updateUserInfosArg.humhubAllowed &&
-    !updateUserInfosArg.humhubPublishName &&
-    !updateUserInfosArg.language
+    updateUserInfosArg.alias === undefined &&
+    updateUserInfosArg.firstName === undefined &&
+    updateUserInfosArg.lastName === undefined &&
+    updateUserInfosArg.humhubAllowed === undefined &&
+    updateUserInfosArg.humhubPublishName === undefined &&
+    updateUserInfosArg.language === undefined
   ) {
+    logger.debug('no relevant changes')
     return
   }
   logger.debug('changed user-settings relevant for humhub-user update...')
@@ -27,7 +28,7 @@ export async function syncHumhub(
     return
   }
   logger.debug('retrieve user from humhub')
-  const humhubUser = await humhubClient.userByEmail(user.emailContact.email)
+  const humhubUser = await humhubClient.userByUsername(user.alias ?? user.gradidoID)
   const humhubUsers = new Map<string, GetUser>()
   if (humhubUser) {
     humhubUsers.set(user.emailContact.email, humhubUser)
@@ -37,6 +38,9 @@ export async function syncHumhub(
   logger.info('finished sync user with humhub', {
     localId: user.id,
     externId: humhubUser?.id,
-    result,
+    // for preventing this warning https://github.com/eslint-community/eslint-plugin-security/blob/main/docs/rules/detect-object-injection.md
+    // and possible danger coming with it
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    result: ExecutedHumhubAction[result as ExecutedHumhubAction],
   })
 }

@@ -10,6 +10,7 @@ import { UserContact as DbUserContact } from '@entity/UserContact'
 import { UserRole } from '@entity/UserRole'
 import i18n from 'i18n'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
+import { IRestResponse } from 'typed-rest-client'
 import { v4 as uuidv4 } from 'uuid'
 
 import { UserArgs } from '@arg//UserArgs'
@@ -32,6 +33,8 @@ import { UserLocationResult } from '@model/UserLocationResult'
 
 import { updateGmsUser } from '@/apis/gms/GmsClient'
 import { GmsUser } from '@/apis/gms/model/GmsUser'
+import { HumHubClient } from '@/apis/humhub/HumHubClient'
+import { GetUser } from '@/apis/humhub/model/GetUser'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -158,9 +161,15 @@ export class UserResolver {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new LogError('The User has not set a password yet', dbUser)
     }
-
     if (!verifyPassword(dbUser, password)) {
       throw new LogError('No user with this credentials', dbUser)
+    }
+
+    // request to humhub and klicktipp run in parallel
+    let humhubUserPromise: Promise<IRestResponse<GetUser>> | undefined
+    const klicktippStatePromise = getKlicktippState(dbUser.emailContact.email)
+    if (CONFIG.HUMHUB_ACTIVE && dbUser.humhubAllowed) {
+      humhubUserPromise = HumHubClient.getInstance()?.userByUsernameAsync(email)
     }
 
     if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
@@ -184,7 +193,6 @@ export class UserResolver {
       dbUser.publisherId = publisherId
       await DbUser.save(dbUser)
     }
-    user.klickTipp = await getKlicktippState(dbUser.emailContact.email)
 
     context.setHeaders.push({
       key: 'token',
@@ -192,6 +200,12 @@ export class UserResolver {
     })
 
     await EVENT_USER_LOGIN(dbUser)
+    // load humhub state
+    if (humhubUserPromise) {
+      const result = await humhubUserPromise
+      user.humhubAllowed = result?.result?.account.status === 1
+    }
+    user.klickTipp = await klicktippStatePromise
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
     return user
   }
@@ -737,6 +751,26 @@ export class UserResolver {
       throw new LogError('authUserForGmsUserSearch without token')
     }
     return result
+  }
+
+  @Authorized([RIGHTS.HUMHUB_AUTO_LOGIN])
+  @Query(() => String)
+  async authenticateHumhubAutoLogin(@Ctx() context: Context): Promise<string> {
+    logger.info(`authenticateHumhubAutoLogin()...`)
+    const dbUser = getUser(context)
+    const humhubClient = HumHubClient.getInstance()
+    if (!humhubClient) {
+      throw new LogError('cannot create humhub client')
+    }
+    const username = dbUser.alias ?? dbUser.gradidoID
+    const humhubUser = await humhubClient.userByUsername(username)
+    if (!humhubUser) {
+      throw new LogError("user don't exist (any longer) on humhub")
+    }
+    if (humhubUser.account.status !== 1) {
+      throw new LogError('user status is not 1', humhubUser.account.status)
+    }
+    return await humhubClient.createAutoLoginUrl(username)
   }
 
   @Authorized([RIGHTS.SEARCH_ADMIN_USERS])
