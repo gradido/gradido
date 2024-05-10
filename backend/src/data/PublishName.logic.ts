@@ -21,12 +21,15 @@ export class PublishNameLogic {
     ) {
       return this.user.firstName
     }
-    if (
-      [PublishNameType.PUBLISH_NAME_INITIALS, PublishNameType.PUBLISH_NAME_INITIAL_LAST].includes(
-        publishNameType,
-      )
-    ) {
+    if (PublishNameType.PUBLISH_NAME_INITIALS === publishNameType) {
       return this.user.firstName.substring(0, 1)
+    }
+    if (PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS === publishNameType) {
+      if (this.user.alias) {
+        return this.user.alias
+      } else {
+        return this.user.firstName.substring(0, 1)
+      }
     }
     return ''
   }
@@ -38,22 +41,21 @@ export class PublishNameLogic {
    *   first initial from user.lastName for PUBLISH_NAME_FIRST_INITIAL, PUBLISH_NAME_INITIALS
    */
   public getLastName(publishNameType: PublishNameType): string {
-    if (
-      [
-        PublishNameType.PUBLISH_NAME_LAST,
-        PublishNameType.PUBLISH_NAME_INITIAL_LAST,
-        PublishNameType.PUBLISH_NAME_FULL,
-      ].includes(publishNameType)
-    ) {
+    if (PublishNameType.PUBLISH_NAME_FULL === publishNameType) {
       return this.user.lastName
-    }
-    if (
+    } else if (
       [PublishNameType.PUBLISH_NAME_FIRST_INITIAL, PublishNameType.PUBLISH_NAME_INITIALS].includes(
         publishNameType,
       )
     ) {
       return this.user.lastName.substring(0, 1)
+    } else if (
+      PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS === publishNameType &&
+      !this.user.alias
+    ) {
+      return this.user.lastName.substring(0, 1)
     }
+
     return ''
   }
 }

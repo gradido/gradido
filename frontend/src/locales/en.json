@@ -5,11 +5,16 @@
   "1000thanks": "1000 thanks for being with us!",
   "125": "125%",
   "85": "85%",
-  "ExternServices": "Extern Services",
   "GDD": "GDD",
   "GDT": "GDT",
-  "GMS": "Gradido Map",
-  "Humhub": "Gradido Community",
+  "GMS": {
+    "title": "Geo Matching System GMS (in develop)",
+    "desc": "Find members of all communities on a map."
+  },
+  "Humhub": {
+    "title": "Gradido-circles",
+    "desc": "Together we support each other - mindful in circle culture."
+  },
   "PersonalDetails": "Personal details",
   "advanced-calculation": "Advanced calculation",
   "asterisks": "****",
@@ -25,6 +30,11 @@
     }
   },
   "back": "Back",
+  "circles": {
+    "headline": "Together we support each other - mindful in circle culture.",
+    "text": "We can communicate and collaborate freely in protected spaces without having to rely on social media. Click on the button to open the collaboration platform in a new browser window.",
+    "button": "Gradido circles start..."
+  },
   "community": {
     "admins": "Administrators",
     "choose-another-community": "Choose another community",
@@ -268,6 +278,7 @@
     "overview": "Overview",
     "send": "Send",
     "settings": "Settings",
+    "circles": "Circle",
     "support": "Support",
     "transactions": "Transactions",
     "usersearch": "Geographical User Search"
@@ -281,6 +292,7 @@
     "send": "Send Gradidos",
     "settings": "Settings",
     "transactions": "Your transactions",
+    "circles": "Gradido Circles (Beta)",
     "usersearch": "Geographical User Search"
   },
   "qrCode": "QR Code",
@@ -294,6 +306,8 @@
     "warningText": "Are you still there?"
   },
   "settings": {
+    "allow-community-services": "Allow Community Services",
+    "community": "Community",
     "emailInfo": "Cannot be changed at this time.",
     "GMS": {
       "disabled": "Data not exported to GMS",
@@ -302,8 +316,8 @@
         "label": "pinpoint location",
         "button": "click me!"
       },
-      "location-format": "location type",
-      "naming-format": "Format of name in GMS",
+      "location-format": "Show position on map:",
+      "naming-format": "Show Name:",
       "publish-location": {
         "exact": "exact position",
         "approximate": "approximate position",
@@ -311,30 +325,19 @@
         "updated": "format of location for GMS updated"
       },
       "publish-name": {
-        "alias-or-initials": "Username or initials",
-        "alias-or-initials-tooltip": "username if exists or Initials of firstname and lastname",
-        "first": "firstname",
-        "first-tooltip": "the firstname only",
-        "first-initial": "firstname and initial",
-        "first-initial-tooltip": "firstname plus initial of lastname",
-        "initials": "Initials of firstname and lastname independent if username exists",
-        "initials-tooltip": "Initials of firstname and lastname independent if username exists",
-        "name-full": "fullname",
-        "name-full-tooltip": "fullname: firstname plus lastname",
         "updated": "format of name for GMS updated"
-      },
-      "switch": "Allow data export to GMS"
+      }
     },
     "hideAmountGDD": "Your GDD amount is hidden.",
     "hideAmountGDT": "Your GDT amount is hidden.",
     "humhub": {
+      "delete-disabled": "The user account can only be deleted in the profile menu of the cooperation platform.",
       "disabled": "Data not exported into the Gradido Community",
       "enabled": "Data exported into the Gradido Community",
-      "naming-format": "Format of name in the Gradido Community",
+      "naming-format": "Show Name:",
       "publish-name": {
         "updated": "Format of name for the Gradido Community updated."
-      },
-      "switch": "Allow data export into the Gradido Community."
+      }
     },
     "info": "Transactions can now be made by username or email address.",
     "language": {
@@ -374,20 +377,16 @@
       "subtitle": "If you have forgotten your password, you can reset it here."
     },
     "publish-name": {
-      "none": "None",
-      "none-tooltip": "first name and last name are empty",
-      "first": "first name",
-      "first-tooltip": "the first name only",
-      "first-initial": "first name and initial",
-      "first-initial-tooltip": "first name plus initial of last name",
-      "last": "last name",
-      "last-tooltip": "last name only",
-      "last-initial": "initial and last name",
-      "last-initial-tooltip": "First letter of the first name plus last name",
-      "initials": "initials",
-      "initials-tooltip": "Initials of first name and last name",
-      "full": "full name",
-      "full-tooltip": "full name: firstname plus lastname"
+      "alias-or-initials": "Username or initials (Default)",
+      "alias-or-initials-tooltip": "username if exists or Initials of firstname and lastname",
+      "first": "firstname",
+      "first-tooltip": "the firstname only",
+      "first-initial": "firstname and initial",
+      "first-initial-tooltip": "firstname plus initial of lastname",
+      "initials": "Initials",
+      "initials-tooltip": "Initials of firstname and lastname independent if username exists",
+      "name-full": "firstname and lastname",
+      "name-full-tooltip": "fullname: firstname plus lastname"
     },
     "showAmountGDD": "Your GDD amount is visible.",
     "showAmountGDT": "Your GDT amount is visible.",

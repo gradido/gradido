@@ -36,7 +36,7 @@ export const updateUserInfos = gql`
     $hideAmountGDT: Boolean
     $gmsAllowed: Boolean
     $humhubAllowed: Boolean
-    $gmsPublishName: GmsPublishNameType
+    $gmsPublishName: PublishNameType
     $humhubPublishName: PublishNameType
     $gmsLocation: Location
     $gmsPublishLocation: GmsPublishLocationType

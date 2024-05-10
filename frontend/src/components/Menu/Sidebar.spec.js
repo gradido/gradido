@@ -35,9 +35,9 @@ describe('Sidebar', () => {
       expect(wrapper.find('div#component-sidebar').exists()).toBe(true)
     })
 
-    describe('the genaral section', () => {
-      it('has six nav-items', () => {
-        expect(wrapper.findAll('ul').at(0).findAll('.nav-item')).toHaveLength(6)
+    describe('the general section', () => {
+      it('has seven nav-items', () => {
+        expect(wrapper.findAll('ul').at(0).findAll('.nav-item')).toHaveLength(7)
       })
 
       it('has nav-item "navigation.overview" in navbar', () => {
@@ -60,8 +60,12 @@ describe('Sidebar', () => {
         expect(wrapper.findAll('.nav-item').at(4).text()).toContain('navigation.info')
       })
 
-      it('has nav-item "usersearch" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(5).text()).toContain('navigation.usersearch')
+      it('has nav-item "navigation.circles" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(5).text()).toContain('navigation.circles')
+      })
+
+      it('has nav-item "navigation.usersearch" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(6).text()).toContain('navigation.usersearch')
       })
     })
 

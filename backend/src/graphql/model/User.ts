@@ -2,7 +2,6 @@ import { User as dbUser } from '@entity/User'
 import { ObjectType, Field, Int } from 'type-graphql'
 
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
-import { GmsPublishNameType } from '@enum/GmsPublishNameType'
 import { PublishNameType } from '@enum/PublishNameType'
 
 import { KlickTipp } from './KlickTipp'
@@ -89,8 +88,8 @@ export class User {
   @Field(() => Boolean)
   gmsAllowed: boolean
 
-  @Field(() => GmsPublishNameType, { nullable: true })
-  gmsPublishName: GmsPublishNameType | null
+  @Field(() => PublishNameType, { nullable: true })
+  gmsPublishName: PublishNameType | null
 
   @Field(() => PublishNameType, { nullable: true })
   humhubPublishName: PublishNameType | null
