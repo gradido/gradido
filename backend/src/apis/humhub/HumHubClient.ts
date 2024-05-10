@@ -1,4 +1,3 @@
-import { User } from '@entity/User'
 import { SignJWT } from 'jose'
 import { IRequestOptions, IRestResponse, RestClient } from 'typed-rest-client'
 
@@ -6,6 +5,7 @@ import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
+import { PostUserLoggingView } from './logging/PostUserLogging.view'
 import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'
 import { UsersResponse } from './model/UsersResponse'
@@ -59,9 +59,8 @@ export class HumHubClient {
     return token
   }
 
-  public async createAutoLoginUrl(user: User) {
+  public async createAutoLoginUrl(username: string) {
     const secret = new TextEncoder().encode(CONFIG.HUMHUB_JWT_KEY)
-    const username = user.alias ?? user.gradidoID
     logger.info(`user ${username} as username for humhub auto-login`)
     const token = await new SignJWT({ username })
       .setProtectedHeader({ alg: 'HS256' })
@@ -109,6 +108,11 @@ export class HumHubClient {
     return this.restClient.get<GetUser>('/api/v1/user/get-by-email', options)
   }
 
+  public async userByUsernameAsync(username: string): Promise<IRestResponse<GetUser>> {
+    const options = await this.createRequestOptions({ username })
+    return this.restClient.get<GetUser>('/api/v1/user/get-by-username', options)
+  }
+
   /**
    * get user by username
    * https://marketplace.humhub.com/module/rest/docs/html/user.html#tag/User/paths/~1user~1get-by-username/get
@@ -130,7 +134,7 @@ export class HumHubClient {
    * @param user for saving on humhub instance
    */
   public async createUser(user: PostUser): Promise<void> {
-    logger.info('create new humhub user', user)
+    logger.info('create new humhub user', new PostUserLoggingView(user))
     const options = await this.createRequestOptions()
     try {
       const response = await this.restClient.create('/api/v1/user', user, options)
@@ -153,7 +157,7 @@ export class HumHubClient {
    * @returns updated user object on success
    */
   public async updateUser(user: PostUser, humhubUserId: number): Promise<GetUser | null> {
-    logger.info('update humhub user', user)
+    logger.info('update humhub user', new PostUserLoggingView(user))
     const options = await this.createRequestOptions()
     const response = await this.restClient.update<GetUser>(
       `/api/v1/user/${humhubUserId}`,

@@ -28,7 +28,7 @@ export async function syncHumhub(
     return
   }
   logger.debug('retrieve user from humhub')
-  const humhubUser = await humhubClient.userByEmail(user.emailContact.email)
+  const humhubUser = await humhubClient.userByUsername(user.alias ?? user.gradidoID)
   const humhubUsers = new Map<string, GetUser>()
   if (humhubUser) {
     humhubUsers.set(user.emailContact.email, humhubUser)
