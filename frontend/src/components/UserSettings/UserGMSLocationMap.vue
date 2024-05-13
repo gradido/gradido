@@ -130,12 +130,15 @@ export default {
     async onChange() {
       this.fixYourKoord = !this.fixYourKoord
     },
-    getUserLocation() {
+    async getUserLocation() {
+      console.log('getUserLocation')
       this.$apollo
         .query({
           query: userLocationQuery,
+          fetchPolicy: 'network-only',
         })
         .then((result) => {
+          console.log('getUserLocation data=', result.data)
           this.userLocation = result.data.userLocation.userLocation
           this.currentCenter = this.userLocation
           this.center = this.userLocation
@@ -151,6 +154,7 @@ export default {
     },
 
     beforeCreated() {
+      console.log('beforeCreated')
       this.getUserLocation()
     },
     beforeClose(event) {
