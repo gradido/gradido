@@ -27,9 +27,14 @@
           <b-row class="my-5">
             <b-col cols="12">
               <div class="text-lg-right">
-                <b-button variant="gradido" :href="item.url" target="_blank">
+                <b-button v-if="item.url" variant="gradido" :href="item.url" target="_blank">
                   {{ item.button }}
                 </b-button>
+                <RouterLink v-else-if="item.internUrl" to="/settings/extern">
+                  <b-button variant="gradido">
+                    {{ item.button }}
+                  </b-button>
+                </RouterLink>
               </div>
             </b-col>
           </b-row>

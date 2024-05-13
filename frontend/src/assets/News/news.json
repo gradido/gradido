@@ -1,37 +1,42 @@
 [
   {
     "locale": "de",
-    "text": "Gradido-Kreise – Gemeinsam mit Freunden die Zukunft gestalten",
-    "button": "Mehr erfahren",
-    "url": "https://gradido.net/de/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten",
-    "extra": "Ganz gleich, ob Ihr bereits einer Gruppe zugehörig seid oder ob Ihr Euch über Gradido gefunden habt – wenn Ihr gemeinsam Gradido nutzen wollt, braucht Ihr nicht gleich einen eigenen Gradido-Server."
+    "text": "Gradido-Kreise: neue interne Kooperationsplattform",
+    "button": "Jetzt freischalten...",
+    "internUrl": "https://gradido.net/de/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten",
+    "extra": "Gemeinsam unterstützen wir einander, achtsam in Kreiskultur. In geschützten Räumen können wir nun frei kommunizieren und zusammenarbeiten, ohne auf die sozialen Medien angewiesen zu sein.",
+    "extra2": "Schalte Gradido-Kreise in den Einstellungen/Community frei und klicke anschließend auf das Menü \"Kreise\"!"
   },
   {
     "locale": "en",
-    "text": "Gradido circles - Shaping the future together with friends",
-    "button": "Learn more",
-    "url": "https://gradido.net/en/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
-    "extra": "No matter whether you already belong to a group or whether you found each other via Gradido - if you want to use Gradido together, you don't need your own Gradido server."
+    "text": "Gradido circles: new internal cooperation platform",
+    "button": "Activate now...",
+    "internUrl": "https://gradido.net/en/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
+    "extra": "Together, we support each other, mindfully in a circular culture. We can now communicate and collaborate freely in protected spaces without having to rely on social media.",
+    "extra2": "Activate Gradido circles in the settings/community and then click on the menu \"Circles\"!"
   },
   {
     "locale": "fr",
-    "text": "Cercles Gradido - Construire l'avenir ensemble avec des amis ",
+    "text": "Cercles Gradido : nouvelle plateforme de coopération interne",
     "button": "En savoir plus",
-    "url": "https://gradido.net/fr/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
-    "extra": "Que vous fassiez déjà partie d'un groupe ou que vous vous soyez trouvés par le biais de Gradido, si vous voulez utiliser Gradido ensemble, vous n'avez pas besoin de votre propre serveur Gradido."
+    "internUrl": "https://gradido.net/fr/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
+    "extra": "Ensemble, nous nous soutenons mutuellement, en étant attentifs à la culture du cercle. Dans des espaces protégés, nous pouvons désormais communiquer et collaborer librement, sans être tributaires des médias sociaux.",
+    "extra2": "Débloque les cercles Gradido dans les paramètres/communauté et clique ensuite sur le menu \"Cercles\" !"
   },
   {
     "locale": "es",
-    "text": "Círculos Gradido - Forjar el futuro entre amigos ",
-    "button": "Más información",
-    "url": "https://gradido.net/es/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
-    "extra": "No importa si ya pertenecéis a un grupo o si os habéis encontrado a través de Gradido: si queréis utilizar Gradido juntos, no necesitáis vuestro propio servidor Gradido."
+    "text": "Círculos Gradido: nueva plataforma de cooperación interna",
+    "button": "Activar ahora...",
+    "internUrl": "https://gradido.net/es/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
+    "extra": "Juntos, nos apoyamos mutuamente, de forma consciente, en una cultura circular. Ahora podemos comunicarnos y colaborar libremente en espacios protegidos sin tener que depender de las redes sociales.",
+    "extra2": "Activa los círculos de Gradido en los ajustes/comunidad y luego haz clic en el menú \"Círculos\"."
   },
   {
     "locale": "nl",
-    "text": "Gradidokringen - Samen met vrienden de toekomst vormgeven",
-    "button": "Meer informatie",
-    "url": "https://gradido.net/nl/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
-    "extra": "Het maakt niet uit of je al tot een groep behoort of dat je elkaar via Gradido hebt gevonden - als je Gradido samen wilt gebruiken, heb je geen eigen Gradido-server nodig."
+    "text": "Gradido cirkels: nieuw intern samenwerkingsplatform",
+    "button": "Nu activeren...",
+    "internUrl": "https://gradido.net/nl/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
+    "extra": "Samen ondersteunen we elkaar, mindful in een circulaire cultuur. We kunnen nu vrij communiceren en samenwerken in beschermde ruimtes zonder afhankelijk te zijn van sociale media.",
+    "extra2": "Activeer Gradido cirkels in de instellingen/community en klik dan op het menu \"Cirkels\"!"
   }
 ]
