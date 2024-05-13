@@ -168,7 +168,9 @@ export class UserResolver {
     let humhubUserPromise: Promise<IRestResponse<GetUser>> | undefined
     const klicktippStatePromise = getKlicktippState(dbUser.emailContact.email)
     if (CONFIG.HUMHUB_ACTIVE && dbUser.humhubAllowed) {
-      humhubUserPromise = HumHubClient.getInstance()?.userByUsernameAsync(email)
+      humhubUserPromise = HumHubClient.getInstance()?.userByUsernameAsync(
+        dbUser.alias ?? dbUser.gradidoID,
+      )
     }
 
     if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
@@ -727,7 +729,10 @@ export class UserResolver {
       throw new LogError('cannot create humhub client')
     }
     const username = dbUser.alias ?? dbUser.gradidoID
-    const humhubUser = await humhubClient.userByUsername(username)
+    let humhubUser = await humhubClient.userByUsername(username)
+    if (!humhubUser) {
+      humhubUser = await humhubClient.userByEmail(dbUser.emailContact.email)
+    }
     if (!humhubUser) {
       throw new LogError("user don't exist (any longer) on humhub")
     }
