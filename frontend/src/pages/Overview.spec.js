@@ -1,7 +1,9 @@
-import { mount } from '@vue/test-utils'
+import { RouterLinkStub, mount } from '@vue/test-utils'
 import Overview from './Overview'
+import VueRouter from 'vue-router'
 
 const localVue = global.localVue
+localVue.use(VueRouter)
 
 window.scrollTo = jest.fn()
 
@@ -20,6 +22,9 @@ describe('Overview', () => {
     return mount(Overview, {
       localVue,
       mocks,
+      stubs: {
+        RouterLink: RouterLinkStub,
+      },
     })
   }
 
