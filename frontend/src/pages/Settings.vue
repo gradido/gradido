@@ -116,20 +116,19 @@
           <div v-if="isGMS" class="mt-3">
             <b-row>
               <b-col cols="12" md="6" lg="6">
-                <div class="h3 text-muted">{{ $t('GMS.title') }}</div>
+                <div class="h3">{{ $t('GMS.title') }}</div>
               </b-col>
               <b-col cols="12" md="6" lg="6" class="text-right">
                 <user-settings-switch
                   @valueChanged="gmsStateSwitch"
                   :initialValue="$store.state.gmsAllowed"
                   :attrName="'gmsAllowed'"
-                  :disabled="true"
                   :enabledText="$t('settings.GMS.enabled')"
                   :disabledText="$t('settings.GMS.disabled')"
                 />
               </b-col>
             </b-row>
-            <div class="h4 mt-3 text-muted">{{ $t('GMS.desc') }}</div>
+            <div class="h4 mt-3">{{ $t('GMS.desc') }}</div>
             <div v-if="gmsAllowed">
               <b-row class="mb-4">
                 <b-col cols="12" md="6" lg="6">
@@ -160,6 +159,17 @@
                 </b-col>
               </b-row>
             </div>
+          </div>
+          <div v-else>
+            <b-row>
+              <b-col cols="12" md="6" lg="6">
+                <div class="h3 text-muted">{{ $t('GMS.title') }}</div>
+              </b-col>
+              <b-col cols="12" md="6" lg="6" class="text-right">
+                <user-settings-switch :disabled="true" />
+              </b-col>
+            </b-row>
+            <div class="h4 mt-3 text-muted">{{ $t('GMS.desc') }}</div>
           </div>
         </b-tab>
       </div>
@@ -241,16 +251,16 @@ export default {
       return firstName === this.firstName && lastName === this.lastName
     },
     isHumhubActivated() {
-      return this.humhubAllowed
+      return this.humhubAllowed === true
     },
     isCommunityService() {
       return this.isGMS || this.isHumhub
     },
     isGMS() {
-      return CONFIG.GMS_ACTIVE
+      return CONFIG.GMS_ACTIVE === 'true'
     },
     isHumhub() {
-      return CONFIG.HUMHUB_ACTIVE
+      return CONFIG.HUMHUB_ACTIVE === 'true'
     },
   },
   // TODO: watch: {
