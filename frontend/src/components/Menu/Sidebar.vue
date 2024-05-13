@@ -95,7 +95,7 @@ export default {
       return CONFIG.HUMHUB_ACTIVE === 'true'
     },
     isGMS() {
-      return CONFIG.HUMHUB_ACTIVE === 'true'
+      return CONFIG.GMS_ACTIVE === 'true'
     },
   },
 }
