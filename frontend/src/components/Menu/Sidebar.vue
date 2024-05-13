@@ -28,11 +28,11 @@
             <b-img src="/img/svg/info.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.info') }}</span>
           </b-nav-item>
-          <b-nav-item to="/circles" :class="humhubClass" active-class="activeRoute">
+          <b-nav-item to="/circles" v-if="isHumhub" class="mb-3" active-class="activeRoute">
             <b-img src="/img/svg/circles.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.circles') }}</span>
           </b-nav-item>
-          <b-nav-item to="/usersearch" :class="GMSClass" active-class="activeRoute">
+          <b-nav-item to="/usersearch" v-if="isGMS" active-class="activeRoute">
             <b-img src="/img/loupe.png" height="20" />
             <span class="ml-2">{{ $t('navigation.usersearch') }}</span>
           </b-nav-item>
@@ -91,18 +91,11 @@ export default {
       }
       return 'mb-3'
     },
-    humhubClass() {
-      if (CONFIG.HUMHUB_ACTIVE === 'true') {
-        return 'mb-3'
-      } else {
-        return 'invisible'
-      }
+    isHumhub() {
+      return CONFIG.HUMHUB_ACTIVE === 'true'
     },
-    GMSClass() {
-      if (CONFIG.GMS_ACTIVE !== 'true') {
-        return 'invisible'
-      }
-      return ''
+    isGMS() {
+      return CONFIG.HUMHUB_ACTIVE === 'true'
     },
   },
 }
@@ -124,9 +117,6 @@ export default {
   filter: brightness(0) invert(0);
 }
 
-.invisible {
-  display: none;
-}
 #component-sidebar {
   min-width: 200px;
 }
