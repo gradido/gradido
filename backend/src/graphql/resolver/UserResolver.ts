@@ -169,7 +169,7 @@ export class UserResolver {
     const klicktippStatePromise = getKlicktippState(dbUser.emailContact.email)
     if (CONFIG.HUMHUB_ACTIVE && dbUser.humhubAllowed) {
       humhubUserPromise = HumHubClient.getInstance()?.userByUsernameAsync(
-        dbUser.alias && dbUser.gradidoID,
+        dbUser.alias ?? dbUser.gradidoID,
       )
     }
 
