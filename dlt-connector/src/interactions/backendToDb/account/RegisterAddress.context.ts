@@ -25,7 +25,8 @@ export class RegisterAddressContext {
   public constructor(private userAccountDraft: UserAccountDraft) {}
 
   public async run(): Promise<TransactionWithAccount> {
-    const communityKeyPair = await CommunityRepository.loadHomeCommunityKeyPair()
+    const community = await CommunityRepository.loadHomeCommunity()
+    const communityKeyPair = new KeyPair(community)
     const user = await this.loadOrCreateUser(communityKeyPair)
     if (this.isAccountAlreadyExistOnUser(user)) {
       throw new TransactionError(
@@ -37,6 +38,7 @@ export class RegisterAddressContext {
     const account = this.createAccount(new UserLogic(user).calculateKeyPair(communityKeyPair))
     account.user = user
     const createTransactionContext = new CreateTransactionRecipeContext(this.userAccountDraft, {
+      community,
       account,
     })
     await createTransactionContext.run()

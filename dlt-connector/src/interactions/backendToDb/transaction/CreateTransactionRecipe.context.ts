@@ -74,9 +74,13 @@ export class CreateTransactionRecipeContext {
       if (!this.data?.account) {
         throw new TransactionError(TransactionErrorType.MISSING_PARAMETER, 'account was not set')
       }
+      if (!this.data.community) {
+        throw new TransactionError(TransactionErrorType.MISSING_PARAMETER, 'community was not set')
+      }
       this.transactionRecipe = await new RegisterAddressTransactionRole().create(
         this.draft,
         this.data.account,
+        this.data.community,
       )
       return true
     }

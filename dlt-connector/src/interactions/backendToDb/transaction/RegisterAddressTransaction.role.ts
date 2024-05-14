@@ -1,4 +1,5 @@
 import { Account } from '@entity/Account'
+import { Community } from '@entity/Community'
 
 import { AccountLogic } from '@/data/Account.logic'
 import { CommunityRepository } from '@/data/Community.repository'
@@ -13,6 +14,7 @@ export class RegisterAddressTransactionRole extends AbstractTransactionRecipeRol
   async create(
     userAccountDraft: UserAccountDraft,
     account: Account,
+    community: Community,
   ): Promise<AbstractTransactionRecipeRole> {
     const bodyBuilder = new TransactionBodyBuilder()
     const communityKeyPair = await CommunityRepository.loadHomeCommunityKeyPair()
@@ -22,6 +24,7 @@ export class RegisterAddressTransactionRole extends AbstractTransactionRecipeRol
     }
     this.transactionBuilder
       .fromTransactionBodyBuilder(bodyBuilder.fromUserAccountDraft(userAccountDraft, account))
+      .setCommunity(community)
       .setSignature(signingKeyPair.sign(this.transactionBuilder.getTransaction().bodyBytes))
       .setSigningAccount(account)
     return this

@@ -1,11 +1,11 @@
+import { TransactionRecipe } from '@model/TransactionRecipe'
 import { Arg, Mutation, Query, Resolver } from 'type-graphql'
 import { QueryFailedError } from 'typeorm'
-
-import { TransactionRecipe } from '@model/TransactionRecipe'
 
 import { TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY } from '@/data/const'
 import { UserRepository } from '@/data/User.repository'
 import { RegisterAddressContext } from '@/interactions/backendToDb/account/RegisterAddress.context'
+import { AccountLoggingView } from '@/logging/AccountLogging.view'
 import { logger } from '@/logging/logger'
 import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { InterruptiveSleepManager } from '@/manager/InterruptiveSleepManager'
@@ -33,6 +33,10 @@ export class AccountResolver {
     const registerAddressContext = new RegisterAddressContext(userAccountDraft)
     try {
       const { transaction, account } = await registerAddressContext.run()
+      logger.info('register address', {
+        account: new AccountLoggingView(account),
+        transaction: new TransactionLoggingView(transaction),
+      })
       await getDataSource().transaction(async (transactionalEntityManager) => {
         await transactionalEntityManager.save(account)
         await transactionalEntityManager.save(transaction)
