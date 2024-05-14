@@ -1,4 +1,5 @@
 import { Transaction as DbTransaction } from '@entity/Transaction'
+import { User } from '@entity/User'
 import { gql, GraphQLClient } from 'graphql-request'
 
 import { CONFIG } from '@/config'
@@ -6,13 +7,31 @@ import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
+import { AccountType } from './enum/AccountType'
 import { TransactionResult } from './model/TransactionResult'
+import { UserAccountDraft } from './model/UserAccountDraft'
 import { UserIdentifier } from './model/UserIdentifier'
 
 const sendTransaction = gql`
   mutation ($input: TransactionInput!) {
     sendTransaction(data: $input) {
-      dltTransactionIdHex
+      error {
+        message
+        name
+      }
+      succeed
+    }
+  }
+`
+
+const registerAddress = gql`
+  mutation ($input: UserAccountDraft!) {
+    registerAddress(data: $input) {
+      error {
+        message
+        name
+      }
+      succeed
     }
   }
 `
@@ -63,7 +82,10 @@ export class DltConnectorClient {
     if (!DltConnectorClient.instance.client) {
       try {
         DltConnectorClient.instance.client = new GraphQLClient(CONFIG.DLT_CONNECTOR_URL, {
-          method: 'GET',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
           jsonSerializer: {
             parse: JSON.parse,
             stringify: JSON.stringify,
@@ -118,7 +140,45 @@ export class DltConnectorClient {
       }
       return succeed
     } catch (e) {
+      console.log("catch response dlt:", e)
       throw new LogError('Error send sending transaction to dlt-connector: ', e)
+    }
+  }
+
+  public async registerAddress(dbUser: User): Promise<TransactionResult | undefined> {
+    console.log('dlt:registerAddress')
+    const params = {
+      input: {
+        user: {
+          uuid: dbUser.gradidoID,
+          communityUuid: dbUser.communityUuid,
+          accountNr: 1,
+        } as UserIdentifier,
+        createdAt: dbUser.createdAt.toISOString(),
+        accountType: AccountType.COMMUNITY_HUMAN,
+      } as UserAccountDraft,
+    }
+    try {
+      console.log('before send with', params)
+      const {
+        data: { registerAddress: result },
+      } = await this.client.rawRequest<{ registerAddress: TransactionResult }>(
+        registerAddress,
+        params,
+      )
+      console.log('after send')
+      console.log('result: ', result)
+      logger.info('send register address transaction to dlt-connector', {
+        params,
+        result,
+      })
+      if (result.error) {
+        logger.error('Error sending register address transaction to dlt-connector', result.error)
+      }
+      return result
+    } catch (e) {
+      console.log('exception', e)
+      logger.error('Exception sending register address transaction to dlt-connector', e)
     }
   }
 }

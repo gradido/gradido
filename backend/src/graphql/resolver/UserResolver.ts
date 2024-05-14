@@ -30,6 +30,7 @@ import { SearchAdminUsersResult } from '@model/AdminUser'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 
+import { DltConnectorClient } from '@/apis/dltConnector/DltConnectorClient'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -358,6 +359,12 @@ export class UserResolver {
       await queryRunner.release()
     }
     logger.info('createUser() successful...')
+
+    const dltConnector = DltConnectorClient.getInstance()
+    if (dltConnector) {
+      const r = await dltConnector.registerAddress(dbUser)
+      console.log('result from dlt', r)
+    }
 
     if (redeemCode) {
       eventRegisterRedeem.affectedUser = dbUser
