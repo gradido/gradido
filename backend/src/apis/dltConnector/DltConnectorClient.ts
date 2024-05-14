@@ -140,13 +140,11 @@ export class DltConnectorClient {
       }
       return succeed
     } catch (e) {
-      console.log("catch response dlt:", e)
       throw new LogError('Error send sending transaction to dlt-connector: ', e)
     }
   }
 
   public async registerAddress(dbUser: User): Promise<TransactionResult | undefined> {
-    console.log('dlt:registerAddress')
     const params = {
       input: {
         user: {
@@ -159,15 +157,12 @@ export class DltConnectorClient {
       } as UserAccountDraft,
     }
     try {
-      console.log('before send with', params)
       const {
         data: { registerAddress: result },
       } = await this.client.rawRequest<{ registerAddress: TransactionResult }>(
         registerAddress,
         params,
       )
-      console.log('after send')
-      console.log('result: ', result)
       logger.info('send register address transaction to dlt-connector', {
         params,
         result,
@@ -177,7 +172,6 @@ export class DltConnectorClient {
       }
       return result
     } catch (e) {
-      console.log('exception', e)
       logger.error('Exception sending register address transaction to dlt-connector', e)
     }
   }

@@ -1,5 +1,6 @@
 import 'reflect-metadata'
 import { Account } from '@entity/Account'
+import { Community } from '@entity/Community'
 import { Decimal } from 'decimal.js-light'
 import { v4 } from 'uuid'
 
@@ -8,11 +9,14 @@ import { TestDB } from '@test/TestDB'
 import { CONFIG } from '@/config'
 import { KeyPair } from '@/data/KeyPair'
 import { Mnemonic } from '@/data/Mnemonic'
+import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
 import { TransactionType } from '@/data/proto/3_3/enum/TransactionType'
 import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
+import { AccountType } from '@/graphql/enum/AccountType'
 import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
 
 import { CreateTransactionRecipeContext } from './CreateTransactionRecipe.context'
@@ -39,6 +43,7 @@ let moderator: UserSet
 let firstUser: UserSet
 let secondUser: UserSet
 let foreignUser: UserSet
+let homeCommunity: Community
 
 const topic = iotaTopicFromCommunityUUID(homeCommunityUuid)
 const foreignTopic = iotaTopicFromCommunityUUID(foreignCommunityUuid)
@@ -46,7 +51,7 @@ const foreignTopic = iotaTopicFromCommunityUUID(foreignCommunityUuid)
 describe('interactions/backendToDb/transaction/Create Transaction Recipe Context Test', () => {
   beforeAll(async () => {
     await TestDB.instance.setupTestDB()
-    await communitySeed(homeCommunityUuid, false)
+    homeCommunity = await communitySeed(homeCommunityUuid, false)
     await communitySeed(foreignCommunityUuid, true, foreignKeyPair)
 
     moderator = createUserSet(homeCommunityUuid, keyPair)
@@ -64,6 +69,43 @@ describe('interactions/backendToDb/transaction/Create Transaction Recipe Context
 
   afterAll(async () => {
     await TestDB.instance.teardownTestDB()
+  })
+
+  it('register address transaction', async () => {
+    const userAccountDraft = new UserAccountDraft()
+    userAccountDraft.accountType = AccountType.COMMUNITY_HUMAN
+    userAccountDraft.createdAt = new Date().toISOString()
+    userAccountDraft.user = firstUser.identifier
+    const context = new CreateTransactionRecipeContext(userAccountDraft, {
+      account: firstUser.account,
+      community: homeCommunity,
+    })
+    await context.run()
+    const transaction = context.getTransactionRecipe()
+    expect(transaction).toMatchObject({
+      type: TransactionType.REGISTER_ADDRESS,
+      protocolVersion: '3.3',
+      community: {
+        rootPubkey: keyPair.publicKey,
+        foreign: 0,
+        iotaTopic: topic,
+      },
+      signingAccount: {
+        derive2Pubkey: firstUser.account.derive2Pubkey,
+      },
+    })
+
+    const body = TransactionBody.fromBodyBytes(transaction.bodyBytes)
+    expect(body.registerAddress).toBeDefined()
+    if (!body.registerAddress) throw new Error()
+
+    expect(body).toMatchObject({
+      type: CrossGroupType.LOCAL,
+      registerAddress: {
+        derivationIndex: 1,
+        addressType: AddressType.COMMUNITY_HUMAN,
+      },
+    })
   })
 
   it('creation transaction', async () => {

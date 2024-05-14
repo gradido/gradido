@@ -45,7 +45,6 @@ export class CreateTransactionRecipeContext {
    */
   public async run(): Promise<boolean> {
     if (this.draft instanceof TransactionDraft) {
-      const transactionRecipeRole = new BalanceChangingTransactionRecipeRole()
       // contain logic for translation from backend to dlt-connector format
       let transactionTypeRole: AbstractTransactionRole
       switch (this.draft.type) {
@@ -59,7 +58,10 @@ export class CreateTransactionRecipeContext {
           transactionTypeRole = new ReceiveTransactionRole(this.draft)
           break
       }
-      await transactionRecipeRole.create(this.draft, transactionTypeRole)
+      this.transactionRecipe = await new BalanceChangingTransactionRecipeRole().create(
+        this.draft,
+        transactionTypeRole,
+      )
       return true
     } else if (this.draft instanceof CommunityDraft) {
       if (!this.data?.community) {
