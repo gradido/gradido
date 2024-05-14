@@ -1,6 +1,8 @@
-import { IsBoolean, IsInt, IsString } from 'class-validator'
+import { IsBoolean, IsEnum, IsInt, IsString } from 'class-validator'
 import { ArgsType, Field, InputType, Int } from 'type-graphql'
 
+import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
+import { PublishNameType } from '@enum/PublishNameType'
 import { Location } from '@model/Location'
 
 import { isValidLocation } from '@/graphql/validator/Location'
@@ -44,19 +46,27 @@ export class UpdateUserInfosArgs {
   @IsBoolean()
   hideAmountGDT?: boolean
 
-  @Field({ nullable: true, defaultValue: true })
+  @Field({ nullable: true })
+  @IsBoolean()
+  humhubAllowed?: boolean
+
+  @Field({ nullable: true })
   @IsBoolean()
   gmsAllowed?: boolean
 
-  @Field(() => Int, { nullable: true, defaultValue: 0 })
-  @IsInt()
-  gmsPublishName?: number | null
+  @Field(() => PublishNameType, { nullable: true })
+  @IsEnum(PublishNameType)
+  gmsPublishName?: PublishNameType | null
+
+  @Field(() => PublishNameType, { nullable: true })
+  @IsEnum(PublishNameType)
+  humhubPublishName?: PublishNameType | null
 
   @Field(() => Location, { nullable: true })
   @isValidLocation()
   gmsLocation?: Location | null
 
-  @Field(() => Int, { nullable: true, defaultValue: 2 })
-  @IsInt()
-  gmsPublishLocation?: number | null
+  @Field(() => GmsPublishLocationType, { nullable: true })
+  @IsEnum(GmsPublishLocationType)
+  gmsPublishLocation?: GmsPublishLocationType | null
 }

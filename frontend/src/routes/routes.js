@@ -80,6 +80,22 @@ const routes = [
       pageTitle: 'information',
     },
   },
+  {
+    path: '/usersearch',
+    component: () => import('@/pages/UserSearch'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'usersearch',
+    },
+  },
+  {
+    path: '/circles',
+    component: () => import('@/pages/Circles'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'circles',
+    },
+  },
   // {
   //   path: '/storys',
   //   component: () => import('@/pages/TopStorys'),
@@ -95,7 +111,7 @@ const routes = [
   //   },
   // },
   {
-    path: '/settings',
+    path: '/settings/:tabAlias?',
     component: () => import('@/pages/Settings'),
     meta: {
       requiresAuth: true,

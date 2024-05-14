@@ -7,6 +7,14 @@
   "85": "85%",
   "GDD": "GDD",
   "GDT": "GDT",
+  "GMS": {
+    "title": "Geo Matching System GMS (in Entwicklung)",
+    "desc": "Finde Mitglieder aller Communities auf einer Landkarte."
+  },
+  "Humhub": {
+    "title": "Gradido-Kreise",
+    "desc": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur."
+  },
   "PersonalDetails": "Persönliche Angaben",
   "advanced-calculation": "Vorausberechnung",
   "asterisks": "****",
@@ -22,6 +30,11 @@
     }
   },
   "back": "Zurück",
+  "circles": {
+    "headline": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
+    "text": "In geschützten Räumen können wir frei kommunizieren und kooperieren, ohne auf die sozialen Medien angewiesen zu sein. Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster.",
+    "button": "Gradido-Kreise starten..."
+  },
   "community": {
     "admins": "Administratoren",
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
@@ -265,8 +278,10 @@
     "overview": "Übersicht",
     "send": "Senden",
     "settings": "Einstellung",
+    "circles": "Kreise",
     "support": "Support",
-    "transactions": "Transaktionen"
+    "transactions": "Transaktionen",
+    "usersearch": "Nutzersuche"
   },
   "openHours": "Offene Stunden",
   "pageTitle": {
@@ -276,7 +291,9 @@
     "overview": "Willkommen {name}",
     "send": "Sende Gradidos",
     "settings": "Einstellungen",
-    "transactions": "Deine Transaktionen"
+    "circles": "Gradido Kreise (Beta)",
+    "transactions": "Deine Transaktionen",
+    "usersearch": "Geografische Nutzersuche"
   },
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
@@ -289,9 +306,39 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
+    "allow-community-services": "Community-Dienste erlauben",
+    "community": "Community",
     "emailInfo": "Kann aktuell noch nicht geändert werden.",
+    "GMS": {
+      "disabled": "Daten werden nicht nach GMS exportiert",
+      "enabled": "Daten werden nach GMS exportiert",
+      "location": {
+        "label": "Positionsbestimmung",
+        "button": "Klick mich!"
+      },
+      "location-format": "Position auf Karte anzeigen:",
+      "naming-format": "Namen anzeigen:",
+      "publish-location": {
+        "exact": "Genaue Position",
+        "approximate": "Ungefähre Position",
+        "random": "Zufallsposition",
+        "updated": "Positionstyp für GMS aktualisiert"
+      },
+      "publish-name": {
+        "updated": "Namensformat für GMS aktualisiert"
+      }
+    },
     "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
     "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
+    "humhub": {
+      "delete-disabled": "Das Benutzerkonto kann nur im Profil-Menü der Kooperationsplattform gelöscht werden.",
+      "disabled": "Daten werden nicht in die Gradido Community exportiert",
+      "enabled": "Daten werden in die Gradido Community exportiert",
+      "naming-format": "Namen anzeigen:",
+      "publish-name": {
+        "updated": "Namensformat für die Gradido Community aktualisiert."
+      }
+    },
     "info": "Transaktionen können nun per Benutzername oder E-Mail-Adresse getätigt werden.",
     "language": {
       "changeLanguage": "Sprache ändern",
@@ -328,6 +375,18 @@
         "text": "Speichere nun dein neues Passwort, mit dem du dich zukünftig in deinem Gradido-Konto anmelden kannst."
       },
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
+    },
+    "publish-name": {
+      "alias-or-initials": "Benutzername oder Initialen",
+      "alias-or-initials-tooltip": "Benutzername, falls vorhanden, oder die Initialen von Vorname und Nachname",
+      "first": "Vorname",
+      "first-tooltip": "Nur der Vornamen",
+      "first-initial": "Vorname und Initial",
+      "first-initial-tooltip": "Vornamen plus Anfangsbuchstabe des Nachnamens",
+      "initials": "Initialen",
+      "initials-tooltip": "Initialen von Vor- und Nachname unabhängig von der Existenz des Benutzernamens",
+      "name-full": "Vorname und Nachname",
+      "name-full-tooltip": "Vollständiger Name: Vorname plus Nachname"
     },
     "showAmountGDD": "Dein GDD Betrag ist sichtbar.",
     "showAmountGDT": "Dein GDT Betrag ist sichtbar.",
@@ -378,6 +437,11 @@
   },
   "transaction-link": {
     "send_you": "sendet dir"
+  },
+  "usersearch": {
+    "headline": "Geografische Nutzersuche",
+    "text": "Ganz gleich zu welcher Community du gehörst, mit dem Geo Matching System findest du Mitglieder aller Communities auf einer Landkarte. Du kannst nach  Angeboten und Bedürfnissen filtern und dir die Nutzer anzeigen lassen, die zu Dir passen.\n\nMit dem Button wird ein neues Browser-Fenster geöffnet, in dem dir die Nutzer in deinem Umfeld auf einer Karte angezeigt werden.",
+    "button": "Starte die Nutzersuche..."
   },
   "via_link": "über einen Link",
   "welcome": "Willkommen in der Gemeinschaft"

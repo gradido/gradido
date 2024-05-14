@@ -275,27 +275,44 @@ It contains a map-component of the leaflet library and offers to capture the use
 
 There is no user-specific authentication nor autorization necessary for this dialog as mentioned above.
 
-### GMS user playground dialog (gms efforts)
+### GMS user playground dialog
 
 As described in the chapter "User search" above, we need a dialog in GMS to display in a graphical map:
 
 * the location of the user as a red needle, who opens the user search-dialog
 * the location of his community as a circle, the invoker belongs to
-* the locations of all other users as white needles, belonging to the same community
+* the locations of all other users belonging to the same community as white/gray or black needles - depending on the location-type of the user
 * circles and needles of all other communities and users, which are nearby the requesting user and community location
 
-There is no user-specific authentication nor autorization necessary for this dialog as mentioned above.
+On activation of the menu-entry _user-search_ a technical flow in the background have to prepare the connection between the gradido-system and the gms-component. The following list will describe the necessary steps of all involved components:
 
-Which (filter-)components this playground-dialog should have next to the graphical location map is not clear at the moment. In the first run to display the above mentioned locations of users and communities with circles and needles will be sufficient.
+* **gradido-frontend:** user press the menu entry _user search_
+* **(1.a) gradido-frontend:** invokes the gradido-backend `authUserForGmsUserSearch`
+* **(1.b) gradido-backend:** the method `authUserForGmsUserSearch` reads the context-user of the current request and the uuid of the user's home-community. With these values it prepares the parameters for invokation of the `gms.verifyAuthToken` method. The first parameter is set by the `community-uuid` and the second parameter is a JWT-token with the encrypted `user-uuid` in the payload and signed by the community's privateKey
+* **(2.a) gradido-backend:** invokes the `gms.verifyAuthToken` with community-uuid as 1st parameter and JWT-Token as 2nd parameter
+* **(2.b) gms-backend:** recieving the request `verifyAuthToken` with the community-uuid and the JWT-token. After searching and verifing the given community-uuid exists in gms, it prepares the invokation of the configured endpoint `community-Auth-Url` of this community by sending the given JWT-token as parameter back to gradido.
+* **(3.a) gms-backend:** invokes the endpoint configured in `gms.community-auth-url` with the previous received JWT-token
+* **(3.b) gradido-backend:** receives the request at the endpoint "communityAuthUrl" with the previously sent JWT-token. The JWT-token will be verified if the signature is valid and afterwards the payload is decrypted to verify the contained user-data will match with the current context-user of request (1).
+* **(4.a) gradido-backend:** in case of valid JWT-token signature and valid payload data the gradido-backend returns TRUE as result of the authentication-request otherwise FALSE.
+* **(4.b) gms-backend:** receives the response of request (3) and in case of TRUE the gms-backend prepares to return a complete URI including a _JWT-access-token_ to be used for entering the user-playground. *It will not return gms-data used for the user-playground as the current implementation of the api `verify-auth-token` do.* In case of FALSE prepare returning an authentication-error.
+* **(5.a) gms-backend:** returning the complete URI including a _JWT-access-token_ as response of request (2) or an authentication-error
+* **(5.b) gradido-backend:** receiving as response of request (2) a complete URI including a _JWT-access-token_ for entering the users-playground on gms or an authentication-error
+* **(6.a) gradido-backend:** returning the complete URI including a _JWT-access-token_ as response of request (1) or an expressive error message
+* **(6.b) gradido-frontend:** receiving the complete URI including a _JWT-access-token_ after activation of menu-entry "user-search" or an expressive error-message, which will end the _user search_-flow without requesting the gms-frontend (7).
+* **(7.a) gradido-frontend:** on opening a new browser-window the gradido-frontend uses the received URI with the _JWT-access-token_ to enter the gms user-playground
+* **(7.b) gms-frontend:** receiving the request for the user-playground with an _JWT-access-token_. After verifying the access-token the gms-frontend will read the data for the user given by the access-token and loads all necessary data to render the users playground
 
-The detailed requirements will come up as soon as we get some user expiriences and feedbacks.
+The following picture shows the logical flow and interaction between the involved components:
 
+![](./image/usecase-user_search.svg)
+
+
+
+The detailed requirements for the playground-dialog will come up as soon as we get some user expiriences and feedbacks.
 
 ### GMS Offer Capture dialog (gms efforts)
 
 will come later...
-
-
 
 ### GMS Need Capture dialog (gms efforts)
 

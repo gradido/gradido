@@ -35,9 +35,11 @@ export const updateUserInfos = gql`
     $hideAmountGDD: Boolean
     $hideAmountGDT: Boolean
     $gmsAllowed: Boolean
-    $gmsPublishName: Int
+    $humhubAllowed: Boolean
+    $gmsPublishName: PublishNameType
+    $humhubPublishName: PublishNameType
     $gmsLocation: Location
-    $gmsPublishLocation: Int
+    $gmsPublishLocation: GmsPublishLocationType
   ) {
     updateUserInfos(
       firstName: $firstName
@@ -49,7 +51,9 @@ export const updateUserInfos = gql`
       hideAmountGDD: $hideAmountGDD
       hideAmountGDT: $hideAmountGDT
       gmsAllowed: $gmsAllowed
+      humhubAllowed: $humhubAllowed
       gmsPublishName: $gmsPublishName
+      humhubPublishName: $humhubPublishName
       gmsLocation: $gmsLocation
       gmsPublishLocation: $gmsPublishLocation
     )
@@ -172,6 +176,11 @@ export const login = gql`
       klickTipp {
         newsletterState
       }
+      gmsAllowed
+      humhubAllowed
+      gmsPublishName
+      humhubPublishName
+      gmsPublishLocation
       hasElopage
       publisherId
       roles

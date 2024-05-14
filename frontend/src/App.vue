@@ -71,4 +71,16 @@ export default {
 .text-color-gdd-yellow {
   color: rgb(197 141 56);
 }
+
+.dropdown > .dropdown-toggle {
+  border-radius: 17px;
+  height: 50px;
+  text-align: left;
+}
+.dropdown-toggle::after {
+  float: right;
+  top: 50%;
+  transform: translateY(-50%);
+  position: relative;
+}
 </style>

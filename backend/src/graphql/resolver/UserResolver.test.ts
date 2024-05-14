@@ -17,7 +17,6 @@ import { GraphQLError } from 'graphql'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
-import { GmsPublishNameType } from '@enum/GmsPublishNameType'
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { RoleNames } from '@enum/RoleNames'
@@ -35,6 +34,7 @@ import {
   sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Events'
+import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { writeHomeCommunityEntry } from '@/seeds/community'
@@ -72,6 +72,8 @@ import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
 
 import { Location2Point } from './util/Location2Point'
+
+jest.mock('@/apis/humhub/HumHubClient')
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
@@ -183,7 +185,9 @@ describe('UserResolver', () => {
               communityUuid: homeCom.communityUuid,
               foreign: false,
               gmsAllowed: true,
+              humhubAllowed: false,
               gmsPublishName: 0,
+              humhubPublishName: 0,
               gmsPublishLocation: 2,
               location: null,
               gmsRegistered: false,
@@ -1230,7 +1234,7 @@ describe('UserResolver', () => {
               lastName: 'Blümchen',
               language: 'en',
               gmsAllowed: true,
-              gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+              gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
               gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
             }),
           ])
@@ -1258,6 +1262,8 @@ describe('UserResolver', () => {
 
         describe('valid alias', () => {
           it('updates the user in DB', async () => {
+            // first empty alias, because currently updating alias isn't allowed
+            await User.update({ alias: 'BBB' }, { alias: () => 'NULL' })
             await mutate({
               mutation: updateUserInfos,
               variables: {
@@ -1268,7 +1274,7 @@ describe('UserResolver', () => {
               expect.objectContaining({
                 alias: 'bibi_Bloxberg',
                 gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
                 gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               }),
             ])
@@ -1290,7 +1296,7 @@ describe('UserResolver', () => {
             await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
                 gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
                 gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               }),
             ])
@@ -1303,14 +1309,15 @@ describe('UserResolver', () => {
               mutation: updateUserInfos,
               variables: {
                 gmsAllowed: false,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL,
-                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
+                gmsPublishName: PublishNameType[PublishNameType.PUBLISH_NAME_FIRST_INITIAL],
+                gmsPublishLocation:
+                  GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE],
               },
             })
             await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
                 gmsAllowed: false,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL,
+                gmsPublishName: PublishNameType.PUBLISH_NAME_FIRST_INITIAL,
                 gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
               }),
             ])
@@ -1326,15 +1333,16 @@ describe('UserResolver', () => {
               mutation: updateUserInfos,
               variables: {
                 gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishName: PublishNameType[PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS],
                 gmsLocation: loc,
-                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+                gmsPublishLocation:
+                  GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM],
               },
             })
             await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
                 gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
                 location: Location2Point(loc),
                 gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               }),
@@ -2670,13 +2678,12 @@ describe('UserResolver', () => {
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
+        // first set alias to null, because updating alias isn't currently allowed
+        await User.update({ alias: 'BBB' }, { alias: () => 'NULL' })
         await mutate({
           mutation: updateUserInfos,
           variables: {
             alias: 'bibi',
-            gmsAllowed: true,
-            gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-            gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
           },
         })
       })

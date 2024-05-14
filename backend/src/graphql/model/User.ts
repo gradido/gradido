@@ -1,6 +1,9 @@
 import { User as dbUser } from '@entity/User'
 import { ObjectType, Field, Int } from 'type-graphql'
 
+import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
+import { PublishNameType } from '@enum/PublishNameType'
+
 import { KlickTipp } from './KlickTipp'
 
 @ObjectType()
@@ -29,6 +32,11 @@ export class User {
       this.hasElopage = null
       this.hideAmountGDD = user.hideAmountGDD
       this.hideAmountGDT = user.hideAmountGDT
+      this.humhubAllowed = user.humhubAllowed
+      this.gmsAllowed = user.gmsAllowed
+      this.gmsPublishName = user.gmsPublishName
+      this.humhubPublishName = user.humhubPublishName
+      this.gmsPublishLocation = user.gmsPublishLocation
     }
   }
 
@@ -73,6 +81,21 @@ export class User {
 
   @Field(() => Boolean)
   hideAmountGDT: boolean
+
+  @Field(() => Boolean)
+  humhubAllowed: boolean
+
+  @Field(() => Boolean)
+  gmsAllowed: boolean
+
+  @Field(() => PublishNameType, { nullable: true })
+  gmsPublishName: PublishNameType | null
+
+  @Field(() => PublishNameType, { nullable: true })
+  humhubPublishName: PublishNameType | null
+
+  @Field(() => GmsPublishLocationType, { nullable: true })
+  gmsPublishLocation: GmsPublishLocationType | null
 
   // This is not the users publisherId, but the one of the users who recommend him
   @Field(() => Int, { nullable: true })

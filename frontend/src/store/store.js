@@ -35,6 +35,21 @@ export const mutations = {
   newsletterState: (state, newsletterState) => {
     state.newsletterState = newsletterState
   },
+  gmsAllowed: (state, gmsAllowed) => {
+    state.gmsAllowed = gmsAllowed
+  },
+  humhubAllowed: (state, humhubAllowed) => {
+    state.humhubAllowed = humhubAllowed
+  },
+  gmsPublishName: (state, gmsPublishName) => {
+    state.gmsPublishName = gmsPublishName
+  },
+  humhubPublishName: (state, humhubPublishName) => {
+    state.humhubPublishName = humhubPublishName
+  },
+  gmsPublishLocation: (state, gmsPublishLocation) => {
+    state.gmsPublishLocation = gmsPublishLocation
+  },
   publisherId: (state, publisherId) => {
     let pubId = parseInt(publisherId)
     if (isNaN(pubId)) pubId = null
@@ -71,6 +86,11 @@ export const actions = {
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
     commit('newsletterState', data.klickTipp.newsletterState)
+    commit('gmsAllowed', data.gmsAllowed)
+    commit('humhubAllowed', data.humhubAllowed)
+    commit('gmsPublishName', data.gmsPublishName)
+    commit('humhubPublishName', data.humhubPublishName)
+    commit('gmsPublishLocation', data.gmsPublishLocation)
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
     commit('roles', data.roles)
@@ -85,6 +105,11 @@ export const actions = {
     commit('firstName', '')
     commit('lastName', '')
     commit('newsletterState', null)
+    commit('gmsAllowed', null)
+    commit('humhubAllowed', null)
+    commit('gmsPublishName', null)
+    commit('humhubPublishName', null)
+    commit('gmsPublishLocation', null)
     commit('hasElopage', false)
     commit('publisherId', null)
     commit('roles', null)
@@ -117,6 +142,11 @@ try {
       tokenTime: null,
       roles: [],
       newsletterState: null,
+      gmsAllowed: null,
+      humhubAllowed: null,
+      gmsPublishName: null,
+      humhubPublishName: null,
+      gmsPublishLocation: null,
       hasElopage: false,
       publisherId: null,
       hideAmountGDD: null,
@@ -126,7 +156,7 @@ try {
       redirectPath: '/overview',
     },
     getters: {},
-    // Syncronous mutation of the state
+    // Synchronous mutation of the state
     mutations,
     actions,
   })

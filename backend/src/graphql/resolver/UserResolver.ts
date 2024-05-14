@@ -10,6 +10,7 @@ import { UserContact as DbUserContact } from '@entity/UserContact'
 import { UserRole } from '@entity/UserRole'
 import i18n from 'i18n'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
+import { IRestResponse } from 'typed-rest-client'
 import { v4 as uuidv4 } from 'uuid'
 
 import { UserArgs } from '@arg//UserArgs'
@@ -19,18 +20,21 @@ import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { SetUserRoleArgs } from '@arg/SetUserRoleArgs'
 import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
 import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
-import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
-import { GmsPublishNameType } from '@enum/GmsPublishNameType'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserContactType } from '@enum/UserContactType'
 import { SearchAdminUsersResult } from '@model/AdminUser'
 // import { Location } from '@model/Location'
+import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 
 import { DltConnectorClient } from '@/apis/dltConnector/DltConnectorClient'
+import { updateGmsUser } from '@/apis/gms/GmsClient'
+import { GmsUser } from '@/apis/gms/model/GmsUser'
+import { HumHubClient } from '@/apis/humhub/HumHubClient'
+import { GetUser } from '@/apis/humhub/model/GetUser'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -69,7 +73,9 @@ import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
+import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
 import { getHomeCommunity } from './util/communities'
+import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
@@ -77,6 +83,7 @@ import { getKlicktippState } from './util/getKlicktippState'
 import { Location2Point } from './util/Location2Point'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
+import { syncHumhub } from './util/syncHumhub'
 import { validateAlias } from './util/validateAlias'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
@@ -154,9 +161,17 @@ export class UserResolver {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new LogError('The User has not set a password yet', dbUser)
     }
-
     if (!verifyPassword(dbUser, password)) {
       throw new LogError('No user with this credentials', dbUser)
+    }
+
+    // request to humhub and klicktipp run in parallel
+    let humhubUserPromise: Promise<IRestResponse<GetUser>> | undefined
+    const klicktippStatePromise = getKlicktippState(dbUser.emailContact.email)
+    if (CONFIG.HUMHUB_ACTIVE && dbUser.humhubAllowed) {
+      humhubUserPromise = HumHubClient.getInstance()?.userByUsernameAsync(
+        dbUser.alias ?? dbUser.gradidoID,
+      )
     }
 
     if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
@@ -180,7 +195,6 @@ export class UserResolver {
       dbUser.publisherId = publisherId
       await DbUser.save(dbUser)
     }
-    user.klickTipp = await getKlicktippState(dbUser.emailContact.email)
 
     context.setHeaders.push({
       key: 'token',
@@ -188,6 +202,12 @@ export class UserResolver {
     })
 
     await EVENT_USER_LOGIN(dbUser)
+    // load humhub state
+    if (humhubUserPromise) {
+      const result = await humhubUserPromise
+      user.humhubAllowed = result?.result?.account.status === 1
+    }
+    user.klickTipp = await klicktippStatePromise
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
     return user
   }
@@ -382,7 +402,11 @@ export class UserResolver {
           await sendUserToGms(dbUser, homeCom)
         }
       } catch (err) {
-        logger.error('Error publishing new created user to GMS:', err)
+        if (CONFIG.GMS_CREATE_USER_THROW_ERRORS) {
+          throw new LogError('Error publishing new created user to GMS:', err)
+        } else {
+          logger.error('Error publishing new created user to GMS:', err)
+        }
       }
     }
     return new User(dbUser)
@@ -394,15 +418,14 @@ export class UserResolver {
     logger.addContext('user', 'unknown')
     logger.info(`forgotPassword(${email})...`)
     email = email.trim().toLowerCase()
-    const user = await findUserByEmail(email).catch(() => {
-      logger.warn(`fail on find UserContact per ${email}`)
+    const user = await findUserByEmail(email).catch((error) => {
+      logger.warn(`fail on find UserContact per ${email} because: ${error}`)
     })
 
     if (!user || user.deletedAt) {
       logger.warn(`no user found with ${email}`)
       return true
     }
-
     if (!canEmailResend(user.emailContact.updatedAt || user.emailContact.createdAt)) {
       throw new LogError(
         `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
@@ -548,8 +571,10 @@ export class UserResolver {
   @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
   async updateUserInfos(
-    @Args()
-    {
+    @Args() updateUserInfosArgs: UpdateUserInfosArgs,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const {
       firstName,
       lastName,
       alias,
@@ -558,28 +583,19 @@ export class UserResolver {
       passwordNew,
       hideAmountGDD,
       hideAmountGDT,
+      humhubAllowed,
       gmsAllowed,
       gmsPublishName,
+      humhubPublishName,
       gmsLocation,
       gmsPublishLocation,
-    }: UpdateUserInfosArgs,
-    @Ctx() context: Context,
-  ): Promise<boolean> {
+    } = updateUserInfosArgs
     logger.info(
       `updateUserInfos(${firstName}, ${lastName}, ${alias}, ${language}, ***, ***, ${hideAmountGDD}, ${hideAmountGDT}, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})...`,
     )
-    // check default arg settings
-    if (gmsAllowed === null || gmsAllowed === undefined) {
-      gmsAllowed = true
-    }
-    if (!gmsPublishName) {
-      gmsPublishName = GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS
-    }
-    if (!gmsPublishLocation) {
-      gmsPublishLocation = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
-    }
-
     const user = getUser(context)
+    const updateUserInGMS = compareGmsRelevantUserSettings(user, updateUserInfosArgs)
+
     // try {
     if (firstName) {
       user.firstName = firstName
@@ -589,7 +605,8 @@ export class UserResolver {
       user.lastName = lastName
     }
 
-    if (alias && (await validateAlias(alias))) {
+    // currently alias can only be set, not updated
+    if (alias && !user.alias && (await validateAlias(alias))) {
       user.alias = alias
     }
 
@@ -626,13 +643,24 @@ export class UserResolver {
     if (hideAmountGDT !== undefined) {
       user.hideAmountGDT = hideAmountGDT
     }
-
-    user.gmsAllowed = gmsAllowed
-    user.gmsPublishName = gmsPublishName
+    if (humhubAllowed !== undefined) {
+      user.humhubAllowed = humhubAllowed
+    }
+    if (gmsAllowed !== undefined) {
+      user.gmsAllowed = gmsAllowed
+    }
+    if (gmsPublishName !== null && gmsPublishName !== undefined) {
+      user.gmsPublishName = gmsPublishName
+    }
+    if (humhubPublishName !== null && humhubPublishName !== undefined) {
+      user.humhubPublishName = humhubPublishName
+    }
     if (gmsLocation) {
       user.location = Location2Point(gmsLocation)
     }
-    user.gmsPublishLocation = gmsPublishLocation
+    if (gmsPublishLocation !== null && gmsPublishLocation !== undefined) {
+      user.gmsPublishLocation = gmsPublishLocation
+    }
     // } catch (err) {
     //   console.log('error:', err)
     // }
@@ -656,6 +684,20 @@ export class UserResolver {
     logger.info('updateUserInfos() successfully finished...')
     await EVENT_USER_INFO_UPDATE(user)
 
+    // validate if user settings are changed with relevance to update gms-user
+    if (CONFIG.GMS_ACTIVE && updateUserInGMS) {
+      logger.debug(`changed user-settings relevant for gms-user update...`)
+      const homeCom = await getHomeCommunity()
+      if (homeCom.gmsApiKey !== null) {
+        logger.debug(`gms-user update...`, user)
+        await updateGmsUser(homeCom.gmsApiKey, new GmsUser(user))
+        logger.debug(`gms-user update successfully.`)
+      }
+    }
+    if (CONFIG.HUMHUB_ACTIVE) {
+      await syncHumhub(updateUserInfosArgs, user)
+    }
+
     return true
   }
 
@@ -667,6 +709,44 @@ export class UserResolver {
     const elopageBuys = hasElopageBuys(userEntity.emailContact.email)
     logger.debug('has ElopageBuys', elopageBuys)
     return elopageBuys
+  }
+
+  @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
+  @Query(() => GmsUserAuthenticationResult)
+  async authenticateGmsUserSearch(@Ctx() context: Context): Promise<GmsUserAuthenticationResult> {
+    logger.info(`authUserForGmsUserSearch()...`)
+    const dbUser = getUser(context)
+    let result: GmsUserAuthenticationResult
+    if (context.token) {
+      result = await authenticateGmsUserPlayground(context.token, dbUser)
+      logger.info('authUserForGmsUserSearch=', result)
+    } else {
+      throw new LogError('authUserForGmsUserSearch without token')
+    }
+    return result
+  }
+
+  @Authorized([RIGHTS.HUMHUB_AUTO_LOGIN])
+  @Query(() => String)
+  async authenticateHumhubAutoLogin(@Ctx() context: Context): Promise<string> {
+    logger.info(`authenticateHumhubAutoLogin()...`)
+    const dbUser = getUser(context)
+    const humhubClient = HumHubClient.getInstance()
+    if (!humhubClient) {
+      throw new LogError('cannot create humhub client')
+    }
+    const username = dbUser.alias ?? dbUser.gradidoID
+    let humhubUser = await humhubClient.userByUsername(username)
+    if (!humhubUser) {
+      humhubUser = await humhubClient.userByEmail(dbUser.emailContact.email)
+    }
+    if (!humhubUser) {
+      throw new LogError("user don't exist (any longer) on humhub")
+    }
+    if (humhubUser.account.status !== 1) {
+      throw new LogError('user status is not 1', humhubUser.account.status)
+    }
+    return await humhubClient.createAutoLoginUrl(username)
   }
 
   @Authorized([RIGHTS.SEARCH_ADMIN_USERS])

@@ -15,6 +15,14 @@ export const verifyLogin = gql`
     }
   }
 `
+export const authenticateGmsUserSearch = gql`
+  query {
+    authenticateGmsUserSearch {
+      url
+      token
+    }
+  }
+`
 
 export const queryOptIn = gql`
   query ($optIn: String!) {

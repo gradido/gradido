@@ -3,6 +3,7 @@ import { GraphQLClient } from 'graphql-request'
 
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
+import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
 import { SendCoinsArgsLoggingView } from './logging/SendCoinsArgsLogging.view'
 import { SendCoinsResultLoggingView } from './logging/SendCoinsResultLogging.view'
@@ -20,9 +21,7 @@ export class SendCoinsClient {
 
   constructor(dbCom: DbFederatedCommunity) {
     this.dbCom = dbCom
-    this.endpoint = `${dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'}${
-      dbCom.apiVersion
-    }/`
+    this.endpoint = ensureUrlEndsWithSlash(dbCom.endPoint).concat(dbCom.apiVersion).concat('/')
     this.client = new GraphQLClient(this.endpoint, {
       method: 'POST',
       jsonSerializer: {

@@ -49,8 +49,8 @@ describe('router', () => {
         expect(routes.find((r) => r.path === '/').redirect()).toEqual({ path: '/login' })
       })
 
-      it('has 19 routes defined', () => {
-        expect(routes).toHaveLength(19)
+      it('has 21 routes defined', () => {
+        expect(routes).toHaveLength(21)
       })
 
       describe('overview', () => {
@@ -139,6 +139,17 @@ describe('router', () => {
         it('loads the "InfoStatistic" page', async () => {
           const component = await routes.find((r) => r.path === '/information').component()
           expect(component.default.name).toBe('InfoStatistic')
+        })
+      })
+
+      describe('usersearch', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/usersearch').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('loads the "UserSearch" page', async () => {
+          const component = await routes.find((r) => r.path === '/usersearch').component()
+          expect(component.default.name).toBe('UserSearch')
         })
       })
 

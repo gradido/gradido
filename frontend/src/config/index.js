@@ -8,7 +8,7 @@ const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v5.2024-01-08',
+    EXPECTED: 'v6.2024-02-27',
     CURRENT: '',
   },
 }
@@ -18,6 +18,11 @@ const version = {
   BUILD_COMMIT: process.env.BUILD_COMMIT ?? null,
   // self reference of `version.BUILD_COMMIT` is not possible at this point, hence the duplicate code
   BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT ?? '0000000').slice(0, 7),
+}
+
+const features = {
+  GMS_ACTIVE: process.env.GMS_ACTIVE ?? false,
+  HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE ?? false,
 }
 
 const environment = {
@@ -81,6 +86,7 @@ if (
 const CONFIG = {
   ...constants,
   ...version,
+  ...features,
   ...environment,
   ...endpoints,
   ...community,

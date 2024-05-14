@@ -29,3 +29,7 @@ export function resetInterface<T extends Record<string, any>>(obj: T): T {
   }
   return obj
 }
+
+export const ensureUrlEndsWithSlash = (url: string): string => {
+  return url.endsWith('/') ? url : url.concat('/')
+}

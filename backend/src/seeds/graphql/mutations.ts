@@ -35,9 +35,9 @@ export const updateUserInfos = gql`
     $hideAmountGDD: Boolean
     $hideAmountGDT: Boolean
     $gmsAllowed: Boolean
-    $gmsPublishName: Int
+    $gmsPublishName: PublishNameType
     $gmsLocation: Location
-    $gmsPublishLocation: Int
+    $gmsPublishLocation: GmsPublishLocationType
   ) {
     updateUserInfos(
       firstName: $firstName
