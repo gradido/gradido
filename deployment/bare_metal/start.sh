@@ -204,6 +204,11 @@ echo 'Updating frontend' >> $UPDATE_HTML
 cd $PROJECT_ROOT/frontend
 # TODO maybe handle this differently?
 unset NODE_ENV
+
+# upgrade yarn and node versions
+yarn set version stabel
+yarn cache clear
+nvm use v20.0.0
 yarn install
 yarn build
 # TODO maybe handle this differently?
@@ -214,6 +219,10 @@ echo 'Updating admin' >> $UPDATE_HTML
 cd $PROJECT_ROOT/admin
 # TODO maybe handle this differently?
 unset NODE_ENV
+# downgrade yarn and node versions
+yarn set version 1.22.19
+yarn cache clear
+nvm use
 yarn install
 yarn build
 # TODO maybe handle this differently?
