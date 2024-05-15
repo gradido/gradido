@@ -1,6 +1,57 @@
 # Vue Gradido Wallet
 
- 
+## Ensure prerequisits
+The frontend modul will not use a node-instance at runtime but it will be treated by ngnix.
+In consequence the frontend sources have to be build before usage.
+
+For building the frontend source the following prerequisits have to be ensured:
+### Upgrade node to version 20.0.0
+To upgrade to the correct node version please use the following command(s)
+  
+Show all node versions handled by nvm
+
+```bash
+nvm list
+```
+
+Selecting the correct node-version by
+
+```bash
+nvm use v20.0.0
+# or
+nvm use stable
+```
+
+In case the necessary version 20.0.0 does not exist, please install it by
+
+```bash
+nvm install v20.0.0
+```
+
+### Upgrade yarn to version 4.2.2
+To upgrade the yarn version please call
+
+```bash
+yarn set version stable
+```
+
+and to verify for correct setting please invoke
+
+```bash
+yarn --version
+```
+
+Before start build and usage please invoke the following commands to 
+
+```bash
+cd frontend
+rm -r node_modules
+yarn cache clear
+yarn install
+yarn build
+```
+
+
 ## install mit yarn 
 ```bash
 cd frontend
