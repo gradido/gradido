@@ -1,5 +1,5 @@
 const path = require('path')
-const webpack = require('webpack')
+const { DefinePlugin } = require('webpack')
 const Dotenv = require('dotenv-webpack')
 const StatsPlugin = require('stats-webpack-plugin')
 const HtmlWebpackPlugin = require('vue-html-webpack-plugin')
@@ -31,7 +31,7 @@ module.exports = {
     plugins: [
       // .env and Environment Variables
       new Dotenv(),
-      new webpack.DefinePlugin({
+      new DefinePlugin({
         // Those are Environment Variables transmitted via Docker and are only available when defined here aswell
         // 'process.env.DOCKER_WORKDIR': JSON.stringify(process.env.DOCKER_WORKDIR),
         // 'process.env.BUILD_DATE': JSON.stringify(process.env.BUILD_DATE),
