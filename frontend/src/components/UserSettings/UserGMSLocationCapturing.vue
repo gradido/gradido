@@ -7,6 +7,24 @@ const apiKey = 'THpEFO62ipFK9OLk8OOx';
 */
 export default {
   name: 'UserGMSLocationCapturing',
+  props: {
+    initialUserLocation: {
+      type: Array<Number>(2),
+      required: true,
+    },
+    initialCommunityLocation: {
+      type: Array<Number>(2),
+      required: true,
+    },
+  },
+  computed: {
+    userLocation: function() {
+      return this.initialUserLocation
+    },
+    communityLocation: function() {
+      return this.initialCommunityLocation
+    },
+  },
   data() {
     return {}
   },
@@ -14,6 +32,27 @@ export default {
   methods: {
     close() {
       this.$emit('close')
+    },
+    saveclose() {
+      saveLocation()
+      this.$emit('close')
+    },
+    async saveLocation() {
+      console.log('saveLocation als Array=', this.userLocation)
+      try {
+        await this.$apollo.mutate({
+          mutation: updateUserInfos,
+          variables: {
+            gmsLocation: this.userLocation,
+          },
+        })
+        // this.$store.commit('firstName', this.firstName)
+        // this.$store.commit('lastName', this.lastName)
+        // this.showUserData = true
+        this.toastSuccess(this.$t('userlocationcapturing.success'))
+      } catch (error) {
+        this.toastError(error)
+      }
     },
   },
 }
@@ -26,11 +65,14 @@ export default {
         <b-container class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
           <button type="button" class="btn-close" @click="close">x</button>
           <div class="h3">{{ $t('userlocationcapturing.headline') }}</div>
-          <loc-map></loc-map>
+          <loc-map 
+            v-bind:initial-user-location="this.userLocation"
+            v-bind:initial-community-location="this.communityLocation">
+          </loc-map>
           <b-row class="my-5">
             <b-col cols="12">
               <div class="text-lg-right">
-                <b-button variant="gradido" @click="close">
+                <b-button variant="gradido" @click="saveclose">
                   {{ $t('userlocationcapturing.button') }}
                 </b-button>
               </div>

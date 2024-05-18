@@ -70,12 +70,11 @@
 </template>
 
 <script>
-import CONFIG from '@/config'
-import { latLng, Icon } from 'leaflet'
+// import CONFIG from '@/config'
+import { toLatLng, latLng, Icon } from 'leaflet'
 import { LMap, LTileLayer, LMarker, LTooltip } from 'vue2-leaflet'
 import { OpenStreetMapProvider } from 'leaflet-geosearch'
 import LGeosearch from 'vue2-leaflet-geosearch'
-import { userLocationQuery } from '@/graphql/queries'
 
 delete Icon.Default.prototype._getIconUrl
 Icon.Default.mergeOptions({
@@ -93,16 +92,69 @@ export default {
     LTooltip,
     LGeosearch,
   },
-  data() {
+  props: {
+    initialUserLocation: {
+      type: Array<Number>(2),
+      required: true,
+    },
+    initialCommunityLocation: {
+      type: Array<Number>(2),
+      required: true,
+    },
+  },
+  computed: {
+    computedUserLocation: {
+      get: function() {
+        // const a = new Array(this.initialUserLocation)
+        console.log('initialUserLocation als Array=', this.initialUserLocation)
+        console.log('lat=',this.initialUserLocation[0])
+        console.log('lon=',this.initialUserLocation[1])
+        return latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // (49.280377, 9.690151)
+      },
+      /*
+      set: function(newValue) {
+        this.userLocation = newValue
+      }
+      */
+    },
+    computedComLocation: {
+      get: function() {
+        console.log('initialCommunityLocation als Array=', this.initialCommunityLocation)
+        console.log('lat=',this.initialCommunityLocation[0])
+        console.log('lon=',this.initialCommunityLocation[1])
+        return latLng(this.initialCommunityLocation[0], this.initialCommunityLocation[1]) // (49.280377, 9.690151)
+      },
+      /*
+      set: function(newValue) {
+        this.comLocation = newValue
+      }
+      */
+    },
+    /*
+    computedCenter: {
+      get: function() {
+        return latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // (49.280377, 9.690151)
+      },
+      set: function(newValue) {
+        this.center = newValue
+      }
+    },
+    computedCurrentCenter: {
+      get: function() {
+        return latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // (49.280377, 9.690151)
+      },
+      set: function(newValue) {
+        this.currentCenter = newValue
+      }
+    },
+    */
+  },
+  data: function() {
     return {
       zoom: 13,
-      center: null, // : latLng(49.280377, 9.690151),
       url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
-      userLocation: null, // latLng(49.280377, 9.690151),
-      comLocation: null, // : latLng(49.280377, 9.690151),
       currentZoom: 11.5,
-      currentCenter: null, // : latLng(49.280377, 9.690151),
       showParagraph: false,
       mapOptions: {
         zoomSnap: 0.5,
@@ -112,54 +164,83 @@ export default {
       geosearchOptions: {
         provider: new OpenStreetMapProvider(),
       },
+      userLocation: this.computedUserLocation,
+      comLocation: this.computedComLocation,
+      center: this.computedUserLocation,
+      currentCenter: this.computedUserLocation,
     }
   },
+  beforeCreated: function () {
+    console.log('created')
+    this.userLocation = this.computedUserLocation
+    this.comLocation = this.computedComLocation
+    this.center = this.computedUserLocation
+    this.currentCenter = this.computedUserLocation
+  },
+  created: function() {
+    console.log('created')
+    this.userLocation = this.computedUserLocation
+    this.comLocation = this.computedComLocation
+    this.center = this.computedUserLocation
+    this.currentCenter = this.computedUserLocation
+  },
+  mounted: function() {
+    console.log('mounted')
+    this.userLocation = this.computedUserLocation
+    this.comLocation = this.computedComLocation
+    this.center = this.computedUserLocation
+    this.currentCenter = this.computedUserLocation
+  },
+  beforeClose: function(event) {
+    console.log('beforeClose:', this.modal.data, event, this.userLocation)
+    this.$emit(this.userLocation)
+  },
+
   methods: {
     zoomUpdate(zoom) {
+      console.log('zoomUpdate')
       this.currentZoom = zoom
     },
     centerUpdate(center) {
+      console.log('centerUpdate', center)
+      this.center = center
       this.currentCenter = center
       if (!this.fixYourKoord) {
         this.userLocation = center
       }
+      console.log('currentCenter=', this.currentCenter)
+      console.log('userLocation=', this.userLocation)
     },
     fixLocation() {
       this.fixYourKoord = !this.fixYourKoord
     },
-    async onChange() {
-      this.fixYourKoord = !this.fixYourKoord
-    },
-    async getUserLocation() {
-      console.log('getUserLocation')
-      this.$apollo
-        .query({
-          query: userLocationQuery,
-          fetchPolicy: 'network-only',
-        })
-        .then((result) => {
-          console.log('getUserLocation data=', result.data)
-          this.userLocation = result.data.userLocation.userLocation
-          this.currentCenter = this.userLocation
-          this.center = this.userLocation
-          this.comLocation = result.data.userLocation.communityLocation
-        })
-        .catch(() => {
-          this.toastError('userLocation has no result, use default data')
-          this.comLocation = CONFIG.COMMUNITY_LOCATION
-          this.userLocation = this.comLocation
-          this.currentCenter = this.comLocation
-          this.center = this.comLocation
-        })
-    },
-
     beforeCreated() {
-      console.log('beforeCreated')
-      this.getUserLocation()
+      console.log('created')
+      this.userLocation = this.computedUserLocation
+      this.comLocation = this.computedComLocation
+      this.center = this.computedUserLocation
+      this.currentCenter = this.computedUserLocation
+    },
+    created() {
+      console.log('created')
+      this.userLocation = this.computedUserLocation
+      this.comLocation = this.computedComLocation
+      this.center = this.computedUserLocation
+      this.currentCenter = this.computedUserLocation
+    },
+    mounted() {
+      console.log('mounted')
+      this.userLocation = this.computedUserLocation
+      this.comLocation = this.computedComLocation
+      this.center = this.computedUserLocation
+      this.currentCenter = this.computedUserLocation
     },
     beforeClose(event) {
       console.log('beforeClose:', this.modal.data, event, this.userLocation)
       this.$emit(this.userLocation)
+    },
+    onChange() {
+      this.fixYourKoord = !this.fixYourKoord
     },
   },
 }

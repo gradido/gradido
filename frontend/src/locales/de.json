@@ -447,7 +447,8 @@
     "fixkoordswitch": "Ein/Aus-Schalter Standort-Fixierung",
     "userlocationlabel": "Dein Standort",
     "communitylocationlabel": "Dein Community-Standort",
-    "button": "Koordinaten übernehmen"
+    "button": "Koordinaten übernehmen",
+    "success": "Standort erfolgreich gespeichert"
   },
   "usersearch": {
     "headline": "Geografische Nutzersuche",

@@ -447,7 +447,8 @@
     "fixkoordswitch": "On/Off-Switch Location-fixing",
     "userlocationlabel": "Your Location",
     "communitylocationlabel": "Your Community-Location",
-    "button": "take Location"
+    "button": "take Location",
+    "success": "Location successfully saved"
   },
   "usersearch": {
     "headline": "Geographical User Search",

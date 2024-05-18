@@ -51,6 +51,68 @@ yarn install
 yarn build
 ```
 
+### Possible OpenSSLError
+The build could run in an `OpenSSLError`, which will be caused in a securityfix from node 17 and up.
+In this version a security issues was solved and in conjunction with package dependencies this error could occur.
+
+There are two ways to solve this:
+
+- the short, quick and unsave way
+
+> Tell Node to use the legacy OpenSSL provider
+> 
+> On Unix-like (Linux, macOS, Git bash, etc.):
+> 
+>>```bash
+>> export NODE_OPTIONS=--openssl-legacy-provider
+>>```
+> 
+> On Windows command prompt:
+> 
+>>```bash
+>> set NODE_OPTIONS=--openssl-legacy-provider
+>>```
+> 
+> On PowerShell:
+> 
+>>```bash
+>> $env:NODE_OPTIONS = "--openssl-legacy-provider"
+>>```
+> 
+
+- the save but more time consuming and stronger way
+
+> as discussed in the following subchapter and under this [link](https://stackoverflow.com/questions/69692842/error-message-error0308010cdigital-envelope-routinesunsupported):
+
+#### important part of this error-solution discussion:
+> <h3>Danger</h3>
+> <p>This question has more than 30 answers, most suggesting to either downgrade Node.js to pre v17 or to use the legacy SSL provider. Both of those solutions are <em>hacks that leave your builds open to security threats</em>.</p>
+> <h3>Reason For The Error</h3>
+> <p>In Node.js v17, the Node.js developers closed a security hole in the SSL provider. This fix was a breaking change that corresponded with similar breaking changes in the SSL packages in NPM. When you attempt to use SSL in Node.js v17 or later without also upgrading those SSL packages in your <code>package.json</code>, then you will see this error.</p>
+> <h3>The Correct (safe) Solution (for npm users)</h3>
+> <p>Use an up-to-date version of Node.js, and also use packages that are up-to-date with security fixes.</p>
+> <p>You can first try an update to see if that solves the problem:</p>
+> <pre class="lang-none prettyprint-override"><code>npm update
+> </code></pre>
+> <p>If that is not enough, for many people, the following command will fix the issue:</p>
+> <pre class="lang-none prettyprint-override"><code>npm audit fix --force
+> </code></pre>
+> <p>However, be aware that, for complex builds, the above command will pull in breaking security fixes that can <em>potentially</em> break your build.</p>
+> <h3>Note for Yarn users</h3>
+> <p>Yarn users can use <a href="https://www.npmjs.com/package/yarn-audit-fix" rel="noreferrer">yarn-audit-fix</a> which can be run without installing as a dependency via</p>
+> <pre class="lang-none prettyprint-override"><code>npm_config_yes=true npx yarn-audit-fix
+> </code></pre>
+> <p>or windows powershell:</p>
+> <pre class="lang-none prettyprint-override"><code>$env:npm_config_yes = 1; npx yarn-audit-fix
+> </code></pre>
+> <h3>A less heavy-handed (also correct) solution for Webpack</h3>
+> <p>In your Webpack config, set either of the following:
+> (See <a href="https://webpack.js.org/configuration/output/#outputhashfunction" rel="noreferrer">the ouput.hashFunction docs</a>)</p>
+> <p>A. (Webpack v5) Set <code>output.hashFunction = 'xxhash64'</code>.<br />
+> B. (Webpack v4) This will depend on <a href="https://nodejs.org/api/crypto.html#crypto_crypto_createhash_algorithm_options" rel="noreferrer">what hash > algorithms nodejs supports on your system</a>. Some common options you can try are <code>output.hashFunction = 'sha512'</code> or <code>output.hashFunction = 'sha256'</code>.</p>
+> <p>See more info <a href="https://stackoverflow.com/a/73465262/564406">in Greg's answer</a>.</p>
+> 
+
 
 ## install mit yarn 
 ```bash
