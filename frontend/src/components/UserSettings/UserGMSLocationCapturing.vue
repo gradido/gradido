@@ -1,7 +1,7 @@
 <script>
 import 'leaflet/dist/leaflet.css'
 import LocMap from '@/components/UserSettings/UserGMSLocationMap'
-
+import updateUserInfos from '@/graphql/mutations'
 /*
 const apiKey = 'THpEFO62ipFK9OLk8OOx';
 */
@@ -17,6 +17,7 @@ export default {
       required: true,
     },
   },
+  /*
   computed: {
     userLocation: function() {
       return this.initialUserLocation
@@ -25,20 +26,26 @@ export default {
       return this.initialCommunityLocation
     },
   },
+  */
   data() {
-    return {}
+    return {
+      userLocation: this.initialUserLocation,
+      communityLocation: this.initialCommunityLocation,
+    }
+  },
+  mounted: function() {
+    console.log('UserGMSLocationCapturing mounted...')
+    this.userLocation = this.initialUserLocation
+    this.communityLocation = this.initialCommunityLocation
   },
   components: { LocMap },
   methods: {
     close() {
       this.$emit('close')
     },
-    saveclose() {
-      saveLocation()
-      this.$emit('close')
-    },
-    async saveLocation() {
-      console.log('saveLocation als Array=', this.userLocation)
+    async saveclose() {
+      console.log('UserGMSLocationCapturing saveclose...')
+      // this.saveLocation()
       try {
         await this.$apollo.mutate({
           mutation: updateUserInfos,
@@ -46,13 +53,34 @@ export default {
             gmsLocation: this.userLocation,
           },
         })
-        // this.$store.commit('firstName', this.firstName)
-        // this.$store.commit('lastName', this.lastName)
-        // this.showUserData = true
+        console.log('UserGMSLocationCapturing updateUserInfos')
         this.toastSuccess(this.$t('userlocationcapturing.success'))
       } catch (error) {
+        console.log('UserGMSLocationCapturing updateUserInfos failed:', error)
         this.toastError(error)
       }
+
+      this.$emit('close')
+    },
+    async saveLocation() {
+      console.log('UserGMSLocationCapturing saveLocation als Array=', this.userLocation)
+      try {
+        await this.$apollo.mutate({
+          mutation: updateUserInfos,
+          variables: {
+            gmsLocation: this.userLocation,
+          },
+        })
+        console.log('UserGMSLocationCapturing updateUserInfos')
+        this.toastSuccess(this.$t('userlocationcapturing.success'))
+      } catch (error) {
+        console.log('UserGMSLocationCapturing updateUserInfos failed')
+        this.toastError(error)
+      }
+    },
+    updateUserLocation(currentUserLocation) {
+      console.log('UserGMSLocationCapturing updateUserLocation:', currentUserLocation, this.userLocation)
+      this.userLocation = currentUserLocation
     },
   },
 }
@@ -66,6 +94,7 @@ export default {
           <button type="button" class="btn-close" @click="close">x</button>
           <div class="h3">{{ $t('userlocationcapturing.headline') }}</div>
           <loc-map 
+            @currentUserLocation="updateUserLocation"
             v-bind:initial-user-location="this.userLocation"
             v-bind:initial-community-location="this.communityLocation">
           </loc-map>

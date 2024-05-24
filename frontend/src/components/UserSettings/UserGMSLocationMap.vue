@@ -70,7 +70,7 @@
 </template>
 
 <script>
-// import CONFIG from '@/config'
+import CONFIG from '@/config'
 import { toLatLng, latLng, Icon } from 'leaflet'
 import { LMap, LTileLayer, LMarker, LTooltip } from 'vue2-leaflet'
 import { OpenStreetMapProvider } from 'leaflet-geosearch'
@@ -109,28 +109,33 @@ export default {
         console.log('initialUserLocation als Array=', this.initialUserLocation)
         console.log('lat=',this.initialUserLocation[0])
         console.log('lon=',this.initialUserLocation[1])
-        return latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // (49.280377, 9.690151)
+        if (this.initialUserLocation[0] === undefined || this.initialUserLocation[1] === undefined) {
+          const splitNumbers = CONFIG.COMMUNITY_LOCATION.split(',').map(Number)
+          return latLng(splitNumbers[0], splitNumbers[1])
+        } else {
+          return latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // (49.280377, 9.690151)
+        }
       },
-      /*
       set: function(newValue) {
         this.userLocation = newValue
       }
-      */
     },
     computedComLocation: {
       get: function() {
         console.log('initialCommunityLocation als Array=', this.initialCommunityLocation)
         console.log('lat=',this.initialCommunityLocation[0])
         console.log('lon=',this.initialCommunityLocation[1])
-        return latLng(this.initialCommunityLocation[0], this.initialCommunityLocation[1]) // (49.280377, 9.690151)
+        if (this.initialCommunityLocation[0] === undefined || this.initialCommunityLocation[1] === undefined) {
+          const splitNumbers = CONFIG.COMMUNITY_LOCATION.split(',').map(Number)
+          return latLng(splitNumbers[0], splitNumbers[1])
+        } else {
+          return latLng(this.initialCommunityLocation[0], this.initialCommunityLocation[1]) // (49.280377, 9.690151)
+        }
       },
-      /*
       set: function(newValue) {
         this.comLocation = newValue
       }
-      */
     },
-    /*
     computedCenter: {
       get: function() {
         return latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // (49.280377, 9.690151)
@@ -147,7 +152,6 @@ export default {
         this.currentCenter = newValue
       }
     },
-    */
   },
   data: function() {
     return {
@@ -170,39 +174,45 @@ export default {
       currentCenter: this.computedUserLocation,
     }
   },
-  beforeCreated: function () {
-    console.log('created')
-    this.userLocation = this.computedUserLocation
-    this.comLocation = this.computedComLocation
-    this.center = this.computedUserLocation
-    this.currentCenter = this.computedUserLocation
-  },
   created: function() {
-    console.log('created')
-    this.userLocation = this.computedUserLocation
-    this.comLocation = this.computedComLocation
-    this.center = this.computedUserLocation
-    this.currentCenter = this.computedUserLocation
+    console.log('UserGMSLocationMap created: initialUserLocation=', this.initialUserLocation)
+    if (this.initialUserLocation[0] === undefined || this.initialUserLocation[1] === undefined) {
+      const splitNumbers = CONFIG.COMMUNITY_LOCATION.split(',').map(Number)
+      this.userLocation = latLng(splitNumbers[0], splitNumbers[1])
+    } else {
+      this.userLocation = latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // (49.280377, 9.690151)
+    }
+    console.log('UserGMSLocationMap beforeCreate: initialCommunityLocation=', this.initialCommunityLocation)
+    if (this.initialCommunityLocation[0] === undefined || this.initialCommunityLocation[1] === undefined) {
+      const splitNumbers = CONFIG.COMMUNITY_LOCATION.split(',').map(Number)
+      this.comLocation = latLng(splitNumbers[0], splitNumbers[1])
+    } else {
+      this.comLocation = latLng(this.initialCommunityLocation[0], this.initialCommunityLocation[1]) // (49.280377, 9.690151)
+    }
+    this.center = this.userLocation
+    this.currentCenter = this.userLocation
   },
-  mounted: function() {
-    console.log('mounted')
-    this.userLocation = this.computedUserLocation
-    this.comLocation = this.computedComLocation
-    this.center = this.computedUserLocation
-    this.currentCenter = this.computedUserLocation
+  /*
+  updated: function() {
+    console.log('UserGMSLocationMap updated...')
+    this.userLocation = latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // this.computedUserLocation
+    this.comLocation = latLng(this.initialCommunityLocation[0], this.initialCommunityLocation[1]) // this.computedComLocation
+    this.center = latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // this.computedUserLocation
+    this.currentCenter = latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // this.computedUserLocation
   },
+  */
   beforeClose: function(event) {
-    console.log('beforeClose:', this.modal.data, event, this.userLocation)
+    console.log('UserGMSLocationMap beforeClose:', this.modal.data, event, this.userLocation)
     this.$emit(this.userLocation)
   },
 
   methods: {
     zoomUpdate(zoom) {
-      console.log('zoomUpdate')
+      console.log('UserGMSLocationMap zoomUpdate')
       this.currentZoom = zoom
     },
     centerUpdate(center) {
-      console.log('centerUpdate', center)
+      console.log('UserGMSLocationMap centerUpdate', center)
       this.center = center
       this.currentCenter = center
       if (!this.fixYourKoord) {
@@ -210,12 +220,14 @@ export default {
       }
       console.log('currentCenter=', this.currentCenter)
       console.log('userLocation=', this.userLocation)
+      this.$emit('currentUserLocation', this.userLocation)
     },
     fixLocation() {
       this.fixYourKoord = !this.fixYourKoord
     },
-    beforeCreated() {
-      console.log('created')
+    /*
+    beforeCreate() {
+      console.log('UserGMSLocationMap beforeCreated')
       this.userLocation = this.computedUserLocation
       this.comLocation = this.computedComLocation
       this.center = this.computedUserLocation
@@ -239,6 +251,7 @@ export default {
       console.log('beforeClose:', this.modal.data, event, this.userLocation)
       this.$emit(this.userLocation)
     },
+    */
     onChange() {
       this.fixYourKoord = !this.fixYourKoord
     },

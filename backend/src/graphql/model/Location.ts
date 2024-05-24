@@ -1,10 +1,10 @@
-import { ArgsType, Field, Int } from 'type-graphql'
+import { ArgsType, Field, Float, Int } from 'type-graphql'
 
 @ArgsType()
 export class Location {
-  @Field(() => Int)
+  @Field(() => Float)
   longitude: number
 
-  @Field(() => Int)
+  @Field(() => Float)
   latitude: number
 }

@@ -730,25 +730,33 @@ export class UserResolver {
     logger.info(`getUserLocation()...`)
     const dbUser = getUser(context)
     const result = new UserLocationResult()
+
+    const homeCom = await getHomeCommunity()
+    logger.info(`getUserLocation(), homeCom=`, homeCom)
+    if (homeCom.location) {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+      result.communityLocation = Point2Location(homeCom.location as Point)
+      result.userLocation = Point2Location(homeCom.location as Point)
+    }
+
     if (context.token) {
       const user = await DbUser.findOne({
         where: { communityUuid: dbUser.communityUuid, gradidoID: dbUser.gradidoID },
         withDeleted: false,
         relations: ['community'],
       })
-      if (!user) {
-        const homeCom = await getHomeCommunity()
-        if (homeCom.location) {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-          result.communityLocation = Point2Location(homeCom.location as Point)
-        }
-      } else {
-        result.communityLocation = Point2Location(user.community?.location as Point)
+      logger.info(`getUserLocation(), user`, user)
+      if (user?.location) {
+        logger.info(`getUserLocation() user.location=`, user.location)
+        // result.communityLocation = Point2Location(user.community?.location as Point)
         result.userLocation = Point2Location(user.location as Point)
+        if (user.community) {
+          result.communityLocation = Point2Location(user.community.location as Point)
+        }
       }
-      logger.info('authUserForGmsUserSearch=', result)
+      logger.info('userLocation=', result)
     } else {
-      throw new LogError('authUserForGmsUserSearch without token')
+      throw new LogError('userLocation without token')
     }
     return result
   }
