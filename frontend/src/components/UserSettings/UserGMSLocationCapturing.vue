@@ -1,7 +1,8 @@
 <script>
 import 'leaflet/dist/leaflet.css'
 import LocMap from '@/components/UserSettings/UserGMSLocationMap'
-import updateUserInfos from '@/graphql/mutations'
+import { updateUserInfos } from '@/graphql/mutations'
+
 /*
 const apiKey = 'THpEFO62ipFK9OLk8OOx';
 */
@@ -31,6 +32,7 @@ export default {
     return {
       userLocation: this.initialUserLocation,
       communityLocation: this.initialCommunityLocation,
+      capturedLocation: undefined,
     }
   },
   mounted: function() {
@@ -44,13 +46,14 @@ export default {
       this.$emit('close')
     },
     async saveclose() {
-      console.log('UserGMSLocationCapturing saveclose...')
+      console.log('UserGMSLocationCapturing saveclose... capturedLocation=', this.capturedLocation)
       // this.saveLocation()
       try {
+        const loc = { longitude: this.capturedLocation.lng, laditude: this.capturedLocation.lat }
         await this.$apollo.mutate({
           mutation: updateUserInfos,
           variables: {
-            gmsLocation: this.userLocation,
+            gmsLocation: { longitude: this.capturedLocation.lng, laditude: this.capturedLocation.lat }
           },
         })
         console.log('UserGMSLocationCapturing updateUserInfos')
@@ -68,7 +71,7 @@ export default {
         await this.$apollo.mutate({
           mutation: updateUserInfos,
           variables: {
-            gmsLocation: this.userLocation,
+            gmsLocation: this.capturedLocation,
           },
         })
         console.log('UserGMSLocationCapturing updateUserInfos')
@@ -80,7 +83,7 @@ export default {
     },
     updateUserLocation(currentUserLocation) {
       console.log('UserGMSLocationCapturing updateUserLocation:', currentUserLocation, this.userLocation)
-      this.userLocation = currentUserLocation
+      this.capturedLocation = currentUserLocation
     },
   },
 }
