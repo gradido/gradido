@@ -203,8 +203,13 @@ export class UserResolver {
     await EVENT_USER_LOGIN(dbUser)
     // load humhub state
     if (humhubUserPromise) {
-      const result = await humhubUserPromise
-      user.humhubAllowed = result?.result?.account.status === 1
+      try {
+        const result = await humhubUserPromise
+        user.humhubAllowed = result?.result?.account.status === 1
+      } catch (e) {
+        logger.error("couldn't reach out to humhub, disable for now", e)
+        user.humhubAllowed = false
+      }
     }
     user.klickTipp = await klicktippStatePromise
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
