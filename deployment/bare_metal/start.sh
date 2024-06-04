@@ -138,8 +138,10 @@ case "$URL_PROTOCOL" in
 esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/update-page.conf
 
+echo "====================================================================================================" >> $UPDATE_HTML
+echo "Clean folders: tmp, node_modules, build; recreate .env files" >> $UPDATE_HTML
 # Clean tmp folder - remove yarn files
-find /tmp -name "yarn--*" -exec rm -r {} \;
+find -path "/tmp" -name "yarn--*" -exec rm -r {} \;
 
 # Remove node_modules folders
 # we had problems with corrupted node_modules folder
@@ -172,9 +174,12 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env.template > $PROJECT_ROOT/dht-node/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.env.template > $PROJECT_ROOT/federation/.env
+echo "====================================================================================================" >> $UPDATE_HTML
 
 # Install & build database
+echo "====================================================================================================" >> $UPDATE_HTML
 echo 'Updating database' >> $UPDATE_HTML
+echo "====================================================================================================" >> $UPDATE_HTML
 cd $PROJECT_ROOT/database
 yarn install
 yarn build
@@ -186,7 +191,9 @@ else
 fi
 
 # Install & build backend
+echo "====================================================================================================" >> $UPDATE_HTML
 echo 'Updating backend' >> $UPDATE_HTML
+echo "====================================================================================================" >> $UPDATE_HTML
 cd $PROJECT_ROOT/backend
 # TODO maybe handle this differently?
 unset NODE_ENV
@@ -200,36 +207,42 @@ export NODE_ENV=production
 
 
 # Install & build frontend
+echo "====================================================================================================" >> $UPDATE_HTML
 echo 'Updating frontend' >> $UPDATE_HTML
+echo "====================================================================================================" >> $UPDATE_HTML
 cd $PROJECT_ROOT/frontend
 # TODO maybe handle this differently?
 unset NODE_ENV
 
 # upgrade yarn and node versions
+nvm use v20.0.0
 yarn set version stabel
 yarn cache clear
-nvm use v20.0.0
 yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 
 # Install & build admin
+echo "====================================================================================================" >> $UPDATE_HTML
 echo 'Updating admin' >> $UPDATE_HTML
+echo "====================================================================================================" >> $UPDATE_HTML
 cd $PROJECT_ROOT/admin
 # TODO maybe handle this differently?
 unset NODE_ENV
 # downgrade yarn and node versions
+nvm use
 yarn set version 1.22.19
 yarn cache clear
-nvm use
 yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 
 # Install & build dht-node
+echo "====================================================================================================" >> $UPDATE_HTML
 echo 'Updating dht-node' >> $UPDATE_HTML
+echo "====================================================================================================" >> $UPDATE_HTML
 cd $PROJECT_ROOT/dht-node
 # TODO maybe handle this differently?
 unset NODE_ENV
@@ -239,7 +252,9 @@ yarn build
 export NODE_ENV=production
 
 # Install & build federation
+echo "====================================================================================================" >> $UPDATE_HTML
 echo 'Updating federation' >> $UPDATE_HTML
+echo "====================================================================================================" >> $UPDATE_HTML
 cd $PROJECT_ROOT/federation
 # TODO maybe handle this differently?
 unset NODE_ENV
