@@ -54,6 +54,6 @@ describe('getFirstDayOfPreviousNMonth', () => {
     const startDate = new Date(2024, 1, 14) // February 14, 2024
     const monthsAgo = 3
     const result = getFirstDayOfPreviousNMonth(startDate, monthsAgo)
-    expect(result).toEqual(new Date(2023, 10, 1)) // November 1, 2024
+    expect(result).toEqual(new Date(2023, 10, 1)) // November 1, 2023
   })
 })
