@@ -4,12 +4,14 @@ import { Community } from '@entity/Community'
 import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { LogError } from '@/server/LogError'
 
 import { CommunityRoot } from './3_3/CommunityRoot'
 import { CrossGroupType } from './3_3/enum/CrossGroupType'
 import { GradidoCreation } from './3_3/GradidoCreation'
 import { GradidoTransfer } from './3_3/GradidoTransfer'
+import { RegisterAddress } from './3_3/RegisterAddress'
 import { TransactionBody } from './3_3/TransactionBody'
 
 export class TransactionBodyBuilder {
@@ -99,9 +101,16 @@ export class TransactionBodyBuilder {
     return this
   }
 
+  public fromUserAccountDraft(userAccountDraft: UserAccountDraft, account: Account): this {
+    this.body = new TransactionBody(userAccountDraft)
+    this.body.registerAddress = new RegisterAddress(userAccountDraft, account)
+    this.body.data = 'registerAddress'
+    return this
+  }
+
   public fromTransactionDraft(transactionDraft: TransactionDraft): TransactionBodyBuilder {
     this.body = new TransactionBody(transactionDraft)
-    // TODO: load pubkeys for sender and recipient user from db
+    // TODO: load public keys for sender and recipient user from db
     switch (transactionDraft.type) {
       case InputTransactionType.CREATION:
         if (!this.recipientAccount) {
