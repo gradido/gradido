@@ -56,6 +56,7 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
+import { getFirstDayOfPreviousNMonth } from '@/util/utilities'
 
 jest.mock('@/emails/sendEmailVariants')
 
@@ -290,8 +291,7 @@ describe('ContributionResolver', () => {
 
         it('throws error when creationDate 3 month behind', async () => {
           jest.clearAllMocks()
-          const date = new Date()
-          date.setMonth(date.getMonth() - 3)
+          const date = getFirstDayOfPreviousNMonth(new Date(), 3)
           const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
@@ -584,8 +584,7 @@ describe('ContributionResolver', () => {
       describe('update creation to a date that is older than 3 months', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
-          const date = new Date()
-          date.setMonth(date.getMonth() - 3)
+          const date = getFirstDayOfPreviousNMonth(new Date(), 3)
           const { errors: errorObjects } = await mutate({
             mutation: updateContribution,
             variables: {
