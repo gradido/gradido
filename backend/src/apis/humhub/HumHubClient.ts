@@ -65,7 +65,7 @@ export class HumHubClient {
     const token = await new SignJWT({ username })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
-      .setExpirationTime('2m')
+      .setExpirationTime(CONFIG.JWT_EXPIRES_IN)
       .sign(secret)
 
     return `${CONFIG.HUMHUB_API_URL}user/auth/external?authclient=jwt&jwt=${token}`
