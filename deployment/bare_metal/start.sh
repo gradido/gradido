@@ -218,7 +218,7 @@ export NODE_OPTIONS=--openssl-legacy-provider
 
 # upgrade yarn and node versions
 nvm use v20.0.0
-yarn set version stabel
+yarn set version stable
 yarn cache clear
 yarn install
 yarn build
@@ -233,7 +233,7 @@ cd $PROJECT_ROOT/admin
 # TODO maybe handle this differently?
 unset NODE_ENV
 # downgrade yarn and node versions
-nvm use
+nvm use default
 yarn set version 1.22.19
 yarn cache clear
 yarn install
