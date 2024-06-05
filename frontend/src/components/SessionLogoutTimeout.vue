@@ -67,7 +67,6 @@ export default {
       }
       if (this.tokenExpiresInSeconds === 0) {
         this.$timer.stop('tokenExpires')
-        this.toastInfoNoHide(this.$t('session.automaticallyLoggedOut'))
         this.$emit('logout')
       }
     },
@@ -85,7 +84,6 @@ export default {
         })
         .catch(() => {
           this.$timer.stop('tokenExpires')
-          this.toastInfoNoHide(this.$t('session.automaticallyLoggedOut'))
           this.$emit('logout')
         })
     },
