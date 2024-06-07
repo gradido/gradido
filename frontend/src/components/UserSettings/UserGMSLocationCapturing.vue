@@ -10,11 +10,11 @@ export default {
   name: 'UserGMSLocationCapturing',
   props: {
     initialUserLocation: {
-      type: Array<Number>(2),
+      type: Array<number>,
       required: true,
     },
     initialCommunityLocation: {
-      type: Array<Number>(2),
+      type: Array<number>,
       required: true,
     },
   },
@@ -35,7 +35,8 @@ export default {
       capturedLocation: undefined,
     }
   },
-  mounted: function() {
+  mounted: function () {
+    // eslint-disable-next-line
     console.log('UserGMSLocationCapturing mounted...')
     this.userLocation = this.initialUserLocation
     this.communityLocation = this.initialCommunityLocation
@@ -46,6 +47,7 @@ export default {
       this.$emit('close')
     },
     async saveclose() {
+      // eslint-disable-next-line
       console.log('UserGMSLocationCapturing saveclose... capturedLocation=', this.capturedLocation)
       // this.saveLocation()
       try {
@@ -53,7 +55,10 @@ export default {
         await this.$apollo.mutate({
           mutation: updateUserInfos,
           variables: {
-            gmsLocation: { longitude: this.capturedLocation.lng, laditude: this.capturedLocation.lat }
+            gmsLocation: { 
+              longitude: this.capturedLocation.lng,
+              laditude: this.capturedLocation.lat,
+            },
           },
         })
         // eslint-disable-next-line
@@ -102,10 +107,11 @@ export default {
         <b-container class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
           <button type="button" class="btn-close" @click="close">x</button>
           <div class="h3">{{ $t('userlocationcapturing.headline') }}</div>
-          <loc-map 
+          <loc-map
             @currentUserLocation="updateUserLocation"
             v-bind:initial-user-location="this.userLocation"
-            v-bind:initial-community-location="this.communityLocation">
+            v-bind:initial-community-location="this.communityLocation"
+          >
           </loc-map>
           <b-row class="my-5">
             <b-col cols="12">

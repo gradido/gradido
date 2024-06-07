@@ -1,0 +1,25 @@
+{
+    "name": "@types/junit-report-builder",
+    "version": "3.0.2",
+    "description": "TypeScript definitions for junit-report-builder",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/junit-report-builder",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Daniel König",
+            "githubUsername": "dakoenig",
+            "url": "https://github.com/dakoenig"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/junit-report-builder"
+    },
+    "scripts": {},
+    "dependencies": {},
+    "typesPublisherContentHash": "c96226d500e43f7c0c6494d80165a27186778610ee01f2fc1403e9a98274d6de",
+    "typeScriptVersion": "4.5"
+}

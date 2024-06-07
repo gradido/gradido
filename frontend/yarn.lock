@@ -3643,6 +3643,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/leaflet@npm:^1.9.12":
+  version: 1.9.12
+  resolution: "@types/leaflet@npm:1.9.12"
+  dependencies:
+    "@types/geojson": "npm:*"
+  checksum: 10c0/067f6c91cd5b97b0bf234e5a2847bd8d00e0333f017451eb646ac2ccb9766c55ad9bd92787877b660bb62890d5ab3af408550b6d56bc5f7e36331f4f460e86bd
+  languageName: node
+  linkType: hard
+
 "@types/mapbox__point-geometry@npm:*, @types/mapbox__point-geometry@npm:^0.1.4":
   version: 0.1.4
   resolution: "@types/mapbox__point-geometry@npm:0.1.4"
@@ -5931,6 +5940,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.13.12"
     "@intlify/eslint-plugin-vue-i18n": "npm:^1.4.0"
     "@maptiler/sdk": "npm:^2.0.3"
+    "@types/leaflet": "npm:^1.9.12"
     "@vue/cli-plugin-babel": "npm:^3.7.0"
     "@vue/cli-plugin-eslint": "npm:^3.7.0"
     "@vue/cli-plugin-unit-jest": "npm:^4.5.12"

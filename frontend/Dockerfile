@@ -1,7 +1,8 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-FROM node:16-alpine3.14 as base
+#FROM node:16-alpine3.14 as base
+FROM node:v20.0.0 as base
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
 ## DOCKER_WORKDIR would be a classical ARG, but that is not multi layer persistent - shame
@@ -42,6 +43,12 @@ EXPOSE ${PORT}
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
+# upgrade yarn and node versions
+RUN yarn set version stabel
+RUN yarn cache clear
+RUN nvm use v20.0.0
+
+
 ##################################################################################
 # DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
 ##################################################################################
@@ -59,6 +66,12 @@ CMD /bin/sh -c "yarn install && yarn run dev"
 # BUILD (Does contain all files and is therefore bloated) ########################
 ##################################################################################
 FROM base as build
+
+# upgrade yarn and node versions
+RUN yarn set version stabel
+RUN yarn cache clear
+RUN nvm use v20.0.0
+
 
 # Copy everything
 COPY . .

@@ -1,0 +1,13 @@
+{
+  "entryPoints": ["./src/index.ts"],
+  "name": "MapTiler SDK",
+  "out": "docs",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "excludeNotDocumented": false,
+  "excludeInternal": true,
+  "theme": "default",
+  "customCss": "typedoc.css",
+  "includeVersion": true
+}

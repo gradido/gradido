@@ -21,7 +21,8 @@ export default {
   components: {
     modal,
   },
-  created: async function() {
+  created: async function () {
+    // eslint-disable-next-line
     console.log('UserGMSLocation created...')
     await this.$apollo
       .query({
@@ -41,7 +42,7 @@ export default {
         // this.cLocation = new Array<Number>(2)
         // eslint-disable-next-line
         console.log('communityLocation=', this.communityLocation)
-        if(cLla && cLlo) {
+        if (cLla && cLlo) {
           this.communityLocation = { cLla, cLlo }
           // eslint-disable-next-line
           console.log('set communityLocation=', this.communityLocation)
@@ -57,7 +58,7 @@ export default {
         // eslint-disable-next-line
         console.log('uLlo=', uLlo)
         // this.uLocation = new Array<Number>(2)
-        if(uLla && uLlo) {
+        if (uLla && uLlo) {
           this.userLocation = { uLla, uLlo }
           // eslint-disable-next-line
           console.log('set userLocation=', this.userLocation)
@@ -113,8 +114,8 @@ export default {
   data() {
     return {
       isModalVisible: false,
-      userLocation: Array<Number>(2),
-      communityLocation: Array<Number>(2),
+      userLocation: Array<number>,
+      communityLocation: Array<number>,
     }
   },
   methods: {
@@ -164,7 +165,7 @@ export default {
           // this.cLocation = new Array<Number>(2)
           // eslint-disable-next-line
           console.log('communityLocation=', this.communityLocation)
-          if(cLla && cLlo) {
+          if (cLla && cLlo) {
             this.communityLocation = { cLla, cLlo }
             // eslint-disable-next-line
             console.log('set communityLocation=', this.communityLocation)
@@ -180,7 +181,7 @@ export default {
           // eslint-disable-next-line
           console.log('uLlo=', uLlo)
           // this.uLocation = new Array<Number>(2)
-          if(uLla && uLlo) {
+          if (uLla && uLlo) {
             this.userLocation = { uLla, uLlo }
             // eslint-disable-next-line
             console.log('set userLocation=', this.userLocation)
