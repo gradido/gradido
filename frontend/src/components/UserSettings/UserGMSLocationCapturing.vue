@@ -56,9 +56,11 @@ export default {
             gmsLocation: { longitude: this.capturedLocation.lng, laditude: this.capturedLocation.lat }
           },
         })
+        // eslint-disable-next-line
         console.log('UserGMSLocationCapturing updateUserInfos')
         this.toastSuccess(this.$t('userlocationcapturing.success'))
       } catch (error) {
+        // eslint-disable-next-line
         console.log('UserGMSLocationCapturing updateUserInfos failed:', error)
         this.toastError(error)
       }
@@ -66,6 +68,7 @@ export default {
       this.$emit('close')
     },
     async saveLocation() {
+      // eslint-disable-next-line
       console.log('UserGMSLocationCapturing saveLocation als Array=', this.userLocation)
       try {
         await this.$apollo.mutate({
@@ -74,14 +77,17 @@ export default {
             gmsLocation: this.capturedLocation,
           },
         })
+        // eslint-disable-next-line
         console.log('UserGMSLocationCapturing updateUserInfos')
         this.toastSuccess(this.$t('userlocationcapturing.success'))
       } catch (error) {
+        // eslint-disable-next-line
         console.log('UserGMSLocationCapturing updateUserInfos failed')
         this.toastError(error)
       }
     },
     updateUserLocation(currentUserLocation) {
+      // eslint-disable-next-line
       console.log('UserGMSLocationCapturing updateUserLocation:', currentUserLocation, this.userLocation)
       this.capturedLocation = currentUserLocation
     },
