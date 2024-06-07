@@ -1,6 +1,6 @@
 <template>
-  <div style="height: 400px; width: 100%">
-    <div style="height: 100px">
+  <div class="map_div1">
+    <div class="map_div2">
       <b-row class="test-buttons mt-3">
         <b-col cols="12" md="3" lg="3">
           <b-button
@@ -45,7 +45,7 @@
       :zoom="zoom"
       :center="center"
       :options="mapOptions"
-      style="height: 80%"
+      class="map_div3"
       @update:center="centerUpdate"
       @update:zoom="zoomUpdate"
     >
@@ -68,7 +68,18 @@
     </l-map>
   </div>
 </template>
-
+<style>
+.map_div1 {
+  height: 400px;
+  width: 100%;
+}
+.map_div2 {
+  height: 100px;
+}
+.map_div3 {
+  height: 80%;
+}
+</style>
 <script>
 import CONFIG from '@/config'
 import { latLng, Icon } from 'leaflet'
