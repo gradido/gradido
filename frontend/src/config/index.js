@@ -50,7 +50,7 @@ const community = {
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION ?? 'Die lokale Entwicklungsumgebung von Gradido.',
   COMMUNITY_SUPPORT_MAIL: process.env.COMMUNITY_SUPPORT_MAIL ?? 'support@supportmail.com',
-  COMMUNITY_LOCATION: process.env.COMMUNITY_LOCATION ?? '49.280377, 9.690151'
+  COMMUNITY_LOCATION: process.env.COMMUNITY_LOCATION ?? '49.280377, 9.690151',
 }
 
 const meta = {
