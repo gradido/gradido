@@ -737,24 +737,33 @@ export class UserResolver {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       result.communityLocation = Point2Location(homeCom.location as Point)
       result.userLocation = Point2Location(homeCom.location as Point)
+      logger.debug(
+        `getUserLocation(), set default userlocation with homeCom.location. result=`,
+        result,
+      )
     }
 
     if (context.token) {
+      logger.debug(`getUserLocation() find user of current context...`)
       const user = await DbUser.findOne({
         where: { communityUuid: dbUser.communityUuid, gradidoID: dbUser.gradidoID },
         withDeleted: false,
         relations: ['community'],
       })
-      logger.info(`getUserLocation(), user`, user)
+      logger.info(`getUserLocation(), user=`, user)
       if (user?.location) {
         logger.info(`getUserLocation() user.location=`, user.location)
         // result.communityLocation = Point2Location(user.community?.location as Point)
         result.userLocation = Point2Location(user.location as Point)
         if (user.community) {
           result.communityLocation = Point2Location(user.community.location as Point)
+          logger.debug(
+            `getUserLocation() set com.location with user.community.location. result=`,
+            result,
+          )
         }
       }
-      logger.info('userLocation=', result)
+      logger.info('userLocation, result=', result)
     } else {
       throw new LogError('userLocation without token')
     }
