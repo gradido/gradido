@@ -226,6 +226,7 @@ yarn build
 export NODE_ENV=production
 
 unset NODE_OPTIONS
+export NODE_OPTIONS
 
 # Install & build admin
 echo "====================================================================================================" >> $UPDATE_HTML
