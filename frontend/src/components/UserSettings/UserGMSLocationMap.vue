@@ -94,11 +94,11 @@ export default {
   },
   props: {
     initialUserLocation: {
-      type: Array <Number>(2),
+      type: Array,
       required: true,
     },
     initialCommunityLocation: {
-      type: Array <Number>(2),
+      type: Array,
       required: true,
     },
   },

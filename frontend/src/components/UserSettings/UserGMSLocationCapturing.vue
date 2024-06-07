@@ -10,11 +10,11 @@ export default {
   name: 'UserGMSLocationCapturing',
   props: {
     initialUserLocation: {
-      type: Array<number>,
+      type: Array,
       required: true,
     },
     initialCommunityLocation: {
-      type: Array<number>,
+      type: Array,
       required: true,
     },
   },
@@ -51,11 +51,11 @@ export default {
       console.log('UserGMSLocationCapturing saveclose... capturedLocation=', this.capturedLocation)
       // this.saveLocation()
       try {
-        const loc = { longitude: this.capturedLocation.lng, laditude: this.capturedLocation.lat }
+        // const loc = { longitude: this.capturedLocation.lng, laditude: this.capturedLocation.lat }
         await this.$apollo.mutate({
           mutation: updateUserInfos,
           variables: {
-            gmsLocation: { 
+            gmsLocation: {
               longitude: this.capturedLocation.lng,
               laditude: this.capturedLocation.lat,
             },
@@ -111,8 +111,7 @@ export default {
             @currentUserLocation="updateUserLocation"
             v-bind:initial-user-location="this.userLocation"
             v-bind:initial-community-location="this.communityLocation"
-          >
-          </loc-map>
+          ></loc-map>
           <b-row class="my-5">
             <b-col cols="12">
               <div class="text-lg-right">

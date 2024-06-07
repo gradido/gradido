@@ -114,8 +114,8 @@ export default {
   data() {
     return {
       isModalVisible: false,
-      userLocation: Array<number>,
-      communityLocation: Array<number>,
+      userLocation: Array,
+      communityLocation: Array,
     }
   },
   methods: {
