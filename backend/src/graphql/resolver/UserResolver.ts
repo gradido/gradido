@@ -585,6 +585,7 @@ export class UserResolver {
     logger.info(
       `updateUserInfos(${firstName}, ${lastName}, ${alias}, ${language}, ***, ***, ${hideAmountGDD}, ${hideAmountGDT}, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})...`,
     )
+    logger.debug('updateUserInfoArgs=', updateUserInfosArgs)
     const user = getUser(context)
     const updateUserInGMS = compareGmsRelevantUserSettings(user, updateUserInfosArgs)
 

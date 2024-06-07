@@ -51,13 +51,15 @@ export default {
       console.log('UserGMSLocationCapturing saveclose... capturedLocation=', this.capturedLocation)
       // this.saveLocation()
       try {
-        // const loc = { longitude: this.capturedLocation.lng, laditude: this.capturedLocation.lat }
+        const loc = { longitude: this.capturedLocation.lng, laditude: this.capturedLocation.lat }
+      // eslint-disable-next-line
+        console.log('UserGMSLocationCapturing loc=', loc)
         await this.$apollo.mutate({
           mutation: updateUserInfos,
           variables: {
             gmsLocation: {
               longitude: this.capturedLocation.lng,
-              laditude: this.capturedLocation.lat,
+              latitude: this.capturedLocation.lat,
             },
           },
         })
