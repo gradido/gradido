@@ -225,6 +225,8 @@ yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 
+unset NODE_OPTIONS
+
 # Install & build admin
 echo "====================================================================================================" >> $UPDATE_HTML
 echo 'Updating admin' >> $UPDATE_HTML
