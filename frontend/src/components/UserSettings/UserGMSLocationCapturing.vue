@@ -35,15 +35,15 @@ export default {
       capturedLocation: undefined,
     }
   },
-  mounted: function () {
+  created: function () {
     // eslint-disable-next-line
-    console.log('UserGMSLocationCapturing mounted...')
+    console.log('UserGMSLocationCapturing created...')
     this.userLocation = this.initialUserLocation
     this.communityLocation = this.initialCommunityLocation
     // eslint-disable-next-line
-    console.log('UserGMSLocationCapturing mounted userLocation=', this.userLocation)
+    console.log('UserGMSLocationCapturing created userLocation=', this.userLocation)
     // eslint-disable-next-line
-    console.log('UserGMSLocationCapturing mounted communityLocation=', this.communityLocation)
+    console.log('UserGMSLocationCapturing created communityLocation=', this.communityLocation)
   },
   components: { LocMap },
   methods: {

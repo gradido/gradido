@@ -197,9 +197,9 @@ export default {
       currentCenter: this.computedUserLocation,
     }
   },
-  mounted: function () {
+  created: function () {
     // eslint-disable-next-line
-    console.log('UserGMSLocationMap mounted: initialUserLocation=', this.initialUserLocation)
+    console.log('UserGMSLocationMap created: initialUserLocation=', this.initialUserLocation)
     if (this.initialUserLocation[0] === undefined || this.initialUserLocation[1] === undefined) {
       const splitNumbers = CONFIG.COMMUNITY_LOCATION.split(',').map(Number)
       this.userLocation = latLng(splitNumbers[0], splitNumbers[1])
@@ -207,7 +207,7 @@ export default {
       this.userLocation = latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // (49.280377, 9.690151)
     }
     // eslint-disable-next-line
-    console.log('UserGMSLocationMap mounted: initialCommunityLocation=', this.initialCommunityLocation)
+    console.log('UserGMSLocationMap created: initialCommunityLocation=', this.initialCommunityLocation)
     if (
       this.initialCommunityLocation[0] === undefined ||
       this.initialCommunityLocation[1] === undefined
