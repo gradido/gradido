@@ -120,9 +120,9 @@ export default {
         // eslint-disable-next-line
         console.log('initialUserLocation als Array=', this.initialUserLocation)
         // eslint-disable-next-line
-        console.log('lat=',this.initialUserLocation[0])
+        console.log('computedUserLocation lat=',this.initialUserLocation[0])
         // eslint-disable-next-line
-        console.log('lon=',this.initialUserLocation[1])
+        console.log('computedUserLocation lon=',this.initialUserLocation[1])
         if (
           this.initialUserLocation[0] === undefined ||
           this.initialUserLocation[1] === undefined
@@ -142,9 +142,9 @@ export default {
         // eslint-disable-next-line
         console.log('initialCommunityLocation als Array=', this.initialCommunityLocation)
         // eslint-disable-next-line
-        console.log('lat=',this.initialCommunityLocation[0])
+        console.log('computedComLocation lat=',this.initialCommunityLocation[0])
         // eslint-disable-next-line
-        console.log('lon=',this.initialCommunityLocation[1])
+        console.log('computedComLocation lon=',this.initialCommunityLocation[1])
         if (
           this.initialCommunityLocation[0] === undefined ||
           this.initialCommunityLocation[1] === undefined

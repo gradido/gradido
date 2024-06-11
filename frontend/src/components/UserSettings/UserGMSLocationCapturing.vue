@@ -40,6 +40,10 @@ export default {
     console.log('UserGMSLocationCapturing mounted...')
     this.userLocation = this.initialUserLocation
     this.communityLocation = this.initialCommunityLocation
+    // eslint-disable-next-line
+    console.log('UserGMSLocationCapturing mounted userLocation=', this.userLocation)
+    // eslint-disable-next-line
+    console.log('UserGMSLocationCapturing mounted communityLocation=', this.communityLocation)
   },
   components: { LocMap },
   methods: {
