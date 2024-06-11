@@ -46,19 +46,19 @@
       :center="center"
       :options="mapOptions"
       class="map_div3"
-      @update:center="centerUpdate"
-      @update:zoom="zoomUpdate"
+      @update:center="this.centerUpdate"
+      @update:zoom="this.zoomUpdate"
     >
       <l-tile-layer :url="url" :attribution="attribution" />
       <l-geosearch :options="geosearchOptions" />
-      <l-marker :lat-lng="userLocation">
+      <l-marker :lat-lng="this.userLocation">
         <l-tooltip :options="{ permanent: true, interactive: true }">
           <div @click="fixLocation">
             {{ $t('userlocationcapturing.userlocationlabel') }}
           </div>
         </l-tooltip>
       </l-marker>
-      <l-marker :lat-lng="comLocation">
+      <l-marker :lat-lng="this.comLocation">
         <l-tooltip :options="{ permanent: true }">
           <div>
             {{ $t('userlocationcapturing.communitylocationlabel') }}
