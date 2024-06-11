@@ -42,12 +42,12 @@
     />
     <l-map
       v-if="showMap"
-      :zoom="zoom"
-      :center="center"
+      :zoom="this.zoom"
+      :center="this.center"
       :options="mapOptions"
       class="map_div3"
-      @update:center="this.centerUpdate"
-      @update:zoom="this.zoomUpdate"
+      @update:center="centerUpdate"
+      @update:zoom="zoomUpdate"
     >
       <l-tile-layer :url="url" :attribution="attribution" />
       <l-geosearch :options="geosearchOptions" />
@@ -197,9 +197,9 @@ export default {
       currentCenter: this.computedUserLocation,
     }
   },
-  created: function () {
+  beforeMount: function () {
     // eslint-disable-next-line
-    console.log('UserGMSLocationMap created: initialUserLocation=', this.initialUserLocation)
+    console.log('UserGMSLocationMap beforeMount: initialUserLocation=', this.initialUserLocation)
     if (this.initialUserLocation[0] === undefined || this.initialUserLocation[1] === undefined) {
       const splitNumbers = CONFIG.COMMUNITY_LOCATION.split(',').map(Number)
       this.userLocation = latLng(splitNumbers[0], splitNumbers[1])
@@ -207,7 +207,7 @@ export default {
       this.userLocation = latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // (49.280377, 9.690151)
     }
     // eslint-disable-next-line
-    console.log('UserGMSLocationMap beforeCreate: initialCommunityLocation=', this.initialCommunityLocation)
+    console.log('UserGMSLocationMap created: initialCommunityLocation=', this.initialCommunityLocation)
     if (
       this.initialCommunityLocation[0] === undefined ||
       this.initialCommunityLocation[1] === undefined
@@ -221,9 +221,9 @@ export default {
     this.currentCenter = this.userLocation
   },
   /*
-  updated: function() {
+  beforeMount: function() {
     // eslint-disable-next-line
-    console.log('UserGMSLocationMap updated...')
+    console.log('UserGMSLocationMap beforeMount...')
     this.userLocation = latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // this.computedUserLocation
     this.comLocation = latLng(this.initialCommunityLocation[0], this.initialCommunityLocation[1]) // this.computedComLocation
     this.center = latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // this.computedUserLocation
