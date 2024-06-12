@@ -43,7 +43,7 @@
     <l-map
       v-if="showMap"
       :zoom="zoom"
-      :center="center"
+      :center="computedCenter"
       :options="mapOptions"
       class="map_div3"
       @update:center="centerUpdate"
@@ -51,14 +51,14 @@
     >
       <l-tile-layer :url="url" :attribution="attribution" />
       <l-geosearch :options="geosearchOptions" />
-      <l-marker :lat-lng="userLocation">
+      <l-marker :lat-lng="computedUserLocation">
         <l-tooltip :options="{ permanent: true, interactive: true }">
           <div @click="fixLocation">
             {{ $t('userlocationcapturing.userlocationlabel') }}
           </div>
         </l-tooltip>
       </l-marker>
-      <l-marker :lat-lng="comLocation">
+      <l-marker :lat-lng="computedComLocation">
         <l-tooltip :options="{ permanent: true }">
           <div>
             {{ $t('userlocationcapturing.communitylocationlabel') }}
@@ -104,18 +104,6 @@ export default {
     LTooltip,
     LGeosearch,
   },
-  /*
-  props: {
-    initialUserLocation: {
-      type: Array,
-      required: true,
-    },
-    initialCommunityLocation: {
-      type: Array,
-      required: true,
-    },
-  },
-  */
   computed: {
     computedUserLocation: {
       get: function () {
@@ -194,11 +182,11 @@ export default {
       geosearchOptions: {
         provider: new OpenStreetMapProvider(),
       },
-      splitNumbers: CONFIG.COMMUNITY_LOCATION.split(',').map(Number), 
-      userLocation: latLng(49.280377, 9.690151),
-      comLocation:  latLng(49.280377, 9.690151),
-      center:  latLng(49.280377, 9.690151),
-      currentCenter:  latLng(49.280377, 9.690151),
+      // splitNumbers: CONFIG.COMMUNITY_LOCATION.split(',').map(Number), 
+      userLocation: [49.280377, 9.690151],
+      comLocation:  [49.280377, 9.690151],
+      center:  [49.280377, 9.690151],
+      currentCenter:  [49.280377, 9.690151],
     }
   },
   created: async function () {
