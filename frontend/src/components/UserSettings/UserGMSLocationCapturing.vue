@@ -8,6 +8,7 @@ const apiKey = 'THpEFO62ipFK9OLk8OOx';
 */
 export default {
   name: 'UserGMSLocationCapturing',
+  /*
   props: {
     initialUserLocation: {
       type: Array,
@@ -26,16 +27,18 @@ export default {
       return this.communityLocation
     },
   },
+  */
   data() {
     return {
-      userLocation: this.initialUserLocation,
-      communityLocation: this.initialCommunityLocation,
+      // userLocation: this.initialUserLocation,
+      // communityLocation: this.initialCommunityLocation,
       capturedLocation: undefined,
     }
   },
   created: function () {
     // eslint-disable-next-line
     console.log('UserGMSLocationCapturing created...')
+    /*
     // eslint-disable-next-line
     console.log('UserGMSLocationCapturing created... initialUserLocation=', this.initialUserLocation)
     this.userLocation = this.initialUserLocation
@@ -45,6 +48,7 @@ export default {
     console.log('UserGMSLocationCapturing created... userLocation=', this.userLocation)
     // eslint-disable-next-line
     console.log('UserGMSLocationCapturing created... communityLocation=', this.communityLocation)
+    */
   },
   components: { LocMap },
   methods: {
@@ -79,6 +83,7 @@ export default {
 
       this.$emit('close')
     },
+    /*
     async saveLocation() {
       // eslint-disable-next-line
       console.log('UserGMSLocationCapturing saveLocation als Array=', this.userLocation)
@@ -98,6 +103,7 @@ export default {
         this.toastError(error)
       }
     },
+    */
     updateUserLocation(currentUserLocation) {
       // eslint-disable-next-line
       console.log('UserGMSLocationCapturing updateUserLocation:', currentUserLocation, this.userLocation)
@@ -116,8 +122,6 @@ export default {
           <div class="h3">{{ $t('userlocationcapturing.headline') }}</div>
           <loc-map
             @currentUserLocation="updateUserLocation"
-            v-bind:initial-user-location="this.computedUserLocation"
-            v-bind:initial-community-location="this.computedCommunityLocation"
           ></loc-map>
           <b-row class="my-5">
             <b-col cols="12">

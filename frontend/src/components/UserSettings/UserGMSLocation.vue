@@ -2,8 +2,6 @@
   <div class="mt-3 mb-5">
     <b-button @click="showModal">{{ $t('settings.GMS.location.button') }}</b-button>
     <modal
-      v-bind:initial-user-location="userLocation"
-      v-bind:initial-community-location="communityLocation"
       v-show="isModalVisible"
       @close="closeModal"
       @before-open="beforeOpen"
@@ -13,14 +11,13 @@
 </template>
 <script>
 import modal from '@/components/UserSettings/UserGMSLocationCapturing'
-import { userLocationQuery } from '@/graphql/queries'
-import CONFIG from '@/config'
 
 export default {
   name: 'UserGMSLocation',
   components: {
     modal,
   },
+  /*
   created: async function () {
     // eslint-disable-next-line
     console.log('UserGMSLocation created...')
@@ -75,6 +72,7 @@ export default {
         this.userLocation = this.communityLocation
       })
   },
+  */
   /*
   computed: {
     locations: function() {
@@ -139,6 +137,7 @@ export default {
       console.log('UserGMSLocation beforeClose')
       this.$emit(this.modal.data)
     },
+    /*
     async getUserLocation() {
       // eslint-disable-next-line
       console.log('UserGMSLocation getUserLocation...')
@@ -193,6 +192,7 @@ export default {
           this.userLocation = this.communityLocation
         })
     },
+    */
   },
 }
 </script>
