@@ -2,8 +2,8 @@
   <div class="mt-3 mb-5">
     <b-button @click="showModal">{{ $t('settings.GMS.location.button') }}</b-button>
     <modal
-      v-bind:initial-user-location="this.userLocation"
-      v-bind:initial-community-location="this.communityLocation"
+      v-bind:initial-user-location="userLocation"
+      v-bind:initial-community-location="communityLocation"
       v-show="isModalVisible"
       @close="closeModal"
       @before-open="beforeOpen"
@@ -21,9 +21,9 @@ export default {
   components: {
     modal,
   },
-  beforeCreate: async function () {
+  created: async function () {
     // eslint-disable-next-line
-    console.log('UserGMSLocation beforeCreate...')
+    console.log('UserGMSLocation created...')
     await this.$apollo
       .query({
         query: userLocationQuery,
@@ -31,46 +31,46 @@ export default {
       })
       .then((result) => {
         // eslint-disable-next-line
-        console.log('UserGMSLocation beforeCreate... getUserLocation data=', result.data)
+        console.log('UserGMSLocation created... getUserLocation data=', result.data)
         // this.toastError('getUserLocation:',result.data)
         const cLla = Number.parseFloat(result.data.userLocation.communityLocation.latitude)
         // eslint-disable-next-line
-        console.log('UserGMSLocation beforeCreate... cLla=', cLla)
+        console.log('UserGMSLocation created... cLla=', cLla)
         const cLlo = Number.parseFloat(result.data.userLocation.communityLocation.longitude)
         // eslint-disable-next-line
-        console.log('UserGMSLocation beforeCreate... cLlo=', cLlo, this.communityLocation)
+        console.log('UserGMSLocation created... cLlo=', cLlo, this.communityLocation)
         // this.cLocation = new Array<Number>(2)
         // eslint-disable-next-line
-        console.log('UserGMSLocation beforeCreate... communityLocation=', this.communityLocation)
+        console.log('UserGMSLocation created... communityLocation=', this.communityLocation)
         if (cLla && cLlo) {
           this.communityLocation = { cLla, cLlo }
           // eslint-disable-next-line
-          console.log('UserGMSLocation beforeCreate... set communityLocation=', this.communityLocation)
+          console.log('UserGMSLocation created... set communityLocation=', this.communityLocation)
         } else {
           this.communityLocation = CONFIG.COMMUNITY_LOCATION.split(',').map(Number) // [49.280377, 9.690151]
           // eslint-disable-next-line
-          console.log('UserGMSLocation beforeCreate... set communityLocation from CONFIG: cLocation=', this.communityLocation)
+          console.log('UserGMSLocation created... set communityLocation from CONFIG: cLocation=', this.communityLocation)
         }
         const uLla = Number.parseFloat(result.data.userLocation.userLocation.latitude)
         // eslint-disable-next-line
-        console.log('UserGMSLocation beforeCreate... uLla=', uLla)
+        console.log('UserGMSLocation created... uLla=', uLla)
         const uLlo = Number.parseFloat(result.data.userLocation.userLocation.longitude)
         // eslint-disable-next-line
-        console.log('UserGMSLocation beforeCreate... uLlo=', uLlo)
+        console.log('UserGMSLocation created... uLlo=', uLlo)
         // this.uLocation = new Array<Number>(2)
         if (uLla && uLlo) {
           this.userLocation = { uLla, uLlo }
           // eslint-disable-next-line
-          console.log('UserGMSLocation beforeCreate... set userLocation=', this.userLocation)
+          console.log('UserGMSLocation created... set userLocation=', this.userLocation)
         } else {
           this.userLocation = this.communityLocation
           // eslint-disable-next-line
-          console.log('UserGMSLocation beforeCreate... set uLocation from cLocation: userLocation=', this.userLocation)
+          console.log('UserGMSLocation created... set uLocation from cLocation: userLocation=', this.userLocation)
         }
       })
       .catch(() => {
         // eslint-disable-next-line
-        console.log('UserGMSLocation beforeCreate... userLocation has no result, use default data')
+        console.log('UserGMSLocation created... userLocation has no result, use default data')
         this.communityLocation = CONFIG.COMMUNITY_LOCATION.split(',').map(Number)
         this.userLocation = this.communityLocation
       })
@@ -138,11 +138,6 @@ export default {
       // eslint-disable-next-line
       console.log('UserGMSLocation beforeClose')
       this.$emit(this.modal.data)
-    },
-    created() {
-      // eslint-disable-next-line
-      console.log('UserGMSLocation created...')
-      // this.getUserLocation()
     },
     async getUserLocation() {
       // eslint-disable-next-line

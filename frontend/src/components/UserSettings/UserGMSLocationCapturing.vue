@@ -18,16 +18,14 @@ export default {
       required: true,
     },
   },
-  /*
   computed: {
-    userLocation: function() {
-      return this.initialUserLocation
+    computedUserLocation: function() {
+      return this.userLocation
     },
-    communityLocation: function() {
-      return this.initialCommunityLocation
+    computedCommunityLocation: function() {
+      return this.communityLocation
     },
   },
-  */
   data() {
     return {
       userLocation: this.initialUserLocation,
@@ -38,12 +36,15 @@ export default {
   created: function () {
     // eslint-disable-next-line
     console.log('UserGMSLocationCapturing created...')
+    // eslint-disable-next-line
+    console.log('UserGMSLocationCapturing created... initialUserLocation=', this.initialUserLocation)
     this.userLocation = this.initialUserLocation
+    console.log('UserGMSLocationCapturing created... initialCommunityLocation=', this.initialCommunityLocation)
     this.communityLocation = this.initialCommunityLocation
     // eslint-disable-next-line
-    console.log('UserGMSLocationCapturing created userLocation=', this.userLocation)
+    console.log('UserGMSLocationCapturing created... userLocation=', this.userLocation)
     // eslint-disable-next-line
-    console.log('UserGMSLocationCapturing created communityLocation=', this.communityLocation)
+    console.log('UserGMSLocationCapturing created... communityLocation=', this.communityLocation)
   },
   components: { LocMap },
   methods: {
@@ -115,8 +116,8 @@ export default {
           <div class="h3">{{ $t('userlocationcapturing.headline') }}</div>
           <loc-map
             @currentUserLocation="updateUserLocation"
-            v-bind:initial-user-location="this.userLocation"
-            v-bind:initial-community-location="this.communityLocation"
+            v-bind:initial-user-location="this.computedUserLocation"
+            v-bind:initial-community-location="this.computedCommunityLocation"
           ></loc-map>
           <b-row class="my-5">
             <b-col cols="12">
