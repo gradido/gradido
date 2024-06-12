@@ -254,6 +254,8 @@ export default {
         this.comLocation = CONFIG.COMMUNITY_LOCATION.split(',').map(Number)
         this.userLocation = this.comLocation
       })
+    this.center = this.userLocation
+    this.currentCenter = this.userLocation
   },
   /*
   created: function () {
@@ -318,6 +320,37 @@ export default {
     },
     fixLocation() {
       this.fixYourKoord = !this.fixYourKoord
+    },
+    /*
+    beforeCreate() {
+      // eslint-disable-next-line
+      console.log('UserGMSLocationMap beforeCreated')
+      this.userLocation = this.computedUserLocation
+      this.comLocation = this.computedComLocation
+      this.center = this.computedUserLocation
+      this.currentCenter = this.computedUserLocation
+    },
+    created() {
+      // eslint-disable-next-line
+      console.log('created')
+      this.userLocation = this.computedUserLocation
+      this.comLocation = this.computedComLocation
+      this.center = this.computedUserLocation
+      this.currentCenter = this.computedUserLocation
+    },
+    */
+    mounted() {
+      // eslint-disable-next-line
+      console.log('mounted')
+      this.userLocation = this.computedUserLocation
+      this.comLocation = this.computedComLocation
+      this.center = this.computedUserLocation
+      this.currentCenter = this.computedUserLocation
+    },
+    beforeClose(event) {
+      // eslint-disable-next-line
+      console.log('beforeClose:', this.modal.data, event, this.userLocation)
+      this.$emit(this.userLocation)
     },
     onChange() {
       this.fixYourKoord = !this.fixYourKoord
