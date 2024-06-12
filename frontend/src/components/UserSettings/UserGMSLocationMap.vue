@@ -194,12 +194,11 @@ export default {
       geosearchOptions: {
         provider: new OpenStreetMapProvider(),
       },
-      userLocation: latLng(
-        CONFIG.COMMUNITY_LOCATION.split(',').map(Number)[0], 
-        CONFIG.COMMUNITY_LOCATION.split(',').map(Number)[1]),
-      comLocation: userLocation,
-      center: userLocation,
-      currentCenter: userLocation,
+      splitNumbers: CONFIG.COMMUNITY_LOCATION.split(',').map(Number), 
+      userLocation: latLng(this.splitNumbers[0], this.splitNumbers[1]),
+      comLocation: latLng(this.splitNumbers[0], this.splitNumbers[1]),
+      center: latLng(this.splitNumbers[0], this.splitNumbers[1]),
+      currentCenter: latLng(this.splitNumbers[0], this.splitNumbers[1]),
     }
   },
   created: async function () {
