@@ -195,10 +195,10 @@ export default {
         provider: new OpenStreetMapProvider(),
       },
       splitNumbers: CONFIG.COMMUNITY_LOCATION.split(',').map(Number), 
-      userLocation: latLng(this.splitNumbers[0], this.splitNumbers[1]),
-      comLocation: latLng(this.splitNumbers[0], this.splitNumbers[1]),
-      center: latLng(this.splitNumbers[0], this.splitNumbers[1]),
-      currentCenter: latLng(this.splitNumbers[0], this.splitNumbers[1]),
+      userLocation: latLng(49.280377, 9.690151),
+      comLocation:  latLng(49.280377, 9.690151),
+      center:  latLng(49.280377, 9.690151),
+      currentCenter:  latLng(49.280377, 9.690151),
     }
   },
   created: async function () {
