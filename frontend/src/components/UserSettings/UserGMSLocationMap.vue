@@ -223,7 +223,7 @@ export default {
         // eslint-disable-next-line
         console.log('UserGMSLocationMap created... comLocation=', this.comLocation)
         if (cLla && cLlo) {
-          this.comLocation = { cLla, cLlo }
+          this.comLocation = { latitude: cLla, longitude: cLlo }
           // eslint-disable-next-line
           console.log('UserGMSLocationMap created... set comLocation=', this.comLocation)
         } else {
@@ -239,7 +239,7 @@ export default {
         console.log('UserGMSLocationMap created... uLlo=', uLlo)
         // this.uLocation = new Array<Number>(2)
         if (uLla && uLlo) {
-          this.userLocation = { uLla, uLlo }
+          this.userLocation = { latitude: uLla, longitude: uLlo }
           // eslint-disable-next-line
           console.log('UserGMSLocationMap created... set userLocation=', this.userLocation)
         } else {
