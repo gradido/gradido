@@ -111,7 +111,6 @@ export default {
     <div class="modal-backdrop">
       <div class="modal">
         <b-container class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
-          // eslint-disable-next-line
           <button type="button" class="btn-close" @click="close">x</button>
           <div class="h3">{{ $t('userlocationcapturing.headline') }}</div>
           <loc-map

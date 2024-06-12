@@ -21,9 +21,9 @@ export default {
   components: {
     modal,
   },
-  created: async function () {
+  beforeCreate: async function () {
     // eslint-disable-next-line
-    console.log('UserGMSLocation created...')
+    console.log('UserGMSLocation beforeCreate...')
     await this.$apollo
       .query({
         query: userLocationQuery,
@@ -142,11 +142,11 @@ export default {
     created() {
       // eslint-disable-next-line
       console.log('UserGMSLocation created...')
-      this.getUserLocation()
+      // this.getUserLocation()
     },
     async getUserLocation() {
       // eslint-disable-next-line
-      console.log('UserGMSLocation getUserLocation')
+      console.log('UserGMSLocation getUserLocation...')
       await this.$apollo
         .query({
           query: userLocationQuery,
