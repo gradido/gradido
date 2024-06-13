@@ -171,7 +171,7 @@ export default {
       currentCenter: latLng(49.280377, 9.690151),
     }
   },
-  created: function () {
+  created: async function () {
     // eslint-disable-next-line
     console.log('UserGMSLocationMap created...')
     await this.$apollo
