@@ -104,6 +104,7 @@ export default {
     LTooltip,
     LGeosearch,
   },
+  /*
   computed: {
     computedUserLocation: {
       get: function () {
@@ -146,6 +147,7 @@ export default {
       },
     },
   },
+  */
   data: function () {
     return {
       zoom: 13,
@@ -156,7 +158,7 @@ export default {
       mapOptions: {
         zoomSnap: 0.5,
       },
-      showMap: true,
+      showMap: false,
       fixYourKoord: false,
       mapMounted: false,
       geosearchOptions: {
@@ -169,64 +171,17 @@ export default {
       currentCenter: latLng(49.280377, 9.690151),
     }
   },
-  created: async function () {
+  created: function () {
     // eslint-disable-next-line
     console.log('UserGMSLocationMap created...')
-    await this.$apollo
-      .query({
-        query: userLocationQuery,
-        fetchPolicy: 'network-only',
-      })
-      .then((result) => {
-        // eslint-disable-next-line
-        console.log('UserGMSLocationMap created... getUserLocation data=', result.data)
-        // this.toastError('getUserLocation:',result.data)
-        const cLla = Number.parseFloat(result.data.userLocation.communityLocation.latitude)
-        // eslint-disable-next-line
-        console.log('UserGMSLocationMap created... cLla=', cLla)
-        const cLlo = Number.parseFloat(result.data.userLocation.communityLocation.longitude)
-        // eslint-disable-next-line
-        console.log('UserGMSLocationMap created... cLlo=', cLlo)
-        if (cLla && cLlo) {
-          this.comLocation = latLng(cLla, cLlo)
-          // eslint-disable-next-line
-          console.log('UserGMSLocationMap created... set comLocation=', this.comLocation)
-        } else {
-          const map = CONFIG.COMMUNITY_LOCATION.split(',').map(Number) // [49.280377, 9.690151]
-          this.comLocation = latLng(map[0], map[1])
-          // eslint-disable-next-line
-          console.log('UserGMSLocationMap created... set comLocation from CONFIG: comLocation=', this.comLocation)
-        }
-        const uLla = Number.parseFloat(result.data.userLocation.userLocation.latitude)
-        // eslint-disable-next-line
-        console.log('UserGMSLocationMap created... uLla=', uLla)
-        const uLlo = Number.parseFloat(result.data.userLocation.userLocation.longitude)
-        // eslint-disable-next-line
-        console.log('UserGMSLocationMap created... uLlo=', uLlo)
-        if (uLla && uLlo) {
-          this.userLocation = latLng(uLla, uLlo)
-          // eslint-disable-next-line
-          console.log('UserGMSLocationMap created... set userLocation=', this.userLocation)
-        } else {
-          this.userLocation = latLng(this.comLocation.latitude, this.comLocation.longitude)
-          // eslint-disable-next-line
-          console.log('UserGMSLocationMap created... set userLocation from comLocation: userLocation=', this.userLocation)
-        }
-      })
-      .catch(() => {
-        // eslint-disable-next-line
-        console.log('UserGMSLocationMap created... userLocation has no result, use default data')
-        const map = CONFIG.COMMUNITY_LOCATION.split(',').map(Number) // [49.280377, 9.690151]
-        this.comLocation = latLng(map[0], map[1])
-        this.userLocation = latLng(map[0], map[1])
-      })
-    this.center = latLng(this.userLocation.latitude, this.userLocation.longitude)
-    this.currentCenter = latLng(this.userLocation.latitude, this.userLocation.longitude)
+    this.loadUserdata()
   },
   mounted: function () {
     // eslint-disable-next-line
     console.log('UserGMSLocationMap mounted', this.mapMounted)
     this.mapMounted = true
+    this.showMap = true
+
   },
   beforeClose: function (event) {
     // eslint-disable-next-line
@@ -257,6 +212,58 @@ export default {
         console.log('userLocation=', this.userLocation)
         this.$emit('currentUserLocation', this.userLocation)
       }
+    },
+    async loadUserData() {
+      await this.$apollo
+        .query({
+          query: userLocationQuery,
+          fetchPolicy: 'network-only',
+        })
+        .then((result) => {
+          // eslint-disable-next-line
+          console.log('UserGMSLocationMap loadUserData... getUserLocation data=', result.data)
+          // this.toastError('getUserLocation:',result.data)
+          const cLla = Number.parseFloat(result.data.userLocation.communityLocation.latitude)
+          // eslint-disable-next-line
+          console.log('UserGMSLocationMap loadUserData... cLla=', cLla)
+          const cLlo = Number.parseFloat(result.data.userLocation.communityLocation.longitude)
+          // eslint-disable-next-line
+          console.log('UserGMSLocationMap loadUserData... cLlo=', cLlo)
+          if (cLla && cLlo) {
+            this.comLocation = latLng(cLla, cLlo)
+            // eslint-disable-next-line
+            console.log('UserGMSLocationMap loadUserData... set comLocation=', this.comLocation)
+          } else {
+            const map = CONFIG.COMMUNITY_LOCATION.split(',').map(Number) // [49.280377, 9.690151]
+            this.comLocation = latLng(map[0], map[1])
+            // eslint-disable-next-line
+            console.log('UserGMSLocationMap loadUserData... set comLocation from CONFIG: comLocation=', this.comLocation)
+          }
+          const uLla = Number.parseFloat(result.data.userLocation.userLocation.latitude)
+          // eslint-disable-next-line
+          console.log('UserGMSLocationMap loadUserData... uLla=', uLla)
+          const uLlo = Number.parseFloat(result.data.userLocation.userLocation.longitude)
+          // eslint-disable-next-line
+          console.log('UserGMSLocationMap loadUserData... uLlo=', uLlo)
+          if (uLla && uLlo) {
+            this.userLocation = latLng(uLla, uLlo)
+            // eslint-disable-next-line
+            console.log('UserGMSLocationMap loadUserData... set userLocation=', this.userLocation)
+          } else {
+            this.userLocation = latLng(this.comLocation.latitude, this.comLocation.longitude)
+            // eslint-disable-next-line
+            console.log('UserGMSLocationMap loadUserData... set userLocation from comLocation: userLocation=', this.userLocation)
+          }
+        })
+        .catch(() => {
+          // eslint-disable-next-line
+          console.log('UserGMSLocationMap loadUserData... userLocation has no result, use default data')
+          const map = CONFIG.COMMUNITY_LOCATION.split(',').map(Number) // [49.280377, 9.690151]
+          this.comLocation = latLng(map[0], map[1])
+          this.userLocation = latLng(map[0], map[1])
+        })
+      this.center = latLng(this.userLocation.latitude, this.userLocation.longitude)
+      this.currentCenter = latLng(this.userLocation.latitude, this.userLocation.longitude)
     },
     fixLocation() {
       this.fixYourKoord = !this.fixYourKoord
