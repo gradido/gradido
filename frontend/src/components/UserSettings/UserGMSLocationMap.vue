@@ -43,7 +43,7 @@
     <l-map
       v-if="showMap"
       :zoom="zoom"
-      :center="computedCenter"
+      :center="center"
       :options="mapOptions"
       class="map_div3"
       @update:center="centerUpdate"
@@ -51,14 +51,14 @@
     >
       <l-tile-layer :url="url" :attribution="attribution" />
       <l-geosearch :options="geosearchOptions" />
-      <l-marker :lat-lng="computedUserLocation">
+      <l-marker :lat-lng="userLocation">
         <l-tooltip :options="{ permanent: true, interactive: true }">
           <div @click="fixLocation">
             {{ $t('userlocationcapturing.userlocationlabel') }}
           </div>
         </l-tooltip>
       </l-marker>
-      <l-marker :lat-lng="computedComLocation">
+      <l-marker :lat-lng="comLocation">
         <l-tooltip :options="{ permanent: true }">
           <div>
             {{ $t('userlocationcapturing.communitylocationlabel') }}
@@ -251,6 +251,7 @@ export default {
     fixLocation() {
       this.fixYourKoord = !this.fixYourKoord
     },
+    /*
     mounted() {
       // eslint-disable-next-line
       console.log('mounted')
@@ -259,6 +260,7 @@ export default {
       this.center = this.computedUserLocation
       this.currentCenter = this.computedUserLocation
     },
+    */
     beforeClose(event) {
       // eslint-disable-next-line
       console.log('beforeClose:', this.modal.data, event, this.userLocation)
