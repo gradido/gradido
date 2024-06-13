@@ -120,8 +120,8 @@ export default {
         } else {
           // eslint-disable-next-line
           console.log('UserGMSLocationMap computedUserLocation use userLocation=', this.userLocation)
-          // return latLng(this.userLocation[0], this.userLocation[1]) // (49.280377, 9.690151)
-          return this.userLocation
+          return latLng(this.userLocation[0], this.userLocation[1]) // (49.280377, 9.690151)
+          // return this.userLocation
         }
       },
       set: function (newValue) {
@@ -143,8 +143,8 @@ export default {
         } else {
         // eslint-disable-next-line
           console.log('UserGMSLocationMap computedCommunityLocation use comLocation=', this.comLocation)
-          // return latLng(this.comLocation[0], this.comLocation[1]) // (49.280377, 9.690151)
-          return this.comLocation
+          return latLng(this.comLocation[0], this.comLocation[1]) // (49.280377, 9.690151)
+          // return this.comLocation
         }
       },
       set: function (newValue) {
@@ -153,8 +153,8 @@ export default {
     },
     computedCenter: {
       get: function () {
-        // return latLng(this.userLocation[0], this.userLocation[1]) // (49.280377, 9.690151)
-        return this.center
+        return latLng(this.userLocation[0], this.userLocation[1]) // (49.280377, 9.690151)
+        // return this.center
       },
       set: function (newValue) {
         this.center = newValue
@@ -162,8 +162,8 @@ export default {
     },
     computedCurrentCenter: {
       get: function () {
-        // return latLng(this.userLocation[0], this.userLocation[1]) // (49.280377, 9.690151)
-        return this.currentCenter
+        return latLng(this.userLocation[0], this.userLocation[1]) // (49.280377, 9.690151)
+        // return this.currentCenter
       },
       set: function (newValue) {
         this.currentCenter = newValue
@@ -186,10 +186,10 @@ export default {
         provider: new OpenStreetMapProvider(),
       },
       // splitNumbers: CONFIG.COMMUNITY_LOCATION.split(',').map(Number), 
-      userLocation: [49.280377, 9.690151],
-      comLocation:  [49.280377, 9.690151],
-      center:  [49.280377, 9.690151],
-      currentCenter:  [49.280377, 9.690151],
+      userLocation: latLng(49.280377, 9.690151),
+      comLocation: latLng(49.280377, 9.690151),
+      center: latLng(49.280377, 9.690151),
+      currentCenter: latLng(49.280377, 9.690151),
     }
   },
   created: async function () {
