@@ -108,21 +108,9 @@ export default {
     computedUserLocation: {
       get: function () {
         // eslint-disable-next-line
-        console.log('UserGMSLocationMap computedUserLocation userLocation=', this.userLocation)
-        if (
-          this.userLocation[0] === undefined ||
-          this.userLocation[1] === undefined
-        ) {
-          const splitNumbers = CONFIG.COMMUNITY_LOCATION.split(',').map(Number)
-          // eslint-disable-next-line
-          console.log('UserGMSLocationMap computedUserLocation use CONFIG-Location =', splitNumbers)
-          return latLng(splitNumbers[0], splitNumbers[1])
-        } else {
-          // eslint-disable-next-line
-          console.log('UserGMSLocationMap computedUserLocation use userLocation=', this.userLocation)
-          return latLng(this.userLocation[0], this.userLocation[1]) // (49.280377, 9.690151)
-          // return this.userLocation
-        }
+        console.log('UserGMSLocationMap computedUserLocation use userLocation=', this.userLocation)
+        return latLng(this.userLocation[0], this.userLocation[1]) // (49.280377, 9.690151)
+        // return this.userLocation
       },
       set: function (newValue) {
         this.userLocation = newValue
@@ -131,21 +119,9 @@ export default {
     computedComLocation: {
       get: function () {
         // eslint-disable-next-line
-        console.log('UserGMSLocationMap computedCommunityLocation comLocation=', this.comLocation)
-        if (
-          this.comLocation[0] === undefined ||
-          this.comLocation[1] === undefined
-        ) {
-          const splitNumbers = CONFIG.COMMUNITY_LOCATION.split(',').map(Number)
-        // eslint-disable-next-line
-          console.log('UserGMSLocationMap computedCommunityLocation use CONFIG-Location =', splitNumbers)
-          return latLng(splitNumbers[0], splitNumbers[1])
-        } else {
-        // eslint-disable-next-line
-          console.log('UserGMSLocationMap computedCommunityLocation use comLocation=', this.comLocation)
-          return latLng(this.comLocation[0], this.comLocation[1]) // (49.280377, 9.690151)
-          // return this.comLocation
-        }
+        console.log('UserGMSLocationMap computedCommunityLocation use comLocation=', this.comLocation)
+        return latLng(this.comLocation[0], this.comLocation[1]) // (49.280377, 9.690151)
+        // return this.comLocation
       },
       set: function (newValue) {
         this.comLocation = newValue
@@ -210,15 +186,13 @@ export default {
         const cLlo = Number.parseFloat(result.data.userLocation.communityLocation.longitude)
         // eslint-disable-next-line
         console.log('UserGMSLocationMap created... cLlo=', cLlo)
-        // this.cLocation = new Array<Number>(2)
-        // eslint-disable-next-line
-        console.log('UserGMSLocationMap created... comLocation=', this.comLocation)
         if (cLla && cLlo) {
-          this.comLocation = { latitude: cLla, longitude: cLlo }
+          this.comLocation = latLng(cLla, cLlo)
           // eslint-disable-next-line
           console.log('UserGMSLocationMap created... set comLocation=', this.comLocation)
         } else {
-          this.comLocation = CONFIG.COMMUNITY_LOCATION.split(',').map(Number) // [49.280377, 9.690151]
+          const map = CONFIG.COMMUNITY_LOCATION.split(',').map(Number) // [49.280377, 9.690151]
+          this.comLocation = latLng(map[0], map[1])
           // eslint-disable-next-line
           console.log('UserGMSLocationMap created... set comLocation from CONFIG: comLocation=', this.comLocation)
         }
@@ -228,13 +202,12 @@ export default {
         const uLlo = Number.parseFloat(result.data.userLocation.userLocation.longitude)
         // eslint-disable-next-line
         console.log('UserGMSLocationMap created... uLlo=', uLlo)
-        // this.uLocation = new Array<Number>(2)
         if (uLla && uLlo) {
-          this.userLocation = { latitude: uLla, longitude: uLlo }
+          this.userLocation = latLng(uLla, uLlo)
           // eslint-disable-next-line
           console.log('UserGMSLocationMap created... set userLocation=', this.userLocation)
         } else {
-          this.userLocation = this.comLocation
+          this.userLocation = latLng(this.comLocation.latitude, this.comLocation.longitude)
           // eslint-disable-next-line
           console.log('UserGMSLocationMap created... set userLocation from comLocation: userLocation=', this.userLocation)
         }
@@ -242,47 +215,13 @@ export default {
       .catch(() => {
         // eslint-disable-next-line
         console.log('UserGMSLocationMap created... userLocation has no result, use default data')
-        this.comLocation = CONFIG.COMMUNITY_LOCATION.split(',').map(Number)
-        this.userLocation = this.comLocation
+        const map = CONFIG.COMMUNITY_LOCATION.split(',').map(Number) // [49.280377, 9.690151]
+        this.comLocation = latLng(map[0], map[1])
+        this.userLocation = latLng(map[0], map[1])
       })
-    this.center = this.userLocation
-    this.currentCenter = this.userLocation
+    this.center = latLng(this.userLocation.latitude, this.userLocation.longitude)
+    this.currentCenter = latLng(this.userLocation.latitude, this.userLocation.longitude)
   },
-  /*
-  created: function () {
-    // eslint-disable-next-line
-    console.log('UserGMSLocationMap created... initialUserLocation=', this.initialUserLocation)
-    if (this.initialUserLocation[0] === undefined || this.initialUserLocation[1] === undefined) {
-      const splitNumbers = CONFIG.COMMUNITY_LOCATION.split(',').map(Number)
-      this.userLocation = latLng(splitNumbers[0], splitNumbers[1])
-    } else {
-      this.userLocation = latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // (49.280377, 9.690151)
-    }
-    // eslint-disable-next-line
-    console.log('UserGMSLocationMap created... initialCommunityLocation=', this.initialCommunityLocation)
-    if (
-      this.initialCommunityLocation[0] === undefined ||
-      this.initialCommunityLocation[1] === undefined
-    ) {
-      const splitNumbers = CONFIG.COMMUNITY_LOCATION.split(',').map(Number)
-      this.comLocation = latLng(splitNumbers[0], splitNumbers[1])
-    } else {
-      this.comLocation = latLng(this.initialCommunityLocation[0], this.initialCommunityLocation[1]) // (49.280377, 9.690151)
-    }
-    this.center = this.userLocation
-    this.currentCenter = this.userLocation
-  },
-  */
-  /*
-  beforeMount: function() {
-    // eslint-disable-next-line
-    console.log('UserGMSLocationMap beforeMount...')
-    this.userLocation = latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // this.computedUserLocation
-    this.comLocation = latLng(this.initialCommunityLocation[0], this.initialCommunityLocation[1]) // this.computedComLocation
-    this.center = latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // this.computedUserLocation
-    this.currentCenter = latLng(this.initialUserLocation[0], this.initialUserLocation[1]) // this.computedUserLocation
-  },
-  */
   beforeClose: function (event) {
     // eslint-disable-next-line
     console.log('UserGMSLocationMap beforeClose:', this.modal.data, event, this.userLocation)
@@ -312,24 +251,6 @@ export default {
     fixLocation() {
       this.fixYourKoord = !this.fixYourKoord
     },
-    /*
-    beforeCreate() {
-      // eslint-disable-next-line
-      console.log('UserGMSLocationMap beforeCreated')
-      this.userLocation = this.computedUserLocation
-      this.comLocation = this.computedComLocation
-      this.center = this.computedUserLocation
-      this.currentCenter = this.computedUserLocation
-    },
-    created() {
-      // eslint-disable-next-line
-      console.log('created')
-      this.userLocation = this.computedUserLocation
-      this.comLocation = this.computedComLocation
-      this.center = this.computedUserLocation
-      this.currentCenter = this.computedUserLocation
-    },
-    */
     mounted() {
       // eslint-disable-next-line
       console.log('mounted')
