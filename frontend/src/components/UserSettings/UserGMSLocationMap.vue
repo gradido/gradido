@@ -223,6 +223,11 @@ export default {
     this.center = latLng(this.userLocation.latitude, this.userLocation.longitude)
     this.currentCenter = latLng(this.userLocation.latitude, this.userLocation.longitude)
   },
+  mounted: function () {
+    // eslint-disable-next-line
+    console.log('UserGMSLocationMap mounted', this.mapMounted)
+    this.mapMounted = true
+  },
   beforeClose: function (event) {
     // eslint-disable-next-line
     console.log('UserGMSLocationMap beforeClose:', this.modal.data, event, this.userLocation)
@@ -255,11 +260,6 @@ export default {
     },
     fixLocation() {
       this.fixYourKoord = !this.fixYourKoord
-    },
-    mounted() {
-      // eslint-disable-next-line
-      console.log('UserGMSLocationMap mounted', this.mapMounted)
-      this.mapMounted = true
     },
     beforeClose(event) {
       // eslint-disable-next-line
