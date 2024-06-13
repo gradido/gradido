@@ -158,6 +158,7 @@ export default {
       },
       showMap: true,
       fixYourKoord: false,
+      mapMounted: false,
       geosearchOptions: {
         provider: new OpenStreetMapProvider(),
       },
@@ -231,36 +232,35 @@ export default {
   methods: {
     zoomUpdate(zoom) {
       // eslint-disable-next-line
-      console.log('UserGMSLocationMap zoomUpdate')
-      this.currentZoom = zoom
+      console.log('UserGMSLocationMap zoomUpdate zoom=', zoom, this.mapMounted)
+      if (this.mapMounted) {
+        this.currentZoom = zoom
+      }
     },
     centerUpdate(center) {
       // eslint-disable-next-line
-      console.log('UserGMSLocationMap centerUpdate', center)
-      this.center = center
-      this.currentCenter = center
-      if (!this.fixYourKoord) {
-        this.userLocation = center
+      console.log('UserGMSLocationMap centerUpdate', center, this.mapMounted)
+      if (this.mapMounted) {
+        this.center = center
+        this.currentCenter = center
+        if (!this.fixYourKoord) {
+          this.userLocation = center
+        }
+        // eslint-disable-next-line
+        console.log('currentCenter=', this.currentCenter)
+        // eslint-disable-next-line
+        console.log('userLocation=', this.userLocation)
+        this.$emit('currentUserLocation', this.userLocation)
       }
-      // eslint-disable-next-line
-      console.log('currentCenter=', this.currentCenter)
-      // eslint-disable-next-line
-      console.log('userLocation=', this.userLocation)
-      this.$emit('currentUserLocation', this.userLocation)
     },
     fixLocation() {
       this.fixYourKoord = !this.fixYourKoord
     },
-    /*
     mounted() {
       // eslint-disable-next-line
-      console.log('mounted')
-      this.userLocation = this.computedUserLocation
-      this.comLocation = this.computedComLocation
-      this.center = this.computedUserLocation
-      this.currentCenter = this.computedUserLocation
+      console.log('UserGMSLocationMap mounted', this.mapMounted)
+      this.mapMounted = true
     },
-    */
     beforeClose(event) {
       // eslint-disable-next-line
       console.log('beforeClose:', this.modal.data, event, this.userLocation)
