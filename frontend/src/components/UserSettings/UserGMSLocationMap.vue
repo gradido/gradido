@@ -7,7 +7,7 @@
             block
             type="reset"
             variant="secondary"
-            @click="showMap = !showMap"
+            @click="toggleShowMap"
             class="mb-3 mb-md-0 mb-lg-0"
           >
             {{ $t('userlocationcapturing.mapswitch') }}
@@ -266,7 +266,15 @@ export default {
       }
     },
     fixLocation() {
+      this.center = this.userLocation
       this.fixYourKoord = !this.fixYourKoord
+    },
+    toggleShowMap() {
+      if (!this.showMap) {
+        this.center = this.userLocation
+        this.currentCenter = this.userLocation
+      }
+      this.showMap = !this.showMap
     },
     beforeClose(event) {
       // eslint-disable-next-line
