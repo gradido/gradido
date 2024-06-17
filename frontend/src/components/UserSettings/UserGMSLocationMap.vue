@@ -77,7 +77,7 @@
   height: 100px;
 }
 .map_div3 {
-  height: 80%;
+  height: 300%;
 }
 </style>
 <script>
