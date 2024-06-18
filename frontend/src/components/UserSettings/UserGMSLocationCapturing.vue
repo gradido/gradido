@@ -61,7 +61,7 @@ export default {
       // this.saveLocation()
       try {
         const loc = { longitude: this.capturedLocation.lng, laditude: this.capturedLocation.lat }
-      // eslint-disable-next-line
+        // eslint-disable-next-line
         console.log('UserGMSLocationCapturing loc=', loc)
         await this.$apollo.mutate({
           mutation: updateUserInfos,
@@ -120,18 +120,14 @@ export default {
         <b-container class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
           <button type="button" class="btn-close" @click="close">x</button>
           <div class="h3">{{ $t('userlocationcapturing.headline') }}</div>
-          <loc-map
-            @currentUserLocation="updateUserLocation"
-          ></loc-map>
-          <b-row class="my-5">
-            <b-col cols="12">
-              <div class="text-lg-right">
-                <b-button variant="gradido" @click="saveclose">
-                  {{ $t('userlocationcapturing.button') }}
-                </b-button>
-              </div>
-            </b-col>
-          </b-row>
+          <div class="map-height">
+            <loc-map @currentUserLocation="updateUserLocation"></loc-map>
+          </div>
+          <div class="below-map text-lg-right">
+            <b-button variant="gradido" @click="saveclose">
+              {{ $t('userlocationcapturing.button') }}
+            </b-button>
+          </div>
         </b-container>
       </div>
     </div>
@@ -158,6 +154,14 @@ export default {
   overflow-x: auto;
   display: flex;
   flex-direction: column;
+}
+
+.map-height {
+  height: 300px;
+}
+
+.below-map {
+  top: 310px;
 }
 
 .btn-close {
