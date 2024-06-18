@@ -10,7 +10,7 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0084-introduce_humhub_registration',
+  DB_VERSION: '0085-add_community_location',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info

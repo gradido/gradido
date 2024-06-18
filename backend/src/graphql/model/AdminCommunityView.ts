@@ -3,6 +3,7 @@ import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCom
 import { ObjectType, Field } from 'type-graphql'
 
 import { FederatedCommunity } from './FederatedCommunity'
+import { Point } from './Point'
 
 @ObjectType()
 export class AdminCommunityView {
@@ -36,6 +37,7 @@ export class AdminCommunityView {
     this.uuid = dbCom.communityUuid
     this.authenticatedAt = dbCom.authenticatedAt
     this.gmsApiKey = dbCom.gmsApiKey
+    this.location = dbCom.location ? dbCom.location as Point : new Point()
   }
 
   @Field(() => Boolean)
@@ -61,6 +63,9 @@ export class AdminCommunityView {
 
   @Field(() => String, { nullable: true })
   gmsApiKey: string | null
+
+  @Field(() => Point)
+  location: Point
 
   @Field(() => Date, { nullable: true })
   creationDate: Date | null

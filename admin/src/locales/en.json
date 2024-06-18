@@ -1,14 +1,15 @@
 {
   "GDD": "GDD",
   "all_emails": "All users",
+  "edit": "edit",
   "back": "back",
   "change_user_role": "Change user role",
   "chat": "Chat",
+  "close": "Close",
   "contributionLink": {
     "amount": "Amount",
     "changeSaved": "Changes saved",
     "clear": "Clear",
-    "close": "Close",
     "contributionLinks": "Contribution Links",
     "create": "Create",
     "cycle": "Cycle",
@@ -76,6 +77,7 @@
     "apiVersion": "API Version",
     "authenticatedAt": "verified at:",
     "communityUuid": "Community UUID:",
+    "coordinates": "Coordinates:",
     "createdAt": "Created At ",
     "gmsApiKey": "GMS API Key:",
     "toast_gmsApiKeyUpdated": "The GMS Api Key has been successfully updated!",
@@ -100,6 +102,13 @@
   "form": {
     "cancel": "Cancel"
   },
+  "geo-coordinates": {
+    "both-or-none": "Please enter both or none!",
+    "label": "geo-coordinates",
+    "latitude": {
+      "describe": "Automatically splits coordinates in the format 'longitude, latitude' into separate input fields. Simply enter your coordinates from Google Maps here, for example: 49.28187664243721, 9.740672183943639."
+    }
+  },
   "help": {
     "help": "Help",
     "transactionlist": {
@@ -113,6 +122,8 @@
   "hide_resubmission": "Hide resubmission",
   "hide_resubmission_tooltip": "Hides all creations for which a moderator has set a reminder date.",
   "lastname": "Lastname",
+  "latitude": "Breitengrad:",
+  "longitude": "Längengrad:",
   "math": {
     "equals": "=",
     "pipe": "|",

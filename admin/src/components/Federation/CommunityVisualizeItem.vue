@@ -25,12 +25,24 @@
             {{ $t('federation.publicKey') }}&nbsp;{{ item.publicKey }}
           </b-list-group-item>
           <b-list-group-item v-if="!item.foreign">
-            {{ $t('federation.gmsApiKey') }}&nbsp;
-            <editable-label
-              :value="gmsApiKey"
+            <editable-group
               :allowEdit="$store.state.moderator.roles.includes('ADMIN')"
-              @save="handleSaveGsmApiKey"
-            />
+              @save="handleUpdateHomeCommunity"
+              @reset="resetHomeCommunityEditable"
+            >
+              <template #view>
+                <label>{{ $t('federation.gmsApiKey') }}&nbsp;{{ item.gmsApiKey }}</label>
+                <b-form-group>
+                  {{ $t('federation.coordinates') }}&nbsp;{{ item.location.coordinates[1] }}&nbsp;{{
+                    item.location.coordinates[0]
+                  }}
+                </b-form-group>
+              </template>
+              <template #edit>
+                <g-m-s-api-key v-model="gmsApiKey" />
+                <coordinates v-model="location" />
+              </template>
+            </editable-group>
           </b-list-group-item>
           <b-list-group-item>
             <b-list-group>
@@ -59,17 +71,21 @@
 <script>
 import { formatDistanceToNow } from 'date-fns'
 import { de, enUS as en, fr, es, nl } from 'date-fns/locale'
-import EditableLabel from '@/components/input/EditableLabel'
+import EditableGroup from '@/components/input/EditableGroup'
 import FederationVisualizeItem from './FederationVisualizeItem.vue'
 import { updateHomeCommunity } from '../../graphql/updateHomeCommunity'
+import Coordinates from '../input/Coordinates.vue'
+import GMSApiKey from './GMSApiKey.vue'
 
 const locales = { en, de, es, fr, nl }
 
 export default {
   name: 'CommunityVisualizeItem',
   components: {
-    EditableLabel,
+    Coordinates,
+    EditableGroup,
     FederationVisualizeItem,
+    GMSApiKey,
   },
   props: {
     item: { type: Object },
@@ -80,10 +96,14 @@ export default {
       locale: this.$i18n.locale,
       details: false,
       gmsApiKey: '',
+      location: () => ({
+        type: 'Point',
+        coordinates: [],
+      }),
     }
   },
   created() {
-    this.gmsApiKey = this.item.gmsApiKey
+    this.resetHomeCommunityEditable()
   },
   computed: {
     verified() {
@@ -138,14 +158,14 @@ export default {
     toggleDetails() {
       this.details = !this.details
     },
-    handleSaveGsmApiKey(gmsApiKey) {
-      this.gmsApiKey = gmsApiKey
+    handleUpdateHomeCommunity() {
       this.$apollo
         .mutate({
           mutation: updateHomeCommunity,
           variables: {
             uuid: this.item.uuid,
-            gmsApiKey: gmsApiKey,
+            gmsApiKey: this.gmsApiKey,
+            location: this.location,
           },
         })
         .then(() => {
@@ -154,6 +174,10 @@ export default {
         .catch((error) => {
           this.toastError(error.message)
         })
+    },
+    resetHomeCommunityEditable() {
+      this.gmsApiKey = this.item.gmsApiKey
+      this.location = this.item.location
     },
   },
 }
