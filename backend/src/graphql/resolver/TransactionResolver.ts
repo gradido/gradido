@@ -230,7 +230,7 @@ export class TransactionResolver {
     logger.info(`transactionList(user=${user.firstName}.${user.lastName}, ${user.emailId})`)
 
     // find current balance
-    const lastTransaction = await getLastTransaction(user.id, ['contribution'])
+    const lastTransaction = await getLastTransaction(user.id)
     logger.debug(`lastTransaction=${lastTransaction}`)
 
     logger.info(`time for get last transaction: ${new Date().getTime() - now.getTime()} ms`)
