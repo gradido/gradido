@@ -49,6 +49,7 @@ import {
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { storeForeignUser } from './util/storeForeignUser'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
+import { GdtResolver } from './GdtResolver'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -228,6 +229,9 @@ export class TransactionResolver {
 
     logger.addContext('user', user.id)
     logger.info(`transactionList(user=${user.firstName}.${user.lastName}, ${user.emailId})`)
+
+    const gdtResolver = new GdtResolver()
+    const balanceGDTPromise = gdtResolver.gdtBalance(context)
 
     // find current balance
     const lastTransaction = await getLastTransaction(user.id)
@@ -442,6 +446,9 @@ export class TransactionResolver {
       } ms`,
     )
     profilingTime = new Date()
+    const balanceGDT = await balanceGDTPromise
+    context.balanceGDT = balanceGDT
+    
     // Construct Result
     return new TransactionList(await balanceResolver.balance(context), transactions)
   }

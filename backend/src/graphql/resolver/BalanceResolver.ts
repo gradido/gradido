@@ -29,13 +29,15 @@ export class BalanceResolver {
     logger.addContext('user', user.id)
     logger.info(`balance(userId=${user.id})...`)
 
-    const gdtResolver = new GdtResolver()
-    const balanceGDT = await gdtResolver.gdtBalance(context)
+    if(!context.balanceGDT) {
+      const gdtResolver = new GdtResolver()
+      context.balanceGDT = await gdtResolver.gdtBalance(context)
+    }
 
     logger.info(`time for load gdt balance: ${new Date().getTime() - now.getTime()} ms`)
     let profilingTime = new Date()
 
-    logger.debug(`balanceGDT=${balanceGDT}`)
+    logger.debug(`balanceGDT=${context.balanceGDT}`)
 
     const lastTransaction = context.lastTransaction
       ? context.lastTransaction
@@ -55,7 +57,7 @@ export class BalanceResolver {
       logger.info(`no balance found, return Default-Balance!`)
       return new Balance({
         balance: new Decimal(0),
-        balanceGDT,
+        balanceGDT: context.balanceGDT,
         count: 0,
         linkCount: 0,
       })
