@@ -233,6 +233,8 @@ export class TransactionResolver {
     const lastTransaction = await getLastTransaction(user.id, ['contribution'])
     logger.debug(`lastTransaction=${lastTransaction}`)
 
+    logger.info(`time for get last transaction: ${new Date().getTime() - now.getTime()} ms`)
+
     const balanceResolver = new BalanceResolver()
     context.lastTransaction = lastTransaction
 
@@ -251,6 +253,8 @@ export class TransactionResolver {
       order,
     )
     context.transactionCount = userTransactionsCount
+    let profilingTime = new Date()
+    logger.info(`time for getTransactionList: ${profilingTime.getTime() - now.getTime()} ms`)
 
     // find involved users; I am involved
     const involvedUserIds: number[] = [user.id]
@@ -305,6 +309,9 @@ export class TransactionResolver {
     logger.debug(`involvedUserIds=`, involvedUserIds)
     logger.debug(`involvedRemoteUsers=`, involvedRemoteUsers)
 
+    logger.info(`time for collect involved user and load remote user: ${new Date().getTime() - profilingTime.getTime()} ms`)
+    profilingTime = new Date()
+
     // We need to show the name for deleted users for old transactions
     const involvedDbUsers = await dbUser.find({
       where: { id: In(involvedUserIds) },
@@ -313,12 +320,18 @@ export class TransactionResolver {
     })
     const involvedUsers = involvedDbUsers.map((u) => new User(u))
     logger.debug(`involvedUsers=`, involvedUsers)
+    logger.info(`time for load involved user from db: ${new Date().getTime() - profilingTime.getTime()} ms`)
+    profilingTime = new Date()
 
     const self = new User(user)
     const transactions: Transaction[] = []
 
     const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate, transactionLinkcount } =
       await transactionLinkSummary(user.id, now)
+
+    logger.debug(`time for load transactionLinkSummary db: ${new Date().getTime() - profilingTime.getTime()} ms`)
+    profilingTime = new Date()
+
     context.linkCount = transactionLinkcount
     logger.debug(`transactionLinkcount=${transactionLinkcount}`)
     context.sumHoldAvailableAmount = sumHoldAvailableAmount
@@ -413,7 +426,8 @@ export class TransactionResolver {
         ).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
       }
     })
-
+    logger.info(`time for process transaction list and fill in decay db: ${new Date().getTime() - profilingTime.getTime()} ms`)
+    profilingTime = new Date()
     // Construct Result
     return new TransactionList(await balanceResolver.balance(context), transactions)
   }
