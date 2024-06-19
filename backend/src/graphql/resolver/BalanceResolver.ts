@@ -15,6 +15,7 @@ import { calculateDecay } from '@/util/decay'
 import { GdtResolver } from './GdtResolver'
 import { getLastTransaction } from './util/getLastTransaction'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
+import { DecayLoggingView } from '@/logging/DecayLogging.view'
 
 @Resolver()
 export class BalanceResolver {
@@ -85,9 +86,9 @@ export class BalanceResolver {
     )
     logger.info(
       'calculatedDecay',
-      lastTransaction.balance,
-      lastTransaction.balanceDate,
-      calculatedDecay,
+      lastTransaction.balance.toString(),
+      lastTransaction.balanceDate.toISOString(),
+      new DecayLoggingView(calculatedDecay),
     )
 
     // The final balance is reduced by the link amount withheld
@@ -115,7 +116,7 @@ export class BalanceResolver {
       count,
       linkCount,
     })
-    logger.info('new Balance', balance, balanceGDT, count, linkCount, newBalance)
+    logger.info('new Balance', balance.toString(), balanceGDT?.toString(), count, linkCount, newBalance.toString())
 
     return newBalance
   }
