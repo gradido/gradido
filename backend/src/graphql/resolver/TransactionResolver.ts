@@ -309,7 +309,11 @@ export class TransactionResolver {
     logger.debug(`involvedUserIds=`, involvedUserIds)
     logger.debug(`involvedRemoteUsers=`, involvedRemoteUsers)
 
-    logger.info(`time for collect involved user and load remote user: ${new Date().getTime() - profilingTime.getTime()} ms`)
+    logger.info(
+      `time for collect involved user and load remote user: ${
+        new Date().getTime() - profilingTime.getTime()
+      } ms`,
+    )
     profilingTime = new Date()
 
     // We need to show the name for deleted users for old transactions
@@ -320,7 +324,9 @@ export class TransactionResolver {
     })
     const involvedUsers = involvedDbUsers.map((u) => new User(u))
     logger.debug(`involvedUsers=`, involvedUsers)
-    logger.info(`time for load involved user from db: ${new Date().getTime() - profilingTime.getTime()} ms`)
+    logger.info(
+      `time for load involved user from db: ${new Date().getTime() - profilingTime.getTime()} ms`,
+    )
     profilingTime = new Date()
 
     const self = new User(user)
@@ -329,7 +335,11 @@ export class TransactionResolver {
     const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate, transactionLinkcount } =
       await transactionLinkSummary(user.id, now)
 
-    logger.debug(`time for load transactionLinkSummary db: ${new Date().getTime() - profilingTime.getTime()} ms`)
+    logger.debug(
+      `time for load transactionLinkSummary db: ${
+        new Date().getTime() - profilingTime.getTime()
+      } ms`,
+    )
     profilingTime = new Date()
 
     context.linkCount = transactionLinkcount
@@ -426,7 +436,11 @@ export class TransactionResolver {
         ).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
       }
     })
-    logger.info(`time for process transaction list and fill in decay db: ${new Date().getTime() - profilingTime.getTime()} ms`)
+    logger.info(
+      `time for process transaction list and fill in decay db: ${
+        new Date().getTime() - profilingTime.getTime()
+      } ms`,
+    )
     profilingTime = new Date()
     // Construct Result
     return new TransactionList(await balanceResolver.balance(context), transactions)

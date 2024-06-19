@@ -1,5 +1,6 @@
-import { Decay } from '@/graphql/model/Decay'
 import { AbstractLoggingView } from '@logging/AbstractLogging.view'
+
+import { Decay } from '@/graphql/model/Decay'
 
 export class DecayLoggingView extends AbstractLoggingView {
   public constructor(private self: Decay) {
@@ -14,7 +15,7 @@ export class DecayLoggingView extends AbstractLoggingView {
       roundedDecay: this.decimalToString(this.self.roundedDecay),
       start: this.dateToString(this.self.start),
       end: this.dateToString(this.self.end),
-      duration: this.self.duration
+      duration: this.self.duration,
     }
   }
 }
