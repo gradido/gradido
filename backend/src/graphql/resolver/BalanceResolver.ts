@@ -37,21 +37,11 @@ export class BalanceResolver {
       balanceGDT = context.balanceGDT
     }
 
-    logger.info(`time for load gdt balance: ${new Date().getTime() - now.getTime()} ms`)
-    let profilingTime = new Date()
-
     logger.debug(`balanceGDT=${context.balanceGDT}`)
 
     const lastTransaction = context.lastTransaction
       ? context.lastTransaction
       : await getLastTransaction(user.id)
-
-    logger.info(
-      `time for load lastTransaction from db (if not already done): ${
-        new Date().getTime() - profilingTime.getTime()
-      } ms`,
-    )
-    profilingTime = new Date()
 
     logger.debug(`lastTransaction=${lastTransaction}`)
 
@@ -73,11 +63,6 @@ export class BalanceResolver {
 
     logger.debug(`transactionCount=${count}`)
 
-    logger.info(
-      `time for count transaction in db: ${new Date().getTime() - profilingTime.getTime()} ms`,
-    )
-    profilingTime = new Date()
-
     const linkCount = await dbTransactionLink.count({
       where: {
         userId: user.id,
@@ -86,13 +71,6 @@ export class BalanceResolver {
       },
     })
     logger.debug(`linkCount=${linkCount}`)
-
-    logger.info(
-      `time for count transaction links in db: ${
-        new Date().getTime() - profilingTime.getTime()
-      } ms`,
-    )
-    profilingTime = new Date()
 
     // The decay is always calculated on the last booked transaction
     const calculatedDecay = calculateDecay(
@@ -111,13 +89,6 @@ export class BalanceResolver {
     const { sumHoldAvailableAmount } = context.sumHoldAvailableAmount
       ? { sumHoldAvailableAmount: context.sumHoldAvailableAmount }
       : await transactionLinkSummary(user.id, now)
-
-    logger.info(
-      `time for load transactionLinkSummary from db (if not already done): ${
-        new Date().getTime() - profilingTime.getTime()
-      } ms`,
-    )
-    profilingTime = new Date()
 
     logger.debug(`context.sumHoldAvailableAmount=${context.sumHoldAvailableAmount}`)
     logger.debug(`sumHoldAvailableAmount=${sumHoldAvailableAmount}`)
