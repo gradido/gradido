@@ -8,6 +8,7 @@ import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 import { Balance } from '@model/Balance'
 
 import { RIGHTS } from '@/auth/RIGHTS'
+import { BalanceLoggingView } from '@/logging/BalanceLogging.view'
 import { DecayLoggingView } from '@/logging/DecayLogging.view'
 import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
@@ -16,7 +17,6 @@ import { calculateDecay } from '@/util/decay'
 import { GdtResolver } from './GdtResolver'
 import { getLastTransaction } from './util/getLastTransaction'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
-import { BalanceLoggingView } from '@/logging/BalanceLogging.view'
 
 @Resolver()
 export class BalanceResolver {
@@ -29,9 +29,12 @@ export class BalanceResolver {
     logger.addContext('user', user.id)
     logger.info(`balance(userId=${user.id})...`)
 
-    if(!context.balanceGDT) {
+    let balanceGDT
+    if (!context.balanceGDT) {
       const gdtResolver = new GdtResolver()
-      context.balanceGDT = await gdtResolver.gdtBalance(context)
+      balanceGDT = await gdtResolver.gdtBalance(context)
+    } else {
+      balanceGDT = context.balanceGDT
     }
 
     logger.info(`time for load gdt balance: ${new Date().getTime() - now.getTime()} ms`)
@@ -57,7 +60,7 @@ export class BalanceResolver {
       logger.info(`no balance found, return Default-Balance!`)
       return new Balance({
         balance: new Decimal(0),
-        balanceGDT: context.balanceGDT,
+        balanceGDT,
         count: 0,
         linkCount: 0,
       })
