@@ -307,7 +307,7 @@ export class TransactionResolver {
       }
     }
     logger.debug(`involvedUserIds=`, involvedUserIds)
-    logger.debug(`involvedRemoteUsers=`, involvedRemoteUsers)    
+    logger.debug(`involvedRemoteUsers=`, involvedRemoteUsers)
 
     // We need to show the name for deleted users for old transactions
     const involvedDbUsers = await dbUser.find({
@@ -317,7 +317,7 @@ export class TransactionResolver {
     })
     const involvedUsers = involvedDbUsers.map((u) => new User(u))
     logger.debug(`involvedUsers=`, involvedUsers)
-    
+
     const self = new User(user)
     const transactions: Transaction[] = []
 
