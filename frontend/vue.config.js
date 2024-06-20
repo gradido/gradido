@@ -2,11 +2,46 @@ const path = require('path')
 const webpack = require('webpack')
 const Dotenv = require('dotenv-webpack')
 const StatsPlugin = require('stats-webpack-plugin')
-const HtmlWebpackPlugin = require('vue-html-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CONFIG = require('./src/config')
 
 // vue.config.js
 module.exports = {
+  chainWebpack: (config) => {
+    config.resolve.alias.set('vue', '@vue/compat')
+
+    config.module
+      .rule('vue')
+      .use('vue-loader')
+      .tap((options) => {
+        return {
+          ...options,
+          compilerOptions: {
+            compatConfig: {
+              MODE: 2
+            }
+          }
+        }
+      })
+
+    // Remove existing HtmlWebpackPlugin
+    config.plugins.delete('html')
+
+    // Add a new HtmlWebpackPlugin with the desired configuration
+    config.plugin('html').use(require('html-webpack-plugin'), [{
+      template: 'public/index.html',
+      meta: {
+        title_de: CONFIG.META_TITLE_DE,
+        title_en: CONFIG.META_TITLE_EN,
+        description_de: CONFIG.META_DESCRIPTION_DE,
+        description_en: CONFIG.META_DESCRIPTION_EN,
+        keywords_de: CONFIG.META_KEYWORDS_DE,
+        keywords_en: CONFIG.META_KEYWORDS_EN,
+        author: CONFIG.META_AUTHOR,
+        url: CONFIG.META_URL,
+      },
+    }])
+  },
   devServer: {
     port: CONFIG.PORT,
   },
@@ -26,6 +61,8 @@ module.exports = {
     resolve: {
       alias: {
         assets: path.join(__dirname, 'src/assets'),
+        '@': path.resolve(__dirname, 'src'),
+        vue$: '@vue/compat',
       },
     },
     plugins: [
@@ -41,20 +78,7 @@ module.exports = {
       }),
       // generate webpack stats to allow analysis of the bundlesize
       new StatsPlugin('webpack.stats.json'),
-      new HtmlWebpackPlugin({
-        vue: true,
-        template: 'public/index.html',
-        meta: {
-          title_de: CONFIG.META_TITLE_DE,
-          title_en: CONFIG.META_TITLE_EN,
-          description_de: CONFIG.META_DESCRIPTION_DE,
-          description_en: CONFIG.META_DESCRIPTION_EN,
-          keywords_de: CONFIG.META_KEYWORDS_DE,
-          keywords_en: CONFIG.META_KEYWORDS_EN,
-          author: CONFIG.META_AUTHOR,
-          url: CONFIG.META_URL,
-        },
-      }),
+      
     ],
     infrastructureLogging: {
       level: 'warn', // 'none' | 'error' | 'warn' | 'info' | 'log' | 'verbose'

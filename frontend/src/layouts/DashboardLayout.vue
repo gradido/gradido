@@ -322,7 +322,7 @@ export default {
   background-position: center;
   background-repeat: no-repeat;
   background-size: 100% 100%;
-  background-image: url(/img/svg/Gradido_Blaetter_Mainpage.svg) !important;
+  background-image: url(assets/img/svg/Gradido_Blaetter_Mainpage.svg) !important;
 }
 .b-right {
   text-align: -webkit-right;
