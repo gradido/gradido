@@ -1,7 +1,7 @@
 <template>
   <div class="user-gms-location-format">
     <b-dropdown v-model="selectedOption">
-      <template slot="button-content">{{ selectedOptionLabel }}</template>
+      <template v-slot:button-content>{{ selectedOptionLabel }}</template>
       <b-dropdown-item
         v-for="option in dropdownOptions"
         @click.prevent="update(option)"
