@@ -65,13 +65,11 @@ export default {
   },
   methods: {
     splitCoordinates(value) {
-      // format from google maps 'latitude, longitude'
+      // default format for geo-coordinates: 'latitude, longitude'
       const parts = value.split(',').map((part) => part.trim())
-      // console.log("parts: %o, length: %d", parts, parts.length)
 
       if (parts.length === 2) {
         const [lat, lon] = parts
-        // format in geojson Point: coordinates[longitude, latitude]
         if (!isNaN(parseFloat(lon) && !isNaN(parseFloat(lat)))) {
           this.longitude = parseFloat(lon)
           this.latitude = parseFloat(lat)
@@ -92,6 +90,7 @@ export default {
       if (this.longitude && this.latitude) {
         this.inputValue = {
           type: 'Point',
+          // format in geojson Point: coordinates[longitude, latitude]
           coordinates: [this.longitude, this.latitude],
         }
       } else {
@@ -105,7 +104,7 @@ export default {
           .map((coord) => parseFloat(coord))
           // Remove null and NaN values
           .filter((coord) => coord !== null && !isNaN(coord))
-        if (this.inputValue.coordinates.length === 0) {
+        if (this.inputValue.coordinates.length !== 2) {
           this.inputValue = null
         }
       }
