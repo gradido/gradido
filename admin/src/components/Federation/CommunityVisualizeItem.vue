@@ -31,7 +31,7 @@
               @reset="resetHomeCommunityEditable"
             >
               <template #view>
-                <label>{{ $t('federation.gmsApiKey') }}&nbsp;{{ item.gmsApiKey }}</label>
+                <label>{{ $t('federation.gmsApiKey') }}&nbsp;{{ gmsApiKey }}</label>
                 <b-form-group>
                   {{ $t('federation.coordinates') }}&nbsp;{{ item.location.coordinates[1] }}&nbsp;{{
                     item.location.coordinates[0]

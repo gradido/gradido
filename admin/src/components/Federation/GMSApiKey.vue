@@ -6,7 +6,6 @@
 
 <script>
 export default {
-  // Code written from chatGPT 3.5
   name: 'GMSApiKey',
   props: {
     value: {
@@ -18,13 +17,20 @@ export default {
   data() {
     return {
       inputValue: this.value,
+      originalValue: this.value,
     }
   },
   methods: {
     updateValue(value) {
       this.inputValue = value
-      if (this.$parent.valueChanged) {
-        this.$parent.valueChanged()
+      if (this.inputValue !== this.originalValue) {
+        if (this.$parent.valueChanged) {
+          this.$parent.valueChanged()
+        }
+      } else {
+        if (this.$parent.invalidValues) {
+          this.$parent.invalidValues()
+        }
       }
       this.$emit('input', this.inputValue)
     },

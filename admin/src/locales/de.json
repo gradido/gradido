@@ -105,8 +105,8 @@
   "geo-coordinates": {
     "both-or-none": "Bitte beide oder keine eingeben!",
     "label": "Geo-Koordinaten",
-    "latitude": {
-      "describe": "Teilt Koordinaten im Format 'Längengrad, Breitengrad' automatisch in separate Eingabefelder auf. Fügen sie hier einfach z.B. ihre Koordinaten von Google Maps, zum Beispiel: 49.28187664243721, 9.740672183943639, ein."
+    "latitude-longitude-smart": {
+      "describe": "Teilt Koordinaten im Format 'Breitengrad, Längengrad' automatisch auf. Fügen sie hier einfach z.B. ihre Koordinaten von Google Maps, zum Beispiel: 49.28187664243721, 9.740672183943639, ein."
     }
   },
   "help": {
@@ -123,6 +123,7 @@
   "hide_resubmission_tooltip": "Verbirgt alle Schöpfungen für die ein Moderator ein Erinnerungsdatum festgelegt hat.",
   "lastname": "Nachname",
   "latitude": "Breitengrad:",
+  "latitude-longitude-smart": "Breitengrad, Längengrad",
   "longitude": "Längengrad:",
   "math": {
     "equals": "=",

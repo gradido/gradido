@@ -105,8 +105,8 @@
   "geo-coordinates": {
     "both-or-none": "Please enter both or none!",
     "label": "geo-coordinates",
-    "latitude": {
-      "describe": "Automatically splits coordinates in the format 'longitude, latitude' into separate input fields. Simply enter your coordinates from Google Maps here, for example: 49.28187664243721, 9.740672183943639."
+    "latitude-longitude-smart": {
+      "describe": "Automatically splits coordinates in the format 'latitude, longitude'. Simply enter your coordinates from Google Maps here, for example: 49.28187664243721, 9.740672183943639."
     }
   },
   "help": {
@@ -122,8 +122,9 @@
   "hide_resubmission": "Hide resubmission",
   "hide_resubmission_tooltip": "Hides all creations for which a moderator has set a reminder date.",
   "lastname": "Lastname",
-  "latitude": "Breitengrad:",
-  "longitude": "Längengrad:",
+  "latitude": "Latitude:",
+  "longitude": "Longitude:",
+  "latitude-longitude-smart": "Latitude, Longitude",
   "math": {
     "equals": "=",
     "pipe": "|",

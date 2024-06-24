@@ -51,6 +51,7 @@ export default {
     save() {
       this.$emit('save')
       this.isEditing = false
+      this.isValueChanged = false
     },
     close() {
       this.$emit('reset')
