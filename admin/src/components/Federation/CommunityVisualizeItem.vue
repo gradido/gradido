@@ -45,7 +45,11 @@
                 </b-form-group>
               </template>
               <template #edit>
-                <g-m-s-api-key v-model="gmsApiKey" />
+                <editable-groupable-label
+                  v-model="gmsApiKey"
+                  :label="$t('federation.gmsApiKey')"
+                  idName="home-community-api-key"
+                />
                 <coordinates v-model="location" />
               </template>
             </editable-group>
@@ -81,7 +85,7 @@ import EditableGroup from '@/components/input/EditableGroup'
 import FederationVisualizeItem from './FederationVisualizeItem.vue'
 import { updateHomeCommunity } from '../../graphql/updateHomeCommunity'
 import Coordinates from '../input/Coordinates.vue'
-import GMSApiKey from './GMSApiKey.vue'
+import EditableGroupableLabel from '../input/EditableGroupableLabel.vue'
 
 const locales = { en, de, es, fr, nl }
 
@@ -91,7 +95,7 @@ export default {
     Coordinates,
     EditableGroup,
     FederationVisualizeItem,
-    GMSApiKey,
+    EditableGroupableLabel,
   },
   props: {
     item: { type: Object },

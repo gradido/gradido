@@ -8,10 +8,10 @@
       </b-button>
     </b-form-group>
     <b-form-group v-else-if="allowEdit && isEditing">
-      <b-button @click="save" :variant="variant" :disabled="!isValueChanged">
+      <b-button @click="save" :variant="variant" :disabled="!isValueChanged" class="save-button">
         {{ $t('save') }}
       </b-button>
-      <b-button @click="close" variant="secondary">
+      <b-button @click="close" variant="secondary" class="close-button">
         {{ $t('close') }}
       </b-button>
     </b-form-group>

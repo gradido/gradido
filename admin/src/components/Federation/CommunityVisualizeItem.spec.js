@@ -1,9 +1,19 @@
+import { createMockClient } from 'mock-apollo-client'
 import { mount } from '@vue/test-utils'
+import VueApollo from 'vue-apollo'
 import Vuex from 'vuex'
 import CommunityVisualizeItem from './CommunityVisualizeItem.vue'
+import { updateHomeCommunity } from '../../graphql/updateHomeCommunity'
+import { toastSuccessSpy } from '../../../test/testSetup'
+
+const mockClient = createMockClient()
+const apolloProvider = new VueApollo({
+  defaultClient: mockClient,
+})
 
 const localVue = global.localVue
 localVue.use(Vuex)
+localVue.use(VueApollo)
 const today = new Date()
 const createdDate = new Date()
 createdDate.setDate(createdDate.getDate() - 3)
@@ -19,7 +29,7 @@ const store = new Vuex.Store({
 
 let propsData = {
   item: {
-    id: 1,
+    uuid: 1,
     foreign: false,
     url: 'http://localhost/api/',
     publicKey: '4007170edd8d33fb009cd99ee4e87f214e7cd21b668d45540a064deb42e243c2',
@@ -76,8 +86,18 @@ const mocks = {
 describe('CommunityVisualizeItem', () => {
   let wrapper
 
+  const updateHomeCommunityMock = jest.fn()
+  mockClient.setRequestHandler(
+    updateHomeCommunity,
+    updateHomeCommunityMock.mockResolvedValue({
+      data: {
+        updateHomeCommunity: { id: 1 },
+      },
+    }),
+  )
+
   const Wrapper = () => {
-    return mount(CommunityVisualizeItem, { localVue, mocks, propsData, store })
+    return mount(CommunityVisualizeItem, { localVue, mocks, propsData, store, apolloProvider })
   }
 
   describe('mount', () => {
@@ -152,7 +172,7 @@ describe('CommunityVisualizeItem', () => {
           beforeEach(() => {
             propsData = {
               item: {
-                id: 7590,
+                uuid: 7590,
                 foreign: false,
                 publicKey: 'eaf6a426b24fd54f8fbae11c17700fc595080ca25159579c63d38dbc64284ba7',
                 url: 'http://localhost/api/2_0',
@@ -195,7 +215,7 @@ describe('CommunityVisualizeItem', () => {
           beforeEach(() => {
             propsData = {
               item: {
-                id: 7590,
+                uuid: 7590,
                 foreign: false,
                 publicKey: 'eaf6a426b24fd54f8fbae11c17700fc595080ca25159579c63d38dbc64284ba7',
                 url: 'http://localhost/api/',
@@ -219,7 +239,7 @@ describe('CommunityVisualizeItem', () => {
           beforeEach(() => {
             propsData = {
               item: {
-                id: 7590,
+                uuid: 7590,
                 foreign: false,
                 publicKey: 'eaf6a426b24fd54f8fbae11c17700fc595080ca25159579c63d38dbc64284ba7',
                 url: 'http://localhost/api/2_0',
@@ -235,6 +255,103 @@ describe('CommunityVisualizeItem', () => {
 
           it('computes empty string', async () => {
             expect(wrapper.vm.createdAt).toBe('')
+          })
+        })
+
+        describe('test handleUpdateHomeCommunity', () => {
+          describe('gms api key', () => {
+            beforeEach(async () => {
+              wrapper = Wrapper()
+              wrapper.vm.originalGmsApiKey = 'original'
+              wrapper.vm.gmsApiKey = 'changed key'
+
+              await wrapper.vm.handleUpdateHomeCommunity()
+              // Wait for the next tick to allow async operations to complete
+              await wrapper.vm.$nextTick()
+            })
+
+            it('expect changed gms api key', () => {
+              expect(updateHomeCommunityMock).toBeCalledWith({
+                uuid: propsData.item.uuid,
+                gmsApiKey: 'changed key',
+                location: undefined,
+              })
+              expect(wrapper.vm.originalGmsApiKey).toBe('changed key')
+              expect(toastSuccessSpy).toBeCalledWith('federation.toast_gmsApiKeyUpdated')
+            })
+          })
+
+          describe('location', () => {
+            beforeEach(async () => {
+              wrapper = Wrapper()
+              wrapper.vm.originalLocation = { coordinates: [1.212, 15.121], type: 'Point' }
+              wrapper.vm.location = { coordinates: [17.212, 1.121], type: 'Point' }
+
+              await wrapper.vm.handleUpdateHomeCommunity()
+              // Wait for the next tick to allow async operations to complete
+              await wrapper.vm.$nextTick()
+            })
+
+            it('expect changed location', () => {
+              expect(updateHomeCommunityMock).toBeCalledWith({
+                uuid: propsData.item.uuid,
+                location: { coordinates: [17.212, 1.121], type: 'Point' },
+                gmsApiKey: undefined,
+              })
+              expect(wrapper.vm.originalLocation).toStrictEqual({
+                coordinates: [17.212, 1.121],
+                type: 'Point',
+              })
+              expect(toastSuccessSpy).toBeCalledWith('federation.toast_gmsLocationUpdated')
+            })
+          })
+
+          describe('gms api key and location', () => {
+            beforeEach(async () => {
+              wrapper = Wrapper()
+              wrapper.vm.originalGmsApiKey = 'original'
+              wrapper.vm.gmsApiKey = 'changed key'
+              wrapper.vm.originalLocation = { coordinates: [1.212, 15.121], type: 'Point' }
+              wrapper.vm.location = { coordinates: [17.212, 1.121], type: 'Point' }
+
+              await wrapper.vm.handleUpdateHomeCommunity()
+              // Wait for the next tick to allow async operations to complete
+              await wrapper.vm.$nextTick()
+            })
+
+            it('expect changed gms api key and changed location', () => {
+              expect(updateHomeCommunityMock).toBeCalledWith({
+                uuid: propsData.item.uuid,
+                gmsApiKey: 'changed key',
+                location: undefined,
+              })
+              expect(wrapper.vm.originalGmsApiKey).toBe('changed key')
+              expect(wrapper.vm.originalLocation).toStrictEqual({
+                coordinates: [17.212, 1.121],
+                type: 'Point',
+              })
+              expect(toastSuccessSpy).toBeCalledWith('federation.toast_gmsApiKeyAndLocationUpdated')
+            })
+          })
+        })
+
+        describe('test resetHomeCommunityEditable', () => {
+          beforeEach(async () => {
+            wrapper = Wrapper()
+          })
+
+          it('test', () => {
+            wrapper.vm.originalGmsApiKey = 'original'
+            wrapper.vm.gmsApiKey = 'changed key'
+            wrapper.vm.originalLocation = { coordinates: [1.212, 15.121], type: 'Point' }
+            wrapper.vm.location = { coordinates: [17.212, 1.121], type: 'Point' }
+            wrapper.vm.resetHomeCommunityEditable()
+
+            expect(wrapper.vm.location).toStrictEqual({
+              coordinates: [1.212, 15.121],
+              type: 'Point',
+            })
+            expect(wrapper.vm.gmsApiKey).toBe('original')
           })
         })
       })

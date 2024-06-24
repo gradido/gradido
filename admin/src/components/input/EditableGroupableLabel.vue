@@ -1,17 +1,25 @@
 <template>
-  <b-form-group :label="$t('federation.gmsApiKey')" label-for="home-community-api-key">
-    <b-form-input id="home-community-api-key" v-model="inputValue" @input="updateValue" />
+  <b-form-group :label="label" :label-for="idName">
+    <b-form-input :id="idName" v-model="inputValue" @input="updateValue" />
   </b-form-group>
 </template>
 
 <script>
 export default {
-  name: 'GMSApiKey',
+  name: 'EditableGroupableLabel',
   props: {
     value: {
       type: String,
       required: false,
       default: null,
+    },
+    label: {
+      type: String,
+      required: true,
+    },
+    idName: {
+      type: String,
+      required: true,
     },
   },
   data() {

@@ -39,6 +39,7 @@
 
 <script>
 export default {
+  name: 'Coordinates',
   props: {
     value: Object,
     default: null,
