@@ -41,23 +41,23 @@
 export default {
   props: {
     value: Object,
-    default: () => ({
-      type: 'Point',
-      coordinates: [],
-    }),
+    default: null,
   },
   data() {
     return {
       inputValue: this.value,
       originalValueString: this.getLatitudeLongitudeString(this.value),
-      longitude: this.value.coordinates[0],
-      latitude: this.value.coordinates[1],
+      longitude: this.value ? this.value.coordinates[0] : '',
+      latitude: this.value ? this.value.coordinates[1] : '',
       latitudeLongitude: this.getLatitudeLongitudeString(this.value),
     }
   },
   computed: {
     isValid() {
-      return this.inputValue.coordinates.length === 0 || this.inputValue.coordinates.length === 2
+      return (
+        (!isNaN(parseFloat(this.longitude)) && !isNaN(parseFloat(this.latitude))) ||
+        (this.longitude === '' && this.latitude === '')
+      )
     },
     isChanged() {
       return this.getLatitudeLongitudeString(this.inputValue) !== this.originalValueString
@@ -80,20 +80,35 @@ export default {
       this.valueUpdated()
     },
     getLatitudeLongitudeString(geoJSONPoint) {
-      if (geoJSONPoint.coordinates.length !== 2) {
+      if (!geoJSONPoint || geoJSONPoint.coordinates.length !== 2) {
         return ''
       }
-      return `${geoJSONPoint.coordinates[1] ?? '0'}, ${geoJSONPoint.coordinates[0] ?? '0'}`
+      return this.$t('geo-coordinates.format', {
+        latitude: geoJSONPoint.coordinates[1],
+        longitude: geoJSONPoint.coordinates[0],
+      })
     },
     valueUpdated() {
-      this.inputValue.coordinates = [this.longitude, this.latitude]
+      if (this.longitude && this.latitude) {
+        this.inputValue = {
+          type: 'Point',
+          coordinates: [this.longitude, this.latitude],
+        }
+      } else {
+        this.inputValue = null
+      }
       this.latitudeLongitude = this.getLatitudeLongitudeString(this.inputValue)
 
-      // make sure all coordinates are numbers
-      this.inputValue.coordinates = this.inputValue.coordinates
-        .map((coord) => parseFloat(coord))
-        // Remove null and NaN values
-        .filter((coord) => coord !== null && !isNaN(coord))
+      if (this.inputValue) {
+        // make sure all coordinates are numbers
+        this.inputValue.coordinates = this.inputValue.coordinates
+          .map((coord) => parseFloat(coord))
+          // Remove null and NaN values
+          .filter((coord) => coord !== null && !isNaN(coord))
+        if (this.inputValue.coordinates.length === 0) {
+          this.inputValue = null
+        }
+      }
 
       if (this.isValid && this.isChanged) {
         if (this.$parent.valueChanged) {

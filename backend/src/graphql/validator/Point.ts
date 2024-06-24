@@ -14,8 +14,6 @@ export function isValidPoint(validationOptions?: ValidationOptions) {
           if (value.type === 'Point') {
             if (value.coordinates.length === 2) {
               return value.coordinates.every((coord) => typeof coord === 'number')
-            } else if(value.coordinates.length === 0) {
-              return true
             }
           }
           return false

@@ -33,9 +33,15 @@
               <template #view>
                 <label>{{ $t('federation.gmsApiKey') }}&nbsp;{{ gmsApiKey }}</label>
                 <b-form-group>
-                  {{ $t('federation.coordinates') }}&nbsp;{{ item.location.coordinates[1] }}&nbsp;{{
-                    item.location.coordinates[0]
-                  }}
+                  {{ $t('federation.coordinates') }}
+                  <span v-if="isValidLocation">
+                    {{
+                      $t('geo-coordinates.format', {
+                        latitude: location.coordinates[1],
+                        longitude: location.coordinates[0],
+                      })
+                    }}
+                  </span>
                 </b-form-group>
               </template>
               <template #edit>
@@ -95,15 +101,11 @@ export default {
       formatDistanceToNow,
       locale: this.$i18n.locale,
       details: false,
-      gmsApiKey: '',
-      location: () => ({
-        type: 'Point',
-        coordinates: [],
-      }),
+      gmsApiKey: this.item.gmsApiKey,
+      location: this.item.location,
+      originalGmsApiKey: this.item.gmsApiKey,
+      originalLocation: this.item.location,
     }
-  },
-  created() {
-    this.resetHomeCommunityEditable()
   },
   computed: {
     verified() {
@@ -153,6 +155,15 @@ export default {
       }
       return ''
     },
+    isLocationChanged() {
+      return this.originalLocation !== this.location
+    },
+    isGMSApiKeyChanged() {
+      return this.originalGmsApiKey !== this.gmsApiKey
+    },
+    isValidLocation() {
+      return this.location && this.location.coordinates.length === 2
+    },
   },
   methods: {
     toggleDetails() {
@@ -169,15 +180,23 @@ export default {
           },
         })
         .then(() => {
-          this.toastSuccess(this.$t('federation.toast_gmsApiKeyUpdated'))
+          if (this.isLocationChanged && this.isGMSApiKeyChanged) {
+            this.toastSuccess(this.$t('federation.toast_gmsApiKeyAndLocationUpdated'))
+          } else if (this.isGMSApiKeyChanged) {
+            this.toastSuccess(this.$t('federation.toast_gmsApiKeyUpdated'))
+          } else if (this.isLocationChanged) {
+            this.toastSuccess(this.$t('federation.toast_gmsLocationUpdated'))
+          }
+          this.originalLocation = this.location
+          this.originalGmsApiKey = this.gmsApiKey
         })
         .catch((error) => {
           this.toastError(error.message)
         })
     },
     resetHomeCommunityEditable() {
-      this.gmsApiKey = this.item.gmsApiKey
-      this.location = this.item.location
+      this.location = this.originalLocation
+      this.gmsApiKey = this.originalGmsApiKey
     },
   },
 }

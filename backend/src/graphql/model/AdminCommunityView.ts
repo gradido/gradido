@@ -37,7 +37,7 @@ export class AdminCommunityView {
     this.uuid = dbCom.communityUuid
     this.authenticatedAt = dbCom.authenticatedAt
     this.gmsApiKey = dbCom.gmsApiKey
-    this.location = dbCom.location ? dbCom.location as Point : new Point()
+    this.location = dbCom.location
   }
 
   @Field(() => Boolean)
@@ -64,8 +64,8 @@ export class AdminCommunityView {
   @Field(() => String, { nullable: true })
   gmsApiKey: string | null
 
-  @Field(() => Point)
-  location: Point
+  @Field(() => Point, { nullable: true })
+  location: Point | null
 
   @Field(() => Date, { nullable: true })
   creationDate: Date | null

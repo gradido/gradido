@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
   OneToMany,
   JoinColumn,
-  Geometry,
+  Point,
 } from 'typeorm'
 import { FederatedCommunity } from '../FederatedCommunity'
 import { GeometryTransformer } from '../../src/typeorm/GeometryTransformer'
@@ -56,12 +56,12 @@ export class Community extends BaseEntity {
 
   @Column({
     name: 'location',
-    type: 'geometry',
+    type: 'point',
     default: null,
     nullable: true,
     transformer: GeometryTransformer,
   })
-  location: Geometry | null
+  location: Point | null
 
   @CreateDateColumn({
     name: 'created_at',

@@ -11,11 +11,11 @@ export class EditCommunityInput {
   @IsUUID('4')
   uuid: string
 
-  @Field(() => String)
+  @Field(() => String, {nullable: true})
   @IsString()
-  gmsApiKey: string
+  gmsApiKey: string | null
 
-  @Field(() => Point)
+  @Field(() => Point, {nullable: true})
   @isValidPoint()
-  location: Point
+  location: Point | null
 }
