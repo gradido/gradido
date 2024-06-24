@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { GraphQLScalarType, Kind } from 'graphql'
+
 import { Point } from '@/graphql/model/Point'
 
 export const PointScalar = new GraphQLScalarType({
@@ -10,14 +11,15 @@ export const PointScalar = new GraphQLScalarType({
   serialize(value: Point) {
     // Check type of value
     if (value.type !== 'Point') {
-      throw new Error(`PointScalar can only serialize Geometry type 'Point' values`, )
+      throw new Error(`PointScalar can only serialize Geometry type 'Point' values`)
     }
     return value
   },
 
   parseValue(value): Point {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (value.type !== 'Point') {
-      throw new Error(`PointScalar can only deserialize Geometry type 'Point' values`, )
+      throw new Error(`PointScalar can only deserialize Geometry type 'Point' values`)
     }
     return value as Point
   },

@@ -5,6 +5,7 @@ export class Point implements geojsonPoint {
     this.coordinates = []
     this.type = 'Point'
   }
+
   type: 'Point'
   coordinates: Position
 }

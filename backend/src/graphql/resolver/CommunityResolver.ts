@@ -89,8 +89,8 @@ export class CommunityResolver {
       throw new LogError('Error: Only the HomeCommunity could be modified!')
     }
     if (homeCom.gmsApiKey !== gmsApiKey || homeCom.location !== location) {
-      homeCom.gmsApiKey = gmsApiKey
-      homeCom.location = location
+      homeCom.gmsApiKey = gmsApiKey ?? null
+      homeCom.location = location ?? null
       await DbCommunity.save(homeCom)
     }
     return new Community(homeCom)

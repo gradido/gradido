@@ -1,4 +1,5 @@
 import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator'
+
 import { Point } from '@/graphql/model/Point'
 
 export function isValidPoint(validationOptions?: ValidationOptions) {
