@@ -1,7 +1,6 @@
 {
   "GDD": "GDD",
   "all_emails": "All users",
-  "edit": "edit",
   "back": "back",
   "change_user_role": "Change user role",
   "chat": "Chat",
@@ -70,6 +69,7 @@
   "deleted_user": "All deleted user",
   "deny": "Reject",
   "e_mail": "E-mail",
+  "edit": "edit",
   "enabled": "enabled",
   "error": "Error",
   "expired": "expired",
@@ -126,8 +126,8 @@
   "hide_resubmission_tooltip": "Hides all creations for which a moderator has set a reminder date.",
   "lastname": "Lastname",
   "latitude": "Latitude:",
-  "longitude": "Longitude:",
   "latitude-longitude-smart": "Latitude, Longitude",
+  "longitude": "Longitude:",
   "math": {
     "equals": "=",
     "pipe": "|",

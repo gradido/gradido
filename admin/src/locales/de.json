@@ -1,7 +1,6 @@
 {
   "GDD": "GDD",
   "all_emails": "Alle Nutzer",
-  "edit": "bearbeiten",
   "back": "zurück",
   "change_user_role": "Nutzerrolle ändern",
   "chat": "Chat",
@@ -70,6 +69,7 @@
   "deleted_user": "Alle gelöschten Nutzer",
   "deny": "Ablehnen",
   "e_mail": "E-Mail",
+  "edit": "bearbeiten",
   "enabled": "aktiviert",
   "error": "Fehler",
   "expired": "abgelaufen",
