@@ -61,7 +61,9 @@ export const createServer = async (
 
   // Helmet helps secure Express apps by setting HTTP response headers.
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  app.use(helmet())
+  // app.use(helmet())
+  app.use(helmet({ contentSecurityPolicy: CONFIG.PRODUCTION ? undefined : false }))
+  // app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }))
 
   // rate limiter/ slow down to many requests
   const limiter = slowDown({

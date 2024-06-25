@@ -90,7 +90,7 @@ cd $PROJECT_ROOT
 # TODO: this overfetches alot, but ensures we can use start.sh with tags
 git fetch --all
 git checkout $BRANCH
-git pull
+git pull $BRANCH
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
 # Generate gradido.conf from template
@@ -138,8 +138,10 @@ case "$URL_PROTOCOL" in
 esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/update-page.conf
 
+echo "====================================================================================================" >> $UPDATE_HTML
+echo "Clean folders: tmp, node_modules, build; recreate .env files" >> $UPDATE_HTML
 # Clean tmp folder - remove yarn files
-find /tmp -name "yarn--*" -exec rm -r {} \;
+find -path "/tmp" -name "yarn--*" -exec rm -r {} \;
 
 # Remove node_modules folders
 # we had problems with corrupted node_modules folder
@@ -172,9 +174,12 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env.template > $PROJECT_ROOT/dht-node/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.env.template > $PROJECT_ROOT/federation/.env
+echo "====================================================================================================" >> $UPDATE_HTML
 
 # Install & build database
+echo "====================================================================================================" >> $UPDATE_HTML
 echo 'Updating database' >> $UPDATE_HTML
+echo "====================================================================================================" >> $UPDATE_HTML
 cd $PROJECT_ROOT/database
 yarn install
 yarn build
@@ -186,7 +191,9 @@ else
 fi
 
 # Install & build backend
+echo "====================================================================================================" >> $UPDATE_HTML
 echo 'Updating backend' >> $UPDATE_HTML
+echo "====================================================================================================" >> $UPDATE_HTML
 cd $PROJECT_ROOT/backend
 # TODO maybe handle this differently?
 unset NODE_ENV
@@ -200,27 +207,47 @@ export NODE_ENV=production
 
 
 # Install & build frontend
+echo "====================================================================================================" >> $UPDATE_HTML
 echo 'Updating frontend' >> $UPDATE_HTML
+echo "====================================================================================================" >> $UPDATE_HTML
 cd $PROJECT_ROOT/frontend
 # TODO maybe handle this differently?
 unset NODE_ENV
+# TODO this is the quick&dirty solution for the openssl security topic, please see https://stackoverflow.com/questions/69692842/error-message-error0308010cdigital-envelope-routinesunsupported
+export NODE_OPTIONS=--openssl-legacy-provider
+
+# upgrade yarn and node versions
+nvm use v20.0.0
+yarn set version stable
+yarn cache clear
 yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 
+unset NODE_OPTIONS
+export NODE_OPTIONS
+
 # Install & build admin
+echo "====================================================================================================" >> $UPDATE_HTML
 echo 'Updating admin' >> $UPDATE_HTML
+echo "====================================================================================================" >> $UPDATE_HTML
 cd $PROJECT_ROOT/admin
 # TODO maybe handle this differently?
 unset NODE_ENV
+# downgrade yarn and node versions
+nvm use default
+yarn set version 1.22.19
+yarn cache clear
 yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 
 # Install & build dht-node
+echo "====================================================================================================" >> $UPDATE_HTML
 echo 'Updating dht-node' >> $UPDATE_HTML
+echo "====================================================================================================" >> $UPDATE_HTML
 cd $PROJECT_ROOT/dht-node
 # TODO maybe handle this differently?
 unset NODE_ENV
@@ -230,7 +257,9 @@ yarn build
 export NODE_ENV=production
 
 # Install & build federation
+echo "====================================================================================================" >> $UPDATE_HTML
 echo 'Updating federation' >> $UPDATE_HTML
+echo "====================================================================================================" >> $UPDATE_HTML
 cd $PROJECT_ROOT/federation
 # TODO maybe handle this differently?
 unset NODE_ENV

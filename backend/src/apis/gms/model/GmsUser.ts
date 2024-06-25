@@ -7,7 +7,7 @@ import { PublishNameType } from '@/graphql/enum/PublishNameType'
 export class GmsUser {
   constructor(user: dbUser) {
     this.userUuid = user.gradidoID
-    // this.communityUuid = user.communityUuid
+    this.communityUuid = user.communityUuid
     this.language = user.language
     this.email = this.getGmsEmail(user)
     this.countryCode = this.getGmsCountryCode(user)
@@ -15,8 +15,8 @@ export class GmsUser {
     this.firstName = this.getGmsFirstName(user)
     this.lastName = this.getGmsLastName(user)
     this.alias = this.getGmsAlias(user)
-    this.type = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
-    this.location = null
+    this.type = user.gmsPublishLocation // GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
+    this.location = user.location
   }
 
   id: number

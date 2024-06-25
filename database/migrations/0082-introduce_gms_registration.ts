@@ -50,5 +50,5 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn('ALTER TABLE `user_contacts` DROP COLUMN IF EXISTS `gms_publish_email`;')
   await queryFn('ALTER TABLE `user_contacts` DROP COLUMN IF EXISTS `country_code`;')
   await queryFn('ALTER TABLE `user_contacts` DROP COLUMN IF EXISTS `gms_publish_phone`;')
-    await queryFn('ALTER TABLE `communities` DROP COLUMN IF EXISTS `gms_api_key`;')
+  await queryFn('ALTER TABLE `communities` DROP COLUMN IF EXISTS `gms_api_key`;')
 }

@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0084-introduce_humhub_registration',
+  DB_VERSION: '0085-add_community-location',
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
