@@ -172,7 +172,7 @@ export default {
           throw new Error(`undefined transactionData.selected : ${this.transactionData.selected}`)
       }
       this.loading = false
-      this.$router.push('send')
+      this.$router.push({ path: '/send' })
     },
     onBack() {
       this.currentTransactionStep = TRANSACTION_STEPS.transactionForm

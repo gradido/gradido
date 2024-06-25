@@ -10,11 +10,7 @@ export class Profile {
     const publishNameLogic = new PublishNameLogic(user)
     this.firstname = publishNameLogic.getFirstName(user.humhubPublishName as PublishNameType)
     this.lastname = publishNameLogic.getLastName(user.humhubPublishName as PublishNameType)
-    if (user.alias && user.alias.length > 2) {
-      this.gradido_address = CONFIG.COMMUNITY_NAME + '/' + user.alias
-    } else {
-      this.gradido_address = CONFIG.COMMUNITY_NAME + '/' + user.gradidoID
-    }
+    this.gradido_address = CONFIG.COMMUNITY_NAME + '/' + user.gradidoID
   }
 
   firstname: string

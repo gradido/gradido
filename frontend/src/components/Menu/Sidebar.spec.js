@@ -1,7 +1,11 @@
 import { mount } from '@vue/test-utils'
 import Sidebar from './Sidebar'
+import CONFIG from '../../config'
 
 const localVue = global.localVue
+
+CONFIG.GMS_ACTIVE = 'true'
+CONFIG.HUMHUB_ACTIVE = 'true'
 
 describe('Sidebar', () => {
   let wrapper

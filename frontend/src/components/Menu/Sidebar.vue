@@ -28,11 +28,11 @@
             <b-img src="/img/svg/info.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.info') }}</span>
           </b-nav-item>
-          <b-nav-item to="/circles" class="mb-3" active-class="activeRoute">
+          <b-nav-item to="/circles" v-if="isHumhub" class="mb-3" active-class="activeRoute">
             <b-img src="/img/svg/circles.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.circles') }}</span>
           </b-nav-item>
-          <b-nav-item to="/usersearch" active-class="activeRoute">
+          <b-nav-item to="/usersearch" v-if="isGMS" active-class="activeRoute">
             <b-img src="/img/loupe.png" height="20" />
             <span class="ml-2">{{ $t('navigation.usersearch') }}</span>
           </b-nav-item>
@@ -77,6 +77,8 @@
   </div>
 </template>
 <script>
+import CONFIG from '../../config'
+
 export default {
   name: 'Sidebar',
   props: {
@@ -88,6 +90,12 @@ export default {
         return 'mb-3 activeRoute'
       }
       return 'mb-3'
+    },
+    isHumhub() {
+      return CONFIG.HUMHUB_ACTIVE === 'true'
+    },
+    isGMS() {
+      return CONFIG.GMS_ACTIVE === 'true'
     },
   },
 }

@@ -229,7 +229,7 @@ describe('Send', () => {
           })
 
           it('resets the gradido ID query in route', () => {
-            expect(routerPushMock).toBeCalledWith('send')
+            expect(routerPushMock).toBeCalledWith({ path: '/send' })
           })
         })
       })

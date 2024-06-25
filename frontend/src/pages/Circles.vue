@@ -12,10 +12,10 @@
         <b-col cols="12">
           <div class="text-lg-right">
             <b-button
+              :href="this.humhubUri"
               v-if="this.humhubAllowed"
               variant="gradido"
               :disabled="this.enableButton === false"
-              @click="authenticateHumhubAutoLogin"
               target="_blank"
             >
               {{ $t('circles.button') }}
@@ -37,7 +37,8 @@ export default {
   name: 'Circles',
   data() {
     return {
-      enableButton: true,
+      enableButton: false,
+      humhubUri: '',
     }
   },
   computed: {
@@ -55,17 +56,19 @@ export default {
           fetchPolicy: 'network-only',
         })
         .then(async (result) => {
-          window.open(result.data.authenticateHumhubAutoLogin, '_blank')
+          this.humhubUri = result.data.authenticateHumhubAutoLogin
           this.enableButton = true
         })
         .catch(() => {
-          // this.toastError('authenticateHumhubAutoLogin failed!')
           this.enableButton = true
+          this.humhubUri = ''
           // something went wrong with login link so we disable humhub
           this.$store.commit('humhubAllowed', false)
-          this.$router.push('/settings/extern')
         })
     },
+  },
+  created() {
+    this.authenticateHumhubAutoLogin()
   },
 }
 </script>

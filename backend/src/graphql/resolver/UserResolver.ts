@@ -169,7 +169,9 @@ export class UserResolver {
     let humhubUserPromise: Promise<IRestResponse<GetUser>> | undefined
     const klicktippStatePromise = getKlicktippState(dbUser.emailContact.email)
     if (CONFIG.HUMHUB_ACTIVE && dbUser.humhubAllowed) {
-      humhubUserPromise = HumHubClient.getInstance()?.userByUsernameAsync(email)
+      humhubUserPromise = HumHubClient.getInstance()?.userByUsernameAsync(
+        dbUser.alias ?? dbUser.gradidoID,
+      )
     }
 
     if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
@@ -202,8 +204,13 @@ export class UserResolver {
     await EVENT_USER_LOGIN(dbUser)
     // load humhub state
     if (humhubUserPromise) {
-      const result = await humhubUserPromise
-      user.humhubAllowed = result?.result?.account.status === 1
+      try {
+        const result = await humhubUserPromise
+        user.humhubAllowed = result?.result?.account.status === 1
+      } catch (e) {
+        logger.error("couldn't reach out to humhub, disable for now", e)
+        user.humhubAllowed = false
+      }
     }
     user.klickTipp = await klicktippStatePromise
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
@@ -785,7 +792,10 @@ export class UserResolver {
       throw new LogError('cannot create humhub client')
     }
     const username = dbUser.alias ?? dbUser.gradidoID
-    const humhubUser = await humhubClient.userByUsername(username)
+    let humhubUser = await humhubClient.userByUsername(username)
+    if (!humhubUser) {
+      humhubUser = await humhubClient.userByEmail(dbUser.emailContact.email)
+    }
     if (!humhubUser) {
       throw new LogError("user don't exist (any longer) on humhub")
     }
