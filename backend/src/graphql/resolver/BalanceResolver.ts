@@ -8,6 +8,8 @@ import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 import { Balance } from '@model/Balance'
 
 import { RIGHTS } from '@/auth/RIGHTS'
+import { BalanceLoggingView } from '@/logging/BalanceLogging.view'
+import { DecayLoggingView } from '@/logging/DecayLogging.view'
 import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'
@@ -27,9 +29,15 @@ export class BalanceResolver {
     logger.addContext('user', user.id)
     logger.info(`balance(userId=${user.id})...`)
 
-    const gdtResolver = new GdtResolver()
-    const balanceGDT = await gdtResolver.gdtBalance(context)
-    logger.debug(`balanceGDT=${balanceGDT}`)
+    let balanceGDT
+    if (!context.balanceGDT) {
+      const gdtResolver = new GdtResolver()
+      balanceGDT = await gdtResolver.gdtBalance(context)
+    } else {
+      balanceGDT = context.balanceGDT
+    }
+
+    logger.debug(`balanceGDT=${context.balanceGDT}`)
 
     const lastTransaction = context.lastTransaction
       ? context.lastTransaction
@@ -52,6 +60,7 @@ export class BalanceResolver {
       context.transactionCount || context.transactionCount === 0
         ? context.transactionCount
         : await dbTransaction.count({ where: { userId: user.id } })
+
     logger.debug(`transactionCount=${count}`)
 
     const linkCount = await dbTransactionLink.count({
@@ -71,9 +80,9 @@ export class BalanceResolver {
     )
     logger.info(
       'calculatedDecay',
-      lastTransaction.balance,
-      lastTransaction.balanceDate,
-      calculatedDecay,
+      lastTransaction.balance.toString(),
+      lastTransaction.balanceDate.toISOString(),
+      new DecayLoggingView(calculatedDecay),
     )
 
     // The final balance is reduced by the link amount withheld
@@ -98,7 +107,14 @@ export class BalanceResolver {
       count,
       linkCount,
     })
-    logger.info('new Balance', balance, balanceGDT, count, linkCount, newBalance)
+    logger.info(
+      'new Balance',
+      balance.toString(),
+      balanceGDT?.toString(),
+      count,
+      linkCount,
+      new BalanceLoggingView(newBalance),
+    )
 
     return newBalance
   }
