@@ -649,7 +649,9 @@ export class UserResolver {
       user.humhubPublishName = humhubPublishName
     }
     if (gmsLocation) {
+      logger.debug('enter gmsLocation  in user, gmsLocation=', gmsLocation)
       user.location = Location2Point(gmsLocation)
+      logger.debug('userLocation=', user.location)
     }
     if (gmsPublishLocation !== null && gmsPublishLocation !== undefined) {
       user.gmsPublishLocation = gmsPublishLocation
@@ -668,6 +670,8 @@ export class UserResolver {
 
       await queryRunner.commitTransaction()
       logger.debug('writing User data successful...', user)
+      // insert user location in context-user
+      context.user = user
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Error on writing updated user data', e)

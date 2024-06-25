@@ -157,11 +157,11 @@ export default {
 }
 
 .map-height {
-  height: 300px;
+  height: 520px;
 }
 
 .below-map {
-  top: 310px;
+  top: 90%;
 }
 
 .btn-close {
