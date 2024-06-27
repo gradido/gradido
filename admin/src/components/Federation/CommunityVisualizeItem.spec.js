@@ -284,8 +284,8 @@ describe('CommunityVisualizeItem', () => {
           describe('location', () => {
             beforeEach(async () => {
               wrapper = Wrapper()
-              wrapper.vm.originalLocation = { coordinates: [1.212, 15.121], type: 'Point' }
-              wrapper.vm.location = { coordinates: [17.212, 1.121], type: 'Point' }
+              wrapper.vm.originalLocation = { latitude: 15.121, longitude: 1.212 }
+              wrapper.vm.location = { latitude: 1.121, longitude: 17.212 }
 
               await wrapper.vm.handleUpdateHomeCommunity()
               // Wait for the next tick to allow async operations to complete
@@ -295,12 +295,12 @@ describe('CommunityVisualizeItem', () => {
             it('expect changed location', () => {
               expect(updateHomeCommunityMock).toBeCalledWith({
                 uuid: propsData.item.uuid,
-                location: { coordinates: [17.212, 1.121], type: 'Point' },
+                location: { latitude: 1.121, longitude: 17.212 },
                 gmsApiKey: undefined,
               })
               expect(wrapper.vm.originalLocation).toStrictEqual({
-                coordinates: [17.212, 1.121],
-                type: 'Point',
+                latitude: 1.121,
+                longitude: 17.212,
               })
               expect(toastSuccessSpy).toBeCalledWith('federation.toast_gmsLocationUpdated')
             })
@@ -311,8 +311,8 @@ describe('CommunityVisualizeItem', () => {
               wrapper = Wrapper()
               wrapper.vm.originalGmsApiKey = 'original'
               wrapper.vm.gmsApiKey = 'changed key'
-              wrapper.vm.originalLocation = { coordinates: [1.212, 15.121], type: 'Point' }
-              wrapper.vm.location = { coordinates: [17.212, 1.121], type: 'Point' }
+              wrapper.vm.originalLocation = { latitude: 15.121, longitude: 1.212 }
+              wrapper.vm.location = { latitude: 1.121, longitude: 17.212 }
 
               await wrapper.vm.handleUpdateHomeCommunity()
               // Wait for the next tick to allow async operations to complete
@@ -327,8 +327,8 @@ describe('CommunityVisualizeItem', () => {
               })
               expect(wrapper.vm.originalGmsApiKey).toBe('changed key')
               expect(wrapper.vm.originalLocation).toStrictEqual({
-                coordinates: [17.212, 1.121],
-                type: 'Point',
+                latitude: 1.121,
+                longitude: 17.212,
               })
               expect(toastSuccessSpy).toBeCalledWith('federation.toast_gmsApiKeyAndLocationUpdated')
             })
@@ -343,14 +343,11 @@ describe('CommunityVisualizeItem', () => {
           it('test', () => {
             wrapper.vm.originalGmsApiKey = 'original'
             wrapper.vm.gmsApiKey = 'changed key'
-            wrapper.vm.originalLocation = { coordinates: [1.212, 15.121], type: 'Point' }
-            wrapper.vm.location = { coordinates: [17.212, 1.121], type: 'Point' }
+            wrapper.vm.originalLocation = { latitude: 15.121, longitude: 1.212 }
+            wrapper.vm.location = { latitude: 1.121, longitude: 17.212 }
             wrapper.vm.resetHomeCommunityEditable()
 
-            expect(wrapper.vm.location).toStrictEqual({
-              coordinates: [1.212, 15.121],
-              type: 'Point',
-            })
+            expect(wrapper.vm.location).toStrictEqual({ latitude: 15.121, longitude: 1.212 })
             expect(wrapper.vm.gmsApiKey).toBe('original')
           })
         })
