@@ -37,8 +37,8 @@
                   <span v-if="isValidLocation">
                     {{
                       $t('geo-coordinates.format', {
-                        latitude: location.coordinates[1],
-                        longitude: location.coordinates[0],
+                        latitude: location.latitude,
+                        longitude: location.longitude,
                       })
                     }}
                   </span>
@@ -166,7 +166,7 @@ export default {
       return this.originalGmsApiKey !== this.gmsApiKey
     },
     isValidLocation() {
-      return this.location && this.location.coordinates.length === 2
+      return this.location && this.location.latitude && this.location.longitude
     },
   },
   methods: {

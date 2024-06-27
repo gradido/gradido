@@ -1,8 +1,8 @@
 import { IsString, IsUUID } from 'class-validator'
 import { ArgsType, Field, InputType } from 'type-graphql'
 
-import { Point } from '@/graphql/model/Point'
-import { isValidPoint } from '@/graphql/validator/Point'
+import { Location } from '@/graphql/model/Location'
+import { isValidLocation } from '@/graphql/validator/Location'
 
 @ArgsType()
 @InputType()
@@ -15,7 +15,7 @@ export class EditCommunityInput {
   @IsString()
   gmsApiKey?: string | null
 
-  @Field(() => Point, { nullable: true })
-  @isValidPoint()
-  location?: Point | null
+  @Field(() => Location, { nullable: true })
+  @isValidLocation()
+  location?: Location | null
 }

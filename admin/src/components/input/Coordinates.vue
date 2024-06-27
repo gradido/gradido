@@ -11,7 +11,7 @@
         :description="$t('geo-coordinates.latitude-longitude-smart.describe')"
       >
         <b-form-input
-          v-model="latitudeLongitude"
+          v-model="locationString"
           id="home-community-latitude-longitude-smart"
           type="text"
           @input="splitCoordinates"
@@ -19,7 +19,7 @@
       </b-form-group>
       <b-form-group :label="$t('latitude')" label-for="home-community-latitude">
         <b-form-input
-          v-model="latitude"
+          v-model="inputValue.latitude"
           id="home-community-latitude"
           type="text"
           @input="valueUpdated"
@@ -27,7 +27,7 @@
       </b-form-group>
       <b-form-group :label="$t('longitude')" label-for="home-community-longitude">
         <b-form-input
-          v-model="longitude"
+          v-model="inputValue.longitude"
           id="home-community-longitude"
           type="text"
           @input="valueUpdated"
@@ -47,21 +47,20 @@ export default {
   data() {
     return {
       inputValue: this.value,
-      originalValueString: this.getLatitudeLongitudeString(this.value),
-      longitude: this.value ? this.value.coordinates[0] : '',
-      latitude: this.value ? this.value.coordinates[1] : '',
-      latitudeLongitude: this.getLatitudeLongitudeString(this.value),
+      originalValue: this.value,
+      locationString: this.getLatitudeLongitudeString(this.value),
     }
   },
   computed: {
     isValid() {
       return (
-        (!isNaN(parseFloat(this.longitude)) && !isNaN(parseFloat(this.latitude))) ||
-        (this.longitude === '' && this.latitude === '')
+        (!isNaN(parseFloat(this.inputValue.longitude)) &&
+          !isNaN(parseFloat(this.inputValue.latitude))) ||
+        (this.inputValue.longitude === '' && this.inputValue.latitude === '')
       )
     },
     isChanged() {
-      return this.getLatitudeLongitudeString(this.inputValue) !== this.originalValueString
+      return this.inputValue !== this.originalValue
     },
   },
   methods: {
@@ -72,43 +71,31 @@ export default {
       if (parts.length === 2) {
         const [lat, lon] = parts
         if (!isNaN(parseFloat(lon) && !isNaN(parseFloat(lat)))) {
-          this.longitude = parseFloat(lon)
-          this.latitude = parseFloat(lat)
+          this.inputValue.longitude = parseFloat(lon)
+          this.inputValue.latitude = parseFloat(lat)
         }
       }
       this.valueUpdated()
     },
-    getLatitudeLongitudeString(geoJSONPoint) {
-      if (!geoJSONPoint || geoJSONPoint.coordinates.length !== 2) {
-        return ''
-      }
-      return this.$t('geo-coordinates.format', {
-        latitude: geoJSONPoint.coordinates[1],
-        longitude: geoJSONPoint.coordinates[0],
-      })
-    },
-    valueUpdated() {
-      if (this.longitude && this.latitude) {
-        this.inputValue = {
-          type: 'Point',
-          // format in geojson Point: coordinates[longitude, latitude]
-          coordinates: [this.longitude, this.latitude],
-        }
-      } else {
-        this.inputValue = null
-      }
-      this.latitudeLongitude = this.getLatitudeLongitudeString(this.inputValue)
+    sanitizeLocation(location) {
+      if (!location) return { latitude: '', longitude: '' }
 
-      if (this.inputValue) {
-        // make sure all coordinates are numbers
-        this.inputValue.coordinates = this.inputValue.coordinates
-          .map((coord) => parseFloat(coord))
-          // Remove null and NaN values
-          .filter((coord) => coord !== null && !isNaN(coord))
-        if (this.inputValue.coordinates.length !== 2) {
-          this.inputValue = null
-        }
+      const parseNumber = (value) => {
+        const number = parseFloat(value)
+        return isNaN(number) ? '' : number
       }
+
+      return {
+        latitude: parseNumber(location.latitude),
+        longitude: parseNumber(location.longitude),
+      }
+    },
+    getLatitudeLongitudeString({ latitude, longitude } = {}) {
+      return latitude && longitude ? this.$t('geo-coordinates.format', { latitude, longitude }) : ''
+    },
+    valueUpdated(value) {
+      this.locationString = this.getLatitudeLongitudeString(this.inputValue)
+      this.inputValue = this.sanitizeLocation(this.inputValue)
 
       if (this.isValid && this.isChanged) {
         if (this.$parent.valueChanged) {

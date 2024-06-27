@@ -18,6 +18,7 @@ import {
   getCommunityByUuid,
   getHomeCommunity,
 } from './util/communities'
+import { Location2Point } from './util/Location2Point'
 
 @Resolver()
 export class CommunityResolver {
@@ -90,7 +91,9 @@ export class CommunityResolver {
     }
     if (homeCom.gmsApiKey !== gmsApiKey || homeCom.location !== location) {
       homeCom.gmsApiKey = gmsApiKey ?? null
-      homeCom.location = location ?? null
+      if (location) {
+        homeCom.location = Location2Point(location)
+      }
       await DbCommunity.save(homeCom)
     }
     return new Community(homeCom)

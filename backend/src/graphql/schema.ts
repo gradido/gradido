@@ -7,10 +7,8 @@ import { buildSchema } from 'type-graphql'
 import { Location } from '@model/Location'
 
 import { isAuthorized } from './directive/isAuthorized'
-import { Point } from './model/Point'
 import { DecimalScalar } from './scalar/Decimal'
 import { LocationScalar } from './scalar/Location'
-import { PointScalar } from './scalar/Point'
 
 export const schema = async (): Promise<GraphQLSchema> => {
   return buildSchema({
@@ -19,7 +17,6 @@ export const schema = async (): Promise<GraphQLSchema> => {
     scalarsMap: [
       { type: Decimal, scalar: DecimalScalar },
       { type: Location, scalar: LocationScalar },
-      { type: Point, scalar: PointScalar },
     ],
     validate: {
       validationError: { target: false },
