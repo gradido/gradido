@@ -11,6 +11,7 @@ export const allCommunities = gql`
       name
       description
       gmsApiKey
+      location
       creationDate
       createdAt
       updatedAt

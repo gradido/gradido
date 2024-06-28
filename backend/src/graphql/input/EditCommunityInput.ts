@@ -1,6 +1,9 @@
 import { IsString, IsUUID } from 'class-validator'
 import { ArgsType, Field, InputType } from 'type-graphql'
 
+import { Location } from '@/graphql/model/Location'
+import { isValidLocation } from '@/graphql/validator/Location'
+
 @ArgsType()
 @InputType()
 export class EditCommunityInput {
@@ -8,7 +11,11 @@ export class EditCommunityInput {
   @IsUUID('4')
   uuid: string
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @IsString()
-  gmsApiKey: string
+  gmsApiKey?: string | null
+
+  @Field(() => Location, { nullable: true })
+  @isValidLocation()
+  location?: Location | null
 }

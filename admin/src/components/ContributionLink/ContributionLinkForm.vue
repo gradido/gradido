@@ -113,7 +113,7 @@
           {{ $t('contributionLink.clear') }}
         </b-button>
         <b-button @click.prevent="$emit('closeContributionForm')">
-          {{ $t('contributionLink.close') }}
+          {{ $t('close') }}
         </b-button>
       </div>
     </b-form>
