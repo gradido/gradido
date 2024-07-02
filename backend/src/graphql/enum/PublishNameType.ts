@@ -1,11 +1,11 @@
 import { registerEnumType } from 'type-graphql'
 
 export enum PublishNameType {
-  PUBLISH_NAME_ALIAS_OR_INITALS = 0,
-  PUBLISH_NAME_INITIALS = 1,
-  PUBLISH_NAME_FIRST = 2,
-  PUBLISH_NAME_FIRST_INITIAL = 3,
-  PUBLISH_NAME_FULL = 4,
+  PUBLISH_NAME_ALIAS_OR_INITALS = 1,
+  PUBLISH_NAME_INITIALS = 2,
+  PUBLISH_NAME_FIRST = 3,
+  PUBLISH_NAME_FIRST_INITIAL = 4,
+  PUBLISH_NAME_FULL = 5,
 }
 
 registerEnumType(PublishNameType, {

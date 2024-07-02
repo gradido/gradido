@@ -590,7 +590,17 @@ export class UserResolver {
       gmsPublishLocation,
     } = updateUserInfosArgs
     logger.info(
-      `updateUserInfos(${firstName}, ${lastName}, ${alias}, ${language}, ***, ***, ${hideAmountGDD}, ${hideAmountGDT}, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})...`,
+      'updateUserInfos(',
+      firstName,
+      lastName,
+      alias,
+      language,
+      hideAmountGDD,
+      hideAmountGDT,
+      gmsAllowed,
+      gmsPublishName,
+      gmsLocation,
+      gmsPublishLocation,
     )
     logger.debug('updateUserInfoArgs=', updateUserInfosArgs)
     const user = getUser(context)

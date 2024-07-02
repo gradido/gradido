@@ -1,6 +1,5 @@
 import { User as dbUser } from '@entity/User'
 
-import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
