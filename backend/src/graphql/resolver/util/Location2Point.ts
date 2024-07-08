@@ -25,3 +25,10 @@ export function Point2Location(point: Point): Location {
   }
   return location
 }
+
+export function Point2Array(point: Point): number[] | null {
+  if (point.type === 'Point' && point.coordinates.length === 2) {
+    return [point.coordinates[1], point.coordinates[0]]
+  }
+  return null
+}
