@@ -144,7 +144,7 @@ export default {
         validTo: null,
         cycle: 'ONCE',
         maxPerCycle: 1,
-        maxAmountPerMonth: '0',
+        // maxAmountPerMonth: '0',
       },
       min: new Date(),
       cycle: [

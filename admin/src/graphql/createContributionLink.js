@@ -9,7 +9,6 @@ export const createContributionLink = gql`
     $memo: String!
     $cycle: String!
     $maxPerCycle: Int! = 1
-    $maxAmountPerMonth: Decimal
   ) {
     createContributionLink(
       validFrom: $validFrom
@@ -19,7 +18,6 @@ export const createContributionLink = gql`
       memo: $memo
       cycle: $cycle
       maxPerCycle: $maxPerCycle
-      maxAmountPerMonth: $maxAmountPerMonth
     ) {
       link
     }
