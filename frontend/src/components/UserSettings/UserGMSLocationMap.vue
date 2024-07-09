@@ -164,7 +164,7 @@ export default {
       geosearchOptions: {
         provider: new OpenStreetMapProvider(),
       },
-      // splitNumbers: CONFIG.COMMUNITY_LOCATION.split(',').map(Number), 
+      // splitNumbers: CONFIG.COMMUNITY_LOCATION.split(',').map(Number),
       userLocation: latLng(49.280377, 9.690151),
       comLocation: latLng(49.280377, 9.690151),
       center: latLng(49.280377, 9.690151),
@@ -230,7 +230,6 @@ export default {
     console.log('UserGMSLocationMap mounted', this.coordsInitialized)
     // this.coordsInitialized = true
     // this.showMap = true
-
   },
   beforeClose: function (event) {
     // eslint-disable-next-line
@@ -260,7 +259,7 @@ export default {
         // eslint-disable-next-line
         console.log('userLocation=', this.userLocation)
         this.$emit('currentUserLocation', this.userLocation)
-      } else if( center.lat !== 0 || center.lng !== 0) {
+      } else if ( center.lat !== 0 || center.lng !== 0) {
         this.coordsInitialized = true
         this.showMap = true
       }
