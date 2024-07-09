@@ -130,6 +130,8 @@ export async function createGmsUser(apiKey: string, user: GmsUser): Promise<bool
         authorization: apiKey,
       },
     }
+    // communityUuid darf nicht per user, sondern wird per ApiKey übergeben und in gms ermittelt
+    user.communityUuid = undefined
     try {
       const result = await axios.post(baseUrl.concat(service), user, config)
       logger.debug('POST-Response of community-user:', result)
@@ -165,6 +167,8 @@ export async function updateGmsUser(apiKey: string, user: GmsUser): Promise<bool
       },
     }
     try {
+      // communityUuid darf nicht per user, sondern wird per ApiKey übergeben und in gms ermittelt
+      user.communityUuid = undefined
       const result = await axios.patch(baseUrl.concat(service), user, config)
       logger.debug('PATCH-Response of community-user:', result)
       if (result.status !== 200) {

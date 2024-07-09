@@ -23,7 +23,7 @@ export class GmsUser {
 
   id: number
   userUuid: string
-  communityUuid: string
+  communityUuid: string | undefined
   email: string | undefined
   countryCode: string | undefined
   mobile: string | undefined
