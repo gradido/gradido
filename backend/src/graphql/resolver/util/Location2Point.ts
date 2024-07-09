@@ -26,9 +26,9 @@ export function Point2Location(point: Point): Location {
   return location
 }
 
-export function Point2Array(point: Point): number[] | null {
+export function Point2StringArray(point: Point): string[] | null {
   if (point.type === 'Point' && point.coordinates.length === 2) {
-    return [point.coordinates[1], point.coordinates[0]]
+    return [point.coordinates[1].toString(), point.coordinates[0].toString()]
   }
   return null
 }
