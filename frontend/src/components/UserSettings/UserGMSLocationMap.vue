@@ -259,7 +259,7 @@ export default {
         // eslint-disable-next-line
         console.log('userLocation=', this.userLocation)
         this.$emit('currentUserLocation', this.userLocation)
-      } else if ( center.lat !== 0 || center.lng !== 0) {
+      } else if (center.lat !== 0 || center.lng !== 0) {
         this.coordsInitialized = true
         this.showMap = true
       }
