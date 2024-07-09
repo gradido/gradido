@@ -68,6 +68,15 @@ export class GmsUser {
     ) {
       return user.firstName.substring(0, 1)
     }
+    if (
+      user.gmsAllowed &&
+      user.alias &&
+      user.firstName === null &&
+      user.gmsPublishName === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS
+    ) {
+      // return alias as firstname, because firstname is mandatory in gms api
+      return user.alias
+    }
   }
 
   private getGmsLastName(user: dbUser): string | undefined {
