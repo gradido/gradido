@@ -1,42 +1,41 @@
 <template>
   <div class="component-nabvar">
-    <BNavbar toggleable="lg" type="dark" class="bg-dark">
-      <BNavbarBrand class="mb-2" to="/">
+    <b-navbar toggleable="lg" type="dark" class="bg-dark">
+      <b-navbar-brand class="mb-2" to="/">
         <img src="img/brand/gradido_logo_w.png" class="navbar-brand-img pl-2" alt="..." />
-      </BNavbarBrand>
+      </b-navbar-brand>
 
-      <BNavbarToggle target="nav-collapse"></BNavbarToggle>
+      <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
-      <BCollapse id="nav-collapse" is-nav>
-        <BNavbarNav>
-          <BNavItem to="/user">{{ $t('navbar.user_search') }}</BNavItem>
-          <BNavItem class="bg-color-creation" to="/creation-confirm">
+      <b-collapse id="nav-collapse" is-nav>
+        <b-navbar-nav>
+          <b-nav-item to="/user">{{ $t('navbar.user_search') }}</b-nav-item>
+          <b-nav-item class="bg-color-creation" to="/creation-confirm">
             {{ $t('creation') }}
-            <BBadge v-show="$store.state.openCreations > 0" variant="danger">
+            <b-badge v-show="$store.state.openCreations > 0" variant="danger">
               {{ $store.state.openCreations }}
-            </BBadge>
-          </BNavItem>
-          <BNavItem to="/contribution-links">
+            </b-badge>
+          </b-nav-item>
+          <b-nav-item to="/contribution-links">
             {{ $t('navbar.automaticContributions') }}
-          </BNavItem>
-          <BNavItem to="/federation">
+          </b-nav-item>
+          <b-nav-item to="/federation">
             {{ $t('navbar.instances') }}
-          </BNavItem>
-          <BNavItem to="/statistic">{{ $t('navbar.statistic') }}</BNavItem>
-          <BNavItem @click="wallet">{{ $t('navbar.my-account') }}</BNavItem>
-          <BNavItem @click="logout">{{ $t('navbar.logout') }}</BNavItem>
-        </BNavbarNav>
-      </BCollapse>
-    </BNavbar>
+          </b-nav-item>
+          <b-nav-item to="/statistic">{{ $t('navbar.statistic') }}</b-nav-item>
+          <b-nav-item @click="wallet">{{ $t('navbar.my-account') }}</b-nav-item>
+          <b-nav-item @click="logout">{{ $t('navbar.logout') }}</b-nav-item>
+        </b-navbar-nav>
+      </b-collapse>
+    </b-navbar>
   </div>
 </template>
 <script>
 import CONFIG from '../config'
 import { logout } from '../graphql/logout'
-import { BNavbar, BCollapse, BNavbarNav, BNavItem, BNavbarBrand, BBadge } from 'bootstrap-vue-next'
+
 export default {
   name: 'navbar',
-  components: { BNavbar, BCollapse, BNavbarNav, BNavItem, BNavbarBrand, BBadge },
   methods: {
     async logout() {
       window.location.assign(CONFIG.WALLET_LOGIN_URL)

@@ -1,4 +1,7 @@
-import { createI18n } from 'vue-i18n'
+import Vue from 'vue'
+import VueI18n from 'vue-i18n'
+
+Vue.use(VueI18n)
 
 const loadLocaleMessages = () => {
   const locales = require.context('./locales/', true, /[A-Za-z0-9-_,\s]+\.json$/i)
@@ -42,7 +45,7 @@ const numberFormats = {
   },
 }
 
-const datetimeFormats = {
+const dateTimeFormats = {
   en: {
     short: {
       year: 'numeric',
@@ -93,13 +96,12 @@ const datetimeFormats = {
   },
 }
 
-const i18n = createI18n({
+const i18n = new VueI18n({
   locale: 'en',
-  legacy: false,
   fallbackLocale: 'en',
   messages: loadLocaleMessages(),
   numberFormats,
-  datetimeFormats,
+  dateTimeFormats,
 })
 
 export default i18n

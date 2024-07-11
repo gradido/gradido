@@ -1,6 +1,9 @@
-import { createStore } from 'vuex'
+import Vuex from 'vuex'
+import Vue from 'vue'
 import createPersistedState from 'vuex-persistedstate'
 import CONFIG from '../config'
+
+Vue.use(Vuex)
 
 export const mutations = {
   openCreationsPlus: (state, i) => {
@@ -31,7 +34,7 @@ export const actions = {
   },
 }
 
-const store = createStore({
+const store = new Vuex.Store({
   plugins: [
     createPersistedState({
       key: 'gradido-admin',

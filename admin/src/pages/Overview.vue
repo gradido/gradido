@@ -1,6 +1,6 @@
 <template>
   <div class="admin-overview">
-    <BCard
+    <b-card
       v-show="$store.state.openCreations > 0"
       border-variant="primary"
       :header="$t('open_creations')"
@@ -13,8 +13,8 @@
           <h1>{{ $store.state.openCreations }}</h1>
         </b-link>
       </b-card-text>
-    </BCard>
-    <BCard
+    </b-card>
+    <b-card
       v-show="$store.state.openCreations < 1"
       border-variant="success"
       :header="$t('not_open_creations')"
@@ -22,21 +22,19 @@
       header-text-variant="white"
       align="center"
     >
-      <BCardText>
-        <BLink to="creation-confirm">
+      <b-card-text>
+        <b-link to="creation-confirm">
           <h1 data-test="open-creation">{{ $store.state.openCreations }}</h1>
-        </BLink>
-      </BCardText>
-    </BCard>
+        </b-link>
+      </b-card-text>
+    </b-card>
   </div>
 </template>
 <script>
 import { adminListContributions } from '../graphql/adminListContributions'
-import { BCard, BCardText } from 'bootstrap-vue-next'
 
 export default {
   name: 'overview',
-  components: { BCard, BCardText },
   data() {
     return {
       statusFilter: ['IN_PROGRESS', 'PENDING'],

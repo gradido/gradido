@@ -28,13 +28,12 @@ const routes = [
     component: () => import('@/pages/ContributionLinks.vue'),
   },
   {
-    path: '/federation',
-    component: () => import('@/pages/FederationVisualize.vue'),
+    path: '*',
+    component: () => import('@/components/NotFoundPage.vue'),
   },
   {
-    path: '/:catchAll(.*)',
-    name: 'NotFound',
-    component: () => import('@/components/NotFoundPage.vue'),
+    path: '/federation',
+    component: () => import('@/pages/FederationVisualize.vue'),
   },
 ]
 

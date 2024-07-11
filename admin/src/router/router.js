@@ -1,10 +1,14 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import Vue from 'vue'
+import VueRouter from 'vue-router'
 import routes from './routes'
 
-const router = createRouter({
+Vue.use(VueRouter)
+
+const router = new VueRouter({
+  base: '/admin',
   routes,
   linkActiveClass: 'active',
-  history: createWebHistory('/admin/'),
+  mode: 'history',
   scrollBehavior: (to, from, savedPosition) => {
     if (savedPosition) {
       return savedPosition
@@ -12,7 +16,7 @@ const router = createRouter({
     if (to.hash) {
       return { selector: to.hash }
     }
-    return { left: 0, top: 0 }
+    return { x: 0, y: 0 }
   },
 })
 

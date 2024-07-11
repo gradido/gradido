@@ -20,23 +20,6 @@ module.exports = {
   },
   lintOnSave: true,
   publicPath: '/admin',
-  chainWebpack: (config) => {
-    config.resolve.alias.set('vue', '@vue/compat')
-
-    config.module
-      .rule('vue')
-      .use('vue-loader')
-      .tap((options) => {
-        return {
-          ...options,
-          compilerOptions: {
-            compatConfig: {
-              MODE: 2,
-            },
-          },
-        }
-      })
-  },
   configureWebpack: {
     // Set up all the aliases we use in our app.
     resolve: {
@@ -59,7 +42,7 @@ module.exports = {
       new StatsPlugin('webpack.stats.json'),
     ],
     infrastructureLogging: {
-      level: 'info', // 'none' | 'error' | 'warn' | 'info' | 'log' | 'verbose'
+      level: 'warn', // 'none' | 'error' | 'warn' | 'info' | 'log' | 'verbose'
     },
   },
   css: {
