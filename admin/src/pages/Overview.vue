@@ -11,6 +11,7 @@
       <b-card-text>
         <b-link to="creation-confirm">
           <h1>{{ $store.state.openCreations }}</h1>
+          <h1>Layout test</h1>
         </b-link>
       </b-card-text>
     </b-card>
