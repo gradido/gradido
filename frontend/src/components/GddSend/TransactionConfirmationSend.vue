@@ -66,7 +66,7 @@
   </div>
 </template>
 <script>
-import { COMMUNITY_NAME } from '@/config'
+import CONFIG from '@/config'
 
 export default {
   name: 'TransactionConfirmationSend',
@@ -79,7 +79,7 @@ export default {
     targetCommunity: {
       type: Object,
       default: function () {
-        return { uuid: '', name: COMMUNITY_NAME }
+        return { uuid: '', name: CONFIG.COMMUNITY_NAME }
       },
     },
   },

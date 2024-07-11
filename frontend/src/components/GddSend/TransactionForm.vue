@@ -144,7 +144,7 @@ import InputAmount from '@/components/Inputs/InputAmount'
 import InputTextarea from '@/components/Inputs/InputTextarea'
 import CommunitySwitch from '@/components/CommunitySwitch.vue'
 import { user } from '@/graphql/queries'
-import { COMMUNITY_NAME } from '@/config'
+import CONFIG from '@/config'
 
 export default {
   name: 'TransactionForm',
@@ -163,7 +163,7 @@ export default {
     targetCommunity: {
       type: Object,
       default: function () {
-        return { uuid: '', name: COMMUNITY_NAME }
+        return { uuid: '', name: CONFIG.COMMUNITY_NAME }
       },
     },
   },

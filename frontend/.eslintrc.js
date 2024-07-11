@@ -4,9 +4,7 @@ module.exports = {
     browser: true,
     node: true,
     jest: true,
-  },
-  parserOptions: {
-    parser: 'babel-eslint',
+    es2022: true,
   },
   extends: [
     'standard',
@@ -29,7 +27,7 @@ module.exports = {
   // add your custom rules here
   rules: {
     'no-console': ['error'],
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-debugger': import.meta.env.NODE_ENV === 'production' ? 'error' : 'off',
     'vue/component-name-in-template-casing': ['error', 'kebab-case'],
     'vue/no-static-inline-styles': [
       'error',
