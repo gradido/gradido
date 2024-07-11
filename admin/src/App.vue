@@ -11,6 +11,9 @@ import defaultLayout from '@/layouts/defaultLayout'
 export default {
   name: 'app',
   components: { defaultLayout },
+  mounted() {
+    console.log('Test mounted log')
+  },
 }
 </script>
 <style>
