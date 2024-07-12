@@ -8,7 +8,6 @@ export const updateContributionLink = gql`
     $cycle: String!
     $validFrom: String
     $validTo: String
-    $maxAmountPerMonth: Decimal
     $maxPerCycle: Int! = 1
     $id: Int!
   ) {
@@ -19,7 +18,6 @@ export const updateContributionLink = gql`
       cycle: $cycle
       validFrom: $validFrom
       validTo: $validTo
-      maxAmountPerMonth: $maxAmountPerMonth
       maxPerCycle: $maxPerCycle
       id: $id
     ) {
@@ -32,7 +30,6 @@ export const updateContributionLink = gql`
       createdAt
       validFrom
       validTo
-      maxAmountPerMonth
       cycle
       maxPerCycle
     }
