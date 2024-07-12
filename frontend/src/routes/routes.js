@@ -154,7 +154,11 @@ const routes = [
     path: '/redeem/:code',
     component: () => import('@/pages/TransactionLink'),
   },
-  { path: '*', component: NotFound },
+  {
+    path: '/:catchAll(.*)',
+    name: 'NotFound',
+    component: NotFound,
+  },
 ]
 
 export default routes

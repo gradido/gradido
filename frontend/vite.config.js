@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue2'
-import commonjs from "vite-plugin-commonjs";
+import commonjs from 'vite-plugin-commonjs'
+import vue from '@vitejs/plugin-vue'
 
 const path = require('path')
 
@@ -11,10 +11,22 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      vue: '@vue/compat',
       '@': path.resolve(__dirname, './src'),
       assets: path.join(__dirname, 'src/assets'),
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
   },
-  plugins: [vue(), commonjs()],
+  plugins: [
+    vue({
+      template: {
+        compilerOptions: {
+          compatConfig: {
+            MODE: 2,
+          },
+        },
+      },
+    }),
+    commonjs(),
+  ],
 })

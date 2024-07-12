@@ -1,15 +1,14 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
+import Vuex, { createStore } from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
-import { localeChanged } from 'vee-validate'
+// import { localeChanged } from 'vee-validate'
 import i18n from '@/i18n.js'
 import jwtDecode from 'jwt-decode'
-Vue.use(Vuex)
 
 export const mutations = {
   language: (state, language) => {
     i18n.locale = language
-    localeChanged(language)
+    // localeChanged(language)
     state.language = language
   },
   gradidoID: (state, gradidoID) => {
@@ -125,7 +124,7 @@ export const actions = {
 let store
 
 try {
-  store = new Vuex.Store({
+  store = createStore({
     plugins: [
       createPersistedState({
         key: 'gradido-frontend',

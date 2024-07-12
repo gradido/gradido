@@ -1,13 +1,10 @@
-import Vue from 'vue'
-import VueI18n from 'vue-i18n'
+import { createI18n } from 'vue-i18n'
 import de from './locales/de.json'
 import en from './locales/en.json'
 import es from './locales/es.json'
 import fr from './locales/fr.json'
 import nl from './locales/nl.json'
 import tr from './locales/tr.json'
-
-Vue.use(VueI18n)
 
 const numberFormats = {
   en: {
@@ -236,7 +233,7 @@ const dateTimeFormats = {
   },
 }
 
-export default new VueI18n({
+export default createI18n({
   locale: 'en',
   fallbackLocale: 'en',
   messages: { de, en, es, fr, tr, nl },

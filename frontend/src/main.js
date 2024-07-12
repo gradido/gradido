@@ -1,5 +1,5 @@
-import Vue from 'vue'
-import DashboardPlugin from './plugins/dashboard-plugin'
+import { createApp } from 'vue'
+// import DashboardPlugin from './plugins/dashboard-plugin'
 import App from './App'
 import i18n from './i18n.js'
 import { loadAllRules } from './validation-rules'
@@ -18,14 +18,40 @@ import { apolloProvider } from './plugins/apolloProvider'
 
 import 'clipboard-polyfill/overwrite-globals'
 
-// plugin setup
-Vue.use(DashboardPlugin)
-Vue.config.productionTip = false
+import { createBootstrap } from 'bootstrap-vue-next'
 
-Vue.mixin(toasters)
+// Add the necessary CSS
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
+// import GlobalComponents from '@/plugins/globalComponents'
+import GlobalDirectives from '@/plugins/globalDirectives'
+import PortalVue from 'portal-vue'
+import FlatPickr from 'vue-flatpickr-component'
+import Loading from 'vue-loading-overlay'
+import VueApollo from 'vue-apollo'
+
+const app = createApp(App)
+
+// plugin setup
+// app.use(DashboardPlugin)
+// Vue.config.productionTip = false
+app.use(router)
+app.use(store)
+app.use(i18n)
+app.use(createBootstrap())
+// app.use(GlobalComponents)
+app.use(GlobalDirectives)
+app.use(PortalVue)
+app.use(FlatPickr)
+app.use(Loading)
+app.use(VueApollo)
+app.use(apolloProvider)
+// app.use(VueTimers)
+
+app.mixin(toasters)
 const filters = loadFilters(i18n)
-Vue.filter('amount', filters.amount)
-Vue.filter('GDD', filters.GDD)
+app.filter('amount', filters.amount)
+app.filter('GDD', filters.GDD)
 
 loadAllRules(i18n, apolloProvider.defaultClient)
 
@@ -38,13 +64,13 @@ if (!store) {
   )
 }
 
-console.log('TEST')
-/* eslint-disable no-new */
-new Vue({
-  el: '#app',
-  router,
-  store,
-  i18n,
-  apolloProvider,
-  render: (h) => h(App),
+app.mount('#app', {
+  stub: {
+    ValidationObserver: {
+      template: '<div>Validation Observer MOCK</div>',
+    },
+    ValidationProvider: {
+      template: '<div>Validation Observer MOCK</div>',
+    },
+  },
 })

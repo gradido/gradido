@@ -1,6 +1,6 @@
-import { configure, extend } from 'vee-validate'
+import { configure, defineRule } from 'vee-validate'
 // eslint-disable-next-line camelcase
-import { required, email, min, max, is_not } from 'vee-validate/dist/rules'
+import { required, email, min, max, is_not } from '@vee-validate/rules'
 import { checkUsername } from '@/graphql/queries'
 import { validate as validateUuid, version as versionUuid } from 'uuid'
 
@@ -25,31 +25,31 @@ export const loadAllRules = (i18nCallback, apollo) => {
     },
   })
 
-  extend('email', {
+  defineRule('email', {
     ...email,
     // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
     message: (_, values) => i18nCallback.t('validations.messages.email', values),
   })
 
-  extend('required', {
+  defineRule('required', {
     ...required,
     // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
     message: (_, values) => i18nCallback.t('validations.messages.required', values),
   })
 
-  extend('min', {
+  defineRule('min', {
     ...min,
     // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
     message: (_, values) => i18nCallback.t('validations.messages.min', values),
   })
 
-  extend('max', {
+  defineRule('max', {
     ...max,
     // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
     message: (_, values) => i18nCallback.t('validations.messages.max', values),
   })
 
-  extend('gddSendAmount', {
+  defineRule('gddSendAmount', {
     validate(value, { min, max }) {
       value = value.replace(',', '.')
       return value.match(/^[0-9]+(\.[0-9]{0,2})?$/) && Number(value) >= min && Number(value) <= max
@@ -62,7 +62,7 @@ export const loadAllRules = (i18nCallback, apollo) => {
     },
   })
 
-  extend('gddCreationTime', {
+  defineRule('gddCreationTime', {
     validate(value, { min, max }) {
       return value >= min && value <= max
     },
@@ -75,7 +75,7 @@ export const loadAllRules = (i18nCallback, apollo) => {
   })
 
   // eslint-disable-next-line camelcase
-  extend('is_not', {
+  defineRule('is_not', {
     // eslint-disable-next-line camelcase
     ...is_not,
     message: (_, values) => i18nCallback.t('form.validation.is-not', values),
@@ -83,70 +83,70 @@ export const loadAllRules = (i18nCallback, apollo) => {
 
   // Password validation
 
-  extend('containsLowercaseCharacter', {
+  defineRule('containsLowercaseCharacter', {
     validate(value) {
       return !!value.match(/[a-z]+/)
     },
     message: (_, values) => i18nCallback.t('site.signup.lowercase', values),
   })
 
-  extend('containsUppercaseCharacter', {
+  defineRule('containsUppercaseCharacter', {
     validate(value) {
       return !!value.match(/[A-Z]+/)
     },
     message: (_, values) => i18nCallback.t('site.signup.uppercase', values),
   })
 
-  extend('containsNumericCharacter', {
+  defineRule('containsNumericCharacter', {
     validate(value) {
       return !!value.match(/[0-9]+/)
     },
     message: (_, values) => i18nCallback.t('site.signup.one_number', values),
   })
 
-  extend('atLeastEightCharacters', {
+  defineRule('atLeastEightCharacters', {
     validate(value) {
       return !!value.match(/.{8,}/)
     },
     message: (_, values) => i18nCallback.t('site.signup.minimum', values),
   })
 
-  extend('atLeastOneSpecialCharater', {
+  defineRule('atLeastOneSpecialCharater', {
     validate(value) {
       return !!value.match(/[^a-zA-Z0-9 \t\n\r]/)
     },
     message: (_, values) => i18nCallback.t('site.signup.special-char', values),
   })
 
-  extend('noWhitespaceCharacters', {
+  defineRule('noWhitespaceCharacters', {
     validate(value) {
       return !value.match(/[ \t\n\r]+/)
     },
     message: (_, values) => i18nCallback.t('site.signup.no-whitespace', values),
   })
 
-  extend('samePassword', {
+  defineRule('samePassword', {
     validate(value, [pwd]) {
       return value === pwd
     },
     message: (_, values) => i18nCallback.t('site.signup.dont_match', values),
   })
 
-  extend('usernameAllowedChars', {
+  defineRule('usernameAllowedChars', {
     validate(value) {
       return !!value.match(/^[a-zA-Z0-9_-]+$/)
     },
     message: (_, values) => i18nCallback.t('form.validation.username-allowed-chars', values),
   })
 
-  extend('usernameHyphens', {
+  defineRule('usernameHyphens', {
     validate(value) {
       return !!value.match(/^[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/)
     },
     message: (_, values) => i18nCallback.t('form.validation.username-hyphens', values),
   })
 
-  extend('usernameUnique', {
+  defineRule('usernameUnique', {
     validate(value) {
       if (!value.match(USERNAME_REGEX)) return true
       return apollo
@@ -163,7 +163,7 @@ export const loadAllRules = (i18nCallback, apollo) => {
     message: (_, values) => i18nCallback.t('form.validation.username-unique', values),
   })
 
-  extend('validIdentifier', {
+  defineRule('validIdentifier', {
     validate(value) {
       const isEmail = !!EMAIL_REGEX.test(value)
       const isUsername = !!value.match(USERNAME_REGEX)

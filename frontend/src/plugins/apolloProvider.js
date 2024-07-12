@@ -1,11 +1,11 @@
-import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
-import VueApollo from 'vue-apollo'
 import CONFIG from '../config'
 import { store } from '../store/store'
 import router from '../routes/router'
 import i18n from '../i18n'
+import { createHttpLink, ApolloLink, ApolloClient, InMemoryCache } from '@apollo/client/core'
+import { createApolloProvider } from '@vue/apollo-option'
 
-const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URI })
+const httpLink = createHttpLink({ uri: CONFIG.GRAPHQL_URI })
 
 const authLink = new ApolloLink((operation, forward) => {
   const token = store.state.token
@@ -37,6 +37,6 @@ const apolloClient = new ApolloClient({
   }),
 })
 
-export const apolloProvider = new VueApollo({
+export const apolloProvider = createApolloProvider({
   defaultClient: apolloClient,
 })
