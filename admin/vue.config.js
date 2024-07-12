@@ -52,7 +52,7 @@ module.exports = {
         // 'process.env.DOCKER_WORKDIR': JSON.stringify(process.env.DOCKER_WORKDIR),
         // 'process.env.BUILD_DATE': JSON.stringify(process.env.BUILD_DATE),
         // 'process.env.BUILD_VERSION': JSON.stringify(process.env.BUILD_VERSION),
-        'process.env.BUILD_COMMIT': JSON.stringify(CONFIG.BUILD_COMMIT),
+        'import.meta.env.BUILD_COMMIT': JSON.stringify(CONFIG.BUILD_COMMIT),
         // 'process.env.PORT': JSON.stringify(process.env.PORT),
       }),
       // generate webpack stats to allow analysis of the bundlesize

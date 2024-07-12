@@ -11,7 +11,7 @@ import addNavigationGuards from './router/guards'
 
 import i18n from './i18n'
 
-import VueApollo from 'vue-apollo'
+// import VueApollo from 'vue-apollo'
 
 import PortalVue from 'portal-vue'
 
@@ -33,7 +33,7 @@ app.use(i18n)
 app.use(PortalVue)
 app.use(createBootstrap())
 
-app.use(VueApollo)
+// app.use(VueApollo)
 app.use(apolloProvider)
 
 app.mixin(toasters)
