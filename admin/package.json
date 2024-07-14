@@ -23,6 +23,7 @@
     "@babel/node": "^7.15.8",
     "@babel/preset-env": "^7.15.8",
     "@vitejs/plugin-vue": "3.2.0",
+    "@vue/apollo-composable": "^4.0.2",
     "@vue/apollo-option": "^4.0.0",
     "@vue/cli-plugin-unit-jest": "~5.0.8",
     "@vue/compat": "3.4.31",
