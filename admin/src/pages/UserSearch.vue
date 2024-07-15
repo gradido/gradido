@@ -1,7 +1,7 @@
 <template>
   <div class="user-search">
     <div class="user-search-first-div">
-      <b-button class="unconfirmedRegisterMails" variant="light" @click="unconfirmedRegisterMails">
+      <BButton class="unconfirmedRegisterMails" variant="light" @click="unconfirmedRegisterMails">
         <b-icon icon="envelope" variant="danger"></b-icon>
         {{
           filters.byActivated === null
@@ -10,8 +10,8 @@
             ? $t('unregistered_emails')
             : ''
         }}
-      </b-button>
-      <b-button class="deletedUserSearch" variant="light" @click="deletedUserSearch">
+      </BButton>
+      <BButton class="deletedUserSearch" variant="light" @click="deletedUserSearch">
         <b-icon icon="x-circle" variant="danger"></b-icon>
         {{
           filters.byDeleted === null
@@ -20,18 +20,18 @@
             ? $t('deleted_user')
             : ''
         }}
-      </b-button>
+      </BButton>
     </div>
     <label>{{ $t('user_search') }}</label>
-    <user-query class="mb-4 mt-2" v-model="criteria" />
-    <search-user-table
+    <UserQuery class="mb-4 mt-2" v-model="criteria" />
+    <SearchUserTable
       type="PageUserSearch"
       :items="searchResult"
       :fields="fields"
       @updateRoles="updateRoles"
       @updateDeletedAt="updateDeletedAt"
     />
-    <b-pagination
+    <BPagination
       pills
       size="lg"
       v-model="currentPage"
@@ -39,111 +39,86 @@
       :total-rows="rows"
       align="center"
       :hide-ellipsis="true"
-    ></b-pagination>
-    <div></div>
+    ></BPagination>
   </div>
 </template>
-<script>
-import SearchUserTable from '../components/Tables/SearchUserTable'
+<script setup>
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { searchUsers } from '../graphql/searchUsers'
-import { creationMonths } from '../mixins/creationMonths'
+import useCreationMonths from '../composables/useCreationMonths'
+import { useApolloClient } from '@vue/apollo-composable'
+import SearchUserTable from '../components/Tables/SearchUserTable'
 import UserQuery from '../components/UserQuery'
+import { BPagination, BButton } from 'bootstrap-vue-next'
 
-export default {
-  name: 'UserSearch',
-  mixins: [creationMonths],
-  components: {
-    SearchUserTable,
-    UserQuery,
-  },
-  data() {
-    return {
-      showArrays: false,
-      searchResult: [],
-      criteria: '',
-      filters: {
-        byActivated: null,
-        byDeleted: null,
+const searchResult = ref([])
+const criteria = ref('')
+const filters = reactive({
+  byActivated: null,
+  byDeleted: null,
+})
+const rows = ref(0)
+const currentPage = ref(1)
+const perPage = ref(25)
+
+const { creationLabel } = useCreationMonths()
+
+const apollo = useApolloClient()
+
+const getUsers = async () => {
+  try {
+    const result = await apollo.query({
+      query: searchUsers,
+      variables: {
+        query: this.criteria,
+        filters: this.filters,
+        currentPage: this.currentPage,
+        pageSize: this.perPage,
+        order: 'DESC',
       },
-      rows: 0,
-      currentPage: 1,
-      perPage: 25,
-      now: Date.now(),
-    }
-  },
-  methods: {
-    unconfirmedRegisterMails() {
-      this.filters.byActivated = this.filters.byActivated === null ? false : null
-      this.getUsers()
-    },
-    deletedUserSearch() {
-      this.filters.byDeleted = this.filters.byDeleted === null ? true : null
-      this.getUsers()
-    },
-    getUsers() {
-      this.$apollo
-        .query({
-          query: searchUsers,
-          variables: {
-            query: this.criteria,
-            filters: this.filters,
-            currentPage: this.currentPage,
-            pageSize: this.perPage,
-            order: 'DESC',
-          },
-          fetchPolicy: 'no-cache',
-        })
-        .then((result) => {
-          this.rows = result.data.searchUsers.userCount
-          this.searchResult = result.data.searchUsers.userList
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-        })
-    },
-    updateRoles(userId, roles) {
-      this.searchResult.find((obj) => obj.userId === userId).roles = roles
-    },
-    updateDeletedAt(userId, deletedAt) {
-      this.searchResult.find((obj) => obj.userId === userId).deletedAt = deletedAt
-      this.toastSuccess(deletedAt ? this.$t('user_deleted') : this.$t('user_recovered'))
-    },
-  },
-  watch: {
-    currentPage() {
-      this.getUsers()
-    },
-    criteria() {
-      this.getUsers()
-    },
-  },
-  computed: {
-    fields() {
-      return [
-        { key: 'email', label: this.$t('e_mail') },
-        { key: 'firstName', label: this.$t('firstname') },
-        { key: 'lastName', label: this.$t('lastname') },
-        {
-          key: 'creation',
-          label: this.creationLabel,
-          formatter: (value, key, item) => {
-            return value.join(' | ')
-          },
-        },
-        // { key: 'show_details', label: this.$t('details') },
-        // { key: 'confirm_mail', label: this.$t('confirmed') },
-        // { key: 'has_elopage', label: 'elopage' },
-        // { key: 'transactions_list', label: this.$t('transaction') },
-        { key: 'status', label: this.$t('status') },
-      ]
-    },
-  },
-  created() {
-    this.getUsers()
-  },
+      fetchPolicy: 'no-cache',
+    })
+    rows.value = result.data.searchUsers.userCount
+    searchResult.value = result.data.searchUsers.userList
+  } catch (error) {
+    toastError(error.message)
+  }
 }
+
+const unconfirmedRegisterMails = () => {
+  filters.byActivated = filters.byActivated === null ? false : null
+  getUsers()
+}
+
+const deletedUserSearch = () => {
+  filters.byDeleted = filters.byDeleted === null ? true : null
+  getUsers()
+}
+
+const fields = computed(() => [
+  // { key: 'email', label: $t('e_mail') },
+  // { key: 'firstName', label: $t('firstname') },
+  // { key: 'lastName', label: $t('lastname') },
+  {
+    key: 'creation',
+    label: creationLabel,
+    formatter: (value, key, item) => {
+      return value.join(' | ')
+    },
+  },
+  // { key: 'show_details', label: $t('details') },
+  // { key: 'confirm_mail', label: $t('confirmed') },
+  // { key: 'has_elopage', label: 'elopage' },
+  // { key: 'transactions_list', label: $t('transaction') },
+  // { key: 'status', label: this.$t('status') },
+])
+
+watch(currentPage, getUsers)
+watch(criteria, getUsers)
+
+onMounted(getUsers)
 </script>
-<style>
+<style scoped>
 .user-search-first-div {
   text-align: right;
 }

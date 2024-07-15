@@ -1,6 +1,6 @@
 <template>
   <div class="search-user-table">
-    <b-table
+    <BTable
       tbody-tr-class="pointer"
       :items="myItems"
       :fields="fields"
@@ -18,26 +18,26 @@
 
       <template #cell(status)="row">
         <div class="text-right">
-          <b-avatar v-if="row.item.deletedAt" class="mr-3 test-deleted-icon" variant="light">
+          <BAvatar v-if="row.item.deletedAt" class="mr-3 test-deleted-icon" variant="light">
             <b-iconstack font-scale="2">
               <b-icon stacked icon="person" variant="info" scale="0.75"></b-icon>
               <b-icon stacked icon="slash-circle" variant="danger"></b-icon>
             </b-iconstack>
-          </b-avatar>
+          </BAvatar>
           <span v-if="!row.item.deletedAt">
-            <b-avatar
+            <BAvatar
               v-if="!row.item.emailChecked"
               icon="envelope"
               class="align-center mr-3"
               variant="danger"
-            ></b-avatar>
+            ></BAvatar>
 
-            <b-avatar
+            <BAvatar
               v-if="!row.item.hasElopage"
               variant="danger"
               class="mr-3"
               src="img/elopage_favicon.png"
-            ></b-avatar>
+            ></BAvatar>
           </span>
           <b-icon
             variant="dark"
@@ -48,10 +48,10 @@
       </template>
 
       <template #row-details="row">
-        <b-card ref="rowDetails" class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
-          <b-tabs content-class="mt-3">
-            <b-tab :title="$t('creation')" active :disabled="row.item.deletedAt !== null">
-              <creation-formular
+        <BCard ref="rowDetails" class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
+          <BTabs content-class="mt-3">
+            <BTab :title="$t('creation')" active :disabled="row.item.deletedAt !== null">
+              <CreationFormular
                 v-if="!row.item.deletedAt"
                 pagetype="singleCreation"
                 :creation="row.item.creation"
@@ -59,9 +59,9 @@
                 :creationUserData="creationUserData"
                 @update-user-data="updateUserData"
               />
-            </b-tab>
-            <b-tab :title="$t('e_mail')" :disabled="row.item.deletedAt !== null">
-              <confirm-register-mail-formular
+            </BTab>
+            <BTab :title="$t('e_mail')" :disabled="row.item.deletedAt !== null">
+              <ConfirmRegisterMailFormular
                 v-if="!row.item.deletedAt"
                 :checked="row.item.emailChecked"
                 :email="row.item.email"
@@ -71,89 +71,74 @@
                     : ''
                 "
               />
-            </b-tab>
-            <b-tab :title="$t('creationList')" :disabled="row.item.deletedAt !== null">
-              <creation-transaction-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
-            </b-tab>
-            <b-tab :title="$t('transactionlink.name')" :disabled="row.item.deletedAt !== null">
-              <transaction-link-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
-            </b-tab>
-            <b-tab :title="$t('userRole.tabTitle')">
-              <change-user-role-formular :item="row.item" @updateRoles="updateRoles" />
-            </b-tab>
-            <b-tab v-if="$store.state.moderator.roles.includes('ADMIN')" :title="$t('delete_user')">
-              <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
-            </b-tab>
-          </b-tabs>
-        </b-card>
+            </BTab>
+            <BTab :title="$t('creationList')" :disabled="row.item.deletedAt !== null">
+              <CreationTransactionList v-if="!row.item.deletedAt" :userId="row.item.userId" />
+            </BTab>
+            <BTab :title="$t('transactionlink.name')" :disabled="row.item.deletedAt !== null">
+              <TransactionLinkList v-if="!row.item.deletedAt" :userId="row.item.userId" />
+            </BTab>
+            <BTab :title="$t('userRole.tabTitle')">
+              <ChangeUserRoleFormular :item="row.item" @updateRoles="updateRoles" />
+            </BTab>
+            <BTab v-if="$store.state.moderator.roles.includes('ADMIN')" :title="$t('delete_user')">
+              <DeletedUserFormular :item="row.item" @updateDeletedAt="updateDeletedAt" />
+            </BTab>
+          </BTabs>
+        </BCard>
       </template>
-    </b-table>
+    </BTable>
   </div>
 </template>
-<script>
-import CreationFormular from '../CreationFormular'
-import ConfirmRegisterMailFormular from '../ConfirmRegisterMailFormular'
-import CreationTransactionList from '../CreationTransactionList'
-import TransactionLinkList from '../TransactionLinkList'
-import ChangeUserRoleFormular from '../ChangeUserRoleFormular'
-import DeletedUserFormular from '../DeletedUserFormular'
+<script setup>
+import { ref, computed, nextTick } from 'vue'
+import { BTable, BAvatar, BTab, BTabs, BCard } from 'bootstrap-vue-next'
 
-export default {
-  name: 'SearchUserTable',
-  components: {
-    CreationFormular,
-    ConfirmRegisterMailFormular,
-    CreationTransactionList,
-    TransactionLinkList,
-    ChangeUserRoleFormular,
-    DeletedUserFormular,
+const props = defineProps({
+  items: {
+    type: Array,
+    required: true,
   },
-  props: {
-    items: {
-      type: Array,
-      required: true,
-    },
-    fields: {
-      type: Array,
-      required: true,
-    },
+  fields: {
+    type: Array,
+    required: true,
   },
-  data() {
-    return {
-      creationUserData: {},
-    }
-  },
-  methods: {
-    updateUserData(rowItem, newCreation) {
-      rowItem.creation = newCreation
-    },
-    updateRoles({ userId, roles }) {
-      this.$emit('updateRoles', userId, roles)
-    },
-    updateDeletedAt({ userId, deletedAt }) {
-      this.$emit('updateDeletedAt', userId, deletedAt)
-    },
-    async onRowClicked(item) {
-      const status = this.myItems.find((obj) => obj === item)._showDetails
-      this.myItems.forEach((obj) => {
-        if (obj === item) {
-          obj._showDetails = !status
-        } else {
-          obj._showDetails = false
-        }
-      })
-      await this.$nextTick()
-      if (!status && this.$refs.rowDetails) {
-        this.$refs.rowDetails.focus()
-      }
-    },
-  },
-  computed: {
-    myItems() {
-      return this.items.map((item) => {
-        return { ...item, _showDetails: false }
-      })
-    },
-  },
+})
+
+const emit = defineEmits(['updateRoles', 'updateDeletedAt'])
+
+const creationUserData = ref({})
+
+const updateUserData = (rowItem, newCreation) => {
+  rowItem.creation = newCreation
 }
+
+const updateRoles = ({ userId, roles }) => {
+  emit('updateRoles', userId, roles)
+}
+
+const updateDeletedAt = ({ userId, deletedAt }) => {
+  emit('updateDeletedAt', userId, deletedAt)
+}
+
+const onRowClicked = async (item) => {
+  const status = myItems.value.find((obj) => obj === item)._showDetails
+  myItems.value.forEach((obj) => {
+    if (obj === item) {
+      obj._showDetails = !status
+    } else {
+      obj._showDetails = false
+    }
+  })
+  await nextTick()
+  if (!status && rowDetails.value) {
+    rowDetails.value.focus()
+  }
+}
+
+const myItems = computed(() => {
+  return props.items.map((item) => {
+    return { ...item, _showDetails: false }
+  })
+})
 </script>
