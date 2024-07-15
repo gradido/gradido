@@ -3,7 +3,7 @@ import { User as dbUser } from '@entity/User'
 
 import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
-import { Point2Array } from '@/graphql/resolver/util/Location2Point'
+import { Point2StringArray } from '@/graphql/resolver/util/Location2Point'
 
 export class GmsUser {
   constructor(user: dbUser) {
@@ -18,7 +18,7 @@ export class GmsUser {
     this.alias = this.getGmsAlias(user)
     this.type = user.gmsPublishLocation // GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    this.location = Point2Array(user.location as Point)
+    this.location = Point2StringArray(user.location as Point)
   }
 
   id: number
