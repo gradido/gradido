@@ -20,7 +20,7 @@
         <div class="text-right">
           <BAvatar v-if="row.item.deletedAt" class="mr-3 test-deleted-icon" variant="light">
             <b-iconstack font-scale="2">
-              <b-icon stacked icon="person" variant="info" scale="0.75"></b-icon>
+              <IBi0Circle />
               <b-icon stacked icon="slash-circle" variant="danger"></b-icon>
             </b-iconstack>
           </BAvatar>

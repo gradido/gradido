@@ -2,7 +2,7 @@
   <div class="user-search">
     <div class="user-search-first-div">
       <BButton class="unconfirmedRegisterMails" variant="light" @click="unconfirmedRegisterMails">
-        <b-icon icon="envelope" variant="danger"></b-icon>
+        <IBi0Circle />
         {{
           filters.byActivated === null
             ? $t('all_emails')
@@ -50,6 +50,7 @@ import { useApolloClient } from '@vue/apollo-composable'
 import SearchUserTable from '../components/Tables/SearchUserTable'
 import UserQuery from '../components/UserQuery'
 import { BPagination, BButton } from 'bootstrap-vue-next'
+import IBi0Circle from '~icons/bi/0-circle'
 
 const searchResult = ref([])
 const criteria = ref('')
