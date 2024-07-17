@@ -144,7 +144,7 @@ export async function createGmsUser(apiKey: string, user: GmsUser): Promise<bool
       // logger.debug('gmsUser:', gmsUser)
       return true
     } catch (error: any) {
-      logger.error('Error in post community-user:', error)
+      logger.error('Error in post community-user: error.response.data=', error.response.data)
       throw new LogError(error.message)
     }
   } else {
