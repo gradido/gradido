@@ -1,8 +1,8 @@
 <template>
+  <hr />
   <div class="content-footer">
-    <hr />
-    <b-row align-v="center" class="mt-4 mb-4 justify-content-lg-between">
-      <b-col>
+    <BTr class="mt-4 mb-4 justify-content-lg-between">
+      <col>
         <div class="copyright text-center text-lg-center text-muted">
           {{ $t('footer.copyright.year', { year }) }}
           <a
@@ -12,7 +12,7 @@
           >
             {{ $t('footer.copyright.link') }}
           </a>
-          {{ $t('math.pipe') }}
+          {{ $t('math.pipe', 1) }}
           <a href="https://github.com/gradido/gradido/releases/latest" target="_blank">
             {{ $t('footer.app_version', { version }) }}
           </a>
@@ -24,22 +24,25 @@
             {{ $t('footer.short_hash', { shortHash }) }}
           </a>
         </div>
-      </b-col>
-    </b-row>
+      </col>
+    </BTr>
   </div>
 </template>
-<script>
+<script setup>
 import CONFIG from '../config'
+import { BTr } from 'bootstrap-vue-next'
 
-export default {
-  name: 'ContentFooter',
-  data() {
-    return {
-      year: new Date().getFullYear(),
-      version: CONFIG.APP_VERSION,
-      hash: CONFIG.BUILD_COMMIT,
-      shortHash: CONFIG.BUILD_COMMIT_SHORT,
-    }
-  },
-}
+
+const year = new Date().getFullYear()
+const version = CONFIG.APP_VERSION
+const hash = CONFIG.BUILD_COMMIT
+const shortHash = CONFIG.BUILD_COMMIT_SHORT
 </script>
+<style scoped>
+.content-footer{
+  display: flex;
+  align-items: center;
+justify-content: center;
+}
+
+</style>
