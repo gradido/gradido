@@ -38,7 +38,7 @@ export default () => {
   }
 
   const creationLabel = () => {
-    return creationDates.value.map((date) => $d(date, 'monthShort')).join(' | ')
+    return creationDates.value.map((date) => $d(date, 'monthShort')).join('|')
   }
 
   const { result, error } = useQuery(adminOpenCreations, { userId }, { fetchPolicy: 'no-cache' })
