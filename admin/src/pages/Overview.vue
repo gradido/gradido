@@ -1,21 +1,21 @@
 <template>
   <div class="admin-overview">
     <BCard
-      v-show="$store.state.openCreations > 0"
+      v-show="openCreations > 0"
       border-variant="primary"
       :header="$t('open_creations')"
       header-bg-variant="danger"
       header-text-variant="white"
       align="center"
     >
-      <b-card-text>
-        <b-link to="creation-confirm">
-          <h1>{{ $store.state.openCreations }}</h1>
-        </b-link>
-      </b-card-text>
+      <BCardText>
+        <BLink to="creation-confirm">
+          <h1>{{ openCreations }}</h1>
+        </BLink>
+      </BCardText>
     </BCard>
     <BCard
-      v-show="$store.state.openCreations < 1"
+      v-show="openCreations < 1"
       border-variant="success"
       :header="$t('not_open_creations')"
       header-bg-variant="success"
@@ -24,43 +24,37 @@
     >
       <BCardText>
         <BLink to="creation-confirm">
-          <h1 data-test="open-creation">{{ $store.state.openCreations }}</h1>
+          <h1 data-test="open-creation">{{ openCreations }}</h1>
         </BLink>
       </BCardText>
     </BCard>
   </div>
 </template>
-<script>
+<script setup>
 import { adminListContributions } from '../graphql/adminListContributions'
-import { BCard, BCardText } from 'bootstrap-vue-next'
+import { ref, computed, onMounted } from 'vue'
+import { useStore } from 'vuex'
+import { useQuery } from '@vue/apollo-composable'
+import { BCard, BCardText, BLink } from 'bootstrap-vue-next'
 
-export default {
-  name: 'overview',
-  components: { BCard, BCardText },
-  data() {
-    return {
-      statusFilter: ['IN_PROGRESS', 'PENDING'],
-    }
-  },
-  apollo: {
-    AllContributions: {
-      query() {
-        return adminListContributions
-      },
-      variables() {
-        // may be at some point we need a pagination here
-        return {
-          statusFilter: this.statusFilter,
-          hideResubmission: true,
-        }
-      },
-      update({ adminListContributions }) {
-        this.$store.commit('setOpenCreations', adminListContributions.contributionCount)
-      },
-      error({ message }) {
-        this.toastError(message)
-      },
-    },
-  },
-}
+const store = useStore()
+
+const statusFilter = ref(['IN_PROGRESS', 'PENDING'])
+
+const { result, error } = useQuery(adminListContributions, {
+  statusFilter: statusFilter.value,
+  hideResubmission: true,
+})
+
+const openCreations = computed(() => result.value?.adminListContributions.contributionCount || 0)
+
+onMounted(() => {
+  if (result.value) {
+    store.commit('setOpenCreations', openCreations.value)
+  }
+
+  if (error.value) {
+    // store.dispatch('toastError', error.value.message)
+  }
+})
 </script>
