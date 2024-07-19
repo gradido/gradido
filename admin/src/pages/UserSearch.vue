@@ -2,7 +2,7 @@
   <div class="user-search">
     <div class="user-search-first-div">
       <BButton class="unconfirmedRegisterMails" variant="light" @click="unconfirmedRegisterMails">
-        <IBi0Circle />
+        <IPhEnvelope style="color: #f5365c" />
         {{
           filters.byActivated === null
             ? $t('all_emails')
@@ -12,7 +12,7 @@
         }}
       </BButton>
       <BButton class="deletedUserSearch" variant="light" @click="deletedUserSearch">
-        <b-icon icon="x-circle" variant="danger"></b-icon>
+        <IPhXCircle style="color: #f5365c" />
         {{
           filters.byDeleted === null
             ? $t('all_emails')
@@ -39,18 +39,20 @@
       :total-rows="rows"
       align="center"
       :hide-ellipsis="true"
-    ></BPagination>
+    />
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { searchUsers } from '../graphql/searchUsers'
+import { ref, reactive, computed, watch, watchEffect } from 'vue'
+import { useQuery } from '@vue/apollo-composable'
+import { searchUsers } from '../graphql/searchUsers.js'
 import useCreationMonths from '../composables/useCreationMonths'
-import { useApolloClient } from '@vue/apollo-composable'
 import SearchUserTable from '../components/Tables/SearchUserTable'
 import UserQuery from '../components/UserQuery'
 import { BPagination, BButton } from 'bootstrap-vue-next'
-import IBi0Circle from '~icons/bi/0-circle'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const searchResult = ref([])
 const criteria = ref('')
@@ -61,63 +63,67 @@ const filters = reactive({
 const rows = ref(0)
 const currentPage = ref(1)
 const perPage = ref(25)
+const response = ref()
 
-const { creationLabel } = useCreationMonths()
+const { creationDates, creationLabel } = useCreationMonths()
 
-const apollo = useApolloClient()
+const { result, refetch } = useQuery(searchUsers, {
+  query: criteria.value,
+  filters: filters,
+  currentPage: currentPage.value,
+  pageSize: perPage.value,
+  order: 'DESC',
+  fetchPolicy: 'no-cache',
+})
+response.value = result.value
 
-const getUsers = async () => {
-  try {
-    const result = await apollo.query({
-      query: searchUsers,
-      variables: {
-        query: this.criteria,
-        filters: this.filters,
-        currentPage: this.currentPage,
-        pageSize: this.perPage,
-        order: 'DESC',
-      },
-      fetchPolicy: 'no-cache',
-    })
-    rows.value = result.data.searchUsers.userCount
-    searchResult.value = result.data.searchUsers.userList
-  } catch (error) {
-    toastError(error.message)
+watchEffect(() => {
+  if (result.value) {
+    searchResult.value = result.value.searchUsers.userList
+    rows.value = result.value.searchUsers.userCount
   }
+})
+
+const updateRoles = (userId, roles) => {
+  searchResult.value.find((obj) => obj.userId === userId).roles = roles
+}
+
+const updateDeletedAt = (userId, deletedAt) => {
+  searchResult.value.find((obj) => obj.userId === userId).deletedAt = deletedAt
+  // toastSuccess(deletedAt ? $t('user_deleted') : $t('user_recovered'))
+  refetch()
 }
 
 const unconfirmedRegisterMails = () => {
   filters.byActivated = filters.byActivated === null ? false : null
-  getUsers()
+  refetch()
 }
 
 const deletedUserSearch = () => {
   filters.byDeleted = filters.byDeleted === null ? true : null
-  getUsers()
+  refetch()
 }
 
 const fields = computed(() => [
-  // { key: 'email', label: $t('e_mail') },
-  // { key: 'firstName', label: $t('firstname') },
-  // { key: 'lastName', label: $t('lastname') },
+  { key: 'email', label: t('e_mail') },
+  { key: 'firstName', label: t('firstname') },
+  { key: 'lastName', label: t('lastname') },
   {
     key: 'creation',
-    label: creationLabel,
+    label: creationLabel(),
     formatter: (value, key, item) => {
       return value.join(' | ')
     },
   },
-  // { key: 'show_details', label: $t('details') },
-  // { key: 'confirm_mail', label: $t('confirmed') },
+  // { key: 'show_details', label: t('details') },
+  // { key: 'confirm_mail', label: t('confirmed') },
   // { key: 'has_elopage', label: 'elopage' },
-  // { key: 'transactions_list', label: $t('transaction') },
-  // { key: 'status', label: this.$t('status') },
+  // { key: 'transactions_list', label: t('transaction') },
+  { key: 'status', label: t('status') },
 ])
 
-watch(currentPage, getUsers)
-watch(criteria, getUsers)
-
-onMounted(getUsers)
+watch(currentPage, refetch)
+watch(criteria, refetch)
 </script>
 <style scoped>
 .user-search-first-div {
