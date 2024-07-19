@@ -12,7 +12,7 @@
           <BNavItem to="/user">{{ $t('navbar.user_search') }}</BNavItem>
           <BNavItem class="bg-color-creation" to="/creation-confirm">
             {{ $t('creation') }}
-            <BBadge v-show="$store.state.openCreations > 0" variant="danger">
+            <BBadge v-show="openCreations > 0" variant="danger">
               {{ openCreations.value }}
             </BBadge>
           </BNavItem>
@@ -44,6 +44,7 @@ import {
   BNavbarBrand,
   BBadge,
   BNavbarToggle,
+  vBColorMode,
 } from 'bootstrap-vue-next'
 
 const store = useStore()
