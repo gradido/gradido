@@ -33,8 +33,7 @@ app.use(i18n)
 app.use(PortalVue)
 app.use(createBootstrap())
 
-// app.use(VueApollo)
-app.use(apolloProvider)
+app.use(() => apolloProvider)
 
 app.mixin(toasters)
 
