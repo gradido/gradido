@@ -32,13 +32,13 @@
       @updateDeletedAt="updateDeletedAt"
     />
     <BPagination
-      pills
-      size="lg"
       v-model="currentPage"
       :per-page="perPage"
       :total-rows="rows"
       align="center"
       :hide-ellipsis="true"
+      pills
+      size="lg"
     />
   </div>
 </template>
@@ -65,7 +65,7 @@ const currentPage = ref(1)
 const perPage = ref(25)
 const response = ref()
 
-const { creationDates, creationLabel } = useCreationMonths()
+const { creationLabel } = useCreationMonths()
 
 const { result, refetch } = useQuery(searchUsers, {
   query: criteria.value,
@@ -91,7 +91,6 @@ const updateRoles = (userId, roles) => {
 const updateDeletedAt = (userId, deletedAt) => {
   searchResult.value.find((obj) => obj.userId === userId).deletedAt = deletedAt
   // toastSuccess(deletedAt ? $t('user_deleted') : $t('user_recovered'))
-  refetch()
 }
 
 const unconfirmedRegisterMails = () => {
@@ -122,8 +121,32 @@ const fields = computed(() => [
   { key: 'status', label: t('status') },
 ])
 
-watch(currentPage, refetch)
-watch(criteria, refetch)
+watch(
+  () => currentPage.value,
+  async (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+      await refetch({
+        query: criteria.value,
+        filters: filters,
+        currentPage: newValue,
+        pageSize: perPage.value,
+        order: 'DESC',
+        fetchPolicy: 'no-cache',
+      })
+    }
+  },
+)
+
+watch(
+  () => criteria.value,
+  async (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+      await refetch({
+        query: newValue,
+      })
+    }
+  },
+)
 </script>
 <style scoped>
 .user-search-first-div {
