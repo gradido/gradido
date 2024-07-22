@@ -1,8 +1,11 @@
 import { ref, computed, watch } from 'vue'
 import { adminOpenCreations } from '../graphql/adminOpenCreations'
 import { useQuery } from '@vue/apollo-composable'
+import { useI18n } from 'vue-i18n'
 
 export default () => {
+  const { d } = useI18n()
+
   const creation = ref([1000, 1000, 1000])
   const userId = ref(0)
 
@@ -19,10 +22,10 @@ export default () => {
     const result = []
     creationDates.value.forEach((date) => {
       result.push({
-        short: $d(date, 'month'),
-        long: $d(date, 'short'),
-        year: $d(date, 'year'),
-        date: $d(date, 'short', 'en'),
+        short: d(date, 'month'),
+        long: d(date, 'long'),
+        year: d(date, 'year'),
+        date: d(date, 'short', 'en'),
       })
     })
     return result
@@ -38,7 +41,7 @@ export default () => {
   }
 
   const creationLabel = () => {
-    return creationDates.value.map((date) => $d(date, 'monthShort')).join('|')
+    return creationDates.value.map((date) => d(date, 'monthShort')).join(' | ')
   }
 
   const { result, error } = useQuery(adminOpenCreations, { userId }, { fetchPolicy: 'no-cache' })
