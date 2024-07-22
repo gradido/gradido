@@ -32,17 +32,16 @@
 import CONFIG from '../config'
 import { BTr } from 'bootstrap-vue-next'
 
-
 const year = new Date().getFullYear()
 const version = CONFIG.APP_VERSION
 const hash = CONFIG.BUILD_COMMIT
 const shortHash = CONFIG.BUILD_COMMIT_SHORT
 </script>
-<style scoped>
+<style lang='scss' scoped>
 .content-footer{
   display: flex;
   align-items: center;
-justify-content: center;
+  justify-content: center;
 }
 
 </style>
