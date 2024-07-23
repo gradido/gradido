@@ -26,7 +26,7 @@
           </b-list-group-item>
           <b-list-group-item v-if="!item.foreign">
             <editable-group
-              :allowEdit="$store.state.moderator.roles.includes('ADMIN')"
+              :allow-edit="$store.state.moderator.roles.includes('ADMIN')"
               @save="handleUpdateHomeCommunity"
               @reset="resetHomeCommunityEditable"
             >
@@ -48,7 +48,7 @@
                 <editable-groupable-label
                   v-model="gmsApiKey"
                   :label="$t('federation.gmsApiKey')"
-                  idName="home-community-api-key"
+                  id-name="home-community-api-key"
                 />
                 <coordinates v-model="location" />
               </template>

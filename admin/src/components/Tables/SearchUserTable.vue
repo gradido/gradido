@@ -9,7 +9,7 @@
       hover
       stacked="md"
       select-mode="single"
-      selectableonRowSelected
+      selectable-on-row-selected
       @row-clicked="onRowClicked"
     >
       <template #cell(creation)="data">
@@ -61,7 +61,7 @@
                 pagetype="singleCreation"
                 :creation="row.item.creation"
                 :item="row.item"
-                :creationUserData="creationUserData"
+                :creation-user-data="creationUserData"
                 @update-user-data="updateUserData"
               />
             </BTab>
@@ -70,7 +70,7 @@
                 v-if="!row.item.deletedAt"
                 :checked="row.item.emailChecked"
                 :email="row.item.email"
-                :dateLastSend="
+                :date-last-send="
                   row.item.emailConfirmationSend
                     ? $d(new Date(row.item.emailConfirmationSend), 'long')
                     : ''
@@ -78,16 +78,16 @@
               />
             </BTab>
             <!-- <BTab :title="$t('creationList')" :disabled="row.item.deletedAt !== null">
-              <creation-transaction-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
+              <creation-transaction-list v-if="!row.item.deletedAt" :user-id="row.item.userId" />
             </BTab>
             <BTab :title="$t('transactionlink.name')" :disabled="row.item.deletedAt !== null">
-              <transaction-link-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
+              <transaction-link-list v-if="!row.item.deletedAt" :user-id="row.item.userId" />
             </BTab>
             <BTab :title="$t('userRole.tabTitle')">
-              <change-user-role-formular :item="row.item" @updateRoles="updateRoles" />
+              <change-user-role-formular :item="row.item" @update-roles="updateRoles" />
             </BTab> -->
             <!-- <BTab v-if="store.state.moderator.roles.includes('ADMIN')" :title="$t('delete_user')">
-              <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
+              <deleted-user-formular :item="row.item" @update-deleted-at="updateDeletedAt" />
             </BTab> -->
           </BTabs>
         </BCard>
@@ -116,7 +116,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['updateRoles', 'updateDeletedAt'])
+const emit = defineEmits(['update-roles', 'update-deleted-at'])
 const myItems = ref()
 const creationUserData = ref({})
 const rowDetails = ref()
@@ -136,11 +136,11 @@ const updateUserData = (rowItem, newCreation) => {
 }
 
 const updateRoles = ({ userId, roles }) => {
-  emit('updateRoles', userId, roles)
+  emit('update-roles', userId, roles)
 }
 
 const updateDeletedAt = ({ userId, deletedAt }) => {
-  emit('updateDeletedAt', userId, deletedAt)
+  emit('update-deleted-at', userId, deletedAt)
 }
 
 const onRowClicked = async (item) => {

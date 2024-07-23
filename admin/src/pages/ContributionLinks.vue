@@ -22,6 +22,9 @@ export default {
       count: 0,
     }
   },
+  created() {
+    this.getContributionLinks()
+  },
   methods: {
     getContributionLinks() {
       this.$apollo
@@ -37,9 +40,6 @@ export default {
           this.toastError('listContributionLinks has no result, use default data')
         })
     },
-  },
-  created() {
-    this.getContributionLinks()
   },
 }
 </script>

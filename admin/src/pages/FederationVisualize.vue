@@ -7,8 +7,8 @@
           icon="arrow-clockwise"
           font-scale="2"
           :animation="animation"
-          @click="$apollo.queries.allCommunities.refresh()"
           data-test="federation-communities-refresh-btn"
+          @click="$apollo.queries.allCommunities.refresh()"
         ></b-icon>
       </b-button>
     </div>

@@ -1,6 +1,6 @@
 <template>
   <div class="component-nabvar">
-    <BNavbar toggleable="lg" variant="dark" v-b-color-mode="'light'">
+    <BNavbar v-b-color-mode="'light'" toggleable="lg" variant="dark">
       <BNavbarBrand class="mb-2" to="/">
         <img src="/img/brand/gradido_logo_w.png" class="navbar-brand-img pl-2" alt="..." />
       </BNavbarBrand>

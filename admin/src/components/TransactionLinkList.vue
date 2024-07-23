@@ -5,9 +5,9 @@
       <b-table striped hover :fields="fields" :items="items"></b-table>
     </div>
     <b-pagination
+      v-model="currentPage"
       pills
       size="lg"
-      v-model="currentPage"
       :per-page="perPage"
       :total-rows="rows"
       align="center"
@@ -29,26 +29,6 @@ export default {
       currentPage: 1,
       perPage: 5,
     }
-  },
-  methods: {
-    getListTransactionLinks() {
-      this.$apollo
-        .query({
-          query: listTransactionLinksAdmin,
-          variables: {
-            currentPage: this.currentPage,
-            pageSize: this.perPage,
-            userId: this.userId,
-          },
-        })
-        .then((result) => {
-          this.rows = result.data.listTransactionLinksAdmin.count
-          this.items = result.data.listTransactionLinksAdmin.links
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-        })
-    },
   },
   computed: {
     fields() {
@@ -94,12 +74,32 @@ export default {
       ]
     },
   },
-  created() {
-    this.getListTransactionLinks()
-  },
   watch: {
     currentPage() {
       this.getListTransactionLinks()
+    },
+  },
+  created() {
+    this.getListTransactionLinks()
+  },
+  methods: {
+    getListTransactionLinks() {
+      this.$apollo
+        .query({
+          query: listTransactionLinksAdmin,
+          variables: {
+            currentPage: this.currentPage,
+            pageSize: this.perPage,
+            userId: this.userId,
+          },
+        })
+        .then((result) => {
+          this.rows = result.data.listTransactionLinksAdmin.count
+          this.items = result.data.listTransactionLinksAdmin.links
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+        })
     },
   },
 }

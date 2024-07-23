@@ -7,8 +7,8 @@
           filters.byActivated === null
             ? $t('all_emails')
             : filters.byActivated === false
-            ? $t('unregistered_emails')
-            : ''
+              ? $t('unregistered_emails')
+              : ''
         }}
       </BButton>
       <BButton class="deletedUserSearch" variant="light" @click="deletedUserSearch">
@@ -17,19 +17,19 @@
           filters.byDeleted === null
             ? $t('all_emails')
             : filters.byDeleted === true
-            ? $t('deleted_user')
-            : ''
+              ? $t('deleted_user')
+              : ''
         }}
       </BButton>
     </div>
     <label>{{ $t('user_search') }}</label>
-    <UserQuery class="mb-4 mt-2" v-model="criteria" />
+    <UserQuery v-model="criteria" class="mb-4 mt-2" />
     <SearchUserTable
       type="PageUserSearch"
       :items="searchResult"
       :fields="fields"
-      @updateRoles="updateRoles"
-      @updateDeletedAt="updateDeletedAt"
+      @update-roles="updateRoles"
+      @update-deleted-at="updateDeletedAt"
     />
     <BPagination
       v-model="currentPage"

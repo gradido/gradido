@@ -2,6 +2,7 @@ import { ref, computed, watch } from 'vue'
 import { adminOpenCreations } from '../graphql/adminOpenCreations'
 import { useQuery } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
+import toast from 'bootstrap/js/src/toast'
 
 export default () => {
   const { d } = useI18n()

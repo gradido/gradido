@@ -1,13 +1,13 @@
 <template>
   <div class="contribution-link-form">
-    <b-form class="m-5" @submit.prevent="onSubmit" ref="contributionLinkForm">
+    <b-form ref="contributionLinkForm" class="m-5" @submit.prevent="onSubmit">
       <!-- Date -->
       <b-row>
         <b-col>
           <b-form-group :label="$t('contributionLink.validFrom')">
             <b-form-datepicker
-              reset-button
               v-model="form.validFrom"
+              reset-button
               size="lg"
               :min="min"
               class="mb-4 test-validFrom"
@@ -20,8 +20,8 @@
         <b-col>
           <b-form-group :label="$t('contributionLink.validTo')">
             <b-form-datepicker
-              reset-button
               v-model="form.validTo"
+              reset-button
               size="lg"
               :min="form.validFrom ? form.validFrom : min"
               class="mb-4 test-validTo"
@@ -112,7 +112,7 @@
         <b-button type="reset" variant="danger" @click.prevent="onReset">
           {{ $t('contributionLink.clear') }}
         </b-button>
-        <b-button @click.prevent="$emit('closeContributionForm')">
+        <b-button @click.prevent="$emit('close-contribution-form')">
           {{ $t('close') }}
         </b-button>
       </div>
@@ -134,6 +134,7 @@ export default {
     },
     editContributionLink: { type: Boolean, required: true },
   },
+  emits: ['close-contribution-form', 'close-contribution-link', 'get-contribution-links'],
   data() {
     return {
       form: {
@@ -163,6 +164,16 @@ export default {
         //        { value: '5', text: '5 x' },
       ],
     }
+  },
+  computed: {
+    disabled() {
+      return true
+    },
+  },
+  watch: {
+    contributionLinkData() {
+      this.form = this.contributionLinkData
+    },
   },
   methods: {
     onSubmit() {
@@ -200,16 +211,6 @@ export default {
       this.form = {}
       this.form.validFrom = null
       this.form.validTo = null
-    },
-  },
-  computed: {
-    disabled() {
-      return true
-    },
-  },
-  watch: {
-    contributionLinkData() {
-      this.form = this.contributionLinkData
     },
   },
 }

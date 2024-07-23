@@ -45,22 +45,22 @@
           </BCol>
           <div class="text-right">
             <BButton
-              v-if="pagetype === 'PageCreationConfirm'"
-              type="button"
-              variant="success"
-              class="test-submit"
-              @click="submitCreation"
-              :disabled="selected === '' || value <= 0 || text.length < 10"
+                v-if="pagetype === 'PageCreationConfirm'"
+                type="button"
+                variant="success"
+                class="test-submit"
+                :disabled="selected === '' || value <= 0 || text.length < 10"
+                @click="submitCreation"
             >
               {{ $t('creation_form.update_creation') }}
             </BButton>
             <BButton
-              v-else
-              type="button"
-              variant="success"
-              class="test-submit"
-              @click="submitCreation"
-              :disabled="selected === '' || value <= 0 || text.length < 10"
+                v-else
+                type="button"
+                variant="success"
+                class="test-submit"
+                :disabled="selected === '' || value <= 0 || text.length < 10"
+                @click="submitCreation"
             >
               {{ $t('creation_form.submit_creation') }}
             </BButton>

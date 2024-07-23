@@ -11,24 +11,24 @@
         :description="$t('geo-coordinates.latitude-longitude-smart.describe')"
       >
         <b-form-input
-          v-model="locationString"
           id="home-community-latitude-longitude-smart"
+          v-model="locationString"
           type="text"
           @input="splitCoordinates"
         />
       </b-form-group>
       <b-form-group :label="$t('latitude')" label-for="home-community-latitude">
         <b-form-input
-          v-model="inputValue.latitude"
           id="home-community-latitude"
+          v-model="inputValue.latitude"
           type="text"
           @input="valueUpdated"
         />
       </b-form-group>
       <b-form-group :label="$t('longitude')" label-for="home-community-longitude">
         <b-form-input
-          v-model="inputValue.longitude"
           id="home-community-longitude"
+          v-model="inputValue.longitude"
           type="text"
           @input="valueUpdated"
         />
@@ -41,9 +41,12 @@
 export default {
   name: 'Coordinates',
   props: {
-    value: Object,
-    default: null,
+    value: {
+      type: Object,
+      default: null,
+    },
   },
+  emits: ['input'],
   data() {
     return {
       inputValue: this.value,

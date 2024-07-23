@@ -4,10 +4,11 @@ module.exports = {
     browser: true,
     node: true,
     jest: true,
+    'vue/setup-compiler-macros': true,
   },
-  // parserOptions: {
-  //   parser: 'babel-eslint',
-  // },
+  parserOptions: {
+    ecmaVersion: 2020,
+  },
   extends: [
     'standard',
     'plugin:vue/vue3-recommended',
@@ -34,6 +35,8 @@ module.exports = {
         allowBinding: false,
       },
     ],
+    'vue/multi-word-component-names': 0,
+    'vue/no-v-html': 0,
     '@intlify/vue-i18n/no-dynamic-keys': 'error',
     '@intlify/vue-i18n/no-unused-keys': [
       'error',

@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@babel/core": "^7.15.8",
+    "@babel/eslint-parser": "^7.24.8",
     "@babel/node": "^7.15.8",
     "@babel/preset-env": "^7.15.8",
     "@iconify/json": "^2.2.228",
@@ -63,7 +64,6 @@
   },
   "devDependencies": {
     "@apollo/client": "^3.10.8",
-    "@babel/eslint-parser": "^7.15.8",
     "@intlify/eslint-plugin-vue-i18n": "^1.4.0",
     "@vue/compiler-sfc": "^3.4.32",
     "babel-plugin-transform-require-context": "^0.1.1",
