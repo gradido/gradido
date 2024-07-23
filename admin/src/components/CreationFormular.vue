@@ -6,22 +6,22 @@
         <div class="m-4 mt-0">
           <label>{{ $t('creation_form.select_month') }}</label>
           <BFormRadioGroup
+            id="radio-group-month-selection"
             v-model="selected"
             :options="radioOptions()"
             value-field="item"
             text-field="name"
             name="month-selection"
-            id="radio-group-month-selection"
           />
         </div>
-        <div class="m-4" v-if="selected">
+        <div v-if="selected" class="m-4">
           <label>{{ $t('creation_form.select_value') }}</label>
           <div>
             <BInputGroup prepend="GDD" append=".00">
-              <BFormInput type="number" v-model="value" :min="rangeMin" :max="rangeMax" />
+              <BFormInput v-model="value" type="number" :min="rangeMin" :max="rangeMax" />
             </BInputGroup>
             <BInputGroup prepend="0" :append="String(rangeMax)" class="mt-3">
-              <BFormInput type="range" v-model="value" :min="rangeMin" :max="rangeMax" step="10" />
+              <BFormInput v-model="value" type="range" :min="rangeMin" :max="rangeMax" step="10" />
             </BInputGroup>
           </div>
         </div>
@@ -45,22 +45,22 @@
           </BCol>
           <div class="text-right">
             <BButton
-                v-if="pagetype === 'PageCreationConfirm'"
-                type="button"
-                variant="success"
-                class="test-submit"
-                :disabled="selected === '' || value <= 0 || text.length < 10"
-                @click="submitCreation"
+              v-if="pagetype === 'PageCreationConfirm'"
+              type="button"
+              variant="success"
+              class="test-submit"
+              :disabled="selected === '' || value <= 0 || text.length < 10"
+              @click="submitCreation"
             >
               {{ $t('creation_form.update_creation') }}
             </BButton>
             <BButton
-                v-else
-                type="button"
-                variant="success"
-                class="test-submit"
-                :disabled="selected === '' || value <= 0 || text.length < 10"
-                @click="submitCreation"
+              v-else
+              type="button"
+              variant="success"
+              class="test-submit"
+              :disabled="selected === '' || value <= 0 || text.length < 10"
+              @click="submitCreation"
             >
               {{ $t('creation_form.submit_creation') }}
             </BButton>
@@ -141,6 +141,8 @@ const { mutate: createContribution } = useMutation(adminCreateContribution)
 
 const { refetch } = useQuery(openCreations)
 
+const emit = defineEmits(['update-user-data'])
+
 const submitCreation = async () => {
   try {
     const result = await createContribution({
@@ -174,8 +176,7 @@ const submitCreation = async () => {
 watch(
   () => selected.value,
   async (newValue, oldValue) => {
-    console.log(selected.value)
-    if (newValue !== oldValue && selected.value != '') {
+    if (newValue !== oldValue && selected.value !== '') {
       updateRadioSelected(newValue)
     }
   },
