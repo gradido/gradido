@@ -20,16 +20,16 @@
           <div>
             <b-input-group prepend="GDD" append=".00">
               <b-form-input
-                type="number"
                 v-model="value"
+                type="number"
                 :min="rangeMin"
                 :max="rangeMax"
               ></b-form-input>
             </b-input-group>
             <b-input-group prepend="0" :append="String(rangeMax)" class="mt-3">
               <b-form-input
-                type="range"
                 v-model="value"
+                type="range"
                 :min="rangeMin"
                 :max="rangeMax"
                 step="10"
@@ -61,8 +61,8 @@
                 type="button"
                 variant="success"
                 class="test-submit"
-                @click="submitCreation"
                 :disabled="selected === '' || value <= 0 || text.length < 10"
+                @click="submitCreation"
               >
                 {{ $t('creation_form.update_creation') }}
               </b-button>
@@ -97,14 +97,34 @@ export default {
       required: true,
     },
   },
+  emits: ['update-creation-data'],
   data() {
     return {
       text: !this.creationUserData.memo ? '' : this.creationUserData.memo,
       value: !this.creationUserData.amount ? 0 : Number(this.creationUserData.amount),
       rangeMin: 0,
-      selected: this.selectedComputed,
+      selected: this.selectedComputed, // TODO investigate this one and apply solution based on good practices
       userId: this.item.userId,
     }
+  },
+  computed: {
+    creationIndex() {
+      const month = this.$d(new Date(this.item.contributionDate), 'month')
+      return this.radioOptions.findIndex((obj) => {
+        return obj.item.short === month
+      })
+    },
+    selectedComputed() {
+      return this.radioOptions[this.creationIndex].item
+    },
+    rangeMax() {
+      return Number(this.creation[this.creationIndex]) + Number(this.item.amount)
+    },
+  },
+  watch: {
+    selectedComputed() {
+      this.selected = this.selectedComputed
+    },
   },
   methods: {
     submitCreation() {
@@ -141,25 +161,6 @@ export default {
         .finally(() => {
           this.$apollo.queries.OpenCreations.refetch()
         })
-    },
-  },
-  computed: {
-    creationIndex() {
-      const month = this.$d(new Date(this.item.contributionDate), 'month')
-      return this.radioOptions.findIndex((obj) => {
-        return obj.item.short === month
-      })
-    },
-    selectedComputed() {
-      return this.radioOptions[this.creationIndex].item
-    },
-    rangeMax() {
-      return Number(this.creation[this.creationIndex]) + Number(this.item.amount)
-    },
-  },
-  watch: {
-    selectedComputed() {
-      this.selected = this.selectedComputed
     },
   },
 }

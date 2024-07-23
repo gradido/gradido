@@ -2,7 +2,7 @@
   <hr />
   <div class="content-footer">
     <BTr class="mt-4 mb-4 justify-content-lg-between">
-      <col>
+      <BCol>
         <div class="copyright text-center text-lg-center text-muted">
           {{ $t('footer.copyright.year', { year }) }}
           <a
@@ -24,7 +24,7 @@
             {{ $t('footer.short_hash', { shortHash }) }}
           </a>
         </div>
-      </col>
+      </BCol>
     </BTr>
   </div>
 </template>
@@ -37,11 +37,10 @@ const version = CONFIG.APP_VERSION
 const hash = CONFIG.BUILD_COMMIT
 const shortHash = CONFIG.BUILD_COMMIT_SHORT
 </script>
-<style lang='scss' scoped>
-.content-footer{
+<style lang="scss" scoped>
+.content-footer {
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
 </style>

@@ -10,6 +10,7 @@ const path = require('path')
 export default defineConfig({
   base: '/admin/',
   server: {
+    host: '0.0.0.0',
     port: 8080,
   },
   resolve: {
@@ -37,7 +38,9 @@ export default defineConfig({
     Icons({
       compiler: 'vue3',
     }),
-    ,
     commonjs(),
   ],
+  build: {
+    outDir: 'build',
+  },
 })

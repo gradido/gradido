@@ -2,9 +2,9 @@
   <div>
     <div class="d-flex">
       <BFormInput
+        v-model="currentValue"
         type="text"
         class="test-input-criteria"
-        v-model="currentValue"
         :placeholder="placeholderText"
       />
       <div append class="test-click-clear-criteria" @click="onClear">

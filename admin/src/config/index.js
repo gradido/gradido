@@ -45,7 +45,8 @@ const debug = {
 }
 
 // Check config version
-constants.CONFIG_VERSION.CURRENT = import.meta.env.CONFIG_VERSION ?? constants.CONFIG_VERSION.DEFAULT
+constants.CONFIG_VERSION.CURRENT =
+  import.meta.env.CONFIG_VERSION ?? constants.CONFIG_VERSION.DEFAULT
 if (
   ![constants.CONFIG_VERSION.EXPECTED, constants.CONFIG_VERSION.DEFAULT].includes(
     constants.CONFIG_VERSION.CURRENT,

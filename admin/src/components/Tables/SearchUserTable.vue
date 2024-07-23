@@ -9,7 +9,7 @@
       hover
       stacked="md"
       select-mode="single"
-      selectableonRowSelected
+      selectable-on-row-selected
       @row-clicked="onRowClicked"
     >
       <template #cell(creation)="data">
@@ -45,8 +45,8 @@
             :title="row.item.enabled ? $t('enabled') : $t('deleted')"
           />
           <IPhCaretDown
-            style="color: #212529"
             v-else
+            style="color: #212529"
             :title="row.item.enabled ? $t('enabled') : $t('deleted')"
           />
         </div>
@@ -54,14 +54,14 @@
 
       <template #row-details="row">
         <BCard ref="rowDetails" class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
-          <BTabs contentClass="mt-3">
+          <BTabs content-class="mt-3">
             <BTab :title="$t('creation')" active :disabled="row.item.deletedAt !== null">
               <creation-formular
                 v-if="!row.item.deletedAt"
                 pagetype="singleCreation"
                 :creation="row.item.creation"
                 :item="row.item"
-                :creationUserData="creationUserData"
+                :creation-user-data="creationUserData"
                 @update-user-data="updateUserData"
               />
             </BTab>
@@ -70,7 +70,7 @@
                 v-if="!row.item.deletedAt"
                 :checked="row.item.emailChecked"
                 :email="row.item.email"
-                :dateLastSend="
+                :date-last-send="
                   row.item.emailConfirmationSend
                     ? $d(new Date(row.item.emailConfirmationSend), 'long')
                     : ''
@@ -78,16 +78,16 @@
               />
             </BTab>
             <!-- <BTab :title="$t('creationList')" :disabled="row.item.deletedAt !== null">
-              <creation-transaction-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
+              <creation-transaction-list v-if="!row.item.deletedAt" :user-id="row.item.userId" />
             </BTab>
             <BTab :title="$t('transactionlink.name')" :disabled="row.item.deletedAt !== null">
-              <transaction-link-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
+              <transaction-link-list v-if="!row.item.deletedAt" :user-id="row.item.userId" />
             </BTab>
             <BTab :title="$t('userRole.tabTitle')">
-              <change-user-role-formular :item="row.item" @updateRoles="updateRoles" />
+              <change-user-role-formular :item="row.item" @update-roles="updateRoles" />
             </BTab> -->
             <!-- <BTab v-if="store.state.moderator.roles.includes('ADMIN')" :title="$t('delete_user')">
-              <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
+              <deleted-user-formular :item="row.item" @update-deleted-at="updateDeletedAt" />
             </BTab> -->
           </BTabs>
         </BCard>
@@ -100,10 +100,6 @@ import { ref, nextTick, onMounted, watch } from 'vue'
 import { BTable, BAvatar, BTab, BTabs, BCard } from 'bootstrap-vue-next'
 import CreationFormular from '../CreationFormular.vue'
 import ConfirmRegisterMailFormular from '../ConfirmRegisterMailFormular.vue'
-import CreationTransactionList from '../CreationTransactionList.vue'
-import TransactionLinkList from '../TransactionLinkList.vue'
-import ChangeUserRoleFormular from '../ChangeUserRoleFormular.vue'
-import DeletedUserFormular from '../DeletedUserFormular.vue'
 
 const props = defineProps({
   items: {
@@ -116,7 +112,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['updateRoles', 'updateDeletedAt'])
+// const emit = defineEmits(['update-roles', 'update-deleted-at'])
 const myItems = ref()
 const creationUserData = ref({})
 const rowDetails = ref()
@@ -127,7 +123,7 @@ onMounted(() => {
       return { ...item, _showDetails: false }
     })
 
-    myItems.value
+    // myItems.value
   }, 500)
 })
 
@@ -135,13 +131,13 @@ const updateUserData = (rowItem, newCreation) => {
   rowItem.creation = newCreation
 }
 
-const updateRoles = ({ userId, roles }) => {
-  emit('updateRoles', userId, roles)
-}
-
-const updateDeletedAt = ({ userId, deletedAt }) => {
-  emit('updateDeletedAt', userId, deletedAt)
-}
+// const updateRoles = ({ userId, roles }) => {
+//   emit('update-roles', userId, roles)
+// }
+//
+// const updateDeletedAt = ({ userId, deletedAt }) => {
+//   emit('update-deleted-at', userId, deletedAt)
+// }
 
 const onRowClicked = async (item) => {
   const status = myItems.value.find((obj) => {
