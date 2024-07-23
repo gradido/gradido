@@ -2,6 +2,6 @@
 @use "sass:color";
 
 $form-feedback-valid-bg: color.adjust($success, $lightness: 15%) !default;
-$form-feedback-valid-color: theme-color("success") !default;
+$form-feedback-valid-color: $success !default;
 $form-feedback-invalid-bg: color.adjust($warning, $lightness: 15%) !default;
-$form-feedback-invalid-color: theme-color("warning") !default;
+$form-feedback-invalid-color: $warning !default;

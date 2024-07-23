@@ -13,7 +13,7 @@
       </span>
       <b-icon icon="caret-down-fill" aria-hidden="true"></b-icon>
     </div>
-    <b-collapse id="collapse-1" class="mt-4">
+    <BCollapse id="collapse-1" class="mt-4">
       <span
         v-for="(lang, index) in locales"
         @click.prevent="saveLocale(lang.code)"
@@ -35,7 +35,7 @@
           {{ locales.length - 1 > index ? $t('math.pipe') : '' }}
         </span>
       </span>
-    </b-collapse>
+    </BCollapse>
   </div>
 </template>
 

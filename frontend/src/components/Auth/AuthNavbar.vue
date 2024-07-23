@@ -1,29 +1,24 @@
 <template>
   <div class="auth-header position-sticky">
-    <b-navbar :toggleable="false" class="pr-4">
-      <b-navbar-brand class="d-none d-lg-block">
-        <b-img
-          class="position-absolute ml--3 mt-lg--2 mt-3 p-2 zindex1000"
-          :src="logo"
-          width="200"
-          alt="Logo"
-        />
-        <b-img
+    <BNavbar :toggleable="false" :container="false" class="d-flex">
+      <BNavbarBrand class="d-none d-lg-block">
+        <BImg class="position-absolute ml--3 mt-lg--2 p-2" :src="logo" width="200" alt="Logo" />
+        <BImg
           class="mt--3 ml--3"
           :src="background_header"
           width="230"
           alt="Background Image"
-        ></b-img>
-      </b-navbar-brand>
-      <b-img class="sheet-img position-absolute d-block d-lg-none zindex1000" :src="sheet"></b-img>
-      <b-collapse id="nav-collapse" is-nav class="ml-5">
-        <b-navbar-nav class="ml-auto d-none d-lg-flex" right>
-          <b-nav-item :to="register" class="authNavbar ml-lg-5">{{ $t('signup') }}</b-nav-item>
+        ></BImg>
+      </BNavbarBrand>
+      <BImg class="sheet-img position-absolute d-block d-lg-none zindex1000" :src="sheet"></BImg>
+      <BCollapse id="nav-collapse" is-nav>
+        <BNavbarNav class="ml-auto d-none d-lg-flex" right>
+          <BNavItem :to="register" class="authNavbar ml-lg-5">{{ $t('signup') }}</BNavItem>
           <span class="d-none d-lg-block mt-1">{{ $t('math.pipe') }}</span>
-          <b-nav-item :to="login" class="authNavbar">{{ $t('signin') }}</b-nav-item>
-        </b-navbar-nav>
-      </b-collapse>
-    </b-navbar>
+          <BNavItem :to="login" class="authNavbar">{{ $t('signin') }}</BNavItem>
+        </BNavbarNav>
+      </BCollapse>
+    </BNavbar>
   </div>
 </template>
 
@@ -43,18 +38,30 @@ export default {
 }
 </script>
 
-<style lang="scss">
-.authNavbar > .nav-link {
+<style scoped lang="scss">
+.authNavbar {
+  display: flex;
+  align-content: center;
+  > * {
+    text-decoration: none;
+  }
+}
+.authNavbar > :deep(.nav-link) {
   color: #0e79bc !important;
 }
 
-.authNavbar > .router-link-exact-active {
+.authNavbar > :deep(.router-link-exact-active) {
   color: #383838 !important;
 }
 
 .auth-header {
   font-family: 'Open Sans', sans-serif !important;
   height: 150px;
+  z-index: 1;
+}
+
+:deep(#nav-collapse) {
+  justify-content: flex-end;
 }
 
 .sheet-img {

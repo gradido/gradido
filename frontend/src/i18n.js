@@ -235,6 +235,7 @@ const dateTimeFormats = {
 
 export default createI18n({
   locale: 'en',
+  legacy: false,
   fallbackLocale: 'en',
   messages: { de, en, es, fr, tr, nl },
   numberFormats,

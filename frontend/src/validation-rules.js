@@ -25,151 +25,152 @@ export const loadAllRules = (i18nCallback, apollo) => {
     },
   })
 
-  defineRule('email', {
-    ...email,
-    // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
-    message: (_, values) => i18nCallback.t('validations.messages.email', values),
+  defineRule('email', (value) => {
+    const isValid = email(value)
+    if (!isValid) {
+      return i18nCallback.t('validations.messages.email', value)
+    }
+    return true
   })
 
-  defineRule('required', {
-    ...required,
-    // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
-    message: (_, values) => i18nCallback.t('validations.messages.required', values),
+  defineRule('required', (value) => {
+    const valueExists = required(value)
+    if (!valueExists) {
+      return i18nCallback.t('validations.messages.required', value)
+    }
+    return true
   })
 
-  defineRule('min', {
-    ...min,
-    // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
-    message: (_, values) => i18nCallback.t('validations.messages.min', values),
+  defineRule('min', (value, limit) => {
+    return min(value, limit) ? true : i18nCallback.t('validations.messages.min', value)
   })
 
-  defineRule('max', {
-    ...max,
-    // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
-    message: (_, values) => i18nCallback.t('validations.messages.max', values),
+  defineRule('max', (value, limit) => {
+    return max(value, limit) ? true : i18nCallback.t('validations.messages.max', value)
+  })
+  //
+  // defineRule('gddSendAmount', {
+  //   validate(value, { min, max }) {
+  //     value = value.replace(',', '.')
+  //     return value.match(/^[0-9]+(\.[0-9]{0,2})?$/) && Number(value) >= min && Number(value) <= max
+  //   },
+  //   params: ['min', 'max'],
+  //   message: (_, values) => {
+  //     values.min = i18nCallback.n(values.min, 'ungroupedDecimal')
+  //     values.max = i18nCallback.n(values.max, 'ungroupedDecimal')
+  //     return i18nCallback.t('form.validation.gddSendAmount', values)
+  //   },
+  // })
+  //
+  // defineRule('gddCreationTime', {
+  //   validate(value, { min, max }) {
+  //     return value >= min && value <= max
+  //   },
+  //   params: ['min', 'max'],
+  //   message: (_, values) => {
+  //     // values.min = values.min
+  //     // values.max = values.max
+  //     return i18nCallback.t('form.validation.gddCreationTime', values)
+  //   },
+  // })
+  //
+  // // eslint-disable-next-line camelcase
+  // defineRule('is_not', {
+  //   // eslint-disable-next-line camelcase
+  //   ...is_not,
+  //   message: (_, values) => i18nCallback.t('form.validation.is-not', values),
+  // })
+  //
+  // // Password validation
+  //
+  defineRule('containsLowercaseCharacter', (value) => {
+    const valid = !!value.match(/[a-z]+/)
+    if (!valid) {
+      return i18nCallback.t('site.signup.lowercase', { value })
+    }
+    return true
   })
 
-  defineRule('gddSendAmount', {
-    validate(value, { min, max }) {
-      value = value.replace(',', '.')
-      return value.match(/^[0-9]+(\.[0-9]{0,2})?$/) && Number(value) >= min && Number(value) <= max
-    },
-    params: ['min', 'max'],
-    message: (_, values) => {
-      values.min = i18nCallback.n(values.min, 'ungroupedDecimal')
-      values.max = i18nCallback.n(values.max, 'ungroupedDecimal')
-      return i18nCallback.t('form.validation.gddSendAmount', values)
-    },
+  defineRule('containsUppercaseCharacter', (value) => {
+    const isValid = !!value.match(/[A-Z]+/)
+    if (!isValid) {
+      i18nCallback.t('site.signup.uppercase', { value })
+    }
   })
 
-  defineRule('gddCreationTime', {
-    validate(value, { min, max }) {
-      return value >= min && value <= max
-    },
-    params: ['min', 'max'],
-    message: (_, values) => {
-      // values.min = values.min
-      // values.max = values.max
-      return i18nCallback.t('form.validation.gddCreationTime', values)
-    },
-  })
-
-  // eslint-disable-next-line camelcase
-  defineRule('is_not', {
-    // eslint-disable-next-line camelcase
-    ...is_not,
-    message: (_, values) => i18nCallback.t('form.validation.is-not', values),
-  })
-
-  // Password validation
-
-  defineRule('containsLowercaseCharacter', {
-    validate(value) {
-      return !!value.match(/[a-z]+/)
-    },
-    message: (_, values) => i18nCallback.t('site.signup.lowercase', values),
-  })
-
-  defineRule('containsUppercaseCharacter', {
-    validate(value) {
-      return !!value.match(/[A-Z]+/)
-    },
-    message: (_, values) => i18nCallback.t('site.signup.uppercase', values),
-  })
-
-  defineRule('containsNumericCharacter', {
-    validate(value) {
-      return !!value.match(/[0-9]+/)
-    },
-    message: (_, values) => i18nCallback.t('site.signup.one_number', values),
-  })
-
-  defineRule('atLeastEightCharacters', {
-    validate(value) {
-      return !!value.match(/.{8,}/)
-    },
-    message: (_, values) => i18nCallback.t('site.signup.minimum', values),
-  })
-
-  defineRule('atLeastOneSpecialCharater', {
-    validate(value) {
-      return !!value.match(/[^a-zA-Z0-9 \t\n\r]/)
-    },
-    message: (_, values) => i18nCallback.t('site.signup.special-char', values),
-  })
-
-  defineRule('noWhitespaceCharacters', {
-    validate(value) {
-      return !value.match(/[ \t\n\r]+/)
-    },
-    message: (_, values) => i18nCallback.t('site.signup.no-whitespace', values),
-  })
-
-  defineRule('samePassword', {
-    validate(value, [pwd]) {
-      return value === pwd
-    },
-    message: (_, values) => i18nCallback.t('site.signup.dont_match', values),
-  })
-
-  defineRule('usernameAllowedChars', {
-    validate(value) {
-      return !!value.match(/^[a-zA-Z0-9_-]+$/)
-    },
-    message: (_, values) => i18nCallback.t('form.validation.username-allowed-chars', values),
-  })
-
-  defineRule('usernameHyphens', {
-    validate(value) {
-      return !!value.match(/^[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/)
-    },
-    message: (_, values) => i18nCallback.t('form.validation.username-hyphens', values),
-  })
-
-  defineRule('usernameUnique', {
-    validate(value) {
-      if (!value.match(USERNAME_REGEX)) return true
-      return apollo
-        .query({
-          query: checkUsername,
-          variables: { username: value },
-        })
-        .then(({ data }) => {
-          return {
-            valid: data.checkUsername,
-          }
-        })
-    },
-    message: (_, values) => i18nCallback.t('form.validation.username-unique', values),
-  })
-
-  defineRule('validIdentifier', {
-    validate(value) {
-      const isEmail = !!EMAIL_REGEX.test(value)
-      const isUsername = !!value.match(USERNAME_REGEX)
-      const isGradidoId = validateUuid(value) && versionUuid(value) === 4
-      return isEmail || isUsername || isGradidoId
-    },
-    message: (_, values) => i18nCallback.t('form.validation.valid-identifier', values),
-  })
+  // defineRule('containsNumericCharacter', {
+  //   validate(value) {
+  //     return !!value.match(/[0-9]+/)
+  //   },
+  //   message: (_, values) => i18nCallback.t('site.signup.one_number', values),
+  // })
+  //
+  // defineRule('atLeastEightCharacters', {
+  //   validate(value) {
+  //     return !!value.match(/.{8,}/)
+  //   },
+  //   message: (_, values) => i18nCallback.t('site.signup.minimum', values),
+  // })
+  //
+  // defineRule('atLeastOneSpecialCharater', {
+  //   validate(value) {
+  //     return !!value.match(/[^a-zA-Z0-9 \t\n\r]/)
+  //   },
+  //   message: (_, values) => i18nCallback.t('site.signup.special-char', values),
+  // })
+  //
+  // defineRule('noWhitespaceCharacters', {
+  //   validate(value) {
+  //     return !value.match(/[ \t\n\r]+/)
+  //   },
+  //   message: (_, values) => i18nCallback.t('site.signup.no-whitespace', values),
+  // })
+  //
+  // defineRule('samePassword', {
+  //   validate(value, [pwd]) {
+  //     return value === pwd
+  //   },
+  //   message: (_, values) => i18nCallback.t('site.signup.dont_match', values),
+  // })
+  //
+  // defineRule('usernameAllowedChars', {
+  //   validate(value) {
+  //     return !!value.match(/^[a-zA-Z0-9_-]+$/)
+  //   },
+  //   message: (_, values) => i18nCallback.t('form.validation.username-allowed-chars', values),
+  // })
+  //
+  // defineRule('usernameHyphens', {
+  //   validate(value) {
+  //     return !!value.match(/^[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/)
+  //   },
+  //   message: (_, values) => i18nCallback.t('form.validation.username-hyphens', values),
+  // })
+  //
+  // defineRule('usernameUnique', {
+  //   validate(value) {
+  //     if (!value.match(USERNAME_REGEX)) return true
+  //     return apollo
+  //       .query({
+  //         query: checkUsername,
+  //         variables: { username: value },
+  //       })
+  //       .then(({ data }) => {
+  //         return {
+  //           valid: data.checkUsername,
+  //         }
+  //       })
+  //   },
+  //   message: (_, values) => i18nCallback.t('form.validation.username-unique', values),
+  // })
+  //
+  // defineRule('validIdentifier', {
+  //   validate(value) {
+  //     const isEmail = !!EMAIL_REGEX.test(value)
+  //     const isUsername = !!value.match(USERNAME_REGEX)
+  //     const isGradidoId = validateUuid(value) && versionUuid(value) === 4
+  //     return isEmail || isUsername || isGradidoId
+  //   },
+  //   message: (_, values) => i18nCallback.t('form.validation.valid-identifier', values),
+  // })
 }

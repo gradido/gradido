@@ -1,4 +1,6 @@
 import { createApp } from 'vue'
+import '@/assets/scss/gradido.scss'
+
 // import DashboardPlugin from './plugins/dashboard-plugin'
 import App from './App'
 import i18n from './i18n.js'
@@ -23,6 +25,7 @@ import { createBootstrap } from 'bootstrap-vue-next'
 // Add the necessary CSS
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
+
 // import GlobalComponents from '@/plugins/globalComponents'
 import GlobalDirectives from '@/plugins/globalDirectives'
 import PortalVue from 'portal-vue'
@@ -52,6 +55,12 @@ app.mixin(toasters)
 const filters = loadFilters(i18n)
 app.filter('amount', filters.amount)
 app.filter('GDD', filters.GDD)
+
+//TODO it will be used in future
+// app.config.globalProperties.$filters = {
+//   GDD: filters.GDD,
+//   amount: filters.amount,
+// }
 
 loadAllRules(i18n, apolloProvider.defaultClient)
 

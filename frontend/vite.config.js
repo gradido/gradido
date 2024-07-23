@@ -1,12 +1,15 @@
 import { defineConfig } from 'vite'
 import commonjs from 'vite-plugin-commonjs'
 import vue from '@vitejs/plugin-vue'
+import Components from 'unplugin-vue-components/vite'
+import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 
 const path = require('path')
 
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
+    host: '0.0.0.0',
     port: 3000,
   },
   resolve: {
@@ -26,6 +29,9 @@ export default defineConfig({
           },
         },
       },
+    }),
+    Components({
+      resolvers: [BootstrapVueNextResolver()],
     }),
     commonjs(),
   ],
