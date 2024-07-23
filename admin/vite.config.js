@@ -37,7 +37,9 @@ export default defineConfig({
     Icons({
       compiler: 'vue3',
     }),
-    ,
     commonjs(),
   ],
+  build: {
+    outDir: 'build',
+  },
 })

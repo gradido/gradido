@@ -5,14 +5,15 @@ module.exports = {
     node: true,
     jest: true,
   },
-  parserOptions: {
-    parser: 'babel-eslint',
-  },
+  // parserOptions: {
+  //   parser: 'babel-eslint',
+  // },
   extends: [
     'standard',
-    'plugin:vue/essential',
+    'plugin:vue/vue3-recommended',
     'plugin:prettier/recommended',
     'plugin:@intlify/vue-i18n/recommended',
+    'prettier',
   ],
   // required to lint *.vue files
   plugins: ['vue', 'prettier', 'jest'],
@@ -25,7 +26,7 @@ module.exports = {
   // add your custom rules here
   rules: {
     'no-console': ['error'],
-    'no-debugger': import.meta.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'vue/component-name-in-template-casing': ['error', 'kebab-case'],
     'vue/no-static-inline-styles': [
       'error',
