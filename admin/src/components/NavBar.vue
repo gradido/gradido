@@ -2,7 +2,7 @@
   <div class="component-nabvar">
     <BNavbar toggleable="lg" variant="dark" v-b-color-mode="'light'">
       <BNavbarBrand class="mb-2" to="/">
-        <img src="img/brand/gradido_logo_w.png" class="navbar-brand-img pl-2" alt="..." />
+        <img src="/img/brand/gradido_logo_w.png" class="navbar-brand-img pl-2" alt="..." />
       </BNavbarBrand>
 
       <BNavbarToggle target="navbar-toggle-collapse" />
