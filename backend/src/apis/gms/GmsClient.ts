@@ -154,6 +154,7 @@ export async function createGmsUser(apiKey: string, user: GmsUser): Promise<bool
 }
 
 export async function updateGmsUser(apiKey: string, user: GmsUser): Promise<boolean> {
+  logger.debug(' updateGmsUser:', user, apiKey)
   if (CONFIG.GMS_ACTIVE) {
     const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
     const service = 'community-user'
@@ -169,6 +170,7 @@ export async function updateGmsUser(apiKey: string, user: GmsUser): Promise<bool
     try {
       // communityUuid darf nicht per user, sondern wird per ApiKey übergeben und in gms ermittelt
       user.communityUuid = undefined
+      logger.debug('vor axios.patch with config=', config)
       const result = await axios.patch(baseUrl.concat(service), user, config)
       logger.debug('PATCH-Response of community-user:', result)
       if (result.status !== 200) {
