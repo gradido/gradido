@@ -23,7 +23,7 @@
 </template>
 <script setup>
 import { sendActivationEmail } from '../graphql/sendActivationEmail'
-import { BButton, BFormInput, BInputGroup } from 'bootstrap-vue-next'
+import { BButton, BFormInput, BInputGroup, BInputGroupText } from 'bootstrap-vue-next'
 import { useI18n } from 'vue-i18n'
 import { useMutation } from '@vue/apollo-composable'
 
