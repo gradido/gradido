@@ -1,19 +1,19 @@
 <template>
   <div class="contribution-messages-list">
     <b-container>
-      <div v-for="message in messages" v-bind:key="message.id">
+      <div v-for="message in messages" :key="message.id">
         <contribution-messages-list-item
           :message="message"
-          :contributionUserId="contributionUserId"
+          :contribution-user-id="contributionUserId"
         />
       </div>
     </b-container>
     <div v-if="contributionStatus === 'PENDING' || contributionStatus === 'IN_PROGRESS'">
       <contribution-messages-formular
-        :contributionId="contributionId"
-        :contributionMemo="contributionMemo"
-        :hideResubmission="hideResubmission"
-        :inputResubmissionDate="resubmissionAt"
+        :contribution-id="contributionId"
+        :contribution-memo="contributionMemo"
+        :hide-resubmission="hideResubmission"
+        :input-resubmission-date="resubmissionAt"
         @get-list-contribution-messages="$apollo.queries.Messages.refetch()"
         @update-status="updateStatus"
         @reload-contribution="reloadContribution"
@@ -59,6 +59,7 @@ export default {
       required: false,
     },
   },
+  emits: ['update-status', 'reload-contribution', 'update-contributions'],
   data() {
     return {
       messages: [],

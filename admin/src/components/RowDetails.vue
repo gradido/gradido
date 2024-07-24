@@ -16,9 +16,10 @@ export default {
   name: 'RowDetails',
   props: {
     row: { required: true, type: Object },
-    slotName: { requried: true, type: String },
-    type: { requried: true, type: String },
-    index: { requried: true, type: Number },
+    slotName: { required: true, type: String },
+    type: { required: true, type: String },
+    index: { required: true, type: Number },
   },
+  emits: ['row-toggle-details'],
 }
 </script>

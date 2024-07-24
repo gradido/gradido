@@ -11,9 +11,9 @@
     </b-table>
     <div>
       <b-pagination
+        v-model="currentPage"
         pills
         size="lg"
-        v-model="currentPage"
         :per-page="perPage"
         :total-rows="rows"
         align="center"

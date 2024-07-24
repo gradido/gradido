@@ -1,14 +1,14 @@
 <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys -->
 <template>
   <div class="creation-confirm">
-    <user-query class="mb-2 mt-2" v-model="query" :placeholder="$t('user_memo_search')" />
+    <user-query v-model="query" class="mb-2 mt-2" :placeholder="$t('user_memo_search')" />
     <p class="mb-2">
-      <input type="checkbox" class="noHashtag" v-model="noHashtag" />
-      <span class="ml-2" v-b-tooltip="$t('no_hashtag_tooltip')">{{ $t('no_hashtag') }}</span>
+      <input v-model="noHashtag" type="checkbox" class="noHashtag" />
+      <span v-b-tooltip="$t('no_hashtag_tooltip')" class="ml-2">{{ $t('no_hashtag') }}</span>
     </p>
-    <p class="mb-4" v-if="showResubmissionCheckbox">
-      <input type="checkbox" class="hideResubmission" v-model="hideResubmissionModel" />
-      <span class="ml-2" v-b-tooltip="$t('hide_resubmission_tooltip')">
+    <p v-if="showResubmissionCheckbox" class="mb-4">
+      <input v-model="hideResubmissionModel" type="checkbox" class="hideResubmission" />
+      <span v-b-tooltip="$t('hide_resubmission_tooltip')" class="ml-2">
         {{ $t('hide_resubmission') }}
       </span>
     </p>
@@ -53,7 +53,7 @@
       class="mt-4"
       :items="items"
       :fields="fields"
-      :hideResubmission="hideResubmission"
+      :hide-resubmission="hideResubmission"
       @show-overlay="showOverlay"
       @update-status="updateStatus"
       @reload-contribution="reloadContribution"
@@ -61,9 +61,9 @@
     />
 
     <b-pagination
+      v-model="currentPage"
       pills
       size="lg"
-      v-model="currentPage"
       :per-page="pageSize"
       :total-rows="rows"
       align="center"
@@ -82,12 +82,7 @@
           <p>{{ $t(overlayQuestion) }}</p>
         </template>
         <template #submit-btn>
-          <b-button
-            size="md"
-            v-bind:variant="overlayIcon"
-            class="m-3 text-right"
-            @click="overlayEvent"
-          >
+          <b-button size="md" :variant="overlayIcon" class="m-3 text-right" @click="overlayEvent">
             {{ $t(overlayBtnText) }}
           </b-button>
         </template>
@@ -134,99 +129,6 @@ export default {
       noHashtag: null,
       hideResubmissionModel: true,
     }
-  },
-  watch: {
-    tabIndex() {
-      this.currentPage = 1
-    },
-  },
-  methods: {
-    reloadContribution(id) {
-      this.$apollo
-        .query({ query: getContribution, variables: { id } })
-        .then((result) => {
-          const contribution = result.data.contribution
-          this.$set(
-            this.items,
-            this.items.findIndex((obj) => obj.id === contribution.id),
-            contribution,
-          )
-        })
-        .catch((error) => {
-          this.overlay = false
-          this.toastError(error.message)
-        })
-    },
-    deleteCreation() {
-      this.$apollo
-        .mutate({
-          mutation: adminDeleteContribution,
-          variables: {
-            id: this.item.id,
-          },
-        })
-        .then((result) => {
-          this.overlay = false
-          this.updatePendingCreations(this.item.id)
-          this.toastSuccess(this.$t('creation_form.toasted_delete'))
-        })
-        .catch((error) => {
-          this.overlay = false
-          this.toastError(error.message)
-        })
-    },
-    denyCreation() {
-      this.$apollo
-        .mutate({
-          mutation: denyContribution,
-          variables: {
-            id: this.item.id,
-          },
-        })
-        .then((result) => {
-          this.overlay = false
-          this.updatePendingCreations(this.item.id)
-          this.toastSuccess(this.$t('creation_form.toasted_denied'))
-        })
-        .catch((error) => {
-          this.overlay = false
-          this.toastError(error.message)
-        })
-    },
-    confirmCreation() {
-      this.$apollo
-        .mutate({
-          mutation: confirmContribution,
-          variables: {
-            id: this.item.id,
-          },
-        })
-        .then((result) => {
-          this.overlay = false
-          this.updatePendingCreations(this.item.id)
-          this.toastSuccess(this.$t('creation_form.toasted_created'))
-        })
-        .catch((error) => {
-          this.overlay = false
-          this.toastError(error.message)
-        })
-    },
-    updatePendingCreations(id) {
-      this.items = this.items.filter((obj) => obj.id !== id)
-      this.$store.commit('openCreationsMinus', 1)
-    },
-    showOverlay(item, variant) {
-      this.overlay = true
-      this.item = item
-      this.variant = variant
-    },
-    updateStatus(id) {
-      this.items.find((obj) => obj.id === id).messagesCount++
-      this.items.find((obj) => obj.id === id).status = 'IN_PROGRESS'
-    },
-    formatDateOrDash(value) {
-      return value ? this.$d(new Date(value), 'short') : '—'
-    },
   },
   computed: {
     fields() {
@@ -438,6 +340,99 @@ export default {
     },
     hideResubmission() {
       return this.showResubmissionCheckbox ? this.hideResubmissionModel : false
+    },
+  },
+  watch: {
+    tabIndex() {
+      this.currentPage = 1
+    },
+  },
+  methods: {
+    reloadContribution(id) {
+      this.$apollo
+        .query({ query: getContribution, variables: { id } })
+        .then((result) => {
+          const contribution = result.data.contribution
+          this.$set(
+            this.items,
+            this.items.findIndex((obj) => obj.id === contribution.id),
+            contribution,
+          )
+        })
+        .catch((error) => {
+          this.overlay = false
+          this.toastError(error.message)
+        })
+    },
+    deleteCreation() {
+      this.$apollo
+        .mutate({
+          mutation: adminDeleteContribution,
+          variables: {
+            id: this.item.id,
+          },
+        })
+        .then((result) => {
+          this.overlay = false
+          this.updatePendingCreations(this.item.id)
+          this.toastSuccess(this.$t('creation_form.toasted_delete'))
+        })
+        .catch((error) => {
+          this.overlay = false
+          this.toastError(error.message)
+        })
+    },
+    denyCreation() {
+      this.$apollo
+        .mutate({
+          mutation: denyContribution,
+          variables: {
+            id: this.item.id,
+          },
+        })
+        .then((result) => {
+          this.overlay = false
+          this.updatePendingCreations(this.item.id)
+          this.toastSuccess(this.$t('creation_form.toasted_denied'))
+        })
+        .catch((error) => {
+          this.overlay = false
+          this.toastError(error.message)
+        })
+    },
+    confirmCreation() {
+      this.$apollo
+        .mutate({
+          mutation: confirmContribution,
+          variables: {
+            id: this.item.id,
+          },
+        })
+        .then((result) => {
+          this.overlay = false
+          this.updatePendingCreations(this.item.id)
+          this.toastSuccess(this.$t('creation_form.toasted_created'))
+        })
+        .catch((error) => {
+          this.overlay = false
+          this.toastError(error.message)
+        })
+    },
+    updatePendingCreations(id) {
+      this.items = this.items.filter((obj) => obj.id !== id)
+      this.$store.commit('openCreationsMinus', 1)
+    },
+    showOverlay(item, variant) {
+      this.overlay = true
+      this.item = item
+      this.variant = variant
+    },
+    updateStatus(id) {
+      this.items.find((obj) => obj.id === id).messagesCount++
+      this.items.find((obj) => obj.id === id).status = 'IN_PROGRESS'
+    },
+    formatDateOrDash(value) {
+      return value ? this.$d(new Date(value), 'short') : '—'
     },
   },
   apollo: {

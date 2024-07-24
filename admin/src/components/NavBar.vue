@@ -1,19 +1,23 @@
 <template>
   <div class="component-nabvar">
-    <BNavbar toggleable="lg" type="dark" class="bg-dark">
+    <BNavbar v-b-color-mode="'dark'" toggleable="lg" variant="light-dark">
       <BNavbarBrand class="mb-2" to="/">
-        <img src="img/brand/gradido_logo_w.png" class="navbar-brand-img pl-2" alt="..." />
+        <img
+          src="../../public/img/brand/gradido_logo_w.png"
+          class="navbar-brand-img pl-2"
+          alt="..."
+        />
       </BNavbarBrand>
 
-      <BNavbarToggle target="nav-collapse"></BNavbarToggle>
+      <BNavbarToggle target="navbar-toggle-collapse" />
 
       <BCollapse id="nav-collapse" is-nav>
         <BNavbarNav>
           <BNavItem to="/user">{{ $t('navbar.user_search') }}</BNavItem>
           <BNavItem class="bg-color-creation" to="/creation-confirm">
             {{ $t('creation') }}
-            <BBadge v-show="$store.state.openCreations > 0" variant="danger">
-              {{ $store.state.openCreations }}
+            <BBadge v-show="openCreations > 0" variant="danger">
+              {{ openCreations.value }}
             </BBadge>
           </BNavItem>
           <BNavItem to="/contribution-links">
@@ -23,38 +27,57 @@
             {{ $t('navbar.instances') }}
           </BNavItem>
           <BNavItem to="/statistic">{{ $t('navbar.statistic') }}</BNavItem>
-          <BNavItem @click="wallet">{{ $t('navbar.my-account') }}</BNavItem>
-          <BNavItem @click="logout">{{ $t('navbar.logout') }}</BNavItem>
+          <BNavItem @click="handleWallet">{{ $t('navbar.my-account') }}</BNavItem>
+          <BNavItem @click="handleLogout">{{ $t('navbar.logout') }}</BNavItem>
         </BNavbarNav>
       </BCollapse>
     </BNavbar>
   </div>
 </template>
-<script>
+<script setup>
 import CONFIG from '../config'
+import { useStore } from 'vuex'
+import { computed } from 'vue'
+import { useMutation } from '@vue/apollo-composable'
 import { logout } from '../graphql/logout'
-import { BNavbar, BCollapse, BNavbarNav, BNavItem, BNavbarBrand, BBadge } from 'bootstrap-vue-next'
-export default {
-  name: 'navbar',
-  components: { BNavbar, BCollapse, BNavbarNav, BNavItem, BNavbarBrand, BBadge },
-  methods: {
-    async logout() {
-      window.location.assign(CONFIG.WALLET_LOGIN_URL)
-      // window.location = CONFIG.WALLET_LOGIN_URL
-      this.$store.dispatch('logout')
-      await this.$apollo.mutate({
-        mutation: logout,
-      })
-    },
-    wallet() {
-      window.location = CONFIG.WALLET_AUTH_URL.replace('{token}', this.$store.state.token)
-      this.$store.dispatch('logout') // logout without redirect
-    },
-  },
+import {
+  BNavbar,
+  BCollapse,
+  BNavbarNav,
+  BNavItem,
+  BNavbarBrand,
+  BBadge,
+  BNavbarToggle,
+  vBColorMode,
+} from 'bootstrap-vue-next'
+
+const store = useStore()
+
+const openCreations = computed(() => store.state.openCreations)
+
+const { mutate: executeLogout } = useMutation(logout)
+
+const handleLogout = async () => {
+  window.location.assign(CONFIG.WALLET_LOGIN_URL)
+  // window.location = CONFIG.WALLET_LOGIN_URL
+  store.dispatch('logout')
+  await executeLogout()
+}
+
+const handleWallet = () => {
+  window.location = CONFIG.WALLET_AUTH_URL.replace('{token}', store.state.token)
+  store.dispatch('logout') // logout without redirect
 }
 </script>
-<style>
+<style lang="scss" scoped>
 .navbar-brand-img {
   height: 2rem;
+  padding-left: 10px;
+}
+</style>
+
+<style lang="scss">
+.bg-light-dark {
+  background-color: #343a40;
 }
 </style>

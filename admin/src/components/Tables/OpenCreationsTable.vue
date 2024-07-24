@@ -17,8 +17,8 @@
           <b-button
             variant="danger"
             size="md"
-            @click="$emit('show-overlay', row.item, 'delete')"
             class="mr-2"
+            @click="$emit('show-overlay', row.item, 'delete')"
           >
             <b-icon icon="trash" variant="light"></b-icon>
           </b-button>
@@ -38,8 +38,8 @@
             variant="info"
             size="md"
             :index="0"
-            @click="rowToggleDetails(row, 0)"
             class="mr-2"
+            @click="rowToggleDetails(row, 0)"
           >
             <b-icon :icon="row.detailsShowing ? 'x' : 'pencil-square'" aria-label="Help"></b-icon>
           </b-button>
@@ -69,8 +69,8 @@
           <b-button
             variant="warning"
             size="md"
-            @click="$emit('show-overlay', row.item, 'deny')"
             class="mr-2"
+            @click="$emit('show-overlay', row.item, 'deny')"
           >
             <b-icon icon="x" variant="light"></b-icon>
           </b-button>
@@ -81,8 +81,8 @@
           <b-button
             variant="success"
             size="md"
-            @click="$emit('show-overlay', row.item, 'confirm')"
             class="mr-2"
+            @click="$emit('show-overlay', row.item, 'confirm')"
           >
             <b-icon icon="check" scale="2" variant=""></b-icon>
           </b-button>
@@ -92,7 +92,7 @@
         <row-details
           :row="row"
           type="show-creation"
-          slotName="show-creation"
+          slot-name="show-creation"
           :index="0"
           @row-toggle-details="rowToggleDetails(row, 0)"
         >
@@ -102,18 +102,18 @@
                 type="singleCreation"
                 :item="row.item"
                 :row="row"
-                :creationUserData="creationUserData"
+                :creation-user-data="creationUserData"
                 @update-creation-data="$emit('update-contributions')"
               />
             </div>
             <div v-else>
               <contribution-messages-list
-                :contributionId="row.item.id"
-                :contributionStatus="row.item.status"
-                :contributionUserId="row.item.userId"
-                :contributionMemo="row.item.memo"
-                :resubmissionAt="row.item.resubmissionAt"
-                :hideResubmission="hideResubmission"
+                :contribution-id="row.item.id"
+                :contribution-status="row.item.status"
+                :contribution-user-id="row.item.userId"
+                :contribution-memo="row.item.memo"
+                :resubmission-at="row.item.resubmissionAt"
+                :hide-resubmission="hideResubmission"
                 @update-status="updateStatus"
                 @reload-contribution="reloadContribution"
                 @update-contributions="updateContributions"
@@ -142,12 +142,12 @@ const iconMap = {
 
 export default {
   name: 'OpenCreationsTable',
-  mixins: [toggleRowDetails],
   components: {
     EditCreationFormular,
     RowDetails,
     ContributionMessagesList,
   },
+  mixins: [toggleRowDetails],
   props: {
     items: {
       type: Array,
@@ -166,6 +166,7 @@ export default {
       required: false,
     },
   },
+  emits: ['update-contributions', 'reload-contribution', 'update-status', 'show-overlay'],
   methods: {
     myself(item) {
       return item.userId === this.$store.state.moderator.id
