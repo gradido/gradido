@@ -7,7 +7,7 @@ import IconsResolve from 'unplugin-icons/resolver'
 const path = require('path')
 
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? './' : '/admin',
+  base: '/admin/',
   server: {
     port: 8080,
   },
