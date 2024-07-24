@@ -11,11 +11,11 @@
         <!-- Using components -->
         <BInputGroup :prepend="$t('unregister_mail.info')" class="mt-3">
           <BFormInput readonly v-model="props.email" />
-          <BInputGroup append>
-            <BButton variant="outline-success" class="test-button mt-3" @click="sendRegisterMail">
+          <BInputGroupText >
+            <BButton variant="outline-success" class="test-button " @click="sendRegisterMail">
               {{ $t('unregister_mail.button') }}
             </BButton>
-          </BInputGroup>
+          </BInputGroupText>
         </BInputGroup>
       </div>
     </div>
