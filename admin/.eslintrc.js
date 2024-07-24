@@ -4,15 +4,17 @@ module.exports = {
     browser: true,
     node: true,
     jest: true,
+    'vue/setup-compiler-macros': true,
   },
   parserOptions: {
-    parser: 'babel-eslint',
+    ecmaVersion: 2020,
   },
   extends: [
     'standard',
-    'plugin:vue/essential',
+    'plugin:vue/vue3-recommended',
     'plugin:prettier/recommended',
     'plugin:@intlify/vue-i18n/recommended',
+    'prettier',
   ],
   // required to lint *.vue files
   plugins: ['vue', 'prettier', 'jest'],
@@ -33,6 +35,8 @@ module.exports = {
         allowBinding: false,
       },
     ],
+    'vue/multi-word-component-names': 0,
+    'vue/no-v-html': 0,
     '@intlify/vue-i18n/no-dynamic-keys': 'error',
     '@intlify/vue-i18n/no-unused-keys': [
       'error',

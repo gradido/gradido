@@ -9,11 +9,11 @@
       </div>
       <div v-else class="m-3">
         <label for="role" class="mr-3">{{ $t('userRole.selectLabel') }}</label>
-        <b-form-select class="role-select" v-model="roleSelected" :options="roles" />
+        <b-form-select v-model="roleSelected" class="role-select" :options="roles" />
         <div class="mt-3 mb-5">
           <b-button
-            variant="danger"
             v-b-modal.user-role-modal
+            variant="danger"
             :disabled="currentRole === roleSelected"
             @click="showModal()"
           >
@@ -41,6 +41,7 @@ export default {
       required: true,
     },
   },
+  emits: ['update-roles'],
   data() {
     return {
       currentRole: this.getCurrentRole(),
@@ -66,8 +67,8 @@ export default {
               this.roleSelected === rolesValues.ADMIN
                 ? this.$t('userRole.selectRoles.admin')
                 : this.roleSelected === rolesValues.MODERATOR
-                ? this.$t('userRole.selectRoles.moderator')
-                : this.$t('userRole.selectRoles.user'),
+                  ? this.$t('userRole.selectRoles.moderator')
+                  : this.$t('userRole.selectRoles.user'),
           }),
           {
             cancelTitle: this.$t('overlay.cancel'),
@@ -102,7 +103,7 @@ export default {
           },
         })
         .then((result) => {
-          this.$emit('updateRoles', {
+          this.$emit('update-roles', {
             userId: this.item.userId,
             roles: roleValue === 'USER' ? [] : [roleValue],
           })

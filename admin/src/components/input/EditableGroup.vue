@@ -1,17 +1,17 @@
 <template>
   <div>
-    <slot v-if="!isEditing" v-bind:isEditing="isEditing" name="view"></slot>
-    <slot v-else v-bind:isEditing="isEditing" name="edit" @input="valueChanged"></slot>
+    <slot v-if="!isEditing" :is-editing="isEditing" name="view"></slot>
+    <slot v-else :is-editing="isEditing" name="edit" @input="valueChanged"></slot>
     <b-form-group v-if="allowEdit && !isEditing">
-      <b-button @click="enableEdit" :variant="variant">
+      <b-button :variant="variant" @click="enableEdit">
         <b-icon icon="pencil-fill">{{ $t('edit') }}</b-icon>
       </b-button>
     </b-form-group>
     <b-form-group v-else-if="allowEdit && isEditing">
-      <b-button @click="save" :variant="variant" :disabled="!isValueChanged" class="save-button">
+      <b-button :variant="variant" :disabled="!isValueChanged" class="save-button" @click="save">
         {{ $t('save') }}
       </b-button>
-      <b-button @click="close" variant="secondary" class="close-button">
+      <b-button variant="secondary" class="close-button" @click="close">
         {{ $t('close') }}
       </b-button>
     </b-form-group>
@@ -27,6 +27,7 @@ export default {
       default: false,
     },
   },
+  emits: ['save', 'reset'],
   data() {
     return {
       isEditing: false,

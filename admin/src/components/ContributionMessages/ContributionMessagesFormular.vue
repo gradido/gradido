@@ -11,7 +11,7 @@
           <b-form-datepicker v-model="resubmissionDate" :min="now"></b-form-datepicker>
           <time-picker v-model="resubmissionTime"></time-picker>
         </b-form-group>
-        <b-tabs content-class="mt-3" v-model="tabindex" data-test="message-type-tabs">
+        <b-tabs v-model="tabindex" content-class="mt-3" data-test="message-type-tabs">
           <b-tab active>
             <template #title>
               <span id="message-tab-title">{{ $t('moderator.message') }}</span>
@@ -64,8 +64,8 @@
               type="submit"
               variant="primary"
               :disabled="disabled"
-              @click.prevent="onSubmit()"
               data-test="submit-dialog"
+              @click.prevent="onSubmit()"
             >
               {{ $t('save') }}
             </b-button>
@@ -81,10 +81,10 @@ import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
 import TimePicker from '@/components/input/TimePicker'
 
 export default {
+  name: 'ContributionMessagesFormular',
   components: {
     TimePicker,
   },
-  name: 'ContributionMessagesFormular',
   props: {
     contributionId: {
       type: Number,
@@ -103,6 +103,13 @@ export default {
       required: false,
     },
   },
+  emits: [
+    'update-contribution',
+    'update-contributions',
+    'get-contribution',
+    'update-status',
+    'get-list-contribution-messages',
+  ],
   data() {
     const localInputResubmissionDate = this.inputResubmissionDate
       ? new Date(this.inputResubmissionDate)
@@ -128,6 +135,22 @@ export default {
         MODERATOR: 'MODERATOR',
       },
     }
+  },
+  computed: {
+    disabled() {
+      return (
+        (this.chatOrMemo === 0 && this.form.text === '') ||
+        this.loading ||
+        (this.chatOrMemo === 1 && this.form.memo.length < 5) ||
+        (this.showResubmissionDate && !this.resubmissionDate)
+      )
+    },
+    moderatorDisabled() {
+      return this.form.text === '' || this.loading || this.chatOrMemo === 1
+    },
+    now() {
+      return new Date()
+    },
   },
   methods: {
     combineResubmissionDateAndTime() {
@@ -222,22 +245,6 @@ export default {
     },
     enableMemo() {
       this.chatOrMemo = 1
-    },
-  },
-  computed: {
-    disabled() {
-      return (
-        (this.chatOrMemo === 0 && this.form.text === '') ||
-        this.loading ||
-        (this.chatOrMemo === 1 && this.form.memo.length < 5) ||
-        (this.showResubmissionDate && !this.resubmissionDate)
-      )
-    },
-    moderatorDisabled() {
-      return this.form.text === '' || this.loading || this.chatOrMemo === 1
-    },
-    now() {
-      return new Date()
     },
   },
 }

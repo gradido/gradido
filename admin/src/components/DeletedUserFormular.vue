@@ -7,13 +7,13 @@
       <div class="mt-3 mb-5">
         <b-button
           v-if="!item.deletedAt"
-          variant="danger"
           v-b-modal.delete-user-modal
+          variant="danger"
           @click="showDeleteModal()"
         >
           {{ $t('delete_user') }}
         </b-button>
-        <b-button v-else variant="success" v-b-modal.delete-user-modal @click="showUndeleteModal()">
+        <b-button v-else v-b-modal.delete-user-modal variant="success" @click="showUndeleteModal()">
           {{ $t('undelete_user') }}
         </b-button>
       </div>
@@ -32,6 +32,7 @@ export default {
       required: true,
     },
   },
+  emits: ['update-deleted-at'],
   methods: {
     showDeleteModal() {
       this.$bvModal
@@ -91,7 +92,7 @@ export default {
           },
         })
         .then((result) => {
-          this.$emit('updateDeletedAt', {
+          this.$emit('update-deleted-at', {
             userId: this.item.userId,
             deletedAt: result.data.deleteUser,
           })
@@ -109,7 +110,7 @@ export default {
           },
         })
         .then((result) => {
-          this.$emit('updateDeletedAt', {
+          this.$emit('update-deleted-at', {
             userId: this.item.userId,
             deletedAt: result.data.unDeleteUser,
           })

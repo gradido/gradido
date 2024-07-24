@@ -56,6 +56,12 @@ export default {
   props: {
     items: { type: Array, required: true },
   },
+  emits: [
+    'close-contribution-form',
+    'edit-contribution-link-data',
+    'get-contribution-links',
+    'get-contribution-link',
+  ],
   data() {
     return {
       fields: [
@@ -104,7 +110,7 @@ export default {
               })
               .then(() => {
                 this.toastSuccess(this.$t('contributionLink.deleted'))
-                this.$emit('closeContributionForm')
+                this.$emit('close-contribution-form')
                 this.$emit('get-contribution-links')
               })
               .catch((err) => {
@@ -113,7 +119,7 @@ export default {
         })
     },
     editContributionLink(row) {
-      this.$emit('editContributionLinkData', row)
+      this.$emit('edit-contribution-link-data', row)
     },
 
     showContributionLink(row) {

@@ -52,9 +52,10 @@
 </template>
 <script>
 export default {
-  name: 'overlay',
+  name: 'Overlay',
   props: {
     item: { type: Object, required: true },
   },
+  emits: ['overlay-cancel'],
 }
 </script>
