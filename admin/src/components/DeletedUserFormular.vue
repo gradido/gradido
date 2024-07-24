@@ -124,6 +124,6 @@ export default {
 </script>
 <style>
 .input-group-text {
-  background-color: rgb(255, 252, 205);
+  background-color: rgb(255 252 205);
 }
 </style>

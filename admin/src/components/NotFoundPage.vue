@@ -1249,21 +1249,23 @@ export default {
   transform-box: fill-box;
 }
 
-/*************swing************/
+/************* swing ************/
 @keyframes swing {
   0% {
     transform: rotate(10deg);
   }
+
   100% {
     transform: rotate(-10deg);
   }
 }
 
-/*************swing hair************/
+/************* swing hair ************/
 @keyframes swinghair {
   0% {
     transform: rotate(6deg);
   }
+
   100% {
     transform: rotate(-6deg);
   }
