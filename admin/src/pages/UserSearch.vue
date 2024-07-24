@@ -152,6 +152,7 @@ watch(
 .user-search-first-div {
   text-align: right;
 }
+
 img,
 svg {
   vertical-align: text-bottom;

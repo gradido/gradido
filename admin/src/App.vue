@@ -17,7 +17,8 @@ export default {
 .pointer {
   cursor: pointer;
 }
+
 .pointer:hover {
-  background-color: rgb(216, 213, 213);
+  background-color: rgb(216 213 213);
 }
 </style>
