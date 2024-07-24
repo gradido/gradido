@@ -219,6 +219,7 @@ nvm install
 npm i -g yarn
 yarn install
 yarn build
+nvm use default
 # TODO maybe handle this differently?
 export NODE_ENV=production
 
