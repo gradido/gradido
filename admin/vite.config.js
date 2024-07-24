@@ -9,7 +9,6 @@ const path = require('path')
 export default defineConfig({
   base: process.env.NODE_ENV === 'production' ? './' : '/admin',
   server: {
-    host: '0.0.0.0',
     port: 8080,
   },
   resolve: {

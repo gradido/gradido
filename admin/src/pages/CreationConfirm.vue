@@ -472,12 +472,9 @@ export default {
   align-items: center;
   width: 100%;
   height: 100%;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   padding-left: 5%;
-  background-color: rgba(12, 11, 11, 0.781);
+  background-color: rgb(12 11 11 / 78.1%);
   z-index: 1000000;
   cursor: pointer;
 }
