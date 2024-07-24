@@ -14,13 +14,13 @@
             name="month-selection"
           />
         </div>
-        <div v-if="selected" class="m-4">
+        <div v-if="selected" class="m-4 d-flex">
           <label>{{ $t('creation_form.select_value') }}</label>
           <div>
             <BInputGroup prepend="GDD" append=".00">
               <BFormInput v-model="value" type="number" :min="rangeMin" :max="rangeMax" />
             </BInputGroup>
-            <BInputGroup prepend="0" :append="String(rangeMax)" class="mt-3">
+            <BInputGroup prepend="0" :append="String(rangeMax)" class="mt-3 flex-nowrap align-items-center">
               <BFormInput v-model="value" type="range" :min="rangeMin" :max="rangeMax" step="10" />
             </BInputGroup>
           </div>
