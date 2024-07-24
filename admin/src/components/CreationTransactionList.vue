@@ -1,16 +1,17 @@
+
 <template>
   <div class="component-creation-transaction-list">
     <div class="h3">{{ $t('transactionlist.title') }}</div>
-    <b-table striped hover :fields="fields" :items="items">
+    <BTable striped hover :fields="fields" :items="items">
       <template #cell(contributionDate)="data">
         <div class="font-weight-bold">
           {{ $d(new Date(data.item.contributionDate), 'month') }}
         </div>
         <div>{{ $d(new Date(data.item.contributionDate)) }}</div>
       </template>
-    </b-table>
+    </BTable>
     <div>
-      <b-pagination
+      <BPagination
         v-model="currentPage"
         pills
         size="lg"
@@ -18,101 +19,96 @@
         :total-rows="rows"
         align="center"
         :hide-ellipsis="true"
-      ></b-pagination>
-      <b-button v-b-toggle.collapse-1 variant="light" size="sm">{{ $t('help.help') }}</b-button>
-      <b-collapse id="collapse-1" class="mt-2">
+      />
+      <BButton v-b-toggle="'collapse-1'"  variant="light" size="sm">{{ t('help.help') }}</BButton>
+      <BCollapse id="collapse-1" class="mt-2">
         <div>
-          {{ $t('transactionlist.submitted') }} {{ $t('math.equals') }}
-          {{ $t('help.transactionlist.submitted') }}
+          {{ t('transactionlist.submitted') }} {{ t('math.equals') }}
+          {{ t('help.transactionlist.submitted') }}
         </div>
         <div>
-          {{ $t('transactionlist.period') }} {{ $t('math.equals') }}
-          {{ $t('help.transactionlist.periods') }}
+          {{ t('transactionlist.period') }} {{ t('math.equals') }}
+          {{ t('help.transactionlist.periods') }}
         </div>
         <div>
-          {{ $t('transactionlist.confirmed') }} {{ $t('math.equals') }}
-          {{ $t('help.transactionlist.confirmed') }}
+          {{ t('transactionlist.confirmed') }} {{ t('math.equals') }}
+          {{ t('help.transactionlist.confirmed') }}
         </div>
         <div>
-          {{ $t('transactionlist.status') }} {{ $t('math.equals') }}
-          {{ $t('help.transactionlist.status') }}
+          {{ t('transactionlist.status') }} {{ t('math.equals') }}
+          {{ t('help.transactionlist.status') }}
         </div>
-      </b-collapse>
+      </BCollapse>
     </div>
   </div>
 </template>
-<script>
-import { adminListContributions } from '../graphql/adminListContributions'
-export default {
-  name: 'CreationTransactionList',
-  props: {
-    userId: { type: Number, required: true },
-  },
-  data() {
-    return {
-      items: [],
-      rows: 0,
-      currentPage: 1,
-      perPage: 10,
-      fields: [
-        {
-          key: 'createdAt',
-          label: this.$t('transactionlist.submitted'),
-          formatter: (value, key, item) => {
-            return this.$d(new Date(value))
-          },
-        },
-        {
-          key: 'contributionDate',
-          label: this.$t('transactionlist.period'),
-        },
-        {
-          key: 'confirmedAt',
-          label: this.$t('transactionlist.confirmed'),
-          formatter: (value, key, item) => {
-            if (value) {
-              return this.$d(new Date(value))
-            } else {
-              return null
-            }
-          },
-        },
-        {
-          key: 'status',
-          label: this.$t('transactionlist.status'),
-        },
-        {
-          key: 'amount',
-          label: this.$t('transactionlist.amount'),
-          formatter: (value, key, item) => {
-            return `${value} GDD`
-          },
-        },
-        { key: 'memo', label: this.$t('transactionlist.memo'), class: 'text-break' },
-      ],
-    }
-  },
-  apollo: {
-    AdminListContributions: {
-      query() {
-        return adminListContributions
-      },
-      variables() {
-        return {
-          currentPage: this.currentPage,
-          pageSize: this.perPage,
-          order: 'DESC',
-          userId: parseInt(this.userId),
-        }
-      },
-      update({ adminListContributions }) {
-        this.rows = adminListContributions.contributionCount
-        this.items = adminListContributions.contributionList
-      },
-      error({ message }) {
-        this.toastError(message)
-      },
+
+<script setup>
+import { ref, watch } from 'vue';
+import { useQuery } from '@vue/apollo-composable';
+import { adminListContributions } from '../graphql/adminListContributions';
+import { BTable, BPagination, BButton, BCollapse, vBToggle } from 'bootstrap-vue-next';
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
+const props = defineProps({
+  userId: { type: Number, required: true },
+});
+
+const items = ref([]);
+const rows = ref(0);
+const currentPage = ref(1);
+const perPage = ref(10);
+
+const fields = [
+  {
+    key: 'createdAt',
+    label: t('transactionlist.submitted'),
+    formatter: (value) => {
+      return new Date(value).toLocaleDateString();
     },
   },
-}
-</script>
+  {
+    key: 'contributionDate',
+    label: t('transactionlist.period'),
+  },
+  {
+    key: 'confirmedAt',
+    label: t('transactionlist.confirmed'),
+    formatter: (value) => {
+      return value ? new Date(value).toLocaleDateString() : null;
+    },
+  },
+  {
+    key: 'status',
+    label: t('transactionlist.status'),
+  },
+  {
+    key: 'amount',
+    label: t('transactionlist.amount'),
+    formatter: (value) => {
+      return `${value} GDD`;
+    },
+  },
+  { key: 'memo', label: t('transactionlist.memo'), class: 'text-break' },
+];
+
+const { result, refetch } = useQuery(adminListContributions, {
+  currentPage: currentPage.value,
+  pageSize: perPage.value,
+  order: 'DESC',
+  userId: props.userId,
+});
+
+watch(result, (newResult) => {
+  if (newResult && newResult.adminListContributions) {
+    rows.value = newResult.adminListContributions.contributionCount;
+    items.value = newResult.adminListContributions.contributionList;
+  }
+});
+
+watch(currentPage, () => {
+  refetch();
+});
+</script>s
