@@ -4,11 +4,10 @@ import commonjs from 'vite-plugin-commonjs'
 import Icons from 'unplugin-icons/vite'
 import Components from 'unplugin-vue-components/vite'
 import IconsResolve from 'unplugin-icons/resolver'
-
 const path = require('path')
 
 export default defineConfig({
-  base: '/admin/',
+  base: process.env.NODE_ENV === 'production' ? './' : '/admin',
   server: {
     host: '0.0.0.0',
     port: 8080,
@@ -41,6 +40,7 @@ export default defineConfig({
     commonjs(),
   ],
   build: {
-    outDir: 'build',
+    outDir: path.resolve(__dirname, './build'),
   },
+  publicDir: '/admin',
 })
