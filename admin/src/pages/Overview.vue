@@ -11,6 +11,7 @@
       <BCardText>
         <BLink to="creation-confirm">
           <h1>{{ openCreations }}</h1>
+          <h1>Layout test</h1>
         </BLink>
       </BCardText>
     </BCard>
