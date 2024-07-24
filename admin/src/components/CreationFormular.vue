@@ -37,13 +37,11 @@
             />
           </div>
         </div>
-        <div class="m-4 d-flex">
-          <BCol class="text-left">
+        <div class="buttons-wrapper d-flex justify-content-between">
             <BButton type="reset" variant="danger" @click="onReset()">
               {{ $t('creation_form.reset') }}
             </BButton>
-          </BCol>
-          <div class="text-right">
+          <div >
             <BButton
               v-if="pagetype === 'PageCreationConfirm'"
               type="button"
@@ -182,3 +180,8 @@ watch(
   },
 )
 </script>
+<style scoped>
+.buttons-wrapper{
+  margin: 1.5rem 2.4rem;
+}
+</style>
