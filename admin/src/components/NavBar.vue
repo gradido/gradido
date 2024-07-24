@@ -1,8 +1,12 @@
 <template>
   <div class="component-nabvar">
-    <BNavbar v-b-color-mode="'light'" toggleable="lg" variant="dark">
+    <BNavbar v-b-color-mode="'dark'" toggleable="lg" variant="light-dark">
       <BNavbarBrand class="mb-2" to="/">
-        <img src="/img/brand/gradido_logo_w.png" class="navbar-brand-img pl-2" alt="..." />
+        <img
+          src="../../public/img/brand/gradido_logo_w.png"
+          class="navbar-brand-img pl-2"
+          alt="..."
+        />
       </BNavbarBrand>
 
       <BNavbarToggle target="navbar-toggle-collapse" />
@@ -69,5 +73,11 @@ const handleWallet = () => {
 .navbar-brand-img {
   height: 2rem;
   padding-left: 10px;
+}
+</style>
+
+<style lang="scss">
+.bg-light-dark {
+  background-color: #343a40;
 }
 </style>

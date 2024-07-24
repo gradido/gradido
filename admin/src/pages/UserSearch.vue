@@ -2,7 +2,7 @@
   <div class="user-search">
     <div class="user-search-first-div">
       <BButton class="unconfirmedRegisterMails" variant="light" @click="unconfirmedRegisterMails">
-        <IPhEnvelope style="color: #f5365c" />
+        <IBiEnvelope style="color: #f5365c" />
         {{
           filters.byActivated === null
             ? $t('all_emails')
@@ -12,7 +12,7 @@
         }}
       </BButton>
       <BButton class="deletedUserSearch" variant="light" @click="deletedUserSearch">
-        <IPhXCircle style="color: #f5365c" />
+        <IBiXCircle style="color: #f5365c" />
         {{
           filters.byDeleted === null
             ? $t('all_emails')
@@ -151,5 +151,9 @@ watch(
 <style scoped>
 .user-search-first-div {
   text-align: right;
+}
+img,
+svg {
+  vertical-align: text-bottom;
 }
 </style>

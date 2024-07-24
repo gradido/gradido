@@ -26,6 +26,8 @@ declare module 'vue' {
     EditCreationFormular: typeof import('./src/components/EditCreationFormular.vue')['default']
     FederationVisualizeItem: typeof import('./src/components/Federation/FederationVisualizeItem.vue')['default']
     FigureQrCode: typeof import('./src/components/FigureQrCode.vue')['default']
+    IBiEnvelope: typeof import('~icons/bi/envelope')['default']
+    IBiXCircle: typeof import('~icons/bi/x-circle')['default']
     IIcBaselineClose: typeof import('~icons/ic/baseline-close')['default']
     IOcticonCircleSlash24: typeof import('~icons/octicon/circle-slash24')['default']
     IOcticonPerson24: typeof import('~icons/octicon/person24')['default']
