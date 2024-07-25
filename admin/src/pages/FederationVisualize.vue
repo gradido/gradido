@@ -38,12 +38,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
 import { allCommunities } from '@/graphql/allCommunities'
 import { useAppToast } from '@/composables/useToast'
-
-const communities = ref([])
 
 const { toastError } = useAppToast()
 
@@ -51,8 +49,13 @@ const { result, loading, refetch, error } = useQuery(allCommunities, () => ({}),
   fetchPolicy: 'network-only',
 })
 
-result.value = allCommunities
-if (error) toastError(error.value.message)
+const communities = computed(() => {
+  return result.value?.allCommunities || []
+})
+
+watch(error, () => {
+  if (error.value) toastError(error.value.message)
+})
 
 const animation = computed(() => (loading.value ? 'spin' : ''))
 </script>
