@@ -28,7 +28,14 @@
       </template>
     </BTable>
 
-    <BModal id="qr-link-modal" ref="my-modal" v-model="qrLinkModal" ok-only hide-header-close>
+    <BModal
+      v-if="modalData"
+      id="qr-link-modal"
+      ref="my-modal"
+      v-model="qrLinkModal"
+      ok-only
+      hide-header-close
+    >
       <BCard header-tag="header" footer-tag="footer">
         <template #header>
           <h6 class="mb-0">{{ modalData ? modalData.name : '' }}</h6>

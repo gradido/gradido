@@ -1,32 +1,32 @@
 <template>
   <div class="component-edit-creation-formular">
     <div class="shadow p-3 mb-5 bg-white rounded">
-      <b-form ref="updateCreationForm">
+      <BForm ref="updateCreationForm">
         <div class="ml-4">
           <label>{{ $t('creation_form.select_month') }}</label>
         </div>
-        <b-row class="m-4">
-          <b-form-radio-group
+        <BRow class="m-4">
+          <BFormRadioGroup
             v-model="selected"
             :options="radioOptions"
             value-field="item"
             text-field="name"
             name="month-selection"
             :disabled="true"
-          ></b-form-radio-group>
-        </b-row>
+          ></BFormRadioGroup>
+        </BRow>
         <div class="m-4">
           <label>{{ $t('creation_form.select_value') }}</label>
           <div>
-            <b-input-group prepend="GDD" append=".00">
+            <BInputGroup prepend="GDD" append=".00">
               <b-form-input
                 v-model="value"
                 type="number"
                 :min="rangeMin"
                 :max="rangeMax"
               ></b-form-input>
-            </b-input-group>
-            <b-input-group prepend="0" :append="String(rangeMax)" class="mt-3">
+            </BInputGroup>
+            <BInputGroup prepend="0" :append="String(rangeMax)" class="mt-3">
               <b-form-input
                 v-model="value"
                 type="range"
@@ -34,30 +34,30 @@
                 :max="rangeMax"
                 step="10"
               ></b-form-input>
-            </b-input-group>
+            </BInputGroup>
           </div>
         </div>
         <div class="m-4">
           <label>{{ $t('creation_form.enter_text') }}</label>
           <div>
-            <b-form-textarea
+            <BFormTextarea
               id="textarea-state"
               v-model="text"
               :state="text.length >= 10"
               placeholder="Mindestens 10 Zeichen eingeben"
               rows="3"
-            ></b-form-textarea>
+            ></BFormTextarea>
           </div>
         </div>
-        <b-row class="m-4">
-          <b-col class="text-left">
-            <b-button type="reset" variant="danger" @click="$refs.updateCreationForm.reset()">
+        <BRow class="m-4">
+          <BCol class="text-left">
+            <BButton type="reset" variant="danger" @click="$refs.updateCreationForm.reset()">
               {{ $t('creation_form.reset') }}
-            </b-button>
-          </b-col>
-          <b-col class="text-center">
+            </BButton>
+          </BCol>
+          <BCol class="text-center">
             <div class="text-right">
-              <b-button
+              <BButton
                 type="button"
                 variant="success"
                 class="test-submit"
@@ -65,11 +65,11 @@
                 @click="submitCreation"
               >
                 {{ $t('creation_form.update_creation') }}
-              </b-button>
+              </BButton>
             </div>
-          </b-col>
-        </b-row>
-      </b-form>
+          </BCol>
+        </BRow>
+      </BForm>
     </div>
   </div>
 </template>

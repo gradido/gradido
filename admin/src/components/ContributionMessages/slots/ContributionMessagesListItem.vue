@@ -10,7 +10,7 @@
       <span class="ml-2 mr-2" data-test="moderator-name">
         {{ message.userFirstName }} {{ message.userLastName }}
       </span>
-      <b-avatar square variant="warning"></b-avatar>
+      <BAvatar square variant="warning"></BAvatar>
       <small v-if="isHistory">
         <hr />
         {{ $t('moderator.history') }}
@@ -23,7 +23,7 @@
       </small>
     </div>
     <div v-else class="text-left p-2 rounded-sm mb-3" :class="boxClass">
-      <b-avatar variant="info"></b-avatar>
+      <BAvatar variant="info"></BAvatar>
       <span class="ml-2 mr-2" data-test="user-name">
         {{ message.userFirstName }} {{ message.userLastName }}
       </span>

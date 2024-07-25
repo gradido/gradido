@@ -1,66 +1,66 @@
 <template>
   <div class="contribution-messages-formular">
     <div class="mt-5">
-      <b-form @reset.prevent="onReset" @submit="onSubmit()">
-        <b-form-group>
-          <b-form-checkbox v-model="showResubmissionDate">
+      <BForm @reset.prevent="onReset" @submit="onSubmit()">
+        <BFormGroup>
+          <BFormCheckbox v-model="showResubmissionDate">
             {{ $t('moderator.show-submission-form') }}
-          </b-form-checkbox>
-        </b-form-group>
-        <b-form-group v-if="showResubmissionDate">
-          <b-form-datepicker v-model="resubmissionDate" :min="now"></b-form-datepicker>
+          </BFormCheckbox>
+        </BFormGroup>
+        <BFormGroup v-if="showResubmissionDate">
+          <BFormInput v-model="resubmissionDate" type="date" :min="now"></BFormInput>
           <time-picker v-model="resubmissionTime"></time-picker>
-        </b-form-group>
-        <b-tabs v-model="tabindex" content-class="mt-3" data-test="message-type-tabs">
-          <b-tab active>
+        </BFormGroup>
+        <BTabs v-model="tabindex" content-class="mt-3" data-test="message-type-tabs">
+          <BTab active>
             <template #title>
               <span id="message-tab-title">{{ $t('moderator.message') }}</span>
               <b-tooltip target="message-tab-title" triggers="hover">
                 {{ $t('moderator.message-tooltip') }}
               </b-tooltip>
             </template>
-            <b-form-textarea
+            <BFormTextarea
               id="textarea"
               v-model="form.text"
               :placeholder="$t('contributionLink.memo')"
               rows="3"
-            ></b-form-textarea>
-          </b-tab>
-          <b-tab>
+            ></BFormTextarea>
+          </BTab>
+          <BTab>
             <template #title>
               <span id="notice-tab-title">{{ $t('moderator.notice') }}</span>
-              <b-tooltip target="notice-tab-title" triggers="hover">
+              <BTooltip target="notice-tab-title" triggers="hover">
                 {{ $t('moderator.notice-tooltip') }}
-              </b-tooltip>
+              </BTooltip>
             </template>
-            <b-form-textarea
+            <BFormTextarea
               id="textarea"
               v-model="form.text"
               :placeholder="$t('moderator.notice')"
               rows="3"
-            ></b-form-textarea>
-          </b-tab>
-          <b-tab>
+            ></BFormTextarea>
+          </BTab>
+          <BTab>
             <template #title>
               <span id="memo-tab-title">{{ $t('moderator.memo') }}</span>
-              <b-tooltip target="memo-tab-title" triggers="hover">
+              <BTooltip target="memo-tab-title" triggers="hover">
                 {{ $t('moderator.memo-tooltip') }}
-              </b-tooltip>
+              </BTooltip>
             </template>
-            <b-form-textarea
+            <BFormTextarea
               id="textarea"
               v-model="form.memo"
               :placeholder="$t('contributionLink.memo')"
               rows="3"
-            ></b-form-textarea>
-          </b-tab>
-        </b-tabs>
-        <b-row class="mt-4 mb-6">
-          <b-col>
-            <b-button type="reset" variant="danger">{{ $t('form.cancel') }}</b-button>
-          </b-col>
-          <b-col class="text-right">
-            <b-button
+            ></BFormTextarea>
+          </BTab>
+        </BTabs>
+        <BRow class="mt-4 mb-6">
+          <BCol>
+            <BButton type="reset" variant="danger">{{ $t('form.cancel') }}</BButton>
+          </BCol>
+          <BCol class="text-right">
+            <BButton
               type="submit"
               variant="primary"
               :disabled="disabled"
@@ -68,10 +68,10 @@
               @click.prevent="onSubmit()"
             >
               {{ $t('save') }}
-            </b-button>
-          </b-col>
-        </b-row>
-      </b-form>
+            </BButton>
+          </BCol>
+        </BRow>
+      </BForm>
     </div>
   </div>
 </template>
