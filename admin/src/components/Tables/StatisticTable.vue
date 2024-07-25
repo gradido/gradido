@@ -15,7 +15,7 @@
             <b>{{ $t('statistic.totalUsers') }}</b>
           </BTd>
           <BTd class="text-right">
-            {{ props.modelValue.totalUsers }}
+            {{ props.statistics.totalUsers }}
           </BTd>
           <BTd></BTd>
         </BTr>
@@ -24,7 +24,7 @@
             <b>{{ $t('statistic.activeUsers') }}</b>
           </BTd>
           <BTd class="text-right">
-            {{ props.modelValue.activeUsers }}
+            {{ props.statistics.activeUsers }}
           </BTd>
           <BTd></BTd>
         </BTr>
@@ -33,7 +33,7 @@
             <b>{{ $t('statistic.deletedUsers') }}</b>
           </BTd>
           <BTd class="text-right">
-            {{ props.modelValue.deletedUsers }}
+            {{ props.statistics.deletedUsers }}
           </BTd>
           <BTd></BTd>
         </BTr>
@@ -42,11 +42,11 @@
             <b>{{ $t('statistic.totalGradidoCreated') }}</b>
           </BTd>
           <BTd class="text-right">
-            <!--            {{ $n(props.modelValue.totalGradidoCreated, 'decimal') }} {{ $t('GDD') }}-->
+            <!--            {{ $n(props.statistics.totalGradidoCreated, 'decimal') }} {{ $t('GDD') }}-->
             4500
           </BTd>
           <BTd class="text-right">
-            {{ props.modelValue.totalGradidoCreated }}
+            {{ props.statistics.totalGradidoCreated }}
           </BTd>
         </BTr>
         <BTr>
@@ -54,21 +54,19 @@
             <b>{{ $t('statistic.totalGradidoDecayed') }}</b>
           </BTd>
           <BTd class="text-right">
-            <!--            {{ $n(props.modelValue.totalGradidoDecayed, 'decimal') }} {{ $t('GDD') }}-->
-            100
+            {{ $n(parseFloat(props.statistics.totalGradidoDecayed), 'decimal') }} {{ $t('GDD') }}
           </BTd>
-          <BTd class="text-right">{{ props.modelValue.totalGradidoDecayed }}</BTd>
+          <BTd class="text-right">{{ props.statistics.totalGradidoDecayed }}</BTd>
         </BTr>
         <BTr>
           <BTd>
             <b>{{ $t('statistic.totalGradidoAvailable') }}</b>
           </BTd>
           <BTd class="text-right">
-            <!--            {{ $n(props.modelValue.totalGradidoAvailable, 'decimal') }} {{ $t('GDD') }}-->
-            500
+            {{ $n(parseFloat(props.statistics.totalGradidoAvailable), 'decimal') }} {{ $t('GDD') }}
           </BTd>
           <BTd class="text-right">
-            {{ props.modelValue.totalGradidoAvailable }}
+            {{ props.statistics.totalGradidoAvailable }}
           </BTd>
         </BTr>
         <BTr>
@@ -76,12 +74,10 @@
             <b>{{ $t('statistic.totalGradidoUnbookedDecayed') }}</b>
           </BTd>
           <BTd class="text-right">
-            <!--            {{ $n(props.modelValue.totalGradidoUnbookedDecayed, 'decimal') }} {{ $t('GDD') }}-->
-            600
+            {{ $n(parseFloat(props.statistics.totalGradidoUnbookedDecayed), 'decimal') }}
+            {{ $t('GDD') }}
           </BTd>
-          <BTd class="text-right">
-            {{ props.modelValue.totalGradidoUnbookedDecayed }}
-          </BTd>
+          <BTd class="text-right"> {{ props.statistics.totalGradidoUnbookedDecayed }} </BTd>
         </BTr>
       </BTbody>
     </BTableSimple>
@@ -89,10 +85,9 @@
 </template>
 <script setup>
 import { defineProps } from 'vue'
-import { BTableSimple, BThead, BTr, BTh, BTbody, BTd } from 'bootstrap-vue-next'
 
 const props = defineProps({
-  modelValue: {
+  statistics: {
     type: Object,
     required: true,
   },

@@ -13,41 +13,46 @@
       </span>
     </p>
     <div>
-      <b-tabs v-model="tabIndex" content-class="mt-3" fill>
-        <b-tab active :title-link-attributes="{ 'data-test': 'open' }">
+      <BTabs v-model="tabIndex" content-class="mt-3" fill>
+        <BTab active :title-link-attributes="{ 'data-test': 'open' }">
           <template #title>
-            <b-icon icon="bell-fill" variant="primary"></b-icon>
+            <IBiBellFill />
+            <!--            <b-icon icon="bell-fill" variant="primary"></b-icon>-->
             {{ $t('contributions.open') }}
-            <b-badge v-if="$store.state.openCreations > 0" variant="danger">
+            <BBadge v-if="$store.state.openCreations > 0" variant="danger">
               {{ $store.state.openCreations }}
-            </b-badge>
+            </BBadge>
           </template>
-        </b-tab>
-        <b-tab :title-link-attributes="{ 'data-test': 'confirmed' }">
+        </BTab>
+        <BTab :title-link-attributes="{ 'data-test': 'confirmed' }">
           <template #title>
-            <b-icon icon="check" variant="success"></b-icon>
+            <IBiCheck />
+            <!--            <b-icon icon="check" variant="success"></b-icon>-->
             {{ $t('contributions.confirms') }}
           </template>
-        </b-tab>
-        <b-tab :title-link-attributes="{ 'data-test': 'denied' }">
+        </BTab>
+        <BTab :title-link-attributes="{ 'data-test': 'denied' }">
           <template #title>
-            <b-icon icon="x-circle" variant="warning"></b-icon>
+            <IBiXCircle />
+            <!--            <b-icon icon="x-circle" variant="warning"></b-icon>-->
             {{ $t('contributions.denied') }}
           </template>
-        </b-tab>
-        <b-tab :title-link-attributes="{ 'data-test': 'deleted' }">
+        </BTab>
+        <BTab :title-link-attributes="{ 'data-test': 'deleted' }">
           <template #title>
-            <b-icon icon="trash" variant="danger"></b-icon>
+            <IBiTrash />
+            <!--            <b-icon icon="trash" variant="danger"></b-icon>-->
             {{ $t('contributions.deleted') }}
           </template>
-        </b-tab>
-        <b-tab :title-link-attributes="{ 'data-test': 'all' }">
+        </BTab>
+        <BTab :title-link-attributes="{ 'data-test': 'all' }">
           <template #title>
-            <b-icon icon="list"></b-icon>
+            <IBiList />
+            <!--            <b-icon icon="list"></b-icon>-->
             {{ $t('contributions.all') }}
           </template>
-        </b-tab>
-      </b-tabs>
+        </BTab>
+      </BTabs>
     </div>
     <open-creations-table
       class="mt-4"
@@ -60,7 +65,7 @@
       @update-contributions="$apollo.queries.ListAllContributions.refetch()"
     />
 
-    <b-pagination
+    <BPagination
       v-model="currentPage"
       pills
       size="lg"
@@ -68,7 +73,7 @@
       :total-rows="rows"
       align="center"
       :hide-ellipsis="true"
-    ></b-pagination>
+    />
 
     <div v-if="overlay" id="overlay" @dblclick="overlay = false">
       <overlay :item="item" @overlay-cancel="overlay = false">
