@@ -18,11 +18,11 @@ const { result, error, refetch } = useQuery(listContributionLinks, null, {
 })
 
 const items = computed(() => {
-  return result.value?.listContributionLinks?.links
+  return result.value?.listContributionLinks?.links || []
 })
 
 const count = computed(() => {
-  return result.value?.listContributionLinks?.count
+  return result.value?.listContributionLinks?.count || 0
 })
 
 watch(error, () => {

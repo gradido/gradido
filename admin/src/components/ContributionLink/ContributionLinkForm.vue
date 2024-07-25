@@ -81,7 +81,7 @@
           <BFormSelect
             v-model="form.maxPerCycle"
             :options="maxPerCycle"
-            :disabled="disabled"
+            disabled
             class="mb-3"
             size="lg"
           ></BFormSelect>

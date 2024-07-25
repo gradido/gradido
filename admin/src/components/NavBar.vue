@@ -13,20 +13,28 @@
 
       <BCollapse id="nav-collapse" is-nav>
         <BNavbarNav>
-          <BNavItem to="/user">{{ $t('navbar.user_search') }}</BNavItem>
-          <BNavItem class="bg-color-creation" to="/creation-confirm">
+          <BNavItem :active="isActive('user')" to="/user">
+            {{ $t('navbar.user_search') }}
+          </BNavItem>
+          <BNavItem
+            :active="isActive('creation-confirm')"
+            class="bg-color-creation"
+            to="/creation-confirm"
+          >
             {{ $t('creation') }}
             <BBadge v-show="openCreations > 0" variant="danger">
               {{ openCreations.value }}
             </BBadge>
           </BNavItem>
-          <BNavItem to="/contribution-links">
+          <BNavItem to="/contribution-links" :active="isActive('contribution-links')">
             {{ $t('navbar.automaticContributions') }}
           </BNavItem>
-          <BNavItem to="/federation">
+          <BNavItem to="/federation" :active="isActive('federation')">
             {{ $t('navbar.instances') }}
           </BNavItem>
-          <BNavItem to="/statistic">{{ $t('navbar.statistic') }}</BNavItem>
+          <BNavItem to="/statistic" :active="isActive('statistic')">
+            {{ $t('navbar.statistic') }}
+          </BNavItem>
           <BNavItem @click="handleWallet">{{ $t('navbar.my-account') }}</BNavItem>
           <BNavItem @click="handleLogout">{{ $t('navbar.logout') }}</BNavItem>
         </BNavbarNav>
@@ -50,8 +58,10 @@ import {
   BNavbarToggle,
   vBColorMode,
 } from 'bootstrap-vue-next'
+import { useRoute } from 'vue-router'
 
 const store = useStore()
+const route = useRoute()
 
 const openCreations = computed(() => store.state.openCreations)
 
@@ -60,13 +70,17 @@ const { mutate: executeLogout } = useMutation(logout)
 const handleLogout = async () => {
   window.location.assign(CONFIG.WALLET_LOGIN_URL)
   // window.location = CONFIG.WALLET_LOGIN_URL
-  store.dispatch('logout')
+  await store.dispatch('logout')
   await executeLogout()
 }
 
 const handleWallet = () => {
   window.location = CONFIG.WALLET_AUTH_URL.replace('{token}', store.state.token)
   store.dispatch('logout') // logout without redirect
+}
+
+const isActive = (tabRoute) => {
+  return tabRoute === route.name
 }
 </script>
 <style lang="scss" scoped>

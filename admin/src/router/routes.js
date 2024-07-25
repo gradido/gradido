@@ -8,6 +8,7 @@ const routes = [
   },
   {
     path: '/statistic',
+    name: 'statistic',
     component: () => import('@/pages/CommunityStatistic.vue'),
   },
   {
@@ -17,18 +18,22 @@ const routes = [
   },
   {
     path: '/user',
+    name: 'user',
     component: () => import('@/pages/UserSearch.vue'),
   },
   {
     path: '/creation-confirm',
+    name: 'creation-confirm',
     component: () => import('@/pages/CreationConfirm.vue'),
   },
   {
     path: '/contribution-links',
+    name: 'contribution-links',
     component: () => import('@/pages/ContributionLinks.vue'),
   },
   {
     path: '/federation',
+    name: 'federation',
     component: () => import('@/pages/FederationVisualize.vue'),
   },
   {

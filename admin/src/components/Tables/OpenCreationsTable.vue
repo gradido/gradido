@@ -1,6 +1,6 @@
 <template>
   <div class="open-creations-table">
-    <b-table-lite
+    <BTableLite
       :items="items"
       :fields="fields"
       caption-top
@@ -10,18 +10,22 @@
       :tbody-tr-class="rowClass"
     >
       <template #cell(status)="row">
-        <b-icon :icon="getStatusIcon(row.item.status)"></b-icon>
+        <IBiQuestionSquare v-if="row.item.status === 'IN_PROGRESS'" />
+        <IBiBellFill v-else-if="row.item.status === 'PENDING'" />
+        <IBiCheck v-else-if="row.item.status === 'CONFIRMED'" />
+        <IBiXCircle v-else-if="row.item.status === 'DENIED'" />
+        <IBiTrash v-else-if="row.item.status === 'DELETED'" />
       </template>
       <template #cell(bookmark)="row">
         <div v-if="!myself(row.item)">
-          <b-button
+          <BButton
             variant="danger"
             size="md"
             class="mr-2"
             @click="$emit('show-overlay', row.item, 'delete')"
           >
-            <b-icon icon="trash" variant="light"></b-icon>
-          </b-button>
+            <IBiTrash />
+          </BButton>
         </div>
       </template>
       <template #cell(memo)="row">
@@ -33,7 +37,7 @@
       </template>
       <template #cell(editCreation)="row">
         <div v-if="!myself(row.item)">
-          <b-button
+          <BButton
             v-if="row.item.moderatorId"
             variant="info"
             size="md"
@@ -41,51 +45,51 @@
             class="mr-2"
             @click="rowToggleDetails(row, 0)"
           >
-            <b-icon :icon="row.detailsShowing ? 'x' : 'pencil-square'" aria-label="Help"></b-icon>
-          </b-button>
-          <b-button v-else @click="rowToggleDetails(row, 0)">
-            <b-icon icon="chat-dots"></b-icon>
-            <b-icon
+            <IBiX v-if="row.detailsShowing" />
+            <IBiPencilSquare v-else />
+          </BButton>
+          <BButton v-else @click="rowToggleDetails(row, 0)">
+            <IBiChatDots />
+            <IBiExclamationCircleFill
               v-if="row.item.status === 'PENDING' && row.item.messagesCount > 0"
-              icon="exclamation-circle-fill"
-              variant="warning"
-            ></b-icon>
-            <b-icon
+              style="color: #ffc107"
+            />
+            <IBiQuestionDiamond
               v-if="row.item.status === 'IN_PROGRESS' && row.item.messagesCount > 0"
-              icon="question-diamond"
               variant="warning"
+              style="color: #ffc107"
               class="pl-1"
-            ></b-icon>
-          </b-button>
+            />
+          </BButton>
         </div>
       </template>
       <template #cell(chatCreation)="row">
-        <b-button v-if="row.item.messagesCount > 0" @click="rowToggleDetails(row, 0)">
-          <b-icon icon="chat-dots"></b-icon>
-        </b-button>
+        <BButton v-if="row.item.messagesCount > 0" @click="rowToggleDetails(row, 0)">
+          <IBiChatDots />
+        </BButton>
       </template>
       <template #cell(deny)="row">
         <div v-if="!myself(row.item)">
-          <b-button
+          <BButton
             variant="warning"
             size="md"
             class="mr-2"
             @click="$emit('show-overlay', row.item, 'deny')"
           >
-            <b-icon icon="x" variant="light"></b-icon>
-          </b-button>
+            <IBiX />
+          </BButton>
         </div>
       </template>
       <template #cell(confirm)="row">
         <div v-if="!myself(row.item)">
-          <b-button
+          <BButton
             variant="success"
             size="md"
             class="mr-2"
             @click="$emit('show-overlay', row.item, 'confirm')"
           >
-            <b-icon icon="check" scale="2" variant=""></b-icon>
-          </b-button>
+            <IBiCheck />
+          </BButton>
         </div>
       </template>
       <template #row-details="row">
@@ -122,7 +126,7 @@
           </template>
         </row-details>
       </template>
-    </b-table-lite>
+    </BTableLite>
   </div>
 </template>
 
