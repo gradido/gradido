@@ -4,6 +4,7 @@ import commonjs from 'vite-plugin-commonjs'
 import Icons from 'unplugin-icons/vite'
 import Components from 'unplugin-vue-components/vite'
 import IconsResolve from 'unplugin-icons/resolver'
+import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 
 const path = require('path')
 
@@ -32,7 +33,7 @@ export default defineConfig({
       },
     }),
     Components({
-      resolvers: [IconsResolve()],
+      resolvers: [IconsResolve(), BootstrapVueNextResolver()],
       dts: true,
     }),
     Icons({

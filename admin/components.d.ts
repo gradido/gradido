@@ -7,6 +7,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BModal: typeof import('bootstrap-vue-next')['BModal']
     ChangeUserRoleFormular: typeof import('./src/components/ChangeUserRoleFormular.vue')['default']
     CommunityVisualizeItem: typeof import('./src/components/Federation/CommunityVisualizeItem.vue')['default']
     ConfirmRegisterMailFormular: typeof import('./src/components/ConfirmRegisterMailFormular.vue')['default']
