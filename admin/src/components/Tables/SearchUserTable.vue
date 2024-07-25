@@ -93,9 +93,17 @@
             </BTab>
             <BTab v-if="store.state.moderator.roles.includes('ADMIN')" :title="$t('delete_user')">
               <deleted-user-formular
+                v-if="!row.item.deletedAt"
+                ref="deletedUserForm"
                 :item="row.item"
                 @update-deleted-at="updateDeletedAt"
                 @show-delete-modal="showDeleteModal"
+              />
+              <deleted-user-formular
+                v-else
+                ref="undeletedUserForm"
+                :item="row.item"
+                @show-undelete-modal="showUndeleteModal"
               />
             </BTab>
           </BTabs>
@@ -106,15 +114,7 @@
 </template>
 <script setup>
 import { ref, nextTick, onMounted, watch, computed } from 'vue'
-import {
-  BTable,
-  BAvatar,
-  BTab,
-  BTabs,
-  BCard,
-  useModal,
-  useModalController,
-} from 'bootstrap-vue-next'
+import { BTable, BAvatar, BTab, BTabs, BCard, useModalController } from 'bootstrap-vue-next'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
@@ -124,6 +124,8 @@ import CreationTransactionList from '../CreationTransactionList.vue'
 import TransactionLinkList from '../TransactionLinkList.vue'
 import ChangeUserRoleFormular from '../ChangeUserRoleFormular.vue'
 
+const { t } = useI18n()
+const { confirm } = useModalController()
 const store = useStore()
 const { toastError } = useAppToast()
 
@@ -138,18 +140,21 @@ const props = defineProps({
   },
 })
 
-const { t } = useI18n()
 const rolesValues = {
   ADMIN: 'ADMIN',
   MODERATOR: 'MODERATOR',
   USER: 'USER',
 }
-const { confirm } = useModalController()
-const modal = useModal()
+
 const userChangeForm = ref()
+const deletedUserForm = ref()
+const undeletedUserForm = ref()
+const myItems = ref()
+const creationUserData = ref({})
+const rowDetails = ref()
 
 const showModal = async () => {
-  const value = await confirm?.({
+  await confirm?.({
     props: {
       cancelTitle: t('overlay.cancel'),
       centered: true,
@@ -179,19 +184,56 @@ const showModal = async () => {
     .catch((error) => {
       toastError(error.message)
     })
-
-  modal.show?.({ props: { title: `Promise resolved to ${value}`, variant: 'info' } })
 }
 
 const showDeleteModal = async () => {
-  const value = await confirm?.({ props: { title: 'Hello World! ' } })
-
-  modal.show?.({ props: { title: `Promise resolved to ${value}`, variant: 'info' } })
+  await confirm?.({
+    props: {
+      cancelTitle: t('overlay.cancel'),
+      centered: true,
+      hideHeaderClose: true,
+      title: t('overlay.deleteUser.title'),
+      okTitle: t('overlay.deleteUser.yes'),
+      okVariant: 'danger',
+      static: true,
+      body: t('overlay.deleteUser.question', {
+        username: `${selectedRow.value.firstName} ${selectedRow.value.lastName}`,
+      }),
+    },
+  })
+    .then((ok) => {
+      if (ok) {
+        deletedUserForm.value.deleteUserMutation()
+      }
+    })
+    .catch((error) => {
+      toastError(error.message)
+    })
 }
 
-const myItems = ref()
-const creationUserData = ref({})
-const rowDetails = ref()
+const showUndeleteModal = async () => {
+  await confirm?.({
+    props: {
+      cancelTitle: t('overlay.cancel'),
+      centered: true,
+      hideHeaderClose: true,
+      title: t('overlay.undeleteUser.title'),
+      okTitle: t('overlay.undeleteUser.yes'),
+      okVariant: 'success',
+      body: t('overlay.undeleteUser.question', {
+        username: `${selectedRow.value.firstName} ${selectedRow.value.lastName}`,
+      }),
+    },
+  })
+    .then((ok) => {
+      if (ok) {
+        undeletedUserForm.value.undeleteUserMutation()
+      }
+    })
+    .catch((error) => {
+      toastError(error.message)
+    })
+}
 
 const updateUserData = (rowItem, newCreation) => {
   rowItem.creation = newCreation
