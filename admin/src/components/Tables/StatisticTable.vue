@@ -77,7 +77,7 @@
             {{ $n(parseFloat(props.statistics.totalGradidoUnbookedDecayed), 'decimal') }}
             {{ $t('GDD') }}
           </BTd>
-          <BTd class="text-right"> {{ props.statistics.totalGradidoUnbookedDecayed }} </BTd>
+          <BTd class="text-right">{{ props.statistics.totalGradidoUnbookedDecayed }}</BTd>
         </BTr>
       </BTbody>
     </BTableSimple>
