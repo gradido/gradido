@@ -490,8 +490,6 @@ const FILTER_TAB_MAP = [
   ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
 ]
 
-const currP = ref(1)
-
 const store = useStore()
 const { t, d } = useI18n()
 const { toastError, toastSuccess } = useAppToast()

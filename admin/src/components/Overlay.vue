@@ -64,8 +64,5 @@ export default {
     item: { type: Object, required: true },
   },
   emits: ['overlay-cancel'],
-  mounted() {
-    console.log('????')
-  },
 }
 </script>
