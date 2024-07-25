@@ -51,6 +51,7 @@ import SearchUserTable from '../components/Tables/SearchUserTable'
 import UserQuery from '../components/UserQuery'
 import { BPagination, BButton } from 'bootstrap-vue-next'
 import { useI18n } from 'vue-i18n'
+import { useAppToast } from '@/composables/useToast'
 
 const { t } = useI18n()
 
@@ -66,6 +67,7 @@ const perPage = ref(25)
 const response = ref()
 
 const { creationLabel } = useCreationMonths()
+const { toastSuccess } = useAppToast()
 
 const { result, refetch } = useQuery(searchUsers, {
   query: criteria.value,
@@ -90,7 +92,7 @@ const updateRoles = (userId, roles) => {
 
 const updateDeletedAt = (userId, deletedAt) => {
   searchResult.value.find((obj) => obj.userId === userId).deletedAt = deletedAt
-  // toastSuccess(deletedAt ? $t('user_deleted') : $t('user_recovered'))
+  toastSuccess(deletedAt ? t('user_deleted') : t('user_recovered'))
 }
 
 const unconfirmedRegisterMails = () => {
@@ -152,6 +154,7 @@ watch(
 .user-search-first-div {
   text-align: right;
 }
+
 img,
 svg {
   vertical-align: text-bottom;

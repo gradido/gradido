@@ -42,6 +42,7 @@ export default defineConfig({
     commonjs(),
   ],
   build: {
-    outDir: 'build',
+    outDir: path.resolve(__dirname, './build'),
   },
+  publicDir: '/admin',
 })

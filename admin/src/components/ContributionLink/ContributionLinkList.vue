@@ -1,47 +1,47 @@
 <template>
   <div class="contribution-link-list">
-    <b-table :items="items" :fields="fields" striped hover stacked="lg">
+    <BTable :items="items" :fields="fields" striped hover stacked="lg">
       <template #cell(delete)="data">
-        <b-button
+        <BButton
           variant="danger"
           size="md"
           class="mr-2 test-delete-link"
           @click="deleteContributionLink(data.item.id, data.item.name)"
         >
-          <b-icon icon="trash" variant="light"></b-icon>
-        </b-button>
+          <IBiTrash />
+        </BButton>
       </template>
       <template #cell(edit)="data">
-        <b-button variant="success" size="md" class="mr-2" @click="editContributionLink(data.item)">
-          <b-icon icon="pencil" variant="light"></b-icon>
-        </b-button>
+        <BButton variant="success" size="md" class="mr-2" @click="editContributionLink(data.item)">
+          <IBiPencil />
+        </BButton>
       </template>
       <template #cell(show)="data">
-        <b-button
+        <BButton
           variant="info"
           size="md"
           class="mr-2 test-show"
           @click="showContributionLink(data.item)"
         >
-          <b-icon icon="eye" variant="light"></b-icon>
-        </b-button>
+          <IBiEye />
+        </BButton>
       </template>
-    </b-table>
+    </BTable>
 
-    <b-modal ref="my-modal" ok-only hide-header-close>
-      <b-card header-tag="header" footer-tag="footer">
+    <BModal ref="my-modal" ok-only hide-header-close>
+      <BCard header-tag="header" footer-tag="footer">
         <template #header>
           <h6 class="mb-0">{{ modalData ? modalData.name : '' }}</h6>
         </template>
-        <b-card-text>
+        <BCardText>
           {{ modalData.memo ? modalData.memo : '' }}
           <figure-qr-code :link="modalData ? modalData.link : ''" />
-        </b-card-text>
+        </BCardText>
         <template #footer>
           <em>{{ modalData ? modalData.link : '' }}</em>
         </template>
-      </b-card>
-    </b-modal>
+      </BCard>
+    </BModal>
   </div>
 </template>
 <script>

@@ -1,6 +1,6 @@
 <template>
   <div class="contribution-link">
-    <b-card
+    <BCard
       border-variant="success"
       :header="$t('contributionLink.contributionLinks')"
       header-bg-variant="success"
@@ -8,17 +8,17 @@
       header-class="text-center"
       class="mt-5"
     >
-      <b-button
+      <BButton
         v-if="!editContributionLink"
         class="my-3 d-flex justify-content-left"
         data-test="new-contribution-link-button"
         @click="visible = !visible"
       >
         {{ $t('math.plus') }} {{ $t('contributionLink.newContributionLink') }}
-      </b-button>
+      </BButton>
 
-      <b-collapse id="newContribution" v-model="visible" class="mt-2">
-        <b-card>
+      <BCollapse id="newContribution" v-model="visible" class="mt-2">
+        <BCard>
           <p class="h2 ml-5">{{ $t('contributionLink.contributionLinks') }}</p>
           <contribution-link-form
             :contribution-link-data="contributionLinkData"
@@ -26,10 +26,10 @@
             @get-contribution-links="$emit('get-contribution-links')"
             @close-contribution-form="closeContributionForm"
           />
-        </b-card>
-      </b-collapse>
+        </BCard>
+      </BCollapse>
 
-      <b-card-text>
+      <BCardText>
         <contribution-link-list
           v-if="count > 0"
           :items="items"
@@ -38,10 +38,61 @@
           @close-contribution-form="closeContributionForm"
         />
         <div v-else>{{ $t('contributionLink.noContributionLinks') }}</div>
-      </b-card-text>
-    </b-card>
+      </BCardText>
+    </BCard>
   </div>
 </template>
+
+<!--<script setup>-->
+<!--import { ref, watchEffect } from 'vue'-->
+<!--import { useEmit } from '@vueuse/core'-->
+<!--import ContributionLinkForm from '../ContributionLink/ContributionLinkForm'-->
+<!--import ContributionLinkList from '../ContributionLink/ContributionLinkList'-->
+<!--import { useToggle } from 'vueuse'-->
+
+<!--// extracting props-->
+<!--const props = defineProps({-->
+<!--  items: {-->
+<!--    type: Array,-->
+<!--    required: true,-->
+<!--  },-->
+<!--  count: {-->
+<!--    type: Number,-->
+<!--    required: true,-->
+<!--  },-->
+<!--})-->
+
+<!--// extracting emits-->
+<!--const emit = useEmit()-->
+
+<!--// setting up refs-->
+<!--const visible = ref(false)-->
+<!--const contributionLinkData = ref({})-->
+<!--const editContributionLink = ref(false)-->
+
+<!--// setting up methods-->
+<!--const closeContributionForm = () => {-->
+<!--  if (visible.value) {-->
+<!--    emit('bv::toggle::collapse', 'newContribution')-->
+<!--    editContributionLink.value = false-->
+<!--    contributionLinkData.value = {}-->
+<!--  }-->
+<!--}-->
+
+<!--const editContributionLinkData = (data) => {-->
+<!--  if (!visible.value) {-->
+<!--    emit('bv::toggle::collapse', 'newContribution')-->
+<!--  }-->
+<!--  contributionLinkData.value = data-->
+<!--  editContributionLink.value = true-->
+<!--}-->
+
+<!--defineExpose({-->
+<!--  closeContributionForm,-->
+<!--  editContributionLinkData,-->
+<!--})-->
+<!--</script>-->
+
 <script>
 import ContributionLinkForm from '../ContributionLink/ContributionLinkForm'
 import ContributionLinkList from '../ContributionLink/ContributionLinkList'
@@ -73,14 +124,14 @@ export default {
   methods: {
     closeContributionForm() {
       if (this.visible) {
-        this.$root.$emit('bv::toggle::collapse', 'newContribution')
+        this.visible = false
         this.editContributionLink = false
         this.contributionLinkData = {}
       }
     },
     editContributionLinkData(data) {
       if (!this.visible) {
-        this.$root.$emit('bv::toggle::collapse', 'newContribution')
+        this.visible = true
       }
       this.contributionLinkData = data
       this.editContributionLink = true

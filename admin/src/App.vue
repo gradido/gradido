@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <BToastOrchestrator />
     <default-layout v-if="$store.state.token" />
     <router-view v-else></router-view>
     <BModalOrchestrator />
@@ -14,7 +15,8 @@ import { BModalOrchestrator } from 'bootstrap-vue-next'
 .pointer {
   cursor: pointer;
 }
+
 .pointer:hover {
-  background-color: rgb(216, 213, 213);
+  background-color: rgb(216 213 213);
 }
 </style>

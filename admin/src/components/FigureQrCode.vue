@@ -45,12 +45,13 @@ export default {
 <style scoped>
 .qrbox {
   padding: 20px;
-  background-color: rgb(255, 255, 255);
+  background-color: rgb(255 255 255);
 }
+
 .canvas {
   width: 90%;
   max-width: 300px;
   padding: 5px;
-  background-color: rgb(255, 255, 255);
+  background-color: rgb(255 255 255);
 }
 </style>

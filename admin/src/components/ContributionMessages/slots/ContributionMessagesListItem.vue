@@ -82,20 +82,25 @@ export default {
   float: right;
   width: 75%;
 }
+
 .is-moderator-message {
-  background-color: rgb(228, 237, 245);
+  background-color: rgb(228 237 245);
 }
+
 .is-moderator-hidden-message {
-  background-color: rgb(217, 161, 228);
+  background-color: rgb(217 161 228);
 }
+
 .is-user {
   clear: both;
   width: 75%;
 }
+
 .is-user-message {
-  background-color: rgb(236, 235, 213);
+  background-color: rgb(236 235 213);
 }
+
 .is-user-history-message {
-  background-color: rgb(235, 226, 57);
+  background-color: rgb(235 226 57);
 }
 </style>

@@ -214,6 +214,8 @@ echo 'Updating admin' >> $UPDATE_HTML
 cd $PROJECT_ROOT/admin
 # TODO maybe handle this differently?
 unset NODE_ENV
+nvm use
+npm i -g yarn
 yarn install
 yarn build
 # TODO maybe handle this differently?
