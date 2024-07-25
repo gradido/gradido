@@ -43,56 +43,6 @@
   </div>
 </template>
 
-<!--<script setup>-->
-<!--import { ref, watchEffect } from 'vue'-->
-<!--import { useEmit } from '@vueuse/core'-->
-<!--import ContributionLinkForm from '../ContributionLink/ContributionLinkForm'-->
-<!--import ContributionLinkList from '../ContributionLink/ContributionLinkList'-->
-<!--import { useToggle } from 'vueuse'-->
-
-<!--// extracting props-->
-<!--const props = defineProps({-->
-<!--  items: {-->
-<!--    type: Array,-->
-<!--    required: true,-->
-<!--  },-->
-<!--  count: {-->
-<!--    type: Number,-->
-<!--    required: true,-->
-<!--  },-->
-<!--})-->
-
-<!--// extracting emits-->
-<!--const emit = useEmit()-->
-
-<!--// setting up refs-->
-<!--const visible = ref(false)-->
-<!--const contributionLinkData = ref({})-->
-<!--const editContributionLink = ref(false)-->
-
-<!--// setting up methods-->
-<!--const closeContributionForm = () => {-->
-<!--  if (visible.value) {-->
-<!--    emit('bv::toggle::collapse', 'newContribution')-->
-<!--    editContributionLink.value = false-->
-<!--    contributionLinkData.value = {}-->
-<!--  }-->
-<!--}-->
-
-<!--const editContributionLinkData = (data) => {-->
-<!--  if (!visible.value) {-->
-<!--    emit('bv::toggle::collapse', 'newContribution')-->
-<!--  }-->
-<!--  contributionLinkData.value = data-->
-<!--  editContributionLink.value = true-->
-<!--}-->
-
-<!--defineExpose({-->
-<!--  closeContributionForm,-->
-<!--  editContributionLinkData,-->
-<!--})-->
-<!--</script>-->
-
 <script>
 import ContributionLinkForm from '../ContributionLink/ContributionLinkForm'
 import ContributionLinkList from '../ContributionLink/ContributionLinkList'

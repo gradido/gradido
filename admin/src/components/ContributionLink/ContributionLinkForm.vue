@@ -116,102 +116,6 @@
     </BForm>
   </div>
 </template>
-<!--<script>-->
-<!--import { createContributionLink } from '@/graphql/createContributionLink.js'-->
-<!--import { updateContributionLink } from '@/graphql/updateContributionLink.js'-->
-
-<!--export default {-->
-<!--  name: 'ContributionLinkForm',-->
-<!--  props: {-->
-<!--    contributionLinkData: {-->
-<!--      type: Object,-->
-<!--      default() {-->
-<!--        return {}-->
-<!--      },-->
-<!--    },-->
-<!--    editContributionLink: { type: Boolean, required: true },-->
-<!--  },-->
-<!--  emits: ['close-contribution-form', 'close-contribution-link', 'get-contribution-links'],-->
-<!--  data() {-->
-<!--    return {-->
-<!--      form: {-->
-<!--        name: null,-->
-<!--        memo: null,-->
-<!--        amount: null,-->
-<!--        validFrom: null,-->
-<!--        validTo: null,-->
-<!--        cycle: 'ONCE',-->
-<!--        maxPerCycle: 1,-->
-<!--        maxAmountPerMonth: '0',-->
-<!--      },-->
-<!--      min: new Date(),-->
-<!--      cycle: [-->
-<!--        { value: 'ONCE', text: this.$t('contributionLink.options.cycle.once') },-->
-<!--        //        { value: 'hourly', text: this.$t('contributionLink.options.cycle.hourly') },-->
-<!--        { value: 'DAILY', text: this.$t('contributionLink.options.cycle.daily') },-->
-<!--        //        { value: 'weekly', text: this.$t('contributionLink.options.cycle.weekly') },-->
-<!--        //        { value: 'monthly', text: this.$t('contributionLink.options.cycle.monthly') },-->
-<!--        //        { value: 'yearly', text: this.$t('contributionLink.options.cycle.yearly') },-->
-<!--      ],-->
-<!--      maxPerCycle: [-->
-<!--        { value: '1', text: '1 x' },-->
-<!--        //        { value: '2', text: '2 x' },-->
-<!--        //        { value: '3', text: '3 x' },-->
-<!--        //        { value: '4', text: '4 x' },-->
-<!--        //        { value: '5', text: '5 x' },-->
-<!--      ],-->
-<!--    }-->
-<!--  },-->
-<!--  computed: {-->
-<!--    disabled() {-->
-<!--      return true-->
-<!--    },-->
-<!--  },-->
-<!--  watch: {-->
-<!--    contributionLinkData() {-->
-<!--      this.form = this.contributionLinkData-->
-<!--    },-->
-<!--  },-->
-<!--  methods: {-->
-<!--    onSubmit() {-->
-<!--      if (this.form.validFrom === null)-->
-<!--        return this.toastError(this.$t('contributionLink.noStartDate'))-->
-<!--      if (this.form.validTo === null) return this.toastError(this.$t('contributionLink.noEndDate'))-->
-
-<!--      const variables = {-->
-<!--        ...this.form,-->
-<!--        id: this.contributionLinkData.id ? this.contributionLinkData.id : null,-->
-<!--      }-->
-
-<!--      this.$apollo-->
-<!--        .mutate({-->
-<!--          mutation: this.editContributionLink ? updateContributionLink : createContributionLink,-->
-<!--          variables: variables,-->
-<!--        })-->
-<!--        .then((result) => {-->
-<!--          const link = this.editContributionLink-->
-<!--            ? result.data.updateContributionLink.link-->
-<!--            : result.data.createContributionLink.link-->
-<!--          this.toastSuccess(-->
-<!--            this.editContributionLink ? this.$t('contributionLink.changeSaved') : link,-->
-<!--          )-->
-<!--          this.onReset()-->
-<!--          this.$root.$emit('bv::toggle::collapse', 'newContribution')-->
-<!--          this.$emit('get-contribution-links')-->
-<!--        })-->
-<!--        .catch((error) => {-->
-<!--          this.toastError(error.message)-->
-<!--        })-->
-<!--    },-->
-<!--    onReset() {-->
-<!--      this.$refs.contributionLinkForm.reset()-->
-<!--      this.form = {}-->
-<!--      this.form.validFrom = null-->
-<!--      this.form.validTo = null-->
-<!--    },-->
-<!--  },-->
-<!--}-->
-<!--</script>-->
 
 <script setup>
 import { ref, watch } from 'vue'
@@ -229,11 +133,7 @@ const props = defineProps({
   editContributionLink: { type: Boolean, required: true },
 })
 
-const emit = defineEmits([
-  'bv::toggle::collapse',
-  'get-contribution-links',
-  'close-contribution-form',
-])
+const emit = defineEmits(['get-contribution-links', 'close-contribution-form'])
 
 const { t } = useI18n()
 
@@ -260,7 +160,6 @@ const cycle = ref([
 
 const maxPerCycle = ref([{ value: '1', text: '1 x' }])
 
-// Set client
 const { mutate: contributionLinkMutation } = useMutation(
   props.editContributionLink ? updateContributionLink : createContributionLink,
 )

@@ -5,8 +5,8 @@
       <BButton
         :animation="animation"
         data-test="federation-communities-refresh-btn"
-        @click="refetch"
         font-scale="2"
+        @click="refetch"
       >
         <IBiArrowClockwise />
         <!--        <b-icon-->
