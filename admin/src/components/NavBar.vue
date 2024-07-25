@@ -23,7 +23,7 @@
           >
             {{ $t('creation') }}
             <BBadge v-show="openCreations > 0" variant="danger">
-              {{ openCreations.value }}
+              {{ openCreations }}
             </BBadge>
           </BNavItem>
           <BNavItem to="/contribution-links" :active="isActive('contribution-links')">

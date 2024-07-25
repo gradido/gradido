@@ -1,8 +1,5 @@
 <template>
   <div class="component-overlay">
-    <!--    <BCard>-->
-    <!--      <pre>{{ item }}</pre>-->
-    <!--    </BCard>-->
     <BCard class="bg-light p-4">
       <h1 class="display-3"><slot name="title" /></h1>
 
