@@ -9,7 +9,7 @@
         />
       </BNavbarBrand>
 
-      <BNavbarToggle target="navbar-toggle-collapse" />
+      <BNavbarToggle v-b-toggle.nav-collapse target="navbar-toggle-collapse" />
 
       <BCollapse id="nav-collapse" is-nav>
         <BNavbarNav>

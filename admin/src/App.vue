@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <BToastOrchestrator />
     <default-layout v-if="$store.state.token" />
     <router-view v-else></router-view>
   </div>

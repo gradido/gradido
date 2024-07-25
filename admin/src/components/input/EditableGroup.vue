@@ -2,19 +2,20 @@
   <div>
     <slot v-if="!isEditing" :is-editing="isEditing" name="view"></slot>
     <slot v-else :is-editing="isEditing" name="edit" @input="valueChanged"></slot>
-    <b-form-group v-if="allowEdit && !isEditing">
-      <b-button :variant="variant" @click="enableEdit">
-        <b-icon icon="pencil-fill">{{ $t('edit') }}</b-icon>
-      </b-button>
-    </b-form-group>
-    <b-form-group v-else-if="allowEdit && isEditing">
-      <b-button :variant="variant" :disabled="!isValueChanged" class="save-button" @click="save">
+    <BFormGroup v-if="allowEdit && !isEditing">
+      <BButton :variant="variant" @click="enableEdit">
+        <IBiPencilFill />
+        {{ $t('edit') }}
+      </BButton>
+    </BFormGroup>
+    <BFormGroup v-else-if="allowEdit && isEditing">
+      <BButton :variant="variant" :disabled="!isValueChanged" class="save-button" @click="save">
         {{ $t('save') }}
-      </b-button>
-      <b-button variant="secondary" class="close-button" @click="close">
+      </BButton>
+      <BButton variant="secondary" class="close-button" @click="close">
         {{ $t('close') }}
-      </b-button>
-    </b-form-group>
+      </BButton>
+    </BFormGroup>
   </div>
 </template>
 
