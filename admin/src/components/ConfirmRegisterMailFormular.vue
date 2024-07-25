@@ -11,8 +11,8 @@
         <!-- Using components -->
         <BInputGroup :prepend="$t('unregister_mail.info')" class="mt-3">
           <BFormInput readonly v-model="props.email" />
-          <BInputGroupText >
-            <BButton variant="outline-success" class="test-button " @click="sendRegisterMail">
+          <BInputGroupText>
+            <BButton variant="outline-success" class="test-button" @click="sendRegisterMail">
               {{ $t('unregister_mail.button') }}
             </BButton>
           </BInputGroupText>
@@ -26,6 +26,7 @@ import { sendActivationEmail } from '../graphql/sendActivationEmail'
 import { BButton, BFormInput, BInputGroup, BInputGroupText } from 'bootstrap-vue-next'
 import { useI18n } from 'vue-i18n'
 import { useMutation } from '@vue/apollo-composable'
+import { useAppToast } from '@/composables/useToast'
 
 const props = defineProps({
   checked: {
@@ -40,6 +41,7 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
+const { toastError, toastSuccess } = useAppToast()
 
 const { mutate: activateEmail } = useMutation(sendActivationEmail)
 
@@ -48,9 +50,9 @@ const sendRegisterMail = async () => {
     await activateEmail({
       email: props.email,
     })
-    // toast.success(t('unregister_mail.success', { email: props.email }))
+    toastSuccess(t('unregister_mail.success', { email: props.email }))
   } catch (error) {
-    // toast.error(t('unregister_mail.error', { message: error.message }))
+    toastError(t('unregister_mail.error', { message: error.message }))
   }
 }
 </script>

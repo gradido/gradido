@@ -22,12 +22,14 @@ import { useI18n } from 'vue-i18n'
 import { BTable, BPagination } from 'bootstrap-vue-next'
 import { listTransactionLinksAdmin } from '../graphql/listTransactionLinksAdmin.js'
 import { useQuery } from '@vue/apollo-composable'
+import { useAppToast } from '@/composables/useToast'
 
 const props = defineProps({
   userId: { type: Number, required: true },
 })
 
 const { t, d } = useI18n()
+const { toastError } = useAppToast()
 
 const items = ref([])
 const rows = ref(0)
@@ -68,7 +70,7 @@ const { result, error, refetch } = useQuery(listTransactionLinksAdmin, () => ({
   currentPage: currentPage.value,
   pageSize: perPage.value,
   userId: props.userId,
-}));
+}))
 
 watch(result, (newResult) => {
   if (newResult && newResult.listTransactionLinksAdmin) {
@@ -79,7 +81,7 @@ watch(result, (newResult) => {
 
 watch(error, (err) => {
   if (err) {
-  // toast.error(error.message)
+    toastError(error.message)
   }
 })
 
