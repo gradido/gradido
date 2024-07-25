@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
 import { allCommunities } from '@/graphql/allCommunities'
 import { useAppToast } from '@/composables/useToast'
