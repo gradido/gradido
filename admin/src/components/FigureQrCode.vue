@@ -1,7 +1,7 @@
 <template>
   <div class="figure-qr-code">
     <div class="qrbox">
-      <q-r-canvas :options="options" class="canvas" />
+      <q-r-canvas v-if="showQr" :options="qrOptions" class="canvas" />
     </div>
   </div>
 </template>
@@ -18,26 +18,26 @@ export default {
   },
   data() {
     return {
-      options: {
+      image: null,
+      showQr: false,
+    }
+  },
+  computed: {
+    qrOptions() {
+      return {
         cellSize: 8,
         correctLevel: 'H',
         data: this.link,
-        logo: {
-          image: null,
-        },
-      },
-    }
+        logo: { image: this.image },
+      }
+    },
   },
   created() {
     const image = new Image()
-    image.src = 'img/gdd-coin.png'
+    image.src = '/img/gdd-coin.png'
     image.onload = () => {
-      this.options = {
-        ...this.options,
-        logo: {
-          image,
-        },
-      }
+      this.image = image
+      this.showQr = true
     }
   },
 }

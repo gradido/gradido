@@ -8279,7 +8279,7 @@ punycode@^2.1.0, punycode@^2.1.1:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
-qrcanvas-vue@3.0.0:
+qrcanvas-vue@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/qrcanvas-vue/-/qrcanvas-vue-3.0.0.tgz#4bdba09b8050bcc0880d8859b5835cc4b2919248"
   integrity sha512-B7LgAyOEJWf8Bz0y2J8M0OXE77uNWcH7PWr6q8ihyuQE5NP9zopY9wJGTZIT6Mu7oEOczPHMLDedZqFCT2Qxdw==
