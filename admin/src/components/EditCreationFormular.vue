@@ -73,95 +73,87 @@
     </div>
   </div>
 </template>
-<script>
-import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
-import { creationMonths } from '../mixins/creationMonths'
 
-export default {
-  name: 'EditCreationFormular',
-  mixins: [creationMonths],
-  props: {
-    item: {
-      type: Object,
-      required: true,
-    },
-    row: {
-      type: Object,
-      required: false,
-      default() {
-        return {}
-      },
-    },
-    creationUserData: {
-      type: Object,
-      required: true,
-    },
+<script setup>
+import { ref, computed, watch } from 'vue'
+import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useI18n } from 'vue-i18n'
+
+import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
+import { adminOpenCreations } from '../graphql/adminOpenCreations'
+import { useAppToast } from '@/composables/useToast'
+import useCreationMonths from '@/composables/useCreationMonths'
+
+const props = defineProps({
+  item: {
+    type: Object,
+    required: true,
   },
-  emits: ['update-creation-data'],
-  data() {
-    return {
-      text: !this.creationUserData.memo ? '' : this.creationUserData.memo,
-      value: !this.creationUserData.amount ? 0 : Number(this.creationUserData.amount),
-      rangeMin: 0,
-      selected: this.selectedComputed, // TODO investigate this one and apply solution based on good practices
-      userId: this.item.userId,
-    }
+  row: {
+    type: Object,
+    required: false,
+    default: () => ({}),
   },
-  computed: {
-    creationIndex() {
-      const month = this.$d(new Date(this.item.contributionDate), 'month')
-      return this.radioOptions.findIndex((obj) => {
-        return obj.item.short === month
-      })
-    },
-    selectedComputed() {
-      return this.radioOptions[this.creationIndex].item
-    },
-    rangeMax() {
-      return Number(this.creation[this.creationIndex]) + Number(this.item.amount)
-    },
+  creationUserData: {
+    type: Object,
+    required: true,
   },
-  watch: {
-    selectedComputed() {
-      this.selected = this.selectedComputed
-    },
-  },
-  methods: {
-    submitCreation() {
-      this.$apollo
-        .mutate({
-          mutation: adminUpdateContribution,
-          variables: {
-            id: this.item.id,
-            creationDate: this.selected.date,
-            amount: Number(this.value),
-            memo: this.text,
-          },
-        })
-        .then((result) => {
-          this.$emit('update-creation-data')
-          this.toastSuccess(
-            this.$t('creation_form.toasted_update', {
-              value: this.value,
-              email: this.item.email,
-            }),
-          )
-          // das creation Formular reseten
-          this.$refs.updateCreationForm.reset()
-          // Den geschöpften Wert auf o setzen
-          this.value = 0
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-          // das creation Formular reseten
-          this.$refs.updateCreationForm.reset()
-          // Den geschöpften Wert auf o setzen
-          this.value = 0
-        })
-        .finally(() => {
-          this.$apollo.queries.OpenCreations.refetch()
-        })
-    },
-  },
+})
+
+const emit = defineEmits(['update-creation-data'])
+const creationMonths = useCreationMonths()
+
+const { t, d } = useI18n()
+const { toastSuccess, toastError } = useAppToast()
+const text = ref(props.creationUserData.memo || '')
+const value = ref(props.creationUserData.amount ? Number(props.creationUserData.amount) : 0)
+const rangeMin = ref(0)
+
+const creationIndex = computed(() => {
+  const month = d(new Date(props.item.contributionDate), 'month')
+  return creationMonths.radioOptions().findIndex((obj) => obj.item.short === month)
+})
+
+const selectedComputed = computed(() => creationMonths.radioOptions()[creationIndex.value].item)
+const selected = ref(selectedComputed.value)
+const rangeMax = computed(
+  () => Number(creationMonths.creation.value[creationIndex.value]) + Number(props.item.amount),
+)
+
+watch(selectedComputed, () => {
+  selected.value = selectedComputed.value
+})
+
+const { mutate: updateMutation, onDone, onError } = useMutation(adminUpdateContribution)
+
+onDone(() => {
+  emit('update-creation-data')
+  toastSuccess(t('creation_form.toasted_update', { value: value.value, email: props.item.email }))
+  resetForm()
+  refetchOpenCreations()
+})
+
+onError((error) => {
+  toastError(error.message)
+  resetForm()
+})
+
+const { refetch: refetchCreations } = useQuery(adminOpenCreations)
+
+const submitCreation = () => {
+  updateMutation({
+    id: props.item.id,
+    creationDate: selected.value.date,
+    amount: Number(value.value),
+    memo: text.value,
+  })
+}
+
+const resetForm = () => {
+  value.value = 0
+}
+
+const refetchOpenCreations = () => {
+  refetchCreations()
 }
 </script>
