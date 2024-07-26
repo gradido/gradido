@@ -102,4 +102,4 @@ declare module 'vue' {
     vBToggle: typeof import('bootstrap-vue-next')['vBToggle']
     vBTooltip: typeof import('bootstrap-vue-next')['vBTooltip']
   }
-  
+}
