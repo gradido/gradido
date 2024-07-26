@@ -30,7 +30,7 @@
 </template>
 <script setup>
 import CONFIG from '../config'
-import { BTr } from 'bootstrap-vue-next'
+import { BTr, BCol } from 'bootstrap-vue-next'
 
 const year = new Date().getFullYear()
 const version = CONFIG.APP_VERSION

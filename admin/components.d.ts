@@ -82,6 +82,7 @@ declare module 'vue' {
     IPhCaretDown: typeof import('~icons/ph/caret-down')['default']
     IPhCaretUpFill: typeof import('~icons/ph/caret-up-fill')['default']
     IPhEnvelope: typeof import('~icons/ph/envelope')['default']
+    IPhXCircle: typeof import('~icons/ph/x-circle')['default']
     NavBar: typeof import('./src/components/NavBar.vue')['default']
     NotFoundPage: typeof import('./src/components/NotFoundPage.vue')['default']
     OpenCreationsTable: typeof import('./src/components/Tables/OpenCreationsTable.vue')['default']
@@ -97,7 +98,8 @@ declare module 'vue' {
     UserQuery: typeof import('./src/components/UserQuery.vue')['default']
   }
   export interface ComponentCustomProperties {
+    vBModal: typeof import('bootstrap-vue-next')['vBModal']
     vBToggle: typeof import('bootstrap-vue-next')['vBToggle']
     vBTooltip: typeof import('bootstrap-vue-next')['vBTooltip']
   }
-}
+  

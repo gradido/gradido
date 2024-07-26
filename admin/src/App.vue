@@ -3,16 +3,13 @@
     <BToastOrchestrator />
     <default-layout v-if="$store.state.token" />
     <router-view v-else></router-view>
+    <BModalOrchestrator />
   </div>
 </template>
 
-<script>
+<script setup>
 import defaultLayout from '@/layouts/defaultLayout'
-
-export default {
-  name: 'App',
-  components: { defaultLayout },
-}
+import { BModalOrchestrator } from 'bootstrap-vue-next'
 </script>
 <style>
 .pointer {

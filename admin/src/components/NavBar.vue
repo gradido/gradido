@@ -56,6 +56,7 @@ import {
   BNavbarBrand,
   BBadge,
   BNavbarToggle,
+  vBToggle,
   vBColorMode,
 } from 'bootstrap-vue-next'
 import { useRoute } from 'vue-router'

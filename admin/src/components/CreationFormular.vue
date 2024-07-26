@@ -14,13 +14,17 @@
             name="month-selection"
           />
         </div>
-        <div v-if="selected" class="m-4">
+        <div v-if="selected" class="m-4 d-flex">
           <label>{{ $t('creation_form.select_value') }}</label>
           <div>
             <BInputGroup prepend="GDD" append=".00">
               <BFormInput v-model="value" type="number" :min="rangeMin" :max="rangeMax" />
             </BInputGroup>
-            <BInputGroup prepend="0" :append="String(rangeMax)" class="mt-3">
+            <BInputGroup
+              prepend="0"
+              :append="String(rangeMax)"
+              class="mt-3 flex-nowrap align-items-center"
+            >
               <BFormInput v-model="value" type="range" :min="rangeMin" :max="rangeMax" step="10" />
             </BInputGroup>
           </div>
@@ -37,13 +41,11 @@
             />
           </div>
         </div>
-        <div class="m-4 d-flex">
-          <BCol class="text-left">
-            <BButton type="reset" variant="danger" @click="onReset()">
-              {{ $t('creation_form.reset') }}
-            </BButton>
-          </BCol>
-          <div class="text-right">
+        <div class="buttons-wrapper d-flex justify-content-between">
+          <BButton type="reset" variant="danger" @click="onReset()">
+            {{ $t('creation_form.reset') }}
+          </BButton>
+          <div>
             <BButton
               v-if="pagetype === 'PageCreationConfirm'"
               type="button"
@@ -74,6 +76,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAppToast } from '@/composables/useToast'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { useStore } from 'vuex'
 import { adminCreateContribution } from '../graphql/adminCreateContribution'
@@ -84,11 +87,11 @@ import {
   BForm,
   BInputGroup,
   BButton,
-  BCol,
   BFormTextarea,
 } from 'bootstrap-vue-next'
 
 const { radioOptions } = useCreationMonths()
+const { toastError, toastSuccess } = useAppToast()
 
 const props = defineProps({
   pagetype: {
@@ -156,16 +159,16 @@ const submitCreation = async () => {
 
     store.commit('openCreationsPlus', 1)
 
-    // toast.success(
-    //   t('creation_form.toasted', {
-    //     value: value.value,
-    //     email: props.item.email,
-    //   }),
-    // )
+    toastSuccess(
+      t('creation_form.toasted', {
+        value: value.value,
+        email: props.item.email,
+      }),
+    )
 
     onReset()
   } catch (error) {
-    // toast.error(error.message)
+    toastError(error.message)
     onReset()
   } finally {
     refetch()
@@ -182,3 +185,8 @@ watch(
   },
 )
 </script>
+<style scoped>
+.buttons-wrapper {
+  margin: 1.5rem 2.4rem;
+}
+</style>

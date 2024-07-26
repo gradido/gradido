@@ -32,7 +32,7 @@
               style="color: #f5365c"
               class="align-center mr-3"
             />
-            <!-- <b-icon
+            <!-- <BAvatar
               v-if="!row.item.hasElopage"
               variant="danger"
               class="mr-3"
@@ -77,18 +77,35 @@
                 "
               />
             </BTab>
-            <!-- <BTab :title="$t('creationList')" :disabled="row.item.deletedAt !== null">
+            <BTab :title="$t('creationList')" :disabled="row.item.deletedAt !== null">
               <creation-transaction-list v-if="!row.item.deletedAt" :user-id="row.item.userId" />
             </BTab>
             <BTab :title="$t('transactionlink.name')" :disabled="row.item.deletedAt !== null">
               <transaction-link-list v-if="!row.item.deletedAt" :user-id="row.item.userId" />
             </BTab>
             <BTab :title="$t('userRole.tabTitle')">
-              <change-user-role-formular :item="row.item" @update-roles="updateRoles" />
-            </BTab> -->
-            <!-- <BTab v-if="store.state.moderator.roles.includes('ADMIN')" :title="$t('delete_user')">
-              <deleted-user-formular :item="row.item" @update-deleted-at="updateDeletedAt" />
-            </BTab> -->
+              <change-user-role-formular
+                ref="userChangeForm"
+                :item="row.item"
+                @update-roles="updateRoles"
+                @show-modal="showModal"
+              />
+            </BTab>
+            <BTab v-if="store.state.moderator.roles.includes('ADMIN')" :title="$t('delete_user')">
+              <deleted-user-formular
+                v-if="!row.item.deletedAt"
+                ref="deletedUserForm"
+                :item="row.item"
+                @update-deleted-at="updateDeletedAt"
+                @show-delete-modal="showDeleteModal"
+              />
+              <deleted-user-formular
+                v-else
+                ref="undeletedUserForm"
+                :item="row.item"
+                @show-undelete-modal="showUndeleteModal"
+              />
+            </BTab>
           </BTabs>
         </BCard>
       </template>
@@ -96,10 +113,21 @@
   </div>
 </template>
 <script setup>
-import { ref, nextTick, onMounted, watch } from 'vue'
-import { BTable, BAvatar, BTab, BTabs, BCard } from 'bootstrap-vue-next'
+import { ref, nextTick, onMounted, watch, computed } from 'vue'
+import { BTable, BAvatar, BTab, BTabs, BCard, useModalController } from 'bootstrap-vue-next'
+import { useStore } from 'vuex'
+import { useI18n } from 'vue-i18n'
+import { useAppToast } from '@/composables/useToast'
 import CreationFormular from '../CreationFormular.vue'
 import ConfirmRegisterMailFormular from '../ConfirmRegisterMailFormular.vue'
+import CreationTransactionList from '../CreationTransactionList.vue'
+import TransactionLinkList from '../TransactionLinkList.vue'
+import ChangeUserRoleFormular from '../ChangeUserRoleFormular.vue'
+
+const { t } = useI18n()
+const { confirm } = useModalController()
+const store = useStore()
+const { toastError } = useAppToast()
 
 const props = defineProps({
   items: {
@@ -112,32 +140,118 @@ const props = defineProps({
   },
 })
 
-// const emit = defineEmits(['update-roles', 'update-deleted-at'])
+const rolesValues = {
+  ADMIN: 'ADMIN',
+  MODERATOR: 'MODERATOR',
+  USER: 'USER',
+}
+
+const userChangeForm = ref()
+const deletedUserForm = ref()
+const undeletedUserForm = ref()
 const myItems = ref()
 const creationUserData = ref({})
 const rowDetails = ref()
 
-onMounted(() => {
-  setTimeout(() => {
-    myItems.value = props.items.map((item) => {
-      return { ...item, _showDetails: false }
+const showModal = async () => {
+  await confirm?.({
+    props: {
+      cancelTitle: t('overlay.cancel'),
+      centered: true,
+      hideHeaderClose: true,
+      title: t('overlay.changeUserRole.title'),
+      okTitle: t('overlay.changeUserRole.yes'),
+      okVariant: 'danger',
+      body: t('overlay.changeUserRole.question', {
+        username: `${selectedRow.value.firstName} ${selectedRow.value.lastName}`,
+        newRole:
+          userChangeForm.value.roleSelected === rolesValues.ADMIN
+            ? t('userRole.selectRoles.admin')
+            : userChangeForm.value.roleSelected === rolesValues.MODERATOR
+              ? t('userRole.selectRoles.moderator')
+              : t('userRole.selectRoles.user'),
+      }),
+    },
+  })
+    .then((ok) => {
+      if (ok) {
+        userChangeForm.value.updateUserRole(
+          userChangeForm.value.roleSelected,
+          userChangeForm.value.currentRole,
+        )
+      }
     })
+    .catch((error) => {
+      toastError(error.message)
+    })
+}
 
-    // myItems.value
-  }, 500)
-})
+const showDeleteModal = async () => {
+  await confirm?.({
+    props: {
+      cancelTitle: t('overlay.cancel'),
+      centered: true,
+      hideHeaderClose: true,
+      title: t('overlay.deleteUser.title'),
+      okTitle: t('overlay.deleteUser.yes'),
+      okVariant: 'danger',
+      static: true,
+      body: t('overlay.deleteUser.question', {
+        username: `${selectedRow.value.firstName} ${selectedRow.value.lastName}`,
+      }),
+    },
+  })
+    .then((ok) => {
+      if (ok) {
+        deletedUserForm.value.deleteUserMutation()
+      }
+    })
+    .catch((error) => {
+      toastError(error.message)
+    })
+}
+
+const showUndeleteModal = async () => {
+  await confirm?.({
+    props: {
+      cancelTitle: t('overlay.cancel'),
+      centered: true,
+      hideHeaderClose: true,
+      title: t('overlay.undeleteUser.title'),
+      okTitle: t('overlay.undeleteUser.yes'),
+      okVariant: 'success',
+      body: t('overlay.undeleteUser.question', {
+        username: `${selectedRow.value.firstName} ${selectedRow.value.lastName}`,
+      }),
+    },
+  })
+    .then((ok) => {
+      if (ok) {
+        undeletedUserForm.value.undeleteUserMutation()
+      }
+    })
+    .catch((error) => {
+      toastError(error.message)
+    })
+}
 
 const updateUserData = (rowItem, newCreation) => {
   rowItem.creation = newCreation
 }
 
-// const updateRoles = ({ userId, roles }) => {
-//   emit('update-roles', userId, roles)
-// }
-//
-// const updateDeletedAt = ({ userId, deletedAt }) => {
-//   emit('update-deleted-at', userId, deletedAt)
-// }
+const updateRoles = ({ userId, roles }) => {
+  emit('update-roles', userId, roles)
+}
+
+const updateDeletedAt = ({ userId, deletedAt }) => {
+  emit('update-deleted-at', userId, deletedAt)
+}
+
+const emit = defineEmits(['update-roles', 'update-deleted-at'])
+
+const selectedRow = computed(() => {
+  return myItems.value.find((obj) => obj._showDetails)
+})
 
 const onRowClicked = async (item) => {
   const status = myItems.value.find((obj) => {
@@ -166,4 +280,12 @@ watch(
     })
   },
 )
+
+onMounted(() => {
+  setTimeout(() => {
+    myItems.value = props.items.map((item) => {
+      return { ...item, _showDetails: false }
+    })
+  }, 500)
+})
 </script>
