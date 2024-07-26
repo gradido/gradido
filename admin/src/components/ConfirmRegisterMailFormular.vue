@@ -10,7 +10,7 @@
         }}
         <!-- Using components -->
         <BInputGroup :prepend="$t('unregister_mail.info')" class="mt-3">
-          <BFormInput readonly v-model="props.email" />
+          <BFormInput v-model="email" readonly />
           <BInputGroupText>
             <BButton variant="outline-success" class="test-button" @click="sendRegisterMail">
               {{ $t('unregister_mail.button') }}
@@ -22,6 +22,7 @@
   </div>
 </template>
 <script setup>
+import { ref } from 'vue'
 import { sendActivationEmail } from '../graphql/sendActivationEmail'
 import { BButton, BFormInput, BInputGroup, BInputGroupText } from 'bootstrap-vue-next'
 import { useI18n } from 'vue-i18n'
@@ -43,14 +44,16 @@ const props = defineProps({
 const { t } = useI18n()
 const { toastError, toastSuccess } = useAppToast()
 
+const email = ref(props.email)
+
 const { mutate: activateEmail } = useMutation(sendActivationEmail)
 
 const sendRegisterMail = async () => {
   try {
     await activateEmail({
-      email: props.email,
+      email: email.value,
     })
-    toastSuccess(t('unregister_mail.success', { email: props.email }))
+    toastSuccess(t('unregister_mail.success', { email: email.value }))
   } catch (error) {
     toastError(t('unregister_mail.error', { message: error.message }))
   }

@@ -5,8 +5,8 @@
       <BTable striped hover :fields="fields" :items="items"></BTable>
     </div>
     <BPagination
-      pills
       v-model="currentPage"
+      pills
       size="lg"
       :per-page="perPage"
       :total-rows="rows"
