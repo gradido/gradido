@@ -5,6 +5,7 @@ import Icons from 'unplugin-icons/vite'
 import Components from 'unplugin-vue-components/vite'
 import IconsResolve from 'unplugin-icons/resolver'
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
+import EnvironmentPlugin from 'vite-plugin-environment'
 
 const path = require('path')
 
@@ -38,6 +39,19 @@ export default defineConfig({
     }),
     Icons({
       compiler: 'vue3',
+    }),
+    EnvironmentPlugin({
+      BUILD_COMMIT: null,
+      PORT: null,
+      COMMUNITY_HOST: null,
+      URL_PROTOCOL: null,
+      WALLET_URL: null,
+      GRAPHQL_URL: null,
+      GRAPHQL_PATH: null,
+      WALLET_AUTH_PATH: null,
+      WALLET_LOGIN_PATH: null,
+      DEBUG_DISABLE_AUTH: null,
+      CONFIG_VERSION: null,
     }),
     commonjs(),
   ],

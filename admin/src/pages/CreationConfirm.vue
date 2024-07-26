@@ -1,6 +1,7 @@
 <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys -->
 <template>
   <div class="creation-confirm">
+    {{ console.log(currentPage) }}
     <user-query v-model="query" class="mb-2 mt-2" :placeholder="$t('user_memo_search')" />
     <p class="mb-2">
       <input v-model="noHashtag" type="checkbox" class="noHashtag" />
@@ -326,7 +327,7 @@ const { onResult, onError, result, refetch } = useQuery(
   },
 )
 
-watch([statusFilter, query, noHashtag, hideResubmission], () => {
+watch([statusFilter, query, noHashtag, hideResubmission, currentPage], () => {
   refetch({
     currentPage: currentPage.value,
     pageSize: pageSize.value,

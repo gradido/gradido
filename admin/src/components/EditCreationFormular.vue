@@ -8,7 +8,7 @@
         <BRow class="m-4">
           <BFormRadioGroup
             v-model="selected"
-            :options="radioOptions"
+            :options="creationMonths.radioOptions()"
             value-field="item"
             text-field="name"
             name="month-selection"
@@ -19,21 +19,19 @@
           <label>{{ $t('creation_form.select_value') }}</label>
           <div>
             <BInputGroup prepend="GDD" append=".00">
-              <b-form-input
+              <BFormInput
                 v-model="value"
                 type="number"
                 :min="rangeMin"
                 :max="rangeMax"
-              ></b-form-input>
+              ></BFormInput>
             </BInputGroup>
-            <BInputGroup prepend="0" :append="String(rangeMax)" class="mt-3">
-              <b-form-input
-                v-model="value"
-                type="range"
-                :min="rangeMin"
-                :max="rangeMax"
-                step="10"
-              ></b-form-input>
+            <BInputGroup
+              prepend="0"
+              :append="String(rangeMax)"
+              class="mt-3 flex-nowrap align-items-center"
+            >
+              <BFormInput v-model="value" type="range" :min="rangeMin" :max="rangeMax" step="10" />
             </BInputGroup>
           </div>
         </div>
