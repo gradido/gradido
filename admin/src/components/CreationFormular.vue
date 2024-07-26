@@ -8,7 +8,7 @@
           <BFormRadioGroup
             id="radio-group-month-selection"
             v-model="selected"
-            :options="radioOptions()"
+            :options="radioOptions"
             value-field="item"
             text-field="name"
             name="month-selection"
@@ -90,7 +90,7 @@ import {
   BFormTextarea,
 } from 'bootstrap-vue-next'
 
-const { radioOptions } = useCreationMonths()
+const { creationDateObjects } = useCreationMonths()
 const { toastError, toastSuccess } = useAppToast()
 
 const props = defineProps({
@@ -114,6 +114,10 @@ const props = defineProps({
     required: false,
     default: () => ({}),
   },
+  creation: {
+    type: Object,
+    required: true,
+  },
 })
 
 const { t } = useI18n()
@@ -127,7 +131,14 @@ const selected = ref()
 const creationForm = ref(null)
 
 const openCreations = computed(() => store.state.openCreations)
-
+const radioOptions = computed(() => {
+  return creationDateObjects.value.map((obj, idx) => {
+    return {
+      item: { ...obj, creation: props.creation[idx] },
+      name: obj.short + (props.creation[idx] ? ' ' + props.creation[idx] + ' GDD' : ''),
+    }
+  })
+})
 const updateRadioSelected = (name) => {
   text.value = `${t('creation_form.creation_for')} ${name?.short} ${name?.year}`
   rangeMin.value = 0
