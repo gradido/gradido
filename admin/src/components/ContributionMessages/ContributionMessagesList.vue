@@ -1,13 +1,13 @@
 <template>
   <div class="contribution-messages-list">
-    <b-container>
+    <BContainer>
       <div v-for="message in messages" :key="message.id">
         <contribution-messages-list-item
           :message="message"
           :contribution-user-id="contributionUserId"
         />
       </div>
-    </b-container>
+    </BContainer>
     <div v-if="contributionStatus === 'PENDING' || contributionStatus === 'IN_PROGRESS'">
       <contribution-messages-formular
         :contribution-id="contributionId"

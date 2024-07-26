@@ -62,13 +62,19 @@ declare module 'vue' {
     FigureQrCode: typeof import('./src/components/FigureQrCode.vue')['default']
     IBiArrowClockwise: typeof import('~icons/bi/arrow-clockwise')['default']
     IBiBellFill: typeof import('~icons/bi/bell-fill')['default']
+    IBiChatDots: typeof import('~icons/bi/chat-dots')['default']
     IBiCheck: typeof import('~icons/bi/check')['default']
     IBiEnvelope: typeof import('~icons/bi/envelope')['default']
+    IBiExclamationCircleFill: typeof import('~icons/bi/exclamation-circle-fill')['default']
     IBiEye: typeof import('~icons/bi/eye')['default']
     IBiList: typeof import('~icons/bi/list')['default']
     IBiPencil: typeof import('~icons/bi/pencil')['default']
     IBiPencilFill: typeof import('~icons/bi/pencil-fill')['default']
+    IBiPencilSquare: typeof import('~icons/bi/pencil-square')['default']
+    IBiQuestionDiamond: typeof import('~icons/bi/question-diamond')['default']
+    IBiQuestionSquare: typeof import('~icons/bi/question-square')['default']
     IBiTrash: typeof import('~icons/bi/trash')['default']
+    IBiX: typeof import('~icons/bi/x')['default']
     IBiXCircle: typeof import('~icons/bi/x-circle')['default']
     IIcBaselineClose: typeof import('~icons/ic/baseline-close')['default']
     IOcticonCircleSlash24: typeof import('~icons/octicon/circle-slash24')['default']
@@ -96,4 +102,4 @@ declare module 'vue' {
     vBToggle: typeof import('bootstrap-vue-next')['vBToggle']
     vBTooltip: typeof import('bootstrap-vue-next')['vBTooltip']
   }
-}
+  
