@@ -112,6 +112,7 @@
         <BButton @click.prevent="emit('close-contribution-form')">
           {{ $t('close') }}
         </BButton>
+        {{ console.log(editContributionLink) }}
       </div>
     </BForm>
   </div>
@@ -146,7 +147,6 @@ const form = ref({
   validFrom: null,
   validTo: null,
   cycle: 'ONCE',
-  maxPerCycle: 1,
   maxAmountPerMonth: '0',
 })
 
@@ -160,9 +160,9 @@ const cycle = ref([
 
 const maxPerCycle = ref([{ value: '1', text: '1 x' }])
 
-const { mutate: contributionLinkMutation } = useMutation(
-  props.editContributionLink ? updateContributionLink : createContributionLink,
-)
+const { mutate: contributionLinkMutation } = useMutation(createContributionLink)
+
+const { mutate: contributionLinkMutationUpdate } = useMutation(updateContributionLink)
 
 watch(
   () => props.contributionLinkData,
@@ -180,12 +180,15 @@ const onSubmit = async () => {
 
   const variables = {
     ...form.value,
-    maxAmountPerMonth: 1, // TODO this is added only for test puropuse during migration since max amount input is commented out but without it being a number bigger then 0 it doesn't work
+    // maxAmountPerMonth: 1, // TODO this is added only for test puropuse during migration since max amount input is commented out but without it being a number bigger then 0 it doesn't work
     id: props.contributionLinkData.id ? props.contributionLinkData.id : null,
   }
 
   try {
-    const result = await contributionLinkMutation({ ...variables })
+    const mutationType = props.editContributionLink
+      ? contributionLinkMutationUpdate
+      : contributionLinkMutation
+    const result = await mutationType({ ...variables })
     const link = props.editContributionLink
       ? result.data.updateContributionLink.link
       : result.data.createContributionLink.link

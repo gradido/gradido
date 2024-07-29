@@ -14,7 +14,7 @@
         :contribution-memo="contributionMemo"
         :hide-resubmission="hideResubmission"
         :input-resubmission-date="resubmissionAt"
-        @get-list-contribution-messages="$apollo.queries.Messages.refetch()"
+        @get-list-contribution-messages="refetch"
         @update-status="updateStatus"
         @reload-contribution="reloadContribution"
         @update-contributions="updateContributions"
@@ -22,79 +22,74 @@
     </div>
   </div>
 </template>
-<script>
-import ContributionMessagesListItem from './slots/ContributionMessagesListItem'
-import ContributionMessagesFormular from '../ContributionMessages/ContributionMessagesFormular'
-import { adminListContributionMessages } from '../../graphql/adminListContributionMessages.js'
 
-export default {
-  name: 'ContributionMessagesList',
-  components: {
-    ContributionMessagesListItem,
-    ContributionMessagesFormular,
+<script setup>
+import { ref } from 'vue'
+import { useQuery } from '@vue/apollo-composable'
+
+import { adminListContributionMessages } from '../../graphql/adminListContributionMessages.js'
+import { useAppToast } from '@/composables/useToast'
+
+const props = defineProps({
+  contributionId: {
+    type: Number,
+    required: true,
   },
-  props: {
-    contributionId: {
-      type: Number,
-      required: true,
-    },
-    contributionMemo: {
-      type: String,
-      required: true,
-    },
-    contributionStatus: {
-      type: String,
-      required: true,
-    },
-    contributionUserId: {
-      type: Number,
-      required: true,
-    },
-    hideResubmission: {
-      type: Boolean,
-      required: true,
-    },
-    resubmissionAt: {
-      type: String,
-      required: false,
-    },
+  contributionMemo: {
+    type: String,
+    required: true,
   },
-  emits: ['update-status', 'reload-contribution', 'update-contributions'],
-  data() {
-    return {
-      messages: [],
-    }
+  contributionStatus: {
+    type: String,
+    required: true,
   },
-  apollo: {
-    Messages: {
-      query() {
-        return adminListContributionMessages
-      },
-      variables() {
-        return {
-          contributionId: this.contributionId,
-        }
-      },
-      fetchPolicy: 'no-cache',
-      update({ adminListContributionMessages }) {
-        this.messages = adminListContributionMessages.messages
-      },
-      error({ message }) {
-        this.toastError(message)
-      },
-    },
+  contributionUserId: {
+    type: Number,
+    required: true,
   },
-  methods: {
-    updateStatus(id) {
-      this.$emit('update-status', id)
-    },
-    reloadContribution(id) {
-      this.$emit('reload-contribution', id)
-    },
-    updateContributions() {
-      this.$emit('update-contributions')
-    },
+  hideResubmission: {
+    type: Boolean,
+    required: true,
   },
+  resubmissionAt: {
+    type: String,
+    required: false,
+  },
+})
+
+const emit = defineEmits(['update-status', 'reload-contribution', 'update-contributions'])
+const { toastError } = useAppToast()
+
+const messages = ref([])
+
+const { onResult, onError, result, refetch } = useQuery(
+  adminListContributionMessages,
+  {
+    contributionId: props.contributionId,
+  },
+  {
+    fetchPolicy: 'no-cache',
+  },
+)
+
+onError((error) => {
+  toastError(error.message)
+})
+
+onResult(() => {
+  messages.value = result.value.adminListContributionMessages.messages
+})
+
+const updateStatus = (id) => {
+  emit('update-status', id)
+}
+
+const reloadContribution = (id) => {
+  emit('reload-contribution', id)
+}
+
+const updateContributions = () => {
+  emit('update-contributions')
 }
 </script>
 <style scoped>
