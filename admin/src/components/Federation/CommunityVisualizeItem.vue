@@ -25,12 +25,34 @@
             {{ $t('federation.publicKey') }}&nbsp;{{ item.publicKey }}
           </b-list-group-item>
           <b-list-group-item v-if="!item.foreign">
-            {{ $t('federation.gmsApiKey') }}&nbsp;
-            <editable-label
-              :value="gmsApiKey"
+            <editable-group
               :allowEdit="$store.state.moderator.roles.includes('ADMIN')"
-              @save="handleSaveGsmApiKey"
-            />
+              @save="handleUpdateHomeCommunity"
+              @reset="resetHomeCommunityEditable"
+            >
+              <template #view>
+                <label>{{ $t('federation.gmsApiKey') }}&nbsp;{{ gmsApiKey }}</label>
+                <b-form-group>
+                  {{ $t('federation.coordinates') }}
+                  <span v-if="isValidLocation">
+                    {{
+                      $t('geo-coordinates.format', {
+                        latitude: location.latitude,
+                        longitude: location.longitude,
+                      })
+                    }}
+                  </span>
+                </b-form-group>
+              </template>
+              <template #edit>
+                <editable-groupable-label
+                  v-model="gmsApiKey"
+                  :label="$t('federation.gmsApiKey')"
+                  idName="home-community-api-key"
+                />
+                <coordinates v-model="location" />
+              </template>
+            </editable-group>
           </b-list-group-item>
           <b-list-group-item>
             <b-list-group>
@@ -59,17 +81,21 @@
 <script>
 import { formatDistanceToNow } from 'date-fns'
 import { de, enUS as en, fr, es, nl } from 'date-fns/locale'
-import EditableLabel from '@/components/input/EditableLabel'
+import EditableGroup from '@/components/input/EditableGroup'
 import FederationVisualizeItem from './FederationVisualizeItem.vue'
 import { updateHomeCommunity } from '../../graphql/updateHomeCommunity'
+import Coordinates from '../input/Coordinates.vue'
+import EditableGroupableLabel from '../input/EditableGroupableLabel.vue'
 
 const locales = { en, de, es, fr, nl }
 
 export default {
   name: 'CommunityVisualizeItem',
   components: {
-    EditableLabel,
+    Coordinates,
+    EditableGroup,
     FederationVisualizeItem,
+    EditableGroupableLabel,
   },
   props: {
     item: { type: Object },
@@ -79,11 +105,11 @@ export default {
       formatDistanceToNow,
       locale: this.$i18n.locale,
       details: false,
-      gmsApiKey: '',
+      gmsApiKey: this.item.gmsApiKey,
+      location: this.item.location,
+      originalGmsApiKey: this.item.gmsApiKey,
+      originalLocation: this.item.location,
     }
-  },
-  created() {
-    this.gmsApiKey = this.item.gmsApiKey
   },
   computed: {
     verified() {
@@ -133,27 +159,48 @@ export default {
       }
       return ''
     },
+    isLocationChanged() {
+      return this.originalLocation !== this.location
+    },
+    isGMSApiKeyChanged() {
+      return this.originalGmsApiKey !== this.gmsApiKey
+    },
+    isValidLocation() {
+      return this.location && this.location.latitude && this.location.longitude
+    },
   },
   methods: {
     toggleDetails() {
       this.details = !this.details
     },
-    handleSaveGsmApiKey(gmsApiKey) {
-      this.gmsApiKey = gmsApiKey
+    handleUpdateHomeCommunity() {
       this.$apollo
         .mutate({
           mutation: updateHomeCommunity,
           variables: {
             uuid: this.item.uuid,
-            gmsApiKey: gmsApiKey,
+            gmsApiKey: this.gmsApiKey,
+            location: this.location,
           },
         })
         .then(() => {
-          this.toastSuccess(this.$t('federation.toast_gmsApiKeyUpdated'))
+          if (this.isLocationChanged && this.isGMSApiKeyChanged) {
+            this.toastSuccess(this.$t('federation.toast_gmsApiKeyAndLocationUpdated'))
+          } else if (this.isGMSApiKeyChanged) {
+            this.toastSuccess(this.$t('federation.toast_gmsApiKeyUpdated'))
+          } else if (this.isLocationChanged) {
+            this.toastSuccess(this.$t('federation.toast_gmsLocationUpdated'))
+          }
+          this.originalLocation = this.location
+          this.originalGmsApiKey = this.gmsApiKey
         })
         .catch((error) => {
           this.toastError(error.message)
         })
+    },
+    resetHomeCommunityEditable() {
+      this.location = this.originalLocation
+      this.gmsApiKey = this.originalGmsApiKey
     },
   },
 }

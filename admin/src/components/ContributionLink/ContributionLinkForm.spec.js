@@ -50,7 +50,6 @@ describe('ContributionLinkForm', () => {
               validTo: 'validTo',
               cycle: 'ONCE',
               maxPerCycle: 1,
-              maxAmountPerMonth: 100,
             },
           })
           wrapper.vm.onReset()
@@ -59,7 +58,6 @@ describe('ContributionLinkForm', () => {
           amount: null,
           cycle: 'ONCE',
           validTo: null,
-          maxAmountPerMonth: '0',
           memo: null,
           name: null,
           maxPerCycle: 1,
@@ -108,7 +106,6 @@ describe('ContributionLinkForm', () => {
             memo: 'test memo',
             cycle: 'ONCE',
             maxPerCycle: 1,
-            maxAmountPerMonth: '0',
             id: null,
           },
         })

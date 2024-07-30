@@ -10,8 +10,8 @@ import {
   Geometry,
 } from 'typeorm'
 import { FederatedCommunity } from '../FederatedCommunity'
-import { User } from '../User'
 import { GeometryTransformer } from '../../src/typeorm/GeometryTransformer'
+import { User } from '../User'
 
 @Entity('communities')
 export class Community extends BaseEntity {
@@ -39,15 +39,6 @@ export class Community extends BaseEntity {
   })
   communityUuid: string | null
 
-  @Column({
-    name: 'location',
-    type: 'geometry',
-    default: null,
-    nullable: true,
-    transformer: GeometryTransformer,
-  })
-  location: Geometry | null
-
   @Column({ name: 'authenticated_at', type: 'datetime', nullable: true })
   authenticatedAt: Date | null
 
@@ -62,6 +53,15 @@ export class Community extends BaseEntity {
 
   @Column({ name: 'gms_api_key', type: 'varchar', length: 512, nullable: true, default: null })
   gmsApiKey: string | null
+
+  @Column({
+    name: 'location',
+    type: 'geometry',
+    default: null,
+    nullable: true,
+    transformer: GeometryTransformer,
+  })
+  location: Geometry | null
 
   @CreateDateColumn({
     name: 'created_at',

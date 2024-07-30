@@ -1,8 +1,12 @@
+import { Point } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { ObjectType, Field } from 'type-graphql'
 
+import { Point2Location } from '@/graphql/resolver/util/Location2Point'
+
 import { FederatedCommunity } from './FederatedCommunity'
+import { Location } from './Location'
 
 @ObjectType()
 export class AdminCommunityView {
@@ -36,6 +40,9 @@ export class AdminCommunityView {
     this.uuid = dbCom.communityUuid
     this.authenticatedAt = dbCom.authenticatedAt
     this.gmsApiKey = dbCom.gmsApiKey
+    if (dbCom.location) {
+      this.location = Point2Location(dbCom.location as Point)
+    }
   }
 
   @Field(() => Boolean)
@@ -61,6 +68,9 @@ export class AdminCommunityView {
 
   @Field(() => String, { nullable: true })
   gmsApiKey: string | null
+
+  @Field(() => Location, { nullable: true })
+  location: Location | null
 
   @Field(() => Date, { nullable: true })
   creationDate: Date | null

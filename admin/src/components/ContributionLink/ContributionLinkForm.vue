@@ -113,7 +113,7 @@
           {{ $t('contributionLink.clear') }}
         </b-button>
         <b-button @click.prevent="$emit('closeContributionForm')">
-          {{ $t('contributionLink.close') }}
+          {{ $t('close') }}
         </b-button>
       </div>
     </b-form>
@@ -144,7 +144,7 @@ export default {
         validTo: null,
         cycle: 'ONCE',
         maxPerCycle: 1,
-        maxAmountPerMonth: '0',
+        // maxAmountPerMonth: '0',
       },
       min: new Date(),
       cycle: [
