@@ -23,9 +23,9 @@
             class="mr-3 test-deleted-icon position-relative rounded-circle"
             style="width: 40px; height: 40px"
           >
-            <img src="/admin/public/img/circle-slash.png" class="position-absolute" />
+            <img src="../../assets/icons/circle-slash.png" class="position-absolute" />
             <img
-              src="/admin/public/img/person.png"
+              src="../../assets/icons/person.png"
               class="position-relative"
               style="transform: translate(50%, 30%)"
             />
@@ -37,7 +37,7 @@
               style="background-color: #dc3545; width: 40px; height: 40px"
             >
               <img
-                src="/admin/public/img/envelope.png"
+                src="../../assets/icons/envelope.png"
                 style="transform: translate(30%, 30%); width: 25px; height: 25px"
                 class="position-absolute"
               />
@@ -46,7 +46,7 @@
               <img
                 v-if="!row.item.hasElopage"
                 class="mr-3 rounded-circle bg-red-dark"
-                src="/admin/public/img/elopage_favicon.png"
+                src="../../assets/icons/elopage_favicon.png"
                 style="background-color: #dc3545; width: 40px; height: 40px"
               />
             </div>
