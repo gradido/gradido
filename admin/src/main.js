@@ -39,7 +39,4 @@ app.mixin(toasters)
 
 addNavigationGuards(router, store, apolloProvider.defaultClient, i18n)
 
-i18n.locale =
-  store.state.moderator && store.state.moderator.language ? store.state.moderator.language : 'en'
-
 app.mount('#app')
