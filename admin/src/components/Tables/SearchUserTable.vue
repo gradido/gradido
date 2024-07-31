@@ -18,21 +18,27 @@
 
       <template #cell(status)="row">
         <div class="d-flex gap-3 justify-content-end align-items-center">
-          <div v-if="row.item.deletedAt" class="w-auto mr-3 test-deleted-icon" variant="light">
-            <!-- <div>
-              <IOcticonPerson24 />
-              <IOcticonCircleSlash24 style="color: #f5365c" />
-            </div> -->
+          <div
+            v-if="row.item.deletedAt"
+            class="mr-3 test-deleted-icon position-relative rounded-circle"
+            style="width: 40px; height: 40px"
+          >
+            <img src="/admin/public/img/circle-slash.png" class="position-absolute" />
+            <img
+              src="/admin/public/img/person.png"
+              class="position-relative"
+              style="transform: translate(50%, 30%)"
+            />
           </div>
           <span v-if="!row.item.deletedAt" class="d-flex gap-2">
             <div
               v-if="!row.item.emailChecked"
-              class="mr-3 rounded-circle bg-red-dark position-relative"
+              class="mr-3 rounded-circle position-relative"
               style="background-color: #dc3545; width: 40px; height: 40px"
             >
               <img
                 src="/admin/public/img/envelope.png"
-                style="transform: translate(15%, 15%)"
+                style="transform: translate(30%, 30%); width: 25px; height: 25px"
                 class="position-absolute"
               />
             </div>
