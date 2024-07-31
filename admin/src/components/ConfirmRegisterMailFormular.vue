@@ -11,11 +11,9 @@
         <!-- Using components -->
         <BInputGroup :prepend="$t('unregister_mail.info')" class="mt-3">
           <BFormInput v-model="email" readonly />
-          <BInputGroupText>
-            <BButton variant="outline-success" class="test-button" @click="sendRegisterMail">
-              {{ $t('unregister_mail.button') }}
-            </BButton>
-          </BInputGroupText>
+          <BButton variant="outline-success" append class="test-button" @click="sendRegisterMail">
+            {{ $t('unregister_mail.button') }}
+          </BButton>
         </BInputGroup>
       </div>
     </div>
@@ -24,7 +22,7 @@
 <script setup>
 import { ref } from 'vue'
 import { sendActivationEmail } from '../graphql/sendActivationEmail'
-import { BButton, BFormInput, BInputGroup, BInputGroupText } from 'bootstrap-vue-next'
+import { BButton, BFormInput, BInputGroup } from 'bootstrap-vue-next'
 import { useI18n } from 'vue-i18n'
 import { useMutation } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
