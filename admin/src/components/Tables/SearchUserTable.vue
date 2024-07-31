@@ -17,27 +17,33 @@
       </template>
 
       <template #cell(status)="row">
-        <div class="text-right">
-          <BAvatar v-if="row.item.deletedAt" class="mr-3 test-deleted-icon" variant="light">
-            <!-- <b-iconstack font-scale="2"> -->
-            <div>
+        <div class="d-flex gap-3 justify-content-end align-items-center">
+          <div v-if="row.item.deletedAt" class="w-auto mr-3 test-deleted-icon" variant="light">
+            <!-- <div>
               <IOcticonPerson24 />
               <IOcticonCircleSlash24 style="color: #f5365c" />
-            </div>
-            <!-- </b-iconstack> -->
-          </BAvatar>
-          <span v-if="!row.item.deletedAt">
-            <IPhEnvelope
+            </div> -->
+          </div>
+          <span v-if="!row.item.deletedAt" class="d-flex gap-2">
+            <div
               v-if="!row.item.emailChecked"
-              style="color: #f5365c"
-              class="align-center mr-3"
-            />
-            <!-- <BAvatar
-              v-if="!row.item.hasElopage"
-              variant="danger"
-              class="mr-3"
-              src="img/elopage_favicon.png"
-            /> -->
+              class="mr-3 rounded-circle bg-red-dark position-relative"
+              style="background-color: #dc3545; width: 40px; height: 40px"
+            >
+              <img
+                src="/admin/public/img/envelope.png"
+                style="transform: translate(15%, 15%)"
+                class="position-absolute"
+              />
+            </div>
+            <div>
+              <img
+                v-if="!row.item.hasElopage"
+                class="mr-3 rounded-circle bg-red-dark"
+                src="/admin/public/img/elopage_favicon.png"
+                style="background-color: #dc3545; width: 40px; height: 40px"
+              />
+            </div>
           </span>
           <IPhCaretUpFill
             v-if="row.detailsShowing === 'caret-up-fill'"
@@ -114,7 +120,7 @@
 </template>
 <script setup>
 import { ref, nextTick, onMounted, watch, computed } from 'vue'
-import { BTable, BAvatar, BTab, BTabs, BCard, useModalController } from 'bootstrap-vue-next'
+import { BTable, BTab, BTabs, BCard, useModalController } from 'bootstrap-vue-next'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
