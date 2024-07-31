@@ -1,5 +1,5 @@
 <template>
-  <hr />
+  <hr class="mb-0" />
   <div class="content-footer">
     <BTr class="mt-4 mb-4 justify-content-lg-between">
       <BCol>
@@ -7,13 +7,17 @@
           {{ $t('footer.copyright.year', { year }) }}
           <a
             :href="`https://gradido.net/${$i18n.locale}`"
-            class="font-weight-bold ml-1"
+            class="fw-bold ml-1 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
             target="_blank"
           >
             {{ $t('footer.copyright.link') }}
           </a>
-          {{ $t('math.pipe', 1) }}
-          <a href="https://github.com/gradido/gradido/releases/latest" target="_blank">
+          |
+          <a
+            href="https://github.com/gradido/gradido/releases/latest"
+            target="_blank"
+            class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
+          >
             {{ $t('footer.app_version', { version }) }}
           </a>
           <a

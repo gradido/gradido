@@ -17,27 +17,39 @@
       </template>
 
       <template #cell(status)="row">
-        <div class="text-right">
-          <BAvatar v-if="row.item.deletedAt" class="mr-3 test-deleted-icon" variant="light">
-            <!-- <b-iconstack font-scale="2"> -->
-            <div>
-              <IOcticonPerson24 />
-              <IOcticonCircleSlash24 style="color: #f5365c" />
-            </div>
-            <!-- </b-iconstack> -->
-          </BAvatar>
-          <span v-if="!row.item.deletedAt">
-            <IPhEnvelope
-              v-if="!row.item.emailChecked"
-              style="color: #f5365c"
-              class="align-center mr-3"
+        <div class="d-flex gap-3 justify-content-end align-items-center">
+          <div
+            v-if="row.item.deletedAt"
+            class="mr-3 test-deleted-icon position-relative rounded-circle"
+            style="width: 40px; height: 40px"
+          >
+            <img src="../../assets/icons/circle-slash.png" class="position-absolute" />
+            <img
+              src="../../assets/icons/person.png"
+              class="position-relative"
+              style="transform: translate(50%, 30%)"
             />
-            <!-- <BAvatar
-              v-if="!row.item.hasElopage"
-              variant="danger"
-              class="mr-3"
-              src="img/elopage_favicon.png"
-            /> -->
+          </div>
+          <span v-if="!row.item.deletedAt" class="d-flex gap-2">
+            <div
+              v-if="!row.item.emailChecked"
+              class="mr-3 rounded-circle position-relative"
+              style="background-color: #dc3545; width: 40px; height: 40px"
+            >
+              <img
+                src="../../assets/icons/envelope.png"
+                style="transform: translate(30%, 30%); width: 25px; height: 25px"
+                class="position-absolute"
+              />
+            </div>
+            <div>
+              <img
+                v-if="!row.item.hasElopage"
+                class="mr-3 rounded-circle bg-red-dark"
+                src="../../assets/icons/elopage_favicon.png"
+                style="background-color: #dc3545; width: 40px; height: 40px"
+              />
+            </div>
           </span>
           <IPhCaretUpFill
             v-if="row.detailsShowing === 'caret-up-fill'"
@@ -114,7 +126,7 @@
 </template>
 <script setup>
 import { ref, nextTick, onMounted, watch, computed } from 'vue'
-import { BTable, BAvatar, BTab, BTabs, BCard, useModalController } from 'bootstrap-vue-next'
+import { BTable, BTab, BTabs, BCard, useModalController } from 'bootstrap-vue-next'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
@@ -128,7 +140,7 @@ import DeletedUserFormular from '../DeletedUserFormular.vue'
 const { t } = useI18n()
 const { confirm } = useModalController()
 const store = useStore()
-const { toastError } = useAppToast()
+const { toastError, toastSuccess } = useAppToast()
 
 const props = defineProps({
   items: {
@@ -207,6 +219,7 @@ const showDeleteModal = async () => {
         deletedUserForm.value.deleteUserMutation()
       }
     })
+
     .catch((error) => {
       toastError(error.message)
     })
@@ -229,6 +242,7 @@ const showUndeleteModal = async () => {
     .then((ok) => {
       if (ok) {
         undeletedUserForm.value.undeleteUserMutation()
+        toastSuccess(t('user_recovered'))
       }
     })
     .catch((error) => {
@@ -266,11 +280,7 @@ const onRowClicked = async (item) => {
       obj._showDetails = false
     }
   })
-
   await nextTick()
-  if (!status && rowDetails.value) {
-    // rowDetails.value.focus()
-  }
 }
 
 watch(
