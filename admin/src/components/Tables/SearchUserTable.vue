@@ -139,7 +139,7 @@ import ChangeUserRoleFormular from '../ChangeUserRoleFormular.vue'
 const { t } = useI18n()
 const { confirm } = useModalController()
 const store = useStore()
-const { toastError } = useAppToast()
+const { toastError, toastSuccess } = useAppToast()
 
 const props = defineProps({
   items: {
@@ -218,6 +218,7 @@ const showDeleteModal = async () => {
         deletedUserForm.value.deleteUserMutation()
       }
     })
+
     .catch((error) => {
       toastError(error.message)
     })
@@ -240,6 +241,7 @@ const showUndeleteModal = async () => {
     .then((ok) => {
       if (ok) {
         undeletedUserForm.value.undeleteUserMutation()
+        toastSuccess(t('user_recovered'))
       }
     })
     .catch((error) => {
@@ -277,11 +279,7 @@ const onRowClicked = async (item) => {
       obj._showDetails = false
     }
   })
-
   await nextTick()
-  if (!status && rowDetails.value) {
-    // rowDetails.value.focus()
-  }
 }
 
 watch(
