@@ -80,6 +80,7 @@ import { useAppToast } from '@/composables/useToast'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { useStore } from 'vuex'
 import { adminCreateContribution } from '../graphql/adminCreateContribution'
+import { adminOpenCreations } from '../graphql/adminOpenCreations'
 import useCreationMonths from '../composables/useCreationMonths'
 import {
   BFormInput,
@@ -123,14 +124,12 @@ const props = defineProps({
 const { t } = useI18n()
 const store = useStore()
 
-const text = ref(props.creationUserData.memo || '')
-const value = ref(props.creationUserData.amount || 0)
+const text = ref(!props.creationUserData.memo ? '' : props.creationUserData.memo)
+const value = ref(!props.creationUserData.amount ? 0 : props.creationUserData.amount)
 const rangeMin = ref(0)
 const rangeMax = ref(1000)
 const selected = ref()
 const creationForm = ref(null)
-
-const openCreations = computed(() => store.state.openCreations)
 
 const radioOptions = computed(() => {
   return creationDateObjects.value.map((obj, idx) => {
@@ -140,6 +139,7 @@ const radioOptions = computed(() => {
     }
   })
 })
+
 const updateRadioSelected = (name) => {
   text.value = `${t('creation_form.creation_for')} ${name?.short} ${name?.year}`
   rangeMin.value = 0
@@ -151,11 +151,9 @@ const onReset = () => {
   value.value = 0
   selected.value = null
 }
-
 const { mutate: createContribution } = useMutation(adminCreateContribution)
 
-const { refetch } = useQuery(openCreations)
-
+const { refetch: refetchCreations } = useQuery(adminOpenCreations, { userId: props.item.userId })
 const emit = defineEmits(['update-user-data'])
 
 const submitCreation = async () => {
@@ -183,7 +181,7 @@ const submitCreation = async () => {
     toastError(error.message)
     onReset()
   } finally {
-    refetch()
+    refetchCreations()
     selected.value = ''
   }
 }

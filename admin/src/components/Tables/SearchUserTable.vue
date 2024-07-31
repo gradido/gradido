@@ -135,6 +135,7 @@ import ConfirmRegisterMailFormular from '../ConfirmRegisterMailFormular.vue'
 import CreationTransactionList from '../CreationTransactionList.vue'
 import TransactionLinkList from '../TransactionLinkList.vue'
 import ChangeUserRoleFormular from '../ChangeUserRoleFormular.vue'
+import DeletedUserFormular from '../DeletedUserFormular.vue'
 
 const { t } = useI18n()
 const { confirm } = useModalController()
@@ -269,7 +270,7 @@ const selectedRow = computed(() => {
 
 const onRowClicked = async (item) => {
   const status = myItems.value.find((obj) => {
-    return obj.userId === item.userId
+    return obj?.userId === item?.userId
   })?._showDetails
 
   myItems.value.forEach((obj) => {
