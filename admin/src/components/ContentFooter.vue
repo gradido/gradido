@@ -1,5 +1,5 @@
 <template>
-  <hr />
+  <hr class="mb-0" />
   <div class="content-footer">
     <BTr class="mt-4 mb-4 justify-content-lg-between">
       <BCol>
