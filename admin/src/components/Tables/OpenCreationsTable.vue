@@ -1,6 +1,6 @@
 <template>
   <div class="open-creations-table">
-    <b-table-lite
+    <BTableLite
       :items="items"
       :fields="fields"
       caption-top
@@ -10,18 +10,22 @@
       :tbody-tr-class="rowClass"
     >
       <template #cell(status)="row">
-        <b-icon :icon="getStatusIcon(row.item.status)"></b-icon>
+        <IBiQuestionSquare v-if="row.item.status === 'IN_PROGRESS'" />
+        <IBiBellFill v-else-if="row.item.status === 'PENDING'" />
+        <IBiCheck v-else-if="row.item.status === 'CONFIRMED'" />
+        <IBiXCircle v-else-if="row.item.status === 'DENIED'" />
+        <IBiTrash v-else-if="row.item.status === 'DELETED'" />
       </template>
       <template #cell(bookmark)="row">
         <div v-if="!myself(row.item)">
-          <b-button
+          <BButton
             variant="danger"
             size="md"
-            @click="$emit('show-overlay', row.item, 'delete')"
             class="mr-2"
+            @click="$emit('show-overlay', row.item, 'delete')"
           >
-            <b-icon icon="trash" variant="light"></b-icon>
-          </b-button>
+            <IBiTrash />
+          </BButton>
         </div>
       </template>
       <template #cell(memo)="row">
@@ -33,66 +37,66 @@
       </template>
       <template #cell(editCreation)="row">
         <div v-if="!myself(row.item)">
-          <b-button
+          <BButton
             v-if="row.item.moderatorId"
             variant="info"
             size="md"
             :index="0"
-            @click="rowToggleDetails(row, 0)"
             class="mr-2"
+            @click="rowToggleDetails(row, 0)"
           >
-            <b-icon :icon="row.detailsShowing ? 'x' : 'pencil-square'" aria-label="Help"></b-icon>
-          </b-button>
-          <b-button v-else @click="rowToggleDetails(row, 0)">
-            <b-icon icon="chat-dots"></b-icon>
-            <b-icon
+            <IBiX v-if="row.detailsShowing" />
+            <IBiPencilSquare v-else />
+          </BButton>
+          <BButton v-else @click="rowToggleDetails(row, 0)">
+            <IBiChatDots />
+            <IBiExclamationCircleFill
               v-if="row.item.status === 'PENDING' && row.item.messagesCount > 0"
-              icon="exclamation-circle-fill"
-              variant="warning"
-            ></b-icon>
-            <b-icon
+              style="color: #ffc107"
+            />
+            <IBiQuestionDiamond
               v-if="row.item.status === 'IN_PROGRESS' && row.item.messagesCount > 0"
-              icon="question-diamond"
               variant="warning"
+              style="color: #ffc107"
               class="pl-1"
-            ></b-icon>
-          </b-button>
+            />
+          </BButton>
         </div>
       </template>
       <template #cell(chatCreation)="row">
-        <b-button v-if="row.item.messagesCount > 0" @click="rowToggleDetails(row, 0)">
-          <b-icon icon="chat-dots"></b-icon>
-        </b-button>
+        <BButton v-if="row.item.messagesCount > 0" @click="rowToggleDetails(row, 0)">
+          <IBiChatDots />
+        </BButton>
       </template>
       <template #cell(deny)="row">
         <div v-if="!myself(row.item)">
-          <b-button
+          <BButton
             variant="warning"
             size="md"
-            @click="$emit('show-overlay', row.item, 'deny')"
             class="mr-2"
+            @click="$emit('show-overlay', row.item, 'deny')"
           >
-            <b-icon icon="x" variant="light"></b-icon>
-          </b-button>
+            <IBiX />
+          </BButton>
         </div>
       </template>
       <template #cell(confirm)="row">
         <div v-if="!myself(row.item)">
-          <b-button
+          <BButton
             variant="success"
             size="md"
-            @click="$emit('show-overlay', row.item, 'confirm')"
             class="mr-2"
+            @click="$emit('show-overlay', row.item, 'confirm')"
           >
-            <b-icon icon="check" scale="2" variant=""></b-icon>
-          </b-button>
+            <IBiCheck />
+          </BButton>
         </div>
       </template>
       <template #row-details="row">
         <row-details
           :row="row"
           type="show-creation"
-          slotName="show-creation"
+          slot-name="show-creation"
           :index="0"
           @row-toggle-details="rowToggleDetails(row, 0)"
         >
@@ -102,18 +106,18 @@
                 type="singleCreation"
                 :item="row.item"
                 :row="row"
-                :creationUserData="creationUserData"
+                :creation-user-data="creationUserData"
                 @update-creation-data="$emit('update-contributions')"
               />
             </div>
             <div v-else>
               <contribution-messages-list
-                :contributionId="row.item.id"
-                :contributionStatus="row.item.status"
-                :contributionUserId="row.item.userId"
-                :contributionMemo="row.item.memo"
-                :resubmissionAt="row.item.resubmissionAt"
-                :hideResubmission="hideResubmission"
+                :contribution-id="row.item.id"
+                :contribution-status="row.item.status"
+                :contribution-user-id="row.item.userId"
+                :contribution-memo="row.item.memo"
+                :resubmission-at="row.item.resubmissionAt"
+                :hide-resubmission="hideResubmission"
                 @update-status="updateStatus"
                 @reload-contribution="reloadContribution"
                 @update-contributions="updateContributions"
@@ -122,7 +126,7 @@
           </template>
         </row-details>
       </template>
-    </b-table-lite>
+    </BTableLite>
   </div>
 </template>
 
@@ -142,12 +146,12 @@ const iconMap = {
 
 export default {
   name: 'OpenCreationsTable',
-  mixins: [toggleRowDetails],
   components: {
     EditCreationFormular,
     RowDetails,
     ContributionMessagesList,
   },
+  mixins: [toggleRowDetails],
   props: {
     items: {
       type: Array,
@@ -166,6 +170,7 @@ export default {
       required: false,
     },
   },
+  emits: ['update-contributions', 'reload-contribution', 'update-status', 'show-overlay'],
   methods: {
     myself(item) {
       return item.userId === this.$store.state.moderator.id

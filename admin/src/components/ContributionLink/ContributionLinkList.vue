@@ -1,125 +1,151 @@
 <template>
   <div class="contribution-link-list">
-    <b-table :items="items" :fields="fields" striped hover stacked="lg">
+    <BTable :items="props.items" :fields="fields" striped hover stacked="lg">
       <template #cell(delete)="data">
-        <b-button
+        <BButton
           variant="danger"
           size="md"
           class="mr-2 test-delete-link"
-          @click="deleteContributionLink(data.item.id, data.item.name)"
+          @click="handleDelete(data)"
         >
-          <b-icon icon="trash" variant="light"></b-icon>
-        </b-button>
+          <IBiTrash />
+        </BButton>
       </template>
       <template #cell(edit)="data">
-        <b-button variant="success" size="md" class="mr-2" @click="editContributionLink(data.item)">
-          <b-icon icon="pencil" variant="light"></b-icon>
-        </b-button>
+        <BButton variant="success" size="md" class="mr-2" @click="editContributionLink(data.item)">
+          <IBiPencil />
+        </BButton>
       </template>
       <template #cell(show)="data">
-        <b-button
+        <BButton
           variant="info"
           size="md"
           class="mr-2 test-show"
           @click="showContributionLink(data.item)"
         >
-          <b-icon icon="eye" variant="light"></b-icon>
-        </b-button>
+          <IBiEye />
+        </BButton>
       </template>
-    </b-table>
+    </BTable>
 
-    <b-modal ref="my-modal" ok-only hide-header-close>
-      <b-card header-tag="header" footer-tag="footer">
+    <BModal
+      v-if="modalData"
+      id="qr-link-modal"
+      ref="my-modal"
+      v-model="qrLinkModal"
+      ok-only
+      hide-header-close
+    >
+      <BCard header-tag="header" footer-tag="footer">
         <template #header>
           <h6 class="mb-0">{{ modalData ? modalData.name : '' }}</h6>
         </template>
-        <b-card-text>
+        <BCardText>
           {{ modalData.memo ? modalData.memo : '' }}
           <figure-qr-code :link="modalData ? modalData.link : ''" />
-        </b-card-text>
+        </BCardText>
         <template #footer>
           <em>{{ modalData ? modalData.link : '' }}</em>
         </template>
-      </b-card>
-    </b-modal>
+      </BCard>
+    </BModal>
+    <BModal id="delete-link-modal" v-model="deleteLinkModal" @ok="executeDelete">
+      <template #default>
+        {{ t('contributionLink.deleteNow', { name: itemToBeDeleted.name }) }}
+      </template>
+    </BModal>
   </div>
 </template>
-<script>
+
+<script setup>
+import { ref } from 'vue'
+import { useMutation } from '@vue/apollo-composable'
 import { deleteContributionLink } from '@/graphql/deleteContributionLink.js'
 import FigureQrCode from '../FigureQrCode'
+import { useModal } from 'bootstrap-vue-next'
+import { useI18n } from 'vue-i18n'
+import { useAppToast } from '@/composables/useToast'
 
-export default {
-  name: 'ContributionLinkList',
-  components: {
-    FigureQrCode,
+const props = defineProps({
+  items: {
+    type: Array,
+    required: true,
   },
-  props: {
-    items: { type: Array, required: true },
-  },
-  data() {
-    return {
-      fields: [
-        'name',
-        'memo',
-        'amount',
-        { key: 'cycle', label: this.$t('contributionLink.cycle') },
-        { key: 'maxPerCycle', label: this.$t('contributionLink.maxPerCycle') },
-        {
-          key: 'validFrom',
-          label: this.$t('contributionLink.validFrom'),
-          formatter: (value, key, item) => {
-            if (value) {
-              return this.$d(new Date(value))
-            }
-          },
-        },
-        {
-          key: 'validTo',
-          label: this.$t('contributionLink.validTo'),
-          formatter: (value, key, item) => {
-            if (value) {
-              return this.$d(new Date(value))
-            }
-          },
-        },
-        'delete',
-        'edit',
-        'show',
-      ],
-      modalData: {},
-    }
-  },
-  methods: {
-    deleteContributionLink(id, name) {
-      this.$bvModal
-        .msgBoxConfirm(this.$t('contributionLink.deleteNow', { name: name }))
-        .then(async (value) => {
-          if (value)
-            await this.$apollo
-              .mutate({
-                mutation: deleteContributionLink,
-                variables: {
-                  id: id,
-                },
-              })
-              .then(() => {
-                this.toastSuccess(this.$t('contributionLink.deleted'))
-                this.$emit('closeContributionForm')
-                this.$emit('get-contribution-links')
-              })
-              .catch((err) => {
-                this.toastError(err.message)
-              })
-        })
-    },
-    editContributionLink(row) {
-      this.$emit('editContributionLinkData', row)
-    },
+})
 
-    showContributionLink(row) {
-      this.modalData = row
-      this.$refs['my-modal'].show()
-    },
+const qrLinkModal = ref(false)
+const { show: showQrCodeModal } = useModal('qr-link-modal')
+
+const deleteLinkModal = ref(false)
+const { show: showDeleteLinkModal } = useModal('delete-link-modal')
+
+const emit = defineEmits([
+  'close-contribution-form',
+  'get-contribution-links',
+  'edit-contribution-link-data',
+])
+
+const { t, d } = useI18n()
+const { toastError, toastSuccess } = useAppToast()
+
+const modalData = ref({})
+
+const fields = ref([
+  'name',
+  'memo',
+  'amount',
+  { key: 'cycle', label: t('contributionLink.cycle') },
+  { key: 'maxPerCycle', label: t('contributionLink.maxPerCycle') },
+  {
+    key: 'validFrom',
+    label: t('contributionLink.validFrom'),
+    formatter: (value) => (value ? d(new Date(value)) : ''),
   },
+  {
+    key: 'validTo',
+    label: t('contributionLink.validTo'),
+    formatter: (value) => (value ? d(new Date(value)) : ''),
+  },
+  'delete',
+  'edit',
+  'show',
+])
+
+const { mutate: deleteContributionLinkMutation } = useMutation(deleteContributionLink)
+
+const itemToBeDeleted = ref({})
+
+const handleDelete = async (dataPayload) => {
+  itemToBeDeleted.value = { ...dataPayload.item }
+  showDeleteLinkModal()
 }
+
+const executeDelete = async () => {
+  try {
+    await deleteContributionLinkMutation({ id: parseInt(itemToBeDeleted.value.id) })
+    toastSuccess(t('contributionLink.deleted'))
+    emit('close-contribution-form')
+    emit('get-contribution-links')
+    itemToBeDeleted.value = {}
+  } catch (err) {
+    toastError(err.message)
+  }
+}
+
+const editContributionLink = (row) => {
+  emit('edit-contribution-link-data', row)
+}
+
+const showContributionLink = (row) => {
+  modalData.value = row
+  showQrCodeModal()
+}
+
+defineExpose({
+  fields,
+  modalData,
+  deleteContributionLink,
+  editContributionLink,
+  showContributionLink,
+})
 </script>

@@ -1,60 +1,65 @@
 <template>
   <div class="component-overlay">
-    <b-jumbotron class="bg-light p-4">
-      <template #header><slot name="title" /></template>
+    <BCard class="bg-light p-4">
+      <h1 class="display-3"><slot name="title" /></h1>
 
-      <template #lead>
-        <b-row class="mt-4">
-          <b-col class="col-3">{{ $t('transactionlist.amount') }}</b-col>
-          <b-col class="h3">
-            <b>{{ item.amount }} {{ $t('GDD') }}</b>
-          </b-col>
-        </b-row>
-        <b-row>
-          <b-col class="col-3">{{ $t('creation_for_month') }}</b-col>
-          <b-col class="h3">
-            {{ $d(new Date(item.contributionDate), 'month') }}
-            {{ $d(new Date(item.contributionDate), 'year') }}
-          </b-col>
-        </b-row>
-        <b-row>
-          <b-col class="col-3">{{ $t('transactionlist.memo') }}</b-col>
-          <b-col>{{ item.memo }}</b-col>
-        </b-row>
-        <b-row class="mt-3">
-          <b-col class="col-3">{{ $t('name') }}</b-col>
-          <b-col>{{ item.firstName }} {{ item.lastName }}</b-col>
-        </b-row>
-        <b-row>
-          <b-col class="col-3">{{ $t('e_mail') }}</b-col>
-          <b-col>{{ item.email }}</b-col>
-        </b-row>
-      </template>
+      <!--      <template #lead>-->
+      <BRow class="mt-4">
+        <BCol class="col-3">{{ $t('transactionlist.amount') }}</BCol>
+        <BCol class="h3">
+          <b>{{ item.amount }} {{ $t('GDD') }}</b>
+        </BCol>
+      </BRow>
+      <BRow>
+        <BCol class="col-3">{{ $t('creation_for_month') }}</BCol>
+        <BCol class="h3">
+          {{ $d(new Date(item.contributionDate), 'month') }}
+          {{ $d(new Date(item.contributionDate), 'year') }}
+        </BCol>
+      </BRow>
+      <BRow>
+        <BCol class="col-3">{{ $t('transactionlist.memo') }}</BCol>
+        <BCol>{{ item.memo }}</BCol>
+      </BRow>
+      <BRow class="mt-3">
+        <BCol class="col-3">{{ $t('name') }}</BCol>
+        <BCol>{{ item.firstName }} {{ item.lastName }}</BCol>
+      </BRow>
+      <BRow>
+        <BCol class="col-3">{{ $t('e_mail') }}</BCol>
+        <BCol>{{ item.email }}</BCol>
+      </BRow>
 
       <hr class="my-4" />
       <slot name="text" />
       <slot name="question" />
 
-      <b-container>
-        <b-row>
-          <b-col>
-            <b-button size="md" variant="info" class="m-3" @click="$emit('overlay-cancel')">
+      <BContainer>
+        <BRow>
+          <BCol>
+            <BButton
+              size="md"
+              variant="info"
+              class="m-3 text-light"
+              @click="$emit('overlay-cancel')"
+            >
               {{ $t('overlay.cancel') }}
-            </b-button>
-          </b-col>
-          <b-col class="text-right">
+            </BButton>
+          </BCol>
+          <BCol class="text-right">
             <slot name="submit-btn" />
-          </b-col>
-        </b-row>
-      </b-container>
-    </b-jumbotron>
+          </BCol>
+        </BRow>
+      </BContainer>
+    </BCard>
   </div>
 </template>
 <script>
 export default {
-  name: 'overlay',
+  name: 'Overlay',
   props: {
     item: { type: Object, required: true },
   },
+  emits: ['overlay-cancel'],
 }
 </script>

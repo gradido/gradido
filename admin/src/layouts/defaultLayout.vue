@@ -10,7 +10,7 @@
 import NavBar from '@/components/NavBar'
 import ContentFooter from '@/components/ContentFooter'
 export default {
-  name: 'defaultLayout',
+  name: 'DefaultLayout',
   components: {
     NavBar,
     ContentFooter,

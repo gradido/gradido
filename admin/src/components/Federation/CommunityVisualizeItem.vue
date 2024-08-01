@@ -1,38 +1,38 @@
 <template>
   <div class="community-visualize-item">
-    <b-row @click="toggleDetails">
-      <b-col cols="1"><b-icon :icon="icon" :variant="variant" class="mr-4"></b-icon></b-col>
-      <b-col>
+    <BRow @click="toggleDetails">
+      <BCol cols="1"><b-icon :icon="icon" :variant="variant" class="mr-4"></b-icon></BCol>
+      <BCol>
         <div>
           <a :href="item.url" target="_blank">{{ item.url }}</a>
         </div>
         <small>{{ `${item.publicKey.substring(0, 26)}…` }}</small>
-      </b-col>
-      <b-col v-b-tooltip="item.description">{{ item.name }}</b-col>
-      <b-col cols="2">{{ lastAnnouncedAt }}</b-col>
-      <b-col cols="2">{{ createdAt }}</b-col>
-    </b-row>
-    <b-row v-if="details" class="details">
-      <b-col colspan="5">
-        <b-list-group>
-          <b-list-group-item v-if="item.uuid">
+      </BCol>
+      <BCol v-b-tooltip="item.description">{{ item.name }}</BCol>
+      <BCol cols="2">{{ lastAnnouncedAt }}</BCol>
+      <BCol cols="2">{{ createdAt }}</BCol>
+    </BRow>
+    <BRow v-if="details" class="details">
+      <BCol colspan="5">
+        <BListGroup>
+          <BListGroupItem v-if="item.uuid">
             {{ $t('federation.communityUuid') }}&nbsp;{{ item.uuid }}
-          </b-list-group-item>
-          <b-list-group-item v-if="item.authenticatedAt">
+          </BListGroupItem>
+          <BListGroupItem v-if="item.authenticatedAt">
             {{ $t('federation.authenticatedAt') }}&nbsp;{{ item.authenticatedAt }}
-          </b-list-group-item>
-          <b-list-group-item>
+          </BListGroupItem>
+          <BListGroupItem>
             {{ $t('federation.publicKey') }}&nbsp;{{ item.publicKey }}
-          </b-list-group-item>
-          <b-list-group-item v-if="!item.foreign">
+          </BListGroupItem>
+          <BListGroupItem v-if="!item.foreign">
             <editable-group
-              :allowEdit="$store.state.moderator.roles.includes('ADMIN')"
+              :allow-edit="$store.state.moderator.roles.includes('ADMIN')"
               @save="handleUpdateHomeCommunity"
               @reset="resetHomeCommunityEditable"
             >
               <template #view>
                 <label>{{ $t('federation.gmsApiKey') }}&nbsp;{{ gmsApiKey }}</label>
-                <b-form-group>
+                <BFormGroup>
                   {{ $t('federation.coordinates') }}
                   <span v-if="isValidLocation">
                     {{
@@ -42,40 +42,40 @@
                       })
                     }}
                   </span>
-                </b-form-group>
+                </BFormGroup>
               </template>
               <template #edit>
                 <editable-groupable-label
                   v-model="gmsApiKey"
                   :label="$t('federation.gmsApiKey')"
-                  idName="home-community-api-key"
+                  id-name="home-community-api-key"
                 />
                 <coordinates v-model="location" />
               </template>
             </editable-group>
-          </b-list-group-item>
-          <b-list-group-item>
-            <b-list-group>
-              <b-row>
-                <b-col class="ml-1">{{ $t('federation.verified') }}</b-col>
-                <b-col>{{ $t('federation.apiVersion') }}</b-col>
-                <b-col>{{ $t('federation.createdAt') }}</b-col>
-                <b-col>{{ $t('federation.lastAnnouncedAt') }}</b-col>
-                <b-col>{{ $t('federation.verifiedAt') }}</b-col>
-                <b-col>{{ $t('federation.lastErrorAt') }}</b-col>
-              </b-row>
-              <b-list-group-item
+          </BListGroupItem>
+          <BListGroup-item>
+            <BListGroup>
+              <BRow>
+                <BCol class="ml-1">{{ $t('federation.verified') }}</BCol>
+                <BCol>{{ $t('federation.apiVersion') }}</BCol>
+                <BCol>{{ $t('federation.createdAt') }}</BCol>
+                <BCol>{{ $t('federation.lastAnnouncedAt') }}</BCol>
+                <BCol>{{ $t('federation.verifiedAt') }}</BCol>
+                <BCol>{{ $t('federation.lastErrorAt') }}</BCol>
+              </BRow>
+              <BListGroup-item
                 v-for="federation in item.federatedCommunities"
                 :key="federation.id"
                 :variant="!item.foreign ? 'primary' : 'warning'"
               >
                 <federation-visualize-item :item="federation" />
-              </b-list-group-item>
-            </b-list-group>
-          </b-list-group-item>
-        </b-list-group>
-      </b-col>
-    </b-row>
+              </BListGroup-item>
+            </BListGroup>
+          </BListGroup-item>
+        </BListGroup>
+      </BCol>
+    </BRow>
   </div>
 </template>
 <script>

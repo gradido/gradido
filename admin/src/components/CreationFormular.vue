@@ -2,178 +2,201 @@
   <div class="component-creation-formular">
     {{ $t('creation_form.form') }}
     <div class="shadow p-3 mb-5 bg-white rounded">
-      <b-form ref="creationForm">
-        <div class="ml-4">
+      <BForm ref="creationForm">
+        <div class="m-4 mt-0">
           <label>{{ $t('creation_form.select_month') }}</label>
-        </div>
-        <b-row class="ml-4">
-          <b-form-radio-group
+          <BFormRadioGroup
+            id="radio-group-month-selection"
             v-model="selected"
             :options="radioOptions"
             value-field="item"
             text-field="name"
             name="month-selection"
-          ></b-form-radio-group>
-        </b-row>
-        <b-row class="m-4" v-show="selected !== ''">
+          />
+        </div>
+        <div v-if="selected" class="m-4 d-flex">
           <label>{{ $t('creation_form.select_value') }}</label>
           <div>
-            <b-input-group prepend="GDD" append=".00">
-              <b-form-input
-                type="number"
-                v-model="value"
-                :min="rangeMin"
-                :max="rangeMax"
-              ></b-form-input>
-            </b-input-group>
-            <b-input-group prepend="0" :append="String(rangeMax)" class="mt-3">
-              <b-form-input
-                type="range"
-                v-model="value"
-                :min="rangeMin"
-                :max="rangeMax"
-                step="10"
-              ></b-form-input>
-            </b-input-group>
+            <BInputGroup prepend="GDD" append=".00">
+              <BFormInput v-model="value" type="number" :min="rangeMin" :max="rangeMax" />
+            </BInputGroup>
+            <BInputGroup
+              prepend="0"
+              :append="String(rangeMax)"
+              class="mt-3 flex-nowrap align-items-center"
+            >
+              <BFormInput v-model="value" type="range" :min="rangeMin" :max="rangeMax" step="10" />
+            </BInputGroup>
           </div>
-        </b-row>
+        </div>
         <div class="m-4">
           <label>{{ $t('creation_form.enter_text') }}</label>
           <div>
-            <b-form-textarea
+            <BFormTextarea
               id="textarea-state"
               v-model="text"
               :state="text.length >= 10"
               :placeholder="$t('creation_form.min_characters')"
               rows="3"
-            ></b-form-textarea>
+            />
           </div>
         </div>
-        <b-row class="m-4">
-          <b-col class="text-left">
-            <b-button type="reset" variant="danger" @click="$refs.creationForm.reset()">
-              {{ $t('creation_form.reset') }}
-            </b-button>
-          </b-col>
-          <b-col class="text-center">
-            <div class="text-right">
-              <b-button
-                v-if="pagetype === 'PageCreationConfirm'"
-                type="button"
-                variant="success"
-                class="test-submit"
-                @click="submitCreation"
-                :disabled="selected === '' || value <= 0 || text.length < 10"
-              >
-                {{ $t('creation_form.update_creation') }}
-              </b-button>
-              <b-button
-                v-else
-                type="button"
-                variant="success"
-                class="test-submit"
-                @click="submitCreation"
-                :disabled="selected === '' || value <= 0 || text.length < 10"
-              >
-                {{ $t('creation_form.submit_creation') }}
-              </b-button>
-            </div>
-          </b-col>
-        </b-row>
-      </b-form>
+        <div class="buttons-wrapper d-flex justify-content-between">
+          <BButton type="reset" variant="danger" @click="onReset()">
+            {{ $t('creation_form.reset') }}
+          </BButton>
+          <div>
+            <BButton
+              v-if="pagetype === 'PageCreationConfirm'"
+              type="button"
+              variant="success"
+              class="test-submit"
+              :disabled="selected === '' || value <= 0 || text.length < 10"
+              @click="submitCreation"
+            >
+              {{ $t('creation_form.update_creation') }}
+            </BButton>
+            <BButton
+              v-else
+              type="button"
+              variant="success"
+              class="test-submit"
+              :disabled="selected === '' || value <= 0 || text.length < 10"
+              @click="submitCreation"
+            >
+              {{ $t('creation_form.submit_creation') }}
+            </BButton>
+          </div>
+        </div>
+      </BForm>
     </div>
   </div>
 </template>
-<script>
+
+<script setup>
+import { ref, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useAppToast } from '@/composables/useToast'
+import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useStore } from 'vuex'
 import { adminCreateContribution } from '../graphql/adminCreateContribution'
-import { creationMonths } from '../mixins/creationMonths'
-export default {
-  name: 'CreationFormular',
-  mixins: [creationMonths],
-  props: {
-    pagetype: {
-      type: String,
-      required: false,
-      default: '',
-    },
-    item: {
-      type: Object,
-      required: false,
-      default() {
-        return {}
-      },
-    },
-    items: {
-      type: Array,
-      required: false,
-      default() {
-        return []
-      },
-    },
-    creationUserData: {
-      type: Object,
-      required: false,
-      default() {
-        return {}
-      },
-    },
+import { adminOpenCreations } from '../graphql/adminOpenCreations'
+import useCreationMonths from '../composables/useCreationMonths'
+import {
+  BFormInput,
+  BFormRadioGroup,
+  BForm,
+  BInputGroup,
+  BButton,
+  BFormTextarea,
+} from 'bootstrap-vue-next'
+
+const { creationDateObjects } = useCreationMonths()
+const { toastError, toastSuccess } = useAppToast()
+
+const props = defineProps({
+  pagetype: {
+    type: String,
+    required: false,
+    default: '',
   },
-  data() {
+  item: {
+    type: Object,
+    required: false,
+    default: () => ({}),
+  },
+  items: {
+    type: Array,
+    required: false,
+    default: () => [],
+  },
+  creationUserData: {
+    type: Object,
+    required: false,
+    default: () => ({}),
+  },
+  creation: {
+    type: Object,
+    required: true,
+  },
+})
+
+const { t } = useI18n()
+const store = useStore()
+
+const text = ref(!props.creationUserData.memo ? '' : props.creationUserData.memo)
+const value = ref(!props.creationUserData.amount ? 0 : props.creationUserData.amount)
+const rangeMin = ref(0)
+const rangeMax = ref(1000)
+const selected = ref()
+const creationForm = ref(null)
+
+const radioOptions = computed(() => {
+  return creationDateObjects.value.map((obj, idx) => {
     return {
-      text: !this.creationUserData.memo ? '' : this.creationUserData.memo,
-      value: !this.creationUserData.amount ? 0 : this.creationUserData.amount,
-      rangeMin: 0,
-      rangeMax: 1000,
-      selected: '',
-      userId: this.item.userId,
+      item: { ...obj, creation: props.creation[idx] },
+      name: obj.short + (props.creation[idx] ? ' ' + props.creation[idx] + ' GDD' : ''),
+    }
+  })
+})
+
+const updateRadioSelected = (name) => {
+  text.value = `${t('creation_form.creation_for')} ${name?.short} ${name?.year}`
+  rangeMin.value = 0
+  rangeMax.value = Number(name?.creation)
+}
+
+const onReset = () => {
+  text.value = ''
+  value.value = 0
+  selected.value = null
+}
+const { mutate: createContribution } = useMutation(adminCreateContribution)
+
+const { refetch: refetchCreations } = useQuery(adminOpenCreations, { userId: props.item.userId })
+const emit = defineEmits(['update-user-data'])
+
+const submitCreation = async () => {
+  try {
+    const result = await createContribution({
+      email: props.item.email,
+      creationDate: selected.value.date,
+      amount: Number(value.value),
+      memo: text.value,
+    })
+
+    emit('update-user-data', props.item, result.data.adminCreateContribution)
+
+    store.commit('openCreationsPlus', 1)
+
+    toastSuccess(
+      t('creation_form.toasted', {
+        value: value.value,
+        email: props.item.email,
+      }),
+    )
+
+    onReset()
+  } catch (error) {
+    toastError(error.message)
+    onReset()
+  } finally {
+    refetchCreations()
+    selected.value = ''
+  }
+}
+
+watch(
+  () => selected.value,
+  async (newValue, oldValue) => {
+    if (newValue !== oldValue && selected.value !== '') {
+      updateRadioSelected(newValue)
     }
   },
-  methods: {
-    updateRadioSelected(name) {
-      // do we want to reset the memo everytime the month changes?
-      this.text = this.$t('creation_form.creation_for') + ' ' + name.short + ' ' + name.year
-      this.rangeMin = 0
-      this.rangeMax = Number(name.creation)
-    },
-    submitCreation() {
-      this.$apollo
-        .mutate({
-          mutation: adminCreateContribution,
-          variables: {
-            email: this.item.email,
-            creationDate: this.selected.date,
-            amount: Number(this.value),
-            memo: this.text,
-          },
-        })
-        .then((result) => {
-          this.$emit('update-user-data', this.item, result.data.adminCreateContribution)
-          this.$store.commit('openCreationsPlus', 1)
-          this.toastSuccess(
-            this.$t('creation_form.toasted', {
-              value: this.value,
-              email: this.item.email,
-            }),
-          )
-          // what is this? Tests says that this.text is not reseted
-          this.$refs.creationForm.reset()
-          this.value = 0
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-          this.$refs.creationForm.reset()
-          this.value = 0
-        })
-        .finally(() => {
-          this.$apollo.queries.OpenCreations.refetch()
-          this.selected = ''
-        })
-    },
-  },
-  watch: {
-    selected() {
-      this.updateRadioSelected(this.selected)
-    },
-  },
-}
+)
 </script>
+<style scoped>
+.buttons-wrapper {
+  margin: 1.5rem 2.4rem;
+}
+</style>

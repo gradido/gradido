@@ -1,59 +1,98 @@
 <template>
   <div class="component-nabvar">
-    <b-navbar toggleable="lg" type="dark" class="bg-dark">
-      <b-navbar-brand class="mb-2" to="/">
-        <img src="img/brand/gradido_logo_w.png" class="navbar-brand-img pl-2" alt="..." />
-      </b-navbar-brand>
+    <BNavbar v-b-color-mode="'dark'" toggleable="lg" variant="light-dark">
+      <BNavbarBrand class="mb-2" to="/">
+        <img
+          src="../../public/img/brand/gradido_logo_w.png"
+          class="navbar-brand-img pl-2"
+          alt="..."
+        />
+      </BNavbarBrand>
 
-      <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
+      <BNavbarToggle v-b-toggle.nav-collapse target="navbar-toggle-collapse" />
 
-      <b-collapse id="nav-collapse" is-nav>
-        <b-navbar-nav>
-          <b-nav-item to="/user">{{ $t('navbar.user_search') }}</b-nav-item>
-          <b-nav-item class="bg-color-creation" to="/creation-confirm">
+      <BCollapse id="nav-collapse" is-nav>
+        <BNavbarNav>
+          <BNavItem :active="isActive('user')" to="/user">
+            {{ $t('navbar.user_search') }}
+          </BNavItem>
+          <BNavItem
+            :active="isActive('creation-confirm')"
+            class="bg-color-creation"
+            to="/creation-confirm"
+          >
             {{ $t('creation') }}
-            <b-badge v-show="$store.state.openCreations > 0" variant="danger">
-              {{ $store.state.openCreations }}
-            </b-badge>
-          </b-nav-item>
-          <b-nav-item to="/contribution-links">
+            <BBadge v-show="openCreations > 0" variant="danger">
+              {{ openCreations }}
+            </BBadge>
+          </BNavItem>
+          <BNavItem to="/contribution-links" :active="isActive('contribution-links')">
             {{ $t('navbar.automaticContributions') }}
-          </b-nav-item>
-          <b-nav-item to="/federation">
+          </BNavItem>
+          <BNavItem to="/federation" :active="isActive('federation')">
             {{ $t('navbar.instances') }}
-          </b-nav-item>
-          <b-nav-item to="/statistic">{{ $t('navbar.statistic') }}</b-nav-item>
-          <b-nav-item @click="wallet">{{ $t('navbar.my-account') }}</b-nav-item>
-          <b-nav-item @click="logout">{{ $t('navbar.logout') }}</b-nav-item>
-        </b-navbar-nav>
-      </b-collapse>
-    </b-navbar>
+          </BNavItem>
+          <BNavItem to="/statistic" :active="isActive('statistic')">
+            {{ $t('navbar.statistic') }}
+          </BNavItem>
+          <BNavItem @click="handleWallet">{{ $t('navbar.my-account') }}</BNavItem>
+          <BNavItem @click="handleLogout">{{ $t('navbar.logout') }}</BNavItem>
+        </BNavbarNav>
+      </BCollapse>
+    </BNavbar>
   </div>
 </template>
-<script>
+<script setup>
 import CONFIG from '../config'
+import { useStore } from 'vuex'
+import { computed } from 'vue'
+import { useMutation } from '@vue/apollo-composable'
 import { logout } from '../graphql/logout'
+import {
+  BNavbar,
+  BCollapse,
+  BNavbarNav,
+  BNavItem,
+  BNavbarBrand,
+  BBadge,
+  BNavbarToggle,
+  vBToggle,
+  vBColorMode,
+} from 'bootstrap-vue-next'
+import { useRoute } from 'vue-router'
 
-export default {
-  name: 'navbar',
-  methods: {
-    async logout() {
-      window.location.assign(CONFIG.WALLET_LOGIN_URL)
-      // window.location = CONFIG.WALLET_LOGIN_URL
-      this.$store.dispatch('logout')
-      await this.$apollo.mutate({
-        mutation: logout,
-      })
-    },
-    wallet() {
-      window.location = CONFIG.WALLET_AUTH_URL.replace('{token}', this.$store.state.token)
-      this.$store.dispatch('logout') // logout without redirect
-    },
-  },
+const store = useStore()
+const route = useRoute()
+
+const openCreations = computed(() => store.state.openCreations)
+
+const { mutate: executeLogout } = useMutation(logout)
+
+const handleLogout = async () => {
+  window.location.assign(CONFIG.WALLET_LOGIN_URL)
+  // window.location = CONFIG.WALLET_LOGIN_URL
+  await store.dispatch('logout')
+  await executeLogout()
+}
+
+const handleWallet = () => {
+  window.location = CONFIG.WALLET_AUTH_URL.replace('{token}', store.state.token)
+  store.dispatch('logout') // logout without redirect
+}
+
+const isActive = (tabRoute) => {
+  return tabRoute === route.name
 }
 </script>
-<style>
+<style lang="scss" scoped>
 .navbar-brand-img {
   height: 2rem;
+  padding-left: 10px;
+}
+</style>
+
+<style lang="scss">
+.bg-light-dark {
+  background-color: #343a40;
 }
 </style>
