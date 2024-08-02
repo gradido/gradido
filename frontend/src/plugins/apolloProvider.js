@@ -4,6 +4,7 @@ import router from '../routes/router'
 import i18n from '../i18n'
 import { createHttpLink, ApolloLink, ApolloClient, InMemoryCache } from '@apollo/client/core'
 import { createApolloProvider } from '@vue/apollo-option'
+import { provideApolloClient } from '@vue/apollo-composable'
 
 const httpLink = createHttpLink({ uri: CONFIG.GRAPHQL_URI })
 
@@ -36,6 +37,8 @@ const apolloClient = new ApolloClient({
     },
   }),
 })
+
+provideApolloClient(apolloClient)
 
 export const apolloProvider = createApolloProvider({
   defaultClient: apolloClient,

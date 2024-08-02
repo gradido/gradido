@@ -2,7 +2,7 @@
   <div>
     <!-- Header -->
     <div class="header py-1 py-lg-1 pt-lg-3">
-      <b-container>
+      <BContainer>
         <div class="header-body text-center mb-3">
           <a href="#!" v-on:click="$router.go(-1)">
             <div class="container">
@@ -1183,12 +1183,12 @@
             </div>
           </a>
         </div>
-      </b-container>
+      </BContainer>
     </div>
     <div class="text-center">
-      <b-button class="test-back" variant="light" v-on:click="$router.go(-1)">
+      <BButton class="test-back" variant="light" v-on:click="$router.go(-1)">
         {{ $t('back') }}
-      </b-button>
+      </BButton>
     </div>
   </div>
 </template>

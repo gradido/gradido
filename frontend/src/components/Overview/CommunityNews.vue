@@ -1,17 +1,17 @@
 <template>
   <div class="community-news">
     <div v-for="item in News" :key="item.locale">
-      <b-card
+      <BCard
         v-if="item.locale === $i18n.locale"
         class="bg-white appBoxShadow gradido-border-radius"
       >
-        <b-card-body>
-          <b-card-title class="h2">{{ item.text }}</b-card-title>
+        <BCardBody>
+          <BCardTitle class="h2">{{ item.text }}</BCardTitle>
 
           <div class="h3">{{ item.date }}</div>
 
-          <b-row class="my-5">
-            <b-col>
+          <BRow class="my-5">
+            <BCol>
               {{ item.extra }}
               <br />
               <br />
@@ -21,25 +21,25 @@
               <span v-if="item.email">
                 <a :href="'mailto:' + item.email">{{ item.email }}</a>
               </span>
-            </b-col>
-          </b-row>
+            </BCol>
+          </BRow>
 
-          <b-row class="my-5">
-            <b-col cols="12">
+          <BRow class="my-5">
+            <BCol cols="12">
               <div class="text-lg-right">
-                <b-button v-if="item.url" variant="gradido" :href="item.url" target="_blank">
+                <BButton v-if="item.url" variant="gradido" :href="item.url" target="_blank">
                   {{ item.button }}
-                </b-button>
+                </BButton>
                 <RouterLink v-else-if="item.internUrl" to="/settings/extern">
-                  <b-button variant="gradido">
+                  <BButton variant="gradido">
                     {{ item.button }}
-                  </b-button>
+                  </BButton>
                 </RouterLink>
               </div>
-            </b-col>
-          </b-row>
-        </b-card-body>
-      </b-card>
+            </BCol>
+          </BRow>
+        </BCardBody>
+      </BCard>
     </div>
   </div>
 </template>

@@ -2,9 +2,9 @@
   <div class="name">
     <div class="gdd-transaction-list-item-name">
       <div v-if="linkedUser && linkedUser.gradidoID">
-        <b-link @click.stop="tunnelEmail" :class="fontColor">
+        <BLink @click.stop="tunnelEmail" :class="fontColor">
           {{ itemText }}
-        </b-link>
+        </BLink>
       </div>
       <span v-else>{{ itemText }}</span>
     </div>

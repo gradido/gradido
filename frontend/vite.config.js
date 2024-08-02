@@ -2,6 +2,9 @@ import { defineConfig } from 'vite'
 import commonjs from 'vite-plugin-commonjs'
 import vue from '@vitejs/plugin-vue'
 import Components from 'unplugin-vue-components/vite'
+import Icons from 'unplugin-icons/vite'
+import IconsResolve from 'unplugin-icons/resolver'
+
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 
 const path = require('path')
@@ -31,7 +34,12 @@ export default defineConfig({
       },
     }),
     Components({
-      resolvers: [BootstrapVueNextResolver()],
+      resolvers: [BootstrapVueNextResolver(), IconsResolve()],
+      dts: true,
+    }),
+    Icons({
+      compiler: 'vue3',
+      autoInstall: true,
     }),
     commonjs(),
   ],

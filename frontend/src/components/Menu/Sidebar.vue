@@ -7,51 +7,51 @@
       :class="shadow ? 'appBoxShadow' : ''"
     >
       <div class="mb-3 mt-3">
-        <b-nav vertical class="w-200">
-          <b-nav-item to="/overview" class="mb-3" active-class="activeRoute">
-            <b-img src="/img/svg/home.svg" height="20" class="svg-icon" />
+        <BNav vertical class="w-200">
+          <BNavItem to="/overview" class="mb-3" active-class="activeRoute">
+            <BImg src="/img/svg/home.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.overview') }}</span>
-          </b-nav-item>
-          <b-nav-item to="/send" class="mb-3" active-class="activeRoute">
+          </BNavItem>
+          <BNavItem to="/send" class="mb-3" active-class="activeRoute">
             <b-icon icon="cash" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('navigation.send') }}</span>
-          </b-nav-item>
-          <b-nav-item to="/transactions" :class="transactionClass" active-class="activeRoute">
-            <b-img src="/img/svg/transaction.svg" height="20" class="svg-icon" />
+          </BNavItem>
+          <BNavItem to="/transactions" :class="transactionClass" active-class="activeRoute">
+            <BImg src="/img/svg/transaction.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.transactions') }}</span>
-          </b-nav-item>
-          <b-nav-item to="/community" class="mb-3" active-class="activeRoute">
-            <b-img src="/img/svg/community.svg" height="20" class="svg-icon" />
+          </BNavItem>
+          <BNavItem to="/community" class="mb-3" active-class="activeRoute">
+            <BImg src="/img/svg/community.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('creation') }}</span>
-          </b-nav-item>
-          <b-nav-item to="/information" class="mb-3" active-class="activeRoute">
-            <b-img src="/img/svg/info.svg" height="20" class="svg-icon" />
+          </BNavItem>
+          <BNavItem to="/information" class="mb-3" active-class="activeRoute">
+            <BImg src="/img/svg/info.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.info') }}</span>
-          </b-nav-item>
-          <b-nav-item to="/circles" v-if="isHumhub" class="mb-3" active-class="activeRoute">
-            <b-img src="/img/svg/circles.svg" height="20" class="svg-icon" />
+          </BNavItem>
+          <BNavItem to="/circles" v-if="isHumhub" class="mb-3" active-class="activeRoute">
+            <BImg src="/img/svg/circles.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.circles') }}</span>
-          </b-nav-item>
-          <b-nav-item to="/usersearch" v-if="isGMS" active-class="activeRoute">
-            <b-img src="/img/loupe.png" height="20" />
+          </BNavItem>
+          <BNavItem to="/usersearch" v-if="isGMS" active-class="activeRoute">
+            <BImg src="/img/loupe.png" height="20" />
             <span class="ml-2">{{ $t('navigation.usersearch') }}</span>
-          </b-nav-item>
-        </b-nav>
+          </BNavItem>
+        </BNav>
         <hr class="m-3" />
-        <b-nav vertical class="w-100">
-          <b-nav-item
+        <BNav vertical class="w-100">
+          <BNavItem
             to="/settings"
             class="mb-3"
             active-class="activeRoute"
             data-test="settings-menu"
           >
-            <b-img src="/img/svg/settings.svg" height="20" class="svg-icon" />
+            <BImg src="/img/svg/settings.svg" height="20" class="svg-icon" />
             <span class="ml-2">{{ $t('navigation.settings') }}</span>
-            <b-badge v-if="!$store.state.username" variant="warning">
+            <BBadge v-if="!$store.state.username" variant="warning">
               {{ $t('settings.newSettings') }}
-            </b-badge>
-          </b-nav-item>
-          <b-nav-item
+            </BBadge>
+          </BNavItem>
+          <BNavItem
             class="mb-3 text-light"
             v-if="$store.state.roles && $store.state.roles.length > 0"
             @click="$emit('admin')"
@@ -61,17 +61,17 @@
             <span class="ml-2">
               {{ $t('navigation.admin_area') }}
             </span>
-          </b-nav-item>
-          <b-nav-item
+          </BNavItem>
+          <BNavItem
             class="font-weight-bold"
             @click="$emit('logout')"
             active-class="activeRoute"
             data-test="logout-menu"
           >
-            <b-img src="/img/svg/logout.svg" height="20" class="svg-icon" />
+            <BImg src="/img/svg/logout.svg" height="20" class="svg-icon" />
             <span class="ml-2 text-205">{{ $t('navigation.logout') }}</span>
-          </b-nav-item>
-        </b-nav>
+          </BNavItem>
+        </BNav>
       </div>
     </div>
   </div>

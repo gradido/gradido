@@ -64,18 +64,18 @@ a:hover,
 }
 
 .btn-gradido {
-  display: inline-block;
-  padding: 0.6em 3em;
+  display: inline-block !important;
+  padding: 0.6em 3em !important;
   letter-spacing: 0.05em;
-  color: #fff;
-  transition: all 0.5s ease;
+  color: #fff !important;
+  transition: all 0.5s ease !important;
   background: rgb(249 205 105);
   background: linear-gradient(135deg, rgb(249 205 105 / 100%) 2%, rgb(197 141 56 / 100%) 55%);
   box-shadow: rgb(0 0 0 / 40%) 0 30px 90px;
-  border-radius: 26px;
-  padding-right: 50px;
-  padding-left: 50px;
-  border-style: none;
+  border-radius: 26px !important;
+  padding-right: 50px !important;
+  padding-left: 50px !important;
+  border-style: none !important;
 }
 
 .btn-gradido:hover {
@@ -88,17 +88,17 @@ a:hover,
 }
 
 .btn-gradido-disable {
-  padding: 0.6em 3em;
+  padding: 0.6em 3em !important;
   letter-spacing: 0.05em;
-  color: #fff;
-  transition: all 0.5s ease;
+  color: #fff !important;
+  transition: all 0.5s ease !important;
   background: rgb(97 97 97);
   background: linear-gradient(135deg, rgb(180 180 180 / 100%) 46%, rgb(180 180 180 / 100%) 99%);
   box-shadow: rgb(0 0 0 / 40%) 0 30px 90px;
-  border-radius: 26px;
-  padding-right: 50px;
-  padding-left: 50px;
-  border-style: none;
+  border-radius: 26px !important;
+  padding-right: 50px !important;
+  padding-left: 50px !important;
+  border-style: none !important;
 }
 
 .btn-gradido-disable:hover {

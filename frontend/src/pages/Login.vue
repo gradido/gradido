@@ -56,16 +56,15 @@
 <!--</template>-->
 <template>
   <div class="login-form">
-    {{ isValidating }}
     <BContainer v-if="enterData">
       <div class="pb-5" align="center">{{ $t('gdd_per_link.isFree') }}</div>
       <form @submit.prevent="onSubmit">
         <BRow>
           <BCol sm="12" md="12" lg="6">
-            <input-email :name="$t('form.email')" />
+            <input-email />
           </BCol>
           <BCol sm="12" md="12" lg="6">
-            <input-password :name="$t('form.password')" />
+            <input-password />
           </BCol>
         </BRow>
         <BRow>
@@ -79,9 +78,10 @@
           <BCol cols="12" lg="6">
             <BButton
               type="submit"
-              :variant="isValidating ? 'gradido' : 'gradido-disable'"
+              ref="submitBtn"
+              :variant="meta.valid ? 'gradido' : 'gradido-disable'"
               block
-              :disabled="!isValidating"
+              :disabled="!meta.valid"
             >
               {{ $t('login') }}
             </BButton>
@@ -191,85 +191,77 @@ import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { useForm } from 'vee-validate'
-import * as yup from 'yup'
+import { useMutation } from '@vue/apollo-composable'
+import { useAppToast } from '@/composables/useToast'
+// import { useLoading } from 'vue-loading-overlay'
 
-// Define validation schema
-const schema = yup.object({
-  email: yup.string().email('Email must be valid').required('Email is required'),
-  password: yup
-    .string()
-    .required('Password is required')
-    .min(8, 'Password must be at least 8 characters'),
-})
+const router = useRouter()
+const route = useRoute()
+const store = useStore()
+const { t } = useI18n()
+const { mutate } = useMutation(login)
+// const $loading = useLoading() // TODO needs to be updated but there is some sort of an issue that breaks the app.
+const { toastError } = useAppToast()
 
 const form = ref({
   email: '',
   password: '',
 })
 
-// const { handleSubmit, isValid } = useForm({
-//   validationSchema: schema,
-// })
-//
-const { values, errors, handleSubmit, isValidating } = useForm({ validationSchema: schema })
+const { handleSubmit, meta, values } = useForm({
+  initialValues: form.value,
+})
 
 const passwordVisible = ref(false)
 const showPageMessage = ref(false)
 const errorReason = ref(null)
 const errorSubtitle = ref('')
 const errorLinkTo = ref('')
-const store = useStore()
-const { t } = useI18n()
-const router = useRouter()
-const route = useRoute()
+const submitBtn = ref(null)
 
 const onSubmit = handleSubmit(async (values) => {
-  const loader = this.$loading.show({
-    container: this.$refs.submitButton,
-  })
-  this.$root.$bvToast.hide()
+  // const loader = $loading.show({
+  //   container: submitBtn,
+  // })
+  // this.$root.$bvToast.hide()
   try {
-    const result = await this.$apollo.mutate({
-      mutation: login,
-      variables: {
-        email: values.email,
-        password: values.password,
-        publisherId: store.state.publisherId,
-      },
+    const result = await mutate({
+      email: values.email,
+      password: values.password,
+      publisherId: store.state.publisherId,
     })
-    const {
-      data: { login },
-    } = result
-    await store.dispatch('login', login)
+    const { login: loginResponse } = result.data
+    await store.dispatch('login', loginResponse)
     store.commit('email', values.email)
-    await loader.hide()
+    // await loader.hide()
+
     if (route.params.code) {
-      router.push(`/redeem/${route.params.code}`)
+      await router.push(`/redeem/${route.params.code}`)
     } else {
-      router.push(store.state.redirectPath)
+      await router.push(store.state.redirectPath)
     }
   } catch (error) {
     if (error.message.includes('User email not validated')) {
       showPageMessage.value = true
       errorSubtitle.value = t('message.activateEmail')
       errorLinkTo.value = '/forgot-password'
-      this.toastError(t('error.no-account'))
+      toastError(t('error.no-account'))
     } else if (error.message.includes('User has no password set yet')) {
       showPageMessage.value = true
       errorSubtitle.value = t('message.unsetPassword')
       errorLinkTo.value = '/reset-password/login'
-      this.toastError(t('error.no-account'))
+      toastError(t('error.no-account'))
     } else if (error.message.includes('No user with this credentials')) {
-      this.toastError(t('error.no-user'))
+      toastError(t('error.no-user'))
     } else {
-      this.toastError(t('error.unknown-error') + error.message)
+      toastError(t('error.unknown-error') + error.message)
     }
-    loader.hide()
+  } finally {
+    // loader.hide()
   }
 })
 
 const enterData = computed(() => !showPageMessage.value)
-// const isFormValid = computed(() => isValid.value)
 </script>
 <style scoped>
 .btn-gradido {

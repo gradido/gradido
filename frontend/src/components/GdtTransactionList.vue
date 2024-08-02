@@ -4,9 +4,9 @@
       <div v-if="transactionGdtCount === 0" class="text-center">
         {{ $t('gdt.no-transactions') }}
         <hr />
-        <b-button class="gdt-funding" :href="link" target="_blank">
+        <BButton class="gdt-funding" :href="link" target="_blank">
           {{ $t('gdt.funding') }}
-        </b-button>
+        </BButton>
       </div>
       <div v-else-if="transactionGdtCount === -1" class="text-center">
         {{ $t('gdt.not-reachable') }}
@@ -27,7 +27,7 @@
         ></transaction>
       </div>
     </div>
-    <b-pagination
+    <BPagination
       v-if="transactionGdtCount > pageSize"
       class="mt-3"
       pills
@@ -37,7 +37,7 @@
       :total-rows="transactionGdtCount"
       align="center"
       :hide-ellipsis="true"
-    ></b-pagination>
+    />
   </div>
 </template>
 

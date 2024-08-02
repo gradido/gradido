@@ -1,14 +1,14 @@
 <template>
   <div class="rightside-last-transactions d-none d-lg-block">
-    <b-row class="mb-3">
-      <b-col class="h3">{{ $t('transaction.lastTransactions') }}</b-col>
-      <!-- <b-col cols="1" class="text-right">
+    <BRow class="mb-3">
+      <BCol class="h3">{{ $t('transaction.lastTransactions') }}</BCol>
+      <!-- <BCol cols="1" class="text-right">
         <b-icon icon="three-dots-vertical"></b-icon>
-      </b-col> -->
-    </b-row>
+      </BCol> -->
+    </BRow>
 
     <div v-for="(transaction, index) in transactions" :key="transaction.id">
-      <b-row
+      <BRow
         align-v="center"
         v-if="
           index <= 8 &&
@@ -18,7 +18,7 @@
         "
         class="mb-4"
       >
-        <b-col cols="auto">
+        <BCol cols="auto">
           <div class="align-items-center">
             <avatar
               :size="72"
@@ -27,10 +27,10 @@
               :initials="`${transaction.linkedUser.firstName[0]}${transaction.linkedUser.lastName[0]}`"
             ></avatar>
           </div>
-        </b-col>
-        <b-col class="p-1">
-          <b-row>
-            <b-col>
+        </BCol>
+        <BCol class="p-1">
+          <BRow>
+            <BCol>
               <div class="font-weight-bold">
                 <name :linkedUser="transaction.linkedUser" fontColor="text-dark" />
               </div>
@@ -42,10 +42,10 @@
                   {{ $d(new Date(transaction.balanceDate), 'short') }}
                 </div>
               </div>
-            </b-col>
-          </b-row>
-        </b-col>
-      </b-row>
+            </BCol>
+          </BRow>
+        </BCol>
+      </BRow>
     </div>
   </div>
 </template>

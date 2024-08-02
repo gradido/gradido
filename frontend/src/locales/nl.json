@@ -270,6 +270,7 @@
       "changeLanguage": "Taal veranderen",
       "de": "Deutsch",
       "en": "English",
+      "error": "Het is niet gelukt om de taalinstellingen bij te werken.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",

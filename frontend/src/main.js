@@ -1,11 +1,14 @@
 import { createApp } from 'vue'
+
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
+
 import '@/assets/scss/gradido.scss'
 
 // import DashboardPlugin from './plugins/dashboard-plugin'
 import App from './App'
 import i18n from './i18n.js'
 import { loadAllRules } from './validation-rules'
-import { toasters } from './mixins/toaster'
 import { loadFilters } from './filters/amount'
 
 import 'regenerator-runtime'
@@ -23,14 +26,13 @@ import 'clipboard-polyfill/overwrite-globals'
 import { createBootstrap } from 'bootstrap-vue-next'
 
 // Add the necessary CSS
-import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
+// import 'bootstrap/dist/css/bootstrap.css'
+// import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 
 // import GlobalComponents from '@/plugins/globalComponents'
 import GlobalDirectives from '@/plugins/globalDirectives'
 import PortalVue from 'portal-vue'
 import FlatPickr from 'vue-flatpickr-component'
-import Loading from 'vue-loading-overlay'
 import VueApollo from 'vue-apollo'
 
 const app = createApp(App)
@@ -46,12 +48,11 @@ app.use(createBootstrap())
 app.use(GlobalDirectives)
 app.use(PortalVue)
 app.use(FlatPickr)
-app.use(Loading)
-app.use(VueApollo)
-app.use(apolloProvider)
+// app.use(VueApollo)
+app.use(() => apolloProvider)
 // app.use(VueTimers)
 
-app.mixin(toasters)
+// app.mixin(toasters)
 const filters = loadFilters(i18n)
 app.filter('amount', filters.amount)
 app.filter('GDD', filters.GDD)
@@ -62,7 +63,7 @@ app.filter('GDD', filters.GDD)
 //   amount: filters.amount,
 // }
 
-loadAllRules(i18n, apolloProvider.defaultClient)
+loadAllRules(i18n.global, apolloProvider.defaultClient)
 
 addNavigationGuards(router, store, apolloProvider.defaultClient)
 

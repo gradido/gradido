@@ -1,14 +1,14 @@
 <template>
   <div class="info-statistic">
-    <b-container class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
+    <BContainer class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
       <div>{{ $t('communityInfo') }}</div>
       <div class="h3">
         {{ CONFIG.COMMUNITY_DESCRIPTION }}
       </div>
       <div>
-        <b-link :href="CONFIG.COMMUNITY_URL">
+        <BLink :href="CONFIG.COMMUNITY_URL">
           {{ CONFIG.COMMUNITY_URL }}
-        </b-link>
+        </BLink>
       </div>
       <hr />
       <!--<div class="h3">{{ $t('community.openContributionLinks') }}</div>
@@ -48,9 +48,9 @@
       <hr />
 
       <div class="h3">{{ $t('contact') }}</div>
-      <b-link :href="`mailto:${supportMail}`">{{ supportMail }}</b-link>
-    </b-container>
-    <!-- 
+      <BLink :href="`mailto:${supportMail}`">{{ supportMail }}</BLink>
+    </BContainer>
+    <!--
     <hr />
     <b-container>
       <div class="h3">{{ $t('community.statistic') }}</div>

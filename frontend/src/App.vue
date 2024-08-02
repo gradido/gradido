@@ -1,5 +1,6 @@
 <template>
   <div id="app" ref="app" :class="darkMode ? 'dark-mode' : ''">
+    <BToastOrchestrator />
     <div :class="$route.meta.requiresAuth ? 'appContent' : ''">
       <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayout'" />
       <div class="goldrand position-fixed fixed-bottom zindex1000"></div>

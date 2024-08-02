@@ -56,7 +56,7 @@
           :name="name"
           :placeholder="defaultTranslations.placeholder"
           :type="showPassword ? 'text' : 'password'"
-          :state="validated ? valid : false"
+          :state="meta.valid"
           data-test="password-input-field"
           v-bind="ariaInput"
         />
@@ -67,21 +67,20 @@
             class="border-left-0 rounded-right"
             tabindex="-1"
           >
-            {{ showPassword ? 'eye' : 'eye-slash' }}
+            <IBiEye v-if="showPassword" />
+            <IBiEyeSlash v-else />
           </BButton>
         </template>
-        <BFormInvalidFeedback v-bind="ariaMsg">
-          <!--          <div v-if="showAllErrors">-->
-          <!--            <span v-for="error in errors" :key="error">-->
-          <!--              {{ error }}-->
-          <!--              <br />-->
-          <!--            </span>-->
-          <!--          </div>-->
-          <div>
-            {{ error }}
-          </div>
-        </BFormInvalidFeedback>
       </BInputGroup>
+      <BFormInvalidFeedback v-bind="ariaMsg">
+        <!--        <div v-if="showAllErrors">-->
+        <!--          <span v-for="error in errors" :key="error">-->
+        <!--            {{ error }}-->
+        <!--            <br />-->
+        <!--          </span>-->
+        <!--        </div>-->
+        {{ errorMessage }}
+      </BFormInvalidFeedback>
     </BFormGroup>
   </div>
 </template>
@@ -128,7 +127,7 @@
 <!--</script>-->
 
 <script setup>
-import { ref, computed, watch, defineProps, defineEmits } from 'vue'
+import { ref, computed, watch, defineProps, defineEmits, toRef } from 'vue'
 import { useField } from 'vee-validate'
 import { useI18n } from 'vue-i18n'
 
@@ -162,8 +161,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
+const name = toRef(props, 'name')
 // Use the useField hook for validation
-const { value, errorMessage, valid, validated, meta } = useField(() => props.name)
+const { value, errorMessage, meta } = useField(name, 'required')
 
 const { t } = useI18n()
 
@@ -182,7 +182,7 @@ const toggleShowPassword = () => {
 
 // Computed properties for ARIA attributes and labelFor
 const ariaInput = computed(() => ({
-  'aria-invalid': valid ? false : 'true',
+  'aria-invalid': meta.valid ? false : 'true',
   'aria-describedby': `${props.name}-feedback`,
 }))
 

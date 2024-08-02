@@ -7,7 +7,7 @@ export const loadFilters = (_i18n) => {
 
 const amount = (value) => {
   if (!value && value !== 0) return ''
-  return i18n.n(value.toString(), 'decimal').replace('-', '− ')
+  return i18n.global.n(value.toString(), 'decimal').replace('-', '− ')
 }
 
 const GDD = (value) => {

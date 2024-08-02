@@ -36,6 +36,7 @@
         :model-value="value"
         @update:modelValue="normalizeEmail($event)"
         v-bind="ariaInput"
+        :state="meta.valid"
         data-test="input-email"
         :id="labelFor"
         :name="name"
@@ -105,6 +106,7 @@
 import { ref, watch, computed, defineProps, defineEmits } from 'vue'
 import { useField } from 'vee-validate'
 import { useI18n } from 'vue-i18n'
+import * as yup from 'yup'
 
 // rules: {
 //   type: [String, Object, Function],
@@ -118,15 +120,15 @@ import { useI18n } from 'vue-i18n'
 const props = defineProps({
   name: {
     type: String,
-    required: true,
+    default: 'email',
   },
   label: {
     type: String,
-    required: true,
+    default: 'Email',
   },
   placeholder: {
     type: String,
-    required: true,
+    default: 'Email',
   },
   disabled: {
     type: Boolean,
@@ -137,7 +139,7 @@ const props = defineProps({
 const emit = defineEmits(['onValidation'])
 
 // Use the useField hook for validation
-const { value, errorMessage, errors, meta } = useField(() => props.name)
+const { value, errorMessage, errors, validate, meta } = useField(() => props.name, 'required|email')
 
 const { t } = useI18n()
 
@@ -152,6 +154,7 @@ const normalizeEmail = (emailAddress) => {
   //TODO trigger blur on bootstrap input
   // emailFocused.value = false
   value.value = emailAddress.trim()
+  validate()
 }
 
 // Computed properties for ARIA attributes and labelFor

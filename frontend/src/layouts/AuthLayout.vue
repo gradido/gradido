@@ -40,13 +40,13 @@
             <BCard no-body ref="pageFontSize" class="border-0 mt-4 gradido-custom-background">
               <BRow class="p-4">
                 <BCol cols="10">
-                  <language-switch class="ml-3" />
+                  <language-switch-2 class="ml-3" />
                 </BCol>
                 <BCol cols="2" class="text-right">
                   <div id="popover-target-1" class="pointer">
                     <BImg src="/img/svg/type.svg" width="19" class="svgType"></BImg>
                   </div>
-                  <Bpopover
+                  <BPopover
                     target="popover-target-1"
                     triggers="click"
                     placement="top"
@@ -59,7 +59,7 @@
                       {{ $t('math.pipe') }}
                       <span class="pointer" @click="setTextSize(1.25)">{{ $t('125') }}</span>
                     </div>
-                  </Bpopover>
+                  </BPopover>
                 </BCol>
               </BRow>
               <BRow class="d-inline d-sm-inline d-md-none d-lg-none mb-3">
@@ -92,7 +92,7 @@
 import AuthNavbar from '@/components/Auth/AuthNavbar'
 import AuthNavbarSmall from '@/components/Auth/AuthNavbarSmall'
 import AuthCarousel from '@/components/Auth/AuthCarousel'
-import LanguageSwitch from '@/components/LanguageSwitch2'
+import LanguageSwitch2 from '@/components/LanguageSwitch2'
 import AuthFooter from '@/components/Auth/AuthFooter'
 import CONFIG from '@/config'
 
@@ -102,7 +102,7 @@ export default {
     AuthNavbar,
     AuthNavbarSmall,
     AuthCarousel,
-    LanguageSwitch,
+    LanguageSwitch2,
     AuthFooter,
   },
   data() {
@@ -112,7 +112,9 @@ export default {
   },
   methods: {
     setTextSize(size) {
-      this.$refs.pageFontSize.style.fontSize = size + 'rem'
+      console.log(size)
+      console.log(this.$refs.pageFontSize)
+      this.$refs.pageFontSize.$el.style.fontSize = size + 'rem'
     },
   },
 }

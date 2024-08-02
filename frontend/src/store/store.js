@@ -1,13 +1,13 @@
-import Vue from 'vue'
-import Vuex, { createStore } from 'vuex'
+import { createStore } from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 // import { localeChanged } from 'vee-validate'
-import i18n from '@/i18n.js'
+
 import jwtDecode from 'jwt-decode'
+import i18n from '../i18n'
 
 export const mutations = {
   language: (state, language) => {
-    i18n.locale = language
+    i18n.global.locale.value = language
     // localeChanged(language)
     state.language = language
   },
