@@ -8,6 +8,7 @@ import { getContribution } from '../graphql/getContribution'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 import VueApollo from 'vue-apollo'
 import { createMockClient } from 'mock-apollo-client'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const mockClient = createMockClient()
 const apolloProvider = new VueApollo({
@@ -18,11 +19,11 @@ const localVue = global.localVue
 
 localVue.use(VueApollo)
 
-const storeCommitMock = jest.fn()
+const storeCommitMock = vi.fn()
 
 const mocks = {
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => d),
+  $t: vi.fn((t) => t),
+  $d: vi.fn((d) => d),
   $store: {
     commit: storeCommitMock,
     state: {
@@ -97,11 +98,11 @@ const defaultData = () => {
 
 describe('CreationConfirm', () => {
   let wrapper
-  const adminListContributionsMock = jest.fn()
-  const adminDeleteContributionMock = jest.fn()
-  const adminDenyContributionMock = jest.fn()
-  const confirmContributionMock = jest.fn()
-  const getContributionMock = jest.fn()
+  const adminListContributionsMock = vi.fn()
+  const adminDeleteContributionMock = vi.fn()
+  const adminDenyContributionMock = vi.fn()
+  const confirmContributionMock = vi.fn()
+  const getContributionMock = vi.fn()
 
   mockClient.setRequestHandler(
     adminListContributions,
@@ -135,7 +136,7 @@ describe('CreationConfirm', () => {
 
   describe('mount', () => {
     beforeEach(() => {
-      jest.clearAllMocks()
+      vi.clearAllMocks()
       wrapper = Wrapper()
     })
 
@@ -340,7 +341,7 @@ describe('CreationConfirm', () => {
     describe('filter tabs', () => {
       describe('click tab "confirmed"', () => {
         beforeEach(async () => {
-          jest.clearAllMocks()
+          vi.clearAllMocks()
           await wrapper.find('a[data-test="confirmed"]').trigger('click')
         })
 
@@ -358,7 +359,7 @@ describe('CreationConfirm', () => {
 
         describe('click tab "open"', () => {
           beforeEach(async () => {
-            jest.clearAllMocks()
+            vi.clearAllMocks()
             await wrapper.find('a[data-test="open"]').trigger('click')
           })
 
@@ -377,7 +378,7 @@ describe('CreationConfirm', () => {
 
         describe('click tab "denied"', () => {
           beforeEach(async () => {
-            jest.clearAllMocks()
+            vi.clearAllMocks()
             await wrapper.find('a[data-test="denied"]').trigger('click')
           })
 
@@ -396,7 +397,7 @@ describe('CreationConfirm', () => {
 
         describe('click tab "deleted"', () => {
           beforeEach(async () => {
-            jest.clearAllMocks()
+            vi.clearAllMocks()
             await wrapper.find('a[data-test="deleted"]').trigger('click')
           })
 
@@ -415,7 +416,7 @@ describe('CreationConfirm', () => {
 
         describe('click tab "all"', () => {
           beforeEach(async () => {
-            jest.clearAllMocks()
+            vi.clearAllMocks()
             await wrapper.find('a[data-test="all"]').trigger('click')
           })
 
@@ -438,7 +439,7 @@ describe('CreationConfirm', () => {
 
             describe('next page', () => {
               beforeEach(() => {
-                jest.clearAllMocks()
+                vi.clearAllMocks()
                 wrapper.findComponent({ name: 'BPagination' }).vm.$emit('input', 2)
               })
 
@@ -456,7 +457,7 @@ describe('CreationConfirm', () => {
 
               describe('click tab "open" again', () => {
                 beforeEach(async () => {
-                  jest.clearAllMocks()
+                  vi.clearAllMocks()
                   await wrapper.find('a[data-test="open"]').trigger('click')
                 })
 

@@ -1,10 +1,11 @@
 import { mount } from '@vue/test-utils'
 import SearchUserTable from './SearchUserTable'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 
-const apolloMutateMock = jest.fn().mockResolvedValue({})
-const apolloQueryMock = jest.fn().mockResolvedValue({})
+const apolloMutateMock = vi.fn().mockResolvedValue({})
+const apolloQueryMock = vi.fn().mockResolvedValue({})
 
 const propsData = {
   items: [
@@ -61,8 +62,8 @@ const propsData = {
 }
 
 const mocks = {
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => d),
+  $t: vi.fn((t) => t),
+  $d: vi.fn((d) => d),
   $apollo: {
     mutate: apolloMutateMock,
     query: apolloQueryMock,

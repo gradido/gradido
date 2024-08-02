@@ -1,24 +1,25 @@
 import { ApolloClient, ApolloLink, HttpLink } from 'apollo-boost'
 import './apolloProvider'
 import CONFIG from '../config'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 import VueApollo from 'vue-apollo'
 import store from '../store/store'
 import i18n from '../i18n'
 
-jest.mock('vue-apollo')
-jest.mock('../store/store')
-jest.mock('../i18n')
+vi.mock('vue-apollo')
+vi.mock('../store/store')
+vi.mock('../i18n')
 
-jest.mock('apollo-boost', () => {
+vi.mock('apollo-boost', () => {
   return {
     __esModule: true,
-    ApolloClient: jest.fn(),
-    ApolloLink: jest.fn(() => {
-      return { concat: jest.fn() }
+    ApolloClient: vi.fn(),
+    ApolloLink: vi.fn(() => {
+      return { concat: vi.fn() }
     }),
-    InMemoryCache: jest.fn(),
-    HttpLink: jest.fn(),
+    InMemoryCache: vi.fn(),
+    HttpLink: vi.fn(),
   }
 })
 
@@ -41,8 +42,8 @@ describe('apolloProvider', () => {
 
   describe('ApolloLink', () => {
     // mock store
-    const storeDispatchMock = jest.fn()
-    const storeCommitMock = jest.fn()
+    const storeDispatchMock = vi.fn()
+    const storeCommitMock = vi.fn()
     store.state = {
       token: 'some-token',
     }
@@ -50,25 +51,25 @@ describe('apolloProvider', () => {
     store.commit = storeCommitMock
 
     // mock i18n.t
-    i18n.t = jest.fn((t) => t)
+    i18n.t = vi.fn((t) => t)
 
     // mock apllo response
     const responseMock = {
       errors: [{ message: '403.13 - Client certificate revoked' }],
     }
 
-    const windowLocationMock = jest.fn()
+    const windowLocationMock = vi.fn()
     delete window.location
     window.location = {
       assign: windowLocationMock,
     }
     // mock context
-    const setContextMock = jest.fn()
-    const getContextMock = jest.fn(() => {
+    const setContextMock = vi.fn()
+    const getContextMock = vi.fn(() => {
       return {
         response: {
           headers: {
-            get: jest.fn(() => 'another-token'),
+            get: vi.fn(() => 'another-token'),
           },
         },
       }
@@ -80,7 +81,7 @@ describe('apolloProvider', () => {
       getContext: getContextMock,
     }
 
-    const forwardMock = jest.fn(() => {
+    const forwardMock = vi.fn(() => {
       return [responseMock]
     })
 
@@ -144,11 +145,11 @@ describe('apolloProvider', () => {
 
     describe('apollo response is without new token', () => {
       beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         getContextMock.mockReturnValue({
           response: {
             headers: {
-              get: jest.fn(() => null),
+              get: vi.fn(() => null),
             },
           },
         })

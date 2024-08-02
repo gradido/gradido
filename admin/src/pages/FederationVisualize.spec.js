@@ -4,6 +4,7 @@ import VueApollo from 'vue-apollo'
 import { createMockClient } from 'mock-apollo-client'
 import { allCommunities } from '@/graphql/allCommunities'
 import { toastErrorSpy } from '../../test/testSetup'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const mockClient = createMockClient()
 const apolloProvider = new VueApollo({
@@ -16,7 +17,7 @@ localVue.use(VueApollo)
 
 const mocks = {
   $t: (key) => key,
-  $d: jest.fn((d) => d),
+  $d: vi.fn((d) => d),
   $i18n: {
     locale: 'en',
     t: (key) => key,
@@ -80,7 +81,7 @@ const defaultData = () => {
 
 describe('FederationVisualize', () => {
   let wrapper
-  const allCommunitiesMock = jest.fn()
+  const allCommunitiesMock = vi.fn()
 
   mockClient.setRequestHandler(
     allCommunities,
@@ -95,7 +96,7 @@ describe('FederationVisualize', () => {
 
   describe('mount', () => {
     beforeEach(() => {
-      jest.clearAllMocks()
+      vi.clearAllMocks()
       wrapper = Wrapper()
     })
 
@@ -124,7 +125,7 @@ describe('FederationVisualize', () => {
 
       describe('cklicking the refresh button', () => {
         beforeEach(async () => {
-          jest.clearAllMocks()
+          vi.clearAllMocks()
           await wrapper.find('[data-test="federation-communities-refresh-btn"]').trigger('click')
         })
 

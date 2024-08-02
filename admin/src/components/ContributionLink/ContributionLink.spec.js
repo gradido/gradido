@@ -1,11 +1,12 @@
 import { mount } from '@vue/test-utils'
 import ContributionLink from './ContributionLink'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 
 const mocks = {
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => d),
+  $t: vi.fn((t) => t),
+  $d: vi.fn((d) => d),
 }
 
 const propsData = {

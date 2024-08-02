@@ -2,14 +2,15 @@ import { mount } from '@vue/test-utils'
 import ContributionLinkList from './ContributionLinkList'
 import { toastSuccessSpy, toastErrorSpy } from '../../../test/testSetup'
 // import { deleteContributionLink } from '../graphql/deleteContributionLink'
+import { vi, describe, beforeEach, expect, it } from 'vitest'
 
 const localVue = global.localVue
 
-const mockAPIcall = jest.fn()
+const mockAPIcall = vi.fn()
 
 const mocks = {
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => d),
+  $t: vi.fn((t) => t),
+  $d: vi.fn((d) => d),
   $apollo: {
     mutate: mockAPIcall,
   },
@@ -68,13 +69,13 @@ describe('ContributionLinkList', () => {
       let spy
 
       beforeEach(async () => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         wrapper.vm.deleteContributionLink()
       })
 
       describe('with success', () => {
         beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve('some value'))
           mockAPIcall.mockResolvedValue()
           await wrapper.find('.test-delete-link').trigger('click')
@@ -102,7 +103,7 @@ describe('ContributionLinkList', () => {
 
       describe('with error', () => {
         beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve('some value'))
           mockAPIcall.mockRejectedValue({ message: 'Something went wrong :(' })
           await wrapper.find('.test-delete-link').trigger('click')
@@ -115,7 +116,7 @@ describe('ContributionLinkList', () => {
 
       describe('cancel delete', () => {
         beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve(false))
           mockAPIcall.mockResolvedValue()
           await wrapper.find('.test-delete-link').trigger('click')

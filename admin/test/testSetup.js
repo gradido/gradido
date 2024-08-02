@@ -1,14 +1,15 @@
 import { createLocalVue } from '@vue/test-utils'
 import Vue from 'vue'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
+import { vi } from 'vitest'
 
 // without this async calls are not working
 import 'regenerator-runtime'
 
 import { toasters } from '../src/mixins/toaster'
 
-export const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
-export const toastSuccessSpy = jest.spyOn(toasters.methods, 'toastSuccess')
+export const toastErrorSpy = vi.spyOn(toasters.methods, 'toastError')
+export const toastSuccessSpy = vi.spyOn(toasters.methods, 'toastSuccess')
 
 global.localVue = createLocalVue()
 

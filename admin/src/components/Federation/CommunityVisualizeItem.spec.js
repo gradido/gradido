@@ -5,6 +5,7 @@ import Vuex from 'vuex'
 import CommunityVisualizeItem from './CommunityVisualizeItem.vue'
 import { updateHomeCommunity } from '../../graphql/updateHomeCommunity'
 import { toastSuccessSpy } from '../../../test/testSetup'
+import { vi, describe, expect, beforeEach, it } from 'vitest'
 
 const mockClient = createMockClient()
 const apolloProvider = new VueApollo({
@@ -86,7 +87,7 @@ const mocks = {
 describe('CommunityVisualizeItem', () => {
   let wrapper
 
-  const updateHomeCommunityMock = jest.fn()
+  const updateHomeCommunityMock = vi.fn()
   mockClient.setRequestHandler(
     updateHomeCommunity,
     updateHomeCommunityMock.mockResolvedValue({

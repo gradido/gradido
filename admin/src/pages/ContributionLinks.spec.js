@@ -2,10 +2,11 @@ import { mount } from '@vue/test-utils'
 import ContributionLinks from './ContributionLinks'
 import { listContributionLinks } from '@/graphql/listContributionLinks.js'
 import { toastErrorSpy } from '../../test/testSetup'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 
-const apolloQueryMock = jest.fn().mockResolvedValue({
+const apolloQueryMock = vi.fn().mockResolvedValue({
   data: {
     listContributionLinks: {
       links: [
@@ -28,8 +29,8 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
 })
 
 const mocks = {
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => d),
+  $t: vi.fn((t) => t),
+  $d: vi.fn((d) => d),
   $apollo: {
     query: apolloQueryMock,
   },

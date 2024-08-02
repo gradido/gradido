@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import EditableGroupableLabel from './EditableGroupableLabel.vue'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 const value = 'test label value'
@@ -41,7 +42,7 @@ describe('EditableGroupableLabel', () => {
   })
 
   it('calls valueChanged method on parent when value changes', async () => {
-    const valueChangedMock = jest.fn()
+    const valueChangedMock = vi.fn()
     wrapper.vm.$parent = { valueChanged: valueChangedMock }
 
     const newValue = 'new label value'
@@ -53,7 +54,7 @@ describe('EditableGroupableLabel', () => {
   })
 
   it('calls invalidValues method on parent when value is reverted to original', async () => {
-    const invalidValuesMock = jest.fn()
+    const invalidValuesMock = vi.fn()
     wrapper.vm.$parent = { invalidValues: invalidValuesMock }
 
     const input = wrapper.find('input')
@@ -67,7 +68,7 @@ describe('EditableGroupableLabel', () => {
   })
 
   it('does not call valueChanged method on parent when value is reverted to original', async () => {
-    const valueChangedMock = jest.fn()
+    const valueChangedMock = vi.fn()
     wrapper.vm.$parent = { valueChanged: valueChangedMock }
 
     const input = wrapper.find('input')

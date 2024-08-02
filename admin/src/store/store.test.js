@@ -1,7 +1,8 @@
 import store, { mutations, actions } from './store'
 import CONFIG from '../config'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
-jest.mock('../config')
+vi.mock('../config')
 
 const {
   token,
@@ -68,11 +69,11 @@ describe('Vuex store', () => {
 
   describe('actions', () => {
     describe('logout', () => {
-      const windowStorageMock = jest.fn()
-      const commit = jest.fn()
+      const windowStorageMock = vi.fn()
+      const commit = vi.fn()
       const state = {}
       beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         window.localStorage.clear = windowStorageMock
       })
 

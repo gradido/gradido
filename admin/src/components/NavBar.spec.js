@@ -1,18 +1,19 @@
 import { mount } from '@vue/test-utils'
 import NavBar from './NavBar'
+import { vi, describe, beforeEach, it, expect, afterEach } from 'vitest'
 
 const localVue = global.localVue
 
-const apolloMutateMock = jest.fn()
-const storeDispatchMock = jest.fn()
-const routerPushMock = jest.fn()
+const apolloMutateMock = vi.fn()
+const storeDispatchMock = vi.fn()
+const routerPushMock = vi.fn()
 
 const stubs = {
   RouterLink: true,
 }
 
 const mocks = {
-  $t: jest.fn((t) => t),
+  $t: vi.fn((t) => t),
   $apollo: {
     mutate: apolloMutateMock,
   },
@@ -94,7 +95,7 @@ describe('NavBar', () => {
   })
 
   describe('logout', () => {
-    const windowLocationMock = jest.fn()
+    const windowLocationMock = vi.fn()
     const windowLocation = window.location
     beforeEach(async () => {
       delete window.location

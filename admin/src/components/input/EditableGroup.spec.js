@@ -1,12 +1,13 @@
 import { mount } from '@vue/test-utils'
 import EditableGroup from './EditableGroup.vue'
+import { vi, describe, it, expect } from 'vitest'
 
 const localVue = global.localVue
 const viewValue = 'test label value'
 const editValue = 'test edit value'
 
 const mocks = {
-  $t: jest.fn((t) => t),
+  $t: vi.fn((t) => t),
 }
 
 describe('EditableGroup', () => {

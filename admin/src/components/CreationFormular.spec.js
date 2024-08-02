@@ -5,6 +5,7 @@ import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 import VueApollo from 'vue-apollo'
 import { createMockClient } from 'mock-apollo-client'
 import { adminOpenCreations } from '../graphql/adminOpenCreations'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const mockClient = createMockClient()
 const apolloProvider = new VueApollo({
@@ -14,11 +15,11 @@ const apolloProvider = new VueApollo({
 const localVue = global.localVue
 localVue.use(VueApollo)
 
-const stateCommitMock = jest.fn()
+const stateCommitMock = vi.fn()
 
 const mocks = {
-  $t: jest.fn((t, options) => (options ? [t, options] : t)),
-  $d: jest.fn((d) => {
+  $t: vi.fn((t, options) => (options ? [t, options] : t)),
+  $d: vi.fn((d) => {
     const date = new Date(d)
     return date.toISOString().split('T')[0]
   }),
@@ -42,8 +43,8 @@ const getCreationDate = (sub) => {
 describe('CreationFormular', () => {
   let wrapper
 
-  const adminOpenCreationsMock = jest.fn()
-  const adminCreateContributionMock = jest.fn()
+  const adminOpenCreationsMock = vi.fn()
+  const adminCreateContributionMock = vi.fn()
   mockClient.setRequestHandler(
     adminOpenCreations,
     adminOpenCreationsMock.mockResolvedValue({
@@ -118,7 +119,7 @@ describe('CreationFormular', () => {
 
       describe('with single creation', () => {
         beforeEach(async () => {
-          jest.clearAllMocks()
+          vi.clearAllMocks()
           await wrapper.setProps({
             type: 'singleCreation',
             creation: [200, 400, 600],
@@ -187,7 +188,7 @@ describe('CreationFormular', () => {
 
           describe('Negativ value', () => {
             beforeEach(async () => {
-              jest.clearAllMocks()
+              vi.clearAllMocks()
               await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
               await wrapper.setData({ rangeMin: 180 })
               await wrapper.setData({ value: -20 })
@@ -200,7 +201,7 @@ describe('CreationFormular', () => {
 
           describe('Empty text', () => {
             beforeEach(async () => {
-              jest.clearAllMocks()
+              vi.clearAllMocks()
               await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
               await wrapper.setData({ rangeMin: 180 })
               await wrapper.setData({ text: '' })
@@ -213,7 +214,7 @@ describe('CreationFormular', () => {
 
           describe('Text length less than 10', () => {
             beforeEach(async () => {
-              jest.clearAllMocks()
+              vi.clearAllMocks()
               await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
               await wrapper.setData({ rangeMin: 180 })
               await wrapper.setData({ text: 'Try this' })
@@ -250,7 +251,7 @@ describe('CreationFormular', () => {
 
           describe('Negativ value', () => {
             beforeEach(async () => {
-              jest.clearAllMocks()
+              vi.clearAllMocks()
               await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
               await wrapper.setData({ rangeMin: 180 })
               await wrapper.setData({ value: -20 })
@@ -263,7 +264,7 @@ describe('CreationFormular', () => {
 
           describe('Empty text', () => {
             beforeEach(async () => {
-              jest.clearAllMocks()
+              vi.clearAllMocks()
               await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
               await wrapper.setData({ rangeMin: 180 })
               await wrapper.setData({ text: '' })
@@ -276,7 +277,7 @@ describe('CreationFormular', () => {
 
           describe('Text length less than 10', () => {
             beforeEach(async () => {
-              jest.clearAllMocks()
+              vi.clearAllMocks()
               await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
               await wrapper.setData({ rangeMin: 180 })
               await wrapper.setData({ text: 'Try this' })
@@ -321,7 +322,7 @@ describe('CreationFormular', () => {
 
           describe('Negativ value', () => {
             beforeEach(async () => {
-              jest.clearAllMocks()
+              vi.clearAllMocks()
               await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
               await wrapper.setData({ rangeMin: 180 })
               await wrapper.setData({ value: -20 })
@@ -334,7 +335,7 @@ describe('CreationFormular', () => {
 
           describe('Empty text', () => {
             beforeEach(async () => {
-              jest.clearAllMocks()
+              vi.clearAllMocks()
               await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
               await wrapper.setData({ rangeMin: 180 })
               await wrapper.setData({ text: '' })
@@ -347,7 +348,7 @@ describe('CreationFormular', () => {
 
           describe('Text length less than 10', () => {
             beforeEach(async () => {
-              jest.clearAllMocks()
+              vi.clearAllMocks()
               await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
               await wrapper.setData({ rangeMin: 180 })
               await wrapper.setData({ text: 'Try this' })

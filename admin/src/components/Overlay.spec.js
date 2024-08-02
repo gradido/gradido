@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import Overlay from './Overlay'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 
@@ -8,8 +9,8 @@ const propsData = {
 }
 
 const mocks = {
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => String(d)),
+  $t: vi.fn((t) => t),
+  $d: vi.fn((d) => String(d)),
 }
 
 describe('Overlay', () => {

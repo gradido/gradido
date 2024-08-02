@@ -3,19 +3,20 @@ import DeletedUserFormular from './DeletedUserFormular'
 import { deleteUser } from '../graphql/deleteUser'
 import { unDeleteUser } from '../graphql/unDeleteUser'
 import { toastErrorSpy } from '../../test/testSetup'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 
 const date = new Date()
 
-const apolloMutateMock = jest.fn().mockResolvedValue({
+const apolloMutateMock = vi.fn().mockResolvedValue({
   data: {
     deleteUser: date,
   },
 })
 
 const mocks = {
-  $t: jest.fn((t) => t),
+  $t: vi.fn((t) => t),
   $apollo: {
     mutate: apolloMutateMock,
   },
@@ -43,7 +44,7 @@ describe('DeletedUserFormular', () => {
 
   describe('mount', () => {
     beforeEach(() => {
-      jest.clearAllMocks()
+      vi.clearAllMocks()
       wrapper = Wrapper()
     })
 
@@ -90,7 +91,7 @@ describe('DeletedUserFormular', () => {
 
       describe('click on "delete_user" button', () => {
         beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve(true))
           await wrapper.find('button').trigger('click')
           await wrapper.vm.$nextTick()
@@ -129,7 +130,7 @@ describe('DeletedUserFormular', () => {
 
         describe('confirm delete with error', () => {
           beforeEach(async () => {
-            spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+            spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
             apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
             await wrapper.find('button').trigger('click')
             await wrapper.vm.$nextTick()
@@ -167,7 +168,7 @@ describe('DeletedUserFormular', () => {
               unDeleteUser: null,
             },
           })
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve(true))
           await wrapper.find('button').trigger('click')
           await wrapper.vm.$nextTick()

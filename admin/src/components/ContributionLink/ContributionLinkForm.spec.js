@@ -2,25 +2,26 @@ import { mount } from '@vue/test-utils'
 import ContributionLinkForm from './ContributionLinkForm'
 import { toastErrorSpy, toastSuccessSpy } from '../../../test/testSetup'
 import { createContributionLink } from '@/graphql/createContributionLink.js'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 
-global.alert = jest.fn()
+global.alert = vi.fn()
 
 const propsData = {
   contributionLinkData: {},
   editContributionLink: false,
 }
-const apolloMutateMock = jest.fn().mockResolvedValue()
+const apolloMutateMock = vi.fn().mockResolvedValue()
 
 const mocks = {
-  $t: jest.fn((t) => t),
+  $t: vi.fn((t) => t),
   $apollo: {
     mutate: apolloMutateMock,
   },
 }
 
-// const mockAPIcall = jest.fn()
+// const mockAPIcall = vi.fn()
 
 describe('ContributionLinkForm', () => {
   let wrapper

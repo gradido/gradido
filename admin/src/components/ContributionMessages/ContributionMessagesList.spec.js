@@ -4,6 +4,7 @@ import VueApollo from 'vue-apollo'
 import { createMockClient } from 'mock-apollo-client'
 import { adminListContributionMessages } from '../../graphql/adminListContributionMessages.js'
 import { toastErrorSpy } from '../../../test/testSetup'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const mockClient = createMockClient()
 const apolloProvider = new VueApollo({
@@ -75,7 +76,7 @@ AMOUNT`,
 describe('ContributionMessagesList', () => {
   let wrapper
 
-  const adminListContributionMessagessMock = jest.fn()
+  const adminListContributionMessagessMock = vi.fn()
 
   mockClient.setRequestHandler(
     adminListContributionMessages,
@@ -93,9 +94,9 @@ describe('ContributionMessagesList', () => {
   }
 
   const mocks = {
-    $t: jest.fn((t) => t),
-    $d: jest.fn((d) => d),
-    $n: jest.fn((n) => n),
+    $t: vi.fn((t) => t),
+    $d: vi.fn((d) => d),
+    $n: vi.fn((n) => n),
     $i18n: {
       locale: 'en',
     },
@@ -112,7 +113,7 @@ describe('ContributionMessagesList', () => {
 
   describe('mount', () => {
     beforeEach(() => {
-      jest.clearAllMocks()
+      vi.clearAllMocks()
       wrapper = Wrapper()
     })
 

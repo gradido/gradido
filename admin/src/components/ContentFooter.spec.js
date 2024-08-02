@@ -1,12 +1,13 @@
 import { mount } from '@vue/test-utils'
 import ContentFooter from './ContentFooter'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 
 const mocks = {
-  $t: jest.fn((t) => t),
+  $t: vi.fn((t) => t),
   $i18n: {
-    locale: jest.fn(() => 'en'),
+    locale: vi.fn(() => 'en'),
   },
 }
 

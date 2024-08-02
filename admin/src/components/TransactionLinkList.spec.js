@@ -2,10 +2,11 @@ import { mount } from '@vue/test-utils'
 import TransactionLinkList from './TransactionLinkList'
 import { listTransactionLinksAdmin } from '../graphql/listTransactionLinksAdmin.js'
 import { toastErrorSpy } from '../../test/testSetup'
+import { vi, describe, beforeEach, it, expect, beforeAll } from 'vitest'
 
 const localVue = global.localVue
 
-const apolloQueryMock = jest.fn()
+const apolloQueryMock = vi.fn()
 apolloQueryMock.mockResolvedValue({
   data: {
     listTransactionLinksAdmin: {
@@ -68,8 +69,8 @@ const mocks = {
   $apollo: {
     query: apolloQueryMock,
   },
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => d),
+  $t: vi.fn((t) => t),
+  $d: vi.fn((d) => d),
 }
 
 describe('TransactionLinkList', () => {
@@ -81,7 +82,7 @@ describe('TransactionLinkList', () => {
 
   describe('mount', () => {
     beforeEach(() => {
-      jest.clearAllMocks()
+      vi.clearAllMocks()
       wrapper = Wrapper()
     })
 
@@ -108,7 +109,7 @@ describe('TransactionLinkList', () => {
 
     describe('next page', () => {
       beforeAll(async () => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         await wrapper.findComponent({ name: 'BPagination' }).vm.$emit('input', 2)
       })
 

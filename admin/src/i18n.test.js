@@ -1,7 +1,8 @@
 import i18n from './i18n'
 import VueI18n from 'vue-i18n'
+import { vi, describe, it, expect } from 'vitest'
 
-jest.mock('vue-i18n')
+vi.mock('vue-i18n')
 
 describe('i18n', () => {
   it('calls i18n with locale en', () => {

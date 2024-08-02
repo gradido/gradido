@@ -1,10 +1,11 @@
 import { mount } from '@vue/test-utils'
 import NotFoundPage from './NotFoundPage'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 
 const mocks = {
-  $t: jest.fn((t) => t),
+  $t: vi.fn((t) => t),
 }
 
 describe('NotFoundPage', () => {

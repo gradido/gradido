@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import TimePicker from './TimePicker.vue'
+import { describe, it, expect } from 'vitest'
 
 describe('TimePicker', () => {
   it('updates timeValue on input and emits input event', async () => {

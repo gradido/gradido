@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import UserQuery from './UserQuery'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 
@@ -7,7 +8,7 @@ const propsData = {
   userId: 42,
 }
 const mocks = {
-  $t: jest.fn((t) => t),
+  $t: vi.fn((t) => t),
 }
 describe('TransactionLinkList', () => {
   let wrapper
@@ -31,7 +32,7 @@ describe('TransactionLinkList', () => {
 
     describe('set value', () => {
       beforeEach(async () => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         await wrapper.find('input.test-input-criteria').setValue('Test2')
       })
 

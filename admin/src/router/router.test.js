@@ -1,4 +1,5 @@
 import router from './router'
+import { describe, it, expect } from 'vitest'
 
 describe('router', () => {
   describe('options', () => {

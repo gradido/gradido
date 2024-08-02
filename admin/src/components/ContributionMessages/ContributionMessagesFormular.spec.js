@@ -3,10 +3,11 @@ import ContributionMessagesFormular from './ContributionMessagesFormular'
 import { toastErrorSpy, toastSuccessSpy } from '../../../test/testSetup'
 import { adminCreateContributionMessage } from '@/graphql/adminCreateContributionMessage'
 import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 
-const apolloMutateMock = jest.fn().mockResolvedValue()
+const apolloMutateMock = vi.fn().mockResolvedValue()
 
 describe('ContributionMessagesFormular', () => {
   let wrapper
@@ -18,7 +19,7 @@ describe('ContributionMessagesFormular', () => {
   }
 
   const mocks = {
-    $t: jest.fn((t) => t),
+    $t: vi.fn((t) => t),
     $apollo: {
       mutate: apolloMutateMock,
     },
@@ -38,7 +39,7 @@ describe('ContributionMessagesFormular', () => {
   describe('mount', () => {
     beforeEach(() => {
       wrapper = Wrapper()
-      jest.clearAllMocks()
+      vi.clearAllMocks()
     })
 
     it('has a DIV .contribution-messages-formular', () => {

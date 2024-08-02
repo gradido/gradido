@@ -1,4 +1,5 @@
 import locales from './index.js'
+import { describe, it, expect } from 'vitest'
 
 describe('locales', () => {
   it('should contain 2 locales', () => {

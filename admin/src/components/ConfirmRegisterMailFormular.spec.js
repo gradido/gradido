@@ -1,14 +1,15 @@
 import { mount } from '@vue/test-utils'
 import ConfirmRegisterMailFormular from './ConfirmRegisterMailFormular'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
-const apolloMutateMock = jest.fn().mockResolvedValue()
+const apolloMutateMock = vi.fn().mockResolvedValue()
 
 const mocks = {
-  $t: jest.fn((t) => t),
+  $t: vi.fn((t) => t),
   $apollo: {
     mutate: apolloMutateMock,
   },

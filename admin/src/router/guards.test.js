@@ -1,8 +1,9 @@
 import addNavigationGuards from './guards'
 import router from './router'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
-const storeCommitMock = jest.fn()
-const apolloQueryMock = jest.fn().mockResolvedValue({
+const storeCommitMock = vi.fn()
+const apolloQueryMock = vi.fn().mockResolvedValue({
   data: {
     verifyLogin: {
       roles: ['ADMIN'],
@@ -10,7 +11,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
     },
   },
 })
-const i18nLocaleMock = jest.fn()
+const i18nLocaleMock = vi.fn()
 
 const store = {
   commit: storeCommitMock,
@@ -31,12 +32,12 @@ addNavigationGuards(router, store, apollo, i18n)
 
 describe('navigation guards', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('authenticate', () => {
     const navGuard = router.beforeHooks[0]
-    const next = jest.fn()
+    const next = vi.fn()
 
     describe('with valid token and as admin', () => {
       beforeEach(async () => {
@@ -65,7 +66,7 @@ describe('navigation guards', () => {
 
     describe('with valid token and as moderator', () => {
       beforeEach(async () => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         apolloQueryMock.mockResolvedValue({
           data: {
             verifyLogin: {
@@ -99,7 +100,7 @@ describe('navigation guards', () => {
 
     describe('with valid token and no roles', () => {
       beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         apolloQueryMock.mockResolvedValue({
           data: {
             verifyLogin: {
@@ -160,7 +161,7 @@ describe('navigation guards', () => {
 
   describe('protect all routes', () => {
     const navGuard = router.beforeHooks[1]
-    const next = jest.fn()
+    const next = vi.fn()
 
     it('redirects no not found with no token in store ', () => {
       navGuard({ path: '/' }, {}, next)

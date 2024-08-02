@@ -1,16 +1,17 @@
 import { mount } from '@vue/test-utils'
 import ContributionMessagesListItem from './ContributionMessagesListItem'
+import { vi, describe, beforeEach, it, expect, beforeAll } from 'vitest'
 
 const localVue = global.localVue
 
-const dateMock = jest.fn((d) => d)
-const numberMock = jest.fn((n) => n)
+const dateMock = vi.fn((d) => d)
+const numberMock = vi.fn((n) => n)
 
 describe('ContributionMessagesListItem', () => {
   let wrapper
 
   const mocks = {
-    $t: jest.fn((t) => t),
+    $t: vi.fn((t) => t),
     $d: dateMock,
     $n: numberMock,
     $store: {
@@ -229,7 +230,7 @@ This message also contains a link: https://gradido.net/de/
 
     describe('render HISTORY message', () => {
       beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         wrapper = itemWrapper()
         messageField = wrapper
       })

@@ -2,12 +2,13 @@ import { mount } from '@vue/test-utils'
 import Coordinates from './Coordinates.vue'
 import Vue from 'vue'
 import VueI18n from 'vue-i18n'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 Vue.use(VueI18n)
 
 const localVue = global.localVue
 const mocks = {
-  $t: jest.fn((t, v) => {
+  $t: vi.fn((t, v) => {
     if (t === 'geo-coordinates.format') {
       return `${v.latitude}, ${v.longitude}`
     }

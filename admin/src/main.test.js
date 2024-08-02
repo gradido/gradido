@@ -1,6 +1,7 @@
 import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
 import './main'
 import CONFIG from './config'
+import { vi, describe, it, expect } from 'vitest'
 
 import Vue from 'vue'
 import VueApollo from 'vue-apollo'
@@ -9,11 +10,11 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import store from './store/store'
 import router from './router/router'
 
-jest.mock('vue')
-jest.mock('vue-apollo')
-jest.mock('vuex')
-jest.mock('vue-i18n')
-jest.mock('./store/store', () => {
+vi.mock('vue')
+vi.mock('vue-apollo')
+vi.mock('vuex')
+vi.mock('vue-i18n')
+vi.mock('./store/store', () => {
   return {
     state: {
       moderator: {
@@ -22,27 +23,27 @@ jest.mock('./store/store', () => {
     },
   }
 })
-jest.mock('./i18n')
-jest.mock('./router/router')
+vi.mock('./i18n')
+vi.mock('./router/router')
 
-jest.mock('apollo-boost', () => {
+vi.mock('apollo-boost', () => {
   return {
     __esModule: true,
-    ApolloClient: jest.fn(),
-    ApolloLink: jest.fn(() => {
-      return { concat: jest.fn() }
+    ApolloClient: vi.fn(),
+    ApolloLink: vi.fn(() => {
+      return { concat: vi.fn() }
     }),
-    InMemoryCache: jest.fn(),
-    HttpLink: jest.fn(),
+    InMemoryCache: vi.fn(),
+    HttpLink: vi.fn(),
   }
 })
 
-jest.mock('bootstrap-vue', () => {
+vi.mock('bootstrap-vue', () => {
   return {
     __esModule: true,
-    BootstrapVue: jest.fn(),
-    IconsPlugin: jest.fn(() => {
-      return { concat: jest.fn() }
+    BootstrapVue: vi.fn(),
+    IconsPlugin: vi.fn(() => {
+      return { concat: vi.fn() }
     }),
   }
 })

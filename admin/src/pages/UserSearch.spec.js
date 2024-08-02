@@ -1,10 +1,11 @@
 import { mount } from '@vue/test-utils'
 import UserSearch from './UserSearch'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 
-const apolloQueryMock = jest.fn().mockResolvedValue({
+const apolloQueryMock = vi.fn().mockResolvedValue({
   data: {
     searchUsers: {
       userCount: 4,
@@ -55,8 +56,8 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
 })
 
 const mocks = {
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => String(d)),
+  $t: vi.fn((t) => t),
+  $d: vi.fn((d) => String(d)),
   $apollo: {
     query: apolloQueryMock,
   },
@@ -71,7 +72,7 @@ describe('UserSearch', () => {
 
   describe('mount', () => {
     beforeEach(() => {
-      jest.clearAllMocks()
+      vi.clearAllMocks()
       wrapper = Wrapper()
     })
 
@@ -189,7 +190,7 @@ describe('UserSearch', () => {
 
       describe('reset the search field', () => {
         it('calls the API with empty criteria', async () => {
-          jest.clearAllMocks()
+          vi.clearAllMocks()
           await wrapper.findComponent({ name: 'UserQuery' }).vm.$emit('input', '')
           expect(apolloQueryMock).toBeCalledWith(
             expect.objectContaining({

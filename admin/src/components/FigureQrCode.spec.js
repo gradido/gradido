@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import FigureQrCode from './FigureQrCode'
+import { describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 

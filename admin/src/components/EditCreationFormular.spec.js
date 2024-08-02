@@ -5,6 +5,7 @@ import VueApollo from 'vue-apollo'
 import { createMockClient } from 'mock-apollo-client'
 import { adminOpenCreations } from '../graphql/adminOpenCreations'
 import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const mockClient = createMockClient()
 const apolloProvider = new VueApollo({
@@ -14,11 +15,11 @@ const apolloProvider = new VueApollo({
 const localVue = global.localVue
 localVue.use(VueApollo)
 
-const stateCommitMock = jest.fn()
+const stateCommitMock = vi.fn()
 
 const mocks = {
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => {
+  $t: vi.fn((t) => t),
+  $d: vi.fn((d) => {
     const date = new Date(d)
     return date.toISOString().split('T')[0]
   }),
@@ -53,8 +54,8 @@ const data = () => {
 describe('EditCreationFormular', () => {
   let wrapper
 
-  const adminUpdateContributionMock = jest.fn()
-  const adminOpenCreationsMock = jest.fn()
+  const adminUpdateContributionMock = vi.fn()
+  const adminOpenCreationsMock = vi.fn()
   mockClient.setRequestHandler(
     adminOpenCreations,
     adminOpenCreationsMock.mockResolvedValue({

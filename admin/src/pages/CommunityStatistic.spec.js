@@ -4,6 +4,7 @@ import { communityStatistics } from '@/graphql/communityStatistics.js'
 import { toastErrorSpy } from '../../test/testSetup'
 import VueApollo from 'vue-apollo'
 import { createMockClient } from 'mock-apollo-client'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const mockClient = createMockClient()
 const apolloProvider = new VueApollo({
@@ -30,14 +31,14 @@ const defaultData = () => {
 }
 
 const mocks = {
-  $t: jest.fn((t) => t),
-  $n: jest.fn((n) => n),
+  $t: vi.fn((t) => t),
+  $n: vi.fn((n) => n),
 }
 
 describe('CommunityStatistic', () => {
   let wrapper
 
-  const communityStatisticsMock = jest.fn()
+  const communityStatisticsMock = vi.fn()
 
   mockClient.setRequestHandler(
     communityStatistics,

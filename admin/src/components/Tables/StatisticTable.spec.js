@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import StatisticTable from './StatisticTable'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 
@@ -16,9 +17,9 @@ const propsData = {
 }
 
 const mocks = {
-  $t: jest.fn((t) => t),
-  $n: jest.fn((n) => n),
-  $d: jest.fn((d) => d),
+  $t: vi.fn((t) => t),
+  $n: vi.fn((n) => n),
+  $d: vi.fn((d) => d),
 }
 
 describe('StatisticTable', () => {

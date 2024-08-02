@@ -1,6 +1,6 @@
 import { shallowMount } from '@vue/test-utils'
 import App from './App'
-
+import { describe, beforeEach, it, expect } from 'vitest'
 const localVue = global.localVue
 
 const stubs = {

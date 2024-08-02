@@ -2,17 +2,18 @@ import { mount } from '@vue/test-utils'
 import ChangeUserRoleFormular from './ChangeUserRoleFormular'
 import { setUserRole } from '../graphql/setUserRole'
 import { toastSuccessSpy, toastErrorSpy } from '../../test/testSetup'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 
-const apolloMutateMock = jest.fn().mockResolvedValue({
+const apolloMutateMock = vi.fn().mockResolvedValue({
   data: {
     setUserRole: null,
   },
 })
 
 const mocks = {
-  $t: jest.fn((t) => t),
+  $t: vi.fn((t) => t),
   $apollo: {
     mutate: apolloMutateMock,
   },
@@ -38,7 +39,7 @@ describe('ChangeUserRoleFormular', () => {
 
   describe('mount', () => {
     beforeEach(() => {
-      jest.clearAllMocks()
+      vi.clearAllMocks()
     })
 
     describe('DOM has', () => {
@@ -164,7 +165,7 @@ describe('ChangeUserRoleFormular', () => {
 
             describe('clicking the "change_user_role" button', () => {
               beforeEach(async () => {
-                spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
                 spy.mockImplementation(() => Promise.resolve(true))
                 await wrapper.find('button').trigger('click')
                 await wrapper.vm.$nextTick()
@@ -208,7 +209,7 @@ describe('ChangeUserRoleFormular', () => {
 
               describe('confirm role change with error', () => {
                 beforeEach(async () => {
-                  spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                  spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
                   apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
                   await wrapper.find('button').trigger('click')
                   await wrapper.vm.$nextTick()
@@ -235,7 +236,7 @@ describe('ChangeUserRoleFormular', () => {
 
             describe('clicking the "change_user_role" button', () => {
               beforeEach(async () => {
-                spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
                 spy.mockImplementation(() => Promise.resolve(true))
                 await wrapper.find('button').trigger('click')
                 await wrapper.vm.$nextTick()
@@ -279,7 +280,7 @@ describe('ChangeUserRoleFormular', () => {
 
               describe('confirm role change with error', () => {
                 beforeEach(async () => {
-                  spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                  spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
                   apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
                   await wrapper.find('button').trigger('click')
                   await wrapper.vm.$nextTick()
@@ -341,7 +342,7 @@ describe('ChangeUserRoleFormular', () => {
 
             describe('clicking the "change_user_role" button', () => {
               beforeEach(async () => {
-                spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
                 spy.mockImplementation(() => Promise.resolve(true))
                 await wrapper.find('button').trigger('click')
                 await wrapper.vm.$nextTick()
@@ -385,7 +386,7 @@ describe('ChangeUserRoleFormular', () => {
 
               describe('confirm role change with error', () => {
                 beforeEach(async () => {
-                  spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                  spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
                   apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
                   await wrapper.find('button').trigger('click')
                   await wrapper.vm.$nextTick()
@@ -412,7 +413,7 @@ describe('ChangeUserRoleFormular', () => {
 
             describe('clicking the "change_user_role" button', () => {
               beforeEach(async () => {
-                spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
                 spy.mockImplementation(() => Promise.resolve(true))
                 await wrapper.find('button').trigger('click')
                 await wrapper.vm.$nextTick()
@@ -456,7 +457,7 @@ describe('ChangeUserRoleFormular', () => {
 
               describe('confirm role change with error', () => {
                 beforeEach(async () => {
-                  spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                  spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
                   apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
                   await wrapper.find('button').trigger('click')
                   await wrapper.vm.$nextTick()
@@ -519,7 +520,7 @@ describe('ChangeUserRoleFormular', () => {
 
             describe('clicking the "change_user_role" button', () => {
               beforeEach(async () => {
-                spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
                 spy.mockImplementation(() => Promise.resolve(true))
                 await wrapper.find('button').trigger('click')
                 await wrapper.vm.$nextTick()
@@ -563,7 +564,7 @@ describe('ChangeUserRoleFormular', () => {
 
               describe('confirm role change with error', () => {
                 beforeEach(async () => {
-                  spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                  spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
                   apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
                   await wrapper.find('button').trigger('click')
                   await wrapper.vm.$nextTick()
@@ -590,7 +591,7 @@ describe('ChangeUserRoleFormular', () => {
 
             describe('clicking the "change_user_role" button', () => {
               beforeEach(async () => {
-                spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
                 spy.mockImplementation(() => Promise.resolve(true))
                 await wrapper.find('button').trigger('click')
                 await wrapper.vm.$nextTick()
@@ -634,7 +635,7 @@ describe('ChangeUserRoleFormular', () => {
 
               describe('confirm role change with error', () => {
                 beforeEach(async () => {
-                  spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+                  spy = vi.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
                   apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
                   await wrapper.find('button').trigger('click')
                   await wrapper.vm.$nextTick()

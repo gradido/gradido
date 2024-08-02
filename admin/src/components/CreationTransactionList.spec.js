@@ -4,6 +4,7 @@ import { toastErrorSpy } from '../../test/testSetup'
 import VueApollo from 'vue-apollo'
 import { createMockClient } from 'mock-apollo-client'
 import { adminListContributions } from '../graphql/adminListContributions'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const mockClient = createMockClient()
 const apolloProvider = new VueApollo({
@@ -74,8 +75,8 @@ const defaultData = () => {
 }
 
 const mocks = {
-  $d: jest.fn((t) => t),
-  $t: jest.fn((t) => t),
+  $d: vi.fn((t) => t),
+  $t: vi.fn((t) => t),
 }
 
 const propsData = {
@@ -86,7 +87,7 @@ const propsData = {
 describe('CreationTransactionList', () => {
   let wrapper
 
-  const adminListContributionsMock = jest.fn()
+  const adminListContributionsMock = vi.fn()
   mockClient.setRequestHandler(
     adminListContributions,
     adminListContributionsMock
@@ -100,7 +101,7 @@ describe('CreationTransactionList', () => {
 
   describe('mount', () => {
     beforeEach(() => {
-      jest.clearAllMocks()
+      vi.clearAllMocks()
       wrapper = Wrapper()
     })
 
@@ -126,7 +127,7 @@ describe('CreationTransactionList', () => {
 
       describe('watch currentPage', () => {
         beforeEach(async () => {
-          jest.clearAllMocks()
+          vi.clearAllMocks()
           await wrapper.setData({ currentPage: 2 })
         })
 

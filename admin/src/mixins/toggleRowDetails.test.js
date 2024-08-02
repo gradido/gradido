@@ -1,5 +1,6 @@
 import { toggleRowDetails } from './toggleRowDetails'
 import { mount } from '@vue/test-utils'
+import { vi, describe, beforeEach, it, expect } from 'vitest'
 
 const localVue = global.localVue
 
@@ -8,8 +9,8 @@ const Component = {
   mixins: [toggleRowDetails],
 }
 
-const toggleDetailsMock = jest.fn()
-const secondToggleDetailsMock = jest.fn()
+const toggleDetailsMock = vi.fn()
+const secondToggleDetailsMock = vi.fn()
 
 const row = {
   toggleDetails: toggleDetailsMock,
@@ -23,7 +24,7 @@ let wrapper
 
 describe('toggleRowDetails', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     wrapper = mount(Component, { localVue })
   })
 
