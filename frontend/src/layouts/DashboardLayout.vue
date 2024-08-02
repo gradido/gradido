@@ -317,7 +317,7 @@
 <!--</script>-->
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { useLazyQuery, useMutation, useQuery } from '@vue/apollo-composable'
@@ -385,9 +385,8 @@ const logoutUser = async () => {
 const updateTransactions = async ({ currentPage, pageSize }) => {
   pending.value = true
   try {
-    // const { result } = useQuery(transactionsQuery, undefined, { fetchPolicy: 'network-only' })
-    // console.log(result)
     const result = await useTransactionsQuery()
+    if (!result) return //TODO this return mitigate an error when this method is called second time but without actual request
     const { transactionList } = result
     GdtBalance.value =
       transactionList.balance.balanceGDT === null ? 0 : Number(transactionList.balance.balanceGDT)

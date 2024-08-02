@@ -1,6 +1,6 @@
 <template>
   <div class="circles">
-    <b-container class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
+    <BContainer class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
       <div class="h3">{{ $t('circles.headline') }}</div>
       <div class="my-4 text-small">
         <span v-for="(line, lineNumber) of $t('circles.text').split('\n')" v-bind:key="lineNumber">
@@ -8,10 +8,10 @@
           <br />
         </span>
       </div>
-      <b-row class="my-5">
-        <b-col cols="12">
+      <BRow class="my-5">
+        <BCol cols="12">
           <div class="text-lg-right">
-            <b-button
+            <BButton
               :href="this.humhubUri"
               v-if="this.humhubAllowed"
               variant="gradido"
@@ -19,16 +19,16 @@
               target="_blank"
             >
               {{ $t('circles.button') }}
-            </b-button>
+            </BButton>
             <RouterLink v-else to="/settings/extern">
-              <b-button variant="gradido">
+              <BButton variant="gradido">
                 {{ $t('circles.button') }}
-              </b-button>
+              </BButton>
             </RouterLink>
           </div>
-        </b-col>
-      </b-row>
-    </b-container>
+        </BCol>
+      </BRow>
+    </BContainer>
   </div>
 </template>
 <script>

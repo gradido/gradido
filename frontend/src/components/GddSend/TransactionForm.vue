@@ -1,18 +1,18 @@
 <template>
   <div class="transaction-form">
-    <b-row>
-      <b-col cols="12">
-        <b-card class="appBoxShadow gradido-border-radius" body-class="p-4">
+    <BRow>
+      <BCol cols="12">
+        <BCard class="appBoxShadow gradido-border-radius" body-class="p-4">
           <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
-            <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
-              <b-form-radio-group v-model="radioSelected">
-                <b-row class="mb-4">
-                  <b-col cols="12" lg="6">
-                    <b-row class="bg-248 gradido-border-radius pt-lg-2 mr-lg-2">
-                      <b-col cols="10" @click="radioSelected = sendTypes.send" class="pointer">
+            <BForm role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
+              <BFormRadioGroup v-model="radioSelected">
+                <BRow class="mb-4">
+                  <BCol cols="12" lg="6">
+                    <BRow class="bg-248 gradido-border-radius pt-lg-2 mr-lg-2">
+                      <BCol cols="10" @click="radioSelected = sendTypes.send" class="pointer">
                         {{ $t('send_gdd') }}
-                      </b-col>
-                      <b-col cols="2">
+                      </BCol>
+                      <BCol cols="2">
                         <b-form-radio
                           name="shipping"
                           size="lg"
@@ -20,49 +20,49 @@
                           stacked
                           class="custom-radio-button pointer"
                         ></b-form-radio>
-                      </b-col>
-                    </b-row>
-                  </b-col>
-                  <b-col>
-                    <b-row class="bg-248 gradido-border-radius pt-lg-2 ml-lg-2 mt-2 mt-lg-0">
-                      <b-col cols="10" @click="radioSelected = sendTypes.link" class="pointer">
+                      </BCol>
+                    </BRow>
+                  </BCol>
+                  <BCol>
+                    <BRow class="bg-248 gradido-border-radius pt-lg-2 ml-lg-2 mt-2 mt-lg-0">
+                      <BCol cols="10" @click="radioSelected = sendTypes.link" class="pointer">
                         {{ $t('send_per_link') }}
-                      </b-col>
-                      <b-col cols="2" class="pointer">
-                        <b-form-radio
+                      </BCol>
+                      <BCol cols="2" class="pointer">
+                        <BFormRadio
                           name="shipping"
                           :value="sendTypes.link"
                           size="lg"
                           class="custom-radio-button"
-                        ></b-form-radio>
-                      </b-col>
-                    </b-row>
-                  </b-col>
-                </b-row>
-              </b-form-radio-group>
+                        />
+                      </BCol>
+                    </BRow>
+                  </BCol>
+                </BRow>
+              </BFormRadioGroup>
               <div class="mt-4 mb-4" v-if="radioSelected === sendTypes.link">
                 <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
                 <div>
                   {{ $t('gdd_per_link.choose-amount') }}
                 </div>
               </div>
-              <b-row>
-                <b-col>
-                  <b-row>
-                    <b-col class="mb-4" cols="12" v-if="radioSelected === sendTypes.send">
-                      <b-row>
-                        <b-col>{{ $t('form.recipientCommunity') }}</b-col>
-                      </b-row>
-                      <b-row>
-                        <b-col class="font-weight-bold">
+              <BRow>
+                <BCol>
+                  <BRow>
+                    <BCol class="mb-4" cols="12" v-if="radioSelected === sendTypes.send">
+                      <BRow>
+                        <BCol>{{ $t('form.recipientCommunity') }}</BCol>
+                      </BRow>
+                      <BRow>
+                        <BCol class="font-weight-bold">
                           <community-switch
                             v-model="form.targetCommunity"
                             :disabled="isBalanceDisabled"
                           />
-                        </b-col>
-                      </b-row>
-                    </b-col>
-                    <b-col cols="12" v-if="radioSelected === sendTypes.send">
+                        </BCol>
+                      </BRow>
+                    </BCol>
+                    <BCol cols="12" v-if="radioSelected === sendTypes.send">
                       <div v-if="!userIdentifier">
                         <input-identifier
                           :name="$t('form.recipient')"
@@ -74,15 +74,15 @@
                         />
                       </div>
                       <div v-else class="mb-4">
-                        <b-row>
-                          <b-col>{{ $t('form.recipient') }}</b-col>
-                        </b-row>
-                        <b-row>
-                          <b-col class="font-weight-bold">{{ userName }}</b-col>
-                        </b-row>
+                        <BRow>
+                          <BCol>{{ $t('form.recipient') }}</BCol>
+                        </BRow>
+                        <BRow>
+                          <BCol class="font-weight-bold">{{ userName }}</BCol>
+                        </BRow>
                       </div>
-                    </b-col>
-                    <b-col cols="12" lg="6">
+                    </BCol>
+                    <BCol cols="12" lg="6">
                       <input-amount
                         v-model="form.amount"
                         :name="$t('form.amount')"
@@ -92,13 +92,13 @@
                         typ="TransactionForm"
                         :disabled="isBalanceDisabled"
                       ></input-amount>
-                    </b-col>
-                  </b-row>
-                </b-col>
-              </b-row>
+                    </BCol>
+                  </BRow>
+                </BCol>
+              </BRow>
 
-              <b-row>
-                <b-col>
+              <BRow>
+                <BCol>
                   <input-textarea
                     v-model="form.memo"
                     :name="$t('form.message')"
@@ -107,13 +107,13 @@
                     :rules="{ required: true, min: 5, max: 255 }"
                     :disabled="isBalanceDisabled"
                   />
-                </b-col>
-              </b-row>
+                </BCol>
+              </BRow>
               <div v-if="!!isBalanceDisabled" class="text-danger mt-5">
                 {{ $t('form.no_gdd_available') }}
               </div>
-              <b-row v-else class="test-buttons mt-3">
-                <b-col cols="12" md="6" lg="6">
+              <BRow v-else class="test-buttons mt-3">
+                <BCol cols="12" md="6" lg="6">
                   <b-button
                     block
                     type="reset"
@@ -123,18 +123,18 @@
                   >
                     {{ $t('form.reset') }}
                   </b-button>
-                </b-col>
-                <b-col cols="12" md="6" lg="6" class="text-lg-right">
+                </BCol>
+                <BCol cols="12" md="6" lg="6" class="text-lg-right">
                   <b-button block type="submit" variant="gradido">
                     {{ $t('form.check_now') }}
                   </b-button>
-                </b-col>
-              </b-row>
-            </b-form>
+                </BCol>
+              </BRow>
+            </BForm>
           </validation-observer>
-        </b-card>
-      </b-col>
-    </b-row>
+        </BCard>
+      </BCol>
+    </BRow>
   </div>
 </template>
 <script>

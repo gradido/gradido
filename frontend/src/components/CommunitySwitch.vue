@@ -1,8 +1,8 @@
 <template>
   <div class="community-switch">
     <div v-if="!validCommunityIdentifier">
-      <b-dropdown no-flip :text="value.name">
-        <b-dropdown-item
+      <BDropdown no-flip :text="value.name">
+        <BDropdownItem
           v-for="community in communities"
           @click.prevent="updateCommunity(community)"
           :key="community.id"
@@ -10,13 +10,13 @@
           :active="value.uuid === community.uuid"
         >
           {{ community.name }}
-        </b-dropdown-item>
-      </b-dropdown>
+        </BDropdownItem>
+      </BDropdown>
     </div>
     <div v-else class="mb-4 mt-2">
-      <b-row>
-        <b-col class="font-weight-bold" :title="value.description">{{ value.name }}</b-col>
-      </b-row>
+      <BRow>
+        <BCol class="font-weight-bold" :title="value.description">{{ value.name }}</BCol>
+      </BRow>
     </div>
   </div>
 </template>

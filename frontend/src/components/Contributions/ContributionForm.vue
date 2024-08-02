@@ -1,12 +1,12 @@
 <template>
   <div class="contribution-form">
-    <b-form
+    <BForm
       ref="form"
       @submit.prevent="submit"
       class="form-style p-3 bg-white appBoxShadow gradido-border-radius"
     >
       <label>{{ $t('contribution.selectDate') }}</label>
-      <b-form-datepicker
+      <BFormInput
         id="contribution-date"
         v-model="form.date"
         :locale="$i18n.locale"
@@ -17,10 +17,11 @@
         :label-no-date-selected="$t('contribution.noDateSelected')"
         required
         :no-flip="true"
+        type="date"
       >
         <template #nav-prev-year><span></span></template>
         <template #nav-next-year><span></span></template>
-      </b-form-datepicker>
+      </BFormInput>
 
       <div v-if="showMessage" class="p-3" data-test="contribtion-message">
         {{ noOpenCreation }}
@@ -58,9 +59,9 @@
           typ="ContributionForm"
         ></input-amount>
 
-        <b-row class="mt-5">
-          <b-col cols="12" lg="6">
-            <b-button
+        <BRow class="mt-5">
+          <BCol cols="12" lg="6">
+            <BButton
               block
               type="reset"
               variant="secondary"
@@ -68,10 +69,10 @@
               data-test="button-cancel"
             >
               {{ $t('form.cancel') }}
-            </b-button>
-          </b-col>
-          <b-col cols="12" lg="6" class="text-right mt-4 mt-lg-0">
-            <b-button
+            </BButton>
+          </BCol>
+          <BCol cols="12" lg="6" class="text-right mt-4 mt-lg-0">
+            <BButton
               block
               type="submit"
               variant="gradido"
@@ -79,11 +80,11 @@
               data-test="button-submit"
             >
               {{ form.id ? $t('form.change') : $t('contribution.submit') }}
-            </b-button>
-          </b-col>
-        </b-row>
+            </BButton>
+          </BCol>
+        </BRow>
       </div>
-    </b-form>
+    </BForm>
   </div>
 </template>
 <script>

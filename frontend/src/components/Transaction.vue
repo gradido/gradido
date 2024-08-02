@@ -1,16 +1,16 @@
 <template>
   <div class="gdt-transaction-list">
     <div class="list-group bg-white appBoxShadow gradido-border-radius p-3 mb-3">
-      <b-row @click="visible = !visible" class="align-items-center">
-        <b-col cols="3" lg="2" md="2">
-          <b-avatar
+      <BRow @click="visible = !visible" class="align-items-center">
+        <BCol cols="3" lg="2" md="2">
+          <BAvatar
             :icon="getLinesByType.icon"
             variant="light"
             size="3em"
             :class="getLinesByType.iconclasses"
-          ></b-avatar>
-        </b-col>
-        <b-col>
+          ></BAvatar>
+        </BCol>
+        <BCol>
           <!-- <div>
             {{ getLinesByType }}
           </div> -->
@@ -24,24 +24,24 @@
           <div class="small">
             {{ getLinesByType.descriptiontext }}
           </div>
-        </b-col>
-        <b-col cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
+        </BCol>
+        <BCol cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
           <div class="small mb-2">{{ $t('gdt.credit') }}</div>
           <div class="font-weight-bold">{{ getLinesByType.credittext }}</div>
-        </b-col>
-        <b-col cols="12" md="1" lg="1" class="text-right">
+        </BCol>
+        <BCol cols="12" md="1" lg="1" class="text-right">
           <collapse-icon class="text-right" :visible="visible" />
-        </b-col>
-      </b-row>
+        </BCol>
+      </BRow>
 
-      <b-collapse :id="collapseId" class="mt-2" v-model="visible">
+      <BCollapse :id="collapseId" class="mt-2" v-model="visible">
         <transaction-collapse
           :amount="amount"
           :gdtEntryType="gdtEntryType"
           :factor="factor"
           :gdt="gdt"
         ></transaction-collapse>
-      </b-collapse>
+      </BCollapse>
     </div>
   </div>
 </template>
