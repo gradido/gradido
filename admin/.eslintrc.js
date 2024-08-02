@@ -3,7 +3,6 @@ module.exports = {
   env: {
     browser: true,
     node: true,
-    jest: true,
     'vue/setup-compiler-macros': true,
   },
   parserOptions: {
@@ -17,7 +16,7 @@ module.exports = {
     'prettier',
   ],
   // required to lint *.vue files
-  plugins: ['vue', 'prettier', 'jest'],
+  plugins: ['vue', 'prettier'],
   overrides: [
     {
       files: ['*.json'],
