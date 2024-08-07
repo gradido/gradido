@@ -8,17 +8,27 @@ const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v6.2024-02-27',
+    EXPECTED: 'v7.2024-08-06',
     CURRENT: '',
   },
 }
 
 const version = {
+  FRONTEND_MODULE_PROTOCOL: process.env.FRONTEND_MODULE_PROTOCOL ?? 'http',
+  FRONTEND_MODULE_HOST: process.env.FRONTEND_MODULE_HOST ?? 'localhost',
+  FRONTEND_MODULE_PORT: process.env.FRONTEND_MODULE_PORT ?? '3000',
   APP_VERSION: pkg.version,
   BUILD_COMMIT: process.env.BUILD_COMMIT ?? null,
   // self reference of `version.BUILD_COMMIT` is not possible at this point, hence the duplicate code
   BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT ?? '0000000').slice(0, 7),
 }
+
+const FRONTEND_MODULE_URL =
+  version.FRONTEND_MODULE_PROTOCOL +
+  '://' +
+  version.FRONTEND_MODULE_HOST +
+  ':' +
+  version.FRONTEND_MODULE_PORT
 
 const features = {
   GMS_ACTIVE: process.env.GMS_ACTIVE ?? false,
@@ -30,7 +40,6 @@ const environment = {
   DEBUG: process.env.NODE_ENV !== 'production' ?? false,
   PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
   DEFAULT_PUBLISHER_ID: process.env.DEFAULT_PUBLISHER_ID ?? 2896,
-  PORT: process.env.PORT ?? 3000,
 }
 
 const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'

@@ -9,15 +9,20 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v6.2024-02-20',
+    EXPECTED: 'v7.2024-08-06',
     CURRENT: '',
   },
 }
 
 const server = {
+  DLT_MODULE_PROTOCOL: process.env.DLT_MODULE_PROTOCOL ?? 'http',
+  DLT_MODULE_HOST: process.env.DLT_MODULE_HOST ?? 'localhost',
+  DLT_MODULE_PORT: process.env.DLT_MODULE_PORT ?? '6010',
   PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
   JWT_SECRET: process.env.JWT_SECRET ?? 'secret123',
 }
+
+const DLT_MODULE_URL = server.DLT_MODULE_PROTOCOL + '://' + server.DLT_MODULE_HOST + ':' + server.DLT_MODULE_PORT
 
 const database = {
   DB_HOST: process.env.DB_HOST ?? 'localhost',

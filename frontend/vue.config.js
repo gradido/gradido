@@ -8,7 +8,7 @@ const CONFIG = require('./src/config')
 // vue.config.js
 module.exports = {
   devServer: {
-    port: CONFIG.PORT,
+    port: CONFIG.FRONTEND_MODULE_PORT,
   },
   pluginOptions: {
     i18n: {

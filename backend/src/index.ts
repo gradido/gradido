@@ -5,12 +5,12 @@ import { createServer } from './server/createServer'
 async function main() {
   const { app } = await createServer()
 
-  app.listen(CONFIG.PORT, () => {
+  app.listen(CONFIG.BACKEND_MODULE_PORT, () => {
     // eslint-disable-next-line no-console
-    console.log(`Server is running at http://localhost:${CONFIG.PORT}`)
+    console.log(`Server is running at http://localhost:${CONFIG.BACKEND_MODULE_PORT}`)
     if (CONFIG.GRAPHIQL) {
       // eslint-disable-next-line no-console
-      console.log(`GraphIQL available at http://localhost:${CONFIG.PORT}`)
+      console.log(`GraphIQL available at http://localhost:${CONFIG.BACKEND_MODULE_PORT}`)
     }
   })
   void startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
