@@ -1,8 +1,8 @@
 <template>
   <b-card id="formuserlanguage" class="card-border-radius card-background-gray">
     <div>
-      <b-row class="mb-4 text-right">
-        <b-col class="text-right">
+      <BRow class="mb-4 text-right">
+        <BCol class="text-right">
           <a
             class="cursor-pointer"
             @click="showLanguage ? (showLanguage = !showLanguage) : cancelEdit()"
@@ -11,38 +11,38 @@
             <b-icon v-if="showLanguage" class="pointer ml-3" icon="pencil"></b-icon>
             <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
           </a>
-        </b-col>
-      </b-row>
+        </BCol>
+      </BRow>
     </div>
 
     <div v-if="showLanguage">
-      <b-row class="mb-3">
-        <b-col class="col-12">
+      <BRow class="mb-3">
+        <BCol class="col-12">
           <small>
             <b>{{ $t('language') }}</b>
           </small>
-        </b-col>
+        </BCol>
         <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-        <b-col class="col-12">{{ $t(buildTagFromLanguageString()) }}</b-col>
-      </b-row>
+        <BCol class="col-12">{{ $t(buildTagFromLanguageString()) }}</BCol>
+      </BRow>
     </div>
 
     <div v-else>
       <div>
         <b-form @submit.stop.prevent="onSubmit">
-          <b-row class="mb-2">
-            <b-col class="col-12">
+          <BRow class="mb-2">
+            <BCol class="col-12">
               <small>
                 <b>{{ $t('language') }}</b>
               </small>
-            </b-col>
-            <b-col class="col-12">
+            </BCol>
+            <BCol class="col-12">
               <language-switch-select @update-language="updateLanguage" :language="language" />
-            </b-col>
-          </b-row>
+            </BCol>
+          </BRow>
 
-          <b-row class="text-right">
-            <b-col>
+          <BRow class="text-right">
+            <BCol>
               <div class="text-right" ref="submitButton">
                 <b-button
                   :variant="loading ? 'light' : 'success'"
@@ -53,8 +53,8 @@
                   {{ $t('form.save') }}
                 </b-button>
               </div>
-            </b-col>
-          </b-row>
+            </BCol>
+          </BRow>
         </b-form>
       </div>
     </div>

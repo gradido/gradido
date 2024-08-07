@@ -7,21 +7,21 @@
           {{ $t('settings.info') }}
         </div>
 
-        <b-row>
-          <b-col cols="12" md="6" lg="6">
+        <BRow>
+          <BCol cols="12" md="6" lg="6">
             <user-name />
-          </b-col>
-          <b-col cols="12" md="6" lg="6">
+          </BCol>
+          <BCol cols="12" md="6" lg="6">
             <b-form-group :label="$t('form.email')" :description="$t('settings.emailInfo')">
               <b-form-input v-model="email" readonly></b-form-input>
             </b-form-group>
-          </b-col>
-        </b-row>
+          </BCol>
+        </BRow>
 
         <hr />
         <b-form>
-          <b-row class="mt-3">
-            <b-col cols="12" md="6" lg="6">
+          <BRow class="mt-3">
+            <BCol cols="12" md="6" lg="6">
               <label>{{ $t('form.firstname') }}</label>
               <b-form-input
                 v-model="firstName"
@@ -29,8 +29,8 @@
                 data-test="firstname"
                 trim
               ></b-form-input>
-            </b-col>
-            <b-col cols="12" md="6" lg="6">
+            </BCol>
+            <BCol cols="12" md="6" lg="6">
               <label>{{ $t('form.lastname') }}</label>
               <b-form-input
                 v-model="lastName"
@@ -38,8 +38,8 @@
                 data-test="lastname"
                 trim
               ></b-form-input>
-            </b-col>
-          </b-row>
+            </BCol>
+          </BRow>
           <div v-if="!isDisabled" class="mt-4 pt-4 text-center">
             <b-button
               type="submit"
@@ -52,19 +52,19 @@
           </div>
         </b-form>
         <hr />
-        <b-row>
-          <b-col cols="12" md="6" lg="6">{{ $t('language') }}</b-col>
-          <b-col cols="12" md="6" lg="6" class="text-right">
+        <BRow>
+          <BCol cols="12" md="6" lg="6">{{ $t('language') }}</BCol>
+          <BCol cols="12" md="6" lg="6" class="text-right">
             <user-language />
-          </b-col>
-        </b-row>
+          </BCol>
+        </BRow>
 
         <hr />
         <div class="mt-5">{{ $t('form.password') }}</div>
         <user-password />
         <hr />
-        <b-row class="mb-5">
-          <b-col cols="12" md="6" lg="6">
+        <BRow class="mb-5">
+          <BCol cols="12" md="6" lg="6">
             {{ $t('settings.newsletter.newsletter') }}
             <div class="text-small">
               {{
@@ -73,21 +73,21 @@
                   : $t('settings.newsletter.newsletterFalse')
               }}
             </div>
-          </b-col>
-          <b-col cols="12" md="6" lg="6" class="text-right">
+          </BCol>
+          <BCol cols="12" md="6" lg="6" class="text-right">
             <user-newsletter />
-          </b-col>
-        </b-row>
+          </BCol>
+        </BRow>
       </b-tab>
       <div v-if="isCommunityService">
         <b-tab class="community-service-tabs" :title="$t('settings.community')">
           <div class="h2">{{ $t('settings.allow-community-services') }}</div>
           <div v-if="isHumhub" class="mt-3">
-            <b-row>
-              <b-col cols="12" md="6" lg="6">
+            <BRow>
+              <BCol cols="12" md="6" lg="6">
                 <div class="h3">{{ $t('Humhub.title') }}</div>
-              </b-col>
-              <b-col cols="12" md="6" lg="6" class="text-right">
+              </BCol>
+              <BCol cols="12" md="6" lg="6" class="text-right">
                 <user-settings-switch
                   @valueChanged="humhubStateSwitch"
                   :initialValue="$store.state.humhubAllowed"
@@ -97,28 +97,28 @@
                   :disabledText="$t('settings.humhub.disabled')"
                   :notAllowedText="$t('settings.humhub.delete-disabled')"
                 />
-              </b-col>
-            </b-row>
+              </BCol>
+            </BRow>
             <div class="h4">{{ $t('Humhub.desc') }}</div>
-            <b-row v-if="humhubAllowed" class="mb-4 humhub-publish-name-row">
-              <b-col cols="12" md="6" lg="6">
+            <BRow v-if="humhubAllowed" class="mb-4 humhub-publish-name-row">
+              <BCol cols="12" md="6" lg="6">
                 {{ $t('settings.humhub.naming-format') }}
-              </b-col>
-              <b-col cols="12" md="6" lg="6">
+              </BCol>
+              <BCol cols="12" md="6" lg="6">
                 <user-naming-format
                   :initialValue="$store.state.humhubPublishName"
                   :attrName="'humhubPublishName'"
                   :successMessage="$t('settings.humhub.publish-name.updated')"
                 />
-              </b-col>
-            </b-row>
+              </BCol>
+            </BRow>
           </div>
           <div v-if="isGMS" class="mt-3">
-            <b-row>
-              <b-col cols="12" md="6" lg="6">
+            <BRow>
+              <BCol cols="12" md="6" lg="6">
                 <div class="h3">{{ $t('GMS.title') }}</div>
-              </b-col>
-              <b-col cols="12" md="6" lg="6" class="text-right">
+              </BCol>
+              <BCol cols="12" md="6" lg="6" class="text-right">
                 <user-settings-switch
                   @valueChanged="gmsStateSwitch"
                   :initialValue="$store.state.gmsAllowed"
@@ -126,61 +126,61 @@
                   :enabledText="$t('settings.GMS.enabled')"
                   :disabledText="$t('settings.GMS.disabled')"
                 />
-              </b-col>
-            </b-row>
+              </BCol>
+            </BRow>
             <div class="h4 mt-3">{{ $t('GMS.desc') }}</div>
             <div v-if="gmsAllowed">
-              <b-row class="mb-4">
-                <b-col cols="12" md="6" lg="6">
+              <BRow class="mb-4">
+                <BCol cols="12" md="6" lg="6">
                   {{ $t('settings.GMS.naming-format') }}
-                </b-col>
-                <b-col cols="12" md="6" lg="6">
+                </BCol>
+                <BCol cols="12" md="6" lg="6">
                   <user-naming-format
                     :initialValue="$store.state.gmsPublishName"
                     :attrName="'gmsPublishName'"
                     :successMessage="$t('settings.GMS.publish-name.updated')"
                   />
-                </b-col>
-              </b-row>
-              <b-row class="mb-4">
-                <b-col cols="12" md="6" lg="6">
+                </BCol>
+              </BRow>
+              <BRow class="mb-4">
+                <BCol cols="12" md="6" lg="6">
                   {{ $t('settings.GMS.location-format') }}
-                </b-col>
-                <b-col cols="12" md="6" lg="6">
+                </BCol>
+                <BCol cols="12" md="6" lg="6">
                   <user-g-m-s-location-format />
-                </b-col>
-              </b-row>
-              <b-row class="mb-5">
-                <b-col cols="12" md="6" lg="6">
+                </BCol>
+              </BRow>
+              <BRow class="mb-5">
+                <BCol cols="12" md="6" lg="6">
                   {{ $t('settings.GMS.location.label') }}
-                </b-col>
-                <b-col cols="12" md="6" lg="6">
+                </BCol>
+                <BCol cols="12" md="6" lg="6">
                   <user-g-m-s-location />
-                </b-col>
-              </b-row>
+                </BCol>
+              </BRow>
             </div>
           </div>
           <div v-else>
-            <b-row>
-              <b-col cols="12" md="6" lg="6">
+            <BRow>
+              <BCol cols="12" md="6" lg="6">
                 <div class="h3 text-muted">{{ $t('GMS.title') }}</div>
-              </b-col>
-              <b-col cols="12" md="6" lg="6" class="text-right">
+              </BCol>
+              <BCol cols="12" md="6" lg="6" class="text-right">
                 <user-settings-switch :disabled="true" />
-              </b-col>
-            </b-row>
+              </BCol>
+            </BRow>
             <div class="h4 mt-3 text-muted">{{ $t('GMS.desc') }}</div>
           </div>
         </b-tab>
       </div>
     </b-tabs>
 
-    <!-- TODO<b-row>
-      <b-col cols="12" md="6" lg="6">{{ $t('settings.darkMode') }}</b-col>
-      <b-col cols="12" md="6" lg="6" class="text-right">
+    <!-- TODO<BRow>
+      <BCol cols="12" md="6" lg="6">{{ $t('settings.darkMode') }}</BCol>
+      <BCol cols="12" md="6" lg="6" class="text-right">
         <b-form-checkbox v-model="darkMode" name="dark-mode" switch aligne></b-form-checkbox>
-      </b-col>
-    </b-row> -->
+      </BCol>
+    </BRow> -->
   </div>
 </template>
 <script>

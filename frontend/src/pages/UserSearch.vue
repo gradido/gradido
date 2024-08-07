@@ -11,15 +11,15 @@
           <br />
         </span>
       </div>
-      <b-row class="my-5">
-        <b-col cols="12">
+      <BRow class="my-5">
+        <BCol cols="12">
           <div class="text-lg-right">
             <b-button variant="gradido" :href="this.gmsUri" target="_blank">
               {{ $t('usersearch.button') }}
             </b-button>
           </div>
-        </b-col>
-      </b-row>
+        </BCol>
+      </BRow>
     </b-container>
   </div>
 </template>

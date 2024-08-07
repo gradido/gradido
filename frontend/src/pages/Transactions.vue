@@ -106,7 +106,7 @@ import { useLazyQuery } from '@vue/apollo-composable'
 import GddTransactionList from '@/components/GddTransactionList'
 import GdtTransactionList from '@/components/GdtTransactionList'
 import { listGDTEntriesQuery } from '@/graphql/queries'
-import { useAppToast } from '../composables/useToast'
+import { useAppToast } from '@/composables/useToast'
 
 const props = defineProps({
   gdt: { type: Boolean, default: false },

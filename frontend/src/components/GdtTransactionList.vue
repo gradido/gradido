@@ -24,7 +24,7 @@
           :factor="factor"
           :gdt="gdt"
           :id="id"
-        ></transaction>
+        />
       </div>
     </div>
     <BPagination
@@ -56,7 +56,7 @@ export default {
     },
     transactionGdtCount: { type: Number, required: true },
     pageSize: { type: Number, required: true },
-    value: { type: Number, required: true },
+    modelValue: { type: Number, required: true },
   },
   data() {
     return {
@@ -66,7 +66,7 @@ export default {
   },
   watch: {
     currentPage() {
-      if (this.value !== this.currentPage) this.$emit('input', this.currentPage)
+      if (this.modelValue !== this.currentPage) this.$emit('input', this.currentPage)
     },
   },
 }

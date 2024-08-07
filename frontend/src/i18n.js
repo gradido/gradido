@@ -74,7 +74,7 @@ const numberFormats = {
   },
 }
 
-const dateTimeFormats = {
+const datetimeFormats = {
   en: {
     short: {
       year: 'numeric',
@@ -239,5 +239,5 @@ export default createI18n({
   fallbackLocale: 'en',
   messages: { de, en, es, fr, tr, nl },
   numberFormats,
-  dateTimeFormats,
+  datetimeFormats,
 })

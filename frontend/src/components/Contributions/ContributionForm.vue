@@ -52,10 +52,10 @@
         <input-amount
           id="contribution-amount"
           v-model="form.amount"
-          :name="$t('form.amount')"
+          name="amount"
           :label="$t('form.amount')"
           placeholder="20"
-          :rules="{ required: true, gddSendAmount: [20, validMaxGDD] }"
+          :rules="{ required: true, gddSendAmount: { min: 20, max: validMaxGDD } }"
           typ="ContributionForm"
         ></input-amount>
 

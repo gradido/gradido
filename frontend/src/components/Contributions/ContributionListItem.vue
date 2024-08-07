@@ -4,8 +4,8 @@
       class="contribution-list-item bg-white appBoxShadow gradido-border-radius pt-3 px-3"
       :class="status === 'IN_PROGRESS' && !allContribution ? 'pulse border border-205' : ''"
     >
-      <b-row>
-        <b-col cols="3" lg="2" md="2">
+      <BRow>
+        <BCol cols="3" lg="2" md="2">
           <avatar
             v-if="firstName"
             :username="username.username"
@@ -13,9 +13,9 @@
             color="#fff"
             class="font-weight-bold"
           ></avatar>
-          <b-avatar v-else :icon="icon" :variant="variant" size="3em"></b-avatar>
-        </b-col>
-        <b-col>
+          <BAvatar v-else :icon="icon" :variant="variant" size="3em"></BAvatar>
+        </BCol>
+        <BCol>
           <div v-if="firstName" class="mr-3 font-weight-bold">
             {{ firstName }} {{ lastName }}
             <b-icon :icon="icon" :variant="variant"></b-icon>
@@ -35,31 +35,32 @@
           >
             {{ $t('contribution.alert.answerQuestion') }}
           </div>
-        </b-col>
-        <b-col cols="9" lg="3" offset="3" offset-md="0" offset-lg="0">
+        </BCol>
+        <BCol cols="9" lg="3" offset="3" offset-md="0" offset-lg="0">
           <div class="small">
             {{ $t('creation') }} {{ $t('(') }}{{ amount / 20 }} {{ $t('h') }}{{ $t(')') }}
           </div>
           <div v-if="status === 'DENIED' && allContribution" class="font-weight-bold">
-            <b-icon icon="x-circle" variant="danger"></b-icon>
+            <!--            <b-icon icon="x-circle" variant="danger"></b-icon>-->
+            <IBiXCircle />
             {{ $t('contribution.alert.denied') }}
           </div>
           <div v-if="status === 'DELETED'" class="small">
             {{ $t('contribution.deleted') }}
           </div>
-          <div v-else class="font-weight-bold">{{ amount | GDD }}</div>
-        </b-col>
-        <b-col cols="12" md="1" lg="1" class="text-right align-items-center">
+          <div v-else class="font-weight-bold">{{ $filters.GDD(amount) }}</div>
+        </BCol>
+        <BCol cols="12" md="1" lg="1" class="text-right align-items-center">
           <div v-if="messagesCount > 0 && !moderatorId" @click="visible = !visible">
             <collapse-icon class="text-right" :visible="visible" />
           </div>
-        </b-col>
-      </b-row>
-      <b-row
+        </BCol>
+      </BRow>
+      <BRow
         v-if="(!['CONFIRMED', 'DELETED'].includes(status) && !allContribution) || messagesCount > 0"
         class="p-2"
       >
-        <b-col cols="3" class="mr-auto text-center">
+        <BCol cols="3" class="mr-auto text-center">
           <div
             v-if="!['CONFIRMED', 'DELETED'].includes(status) && !allContribution && !moderatorId"
             class="test-delete-contribution pointer mr-3"
@@ -69,8 +70,8 @@
 
             <div>{{ $t('delete') }}</div>
           </div>
-        </b-col>
-        <b-col cols="3" class="text-center">
+        </BCol>
+        <BCol cols="3" class="text-center">
           <div
             v-if="!['CONFIRMED', 'DELETED'].includes(status) && !allContribution && !moderatorId"
             class="test-edit-contribution pointer mr-3"
@@ -83,19 +84,21 @@
               })
             "
           >
-            <b-icon icon="pencil"></b-icon>
+            <!--            <b-icon icon="pencil"></b-icon>-->
+            <IBiPencil />
             <div>{{ $t('edit') }}</div>
           </div>
-        </b-col>
-        <b-col cols="6" class="text-center">
+        </BCol>
+        <BCol cols="6" class="text-center">
           <div v-if="messagesCount > 0 && !moderatorId" class="pointer" @click="visible = !visible">
-            <b-icon icon="chat-dots"></b-icon>
+            <!--            <b-icon icon="chat-dots"></b-icon>-->
+            <IBiChatDots />
             <div>{{ $t('moderatorChat') }}</div>
           </div>
-        </b-col>
-      </b-row>
+        </BCol>
+      </BRow>
       <div v-else class="pb-3"></div>
-      <b-collapse :id="collapsId" class="mt-2" v-model="visible">
+      <BCollapse :id="collapsId" class="mt-2" v-model="visible">
         <contribution-messages-list
           :messages="messages_get"
           :status="status"
@@ -103,7 +106,7 @@
           @get-list-contribution-messages="getListContributionMessages"
           @update-status="updateStatus"
         />
-      </b-collapse>
+      </BCollapse>
     </div>
   </div>
 </template>

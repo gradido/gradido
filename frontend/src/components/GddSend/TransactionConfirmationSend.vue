@@ -2,66 +2,67 @@
   <div class="transaction-confirm-send">
     <div class="bg-white appBoxShadow gradido-border-radius p-3">
       <div class="h3 mb-4">{{ $t('form.send_check') }}</div>
-      <b-row class="mt-5">
-        <b-col cols="12">
-          <b-row class="mt-3">
-            <b-col class="h5">{{ $t('form.recipientCommunity') }}</b-col>
-            <b-col>{{ targetCommunity.name }}</b-col>
-          </b-row>
-          <b-row>
-            <b-col class="h5">{{ $t('form.recipient') }}</b-col>
-            <b-col>{{ userName ? userName : identifier }}</b-col>
-          </b-row>
-          <b-row>
-            <b-col class="h5">{{ $t('form.amount') }}</b-col>
-            <b-col>{{ amount | GDD }}</b-col>
-          </b-row>
-          <b-row>
-            <b-col class="h5">{{ $t('form.memo') }}</b-col>
-            <b-col>{{ memo }}</b-col>
-          </b-row>
-        </b-col>
-      </b-row>
+      <BRow class="mt-5">
+        <BCol cols="12">
+          <BRow class="mt-3">
+            <BCol class="h5">{{ $t('form.recipientCommunity') }}</BCol>
+            <BCol>{{ targetCommunity.name }}</BCol>
+          </BRow>
+          <BRow>
+            <BCol class="h5">{{ $t('form.recipient') }}</BCol>
+            <BCol>{{ userName ? userName : identifier }}</BCol>
+          </BRow>
+          <BRow>
+            <BCol class="h5">{{ $t('form.amount') }}</BCol>
+            <BCol>{{ $filters.GDD(amount) }}</BCol>
+          </BRow>
+          <BRow>
+            <BCol class="h5">{{ $t('form.memo') }}</BCol>
+            <BCol>{{ memo }}</BCol>
+          </BRow>
+        </BCol>
+      </BRow>
 
-      <b-row class="mt-5 text-color-gdd-yellow h3">
-        <b-col cols="2" class="text-right">
-          <b-icon class="text-color-gdd-yellow" icon="droplet-half"></b-icon>
-        </b-col>
-        <b-col>{{ $t('advanced-calculation') }}</b-col>
-      </b-row>
-      <b-row class="pr-3" offset="2">
-        <b-col offset="2">{{ $t('form.current_balance') }}</b-col>
-        <b-col>{{ balance | GDD }}</b-col>
-      </b-row>
-      <b-row class="pr-3">
-        <b-col offset="2">
+      <BRow class="mt-5 text-color-gdd-yellow h3">
+        <BCol cols="2" class="text-right">
+          <!--          <b-icon class="text-color-gdd-yellow" icon="droplet-half"></b-icon>-->
+          <IBiDropletHalf />
+        </BCol>
+        <BCol>{{ $t('advanced-calculation') }}</BCol>
+      </BRow>
+      <BRow class="pr-3" offset="2">
+        <BCol offset="2">{{ $t('form.current_balance') }}</BCol>
+        <BCol>{{ $filters.GDD(balance) }}</BCol>
+      </BRow>
+      <BRow class="pr-3">
+        <BCol offset="2">
           <strong>{{ $t('form.your_amount') }}</strong>
-        </b-col>
-        <b-col class="borderbottom">
-          <strong>{{ (amount * -1) | GDD }}</strong>
-        </b-col>
-      </b-row>
-      <b-row class="pr-3">
-        <b-col offset="2">{{ $t('form.new_balance') }}</b-col>
-        <b-col>{{ (balance - amount) | GDD }}</b-col>
-      </b-row>
-      <b-row class="mt-5">
-        <b-col cols="12" md="6" lg="6">
-          <b-button block @click="$emit('on-back')" class="mb-3 mb-md-0 mb-lg-0">
+        </BCol>
+        <BCol class="borderbottom">
+          <strong>{{ $filters.GDD(amount * -1) }}</strong>
+        </BCol>
+      </BRow>
+      <BRow class="pr-3">
+        <BCol offset="2">{{ $t('form.new_balance') }}</BCol>
+        <BCol>{{ $filters.GDD(balance - amount) }}</BCol>
+      </BRow>
+      <BRow class="mt-5">
+        <BCol cols="12" md="6" lg="6">
+          <BButton block @click="$emit('on-back')" class="mb-3 mb-md-0 mb-lg-0">
             {{ $t('back') }}
-          </b-button>
-        </b-col>
-        <b-col cols="12" md="6" lg="6" class="text-lg-right">
-          <b-button
+          </BButton>
+        </BCol>
+        <BCol cols="12" md="6" lg="6" class="text-lg-right">
+          <BButton
             block
             variant="gradido"
             :disabled="disabled"
             @click="$emit('send-transaction'), (disabled = true)"
           >
             {{ $t('form.send_now') }}
-          </b-button>
-        </b-col>
-      </b-row>
+          </BButton>
+        </BCol>
+      </BRow>
     </div>
   </div>
 </template>

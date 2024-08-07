@@ -1,18 +1,26 @@
-let i18n
+export const createFilters = (i18n) => {
+  const formatAmount = (value) => {
+    if (value === null || value === undefined) return ''
+    try {
+      const numValue = Number(value)
+      if (isNaN(numValue)) return ''
+      return i18n.global.n(numValue, 'decimal').replace('-', '− ')
+    } catch (error) {
+      console.error('Error formatting amount:', error)
+      return ''
+    }
+  }
 
-export const loadFilters = (_i18n) => {
-  i18n = _i18n
-  return { amount, GDD }
-}
+  const formatGDD = (value) => {
+    const formattedAmount = formatAmount(value)
+    if (formattedAmount === '') return ''
 
-const amount = (value) => {
-  if (!value && value !== 0) return ''
-  return i18n.global.n(value.toString(), 'decimal').replace('-', '− ')
-}
+    const numValue = Number(value)
+    if (isNaN(numValue)) return formattedAmount + ' GDD'
 
-const GDD = (value) => {
-  value = amount(value)
-  if (value === '') return ''
-  if (!value.match(/^− /) && !value.match(/^0[.,]00$/)) value = '+ ' + value
-  return value + ' GDD'
+    const prefix = numValue > 0 ? '+ ' : numValue < 0 ? '' : ''
+    return prefix + formattedAmount + ' GDD'
+  }
+
+  return { amount: formatAmount, GDD: formatGDD }
 }

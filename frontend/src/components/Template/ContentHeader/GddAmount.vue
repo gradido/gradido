@@ -33,8 +33,7 @@
             {{ $t('asterisks') }}
           </span>
           <span v-else class="font-weight-bold gradido-global-color-accent">
-            <!--            {{ balance | GDD }}-->
-            {{ 'test' }}
+            {{ $filters.GDD(balance) }}
           </span>
         </BCol>
         <BCol cols="3" class="border-left border-light">

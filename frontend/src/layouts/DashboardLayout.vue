@@ -341,7 +341,7 @@ import LastTransactions from '@/components/Template/RightSide/LastTransactions'
 import { transactionsQuery, communityStatistics } from '@/graphql/queries'
 import { logout } from '@/graphql/mutations'
 import CONFIG from '@/config'
-import { useAppToast } from '../composables/useToast'
+import { useAppToast } from '@/composables/useToast'
 
 const store = useStore()
 const router = useRouter()

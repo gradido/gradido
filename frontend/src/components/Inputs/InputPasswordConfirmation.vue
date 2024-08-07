@@ -1,7 +1,7 @@
 <template>
   <div>
-    <b-row class="mb-2">
-      <b-col>
+    <BRow class="mb-2">
+      <BCol>
         <input-password
           :rules="{
             required: true,
@@ -20,10 +20,10 @@
           :placeholder="register ? $t('form.password') : $t('form.password_new')"
           v-model="password"
         ></input-password>
-      </b-col>
-    </b-row>
-    <b-row class="mb-2">
-      <b-col>
+      </BCol>
+    </BRow>
+    <BRow class="mb-2">
+      <BCol>
         <input-password
           :rules="{
             required: true,
@@ -36,8 +36,8 @@
           :placeholder="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
           v-model="passwordRepeat"
         ></input-password>
-      </b-col>
-    </b-row>
+      </BCol>
+    </BRow>
   </div>
 </template>
 <script>

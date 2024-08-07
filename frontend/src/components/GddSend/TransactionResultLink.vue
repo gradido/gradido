@@ -11,9 +11,9 @@
     <div class="text-center">
       <div><figure-qr-code :link="link" /></div>
       <div>
-        <b-button variant="secondary" @click="$emit('on-back')" class="mt-4" data-test="close-btn">
+        <BButton variant="secondary" @click="$emit('on-back')" class="mt-4" data-test="close-btn">
           {{ $t('form.close') }}
-        </b-button>
+        </BButton>
       </div>
     </div>
   </div>

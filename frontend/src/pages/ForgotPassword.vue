@@ -3,8 +3,8 @@
   <div class="forgot-password">
     <b-container v-if="enterData">
       <div class="pb-5">{{ $t('site.forgotPassword.heading') }}</div>
-      <b-row class="justify-content-center">
-        <b-col>
+      <BRow class="justify-content-center">
+        <BCol>
           <validation-observer ref="observer" v-slot="{ handleSubmit, valid }">
             <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
               <input-email
@@ -13,17 +13,22 @@
                 :label="$t('form.email')"
                 :placeholder="$t('form.email')"
               ></input-email>
-              <b-row>
-                <b-col cols="12" lg="6">
-                <b-button type="submit" :variant="valid ? 'gradido' : 'gradido-disable'" block :disabled="!valid">
-                  {{ $t('settings.password.send_now') }}
-                </b-button>
-              </b-col>
-            </b-row>
+              <BRow>
+                <BCol cols="12" lg="6">
+                  <b-button
+                    type="submit"
+                    :variant="valid ? 'gradido' : 'gradido-disable'"
+                    block
+                    :disabled="!valid"
+                  >
+                    {{ $t('settings.password.send_now') }}
+                  </b-button>
+                </BCol>
+              </BRow>
             </b-form>
           </validation-observer>
-        </b-col>
-      </b-row>
+        </BCol>
+      </BRow>
     </b-container>
     <b-container v-else>
       <message

@@ -20,7 +20,7 @@
   </div>
 </template>
 <script>
-import { GdtEntryType } from '../graphql/enums'
+import { GdtEntryType } from '@/graphql/enums'
 
 export default {
   name: 'TransactionCollapse',

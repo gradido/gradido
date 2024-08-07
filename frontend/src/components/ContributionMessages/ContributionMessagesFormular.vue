@@ -9,16 +9,16 @@
           :placeholder="$t('form.memo')"
           rows="3"
         ></b-form-textarea>
-        <b-row class="mt-4 mb-4">
-          <b-col>
+        <BRow class="mt-4 mb-4">
+          <BCol>
             <b-button type="reset" variant="secondary">{{ $t('form.cancel') }}</b-button>
-          </b-col>
-          <b-col class="text-right">
+          </BCol>
+          <BCol class="text-right">
             <b-button type="submit" variant="gradido" :disabled="disabled">
               {{ $t('form.reply') }}
             </b-button>
-          </b-col>
-        </b-row>
+          </BCol>
+        </BRow>
       </b-form>
     </div>
   </div>

@@ -1,22 +1,25 @@
 <template>
-  <div class="transaction-slot-decay">
-    <b-row @click="visible = !visible" class="text-color-gdd-yellow align-items-center">
-      <b-col cols="1"><type-icon color="text-color-gdd-yellow" icon="droplet-half" /></b-col>
-      <b-col>
+  <div @click="visible = !visible" class="transaction-slot-decay">
+    <BRow class="text-color-gdd-yellow align-items-center">
+      <BCol cols="1">
+        <!--        <type-icon color="text-color-gdd-yellow" icon="droplet-half" />-->
+        <IBiDropletHalf />
+      </BCol>
+      <BCol>
         {{ $t('decay.decay_since_last_transaction') }}
-      </b-col>
-      <b-col cols="12" md="1" lg="1" class="text-right">
+      </BCol>
+      <BCol cols="12" md="1" lg="1" class="text-right">
         <collapse-icon class="text-right" :visible="visible" />
-      </b-col>
-    </b-row>
+      </BCol>
+    </BRow>
 
-    <b-collapse class="pb-4 pt-5" v-model="visible">
+    <BCollapse class="pb-4 pt-5" :model-value="visible">
       <decay-information-decay
         :balance="balance"
         :decay="decay.decay"
         :previousBalance="previousBalance"
       />
-    </b-collapse>
+    </BCollapse>
   </div>
 </template>
 <script>

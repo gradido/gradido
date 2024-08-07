@@ -1,34 +1,34 @@
 <template>
   <div class="bg-white appBoxShadow gradido-border-radius p-3">
     <div class="pl-3">
-      <b-row class="small">
-        <b-col>{{ $t('time.months') }}</b-col>
-        <b-col class="d-none d-md-inline">{{ $t('status') }}</b-col>
-        <b-col class="d-none d-md-inline text-center">{{ $t('submitted') }}</b-col>
-        <b-col class="text-center">{{ $t('openHours') }}</b-col>
-      </b-row>
+      <BRow class="small">
+        <BCol>{{ $t('time.months') }}</BCol>
+        <BCol class="d-none d-md-inline">{{ $t('status') }}</BCol>
+        <BCol class="d-none d-md-inline text-center">{{ $t('submitted') }}</BCol>
+        <BCol class="text-center">{{ $t('openHours') }}</BCol>
+      </BRow>
 
-      <b-row class="font-weight-bold pt-3">
-        <b-col>{{ $d(new Date(minimalDate), 'monthAndYear') }}</b-col>
-        <b-col class="d-none d-md-inline">
+      <BRow class="font-weight-bold pt-3">
+        <BCol>{{ $d(new Date(minimalDate), 'monthAndYear') }}</BCol>
+        <BCol class="d-none d-md-inline">
           {{ maxGddLastMonth > 0 ? $t('contribution.submit') : $t('maxReached') }}
-        </b-col>
-        <b-col class="d-none d-md-inline text-197 text-center">
+        </BCol>
+        <BCol class="d-none d-md-inline text-197 text-center">
           {{ hoursSubmittedLastMonth }} {{ $t('h') }}
-        </b-col>
-        <b-col class="text-4 text-center">{{ hoursAvailableLastMonth }} {{ $t('h') }}</b-col>
-      </b-row>
+        </BCol>
+        <BCol class="text-4 text-center">{{ hoursAvailableLastMonth }} {{ $t('h') }}</BCol>
+      </BRow>
 
-      <b-row class="font-weight-bold">
-        <b-col>{{ $d(new Date(), 'monthAndYear') }}</b-col>
-        <b-col class="d-none d-md-inline">
+      <BRow class="font-weight-bold">
+        <BCol>{{ $d(new Date(), 'monthAndYear') }}</BCol>
+        <BCol class="d-none d-md-inline">
           {{ maxGddThisMonth > 0 ? $t('contribution.submit') : $t('maxReached') }}
-        </b-col>
-        <b-col class="d-none d-md-inline text-197 text-center">
+        </BCol>
+        <BCol class="d-none d-md-inline text-197 text-center">
           {{ hoursSubmittedThisMonth }} {{ $t('h') }}
-        </b-col>
-        <b-col class="text-4 text-center">{{ hoursAvailableThisMonth }} {{ $t('h') }}</b-col>
-      </b-row>
+        </BCol>
+        <BCol class="text-4 text-center">{{ hoursAvailableThisMonth }} {{ $t('h') }}</BCol>
+      </BRow>
     </div>
   </div>
 </template>

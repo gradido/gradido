@@ -1,68 +1,68 @@
 <template>
   <div class="decayinformation-startblock">
-    <b-row>
-      <b-col cols="12">
+    <BRow>
+      <BCol cols="12">
         <div class="text-center pb-3">
           <b-icon icon="droplet-half" class="mr-2" />
           <b>{{ $t('decay.Starting_block_decay') }}</b>
         </div>
-      </b-col>
-    </b-row>
-    <b-row>
-      <b-col offset="1" cols="11">
-        <b-row>
-          <b-col cols="5">
+      </BCol>
+    </BRow>
+    <BRow>
+      <BCol offset="1" cols="11">
+        <BRow>
+          <BCol cols="5">
             <div class="text-right">
               <div>{{ $t('decay.decay_introduced') }}</div>
             </div>
-          </b-col>
-          <b-col cols="5">
+          </BCol>
+          <BCol cols="5">
             <div>
               <span v-if="decay.start">
                 {{ $d(new Date(decay.start), 'long') }}
               </span>
             </div>
-          </b-col>
-        </b-row>
+          </BCol>
+        </BRow>
         <duration-row :decayStart="decay.start" :decayEnd="decay.end" />
 
         <!-- Decay-->
-        <b-row>
-          <b-col cols="5" class="text-right">{{ $t('decay.decay') }}</b-col>
-          <b-col cols="7">{{ decay.decay | GDD }}</b-col>
-        </b-row>
-      </b-col>
-    </b-row>
+        <BRow>
+          <BCol cols="5" class="text-right">{{ $t('decay.decay') }}</BCol>
+          <BCol cols="7">{{ $filters.GDD(decay.decay) }}</BCol>
+        </BRow>
+      </BCol>
+    </BRow>
     <hr class="mt-3 mb-3" />
 
-    <b-row>
-      <b-col class="text-center pb-3">
+    <BRow>
+      <BCol class="text-center pb-3">
         <b>{{ $t('decay.calculation_total') }}</b>
-      </b-col>
-    </b-row>
+      </BCol>
+    </BRow>
 
     <!-- Type-->
-    <b-row>
-      <b-col offset="1" cols="11">
-        <b-row>
+    <BRow>
+      <BCol offset="1" cols="11">
+        <BRow>
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-          <b-col cols="5" class="text-right">{{ $t(`decay.types.${typeId.toLowerCase()}`) }}</b-col>
-          <b-col cols="7">{{ amount | GDD }}</b-col>
-        </b-row>
+          <BCol cols="5" class="text-right">{{ $t(`decay.types.${typeId.toLowerCase()}`) }}</BCol>
+          <BCol cols="7">{{ $filters.GDD(amount) }}</BCol>
+        </BRow>
         <!-- Decay-->
-        <b-row>
-          <b-col cols="5" class="text-right">{{ $t('decay.decay') }}</b-col>
-          <b-col cols="7">{{ decay.decay | GDD }}</b-col>
-        </b-row>
+        <BRow>
+          <BCol cols="5" class="text-right">{{ $t('decay.decay') }}</BCol>
+          <BCol cols="7">{{ $filters.GDD(decay.decay) }}</BCol>
+        </BRow>
         <!-- Total-->
-        <b-row>
-          <b-col cols="5" class="text-right">{{ $t('decay.total') }}</b-col>
-          <b-col cols="7">
-            <b>{{ (Number(amount) + Number(decay.decay)) | GDD }}</b>
-          </b-col>
-        </b-row>
-      </b-col>
-    </b-row>
+        <BRow>
+          <BCol cols="5" class="text-right">{{ $t('decay.total') }}</BCol>
+          <BCol cols="7">
+            <b>{{ $filters.GDD(Number(amount) + Number(decay.decay)) }}</b>
+          </BCol>
+        </BRow>
+      </BCol>
+    </BRow>
   </div>
 </template>
 <script>

@@ -1,6 +1,6 @@
 <template>
   <div class="decayinformation-short">
-    <span v-if="decay">{{ decay | GDD }}</span>
+    <span v-if="decay">{{ $filters.GDD(decay) }}</span>
   </div>
 </template>
 <script>

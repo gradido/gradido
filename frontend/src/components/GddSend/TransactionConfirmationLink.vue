@@ -9,7 +9,7 @@
         </BCol>
         <BCol cols="3">
           <div class="small">{{ $t('send_gdd') }}</div>
-          <div>{{ amount | GDD }}</div>
+          <div>{{ $filters.GDD(amount) }}</div>
         </BCol>
       </BRow>
 
@@ -21,19 +21,19 @@
       </BRow>
       <BRow class="pr-3" offset="2">
         <BCol offset="2">{{ $t('form.current_balance') }}</BCol>
-        <BCol>{{ balance | GDD }}</BCol>
+        <BCol>{{ $filters.GDD(balance) }}</BCol>
       </BRow>
       <BRow class="pr-3">
         <BCol offset="2">
           <strong>{{ $t('form.your_amount') }}</strong>
         </BCol>
         <BCol class="borderbottom">
-          <strong>{{ (amount * -1) | GDD }}</strong>
+          <strong>{{ $filters.GDD(amount * -1) }}</strong>
         </BCol>
       </BRow>
       <BRow class="pr-3">
         <BCol offset="2">{{ $t('form.new_balance') }}</BCol>
-        <BCol>{{ (balance - amount) | GDD }}</BCol>
+        <BCol>{{ $filters.GDD(balance - amount) }}</BCol>
       </BRow>
       <BRow class="mt-5">
         <BCol cols="12" md="6" lg="6">

@@ -4,8 +4,8 @@
     <validation-observer ref="observer" v-slot="{ handleSubmit, valid }">
       <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
         <input-password-confirmation v-model="form" />
-        <b-row>
-          <b-col cols="12" lg="6">
+        <BRow>
+          <BCol cols="12" lg="6">
             <b-button
               block
               type="submit"
@@ -17,8 +17,8 @@
               <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
               {{ $t(displaySetup.button) }}
             </b-button>
-          </b-col>
-        </b-row>
+          </BCol>
+        </BRow>
       </b-form>
     </validation-observer>
   </div>

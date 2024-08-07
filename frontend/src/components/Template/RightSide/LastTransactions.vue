@@ -36,7 +36,7 @@
               </div>
               <div class="d-flex mt-3">
                 <div class="small">
-                  {{ transaction.amount | GDD }}
+                  {{ $filters.GDD(transaction.amount) }}
                 </div>
                 <div class="small ml-3 text-right">
                   {{ $d(new Date(transaction.balanceDate), 'short') }}

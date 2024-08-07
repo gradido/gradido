@@ -92,6 +92,7 @@ export default {
       return 'mb-3'
     },
     isHumhub() {
+      // return true
       return CONFIG.HUMHUB_ACTIVE === 'true'
     },
     isGMS() {

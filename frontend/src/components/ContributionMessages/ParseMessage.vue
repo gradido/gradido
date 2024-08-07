@@ -8,7 +8,7 @@
       </span>
       <span v-else-if="type === 'amount'">
         <br />
-        {{ text | GDD }}
+        {{ $filters.GDD(text) }}
       </span>
       <span v-else>{{ text }}</span>
     </span>

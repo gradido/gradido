@@ -17,8 +17,8 @@
     <div v-else>
       <validation-observer ref="usernameObserver" v-slot="{ handleSubmit, invalid }">
         <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
-          <b-row class="mb-3">
-            <b-col class="col-12">
+          <BRow class="mb-3">
+            <BCol class="col-12">
               <input-username
                 v-model="username"
                 :name="$t('form.username')"
@@ -30,15 +30,15 @@
                 @set-is-edit="setIsEdit"
                 data-test="component-input-username"
               />
-            </b-col>
-            <b-col class="col-12">
+            </BCol>
+            <BCol class="col-12">
               <div v-if="!username" class="alert" data-test="username-alert">
                 {{ $t('settings.username.no-username') }}
               </div>
-            </b-col>
-          </b-row>
-          <b-row class="text-right" v-if="newUsername">
-            <b-col>
+            </BCol>
+          </BRow>
+          <BRow class="text-right" v-if="newUsername">
+            <BCol>
               <div class="text-right" ref="submitButton">
                 <b-button
                   :variant="disabled(invalid) ? 'light' : 'success'"
@@ -49,8 +49,8 @@
                   {{ $t('form.save') }}
                 </b-button>
               </div>
-            </b-col>
-          </b-row>
+            </BCol>
+          </BRow>
         </b-form>
       </validation-observer>
     </div>

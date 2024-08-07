@@ -1,8 +1,8 @@
 <template>
   <b-card id="change_pwd" class="card-border-radius card-background-gray">
     <div>
-      <b-row class="mb-4 text-right">
-        <b-col class="text-right">
+      <BRow class="mb-4 text-right">
+        <BCol class="text-right">
           <a
             class="cursor-pointer"
             @click="showPassword ? (showPassword = !showPassword) : cancelEdit()"
@@ -12,25 +12,25 @@
             <b-icon v-if="showPassword" class="pointer ml-3" icon="pencil"></b-icon>
             <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
           </a>
-        </b-col>
-      </b-row>
+        </BCol>
+      </BRow>
     </div>
 
     <div v-if="!showPassword">
       <validation-observer ref="observer" v-slot="{ handleSubmit, invalid }">
         <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
-          <b-row class="mb-2">
-            <b-col>
+          <BRow class="mb-2">
+            <BCol>
               <input-password
                 :label="$t('form.password_old')"
                 :placeholder="$t('form.password_old')"
                 v-model="form.password"
               ></input-password>
-            </b-col>
-          </b-row>
+            </BCol>
+          </BRow>
           <input-password-confirmation v-model="form.newPassword" :register="register" />
-          <b-row class="text-right">
-            <b-col>
+          <BRow class="text-right">
+            <BCol>
               <div class="text-right">
                 <b-button
                   type="submit"
@@ -42,8 +42,8 @@
                   {{ $t('form.save') }}
                 </b-button>
               </div>
-            </b-col>
-          </b-row>
+            </BCol>
+          </BRow>
         </b-form>
       </validation-observer>
     </div>

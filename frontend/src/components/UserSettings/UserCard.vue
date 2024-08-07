@@ -10,36 +10,36 @@
     </div>
 
     <div class="justify-content-center mt-5 mb-5">
-      <b-row align-v="stretch">
-        <b-col cols="4">
+      <BRow align-v="stretch">
+        <BCol cols="4">
           <div class="text-center font-weight-bold">
             {{ $n(balance, 'decimal') }}
           </div>
-        </b-col>
-        <b-col cols="4">
+        </BCol>
+        <BCol cols="4">
           <div class="text-center font-weight-bold">
             {{ transactionCount }}
           </div>
-        </b-col>
-        <b-col cols="4">
+        </BCol>
+        <BCol cols="4">
           <div class="text-center font-weight-bold">{{ CONFIG.COMMUNITY_NAME }}</div>
-        </b-col>
-      </b-row>
-      <b-row>
-        <b-col cols="4">
+        </BCol>
+      </BRow>
+      <BRow>
+        <BCol cols="4">
           <div class="text-center">{{ $t('GDD') }}</div>
-        </b-col>
-        <b-col cols="4">
+        </BCol>
+        <BCol cols="4">
           <div class="text-center">
             {{ $t('navigation.transactions') }}
           </div>
-        </b-col>
-        <b-col cols="4">
+        </BCol>
+        <BCol cols="4">
           <div class="text-center">
             {{ $t('community.community') }}
           </div>
-        </b-col>
-      </b-row>
+        </BCol>
+      </BRow>
     </div>
   </div>
 </template>

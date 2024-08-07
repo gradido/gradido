@@ -1,11 +1,11 @@
 <template>
   <div class="last-contributions d-none d-lg-block">
-    <b-row class="mb-5">
-      <b-col class="h3">{{ $t('contribution.lastContribution') }}</b-col>
-      <b-col cols="1" class="text-right">
+    <BRow class="mb-5">
+      <BCol class="h3">{{ $t('contribution.lastContribution') }}</BCol>
+      <BCol cols="1" class="text-right">
         <b-icon icon="three-dots-vertical"></b-icon>
-      </b-col>
-    </b-row>
+      </BCol>
+    </BRow>
   </div>
 </template>
 <script>

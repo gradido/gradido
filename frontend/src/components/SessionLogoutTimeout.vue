@@ -128,6 +128,10 @@ const tokenExpiresInSeconds = computed(() => {
   return remainingSecs <= 0 ? 0 : remainingSecs
 })
 
+const handleOk = async () => {
+  console.log('OK')
+}
+
 // const tokenExpires = () => {
 //   now.value = new Date().getTime()
 //   if (tokenExpiresInSeconds.value < 75 && timer.value.tokenExpires.time !== 1000) {
