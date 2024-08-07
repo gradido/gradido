@@ -4,7 +4,6 @@
       <BCol cols="12">
         <BCard class="appBoxShadow gradido-border-radius" body-class="p-4">
           <BForm role="form" @submit.prevent="onSubmit" @reset="onReset">
-            <pre>{{ radioSelected }}</pre>
             <BFormRadioGroup
               name="shipping"
               :model-value="radioSelected"
@@ -59,7 +58,6 @@
                           :model-value="targetCommunity"
                           @update:model-value="targetCommunity = $event"
                         />
-                        <pre>{{ values }}</pre>
                       </BCol>
                     </BRow>
                   </BCol>
