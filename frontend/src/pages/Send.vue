@@ -188,8 +188,6 @@
 <!--}-->
 <!--</script>-->
 
-<script></script>
-
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
@@ -203,10 +201,7 @@ import TransactionResultSendError from '@/components/GddSend/TransactionResultSe
 import TransactionResultLink from '@/components/GddSend/TransactionResultLink'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 import { useAppToast } from '@/composables/useToast'
-export const SEND_TYPES = {
-  send: 'send',
-  link: 'link',
-}
+import { SEND_TYPES } from '@/utils/sendTypes'
 
 const EMPTY_TRANSACTION_DATA = {
   identifier: '',

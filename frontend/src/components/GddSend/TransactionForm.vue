@@ -131,7 +131,7 @@
   </div>
 </template>
 <!--<script>-->
-<!--import { SEND_TYPES } from '@/pages/Send'-->
+<!--import { SEND_TYPES } from '@/utils/sendTypes'-->
 <!--import InputIdentifier from '@/components/Inputs/InputIdentifier'-->
 <!--import InputAmount from '@/components/Inputs/InputAmount'-->
 <!--import InputTextarea from '@/components/Inputs/InputTextarea'-->
@@ -261,7 +261,7 @@ import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
 import { useForm } from 'vee-validate'
-import { SEND_TYPES } from '@/pages/Send'
+import { SEND_TYPES } from '@/utils/sendTypes'
 import InputIdentifier from '@/components/Inputs/InputIdentifier'
 import InputAmount from '@/components/Inputs/InputAmount'
 import InputTextarea from '@/components/Inputs/InputTextarea'
