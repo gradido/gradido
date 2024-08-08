@@ -10,7 +10,6 @@
           <navbar class="main-navbar" :balance="balance"></navbar>
         </BCol>
       </BRow>
-      <!--      TODO mobile sidebar needs new component to be fixed-->
       <mobile-sidebar @admin="admin" @logout="logout" />
 
       <!-- Breadcrumb -->
