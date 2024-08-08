@@ -10,7 +10,7 @@
           <navbar class="main-navbar" :balance="balance"></navbar>
         </BCol>
       </BRow>
-      <mobile-sidebar @admin="admin" @logout="logout" />
+      <mobile-sidebar @admin="admin" @logout="logoutUser" />
 
       <!-- Breadcrumb -->
       <BRow class="breadcrumb">
@@ -22,7 +22,7 @@
       <BRow fluid class="d-flex">
         <!-- Sidebar left -->
         <BCol cols="2" class="d-none d-lg-block">
-          <sidebar class="main-sidebar" @admin="admin" @logout="logout" />
+          <sidebar class="main-sidebar" @admin="admin" @logout="logoutUser" />
         </BCol>
         <!-- ContentHeader && Content -->
         <BCol>
@@ -181,7 +181,7 @@
           <content-footer v-if="!$route.meta.hideFooter"></content-footer>
         </BCol>
       </BRow>
-      <session-logout-timeout @logout="logout"></session-logout-timeout>
+      <session-logout-timeout @logout="logoutUser"></session-logout-timeout>
     </div>
   </div>
 </template>
