@@ -434,7 +434,7 @@ const setVisible = (bool) => {
   background-position: center;
   background-repeat: no-repeat;
   background-size: 100% 100%;
-  background-image: url("/img/svg/Gradido_Blaetter_Mainpage.svg") !important;
+  background-image: url('/img/svg/Gradido_Blaetter_Mainpage.svg') !important;
 }
 
 .b-right {
