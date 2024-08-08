@@ -1,8 +1,10 @@
 <template>
   <div>
-    <b-row class="mb-2">
-      <b-col>
+    <BRow class="mb-2">
+      <BCol>
         <input-password
+          id="new-password-input-field"
+          v-model="password"
           :rules="{
             required: true,
             containsLowercaseCharacter: true,
@@ -12,32 +14,30 @@
             atLeastOneSpecialCharater: true,
             noWhitespaceCharacters: true,
           }"
-          id="new-password-input-field"
           :label="register ? $t('form.password') : $t('form.password_new')"
-          :showAllErrors="true"
+          :show-all-errors="true"
           :immediate="true"
           :name="createId(register ? $t('form.password') : $t('form.password_new'))"
           :placeholder="register ? $t('form.password') : $t('form.password_new')"
-          v-model="password"
         ></input-password>
-      </b-col>
-    </b-row>
-    <b-row class="mb-2">
-      <b-col>
+      </BCol>
+    </BRow>
+    <BRow class="mb-2">
+      <BCol>
         <input-password
+          id="repeat-new-password-input-field"
+          v-model="passwordRepeat"
           :rules="{
             required: true,
             samePassword: value.password,
           }"
-          id="repeat-new-password-input-field"
           :label="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
           :immediate="true"
           :name="createId(register ? $t('form.passwordRepeat') : $t('form.password_new_repeat'))"
           :placeholder="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
-          v-model="passwordRepeat"
         ></input-password>
-      </b-col>
-    </b-row>
+      </BCol>
+    </BRow>
   </div>
 </template>
 <script>
@@ -64,11 +64,6 @@ export default {
       passwordRepeat: '',
     }
   },
-  methods: {
-    createId(text) {
-      return text.replace(/ +/g, '-')
-    },
-  },
   computed: {
     passwordObject() {
       return { password: this.password, passwordRepeat: this.passwordRepeat }
@@ -80,6 +75,11 @@ export default {
     },
     passwordRepeat() {
       this.$emit('input', this.passwordObject)
+    },
+  },
+  methods: {
+    createId(text) {
+      return text.replace(/ +/g, '-')
     },
   },
 }

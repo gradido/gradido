@@ -1,7 +1,7 @@
 <template>
   <footer class="footer m-4 p-4 bg-transparent">
-    <b-row align-v="center" class="mt-4 justify-content-lg-between">
-      <b-col>
+    <BRow align-v="center" class="mt-4 justify-content-lg-between">
+      <BCol>
         <div class="copyright text-center text-lg-center text-muted">
           {{ $t('footer.copyright.year', { year }) }}
           <a
@@ -23,18 +23,18 @@
             {{ $t('footer.short_hash', { shortHash }) }}
           </a>
         </div>
-      </b-col>
-    </b-row>
-    <b-row align-v="center" class="justify-content-lg-between">
-      <b-col>
-        <b-nav class="nav-footer justify-content-center">
-          <b-nav-item :href="`https://gradido.net/${$i18n.locale}/impressum/`" target="_blank">
+      </BCol>
+    </BRow>
+    <BRow align-v="center" class="justify-content-lg-between">
+      <BCol>
+        <BNav class="nav-footer justify-content-center">
+          <BNavItem :href="`https://gradido.net/${$i18n.locale}/impressum/`" target="_blank">
             {{ $t('footer.imprint') }}
-          </b-nav-item>
-          <b-nav-item :href="`https://gradido.net/${$i18n.locale}/datenschutz/`" target="_blank">
+          </BNavItem>
+          <BNavItem :href="`https://gradido.net/${$i18n.locale}/datenschutz/`" target="_blank">
             {{ $t('footer.privacy_policy') }}
-          </b-nav-item>
-          <b-nav-item
+          </BNavItem>
+          <BNavItem
             :href="
               $i18n.locale === 'de'
                 ? 'https://docs.google.com/document/d/1jZp-DiiMPI9ZPNXmjsvOQ1BtnfDFfx8BX7CDmA8KKjY/edit?usp=sharing'
@@ -43,13 +43,13 @@
             target="_blank"
           >
             {{ $t('footer.whitepaper') }}
-          </b-nav-item>
-          <b-nav-item :href="`mailto:${supportEmail}`" target="_blank">
+          </BNavItem>
+          <BNavItem :href="`mailto:${supportEmail}`" target="_blank">
             {{ $t('navigation.support') }}
-          </b-nav-item>
-        </b-nav>
-      </b-col>
-    </b-row>
+          </BNavItem>
+        </BNav>
+      </BCol>
+    </BRow>
   </footer>
 </template>
 <script>

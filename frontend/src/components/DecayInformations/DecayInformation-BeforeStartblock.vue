@@ -11,7 +11,7 @@
 </template>
 <script>
 export default {
-  name: 'DecayInformation-StartBlock',
+  name: 'DecayInformationStartBlock',
   props: {
     memo: {
       type: String,

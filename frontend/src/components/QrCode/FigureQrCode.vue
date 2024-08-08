@@ -2,7 +2,7 @@
   <div class="figure-qr-code">
     <div class="qrbox">
       <div>
-        <q-r-canvas :options="options" class="canvas mb-3" id="qrcanvas" ref="canvas" />
+        <q-r-canvas id="qrcanvas" ref="canvas" :options="options" class="canvas mb-3" />
       </div>
       <a
         id="download"
@@ -62,6 +62,7 @@ export default {
   padding: 20px;
   background-color: #fff;
 }
+
 .canvas {
   width: 90%;
   max-width: 300px;

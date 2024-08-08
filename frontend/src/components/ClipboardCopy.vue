@@ -5,14 +5,15 @@
         <label>{{ $t('gdd_per_link.copy-link') }}</label>
         <div
           class="pointer text-center bg-secondary gradido-border-radius p-3"
-          @click="copyLink"
           data-test="copyLink"
+          @click="copyLink"
         >
           {{ link }}
           <div>
-            <b-button class="p-4">
-              <b-icon icon="link45deg"></b-icon>
-            </b-button>
+            <BButton class="p-4">
+              <IBiLink45deg />
+              <!--              <b-icon icon="link45deg"></b-icon>-->
+            </BButton>
           </div>
         </div>
       </div>
@@ -25,9 +26,10 @@
         >
           {{ linkText }}
           <div>
-            <b-button class="p-4">
-              <b-icon icon="link45deg"></b-icon>
-            </b-button>
+            <BButton class="p-4">
+              <IBiLink45deg />
+              <!--              <b-icon icon="link45deg"></b-icon>-->
+            </BButton>
           </div>
         </div>
       </div>
@@ -38,13 +40,19 @@
     </div>
   </div>
 </template>
-<script>
-import { copyLinks } from '../mixins/copyLinks'
-export default {
-  name: 'ClipboardCopy',
-  mixins: [copyLinks],
-}
+<script setup>
+import { useCopyLinks } from '@/composables/useCopyLinks'
+
+const props = defineProps({
+  link: { type: String, required: true },
+  amount: { type: String, required: true },
+  memo: { type: String, required: true },
+  validUntil: { type: String, required: true },
+})
+
+const { copyLink, copyLinkWithText, linkText, canCopyLink } = useCopyLinks({ ...props })
 </script>
+
 <style>
 .svg {
   filter: brightness(0) invert(1);

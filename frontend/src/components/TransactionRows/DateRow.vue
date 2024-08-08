@@ -1,17 +1,17 @@
 <template>
   <div class="date-row">
-    <b-row>
-      <b-col cols="5">
+    <BRow>
+      <BCol cols="5">
         <div class="text-right">
           {{ text }}
         </div>
-      </b-col>
-      <b-col cols="7">
+      </BCol>
+      <BCol cols="7">
         <div class="gdd-transaction-list-item-date">
-          {{ $d(new Date(this.date), 'long') }}
+          {{ $d(new Date(date), 'long') }}
         </div>
-      </b-col>
-    </b-row>
+      </BCol>
+    </BRow>
   </div>
 </template>
 <script>

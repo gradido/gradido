@@ -37,7 +37,7 @@ describe('OpenCreationsAmount', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.appBoxShadow').exists()).toBe(true)
+      expect(wrapper.find('div.app-box-shadow').exists()).toBe(true)
     })
 
     it('renders two dates', () => {

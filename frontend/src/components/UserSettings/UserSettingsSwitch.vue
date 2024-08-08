@@ -1,8 +1,8 @@
 <template>
   <div class="form-user-switch" @click="onClick">
     <b-form-checkbox
-      test="BFormCheckbox"
       v-model="value"
+      test="BFormCheckbox"
       name="check-button"
       :disabled="disabled"
       switch
@@ -23,6 +23,7 @@ export default {
     disabled: { type: Boolean, default: false },
     notAllowedText: { type: String, default: undefined },
   },
+  emits: ['value-changed'],
   data() {
     return {
       value: this.initialValue,
@@ -40,7 +41,7 @@ export default {
         })
         .then(() => {
           this.$store.commit(this.attrName, this.value)
-          this.$emit('valueChanged', this.value)
+          this.$emit('value-changed', this.value)
           this.toastSuccess(this.value ? this.enabledText : this.disabledText)
         })
         .catch((error) => {

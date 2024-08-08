@@ -1,13 +1,13 @@
 <template>
   <div class="link-count-row">
-    <b-row>
-      <b-col cols="5">
+    <BRow>
+      <BCol cols="5">
         <div class="text-right">{{ $t('gdd_per_link.links_count') }}</div>
-      </b-col>
-      <b-col cols="7">
+      </BCol>
+      <BCol cols="7">
         <div class="gdd-transaction-list-link-count">{{ count }}</div>
-      </b-col>
-    </b-row>
+      </BCol>
+    </BRow>
   </div>
 </template>
 <script>

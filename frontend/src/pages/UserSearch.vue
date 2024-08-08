@@ -1,56 +1,43 @@
 <template>
   <div class="usersearch">
-    <b-container class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
+    <b-container class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
       <div class="h3">{{ $t('usersearch.headline') }}</div>
       <div class="my-4 text-small">
-        <span
-          v-for="(line, lineNumber) of $t('usersearch.text').split('\n')"
-          v-bind:key="lineNumber"
-        >
+        <span v-for="(line, lineNumber) of $t('usersearch.text').split('\n')" :key="lineNumber">
           {{ line }}
           <br />
         </span>
       </div>
-      <b-row class="my-5">
-        <b-col cols="12">
+      <BRow class="my-5">
+        <BCol cols="12">
           <div class="text-lg-right">
-            <b-button variant="gradido" :href="this.gmsUri" target="_blank">
+            <b-button variant="gradido" :href="gmsUri" target="_blank">
               {{ $t('usersearch.button') }}
             </b-button>
           </div>
-        </b-col>
-      </b-row>
+        </BCol>
+      </BRow>
     </b-container>
   </div>
 </template>
-<script>
+
+<script setup>
+import { ref } from 'vue'
+import { useQuery } from '@vue/apollo-composable'
+import { useAppToast } from '@/composables/useToast'
 import { authenticateGmsUserSearch } from '@/graphql/queries'
-export default {
-  name: 'UserSearch',
-  data() {
-    return {
-      gmsUri: 'not initialized',
-    }
-  },
-  methods: {
-    async authenticateGmsUserPlayground() {
-      this.$apollo
-        .query({
-          query: authenticateGmsUserSearch,
-        })
-        .then(async (result) => {
-          this.gmsUri =
-            result.data.authenticateGmsUserSearch.url +
-            '?accesstoken=' +
-            result.data.authenticateGmsUserSearch.token
-        })
-        .catch(() => {
-          this.toastError('authenticateGmsUserSearch failed!')
-        })
-    },
-  },
-  created() {
-    this.authenticateGmsUserPlayground()
-  },
-}
+
+const { useToast } = useAppToast()
+
+const gmsUri = ref('not initialized')
+
+const { onResult, result, loading, onError } = useQuery(authenticateGmsUserSearch)
+
+onResult(({ data }) => {
+  gmsUri.value = `${data.authenticateGmsUserSearch.url}?accesstoken=${data.authenticateGmsUserSearch.token}`
+})
+
+onError(() => {
+  useToast.error('authenticateGmsUserSearch failed!')
+})
 </script>

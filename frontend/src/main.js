@@ -1,10 +1,15 @@
-import Vue from 'vue'
-import DashboardPlugin from './plugins/dashboard-plugin'
+import { createApp } from 'vue'
+
+// import '@/assets/scss/gradido.scss'
+
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
+
+// import DashboardPlugin from './plugins/dashboard-plugin'
 import App from './App'
 import i18n from './i18n.js'
 import { loadAllRules } from './validation-rules'
-import { toasters } from './mixins/toaster'
-import { loadFilters } from './filters/amount'
+import { createFilters } from './filters/amount'
 
 import 'regenerator-runtime'
 
@@ -18,16 +23,43 @@ import { apolloProvider } from './plugins/apolloProvider'
 
 import 'clipboard-polyfill/overwrite-globals'
 
+import { createBootstrap } from 'bootstrap-vue-next'
+
+// import GlobalComponents from '@/plugins/globalComponents'
+import GlobalDirectives from '@/plugins/globalDirectives'
+import PortalVue from 'portal-vue'
+import FlatPickr from 'vue-flatpickr-component'
+
+const app = createApp(App)
+
 // plugin setup
-Vue.use(DashboardPlugin)
-Vue.config.productionTip = false
+// app.use(DashboardPlugin)
+// Vue.config.productionTip = false
+app.use(router)
+app.use(store)
+app.use(i18n)
+app.use(createBootstrap())
+// app.use(GlobalComponents)
+app.use(GlobalDirectives)
+app.use(PortalVue)
+app.use(FlatPickr)
+app.use(() => apolloProvider)
+// app.use(VueTimers)
 
-Vue.mixin(toasters)
-const filters = loadFilters(i18n)
-Vue.filter('amount', filters.amount)
-Vue.filter('GDD', filters.GDD)
+// app.mixin(toasters)
+const filters = createFilters(i18n)
+app.config.globalProperties.$filters = {
+  amount: filters.amount,
+  GDD: filters.GDD,
+}
 
-loadAllRules(i18n, apolloProvider.defaultClient)
+// TODO it will be used in future
+// app.config.globalProperties.$filters = {
+//   GDD: filters.GDD,
+//   amount: filters.amount,
+// }
+
+loadAllRules(i18n.global, apolloProvider.defaultClient)
 
 addNavigationGuards(router, store, apolloProvider.defaultClient)
 
@@ -38,12 +70,13 @@ if (!store) {
   )
 }
 
-/* eslint-disable no-new */
-new Vue({
-  el: '#app',
-  router,
-  store,
-  i18n,
-  apolloProvider,
-  render: (h) => h(App),
+app.mount('#app', {
+  stub: {
+    ValidationObserver: {
+      template: '<div>Validation Observer MOCK</div>',
+    },
+    ValidationProvider: {
+      template: '<div>Validation Observer MOCK</div>',
+    },
+  },
 })

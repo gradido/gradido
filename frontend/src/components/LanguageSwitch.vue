@@ -3,8 +3,8 @@
     <b-dropdown size="sm" :text="currentLanguage.name + ' - ' + currentLanguage.code">
       <b-dropdown-item
         v-for="lang in locales"
-        @click.prevent="saveLocale(lang.code)"
         :key="lang.code"
+        @click.prevent="saveLocale(lang.code)"
       >
         {{ lang.name }}
       </b-dropdown-item>
@@ -22,6 +22,9 @@ export default {
       locales: locales,
       currentLanguage: {},
     }
+  },
+  created() {
+    this.setCurrentLanguage()
   },
   methods: {
     setLocale(locale) {
@@ -65,9 +68,6 @@ export default {
       this.setLocale(locale)
       this.currentLanguage = object
     },
-  },
-  created() {
-    this.setCurrentLanguage()
   },
 }
 </script>

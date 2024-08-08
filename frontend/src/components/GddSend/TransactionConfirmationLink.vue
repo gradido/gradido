@@ -1,48 +1,48 @@
 <template>
   <div class="transaction-confirm-link">
-    <div class="bg-white appBoxShadow gradido-border-radius p-3">
+    <div class="bg-white app-box-shadow gradido-border-radius p-3">
       <div class="h3 mb-4">{{ $t('gdd_per_link.header') }}</div>
-      <b-row class="mt-5">
-        <b-col offset="2">
+      <BRow class="mt-5">
+        <BCol offset="2">
           <div class="mt-3 h5">{{ $t('form.memo') }}</div>
           <div>{{ memo }}</div>
-        </b-col>
-        <b-col cols="3">
+        </BCol>
+        <BCol cols="3">
           <div class="small">{{ $t('send_gdd') }}</div>
-          <div>{{ amount | GDD }}</div>
-        </b-col>
-      </b-row>
+          <div>{{ $filters.GDD(amount) }}</div>
+        </BCol>
+      </BRow>
 
-      <b-row class="mt-5 pr-3 text-color-gdd-yellow h3">
-        <b-col cols="2" class="text-right">
+      <BRow class="mt-5 pr-3 text-color-gdd-yellow h3">
+        <BCol cols="2" class="text-right">
           <b-icon class="text-color-gdd-yellow" icon="droplet-half"></b-icon>
-        </b-col>
-        <b-col>{{ $t('advanced-calculation') }}</b-col>
-      </b-row>
-      <b-row class="pr-3" offset="2">
-        <b-col offset="2">{{ $t('form.current_balance') }}</b-col>
-        <b-col>{{ balance | GDD }}</b-col>
-      </b-row>
-      <b-row class="pr-3">
-        <b-col offset="2">
+        </BCol>
+        <BCol>{{ $t('advanced-calculation') }}</BCol>
+      </BRow>
+      <BRow class="pr-3" offset="2">
+        <BCol offset="2">{{ $t('form.current_balance') }}</BCol>
+        <BCol>{{ $filters.GDD(balance) }}</BCol>
+      </BRow>
+      <BRow class="pr-3">
+        <BCol offset="2">
           <strong>{{ $t('form.your_amount') }}</strong>
-        </b-col>
-        <b-col class="borderbottom">
-          <strong>{{ (amount * -1) | GDD }}</strong>
-        </b-col>
-      </b-row>
-      <b-row class="pr-3">
-        <b-col offset="2">{{ $t('form.new_balance') }}</b-col>
-        <b-col>{{ (balance - amount) | GDD }}</b-col>
-      </b-row>
-      <b-row class="mt-5">
-        <b-col cols="12" md="6" lg="6">
-          <b-button block @click="$emit('on-back')" class="mb-3 mb-md-0 mb-lg-0">
+        </BCol>
+        <BCol class="borderbottom">
+          <strong>{{ $filters.GDD(amount * -1) }}</strong>
+        </BCol>
+      </BRow>
+      <BRow class="pr-3">
+        <BCol offset="2">{{ $t('form.new_balance') }}</BCol>
+        <BCol>{{ $filters.GDD(balance - amount) }}</BCol>
+      </BRow>
+      <BRow class="mt-5">
+        <BCol cols="12" md="6" lg="6">
+          <BButton block class="mb-3 mb-md-0 mb-lg-0" @click="$emit('on-back')">
             {{ $t('back') }}
-          </b-button>
-        </b-col>
-        <b-col cols="12" md="6" lg="6" class="text-lg-right">
-          <b-button
+          </BButton>
+        </BCol>
+        <BCol cols="12" md="6" lg="6" class="text-lg-right">
+          <BButton
             block
             class="send-button"
             variant="gradido"
@@ -50,9 +50,9 @@
             @click="$emit('send-transaction')"
           >
             {{ $t('form.generate_now') }}
-          </b-button>
-        </b-col>
-      </b-row>
+          </BButton>
+        </BCol>
+      </BRow>
     </div>
   </div>
 </template>
@@ -83,8 +83,9 @@ export default {
 .gray-background {
   background-color: #ecebe6a3 !important;
 }
+
 .borderbottom {
-  border-bottom: 1px solid rgb(70, 65, 65);
+  border-bottom: 1px solid rgb(70 65 65);
   border-bottom-style: double;
 }
 </style>

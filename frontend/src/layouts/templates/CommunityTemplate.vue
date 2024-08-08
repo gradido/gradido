@@ -20,23 +20,28 @@
         </p>
         <ul>
           <li>
-            <b-icon icon="bell-fill" variant="primary"></b-icon>
+            <!--            <b-icon icon="bell-fill" variant="primary"></b-icon>-->
+            <IBiBellFill />
             {{ $t('contribution.alert.pending') }}
           </li>
           <li>
-            <b-icon icon="question" variant="205"></b-icon>
+            <!--            <b-icon icon="question" variant="205"></b-icon>-->
+            <IBiQuestion />
             {{ $t('contribution.alert.in_progress') }}
           </li>
           <li>
-            <b-icon icon="check" variant="success"></b-icon>
+            <!--            <b-icon icon="check" variant="success"></b-icon>-->
+            <IBiCheck />
             {{ $t('contribution.alert.confirm') }}
           </li>
           <li>
-            <b-icon icon="x-circle" variant="warning"></b-icon>
+            <!--            <b-icon icon="x-circle" variant="warning"></b-icon>-->
+            <IBiXCircle />
             {{ $t('contribution.alert.denied') }}
           </li>
           <li>
-            <b-icon icon="trash" variant="danger"></b-icon>
+            <!--            <b-icon icon="trash" variant="danger"></b-icon>-->
+            <IBiTrash />
             {{ $t('contribution.alert.deleted') }}
           </li>
         </ul>
@@ -50,19 +55,23 @@
         </p>
         <ul>
           <li>
-            <b-icon icon="bell-fill" variant="primary"></b-icon>
+            <!--            <b-icon icon="bell-fill" variant="primary"></b-icon>-->
+            <IBiBellFill />
             {{ $t('contribution.alert.pending') }}
           </li>
           <li>
-            <b-icon icon="question" variant="205"></b-icon>
+            <!--            <b-icon icon="question" variant="205"></b-icon>-->
+            <IBiQuestion />
             {{ $t('contribution.alert.in_progress') }}
           </li>
           <li>
-            <b-icon icon="check" variant="success"></b-icon>
+            <!--            <b-icon icon="check" variant="success"></b-icon>-->
+            <IBiCheck />
             {{ $t('contribution.alert.confirm') }}
           </li>
           <li>
-            <b-icon icon="x-circle" variant="warning"></b-icon>
+            <!--            <b-icon icon="x-circle" variant="warning"></b-icon>-->
+            <IBiXCircle />
             {{ $t('contribution.alert.denied') }}
           </li>
         </ul>

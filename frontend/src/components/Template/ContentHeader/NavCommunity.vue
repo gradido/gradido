@@ -1,18 +1,38 @@
 <template>
   <div class="nav-community">
-    <div class="bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow">
-      <b-btn to="contribute" active-class="btn-active svg-icon-active" block variant="link">
+    <div
+      class="nav-community-btn-wrapper bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
+    >
+      <BButton
+        to="contribute"
+        active-class="btn-active svg-icon-active"
+        block
+        variant="link"
+        class="nav-community__btn"
+      >
         <b-img src="/img/svg/write.svg" height="20" class="svg-icon" />
         {{ $t('community.submitContribution') }}
-      </b-btn>
-      <b-btn to="contributions" active-class="btn-active svg-icon-active" block variant="link">
+      </BButton>
+      <BButton
+        to="contributions"
+        active-class="btn-active svg-icon-active"
+        block
+        variant="link"
+        class="nav-community__btn"
+      >
         <b-img src="/img/svg/my_profil.svg" height="20" class="svg-icon" />
         {{ $t('community.myContributions') }}
-      </b-btn>
-      <b-btn to="community" active-class="btn-active svg-icon-active" block variant="link">
+      </BButton>
+      <BButton
+        to="community"
+        active-class="btn-active svg-icon-active"
+        block
+        variant="link"
+        class="nav-community__btn"
+      >
         <b-img src="/img/svg/community.svg" height="20" class="svg-icon" />
         {{ $t('community.community') }}
-      </b-btn>
+      </BButton>
     </div>
   </div>
 </template>
@@ -21,26 +41,33 @@ export default {
   name: 'NavCommunity',
 }
 </script>
-<style scoped>
-.btn {
-  background-color: rgb(209, 209, 209);
-  color: black;
-  padding-right: 0px;
-  padding-left: 0px;
-}
-.btn-block + .btn-block {
-  margin-top: 0rem;
+<style scoped lang="scss">
+.nav-community-btn-wrapper {
+  > :deep(*) {
+    width: calc(100% / 3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 14px;
+    text-wrap: nowrap;
+    color: black;
+  }
 }
 
-.svg-icon {
+:deep(.svg-icon) {
   filter: brightness(0) invert(0);
 }
-.btn-active {
+
+:deep(.router-link-active) {
   background-color: rgb(23 141 129);
   color: white;
   font-weight: bold;
+  padding: 0.625rem 1.25rem;
+  border-radius: 25px;
 }
-.btn-active .svg-icon {
+
+:deep(.router-link-active .svg-icon) {
   filter: brightness(0) invert(1);
 }
 </style>

@@ -17,29 +17,29 @@
     <div v-else>
       <validation-observer ref="usernameObserver" v-slot="{ handleSubmit, invalid }">
         <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
-          <b-row class="mb-3">
-            <b-col class="col-12">
+          <BRow class="mb-3">
+            <BCol class="col-12">
               <input-username
                 v-model="username"
                 :name="$t('form.username')"
                 :placeholder="$t('form.username-placeholder')"
-                :showAllErrors="true"
+                :show-all-errors="true"
                 :unique="true"
                 :rules="rules"
-                :isEdit="isEdit"
-                @set-is-edit="setIsEdit"
+                :is-edit="isEdit"
                 data-test="component-input-username"
+                @set-is-edit="setIsEdit"
               />
-            </b-col>
-            <b-col class="col-12">
+            </BCol>
+            <BCol class="col-12">
               <div v-if="!username" class="alert" data-test="username-alert">
                 {{ $t('settings.username.no-username') }}
               </div>
-            </b-col>
-          </b-row>
-          <b-row class="text-right" v-if="newUsername">
-            <b-col>
-              <div class="text-right" ref="submitButton">
+            </BCol>
+          </BRow>
+          <BRow v-if="newUsername" class="text-right">
+            <BCol>
+              <div ref="submitButton" class="text-right">
                 <b-button
                   :variant="disabled(invalid) ? 'light' : 'success'"
                   type="submit"
@@ -49,8 +49,8 @@
                   {{ $t('form.save') }}
                 </b-button>
               </div>
-            </b-col>
-          </b-row>
+            </BCol>
+          </BRow>
         </b-form>
       </validation-observer>
     </div>
@@ -80,6 +80,11 @@ export default {
       },
     }
   },
+  computed: {
+    newUsername() {
+      return this.username !== this.$store.state.username
+    },
+  },
   methods: {
     async onSubmit(event) {
       this.$apollo
@@ -105,17 +110,13 @@ export default {
       this.isEdit = bool
     },
   },
-  computed: {
-    newUsername() {
-      return this.username !== this.$store.state.username
-    },
-  },
 }
 </script>
 <style>
 .cursor-pointer {
   cursor: pointer;
 }
+
 div.alert {
   color: red;
 }

@@ -11,17 +11,18 @@
             @reset-transaction-link-list="resetTransactionLinkList"
           />
           <div class="mb-3">
-            <b-button
-              class="test-button-load-more"
+            <BButton
               v-if="!pending && transactionLinks.length < transactionLinkCount"
+              class="test-button-load-more"
               block
               variant="outline-primary"
               @click="loadMoreLinks"
             >
               {{ buttonText }}
-            </b-button>
+            </BButton>
             <div class="text-center">
-              <b-icon v-if="pending" icon="three-dots" animation="cylon" font-scale="4"></b-icon>
+              <!--              <b-icon v-if="pending" icon="three-dots" animation="cylon" font-scale="4"></b-icon>-->
+              <IBiThreeDots v-if="pending" animation="cylon" font-scale="4" />
             </div>
           </div>
         </div>
@@ -46,20 +47,20 @@ export default {
     pageSize: { type: Number, default: 5 },
     pending: { type: Boolean, default: false },
   },
+  computed: {
+    buttonText() {
+      const i = this.transactionLinkCount - this.transactionLinks.length
+      if (i === 1) return this.$t('link-load', 0)
+      if (i <= this.pageSize) return this.$t('link-load', 1, { n: i })
+      return this.$t('link-load', 2, { n: this.pageSize })
+    },
+  },
   methods: {
     resetTransactionLinkList() {
       this.$emit('input', 0)
     },
     loadMoreLinks() {
       this.$emit('input', this.value + 1)
-    },
-  },
-  computed: {
-    buttonText() {
-      const i = this.transactionLinkCount - this.transactionLinks.length
-      if (i === 1) return this.$tc('link-load', 0)
-      if (i <= this.pageSize) return this.$tc('link-load', 1, { n: i })
-      return this.$tc('link-load', 2, { n: this.pageSize })
     },
   },
 }

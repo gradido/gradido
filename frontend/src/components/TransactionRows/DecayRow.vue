@@ -1,17 +1,18 @@
 <template>
   <div class="decay-row">
-    <b-row v-if="decay">
-      <b-col cols="5">
+    <BRow v-if="decay">
+      <BCol cols="5">
         <div class="text-right">
-          <b-icon icon="droplet-half" height="15" class="mb-1" />
+          <!--          <b-icon icon="droplet-half" height="15" class="mb-1" />-->
+          <IBiDropletHalf height="15" class="mb-1" />
         </div>
-      </b-col>
-      <b-col cols="7">
+      </BCol>
+      <BCol cols="7">
         <div class="gdd-transaction-list-item-decay">
           <decay-information-short decaytyp="short" :decay="decay" />
         </div>
-      </b-col>
-    </b-row>
+      </BCol>
+    </BRow>
   </div>
 </template>
 <script>

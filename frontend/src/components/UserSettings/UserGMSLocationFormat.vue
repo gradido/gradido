@@ -1,12 +1,12 @@
 <template>
   <div class="user-gms-location-format">
     <b-dropdown v-model="selectedOption">
-      <template slot="button-content">{{ selectedOptionLabel }}</template>
+      <template #button-content>{{ selectedOptionLabel }}</template>
       <b-dropdown-item
         v-for="option in dropdownOptions"
-        @click.prevent="update(option)"
         :key="option.value"
         :value="option.value"
+        @click.prevent="update(option)"
       >
         {{ option.label }}
       </b-dropdown-item>

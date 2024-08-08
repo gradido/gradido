@@ -1,13 +1,13 @@
 <template>
   <div class="redeemed-text-box">
-    <b-jumbotron bg-variant="muted" text-variant="dark" border-variant="info">
+    <BCard bg-variant="muted" text-variant="dark" border-variant="info">
       <h1>
         {{ text }}
       </h1>
-    </b-jumbotron>
+    </BCard>
 
     <div class="text-center">
-      <b-button to="/overview">{{ $t('back') }}</b-button>
+      <BButton to="/overview">{{ $t('back') }}</BButton>
     </div>
   </div>
 </template>

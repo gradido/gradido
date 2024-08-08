@@ -343,6 +343,7 @@
       "changeLanguage": "Sprache ändern",
       "de": "Deutsch",
       "en": "English",
+      "error": "Die Spracheinstellungen konnten nicht aktualisiert werden.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",

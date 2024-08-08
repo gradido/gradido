@@ -343,6 +343,7 @@
       "changeLanguage": "Change language",
       "de": "Deutsch",
       "en": "English",
+      "error": "Failed to update language settings.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",
