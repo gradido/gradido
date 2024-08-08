@@ -102,11 +102,11 @@
 <!--}-->
 <!--</script>-->
 <script setup>
-//TODO to be checked and fixed
+// TODO to be checked and fixed
 import { ref, computed, onBeforeUnmount } from 'vue'
 import { useStore } from 'vuex'
 import { useLazyQuery } from '@vue/apollo-composable'
-import { useTimer } from 'vue-timer-hook' //TODO change to updated version
+import { useTimer } from 'vue-timer-hook' // TODO change to updated version
 import { useModal } from 'bootstrap-vue-next'
 import { verifyLogin } from '@/graphql/queries'
 
@@ -114,8 +114,6 @@ const store = useStore()
 const { result, load: verifyLoginQuery } = useLazyQuery(verifyLogin)
 const { modal } = useModal()
 const timer = useTimer()
-
-console.log(timer)
 
 const emit = defineEmits(['logout'])
 
@@ -129,7 +127,7 @@ const tokenExpiresInSeconds = computed(() => {
 })
 
 const handleOk = async () => {
-  console.log('OK')
+  return 'OK'
 }
 
 // const tokenExpires = () => {

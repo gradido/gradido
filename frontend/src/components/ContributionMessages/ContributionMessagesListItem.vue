@@ -4,10 +4,10 @@
       <BRow class="mb-3 border border-197 p-1">
         <BCol cols="10">
           <small>{{ $d(new Date(message.createdAt), 'short') }}</small>
-          <div class="font-weight-bold" data-test="username" v-if="isNotModerator">
+          <div v-if="isNotModerator" class="font-weight-bold" data-test="username">
             {{ storeName.username }} {{ $t('contribution.isEdited') }}
           </div>
-          <div class="font-weight-bold" data-test="moderator-name" v-else>
+          <div v-else class="font-weight-bold" data-test="moderator-name">
             {{ $t('community.moderator') }} {{ $t('contribution.isEdited') }}
           </div>
           <div class="small">

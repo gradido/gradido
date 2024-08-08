@@ -1,24 +1,24 @@
 <template>
   <div class="contribution-list">
-    <div class="mb-3" v-for="item in items" :key="item.id + 'a'">
+    <div v-for="item in items" :key="item.id + 'a'" class="mb-3">
       <contribution-list-item
         v-if="item.status === 'IN_PROGRESS'"
         v-bind="item"
+        :contribution-id="item.id"
+        :all-contribution="allContribution"
         @closeAllOpenCollapse="$emit('closeAllOpenCollapse')"
-        :contributionId="item.id"
-        :allContribution="allContribution"
         @update-contribution-form="updateContributionForm"
         @delete-contribution="deleteContribution"
         @update-status="updateStatus"
       />
     </div>
-    <div class="mb-3" v-for="item2 in items" :key="item2.id">
+    <div v-for="item2 in items" :key="item2.id" class="mb-3">
       <contribution-list-item
         v-if="item2.status !== 'IN_PROGRESS'"
         v-bind="item2"
+        :contribution-id="item2.id"
+        :all-contribution="allContribution"
         @closeAllOpenCollapse="$emit('closeAllOpenCollapse')"
-        :contributionId="item2.id"
-        :allContribution="allContribution"
         @update-contribution-form="updateContributionForm"
         @delete-contribution="deleteContribution"
         @update-status="updateStatus"
@@ -26,10 +26,10 @@
     </div>
     <b-pagination
       v-if="isPaginationVisible"
+      v-model="currentPage"
       class="mt-3"
       pills
       size="lg"
-      v-model="currentPage"
       :per-page="pageSize"
       :total-rows="contributionCount"
       align="center"
@@ -71,6 +71,16 @@ export default {
       messages: [],
     }
   },
+  computed: {
+    isPaginationVisible() {
+      return this.showPagination && this.pageSize < this.contributionCount
+    },
+  },
+  watch: {
+    currentPage() {
+      this.updateListContributions()
+    },
+  },
   methods: {
     updateListContributions() {
       this.$emit('update-list-contributions', {
@@ -87,16 +97,6 @@ export default {
     },
     updateStatus(id) {
       this.$emit('update-status', id)
-    },
-  },
-  computed: {
-    isPaginationVisible() {
-      return this.showPagination && this.pageSize < this.contributionCount
-    },
-  },
-  watch: {
-    currentPage() {
-      this.updateListContributions()
     },
   },
 }

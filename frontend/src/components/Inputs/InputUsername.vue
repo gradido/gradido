@@ -1,20 +1,20 @@
 <template>
   <div class="input-username">
     <validation-provider
+      v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
       tag="div"
       :rules="rules"
       :name="name"
       :bails="!showAllErrors"
       :immediate="immediate"
       vid="username"
-      v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
     >
       <b-form-group :label="$t('form.username')" :description="$t('settings.usernameInfo')">
         <b-input-group>
           <b-form-input
-            v-model="currentValue"
             v-bind="ariaInput"
             :id="labelFor"
+            v-model="currentValue"
             :name="name"
             :placeholder="placeholder"
             type="text"
@@ -60,6 +60,7 @@ export default {
           required: true,
         }
       },
+      type: () => {},
     },
     name: { type: String, default: 'username' },
     label: { type: String, default: 'Username' },

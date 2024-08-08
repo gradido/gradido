@@ -34,19 +34,23 @@
                 <BCol>
                   <content-header
                     :balance="balance"
-                    :GdtBalance="GdtBalance"
-                    :totalUsers="totalUsers"
+                    :gdt-balance="GdtBalance"
+                    :total-users="totalUsers"
                   >
                     <template #overview>
                       <BRow>
                         <BCol cols="12" lg="5">
                           <div>
-                            <gdd-amount :balance="balance" :showStatus="false" :badgeShow="false" />
+                            <gdd-amount
+                              :balance="balance"
+                              :show-status="false"
+                              :badge-show="false"
+                            />
                           </div>
                         </BCol>
                         <BCol cols="12" lg="7">
                           <div>
-                            <community-member :totalUsers="totalUsers" />
+                            <community-member :total-users="totalUsers" />
                           </div>
                         </BCol>
                       </BRow>
@@ -58,15 +62,15 @@
                             <gdd-amount
                               :balance="balance"
                               :badge="true"
-                              :showStatus="true"
-                              :badgeShow="false"
+                              :show-status="true"
+                              :badge-show="false"
                             />
                           </div>
                         </BCol>
                         <BCol cols="12" lg="6">
                           <div>
                             <router-link to="gdt">
-                              <gdt-amount :GdtBalance="GdtBalance" :badgeShow="false" />
+                              <gdt-amount :gdt-balance="GdtBalance" :badge-show="false" />
                             </router-link>
                           </div>
                         </BCol>
@@ -77,14 +81,14 @@
                         <BCol cols="12" lg="6">
                           <div>
                             <router-link to="transactions">
-                              <gdd-amount :balance="balance" :showStatus="true" />
+                              <gdd-amount :balance="balance" :show-status="true" />
                             </router-link>
                           </div>
                         </BCol>
                         <BCol cols="12" lg="6">
                           <div>
                             <router-link to="gdt">
-                              <gdt-amount :GdtBalance="GdtBalance" />
+                              <gdt-amount :gdt-balance="GdtBalance" />
                             </router-link>
                           </div>
                         </BCol>
@@ -95,7 +99,7 @@
                         <BCol cols="12" lg="6">
                           <div>
                             <router-link to="transactions">
-                              <gdd-amount :balance="balance" :showStatus="false" />
+                              <gdd-amount :balance="balance" :show-status="false" />
                             </router-link>
                           </div>
                         </BCol>
@@ -104,8 +108,8 @@
                             <router-link to="gdt">
                               <gdt-amount
                                 :badge="true"
-                                :showStatus="true"
-                                :GdtBalance="GdtBalance"
+                                :show-status="true"
+                                :gdt-balance="GdtBalance"
                               />
                             </router-link>
                           </div>
@@ -126,8 +130,8 @@
                 <template #transactions>
                   <last-transactions
                     :transactions="transactions"
-                    :transactionCount="transactionCount"
-                    :transactionLinkCount="transactionLinkCount"
+                    :transaction-count="transactionCount"
+                    :transaction-link-count="transactionLinkCount"
                   />
                 </template>
                 <template #community>
@@ -143,10 +147,10 @@
                   <router-view
                     ref="router-view"
                     :balance="balance"
-                    :GdtBalance="GdtBalance"
+                    :gdt-balance="GdtBalance"
                     :transactions="transactions"
-                    :transactionCount="transactionCount"
-                    :transactionLinkCount="transactionLinkCount"
+                    :transaction-count="transactionCount"
+                    :transaction-link-count="transactionLinkCount"
                     :pending="pending"
                     @update-transactions="updateTransactions"
                   ></router-view>
@@ -161,8 +165,8 @@
             <template #transactions>
               <last-transactions
                 :transactions="transactions"
-                :transactionCount="transactionCount"
-                :transactionLinkCount="transactionLinkCount"
+                :transaction-count="transactionCount"
+                :transaction-link-count="transactionLinkCount"
               />
             </template>
             <template #empty />
@@ -386,7 +390,7 @@ const updateTransactions = async ({ currentPage, pageSize }) => {
   pending.value = true
   try {
     const result = await useTransactionsQuery()
-    if (!result) return //TODO this return mitigate an error when this method is called second time but without actual request
+    if (!result) return // TODO this return mitigate an error when this method is called second time but without actual request
     const { transactionList } = result
     GdtBalance.value =
       transactionList.balance.balanceGDT === null ? 0 : Number(transactionList.balance.balanceGDT)
@@ -399,14 +403,12 @@ const updateTransactions = async ({ currentPage, pageSize }) => {
     pending.value = true
     transactionCount.value = -1
     toastError(error.message)
-    console.error(error)
   }
 }
 
 const getCommunityStatistics = async () => {
   try {
     const result = await useCommunityStatsQuery()
-    console.log(result)
     totalUsers.value = result.communityStatistics.totalUsers
   } catch {
     toastError(t('communityStatistics has no result, use default data'))
@@ -426,40 +428,48 @@ const setVisible = (bool) => {
 .breadcrumb {
   background-color: transparent;
 }
+
 .main-page {
   background-attachment: fixed;
   background-position: center;
   background-repeat: no-repeat;
   background-size: 100% 100%;
-  background-image: url(/img/svg/Gradido_Blaetter_Mainpage.svg) !important;
+  background-image: url("/img/svg/Gradido_Blaetter_Mainpage.svg") !important;
 }
+
 .b-right {
   text-align: -webkit-right;
 }
+
 .content-gradido {
   display: inline-flex;
   width: 100%;
   height: 91%;
   position: absolute;
 }
+
 .navbar-brand-img {
   height: 2rem;
   padding-left: 10px;
 }
+
 .bg-lightgrey {
   background-color: #f0f0f0 !important;
 }
+
 .bg-blueviolet {
   background-color: blueviolet !important;
 }
+
 .width70 {
   width: 70px;
 }
+
 .navbar-toggler-icon {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(4, 112, 6, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
-@media screen and (max-width: 450px) {
+@media screen and (width <= 450px) {
   .breadcrumb {
     padding-top: 60px;
   }

@@ -1,22 +1,22 @@
 <template>
   <div class="community-page">
     <div>
-      <BTabs no-nav-style borderless v-model="tabIndex" align="center">
+      <BTabs v-model="tabIndex" no-nav-style borderless align="center">
         <BTab no-body>
           <open-creations-amount
-            :minimalDate="minimalDate"
-            :maxGddLastMonth="maxForMonths[0]"
-            :maxGddThisMonth="maxForMonths[1]"
+            :minimal-date="minimalDate"
+            :max-gdd-last-month="maxForMonths[0]"
+            :max-gdd-this-month="maxForMonths[1]"
           />
           <div class="mb-3"></div>
           <contribution-form
+            v-model="form"
+            :is-this-month="isThisMonth"
+            :minimal-date="minimalDate"
+            :max-gdd-last-month="maxForMonths[0]"
+            :max-gdd-this-month="maxForMonths[1]"
             @set-contribution="handleSaveContribution"
             @update-contribution="handleUpdateContribution"
-            v-model="form"
-            :isThisMonth="isThisMonth"
-            :minimalDate="minimalDate"
-            :maxGddLastMonth="maxForMonths[0]"
-            :maxGddThisMonth="maxForMonths[1]"
           />
         </BTab>
         <BTab no-body>
@@ -25,15 +25,15 @@
           </div>
           <div v-else>
             <contribution-list
-              @closeAllOpenCollapse="closeAllOpenCollapse"
               :items="items"
+              :contribution-count="contributionCount"
+              :show-pagination="true"
+              :page-size="pageSize"
+              @closeAllOpenCollapse="closeAllOpenCollapse"
               @update-list-contributions="handleUpdateListContributions"
               @update-contribution-form="handleUpdateContributionForm"
               @delete-contribution="handleDeleteContribution"
               @update-status="updateStatus"
-              :contributionCount="contributionCount"
-              :showPagination="true"
-              :pageSize="pageSize"
             />
           </div>
         </BTab>
@@ -44,12 +44,12 @@
           <div v-else>
             <contribution-list
               :items="itemsAll"
+              :contribution-count="contributionCountAll"
+              :show-pagination="true"
+              :page-size="pageSizeAll"
+              :all-contribution="true"
               @update-list-contributions="updateListAllContributions"
               @update-contribution-form="updateContributionForm"
-              :contributionCount="contributionCountAll"
-              :showPagination="true"
-              :pageSize="pageSizeAll"
-              :allContribution="true"
             />
           </div>
         </BTab>
@@ -312,6 +312,7 @@ import ContributionList from '@/components/Contributions/ContributionList'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions, openCreations } from '@/graphql/queries'
 import { useAppToast } from '../composables/useToast'
+import { useI18n } from 'vue-i18n'
 
 const COMMUNITY_TABS = ['contribute', 'contributions', 'community']
 
@@ -323,6 +324,7 @@ const route = useRoute()
 const router = useRouter()
 
 const { toastError, toastSuccess, toastInfo } = useAppToast()
+const { t } = useI18n()
 
 // Reactive state
 const tabIndex = ref(0)

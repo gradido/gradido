@@ -8,7 +8,7 @@
       </BCol>
       <BCol cols="7">
         <div class="gdd-transaction-list-item-date">
-          {{ $d(new Date(this.date), 'long') }}
+          {{ $d(new Date(date), 'long') }}
         </div>
       </BCol>
     </BRow>

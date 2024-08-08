@@ -12,8 +12,8 @@
           />
           <div class="mb-3">
             <BButton
-              class="test-button-load-more"
               v-if="!pending && transactionLinks.length < transactionLinkCount"
+              class="test-button-load-more"
               block
               variant="outline-primary"
               @click="loadMoreLinks"
@@ -47,20 +47,20 @@ export default {
     pageSize: { type: Number, default: 5 },
     pending: { type: Boolean, default: false },
   },
-  methods: {
-    resetTransactionLinkList() {
-      this.$emit('input', 0)
-    },
-    loadMoreLinks() {
-      this.$emit('input', this.value + 1)
-    },
-  },
   computed: {
     buttonText() {
       const i = this.transactionLinkCount - this.transactionLinks.length
       if (i === 1) return this.$t('link-load', 0)
       if (i <= this.pageSize) return this.$t('link-load', 1, { n: i })
       return this.$t('link-load', 2, { n: this.pageSize })
+    },
+  },
+  methods: {
+    resetTransactionLinkList() {
+      this.$emit('input', 0)
+    },
+    loadMoreLinks() {
+      this.$emit('input', this.value + 1)
     },
   },
 }

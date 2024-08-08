@@ -3,7 +3,7 @@
     <div v-for="item in News" :key="item.locale">
       <BCard
         v-if="item.locale === $i18n.locale"
-        class="bg-white appBoxShadow gradido-border-radius"
+        class="bg-white app-box-shadow gradido-border-radius"
       >
         <BCardBody>
           <BCardTitle class="h2">{{ item.text }}</BCardTitle>
@@ -60,6 +60,6 @@ export default {
   background-position: center;
   background-repeat: no-repeat;
   background-size: 350px 350px;
-  background-image: url(/img/svg/Gradido_Blaetter_Mainpage.svg) !important;
+  background-image: url('/img/svg/Gradido_Blaetter_Mainpage.svg') !important;
 }
 </style>

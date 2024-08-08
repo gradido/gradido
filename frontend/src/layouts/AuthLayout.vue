@@ -37,14 +37,14 @@
                 ></BAvatar>
               </BCol>
             </BRow>
-            <BCard no-body ref="pageFontSize" class="border-0 mt-4 gradido-custom-background">
+            <BCard ref="pageFontSize" no-body class="border-0 mt-4 gradido-custom-background">
               <BRow class="p-4">
                 <BCol cols="10">
                   <language-switch-2 class="ml-3" />
                 </BCol>
                 <BCol cols="2" class="text-right">
                   <div id="popover-target-1" class="pointer">
-                    <BImg src="/img/svg/type.svg" width="19" class="svgType"></BImg>
+                    <BImg src="/img/svg/type.svg" width="19" class="svg-type"></BImg>
                   </div>
                   <BPopover
                     target="popover-target-1"
@@ -112,8 +112,6 @@ export default {
   },
   methods: {
     setTextSize(size) {
-      console.log(size)
-      console.log(this.$refs.pageFontSize)
       this.$refs.pageFontSize.$el.style.fontSize = size + 'rem'
     },
   },
@@ -124,29 +122,31 @@ export default {
 /* left  */
 .left-content-box {
   width: 40%;
-  top: 0px;
-  bottom: 0px;
+  top: 0;
+  bottom: 0;
 }
 
 .bg-img-box {
-  top: 0px;
-  bottom: 0px;
+  top: 0;
+  bottom: 0;
 }
 
 /* right */
 .right-content-box {
   max-width: 640px;
 }
+
 .page-font-size {
   font-size: 1rem;
 }
+
 .auth-template {
   overflow-x: hidden;
 }
 
 .bg-txt-box {
   margin-top: 520px;
-  text-shadow: 2px 2px 8px #000000;
+  text-shadow: 2px 2px 8px #000;
   max-width: 733px;
 }
 
@@ -155,10 +155,11 @@ export default {
   overflow: hidden;
 }
 
-.svgType:hover {
+.svg-type:hover {
   filter: invert(38%) sepia(18%) saturate(5307%) hue-rotate(179deg) brightness(89%) contrast(89%);
 }
-@media screen and (min-width: 2000px) {
+
+@media screen and (width >= 2000px) {
   .right-content-box {
     max-width: 60%;
     font-size: xx-large;

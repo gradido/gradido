@@ -2,7 +2,7 @@
   <div class="name">
     <div class="gdd-transaction-list-item-name">
       <div v-if="linkedUser && linkedUser.gradidoID">
-        <BLink @click.stop="tunnelEmail" :class="fontColor">
+        <BLink :class="fontColor" @click.stop="tunnelEmail">
           {{ itemText }}
         </BLink>
       </div>
@@ -33,17 +33,6 @@ export default {
       default: null,
     },
   },
-  methods: {
-    async tunnelEmail() {
-      if (this.$route.path !== '/send') await this.$router.push({ path: '/send' })
-      this.$router.push({
-        params: {
-          userIdentifier: this.linkedUser.gradidoID,
-          communityIdentifier: this.linkedUser.communityUuid,
-        },
-      })
-    },
-  },
   computed: {
     itemText() {
       return this.linkedUser
@@ -55,6 +44,17 @@ export default {
             this.linkedUser.lastName +
             (this.linkedUser.communityName ? ' / ' + this.linkedUser.communityName : '')
         : this.text
+    },
+  },
+  methods: {
+    async tunnelEmail() {
+      if (this.$route.path !== '/send') await this.$router.push({ path: '/send' })
+      this.$router.push({
+        params: {
+          userIdentifier: this.linkedUser.gradidoID,
+          communityIdentifier: this.linkedUser.communityUuid,
+        },
+      })
     },
   },
 }

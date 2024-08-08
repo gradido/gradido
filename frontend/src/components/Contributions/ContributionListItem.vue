@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-      class="contribution-list-item bg-white appBoxShadow gradido-border-radius pt-3 px-3"
+      class="contribution-list-item bg-white app-box-shadow gradido-border-radius pt-3 px-3"
       :class="status === 'IN_PROGRESS' && !allContribution ? 'pulse border border-205' : ''"
     >
       <BRow>
@@ -25,7 +25,7 @@
           </div>
           <div class="mt-3 font-weight-bold">{{ $t('contributionText') }}</div>
           <div class="mb-3 text-break word-break">{{ memo }}</div>
-          <div class="mt-2 mb-2 small" v-if="updatedBy > 0">
+          <div v-if="updatedBy > 0" class="mt-2 mb-2 small">
             {{ $t('moderatorChangedMemo') }}
           </div>
           <div
@@ -98,11 +98,11 @@
         </BCol>
       </BRow>
       <div v-else class="pb-3"></div>
-      <BCollapse :id="collapsId" class="mt-2" v-model="visible">
+      <BCollapse :id="collapsId" v-model="visible" class="mt-2">
         <contribution-messages-list
           :messages="messages_get"
           :status="status"
-          :contributionId="contributionId"
+          :contribution-id="contributionId"
           @get-list-contribution-messages="getListContributionMessages"
           @update-status="updateStatus"
         />
@@ -230,6 +230,11 @@ export default {
       }
     },
   },
+  watch: {
+    visible() {
+      if (this.visible) this.getListContributionMessages()
+    },
+  },
   methods: {
     deleteContribution(item) {
       this.$bvModal.msgBoxConfirm(this.$t('contribution.delete')).then(async (value) => {
@@ -257,11 +262,6 @@ export default {
     },
     updateStatus(id) {
       this.$emit('update-status', id)
-    },
-  },
-  watch: {
-    visible() {
-      if (this.visible) this.getListContributionMessages()
     },
   },
 }

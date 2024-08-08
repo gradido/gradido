@@ -1,9 +1,8 @@
 <template>
   <BFormGroup :label="label" :label-for="labelFor" data-test="input-identifier">
     <BFormInput
-      :model-value="value"
-      @update:model-value="value = $event"
       :id="labelFor"
+      :model-value="value"
       :name="name"
       :placeholder="placeholder"
       type="text"
@@ -12,6 +11,7 @@
       class="bg-248"
       :disabled="disabled"
       autocomplete="off"
+      @update:model-value="value = $event"
     />
     <BFormInvalidFeedback v-if="errorMessage">
       {{ errorMessage }}

@@ -1,7 +1,7 @@
 <template>
   <div class="gdt-transaction-list">
-    <div class="list-group bg-white appBoxShadow gradido-border-radius p-3 mb-3">
-      <BRow @click="visible = !visible" class="align-items-center">
+    <div class="list-group bg-white app-box-shadow gradido-border-radius p-3 mb-3">
+      <BRow class="align-items-center" @click="visible = !visible">
         <BCol cols="3" lg="2" md="2">
           <BAvatar
             :icon="getLinesByType.icon"
@@ -15,8 +15,8 @@
             {{ getLinesByType }}
           </div> -->
           <div>
-            <span class="small">{{ this.$d(new Date(date), 'short') }}</span>
-            <span class="small ml-3">{{ this.$d(new Date(date), 'time') }}</span>
+            <span class="small">{{ $d(new Date(date), 'short') }}</span>
+            <span class="small ml-3">{{ $d(new Date(date), 'time') }}</span>
           </div>
           <div>
             {{ getLinesByType.description }}
@@ -34,10 +34,10 @@
         </BCol>
       </BRow>
 
-      <BCollapse :id="collapseId" class="mt-2" v-model="visible">
+      <BCollapse :id="collapseId" v-model="visible" class="mt-2">
         <transaction-collapse
           :amount="amount"
-          :gdtEntryType="gdtEntryType"
+          :gdt-entry-type="gdtEntryType"
           :factor="factor"
           :gdt="gdt"
         ></transaction-collapse>
@@ -158,15 +158,12 @@ const props = defineProps({
 const collapseStatus = ref([])
 const visible = ref(false)
 
-// Composables
 const { t, n } = useI18n()
 
-// Methods
 const getCollapseState = (id) => {
   return collapseStatus.value.includes('gdt-collapse-' + id)
 }
 
-// Computed properties
 const collapseId = computed(() => 'gdt-collapse-' + String(props.id))
 
 const isGlobalModificator = computed(() => props.gdtEntryType === GdtEntryType.GLOBAL_MODIFICATOR)
@@ -209,17 +206,16 @@ const getLinesByType = computed(() => {
   }
 })
 
-// Lifecycle hooks
 onMounted(() => {
   // Note: This event listener setup might need to be adjusted for Vue 3
   // You might want to use provide/inject or a global event bus instead
-  const root = getCurrentInstance().appContext.config.globalProperties
-  root.$on('bv::collapse::state', (collapseId, isJustShown) => {
-    if (isJustShown) {
-      collapseStatus.value.push(collapseId)
-    } else {
-      collapseStatus.value = collapseStatus.value.filter((id) => id !== collapseId)
-    }
-  })
+  // const root = getCurrentInstance().appContext.config.globalProperties
+  // root.$on('bv::collapse::state', (collapseId, isJustShown) => {
+  //   if (isJustShown) {
+  //     collapseStatus.value.push(collapseId)
+  //   } else {
+  //     collapseStatus.value = collapseStatus.value.filter((id) => id !== collapseId)
+  //   }
+  // })
 })
 </script>

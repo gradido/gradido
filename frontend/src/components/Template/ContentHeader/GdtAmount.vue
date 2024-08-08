@@ -11,7 +11,7 @@
       </BBadge>
     </div>
     <div
-      class="wallet-amount bg-white appBoxShadow gradido-border-radius p-4 border"
+      class="wallet-amount bg-white app-box-shadow gradido-border-radius p-4 border"
       :class="showStatus ? 'gradido-global-border-color-accent' : 'border-light opacity-05'"
     >
       <BRow>

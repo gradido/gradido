@@ -4,10 +4,10 @@
       <BDropdown no-flip :text="modelValue?.name">
         <BDropdownItem
           v-for="community in communities"
-          @click.prevent="updateCommunity(community)"
           :key="community.id"
           :title="community.description"
           :active="modelValue?.uuid === community.uuid"
+          @click.prevent="updateCommunity(community)"
         >
           {{ community.name }}
         </BDropdownItem>

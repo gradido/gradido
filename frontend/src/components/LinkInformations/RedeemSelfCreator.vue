@@ -1,6 +1,6 @@
 <template>
   <div class="redeem-self-creator">
-    <redeem-information v-bind="linkData" :isContributionLink="isContributionLink" />
+    <redeem-information v-bind="linkData" :is-contribution-link="isContributionLink" />
 
     <b-jumbotron>
       <div class="mb-3 text-center">

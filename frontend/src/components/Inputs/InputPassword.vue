@@ -50,22 +50,22 @@
     <BFormGroup :label="defaultTranslations.label" :label-for="labelFor">
       <BInputGroup>
         <BFormInput
-          :model-value="value"
-          @update:modelValue="value = $event"
           :id="labelFor"
+          :model-value="value"
           :name="name"
           :placeholder="defaultTranslations.placeholder"
           :type="showPassword ? 'text' : 'password'"
           :state="meta.valid"
           data-test="password-input-field"
           v-bind="ariaInput"
+          @update:modelValue="value = $event"
         />
         <template #append>
           <BButton
             variant="outline-light"
-            @click="toggleShowPassword"
             class="border-left-0 rounded-right"
             tabindex="-1"
+            @click="toggleShowPassword"
           >
             <IBiEye v-if="showPassword" />
             <IBiEyeSlash v-else />

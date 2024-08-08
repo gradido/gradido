@@ -24,7 +24,7 @@
             </div>
           </BCol>
         </BRow>
-        <duration-row :decayStart="decay.start" :decayEnd="decay.end" />
+        <duration-row :decay-start="decay.start" :decay-end="decay.end" />
 
         <!-- Decay-->
         <BRow>
@@ -69,7 +69,7 @@
 import DurationRow from '@/components/TransactionRows/DurationRow'
 
 export default {
-  name: 'DecayInformation-StartBlock',
+  name: 'DecayInformationStartBlock',
   components: {
     DurationRow,
   },

@@ -1,6 +1,6 @@
 <template>
   <div class="transaction-slot-send">
-    <BRow @click="visible = !visible" class="align-items-center">
+    <BRow class="align-items-center" @click="visible = !visible">
       <BCol cols="3" lg="2" md="2">
         <avatar
           :username="username.username"
@@ -14,12 +14,12 @@
           <name
             class="font-weight-bold"
             :amount="amount"
-            :linkedUser="linkedUser"
-            :linkId="linkId"
+            :linked-user="linkedUser"
+            :link-id="linkId"
           />
         </div>
-        <span class="small">{{ this.$d(new Date(balanceDate), 'short') }}</span>
-        <span class="ml-4 small">{{ this.$d(new Date(balanceDate), 'time') }}</span>
+        <span class="small">{{ $d(new Date(balanceDate), 'short') }}</span>
+        <span class="ml-4 small">{{ $d(new Date(balanceDate), 'time') }}</span>
       </BCol>
       <BCol cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
         <div class="small mb-2">
@@ -43,14 +43,14 @@
         <collapse-icon class="text-right" :visible="visible" />
       </BCol>
     </BRow>
-    <BCollapse class="pb-4 pt-lg-3" v-model="visible">
+    <BCollapse v-model="visible" class="pb-4 pt-lg-3">
       <decay-information
-        :typeId="typeId"
+        :type-id="typeId"
         :decay="decay"
         :amount="amount"
         :memo="memo"
         :balance="balance"
-        :previousBalance="previousBalance"
+        :previous-balance="previousBalance"
       />
     </BCollapse>
   </div>

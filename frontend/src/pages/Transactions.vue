@@ -3,19 +3,19 @@
     <div v-if="gdt">
       <gdt-transaction-list
         v-model="currentPage"
-        :transactionsGdt="transactionsGdt"
-        :transactionGdtCount="transactionGdtCount"
-        :pageSize="pageSize"
+        :transactions-gdt="transactionsGdt"
+        :transaction-gdt-count="transactionGdtCount"
+        :page-size="pageSize"
       />
     </div>
     <div v-else>
       <gdd-transaction-list
         :timestamp="timestamp"
-        :transactionCount="transactionCount"
-        :transactionLinkCount="transactionLinkCount"
+        :transaction-count="transactionCount"
+        :transaction-link-count="transactionLinkCount"
         :transactions="transactions"
-        :showPagination="true"
-        :pageSize="pageSize"
+        :show-pagination="true"
+        :page-size="pageSize"
         @update-transactions="updateTransactions"
       />
     </div>
@@ -112,6 +112,7 @@ const props = defineProps({
   gdt: { type: Boolean, default: false },
   transactions: {
     default: () => [],
+    type: Array,
   },
   transactionCount: { type: Number, default: 0 },
   transactionLinkCount: { type: Number, default: 0 },
@@ -124,7 +125,7 @@ const transactionsGdt = ref([])
 const transactionGdtCount = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(25)
-const tabIndex = ref(0)
+// const tabIndex = ref(0)
 
 const { toastError } = useAppToast()
 
@@ -136,7 +137,11 @@ const variables = ref({
   pageSize: pageSize.value,
 })
 
-const { load: loadGdt, onResult, onError } = useLazyQuery(listGDTEntriesQuery, variables, {
+const {
+  load: loadGdt,
+  onResult,
+  onError,
+} = useLazyQuery(listGDTEntriesQuery, variables, {
   fetchPolicy: 'network-only',
 })
 
@@ -193,9 +198,11 @@ onMounted(() => {
   padding-top: 14px;
   margin-bottom: 14px;
 }
+
 .nav-tabs .nav-link {
-  background-color: rgba(204, 204, 204, 0.185);
+  background-color: rgb(204 204 204 / 18.5%);
 }
+
 .nav-tabs .nav-link.active {
   background-color: rgb(248 249 254);
 }

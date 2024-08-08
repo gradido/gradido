@@ -5,7 +5,7 @@
 </template>
 <script>
 export default {
-  name: 'DecayInformation-Short',
+  name: 'DecayInformationShort',
   props: {
     decay: {
       type: String,

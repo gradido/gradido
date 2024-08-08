@@ -9,13 +9,13 @@
 
     <div v-for="(transaction, index) in transactions" :key="transaction.id">
       <BRow
-        align-v="center"
         v-if="
           index <= 8 &&
           transaction.typeId !== 'DECAY' &&
           transaction.typeId !== 'LINK_SUMMARY' &&
           transaction.typeId !== 'CREATION'
         "
+        align-v="center"
         class="mb-4"
       >
         <BCol cols="auto">
@@ -32,7 +32,7 @@
           <BRow>
             <BCol>
               <div class="font-weight-bold">
-                <name :linkedUser="transaction.linkedUser" fontColor="text-dark" />
+                <name :linked-user="transaction.linkedUser" font-color="text-dark" />
               </div>
               <div class="d-flex mt-3">
                 <div class="small">
@@ -62,6 +62,7 @@ export default {
   props: {
     transactions: {
       default: () => [],
+      type: Array,
     },
     transactionCount: { type: Number, default: 0 },
     transactionLinkCount: { type: Number, default: 0 },

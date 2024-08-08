@@ -1,6 +1,6 @@
 <template>
   <div class="redeem-logged-out">
-    <redeem-information v-bind="linkData" :isContributionLink="isContributionLink" />
+    <redeem-information v-bind="linkData" :is-contribution-link="isContributionLink" />
 
     <b-jumbotron>
       <div class="mb-2">
@@ -28,10 +28,10 @@ import { authLinks } from '@/mixins/authLinks'
 
 export default {
   name: 'RedeemLoggedOut',
-  mixins: [authLinks],
   components: {
     RedeemInformation,
   },
+  mixins: [authLinks],
   props: {
     linkData: { type: Object, required: true },
     isContributionLink: { type: Boolean, default: false },

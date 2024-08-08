@@ -1,6 +1,6 @@
 <template>
   <div>
-    <gdd-send :currentTransactionStep="currentTransactionStep">
+    <gdd-send :current-transaction-step="currentTransactionStep">
       <template #transactionForm>
         <transaction-form
           v-bind="transactionData"
@@ -33,7 +33,7 @@
       <template #transactionResultSendError>
         <transaction-result-send-error
           :error="error"
-          :errorResult="errorResult"
+          :error-result="errorResult"
           @on-back="onBack"
         ></transaction-result-send-error>
       </template>
@@ -42,7 +42,7 @@
           :link="link"
           :amount="amount"
           :memo="memo"
-          :validUntil="validUntil"
+          :valid-until="validUntil"
           @on-back="onBack"
         ></transaction-result-link>
       </template>
@@ -188,12 +188,7 @@
 <!--}-->
 <!--</script>-->
 
-<script>
-export const SEND_TYPES = {
-  send: 'send',
-  link: 'link',
-}
-</script>
+<script></script>
 
 <script setup>
 import { ref, reactive } from 'vue'
@@ -208,6 +203,10 @@ import TransactionResultSendError from '@/components/GddSend/TransactionResultSe
 import TransactionResultLink from '@/components/GddSend/TransactionResultLink'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 import { useAppToast } from '@/composables/useToast'
+export const SEND_TYPES = {
+  send: 'send',
+  link: 'link',
+}
 
 const EMPTY_TRANSACTION_DATA = {
   identifier: '',

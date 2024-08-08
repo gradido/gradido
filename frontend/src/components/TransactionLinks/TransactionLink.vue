@@ -9,7 +9,7 @@
           <BCol>
             <amount-and-name-row :amount="amount" :text="$t('form.amount')" />
             <memo-row :memo="memo" />
-            <date-row :date="validUntil" :diffNow="true" :validLink="validLink" />
+            <date-row :date="validUntil" :diff-now="true" :valid-link="validLink" />
             <decay-row :decay="decay" />
           </BCol>
           <BCol cols="12" lg="1" md="1" class="text-center text-md-right pr-5 pr-lg-4">
@@ -28,8 +28,8 @@
               </BDropdownItem>
               <BDropdownItem
                 v-if="validLink"
-                @click="$bvModal.show('modalPopover-' + id)"
                 class="pt-3 pb-3 test-qr-code"
+                @click="$bvModal.show('modalPopover-' + id)"
               >
                 <b-img src="img/svg/qr-code.svg" width="18" class="filter"></b-img>
                 {{ $t('qrCode') }}
@@ -187,6 +187,7 @@ async function deleteLink() {
   position: relative;
   right: 20px;
 }
+
 .filter {
   filter: opacity(0.6);
 }

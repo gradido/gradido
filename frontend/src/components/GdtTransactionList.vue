@@ -12,27 +12,27 @@
         {{ $t('gdt.not-reachable') }}
       </div>
       <div
-        v-else
         v-for="{ id, amount, date, comment, gdtEntryType, factor, gdt } in transactionsGdt"
+        v-else
         :key="id"
       >
         <transaction
+          :id="id"
           :amount="amount"
           :date="date"
           :comment="comment"
-          :gdtEntryType="gdtEntryType"
+          :gdt-entry-type="gdtEntryType"
           :factor="factor"
           :gdt="gdt"
-          :id="id"
         />
       </div>
     </div>
     <BPagination
       v-if="transactionGdtCount > pageSize"
+      v-model="currentPage"
       class="mt-3"
       pills
       size="lg"
-      v-model="currentPage"
       :per-page="pageSize"
       :total-rows="transactionGdtCount"
       align="center"
@@ -73,8 +73,8 @@ export default {
 </script>
 <style>
 .el-table .cell {
-  padding-left: 0px;
-  padding-right: 0px;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .nav-tabs .nav-link.active,

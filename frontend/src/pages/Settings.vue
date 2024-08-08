@@ -1,5 +1,5 @@
 <template>
-  <div class="card bg-white gradido-border-radius appBoxShadow p-4 mt--3">
+  <div class="card bg-white gradido-border-radius app-box-shadow p-4 mt--3">
     <b-tabs v-model="tabIndex" content-class="mt-3">
       <b-tab :title="$t('PersonalDetails')">
         <div class="h2">{{ $t('PersonalDetails') }}</div>
@@ -44,8 +44,8 @@
             <b-button
               type="submit"
               variant="primary"
-              @click.prevent="onSubmit"
               data-test="submit-userdata"
+              @click.prevent="onSubmit"
             >
               {{ $t('form.save') }}
             </b-button>
@@ -89,13 +89,13 @@
               </BCol>
               <BCol cols="12" md="6" lg="6" class="text-right">
                 <user-settings-switch
-                  @valueChanged="humhubStateSwitch"
-                  :initialValue="$store.state.humhubAllowed"
-                  :attrName="'humhubAllowed'"
+                  :initial-value="$store.state.humhubAllowed"
+                  :attr-name="'humhubAllowed'"
                   :disabled="isHumhubActivated"
-                  :enabledText="$t('settings.humhub.enabled')"
-                  :disabledText="$t('settings.humhub.disabled')"
-                  :notAllowedText="$t('settings.humhub.delete-disabled')"
+                  :enabled-text="$t('settings.humhub.enabled')"
+                  :disabled-text="$t('settings.humhub.disabled')"
+                  :not-allowed-text="$t('settings.humhub.delete-disabled')"
+                  @value-changed="humhubStateSwitch"
                 />
               </BCol>
             </BRow>
@@ -106,9 +106,9 @@
               </BCol>
               <BCol cols="12" md="6" lg="6">
                 <user-naming-format
-                  :initialValue="$store.state.humhubPublishName"
-                  :attrName="'humhubPublishName'"
-                  :successMessage="$t('settings.humhub.publish-name.updated')"
+                  :initial-value="$store.state.humhubPublishName"
+                  :attr-name="'humhubPublishName'"
+                  :success-message="$t('settings.humhub.publish-name.updated')"
                 />
               </BCol>
             </BRow>
@@ -120,11 +120,11 @@
               </BCol>
               <BCol cols="12" md="6" lg="6" class="text-right">
                 <user-settings-switch
-                  @valueChanged="gmsStateSwitch"
-                  :initialValue="$store.state.gmsAllowed"
-                  :attrName="'gmsAllowed'"
-                  :enabledText="$t('settings.GMS.enabled')"
-                  :disabledText="$t('settings.GMS.disabled')"
+                  :initial-value="$store.state.gmsAllowed"
+                  :attr-name="'gmsAllowed'"
+                  :enabled-text="$t('settings.GMS.enabled')"
+                  :disabled-text="$t('settings.GMS.disabled')"
+                  @value-changed="gmsStateSwitch"
                 />
               </BCol>
             </BRow>
@@ -136,9 +136,9 @@
                 </BCol>
                 <BCol cols="12" md="6" lg="6">
                   <user-naming-format
-                    :initialValue="$store.state.gmsPublishName"
-                    :attrName="'gmsPublishName'"
-                    :successMessage="$t('settings.GMS.publish-name.updated')"
+                    :initial-value="$store.state.gmsPublishName"
+                    :attr-name="'gmsPublishName'"
+                    :success-message="$t('settings.GMS.publish-name.updated')"
                   />
                 </BCol>
               </BRow>
@@ -214,15 +214,8 @@ export default {
 
   data() {
     const { state } = this.$store
-    const {
-      darkMode,
-      firstName,
-      lastName,
-      email,
-      newsletterState,
-      gmsAllowed,
-      humhubAllowed,
-    } = state
+    const { darkMode, firstName, lastName, email, newsletterState, gmsAllowed, humhubAllowed } =
+      state
 
     const username = this.$store.state.username || ''
     let tabIndex = 0
@@ -300,14 +293,17 @@ export default {
 .community-service-tabs {
   min-height: 315px;
 }
+
 .card-border-radius {
-  border-radius: 0px 5px 5px 0px !important;
+  border-radius: 0 5px 5px 0 !important;
 }
-@media screen and (max-width: 1235px) {
+
+@media screen and (width <= 1235px) {
   .card-border-radius {
-    border-radius: 0px !important;
+    border-radius: 0 !important;
   }
 }
+
 .card-background-gray {
   background-color: #ebebeba3 !important;
 }

@@ -53,7 +53,7 @@ app.config.globalProperties.$filters = {
   GDD: filters.GDD,
 }
 
-//TODO it will be used in future
+// TODO it will be used in future
 // app.config.globalProperties.$filters = {
 //   GDD: filters.GDD,
 //   amount: filters.amount,

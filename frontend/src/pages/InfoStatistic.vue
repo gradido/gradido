@@ -1,6 +1,6 @@
 <template>
   <div class="info-statistic">
-    <BContainer class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
+    <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
       <div>{{ $t('communityInfo') }}</div>
       <div class="h3">
         {{ CONFIG.COMMUNITY_DESCRIPTION }}
@@ -47,9 +47,8 @@ const supportMail = CONFIG.COMMUNITY_SUPPORT_MAIL
 const admins = computed(() => itemsAdminUser.value.filter((item) => item.role === 'ADMIN'))
 const moderators = computed(() => itemsAdminUser.value.filter((item) => item.role === 'MODERATOR'))
 
-const { onResult: onContributionLinksResult, onError: onContributionLinksError } = useQuery(
-  listContributionLinks,
-)
+const { onResult: onContributionLinksResult, onError: onContributionLinksError } =
+  useQuery(listContributionLinks)
 const { onResult: onAdminUsersResult, onError: onAdminUsersError } = useQuery(searchAdminUsers)
 
 onContributionLinksResult(({ data }) => {

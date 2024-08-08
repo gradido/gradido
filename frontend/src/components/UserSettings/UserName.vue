@@ -23,12 +23,12 @@
                 v-model="username"
                 :name="$t('form.username')"
                 :placeholder="$t('form.username-placeholder')"
-                :showAllErrors="true"
+                :show-all-errors="true"
                 :unique="true"
                 :rules="rules"
-                :isEdit="isEdit"
-                @set-is-edit="setIsEdit"
+                :is-edit="isEdit"
                 data-test="component-input-username"
+                @set-is-edit="setIsEdit"
               />
             </BCol>
             <BCol class="col-12">
@@ -37,9 +37,9 @@
               </div>
             </BCol>
           </BRow>
-          <BRow class="text-right" v-if="newUsername">
+          <BRow v-if="newUsername" class="text-right">
             <BCol>
-              <div class="text-right" ref="submitButton">
+              <div ref="submitButton" class="text-right">
                 <b-button
                   :variant="disabled(invalid) ? 'light' : 'success'"
                   type="submit"
@@ -80,6 +80,11 @@ export default {
       },
     }
   },
+  computed: {
+    newUsername() {
+      return this.username !== this.$store.state.username
+    },
+  },
   methods: {
     async onSubmit(event) {
       this.$apollo
@@ -105,17 +110,13 @@ export default {
       this.isEdit = bool
     },
   },
-  computed: {
-    newUsername() {
-      return this.username !== this.$store.state.username
-    },
-  },
 }
 </script>
 <style>
 .cursor-pointer {
   cursor: pointer;
 }
+
 div.alert {
   color: red;
 }

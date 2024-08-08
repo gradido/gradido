@@ -27,7 +27,7 @@
             {{ form.firstName }}
           </BCol>
           <BCol v-else class="col-12">
-            <b-input type="text" v-model="form.firstName"></b-input>
+            <b-input v-model="form.firstName" type="text"></b-input>
           </BCol>
         </BRow>
         <BRow class="mb-3">
@@ -40,19 +40,19 @@
             {{ form.lastName }}
           </BCol>
           <BCol v-else class="col-12">
-            <b-input type="text" v-model="form.lastName"></b-input>
+            <b-input v-model="form.lastName" type="text"></b-input>
           </BCol>
         </BRow>
 
-        <BRow class="text-right" v-if="!showUserData">
+        <BRow v-if="!showUserData" class="text-right">
           <BCol>
-            <div class="text-right" ref="submitButton">
+            <div ref="submitButton" class="text-right">
               <b-button
                 :variant="loading ? 'light' : 'success'"
-                @click="onSubmit"
                 type="submit"
                 class="mt-4"
                 :disabled="loading"
+                @click="onSubmit"
               >
                 {{ $t('form.save') }}
               </b-button>

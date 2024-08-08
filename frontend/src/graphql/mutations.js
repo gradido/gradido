@@ -13,19 +13,19 @@ export const unsubscribeNewsletter = gql`
 `
 
 export const setPassword = gql`
-  mutation($code: String!, $password: String!) {
+  mutation ($code: String!, $password: String!) {
     setPassword(code: $code, password: $password)
   }
 `
 
 export const forgotPassword = gql`
-  mutation($email: String!) {
+  mutation ($email: String!) {
     forgotPassword(email: $email)
   }
 `
 
 export const updateUserInfos = gql`
-  mutation(
+  mutation (
     $firstName: String
     $lastName: String
     $alias: String
@@ -61,7 +61,7 @@ export const updateUserInfos = gql`
 `
 
 export const createUser = gql`
-  mutation(
+  mutation (
     $firstName: String!
     $lastName: String!
     $email: String!
@@ -83,7 +83,7 @@ export const createUser = gql`
 `
 
 export const sendCoins = gql`
-  mutation(
+  mutation (
     $recipientCommunityIdentifier: String!
     $recipientIdentifier: String!
     $amount: Decimal!
@@ -99,7 +99,7 @@ export const sendCoins = gql`
 `
 
 export const createTransactionLink = gql`
-  mutation($amount: Decimal!, $memo: String!) {
+  mutation ($amount: Decimal!, $memo: String!) {
     createTransactionLink(amount: $amount, memo: $memo) {
       link
       amount
@@ -110,19 +110,19 @@ export const createTransactionLink = gql`
 `
 
 export const deleteTransactionLink = gql`
-  mutation($id: Int!) {
+  mutation ($id: Int!) {
     deleteTransactionLink(id: $id)
   }
 `
 
 export const redeemTransactionLink = gql`
-  mutation($code: String!) {
+  mutation ($code: String!) {
     redeemTransactionLink(code: $code)
   }
 `
 
 export const createContribution = gql`
-  mutation($creationDate: String!, $memo: String!, $amount: Decimal!) {
+  mutation ($creationDate: String!, $memo: String!, $amount: Decimal!) {
     createContribution(creationDate: $creationDate, memo: $memo, amount: $amount) {
       amount
       memo
@@ -131,7 +131,7 @@ export const createContribution = gql`
 `
 
 export const updateContribution = gql`
-  mutation($contributionId: Int!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
+  mutation ($contributionId: Int!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
     updateContribution(
       contributionId: $contributionId
       amount: $amount
@@ -146,13 +146,13 @@ export const updateContribution = gql`
 `
 
 export const deleteContribution = gql`
-  mutation($id: Int!) {
+  mutation ($id: Int!) {
     deleteContribution(id: $id)
   }
 `
 
 export const createContributionMessage = gql`
-  mutation($contributionId: Int!, $message: String!) {
+  mutation ($contributionId: Int!, $message: String!) {
     createContributionMessage(contributionId: $contributionId, message: $message) {
       id
       message
@@ -166,7 +166,7 @@ export const createContributionMessage = gql`
 `
 
 export const login = gql`
-  mutation($email: String!, $password: String!, $publisherId: Int) {
+  mutation ($email: String!, $password: String!, $publisherId: Int) {
     login(email: $email, password: $password, publisherId: $publisherId) {
       gradidoID
       alias

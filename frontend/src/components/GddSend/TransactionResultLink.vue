@@ -1,17 +1,17 @@
 <template>
-  <div class="bg-white appBoxShadow gradido-border-radius p-5">
+  <div class="bg-white app-box-shadow gradido-border-radius p-5">
     <div class="h3 mb-4">{{ $t('gdd_per_link.created') }}</div>
     <clipboard-copy
       :link="link"
       :amount="amount"
       :memo="memo"
-      :validUntil="validUntil"
+      :valid-until="validUntil"
     ></clipboard-copy>
     <label>{{ $t('qrCode') }}</label>
     <div class="text-center">
       <div><figure-qr-code :link="link" /></div>
       <div>
-        <BButton variant="secondary" @click="$emit('on-back')" class="mt-4" data-test="close-btn">
+        <BButton variant="secondary" class="mt-4" data-test="close-btn" @click="$emit('on-back')">
           {{ $t('form.close') }}
         </BButton>
       </div>

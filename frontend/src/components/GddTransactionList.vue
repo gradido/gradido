@@ -17,8 +17,8 @@
       <div v-for="({ id, typeId }, index) in transactions" :key="`l1-` + id">
         <transaction-list-item
           v-if="typeId === 'DECAY'"
-          :typeId="typeId"
-          class="pointer bg-white appBoxShadow gradido-border-radius px-4 pt-2 test-list-group-item"
+          :type-id="typeId"
+          class="pointer bg-white app-box-shadow gradido-border-radius px-4 pt-2 test-list-group-item"
         >
           <template #DECAY>
             <transaction-decay v-bind="transactions[index]" />
@@ -29,8 +29,8 @@
         <div v-for="({ id, typeId }, index) in transactions" :key="`l2-` + id">
           <transaction-list-item
             v-if="typeId !== 'DECAY'"
-            :typeId="typeId"
-            class="pointer mb-3 bg-white appBoxShadow gradido-border-radius p-3 test-list-group-item"
+            :type-id="typeId"
+            class="pointer mb-3 bg-white app-box-shadow gradido-border-radius p-3 test-list-group-item"
           >
             <template #SEND>
               <transaction-send v-bind="transactions[index]" />
@@ -47,7 +47,7 @@
             <template #LINK_SUMMARY>
               <transaction-link-summary
                 v-bind="transactions[index]"
-                :transactionLinkCount="transactionLinkCount"
+                :transaction-link-count="transactionLinkCount"
                 @update-transactions="updateTransactions"
               />
             </template>
@@ -57,10 +57,10 @@
     </div>
     <b-pagination
       v-if="isPaginationVisible"
+      v-model="currentPage"
       class="mt-3"
       pills
       size="lg"
-      v-model="currentPage"
       :per-page="pageSize"
       :total-rows="transactionCount"
       align="center"
@@ -83,7 +83,7 @@ import TransactionCreation from '@/components/Transactions/TransactionCreation'
 import TransactionLinkSummary from '@/components/Transactions/TransactionLinkSummary'
 
 export default {
-  name: 'gdd-transaction-list',
+  name: 'GddTransactionList',
   components: {
     TransactionListItem,
     TransactionDecay,
@@ -93,7 +93,7 @@ export default {
     TransactionLinkSummary,
   },
   props: {
-    transactions: { default: () => [] },
+    transactions: { type: Array, default: () => [] },
     pageSize: { type: Number, default: 25 },
     timestamp: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
@@ -105,15 +105,6 @@ export default {
     return {
       currentPage: 1,
     }
-  },
-  methods: {
-    updateTransactions() {
-      this.$emit('update-transactions', {
-        currentPage: this.currentPage,
-        pageSize: this.pageSize,
-      })
-      window.scrollTo(0, 0)
-    },
   },
   computed: {
     isPaginationVisible() {
@@ -129,6 +120,15 @@ export default {
       handler: 'updateTransactions',
     },
   },
+  methods: {
+    updateTransactions() {
+      this.$emit('update-transactions', {
+        currentPage: this.currentPage,
+        pageSize: this.pageSize,
+      })
+      window.scrollTo(0, 0)
+    },
+  },
 }
 </script>
 
@@ -137,8 +137,9 @@ collaps-icon {
   width: 95%;
   position: absolute;
 }
+
 .el-table .cell {
-  padding-left: 0px;
-  padding-right: 0px;
+  padding-left: 0;
+  padding-right: 0;
 }
 </style>

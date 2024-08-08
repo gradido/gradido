@@ -37,13 +37,13 @@
               </small>
             </BCol>
             <BCol class="col-12">
-              <language-switch-select @update-language="updateLanguage" :language="language" />
+              <language-switch-select :language="language" @update-language="updateLanguage" />
             </BCol>
           </BRow>
 
           <BRow class="text-right">
             <BCol>
-              <div class="text-right" ref="submitButton">
+              <div ref="submitButton" class="text-right">
                 <b-button
                   :variant="loading ? 'light' : 'success'"
                   type="submit"

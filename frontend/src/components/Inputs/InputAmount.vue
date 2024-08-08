@@ -10,20 +10,20 @@
     <template v-if="typ === 'TransactionForm'">
       <BFormGroup :label="label" :label-for="labelFor" data-test="input-amount">
         <BFormInput
-          :model-value="value"
-          @update:model-value="normalizeAmount($event)"
           :id="labelFor"
+          v-focus="amountFocused"
+          :model-value="value"
           :class="$route.path === '/send' ? 'bg-248' : ''"
           :name="name"
           :placeholder="placeholder"
           type="text"
           :state="meta.valid"
           trim
-          v-focus="amountFocused"
-          @focus="amountFocused = true"
-          @blur="normalizeAmount($event)"
           :disabled="disabled"
           autocomplete="off"
+          @update:model-value="normalizeAmount($event)"
+          @focus="amountFocused = true"
+          @blur="normalizeAmount($event)"
         ></BFormInput>
 
         <BFormInvalidFeedback v-if="errorMessage">
@@ -34,15 +34,15 @@
     <!--    </validation-provider>-->
     <BInputGroup v-else append="GDD" :label="label" :label-for="labelFor">
       <BFormInput
-        :model-value="value"
-        @update:model-value="normalizeAmount($event)"
         :id="labelFor"
+        v-focus="amountFocused"
+        :model-value="value"
         :name="name"
         :placeholder="placeholder"
         type="text"
         readonly
         trim
-        v-focus="amountFocused"
+        @update:model-value="normalizeAmount($event)"
         @focus="amountFocused = true"
         @blur="normalizeAmount($event)"
       ></BFormInput>

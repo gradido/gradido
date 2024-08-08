@@ -26,7 +26,7 @@
 </template>
 <script>
 export default {
-  name: 'DecayInformation-Decay',
+  name: 'DecayInformationDecay',
   props: {
     balance: {
       type: String,

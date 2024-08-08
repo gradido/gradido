@@ -17,10 +17,10 @@
     <BCollapse id="collapse-1" class="mt-4">
       <span
         v-for="(lang, index) in locales"
-        @click.prevent="saveLocale(lang.code)"
         :key="lang.code"
         class="pointer"
         :class="$store.state.language === lang.code ? 'c-grey' : 'c-blau'"
+        @click.prevent="saveLocale(lang.code)"
       >
         <span v-if="lang.code !== $store.state.language" v-b-toggle.collapse-1 class="locales">
           {{ lang.name }}

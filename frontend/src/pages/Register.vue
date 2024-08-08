@@ -7,9 +7,9 @@
           <BRow>
             <BCol sm="12" md="6">
               <validation-provider
+                v-slot="validationContext"
                 :name="$t('form.firstname')"
                 :rules="{ required: true, min: 3 }"
-                v-slot="validationContext"
               >
                 <b-form-group
                   class="mb-3"
@@ -18,8 +18,8 @@
                 >
                   <b-form-input
                     id="registerFirstname"
-                    :name="$t('form.firstname')"
                     v-model="form.firstname"
+                    :name="$t('form.firstname')"
                     :placeholder="$t('form.firstname')"
                     :state="getValidationState(validationContext)"
                     aria-describedby="registerFirstnameLiveFeedback"
@@ -33,9 +33,9 @@
             </BCol>
             <BCol sm="12" md="6">
               <validation-provider
+                v-slot="validationContext"
                 :name="$t('form.lastname')"
                 :rules="{ required: true, min: 2 }"
-                v-slot="validationContext"
               >
                 <b-form-group
                   class="mb-3"
@@ -44,8 +44,8 @@
                 >
                   <b-form-input
                     id="registerLastname"
-                    :name="$t('form.lastname')"
                     v-model="form.lastname"
+                    :name="$t('form.lastname')"
                     :placeholder="$t('form.lastname')"
                     :state="getValidationState(validationContext)"
                     aria-describedby="registerLastnameLiveFeedback"
@@ -108,11 +108,11 @@ import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
 
 export default {
+  name: 'Register',
   components: {
     InputEmail,
     Message,
   },
-  name: 'Register',
   data() {
     return {
       form: {
@@ -127,6 +127,25 @@ export default {
       redeemCode: this.$route.params.code,
       CONFIG,
     }
+  },
+  computed: {
+    namesFilled() {
+      return (
+        this.form.firstname !== '' &&
+        this.form.firstname.length > 2 &&
+        this.form.lastname !== '' &&
+        this.form.lastname.length > 1
+      )
+    },
+    emailFilled() {
+      return this.form.email !== ''
+    },
+    disabled() {
+      return !(this.namesFilled && this.emailFilled && this.form.agree)
+    },
+    enterData() {
+      return !this.showPageMessage
+    },
   },
   methods: {
     getValidationState({ dirty, validated, valid = null }) {
@@ -153,34 +172,16 @@ export default {
         })
     },
   },
-  computed: {
-    namesFilled() {
-      return (
-        this.form.firstname !== '' &&
-        this.form.firstname.length > 2 &&
-        this.form.lastname !== '' &&
-        this.form.lastname.length > 1
-      )
-    },
-    emailFilled() {
-      return this.form.email !== ''
-    },
-    disabled() {
-      return !(this.namesFilled && this.emailFilled && this.form.agree)
-    },
-    enterData() {
-      return !this.showPageMessage
-    },
-  },
 }
 </script>
 <style scoped>
 .btn-gradido {
-  padding-right: 0px;
-  padding-left: 0px;
+  padding-right: 0;
+  padding-left: 0;
 }
+
 .btn-gradido-disable {
-  padding-right: 0px;
-  padding-left: 0px;
+  padding-right: 0;
+  padding-left: 0;
 }
 </style>

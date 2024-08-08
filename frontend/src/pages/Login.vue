@@ -77,8 +77,8 @@
         <BRow>
           <BCol cols="12" lg="6">
             <BButton
-              type="submit"
               ref="submitBtn"
+              type="submit"
               :variant="meta.valid ? 'gradido' : 'gradido-disable'"
               block
               :disabled="!meta.valid"
@@ -93,8 +93,8 @@
       <message
         :headline="$t('message.errorTitle')"
         :subtitle="errorSubtitle"
-        :buttonText="$t('settings.password.reset')"
-        :linkTo="errorLinkTo"
+        :button-text="$t('settings.password.reset')"
+        :link-to="errorLinkTo"
       />
     </BContainer>
   </div>
@@ -212,9 +212,7 @@ const { handleSubmit, meta, values } = useForm({
   initialValues: form.value,
 })
 
-const passwordVisible = ref(false)
 const showPageMessage = ref(false)
-const errorReason = ref(null)
 const errorSubtitle = ref('')
 const errorLinkTo = ref('')
 const submitBtn = ref(null)
@@ -265,11 +263,12 @@ const enterData = computed(() => !showPageMessage.value)
 </script>
 <style scoped>
 .btn-gradido {
-  padding-right: 0px;
-  padding-left: 0px;
+  padding-right: 0;
+  padding-left: 0;
 }
+
 .btn-gradido-disable {
-  padding-right: 0px;
-  padding-left: 0px;
+  padding-right: 0;
+  padding-left: 0;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div class="circles">
-    <BContainer class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
+    <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
       <div class="h3">{{ $t('circles.headline') }}</div>
       <div class="my-4 text-small">
         <span v-for="(line, lineNumber) of $t('circles.text').split('\n')" :key="lineNumber">
@@ -12,8 +12,8 @@
         <BCol cols="12">
           <div class="text-lg-right">
             <BButton
-              :href="humhubUri"
               v-if="humhubAllowed"
+              :href="humhubUri"
               variant="gradido"
               :disabled="enableButton === false"
               target="_blank"
@@ -86,14 +86,14 @@ const humhubUri = ref('')
 
 const humhubAllowed = computed(() => store.state.humhubAllowed)
 
-const { refetch: refetchAuthenticateHumhub, onResult, onError } = useQuery(
-  authenticateHumhubAutoLogin,
-  null,
-  {
-    fetchPolicy: 'network-only',
-    enabled: false,
-  },
-)
+const {
+  refetch: refetchAuthenticateHumhub,
+  onResult,
+  onError,
+} = useQuery(authenticateHumhubAutoLogin, null, {
+  fetchPolicy: 'network-only',
+  enabled: false,
+})
 
 onResult(({ data }) => {
   if (data) {

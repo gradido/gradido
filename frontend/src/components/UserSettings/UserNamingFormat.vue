@@ -1,13 +1,13 @@
 <template>
   <div class="user-naming-format">
     <b-dropdown v-model="selectedOption">
-      <template slot="button-content">{{ selectedOptionLabel }}</template>
+      <template #button-content>{{ selectedOptionLabel }}</template>
       <b-dropdown-item
         v-for="option in dropdownOptions"
-        @click.prevent="update(option)"
         :key="option.value"
         :value="option.value"
         :title="option.title"
+        @click.prevent="update(option)"
       >
         {{ option.label }}
       </b-dropdown-item>
@@ -58,8 +58,9 @@ export default {
   },
   computed: {
     selectedOptionLabel() {
-      const selected = this.dropdownOptions.find((option) => option.value === this.selectedOption)
-        .label
+      const selected = this.dropdownOptions.find(
+        (option) => option.value === this.selectedOption,
+      ).label
       return selected || this.$t('settings.publish-name.alias-or-initials')
       // return this.dropdownOptions.find((option) => option.value === this.selectedOption).label
     },

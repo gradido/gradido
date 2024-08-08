@@ -1,8 +1,8 @@
 <template>
   <div class="formusernewsletter">
     <b-form-checkbox
-      test="BFormCheckbox"
       v-model="newsletterState"
+      test="BFormCheckbox"
       name="check-button"
       switch
       @change="onSubmit"

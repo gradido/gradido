@@ -42,6 +42,11 @@ export default {
       isSubmitting: false,
     }
   },
+  computed: {
+    disabled() {
+      return this.form.text === '' || this.isSubmitting
+    },
+  },
   methods: {
     onSubmit() {
       this.isSubmitting = true
@@ -67,11 +72,6 @@ export default {
     },
     onReset() {
       this.form.text = ''
-    },
-  },
-  computed: {
-    disabled() {
-      return this.form.text === '' || this.isSubmitting
     },
   },
 }

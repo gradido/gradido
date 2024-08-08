@@ -1,5 +1,5 @@
 <template>
-  <div @click="showTransactionLinks()" class="transaction-slot-link">
+  <div class="transaction-slot-link" @click="showTransactionLinks()">
     <BRow class="align-items-center">
       <BCol cols="3" lg="2" md="2">
         <b-avatar icon="link" variant="light" :size="42"></b-avatar>
@@ -20,9 +20,9 @@
       <collapse-links-list
         v-model="currentPage"
         :pending="pending"
-        :pageSize="pageSize"
-        :transactionLinkCount="transactionLinkCount"
-        :transactionLinks="transactionLinks"
+        :page-size="pageSize"
+        :transaction-link-count="transactionLinkCount"
+        :transaction-links="transactionLinks"
       />
     </BCollapse>
   </div>
@@ -60,6 +60,11 @@ export default {
       pageSize: 5,
       pending: false,
     }
+  },
+  watch: {
+    currentPage() {
+      this.updateListTransactionLinks()
+    },
   },
   methods: {
     showTransactionLinks() {
@@ -102,11 +107,6 @@ export default {
             this.pending = false
           })
       }
-    },
-  },
-  watch: {
-    currentPage() {
-      this.updateListTransactionLinks()
     },
   },
 }

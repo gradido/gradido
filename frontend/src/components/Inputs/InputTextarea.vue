@@ -2,9 +2,8 @@
   <div>
     <BFormGroup :label="label" :label-for="labelFor" data-test="input-textarea">
       <BFormTextarea
-        :model-value="currentValue"
-        @update:modelValue="currentValue = $event"
         :id="labelFor"
+        :model-value="currentValue"
         class="bg-248"
         :name="name"
         :placeholder="placeholder"
@@ -14,6 +13,7 @@
         max-rows="4"
         :disabled="disabled"
         no-resize
+        @update:modelValue="currentValue = $event"
       />
       <BFormInvalidFeedback v-if="errorMessage">
         {{ errorMessage }}

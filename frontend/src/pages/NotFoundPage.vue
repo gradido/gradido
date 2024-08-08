@@ -4,7 +4,7 @@
     <div class="header py-1 py-lg-1 pt-lg-3">
       <BContainer>
         <div class="header-body text-center mb-3">
-          <a href="#!" v-on:click="$router.go(-1)">
+          <a href="#!" @click="$router.go(-1)">
             <div class="container">
               <div class="row">
                 <div class="col-sm-12 col-md-12 mt-5 mb-5">
@@ -1186,7 +1186,7 @@
       </BContainer>
     </div>
     <div class="text-center">
-      <BButton class="test-back" variant="light" v-on:click="$router.go(-1)">
+      <BButton class="test-back" variant="light" @click="$router.go(-1)">
         {{ $t('back') }}
       </BButton>
     </div>
@@ -1195,7 +1195,7 @@
 
 <script>
 export default {
-  name: 'not-found',
+  name: 'NotFound',
   data() {
     return {
       anime: {
@@ -1244,21 +1244,23 @@ export default {
   transform-box: fill-box;
 }
 
-/*************swing************/
+/************* swing ************/
 @keyframes swing {
   0% {
     transform: rotate(10deg);
   }
+
   100% {
     transform: rotate(-10deg);
   }
 }
 
-/*************swing hair************/
+/************* swing hair ************/
 @keyframes swinghair {
   0% {
     transform: rotate(6deg);
   }
+
   100% {
     transform: rotate(-6deg);
   }

@@ -5,8 +5,8 @@
         <BCol class="text-right">
           <a
             class="cursor-pointer"
-            @click="showPassword ? (showPassword = !showPassword) : cancelEdit()"
             data-test="open-password-change-form"
+            @click="showPassword ? (showPassword = !showPassword) : cancelEdit()"
           >
             <span class="pointer mr-3">{{ $t('settings.password.change-password') }}</span>
             <b-icon v-if="showPassword" class="pointer ml-3" icon="pencil"></b-icon>
@@ -22,9 +22,9 @@
           <BRow class="mb-2">
             <BCol>
               <input-password
+                v-model="form.password"
                 :label="$t('form.password_old')"
                 :placeholder="$t('form.password_old')"
-                v-model="form.password"
               ></input-password>
             </BCol>
           </BRow>
@@ -74,6 +74,11 @@ export default {
       register: false,
     }
   },
+  computed: {
+    disabled() {
+      return this.form.newPassword.password !== this.form.newPassword.passwordRepeat
+    },
+  },
   methods: {
     cancelEdit() {
       this.showPassword = true
@@ -97,11 +102,6 @@ export default {
         .catch((error) => {
           this.toastError(error.message)
         })
-    },
-  },
-  computed: {
-    disabled() {
-      return this.form.newPassword.password !== this.form.newPassword.passwordRepeat
     },
   },
 }

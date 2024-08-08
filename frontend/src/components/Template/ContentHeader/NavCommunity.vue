@@ -23,23 +23,26 @@ export default {
 </script>
 <style scoped>
 .btn {
-  background-color: rgb(209, 209, 209);
+  background-color: rgb(209 209 209);
   color: black;
-  padding-right: 0px;
-  padding-left: 0px;
+  padding-right: 0;
+  padding-left: 0;
 }
+
 .btn-block + .btn-block {
-  margin-top: 0rem;
+  margin-top: 0;
 }
 
 .svg-icon {
   filter: brightness(0) invert(0);
 }
+
 .btn-active {
   background-color: rgb(23 141 129);
   color: white;
   font-weight: bold;
 }
+
 .btn-active .svg-icon {
   filter: brightness(0) invert(1);
 }

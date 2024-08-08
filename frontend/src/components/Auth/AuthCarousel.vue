@@ -27,7 +27,7 @@ export default {
 .carousel-caption {
   color: #fff;
   top: 317px;
-  text-shadow: 2px 2px 8px #000000;
+  text-shadow: 2px 2px 8px #000;
   font-size: xx-large;
 }
 
@@ -48,10 +48,7 @@ export default {
 .carousel-inner {
   height: 100%;
   border-radius: 0% 49% 49% 0% / 0% 51% 49% 0%;
-  -webkit-border-radius: 0% 49% 49% 0% / 0% 51% 49% 0%;
   backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
 }
 </style>

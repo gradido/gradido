@@ -33,12 +33,11 @@
   <div>
     <BFormGroup :label="defaultTranslations.label" :label-for="labelFor" data-test="input-email">
       <BFormInput
-        :model-value="value"
-        @update:modelValue="normalizeEmail($event)"
         v-bind="ariaInput"
+        :id="labelFor"
+        :model-value="value"
         :state="meta.valid"
         data-test="input-email"
-        :id="labelFor"
         :name="name"
         :placeholder="defaultTranslations.placeholder"
         type="email"
@@ -46,6 +45,7 @@
         :class="$route.path === '/send' ? 'bg-248' : ''"
         :disabled="disabled"
         autocomplete="off"
+        @update:modelValue="normalizeEmail($event)"
       />
       <BFormInvalidFeedback v-bind="ariaMsg">
         {{ errorMessage }}
@@ -151,7 +151,7 @@ const defaultTranslations = computed(() => ({
 }))
 
 const normalizeEmail = (emailAddress) => {
-  //TODO trigger blur on bootstrap input
+  // TODO trigger blur on bootstrap input
   // emailFocused.value = false
   value.value = emailAddress.trim()
   validate()

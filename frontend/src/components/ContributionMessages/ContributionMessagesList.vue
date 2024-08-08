@@ -1,15 +1,15 @@
 <template>
   <div class="contribution-messages-list">
     <div>
-      <div v-for="message in messages" v-bind:key="message.id" class="mt-3">
+      <div v-for="message in messages" :key="message.id" class="mt-3">
         <contribution-messages-list-item :message="message" />
       </div>
     </div>
     <div>
       <contribution-messages-formular
         v-if="['PENDING', 'IN_PROGRESS'].includes(status)"
-        :contributionId="contributionId"
-        v-on="$listeners"
+        :contribution-id="contributionId"
+        v-bind="$attrs"
         @update-status="updateStatus"
       />
     </div>

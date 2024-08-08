@@ -1,6 +1,6 @@
 <template>
   <div class="userdata-card">
-    <div class="centerPerMargin">
+    <div class="center-per-margin">
       <avatar
         :username="username.username"
         :initials="username.initials"
@@ -72,16 +72,18 @@ export default {
 }
 </script>
 <style scoped>
-.centerPerMargin {
+.center-per-margin {
   padding-left: 44%;
 }
-@media screen and (max-width: 850px) {
-  .centerPerMargin {
+
+@media screen and (width <= 850px) {
+  .center-per-margin {
     padding-left: 38%;
   }
 }
-@media screen and (max-width: 450px) {
-  .centerPerMargin {
+
+@media screen and (width <= 450px) {
+  .center-per-margin {
     padding-left: 34%;
   }
 }

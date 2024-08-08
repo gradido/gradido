@@ -2,8 +2,8 @@
   <div class="contribution-form">
     <BForm
       ref="form"
+      class="form-style p-3 bg-white app-box-shadow gradido-border-radius"
       @submit.prevent="submit"
-      class="form-style p-3 bg-white appBoxShadow gradido-border-radius"
     >
       <label>{{ $t('contribution.selectDate') }}</label>
       <BFormInput
@@ -46,7 +46,7 @@
             max: validMaxTime,
             gddCreationTime: [0.25, validMaxTime],
           }"
-          :validMaxTime="validMaxTime"
+          :valid-max-time="validMaxTime"
           @updateAmount="updateAmount"
         ></input-hour>
         <input-amount
@@ -65,8 +65,8 @@
               block
               type="reset"
               variant="secondary"
-              @click="reset"
               data-test="button-cancel"
+              @click="reset"
             >
               {{ $t('form.cancel') }}
             </BButton>
@@ -114,23 +114,6 @@ export default {
       form: this.value, // includes 'id' and time
     }
   },
-  methods: {
-    updateAmount(hours) {
-      this.form.amount = (hours * 20).toFixed(2).toString()
-    },
-    submit() {
-      this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
-      this.reset()
-    },
-    reset() {
-      this.$refs.form.reset()
-      this.form.id = null
-      this.form.date = ''
-      this.form.memo = ''
-      this.form.hours = 0
-      this.form.amount = ''
-    },
-  },
   computed: {
     showMessage() {
       if (this.maxGddThisMonth <= 0 && this.maxGddLastMonth <= 0) return true
@@ -177,12 +160,30 @@ export default {
       return (this.form = this.value)
     },
   },
+  methods: {
+    updateAmount(hours) {
+      this.form.amount = (hours * 20).toFixed(2).toString()
+    },
+    submit() {
+      this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
+      this.reset()
+    },
+    reset() {
+      this.$refs.form.reset()
+      this.form.id = null
+      this.form.date = ''
+      this.form.memo = ''
+      this.form.hours = 0
+      this.form.amount = ''
+    },
+  },
 }
 </script>
 <style>
 .form-style {
   min-height: 410px;
 }
+
 span.errors {
   color: red;
 }

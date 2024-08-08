@@ -35,8 +35,8 @@
         :headline="success ? $t('message.title') : $t('message.errorTitle')"
         :subtitle="success ? $t('message.email') : $t('error.email-already-sent')"
         :data-test="success ? 'forgot-password-success' : 'forgot-password-error'"
-        :buttonText="$t('login')"
-        linkTo="/login"
+        :button-text="$t('login')"
+        link-to="/login"
       />
     </b-container>
   </div>
@@ -63,6 +63,11 @@ export default {
       success: null,
     }
   },
+  computed: {
+    enterData() {
+      return !this.showPageMessage
+    },
+  },
   created() {
     if (this.$route.params.comingFrom) {
       this.subtitle = 'settings.password.resend_subtitle'
@@ -88,20 +93,16 @@ export default {
         })
     },
   },
-  computed: {
-    enterData() {
-      return !this.showPageMessage
-    },
-  },
 }
 </script>
 <style scoped>
 .btn-gradido {
-  padding-right: 0px;
-  padding-left: 0px;
+  padding-right: 0;
+  padding-left: 0;
 }
+
 .btn-gradido-disable {
-  padding-right: 0px;
-  padding-left: 0px;
+  padding-right: 0;
+  padding-left: 0;
 }
 </style>

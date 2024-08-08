@@ -1,6 +1,6 @@
 <template>
   <div class="transaction-confirm-send">
-    <div class="bg-white appBoxShadow gradido-border-radius p-3">
+    <div class="bg-white app-box-shadow gradido-border-radius p-3">
       <div class="h3 mb-4">{{ $t('form.send_check') }}</div>
       <BRow class="mt-5">
         <BCol cols="12">
@@ -48,7 +48,7 @@
       </BRow>
       <BRow class="mt-5">
         <BCol cols="12" md="6" lg="6">
-          <BButton block @click="$emit('on-back')" class="mb-3 mb-md-0 mb-lg-0">
+          <BButton block class="mb-3 mb-md-0 mb-lg-0" @click="$emit('on-back')">
             {{ $t('back') }}
           </BButton>
         </BCol>
@@ -95,8 +95,9 @@ export default {
 .gray-background {
   background-color: #ecebe6a3 !important;
 }
+
 .borderbottom {
-  border-bottom: 1px solid rgb(70, 65, 65);
+  border-bottom: 1px solid rgb(70 65 65);
   border-bottom-style: double;
 }
 </style>

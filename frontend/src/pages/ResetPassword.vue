@@ -26,8 +26,8 @@
     <message
       :headline="messageHeadline"
       :subtitle="messageSubtitle"
-      :buttonText="messageButtonText"
-      :linkTo="messageButtonLinktTo"
+      :button-text="messageButtonText"
+      :link-to="messageButtonLinktTo"
     />
   </div>
 </template>
@@ -72,6 +72,11 @@ export default {
       messageButtonText: null,
       messageButtonLinktTo: null,
     }
+  },
+  computed: {
+    enterData() {
+      return !this.showPageMessage
+    },
   },
   created() {
     this.$emit('set-mobile-start', false)
@@ -146,20 +151,16 @@ export default {
       }
     },
   },
-  computed: {
-    enterData() {
-      return !this.showPageMessage
-    },
-  },
 }
 </script>
 <style scoped>
 .btn-gradido {
-  padding-right: 0px;
-  padding-left: 0px;
+  padding-right: 0;
+  padding-left: 0;
 }
+
 .btn-gradido-disable {
-  padding-right: 0px;
-  padding-left: 0px;
+  padding-right: 0;
+  padding-left: 0;
 }
 </style>

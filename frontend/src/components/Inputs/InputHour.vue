@@ -26,10 +26,9 @@
   <div class="input-hour">
     <BFormGroup :label="label" :label-for="labelFor">
       <BFormInput
-        :model-value="currentValue"
-        @update:modelValue="currentValue"
         v-bind="ariaInput"
         :id="labelFor"
+        :model-value="currentValue"
         :name="name"
         :placeholder="placeholder"
         type="number"
@@ -38,6 +37,7 @@
         min="0"
         :max="validMaxTime"
         class="bg-248"
+        @update:modelValue="currentValue"
       />
     </BFormGroup>
   </div>

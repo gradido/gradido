@@ -3,18 +3,18 @@
     <div class="mt-4">
       <transaction-link-item :type="itemType">
         <template #LOGGED_OUT>
-          <redeem-logged-out :linkData="linkData" :isContributionLink="isContributionLink" />
+          <redeem-logged-out :link-data="linkData" :is-contribution-link="isContributionLink" />
         </template>
 
         <template #SELF_CREATOR>
-          <redeem-self-creator :linkData="linkData" />
+          <redeem-self-creator :link-data="linkData" />
         </template>
 
         <template #VALID>
           <redeem-valid
-            :linkData="linkData"
-            :isContributionLink="isContributionLink"
-            :validLink="validLink"
+            :link-data="linkData"
+            :is-contribution-link="isContributionLink"
+            :valid-link="validLink"
             @mutation-link="mutationLink"
           />
         </template>
@@ -44,6 +44,7 @@ export default {
     RedeemValid,
     RedeemedTextBox,
   },
+  emits: ['set-mobile-start'],
   data() {
     return {
       linkData: {
@@ -57,49 +58,6 @@ export default {
         validLink: false,
       },
     }
-  },
-  methods: {
-    setTransactionLinkInformation() {
-      this.$apollo
-        .query({
-          fetchPolicy: 'no-cache',
-          query: queryTransactionLink,
-          variables: {
-            code: this.$route.params.code,
-          },
-        })
-        .then((result) => {
-          this.validLink = true
-          this.linkData = result.data.queryTransactionLink
-          if (this.linkData.__typename === 'ContributionLink' && this.$store.state.token) {
-            this.mutationLink(this.linkData.amount)
-          }
-        })
-        .catch(() => {
-          this.toastError(this.$t('gdd_per_link.redeemlink-error'))
-        })
-    },
-    mutationLink(amount) {
-      this.$apollo
-        .mutate({
-          mutation: redeemTransactionLink,
-          variables: {
-            code: this.$route.params.code,
-          },
-        })
-        .then(() => {
-          this.toastSuccess(
-            this.$t('gdd_per_link.redeemed', {
-              n: amount,
-            }),
-          )
-          this.$router.push('/overview')
-        })
-        .catch((err) => {
-          this.toastError(err.message)
-          this.$router.push('/overview')
-        })
-    },
   },
   computed: {
     isContributionLink() {
@@ -158,6 +116,49 @@ export default {
   created() {
     this.setTransactionLinkInformation()
     this.$emit('set-mobile-start', false)
+  },
+  methods: {
+    setTransactionLinkInformation() {
+      this.$apollo
+        .query({
+          fetchPolicy: 'no-cache',
+          query: queryTransactionLink,
+          variables: {
+            code: this.$route.params.code,
+          },
+        })
+        .then((result) => {
+          this.validLink = true
+          this.linkData = result.data.queryTransactionLink
+          if (this.linkData.__typename === 'ContributionLink' && this.$store.state.token) {
+            this.mutationLink(this.linkData.amount)
+          }
+        })
+        .catch(() => {
+          this.toastError(this.$t('gdd_per_link.redeemlink-error'))
+        })
+    },
+    mutationLink(amount) {
+      this.$apollo
+        .mutate({
+          mutation: redeemTransactionLink,
+          variables: {
+            code: this.$route.params.code,
+          },
+        })
+        .then(() => {
+          this.toastSuccess(
+            this.$t('gdd_per_link.redeemed', {
+              n: amount,
+            }),
+          )
+          this.$router.push('/overview')
+        })
+        .catch((err) => {
+          this.toastError(err.message)
+          this.$router.push('/overview')
+        })
+    },
   },
 }
 </script>

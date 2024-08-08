@@ -6,7 +6,7 @@
       </BBadge>
     </div>
     <div
-      class="community-member bg-white appBoxShadow gradido-border-radius p-4 border border-success"
+      class="community-member bg-white app-box-shadow gradido-border-radius p-4 border border-success"
     >
       <BRow>
         <BCol cols="9">

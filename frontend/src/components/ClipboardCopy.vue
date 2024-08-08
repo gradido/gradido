@@ -5,8 +5,8 @@
         <label>{{ $t('gdd_per_link.copy-link') }}</label>
         <div
           class="pointer text-center bg-secondary gradido-border-radius p-3"
-          @click="copyLink"
           data-test="copyLink"
+          @click="copyLink"
         >
           {{ link }}
           <div>

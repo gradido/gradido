@@ -6,7 +6,6 @@ export const createFilters = (i18n) => {
       if (isNaN(numValue)) return ''
       return i18n.global.n(numValue, 'decimal').replace('-', '− ')
     } catch (error) {
-      console.error('Error formatting amount:', error)
       return ''
     }
   }

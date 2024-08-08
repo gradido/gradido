@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white appBoxShadow gradido-border-radius p-3">
+  <div class="bg-white app-box-shadow gradido-border-radius p-3">
     <div class="pl-3">
       <BRow class="small">
         <BCol>{{ $t('time.months') }}</BCol>

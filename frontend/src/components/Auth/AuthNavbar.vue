@@ -13,9 +13,9 @@
       <BImg class="sheet-img position-absolute d-block d-lg-none zindex1000" :src="sheet"></BImg>
       <BCollapse id="nav-collapse" is-nav>
         <BNavbarNav class="ml-auto d-none d-lg-flex" right>
-          <BNavItem :to="register" class="authNavbar ml-lg-5">{{ $t('signup') }}</BNavItem>
+          <BNavItem :to="register" class="auth-navbar ml-lg-5">{{ $t('signup') }}</BNavItem>
           <span class="d-none d-lg-block mt-1">{{ $t('math.pipe') }}</span>
-          <BNavItem :to="login" class="authNavbar">{{ $t('signin') }}</BNavItem>
+          <BNavItem :to="login" class="auth-navbar">{{ $t('signin') }}</BNavItem>
         </BNavbarNav>
       </BCollapse>
     </BNavbar>
@@ -39,18 +39,20 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.authNavbar {
+.auth-navbar {
   display: flex;
   align-content: center;
+
   > * {
     text-decoration: none;
   }
 }
-.authNavbar > :deep(.nav-link) {
+
+.auth-navbar > :deep(.nav-link) {
   color: #0e79bc !important;
 }
 
-.authNavbar > :deep(.router-link-exact-active) {
+.auth-navbar > :deep(.router-link-exact-active) {
   color: #383838 !important;
 }
 
@@ -70,18 +72,19 @@ export default {
   max-width: 64%;
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (width <= 1024px) {
   .auth-header {
     height: 100px;
   }
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (width <= 768px) {
   .auth-header {
     height: 70px;
   }
 }
-@media screen and (max-width: 450px) {
+
+@media screen and (width <= 450px) {
   .sheet-img {
     top: -15px;
     right: 0%;

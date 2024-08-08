@@ -1,5 +1,5 @@
 <template>
-  <div @click="visible = !visible" class="transaction-slot-receive">
+  <div class="transaction-slot-receive" @click="visible = !visible">
     <BRow class="align-items-center">
       <BCol cols="3" lg="2" md="2">
         <!-- <b-avatar :text="avatarText" variant="success" size="3em"></b-avatar> -->
@@ -15,8 +15,8 @@
           <name
             class="font-weight-bold"
             :amount="amount"
-            :linkedUser="linkedUser"
-            :linkId="linkId"
+            :linked-user="linkedUser"
+            :link-id="linkId"
           />
         </div>
         <span class="small">{{ $d(new Date(balanceDate), 'short') }}</span>
@@ -45,12 +45,12 @@
     </BRow>
     <BCollapse class="pb-4 pt-lg-3" :model-value="visible">
       <decay-information
-        :typeId="typeId"
+        :type-id="typeId"
         :decay="decay"
         :amount="amount"
         :memo="memo"
         :balance="balance"
-        :previousBalance="previousBalance"
+        :previous-balance="previousBalance"
       />
     </BCollapse>
   </div>

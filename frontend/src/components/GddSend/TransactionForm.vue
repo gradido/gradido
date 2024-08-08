@@ -2,7 +2,7 @@
   <div class="transaction-form">
     <BRow>
       <BCol cols="12">
-        <BCard class="appBoxShadow gradido-border-radius" body-class="p-4">
+        <BCard class="app-box-shadow gradido-border-radius" body-class="p-4">
           <BForm role="form" @submit.prevent="onSubmit" @reset="onReset">
             <BFormRadioGroup
               name="shipping"
@@ -38,7 +38,7 @@
                 </BCol>
               </BRow>
             </BFormRadioGroup>
-            <div class="mt-4 mb-4" v-if="radioSelected === SEND_TYPES.link">
+            <div v-if="radioSelected === SEND_TYPES.link" class="mt-4 mb-4">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <div>
                 {{ $t('gdd_per_link.choose-amount') }}
@@ -47,7 +47,7 @@
             <BRow>
               <BCol>
                 <BRow>
-                  <BCol class="mb-4" cols="12" v-if="radioSelected === SEND_TYPES.send">
+                  <BCol v-if="radioSelected === SEND_TYPES.send" class="mb-4" cols="12">
                     <BRow>
                       <BCol>{{ $t('form.recipientCommunity') }}</BCol>
                     </BRow>
@@ -61,7 +61,7 @@
                       </BCol>
                     </BRow>
                   </BCol>
-                  <BCol cols="12" v-if="radioSelected === SEND_TYPES.send">
+                  <BCol v-if="radioSelected === SEND_TYPES.send" cols="12">
                     <div v-if="!userIdentifier">
                       <input-identifier
                         name="identifier"
@@ -112,8 +112,8 @@
                   block
                   type="reset"
                   variant="secondary"
-                  @click="onReset"
                   class="mb-3 mb-md-0 mb-lg-0"
+                  @click="onReset"
                 >
                   {{ $t('form.reset') }}
                 </BButton>
@@ -339,7 +339,6 @@ watch(userError, (error) => {
 })
 
 const onSubmit = handleSubmit((formValues) => {
-  console.log('????')
   if (userIdentifier.value) formValues.identifier = userIdentifier.value.identifier
   emit('set-transaction', {
     selected: radioSelected.value,
@@ -368,11 +367,13 @@ function onReset(event) {
 span.errors {
   color: red;
 }
+
 #input-1:focus,
 #input-2:focus,
 #input-3:focus {
   font-weight: bold;
 }
+
 .border-radius {
   border-radius: 10px;
 }

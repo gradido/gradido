@@ -1,5 +1,5 @@
 <template>
-  <div @click="visible = !visible" class="transaction-slot-decay">
+  <div class="transaction-slot-decay" @click="visible = !visible">
     <BRow class="text-color-gdd-yellow align-items-center">
       <BCol cols="1">
         <!--        <type-icon color="text-color-gdd-yellow" icon="droplet-half" />-->
@@ -17,21 +17,21 @@
       <decay-information-decay
         :balance="balance"
         :decay="decay.decay"
-        :previousBalance="previousBalance"
+        :previous-balance="previousBalance"
       />
     </BCollapse>
   </div>
 </template>
 <script>
 import CollapseIcon from '../TransactionRows/CollapseIcon'
-import TypeIcon from '../TransactionRows/TypeIcon'
+// import TypeIcon from '../TransactionRows/TypeIcon'
 import DecayInformationDecay from '../DecayInformations/DecayInformation-Decay'
 
 export default {
   name: 'TransactionDecay',
   components: {
     CollapseIcon,
-    TypeIcon,
+    // TypeIcon,
     DecayInformationDecay,
   },
   props: {
@@ -48,15 +48,15 @@ export default {
       required: true,
     },
   },
-  computed: {
-    previousBalance() {
-      return String(Number(this.balance) - Number(this.decay.decay))
-    },
-  },
   data() {
     return {
       visible: false,
     }
+  },
+  computed: {
+    previousBalance() {
+      return String(Number(this.balance) - Number(this.decay.decay))
+    },
   },
 }
 </script>
