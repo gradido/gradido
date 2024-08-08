@@ -5,15 +5,15 @@
         <BInputGroup>
           <BFormInput
             v-bind="ariaInput"
-            v-model="currentValue"
             :id="labelFor"
-            v-model="currentValue"
+            :model-value="currentValue"
             :name="name"
             :placeholder="placeholder"
             type="text"
             :state="validated ? valid : false"
             autocomplete="off"
             data-test="username"
+            @update:modelValue="currentValue = $event"
           />
           <BButton size="lg" text="Button" variant="secondary" @click="emitSetIsEdit" append>
             <IBiXCircle style="height: 17px; width: 17px" />

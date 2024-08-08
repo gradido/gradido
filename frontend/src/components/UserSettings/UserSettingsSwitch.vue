@@ -1,13 +1,12 @@
 <template>
   <div class="form-user-switch" @click="onClick">
-    <!-- <BFormCheckbox
+    <BFormCheckbox
       test="BFormCheckbox"
       name="check-button"
       :disabled="disabled"
       switch
       @change="onChange"
-    /> -->
-    hello
+    />
   </div>
 </template>
 <script setup>
@@ -38,21 +37,21 @@ const isDisabled = computed(() => {
 
 const { mutate: updateUserData } = useMutation(updateUserInfos)
 
-// const onChange = async () => {
-//   if (isDisabled.value) return
-//   const variables = []
-//   variables[props.attrName] = value.value
+const onChange = async () => {
+  if (isDisabled.value) return
+  const variables = []
+  variables[props.attrName] = value.value
 
-//   try {
-//     await updateUserData({ variables })
-//     store.commit(props.attrName, value.value)
-//     emit('valueChanged', value.value)
-//     toastSuccess(value.value ? props.enabledText : props.disabledText)
-//   } catch (error) {
-//     value.value = props.initialValue
-//     toastError(error.message)
-//   }
-// }
+  try {
+    await updateUserData({ variables })
+    store.commit(props.attrName, value.value)
+    emit('valueChanged', value.value)
+    toastSuccess(value.value ? props.enabledText : props.disabledText)
+  } catch (error) {
+    value.value = props.initialValue
+    toastError(error.message)
+  }
+}
 
 const onClick = () => {
   if (props.notAllowedText && props.disabled) {

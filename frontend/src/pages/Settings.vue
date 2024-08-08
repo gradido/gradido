@@ -13,7 +13,7 @@
           </BCol>
           <BCol cols="12" md="6" lg="6">
             <BFormGroup :label="$t('form.email')" :description="$t('settings.emailInfo')">
-              <BFormInput v-model="email" readonly></BFormInput>
+              <BFormInput :model-value="email" @update:modelValue="email = $event" readonly />
             </BFormGroup>
           </BCol>
         </BRow>
@@ -24,19 +24,21 @@
             <BCol cols="12" md="6" lg="6">
               <label>{{ $t('form.firstname') }}</label>
               <BFormInput
-                v-model="firstName"
+                :model-value="firstName"
                 :placeholder="$t('settings.name.enterFirstname')"
                 data-test="firstname"
                 trim
+                @update:modelValue="firstName = $event"
               />
             </BCol>
             <BCol cols="12" md="6" lg="6">
               <label>{{ $t('form.lastname') }}</label>
               <BFormInput
-                v-model="lastName"
+                :model-value="lastName"
                 :placeholder="$t('settings.name.enterLastname')"
                 data-test="lastname"
                 trim
+                @update:modelValue="lastName = $event"
               />
             </BCol>
           </BRow>
@@ -147,7 +149,7 @@
                   {{ $t('settings.GMS.location-format') }}
                 </BCol>
                 <BCol cols="12" md="6" lg="6">
-                  <!-- <user-g-m-s-location-format /> -->
+                  <user-g-m-s-location-format />
                 </BCol>
               </BRow>
               <BRow class="mb-5">
@@ -155,7 +157,7 @@
                   {{ $t('settings.GMS.location.label') }}
                 </BCol>
                 <BCol cols="12" md="6" lg="6">
-                  <!-- <user-g-m-s-location /> -->
+                  <user-g-m-s-location />
                 </BCol>
               </BRow>
             </div>
@@ -195,8 +197,8 @@ import UserLanguage from '@/components/LanguageSwitch2.vue'
 import UserPassword from '@/components/UserSettings/UserPassword'
 import UserSettingsSwitch from '../components/UserSettings/UserSettingsSwitch.vue'
 import UserNamingFormat from '@/components/UserSettings/UserNamingFormat'
-// import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
-// import UserGMSLocation from '@/components/UserSettings/UserGMSLocation'
+import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
+import UserGMSLocation from '@/components/UserSettings/UserGMSLocation'
 import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
 import { BTabs, BTab, BRow, BCol, BFormInput, BFormGroup, BForm, BButton } from 'bootstrap-vue-next'
 
@@ -259,13 +261,13 @@ const onSubmit = async (key) => {
   } catch (error) {}
 }
 
-// const gmsStateSwitch = (eventData) => {
-//   gmsAllowed.value = eventData
-// }
+const gmsStateSwitch = (eventData) => {
+  gmsAllowed.value = eventData
+}
 
-// const humhubStateSwitch = (eventData) => {
-//   humhubAllowed.value = eventData
-// }
+const humhubStateSwitch = (eventData) => {
+  humhubAllowed.value = eventData
+}
 </script>
 <style>
 .community-service-tabs {

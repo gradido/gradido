@@ -1,68 +1,70 @@
 <template>
   <div class="user-gms-location-format">
-    <b-dropdown v-model="selectedOption">
+    <BDropdown v-model="selectedOption">
       <template #button-content>{{ selectedOptionLabel }}</template>
-      <b-dropdown-item
+      <BDropdownItem
         v-for="option in dropdownOptions"
         :key="option.value"
         :value="option.value"
         @click.prevent="update(option)"
       >
         {{ option.label }}
-      </b-dropdown-item>
-    </b-dropdown>
+      </BDropdownItem>
+    </BDropdown>
   </div>
 </template>
-<script>
+<script setup>
+import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useStore } from 'vuex'
+import { useMutation } from '@vue/apollo-composable'
 import { updateUserInfos } from '@/graphql/mutations'
+import { BDropdown, BDropdownItem } from 'bootstrap-vue-next'
+import { useAppToast } from '@/composables/useToast'
 
-export default {
-  name: 'UserGMSLocationFormat',
-  data() {
-    return {
-      selectedOption: this.$store.state.gmsPublishLocation ?? 'GMS_LOCATION_TYPE_RANDOM',
-      dropdownOptions: [
-        {
-          label: this.$t('settings.GMS.publish-location.exact'),
-          value: 'GMS_LOCATION_TYPE_EXACT',
-        },
-        {
-          label: this.$t('settings.GMS.publish-location.approximate'),
-          value: 'GMS_LOCATION_TYPE_APPROXIMATE',
-        },
-        {
-          label: this.$t('settings.GMS.publish-location.random'),
-          value: 'GMS_LOCATION_TYPE_RANDOM',
-        },
-      ],
-    }
+const { t } = useI18n()
+const store = useStore()
+const { toastError, toastSuccess } = useAppToast()
+
+const selectedOption = ref(store.state.gmsPublishLocation ?? 'GMS_LOCATION_TYPE_RANDOM')
+const dropdownOptions = [
+  {
+    label: t('settings.GMS.publish-location.exact'),
+    value: 'GMS_LOCATION_TYPE_EXACT',
   },
-  computed: {
-    selectedOptionLabel() {
-      return this.dropdownOptions.find((option) => option.value === this.selectedOption).label
-    },
+  {
+    label: t('settings.GMS.publish-location.approximate'),
+    value: 'GMS_LOCATION_TYPE_APPROXIMATE',
   },
-  methods: {
-    async update(option) {
-      if (option.value === this.selectedOption) {
-        return
-      }
-      try {
-        await this.$apollo.mutate({
-          mutation: updateUserInfos,
-          variables: {
-            gmsPublishLocation: option.value,
-          },
-        })
-        this.toastSuccess(this.$t('settings.GMS.publish-location.updated'))
-        this.selectedOption = option.value
-        this.$store.commit('gmsPublishLocation', option.value)
-        this.$emit('gmsPublishLocation', option.value)
-      } catch (error) {
-        this.toastError(error.message)
-      }
-    },
+  {
+    label: t('settings.GMS.publish-location.random'),
+    value: 'GMS_LOCATION_TYPE_RANDOM',
   },
+]
+
+const selectedOptionLabel = computed(() => {
+  return dropdownOptions.find((option) => option.value === selectedOption.value)?.label
+})
+
+const emit = defineEmits(['gmsPublishLocation'])
+
+const { mutate: updateUserData } = useMutation(updateUserInfos)
+
+const update = async (option) => {
+  if (option.value === selectedOption.value) {
+    return
+  }
+  try {
+    await updateUserData({
+      gmsPublishLocation: option.value,
+    })
+    toastSuccess(t('settings.GMS.publish-location.updated'))
+    selectedOption.value = option.value
+    store.commit('gmsPublishLocation', option.value)
+    emit('gmsPublishLocation', option.value)
+  } catch (error) {
+    toastError(error.message)
+  }
 }
 </script>
 <style>

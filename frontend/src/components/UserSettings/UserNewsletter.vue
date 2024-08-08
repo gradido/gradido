@@ -1,12 +1,12 @@
 <template>
   <div class="formusernewsletter">
     <BFormCheckbox
-      test="BFormCheckbox"
-      v-model="newsletterState"
+      :model-value="newsletterState"
       test="BFormCheckbox"
       name="check-button"
       switch
       @change="onSubmit"
+      @update:modelValue="newsletterState = $event"
     />
   </div>
 </template>
@@ -17,10 +17,13 @@ import { subscribeNewsletter, unsubscribeNewsletter } from '@/graphql/mutations'
 import { useMutation } from '@vue/apollo-composable'
 import { BFormCheckbox } from 'bootstrap-vue-next'
 import { useAppToast } from '@/composables/useToast'
+import { useI18n } from 'vue-i18n'
 
 const { toastSuccess, toastError } = useAppToast()
 const store = useStore()
 const state = store.state
+
+const { t } = useI18n()
 
 const newsletterState = ref(state.newsletterState)
 
@@ -34,8 +37,8 @@ const onSubmit = async () => {
     store.commit('newsletterState', newsletterState.value)
     toastSuccess(
       newsletterState.value
-        ? $t('settings.newsletter.newsletterTrue')
-        : $t('settings.newsletter.newsletterFalse'),
+        ? t('settings.newsletter.newsletterTrue')
+        : t('settings.newsletter.newsletterFalse'),
     )
   } catch (error) {
     newsletterState.value = state.newsletterState

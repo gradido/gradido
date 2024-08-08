@@ -4,7 +4,7 @@
       <BCol>
         <input-password
           id="new-password-input-field"
-          v-model="password"
+          :model-value="password"
           :rules="{
             required: true,
             containsLowercaseCharacter: true,
@@ -19,7 +19,7 @@
           :immediate="true"
           :name="createId(register ? $t('form.password') : $t('form.password_new'))"
           :placeholder="register ? $t('form.password') : $t('form.password_new')"
-          v-model="password"
+          @update:modelValue="password = $event"
         />
       </BCol>
     </BRow>
@@ -27,16 +27,16 @@
       <BCol>
         <input-password
           id="repeat-new-password-input-field"
-          v-model="passwordRepeat"
+          :model-value="passwordRepeat"
           :rules="{
             required: true,
-            samePassword: value.password,
+            samePassword: password,
           }"
           :label="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
           :immediate="true"
           :name="createId(register ? $t('form.passwordRepeat') : $t('form.password_new_repeat'))"
           :placeholder="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
-          v-model="passwordRepeat"
+          @update:modelValue="passwordRepeat = $event"
         />
       </BCol>
     </BRow>
@@ -51,7 +51,7 @@ const password = ref('')
 const passwordRepeat = ref('')
 
 defineProps({
-  value: {
+  modelValue: {
     type: Object,
     required: true,
   },
@@ -61,6 +61,8 @@ defineProps({
   },
 })
 
+const emit = defineEmits(['input'])
+
 const createId = (text) => {
   return text.replace(/ +/g, '-')
 }
@@ -69,7 +71,11 @@ const passwordObject = computed(() => {
   return { password: password.value, passwordRepeat: passwordRepeat.value }
 })
 
-watch([password, passwordRepeat], () => {
-  emit('input', passwordObject.value)
-})
+watch(
+  [password, passwordRepeat],
+  () => {
+    emit('input', passwordObject.value)
+  },
+  { deep: true },
+)
 </script>
