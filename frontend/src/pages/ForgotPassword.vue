@@ -1,36 +1,29 @@
 <!-- eslint-disable prettier/prettier -->
 <template>
   <div class="forgot-password">
-    <b-container v-if="enterData">
+    <BContainer v-if="enterData">
       <div class="pb-5">{{ $t('site.forgotPassword.heading') }}</div>
       <BRow class="justify-content-center">
         <BCol>
-          <validation-observer ref="observer" v-slot="{ handleSubmit, valid }">
-            <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
-              <input-email
-                v-model="form.email"
-                :name="$t('form.email')"
-                :label="$t('form.email')"
-                :placeholder="$t('form.email')"
-              ></input-email>
-              <BRow>
-                <BCol cols="12" lg="6">
-                  <b-button
-                    type="submit"
-                    :variant="valid ? 'gradido' : 'gradido-disable'"
-                    block
-                    :disabled="!valid"
-                  >
-                    {{ $t('settings.password.send_now') }}
-                  </b-button>
-                </BCol>
-              </BRow>
-            </b-form>
-          </validation-observer>
+          <BForm role="form" @submit.prevent="onSubmit">
+            <input-email name="email" :label="$t('form.email')" :placeholder="$t('form.email')" />
+            <BRow>
+              <BCol cols="12" lg="6">
+                <BButton
+                  type="submit"
+                  :variant="formMeta.valid ? 'gradido' : 'gradido-disable'"
+                  block
+                  :disabled="!formMeta.valid"
+                >
+                  {{ $t('settings.password.send_now') }}
+                </BButton>
+              </BCol>
+            </BRow>
+          </BForm>
         </BCol>
       </BRow>
-    </b-container>
-    <b-container v-else>
+    </BContainer>
+    <BContainer v-else>
       <message
         :headline="success ? $t('message.title') : $t('message.errorTitle')"
         :subtitle="success ? $t('message.email') : $t('error.email-already-sent')"
@@ -38,70 +31,64 @@
         :button-text="$t('login')"
         link-to="/login"
       />
-    </b-container>
+    </BContainer>
   </div>
 </template>
 
-<script>
-import { forgotPassword } from '@/graphql/mutations'
+<script setup>
+import { ref, computed } from 'vue'
+import { useMutation } from '@vue/apollo-composable'
 import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
+import { useAppToast } from '@/composables/useToast'
+import { forgotPassword } from '@/graphql/mutations'
+import { useRoute } from 'vue-router'
+import { useForm } from 'vee-validate'
+import { useI18n } from 'vue-i18n'
 
-export default {
-  name: 'ForgotPassword',
-  components: {
-    InputEmail,
-    Message,
-  },
-  data() {
-    return {
-      form: {
-        email: '',
-      },
-      subtitle: 'settings.password.subtitle',
-      showPageMessage: false,
-      success: null,
-    }
-  },
-  computed: {
-    enterData() {
-      return !this.showPageMessage
-    },
-  },
-  created() {
-    if (this.$route.params.comingFrom) {
-      this.subtitle = 'settings.password.resend_subtitle'
-    }
-  },
-  methods: {
-    async onSubmit() {
-      this.$apollo
-        .mutate({
-          mutation: forgotPassword,
-          variables: {
-            email: this.form.email,
-          },
-        })
-        .then(() => {
-          this.showPageMessage = true
-          this.success = true
-        })
-        .catch(() => {
-          this.showPageMessage = true
-          this.success = false
-          this.toastError(this.$t('error.email-already-sent'))
-        })
-    },
-  },
+const { toastError } = useAppToast()
+
+const subtitle = ref('settings.password.subtitle')
+const showPageMessage = ref(false)
+const success = ref(null)
+
+const { params } = useRoute()
+
+const { t } = useI18n()
+
+if (params.comingFrom) {
+  subtitle.value = 'settings.password.resend_subtitle'
+}
+
+const { mutate } = useMutation(forgotPassword)
+
+const { meta: formMeta, values: formValues } = useForm()
+
+const enterData = computed(() => {
+  return !showPageMessage.value
+})
+
+async function onSubmit() {
+  try {
+    await mutate({
+      email: formValues.email,
+    })
+    showPageMessage.value = true
+    success.value = true
+  } catch (err) {
+    showPageMessage.value = true
+    success.value = false
+    toastError(t('error.email-already-sent'))
+  }
 }
 </script>
 <style scoped>
-.btn-gradido {
+:deep(.btn-gradido) {
   padding-right: 0;
   padding-left: 0;
 }
 
-.btn-gradido-disable {
+:deep(.btn-gradido-disable) {
   padding-right: 0;
   padding-left: 0;
 }

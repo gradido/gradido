@@ -5,10 +5,10 @@
       <BForm @submit.prevent="onSubmit" @reset="onReset">
         <BFormTextarea
           id="textarea"
-          @update:model-value="form.text = $event"
           :model-value="form.text"
           :placeholder="$t('form.memo')"
           rows="3"
+          @update:model-value="form.text = $event"
         ></BFormTextarea>
         <BRow class="mt-4 mb-4">
           <BCol>
@@ -24,59 +24,6 @@
     </div>
   </div>
 </template>
-<!--<script>-->
-<!--import { createContributionMessage } from '../../graphql/mutations.js'-->
-
-<!--export default {-->
-<!--  name: 'ContributionMessagesFormular',-->
-<!--  props: {-->
-<!--    contributionId: {-->
-<!--      type: Number,-->
-<!--      required: true,-->
-<!--    },-->
-<!--  },-->
-<!--  data() {-->
-<!--    return {-->
-<!--      form: {-->
-<!--        text: '',-->
-<!--      },-->
-<!--      isSubmitting: false,-->
-<!--    }-->
-<!--  },-->
-<!--  computed: {-->
-<!--    disabled() {-->
-<!--      return this.form.text === '' || this.isSubmitting-->
-<!--    },-->
-<!--  },-->
-<!--  methods: {-->
-<!--    onSubmit() {-->
-<!--      this.isSubmitting = true-->
-<!--      this.$apollo-->
-<!--        .mutate({-->
-<!--          mutation: createContributionMessage,-->
-<!--          variables: {-->
-<!--            contributionId: this.contributionId,-->
-<!--            message: this.form.text,-->
-<!--          },-->
-<!--        })-->
-<!--        .then((result) => {-->
-<!--          this.$emit('get-list-contribution-messages', false)-->
-<!--          this.$emit('update-status', this.contributionId)-->
-<!--          this.form.text = ''-->
-<!--          this.toastSuccess(this.$t('message.reply'))-->
-<!--          this.isSubmitting = false-->
-<!--        })-->
-<!--        .catch((error) => {-->
-<!--          this.toastError(error.message)-->
-<!--          this.isSubmitting = false-->
-<!--        })-->
-<!--    },-->
-<!--    onReset() {-->
-<!--      this.form.text = ''-->
-<!--    },-->
-<!--  },-->
-<!--}-->
-<!--</script>-->
 
 <script setup>
 import { ref, computed } from 'vue'

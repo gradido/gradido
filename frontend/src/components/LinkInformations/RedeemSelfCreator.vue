@@ -2,16 +2,16 @@
   <div class="redeem-self-creator">
     <redeem-information v-bind="linkData" :is-contribution-link="isContributionLink" />
 
-    <b-jumbotron>
+    <BCard>
       <div class="mb-3 text-center">
         <div class="mt-3">
           {{ $t('gdd_per_link.no-redeem') }}
-          <b-link to="/transactions">
+          <BLink to="/transactions">
             <b>{{ $t('gdd_per_link.link-overview') }}</b>
-          </b-link>
+          </BLink>
         </div>
       </div>
-    </b-jumbotron>
+    </BCard>
   </div>
 </template>
 <script>

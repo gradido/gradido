@@ -2,7 +2,7 @@
   <div id="register-community">
     <!-- Header -->
     <div class="p-3">
-      <b-container>
+      <BContainer>
         <div class="text-center mb-7 header">
           <BRow class="justify-content-center">
             <BCol xl="5" lg="6" md="8" class="px-2">
@@ -18,9 +18,9 @@
           <BRow>
             <BCol class="text-center">
               <router-link to="/register">
-                <b-button variant="outline-secondary">
+                <BButton variant="outline-secondary">
                   {{ $t('community.continue-to-registration') }}
-                </b-button>
+                </BButton>
               </router-link>
             </BCol>
           </BRow>
@@ -29,9 +29,9 @@
           <BRow>
             <BCol class="text-center">
               <router-link to="/select-community">
-                <b-button variant="outline-secondary">
+                <BButton variant="outline-secondary">
                   {{ $t('community.choose-another-community') }}
-                </b-button>
+                </BButton>
               </router-link>
             </BCol>
           </BRow>
@@ -39,12 +39,12 @@
           <BRow>
             <BCol class="text-center">
               <router-link to="/login">
-                <b-button variant="outline-secondary">{{ $t('back') }}</b-button>
+                <BButton variant="outline-secondary">{{ $t('back') }}</BButton>
               </router-link>
             </BCol>
           </BRow>
         </div>
-      </b-container>
+      </BContainer>
     </div>
   </div>
 </template>

@@ -107,7 +107,7 @@
         </BCol>
       </BRow>
       <div v-else class="pb-3"></div>
-      <BCollapse :id="collapsId" :model-value="visible" class="mt-2">
+      <BCollapse :id="collapseId" :model-value="visible" class="mt-2">
         <contribution-messages-list
           :messages="messagesGet"
           :status="status"
@@ -119,169 +119,13 @@
     </div>
   </div>
 </template>
-<!--<script>-->
-<!--import Avatar from 'vue-avatar'-->
-<!--import CollapseIcon from '../TransactionRows/CollapseIcon'-->
-<!--import ContributionMessagesList from '@/components/ContributionMessages/ContributionMessagesList'-->
-<!--import { listContributionMessages } from '../../graphql/queries.js'-->
-
-<!--export default {-->
-<!--  name: 'ContributionListItem',-->
-<!--  components: {-->
-<!--    Avatar,-->
-<!--    CollapseIcon,-->
-<!--    ContributionMessagesList,-->
-<!--  },-->
-<!--  props: {-->
-<!--    id: {-->
-<!--      type: Number,-->
-<!--    },-->
-<!--    amount: {-->
-<!--      type: String,-->
-<!--    },-->
-<!--    memo: {-->
-<!--      type: String,-->
-<!--    },-->
-<!--    firstName: {-->
-<!--      type: String,-->
-<!--      required: false,-->
-<!--    },-->
-<!--    lastName: {-->
-<!--      type: String,-->
-<!--      required: false,-->
-<!--    },-->
-<!--    createdAt: {-->
-<!--      type: String,-->
-<!--    },-->
-<!--    contributionDate: {-->
-<!--      type: String,-->
-<!--    },-->
-<!--    deletedAt: {-->
-<!--      type: String,-->
-<!--      required: false,-->
-<!--    },-->
-<!--    confirmedBy: {-->
-<!--      type: Number,-->
-<!--      required: false,-->
-<!--    },-->
-<!--    confirmedAt: {-->
-<!--      type: String,-->
-<!--      required: false,-->
-<!--    },-->
-<!--    deniedBy: {-->
-<!--      type: Number,-->
-<!--      required: false,-->
-<!--    },-->
-<!--    deniedAt: {-->
-<!--      type: String,-->
-<!--      required: false,-->
-<!--    },-->
-<!--    updatedBy: {-->
-<!--      type: Number,-->
-<!--      required: false,-->
-<!--    },-->
-<!--    status: {-->
-<!--      type: String,-->
-<!--      required: false,-->
-<!--      default: '',-->
-<!--    },-->
-<!--    messagesCount: {-->
-<!--      type: Number,-->
-<!--      required: false,-->
-<!--    },-->
-<!--    contributionId: {-->
-<!--      type: Number,-->
-<!--      required: true,-->
-<!--    },-->
-<!--    allContribution: {-->
-<!--      type: Boolean,-->
-<!--      required: false,-->
-<!--      default: false,-->
-<!--    },-->
-<!--    moderatorId: {-->
-<!--      type: Number,-->
-<!--      required: false,-->
-<!--      default: 0,-->
-<!--    },-->
-<!--  },-->
-<!--  data() {-->
-<!--    return {-->
-<!--      inProcess: true,-->
-<!--      messages_get: [],-->
-<!--      visible: false,-->
-<!--    }-->
-<!--  },-->
-<!--  computed: {-->
-<!--    icon() {-->
-<!--      if (this.deletedAt) return 'trash'-->
-<!--      if (this.deniedAt) return 'x-circle'-->
-<!--      if (this.confirmedAt) return 'check'-->
-<!--      if (this.status === 'IN_PROGRESS') return 'question'-->
-<!--      return `<IBiBellFill />`-->
-<!--    },-->
-<!--    variant() {-->
-<!--      if (this.deletedAt) return 'danger'-->
-<!--      if (this.deniedAt) return 'warning'-->
-<!--      if (this.confirmedAt) return 'success'-->
-<!--      if (this.status === 'IN_PROGRESS') return '205'-->
-<!--      return 'primary'-->
-<!--    },-->
-<!--    date() {-->
-<!--      return this.createdAt-->
-<!--    },-->
-<!--    collapsId() {-->
-<!--      return 'collapse' + String(this.id)-->
-<!--    },-->
-<!--    username() {-->
-<!--      return {-->
-<!--        username: `${this.firstName} ${this.lastName}`,-->
-<!--        initials: `${this.firstName[0]}${this.lastName[0]}`,-->
-<!--      }-->
-<!--    },-->
-<!--  },-->
-<!--  watch: {-->
-<!--    visible() {-->
-<!--      if (this.visible) this.getListContributionMessages()-->
-<!--    },-->
-<!--  },-->
-<!--  methods: {-->
-<!--    deleteContribution(item) {-->
-<!--      this.$bvModal.msgBoxConfirm(this.$t('contribution.delete')).then(async (value) => {-->
-<!--        if (value) this.$emit('delete-contribution', item)-->
-<!--      })-->
-<!--    },-->
-<!--    getListContributionMessages(closeCollapse = true) {-->
-<!--      if (closeCollapse) {-->
-<!--        this.$emit('closeAllOpenCollapse')-->
-<!--      }-->
-<!--      this.$apollo-->
-<!--        .query({-->
-<!--          query: listContributionMessages,-->
-<!--          variables: {-->
-<!--            contributionId: this.contributionId,-->
-<!--          },-->
-<!--          fetchPolicy: 'no-cache',-->
-<!--        })-->
-<!--        .then((result) => {-->
-<!--          this.messages_get = result.data.listContributionMessages.messages-->
-<!--        })-->
-<!--        .catch((error) => {-->
-<!--          this.toastError(error.message)-->
-<!--        })-->
-<!--    },-->
-<!--    updateStatus(id) {-->
-<!--      this.$emit('update-status', id)-->
-<!--    },-->
-<!--  },-->
-<!--}-->
-<!--</script>-->
 
 <script setup>
 import { ref, computed, watch } from 'vue'
 import Avatar from 'vue-avatar'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import ContributionMessagesList from '@/components/ContributionMessages/ContributionMessagesList'
-import { listContributionMessages } from '../../graphql/queries.js'
+import { listContributionMessages } from '@/graphql/queries'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
 import { useQuery } from '@vue/apollo-composable'
@@ -366,14 +210,6 @@ const inProcess = ref(true)
 const messagesGet = ref([])
 const visible = ref(false)
 
-const icon = computed(() => {
-  if (props.deletedAt) return 'trash'
-  if (props.deniedAt) return 'x-circle'
-  if (props.confirmedAt) return 'check'
-  if (props.status === 'IN_PROGRESS') return 'question'
-  return `<IBiBellFill />`
-})
-
 const variant = computed(() => {
   if (props.deletedAt) return 'danger'
   if (props.deniedAt) return 'warning'
@@ -384,7 +220,7 @@ const variant = computed(() => {
 
 const date = computed(() => props.createdAt)
 
-const collapsId = computed(() => 'collapse' + String(props.id))
+const collapseId = computed(() => 'collapse' + String(props.id))
 
 const username = computed(() => ({
   username: `${props.firstName} ${props.lastName}`,

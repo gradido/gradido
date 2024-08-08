@@ -1,7 +1,7 @@
 <template>
   <div class="nav-community">
     <div
-      class="nav-community__btn-wrapper bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
+      class="nav-community-btn-wrapper bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
     >
       <BButton
         to="contribute"
@@ -42,7 +42,7 @@ export default {
 }
 </script>
 <style scoped lang="scss">
-.nav-community__btn-wrapper {
+.nav-community-btn-wrapper {
   > :deep(*) {
     width: calc(100% / 3);
     display: flex;

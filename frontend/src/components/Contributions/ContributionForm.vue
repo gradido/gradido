@@ -9,7 +9,6 @@
       <BFormInput
         id="contribution-date"
         :model-value="date"
-        @update:model-value="date = $event"
         :state="dataFieldMeta.valid"
         :locale="$i18n.locale"
         :max="getMaximalDate"
@@ -20,6 +19,7 @@
         required
         :no-flip="true"
         type="date"
+        @update:model-value="date = $event"
       >
         <template #nav-prev-year><span></span></template>
         <template #nav-next-year><span></span></template>

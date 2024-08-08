@@ -1,22 +1,19 @@
 <template>
   <div class="navbar-small">
-    <b-navbar class="navi">
-      <b-navbar-nav>
-        <b-nav-item :to="register" class="auth-navbar">{{ $t('signup') }}</b-nav-item>
+    <BNavbar class="navi">
+      <BNavbarNav>
+        <BNavItem :to="register()" class="auth-navbar">{{ $t('signup') }}</BNavItem>
         <span class="mt-1">{{ $t('math.pipe') }}</span>
-        <b-nav-item :to="login" class="auth-navbar">{{ $t('signin') }}</b-nav-item>
-      </b-navbar-nav>
-    </b-navbar>
+        <BNavItem :to="login()" class="auth-navbar">{{ $t('signin') }}</BNavItem>
+      </BNavbarNav>
+    </BNavbar>
   </div>
 </template>
 
-<script>
-import { authLinks } from '@/mixins/authLinks'
+<script setup>
+import { useAuthLinks } from '@/composables/useAuthLinks'
 
-export default {
-  name: 'AuthNavbarSmall',
-  mixins: [authLinks],
-}
+const { login, register } = useAuthLinks()
 </script>
 <style scoped>
 .navi {

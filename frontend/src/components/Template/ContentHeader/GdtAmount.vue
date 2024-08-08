@@ -46,45 +46,6 @@
     </div>
   </div>
 </template>
-<!--<script>-->
-<!--import { updateUserInfos } from '@/graphql/mutations'-->
-
-<!--export default {-->
-<!--  name: 'GdtAmount',-->
-<!--  props: {-->
-<!--    GdtBalance: { type: Number, required: true },-->
-<!--    badgeShow: { type: Boolean, default: true },-->
-<!--    showStatus: { type: Boolean, default: false },-->
-<!--  },-->
-<!--  computed: {-->
-<!--    hideAmount() {-->
-<!--      return this.$store.state.hideAmountGDT-->
-<!--    },-->
-<!--  },-->
-<!--  methods: {-->
-<!--    async updateHideAmountGDT() {-->
-<!--      this.$apollo-->
-<!--        .mutate({-->
-<!--          mutation: updateUserInfos,-->
-<!--          variables: {-->
-<!--            hideAmountGDT: !this.hideAmount,-->
-<!--          },-->
-<!--        })-->
-<!--        .then(() => {-->
-<!--          this.$store.commit('hideAmountGDT', !this.hideAmount)-->
-<!--          if (!this.hideAmount) {-->
-<!--            this.toastSuccess(this.$t('settings.showAmountGDT'))-->
-<!--          } else {-->
-<!--            this.toastSuccess(this.$t('settings.hideAmountGDT'))-->
-<!--          }-->
-<!--        })-->
-<!--        .catch((error) => {-->
-<!--          this.toastError(error.message)-->
-<!--        })-->
-<!--    },-->
-<!--  },-->
-<!--}-->
-<!--</script>-->
 
 <script setup>
 import { computed } from 'vue'

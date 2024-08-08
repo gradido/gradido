@@ -31,47 +31,6 @@
     </BContainer>
   </div>
 </template>
-<!--<script>-->
-<!--import { authenticateHumhubAutoLogin } from '@/graphql/queries'-->
-<!--export default {-->
-<!--  name: 'Circles',-->
-<!--  data() {-->
-<!--    return {-->
-<!--      enableButton: false,-->
-<!--      humhubUri: '',-->
-<!--    }-->
-<!--  },-->
-<!--  computed: {-->
-<!--    humhubAllowed() {-->
-<!--      return this.$store.state.humhubAllowed-->
-<!--    },-->
-<!--  },-->
-<!--  methods: {-->
-<!--    async authenticateHumhubAutoLogin() {-->
-<!--      this.enableButton = false-->
-<!--      this.humhubUri = null-->
-<!--      this.$apollo-->
-<!--        .query({-->
-<!--          query: authenticateHumhubAutoLogin,-->
-<!--          fetchPolicy: 'network-only',-->
-<!--        })-->
-<!--        .then(async (result) => {-->
-<!--          this.humhubUri = result.data.authenticateHumhubAutoLogin-->
-<!--          this.enableButton = true-->
-<!--        })-->
-<!--        .catch(() => {-->
-<!--          this.enableButton = true-->
-<!--          this.humhubUri = ''-->
-<!--          // something went wrong with login link so we disable humhub-->
-<!--          this.$store.commit('humhubAllowed', false)-->
-<!--        })-->
-<!--    },-->
-<!--  },-->
-<!--  created() {-->
-<!--    this.authenticateHumhubAutoLogin()-->
-<!--  },-->
-<!--}-->
-<!--</script>-->
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
