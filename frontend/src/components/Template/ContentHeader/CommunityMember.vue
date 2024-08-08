@@ -1,5 +1,5 @@
 <template>
-  <div class="community-member mt-3 mt-lg-0">
+  <div class="community-member mt-3 mt-lg-0 position-relative">
     <div class="text-center bg-gradient">
       <BBadge class="position-absolute mt--2 ml--5 px-3 bg-gradient">
         {{ $t('member') }}

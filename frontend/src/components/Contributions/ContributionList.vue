@@ -6,7 +6,7 @@
         v-bind="item"
         :contribution-id="item.id"
         :all-contribution="allContribution"
-        @closeAllOpenCollapse="$emit('closeAllOpenCollapse')"
+        @close-all-open-collapse="$emit('close-all-open-collapse')"
         @update-contribution-form="updateContributionForm"
         @delete-contribution="deleteContribution"
         @update-status="updateStatus"
@@ -18,13 +18,13 @@
         v-bind="item2"
         :contribution-id="item2.id"
         :all-contribution="allContribution"
-        @closeAllOpenCollapse="$emit('closeAllOpenCollapse')"
+        @close-all-open-collapse="$emit('close-all-open-collapse')"
         @update-contribution-form="updateContributionForm"
         @delete-contribution="deleteContribution"
         @update-status="updateStatus"
       />
     </div>
-    <b-pagination
+    <BPagination
       v-if="isPaginationVisible"
       v-model="currentPage"
       class="mt-3"
@@ -34,7 +34,7 @@
       :total-rows="contributionCount"
       align="center"
       :hide-ellipsis="true"
-    ></b-pagination>
+    />
   </div>
 </template>
 <script>

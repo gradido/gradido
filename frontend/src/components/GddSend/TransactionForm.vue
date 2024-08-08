@@ -293,7 +293,7 @@ const userName = ref('')
 const recipientCommunity = ref({ uuid: '', name: '' })
 
 // Use vee-validate's useForm
-const { handleSubmit, values, meta, resetForm, defineField } = useForm({
+const { handleSubmit, resetForm, defineField } = useForm({
   initialValues: {
     identifier: props.identifier,
     amount: props.amount ? String(props.amount) : '',

@@ -1,12 +1,5 @@
 <template>
   <div class="input-amount">
-    <!--    <validation-provider-->
-    <!--      v-if="typ === 'TransactionForm'"-->
-    <!--      tag="div"-->
-    <!--      :rules="rules"-->
-    <!--      :name="name"-->
-    <!--      v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"-->
-    <!--    >-->
     <template v-if="typ === 'TransactionForm'">
       <BFormGroup :label="label" :label-for="labelFor" data-test="input-amount">
         <BFormInput
@@ -24,14 +17,12 @@
           @update:model-value="normalizeAmount($event)"
           @focus="amountFocused = true"
           @blur="normalizeAmount($event)"
-        ></BFormInput>
-
+        />
         <BFormInvalidFeedback v-if="errorMessage">
           {{ errorMessage }}
         </BFormInvalidFeedback>
       </BFormGroup>
     </template>
-    <!--    </validation-provider>-->
     <BInputGroup v-else append="GDD" :label="label" :label-for="labelFor">
       <BFormInput
         :id="labelFor"
@@ -42,12 +33,8 @@
         type="text"
         readonly
         trim
-        @update:model-value="normalizeAmount($event)"
-        @focus="amountFocused = true"
-        @blur="normalizeAmount($event)"
-      ></BFormInput>
+      />
     </BInputGroup>
-    <pre>{{ value }}</pre>
   </div>
 </template>
 <!--<script>-->

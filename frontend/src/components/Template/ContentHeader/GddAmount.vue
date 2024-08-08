@@ -42,7 +42,7 @@
           <!--            class="mr-3 gradido-global-border-color-accent pointer hover-icon"-->
           <!--            @click="updateHideAmountGDD"-->
           <!--          ></b-icon>-->
-          <button @click="updateHideAmountGDD">
+          <button class="transparent-button" @click="updateHideAmountGDD">
             <IBiEyeSlash v-if="hideAmount" />
             <IBiEye v-else />
           </button>

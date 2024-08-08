@@ -26,7 +26,6 @@
   <div class="input-hour">
     <BFormGroup :label="label" :label-for="labelFor">
       <BFormInput
-        v-bind="ariaInput"
         :id="labelFor"
         :model-value="currentValue"
         :name="name"
@@ -37,8 +36,11 @@
         min="0"
         :max="validMaxTime"
         class="bg-248"
-        @update:modelValue="currentValue"
+        @update:model-value="currentValue = $event"
       />
+      <BFormInvalidFeedback v-if="errorMessage">
+        {{ errorMessage }}
+      </BFormInvalidFeedback>
     </BFormGroup>
   </div>
 </template>
@@ -82,7 +84,6 @@
 import { ref, computed, watch } from 'vue'
 import { useField } from 'vee-validate'
 
-// Props
 const props = defineProps({
   rules: {
     type: Object,
@@ -100,42 +101,13 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  modelValue: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
   validMaxTime: {
     type: Number,
     required: true,
   },
 })
 
-// Emits
-const emit = defineEmits(['update:modelValue', 'updateAmount'])
+const { value: currentValue, errorMessage, meta } = useField(props.name, props.rules)
 
-// Use vee-validate's useField
-const { value: currentValue, meta } = useField(props.name, props.rules, {
-  initialValue: props.modelValue,
-})
-
-// Computed
 const labelFor = computed(() => `${props.name}-input-field`)
-
-// Watch for external value changes
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    if (newValue !== currentValue.value) {
-      currentValue.value = newValue
-      emit('updateAmount', newValue)
-    }
-  },
-)
-
-// Watch for internal value changes
-watch(currentValue, (newValue) => {
-  emit('update:modelValue', Number(newValue))
-  emit('updateAmount', Number(newValue))
-})
 </script>
