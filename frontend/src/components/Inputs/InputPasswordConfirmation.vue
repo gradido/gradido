@@ -19,7 +19,8 @@
           :immediate="true"
           :name="createId(register ? $t('form.password') : $t('form.password_new'))"
           :placeholder="register ? $t('form.password') : $t('form.password_new')"
-        ></input-password>
+          v-model="password"
+        />
       </BCol>
     </BRow>
     <BRow class="mb-2">
@@ -35,52 +36,40 @@
           :immediate="true"
           :name="createId(register ? $t('form.passwordRepeat') : $t('form.password_new_repeat'))"
           :placeholder="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
-        ></input-password>
+          v-model="passwordRepeat"
+        />
       </BCol>
     </BRow>
   </div>
 </template>
-<script>
+<script setup>
+import { computed, ref, watch } from 'vue'
 import InputPassword from './InputPassword'
+import { BCol, BRow } from 'bootstrap-vue-next'
 
-export default {
-  name: 'InputPasswordConfirm',
-  components: {
-    InputPassword,
+const password = ref('')
+const passwordRepeat = ref('')
+
+defineProps({
+  value: {
+    type: Object,
+    required: true,
   },
-  props: {
-    value: {
-      type: Object,
-      required: true,
-    },
-    register: {
-      type: Boolean,
-      required: false,
-    },
+  register: {
+    type: Boolean,
+    required: false,
   },
-  data() {
-    return {
-      password: '',
-      passwordRepeat: '',
-    }
-  },
-  computed: {
-    passwordObject() {
-      return { password: this.password, passwordRepeat: this.passwordRepeat }
-    },
-  },
-  watch: {
-    password() {
-      this.$emit('input', this.passwordObject)
-    },
-    passwordRepeat() {
-      this.$emit('input', this.passwordObject)
-    },
-  },
-  methods: {
-    createId(text) {
-      return text.replace(/ +/g, '-')
-    },
-  },
+})
+
+const createId = (text) => {
+  return text.replace(/ +/g, '-')
 }
+
+const passwordObject = computed(() => {
+  return { password: password.value, passwordRepeat: passwordRepeat.value }
+})
+
+watch([password, passwordRepeat], () => {
+  emit('input', passwordObject.value)
+})
 </script>

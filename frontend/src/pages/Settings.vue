@@ -1,7 +1,7 @@
 <template>
-  <div class="card bg-white gradido-border-radius app-box-shadow p-4 mt--3">
-    <b-tabs v-model="tabIndex" content-class="mt-3">
-      <b-tab :title="$t('PersonalDetails')">
+  <div class="card bg-white gradido-border-radius appBoxShadow p-4 mt--3">
+    <BTabs v-model="tabIndex" content-class="mt-3">
+      <BTab :title="$t('PersonalDetails')">
         <div class="h2">{{ $t('PersonalDetails') }}</div>
         <div class="my-4 text-small">
           {{ $t('settings.info') }}
@@ -12,45 +12,45 @@
             <user-name />
           </BCol>
           <BCol cols="12" md="6" lg="6">
-            <b-form-group :label="$t('form.email')" :description="$t('settings.emailInfo')">
-              <b-form-input v-model="email" readonly></b-form-input>
-            </b-form-group>
+            <BFormGroup :label="$t('form.email')" :description="$t('settings.emailInfo')">
+              <BFormInput v-model="email" readonly></BFormInput>
+            </BFormGroup>
           </BCol>
         </BRow>
 
         <hr />
-        <b-form>
+        <BForm>
           <BRow class="mt-3">
             <BCol cols="12" md="6" lg="6">
               <label>{{ $t('form.firstname') }}</label>
-              <b-form-input
+              <BFormInput
                 v-model="firstName"
                 :placeholder="$t('settings.name.enterFirstname')"
                 data-test="firstname"
                 trim
-              ></b-form-input>
+              />
             </BCol>
             <BCol cols="12" md="6" lg="6">
               <label>{{ $t('form.lastname') }}</label>
-              <b-form-input
+              <BFormInput
                 v-model="lastName"
                 :placeholder="$t('settings.name.enterLastname')"
                 data-test="lastname"
                 trim
-              ></b-form-input>
+              />
             </BCol>
           </BRow>
           <div v-if="!isDisabled" class="mt-4 pt-4 text-center">
-            <b-button
+            <BButton
               type="submit"
               variant="primary"
               data-test="submit-userdata"
               @click.prevent="onSubmit"
             >
               {{ $t('form.save') }}
-            </b-button>
+            </BButton>
           </div>
-        </b-form>
+        </BForm>
         <hr />
         <BRow>
           <BCol cols="12" md="6" lg="6">{{ $t('language') }}</BCol>
@@ -78,9 +78,9 @@
             <user-newsletter />
           </BCol>
         </BRow>
-      </b-tab>
+      </BTab>
       <div v-if="isCommunityService">
-        <b-tab class="community-service-tabs" :title="$t('settings.community')">
+        <BTab class="community-service-tabs" :title="$t('settings.community')">
           <div class="h2">{{ $t('settings.allow-community-services') }}</div>
           <div v-if="isHumhub" class="mt-3">
             <BRow>
@@ -147,7 +147,7 @@
                   {{ $t('settings.GMS.location-format') }}
                 </BCol>
                 <BCol cols="12" md="6" lg="6">
-                  <user-g-m-s-location-format />
+                  <!-- <user-g-m-s-location-format /> -->
                 </BCol>
               </BRow>
               <BRow class="mb-5">
@@ -155,7 +155,7 @@
                   {{ $t('settings.GMS.location.label') }}
                 </BCol>
                 <BCol cols="12" md="6" lg="6">
-                  <user-g-m-s-location />
+                  <!-- <user-g-m-s-location /> -->
                 </BCol>
               </BRow>
             </div>
@@ -171,123 +171,101 @@
             </BRow>
             <div class="h4 mt-3 text-muted">{{ $t('GMS.desc') }}</div>
           </div>
-        </b-tab>
+        </BTab>
       </div>
-    </b-tabs>
+    </BTabs>
 
     <!-- TODO<BRow>
       <BCol cols="12" md="6" lg="6">{{ $t('settings.darkMode') }}</BCol>
       <BCol cols="12" md="6" lg="6" class="text-right">
-        <b-form-checkbox v-model="darkMode" name="dark-mode" switch aligne></b-form-checkbox>
+        <BForm-checkbox v-model="darkMode" name="dark-mode" switch aligne></BForm-checkbox>
       </BCol>
     </BRow> -->
   </div>
 </template>
-<script>
-import UserNamingFormat from '@/components/UserSettings/UserNamingFormat'
-import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
-import UserGMSLocation from '@/components/UserSettings/UserGMSLocation'
-import UserName from '@/components/UserSettings/UserName.vue'
-import UserPassword from '@/components/UserSettings/UserPassword'
-import UserLanguage from '@/components/LanguageSwitch2.vue'
-import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
-import UserSettingsSwitch from '../components/UserSettings/UserSettingsSwitch.vue'
+<script setup>
+import { useStore } from 'vuex'
 import { updateUserInfos } from '@/graphql/mutations'
 import CONFIG from '../config'
+import { useRoute } from 'vue-router'
+import { computed } from 'vue'
+import { useMutation } from '@vue/apollo-composable'
+import UserName from '@/components/UserSettings/UserName.vue'
+import UserLanguage from '@/components/LanguageSwitch2.vue'
+import UserPassword from '@/components/UserSettings/UserPassword'
+import UserSettingsSwitch from '../components/UserSettings/UserSettingsSwitch.vue'
+import UserNamingFormat from '@/components/UserSettings/UserNamingFormat'
+// import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
+// import UserGMSLocation from '@/components/UserSettings/UserGMSLocation'
+import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
+import { BTabs, BTab, BRow, BCol, BFormInput, BFormGroup, BForm, BButton } from 'bootstrap-vue-next'
 
-export default {
-  name: 'Profile',
-  components: {
-    UserNamingFormat,
-    UserGMSLocationFormat,
-    UserGMSLocation,
-    UserName,
-    UserPassword,
-    UserLanguage,
-    UserNewsletter,
-    UserSettingsSwitch,
-  },
-  props: {
-    balance: { type: Number, default: 0 },
-    transactionCount: { type: Number, default: 0 },
-  },
+const props = defineProps({
+  balance: { type: Number, default: 0 },
+  transactionCount: { type: Number, default: 0 },
+})
 
-  data() {
-    const { state } = this.$store
-    const { darkMode, firstName, lastName, email, newsletterState, gmsAllowed, humhubAllowed } =
-      state
+const store = useStore()
+const state = store.state
 
-    const username = this.$store.state.username || ''
-    let tabIndex = 0
-    if (this.$route.params.tabAlias === 'extern') {
-      tabIndex = 1
-    }
+const route = useRoute()
 
-    return {
-      darkMode,
-      username,
-      firstName,
-      lastName,
-      email,
-      newsletterState,
-      gmsAllowed,
-      humhubAllowed,
-      mutation: '',
-      variables: {},
-      tabIndex,
-    }
-  },
+const darkMode = computed(() => state.darkMode)
+const firstName = computed(() => state.firstName)
+const email = computed(() => state.email)
+const newsletterState = computed(() => state.newsletterState)
+const gmsAllowed = computed(() => state.gmsAllowed)
+const humhubAllowed = computed(() => state.humhubAllowed)
+const username = computed(() => state.username || '')
+const lastName = computed(() => state.lastName)
 
-  computed: {
-    isDisabled() {
-      const { firstName, lastName } = this.$store.state
-      return firstName === this.firstName && lastName === this.lastName
-    },
-    isHumhubActivated() {
-      return this.humhubAllowed === true
-    },
-    isCommunityService() {
-      return this.isGMS || this.isHumhub
-    },
-    isGMS() {
-      return CONFIG.GMS_ACTIVE === 'true'
-    },
-    isHumhub() {
-      return CONFIG.HUMHUB_ACTIVE === 'true'
-    },
-  },
-  // TODO: watch: {
-  //   darkMode(val) {
-  //     this.$store.commit('setDarkMode', this.darkMode)
-  //     this.toastSuccess(
-  //       this.darkMode ? this.$t('settings.modeDark') : this.$t('settings.modeLight'),
-  //     )
-  //   },
-  // },
-  methods: {
-    async onSubmit(key) {
-      try {
-        await this.$apollo.mutate({
-          mutation: updateUserInfos,
-          variables: {
-            firstName: this.firstName,
-            lastName: this.lastName,
-          },
-        })
-        this.$store.commit('firstName', this.firstName)
-        this.$store.commit('lastName', this.lastName)
-        this.showUserData = true
-        this.toastSuccess(this.$t('settings.name.change-success'))
-      } catch (error) {}
-    },
-    gmsStateSwitch(eventData) {
-      this.gmsAllowed = eventData
-    },
-    humhubStateSwitch(eventData) {
-      this.humhubAllowed = eventData
-    },
-  },
+let tabIndex = 0
+if (route.params.tabAlias === 'extern') {
+  tabIndex = 1
 }
+
+const isDisabled = computed(() => {
+  return firstName.value === state.firstName && lastName.value === state.lastName
+})
+
+const isHumhubActivated = computed(() => {
+  return humhubAllowed.value === true
+})
+
+const isGMS = computed(() => {
+  return CONFIG.GMS_ACTIVE === 'true'
+})
+
+const isHumhub = computed(() => {
+  return CONFIG.HUMHUB_ACTIVE === 'true'
+})
+
+const isCommunityService = computed(() => {
+  return isGMS.value || isHumhub.value
+})
+
+const { mutate: updateUserData } = useMutation(updateUserInfos)
+
+const onSubmit = async (key) => {
+  try {
+    await updateUserData({
+      firstName: firstName.value,
+      lastName: lastName.value,
+    }),
+      store.commit('firstName', firstName.value)
+    store.commit('lastName', lastName.value)
+    showUserData.value = true
+    toastSuccess($t('settings.name.change-success'))
+  } catch (error) {}
+}
+
+// const gmsStateSwitch = (eventData) => {
+//   gmsAllowed.value = eventData
+// }
+
+// const humhubStateSwitch = (eventData) => {
+//   humhubAllowed.value = eventData
+// }
 </script>
 <style>
 .community-service-tabs {
