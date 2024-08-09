@@ -113,9 +113,9 @@ const { toastError } = useAppToast()
 const communities = ref([])
 const validCommunityIdentifier = ref(false)
 
-const { result } = useQuery(selectCommunities)
+const { result, onResult } = useQuery(selectCommunities)
 
-watch(result, (data) => {
+onResult(({ data }) => {
   if (data) {
     communities.value = data.communities
     setDefaultCommunity()
@@ -125,7 +125,7 @@ watch(result, (data) => {
 const communityIdentifier = computed(() => route.params.communityIdentifier)
 
 function updateCommunity(community) {
-  emit('update:modelValue', community)
+  emit('update:model-value', community)
 }
 
 function setDefaultCommunity() {
