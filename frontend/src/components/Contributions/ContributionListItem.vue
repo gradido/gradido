@@ -128,7 +128,7 @@ import ContributionMessagesList from '@/components/ContributionMessages/Contribu
 import { listContributionMessages } from '@/graphql/queries'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
-import { useQuery } from '@vue/apollo-composable'
+import { useLazyQuery, useQuery } from '@vue/apollo-composable'
 
 const props = defineProps({
   id: {
@@ -240,7 +240,7 @@ function deleteContribution(item) {
   }
 }
 
-const { onResult, result, loading, error, refetch } = useQuery(listContributionMessages, {
+const { onResult, onError, load } = useLazyQuery(listContributionMessages, {
   contributionId: props.contributionId,
 })
 
@@ -248,10 +248,8 @@ function getListContributionMessages(closeCollapse = true) {
   if (closeCollapse) {
     emit('close-all-open-collapse')
   }
-  refetch({
+  load(listContributionMessages, {
     contributionId: props.contributionId,
-  }).catch((err) => {
-    toastError(err.message)
   })
 }
 
@@ -262,6 +260,10 @@ onResult((resultValue) => {
       messagesGet.value.push(message)
     })
   }
+})
+
+onError((err) => {
+  toastError(err.message)
 })
 
 watch(
