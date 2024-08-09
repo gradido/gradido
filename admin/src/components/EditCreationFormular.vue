@@ -123,20 +123,21 @@ watch(selectedComputed, () => {
 })
 
 const { mutate: updateMutation, onDone, onError } = useMutation(adminUpdateContribution)
+const { refetch: refetchCreations } = useQuery(adminOpenCreations, {
+  userId: props.creationUserData.id,
+})
 
 onDone(() => {
   emit('update-creation-data')
   toastSuccess(t('creation_form.toasted_update', { value: value.value, email: props.item.email }))
   resetForm()
-  refetchOpenCreations()
+  refetchCreations()
 })
 
 onError((error) => {
   toastError(error.message)
   resetForm()
 })
-
-const { refetch: refetchCreations } = useQuery(adminOpenCreations)
 
 const submitCreation = () => {
   updateMutation({
@@ -149,9 +150,5 @@ const submitCreation = () => {
 
 const resetForm = () => {
   value.value = 0
-}
-
-const refetchOpenCreations = () => {
-  refetchCreations()
 }
 </script>
