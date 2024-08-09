@@ -1,6 +1,6 @@
 <template>
   <div class="card bg-white gradido-border-radius appBoxShadow p-4 mt--3">
-    <BTabs v-model="tabIndex" content-class="mt-3">
+    <BTabs :model-value="tabIndex" content-class="mt-3" @update:modelValue="tabIndex = $event">
       <BTab :title="$t('PersonalDetails')">
         <div class="h2">{{ $t('PersonalDetails') }}</div>
         <div class="my-4 text-small">
@@ -13,7 +13,7 @@
           </BCol>
           <BCol cols="12" md="6" lg="6">
             <BFormGroup :label="$t('form.email')" :description="$t('settings.emailInfo')">
-              <BFormInput :model-value="email" @update:modelValue="email = $event" readonly />
+              <BFormInput :model-value="email" readonly @update:modelValue="email = $event" />
             </BFormGroup>
           </BCol>
         </BRow>
@@ -42,7 +42,7 @@
               />
             </BCol>
           </BRow>
-          <div v-if="!isDisabled" class="mt-4 pt-4 text-center">
+          <div v-if="isButtonVisible" class="mt-4 pt-4 text-center">
             <BButton
               type="submit"
               variant="primary"
@@ -186,12 +186,14 @@
   </div>
 </template>
 <script setup>
+import CONFIG from '../config'
 import { useStore } from 'vuex'
 import { updateUserInfos } from '@/graphql/mutations'
-import CONFIG from '../config'
 import { useRoute } from 'vue-router'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
+import { useI18n } from 'vue-i18n'
+import { useAppToast } from '@/composables/useToast'
 import UserName from '@/components/UserSettings/UserName.vue'
 import UserLanguage from '@/components/LanguageSwitch2.vue'
 import UserPassword from '@/components/UserSettings/UserPassword'
@@ -207,27 +209,28 @@ const props = defineProps({
   transactionCount: { type: Number, default: 0 },
 })
 
+const route = useRoute()
+const { t } = useI18n()
+const { toastError, toastSuccess } = useAppToast()
 const store = useStore()
 const state = store.state
 
-const route = useRoute()
-
-const darkMode = computed(() => state.darkMode)
-const firstName = computed(() => state.firstName)
-const email = computed(() => state.email)
-const newsletterState = computed(() => state.newsletterState)
-const gmsAllowed = computed(() => state.gmsAllowed)
-const humhubAllowed = computed(() => state.humhubAllowed)
-const username = computed(() => state.username || '')
-const lastName = computed(() => state.lastName)
+const darkMode = ref(state.darkMode)
+const firstName = ref(state.firstName || '')
+const email = ref(state.email || '')
+const newsletterState = ref(state.newsletterState)
+const gmsAllowed = ref(state.gmsAllowed)
+const humhubAllowed = ref(state.humhubAllowed)
+const username = ref(state.username || '')
+const lastName = ref(state.lastName || '')
 
 let tabIndex = 0
 if (route.params.tabAlias === 'extern') {
   tabIndex = 1
 }
 
-const isDisabled = computed(() => {
-  return firstName.value === state.firstName && lastName.value === state.lastName
+const isButtonVisible = computed(() => {
+  return firstName.value !== state.firstName || lastName.value !== state.lastName
 })
 
 const isHumhubActivated = computed(() => {
@@ -253,12 +256,13 @@ const onSubmit = async (key) => {
     await updateUserData({
       firstName: firstName.value,
       lastName: lastName.value,
-    }),
-      store.commit('firstName', firstName.value)
+    })
+    store.commit('firstName', firstName.value)
     store.commit('lastName', lastName.value)
-    showUserData.value = true
-    toastSuccess($t('settings.name.change-success'))
-  } catch (error) {}
+    toastSuccess(t('settings.name.change-success'))
+  } catch (error) {
+    toastError(error)
+  }
 }
 
 const gmsStateSwitch = (eventData) => {
@@ -268,6 +272,15 @@ const gmsStateSwitch = (eventData) => {
 const humhubStateSwitch = (eventData) => {
   humhubAllowed.value = eventData
 }
+
+// TODO: watch: {
+//   darkMode(val) {
+//     this.$store.commit('setDarkMode', this.darkMode)
+//     this.toastSuccess(
+//       this.darkMode ? this.$t('settings.modeDark') : this.$t('settings.modeLight'),
+//     )
+//   },
+// },
 </script>
 <style>
 .community-service-tabs {

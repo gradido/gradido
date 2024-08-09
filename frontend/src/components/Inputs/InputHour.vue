@@ -27,8 +27,6 @@
     <BFormGroup :label="label" :label-for="labelFor">
       <BFormInput
         v-bind="ariaInput"
-        :modelValue="currentValue"
-        @update:modelValue="currentValue"
         :id="labelFor"
         :model-value="currentValue"
         :name="name"
