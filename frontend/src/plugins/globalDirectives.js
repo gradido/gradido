@@ -1,4 +1,4 @@
-import { focus } from 'vue-focus'
+// import { focus } from 'vue-focus'
 
 /**
  * You can register global directives here and use them as a plugin in your main Vue instance
@@ -6,7 +6,7 @@ import { focus } from 'vue-focus'
 
 const GlobalDirectives = {
   install(Vue) {
-    Vue.directive('focus', focus)
+    // Vue.directive('focus', focus)
   },
 }
 

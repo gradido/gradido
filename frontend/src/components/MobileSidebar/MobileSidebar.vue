@@ -10,7 +10,7 @@
     >
       <b-img src="img/svg/lines.png" />
       <div class="py-2">
-        <sidebar @admin="$emit('admin')" @logout="$emit('logout')" :shadow="false" />
+        <sidebar :shadow="false" @admin="$emit('admin')" @logout="$emit('logout')" />
       </div>
     </b-sidebar>
   </div>

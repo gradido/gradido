@@ -1,40 +1,25 @@
 <template>
   <div class="input-username">
-    <validation-provider
-      tag="div"
-      :rules="rules"
-      :name="name"
-      :bails="!showAllErrors"
-      :immediate="immediate"
-      vid="username"
-      v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
-    >
-      <b-form-group :label="$t('form.username')" :description="$t('settings.usernameInfo')">
-        <b-input-group>
-          <b-form-input
-            v-model="currentValue"
+    <div>
+      <BFormGroup :label="$t('form.username')" :description="$t('settings.usernameInfo')">
+        <BInputGroup>
+          <BFormInput
             v-bind="ariaInput"
             :id="labelFor"
+            :model-value="currentValue"
             :name="name"
             :placeholder="placeholder"
             type="text"
             :state="validated ? valid : false"
             autocomplete="off"
             data-test="username"
-          ></b-form-input>
-          <b-input-group-append>
-            <b-button
-              size="lg"
-              text="Button"
-              variant="secondary"
-              icon="x-lg"
-              @click="$emit('set-is-edit', false)"
-            >
-              <b-icon-x-circle></b-icon-x-circle>
-            </b-button>
-          </b-input-group-append>
-        </b-input-group>
-        <b-form-invalid-feedback v-bind="ariaMsg">
+            @update:modelValue="updateValue"
+          />
+          <BButton size="lg" text="Button" variant="secondary" append @click="emitSetIsEdit">
+            <IBiXCircle style="height: 17px; width: 17px" />
+          </BButton>
+        </BInputGroup>
+        <BFormInvalidFeedback v-bind="ariaMsg">
           <div v-if="showAllErrors">
             <span v-for="error in errors" :key="error">
               {{ error }}
@@ -42,47 +27,52 @@
             </span>
           </div>
           <div v-else>
-            {{ errors[0] }}
+            {{ errors?.[0] }}
           </div>
-        </b-form-invalid-feedback>
-      </b-form-group>
-    </validation-provider>
+        </BFormInvalidFeedback>
+      </BFormGroup>
+    </div>
   </div>
 </template>
-<script>
-export default {
-  name: 'InputUsername',
-  props: {
-    isEdit: { type: Boolean, default: false },
-    rules: {
-      default: () => {
-        return {
-          required: true,
-        }
-      },
-    },
-    name: { type: String, default: 'username' },
-    label: { type: String, default: 'Username' },
-    placeholder: { type: String, default: 'Username' },
-    value: { required: true, type: String },
-    showAllErrors: { type: Boolean, default: false },
-    immediate: { type: Boolean, default: false },
-    unique: { type: Boolean, required: true },
-  },
-  data() {
-    return {
-      currentValue: this.value,
-    }
-  },
-  computed: {
-    labelFor() {
-      return this.name + '-input-field'
-    },
-  },
-  watch: {
-    currentValue() {
-      this.$emit('input', this.currentValue)
-    },
-  },
+<script setup>
+import {
+  BFormGroup,
+  BInputGroup,
+  BFormInput,
+  BButton,
+  BFormInvalidFeedback,
+} from 'bootstrap-vue-next'
+import { ref, computed, watch, defineProps, defineEmits } from 'vue'
+import { useForm } from 'vee-validate'
+
+const props = defineProps({
+  isEdit: { type: Boolean, default: false },
+  rules: { type: Object, default: () => ({ required: true }) },
+  name: { type: String, default: 'username' },
+  label: { type: String, default: 'Username' },
+  placeholder: { type: String, default: 'Username' },
+  modelValue: { type: String, required: true },
+  showAllErrors: { type: Boolean, default: false },
+  immediate: { type: Boolean, default: false },
+  unique: { type: Boolean, required: true },
+})
+
+const currentValue = ref(props?.modelValue)
+
+const { errors, valid, validated, ariaInput, ariaMsg } = useForm({
+  initialValues: currentValue.value,
+})
+
+const emit = defineEmits(['update:modelValue', 'set-is-edit'])
+
+const labelFor = computed(() => `${props.name}-input-field`)
+
+const emitSetIsEdit = (bool) => {
+  emit('set-is-edit', bool)
+}
+
+const updateValue = (e) => {
+  currentValue.value = e
+  emit('update:modelValue', e)
 }
 </script>

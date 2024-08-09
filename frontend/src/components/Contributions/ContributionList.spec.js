@@ -31,8 +31,7 @@ describe('ContributionList', () => {
       {
         id: 2,
         date: '05/04/2022',
-        memo:
-          'Ich habe 50 Stunden den Nachbarkindern bei ihren Hausaufgaben geholfen und Nachhilfeunterricht gegeben.',
+        memo: 'Ich habe 50 Stunden den Nachbarkindern bei ihren Hausaufgaben geholfen und Nachhilfeunterricht gegeben.',
         amount: '1000',
       },
     ],

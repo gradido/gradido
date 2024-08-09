@@ -11,7 +11,7 @@ module.exports = function (api) {
     ],
   ]
 
-  if (process.env.NODE_ENV === 'test') {
+  if (import.meta.env.NODE_ENV === 'test') {
     plugins.push('transform-require-context')
   }
 

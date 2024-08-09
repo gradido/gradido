@@ -35,7 +35,7 @@
           </router-link>
         </b-navbar-nav>
       </b-navbar>
-      <!-- <div class="alertBox">
+      <!-- <div class="alert-box">
       <b-alert show dismissible variant="light" class="nav-alert text-dark">
         <small>{{ $t('1000thanks') }}</small>
       </b-alert>
@@ -82,7 +82,7 @@ export default {
   height: 150px;
 }
 
-.authNavbar > .nav-link {
+.auth-navbar > .nav-link {
   color: #383838 !important;
 }
 
@@ -90,7 +90,7 @@ export default {
   font-size: 2.25rem;
 }
 
-.authNavbar > .router-link-exact-active {
+.auth-navbar > .router-link-exact-active {
   color: #0e79bc !important;
 }
 
@@ -103,31 +103,36 @@ button.navbar-toggler > span.navbar-toggler-icon {
   left: 50%;
   max-width: 64%;
 }
-.alertBox {
+
+.alert-box {
   left: 20%;
   right: 20%;
   position: absolute;
   z-index: 1000;
   top: 25px;
 }
-@media screen and (max-width: 1170px) {
+
+@media screen and (width <= 1170px) {
   .sheet-img {
     left: 20%;
   }
-  .alertBox {
+
+  .alert-box {
     position: static;
     margin-left: 5%;
     margin-right: 5%;
     z-index: 0;
   }
 }
-@media screen and (max-width: 450px) {
+
+@media screen and (width <= 450px) {
   .navbar-element {
     z-index: 1000;
     position: fixed;
     width: 100%;
     background-color: #f5f5f5e6;
   }
+
   .sheet-img {
     left: 5%;
     max-width: 61%;

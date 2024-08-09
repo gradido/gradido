@@ -270,6 +270,7 @@
       "changeLanguage": "Cambiar idioma",
       "de": "Deutsch",
       "en": "English",
+      "error": "No se ha podido actualizar la configuración de idioma.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",

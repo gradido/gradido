@@ -1,30 +1,30 @@
 <template>
-  <div class="transaction-slot-link">
-    <b-row @click="showTransactionLinks()" class="align-items-center">
-      <b-col cols="3" lg="2" md="2">
+  <div class="transaction-slot-link" @click="showTransactionLinks()">
+    <BRow class="align-items-center">
+      <BCol cols="3" lg="2" md="2">
         <b-avatar icon="link" variant="light" :size="42"></b-avatar>
-      </b-col>
-      <b-col>
+      </BCol>
+      <BCol>
         <div>{{ $t('gdd_per_link.links_sum') }}</div>
         <div class="small">{{ transactionLinkCount }} {{ $t('gdd_per_link.links_sum') }}</div>
-      </b-col>
-      <b-col cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
+      </BCol>
+      <BCol cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
         <div class="small mb-2">{{ $t('send_per_link') }}</div>
-        <div class="font-weight-bold">{{ amount | GDD }}</div>
-      </b-col>
-      <b-col cols="12" md="1" lg="1" class="text-right">
+        <div class="font-weight-bold">{{ $filters.GDD(amount) }}</div>
+      </BCol>
+      <BCol cols="12" md="1" lg="1" class="text-right">
         <collapse-icon class="text-right" :visible="visible" />
-      </b-col>
-    </b-row>
-    <b-collapse v-model="visible">
+      </BCol>
+    </BRow>
+    <BCollapse :model-value="visible">
       <collapse-links-list
         v-model="currentPage"
         :pending="pending"
-        :pageSize="pageSize"
-        :transactionLinkCount="transactionLinkCount"
-        :transactionLinks="transactionLinks"
+        :page-size="pageSize"
+        :transaction-link-count="transactionLinkCount"
+        :transaction-links="transactionLinks"
       />
-    </b-collapse>
+    </BCollapse>
   </div>
 </template>
 <script>
@@ -60,6 +60,11 @@ export default {
       pageSize: 5,
       pending: false,
     }
+  },
+  watch: {
+    currentPage() {
+      this.updateListTransactionLinks()
+    },
   },
   methods: {
     showTransactionLinks() {
@@ -102,11 +107,6 @@ export default {
             this.pending = false
           })
       }
-    },
-  },
-  watch: {
-    currentPage() {
-      this.updateListTransactionLinks()
     },
   },
 }

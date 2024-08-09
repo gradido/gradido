@@ -2,8 +2,8 @@ import { ValidationProvider, ValidationObserver } from 'vee-validate'
 
 const GlobalComponents = {
   install(Vue) {
-    Vue.component('validation-provider', ValidationProvider)
-    Vue.component('validation-observer', ValidationObserver)
+    Vue.component('ValidationProvider', ValidationProvider)
+    Vue.component('ValidationObserver', ValidationObserver)
   },
 }
 

@@ -10,6 +10,9 @@
 <script>
 export default {
   name: 'LanguageSwitch',
+  props: {
+    language: { type: String },
+  },
   data() {
     return {
       selected: null,
@@ -22,12 +25,6 @@ export default {
       ],
     }
   },
-  props: {
-    language: { type: String },
-  },
-  created() {
-    this.selected = this.$store.state.language
-  },
   computed: {
     languageObject() {
       return this.selected
@@ -37,6 +34,9 @@ export default {
     selected() {
       this.$emit('update-language', this.languageObject)
     },
+  },
+  created() {
+    this.selected = this.$store.state.language
   },
 }
 </script>

@@ -5,77 +5,77 @@
       <div class="">{{ memo }}</div>
     </div>
     <div class="mb-3">
-      <b-icon icon="droplet-half" class="mr-2" />
+      <IBiDropletHalf class="mr-2" />
       <b>{{ $t('decay.calculation_decay') }}</b>
     </div>
-    <b-row>
-      <b-col>
-        <b-row>
-          <b-col cols="6" lg="4" md="6" sm="6">
+    <BRow>
+      <BCol>
+        <BRow>
+          <BCol cols="6" lg="4" md="6" sm="6">
             <div>{{ $t('decay.last_transaction') }}</div>
-          </b-col>
-          <b-col offset="0" class="text-right mr-0">
+          </BCol>
+          <BCol offset="0" class="text-right mr-0">
             <div>
               <span>
                 {{ $d(new Date(decay.start), 'long') }}
               </span>
             </div>
-          </b-col>
-        </b-row>
-        <duration-row :decayStart="decay.start" :decayEnd="decay.end" />
+          </BCol>
+        </BRow>
+        <duration-row :decay-start="decay.start" :decay-end="decay.end" />
 
         <!-- Previous Balance -->
-        <b-row class="mt-2">
-          <b-col cols="6" lg="4" md="6" sm="6">
+        <BRow class="mt-2">
+          <BCol cols="6" lg="4" md="6" sm="6">
             <div>{{ $t('decay.old_balance') }}</div>
-          </b-col>
-          <b-col offset="0" class="text-right mr-0">
-            {{ previousBalance | GDD }}
-          </b-col>
-        </b-row>
+          </BCol>
+          <BCol offset="0" class="text-right mr-0">
+            {{ $filters.GDD(previousBalance) }}
+          </BCol>
+        </BRow>
 
         <!-- Decay-->
-        <b-row class="mt-0">
-          <b-col cols="6" lg="3" md="6" sm="6">
+        <BRow class="mt-0">
+          <BCol cols="6" lg="3" md="6" sm="6">
             <div>{{ $t('decay.decay') }}</div>
-          </b-col>
-          <b-col offset="0" class="text-right mr-0">
-            {{ decay.decay | GDD }}
-          </b-col>
-        </b-row>
-      </b-col>
-    </b-row>
+          </BCol>
+          <BCol offset="0" class="text-right mr-0">
+            {{ $filters.GDD(decay.decay) }}
+          </BCol>
+        </BRow>
+      </BCol>
+    </BRow>
     <!-- Type-->
-    <b-row>
-      <b-col>
-        <b-row class="mb-2">
+    <BRow>
+      <BCol>
+        <BRow class="mb-2">
           <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys-->
-          <b-col cols="6" lg="3" md="6" sm="6">
+          <BCol cols="6" lg="3" md="6" sm="6">
             {{ $t(`decay.types.${typeId.toLowerCase()}`) }}
-          </b-col>
+          </BCol>
           <!-- eslint-enable @intlify/vue-i18n/no-dynamic-keys-->
-          <b-col offset="0" class="text-right mr-0">
-            {{ amount | GDD }}
-          </b-col>
-        </b-row>
+          <BCol offset="0" class="text-right mr-0">
+            {{ $filters.GDD(amount) }}
+          </BCol>
+        </BRow>
         <!-- Total-->
-        <b-row class="border-top pt-2">
-          <b-col cols="6" lg="3" md="6" sm="6">
+        <BRow class="border-top pt-2">
+          <BCol cols="6" lg="3" md="6" sm="6">
             <div>{{ $t('decay.new_balance') }}</div>
-          </b-col>
-          <b-col offset="0" class="text-right mr-0">
-            <b>{{ balance | GDD }}</b>
-          </b-col>
-        </b-row>
-      </b-col>
-    </b-row>
+          </BCol>
+          <BCol offset="0" class="text-right mr-0">
+            <b>{{ $filters.GDD(balance) }}</b>
+          </BCol>
+        </BRow>
+      </BCol>
+    </BRow>
   </div>
 </template>
 <script>
 import DurationRow from '@/components/TransactionRows/DurationRow'
 
 export default {
-  name: 'DecayInformation-Long',
+  name: 'DecayInformationLong',
   components: {
     DurationRow,
   },

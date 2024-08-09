@@ -1,7 +1,7 @@
 <template>
   <footer class="footer">
-    <b-row class="mt-lg-7 mt-md-6 mt-4">
-      <b-col class="col-12 col-md-12 col-lg-6">
+    <BRow class="mt-lg-7 mt-md-6 mt-4">
+      <BCol class="col-12 col-md-12 col-lg-6">
         <div
           class="d-flex justify-content-center justify-content-md-center justify-content-lg-start ml-3"
         >
@@ -14,8 +14,8 @@
             </b-nav-item>
           </b-nav>
         </div>
-      </b-col>
-      <b-col class="col-12 col-md-12 col-lg-6 mt-4 mb-4 mt-lg-0 mb-lg-0">
+      </BCol>
+      <BCol class="col-12 col-md-12 col-lg-6 mt-4 mb-4 mt-lg-0 mb-lg-0">
         <div class="text-center ml-3 ml-lg-0 text-lg-right pt-1">
           {{ $t('followUs') }}
           <b-link href="https://www.facebook.com/groups/Gradido/" target="_blank">
@@ -43,8 +43,8 @@
             </svg>
           </b-link>
         </div>
-      </b-col>
-    </b-row>
+      </BCol>
+    </BRow>
   </footer>
 </template>
 

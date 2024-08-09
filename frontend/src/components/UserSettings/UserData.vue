@@ -1,8 +1,8 @@
 <template>
   <b-card id="userdata_form" class="card-border-radius card-background-gray">
     <div>
-      <b-row class="mb-4 text-right">
-        <b-col class="text-right">
+      <BRow class="mb-4 text-right">
+        <BCol class="text-right">
           <a
             class="cursor-pointer"
             @click="showUserData ? (showUserData = !showUserData) : cancelEdit()"
@@ -11,54 +11,54 @@
             <b-icon v-if="showUserData" class="pointer ml-3" icon="pencil"></b-icon>
             <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
           </a>
-        </b-col>
-      </b-row>
+        </BCol>
+      </BRow>
     </div>
 
     <div>
       <b-form @keyup.prevent="loadSubmitButton">
-        <b-row class="mb-3">
-          <b-col class="col-12">
+        <BRow class="mb-3">
+          <BCol class="col-12">
             <small>
               <b>{{ $t('form.firstname') }}</b>
             </small>
-          </b-col>
-          <b-col v-if="showUserData" class="col-12">
+          </BCol>
+          <BCol v-if="showUserData" class="col-12">
             {{ form.firstName }}
-          </b-col>
-          <b-col v-else class="col-12">
-            <b-input type="text" v-model="form.firstName"></b-input>
-          </b-col>
-        </b-row>
-        <b-row class="mb-3">
-          <b-col class="col-12">
+          </BCol>
+          <BCol v-else class="col-12">
+            <b-input v-model="form.firstName" type="text"></b-input>
+          </BCol>
+        </BRow>
+        <BRow class="mb-3">
+          <BCol class="col-12">
             <small>
               <b>{{ $t('form.lastname') }}</b>
             </small>
-          </b-col>
-          <b-col v-if="showUserData" class="col-12">
+          </BCol>
+          <BCol v-if="showUserData" class="col-12">
             {{ form.lastName }}
-          </b-col>
-          <b-col v-else class="col-12">
-            <b-input type="text" v-model="form.lastName"></b-input>
-          </b-col>
-        </b-row>
+          </BCol>
+          <BCol v-else class="col-12">
+            <b-input v-model="form.lastName" type="text"></b-input>
+          </BCol>
+        </BRow>
 
-        <b-row class="text-right" v-if="!showUserData">
-          <b-col>
-            <div class="text-right" ref="submitButton">
+        <BRow v-if="!showUserData" class="text-right">
+          <BCol>
+            <div ref="submitButton" class="text-right">
               <b-button
                 :variant="loading ? 'light' : 'success'"
-                @click="onSubmit"
                 type="submit"
                 class="mt-4"
                 :disabled="loading"
+                @click="onSubmit"
               >
                 {{ $t('form.save') }}
               </b-button>
             </div>
-          </b-col>
-        </b-row>
+          </BCol>
+        </BRow>
       </b-form>
     </div>
   </b-card>

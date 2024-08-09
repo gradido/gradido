@@ -1,6 +1,7 @@
 <template>
   <div id="app" ref="app" :class="darkMode ? 'dark-mode' : ''">
-    <div :class="$route.meta.requiresAuth ? 'appContent' : ''">
+    <BToastOrchestrator />
+    <div :class="$route.meta.requiresAuth ? 'app-content' : ''">
       <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayout'" />
       <div class="goldrand position-fixed fixed-bottom zindex1000"></div>
     </div>
@@ -13,43 +14,47 @@ import AuthLayout from '@/layouts/AuthLayout'
 
 export default {
   name: 'App',
+  components: {
+    DashboardLayout,
+    AuthLayout,
+  },
   computed: {
     darkMode() {
       return this.$store.state.darkMode
     },
-  },
-  components: {
-    DashboardLayout,
-    AuthLayout,
   },
 }
 </script>
 
 <style>
 @font-face {
-  font-family: 'WorkSans', sans-serif !important;
-  src: url(./assets/scss/fonts/WorkSans-VariableFont_wght.ttf) format('truetype');
+  font-family: WorkSans, sans-serif !important;
+  src: url('./assets/scss/fonts/WorkSans-VariableFont_wght.ttf') format('truetype');
 }
+
 #app {
   font-size: 1rem;
-  font-family: 'WorkSans', sans-serif !important;
+  font-family: WorkSans, sans-serif !important;
 }
-.appContent {
+
+.app-content {
   min-width: 330px;
   max-width: 1320px;
   margin-right: auto;
   margin-left: auto;
 }
-.appBoxShadow {
-  -webkit-box-shadow: 20pt 20pt 50pt 0 #3838384f;
+
+.app-box-shadow {
   box-shadow: 20pt 20pt 50pt 0 #3838384f;
 }
-@media screen and (max-width: 500px) {
+
+@media screen and (width <= 500px) {
   #app {
     font-size: 0.85rem;
   }
 }
-@media screen and (max-width: 1024px) {
+
+@media screen and (width <= 1024px) {
   #app {
     padding-left: 15px;
     padding-right: 15px;
@@ -59,11 +64,11 @@ export default {
 .goldrand {
   background: linear-gradient(
     90deg,
-    rgba(197, 141, 56, 1) 6%,
-    rgba(243, 205, 124, 1) 30%,
-    rgba(219, 176, 86, 1) 54%,
-    rgba(238, 192, 95, 1) 63%,
-    rgba(204, 157, 61, 1) 88%
+    rgb(197 141 56 / 100%) 6%,
+    rgb(243 205 124 / 100%) 30%,
+    rgb(219 176 86 / 100%) 54%,
+    rgb(238 192 95 / 100%) 63%,
+    rgb(204 157 61 / 100%) 88%
   );
   height: 13px;
 }
@@ -77,6 +82,7 @@ export default {
   height: 50px;
   text-align: left;
 }
+
 .dropdown-toggle::after {
   float: right;
   top: 50%;

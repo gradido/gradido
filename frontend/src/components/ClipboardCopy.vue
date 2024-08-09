@@ -5,14 +5,15 @@
         <label>{{ $t('gdd_per_link.copy-link') }}</label>
         <div
           class="pointer text-center bg-secondary gradido-border-radius p-3"
-          @click="copyLink"
           data-test="copyLink"
+          @click="copyLink"
         >
           {{ link }}
           <div>
-            <b-button class="p-4">
-              <b-icon icon="link45deg"></b-icon>
-            </b-button>
+            <BButton class="p-4">
+              <IBiLink45deg />
+              <!--              <b-icon icon="link45deg"></b-icon>-->
+            </BButton>
           </div>
         </div>
       </div>
@@ -26,7 +27,8 @@
           {{ linkText }}
           <div>
             <b-button class="p-4">
-              <b-icon icon="link45deg"></b-icon>
+              <IBiLink45deg />
+              <!--              <b-icon icon="link45deg"></b-icon>-->
             </b-button>
           </div>
         </div>

@@ -1,25 +1,22 @@
 <template>
   <div class="usersearch">
-    <b-container class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
+    <b-container class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
       <div class="h3">{{ $t('usersearch.headline') }}</div>
       <div class="my-4 text-small">
-        <span
-          v-for="(line, lineNumber) of $t('usersearch.text').split('\n')"
-          v-bind:key="lineNumber"
-        >
+        <span v-for="(line, lineNumber) of $t('usersearch.text').split('\n')" :key="lineNumber">
           {{ line }}
           <br />
         </span>
       </div>
-      <b-row class="my-5">
-        <b-col cols="12">
+      <BRow class="my-5">
+        <BCol cols="12">
           <div class="text-lg-right">
-            <b-button variant="gradido" :href="this.gmsUri" target="_blank">
+            <b-button variant="gradido" :href="gmsUri" target="_blank">
               {{ $t('usersearch.button') }}
             </b-button>
           </div>
-        </b-col>
-      </b-row>
+        </BCol>
+      </BRow>
     </b-container>
   </div>
 </template>
@@ -31,6 +28,9 @@ export default {
     return {
       gmsUri: 'not initialized',
     }
+  },
+  created() {
+    this.authenticateGmsUserPlayground()
   },
   methods: {
     async authenticateGmsUserPlayground() {
@@ -48,9 +48,6 @@ export default {
           this.toastError('authenticateGmsUserSearch failed!')
         })
     },
-  },
-  created() {
-    this.authenticateGmsUserPlayground()
   },
 }
 </script>

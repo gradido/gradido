@@ -1,8 +1,10 @@
 <template>
   <div>
-    <b-row class="mb-2">
-      <b-col>
+    <BRow class="mb-2">
+      <BCol>
         <input-password
+          id="new-password-input-field"
+          :model-value="password"
           :rules="{
             required: true,
             containsLowercaseCharacter: true,
@@ -12,75 +14,68 @@
             atLeastOneSpecialCharater: true,
             noWhitespaceCharacters: true,
           }"
-          id="new-password-input-field"
           :label="register ? $t('form.password') : $t('form.password_new')"
-          :showAllErrors="true"
+          :show-all-errors="true"
           :immediate="true"
           :name="createId(register ? $t('form.password') : $t('form.password_new'))"
           :placeholder="register ? $t('form.password') : $t('form.password_new')"
-          v-model="password"
-        ></input-password>
-      </b-col>
-    </b-row>
-    <b-row class="mb-2">
-      <b-col>
+          @update:modelValue="password = $event"
+        />
+      </BCol>
+    </BRow>
+    <BRow class="mb-2">
+      <BCol>
         <input-password
+          id="repeat-new-password-input-field"
+          :model-value="passwordRepeat"
           :rules="{
             required: true,
-            samePassword: value.password,
+            samePassword: password,
           }"
-          id="repeat-new-password-input-field"
           :label="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
           :immediate="true"
           :name="createId(register ? $t('form.passwordRepeat') : $t('form.password_new_repeat'))"
           :placeholder="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
-          v-model="passwordRepeat"
-        ></input-password>
-      </b-col>
-    </b-row>
+          @update:modelValue="passwordRepeat = $event"
+        />
+      </BCol>
+    </BRow>
   </div>
 </template>
-<script>
+<script setup>
+import { computed, ref, watch } from 'vue'
 import InputPassword from './InputPassword'
+import { BCol, BRow } from 'bootstrap-vue-next'
 
-export default {
-  name: 'InputPasswordConfirm',
-  components: {
-    InputPassword,
+const password = ref('')
+const passwordRepeat = ref('')
+
+defineProps({
+  modelValue: {
+    type: Object,
+    required: true,
   },
-  props: {
-    value: {
-      type: Object,
-      required: true,
-    },
-    register: {
-      type: Boolean,
-      required: false,
-    },
+  register: {
+    type: Boolean,
+    required: false,
   },
-  data() {
-    return {
-      password: '',
-      passwordRepeat: '',
-    }
-  },
-  methods: {
-    createId(text) {
-      return text.replace(/ +/g, '-')
-    },
-  },
-  computed: {
-    passwordObject() {
-      return { password: this.password, passwordRepeat: this.passwordRepeat }
-    },
-  },
-  watch: {
-    password() {
-      this.$emit('input', this.passwordObject)
-    },
-    passwordRepeat() {
-      this.$emit('input', this.passwordObject)
-    },
-  },
+})
+
+const emit = defineEmits(['input'])
+
+const createId = (text) => {
+  return text.replace(/ +/g, '-')
 }
+
+const passwordObject = computed(() => {
+  return { password: password.value, passwordRepeat: passwordRepeat.value }
+})
+
+watch(
+  [password, passwordRepeat],
+  () => {
+    emit('input', passwordObject.value)
+  },
+  { deep: true },
+)
 </script>

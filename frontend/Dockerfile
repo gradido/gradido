@@ -1,7 +1,7 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-FROM node:16-alpine3.14 as base
+FROM node:18.20-alpine3.20 as base
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
 ## DOCKER_WORKDIR would be a classical ARG, but that is not multi layer persistent - shame
@@ -98,10 +98,10 @@ COPY --from=build ${DOCKER_WORKDIR}/run ./run
 CMD /bin/sh -c "yarn run start"
 
 
- 
+
 ## add `/usr/src/app/node_modules/.bin` to $PATH
 #ENV PATH /usr/src/app/node_modules/.bin:$PATH
-# 
+#
 ## install and cache app dependencies
 #COPY package.json /usr/src/app/package.json
 #RUN npm install

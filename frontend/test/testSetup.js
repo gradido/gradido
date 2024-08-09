@@ -39,7 +39,7 @@ loadAllRules(i18nMock, { query: jest.fn().mockResolvedValue({ data: { checkUsern
 global.localVue = createLocalVue()
 
 // switch of warnings from bootstrap vue
-global.process.env.BOOTSTRAP_VUE_NO_WARN = true
+global.import.meta.env.BOOTSTRAP_VUE_NO_WARN = true
 
 global.localVue.use(BootstrapVue)
 global.localVue.use(Vuex)
