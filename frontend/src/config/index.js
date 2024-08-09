@@ -15,65 +15,64 @@ const constants = {
 
 const version = {
   APP_VERSION: pkg.version,
-  BUILD_COMMIT: import.meta.env.BUILD_COMMIT ?? null,
+  BUILD_COMMIT: process.env.BUILD_COMMIT ?? null,
   // self reference of `version.BUILD_COMMIT` is not possible at this point, hence the duplicate code
-  BUILD_COMMIT_SHORT: (import.meta.env.BUILD_COMMIT ?? '0000000').slice(0, 7),
+  BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT ?? '0000000').slice(0, 7),
 }
 
 const features = {
-  GMS_ACTIVE: import.meta.env.GMS_ACTIVE ?? false,
-  HUMHUB_ACTIVE: import.meta.env.HUMHUB_ACTIVE ?? false,
+  GMS_ACTIVE: process.env.GMS_ACTIVE ?? false,
+  HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE ?? false,
 }
 
 const environment = {
-  NODE_ENV: import.meta.env.NODE_ENV,
-  DEBUG: import.meta.env.NODE_ENV !== 'production' ?? false,
-  PRODUCTION: import.meta.env.NODE_ENV === 'production' ?? false,
-  DEFAULT_PUBLISHER_ID: import.meta.env.DEFAULT_PUBLISHER_ID ?? 2896,
-  PORT: import.meta.env.PORT ?? 3000,
+  NODE_ENV: process.env.NODE_ENV,
+  DEBUG: process.env.NODE_ENV !== 'production' ?? false,
+  PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
+  DEFAULT_PUBLISHER_ID: process.env.DEFAULT_PUBLISHER_ID ?? 2896,
+  PORT: process.env.PORT ?? 3000,
 }
 
-const COMMUNITY_HOST = import.meta.env.COMMUNITY_HOST ?? 'localhost'
-const URL_PROTOCOL = import.meta.env.URL_PROTOCOL ?? 'http'
-const COMMUNITY_URL = import.meta.env.COMMUNITY_URL ?? `${URL_PROTOCOL}://${COMMUNITY_HOST}`
+const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
+const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
+const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${URL_PROTOCOL}://${COMMUNITY_HOST}`
 
 const endpoints = {
-  GRAPHQL_URI: COMMUNITY_URL + (import.meta.env.GRAPHQL_PATH ?? '/graphql'),
+  GRAPHQL_URI: COMMUNITY_URL + (process.env.GRAPHQL_PATH ?? '/graphql'),
   ADMIN_AUTH_URL:
-    COMMUNITY_URL + (import.meta.env.ADMIN_AUTH_PATH ?? '/admin/authenticate?token={token}'),
+    COMMUNITY_URL + (process.env.ADMIN_AUTH_PATH ?? '/admin/authenticate?token={token}'),
 }
 
 const community = {
-  COMMUNITY_NAME: import.meta.env.COMMUNITY_NAME ?? 'Gradido Entwicklung',
+  COMMUNITY_NAME: process.env.COMMUNITY_NAME ?? 'Gradido Entwicklung',
   COMMUNITY_URL: COMMUNITY_URL,
-  COMMUNITY_REGISTER_URL: COMMUNITY_URL + (import.meta.env.COMMUNITY_REGISTER_PATH ?? '/register'),
+  COMMUNITY_REGISTER_URL: COMMUNITY_URL + (process.env.COMMUNITY_REGISTER_PATH ?? '/register'),
   COMMUNITY_DESCRIPTION:
-    import.meta.env.COMMUNITY_DESCRIPTION ?? 'Die lokale Entwicklungsumgebung von Gradido.',
-  COMMUNITY_SUPPORT_MAIL: import.meta.env.COMMUNITY_SUPPORT_MAIL ?? 'support@supportmail.com',
+    process.env.COMMUNITY_DESCRIPTION ?? 'Die lokale Entwicklungsumgebung von Gradido.',
+  COMMUNITY_SUPPORT_MAIL: process.env.COMMUNITY_SUPPORT_MAIL ?? 'support@supportmail.com',
 }
 
 const meta = {
-  META_URL: import.meta.env.META_URL ?? 'http://localhost',
-  META_TITLE_DE: import.meta.env.META_TITLE_DE ?? 'Gradido – Dein Dankbarkeitskonto',
-  META_TITLE_EN: import.meta.env.META_TITLE_EN ?? 'Gradido - Your gratitude account',
+  META_URL: process.env.META_URL ?? 'http://localhost',
+  META_TITLE_DE: process.env.META_TITLE_DE ?? 'Gradido – Dein Dankbarkeitskonto',
+  META_TITLE_EN: process.env.META_TITLE_EN ?? 'Gradido - Your gratitude account',
   META_DESCRIPTION_DE:
-    import.meta.env.META_DESCRIPTION_DE ??
+    process.env.META_DESCRIPTION_DE ??
     'Dankbarkeit ist die Währung der neuen Zeit. Immer mehr Menschen entfalten ihr Potenzial und gestalten eine gute Zukunft für alle.',
   META_DESCRIPTION_EN:
-    import.meta.env.META_DESCRIPTION_EN ??
+    process.env.META_DESCRIPTION_EN ??
     'Gratitude is the currency of the new age. More and more people are unleashing their potential and shaping a good future for all.',
   META_KEYWORDS_DE:
-    import.meta.env.META_KEYWORDS_DE ??
+    process.env.META_KEYWORDS_DE ??
     'Grundeinkommen, Währung, Dankbarkeit, Schenk-Ökonomie, Natürliche Ökonomie des Lebens, Ökonomie, Ökologie, Potenzialentfaltung, Schenken und Danken, Kreislauf des Lebens, Geldsystem',
   META_KEYWORDS_EN:
-    import.meta.env.META_KEYWORDS_EN ??
+    process.env.META_KEYWORDS_EN ??
     'Basic Income, Currency, Gratitude, Gift Economy, Natural Economy of Life, Economy, Ecology, Potential Development, Giving and Thanking, Cycle of Life, Monetary System',
-  META_AUTHOR: import.meta.env.META_AUTHOR ?? 'Bernd Hückstädt - Gradido-Akademie',
+  META_AUTHOR: process.env.META_AUTHOR ?? 'Bernd Hückstädt - Gradido-Akademie',
 }
 
 // Check config version
-constants.CONFIG_VERSION.CURRENT =
-  import.meta.env.CONFIG_VERSION ?? constants.CONFIG_VERSION.DEFAULT
+constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION ?? constants.CONFIG_VERSION.DEFAULT
 if (
   ![constants.CONFIG_VERSION.EXPECTED, constants.CONFIG_VERSION.DEFAULT].includes(
     constants.CONFIG_VERSION.CURRENT,
