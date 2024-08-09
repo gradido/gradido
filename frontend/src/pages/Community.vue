@@ -10,8 +10,8 @@
           />
           <div class="mb-3"></div>
           <contribution-form
-            :model-value="form"
             :key="computedKeyFromForm"
+            :model-value="form"
             :is-this-month="isThisMonth"
             :minimal-date="minimalDate"
             :max-gdd-last-month="maxForMonths[0]"
@@ -415,7 +415,6 @@ onOpenCreationsResult(({ data }) => {
 })
 
 onListAllContributionsResult(({ data }) => {
-  console.count('RESULT?!')
   if (data) {
     contributionCountAll.value = data.listAllContributions.contributionCount
     itemsAll.value.length = 0

@@ -47,9 +47,8 @@ const supportMail = CONFIG.COMMUNITY_SUPPORT_MAIL
 const admins = computed(() => itemsAdminUser.value.filter((item) => item.role === 'ADMIN'))
 const moderators = computed(() => itemsAdminUser.value.filter((item) => item.role === 'MODERATOR'))
 
-const { onResult: onContributionLinksResult, onError: onContributionLinksError } = useQuery(
-  listContributionLinks,
-)
+const { onResult: onContributionLinksResult, onError: onContributionLinksError } =
+  useQuery(listContributionLinks)
 const { onResult: onAdminUsersResult, onError: onAdminUsersError } = useQuery(searchAdminUsers)
 
 onContributionLinksResult(({ data }) => {

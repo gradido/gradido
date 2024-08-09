@@ -5,10 +5,10 @@
       <BForm @submit.prevent="onSubmit" @reset="onReset">
         <BFormTextarea
           id="textarea"
-          @update:model-value="form.text = $event"
           :model-value="form.text"
           :placeholder="$t('form.memo')"
           rows="3"
+          @update:model-value="form.text = $event"
         ></BFormTextarea>
         <BRow class="mt-4 mb-4">
           <BCol>
