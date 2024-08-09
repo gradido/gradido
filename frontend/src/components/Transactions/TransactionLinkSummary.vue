@@ -61,13 +61,9 @@ const currentPage = ref(1)
 const pageSize = ref(5)
 const pending = ref(false)
 
-const { refetch, loading, error } = useQuery(
-  listTransactionLinks,
-  () => ({
-    currentPage: currentPage.value,
-  }),
-  { enabled: false },
-)
+const { refetch, loading, error } = useQuery(listTransactionLinks, {
+  currentPage: currentPage.value,
+})
 
 watch(currentPage, () => {
   updateListTransactionLinks()
@@ -94,11 +90,10 @@ async function updateListTransactionLinks() {
   } else {
     pending.value = true
     try {
-      const result = await refetch()
-      transactionLinks.value = [
-        ...transactionLinks.value,
-        ...result.data.listTransactionLinks.links,
-      ]
+      const { data } = await refetch({
+        currentPage: currentPage.value,
+      })
+      transactionLinks.value = [...transactionLinks.value, ...data.listTransactionLinks.links]
       emit('update-transactions')
     } catch (err) {
       toastError(err.message)

@@ -1,6 +1,6 @@
 <template>
-  <div class="transaction-slot-send">
-    <BRow class="align-items-center" @click="visible = !visible">
+  <div class="transaction-slot-send" @click="visible = !visible">
+    <BRow class="align-items-center">
       <BCol cols="3" lg="2" md="2">
         <avatar
           :username="username.username"
@@ -43,7 +43,7 @@
         <collapse-icon class="text-right" :visible="visible" />
       </BCol>
     </BRow>
-    <BCollapse v-model="visible" class="pb-4 pt-lg-3">
+    <BCollapse :model-value="visible" class="pb-4 pt-lg-3">
       <decay-information
         :type-id="typeId"
         :decay="decay"
