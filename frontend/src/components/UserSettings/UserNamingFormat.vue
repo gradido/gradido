@@ -26,7 +26,7 @@ import { useAppToast } from '@/composables/useToast'
 
 const { t } = useI18n()
 const store = useStore()
-const { toastError } = useAppToast()
+const { toastSuccess, toastError } = useAppToast()
 
 const props = defineProps({
   initialValue: { type: String, default: 'PUBLISH_NAME_ALIAS_OR_INITALS' },

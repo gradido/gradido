@@ -113,7 +113,8 @@ describe('GddTransactionList', () => {
               balance: '31.76099091058520945292',
               previousBalance: '30.76',
               balanceDate: '2022-02-28T13:55:47',
-              memo: 'Um den Kessel schlingt den Reihn, Werft die Eingeweid‘ hinein. Kröte du, die Nacht und Tag Unterm kalten Steine lag,',
+              memo:
+                'Um den Kessel schlingt den Reihn, Werft die Eingeweid‘ hinein. Kröte du, die Nacht und Tag Unterm kalten Steine lag,',
               linkedUser: {
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -132,7 +133,8 @@ describe('GddTransactionList', () => {
               balance: '10',
               previousBalance: '31.75',
               balanceDate: '2022-02-23T10:55:30',
-              memo: 'Monatlanges Gift sog ein, In den Topf zuerst hinein… (William Shakespeare, Die Hexen aus Macbeth)',
+              memo:
+                'Monatlanges Gift sog ein, In den Topf zuerst hinein… (William Shakespeare, Die Hexen aus Macbeth)',
               linkedUser: {
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',

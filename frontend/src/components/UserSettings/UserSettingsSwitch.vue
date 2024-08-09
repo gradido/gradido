@@ -10,17 +10,17 @@
   </div>
 </template>
 <script setup>
+import { ref, computed } from 'vue'
 import { useStore } from 'vuex'
-import { ref } from 'vue'
 import { updateUserInfos } from '@/graphql/mutations'
 import { useMutation } from '@vue/apollo-composable'
 import { BFormCheckbox } from 'bootstrap-vue-next'
 import { useAppToast } from '@/composables/useToast'
 
 const store = useStore()
-const { toastError } = useAppToast()
+const { toastSuccess, toastError } = useAppToast()
 
-defineProps({
+const props = defineProps({
   initialValue: { type: Boolean, default: false },
   attrName: { type: String },
   enabledText: { type: String },

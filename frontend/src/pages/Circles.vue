@@ -86,14 +86,14 @@ const humhubUri = ref('')
 
 const humhubAllowed = computed(() => store.state.humhubAllowed)
 
-const {
-  refetch: refetchAuthenticateHumhub,
-  onResult,
-  onError,
-} = useQuery(authenticateHumhubAutoLogin, null, {
-  fetchPolicy: 'network-only',
-  enabled: false,
-})
+const { refetch: refetchAuthenticateHumhub, onResult, onError } = useQuery(
+  authenticateHumhubAutoLogin,
+  null,
+  {
+    fetchPolicy: 'network-only',
+    enabled: false,
+  },
+)
 
 onResult(({ data }) => {
   if (data) {

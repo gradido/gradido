@@ -137,11 +137,7 @@ const variables = ref({
   pageSize: pageSize.value,
 })
 
-const {
-  load: loadGdt,
-  onResult,
-  onError,
-} = useLazyQuery(listGDTEntriesQuery, variables, {
+const { load: loadGdt, onResult, onError } = useLazyQuery(listGDTEntriesQuery, variables, {
   fetchPolicy: 'network-only',
 })
 

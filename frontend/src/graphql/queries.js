@@ -35,7 +35,7 @@ export const authenticateHumhubAutoLogin = gql`
 `
 
 export const transactionsQuery = gql`
-  query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+  query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
       balance {
         balance
@@ -72,7 +72,7 @@ export const transactionsQuery = gql`
 `
 
 export const listGDTEntriesQuery = gql`
-  query ($currentPage: Int!, $pageSize: Int!) {
+  query($currentPage: Int!, $pageSize: Int!) {
     listGDTEntries(currentPage: $currentPage, pageSize: $pageSize) {
       count
       gdtEntries {
@@ -101,19 +101,19 @@ export const selectCommunities = gql`
 `
 
 export const queryOptIn = gql`
-  query ($optIn: String!) {
+  query($optIn: String!) {
     queryOptIn(optIn: $optIn)
   }
 `
 
 export const checkUsername = gql`
-  query ($username: String!) {
+  query($username: String!) {
     checkUsername(username: $username)
   }
 `
 
 export const queryTransactionLink = gql`
-  query ($code: String!) {
+  query($code: String!) {
     queryTransactionLink(code: $code) {
       ... on TransactionLink {
         id
@@ -148,7 +148,7 @@ export const queryTransactionLink = gql`
 `
 
 export const listTransactionLinks = gql`
-  query ($currentPage: Int = 1, $pageSize: Int = 5) {
+  query($currentPage: Int = 1, $pageSize: Int = 5) {
     listTransactionLinks(currentPage: $currentPage, pageSize: $pageSize) {
       links {
         id
@@ -165,7 +165,7 @@ export const listTransactionLinks = gql`
 `
 
 export const listContributionLinks = gql`
-  query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+  query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     listContributionLinks(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
       links {
         id
@@ -185,7 +185,7 @@ export const listContributionLinks = gql`
 `
 
 export const listContributions = gql`
-  query (
+  query(
     $currentPage: Int = 1
     $pageSize: Int = 25
     $order: Order = DESC
@@ -220,7 +220,7 @@ export const listContributions = gql`
 `
 
 export const listAllContributions = gql`
-  query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+  query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     listAllContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
       contributionCount
       contributionList {
@@ -266,7 +266,7 @@ export const searchAdminUsers = gql`
 `
 
 export const listContributionMessages = gql`
-  query ($contributionId: Int!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
+  query($contributionId: Int!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
     listContributionMessages(
       contributionId: $contributionId
       pageSize: $pageSize
@@ -299,7 +299,7 @@ export const openCreations = gql`
 `
 
 export const user = gql`
-  query ($identifier: String!, $communityIdentifier: String!) {
+  query($identifier: String!, $communityIdentifier: String!) {
     user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
       firstName
       lastName
