@@ -1,7 +1,7 @@
 <template>
   <div class="community-page">
     <div>
-      <BTabs v-model="tabIndex" no-nav-style borderless align="center">
+      <BTabs :model-value="tabIndex" no-nav-style borderless align="center">
         <BTab no-body>
           <open-creations-amount
             :minimal-date="minimalDate"
@@ -10,7 +10,8 @@
           />
           <div class="mb-3"></div>
           <contribution-form
-            v-model="form"
+            :model-value="form"
+            :key="computedKeyFromForm"
             :is-this-month="isThisMonth"
             :minimal-date="minimalDate"
             :max-gdd-last-month="maxForMonths[0]"
@@ -29,7 +30,7 @@
               :contribution-count="contributionCount"
               :show-pagination="true"
               :page-size="pageSize"
-              @closeAllOpenCollapse="closeAllOpenCollapse"
+              @close-all-open-collapse="closeAllOpenCollapse"
               @update-list-contributions="handleUpdateListContributions"
               @update-contribution-form="handleUpdateContributionForm"
               @delete-contribution="handleDeleteContribution"
@@ -311,15 +312,13 @@ import ContributionForm from '@/components/Contributions/ContributionForm'
 import ContributionList from '@/components/Contributions/ContributionList'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions, openCreations } from '@/graphql/queries'
-import { useAppToast } from '../composables/useToast'
+import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
 
 const COMMUNITY_TABS = ['contribute', 'contributions', 'community']
 
-// Props and emits
 const emit = defineEmits(['update-transactions'])
 
-// Router
 const route = useRoute()
 const router = useRouter()
 
@@ -380,6 +379,10 @@ const maxForMonths = computed(() => {
   return [0, 0]
 })
 
+const computedKeyFromForm = computed(() => {
+  return `${form.value.id}_${form.value.date}_${form.value.memo}_${form.value.amount}_${form.value.hours}`
+})
+
 // Queries
 const { onResult: onOpenCreationsResult, refetch: refetchOpenCreations } = useQuery(openCreations)
 const { onResult: onListAllContributionsResult, refetch: refetchAllContributions } = useQuery(
@@ -412,22 +415,28 @@ onOpenCreationsResult(({ data }) => {
 })
 
 onListAllContributionsResult(({ data }) => {
+  console.count('RESULT?!')
   if (data) {
     contributionCountAll.value = data.listAllContributions.contributionCount
-    itemsAll.value = data.listAllContributions.contributionList
+    itemsAll.value.length = 0
+    data.listAllContributions.contributionList.forEach((entry) => {
+      itemsAll.value.push(entry)
+    })
   }
 })
 
 onListContributionsResult(({ data }) => {
   if (data) {
     contributionCount.value = data.listContributions.contributionCount
-    items.value = data.listContributions.contributionList
+    items.value.length = 0
+    data.listContributions.contributionList.forEach((entry) => {
+      items.value.push({ ...entry })
+    })
     if (items.value.find((item) => item.status === 'IN_PROGRESS')) {
       tabIndex.value = 1
       if (route.params.tab !== 'contributions') {
         router.push({ params: { tab: 'contributions' } })
       }
-      // Assuming toastInfo is available globally or imported
       toastInfo(t('contribution.alert.answerQuestionToast'))
     }
   }
@@ -456,11 +465,9 @@ const refetchData = () => {
 const handleSaveContribution = async (data) => {
   try {
     await createContributionMutation({
-      variables: {
-        creationDate: data.date,
-        memo: data.memo,
-        amount: data.amount,
-      },
+      creationDate: data.date,
+      memo: data.memo,
+      amount: data.amount,
     })
     toastSuccess(t('contribution.submitted'))
     refetchData()
@@ -472,12 +479,10 @@ const handleSaveContribution = async (data) => {
 const handleUpdateContribution = async (data) => {
   try {
     await updateContributionMutation({
-      variables: {
-        contributionId: data.id,
-        creationDate: data.date,
-        memo: data.memo,
-        amount: data.amount,
-      },
+      contributionId: data.id,
+      creationDate: data.date,
+      memo: data.memo,
+      amount: data.amount,
     })
     toastSuccess(t('contribution.updated'))
     refetchData()
@@ -489,7 +494,7 @@ const handleUpdateContribution = async (data) => {
 const handleDeleteContribution = async (data) => {
   try {
     await deleteContributionMutation({
-      variables: { id: data.id },
+      id: data.id,
     })
     toastSuccess(t('contribution.deleted'))
     refetchData()
@@ -513,7 +518,7 @@ const handleUpdateListContributions = (pagination) => {
 const handleUpdateContributionForm = (item) => {
   form.value = {
     id: item.id,
-    date: item.contributionDate,
+    date: new Date(item.contributionDate).toISOString().slice(0, 10),
     memo: item.memo,
     amount: item.amount,
     hours: item.amount / 20,
@@ -530,7 +535,9 @@ const updateTransactions = (pagination) => {
 
 const updateStatus = (id) => {
   const item = items.value.find((item) => item.id === id)
-  if (item) item.status = 'PENDING'
+  if (item) {
+    item.status = 'PENDING'
+  }
 }
 
 // Watchers

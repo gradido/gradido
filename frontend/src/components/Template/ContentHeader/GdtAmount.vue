@@ -25,10 +25,10 @@
           <!--          ></b-icon>-->
           <IBiLayers />
           <span v-if="hideAmount" class="font-weight-bold gradido-global-color-accent">
-            {{ $t('asterisks') }}
+            {{ t('asterisks') }}
           </span>
           <span v-else class="font-weight-bold gradido-global-color-accent">
-            {{ $n(GdtBalance, 'decimal') }} {{ $t('GDT') }}
+            {{ n(gdtBalance, 'decimal') }} {{ t('GDT') }}
           </span>
         </BCol>
         <BCol cols="3" class="border-left border-light">
@@ -37,7 +37,7 @@
           <!--            class="mr-3 gradido-global-border-color-accent pointer hover-icon"-->
           <!--            @click="updateHideAmountGDT"-->
           <!--          ></b-icon>-->
-          <button @click="updateHideAmountGDT">
+          <button class="transparent-button" @click="updateHideAmountGDT">
             <IBiEyeSlash v-if="hideAmount" />
             <IBiEye v-else />
           </button>
@@ -95,14 +95,14 @@ import { updateUserInfos } from '@/graphql/mutations'
 import { useAppToast } from '../../../composables/useToast'
 
 const props = defineProps({
-  GdtBalance: { type: Number, required: true },
+  gdtBalance: { type: Number, required: true },
   badgeShow: { type: Boolean, default: true },
   showStatus: { type: Boolean, default: false },
 })
 
 const store = useStore()
 const { mutate } = useMutation(updateUserInfos)
-const { t } = useI18n()
+const { t, n } = useI18n()
 const { toastSuccess, toastError } = useAppToast()
 
 const hideAmount = computed(() => store.state.hideAmountGDT)

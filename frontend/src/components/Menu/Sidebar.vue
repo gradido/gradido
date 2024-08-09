@@ -13,7 +13,7 @@
             <span class="ml-2">{{ $t('navigation.overview') }}</span>
           </BNavItem>
           <BNavItem to="/send" class="mb-3" active-class="active-route">
-            <b-icon icon="cash" aria-hidden="true"></b-icon>
+            <IBiCash />
             <span class="ml-2">{{ $t('navigation.send') }}</span>
           </BNavItem>
           <BNavItem to="/transactions" :class="transactionClass" active-class="active-route">
@@ -57,7 +57,7 @@
             active-class="active-route"
             @click="$emit('admin')"
           >
-            <b-icon icon="shield-check" aria-hidden="true"></b-icon>
+            <IBiShieldCheck />
             <span class="ml-2">
               {{ $t('navigation.admin_area') }}
             </span>
@@ -92,7 +92,6 @@ export default {
       return 'mb-3'
     },
     isHumhub() {
-      // return true
       return CONFIG.HUMHUB_ACTIVE === 'true'
     },
     isGMS() {

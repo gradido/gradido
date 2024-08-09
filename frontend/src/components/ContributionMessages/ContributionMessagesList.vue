@@ -15,10 +15,10 @@
     </div>
 
     <div v-b-toggle="'collapse' + String(contributionId)" class="text-center pointer clearboth">
-      <b-button variant="outline-primary" block class="mb-3">
-        <b-icon icon="arrow-up-short"></b-icon>
+      <BButton variant="outline-primary" block class="mb-3">
+        <IBiArrowUpShort />
         {{ $t('form.close') }}
-      </b-button>
+      </BButton>
     </div>
   </div>
 </template>

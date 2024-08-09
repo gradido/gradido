@@ -8,9 +8,11 @@
       <label>{{ $t('contribution.selectDate') }}</label>
       <BFormInput
         id="contribution-date"
-        v-model="form.date"
+        :model-value="date"
+        @update:model-value="date = $event"
+        :state="dataFieldMeta.valid"
         :locale="$i18n.locale"
-        :max="maximalDate"
+        :max="getMaximalDate"
         :min="minimalDate"
         class="mb-4 bg-248"
         reset-value=""
@@ -29,35 +31,31 @@
       <div v-else>
         <input-textarea
           id="contribution-memo"
-          v-model="form.memo"
-          :name="$t('form.message')"
+          name="memo"
           :label="$t('contribution.activity')"
           :placeholder="$t('contribution.yourActivity')"
           :rules="{ required: true, min: 5, max: 255 }"
         />
         <input-hour
-          v-model="form.hours"
-          :name="$t('form.hours')"
+          name="hours"
           :label="$t('form.hours')"
           placeholder="0.25"
           :rules="{
             required: true,
             min: 0.25,
             max: validMaxTime,
-            gddCreationTime: [0.25, validMaxTime],
+            gddCreationTime: { min: 0.25, max: validMaxTime },
           }"
           :valid-max-time="validMaxTime"
-          @updateAmount="updateAmount"
-        ></input-hour>
+        />
         <input-amount
           id="contribution-amount"
-          v-model="form.amount"
           name="amount"
           :label="$t('form.amount')"
           placeholder="20"
           :rules="{ required: true, gddSendAmount: { min: 20, max: validMaxGDD } }"
           typ="ContributionForm"
-        ></input-amount>
+        />
 
         <BRow class="mt-5">
           <BCol cols="12" lg="6">
@@ -66,7 +64,7 @@
               type="reset"
               variant="secondary"
               data-test="button-cancel"
-              @click="reset"
+              @click="fullFormReset"
             >
               {{ $t('form.cancel') }}
             </BButton>
@@ -87,96 +85,123 @@
     </BForm>
   </div>
 </template>
-<script>
+
+<script setup>
+import { ref, computed, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import InputHour from '@/components/Inputs/InputHour'
 import InputAmount from '@/components/Inputs/InputAmount'
 import InputTextarea from '@/components/Inputs/InputTextarea'
+import { useField, useForm } from 'vee-validate'
 
-export default {
-  name: 'ContributionForm',
-  components: {
-    InputHour,
-    InputAmount,
-    InputTextarea,
+const props = defineProps({
+  modelValue: { type: Object, required: true },
+  isThisMonth: { type: Boolean, required: true },
+  minimalDate: { type: Date, required: true },
+  maxGddLastMonth: { type: Number, required: true },
+  maxGddThisMonth: { type: Number, required: true },
+})
+
+const emit = defineEmits(['update-contribution', 'set-contribution'])
+
+const { t } = useI18n()
+
+const form = ref({ ...props.modelValue })
+
+const {
+  values: formValues,
+  meta: formMeta,
+  resetForm,
+  defineField,
+  setFieldValue,
+} = useForm({
+  initialValues: {
+    date: props.modelValue.date,
+    memo: props.modelValue.memo,
+    hours: props.modelValue.hours,
+    amount: props.modelValue.amount,
   },
-  props: {
-    value: { type: Object, required: true },
-    isThisMonth: { type: Boolean, required: true },
-    minimalDate: { type: Date, required: true },
-    maxGddLastMonth: { type: Number, required: true },
-    maxGddThisMonth: { type: Number, required: true },
+})
+
+const [date, dateProps] = defineField('date')
+
+const { meta: dataFieldMeta } = useField('date', 'required')
+
+const showMessage = computed(() => {
+  if (props.maxGddThisMonth <= 0 && props.maxGddLastMonth <= 0) return true
+  if (props.modelValue.date)
+    return (
+      (props.isThisMonth && props.maxGddThisMonth <= 0) ||
+      (!props.isThisMonth && props.maxGddLastMonth <= 0)
+    )
+  return false
+})
+
+const disabled = computed(() => {
+  return (
+    !formMeta.value.valid ||
+    (props.isThisMonth && parseInt(form.value.amount) > parseInt(props.maxGddThisMonth)) ||
+    (!props.isThisMonth && parseInt(form.value.amount) > parseInt(props.maxGddLastMonth))
+  )
+})
+
+const validMaxGDD = computed(() => {
+  return Number(props.isThisMonth ? props.maxGddThisMonth : props.maxGddLastMonth)
+})
+
+const validMaxTime = computed(() => {
+  return Number(validMaxGDD.value / 20)
+})
+
+const noOpenCreation = computed(() => {
+  if (props.maxGddThisMonth <= 0 && props.maxGddLastMonth <= 0) {
+    return t('contribution.noOpenCreation.allMonth')
+  }
+  if (props.isThisMonth && props.maxGddThisMonth <= 0) {
+    return t('contribution.noOpenCreation.thisMonth')
+  }
+  if (!props.isThisMonth && props.maxGddLastMonth <= 0) {
+    return t('contribution.noOpenCreation.lastMonth')
+  }
+  return ''
+})
+
+const getMaximalDate = computed(() => {
+  return new Date().toISOString().slice(0, 10)
+})
+
+watch(
+  () => formValues.hours,
+  () => {
+    updateAmount(formValues.hours)
   },
-  data() {
-    return {
-      minlength: 5,
-      maxlength: 255,
-      maximalDate: new Date(),
-      form: this.value, // includes 'id' and time
-    }
-  },
-  computed: {
-    showMessage() {
-      if (this.maxGddThisMonth <= 0 && this.maxGddLastMonth <= 0) return true
-      if (this.form.date)
-        return (
-          (this.isThisMonth && this.maxGddThisMonth <= 0) ||
-          (!this.isThisMonth && this.maxGddLastMonth <= 0)
-        )
-      return false
+)
+
+function updateAmount(hours) {
+  setFieldValue('amount', (hours * 20).toFixed(2).toString())
+}
+
+function submit() {
+  const dataToSave = { ...formValues }
+  let emitOption = 'set-contribution'
+  if (props.modelValue.id) {
+    dataToSave.id = props.modelValue.id
+    emitOption = 'update-contribution'
+  }
+  emit(emitOption, dataToSave)
+  fullFormReset()
+}
+
+function fullFormReset() {
+  resetForm({
+    values: {
+      id: null,
+      date: '',
+      memo: '',
+      hours: 0,
+      amount: '',
     },
-    disabled() {
-      return (
-        this.form.date === '' ||
-        this.form.memo.length < this.minlength ||
-        this.form.memo.length > this.maxlength ||
-        this.form.amount === '' ||
-        parseInt(this.form.amount) <= 0 ||
-        parseInt(this.form.amount) > 1000 ||
-        (this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddThisMonth)) ||
-        (!this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddLastMonth))
-      )
-    },
-    validMaxGDD() {
-      return Number(this.isThisMonth ? this.maxGddThisMonth : this.maxGddLastMonth)
-    },
-    validMaxTime() {
-      return Number(this.validMaxGDD / 20)
-    },
-    noOpenCreation() {
-      if (this.maxGddThisMonth <= 0 && this.maxGddLastMonth <= 0) {
-        return this.$t('contribution.noOpenCreation.allMonth')
-      }
-      if (this.isThisMonth && this.maxGddThisMonth <= 0) {
-        return this.$t('contribution.noOpenCreation.thisMonth')
-      }
-      if (!this.isThisMonth && this.maxGddLastMonth <= 0) {
-        return this.$t('contribution.noOpenCreation.lastMonth')
-      }
-      return ''
-    },
-  },
-  watch: {
-    value() {
-      return (this.form = this.value)
-    },
-  },
-  methods: {
-    updateAmount(hours) {
-      this.form.amount = (hours * 20).toFixed(2).toString()
-    },
-    submit() {
-      this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
-      this.reset()
-    },
-    reset() {
-      this.$refs.form.reset()
-      this.form.id = null
-      this.form.date = ''
-      this.form.memo = ''
-      this.form.hours = 0
-      this.form.amount = ''
-    },
-  },
+  })
 }
 </script>
 <style>
