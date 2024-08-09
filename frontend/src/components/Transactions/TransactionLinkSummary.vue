@@ -2,7 +2,7 @@
   <div class="transaction-slot-link" @click="showTransactionLinks()">
     <BRow class="align-items-center">
       <BCol cols="3" lg="2" md="2">
-        <b-avatar icon="link" variant="light" :size="42"></b-avatar>
+        <BAvatar icon="link" variant="light" :size="42"></BAvatar>
       </BCol>
       <BCol>
         <div>{{ $t('gdd_per_link.links_sum') }}</div>
@@ -27,87 +27,84 @@
     </BCollapse>
   </div>
 </template>
-<script>
+
+<script setup>
+import { ref, watch } from 'vue'
+import { useQuery } from '@vue/apollo-composable'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import CollapseLinksList from '../DecayInformations/CollapseLinksList'
+import { useAppToast } from '@/composables/useToast'
 import { listTransactionLinks } from '@/graphql/queries'
 
-export default {
-  name: 'TransactionSlotLink',
-  components: {
-    CollapseIcon,
-    CollapseLinksList,
+const props = defineProps({
+  amount: {
+    type: String,
+    required: true,
   },
-  props: {
-    amount: {
-      type: String,
-      required: true,
-    },
-    decay: {
-      type: Object,
-      required: true,
-    },
-    transactionLinkCount: {
-      type: Number,
-      required: true,
-    },
+  decay: {
+    type: Object,
+    required: true,
   },
-  data() {
-    return {
-      visible: false,
-      transactionLinks: [],
-      currentPage: 1,
-      pageSize: 5,
-      pending: false,
+  transactionLinkCount: {
+    type: Number,
+    required: true,
+  },
+})
+
+const emit = defineEmits(['update-transactions'])
+
+const { toastError } = useAppToast()
+
+const visible = ref(false)
+const transactionLinks = ref([])
+const currentPage = ref(1)
+const pageSize = ref(5)
+const pending = ref(false)
+
+const { refetch, loading, error } = useQuery(
+  listTransactionLinks,
+  () => ({
+    currentPage: currentPage.value,
+  }),
+  { enabled: false },
+)
+
+watch(currentPage, () => {
+  updateListTransactionLinks()
+})
+
+function showTransactionLinks() {
+  if (visible.value) {
+    visible.value = false
+  } else {
+    transactionLinks.value = []
+    if (currentPage.value === 1) {
+      updateListTransactionLinks()
+    } else {
+      currentPage.value = 1
     }
-  },
-  watch: {
-    currentPage() {
-      this.updateListTransactionLinks()
-    },
-  },
-  methods: {
-    showTransactionLinks() {
-      if (this.visible) {
-        this.visible = false
-      } else {
-        this.transactionLinks = []
-        if (this.currentPage === 1) {
-          this.updateListTransactionLinks()
-        } else {
-          this.currentPage = 1
-        }
-        this.visible = true
-      }
-    },
-    async updateListTransactionLinks() {
-      if (this.currentPage === 0) {
-        this.transactionLinks = []
-        this.currentPage = 1
-      } else {
-        this.pending = true
-        this.$apollo
-          .query({
-            query: listTransactionLinks,
-            variables: {
-              currentPage: this.currentPage,
-            },
-            fetchPolicy: 'network-only',
-          })
-          .then((result) => {
-            this.transactionLinks = [
-              ...this.transactionLinks,
-              ...result.data.listTransactionLinks.links,
-            ]
-            this.$emit('update-transactions')
-            this.pending = false
-          })
-          .catch((err) => {
-            this.toastError(err.message)
-            this.pending = false
-          })
-      }
-    },
-  },
+    visible.value = true
+  }
+}
+
+async function updateListTransactionLinks() {
+  if (currentPage.value === 0) {
+    transactionLinks.value = []
+    currentPage.value = 1
+  } else {
+    pending.value = true
+    try {
+      const result = await refetch()
+      transactionLinks.value = [
+        ...transactionLinks.value,
+        ...result.data.listTransactionLinks.links,
+      ]
+      emit('update-transactions')
+    } catch (err) {
+      toastError(err.message)
+    } finally {
+      pending.value = false
+    }
+  }
 }
 </script>

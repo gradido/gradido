@@ -20,34 +20,24 @@
     </b-container>
   </div>
 </template>
-<script>
+
+<script setup>
+import { ref } from 'vue'
+import { useQuery } from '@vue/apollo-composable'
+import { useAppToast } from '@/composables/useToast'
 import { authenticateGmsUserSearch } from '@/graphql/queries'
-export default {
-  name: 'UserSearch',
-  data() {
-    return {
-      gmsUri: 'not initialized',
-    }
-  },
-  created() {
-    this.authenticateGmsUserPlayground()
-  },
-  methods: {
-    async authenticateGmsUserPlayground() {
-      this.$apollo
-        .query({
-          query: authenticateGmsUserSearch,
-        })
-        .then(async (result) => {
-          this.gmsUri =
-            result.data.authenticateGmsUserSearch.url +
-            '?accesstoken=' +
-            result.data.authenticateGmsUserSearch.token
-        })
-        .catch(() => {
-          this.toastError('authenticateGmsUserSearch failed!')
-        })
-    },
-  },
-}
+
+const { useToast } = useAppToast()
+
+const gmsUri = ref('not initialized')
+
+const { onResult, result, loading, onError } = useQuery(authenticateGmsUserSearch)
+
+onResult(({ data }) => {
+  gmsUri.value = `${data.authenticateGmsUserSearch.url}?accesstoken=${data.authenticateGmsUserSearch.token}`
+})
+
+onError(() => {
+  useToast.error('authenticateGmsUserSearch failed!')
+})
 </script>

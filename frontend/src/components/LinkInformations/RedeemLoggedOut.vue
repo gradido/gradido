@@ -2,7 +2,7 @@
   <div class="redeem-logged-out">
     <redeem-information v-bind="linkData" :is-contribution-link="isContributionLink" />
 
-    <b-jumbotron>
+    <BCard>
       <div class="mb-2">
         <h2>{{ $t('gdd_per_link.redeem') }}</h2>
       </div>
@@ -10,16 +10,16 @@
       <BRow>
         <BCol sm="12" md="6">
           <p>{{ $t('gdd_per_link.no-account') }}</p>
-          <b-button variant="primary" :to="register">
+          <BButton variant="primary" :to="register">
             {{ $t('gdd_per_link.to-register') }}
-          </b-button>
+          </BButton>
         </BCol>
         <BCol sm="12" md="6" class="mt-4 mt-lg-0">
           <p>{{ $t('gdd_per_link.has-account') }}</p>
-          <b-button variant="gradido" :to="login">{{ $t('gdd_per_link.to-login') }}</b-button>
+          <BButton variant="gradido" :to="login">{{ $t('gdd_per_link.to-login') }}</BButton>
         </BCol>
       </BRow>
-    </b-jumbotron>
+    </BCard>
   </div>
 </template>
 <script>

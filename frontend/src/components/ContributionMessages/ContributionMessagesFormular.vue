@@ -24,59 +24,6 @@
     </div>
   </div>
 </template>
-<!--<script>-->
-<!--import { createContributionMessage } from '../../graphql/mutations.js'-->
-
-<!--export default {-->
-<!--  name: 'ContributionMessagesFormular',-->
-<!--  props: {-->
-<!--    contributionId: {-->
-<!--      type: Number,-->
-<!--      required: true,-->
-<!--    },-->
-<!--  },-->
-<!--  data() {-->
-<!--    return {-->
-<!--      form: {-->
-<!--        text: '',-->
-<!--      },-->
-<!--      isSubmitting: false,-->
-<!--    }-->
-<!--  },-->
-<!--  computed: {-->
-<!--    disabled() {-->
-<!--      return this.form.text === '' || this.isSubmitting-->
-<!--    },-->
-<!--  },-->
-<!--  methods: {-->
-<!--    onSubmit() {-->
-<!--      this.isSubmitting = true-->
-<!--      this.$apollo-->
-<!--        .mutate({-->
-<!--          mutation: createContributionMessage,-->
-<!--          variables: {-->
-<!--            contributionId: this.contributionId,-->
-<!--            message: this.form.text,-->
-<!--          },-->
-<!--        })-->
-<!--        .then((result) => {-->
-<!--          this.$emit('get-list-contribution-messages', false)-->
-<!--          this.$emit('update-status', this.contributionId)-->
-<!--          this.form.text = ''-->
-<!--          this.toastSuccess(this.$t('message.reply'))-->
-<!--          this.isSubmitting = false-->
-<!--        })-->
-<!--        .catch((error) => {-->
-<!--          this.toastError(error.message)-->
-<!--          this.isSubmitting = false-->
-<!--        })-->
-<!--    },-->
-<!--    onReset() {-->
-<!--      this.form.text = ''-->
-<!--    },-->
-<!--  },-->
-<!--}-->
-<!--</script>-->
 
 <script setup>
 import { ref, computed } from 'vue'

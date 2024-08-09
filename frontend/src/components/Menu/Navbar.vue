@@ -1,9 +1,9 @@
 <template>
   <div class="navbar-component">
     <div class="navbar-element">
-      <b-navbar toggleable="lg" class="pr-4">
-        <b-navbar-brand>
-          <b-img
+      <BNavbar toggleable="lg" class="pr-4">
+        <BNavbarBrand>
+          <BImg
             class="mt-lg--2 mt-3 mb-3 d-none d-lg-block zindex10"
             :src="logo"
             width="200"
@@ -12,11 +12,11 @@
           <div v-b-toggle.sidebar-mobile variant="link" class="d-block d-lg-none">
             <span class="navbar-toggler-icon h2"></span>
           </div>
-        </b-navbar-brand>
+        </BNavbarBrand>
 
-        <b-img class="sheet-img position-absolute zindex-1" :src="sheet"></b-img>
+        <BImg class="sheet-img position-absolute zindex-1" :src="sheet"></BImg>
 
-        <b-navbar-nav class="ml-auto" right>
+        <BNavbarNav class="ml-auto" right>
           <router-link to="/settings">
             <div class="d-flex align-items-center">
               <div class="mr-3">
@@ -33,8 +33,8 @@
               </div>
             </div>
           </router-link>
-        </b-navbar-nav>
-      </b-navbar>
+        </BNavbarNav>
+      </BNavbar>
       <!-- <div class="alert-box">
       <b-alert show dismissible variant="light" class="nav-alert text-dark">
         <small>{{ $t('1000thanks') }}</small>

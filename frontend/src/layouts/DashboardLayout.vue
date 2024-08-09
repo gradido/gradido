@@ -10,8 +10,7 @@
           <navbar class="main-navbar" :balance="balance"></navbar>
         </BCol>
       </BRow>
-      <!--      TODO mobile sidebar needs new component to be fixed-->
-      <!--      <mobile-sidebar @admin="admin" @logout="logout" />-->
+      <mobile-sidebar @admin="admin" @logout="logoutUser" />
 
       <!-- Breadcrumb -->
       <BRow class="breadcrumb">
@@ -23,7 +22,7 @@
       <BRow fluid class="d-flex">
         <!-- Sidebar left -->
         <BCol cols="2" class="d-none d-lg-block">
-          <sidebar class="main-sidebar" @admin="admin" @logout="logout" />
+          <sidebar class="main-sidebar" @admin="admin" @logout="logoutUser" />
         </BCol>
         <!-- ContentHeader && Content -->
         <BCol>
@@ -182,149 +181,17 @@
           <content-footer v-if="!$route.meta.hideFooter"></content-footer>
         </BCol>
       </BRow>
-      <session-logout-timeout @logout="logout"></session-logout-timeout>
+      <session-logout-timeout @logout="logoutUser"></session-logout-timeout>
     </div>
   </div>
   <!--  <h1>TEST</h1>-->
 </template>
-<!--<script>-->
-<!--import ContentHeader from '@/layouts/templates/ContentHeader'-->
-<!--import CommunityTemplate from '@/layouts/templates/CommunityTemplate'-->
-<!--import Breadcrumb from '@/components/Breadcrumb/breadcrumb'-->
-<!--import RightSide from '@/layouts/templates/RightSide'-->
-<!--import SkeletonOverview from '@/components/skeleton/Overview'-->
-<!--import Navbar from '@/components/Menu/Navbar'-->
-<!--import Sidebar from '@/components/Menu/Sidebar'-->
-<!--import MobileSidebar from '@/components/MobileSidebar/MobileSidebar'-->
-<!--import SessionLogoutTimeout from '@/components/SessionLogoutTimeout'-->
-<!--import { transactionsQuery, communityStatistics } from '@/graphql/queries'-->
-<!--import { logout } from '@/graphql/mutations'-->
-<!--import ContentFooter from '@/components/ContentFooter'-->
-<!--import { FadeTransition } from 'vue2-transitions'-->
-<!--import CONFIG from '@/config'-->
-<!--import GddAmount from '@/components/Template/ContentHeader/GddAmount'-->
-<!--import GdtAmount from '@/components/Template/ContentHeader/GdtAmount'-->
-<!--import CommunityMember from '@/components/Template/ContentHeader/CommunityMember'-->
-<!--import NavCommunity from '@/components/Template/ContentHeader/NavCommunity'-->
-<!--import LastTransactions from '@/components/Template/RightSide/LastTransactions'-->
-
-<!--export default {-->
-<!--  name: 'DashboardLayout',-->
-<!--  components: {-->
-<!--    SkeletonOverview,-->
-<!--    ContentHeader,-->
-<!--    RightSide,-->
-<!--    Navbar,-->
-<!--    Sidebar,-->
-<!--    MobileSidebar,-->
-<!--    SessionLogoutTimeout,-->
-<!--    ContentFooter,-->
-<!--    FadeTransition,-->
-<!--    Breadcrumb,-->
-<!--    GddAmount,-->
-<!--    GdtAmount,-->
-<!--    CommunityMember,-->
-<!--    NavCommunity,-->
-<!--    LastTransactions,-->
-<!--    CommunityTemplate,-->
-<!--  },-->
-<!--  data() {-->
-<!--    return {-->
-<!--      balance: 0,-->
-<!--      GdtBalance: 0,-->
-<!--      transactions: [],-->
-<!--      transactionCount: 0,-->
-<!--      transactionLinkCount: 0,-->
-<!--      pending: true,-->
-<!--      visible: false,-->
-<!--      hamburger: true,-->
-<!--      darkMode: false,-->
-<!--      skeleton: true,-->
-<!--      totalUsers: null,-->
-<!--    }-->
-<!--  },-->
-<!--  created() {-->
-<!--    this.updateTransactions(0)-->
-<!--    this.getCommunityStatistics()-->
-<!--    setTimeout(() => {-->
-<!--      this.skeleton = false-->
-<!--    }, 1500)-->
-<!--  },-->
-<!--  methods: {-->
-<!--    async logout() {-->
-<!--      this.$apollo-->
-<!--        .mutate({-->
-<!--          mutation: logout,-->
-<!--        })-->
-<!--        .then(() => {-->
-<!--          this.$store.dispatch('logout')-->
-<!--          this.$router.push('/login')-->
-<!--        })-->
-<!--        .catch(() => {-->
-<!--          this.$store.dispatch('logout')-->
-<!--          if (this.$router.currentRoute.path !== '/login') this.$router.push('/login')-->
-<!--        })-->
-<!--    },-->
-<!--    async updateTransactions(pagination) {-->
-<!--      this.pending = true-->
-<!--      this.$apollo-->
-<!--        .query({-->
-<!--          query: transactionsQuery,-->
-<!--          variables: {-->
-<!--            currentPage: pagination.currentPage,-->
-<!--            pageSize: pagination.pageSize,-->
-<!--          },-->
-<!--          fetchPolicy: 'network-only',-->
-<!--        })-->
-<!--        .then((result) => {-->
-<!--          const {-->
-<!--            data: { transactionList },-->
-<!--          } = result-->
-<!--          this.GdtBalance =-->
-<!--            transactionList.balance.balanceGDT === null-->
-<!--              ? 0-->
-<!--              : Number(transactionList.balance.balanceGDT)-->
-<!--          this.transactions = transactionList.transactions-->
-<!--          this.balance = Number(transactionList.balance.balance)-->
-<!--          this.transactionCount = transactionList.balance.count-->
-<!--          this.transactionLinkCount = transactionList.balance.linkCount-->
-<!--          this.pending = false-->
-<!--        })-->
-<!--        .catch((error) => {-->
-<!--          this.pending = true-->
-<!--          this.transactionCount = -1-->
-<!--          this.toastError(error.message)-->
-<!--          // what to do when loading balance fails?-->
-<!--        })-->
-<!--    },-->
-<!--    async getCommunityStatistics() {-->
-<!--      this.$apollo-->
-<!--        .query({-->
-<!--          query: communityStatistics,-->
-<!--        })-->
-<!--        .then((result) => {-->
-<!--          this.totalUsers = result.data.communityStatistics.totalUsers-->
-<!--        })-->
-<!--        .catch(() => {-->
-<!--          this.toastError('communityStatistics has no result, use default data')-->
-<!--        })-->
-<!--    },-->
-<!--    admin() {-->
-<!--      window.location.assign(CONFIG.ADMIN_AUTH_URL.replace('{token}', this.$store.state.token))-->
-<!--      this.$store.dispatch('logout') // logout without redirect-->
-<!--    },-->
-<!--    setVisible(bool) {-->
-<!--      this.visible = bool-->
-<!--    },-->
-<!--  },-->
-<!--}-->
-<!--</script>-->
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { useLazyQuery, useMutation, useQuery } from '@vue/apollo-composable'
+import { useLazyQuery, useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 import ContentHeader from '@/layouts/templates/ContentHeader'
 import CommunityTemplate from '@/layouts/templates/CommunityTemplate'

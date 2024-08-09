@@ -1,7 +1,5 @@
 import { createApp } from 'vue'
 
-// import '@/assets/scss/gradido.scss'
-
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 
@@ -46,18 +44,13 @@ app.use(FlatPickr)
 app.use(() => apolloProvider)
 // app.use(VueTimers)
 
-// app.mixin(toasters)
 const filters = createFilters(i18n)
 app.config.globalProperties.$filters = {
   amount: filters.amount,
   GDD: filters.GDD,
 }
 
-// TODO it will be used in future
-// app.config.globalProperties.$filters = {
-//   GDD: filters.GDD,
-//   amount: filters.amount,
-// }
+loadAllRules(i18n.global, apolloProvider.defaultClient)
 
 loadAllRules(i18n.global, apolloProvider.defaultClient)
 

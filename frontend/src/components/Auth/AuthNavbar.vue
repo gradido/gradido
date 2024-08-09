@@ -3,39 +3,28 @@
     <BNavbar :toggleable="false" :container="false" class="d-flex">
       <BNavbarBrand class="d-none d-lg-block">
         <BImg class="position-absolute ml--3 mt-lg--2 p-2" :src="logo" width="200" alt="Logo" />
-        <BImg
-          class="mt--3 ml--3"
-          :src="background_header"
-          width="230"
-          alt="Background Image"
-        ></BImg>
+        <BImg class="mt--3 ml--3" :src="backgroundHeader" width="230" alt="Background Image"></BImg>
       </BNavbarBrand>
       <BImg class="sheet-img position-absolute d-block d-lg-none zindex1000" :src="sheet"></BImg>
       <BCollapse id="nav-collapse" is-nav>
         <BNavbarNav class="ml-auto d-none d-lg-flex" right>
-          <BNavItem :to="register" class="auth-navbar ml-lg-5">{{ $t('signup') }}</BNavItem>
+          <BNavItem :to="register()" class="auth-navbar ml-lg-5">{{ $t('signup') }}</BNavItem>
           <span class="d-none d-lg-block mt-1">{{ $t('math.pipe') }}</span>
-          <BNavItem :to="login" class="auth-navbar">{{ $t('signin') }}</BNavItem>
+          <BNavItem :to="login()" class="auth-navbar">{{ $t('signin') }}</BNavItem>
         </BNavbarNav>
       </BCollapse>
     </BNavbar>
   </div>
 </template>
 
-<script>
-import { authLinks } from '@/mixins/authLinks'
+<script setup>
+import { useAuthLinks } from '@/composables/useAuthLinks'
 
-export default {
-  name: 'AuthNavbar',
-  mixins: [authLinks],
-  data() {
-    return {
-      background_header: '/img/template/gradido_background_header.png',
-      logo: '/img/brand/gradido-logo.png',
-      sheet: '/img/template/Blaetter.png',
-    }
-  },
-}
+const { login, register } = useAuthLinks()
+
+const backgroundHeader = '/img/template/gradido_background_header.png'
+const logo = '/img/brand/gradido-logo.png'
+const sheet = '/img/template/Blaetter.png'
 </script>
 
 <style scoped lang="scss">
