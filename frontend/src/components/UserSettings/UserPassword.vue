@@ -17,18 +17,12 @@
         <BRow class="mb-2">
           <BCol>
             <input-password
-              :model-value="form.password"
               :label="$t('form.password_old')"
               :placeholder="$t('form.password_old')"
-              @update:modelValue="form.password = $event"
             />
           </BCol>
         </BRow>
-        <input-password-confirmation
-          :model-value="form.newPassword"
-          :register="register"
-          @update:modelValue="form.newPassword = $event"
-        />
+        <input-password-confirmation :register="register" />
         <BRow class="text-right">
           <BCol>
             <div class="text-right">
@@ -56,7 +50,7 @@ import { BRow, BCol, BForm, BButton } from 'bootstrap-vue-next'
 import InputPassword from '@/components/Inputs/InputPassword'
 import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirmation'
 import { updateUserInfos } from '@/graphql/mutations'
-import { useForm } from 'vee-validate'
+import { useForm, useField } from 'vee-validate'
 import { useMutation } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
 
@@ -64,18 +58,24 @@ const { t } = useI18n()
 
 const showPassword = ref(true)
 const register = ref(false)
-const form = ref({
+const formData = ref({
   password: '',
-  newPassword: {
-    password: '',
-    passwordRepeat: '',
-  },
+  newPassword: '',
+  passwordRepeat: '',
 })
 
 const { toastError, toastSuccess } = useAppToast()
 const { handleSubmit, invalid } = useForm({
-  initialValues: form.value,
+  initialValues: formData.value,
 })
+
+const {
+  value: form,
+  errorMessage,
+  errors,
+  validate,
+  meta,
+} = useField(formData.value.password, 'required|email')
 
 const disabled = computed(() => {
   return form.value.newPassword.password !== form.value.newPassword.passwordRepeat
@@ -94,7 +94,8 @@ const toggleShowPassword = () => {
 
 const { mutate: updateUserInfo } = useMutation(updateUserInfos)
 
-const onSubmit = handleSubmit(async () => {
+const onSubmit = handleSubmit(async (values) => {
+  console.log('submit', values)
   try {
     await updateUserInfo({
       password: form.value.password,

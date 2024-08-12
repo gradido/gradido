@@ -17,7 +17,7 @@
           :label="register ? $t('form.password') : $t('form.password_new')"
           :show-all-errors="true"
           :immediate="true"
-          :name="createId(register ? $t('form.password') : $t('form.password_new'))"
+          name="newPassword"
           :placeholder="register ? $t('form.password') : $t('form.password_new')"
           @update:modelValue="password = $event"
         />
@@ -34,7 +34,7 @@
           }"
           :label="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
           :immediate="true"
-          :name="createId(register ? $t('form.passwordRepeat') : $t('form.password_new_repeat'))"
+          name="passwordRepeat"
           :placeholder="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
           @update:modelValue="passwordRepeat = $event"
         />
@@ -51,10 +51,6 @@ const password = ref('')
 const passwordRepeat = ref('')
 
 defineProps({
-  modelValue: {
-    type: Object,
-    required: true,
-  },
   register: {
     type: Boolean,
     required: false,
@@ -62,10 +58,6 @@ defineProps({
 })
 
 const emit = defineEmits(['input'])
-
-const createId = (text) => {
-  return text.replace(/ +/g, '-')
-}
 
 const passwordObject = computed(() => {
   return { password: password.value, passwordRepeat: passwordRepeat.value }

@@ -145,10 +145,6 @@ const props = defineProps({
     type: String,
     default: 'Password',
   },
-  modelValue: {
-    type: String,
-    required: true,
-  },
   showAllErrors: {
     type: Boolean,
     default: false,
@@ -180,15 +176,23 @@ const toggleShowPassword = () => {
   showPassword.value = !showPassword.value
 }
 
+const createId = (text) => {
+  return text.replace(/ +/g, '-')
+}
+
+const labelId = computed(() => {
+  return createId(props.label)
+})
+
 // Computed properties for ARIA attributes and labelFor
 const ariaInput = computed(() => ({
   'aria-invalid': meta.valid ? false : 'true',
-  'aria-describedby': `${props.name}-feedback`,
+  'aria-describedby': `${labelId.value}-feedback`,
 }))
 
 const ariaMsg = computed(() => ({
-  id: `${props.name}-feedback`,
+  id: `${labelId.value}-feedback`,
 }))
 
-const labelFor = computed(() => `${props.name}-input-field`)
+const labelFor = computed(() => `${labelId.value}-input-field`)
 </script>
