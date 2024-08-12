@@ -155,6 +155,7 @@ const humhub = {
   HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE === 'true' || false,
   HUMHUB_API_URL: process.env.HUMHUB_API_URL ?? COMMUNITY_URL + '/community/',
   HUMHUB_JWT_KEY: process.env.HUMHUB_JWT_KEY ?? '',
+  HUMHUB_JWT_EXPIRES_IN: process.env.HUMHUB_JWT_EXPIRES_IN ?? '10m',
 }
 
 export const CONFIG = {
