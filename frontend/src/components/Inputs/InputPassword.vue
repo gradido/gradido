@@ -72,15 +72,15 @@
           </BButton>
         </template>
       </BInputGroup>
-      <BFormInvalidFeedback v-bind="ariaMsg">
-        <!--        <div v-if="showAllErrors">-->
-        <!--          <span v-for="error in errors" :key="error">-->
-        <!--            {{ error }}-->
-        <!--            <br />-->
-        <!--          </span>-->
-        <!--        </div>-->
-        {{ errorMessage }}
-      </BFormInvalidFeedback>
+      <!-- <BFormInvalidFeedback v-bind="ariaMsg"> -->
+      <div>
+        <span v-for="error in errors" :key="error">
+          {{ error }}
+          <br />
+        </span>
+      </div>
+      <!-- {{ errorMessage }} -->
+      <!-- </BFormInvalidFeedback> -->
     </BFormGroup>
   </div>
 </template>
@@ -159,7 +159,10 @@ const emit = defineEmits(['update:modelValue'])
 
 const name = toRef(props, 'name')
 // Use the useField hook for validation
-const { value, errorMessage, meta } = useField(name, 'required')
+const { value, errorMessage, meta, errors } = useField(
+  name,
+  'required|containsLowercaseCharacter|containsUppercaseCharacter|containsNumericCharacter|atLeastEightCharacters|atLeastOneSpecialCharater|noWhitespaceCharacters|',
+)
 
 const { t } = useI18n()
 

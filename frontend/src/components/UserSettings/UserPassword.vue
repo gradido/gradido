@@ -22,7 +22,7 @@
             />
           </BCol>
         </BRow>
-        <input-password-confirmation :register="register" />
+        <input-password-confirmation :register="false" />
         <BRow class="text-right">
           <BCol>
             <div class="text-right">
@@ -57,35 +57,25 @@ import { useAppToast } from '@/composables/useToast'
 const { t } = useI18n()
 
 const showPassword = ref(true)
-const register = ref(false)
-const formData = ref({
-  password: '',
-  newPassword: '',
-  passwordRepeat: '',
-})
 
 const { toastError, toastSuccess } = useAppToast()
-const { handleSubmit, invalid } = useForm({
-  initialValues: formData.value,
+const { handleSubmit, invalid, values, meta, errors } = useForm({
+  initialValues: {
+    password: '',
+    passwordNew: '',
+    passwordRepeat: '',
+  },
 })
 
-const {
-  value: form,
-  errorMessage,
-  errors,
-  validate,
-  meta,
-} = useField(formData.value.password, 'required|email')
-
 const disabled = computed(() => {
-  return form.value.newPassword.password !== form.value.newPassword.passwordRepeat
+  return values.passwordNew !== values.passwordRepeat
 })
 
 const cancelEdit = () => {
   showPassword.value = true
-  form.value.password = ''
-  form.value.passwordNew = ''
-  form.value.passwordNewRepeat = ''
+  values.password = ''
+  values.passwordNew = ''
+  values.passwordNewRepeat = ''
 }
 
 const toggleShowPassword = () => {
@@ -95,11 +85,10 @@ const toggleShowPassword = () => {
 const { mutate: updateUserInfo } = useMutation(updateUserInfos)
 
 const onSubmit = handleSubmit(async (values) => {
-  console.log('submit', values)
   try {
     await updateUserInfo({
-      password: form.value.password,
-      passwordNew: form.value.newPassword.password,
+      password: values.password,
+      passwordNew: values.passwordNew,
     })
     toastSuccess(t('message.reset'))
     cancelEdit()

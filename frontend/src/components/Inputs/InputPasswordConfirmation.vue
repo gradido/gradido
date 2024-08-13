@@ -5,19 +5,10 @@
         <input-password
           id="new-password-input-field"
           :model-value="password"
-          :rules="{
-            required: true,
-            containsLowercaseCharacter: true,
-            containsUppercaseCharacter: true,
-            containsNumericCharacter: true,
-            atLeastEightCharacters: true,
-            atLeastOneSpecialCharater: true,
-            noWhitespaceCharacters: true,
-          }"
           :label="register ? $t('form.password') : $t('form.password_new')"
           :show-all-errors="true"
           :immediate="true"
-          name="newPassword"
+          name="passwordNew"
           :placeholder="register ? $t('form.password') : $t('form.password_new')"
           @update:modelValue="password = $event"
         />
@@ -28,10 +19,6 @@
         <input-password
           id="repeat-new-password-input-field"
           :model-value="passwordRepeat"
-          :rules="{
-            required: true,
-            samePassword: password,
-          }"
           :label="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
           :immediate="true"
           name="passwordRepeat"
