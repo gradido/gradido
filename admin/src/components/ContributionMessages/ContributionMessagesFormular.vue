@@ -15,9 +15,9 @@
           <BTab active>
             <template #title>
               <span id="message-tab-title">{{ $t('moderator.message') }}</span>
-              <b-tooltip target="message-tab-title" triggers="hover">
+              <BTooltip target="message-tab-title" triggers="hover">
                 {{ $t('moderator.message-tooltip') }}
-              </b-tooltip>
+              </BTooltip>
             </template>
             <BFormTextarea
               id="textarea"
@@ -150,10 +150,6 @@ const disabled = computed(() => {
   )
 })
 
-// const moderatorDisabled = computed(() => {
-//   return form.value.text === '' || loading.value || tabindex.value === 1
-// })
-
 const now = computed(() => new Date())
 
 const { mutate: createContributionMessageMutation } = useMutation(adminCreateContributionMessage)
@@ -166,15 +162,6 @@ const combineResubmissionDateAndTime = () => {
   formattedDate.setMinutes(parseInt(minutes))
   return formattedDate
 }
-
-// const utcResubmissionDateTime = () => {
-//   if (!resubmissionDate.value) return null
-//   const localResubmissionDateAndTime = combineResubmissionDateAndTime()
-//   return new Date(
-//     localResubmissionDateAndTime.getTime() +
-//       localResubmissionDateAndTime.getTimezoneOffset() * 60000,
-//   )
-// }
 
 const onSubmit = () => {
   loading.value = true
@@ -242,8 +229,4 @@ const onReset = () => {
   showResubmissionDate.value =
     props.inputResubmissionDate !== undefined && props.inputResubmissionDate !== null
 }
-
-// const enableMemo = () => {
-//   tabindex.value = 1
-// }
 </script>

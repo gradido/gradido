@@ -51,12 +51,13 @@
                     triggers="click"
                     placement="top"
                     variant="dark"
+                    custom-class="login-size-controller"
                   >
                     <div class="text-light">
                       <span class="pointer" @click="setTextSize(0.85)">{{ $t('85') }}</span>
-                      {{ $t('math.pipe') }}
+                      {{ $t('|') }}
                       <span class="pointer" @click="setTextSize(1)">{{ $t('100') }}</span>
-                      {{ $t('math.pipe') }}
+                      {{ $t('|') }}
                       <span class="pointer" @click="setTextSize(1.25)">{{ $t('125') }}</span>
                     </div>
                   </BPopover>
@@ -164,5 +165,9 @@ export default {
     max-width: 60%;
     font-size: xx-large;
   }
+}
+
+.login-size-controller {
+  background-color: #212529;
 }
 </style>

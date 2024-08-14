@@ -1,5 +1,5 @@
 <template>
-  <div class="transaction-slot-link" @click="showTransactionLinks()">
+  <div class="transaction-slot-link" @click="showTransactionLinks">
     <BRow class="align-items-center">
       <BCol cols="3" lg="2" md="2">
         <BAvatar icon="link" variant="light" :size="42"></BAvatar>
@@ -69,7 +69,11 @@ watch(currentPage, () => {
   updateListTransactionLinks()
 })
 
-function showTransactionLinks() {
+function showTransactionLinks(evt) {
+  const targetClassNames = [...evt.target.classList]
+  if (targetClassNames.includes('link-menu-opener') || targetClassNames.includes('btn-secondary')) {
+    return
+  }
   if (visible.value) {
     visible.value = false
   } else {

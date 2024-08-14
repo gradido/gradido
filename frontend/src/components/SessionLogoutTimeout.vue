@@ -29,7 +29,7 @@
         </BRow>
       </BCard>
       <template #modal-footer>
-        <BButton size="sm" variant="danger" @click="$emit('logout')">
+        <BButton size="sm" variant="danger" @click="emit('logout')">
           {{ $t('navigation.logout') }}
         </BButton>
         <BButton size="lg" variant="success" @click="handleOk">
@@ -39,83 +39,21 @@
     </BModal>
   </div>
 </template>
-<!--<script>-->
-<!--import { verifyLogin } from '@/graphql/queries'-->
 
-<!--export default {-->
-<!--  name: 'SessionLogoutTimeout',-->
-<!--  data() {-->
-<!--    return {-->
-<!--      now: new Date().getTime(),-->
-<!--    }-->
-<!--  },-->
-<!--  timers: {-->
-<!--    tokenExpires: {-->
-<!--      time: 15000,-->
-<!--      autostart: true,-->
-<!--      repeat: true,-->
-<!--      immediate: true,-->
-<!--    },-->
-<!--  },-->
-<!--  methods: {-->
-<!--    tokenExpires() {-->
-<!--      this.now = new Date().getTime()-->
-<!--      if (this.tokenExpiresInSeconds < 75 && this.timers.tokenExpires.time !== 1000) {-->
-<!--        this.timers.tokenExpires.time = 1000-->
-<!--        this.$timer.restart('tokenExpires')-->
-<!--        this.$bvModal.show('modalSessionTimeOut')-->
-<!--      }-->
-<!--      if (this.tokenExpiresInSeconds === 0) {-->
-<!--        this.$timer.stop('tokenExpires')-->
-<!--        this.$emit('logout')-->
-<!--      }-->
-<!--    },-->
-<!--    handleOk(bvModalEvent) {-->
-<!--      bvModalEvent.preventDefault()-->
-<!--      this.$apollo-->
-<!--        .query({-->
-<!--          query: verifyLogin,-->
-<!--          fetchPolicy: 'network-only',-->
-<!--        })-->
-<!--        .then((result) => {-->
-<!--          this.timers.tokenExpires.time = 15000-->
-<!--          this.$timer.restart('tokenExpires')-->
-<!--          this.$bvModal.hide('modalSessionTimeOut')-->
-<!--        })-->
-<!--        .catch(() => {-->
-<!--          this.$timer.stop('tokenExpires')-->
-<!--          this.$emit('logout')-->
-<!--        })-->
-<!--    },-->
-<!--  },-->
-<!--  computed: {-->
-<!--    tokenExpiresInSeconds() {-->
-<!--      const remainingSecs = Math.floor(-->
-<!--        (new Date(this.$store.state.tokenTime * 1000).getTime() - this.now) / 1000,-->
-<!--      )-->
-<!--      return remainingSecs <= 0 ? 0 : remainingSecs-->
-<!--    },-->
-<!--  },-->
-<!--  beforeDestroy() {-->
-<!--    this.$timer.stop('tokenExpires')-->
-<!--  },-->
-<!--}-->
-<!--</script>-->
 <script setup>
-// TODO to be checked and fixed
-import { ref, computed, onBeforeUnmount } from 'vue'
+import { ref, computed, onBeforeUnmount, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useLazyQuery } from '@vue/apollo-composable'
-import { useTimer } from 'vue-timer-hook' // TODO change to updated version
-import { useModal } from 'bootstrap-vue-next'
 import { verifyLogin } from '@/graphql/queries'
+import { useModal } from 'bootstrap-vue-next'
 
 const store = useStore()
-const { result, load: verifyLoginQuery } = useLazyQuery(verifyLogin)
-const { modal } = useModal()
-const timer = useTimer()
 
-const emit = defineEmits(['logout'])
+const { show: showModal, hide: hideModal } = useModal('modalSessionTimeOut')
+
+const { load: verifyLoginQuery, loading, error } = useLazyQuery(verifyLogin)
+
+const timerInterval = ref(null)
 
 const now = ref(new Date().getTime())
 
@@ -126,47 +64,66 @@ const tokenExpiresInSeconds = computed(() => {
   return remainingSecs <= 0 ? 0 : remainingSecs
 })
 
-const handleOk = async () => {
-  return 'OK'
+const updateNow = () => {
+  now.value = new Date().getTime()
 }
 
-// const tokenExpires = () => {
-//   now.value = new Date().getTime()
-//   if (tokenExpiresInSeconds.value < 75 && timer.value.tokenExpires.time !== 1000) {
-//     timer.value.tokenExpires.time = 1000
-//     restartTimer('tokenExpires')
-//     modal.show('modalSessionTimeOut')
-//   }
-//   if (tokenExpiresInSeconds.value === 0) {
-//     stopTimer('tokenExpires')
-//     emit('logout')
-//   }
-// }
-//
-// const handleOk = (bvModalEvent) => {
-//   bvModalEvent.preventDefault()
-//   verifyLoginQuery({
-//     fetchPolicy: 'network-only',
-//   })
-//     .then(() => {
-//       timer.value.tokenExpires.time = 15000
-//       restartTimer('tokenExpires')
-//       modal.hide('modalSessionTimeOut')
-//     })
-//     .catch(() => {
-//       stopTimer('tokenExpires')
-//       emit('logout')
-//     })
-// }
-//
-// // Start the timer
-// startTimer('tokenExpires', {
-//   time: 15000,
-//   callback: tokenExpires,
-//   immediate: true,
-// })
-//
-// onBeforeUnmount(() => {
-//   stopTimer('tokenExpires')
-// })
+const checkExpiration = () => {
+  if (tokenExpiresInSeconds.value < 75 && !timerInterval.value) {
+    showModal()
+  }
+  if (tokenExpiresInSeconds.value === 0) {
+    stopTimer()
+    emit('logout')
+  }
+}
+
+const handleOk = async (bvModalEvent) => {
+  bvModalEvent.preventDefault()
+  try {
+    await verifyLoginQuery()
+    if (error.value) {
+      throw new Error('Login verification failed')
+    }
+    hideModal('modalSessionTimeOut')
+  } catch {
+    stopTimer()
+    emit('logout')
+  }
+}
+
+const startTimer = () => {
+  stopTimer()
+  timerInterval.value = setInterval(() => {
+    updateNow()
+    checkExpiration()
+  }, 1000)
+}
+
+const stopTimer = () => {
+  if (timerInterval.value) {
+    clearInterval(timerInterval.value)
+    timerInterval.value = null
+  }
+}
+
+watch(
+  tokenExpiresInSeconds,
+  (newValue) => {
+    if (newValue < 75 && !timerInterval.value) {
+      startTimer()
+    } else if (newValue >= 75 && timerInterval.value) {
+      stopTimer()
+    }
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  stopTimer()
+})
+
+checkExpiration()
+
+const emit = defineEmits(['logout'])
 </script>

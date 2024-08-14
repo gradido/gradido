@@ -12,7 +12,6 @@
           <div>
             <BButton class="p-4">
               <IBiLink45deg />
-              <!--              <b-icon icon="link45deg"></b-icon>-->
             </BButton>
           </div>
         </div>
@@ -28,7 +27,6 @@
           <div>
             <BButton class="p-4">
               <IBiLink45deg />
-              <!--              <b-icon icon="link45deg"></b-icon>-->
             </BButton>
           </div>
         </div>

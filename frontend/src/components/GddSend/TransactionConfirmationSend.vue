@@ -25,7 +25,6 @@
 
       <BRow class="mt-5 text-color-gdd-yellow h3">
         <BCol cols="2" class="text-right">
-          <!--          <b-icon class="text-color-gdd-yellow" icon="droplet-half"></b-icon>-->
           <IBiDropletHalf />
         </BCol>
         <BCol>{{ $t('advanced-calculation') }}</BCol>

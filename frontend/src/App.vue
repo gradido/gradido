@@ -73,10 +73,6 @@ export default {
   height: 13px;
 }
 
-.text-color-gdd-yellow {
-  color: rgb(197 141 56);
-}
-
 .dropdown > .dropdown-toggle {
   border-radius: 17px;
   height: 50px;

@@ -9,7 +9,7 @@
       <BCollapse id="nav-collapse" is-nav>
         <BNavbarNav class="ml-auto d-none d-lg-flex" right>
           <BNavItem :to="register()" class="auth-navbar ml-lg-5">{{ $t('signup') }}</BNavItem>
-          <span class="d-none d-lg-block mt-1">{{ $t('math.pipe') }}</span>
+          <span class="d-none d-lg-block">{{ $t('|') }}</span>
           <BNavItem :to="login()" class="auth-navbar">{{ $t('signin') }}</BNavItem>
         </BNavbarNav>
       </BCollapse>

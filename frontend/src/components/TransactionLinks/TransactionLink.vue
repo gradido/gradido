@@ -15,7 +15,7 @@
           <BCol cols="12" lg="1" md="1" class="text-center text-md-right pr-5 pr-lg-4">
             <BDropdown no-caret right aria-expanded="false" size="sm">
               <template #button-content>
-                <IBiThreeDotsVertical />
+                <IBiThreeDotsVertical class="link-menu-opener" />
               </template>
 
               <BDropdownItem v-if="validLink" class="test-copy-link" @click="copyToClipboard">

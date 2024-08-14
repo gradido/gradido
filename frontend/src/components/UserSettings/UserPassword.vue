@@ -3,11 +3,17 @@
     <div>
       <BRow class="mb-4 text-right">
         <BCol class="text-right">
-          <button data-test="open-password-change-form" @click="toggleShowPassword">
+          <BButton
+            class="change-password-form-opener"
+            data-test="open-password-change-form"
+            @click="toggleShowPassword"
+          >
             <span class="pointer mr-3">{{ $t('settings.password.change-password') }}</span>
+            <IBiPencil v-if="showPassword" />
+            <IBiXCircle v-else class="color-danger" />
             <!-- <b-icon v-if="showPassword" class="pointer ml-3" icon="pencil"></b-icon>
             <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon> -->
-          </button>
+          </BButton>
         </BCol>
       </BRow>
     </div>
@@ -66,26 +72,27 @@ const showPassword = ref(true)
 const register = ref(false)
 const form = ref({
   password: '',
-  newPassword: {
-    password: '',
-    passwordRepeat: '',
-  },
+  newPassword: '',
+  newPasswordRepeat: '',
 })
 
 const { toastError, toastSuccess } = useAppToast()
-const { handleSubmit, invalid } = useForm({
-  initialValues: form.value,
+const {
+  handleSubmit,
+  invalid,
+  values: formValues,
+  resetForm,
+} = useForm({
+  initialValues: { ...form.value },
 })
 
 const disabled = computed(() => {
-  return form.value.newPassword.password !== form.value.newPassword.passwordRepeat
+  return formValues.newPassword !== formValues.newPasswordRepeat
 })
 
 const cancelEdit = () => {
   showPassword.value = true
-  form.value.password = ''
-  form.value.passwordNew = ''
-  form.value.passwordNewRepeat = ''
+  resetForm()
 }
 
 const toggleShowPassword = () => {
@@ -97,8 +104,8 @@ const { mutate: updateUserInfo } = useMutation(updateUserInfos)
 const onSubmit = handleSubmit(async () => {
   try {
     await updateUserInfo({
-      password: form.value.password,
-      passwordNew: form.value.newPassword.password,
+      password: formValues.password,
+      passwordNew: formValues.newPassword,
     })
     toastSuccess(t('message.reset'))
     cancelEdit()
@@ -107,3 +114,24 @@ const onSubmit = handleSubmit(async () => {
   }
 })
 </script>
+
+<style scoped lang="scss">
+.change-password-form-opener {
+  background-color: transparent;
+  border: none;
+  color: $gradido-4;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  > span {
+    margin-right: 15px;
+  }
+  > svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+.color-danger {
+  color: $danger !important;
+}
+</style>

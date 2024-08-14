@@ -37,59 +37,7 @@
     </BInputGroup>
   </div>
 </template>
-<!--<script>-->
 
-<!--export default {-->
-<!--  name: 'InputAmount',-->
-<!--  props: {-->
-<!--    rules: {-->
-<!--      type: Object,-->
-<!--      default: () => {},-->
-<!--    },-->
-<!--    typ: { type: String, default: 'TransactionForm' },-->
-<!--    name: { type: String, required: true, default: 'Amount' },-->
-<!--    label: { type: String, required: true, default: 'Amount' },-->
-<!--    placeholder: { type: String, required: true, default: 'Amount' },-->
-<!--    value: { type: String, required: true },-->
-<!--    balance: { type: Number, default: 0.0 },-->
-<!--    disabled: { required: false, type: Boolean, default: false },-->
-<!--  },-->
-<!--  data() {-->
-<!--    return {-->
-<!--      currentValue: this.value,-->
-<!--      amountValue: 0.0,-->
-<!--      amountFocused: false,-->
-<!--    }-->
-<!--  },-->
-<!--  computed: {-->
-<!--    errorMessages() {-->
-<!--      return errorMessages-->
-<!--    },-->
-<!--    labelFor() {-->
-<!--      return this.name + '-input-field'-->
-<!--    },-->
-<!--  },-->
-<!--  watch: {-->
-<!--    currentValue() {-->
-<!--      this.$emit('input', this.currentValue)-->
-<!--    },-->
-<!--    value() {-->
-<!--      if (this.value !== this.currentValue) this.currentValue = this.value-->
-<!--    },-->
-<!--  },-->
-<!--  methods: {-->
-<!--    normalizeAmount(isValid) {-->
-<!--      this.amountFocused = false-->
-<!--      if (!isValid) return-->
-<!--      this.amountValue = this.currentValue.replace(',', '.')-->
-<!--      this.currentValue = this.$n(this.amountValue, 'ungroupedDecimal')-->
-<!--    },-->
-<!--  },-->
-<!--  mounted() {-->
-<!--    if (this.value !== '') this.normalizeAmount(true)-->
-<!--  },-->
-<!--}-->
-<!--</script>-->
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useField } from 'vee-validate'
@@ -134,14 +82,7 @@ watch(
 )
 
 const normalizeAmount = (inputValue) => {
-  const oldValue = value.value
-  const amountPattern = /^\d+([,.]\d{1,2})?$/
   amountFocused.value = false
-  // if (!meta.valid) return
-  // if (!amountPattern.test(inputValue)) {
-  //   value.value = oldValue
-  // } else {
   value.value = inputValue.replace(',', '.')
-  // }
 }
 </script>

@@ -6,8 +6,8 @@
         <div>
           <transaction-link
             v-for="item in transactionLinks"
-            :key="item.id"
             v-bind="item"
+            :key="item.id"
             @reset-transaction-link-list="resetTransactionLinkList"
           />
           <div class="mb-3">
