@@ -35,10 +35,11 @@ const environment = {
   PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
 }
 
-const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? undefined
-const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
-const COMMUNITY_URL =
-  COMMUNITY_HOST && URL_PROTOCOL ? URL_PROTOCOL + '://' + COMMUNITY_HOST : undefined
+// const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? undefined
+// const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
+// const COMMUNITY_URL =
+//   COMMUNITY_HOST && URL_PROTOCOL ? URL_PROTOCOL + '://' + COMMUNITY_HOST : undefined
+const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${ADMIN_MODULE_URL}`
 const WALLET_URL = process.env.WALLET_URL ?? COMMUNITY_URL ?? 'http://localhost'
 
 const endpoints = {

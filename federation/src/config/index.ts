@@ -61,9 +61,9 @@ if (
   )
 }
 
-const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
-const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
-const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${URL_PROTOCOL}://${COMMUNITY_HOST}`
+// const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
+// const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
+const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${FEDERATION_MODULE_URL}` // `${URL_PROTOCOL}://${COMMUNITY_HOST}`
 
 const federation = {
   FEDERATION_API: process.env.FEDERATION_API ?? '1_0',

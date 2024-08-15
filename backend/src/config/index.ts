@@ -60,9 +60,9 @@ const klicktipp = {
   KLICKTIPP_APIKEY_EN: process.env.KLICKTIPP_APIKEY_EN ?? 'SomeFakeKeyEN',
 }
 
-const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
-const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
-const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${URL_PROTOCOL}://${COMMUNITY_HOST}`
+// const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
+// const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
+const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${BACKEND_MODULE_URL}` // ${URL_PROTOCOL}://${COMMUNITY_HOST}`
 const DLT_CONNECTOR_PORT = process.env.DLT_CONNECTOR_PORT ?? 6010
 
 const dltConnector = {

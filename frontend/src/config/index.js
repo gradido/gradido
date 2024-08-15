@@ -42,14 +42,17 @@ const environment = {
   DEFAULT_PUBLISHER_ID: process.env.DEFAULT_PUBLISHER_ID ?? 2896,
 }
 
-const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
-const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
-const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${URL_PROTOCOL}://${COMMUNITY_HOST}`
+// const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
+// const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
+const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${FRONTEND_MODULE_URL}` // ${URL_PROTOCOL}://${COMMUNITY_HOST}`
 
 const endpoints = {
   GRAPHQL_URI: COMMUNITY_URL + (process.env.GRAPHQL_PATH ?? '/graphql'),
+  // ADMIN_AUTH_URL:
+  //  COMMUNITY_URL + (process.env.ADMIN_AUTH_PATH ?? '/admin/authenticate?token={token}'),
   ADMIN_AUTH_URL:
-    COMMUNITY_URL + (process.env.ADMIN_AUTH_PATH ?? '/admin/authenticate?token={token}'),
+    process.env.ADMIN_AUTH_URL +
+    (process.env.ADMIN_AUTH_PATH ?? '/admin/authenticate?token={token}'),
 }
 
 const community = {
