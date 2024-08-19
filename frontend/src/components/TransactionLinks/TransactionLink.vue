@@ -66,13 +66,9 @@
       @on-ok="deleteLink"
     >
       <BCard header-tag="header" footer-tag="footer">
-        <template #header>
-          <h6 class="mb-0">{{ 'Delete link?' }}</h6>
-        </template>
-        <BCardText>Delete link?</BCardText>
-        <template #footer>
-          <em>{{ link }}</em>
-        </template>
+        <h6 class="mb-0">{{ $t('gdd_per_link.delete-the-link') }}</h6>
+        <br />
+        <em>{{ link }}</em>
       </BCard>
     </app-modal>
   </div>

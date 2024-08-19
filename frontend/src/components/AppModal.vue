@@ -4,7 +4,7 @@
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>{{ props.title }}</h3>
-          <button @click="closeModal" class="close-button">
+          <button class="close-button" @click="closeModal">
             <IBiX />
           </button>
         </div>
@@ -12,9 +12,11 @@
           <slot></slot>
         </div>
         <div class="modal-footer">
-          <BButton v-if="okOnly" @click="emits('on-ok')">Ok</BButton>
+          <BButton v-if="okOnly" class="btn-success" @click="emits('on-ok')">
+            {{ $t('form.ok') }}
+          </BButton>
           <slot v-else name="footer">
-            <BButton @click="closeModal">Close</BButton>
+            <BButton @click="closeModal">{{ $('form.close') }}</BButton>
           </slot>
         </div>
       </div>
@@ -48,7 +50,7 @@ const closeModal = () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgb(0 0 0 / 50%);
   display: flex;
   justify-content: center;
   align-items: center;

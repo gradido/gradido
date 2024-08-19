@@ -123,14 +123,17 @@ const onSubmit = handleSubmit(async () => {
   display: flex;
   align-items: center;
   margin-left: auto;
+
   > span {
     margin-right: 15px;
   }
+
   > svg {
     width: 16px;
     height: 16px;
   }
 }
+
 .color-danger {
   color: $danger !important;
 }

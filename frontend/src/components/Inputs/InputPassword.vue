@@ -26,7 +26,7 @@
         </template>
       </BInputGroup>
       <BFormInvalidFeedback v-if="errorMessage || errors.length" force-show v-bind="ariaMsg">
-        <template>
+        <template #default>
           <div v-if="allowFullValidation">
             <span v-for="error in errors" :key="error">
               {{ error }}
