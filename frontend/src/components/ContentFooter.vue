@@ -11,7 +11,7 @@
           >
             {{ $t('footer.copyright.link') }}
           </a>
-          {{ $t('math.pipe') }}
+          {{ $t('|') }}
           <a href="https://github.com/gradido/gradido/releases/latest" target="_blank">
             {{ $t('footer.app_version', { version }) }}
           </a>

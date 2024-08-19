@@ -29,7 +29,6 @@
             <IBiCheck v-else-if="confirmedAt" />
             <IBiQuestion v-else-if="status === 'IN_PROGRESS'" />
             <IBiBellFill v-else />
-            <!--            <b-icon :icon="icon" :variant="variant"></b-icon>-->
           </div>
           <div class="small">
             {{ $d(new Date(contributionDate), 'short') }}

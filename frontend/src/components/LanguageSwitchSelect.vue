@@ -1,10 +1,6 @@
 <template>
   <div class="language-switch-select">
-    <b-form-select
-      v-model="selected"
-      :options="options"
-      class="selectedLanguage mb-3"
-    ></b-form-select>
+    <BFormSelect v-model="selected" :options="options" class="selectedLanguage mb-3"></BFormSelect>
   </div>
 </template>
 <script>

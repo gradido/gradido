@@ -130,131 +130,6 @@
     </BRow>
   </div>
 </template>
-<!--<script>-->
-<!--import { SEND_TYPES } from '@/utils/sendTypes'-->
-<!--import InputIdentifier from '@/components/Inputs/InputIdentifier'-->
-<!--import InputAmount from '@/components/Inputs/InputAmount'-->
-<!--import InputTextarea from '@/components/Inputs/InputTextarea'-->
-<!--import CommunitySwitch from '@/components/CommunitySwitch.vue'-->
-<!--import { user } from '@/graphql/queries'-->
-<!--import CONFIG from '@/config'-->
-
-<!--export default {-->
-<!--  name: 'TransactionForm',-->
-<!--  components: {-->
-<!--    InputIdentifier,-->
-<!--    InputAmount,-->
-<!--    InputTextarea,-->
-<!--    CommunitySwitch,-->
-<!--  },-->
-<!--  props: {-->
-<!--    balance: { type: Number, default: 0 },-->
-<!--    identifier: { type: String, default: '' },-->
-<!--    amount: { type: Number, default: 0 },-->
-<!--    memo: { type: String, default: '' },-->
-<!--    selected: { type: String, default: 'send' },-->
-<!--    targetCommunity: {-->
-<!--      type: Object,-->
-<!--      default: function () {-->
-<!--        return { uuid: '', name: CONFIG.COMMUNITY_NAME }-->
-<!--      },-->
-<!--    },-->
-<!--  },-->
-<!--  data() {-->
-<!--    return {-->
-<!--      form: {-->
-<!--        identifier: this.identifier,-->
-<!--        amount: this.amount ? String(this.amount) : '',-->
-<!--        memo: this.memo,-->
-<!--        targetCommunity: this.targetCommunity,-->
-<!--      },-->
-<!--      radioSelected: this.selected,-->
-<!--      userName: '',-->
-<!--      recipientCommunity: { uuid: '', name: '' },-->
-<!--    }-->
-<!--  },-->
-<!--  methods: {-->
-<!--    onValidation() {-->
-<!--      this.$refs.formValidator.validate()-->
-<!--    },-->
-<!--    onSubmit() {-->
-<!--      if (this.userIdentifier) this.form.identifier = this.userIdentifier.identifier-->
-<!--      this.$emit('set-transaction', {-->
-<!--        selected: this.radioSelected,-->
-<!--        identifier: this.form.identifier,-->
-<!--        amount: Number(this.form.amount.replace(',', '.')),-->
-<!--        memo: this.form.memo,-->
-<!--        userName: this.userName,-->
-<!--        targetCommunity: this.form.targetCommunity,-->
-<!--      })-->
-<!--    },-->
-<!--    onReset(event) {-->
-<!--      event.preventDefault()-->
-<!--      this.form.identifier = ''-->
-<!--      this.form.amount = ''-->
-<!--      this.form.memo = ''-->
-<!--      this.form.targetCommunity = { uuid: '', name: COMMUNITY_NAME }-->
-<!--      this.$refs.formValidator.validate()-->
-<!--      this.$router.replace('/send')-->
-<!--    },-->
-<!--  },-->
-<!--  apollo: {-->
-<!--    UserName: {-->
-<!--      query() {-->
-<!--        return user-->
-<!--      },-->
-<!--      fetchPolicy: 'network-only',-->
-<!--      variables() {-->
-<!--        return this.userIdentifier-->
-<!--      },-->
-<!--      skip() {-->
-<!--        return !this.userIdentifier-->
-<!--      },-->
-<!--      update({ user }) {-->
-<!--        this.userName = `${user.firstName} ${user.lastName}`-->
-<!--      },-->
-<!--      error({ message }) {-->
-<!--        this.toastError(message)-->
-<!--      },-->
-<!--    },-->
-<!--  },-->
-<!--  computed: {-->
-<!--    disabled() {-->
-<!--      if (-->
-<!--        this.form.identifier.length > 5 &&-->
-<!--        parseInt(this.form.amount) <= parseInt(this.balance) &&-->
-<!--        this.form.memo.length > 5 &&-->
-<!--        this.form.memo.length <= 255-->
-<!--      ) {-->
-<!--        return false-->
-<!--      }-->
-<!--      return true-->
-<!--    },-->
-<!--    isBalanceDisabled() {-->
-<!--      return this.balance <= 0 ? 'disabled' : false-->
-<!--    },-->
-<!--    sendTypes() {-->
-<!--      return SEND_TYPES-->
-<!--    },-->
-<!--    userIdentifier() {-->
-<!--      if (-->
-<!--        this.$route.params &&-->
-<!--        this.$route.params.userIdentifier &&-->
-<!--        this.$route.params.communityIdentifier-->
-<!--      ) {-->
-<!--        return {-->
-<!--          identifier: this.$route.params.userIdentifier,-->
-<!--          communityIdentifier: this.$route.params.communityIdentifier,-->
-<!--        }-->
-<!--      }-->
-<!--      return null-->
-<!--    },-->
-<!--  },-->
-<!--  mounted() {-->
-<!--    if (this.form.identifier !== '') this.$refs.formValidator.validate()-->
-<!--  },-->
-<!--}-->
-<!--</script>-->
 
 <script setup>
 import { ref, computed, watch } from 'vue'
@@ -292,7 +167,6 @@ const radioSelected = ref(props.selected)
 const userName = ref('')
 const recipientCommunity = ref({ uuid: '', name: '' })
 
-// Use vee-validate's useForm
 const { handleSubmit, resetForm, defineField } = useForm({
   initialValues: {
     identifier: props.identifier,
@@ -354,13 +228,6 @@ function onReset(event) {
   radioSelected.value = SEND_TYPES.send
   router.replace('/send')
 }
-
-// Expose necessary methods and computed properties
-// defineExpose({
-//   sendTypes: SEND_TYPES,
-//   handleSubmit: onSubmit,
-//   onReset,
-// })
 </script>
 
 <style>

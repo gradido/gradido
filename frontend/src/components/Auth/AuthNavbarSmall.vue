@@ -3,7 +3,7 @@
     <BNavbar class="navi">
       <BNavbarNav>
         <BNavItem :to="register()" class="auth-navbar">{{ $t('signup') }}</BNavItem>
-        <span class="mt-1">{{ $t('math.pipe') }}</span>
+        <span class="mt-1">{{ $t('|') }}</span>
         <BNavItem :to="login()" class="auth-navbar">{{ $t('signin') }}</BNavItem>
       </BNavbarNav>
     </BNavbar>

@@ -41,12 +41,14 @@
         <BNav vertical class="w-100">
           <BNavItem
             to="/settings"
-            class="mb-3"
+            class="mb-3 d-block"
             active-class="active-route"
             data-test="settings-menu"
           >
-            <BImg src="/img/svg/settings.svg" height="20" class="svg-icon" />
-            <span class="ml-2">{{ $t('navigation.settings') }}</span>
+            <div>
+              <BImg src="/img/svg/settings.svg" height="20" class="svg-icon" />
+              <span class="ml-2">{{ $t('navigation.settings') }}</span>
+            </div>
             <BBadge v-if="!$store.state.username" variant="warning">
               {{ $t('settings.newSettings') }}
             </BBadge>
@@ -106,6 +108,7 @@ export default {
 }
 
 .active-route {
+  display: block;
   font-weight: bold;
   color: rgb(2 2 1);
   border-left: 4px rgb(219 129 19) solid;

@@ -11,7 +11,6 @@
           {{ lang.name }}
         </span>
       </span>
-      <!--      <b-icon icon="caret-down-fill" aria-hidden="true"></b-icon>-->
       <IBiCaretDownFill />
     </div>
     <BCollapse id="collapse-1" class="mt-4">
@@ -33,7 +32,7 @@
           "
           class="ml-3 mr-3"
         >
-          {{ locales.length - 1 > index ? $t('math.pipe') : '' }}
+          {{ locales.length - 1 > index ? $t('|') : '' }}
         </span>
       </span>
     </BCollapse>

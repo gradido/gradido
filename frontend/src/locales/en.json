@@ -121,7 +121,6 @@
   "error": {
     "email-already-sent": "We already sent you an email less than 10 minutes ago.",
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
-    "error": "Error!",
     "no-account": "Unfortunately we could not find an (activated) account to the given data.",
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
     "no-user": "No user with this credentials.",
@@ -161,6 +160,7 @@
     "message": "Message",
     "new_balance": "Account balance after confirmation",
     "no_gdd_available": "You do not have GDD to send.",
+    "ok": "Ok",
     "password": "Password",
     "passwordRepeat": "Repeat password",
     "password_new": "New password",
@@ -252,8 +252,7 @@
   "math": {
     "asterisk": "*",
     "equal": "=",
-    "minus": "−",
-    "pipe": "|"
+    "minus": "−"
   },
   "maxReached": "Max. reached",
   "member": "Member",

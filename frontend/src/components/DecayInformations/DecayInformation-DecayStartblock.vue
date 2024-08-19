@@ -3,7 +3,7 @@
     <BRow>
       <BCol cols="12">
         <div class="text-center pb-3">
-          <b-icon icon="droplet-half" class="mr-2" />
+          <IBiDropletHalf class="mr-2" />
           <b>{{ $t('decay.Starting_block_decay') }}</b>
         </div>
       </BCol>

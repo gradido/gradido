@@ -4,22 +4,20 @@
       <BCol>
         <input-password
           id="new-password-input-field"
-          :model-value="password"
           :rules="{
             required: true,
             containsLowercaseCharacter: true,
             containsUppercaseCharacter: true,
             containsNumericCharacter: true,
             atLeastEightCharacters: true,
-            atLeastOneSpecialCharater: true,
+            atLeastOneSpecialCharacter: true,
             noWhitespaceCharacters: true,
           }"
           :label="register ? $t('form.password') : $t('form.password_new')"
-          :show-all-errors="true"
-          :immediate="true"
-          :name="createId(register ? $t('form.password') : $t('form.password_new'))"
+          immediate
+          name="newPassword"
           :placeholder="register ? $t('form.password') : $t('form.password_new')"
-          @update:modelValue="password = $event"
+          allow-full-validation
         />
       </BCol>
     </BRow>
@@ -27,28 +25,21 @@
       <BCol>
         <input-password
           id="repeat-new-password-input-field"
-          :model-value="passwordRepeat"
           :rules="{
             required: true,
-            samePassword: password,
+            samePassword: 'newPassword',
           }"
           :label="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
-          :immediate="true"
-          :name="createId(register ? $t('form.passwordRepeat') : $t('form.password_new_repeat'))"
+          immediate
+          name="newPasswordRepeat"
           :placeholder="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
-          @update:modelValue="passwordRepeat = $event"
         />
       </BCol>
     </BRow>
   </div>
 </template>
 <script setup>
-import { computed, ref, watch } from 'vue'
 import InputPassword from './InputPassword'
-import { BCol, BRow } from 'bootstrap-vue-next'
-
-const password = ref('')
-const passwordRepeat = ref('')
 
 defineProps({
   modelValue: {
@@ -60,22 +51,4 @@ defineProps({
     required: false,
   },
 })
-
-const emit = defineEmits(['input'])
-
-const createId = (text) => {
-  return text.replace(/ +/g, '-')
-}
-
-const passwordObject = computed(() => {
-  return { password: password.value, passwordRepeat: passwordRepeat.value }
-})
-
-watch(
-  [password, passwordRepeat],
-  () => {
-    emit('input', passwordObject.value)
-  },
-  { deep: true },
-)
 </script>

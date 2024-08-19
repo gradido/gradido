@@ -6,8 +6,8 @@
         <div>
           <transaction-link
             v-for="item in transactionLinks"
-            :key="item.id"
             v-bind="item"
+            :key="item.id"
             @reset-transaction-link-list="resetTransactionLinkList"
           />
           <div class="mb-3">
@@ -16,7 +16,7 @@
               class="test-button-load-more"
               block
               variant="outline-primary"
-              @click="loadMoreLinks"
+              @click.stop="loadMoreLinks"
             >
               {{ buttonText }}
             </BButton>

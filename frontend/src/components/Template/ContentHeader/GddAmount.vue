@@ -28,7 +28,7 @@
           <!--            icon="layers"-->
           <!--            class="mr-3 gradido-global-border-color-accent d-none d-lg-inline"-->
           <!--          ></b-icon>-->
-          <IBiLayers />
+          <IBiLayers class="mr-3 gradido-global-border-color-accent" />
           <span v-if="hideAmount" class="font-weight-bold gradido-global-color-accent">
             {{ $t('asterisks') }}
           </span>
@@ -37,14 +37,9 @@
           </span>
         </BCol>
         <BCol cols="3" class="border-left border-light">
-          <!--          <b-icon-->
-          <!--            :icon="hideAmount ? 'eye-slash' : 'eye'"-->
-          <!--            class="mr-3 gradido-global-border-color-accent pointer hover-icon"-->
-          <!--            @click="updateHideAmountGDD"-->
-          <!--          ></b-icon>-->
           <button class="transparent-button" @click="updateHideAmountGDD">
-            <IBiEyeSlash v-if="hideAmount" />
-            <IBiEye v-else />
+            <IBiEyeSlash v-if="hideAmount" class="mr-3 gradido-global-border-color-accent" />
+            <IBiEye v-else class="mr-3 gradido-global-border-color-accent" />
           </button>
         </BCol>
       </BRow>
@@ -58,7 +53,7 @@ import { useStore } from 'vuex'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 import { updateUserInfos } from '@/graphql/mutations'
-import { useAppToast } from '../../../composables/useToast'
+import { useAppToast } from '@/composables/useToast'
 
 const props = defineProps({
   path: { type: String, required: false, default: '' },

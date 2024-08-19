@@ -178,13 +178,12 @@
       <BRow>
         <!-- footer -->
         <BCol>
-          <content-footer v-if="!$route.meta.hideFooter"></content-footer>
+          <content-footer v-if="!$route.meta.hideFooter" />
         </BCol>
       </BRow>
-      <session-logout-timeout @logout="logoutUser"></session-logout-timeout>
+      <!--      <session-logout-timeout @logout="logoutUser" ref="sessionModal" />-->
     </div>
   </div>
-  <!--  <h1>TEST</h1>-->
 </template>
 
 <script setup>
@@ -233,6 +232,12 @@ const hamburger = ref(true)
 const darkMode = ref(false)
 const skeleton = ref(true)
 const totalUsers = ref(null)
+
+const sessionModal = ref(null)
+
+const testModal = () => {
+  sessionModal.value.showTimeoutModalForTesting()
+}
 
 onMounted(() => {
   updateTransactions({ currentPage: 0, pageSize: 10 })

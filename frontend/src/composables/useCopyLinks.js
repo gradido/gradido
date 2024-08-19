@@ -24,7 +24,7 @@ export const useCopyLinks = ({ link, amount, memo, validUntil }) => {
 
   const copyLinkWithText = () => {
     navigator.clipboard
-      .writeText(linkText)
+      .writeText(linkText.value)
       .then(() => {
         toastSuccess(t('gdd_per_link.link-and-text-copied'))
       })
@@ -39,7 +39,7 @@ export const useCopyLinks = ({ link, amount, memo, validUntil }) => {
 ${store.state.firstName} ${t('transaction-link.send_you')} ${amount} Gradido.
 "${memo}"
 ${t('gdd_per_link.credit-your-gradido')} ${t('gdd_per_link.validUntilDate', {
-      date: d(new Date(this.validUntil), 'short'),
+      date: d(new Date(validUntil), 'short'),
     })}
 ${t('gdd_per_link.link-hint')}`
   })

@@ -61,7 +61,7 @@ const linkData = ref({
 
 const redeemedBoxText = ref('')
 
-const { result, loading, error } = useQuery(queryTransactionLink, {
+const { result, onResult, loading, error, onError } = useQuery(queryTransactionLink, {
   code: params.code,
 })
 
@@ -133,21 +133,26 @@ function updateRedeemedBoxText(type) {
 const emit = defineEmits(['set-mobile-start'])
 
 onMounted(() => {
-  setTransactionLinkInformation()
   emit('set-mobile-start', false)
 })
 
+onResult(() => {
+  if (!result || !result.value) return
+  setTransactionLinkInformation()
+})
+
+onError(() => {
+  toastError(t('gdd_per_link.redeemlink-error'))
+})
+
 function setTransactionLinkInformation() {
-  result.value
-    .then((data) => {
-      linkData.value = data.queryTransactionLink
-      if (linkData.value.__typename === 'ContributionLink' && store.state.token) {
-        mutationLink(linkData.value.amount)
-      }
-    })
-    .catch(() => {
-      toastError(t('gdd_per_link.redeemlink-error'))
-    })
+  const { queryTransactionLink } = result.value
+  if (queryTransactionLink) {
+    linkData.value = queryTransactionLink
+    if (linkData.value.__typename === 'ContributionLink' && store.state.token) {
+      mutationLink(linkData.value.amount)
+    }
+  }
 }
 
 async function mutationLink(amount) {
