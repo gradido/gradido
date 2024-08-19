@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AmountAndNameRow: typeof import('./src/components/TransactionRows/AmountAndNameRow.vue')['default']
+    AppModal: typeof import('./src/components/AppModal.vue')['default']
     AuthCarousel: typeof import('./src/components/Auth/AuthCarousel.vue')['default']
     AuthFooter: typeof import('./src/components/Auth/AuthFooter.vue')['default']
     AuthNavbar: typeof import('./src/components/Auth/AuthNavbar.vue')['default']
@@ -39,6 +40,7 @@ declare module 'vue' {
     BInputGroup: typeof import('bootstrap-vue-next')['BInputGroup']
     BLink: typeof import('bootstrap-vue-next')['BLink']
     BModal: typeof import('bootstrap-vue-next')['BModal']
+    BModalOrchestrator: typeof import('bootstrap-vue-next')['BModalOrchestrator']
     BNav: typeof import('bootstrap-vue-next')['BNav']
     BNavbar: typeof import('bootstrap-vue-next')['BNavbar']
     BNavbarBrand: typeof import('bootstrap-vue-next')['BNavbarBrand']
@@ -107,6 +109,7 @@ declare module 'vue' {
     IBiThreeDotsVertical: typeof import('~icons/bi/three-dots-vertical')['default']
     IBiTrash: typeof import('~icons/bi/trash')['default']
     IBiTwitterX: typeof import('~icons/bi/twitter-x')['default']
+    IBiX: typeof import('~icons/bi/x')['default']
     IBiXCircle: typeof import('~icons/bi/x-circle')['default']
     IBiYoutube: typeof import('~icons/bi/youtube')['default']
     InputAmount: typeof import('./src/components/Inputs/InputAmount.vue')['default']

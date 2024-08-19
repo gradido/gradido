@@ -24,7 +24,7 @@ export const useCopyLinks = ({ link, amount, memo, validUntil }) => {
 
   const copyLinkWithText = () => {
     navigator.clipboard
-      .writeText(linkText)
+      .writeText(linkText.value)
       .then(() => {
         toastSuccess(t('gdd_per_link.link-and-text-copied'))
       })

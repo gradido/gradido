@@ -16,7 +16,7 @@
               class="test-button-load-more"
               block
               variant="outline-primary"
-              @click="loadMoreLinks"
+              @click.stop="loadMoreLinks"
             >
               {{ buttonText }}
             </BButton>

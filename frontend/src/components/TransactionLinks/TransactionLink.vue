@@ -18,23 +18,27 @@
                 <IBiThreeDotsVertical class="link-menu-opener" />
               </template>
 
-              <BDropdownItem v-if="validLink" class="test-copy-link" @click="copyToClipboard">
+              <BDropdownItem v-if="validLink" class="test-copy-link" @click.stop="copyLink">
                 <IBiClipboard />
                 {{ $t('gdd_per_link.copy-link') }}
               </BDropdownItem>
-              <BDropdownItem v-if="validLink" class="test-copy-text pt-3" @click="copyLinkWithText">
+              <BDropdownItem
+                v-if="validLink"
+                class="test-copy-text pt-3"
+                @click.stop="copyLinkWithText"
+              >
                 <IBiClipboardPlus />
                 {{ $t('gdd_per_link.copy-link-with-text') }}
               </BDropdownItem>
               <BDropdownItem
                 v-if="validLink"
                 class="pt-3 pb-3 test-qr-code"
-                @click="$bvModal.show('modalPopover-' + id)"
+                @click.stop="toggleQrModal"
               >
                 <BImg src="img/svg/qr-code.svg" width="18" class="filter"></BImg>
                 {{ $t('qrCode') }}
               </BDropdownItem>
-              <BDropdownItem class="test-delete-link" @click="deleteLink()">
+              <BDropdownItem class="test-delete-link" @click.stop="toggleDeleteModal">
                 <IBiTrash />
                 {{ $t('delete') }}
               </BDropdownItem>
@@ -43,7 +47,7 @@
         </BRow>
       </BCol>
     </BRow>
-    <BModal :id="'modalPopover-' + id" ok-only hide-header-close>
+    <app-modal :model-value="showQrModal" @update:model-value="toggleQrModal">
       <BCard header-tag="header" footer-tag="footer">
         <template #header>
           <h6 class="mb-0">{{ $t('qrCode') }}</h6>
@@ -53,20 +57,29 @@
           <em>{{ link }}</em>
         </template>
       </BCard>
-    </BModal>
-    <BModal :id="'modalPopoverCopyError' + id" ok-only hide-header-close>
+    </app-modal>
+    <app-modal
+      id="delete-link-modal"
+      :model-value="showDeleteLinkModal"
+      ok-only
+      @update:model-value="toggleDeleteModal"
+      @on-ok="deleteLink"
+    >
       <BCard header-tag="header" footer-tag="footer">
-        <BCardText>
-          <div class="alert-danger p-3">{{ $t('gdd_per_link.not-copied') }}</div>
-          <div class="alert-muted h3 p-3">{{ link }}</div>
-        </BCardText>
+        <template #header>
+          <h6 class="mb-0">{{ 'Delete link?' }}</h6>
+        </template>
+        <BCardText>Delete link?</BCardText>
+        <template #footer>
+          <em>{{ link }}</em>
+        </template>
       </BCard>
-    </BModal>
+    </app-modal>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
@@ -77,8 +90,8 @@ import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
 import MemoRow from '../TransactionRows/MemoRow'
 import DateRow from '../TransactionRows/DateRow'
 import DecayRow from '../TransactionRows/DecayRow'
+import AppModal from '@/components/AppModal'
 import FigureQrCode from '@/components/QrCode/FigureQrCode'
-import { useModal } from 'bootstrap-vue-next'
 
 const props = defineProps({
   holdAvailableAmount: { type: String, required: true },
@@ -89,17 +102,19 @@ const props = defineProps({
   memo: { type: String, required: true },
 })
 
+const showQrModal = ref(false)
+const showDeleteLinkModal = ref(false)
+
 const emit = defineEmits(['reset-transaction-link-list'])
 
 const { t } = useI18n()
 const { toastSuccess, toastError } = useAppToast()
-const { copyToClipboard, copyLinkWithText } = useCopyLinks({
+const { copyLink, copyLinkWithText } = useCopyLinks({
   amount: props.amount,
   validUntil: props.validUntil,
   link: props.link,
   memo: props.memo,
 })
-const { showConfirmModal } = useModal()
 
 const { mutate: deleteTransactionLinkMutation } = useMutation(deleteTransactionLink)
 
@@ -107,25 +122,22 @@ const decay = computed(() => `${props.amount - props.holdAvailableAmount}`)
 const validLink = computed(() => new Date(props.validUntil) > new Date())
 
 async function deleteLink() {
-  const confirmed = await showConfirmModal(t('gdd_per_link.delete-the-link'))
-  if (confirmed) {
-    try {
-      await deleteTransactionLinkMutation({ id: props.id })
-      toastSuccess(t('gdd_per_link.deleted'))
-      emit('reset-transaction-link-list')
-    } catch (err) {
-      toastError(err.message)
-    }
+  try {
+    await deleteTransactionLinkMutation({ id: props.id })
+    toastSuccess(t('gdd_per_link.deleted'))
+    emit('reset-transaction-link-list')
+  } catch (err) {
+    toastError(err.message)
   }
 }
 
-// Expose necessary methods and computed properties
-// defineExpose({
-//   deleteLink,
-//   decay,
-//   validLink,
-//   copyToClipboard,
-// })
+const toggleDeleteModal = () => {
+  showDeleteLinkModal.value = !showDeleteLinkModal.value
+}
+
+const toggleQrModal = () => {
+  showQrModal.value = !showQrModal.value
+}
 </script>
 <style>
 .qr-button {

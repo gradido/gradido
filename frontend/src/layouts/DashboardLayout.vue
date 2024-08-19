@@ -181,7 +181,7 @@
           <content-footer v-if="!$route.meta.hideFooter" />
         </BCol>
       </BRow>
-      <session-logout-timeout @logout="logoutUser" ref="sessionModal" />
+      <!--      <session-logout-timeout @logout="logoutUser" ref="sessionModal" />-->
     </div>
   </div>
 </template>
