@@ -7,7 +7,6 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AppModal: typeof import('./src/components/AppModal.vue')['default']
     BAvatar: typeof import('bootstrap-vue-next')['BAvatar']
     BBadge: typeof import('bootstrap-vue-next')['BBadge']
     BButton: typeof import('bootstrap-vue-next')['BButton']
