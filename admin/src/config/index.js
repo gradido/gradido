@@ -7,18 +7,27 @@ const pkg = require('../../package')
 const constants = {
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v2.2024-01-04',
+    EXPECTED: 'v3.2024-08-06',
     CURRENT: '',
   },
 }
 
 const version = {
+  ADMIN_MODULE_PROTOCOL: process.env.ADMIN_MODULE_PROTOCOL ?? 'http',
+  ADMIN_MODULE_HOST: process.env.ADMIN_MODULE_HOST ?? 'localhost',
+  ADMIN_MODULE_PORT: process.env.ADMIN_MODULE_PORT ?? '8080',
   APP_VERSION: pkg.version,
   BUILD_COMMIT: process.env.BUILD_COMMIT ?? null,
   // self reference of `version.BUILD_COMMIT` is not possible at this point, hence the duplicate code
   BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT ?? '0000000').slice(0, 7),
-  PORT: process.env.PORT ?? 8080,
 }
+
+const ADMIN_MODULE_URL =
+  version.ADMIN_MODULE_PROTOCOL +
+  '://' +
+  version.ADMIN_MODULE_HOST +
+  ':' +
+  version.ADMIN_MODULE_PORT
 
 const environment = {
   NODE_ENV: process.env.NODE_ENV,
@@ -26,10 +35,11 @@ const environment = {
   PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
 }
 
-const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? undefined
-const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
-const COMMUNITY_URL =
-  COMMUNITY_HOST && URL_PROTOCOL ? URL_PROTOCOL + '://' + COMMUNITY_HOST : undefined
+// const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? undefined
+// const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
+// const COMMUNITY_URL =
+//   COMMUNITY_HOST && URL_PROTOCOL ? URL_PROTOCOL + '://' + COMMUNITY_HOST : undefined
+const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${ADMIN_MODULE_URL}`
 const WALLET_URL = process.env.WALLET_URL ?? COMMUNITY_URL ?? 'http://localhost'
 
 const endpoints = {

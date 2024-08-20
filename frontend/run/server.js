@@ -1,10 +1,11 @@
 // Imports
+import CONFIG from '../src/config'
 const express = require('express')
 const path = require('path')
 
 // Host & Port
-const hostname = '127.0.0.1'
-const port = process.env.PORT || 3000
+const hostname = CONFIG.FRONTEND_MODULE_HOST // '127.0.0.1'
+const port = CONFIG.FRONTEND_MODULE_PORT // process.env.PORT || 3000
 
 // Express Server
 const app = express()

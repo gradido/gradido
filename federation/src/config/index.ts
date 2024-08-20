@@ -17,18 +17,29 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v2.2023-08-24',
+    EXPECTED: 'v3.2024-08-06',
     CURRENT: '',
   },
 }
 
 const server = {
+  FEDERATION_MODULE_PROTOCOL: process.env.FEDERATION_MODULE_PROTOCOL ?? 'http',
+  FEDERATION_MODULE_HOST: process.env.FEDERATION_MODULE_HOST ?? 'localhost',
+  FEDERATION_MODULE_PORT: process.env.FEDERATION_MODULE_PORT ?? '5010',
   // JWT_SECRET: process.env.JWT_SECRET || 'secret123',
   // JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '10m',
   GRAPHIQL: process.env.GRAPHIQL === 'true' ?? false,
   // GDT_API_URL: process.env.GDT_API_URL || 'https://gdt.gradido.net',
   PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
 }
+
+const FEDERATION_MODULE_URL =
+  server.FEDERATION_MODULE_PROTOCOL +
+  '://' +
+  server.FEDERATION_MODULE_HOST +
+  ':' +
+  server.FEDERATION_MODULE_PORT
+
 const database = {
   DB_HOST: process.env.DB_HOST ?? 'localhost',
   DB_PORT: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
@@ -50,9 +61,9 @@ if (
   )
 }
 
-const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
-const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
-const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${URL_PROTOCOL}://${COMMUNITY_HOST}`
+// const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
+// const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
+const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${FEDERATION_MODULE_URL}` // `${URL_PROTOCOL}://${COMMUNITY_HOST}`
 
 const federation = {
   FEDERATION_API: process.env.FEDERATION_API ?? '1_0',

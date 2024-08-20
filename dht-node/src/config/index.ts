@@ -10,14 +10,19 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v4.2024-01-17',
+    EXPECTED: 'v5.2024-08-06',
     CURRENT: '',
   },
 }
 
 const server = {
+  DHT_MODULE_PROTOCOL: process.env.DHT_MODULE_PROTOCOL ?? 'http',
+  DHT_MODULE_HOST: process.env.DHT_MODULE_HOST ?? 'localhost',
+  DHT_MODULE_PORT: process.env.DHT_MODULE_PORT ?? '5000',
   PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
 }
+
+const DHT_MODULE_URL = server.DHT_MODULE_PROTOCOL + '://' + server.DHT_MODULE_HOST + ':' + server.DHT_MODULE_PORT
 
 const database = {
   DB_HOST: process.env.DB_HOST ?? 'localhost',

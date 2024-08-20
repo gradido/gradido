@@ -8,17 +8,27 @@ const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v7.2024-05-08',
+    EXPECTED: 'v7.2024-08-06',
     CURRENT: '',
   },
 }
 
 const version = {
+  FRONTEND_MODULE_PROTOCOL: process.env.FRONTEND_MODULE_PROTOCOL ?? 'http',
+  FRONTEND_MODULE_HOST: process.env.FRONTEND_MODULE_HOST ?? 'localhost',
+  FRONTEND_MODULE_PORT: process.env.FRONTEND_MODULE_PORT ?? '3000',
   APP_VERSION: pkg.version,
   BUILD_COMMIT: process.env.BUILD_COMMIT ?? null,
   // self reference of `version.BUILD_COMMIT` is not possible at this point, hence the duplicate code
   BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT ?? '0000000').slice(0, 7),
 }
+
+const FRONTEND_MODULE_URL =
+  version.FRONTEND_MODULE_PROTOCOL +
+  '://' +
+  version.FRONTEND_MODULE_HOST +
+  ':' +
+  version.FRONTEND_MODULE_PORT
 
 const features = {
   GMS_ACTIVE: process.env.GMS_ACTIVE ?? false,
@@ -30,17 +40,19 @@ const environment = {
   DEBUG: process.env.NODE_ENV !== 'production' ?? false,
   PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
   DEFAULT_PUBLISHER_ID: process.env.DEFAULT_PUBLISHER_ID ?? 2896,
-  PORT: process.env.PORT ?? 3000,
 }
 
-const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
-const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
-const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${URL_PROTOCOL}://${COMMUNITY_HOST}`
+// const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
+// const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
+const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${FRONTEND_MODULE_URL}` // ${URL_PROTOCOL}://${COMMUNITY_HOST}`
 
 const endpoints = {
-  GRAPHQL_URI: ( process.env.GRAPHQL_URL ?? COMMUNITY_URL) + (process.env.GRAPHQL_PATH ?? '/graphql'),
+  GRAPHQL_URI: COMMUNITY_URL + (process.env.GRAPHQL_PATH ?? '/graphql'),
+  // ADMIN_AUTH_URL:
+  //  COMMUNITY_URL + (process.env.ADMIN_AUTH_PATH ?? '/admin/authenticate?token={token}'),
   ADMIN_AUTH_URL:
-    (process.env.ADMIN_AUTH_URL ?? COMMUNITY_URL) + (process.env.ADMIN_AUTH_PATH ?? '/admin/authenticate?token={token}'),
+    process.env.ADMIN_AUTH_URL +
+    (process.env.ADMIN_AUTH_PATH ?? '/admin/authenticate?token={token}'),
 }
 
 const community = {
