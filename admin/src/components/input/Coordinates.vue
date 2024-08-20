@@ -46,9 +46,9 @@ export default {
   },
   data() {
     return {
-      inputValue: this.value,
+      inputValue: this.value ?? { latitude: '', longitude: '' },
       originalValue: this.value,
-      locationString: this.getLatitudeLongitudeString(this.value),
+      locationString: this.value ? this.getLatitudeLongitudeString(this.value) : '',
     }
   },
   computed: {
