@@ -1,7 +1,7 @@
 <template>
   <div class="community-member mt-3 mt-lg-0 position-relative">
-    <div class="text-center bg-gradient">
-      <BBadge class="position-absolute mt--2 ml--5 px-3 bg-gradient">
+    <div class="text-center bg-gradido-gradient">
+      <BBadge class="position-absolute mt--2 ms--5 px-3 bg-gradido-gradient">
         {{ $t('member') }}
       </BBadge>
     </div>
@@ -13,7 +13,7 @@
           <div class="h4">{{ $t('community.communityMember') }}</div>
           <div>{{ CONFIG.COMMUNITY_NAME }}</div>
         </BCol>
-        <BCol cols="3" align-self="end" class="border-left border-light">
+        <BCol cols="3" align-self="end" class="border-start border-dark">
           <IBiPeople />
           {{ totalUsers }}
         </BCol>
@@ -36,3 +36,9 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+span.bg-gradido-gradient.text-bg-secondary {
+  color: $white !important;
+}
+</style>

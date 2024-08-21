@@ -17,13 +17,13 @@
       </div>
       <BRow class="justify-content-md-center justify-content-lg-end">
         <BCol sm="12" md="8" lg="6" class="zindex1000">
-          <div class="ml-3 ml-sm-4 mr-3 mr-sm-4">
+          <div class="ms-3 ms-sm-4 me-3 me-sm-4">
             <BRow class="d-none d-md-block d-lg-none">
               <BCol class="mb--4">
                 <auth-navbar-small />
               </BCol>
             </BRow>
-            <BRow class="mt-0 mt-md-5 pl-2 pl-md-0 pl-lg-0">
+            <BRow class="mt-0 mt-md-5 ps-2 ps-md-0 ps-lg-0">
               <BCol lg="9" md="9" sm="12">
                 <div class="mb--2">{{ $t('welcome') }}</div>
                 <div class="h1 mb-0">{{ communityName }}</div>
@@ -40,7 +40,7 @@
             <BCard ref="pageFontSize" no-body class="border-0 mt-4 gradido-custom-background">
               <BRow class="p-4">
                 <BCol cols="10">
-                  <language-switch-2 class="ml-3" />
+                  <language-switch-2 class="ms-3" />
                 </BCol>
                 <BCol cols="2" class="text-right">
                   <div id="popover-target-1" class="pointer">
@@ -82,7 +82,7 @@
               </BCardBody>
             </BCard>
           </div>
-          <auth-footer v-if="!$route.meta.hideFooter" class="pr-5 mb-5"></auth-footer>
+          <auth-footer v-if="!$route.meta.hideFooter" class="pe-5 mb-5"></auth-footer>
         </BCol>
       </BRow>
     </div>

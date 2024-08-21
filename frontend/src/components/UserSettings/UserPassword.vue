@@ -8,7 +8,7 @@
             data-test="open-password-change-form"
             @click="toggleShowPassword"
           >
-            <span class="pointer mr-3">{{ $t('settings.password.change-password') }}</span>
+            <span class="pointer me-3">{{ $t('settings.password.change-password') }}</span>
             <IBiPencil v-if="showPassword" />
             <IBiXCircle v-else class="color-danger" />
             <!-- <b-icon v-if="showPassword" class="pointer ml-3" icon="pencil"></b-icon>

@@ -57,7 +57,7 @@ describe('GdtAmount', () => {
           message: 'Ouch',
         })
         jest.clearAllMocks()
-        await wrapper.find('div.border-left svg').trigger('click')
+        await wrapper.find('div.border-start svg').trigger('click')
         await flushPromises()
       })
 
@@ -76,7 +76,7 @@ describe('GdtAmount', () => {
           },
         })
         jest.clearAllMocks()
-        await wrapper.find('div.border-left svg').trigger('click')
+        await wrapper.find('div.border-start svg').trigger('click')
         await flushPromises()
       })
 
@@ -112,7 +112,7 @@ describe('GdtAmount', () => {
       })
       jest.clearAllMocks()
       wrapper.vm.$store.state.hideAmountGDT = true
-      await wrapper.find('div.border-left svg').trigger('click')
+      await wrapper.find('div.border-start svg').trigger('click')
       await flushPromises()
     })
 

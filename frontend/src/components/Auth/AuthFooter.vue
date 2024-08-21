@@ -3,7 +3,7 @@
     <BRow class="mt-lg-7 mt-md-6 mt-4">
       <BCol class="col-12 col-md-12 col-lg-6">
         <div
-          class="d-flex justify-content-center justify-content-md-center justify-content-lg-start ml-3"
+          class="d-flex justify-content-center justify-content-md-center justify-content-lg-start ms-3"
         >
           <BNav class="nav-footer">
             <BNavItem :href="`https://gradido.net/${$i18n.locale}/impressum/`" target="_blank">
@@ -16,19 +16,19 @@
         </div>
       </BCol>
       <BCol class="col-12 col-md-12 col-lg-6 mt-4 mb-4 mt-lg-0 mb-lg-0">
-        <div class="d-flex align-items-center ml-3 ml-lg-0 text-lg-right pt-1">
+        <div class="d-flex align-items-center ms-3 ms-lg-0 text-lg-right pt-1">
           {{ $t('followUs') }}
           <BLink href="https://www.facebook.com/groups/Gradido/" target="_blank">
-            <!--            <b-icon-facebook class="ml-3 mr-3 c-grey" font-scale="1"></b-icon-facebook>-->
-            <IBiFacebook class="ml-3 mr-3 c-grey" />
+            <!--            <b-icon-facebook class="ml-3 me-3 c-grey" font-scale="1"></b-icon-facebook>-->
+            <IBiFacebook class="ms-3 me-3 c-grey" />
           </BLink>
           <BLink href="https://twitter.com/gradido" target="_blank">
-            <!--            <b-icon-twitter class="mr-3 c-grey" font-scale="1"></b-icon-twitter>-->
-            <IBiTwitterX class="mr-3 c-grey" font-scale="1" />
+            <!--            <b-icon-twitter class="me-3 c-grey" font-scale="1"></b-icon-twitter>-->
+            <IBiTwitterX class="me-3 c-grey" font-scale="1" />
           </BLink>
           <BLink href="https://www.youtube.com/c/GradidoNet" target="_blank">
-            <!--            <b-icon-youtube class="mr-3 c-grey" font-scale="1"></b-icon-youtube>-->
-            <IBiYoutube class="mr-3 c-grey" font-scale="1" />
+            <!--            <b-icon-youtube class="me-3 c-grey" font-scale="1"></b-icon-youtube>-->
+            <IBiYoutube class="me-3 c-grey" font-scale="1" />
           </BLink>
 
           <BLink href="https://t.me/Gradido" target="_blank">
@@ -57,8 +57,8 @@ export default {
 }
 </script>
 
-<style>
-.bi-telegram {
-  margin-top: -5px;
+<style scoped>
+:deep(.nav-link) {
+  color: #383838 !important;
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div class="decayinformation-decay">
     <div class="mb-3">
-      <IBiDropletHalf class="mr-2" />
+      <IBiDropletHalf class="me-2" />
       <b>{{ $t('decay.calculation_decay') }}</b>
     </div>
     <BRow>

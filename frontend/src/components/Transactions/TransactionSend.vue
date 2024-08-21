@@ -11,21 +11,16 @@
       </BCol>
       <BCol>
         <div>
-          <name
-            class="font-weight-bold"
-            :amount="amount"
-            :linked-user="linkedUser"
-            :link-id="linkId"
-          />
+          <name class="fw-bold" :amount="amount" :linked-user="linkedUser" :link-id="linkId" />
         </div>
         <span class="small">{{ $d(new Date(balanceDate), 'short') }}</span>
-        <span class="ml-4 small">{{ $d(new Date(balanceDate), 'time') }}</span>
+        <span class="ms-4 small">{{ $d(new Date(balanceDate), 'time') }}</span>
       </BCol>
       <BCol cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
         <div class="small mb-2">
           {{ $t('decay.types.send') }}
         </div>
-        <div class="font-weight-bold text-140" data-test="transaction-amount">
+        <div class="fw-bold text-140" data-test="transaction-amount">
           {{ $filters.GDD(amount) }}
         </div>
         <div v-if="linkId" class="small">

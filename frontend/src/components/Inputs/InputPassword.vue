@@ -16,7 +16,7 @@
         <template #append>
           <BButton
             variant="outline-light"
-            class="border-left-0 rounded-right"
+            class="border-start-0 rounded-end"
             tabindex="-1"
             @click="toggleShowPassword"
           >

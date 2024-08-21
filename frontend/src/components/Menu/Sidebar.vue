@@ -9,32 +9,46 @@
       <div class="mb-3 mt-3">
         <BNav vertical class="w-200">
           <BNavItem to="/overview" class="mb-3" active-class="active-route">
-            <BImg src="/img/svg/home.svg" height="20" class="svg-icon" />
-            <span class="ml-2">{{ $t('navigation.overview') }}</span>
+            <div class="sidebar-menu-item-wrapper">
+              <BImg src="/img/svg/home.svg" height="20" class="svg-icon" />
+              <span class="ms-2">{{ $t('navigation.overview') }}</span>
+            </div>
           </BNavItem>
           <BNavItem to="/send" class="mb-3" active-class="active-route">
-            <IBiCash />
-            <span class="ml-2">{{ $t('navigation.send') }}</span>
+            <div class="sidebar-menu-item-wrapper">
+              <IBiCash />
+              <span class="ms-2">{{ $t('navigation.send') }}</span>
+            </div>
           </BNavItem>
           <BNavItem to="/transactions" :class="transactionClass" active-class="active-route">
-            <BImg src="/img/svg/transaction.svg" height="20" class="svg-icon" />
-            <span class="ml-2">{{ $t('navigation.transactions') }}</span>
+            <div class="sidebar-menu-item-wrapper">
+              <BImg src="/img/svg/transaction.svg" height="20" class="svg-icon" />
+              <span class="ms-2">{{ $t('navigation.transactions') }}</span>
+            </div>
           </BNavItem>
           <BNavItem to="/community" class="mb-3" active-class="active-route">
-            <BImg src="/img/svg/community.svg" height="20" class="svg-icon" />
-            <span class="ml-2">{{ $t('creation') }}</span>
+            <div class="sidebar-menu-item-wrapper">
+              <BImg src="/img/svg/community.svg" height="20" class="svg-icon" />
+              <span class="ms-2">{{ $t('creation') }}</span>
+            </div>
           </BNavItem>
           <BNavItem to="/information" class="mb-3" active-class="active-route">
-            <BImg src="/img/svg/info.svg" height="20" class="svg-icon" />
-            <span class="ml-2">{{ $t('navigation.info') }}</span>
+            <div class="sidebar-menu-item-wrapper">
+              <BImg src="/img/svg/info.svg" height="20" class="svg-icon" />
+              <span class="ms-2">{{ $t('navigation.info') }}</span>
+            </div>
           </BNavItem>
           <BNavItem v-if="isHumhub" to="/circles" class="mb-3" active-class="active-route">
-            <BImg src="/img/svg/circles.svg" height="20" class="svg-icon" />
-            <span class="ml-2">{{ $t('navigation.circles') }}</span>
+            <div class="sidebar-menu-item-wrapper">
+              <BImg src="/img/svg/circles.svg" height="20" class="svg-icon" />
+              <span class="ms-2">{{ $t('navigation.circles') }}</span>
+            </div>
           </BNavItem>
           <BNavItem v-if="isGMS" to="/usersearch" active-class="active-route">
-            <BImg src="/img/loupe.png" height="20" />
-            <span class="ml-2">{{ $t('navigation.usersearch') }}</span>
+            <div class="sidebar-menu-item-wrapper">
+              <BImg src="/img/loupe.png" height="20" />
+              <span class="ms-2">{{ $t('navigation.usersearch') }}</span>
+            </div>
           </BNavItem>
         </BNav>
         <hr class="m-3" />
@@ -45,13 +59,15 @@
             active-class="active-route"
             data-test="settings-menu"
           >
-            <div>
-              <BImg src="/img/svg/settings.svg" height="20" class="svg-icon" />
-              <span class="ml-2">{{ $t('navigation.settings') }}</span>
+            <div class="sidebar-menu-item-wrapper">
+              <div>
+                <BImg src="/img/svg/settings.svg" height="20" class="svg-icon" />
+                <span class="ms-2">{{ $t('navigation.settings') }}</span>
+              </div>
+              <BBadge v-if="!$store.state.username" variant="warning">
+                {{ $t('settings.newSettings') }}
+              </BBadge>
             </div>
-            <BBadge v-if="!$store.state.username" variant="warning">
-              {{ $t('settings.newSettings') }}
-            </BBadge>
           </BNavItem>
           <BNavItem
             v-if="$store.state.roles && $store.state.roles.length > 0"
@@ -59,19 +75,23 @@
             active-class="active-route"
             @click="$emit('admin')"
           >
-            <IBiShieldCheck />
-            <span class="ml-2">
-              {{ $t('navigation.admin_area') }}
-            </span>
+            <div class="sidebar-menu-item-wrapper">
+              <IBiShieldCheck />
+              <span class="ms-2">
+                {{ $t('navigation.admin_area') }}
+              </span>
+            </div>
           </BNavItem>
           <BNavItem
-            class="font-weight-bold"
+            class="fw-bold"
             active-class="active-route"
             data-test="logout-menu"
             @click="$emit('logout')"
           >
-            <BImg src="/img/svg/logout.svg" height="20" class="svg-icon" />
-            <span class="ml-2 text-205">{{ $t('navigation.logout') }}</span>
+            <div class="sidebar-menu-item-wrapper">
+              <BImg src="/img/svg/logout.svg" height="20" class="svg-icon" />
+              <span class="ms-2 logout-text">{{ $t('navigation.logout') }}</span>
+            </div>
           </BNavItem>
         </BNav>
       </div>
@@ -102,16 +122,30 @@ export default {
   },
 }
 </script>
-<style>
-.nav-link {
-  color: rgb(56 56 56);
+<style scoped>
+:deep(.nav-item > a) {
+  color: rgb(56 56 56) !important;
+  border-left: 4px transparent solid;
+  display: block;
 }
 
-.active-route {
+:deep(.active-route) {
   display: block;
   font-weight: bold;
   color: rgb(2 2 1);
-  border-left: 4px rgb(219 129 19) solid;
+  border-left-color: rgb(219 129 19) !important;
+}
+
+:deep(.nav-link) {
+  padding: 0;
+}
+
+.logout-text {
+  color: #cd5556;
+}
+
+.sidebar-menu-item-wrapper {
+  padding: 4px 12px;
 }
 
 .svg-icon {

@@ -7,9 +7,9 @@
             class="cursor-pointer"
             @click="showLanguage ? (showLanguage = !showLanguage) : cancelEdit()"
           >
-            <span class="pointer mr-3">{{ $t('settings.language.changeLanguage') }}</span>
-            <b-icon v-if="showLanguage" class="pointer ml-3" icon="pencil"></b-icon>
-            <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
+            <span class="pointer me-3">{{ $t('settings.language.changeLanguage') }}</span>
+            <b-icon v-if="showLanguage" class="pointer ms-3" icon="pencil"></b-icon>
+            <b-icon v-else icon="x-circle" class="pointer ms-3" variant="danger"></b-icon>
           </a>
         </BCol>
       </BRow>

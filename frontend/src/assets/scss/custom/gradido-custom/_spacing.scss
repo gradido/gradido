@@ -1,8 +1,8 @@
 // Spacing
 @use "sass:map";
 
-$spacer: 1rem !default;
-$spacers: () !default;
+$spacer: 1rem;
+$spacers: ();
 $spacers: map.merge(
   (
     -9: - ($spacer * 10),

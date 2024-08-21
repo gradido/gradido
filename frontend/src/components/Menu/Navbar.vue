@@ -1,7 +1,7 @@
 <template>
   <div class="navbar-component">
     <div class="navbar-element">
-      <BNavbar toggleable="lg" class="pr-4">
+      <BNavbar toggleable="lg" class="pe-4">
         <BNavbarBrand>
           <BImg
             class="mt-lg--2 mt-3 mb-3 d-none d-lg-block zindex10"
@@ -16,10 +16,10 @@
 
         <BImg class="sheet-img position-absolute zindex-1" :src="sheet"></BImg>
 
-        <BNavbarNav class="ml-auto" right>
+        <BNavbarNav class="ms-auto" right>
           <router-link to="/settings">
             <div class="d-flex align-items-center">
-              <div class="mr-3">
+              <div class="me-3">
                 <avatar
                   :username="username.username"
                   :initials="username.initials"

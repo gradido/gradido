@@ -13,17 +13,17 @@
         </BCol>
       </BRow>
 
-      <BRow class="mt-5 pr-3 text-color-gdd-yellow h3">
+      <BRow class="mt-5 pe-3 text-color-gdd-yellow h3">
         <BCol cols="2" class="text-right">
           <b-icon class="text-color-gdd-yellow" icon="droplet-half"></b-icon>
         </BCol>
         <BCol>{{ $t('advanced-calculation') }}</BCol>
       </BRow>
-      <BRow class="pr-3" offset="2">
+      <BRow class="pe-3" offset="2">
         <BCol offset="2">{{ $t('form.current_balance') }}</BCol>
         <BCol>{{ $filters.GDD(balance) }}</BCol>
       </BRow>
-      <BRow class="pr-3">
+      <BRow class="pe-3">
         <BCol offset="2">
           <strong>{{ $t('form.your_amount') }}</strong>
         </BCol>
@@ -31,7 +31,7 @@
           <strong>{{ $filters.GDD(amount * -1) }}</strong>
         </BCol>
       </BRow>
-      <BRow class="pr-3">
+      <BRow class="pe-3">
         <BCol offset="2">{{ $t('form.new_balance') }}</BCol>
         <BCol>{{ $filters.GDD(balance - amount) }}</BCol>
       </BRow>

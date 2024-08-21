@@ -1,18 +1,18 @@
-html,
-body {
+html > body {
   background-color: #f5f5f5;
   height: 100%;
   transition: background-color 0.5s ease, color 0.5s ease;
+  overflow-x: hidden;
 }
 
 .pointer {
   cursor: pointer;
 }
 
-.bg-gradient {
+.bg-gradido-gradient {
   background: rgb(4 112 6);
   background: linear-gradient(90deg, rgb(4 112 6 / 100%) 22%, rgb(197 141 56 / 100%) 98%) !important;
-  color: white;
+  color: white !important;
 }
 
 .hover-icon:hover {
@@ -41,12 +41,16 @@ body {
   color: #0e79bc !important;
 }
 
+.app-box-shadow {
+  box-shadow: 20pt 20pt 50pt 0 #3838384f;
+}
+
 /* Navbar  */
 a,
 .navbar-light,
 .navbar-nav,
 .nav-link {
-  color: #047006;
+  color: #047006 !important;
 }
 
 a:hover,
@@ -116,12 +120,12 @@ a:hover,
 }
 
 .form-control,
-.custom-select {
+.form-select {
   border-radius: 17px;
   height: 50px;
 }
 
-.input-group .rounded-right {
+.input-group .rounded-end {
   border-top-right-radius: 17px !important;
   border-bottom-right-radius: 17px !important;
 }
@@ -256,7 +260,7 @@ a:hover,
 
 .gradido-custom-background {
   background-color: #ebebeba3 !important;
-  border-radius: 25pt;
+  border-radius: 25pt !important;
 }
 
 .gradido-bg-f5 {

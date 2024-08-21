@@ -1,11 +1,11 @@
 <template>
   <div class="decayinformation-long px-1">
     <div class="word-break mb-5 mt-lg-3">
-      <div class="font-weight-bold pb-2">{{ $t('form.memo') }}</div>
+      <div class="fw-bold pb-2">{{ $t('form.memo') }}</div>
       <div class="">{{ memo }}</div>
     </div>
     <div class="mb-3">
-      <IBiDropletHalf class="mr-2" />
+      <IBiDropletHalf class="me-2" />
       <b>{{ $t('decay.calculation_decay') }}</b>
     </div>
     <BRow>
@@ -14,7 +14,7 @@
           <BCol cols="6" lg="4" md="6" sm="6">
             <div>{{ $t('decay.last_transaction') }}</div>
           </BCol>
-          <BCol offset="0" class="text-right mr-0">
+          <BCol offset="0" class="text-right me-0">
             <div>
               <span>
                 {{ $d(new Date(decay.start), 'long') }}
@@ -29,7 +29,7 @@
           <BCol cols="6" lg="4" md="6" sm="6">
             <div>{{ $t('decay.old_balance') }}</div>
           </BCol>
-          <BCol offset="0" class="text-right mr-0">
+          <BCol offset="0" class="text-right me-0">
             {{ $filters.GDD(previousBalance) }}
           </BCol>
         </BRow>
@@ -39,7 +39,7 @@
           <BCol cols="6" lg="3" md="6" sm="6">
             <div>{{ $t('decay.decay') }}</div>
           </BCol>
-          <BCol offset="0" class="text-right mr-0">
+          <BCol offset="0" class="text-right me-0">
             {{ $filters.GDD(decay.decay) }}
           </BCol>
         </BRow>
@@ -54,7 +54,7 @@
             {{ $t(`decay.types.${typeId.toLowerCase()}`) }}
           </BCol>
           <!-- eslint-enable @intlify/vue-i18n/no-dynamic-keys-->
-          <BCol offset="0" class="text-right mr-0">
+          <BCol offset="0" class="text-right me-0">
             {{ $filters.GDD(amount) }}
           </BCol>
         </BRow>
@@ -63,7 +63,7 @@
           <BCol cols="6" lg="3" md="6" sm="6">
             <div>{{ $t('decay.new_balance') }}</div>
           </BCol>
-          <BCol offset="0" class="text-right mr-0">
+          <BCol offset="0" class="text-right me-0">
             <b>{{ $filters.GDD(balance) }}</b>
           </BCol>
         </BRow>

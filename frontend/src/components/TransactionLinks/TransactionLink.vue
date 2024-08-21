@@ -2,7 +2,7 @@
   <div class="transaction-link gradido-custom-background">
     <BRow :class="validLink ? '' : 'bg-muted text-light'" class="mb-2 pt-2 pb-2">
       <BCol cols="1">
-        <type-icon color="text-danger" icon="link45deg" class="pt-4 pl-2" />
+        <type-icon color="text-danger" icon="link45deg" class="pt-4 ps-2" />
       </BCol>
       <BCol cols="11">
         <BRow>
@@ -12,7 +12,7 @@
             <date-row :date="validUntil" :diff-now="true" :valid-link="validLink" />
             <decay-row :decay="decay" />
           </BCol>
-          <BCol cols="12" lg="1" md="1" class="text-center text-md-right pr-5 pr-lg-4">
+          <BCol cols="12" lg="1" md="1" class="text-center text-md-right pe-5 pe-lg-4">
             <BDropdown no-caret right aria-expanded="false" size="sm">
               <template #button-content>
                 <IBiThreeDotsVertical class="link-menu-opener" />

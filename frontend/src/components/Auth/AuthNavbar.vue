@@ -2,14 +2,14 @@
   <div class="auth-header position-sticky">
     <BNavbar :toggleable="false" :container="false" class="d-flex">
       <BNavbarBrand class="d-none d-lg-block">
-        <BImg class="position-absolute ml--3 mt-lg--2 p-2" :src="logo" width="200" alt="Logo" />
-        <BImg class="mt--3 ml--3" :src="backgroundHeader" width="230" alt="Background Image"></BImg>
+        <BImg class="position-absolute p-2" :src="logo" width="200" alt="Logo" />
+        <BImg :src="backgroundHeader" width="230" alt="Background Image"></BImg>
       </BNavbarBrand>
       <BImg class="sheet-img position-absolute d-block d-lg-none zindex1000" :src="sheet"></BImg>
       <BCollapse id="nav-collapse" is-nav>
-        <BNavbarNav class="ml-auto d-none d-lg-flex" right>
-          <BNavItem :to="register()" class="auth-navbar ml-lg-5">{{ $t('signup') }}</BNavItem>
-          <span class="d-none d-lg-block">{{ $t('|') }}</span>
+        <BNavbarNav class="ms-auto me-4 d-none d-lg-flex" right>
+          <BNavItem :to="register()" class="auth-navbar ms-lg-5">{{ $t('signup') }}</BNavItem>
+          <span class="d-none d-lg-block py-1">{{ $t('|') }}</span>
           <BNavItem :to="login()" class="auth-navbar">{{ $t('signin') }}</BNavItem>
         </BNavbarNav>
       </BCollapse>
@@ -37,8 +37,9 @@ const sheet = '/img/template/Blaetter.png'
   }
 }
 
-.auth-navbar > :deep(.nav-link) {
+.auth-navbar > :deep(a) {
   color: #0e79bc !important;
+  padding: 4px 16px;
 }
 
 .auth-navbar > :deep(.router-link-exact-active) {
@@ -49,6 +50,14 @@ const sheet = '/img/template/Blaetter.png'
   font-family: 'Open Sans', sans-serif !important;
   height: 150px;
   z-index: 1;
+}
+
+.auth-header > nav {
+  padding: 0 !important;
+}
+
+.auth-header > nav > :deep(.navbar-brand) {
+  padding: 0 !important;
 }
 
 :deep(#nav-collapse) {

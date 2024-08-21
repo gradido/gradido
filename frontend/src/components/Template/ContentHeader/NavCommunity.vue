@@ -43,6 +43,8 @@ export default {
 </script>
 <style scoped lang="scss">
 .nav-community-btn-wrapper {
+  background-color: #d1d1d1;
+
   > :deep(*) {
     width: calc(100% / 3);
     display: flex;
@@ -51,7 +53,7 @@ export default {
     text-decoration: none;
     font-size: 14px;
     text-wrap: nowrap;
-    color: black;
+    color: black !important;
   }
 }
 
@@ -61,7 +63,7 @@ export default {
 
 :deep(.router-link-active) {
   background-color: rgb(23 141 129);
-  color: white;
+  color: white !important;
   font-weight: bold;
   padding: 0.625rem 1.25rem;
   border-radius: 25px;
