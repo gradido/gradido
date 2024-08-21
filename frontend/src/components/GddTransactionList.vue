@@ -2,15 +2,15 @@
   <div class="gdd-transaction-list">
     <div class="list-group">
       <div v-if="!transactions" class="test-no-transactionlist text-right">
-        <!--        <b-icon icon="exclamation-triangle" class="mr-2" variant="danger"></b-icon>-->
-        <IBiExclamationTriangle class="mr-2" />
+        <!--        <b-icon icon="exclamation-triangle" class="me-2" variant="danger"></b-icon>-->
+        <IBiExclamationTriangle class="me-2" />
         <small>
           {{ $t('error.no-transactionlist') }}
         </small>
       </div>
       <div v-if="transactionCount < 0" class="test-empty-transactionlist text-right">
-        <!--        <b-icon icon="exclamation-triangle" class="mr-2" variant="danger"></b-icon>-->
-        <IBiExclamationTriangle class="mr-2" />
+        <!--        <b-icon icon="exclamation-triangle" class="me-2" variant="danger"></b-icon>-->
+        <IBiExclamationTriangle class="me-2" />
         <small>{{ $t('error.empty-transactionlist') }}</small>
       </div>
 

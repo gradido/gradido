@@ -10,27 +10,27 @@
               @update:model-value="radioSelected = $event"
             >
               <BRow class="mb-4">
-                <BCol cols="12" lg="6">
-                  <BRow class="bg-248 gradido-border-radius pt-lg-2 mr-lg-2">
+                <BCol>
+                  <BRow class="bg-248 gradido-border-radius position-relative">
                     <BFormRadio
                       name="shipping"
-                      size="sm"
+                      size="md"
                       reverse
                       :value="SEND_TYPES.send"
-                      class="custom-radio-button pointer"
+                      class="transaction-form-radio"
                     >
                       {{ $t('send_gdd') }}
                     </BFormRadio>
                   </BRow>
                 </BCol>
                 <BCol>
-                  <BRow class="bg-248 gradido-border-radius pt-lg-2 ml-lg-2 mt-2 mt-lg-0">
+                  <BRow class="bg-248 gradido-border-radius position-relative">
                     <BFormRadio
                       name="shipping"
                       :value="SEND_TYPES.link"
-                      size="sm"
+                      size="md"
                       reverse
-                      class="custom-radio-button"
+                      class="transaction-form-radio"
                     >
                       {{ $t('send_per_link') }}
                     </BFormRadio>
@@ -44,7 +44,7 @@
                 {{ $t('gdd_per_link.choose-amount') }}
               </div>
             </div>
-            <BRow>
+            <BRow class="mb-4">
               <BCol>
                 <BRow>
                   <BCol v-if="radioSelected === SEND_TYPES.send" class="mb-4" cols="12">
@@ -52,7 +52,7 @@
                       <BCol>{{ $t('form.recipientCommunity') }}</BCol>
                     </BRow>
                     <BRow>
-                      <BCol class="font-weight-bold">
+                      <BCol class="fw-bold">
                         <community-switch
                           :disabled="isBalanceDisabled"
                           :model-value="targetCommunity"
@@ -71,11 +71,11 @@
                       />
                     </div>
                     <div v-else class="mb-4">
-                      <BRow>
+                      <BRow class="mb-4">
                         <BCol>{{ $t('form.recipient') }}</BCol>
                       </BRow>
-                      <BRow>
-                        <BCol class="font-weight-bold">{{ userName }}</BCol>
+                      <BRow class="mb-4">
+                        <BCol class="fw-bold">{{ userName }}</BCol>
                       </BRow>
                     </div>
                   </BCol>
@@ -247,18 +247,49 @@ span.errors {
 
 label {
   display: block;
-  margin-bottom: 10px;
+  text-align: start;
+  padding: 8px 15px;
 }
 
-.custom-control-input:checked ~ .custom-control-label::before {
+.form-check-input:checked {
+  display: none;
+}
+
+.form-check-input:checked ~ .form-check-label::before {
+  content: '';
   color: #678000;
-  border-color: #678000;
-  background-color: #f1f2ec;
+  background-color: transparent;
+  border: 1px #678000 solid;
+  width: 14px;
+  height: 14px;
+  border-radius: 100%;
+  right: 12px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
-.custom-radio .custom-control-input:checked ~ .custom-control-label::after {
+.form-check .form-check-input:checked ~ .form-check-label::after {
   content: '\2714';
   margin-left: 5px;
   color: #678000;
+  right: 10px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-60%);
+}
+
+.transaction-form-radio {
+  background-color: #f8f8f8;
+  margin-right: 0;
+  margin-bottom: 0;
+  position: relative;
+
+  > input {
+    position: absolute;
+    right: 35px;
+    top: 50%;
+    transform: translateY(-70%);
+  }
 }
 </style>

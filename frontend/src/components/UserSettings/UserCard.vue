@@ -12,17 +12,17 @@
     <div class="justify-content-center mt-5 mb-5">
       <BRow align-v="stretch">
         <BCol cols="4">
-          <div class="text-center font-weight-bold">
+          <div class="text-center fw-bold">
             {{ $n(balance, 'decimal') }}
           </div>
         </BCol>
         <BCol cols="4">
-          <div class="text-center font-weight-bold">
+          <div class="text-center fw-bold">
             {{ transactionCount }}
           </div>
         </BCol>
         <BCol cols="4">
-          <div class="text-center font-weight-bold">{{ CONFIG.COMMUNITY_NAME }}</div>
+          <div class="text-center fw-bold">{{ CONFIG.COMMUNITY_NAME }}</div>
         </BCol>
       </BRow>
       <BRow>

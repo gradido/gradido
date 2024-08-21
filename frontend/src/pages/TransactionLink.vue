@@ -82,6 +82,10 @@ const tokenExpiresInSeconds = computed(() => {
   return remainingSecs <= 0 ? 0 : remainingSecs
 })
 
+const validLink = computed(() => {
+  return new Date(linkData.value.validUntil) > new Date()
+})
+
 const itemType = computed(() => {
   if (linkData.value.deletedAt) return 'TEXT_DELETED'
   if (new Date(linkData.value.validUntil) < new Date()) return 'TEXT_EXPIRED'

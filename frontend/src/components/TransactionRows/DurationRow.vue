@@ -4,7 +4,7 @@
       <BCol cols="6" lg="4" md="6" sm="6">
         <div>{{ $t('decay.past_time') }}</div>
       </BCol>
-      <BCol offset="0" class="text-right mr-0">
+      <BCol offset="0" class="text-right me-0">
         <span v-if="duration">{{ duration }}</span>
       </BCol>
     </BRow>

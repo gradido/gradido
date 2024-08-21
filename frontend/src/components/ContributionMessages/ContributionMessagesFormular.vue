@@ -1,6 +1,6 @@
 <template>
   <div class="contribution-messages-formular">
-    <small class="pl-2 pt-3">{{ $t('form.reply') }}</small>
+    <small class="ps-2 pt-3">{{ $t('form.reply') }}</small>
     <div>
       <BForm @submit.prevent="onSubmit" @reset="onReset">
         <BFormTextarea

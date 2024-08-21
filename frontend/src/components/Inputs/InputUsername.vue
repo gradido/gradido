@@ -15,7 +15,7 @@
             data-test="username"
             @update:modelValue="updateValue"
           />
-          <BButton size="lg" text="Button" variant="secondary" append @click="emitSetIsEdit">
+          <BButton size="md" text="Button" variant="secondary" append @click="emitSetIsEdit">
             <IBiXCircle style="height: 17px; width: 17px" />
           </BButton>
         </BInputGroup>

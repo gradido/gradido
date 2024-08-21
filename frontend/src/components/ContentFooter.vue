@@ -4,11 +4,7 @@
       <BCol>
         <div class="copyright text-center text-lg-center text-muted">
           {{ $t('footer.copyright.year', { year }) }}
-          <a
-            :href="`https://gradido.net/${$i18n.locale}`"
-            class="font-weight-bold ml-1"
-            target="_blank"
-          >
+          <a :href="`https://gradido.net/${$i18n.locale}`" class="fw-bold ms-1" target="_blank">
             {{ $t('footer.copyright.link') }}
           </a>
           {{ $t('|') }}
@@ -67,3 +63,9 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+:deep(a.nav-link) {
+  color: #383838 !important;
+}
+</style>

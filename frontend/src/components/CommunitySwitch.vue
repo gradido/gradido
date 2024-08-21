@@ -15,7 +15,7 @@
     </div>
     <div v-else class="mb-4 mt-2">
       <BRow>
-        <BCol class="font-weight-bold" :title="modelValue.description">{{ modelValue.name }}</BCol>
+        <BCol class="fw-bold" :title="modelValue.description">{{ modelValue.name }}</BCol>
       </BRow>
     </div>
   </div>
@@ -92,11 +92,3 @@ function setDefaultCommunity() {
 onMounted(setDefaultCommunity)
 onUpdated(setDefaultCommunity)
 </script>
-
-<style scoped lang="scss">
-.community-switch {
-  :deep(button) {
-    background-color: $secondary;
-  }
-}
-</style>

@@ -7,7 +7,7 @@
         class="pointer"
         :class="store.state.language === lang.code ? 'c-grey' : 'c-blau'"
       >
-        <span v-if="lang.code === store.state.language" class="locales mr-1">
+        <span v-if="lang.code === store.state.language" class="locales me-1">
           {{ lang.name }}
         </span>
       </span>
@@ -30,7 +30,7 @@
             (indexOfSelectedLocale !== indexOfLastLocale ||
               (indexOfSelectedLocale === indexOfLastLocale && index !== indexOfSecondLastLocale))
           "
-          class="ml-3 mr-3"
+          class="ms-3 me-3"
         >
           {{ locales.length - 1 > index ? $t('|') : '' }}
         </span>

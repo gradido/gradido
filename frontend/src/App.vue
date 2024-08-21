@@ -44,10 +44,6 @@ export default {
   margin-left: auto;
 }
 
-.app-box-shadow {
-  box-shadow: 20pt 20pt 50pt 0 #3838384f;
-}
-
 @media screen and (width <= 500px) {
   #app {
     font-size: 0.85rem;

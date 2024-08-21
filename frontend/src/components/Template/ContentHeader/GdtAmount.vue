@@ -3,15 +3,15 @@
     <div class="text-center">
       <BBadge
         v-if="badgeShow"
-        class="position-absolute mt--2 ml--4 px-3 zindex1"
-        :class="showStatus ? 'bg-gradient' : ''"
+        class="position-absolute mt--2 px-3 zindex1"
+        :class="showStatus ? 'bg-gradido-gradient' : ''"
         :variant="showStatus ? '' : 'light'"
       >
         {{ $t('GDT') }}
       </BBadge>
     </div>
     <div
-      class="wallet-amount bg-white app-box-shadow gradido-border-radius p-4 border"
+      class="wallet-amount bg-white app-box-shadow gradido-border-radius p-4"
       :class="showStatus ? 'gradido-global-border-color-accent' : 'border-light opacity-05'"
     >
       <BRow>
@@ -21,20 +21,20 @@
         <BCol cols="9">
           <!--          <b-icon-->
           <!--            icon="layers"-->
-          <!--            class="mr-3 gradido-global-border-color-accent d-none d-lg-inline"-->
+          <!--            class="me-3 gradido-global-border-color-accent d-none d-lg-inline"-->
           <!--          ></b-icon>-->
           <IBiLayers />
-          <span v-if="hideAmount" class="font-weight-bold gradido-global-color-accent">
+          <span v-if="hideAmount" class="fw-bold gradido-global-color-accent">
             {{ t('asterisks') }}
           </span>
-          <span v-else class="font-weight-bold gradido-global-color-accent">
+          <span v-else class="fw-bold gradido-global-color-accent">
             {{ n(gdtBalance, 'decimal') }} {{ t('GDT') }}
           </span>
         </BCol>
-        <BCol cols="3" class="border-left border-light">
+        <BCol cols="3" class="border-start border-dark">
           <!--          <b-icon-->
           <!--            :icon="hideAmount ? 'eye-slash' : 'eye'"-->
-          <!--            class="mr-3 gradido-global-border-color-accent pointer hover-icon"-->
+          <!--            class="me-3 gradido-global-border-color-accent pointer hover-icon"-->
           <!--            @click="updateHideAmountGDT"-->
           <!--          ></b-icon>-->
           <button class="transparent-button" @click="updateHideAmountGDT">
@@ -86,3 +86,9 @@ const updateHideAmountGDT = async () => {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.wallet-amount {
+  border: 1px solid;
+}
+</style>

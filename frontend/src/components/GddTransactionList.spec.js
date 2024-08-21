@@ -241,7 +241,7 @@ describe('GddTransactionList', () => {
         it('has a bi-droplet-half icon', () => {
           expect(transaction.findAll('svg').at(1).classes()).toEqual([
             'bi-droplet-half',
-            'mr-2',
+            'me-2',
             'b-icon',
             'bi',
           ])
@@ -250,7 +250,7 @@ describe('GddTransactionList', () => {
         it.skip('has text-danger color', () => {
           expect(transaction.findAll('svg').at(1).classes()).toEqual([
             'bi-droplet-half',
-            'mr-2',
+            'me-2',
             'b-icon',
             'bi',
           ])

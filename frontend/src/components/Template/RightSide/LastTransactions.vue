@@ -31,14 +31,14 @@
         <BCol class="p-1">
           <BRow>
             <BCol>
-              <div class="font-weight-bold">
+              <div class="fw-bold">
                 <name :linked-user="transaction.linkedUser" font-color="text-dark" />
               </div>
               <div class="d-flex mt-3">
                 <div class="small">
                   {{ $filters.GDD(transaction.amount) }}
                 </div>
-                <div class="small ml-3 text-right">
+                <div class="small ms-3 text-right">
                   {{ $d(new Date(transaction.balanceDate), 'short') }}
                 </div>
               </div>

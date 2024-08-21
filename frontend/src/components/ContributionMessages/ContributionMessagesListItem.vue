@@ -4,10 +4,10 @@
       <BRow class="mb-3 border border-197 p-1">
         <BCol cols="10">
           <small>{{ $d(new Date(message.createdAt), 'short') }}</small>
-          <div v-if="isNotModerator" class="font-weight-bold" data-test="username">
+          <div v-if="isNotModerator" class="fw-bold" data-test="username">
             {{ storeName.username }} {{ $t('contribution.isEdited') }}
           </div>
-          <div v-else class="font-weight-bold" data-test="moderator-name">
+          <div v-else class="fw-bold" data-test="moderator-name">
             {{ $t('community.moderator') }} {{ $t('contribution.isEdited') }}
           </div>
           <div class="small">
@@ -20,10 +20,10 @@
         </BCol>
       </BRow>
     </div>
-    <div v-else-if="isNotModerator" class="text-right pr-4 pr-lg-0 is-not-moderator">
+    <div v-else-if="isNotModerator" class="text-right pe-4 pe-lg-0 is-not-moderator">
       <BRow class="mb-3">
         <BCol cols="10">
-          <div class="font-weight-bold" data-test="username">{{ storeName.username }}</div>
+          <div class="fw-bold" data-test="username">{{ storeName.username }}</div>
           <div class="small" data-test="date">{{ $d(new Date(message.createdAt), 'short') }}</div>
           <parse-message v-bind="message" data-test="message"></parse-message>
         </BCol>
@@ -40,7 +40,7 @@
         <BCol cols="10">
           <div class="font-weight-bold">
             <span data-test="username">{{ moderationName.username }}</span>
-            <span class="ml-2 text-success small" data-test="moderator">
+            <span class="ms-2 text-success small" data-test="moderator">
               {{ $t('community.moderator') }}
             </span>
           </div>

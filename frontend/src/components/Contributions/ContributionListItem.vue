@@ -11,7 +11,7 @@
             :username="username.username"
             :initials="username.initials"
             color="#fff"
-            class="font-weight-bold"
+            class="fw-bold"
           ></avatar>
           <BAvatar v-else rounded="lg" :variant="variant" size="4em">
             <IBiTrash v-if="deletedAt" />
@@ -22,7 +22,7 @@
           </BAvatar>
         </BCol>
         <BCol>
-          <div v-if="firstName" class="mr-3 font-weight-bold">
+          <div v-if="firstName" class="me-3 fw-bold">
             {{ firstName }} {{ lastName }}
             <IBiTrash v-if="deletedAt" />
             <IBiXCircle v-else-if="deniedAt" />
@@ -33,7 +33,7 @@
           <div class="small">
             {{ $d(new Date(contributionDate), 'short') }}
           </div>
-          <div class="mt-3 font-weight-bold">{{ $t('contributionText') }}</div>
+          <div class="mt-3 fw-bold">{{ $t('contributionText') }}</div>
           <div class="mb-3 text-break word-break">{{ memo }}</div>
           <div v-if="updatedBy > 0" class="mt-2 mb-2 small">
             {{ $t('moderatorChangedMemo') }}
@@ -50,7 +50,7 @@
           <div class="small">
             {{ $t('creation') }} {{ $t('(') }}{{ amount / 20 }} {{ $t('h') }}{{ $t(')') }}
           </div>
-          <div v-if="status === 'DENIED' && allContribution" class="font-weight-bold">
+          <div v-if="status === 'DENIED' && allContribution" class="fw-bold">
             <!--            <b-icon icon="x-circle" variant="danger"></b-icon>-->
             <IBiXCircle />
             {{ $t('contribution.alert.denied') }}
@@ -58,7 +58,7 @@
           <div v-if="status === 'DELETED'" class="small">
             {{ $t('contribution.deleted') }}
           </div>
-          <div v-else class="font-weight-bold">{{ $filters.GDD(amount) }}</div>
+          <div v-else class="fw-bold">{{ $filters.GDD(amount) }}</div>
         </BCol>
         <BCol cols="12" md="1" lg="1" class="text-right align-items-center">
           <div v-if="messagesCount > 0 && !moderatorId" @click="visible = !visible">
@@ -70,10 +70,10 @@
         v-if="(!['CONFIRMED', 'DELETED'].includes(status) && !allContribution) || messagesCount > 0"
         class="p-2"
       >
-        <BCol cols="3" class="mr-auto text-center">
+        <BCol cols="3" class="me-auto text-center">
           <div
             v-if="!['CONFIRMED', 'DELETED'].includes(status) && !allContribution && !moderatorId"
-            class="test-delete-contribution pointer mr-3"
+            class="test-delete-contribution pointer me-3"
             @click="deleteContribution({ id })"
           >
             <IBiTrash />
@@ -84,7 +84,7 @@
         <BCol cols="3" class="text-center">
           <div
             v-if="!['CONFIRMED', 'DELETED'].includes(status) && !allContribution && !moderatorId"
-            class="test-edit-contribution pointer mr-3"
+            class="test-edit-contribution pointer me-3"
             @click="
               $emit('update-contribution-form', {
                 id: id,
