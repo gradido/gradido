@@ -1,8 +1,8 @@
 <template>
   <div class="transaction-link gradido-custom-background">
-    <BRow :class="validLink ? '' : 'bg-muted text-light'" class="mb-2 pt-2 pb-2">
+    <BRow :class="validLink ? '' : 'bg-muted text-dark'" class="mb-2 pt-2 pb-2">
       <BCol cols="1">
-        <type-icon color="text-danger" icon="link45deg" class="pt-4 ps-2" />
+        <variant-icon icon="link45deg" variant="danger" class="pt-4 ps-2" />
       </BCol>
       <BCol cols="11">
         <BRow>
@@ -88,6 +88,7 @@ import DateRow from '../TransactionRows/DateRow'
 import DecayRow from '../TransactionRows/DecayRow'
 import AppModal from '@/components/AppModal'
 import FigureQrCode from '@/components/QrCode/FigureQrCode'
+import VariantIcon from '@/components/VariantIcon.vue'
 
 const props = defineProps({
   holdAvailableAmount: { type: String, required: true },

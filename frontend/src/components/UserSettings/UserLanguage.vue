@@ -8,8 +8,11 @@
             @click="showLanguage ? (showLanguage = !showLanguage) : cancelEdit()"
           >
             <span class="pointer me-3">{{ $t('settings.language.changeLanguage') }}</span>
-            <b-icon v-if="showLanguage" class="pointer ms-3" icon="pencil"></b-icon>
-            <b-icon v-else icon="x-circle" class="pointer ms-3" variant="danger"></b-icon>
+            <variant-icon
+              class="pointer ms-3"
+              :icon="showLanguage ? 'pencil' : 'x-circle'"
+              :variant="showLanguage ? 'primary' : 'danger'"
+            />
           </a>
         </BCol>
       </BRow>

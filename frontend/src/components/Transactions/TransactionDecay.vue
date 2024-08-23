@@ -2,8 +2,7 @@
   <div class="transaction-slot-decay" @click="visible = !visible">
     <BRow class="text-color-gdd-yellow align-items-center">
       <BCol cols="1">
-        <!--        <type-icon color="text-color-gdd-yellow" icon="droplet-half" />-->
-        <IBiDropletHalf />
+        <variant-icon icon="droplet-half" variant="gold" />
       </BCol>
       <BCol>
         {{ $t('decay.decay_since_last_transaction') }}
@@ -24,7 +23,6 @@
 </template>
 <script>
 import CollapseIcon from '../TransactionRows/CollapseIcon'
-// import TypeIcon from '../TransactionRows/TypeIcon'
 import DecayInformationDecay from '../DecayInformations/DecayInformation-Decay'
 
 export default {

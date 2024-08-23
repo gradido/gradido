@@ -46,7 +46,7 @@
               {{ $t('overlay.cancel') }}
             </BButton>
           </BCol>
-          <BCol class="text-right">
+          <BCol class="text-end">
             <slot name="submit-btn" />
           </BCol>
         </BRow>

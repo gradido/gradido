@@ -4,11 +4,11 @@
     <user-query v-model="query" class="mb-2 mt-2" :placeholder="$t('user_memo_search')" />
     <p class="mb-2">
       <input v-model="noHashtag" type="checkbox" class="noHashtag" />
-      <span v-b-tooltip="$t('no_hashtag_tooltip')" class="ml-2">{{ $t('no_hashtag') }}</span>
+      <span v-b-tooltip="$t('no_hashtag_tooltip')" class="ms-2">{{ $t('no_hashtag') }}</span>
     </p>
     <p v-if="showResubmissionCheckbox" class="mb-4">
       <input v-model="hideResubmissionModel" type="checkbox" class="hideResubmission" />
-      <span v-b-tooltip="$t('hide_resubmission_tooltip')" class="ml-2">
+      <span v-b-tooltip="$t('hide_resubmission_tooltip')" class="ms-2">
         {{ $t('hide_resubmission') }}
       </span>
     </p>
@@ -82,7 +82,7 @@
           <p>{{ $t(overlayQuestion) }}</p>
         </template>
         <template #submit-btn>
-          <BButton size="md" :variant="overlayIcon" class="m-3 text-right" @click="overlayEvent">
+          <BButton size="md" :variant="overlayIcon" class="m-3 text-end" @click="overlayEvent">
             {{ $t(overlayBtnText) }}
           </BButton>
         </template>

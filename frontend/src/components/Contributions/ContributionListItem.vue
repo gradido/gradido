@@ -13,22 +13,14 @@
             color="#fff"
             class="fw-bold"
           ></avatar>
-          <BAvatar v-else rounded="lg" :variant="variant" size="4em">
-            <IBiTrash v-if="deletedAt" />
-            <IBiXCircle v-else-if="deniedAt" />
-            <IBiCheck v-else-if="confirmedAt" />
-            <IBiQuestion v-else-if="status === 'IN_PROGRESS'" />
-            <IBiBellFill v-else style="width: 36px; height: 36px" />
+          <BAvatar v-else rounded="lg" :variant="variant" size="4.55em">
+            <variant-icon :icon="icon" variant="white" />
           </BAvatar>
         </BCol>
         <BCol>
           <div v-if="firstName" class="me-3 fw-bold">
             {{ firstName }} {{ lastName }}
-            <IBiTrash v-if="deletedAt" />
-            <IBiXCircle v-else-if="deniedAt" />
-            <IBiCheck v-else-if="confirmedAt" />
-            <IBiQuestion v-else-if="status === 'IN_PROGRESS'" />
-            <IBiBellFill v-else />
+            <variant-icon :icon="icon" variant="white" />
           </div>
           <div class="small">
             {{ $d(new Date(contributionDate), 'short') }}
@@ -51,8 +43,7 @@
             {{ $t('creation') }} {{ $t('(') }}{{ amount / 20 }} {{ $t('h') }}{{ $t(')') }}
           </div>
           <div v-if="status === 'DENIED' && allContribution" class="fw-bold">
-            <!--            <b-icon icon="x-circle" variant="danger"></b-icon>-->
-            <IBiXCircle />
+            <variant-icon icon="x-circle" variant="danger" />
             {{ $t('contribution.alert.denied') }}
           </div>
           <div v-if="status === 'DELETED'" class="small">
@@ -217,6 +208,14 @@ const variant = computed(() => {
   return 'primary'
 })
 
+const icon = computed(() => {
+  if (props.deletedAt) return 'trash'
+  if (props.deniedAt) return 'x-circle'
+  if (props.confirmedAt) return 'check'
+  if (props.status === 'IN_PROGRESS') return 'question'
+  return 'bell-fill'
+})
+
 const date = computed(() => props.createdAt)
 
 const collapseId = computed(() => 'collapse' + String(props.id))
@@ -280,3 +279,10 @@ function updateStatus(id) {
 
 const emit = defineEmits(['delete-contribution', 'close-all-open-collapse', 'update-status'])
 </script>
+
+<style lang="scss" scoped>
+:deep(.b-avatar-custom > svg) {
+  width: 2.5em;
+  height: 2.5em;
+}
+</style>

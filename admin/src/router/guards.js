@@ -14,7 +14,7 @@ const addNavigationGuards = (router, store, apollo, i18n) => {
         .then((result) => {
           const moderator = result.data.verifyLogin
           if (moderator.roles?.length) {
-            i18n.locale = moderator.language
+            i18n.global.locale.value = moderator.language
             store.commit('moderator', moderator)
             next({ path: '/' })
           } else {

@@ -25,8 +25,8 @@
           </BRow>
 
           <BRow class="my-5">
-            <BCol cols="12">
-              <div class="text-lg-right">
+            <BCol cols="12" class="d-flex">
+              <div class="ms-auto">
                 <BButton v-if="item.url" variant="gradido" :href="item.url" target="_blank">
                   {{ item.button }}
                 </BButton>

@@ -23,13 +23,13 @@ $input-focus-alternative-box-shadow: 0 4px 6px rgb(50 50 93 / 11%),0 1px 3px rgb
 $input-color: $gray-600 ;
 $input-border-color: #cad1d7 ;
 $input-border-width: $input-btn-border-width ;
-$input-box-shadow: none ; // 0 1px 3px 0 $gray-400 ;
+$input-box-shadow: 0px 0px 0px 0px rgba(255, 255, 255, 0); // 0 1px 3px 0 $gray-400 ;
 
 $input-focus-bg: $white ;
 $input-focus-border-color: rgb(50 151 211 / 25%) ;
 $input-focus-color: $input-color ;
 $input-focus-width: 0 ;
-$input-focus-box-shadow: none ; // 0 1px 3px 0 $gray-500 ;
+$input-focus-box-shadow: 0px 0px 0px 0px rgba(255, 255, 255, 0); // 0 1px 3px 0 $gray-500 ;
 
 $input-placeholder-color: $gray-500 ;
 $input-focus-placeholder-color: $gray-500 ;

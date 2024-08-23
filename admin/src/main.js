@@ -29,6 +29,10 @@ const app = createApp(App)
 
 app.use(router)
 app.use(store)
+
+i18n.global.locale.value =
+  store.state.moderator && store.state.moderator.language ? store.state.moderator.language : 'en'
+
 app.use(i18n)
 app.use(PortalVue)
 app.use(createBootstrap())
@@ -38,8 +42,5 @@ app.use(() => apolloProvider)
 app.mixin(toasters)
 
 addNavigationGuards(router, store, apolloProvider.defaultClient, i18n)
-
-i18n.locale =
-  store.state.moderator && store.state.moderator.language ? store.state.moderator.language : 'en'
 
 app.mount('#app')

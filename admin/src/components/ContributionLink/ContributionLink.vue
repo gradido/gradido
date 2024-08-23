@@ -19,7 +19,7 @@
 
       <BCollapse id="newContribution" v-model="visible" class="mt-2">
         <BCard>
-          <p class="h2 ml-5">{{ $t('contributionLink.contributionLinks') }}</p>
+          <p class="h2 ms-5">{{ $t('contributionLink.contributionLinks') }}</p>
           <contribution-link-form
             :contribution-link-data="contributionLinkData"
             :edit-contribution-link="editContributionLink"

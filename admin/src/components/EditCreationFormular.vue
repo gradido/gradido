@@ -2,7 +2,7 @@
   <div class="component-edit-creation-formular">
     <div class="shadow p-3 mb-5 bg-white rounded">
       <BForm ref="updateCreationForm">
-        <div class="ml-4">
+        <div class="ms-4">
           <label>{{ $t('creation_form.select_month') }}</label>
         </div>
         <BRow class="m-4">
@@ -48,13 +48,13 @@
           </div>
         </div>
         <BRow class="m-4">
-          <BCol class="text-left">
+          <BCol class="text-start">
             <BButton type="reset" variant="danger" @click="$refs.updateCreationForm.reset()">
               {{ $t('creation_form.reset') }}
             </BButton>
           </BCol>
           <BCol class="text-center">
-            <div class="text-right">
+            <div class="text-end">
               <BButton
                 type="button"
                 variant="success"

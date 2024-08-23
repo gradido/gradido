@@ -51,7 +51,7 @@
             {{ $t('back') }}
           </BButton>
         </BCol>
-        <BCol cols="12" md="6" lg="6" class="text-lg-right">
+        <BCol cols="12" md="6" lg="6" class="text-lg-end">
           <BButton
             block
             variant="gradido"

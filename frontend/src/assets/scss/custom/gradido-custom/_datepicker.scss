@@ -13,7 +13,7 @@ $datepicker-disabled-old-new-color: $gray-500 ;
 $datepicker-header-cell-border-radius: $border-radius ;
 $datepicker-active-color: $white ;
 $datepicker-active-background: $primary ;
-$datepicker-active-box-shadow: none ;
+$datepicker-active-box-shadow: 0px 0px 0px 0px rgba(255, 255, 255, 0); ;
 $datepicker-range-background: $primary ;
 $datepicker-range-cell-focused-background: color.adjust($datepicker-range-background, $lightness: -5%);
 $datepicker-range-color: $white ;

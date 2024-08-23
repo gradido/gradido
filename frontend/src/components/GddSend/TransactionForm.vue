@@ -118,7 +118,7 @@
                   {{ $t('form.reset') }}
                 </BButton>
               </BCol>
-              <BCol cols="12" md="6" lg="6" class="text-lg-right">
+              <BCol cols="12" md="6" lg="6" class="text-lg-end">
                 <BButton block type="submit" variant="gradido">
                   {{ $t('form.check_now') }}
                 </BButton>

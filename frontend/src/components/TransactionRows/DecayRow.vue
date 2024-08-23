@@ -3,7 +3,6 @@
     <BRow v-if="decay">
       <BCol cols="5">
         <div class="text-right">
-          <!--          <b-icon icon="droplet-half" height="15" class="mb-1" />-->
           <IBiDropletHalf height="15" class="mb-1" />
         </div>
       </BCol>

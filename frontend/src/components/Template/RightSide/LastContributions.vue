@@ -3,7 +3,7 @@
     <BRow class="mb-5">
       <BCol class="h3">{{ $t('contribution.lastContribution') }}</BCol>
       <BCol cols="1" class="text-right">
-        <b-icon icon="three-dots-vertical"></b-icon>
+        <IBiThreeDotsVertical />
       </BCol>
     </BRow>
   </div>

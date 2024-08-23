@@ -26,12 +26,7 @@
         </div>
         <div v-if="linkId" class="small">
           {{ $t('via_link') }}
-          <b-icon
-            icon="link45deg"
-            variant="muted"
-            class="m-mb-1"
-            :title="$t('gdd_per_link.redeemed-title')"
-          />
+          <variant-icon icon="link45deg" variant="muted" class="m-mb-1" />
         </div>
       </BCol>
       <BCol cols="12" md="1" lg="1" class="text-right">

@@ -55,8 +55,8 @@ describe('ContributionMessagesListItem', () => {
         wrapper = ModeratorItemWrapper()
       })
 
-      it('has a DIV .text-right.is-moderator', () => {
-        expect(wrapper.find('div.text-right.is-moderator').exists()).toBe(true)
+      it('has a DIV .text-end.is-moderator', () => {
+        expect(wrapper.find('div.text-end.is-moderator').exists()).toBe(true)
       })
 
       it('has the complete user name', () => {
@@ -110,8 +110,8 @@ describe('ContributionMessagesListItem', () => {
         wrapper = ItemWrapper()
       })
 
-      it('has a DIV .text-left.is-not-moderator', () => {
-        expect(wrapper.find('div.text-left.is-user').exists()).toBe(true)
+      it('has a DIV .text-start.is-not-moderator', () => {
+        expect(wrapper.find('div.text-start.is-user').exists()).toBe(true)
       })
 
       it('has the complete user name', () => {

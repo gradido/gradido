@@ -4,7 +4,7 @@
       <BNavbarBrand class="mb-2" to="/">
         <img
           src="../../public/img/brand/gradido_logo_w.png"
-          class="navbar-brand-img pl-2"
+          class="navbar-brand-img ps-2"
           alt="..."
         />
       </BNavbarBrand>

@@ -30,11 +30,7 @@
                 <div class="mb-0">{{ $t('1000thanks') }}</div>
               </BCol>
               <BCol cols="3" class="text-right d-none d-sm-none d-md-inline">
-                <BAvatar
-                  src="/img/brand/gradido_coin●.png"
-                  size="6rem"
-                  variant="transparent"
-                ></BAvatar>
+                <BAvatar src="/img/brand/gradido_coin●.png" size="6rem" />
               </BCol>
             </BRow>
             <BCard ref="pageFontSize" no-body class="border-0 mt-4 gradido-custom-background">
@@ -119,7 +115,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 /* left  */
 .left-content-box {
   width: 40%;
@@ -169,5 +165,9 @@ export default {
 
 .login-size-controller {
   background-color: #212529;
+}
+
+:deep(.b-avatar.text-bg-secondary) {
+  background-color: transparent !important;
 }
 </style>
