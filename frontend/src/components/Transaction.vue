@@ -36,7 +36,7 @@
         </BCol>
       </BRow>
 
-      <BCollapse :id="collapseId" v-model="visible" class="mt-2">
+      <BCollapse :id="collapseId" :model-value="visible" class="mt-2">
         <transaction-collapse
           :amount="amount"
           :gdt-entry-type="gdtEntryType"
@@ -116,17 +116,17 @@ const getLinesByType = computed(() => {
   }
 })
 
-onMounted(() => {
-  // Note: This event listener setup might need to be adjusted for Vue 3
-  const root = getCurrentInstance().appContext.config.globalProperties
-  root.$on('bv::collapse::state', (collapseId, isJustShown) => {
-    if (isJustShown) {
-      collapseStatus.value.push(collapseId)
-    } else {
-      collapseStatus.value = collapseStatus.value.filter((id) => id !== collapseId)
-    }
-  })
-})
+// onMounted(() => {
+//   // Note: This event listener setup might need to be adjusted for Vue 3
+//   const root = getCurrentInstance().appContext.config.globalProperties
+//   root.$on('bv::collapse::state', (collapseId, isJustShown) => {
+//     if (isJustShown) {
+//       collapseStatus.value.push(collapseId)
+//     } else {
+//       collapseStatus.value = collapseStatus.value.filter((id) => id !== collapseId)
+//     }
+//   })
+// })
 </script>
 
 <style lang="scss" scoped>
