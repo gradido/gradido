@@ -1,16 +1,16 @@
 <template>
   <div>
     <div class="header py-lg-6">
-      <b-container class="w-50">
+      <BContainer class="w-50">
         <div class="header-body text-center mb-7">
           <p class="h1 test-message-headline">{{ headline }}</p>
           <p class="h4 test-message-subtitle">{{ subtitle }}</p>
           <hr />
-          <b-button v-if="showButton" class="test-message-button" :to="buttonLinkTo">
+          <BButton v-if="showButton" class="test-message-button" @click="handleNavigation">
             {{ buttonText }}
-          </b-button>
+          </BButton>
         </div>
-      </b-container>
+      </BContainer>
     </div>
   </div>
 </template>
@@ -30,6 +30,13 @@ export default {
     },
     buttonLinkTo() {
       return this.linkTo ? this.linkTo : null
+    },
+  },
+  methods: {
+    handleNavigation() {
+      if (this.buttonLinkTo) {
+        this.$router.push(this.buttonLinkTo)
+      }
     },
   },
 }

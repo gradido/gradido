@@ -50,6 +50,7 @@
         />
         <input-amount
           id="contribution-amount"
+          class="mt-3"
           name="amount"
           :label="$t('form.amount')"
           placeholder="20"
@@ -58,7 +59,7 @@
         />
 
         <BRow class="mt-5">
-          <BCol cols="12" lg="6">
+          <BCol>
             <BButton
               block
               type="reset"
@@ -69,7 +70,7 @@
               {{ $t('form.cancel') }}
             </BButton>
           </BCol>
-          <BCol cols="12" lg="6" class="text-end mt-4 mt-lg-0">
+          <BCol class="text-end mt-lg-0">
             <BButton
               block
               type="submit"

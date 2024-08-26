@@ -137,6 +137,7 @@
     "memo": "Note",
     "message": "Message",
     "new_balance": "Montant du solde après confirmation",
+    "newPasswordRepeat": "Répétez le nouveau mot de passe",
     "no_gdd_available": "Vous n'avez pas de GDD à envoyer.",
     "password": "Mot de passe",
     "passwordRepeat": "Répétez le mot de passe",

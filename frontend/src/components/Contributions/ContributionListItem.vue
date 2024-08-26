@@ -20,7 +20,7 @@
         <BCol>
           <div v-if="firstName" class="me-3 fw-bold">
             {{ firstName }} {{ lastName }}
-            <variant-icon :icon="icon" variant="white" />
+            <variant-icon :icon="icon" :variant="variant" />
           </div>
           <div class="small">
             {{ $d(new Date(contributionDate), 'short') }}
@@ -32,7 +32,7 @@
           </div>
           <div
             v-if="status === 'IN_PROGRESS' && !allContribution"
-            class="text-205 pointer hover-font-bold"
+            class="text-danger pointer hover-font-bold"
             @click="visible = !visible"
           >
             {{ $t('contribution.alert.answerQuestion') }}

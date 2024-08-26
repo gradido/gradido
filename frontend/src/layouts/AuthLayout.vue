@@ -170,4 +170,13 @@ export default {
 :deep(.b-avatar.text-bg-secondary) {
   background-color: transparent !important;
 }
+
+:deep(.popover-body) {
+  background-color: #383838;
+}
+
+:deep(.popover-arrow::after),
+:deep(.popover-arrow::before) {
+  border-top-color: #383838;
+}
 </style>

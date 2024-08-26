@@ -6,7 +6,12 @@
       <BRow class="justify-content-center">
         <BCol>
           <BForm role="form" @submit.prevent="onSubmit">
-            <input-email name="email" :label="$t('form.email')" :placeholder="$t('form.email')" />
+            <input-email
+              name="email"
+              :label="$t('form.email')"
+              :placeholder="$t('form.email')"
+              class="mb-4"
+            />
             <BRow>
               <BCol cols="12" lg="6">
                 <BButton

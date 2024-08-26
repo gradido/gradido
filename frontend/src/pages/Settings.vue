@@ -301,3 +301,8 @@ const humhubStateSwitch = (eventData) => {
   background-color: #ebebeba3 !important;
 }
 </style>
+<style scoped>
+:deep(.form-label) {
+  padding-bottom: 0;
+}
+</style>
