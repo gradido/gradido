@@ -128,3 +128,10 @@ onMounted(() => {
   })
 })
 </script>
+
+<style lang="scss" scoped>
+:deep(.b-avatar-custom > svg) {
+  width: 2.5em;
+  height: 2.5em;
+}
+</style>
