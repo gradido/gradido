@@ -1,8 +1,10 @@
 <template>
   <div class="transaction-slot-link" @click="showTransactionLinks">
     <BRow class="align-items-center">
-      <BCol cols="3" lg="2" md="2">
-        <BAvatar icon="link" variant="light" :size="42"></BAvatar>
+      <BCol id="transaction-link-summary-avatar" cols="3" lg="2" md="2">
+        <BAvatar icon="link" variant="light" :size="42">
+          <variant-icon icon="link" />
+        </BAvatar>
       </BCol>
       <BCol>
         <div>{{ $t('gdd_per_link.links_sum') }}</div>
@@ -12,8 +14,8 @@
         <div class="small mb-2">{{ $t('send_per_link') }}</div>
         <div class="fw-bold">{{ $filters.GDD(amount) }}</div>
       </BCol>
-      <BCol cols="12" md="1" lg="1" class="text-right">
-        <collapse-icon class="text-right" :visible="visible" />
+      <BCol cols="12" md="1" lg="1" class="text-end">
+        <collapse-icon class="text-end" :visible="visible" />
       </BCol>
     </BRow>
     <BCollapse :model-value="visible">
@@ -107,3 +109,10 @@ async function updateListTransactionLinks() {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+:deep(.b-avatar-custom > svg) {
+  height: 2em;
+  width: 2em;
+}
+</style>

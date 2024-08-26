@@ -19,11 +19,7 @@
       </BRow>
       <BRow>
         <BCol cols="9">
-          <!--          <b-icon-->
-          <!--            icon="layers"-->
-          <!--            class="me-3 gradido-global-border-color-accent d-none d-lg-inline"-->
-          <!--          ></b-icon>-->
-          <IBiLayers />
+          <IBiLayers class="me-3 gradido-global-border-color-accent d-none d-lg-inline" />
           <span v-if="hideAmount" class="fw-bold gradido-global-color-accent">
             {{ t('asterisks') }}
           </span>
@@ -32,14 +28,12 @@
           </span>
         </BCol>
         <BCol cols="3" class="border-start border-dark">
-          <!--          <b-icon-->
-          <!--            :icon="hideAmount ? 'eye-slash' : 'eye'"-->
-          <!--            class="me-3 gradido-global-border-color-accent pointer hover-icon"-->
-          <!--            @click="updateHideAmountGDT"-->
-          <!--          ></b-icon>-->
           <button class="transparent-button" @click="updateHideAmountGDT">
-            <IBiEyeSlash v-if="hideAmount" />
-            <IBiEye v-else />
+            <IBiEyeSlash
+              v-if="hideAmount"
+              class="me-3 gradido-global-border-color-accent pointer hover-icon"
+            />
+            <IBiEye v-else class="me-3 gradido-global-border-color-accent pointer hover-icon" />
           </button>
         </BCol>
       </BRow>

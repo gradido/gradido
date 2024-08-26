@@ -1,8 +1,10 @@
 <template>
-  <div class="transaction-slot-creation">
-    <BRow class="align-items-center" @click="visible = !visible">
+  <div class="transaction-slot-creation" @click="visible = !visible">
+    <BRow class="align-items-center">
       <BCol cols="3" lg="2" md="2">
-        <b-avatar icon="gift" variant="success" :size="42"></b-avatar>
+        <BAvatar :size="42">
+          <variant-icon icon="gift" variant="success" />
+        </BAvatar>
       </BCol>
       <BCol>
         <div class="fw-bold">{{ linkedUser.firstName }} {{ linkedUser.lastName }}</div>
@@ -13,11 +15,11 @@
         <div class="small mb-2">{{ $t('decay.types.receive') }}</div>
         <div class="fw-bold">{{ $filters.GDD(amount) }}</div>
       </BCol>
-      <BCol cols="12" md="1" lg="1" class="text-right">
-        <collapse-icon class="text-right" :visible="visible" />
+      <BCol cols="12" md="1" lg="1" class="text-end">
+        <collapse-icon class="text-end" :visible="visible" />
       </BCol>
     </BRow>
-    <BCollapse v-model="visible" class="pb-4 pt-lg-3">
+    <BCollapse :model-value="visible" class="pb-4 pt-lg-3">
       <decay-information
         :type-id="typeId"
         :decay="decay"
@@ -84,3 +86,10 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+:deep(.b-avatar-custom > svg) {
+  height: 2em;
+  width: 2em;
+}
+</style>

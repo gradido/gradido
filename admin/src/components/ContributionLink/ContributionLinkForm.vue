@@ -101,12 +101,12 @@
           </BFormGroup>
           -->
       <div class="mt-6">
-        <BButton type="submit" variant="primary">
+        <BButton type="submit" variant="primary" class="me-2">
           {{
             editContributionLink ? $t('contributionLink.saveChange') : $t('contributionLink.create')
           }}
         </BButton>
-        <BButton type="reset" variant="danger">
+        <BButton type="reset" variant="danger" class="me-2">
           {{ $t('contributionLink.clear') }}
         </BButton>
         <BButton @click.prevent="emit('close-contribution-form')">

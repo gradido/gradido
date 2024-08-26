@@ -9,7 +9,7 @@
               :model-value="radioSelected"
               @update:model-value="radioSelected = $event"
             >
-              <BRow class="mb-4">
+              <BRow class="mb-4 gap-5">
                 <BCol>
                   <BRow class="bg-248 gradido-border-radius position-relative">
                     <BFormRadio
@@ -118,7 +118,7 @@
                   {{ $t('form.reset') }}
                 </BButton>
               </BCol>
-              <BCol cols="12" md="6" lg="6" class="text-lg-right">
+              <BCol cols="12" md="6" lg="6" class="text-lg-end">
                 <BButton block type="submit" variant="gradido">
                   {{ $t('form.check_now') }}
                 </BButton>
@@ -284,6 +284,8 @@ label {
   margin-right: 0;
   margin-bottom: 0;
   position: relative;
+  display: flex !important;
+  justify-content: space-between;
 
   > input {
     position: absolute;
@@ -291,5 +293,12 @@ label {
     top: 50%;
     transform: translateY(-70%);
   }
+}
+</style>
+
+<style scoped>
+:deep(label.form-check-label) {
+  width: 100%;
+  cursor: pointer;
 }
 </style>

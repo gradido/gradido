@@ -21,7 +21,7 @@
           <BButton
             variant="danger"
             size="md"
-            class="mr-2"
+            class="me-2"
             @click="$emit('show-overlay', row.item, 'delete')"
           >
             <IBiTrash />
@@ -42,7 +42,7 @@
             variant="info"
             size="md"
             :index="0"
-            class="mr-2"
+            class="me-2"
             @click="rowToggleDetails(row, 0)"
           >
             <IBiX v-if="row.detailsShowing" />
@@ -58,7 +58,7 @@
               v-if="row.item.status === 'IN_PROGRESS' && row.item.messagesCount > 0"
               variant="warning"
               style="color: #ffc107"
-              class="pl-1"
+              class="ps-1"
             />
           </BButton>
         </div>
@@ -73,7 +73,7 @@
           <BButton
             variant="warning"
             size="md"
-            class="mr-2"
+            class="me-2"
             @click="$emit('show-overlay', row.item, 'deny')"
           >
             <IBiX />
@@ -85,7 +85,7 @@
           <BButton
             variant="success"
             size="md"
-            class="mr-2"
+            class="me-2"
             @click="$emit('show-overlay', row.item, 'confirm')"
           >
             <IBiCheck />

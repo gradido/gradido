@@ -1,16 +1,18 @@
 <template>
   <div class="contribution-messages-list-item clearfix">
-    <div v-if="isModeratorMessage" class="text-right p-2 rounded-sm mb-3" :class="boxClass">
-      <small class="ml-4" data-test="moderator-label">
+    <div v-if="isModeratorMessage" class="text-end p-2 rounded-sm mb-3" :class="boxClass">
+      <small class="ms-4" data-test="moderator-label">
         {{ $t('moderator.moderator') }}
       </small>
-      <small class="ml-2" data-test="moderator-date">
+      <small class="ms-2" data-test="moderator-date">
         {{ $d(new Date(message.createdAt), 'short') }}
       </small>
-      <span class="ml-2 mr-2" data-test="moderator-name">
+      <span class="ms-2 me-2" data-test="moderator-name">
         {{ message.userFirstName }} {{ message.userLastName }}
       </span>
-      <BAvatar square variant="warning"></BAvatar>
+      <BAvatar square variant="warning">
+        <variant-icon icon="person-fill" variant="black" />
+      </BAvatar>
       <small v-if="isHistory">
         <hr />
         {{ $t('moderator.history') }}
@@ -22,12 +24,14 @@
         {{ $t('moderator.request') }}
       </small>
     </div>
-    <div v-else class="text-left p-2 rounded-sm mb-3" :class="boxClass">
-      <BAvatar variant="info"></BAvatar>
-      <span class="ml-2 mr-2" data-test="user-name">
+    <div v-else class="text-start p-2 rounded-sm mb-3" :class="boxClass">
+      <BAvatar variant="info">
+        <variant-icon icon="person-fill" variant="white" />
+      </BAvatar>
+      <span class="ms-2 me-2" data-test="user-name">
         {{ message.userFirstName }} {{ message.userLastName }}
       </span>
-      <small class="ml-2" data-test="user-date">
+      <small class="ms-2" data-test="user-date">
         {{ $d(new Date(message.createdAt), 'short') }}
       </small>
       <small v-if="isHistory">

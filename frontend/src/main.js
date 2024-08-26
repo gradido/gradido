@@ -52,8 +52,6 @@ app.config.globalProperties.$filters = {
 
 loadAllRules(i18n.global, apolloProvider.defaultClient)
 
-loadAllRules(i18n.global, apolloProvider.defaultClient)
-
 addNavigationGuards(router, store, apolloProvider.defaultClient)
 
 if (!store) {

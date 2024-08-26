@@ -7,7 +7,7 @@
           {{ $t('footer.copyright.year', { year }) }}
           <a
             :href="`https://gradido.net/${$i18n.locale}`"
-            class="fw-bold ml-1 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
+            class="fw-bold ms-1 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
             target="_blank"
           >
             {{ $t('footer.copyright.link') }}

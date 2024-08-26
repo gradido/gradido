@@ -16,18 +16,15 @@
         </div>
       </BCol>
       <BCol class="col-12 col-md-12 col-lg-6 mt-4 mb-4 mt-lg-0 mb-lg-0">
-        <div class="d-flex align-items-center ms-3 ms-lg-0 text-lg-right pt-1">
+        <div class="d-flex align-items-center ms-3 ms-lg-0 text-lg-end pt-1">
           {{ $t('followUs') }}
           <BLink href="https://www.facebook.com/groups/Gradido/" target="_blank">
-            <!--            <b-icon-facebook class="ml-3 me-3 c-grey" font-scale="1"></b-icon-facebook>-->
             <IBiFacebook class="ms-3 me-3 c-grey" />
           </BLink>
           <BLink href="https://twitter.com/gradido" target="_blank">
-            <!--            <b-icon-twitter class="me-3 c-grey" font-scale="1"></b-icon-twitter>-->
             <IBiTwitterX class="me-3 c-grey" font-scale="1" />
           </BLink>
           <BLink href="https://www.youtube.com/c/GradidoNet" target="_blank">
-            <!--            <b-icon-youtube class="me-3 c-grey" font-scale="1"></b-icon-youtube>-->
             <IBiYoutube class="me-3 c-grey" font-scale="1" />
           </BLink>
 

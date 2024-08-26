@@ -4,31 +4,32 @@
       <BFormGroup :label="$t('form.username')" :description="$t('settings.usernameInfo')">
         <BInputGroup>
           <BFormInput
-            v-bind="ariaInput"
             :id="labelFor"
-            :model-value="currentValue"
+            :model-value="usernameValue"
             :name="name"
             :placeholder="placeholder"
             type="text"
-            :state="validated ? valid : false"
+            :state="usernameMeta.valid"
             autocomplete="off"
             data-test="username"
-            @update:modelValue="updateValue"
+            @update:modelValue="usernameValue = $event"
           />
           <BButton size="md" text="Button" variant="secondary" append @click="emitSetIsEdit">
             <IBiXCircle style="height: 17px; width: 17px" />
           </BButton>
         </BInputGroup>
-        <BFormInvalidFeedback v-bind="ariaMsg">
-          <div v-if="showAllErrors">
-            <span v-for="error in errors" :key="error">
-              {{ error }}
-              <br />
-            </span>
-          </div>
-          <div v-else>
-            {{ errors?.[0] }}
-          </div>
+        <BFormInvalidFeedback v-if="usernameError || usernameErrors.length" force-show>
+          <template #default>
+            <div v-if="props.showAllErrors">
+              <span v-for="error in usernameErrors" :key="error">
+                {{ error }}
+                <br />
+              </span>
+            </div>
+            <div v-else>
+              {{ usernameErrors?.[0] }}
+            </div>
+          </template>
         </BFormInvalidFeedback>
       </BFormGroup>
     </div>
@@ -43,7 +44,7 @@ import {
   BFormInvalidFeedback,
 } from 'bootstrap-vue-next'
 import { ref, computed, watch, defineProps, defineEmits } from 'vue'
-import { useForm } from 'vee-validate'
+import { useField, useForm } from 'vee-validate'
 
 const props = defineProps({
   isEdit: { type: Boolean, default: false },
@@ -59,8 +60,13 @@ const props = defineProps({
 
 const currentValue = ref(props?.modelValue)
 
-const { errors, valid, validated, ariaInput, ariaMsg } = useForm({
-  initialValues: currentValue.value,
+const {
+  meta: usernameMeta,
+  errors: usernameErrors,
+  value: usernameValue,
+  errorMessage: usernameError,
+} = useField(props.name, props.rules, {
+  initialValue: currentValue,
 })
 
 const emit = defineEmits(['update:modelValue', 'set-is-edit'])
@@ -69,10 +75,5 @@ const labelFor = computed(() => `${props.name}-input-field`)
 
 const emitSetIsEdit = (bool) => {
   emit('set-is-edit', bool)
-}
-
-const updateValue = (e) => {
-  currentValue.value = e
-  emit('update:modelValue', e)
 }
 </script>

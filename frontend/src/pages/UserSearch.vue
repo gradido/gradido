@@ -10,7 +10,7 @@
       </div>
       <BRow class="my-5">
         <BCol cols="12">
-          <div class="text-lg-right">
+          <div class="text-lg-end">
             <b-button variant="gradido" :href="gmsUri" target="_blank">
               {{ $t('usersearch.button') }}
             </b-button>

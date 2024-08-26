@@ -56,7 +56,7 @@
         <hr />
         <BRow>
           <BCol cols="12" md="6" lg="6">{{ $t('language') }}</BCol>
-          <BCol cols="12" md="6" lg="6" class="text-right">
+          <BCol cols="12" md="6" lg="6" class="text-end">
             <user-language />
           </BCol>
         </BRow>
@@ -76,7 +76,7 @@
               }}
             </div>
           </BCol>
-          <BCol cols="12" md="6" lg="6" class="text-right">
+          <BCol cols="12" md="6" lg="6" class="text-end">
             <user-newsletter />
           </BCol>
         </BRow>
@@ -89,7 +89,7 @@
               <BCol cols="12" md="6" lg="6">
                 <div class="h3">{{ $t('Humhub.title') }}</div>
               </BCol>
-              <BCol cols="12" md="6" lg="6" class="text-right">
+              <BCol cols="12" md="6" lg="6" class="text-end">
                 <user-settings-switch
                   :initial-value="$store.state.humhubAllowed"
                   :attr-name="'humhubAllowed'"
@@ -120,7 +120,7 @@
               <BCol cols="12" md="6" lg="6">
                 <div class="h3">{{ $t('GMS.title') }}</div>
               </BCol>
-              <BCol cols="12" md="6" lg="6" class="text-right">
+              <BCol cols="12" md="6" lg="6" class="text-end">
                 <user-settings-switch
                   :initial-value="$store.state.gmsAllowed"
                   :attr-name="'gmsAllowed'"
@@ -167,7 +167,7 @@
               <BCol cols="12" md="6" lg="6">
                 <div class="h3 text-muted">{{ $t('GMS.title') }}</div>
               </BCol>
-              <BCol cols="12" md="6" lg="6" class="text-right">
+              <BCol cols="12" md="6" lg="6" class="text-end">
                 <user-settings-switch :disabled="true" />
               </BCol>
             </BRow>
@@ -179,7 +179,7 @@
 
     <!-- TODO<BRow>
       <BCol cols="12" md="6" lg="6">{{ $t('settings.darkMode') }}</BCol>
-      <BCol cols="12" md="6" lg="6" class="text-right">
+      <BCol cols="12" md="6" lg="6" class="text-end">
         <BForm-checkbox v-model="darkMode" name="dark-mode" switch aligne></BForm-checkbox>
       </BCol>
     </BRow> -->

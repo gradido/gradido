@@ -1,8 +1,8 @@
 <template>
   <BCard id="change_pwd" class="card-border-radius card-background-gray">
     <div>
-      <BRow class="mb-4 text-right">
-        <BCol class="text-right">
+      <BRow class="mb-4 text-end">
+        <BCol class="text-end">
           <BButton
             class="change-password-form-opener"
             data-test="open-password-change-form"
@@ -35,9 +35,9 @@
           :register="register"
           @update:modelValue="form.newPassword = $event"
         />
-        <BRow class="text-right">
+        <BRow class="text-end">
           <BCol>
-            <div class="text-right">
+            <div class="text-end">
               <BButton
                 type="submit"
                 :variant="invalid ? 'light' : 'success'"

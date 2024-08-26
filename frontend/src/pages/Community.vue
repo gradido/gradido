@@ -31,7 +31,7 @@
               :show-pagination="true"
               :page-size="pageSize"
               @close-all-open-collapse="closeAllOpenCollapse"
-              @update-list-contributions="handleUpdateListContributions"
+              @update-list-contributions="handleUpdateListAllContributions"
               @update-contribution-form="handleUpdateContributionForm"
               @delete-contribution="handleDeleteContribution"
               @update-status="updateStatus"
@@ -49,8 +49,8 @@
               :show-pagination="true"
               :page-size="pageSizeAll"
               :all-contribution="true"
-              @update-list-contributions="updateListAllContributions"
-              @update-contribution-form="updateContributionForm"
+              @update-list-contributions="handleUpdateListAllContributions"
+              @update-contribution-form="handleUpdateContributionForm"
             />
           </div>
         </BTab>
@@ -254,7 +254,10 @@ const handleDeleteContribution = async (data) => {
 const handleUpdateListAllContributions = (pagination) => {
   currentPageAll.value = pagination.currentPage
   pageSizeAll.value = pagination.pageSize
-  refetchAllContributions()
+  refetchAllContributions({
+    currentPage: currentPage.value,
+    pageSize: pageSize.value,
+  })
 }
 
 const handleUpdateListContributions = (pagination) => {

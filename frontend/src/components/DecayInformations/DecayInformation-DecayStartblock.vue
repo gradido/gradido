@@ -12,7 +12,7 @@
       <BCol offset="1" cols="11">
         <BRow>
           <BCol cols="5">
-            <div class="text-right">
+            <div class="text-end">
               <div>{{ $t('decay.decay_introduced') }}</div>
             </div>
           </BCol>
@@ -28,7 +28,7 @@
 
         <!-- Decay-->
         <BRow>
-          <BCol cols="5" class="text-right">{{ $t('decay.decay') }}</BCol>
+          <BCol cols="5" class="text-end">{{ $t('decay.decay') }}</BCol>
           <BCol cols="7">{{ $filters.GDD(decay.decay) }}</BCol>
         </BRow>
       </BCol>
@@ -46,17 +46,17 @@
       <BCol offset="1" cols="11">
         <BRow>
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-          <BCol cols="5" class="text-right">{{ $t(`decay.types.${typeId.toLowerCase()}`) }}</BCol>
+          <BCol cols="5" class="text-end">{{ $t(`decay.types.${typeId.toLowerCase()}`) }}</BCol>
           <BCol cols="7">{{ $filters.GDD(amount) }}</BCol>
         </BRow>
         <!-- Decay-->
         <BRow>
-          <BCol cols="5" class="text-right">{{ $t('decay.decay') }}</BCol>
+          <BCol cols="5" class="text-end">{{ $t('decay.decay') }}</BCol>
           <BCol cols="7">{{ $filters.GDD(decay.decay) }}</BCol>
         </BRow>
         <!-- Total-->
         <BRow>
-          <BCol cols="5" class="text-right">{{ $t('decay.total') }}</BCol>
+          <BCol cols="5" class="text-end">{{ $t('decay.total') }}</BCol>
           <BCol cols="7">
             <b>{{ $filters.GDD(Number(amount) + Number(decay.decay)) }}</b>
           </BCol>

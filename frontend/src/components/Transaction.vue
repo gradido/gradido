@@ -8,7 +8,9 @@
             variant="light"
             size="3em"
             :class="getLinesByType.iconclasses"
-          />
+          >
+            <variant-icon :icon="getLinesByType.icon" :variant="getLinesByType.iconColor" />
+          </BAvatar>
         </BCol>
         <BCol>
           <div>
@@ -26,8 +28,8 @@
           <div class="small mb-2">{{ $t('gdt.credit') }}</div>
           <div class="fw-bold">{{ getLinesByType.credittext }}</div>
         </BCol>
-        <BCol cols="12" md="1" lg="1" class="text-right">
-          <collapse-icon class="text-right" :visible="visible" />
+        <BCol cols="12" md="1" lg="1" class="text-end">
+          <collapse-icon class="text-end" :visible="visible" />
         </BCol>
       </BRow>
 
@@ -80,6 +82,7 @@ const getLinesByType = computed(() => {
       return {
         icon: 'heart',
         iconclasses: 'gradido-global-color-accent',
+        iconColor: '4',
         description: t('gdt.contribution'),
         descriptiontext: n(props.amount, 'decimal') + ' €',
         credittext: n(props.gdt, 'decimal') + ' GDT',
@@ -89,6 +92,7 @@ const getLinesByType = computed(() => {
       return {
         icon: 'person-check',
         iconclasses: 'gradido-global-color-accent',
+        iconColor: '4',
         description: t('gdt.recruited-member'),
         descriptiontext: '5%',
         credittext: n(props.amount, 'decimal') + ' GDT',
@@ -98,6 +102,7 @@ const getLinesByType = computed(() => {
       return {
         icon: 'gift',
         iconclasses: 'gradido-global-color-accent',
+        iconColor: '4',
         description: t('gdt.gdt-received'),
         descriptiontext: props.comment,
         credittext: n(props.gdt, 'decimal') + ' GDT',

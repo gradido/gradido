@@ -8,7 +8,7 @@
         {{ $t('userRole.notChangeYourSelf') }}
       </div>
       <div v-else class="m-3">
-        <label for="role" class="mr-3">{{ $t('userRole.selectLabel') }}</label>
+        <label for="role" class="me-3">{{ $t('userRole.selectLabel') }}</label>
         <BFormSelect v-model="roleSelected" class="role-select" :options="roles" />
         <div class="mt-3 mb-5">
           <BButton variant="danger" @click="showModal">

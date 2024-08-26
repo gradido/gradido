@@ -9,8 +9,8 @@
         :placeholder="placeholder"
         :state="meta.valid"
         trim
-        rows="4"
-        max-rows="4"
+        :rows="4"
+        :max-rows="4"
         :disabled="disabled"
         no-resize
         @update:modelValue="currentValue = $event"
@@ -53,3 +53,9 @@ const { value: currentValue, errorMessage, meta } = useField(props.name, props.r
 
 const labelFor = computed(() => `${props.name}-input-field`)
 </script>
+
+<style lang="scss" scoped>
+:deep(.form-control) {
+  height: unset;
+}
+</style>

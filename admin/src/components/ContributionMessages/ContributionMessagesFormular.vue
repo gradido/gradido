@@ -59,7 +59,7 @@
           <BCol>
             <BButton type="reset" variant="danger">{{ $t('form.cancel') }}</BButton>
           </BCol>
-          <BCol class="text-right">
+          <BCol class="text-end">
             <BButton
               type="submit"
               variant="primary"

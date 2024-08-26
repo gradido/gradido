@@ -9,6 +9,7 @@ import es from '@vee-validate/i18n/dist/locale/es.json'
 import fr from '@vee-validate/i18n/dist/locale/fr.json'
 import nl from '@vee-validate/i18n/dist/locale/nl.json'
 import tr from '@vee-validate/i18n/dist/locale/tr.json'
+import { useI18n } from 'vue-i18n'
 
 // Email and username regex patterns remain the same
 const EMAIL_REGEX =
@@ -17,14 +18,23 @@ const USERNAME_REGEX = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/
 
 export const loadAllRules = (i18nCallback, apollo) => {
   configure({
-    generateMessage: localize({
-      en,
-      de,
-      es,
-      fr,
-      nl,
-      tr,
-    }),
+    generateMessage: (context) => {
+      const { t } = i18nCallback || useI18n()
+
+      const translationKey = `form.${context.name}`
+      if (context.rule.name === 'required') {
+        // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
+        return t('form.validation.requiredField', { fieldName: t(translationKey) })
+      }
+      return localize({
+        en,
+        de,
+        es,
+        fr,
+        nl,
+        tr,
+      })(context)
+    },
     validateOnBlur: true,
     validateOnChange: true,
     validateOnInput: false,

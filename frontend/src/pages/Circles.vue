@@ -10,7 +10,7 @@
       </div>
       <BRow class="my-5">
         <BCol cols="12">
-          <div class="text-lg-right">
+          <div class="text-lg-end">
             <BButton
               v-if="humhubAllowed"
               :href="humhubUri"

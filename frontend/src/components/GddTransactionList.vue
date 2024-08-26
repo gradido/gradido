@@ -1,16 +1,14 @@
 <template>
   <div class="gdd-transaction-list">
     <div class="list-group">
-      <div v-if="!transactions" class="test-no-transactionlist text-right">
-        <!--        <b-icon icon="exclamation-triangle" class="me-2" variant="danger"></b-icon>-->
-        <IBiExclamationTriangle class="me-2" />
+      <div v-if="!transactions" class="test-no-transactionlist text-end">
+        <variant-icon icon="exclamation-triangle" variant="danger" class="me-2" />
         <small>
           {{ $t('error.no-transactionlist') }}
         </small>
       </div>
-      <div v-if="transactionCount < 0" class="test-empty-transactionlist text-right">
-        <!--        <b-icon icon="exclamation-triangle" class="me-2" variant="danger"></b-icon>-->
-        <IBiExclamationTriangle class="me-2" />
+      <div v-if="transactionCount < 0" class="test-empty-transactionlist text-end">
+        <variant-icon icon="exclamation-triangle" variant="danger" class="me-2" />
         <small>{{ $t('error.empty-transactionlist') }}</small>
       </div>
 
@@ -55,9 +53,9 @@
         </div>
       </div>
     </div>
-    <b-pagination
+    <BPagination
       v-if="isPaginationVisible"
-      v-model="currentPage"
+      :model-value="currentPage"
       class="mt-3"
       pills
       size="lg"
@@ -65,10 +63,10 @@
       :total-rows="transactionCount"
       align="center"
       :hide-ellipsis="true"
-    ></b-pagination>
-
+      @update:model-value="currentPage = $event"
+    />
     <div v-if="transactionCount <= 0" class="mt-4 text-center">
-      <b-icon v-if="pending" icon="three-dots" animation="cylon"></b-icon>
+      <IBiThreeDots v-if="pending" />
       <div v-else>{{ $t('transaction.nullTransactions') }}</div>
     </div>
   </div>
@@ -133,11 +131,6 @@ export default {
 </script>
 
 <style>
-collaps-icon {
-  width: 95%;
-  position: absolute;
-}
-
 .el-table .cell {
   padding-left: 0;
   padding-right: 0;

@@ -73,6 +73,7 @@ export default defineConfig({
     commonjs(),
   ],
   css: {
+    extract: true,
     preprocessorOptions: {
       scss: {
         additionalData: `@import "@/assets/scss/gradido.scss";`,

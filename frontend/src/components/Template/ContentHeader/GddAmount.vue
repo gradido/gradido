@@ -24,11 +24,7 @@
 
       <BRow>
         <BCol cols="9">
-          <!--          <b-icon-->
-          <!--            icon="layers"-->
-          <!--            class="me-3 gradido-global-border-color-accent d-none d-lg-inline"-->
-          <!--          ></b-icon>-->
-          <IBiLayers class="me-3 gradido-global-border-color-accent" />
+          <IBiLayers class="me-3 gradido-global-border-color-accent d-none d-lg-inline" />
           <span v-if="hideAmount" class="fw-bold gradido-global-color-accent">
             {{ $t('asterisks') }}
           </span>

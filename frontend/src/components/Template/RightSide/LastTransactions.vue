@@ -2,9 +2,6 @@
   <div class="rightside-last-transactions d-none d-lg-block">
     <BRow class="mb-3">
       <BCol class="h3">{{ $t('transaction.lastTransactions') }}</BCol>
-      <!-- <BCol cols="1" class="text-right">
-        <b-icon icon="three-dots-vertical"></b-icon>
-      </BCol> -->
     </BRow>
 
     <div v-for="(transaction, index) in transactions" :key="transaction.id">
@@ -38,7 +35,7 @@
                 <div class="small">
                   {{ $filters.GDD(transaction.amount) }}
                 </div>
-                <div class="small ms-3 text-right">
+                <div class="small ms-3 text-end">
                   {{ $d(new Date(transaction.balanceDate), 'short') }}
                 </div>
               </div>

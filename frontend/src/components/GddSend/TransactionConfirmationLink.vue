@@ -14,8 +14,8 @@
       </BRow>
 
       <BRow class="mt-5 pe-3 text-color-gdd-yellow h3">
-        <BCol cols="2" class="text-right">
-          <b-icon class="text-color-gdd-yellow" icon="droplet-half"></b-icon>
+        <BCol cols="2" class="text-end">
+          <variant-icon icon="droplet-half" variant="gold" />
         </BCol>
         <BCol>{{ $t('advanced-calculation') }}</BCol>
       </BRow>
@@ -41,7 +41,7 @@
             {{ $t('back') }}
           </BButton>
         </BCol>
-        <BCol cols="12" md="6" lg="6" class="text-lg-right">
+        <BCol cols="12" md="6" lg="6" class="text-lg-end">
           <BButton
             block
             class="send-button"

@@ -47,6 +47,7 @@ import { useAppToast } from '@/composables/useToast'
 import locales from '@/locales/'
 import { onMounted, ref, computed } from 'vue'
 import { updateUserInfos } from '@/graphql/mutations'
+import { setLocale as setValidationI18nLocale } from '@vee-validate/i18n'
 
 const store = useStore()
 const { t, locale } = useI18n()
@@ -68,6 +69,7 @@ const saveLocale = async (newLocale) => {
   if (locale.value === newLocale) return
 
   setLocale(newLocale)
+  setValidationI18nLocale(newLocale)
   if (store.state.gradidoID) {
     try {
       await mutate({ locale: newLocale })

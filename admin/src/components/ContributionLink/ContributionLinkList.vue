@@ -5,14 +5,14 @@
         <BButton
           variant="danger"
           size="md"
-          class="mr-2 test-delete-link"
+          class="me-2 test-delete-link"
           @click="handleDelete(data)"
         >
           <IBiTrash />
         </BButton>
       </template>
       <template #cell(edit)="data">
-        <BButton variant="success" size="md" class="mr-2" @click="editContributionLink(data.item)">
+        <BButton variant="success" size="md" class="me-2" @click="editContributionLink(data.item)">
           <IBiPencil />
         </BButton>
       </template>
@@ -20,7 +20,7 @@
         <BButton
           variant="info"
           size="md"
-          class="mr-2 test-show"
+          class="me-2 test-show"
           @click="showContributionLink(data.item)"
         >
           <IBiEye />

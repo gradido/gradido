@@ -42,7 +42,7 @@ html > body {
 }
 
 .app-box-shadow {
-  box-shadow: 20pt 20pt 50pt 0 #3838384f;
+  box-shadow: 20pt 20pt 50pt 0 #3838384f !important;
 }
 
 /* Navbar  */
@@ -280,7 +280,7 @@ a:hover,
 }
 
 .gradido-border-radius {
-  border-radius: 26px;
+  border-radius: 26px!important;
   overflow: hidden;
 }
 
@@ -340,4 +340,8 @@ a:hover,
 
 .text-color-gdd-yellow {
   color: rgb(197 141 56);
+}
+
+.gdd-toaster-body {
+  color: rgb(255 255 255);
 }

@@ -21,7 +21,6 @@
               {{ buttonText }}
             </BButton>
             <div class="text-center">
-              <!--              <b-icon v-if="pending" icon="three-dots" animation="cylon" font-scale="4"></b-icon>-->
               <IBiThreeDots v-if="pending" animation="cylon" font-scale="4" />
             </div>
           </div>

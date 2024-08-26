@@ -9,20 +9,13 @@
         @click="refetch"
       >
         <IBiArrowClockwise />
-        <!--        <b-icon-->
-        <!--          icon="arrow-clockwise"-->
-        <!--          font-scale="2"-->
-        <!--          :animation="animation"-->
-        <!--          data-test="federation-communities-refresh-btn"-->
-        <!--          @click="$apollo.queries.allCommunities.refresh()"-->
-        <!--        ></b-icon>-->
       </BButton>
     </div>
     <BListGroup>
       <BRow>
-        <BCol cols="1" class="ml-1">{{ $t('federation.verified') }}</BCol>
-        <BCol class="ml-3">{{ $t('federation.url') }}</BCol>
-        <BCol class="ml-3">{{ $t('federation.name') }}</BCol>
+        <BCol cols="1" class="ms-1">{{ $t('federation.verified') }}</BCol>
+        <BCol class="ms-3">{{ $t('federation.url') }}</BCol>
+        <BCol class="ms-3">{{ $t('federation.name') }}</BCol>
         <BCol cols="2">{{ $t('federation.lastAnnouncedAt') }}</BCol>
         <BCol cols="2">{{ $t('federation.createdAt') }}</BCol>
       </BRow>

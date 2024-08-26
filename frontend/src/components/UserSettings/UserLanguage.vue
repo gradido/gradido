@@ -1,15 +1,18 @@
 <template>
   <b-card id="formuserlanguage" class="card-border-radius card-background-gray">
     <div>
-      <BRow class="mb-4 text-right">
-        <BCol class="text-right">
+      <BRow class="mb-4 text-end">
+        <BCol class="text-end">
           <a
             class="cursor-pointer"
             @click="showLanguage ? (showLanguage = !showLanguage) : cancelEdit()"
           >
             <span class="pointer me-3">{{ $t('settings.language.changeLanguage') }}</span>
-            <b-icon v-if="showLanguage" class="pointer ms-3" icon="pencil"></b-icon>
-            <b-icon v-else icon="x-circle" class="pointer ms-3" variant="danger"></b-icon>
+            <variant-icon
+              class="pointer ms-3"
+              :icon="showLanguage ? 'pencil' : 'x-circle'"
+              :variant="showLanguage ? 'primary' : 'danger'"
+            />
           </a>
         </BCol>
       </BRow>
@@ -41,9 +44,9 @@
             </BCol>
           </BRow>
 
-          <BRow class="text-right">
+          <BRow class="text-end">
             <BCol>
-              <div ref="submitButton" class="text-right">
+              <div ref="submitButton" class="text-end">
                 <b-button
                   :variant="loading ? 'light' : 'success'"
                   type="submit"

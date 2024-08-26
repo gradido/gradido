@@ -20,7 +20,7 @@
         <div class="d-flex gap-3 justify-content-end align-items-center">
           <div
             v-if="row.item.deletedAt"
-            class="mr-3 test-deleted-icon position-relative rounded-circle"
+            class="me-3 test-deleted-icon position-relative rounded-circle"
             style="width: 40px; height: 40px"
           >
             <img src="../../assets/icons/circle-slash.png" class="position-absolute" />
@@ -33,7 +33,7 @@
           <span v-if="!row.item.deletedAt" class="d-flex gap-2">
             <div
               v-if="!row.item.emailChecked"
-              class="mr-3 rounded-circle position-relative"
+              class="me-3 rounded-circle position-relative"
               style="background-color: #dc3545; width: 40px; height: 40px"
             >
               <img
@@ -45,7 +45,7 @@
             <div>
               <img
                 v-if="!row.item.hasElopage"
-                class="mr-3 rounded-circle bg-red-dark"
+                class="me-3 rounded-circle bg-red-dark"
                 src="../../assets/icons/elopage_favicon.png"
                 style="background-color: #dc3545; width: 40px; height: 40px"
               />
@@ -65,7 +65,7 @@
       </template>
 
       <template #row-details="row">
-        <BCard ref="rowDetails" class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
+        <BCard ref="rowDetails" class="shadow-lg ps-3 pe-3 mb-5 bg-white rounded">
           <BTabs content-class="mt-3">
             <BTab :title="$t('creation')" active :disabled="row.item.deletedAt !== null">
               <creation-formular

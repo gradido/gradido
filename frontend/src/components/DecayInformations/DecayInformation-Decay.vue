@@ -1,6 +1,6 @@
 <template>
   <div class="decayinformation-decay">
-    <div class="mb-3">
+    <div class="mb-3 d-flex align-items-center">
       <IBiDropletHalf class="me-2" />
       <b>{{ $t('decay.calculation_decay') }}</b>
     </div>
@@ -42,3 +42,10 @@ export default {
   },
 }
 </script>
+
+<style scoped lang="scss">
+:deep(svg.me-2) {
+  width: 1rem;
+  height: 1rem;
+}
+</style>
