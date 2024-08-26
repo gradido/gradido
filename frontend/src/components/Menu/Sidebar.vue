@@ -26,7 +26,7 @@
               <span class="ms-2">{{ $t('navigation.transactions') }}</span>
             </div>
           </BNavItem>
-          <BNavItem to="/community" class="mb-3" active-class="active-route">
+          <BNavItem ref="communityLink" to="/community" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
               <BImg src="/img/svg/community.svg" height="20" class="svg-icon" />
               <span class="ms-2">{{ $t('creation') }}</span>
@@ -98,29 +98,44 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
 import CONFIG from '../../config'
+import { useRoute } from 'vue-router'
+import { ref, watch, computed } from 'vue'
 
-export default {
-  name: 'Sidebar',
-  props: {
-    shadow: { type: Boolean, required: false, default: true },
+const props = defineProps({
+  shadow: { type: Boolean, default: true },
+})
+
+const route = useRoute()
+const communityLink = ref(null)
+
+const transactionClass = computed(() => {
+  if (route.path === '/gdt') {
+    return 'mb-3 active-route'
+  }
+  return 'mb-3'
+})
+const isHumhub = computed(() => {
+  return CONFIG.HUMHUB_ACTIVE === 'true'
+})
+const isGMS = computed(() => {
+  return CONFIG.GMS_ACTIVE === 'true'
+})
+
+watch(
+  () => route.path,
+  () => {
+    const link = [...communityLink.value.$el.children][0]
+    if (route.path.includes('community')) {
+      link.classList.add('active-route')
+      link.classList.add('router-link-exact-active')
+    } else {
+      link.classList.remove('active-route')
+      link.classList.remove('router-link-exact-active')
+    }
   },
-  computed: {
-    transactionClass() {
-      if (this.$route.path === '/gdt') {
-        return 'mb-3 active-route'
-      }
-      return 'mb-3'
-    },
-    isHumhub() {
-      return CONFIG.HUMHUB_ACTIVE === 'true'
-    },
-    isGMS() {
-      return CONFIG.GMS_ACTIVE === 'true'
-    },
-  },
-}
+)
 </script>
 <style scoped>
 :deep(.nav-item > a) {
