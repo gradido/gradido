@@ -26,7 +26,7 @@
               <span class="ms-2">{{ $t('navigation.transactions') }}</span>
             </div>
           </BNavItem>
-          <BNavItem to="/community" class="mb-3" ref="communityLink" active-class="active-route">
+          <BNavItem ref="communityLink" to="/community" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
               <BImg src="/img/svg/community.svg" height="20" class="svg-icon" />
               <span class="ms-2">{{ $t('creation') }}</span>
