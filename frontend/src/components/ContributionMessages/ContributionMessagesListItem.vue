@@ -33,7 +33,7 @@
       </BRow>
     </div>
     <div v-else>
-      <BRow class="mb-3 bg-f5 p-2 is-moderator">
+      <BRow class="mb-3 p-2 is-moderator">
         <BCol cols="2">
           <avatar :username="moderationName.username" :initials="moderationName.initials"></avatar>
         </BCol>
@@ -88,3 +88,9 @@ export default {
   },
 }
 </script>
+
+<style scoped lang="scss">
+.is-moderator {
+  background-color: var(--bs-f5);
+}
+</style>

@@ -1,12 +1,15 @@
 <template>
   <div class="gdt-transaction-list">
-    <div class="list-group bg-white app-box-shadow gradido-border-radius p-3 mb-3">
-      <BRow class="align-items-center" @click="visible = !visible">
+    <div
+      class="list-group bg-white app-box-shadow gradido-border-radius p-3 mb-3"
+      @click="visible = !visible"
+    >
+      <BRow class="align-items-center">
         <BCol cols="3" lg="2" md="2">
           <BAvatar
             :icon="getLinesByType.icon"
             variant="light"
-            size="3em"
+            size="4em"
             :class="getLinesByType.iconclasses"
           >
             <variant-icon :icon="getLinesByType.icon" :variant="getLinesByType.iconColor" />
@@ -125,3 +128,10 @@ onMounted(() => {
   })
 })
 </script>
+
+<style lang="scss" scoped>
+:deep(.b-avatar-custom > svg) {
+  width: 2.5em;
+  height: 2.5em;
+}
+</style>

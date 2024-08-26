@@ -131,6 +131,7 @@
     "memo": "Mensaje",
     "message": "Noticia",
     "new_balance": "Saldo de cuenta nuevo depués de confirmación",
+    "newPasswordRepeat": "Repetir contraseña nueva",
     "no_gdd_available": "No dispones de GDD para enviar.",
     "password": "Contraseña",
     "passwordRepeat": "Repetir contraseña",
