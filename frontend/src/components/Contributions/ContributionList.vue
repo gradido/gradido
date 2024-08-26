@@ -27,7 +27,6 @@
     <BPagination
       v-if="isPaginationVisible"
       :model-value="currentPage"
-      @update:model-value="currentPage = $event"
       class="mt-3"
       pills
       size="lg"
@@ -35,6 +34,7 @@
       :total-rows="contributionCount"
       align="center"
       :hide-ellipsis="true"
+      @update:model-value="currentPage = $event"
     />
   </div>
 </template>

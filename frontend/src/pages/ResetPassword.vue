@@ -2,7 +2,7 @@
   <div v-if="enterData" class="resetpwd-form">
     <div class="pb-5">{{ $t('site.resetPassword.heading') }}</div>
     <BForm role="form" @submit.prevent="onSubmit">
-      <input-password-confirmation :model-value="form" @update:modelValue="form" register />
+      <input-password-confirmation :model-value="form" register @update:modelValue="form" />
       <BRow>
         <BCol cols="12" lg="6">
           <BButton

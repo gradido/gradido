@@ -64,6 +64,7 @@ export default {
   padding-top: 3rem;
   padding-bottom: 1.5rem;
 }
+
 :deep(.col-1 > svg.icon-variant) {
   width: 1.5rem;
   height: 1.5rem;

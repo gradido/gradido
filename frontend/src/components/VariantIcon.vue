@@ -28,6 +28,7 @@ const color = ref(`var(--bs-${props.variant})`)
 :root {
   --bs-gold: #c58d38;
 }
+
 .icon-variant {
   color: v-bind('color');
 }

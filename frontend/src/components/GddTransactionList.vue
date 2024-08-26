@@ -56,7 +56,6 @@
     <BPagination
       v-if="isPaginationVisible"
       :model-value="currentPage"
-      @update:model-value="currentPage = $event"
       class="mt-3"
       pills
       size="lg"
@@ -64,6 +63,7 @@
       :total-rows="transactionCount"
       align="center"
       :hide-ellipsis="true"
+      @update:model-value="currentPage = $event"
     />
     <div v-if="transactionCount <= 0" class="mt-4 text-center">
       <IBiThreeDots v-if="pending" />

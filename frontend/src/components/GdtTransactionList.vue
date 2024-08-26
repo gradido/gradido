@@ -30,7 +30,6 @@
     <BPagination
       v-if="transactionGdtCount > pageSize"
       :model-value="currentPage"
-      @update:model-value="currentPage = $event"
       class="mt-3"
       pills
       size="lg"
@@ -38,6 +37,7 @@
       :total-rows="transactionGdtCount"
       align="center"
       :hide-ellipsis="true"
+      @update:model-value="currentPage = $event"
     />
   </div>
 </template>
