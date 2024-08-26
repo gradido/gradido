@@ -14,7 +14,7 @@
       </BRow>
 
       <BRow class="mt-5 pe-3 text-color-gdd-yellow h3">
-        <BCol cols="2" class="text-right">
+        <BCol cols="2" class="text-end">
           <variant-icon icon="droplet-half" variant="gold" />
         </BCol>
         <BCol>{{ $t('advanced-calculation') }}</BCol>

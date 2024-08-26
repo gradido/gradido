@@ -1,8 +1,8 @@
 <template>
   <b-card id="formuserlanguage" class="card-border-radius card-background-gray">
     <div>
-      <BRow class="mb-4 text-right">
-        <BCol class="text-right">
+      <BRow class="mb-4 text-end">
+        <BCol class="text-end">
           <a
             class="cursor-pointer"
             @click="showLanguage ? (showLanguage = !showLanguage) : cancelEdit()"
@@ -44,9 +44,9 @@
             </BCol>
           </BRow>
 
-          <BRow class="text-right">
+          <BRow class="text-end">
             <BCol>
-              <div ref="submitButton" class="text-right">
+              <div ref="submitButton" class="text-end">
                 <b-button
                   :variant="loading ? 'light' : 'success'"
                   type="submit"

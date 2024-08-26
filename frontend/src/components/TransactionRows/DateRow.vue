@@ -2,7 +2,7 @@
   <div class="date-row">
     <BRow>
       <BCol cols="5">
-        <div class="text-right">
+        <div class="text-end">
           {{ text }}
         </div>
       </BCol>

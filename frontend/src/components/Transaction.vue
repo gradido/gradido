@@ -28,8 +28,8 @@
           <div class="small mb-2">{{ $t('gdt.credit') }}</div>
           <div class="fw-bold">{{ getLinesByType.credittext }}</div>
         </BCol>
-        <BCol cols="12" md="1" lg="1" class="text-right">
-          <collapse-icon class="text-right" :visible="visible" />
+        <BCol cols="12" md="1" lg="1" class="text-end">
+          <collapse-icon class="text-end" :visible="visible" />
         </BCol>
       </BRow>
 

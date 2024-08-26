@@ -155,6 +155,7 @@
     "validation": {
       "gddSendAmount": "El campo {_field_} debe ser un número entre {min} y {max} con un máximo de dos decimales",
       "is-not": "No es posible  transferirte Gradidos a ti mismo",
+      "requiredField": "El campo {fieldName} es obligatorio",
       "usernmae-regex": "El nombre de usuario debe comenzar con una letra seguida de al menos dos caracteres alfanuméricos.",
       "usernmae-unique": "Este nombre de usuario ya está adjudicado."
     },

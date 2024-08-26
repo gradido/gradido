@@ -2,7 +2,7 @@
   <div class="amount-and-name-row">
     <BRow>
       <BCol cols="5">
-        <div class="text-right">
+        <div class="text-end">
           <span class="gdd-transaction-list-item-amount">
             {{ $filters.GDD(amount) }}
           </span>

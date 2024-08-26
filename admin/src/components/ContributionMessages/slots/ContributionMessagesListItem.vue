@@ -10,7 +10,9 @@
       <span class="ms-2 me-2" data-test="moderator-name">
         {{ message.userFirstName }} {{ message.userLastName }}
       </span>
-      <BAvatar square variant="warning"></BAvatar>
+      <BAvatar square variant="warning">
+        <variant-icon icon="person-fill" variant="black" />
+      </BAvatar>
       <small v-if="isHistory">
         <hr />
         {{ $t('moderator.history') }}
@@ -23,7 +25,9 @@
       </small>
     </div>
     <div v-else class="text-start p-2 rounded-sm mb-3" :class="boxClass">
-      <BAvatar variant="info"></BAvatar>
+      <BAvatar variant="info">
+        <variant-icon icon="person-fill" variant="white" />
+      </BAvatar>
       <span class="ms-2 me-2" data-test="user-name">
         {{ message.userFirstName }} {{ message.userLastName }}
       </span>

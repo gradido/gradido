@@ -32,7 +32,7 @@ describe('DateRow', () => {
     })
 
     it('shows the expiration text', () => {
-      expect(wrapper.find('div.text-right').text()).toBe('form.date')
+      expect(wrapper.find('div.text-end').text()).toBe('form.date')
     })
 
     it.skip('shows the date in long format', () => {

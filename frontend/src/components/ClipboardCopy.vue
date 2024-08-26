@@ -4,13 +4,13 @@
       <div>
         <label>{{ $t('gdd_per_link.copy-link') }}</label>
         <div
-          class="pointer text-center bg-secondary gradido-border-radius p-3"
+          class="copy-link-card pointer text-center gradido-border-radius p-3"
           data-test="copyLink"
           @click="copyLink"
         >
           {{ link }}
           <div>
-            <BButton class="p-4">
+            <BButton class="p-4 gradido-border-radius">
               <IBiLink45deg />
             </BButton>
           </div>
@@ -19,13 +19,13 @@
       <div class="mt-5">
         <label>{{ $t('gdd_per_link.copy-link-with-text') }}</label>
         <div
-          class="pointer text-center bg-secondary gradido-border-radius p-3"
+          class="copy-link-card pointer text-center gradido-border-radius p-3"
           data-test="copyLinkWithText"
           @click="copyLinkWithText"
         >
           {{ linkText }}
           <div>
-            <BButton class="p-4">
+            <BButton class="p-4 gradido-border-radius">
               <IBiLink45deg />
             </BButton>
           </div>
@@ -51,8 +51,12 @@ const props = defineProps({
 const { copyLink, copyLinkWithText, linkText, canCopyLink } = useCopyLinks({ ...props })
 </script>
 
-<style>
+<style lang="scss">
 .svg {
   filter: brightness(0) invert(1);
+}
+
+.copy-link-card {
+  background-color: $secondary !important;
 }
 </style>

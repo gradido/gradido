@@ -1,6 +1,7 @@
 <template>
   <IBiCheck v-if="props.icon === 'check'" class="icon-variant" />
   <IBiXCircle v-if="props.icon === 'x-circle'" class="icon-variant" />
+  <IBiPersonFill v-if="props.icon === 'person-fill'" class="icon-variant" />
 </template>
 
 <script setup>

@@ -11,7 +11,6 @@
       <BCardText>
         <BLink to="creation-confirm">
           <h1>{{ openCreations }}</h1>
-          <h1>Layout test</h1>
         </BLink>
       </BCardText>
     </BCard>
@@ -32,30 +31,31 @@
   </div>
 </template>
 <script setup>
-import { adminListContributions } from '../graphql/adminListContributions'
-import { ref, computed, onMounted } from 'vue'
+import { adminListContributions } from '@/graphql/adminListContributions'
+import { ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useQuery } from '@vue/apollo-composable'
 import { BCard, BCardText, BLink } from 'bootstrap-vue-next'
+import { useAppToast } from '@/composables/useToast'
 
 const store = useStore()
 
 const statusFilter = ref(['IN_PROGRESS', 'PENDING'])
 
-const { result, error } = useQuery(adminListContributions, {
+const { toastError } = useAppToast()
+
+const { result, onResult, onError } = useQuery(adminListContributions, {
   statusFilter: statusFilter.value,
   hideResubmission: true,
 })
 
-const openCreations = computed(() => result.value?.adminListContributions.contributionCount || 0)
-
-onMounted(() => {
-  if (result.value) {
-    store.commit('setOpenCreations', openCreations.value)
-  }
-
-  if (error.value) {
-    // store.dispatch('toastError', error.value.message)
-  }
+onResult(({ data }) => {
+  store.commit('setOpenCreations', data.adminListContributions.contributionCount)
 })
+
+onError((error) => {
+  toastError(error.message)
+})
+
+const openCreations = computed(() => result.value?.adminListContributions.contributionCount || 0)
 </script>

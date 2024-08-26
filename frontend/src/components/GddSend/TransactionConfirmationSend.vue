@@ -24,7 +24,7 @@
       </BRow>
 
       <BRow class="mt-5 text-color-gdd-yellow h3">
-        <BCol cols="2" class="text-right">
+        <BCol cols="2" class="text-end">
           <IBiDropletHalf />
         </BCol>
         <BCol>{{ $t('advanced-calculation') }}</BCol>

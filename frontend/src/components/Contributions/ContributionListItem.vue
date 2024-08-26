@@ -51,9 +51,9 @@
           </div>
           <div v-else class="fw-bold">{{ $filters.GDD(amount) }}</div>
         </BCol>
-        <BCol cols="12" md="1" lg="1" class="text-right align-items-center">
+        <BCol cols="12" md="1" lg="1" class="text-end align-items-center">
           <div v-if="messagesCount > 0 && !moderatorId" @click="visible = !visible">
-            <collapse-icon class="text-right" :visible="visible" />
+            <collapse-icon class="text-end" :visible="visible" />
           </div>
         </BCol>
       </BRow>

@@ -28,8 +28,8 @@
           <variant-icon icon="link45deg" variant="muted" class="m-mb-1" />
         </div>
       </BCol>
-      <BCol cols="12" md="1" lg="1" class="text-right">
-        <collapse-icon class="text-right" :visible="visible" />
+      <BCol cols="12" md="1" lg="1" class="text-end">
+        <collapse-icon class="text-end" :visible="visible" />
       </BCol>
     </BRow>
     <BCollapse :model-value="visible" class="pb-4 pt-lg-3">

@@ -14,7 +14,7 @@
           <BCol>
             <BButton type="reset" variant="secondary">{{ $t('form.cancel') }}</BButton>
           </BCol>
-          <BCol class="text-right">
+          <BCol class="text-end">
             <BButton type="submit" variant="gradido" :disabled="disabled">
               {{ $t('form.reply') }}
             </BButton>

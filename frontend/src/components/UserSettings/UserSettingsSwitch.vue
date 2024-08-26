@@ -5,7 +5,8 @@
       name="check-button"
       :disabled="disabled"
       switch
-      @change="onChange"
+      :model-value="props.initialValue"
+      @update:model-value="onChange"
     />
   </div>
 </template>
@@ -37,16 +38,15 @@ const isDisabled = computed(() => {
 
 const { mutate: updateUserData } = useMutation(updateUserInfos)
 
-const onChange = async () => {
+const onChange = async (evtPayload) => {
   if (isDisabled.value) return
   const variables = []
-  variables[props.attrName] = value.value
-
+  variables[props.attrName] = evtPayload
   try {
-    await updateUserData({ variables })
-    store.commit(props.attrName, value.value)
-    emit('valueChanged', value.value)
-    toastSuccess(value.value ? props.enabledText : props.disabledText)
+    await updateUserData({ ...variables })
+    store.commit(props.attrName, evtPayload)
+    emit('value-changed', evtPayload)
+    toastSuccess(evtPayload ? props.enabledText : props.disabledText)
   } catch (error) {
     value.value = props.initialValue
     toastError(error.message)
@@ -59,5 +59,5 @@ const onClick = () => {
   }
 }
 
-const emit = defineEmits(['valueChanged'])
+const emit = defineEmits(['value-changed'])
 </script>

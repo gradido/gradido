@@ -20,7 +20,7 @@
         </BCol>
       </BRow>
     </div>
-    <div v-else-if="isNotModerator" class="text-right pe-4 pe-lg-0 is-not-moderator">
+    <div v-else-if="isNotModerator" class="text-end pe-4 pe-lg-0 is-not-moderator">
       <BRow class="mb-3">
         <BCol cols="10">
           <div class="fw-bold" data-test="username">{{ storeName.username }}</div>

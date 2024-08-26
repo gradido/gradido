@@ -12,7 +12,7 @@
         :state="dataFieldMeta.valid"
         :locale="$i18n.locale"
         :max="getMaximalDate"
-        :min="minimalDate"
+        :min="minimalDate.toISOString().slice(0, 10)"
         class="mb-4 bg-248"
         reset-value=""
         :label-no-date-selected="$t('contribution.noDateSelected')"
@@ -69,7 +69,7 @@
               {{ $t('form.cancel') }}
             </BButton>
           </BCol>
-          <BCol cols="12" lg="6" class="text-right mt-4 mt-lg-0">
+          <BCol cols="12" lg="6" class="text-end mt-4 mt-lg-0">
             <BButton
               block
               type="submit"

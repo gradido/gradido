@@ -35,7 +35,7 @@
                 <div class="small">
                   {{ $filters.GDD(transaction.amount) }}
                 </div>
-                <div class="small ms-3 text-right">
+                <div class="small ms-3 text-end">
                   {{ $d(new Date(transaction.balanceDate), 'short') }}
                 </div>
               </div>

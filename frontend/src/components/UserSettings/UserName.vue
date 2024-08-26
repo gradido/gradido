@@ -22,9 +22,9 @@
             <BCol class="col-12">
               <input-username
                 :model-value="username"
-                :name="$t('form.username')"
+                name="username"
                 :placeholder="$t('form.username-placeholder')"
-                :show-all-errors="true"
+                show-all-errors
                 :unique="true"
                 :rules="rules"
                 :is-edit="isEdit"
@@ -34,14 +34,18 @@
               />
             </BCol>
             <BCol class="col-12">
-              <div v-if="!username" class="alert" data-test="username-alert">
+              <div
+                v-if="!store.state.username"
+                class="alert gradido-border-radius"
+                data-test="username-alert"
+              >
                 {{ $t('settings.username.no-username') }}
               </div>
             </BCol>
           </BRow>
-          <BRow v-if="newUsername" class="text-right">
+          <BRow v-if="newUsername" class="text-end">
             <BCol>
-              <div ref="submitButton" class="text-right">
+              <div ref="submitButton" class="text-end">
                 <BButton
                   :variant="disabled(errors) ? 'light' : 'success'"
                   type="submit"
@@ -75,7 +79,7 @@ const { toastError, toastSuccess } = useAppToast()
 const { t } = useI18n()
 
 const isEdit = ref(false)
-const username = ref(store.state.username || '123')
+const username = ref(store.state.username || '')
 const usernameUnique = ref(false)
 const rules = {
   required: true,
@@ -86,14 +90,12 @@ const rules = {
   usernameUnique: true,
 }
 
-const { handleSubmit, errors } = useForm({
-  initialValues: username.value,
-})
+const { handleSubmit, errors, values } = useForm()
 const { mutate: updateUserInfo } = useMutation(updateUserInfos)
 
 const onSubmit = handleSubmit(async () => {
   try {
-    await updateUserInfo({ alias: username.value })
+    await updateUserInfo({ alias: values.username })
     store.commit('username', username.value)
     toastSuccess(t('settings.username.change-success'))
   } catch (error) {

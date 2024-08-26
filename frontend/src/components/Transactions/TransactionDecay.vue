@@ -7,8 +7,8 @@
       <BCol>
         {{ $t('decay.decay_since_last_transaction') }}
       </BCol>
-      <BCol cols="12" md="1" lg="1" class="text-right">
-        <collapse-icon class="text-right" :visible="visible" />
+      <BCol cols="12" md="1" lg="1" class="text-end">
+        <collapse-icon class="text-end" :visible="visible" />
       </BCol>
     </BRow>
 
@@ -58,3 +58,14 @@ export default {
   },
 }
 </script>
+
+<style scoped lang="scss">
+:deep(.collapse.show) {
+  padding-top: 3rem;
+  padding-bottom: 1.5rem;
+}
+:deep(.col-1 > svg.icon-variant) {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+</style>

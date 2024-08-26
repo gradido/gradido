@@ -29,7 +29,7 @@
                 <div class="h1 mb-0">{{ communityName }}</div>
                 <div class="mb-0">{{ $t('1000thanks') }}</div>
               </BCol>
-              <BCol cols="3" class="text-right d-none d-sm-none d-md-inline">
+              <BCol cols="3" class="text-end d-none d-sm-none d-md-inline">
                 <BAvatar src="/img/brand/gradido_coin●.png" size="6rem" />
               </BCol>
             </BRow>
@@ -38,7 +38,7 @@
                 <BCol cols="10">
                   <language-switch-2 class="ms-3" />
                 </BCol>
-                <BCol cols="2" class="text-right">
+                <BCol cols="2" class="text-end">
                   <div id="popover-target-1" class="pointer">
                     <BImg src="/img/svg/type.svg" width="19" class="svg-type"></BImg>
                   </div>
