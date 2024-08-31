@@ -49,7 +49,14 @@ export default {
         })
     },
   },
-  created() {
+  beforeMount() {
+    // eslint-disable-next-line
+    console.log('UserSearch.vue beforeMount...')
+    this.authenticateGmsUserPlayground()
+  },
+  beforeUpdate() {
+    // eslint-disable-next-line
+    console.log('UserSearch.vue beforeUpdate...')
     this.authenticateGmsUserPlayground()
   },
 }

@@ -193,7 +193,7 @@ export async function updateGmsUser(apiKey: string, user: GmsUser): Promise<bool
 }
 
 export async function verifyAuthToken(
-  // apiKey: string,
+  apiKey: string,
   communityUuid: string,
   token: string,
 ): Promise<string> {
@@ -205,7 +205,7 @@ export async function verifyAuthToken(
       language: 'en',
       timezone: 'UTC',
       connection: 'keep-alive',
-      // authorization: apiKey,
+      authorization: apiKey,
     },
   }
   try {
