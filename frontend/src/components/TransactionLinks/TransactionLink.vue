@@ -2,7 +2,7 @@
   <div class="transaction-link gradido-custom-background">
     <BRow :class="validLink ? '' : 'bg-muted text-dark'" class="mb-2 pt-2 pb-2">
       <BCol cols="1">
-        <variant-icon icon="link45deg" variant="danger" class="pt-4 ps-2" />
+        <variant-icon icon="link45deg" variant="danger" />
       </BCol>
       <BCol cols="11">
         <BRow>
@@ -144,5 +144,13 @@ const toggleQrModal = () => {
 
 .filter {
   filter: opacity(0.6);
+}
+</style>
+<style scoped>
+:deep(.col-1 .icon-variant) {
+  margin-top: 1.5rem;
+  margin-left: 0.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
 }
 </style>
