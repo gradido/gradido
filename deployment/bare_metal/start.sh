@@ -140,6 +140,8 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE
 
 # Clean tmp folder - remove yarn files
 find /tmp -name "yarn--*" -exec rm -r {} \;
+# Clean user cache folder
+rm -Rf ~/.cache/yarn
 
 # Remove node_modules folders
 # we had problems with corrupted node_modules folder
