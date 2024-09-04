@@ -2,8 +2,8 @@
   <div class="transaction-slot-creation" @click="visible = !visible">
     <BRow class="align-items-center">
       <BCol cols="3" lg="2" md="2">
-        <BAvatar :size="42">
-          <variant-icon icon="gift" variant="success" />
+        <BAvatar :size="42" rounded="lg" variant="success">
+          <variant-icon icon="gift" variant="white" />
         </BAvatar>
       </BCol>
       <BCol>
