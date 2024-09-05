@@ -313,7 +313,7 @@
       "enabled": "Daten werden nach GMS exportiert",
       "location": {
         "label": "Positionsbestimmung",
-        "button": "Klick mich!"
+        "button": "Öffne geographische Standortbestimmung..."
       },
       "location-format": "Position auf Karte anzeigen:",
       "naming-format": "Namen anzeigen:",
@@ -436,6 +436,18 @@
   },
   "transaction-link": {
     "send_you": "sendet dir"
+  },
+  "userlocationcapturing": {
+    "headline": "Geografische Koordinaten-Erfassung des Nutzers",
+    "mapheadline": "Deine Position",
+    "currentkoordinates": "Deine aktuellen Koordinaten:",
+    "fixedkoordinates": "Deine fixierten Koordinaten:",
+    "mapswitch": "Ein/Aus-Schalter Karte",
+    "fixkoordswitch": "Ein/Aus-Schalter Standort-Fixierung",
+    "userlocationlabel": "Dein Standort",
+    "communitylocationlabel": "Dein Community-Standort",
+    "button": "Koordinaten übernehmen",
+    "success": "Standort erfolgreich gespeichert"
   },
   "usersearch": {
     "headline": "Geografische Nutzersuche",

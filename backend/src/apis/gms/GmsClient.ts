@@ -130,7 +130,10 @@ export async function createGmsUser(apiKey: string, user: GmsUser): Promise<bool
         authorization: apiKey,
       },
     }
+    // communityUuid darf nicht per user, sondern wird per ApiKey übergeben und in gms ermittelt
+    user.communityUuid = undefined
     try {
+      logger.debug('createGmsUser: vor POST community-user:', baseUrl.concat(service), user, config)
       const result = await axios.post(baseUrl.concat(service), user, config)
       logger.debug('POST-Response of community-user:', result)
       if (result.status !== 200) {
@@ -142,7 +145,7 @@ export async function createGmsUser(apiKey: string, user: GmsUser): Promise<bool
       // logger.debug('gmsUser:', gmsUser)
       return true
     } catch (error: any) {
-      logger.error('Error in post community-user:', error)
+      logger.error('Error in post community-user: error.response.data=', error.response.data)
       throw new LogError(error.message)
     }
   } else {
@@ -152,6 +155,7 @@ export async function createGmsUser(apiKey: string, user: GmsUser): Promise<bool
 }
 
 export async function updateGmsUser(apiKey: string, user: GmsUser): Promise<boolean> {
+  logger.debug(' updateGmsUser:', user, apiKey)
   if (CONFIG.GMS_ACTIVE) {
     const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
     const service = 'community-user'
@@ -165,6 +169,9 @@ export async function updateGmsUser(apiKey: string, user: GmsUser): Promise<bool
       },
     }
     try {
+      // communityUuid darf nicht per user, sondern wird per ApiKey übergeben und in gms ermittelt
+      user.communityUuid = undefined
+      logger.debug('vor axios.patch with config=', config)
       const result = await axios.patch(baseUrl.concat(service), user, config)
       logger.debug('PATCH-Response of community-user:', result)
       if (result.status !== 200) {
@@ -186,7 +193,7 @@ export async function updateGmsUser(apiKey: string, user: GmsUser): Promise<bool
 }
 
 export async function verifyAuthToken(
-  // apiKey: string,
+  apiKey: string,
   communityUuid: string,
   token: string,
 ): Promise<string> {
@@ -198,7 +205,7 @@ export async function verifyAuthToken(
       language: 'en',
       timezone: 'UTC',
       connection: 'keep-alive',
-      // authorization: apiKey,
+      authorization: apiKey,
     },
   }
   try {

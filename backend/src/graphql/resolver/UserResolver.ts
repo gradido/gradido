@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getConnection, In } from '@dbTools/typeorm'
+import { getConnection, In, Point } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
@@ -25,10 +25,11 @@ import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserContactType } from '@enum/UserContactType'
 import { SearchAdminUsersResult } from '@model/AdminUser'
-// import { Location } from '@model/Location'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
+// import { Location } from '@model/Location'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
+import { UserLocationResult } from '@model/UserLocationResult'
 
 import { updateGmsUser } from '@/apis/gms/GmsClient'
 import { GmsUser } from '@/apis/gms/model/GmsUser'
@@ -79,7 +80,7 @@ import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
-import { Location2Point } from './util/Location2Point'
+import { Location2Point, Point2Location } from './util/Location2Point'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
@@ -589,8 +590,19 @@ export class UserResolver {
       gmsPublishLocation,
     } = updateUserInfosArgs
     logger.info(
-      `updateUserInfos(${firstName}, ${lastName}, ${alias}, ${language}, ***, ***, ${hideAmountGDD}, ${hideAmountGDT}, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})...`,
+      'updateUserInfos(',
+      firstName,
+      lastName,
+      alias,
+      language,
+      hideAmountGDD,
+      hideAmountGDT,
+      gmsAllowed,
+      gmsPublishName,
+      gmsLocation,
+      gmsPublishLocation,
     )
+    logger.debug('updateUserInfoArgs=', updateUserInfosArgs)
     const user = getUser(context)
     const updateUserInGMS = compareGmsRelevantUserSettings(user, updateUserInfosArgs)
 
@@ -654,7 +666,9 @@ export class UserResolver {
       user.humhubPublishName = humhubPublishName
     }
     if (gmsLocation) {
+      logger.debug('enter gmsLocation  in user, gmsLocation=', gmsLocation)
       user.location = Location2Point(gmsLocation)
+      logger.debug('userLocation=', user.location)
     }
     if (gmsPublishLocation !== null && gmsPublishLocation !== undefined) {
       user.gmsPublishLocation = gmsPublishLocation
@@ -673,6 +687,8 @@ export class UserResolver {
 
       await queryRunner.commitTransaction()
       logger.debug('writing User data successful...', user)
+      // insert user location in context-user
+      context.user = user
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Error on writing updated user data', e)
@@ -687,9 +703,15 @@ export class UserResolver {
       logger.debug(`changed user-settings relevant for gms-user update...`)
       const homeCom = await getHomeCommunity()
       if (homeCom.gmsApiKey !== null) {
-        logger.debug(`gms-user update...`, user)
-        await updateGmsUser(homeCom.gmsApiKey, new GmsUser(user))
-        logger.debug(`gms-user update successfully.`)
+        if (!user.gmsRegistered && user.gmsRegisteredAt === null) {
+          logger.debug(`gms-user create...`, user)
+          await sendUserToGms(user, homeCom)
+          logger.debug(`gms-user create successfully.`)
+        } else {
+          logger.debug(`gms-user update...`, user)
+          await updateGmsUser(homeCom.gmsApiKey, new GmsUser(user))
+          logger.debug(`gms-user update successfully.`)
+        }
       }
     }
     if (CONFIG.HUMHUB_ACTIVE) {
@@ -712,14 +734,64 @@ export class UserResolver {
   @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
   @Query(() => GmsUserAuthenticationResult)
   async authenticateGmsUserSearch(@Ctx() context: Context): Promise<GmsUserAuthenticationResult> {
-    logger.info(`authUserForGmsUserSearch()...`)
+    logger.info(`authenticateGmsUserSearch()...`)
     const dbUser = getUser(context)
-    let result: GmsUserAuthenticationResult
+    let result = new GmsUserAuthenticationResult()
     if (context.token) {
-      result = await authenticateGmsUserPlayground(context.token, dbUser)
-      logger.info('authUserForGmsUserSearch=', result)
+      const homeCom = await getHomeCommunity()
+      if (!homeCom.gmsApiKey) {
+        throw new LogError('authenticateGmsUserSearch missing HomeCommunity GmsApiKey')
+      }
+      result = await authenticateGmsUserPlayground(homeCom.gmsApiKey, context.token, dbUser)
+      logger.info('authenticateGmsUserSearch=', result)
     } else {
-      throw new LogError('authUserForGmsUserSearch without token')
+      throw new LogError('authenticateGmsUserSearch missing valid user login-token')
+    }
+    return result
+  }
+
+  @Authorized([RIGHTS.GMS_USER_LOCATION])
+  @Query(() => UserLocationResult)
+  async userLocation(@Ctx() context: Context): Promise<UserLocationResult> {
+    logger.info(`getUserLocation()...`)
+    const dbUser = getUser(context)
+    const result = new UserLocationResult()
+
+    const homeCom = await getHomeCommunity()
+    logger.info(`getUserLocation(), homeCom=`, homeCom)
+    if (homeCom.location) {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+      result.communityLocation = Point2Location(homeCom.location as Point)
+      result.userLocation = Point2Location(homeCom.location as Point)
+      logger.debug(
+        `getUserLocation(), set default userlocation with homeCom.location. result=`,
+        result,
+      )
+    }
+
+    if (context.token) {
+      logger.debug(`getUserLocation() find user of current context...`)
+      const user = await DbUser.findOne({
+        where: { communityUuid: dbUser.communityUuid, gradidoID: dbUser.gradidoID },
+        withDeleted: false,
+        relations: ['community'],
+      })
+      logger.info(`getUserLocation(), user=`, user)
+      if (user?.location) {
+        logger.info(`getUserLocation() user.location=`, user.location)
+        // result.communityLocation = Point2Location(user.community?.location as Point)
+        result.userLocation = Point2Location(user.location as Point)
+        if (user.community) {
+          result.communityLocation = Point2Location(user.community.location as Point)
+          logger.debug(
+            `getUserLocation() set com.location with user.community.location. result=`,
+            result,
+          )
+        }
+      }
+      logger.info('userLocation, result=', result)
+    } else {
+      throw new LogError('userLocation without token')
     }
     return result
   }

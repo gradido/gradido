@@ -2,6 +2,8 @@
 .project
 *.log
 *.bak
+save*
+*save
 /node_modules/*
 messages.pot
 nbproject

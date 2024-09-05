@@ -437,6 +437,18 @@
   "transaction-link": {
     "send_you": "wants to send you"
   },
+  "userlocationcapturing": {
+    "headline": "Geografic Location-Capturing of the User",
+    "mapheadline": "Your Location",
+    "currentkoordinates": "Your current Coordinates:",
+    "fixedkoordinates": "Your fixed Coordinates:",
+    "mapswitch": "On/Off-Switch Map",
+    "fixkoordswitch": "On/Off-Switch Location-fixing",
+    "userlocationlabel": "Your Location",
+    "communitylocationlabel": "Your Community-Location",
+    "button": "take Location",
+    "success": "Location successfully saved"
+  },
   "usersearch": {
     "headline": "Geographical User Search",
     "text": "No matter which community you belong to, with the Geo Matching System you can find members of all communities on a map. You can filter according to offers and needs and display the users that match you.\n\nThe button opens a new browser window in which the users in your area are displayed on a map.",

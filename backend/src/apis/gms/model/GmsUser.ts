@@ -1,13 +1,14 @@
+import { Point } from '@dbTools/typeorm'
 import { User as dbUser } from '@entity/User'
 
-import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
+import { Point2StringArray } from '@/graphql/resolver/util/Location2Point'
 
 export class GmsUser {
   constructor(user: dbUser) {
     this.userUuid = user.gradidoID
-    // this.communityUuid = user.communityUuid
+    this.communityUuid = user.communityUuid
     this.language = user.language
     this.email = this.getGmsEmail(user)
     this.countryCode = this.getGmsCountryCode(user)
@@ -15,13 +16,14 @@ export class GmsUser {
     this.firstName = this.getGmsFirstName(user)
     this.lastName = this.getGmsLastName(user)
     this.alias = this.getGmsAlias(user)
-    this.type = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
-    this.location = null
+    this.type = user.gmsPublishLocation // GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    this.location = Point2StringArray(user.location as Point)
   }
 
   id: number
   userUuid: string
-  communityUuid: string
+  communityUuid: string | undefined
   email: string | undefined
   countryCode: string | undefined
   mobile: string | undefined
@@ -53,6 +55,7 @@ export class GmsUser {
   private getGmsFirstName(user: dbUser): string | undefined {
     if (
       user.gmsAllowed &&
+      user.firstName &&
       (user.gmsPublishName === PublishNameType.PUBLISH_NAME_FIRST ||
         user.gmsPublishName === PublishNameType.PUBLISH_NAME_FIRST_INITIAL ||
         user.gmsPublishName === PublishNameType.PUBLISH_NAME_FULL)
@@ -61,6 +64,7 @@ export class GmsUser {
     }
     if (
       user.gmsAllowed &&
+      user.firstName &&
       ((!user.alias && user.gmsPublishName === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS) ||
         user.gmsPublishName === PublishNameType.PUBLISH_NAME_INITIALS)
     ) {
@@ -69,11 +73,14 @@ export class GmsUser {
   }
 
   private getGmsLastName(user: dbUser): string | undefined {
-    if (user.gmsAllowed && user.gmsPublishName === PublishNameType.PUBLISH_NAME_FULL) {
+    if (user.gmsAllowed &&
+      user.lastName &&
+      user.gmsPublishName === PublishNameType.PUBLISH_NAME_FULL) {
       return user.lastName
     }
     if (
       user.gmsAllowed &&
+      user.lastName &&
       ((!user.alias && user.gmsPublishName === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS) ||
         user.gmsPublishName === PublishNameType.PUBLISH_NAME_FIRST_INITIAL ||
         user.gmsPublishName === PublishNameType.PUBLISH_NAME_INITIALS)
