@@ -1,105 +1,112 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import addNavigationGuards from './guards'
-import router from './router'
+import { verifyLogin } from '../graphql/verifyLogin'
+import CONFIG from '../config'
 
-const storeCommitMock = jest.fn()
-const apolloQueryMock = jest.fn().mockResolvedValue({
-  data: {
-    verifyLogin: {
-      roles: ['ADMIN'],
-      language: 'de',
-    },
+vi.mock('../graphql/verifyLogin', () => ({
+  verifyLogin: 'mocked-verify-login-query',
+}))
+
+vi.mock('../config', () => ({
+  default: {
+    DEBUG_DISABLE_AUTH: false,
   },
-})
-const i18nLocaleMock = jest.fn()
+}))
 
-const store = {
-  commit: storeCommitMock,
-  state: {
-    token: null,
-  },
-}
+describe('Navigation Guards', () => {
+  let router, store, apollo, i18n, storeCommitMock, apolloQueryMock, i18nLocaleMock
 
-const apollo = {
-  query: apolloQueryMock,
-}
-
-const i18n = {
-  locale: i18nLocaleMock,
-}
-
-addNavigationGuards(router, store, apollo, i18n)
-
-describe('navigation guards', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
+
+    storeCommitMock = vi.fn()
+    apolloQueryMock = vi.fn()
+    i18nLocaleMock = vi.fn()
+
+    router = {
+      beforeEach: vi.fn(),
+    }
+
+    store = {
+      commit: storeCommitMock,
+      state: {
+        token: null,
+        moderator: null,
+      },
+    }
+
+    apollo = {
+      query: apolloQueryMock,
+    }
+
+    i18n = {
+      global: {
+        locale: {
+          value: 'en',
+        },
+      },
+    }
+
+    addNavigationGuards(router, store, apollo, i18n)
   })
 
-  describe('authenticate', () => {
-    const navGuard = router.beforeHooks[0]
-    const next = jest.fn()
+  describe('First Navigation Guard', () => {
+    let firstGuard, next
 
-    describe('with valid token and as admin', () => {
-      beforeEach(async () => {
-        await navGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+    beforeEach(() => {
+      firstGuard = router.beforeEach.mock.calls[0][0]
+      next = vi.fn()
+    })
+
+    it('calls next() for non-authenticate routes', async () => {
+      await firstGuard({ path: '/some-route' }, {}, next)
+      expect(next).toHaveBeenCalledWith()
+    })
+
+    describe('Authenticate route', () => {
+      beforeEach(() => {
+        apolloQueryMock.mockResolvedValue({
+          data: {
+            verifyLogin: {
+              roles: ['ADMIN'],
+              language: 'de',
+            },
+          },
+        })
       })
 
-      it('commits the token to the store', () => {
-        expect(storeCommitMock).toBeCalledWith('token', 'valid-token')
+      it('commits token to store', async () => {
+        await firstGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+        expect(storeCommitMock).toHaveBeenCalledWith('token', 'valid-token')
       })
 
-      it.skip('sets the locale', () => {
-        expect(i18nLocaleMock).toBeCalledWith('de')
+      it('calls apollo query with correct parameters', async () => {
+        await firstGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+        expect(apolloQueryMock).toHaveBeenCalledWith({
+          query: verifyLogin,
+          fetchPolicy: 'network-only',
+        })
       })
 
-      it('commits the moderator to the store', () => {
-        expect(storeCommitMock).toBeCalledWith('moderator', {
+      it('sets i18n locale', async () => {
+        await firstGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+        expect(i18n.global.locale.value).toBe('de')
+      })
+
+      it('commits moderator to store', async () => {
+        await firstGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+        expect(storeCommitMock).toHaveBeenCalledWith('moderator', {
           roles: ['ADMIN'],
           language: 'de',
         })
       })
 
-      it('redirects to /', () => {
-        expect(next).toBeCalledWith({ path: '/' })
-      })
-    })
-
-    describe('with valid token and as moderator', () => {
-      beforeEach(async () => {
-        jest.clearAllMocks()
-        apolloQueryMock.mockResolvedValue({
-          data: {
-            verifyLogin: {
-              roles: ['MODERATOR'],
-              language: 'de',
-            },
-          },
-        })
-        await navGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+      it('redirects to home on successful authentication', async () => {
+        await firstGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+        expect(next).toHaveBeenCalledWith({ path: '/' })
       })
 
-      it('commits the token to the store', () => {
-        expect(storeCommitMock).toBeCalledWith('token', 'valid-token')
-      })
-
-      it.skip('sets the locale', () => {
-        expect(i18nLocaleMock).toBeCalledWith('de')
-      })
-
-      it('commits the moderator to the store', () => {
-        expect(storeCommitMock).toBeCalledWith('moderator', {
-          roles: ['MODERATOR'],
-          language: 'de',
-        })
-      })
-
-      it('redirects to /', () => {
-        expect(next).toBeCalledWith({ path: '/' })
-      })
-    })
-
-    describe('with valid token and no roles', () => {
-      beforeEach(() => {
-        jest.clearAllMocks()
+      it('redirects to not-found if no roles', async () => {
         apolloQueryMock.mockResolvedValue({
           data: {
             verifyLogin: {
@@ -108,83 +115,66 @@ describe('navigation guards', () => {
             },
           },
         })
-        navGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+        await firstGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+        expect(next).toHaveBeenCalledWith({ path: '/not-found' })
       })
 
-      it('commits the token to the store', async () => {
-        expect(storeCommitMock).toBeCalledWith('token', 'valid-token')
-      })
-
-      it('does not commit the moderator to the store', () => {
-        expect(storeCommitMock).not.toBeCalledWith('moderator')
-      })
-
-      it('redirects to /not-found', async () => {
-        expect(next).toBeCalledWith({ path: '/not-found' })
-      })
-    })
-
-    describe('with valid token and server error on verification', () => {
-      beforeEach(() => {
-        apolloQueryMock.mockRejectedValue({
-          message: 'Ouch!',
-        })
-        navGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
-      })
-
-      it('commits the token to the store', async () => {
-        expect(storeCommitMock).toBeCalledWith('token', 'valid-token')
-      })
-
-      it('does not commit the moderator to the store', () => {
-        expect(storeCommitMock).not.toBeCalledWith('moderator', { isAdmin: false })
-      })
-
-      it('redirects to /not-found', async () => {
-        expect(next).toBeCalledWith({ path: '/not-found' })
-      })
-    })
-
-    describe('without valid token', () => {
-      it('does not commit the token to the store', async () => {
-        navGuard({ path: '/authenticate' }, {}, next)
-        expect(storeCommitMock).not.toBeCalledWith()
-      })
-
-      it('calls next withou arguments', async () => {
-        navGuard({ path: '/authenticate' }, {}, next)
-        expect(next).toBeCalledWith()
+      it('redirects to not-found on error', async () => {
+        apolloQueryMock.mockRejectedValue(new Error('Auth error'))
+        await firstGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+        expect(next).toHaveBeenCalledWith({ path: '/not-found' })
       })
     })
   })
 
-  describe('protect all routes', () => {
-    const navGuard = router.beforeHooks[1]
-    const next = jest.fn()
+  describe('Second Navigation Guard', () => {
+    let secondGuard, next
 
-    it('redirects no not found with no token in store ', () => {
-      navGuard({ path: '/' }, {}, next)
-      expect(next).toBeCalledWith({ path: '/not-found' })
+    beforeEach(() => {
+      secondGuard = router.beforeEach.mock.calls[1][0]
+      next = vi.fn()
     })
 
-    it('redirects to not found with token in store and not admin or moderator', () => {
-      store.state.token = 'valid token'
-      navGuard({ path: '/' }, {}, next)
-      expect(next).toBeCalledWith({ path: '/not-found' })
+    it('allows navigation when auth is disabled for debug', () => {
+      CONFIG.DEBUG_DISABLE_AUTH = true
+      secondGuard({ path: '/' }, {}, next)
+      expect(next).toHaveBeenCalledWith()
+      CONFIG.DEBUG_DISABLE_AUTH = false
     })
 
-    it('does not redirect with token in store and as admin', () => {
-      store.state.token = 'valid token'
+    it('redirects to not-found when no token', () => {
+      secondGuard({ path: '/' }, {}, next)
+      expect(next).toHaveBeenCalledWith({ path: '/not-found' })
+    })
+
+    it('redirects to not-found when no moderator', () => {
+      store.state.token = 'valid-token'
+      secondGuard({ path: '/' }, {}, next)
+      expect(next).toHaveBeenCalledWith({ path: '/not-found' })
+    })
+
+    it('redirects to not-found when moderator has no roles', () => {
+      store.state.token = 'valid-token'
+      store.state.moderator = { roles: [] }
+      secondGuard({ path: '/' }, {}, next)
+      expect(next).toHaveBeenCalledWith({ path: '/not-found' })
+    })
+
+    it('allows navigation for authenticated admin', () => {
+      store.state.token = 'valid-token'
       store.state.moderator = { roles: ['ADMIN'] }
-      navGuard({ path: '/' }, {}, next)
-      expect(next).toBeCalledWith()
+      secondGuard({ path: '/' }, {}, next)
+      expect(next).toHaveBeenCalledWith()
     })
 
-    it('does not redirect with token in store and as moderator', () => {
-      store.state.token = 'valid token'
-      store.state.moderator = { roles: ['MODERATOR'] }
-      navGuard({ path: '/' }, {}, next)
-      expect(next).toBeCalledWith()
+    it('allows navigation to not-found route', () => {
+      secondGuard({ path: '/not-found' }, {}, next)
+      expect(next).toHaveBeenCalledWith()
+    })
+
+    it('allows navigation to logout route', () => {
+      secondGuard({ path: '/logout' }, {}, next)
+      expect(next).toHaveBeenCalledWith()
     })
   })
 })

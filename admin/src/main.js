@@ -25,22 +25,26 @@ import { toasters } from './mixins/toaster'
 
 import { apolloProvider } from './plugins/apolloProvider'
 
-const app = createApp(App)
+export function createAdminApp() {
+  const app = createApp(App)
 
-app.use(router)
-app.use(store)
+  app.use(router)
+  app.use(store)
 
-i18n.global.locale.value =
-  store.state.moderator && store.state.moderator.language ? store.state.moderator.language : 'en'
+  i18n.global.locale.value =
+    store.state.moderator && store.state.moderator.language ? store.state.moderator.language : 'en'
 
-app.use(i18n)
-app.use(PortalVue)
-app.use(createBootstrap())
+  app.use(i18n)
+  app.use(PortalVue)
+  app.use(createBootstrap())
 
-app.use(() => apolloProvider)
+  app.use(() => apolloProvider)
 
-app.mixin(toasters)
+  addNavigationGuards(router, store, apolloProvider.defaultClient, i18n)
+  return app
+}
 
-addNavigationGuards(router, store, apolloProvider.defaultClient, i18n)
-
-app.mount('#app')
+if (process.env.NODE_ENV !== 'test') {
+  const app = createAdminApp()
+  app.mount('#app')
+}
