@@ -49,7 +49,7 @@ jobs:
         run: docker compose -f docker-compose.yml up --no-deps database
       
       - name: Database | reset
-        run: docker compose -f docker-compose.yml run --service-ports -T database yarn reset
+        run: docker compose -f docker-compose.yml -f docker-compose.reset.yml up --no-deps database
         
   lint:
     if: needs.files-changed.outputs.database == 'true'
