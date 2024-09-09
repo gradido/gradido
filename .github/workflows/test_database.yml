@@ -44,6 +44,10 @@ jobs:
 
       - name: Database | docker-compose
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb
+
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
       
       - name: Database | up
         run: docker compose -f docker-compose.yml run -T database yarn up
