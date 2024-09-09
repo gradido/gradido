@@ -112,7 +112,6 @@
         <BButton @click.prevent="emit('close-contribution-form')">
           {{ $t('close') }}
         </BButton>
-        {{ console.log(editContributionLink) }}
       </div>
     </BForm>
   </div>
